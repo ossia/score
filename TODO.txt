@@ -1,0 +1,9 @@
+Mettre en place Aide
+    Doxygen -> permettra de montrer les relation de classes
+    Documentation du code Doxygen
+
+Liaison Score
+    La barre de progression et les scheduler
+        l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
+    Lier des graphicsItem aux objets jamoma
+        liaison QMetaObject dans QMainWindow
