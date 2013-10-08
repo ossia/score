@@ -1,6 +1,11 @@
 #ifndef GRAPHICSTIMEPROCESS_HPP
 #define GRAPHICSTIMEPROCESS_HPP
 
+/*! @file
+ *  @brief Graphical representation of a TTTimeProcess class.
+ *  @author Jaime Chao
+ */
+
 #include <QGraphicsObject>
 #include "graphicstimeevent.hpp"
 #include "itemTypes.hpp"

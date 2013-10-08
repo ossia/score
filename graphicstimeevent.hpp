@@ -1,3 +1,8 @@
+/*! @file
+ *  @brief Graphical representation of a TTTimeEvent class.
+ *  @author Jaime Chao
+ */
+
 #ifndef GRAPHICSTIMEEVENT_HPP
 #define GRAPHICSTIMEEVENT_HPP
 
