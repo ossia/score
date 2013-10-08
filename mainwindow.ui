@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>343</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QGraphicsView" name="graphicsView"/>
+     <widget class="GraphicsView" name="graphicsView"/>
     </item>
    </layout>
   </widget>
@@ -25,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>343</width>
      <height>22</height>
     </rect>
    </property>
@@ -34,7 +34,6 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_New"/>
-    <addaction name="action_Open"/>
    </widget>
    <addaction name="menu_File"/>
   </widget>
@@ -70,20 +69,43 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_New"/>
-   <addaction name="action_Open"/>
   </widget>
   <action name="action_New">
    <property name="text">
     <string>&amp;New</string>
    </property>
   </action>
-  <action name="action_Open">
+  <action name="actionAddTimeEvent">
    <property name="text">
-    <string>&amp;Open</string>
+    <string>addTimeEvent</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a graphical TimeEvent</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionAddTimeProcess">
+   <property name="text">
+    <string>addTimeProcess</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a graphical TimeProcess</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>graphicsview.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
