@@ -3,6 +3,7 @@
 
 #include <QGraphicsObject>
 #include "graphicstimeevent.hpp"
+#include "itemTypes.hpp"
 
 class GraphicsTimeProcess : public QGraphicsObject
 {
@@ -11,9 +12,14 @@ class GraphicsTimeProcess : public QGraphicsObject
 private:
   GraphicsTimeEvent *_startTimeEvent;
   GraphicsTimeEvent *_endTimeEvent;
+  QGraphicsScene *_scene;
+  qreal  _width;
+  qreal _height;
 
 public:
-  explicit GraphicsTimeProcess(QObject *parent = 0);
+  enum {Type = ProcessItemType};
+
+  explicit GraphicsTimeProcess(const QPoint &position, QGraphicsItem *parent, QGraphicsScene *scene);
 
 signals:
 
@@ -24,7 +30,7 @@ public slots:
 public:
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual int type() const;
+  virtual int type() const {return Type;}
 };
 
 #endif // GRAPHICSTIMEPROCESS_HPP

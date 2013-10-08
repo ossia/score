@@ -6,12 +6,16 @@
 #include <QPainter>
 #include <QDate>
 
+#include"itemTypes.hpp"
+
 class GraphicsTimeEvent : public QGraphicsObject
 {
   Q_OBJECT
   Q_PROPERTY(QDate date READ date WRITE setDate) /// \todo Unification avec la date de TTTimeEvent
 
 public:
+  enum {Type = EventItemType};
+
   explicit GraphicsTimeEvent(const QPoint &position, QGraphicsItem *parent, QGraphicsScene *scene);
   QDate date() const { return _date; }
 
@@ -32,7 +36,7 @@ private:
 public:
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual int type() const {return QGraphicsItem::UserType + 1;}
+  virtual int type() const {return Type;}
   virtual QPainterPath shape() const;
 
 protected:
