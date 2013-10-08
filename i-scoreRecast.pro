@@ -17,12 +17,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     graphicstimeevent.cpp \
     engine.cpp \
-    graphicstimeprocess.cpp
+    graphicstimeprocess.cpp \
+    graphicsview.cpp
 
 HEADERS  += mainwindow.hpp \
     graphicstimeevent.hpp \
     engine.hpp \
-    graphicstimeprocess.hpp
+    graphicstimeprocess.hpp \
+    graphicsview.hpp \
+    itemTypes.hpp
 
 FORMS    += mainwindow.ui
 
