@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMouseEvent>
 #include "graphicstimeevent.hpp"
+#include "graphicstimeprocess.hpp"
 
 class QGraphicsScene;
 
@@ -19,18 +20,28 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
-private:
-  QPoint position();
+public slots:
+    void setDirty(bool on=true);
 
+private slots:
+  void updateUi();
+  void addItem();
+
+private:
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
   QGraphicsScene *_scene;
 
+  QPoint position();
+  void connectItem(QObject *item);
+
   // QWidget interface
 protected:
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseMoveEvent(QMouseEvent *event);
+
+
 };
 
 #endif // MAINWINDOW_HPP

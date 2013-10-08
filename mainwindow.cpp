@@ -1,3 +1,4 @@
+#include "itemTypes.hpp"
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
@@ -10,11 +11,29 @@ MainWindow::MainWindow(QWidget *parent)
 
   _scene = new QGraphicsScene(this);
   ui->graphicsView->setScene(_scene);
+
+  ui->actionAddTimeEvent->setData(EventItemType);
+  ui->actionAddTimeProcess->setData(ProcessItemType);
+
+  connect(ui->actionAddTimeEvent, SIGNAL(triggered()), this, SLOT(addItem()));
+  connect(ui->actionAddTimeProcess, SIGNAL(triggered()), this, SLOT(addItem()));
+
 }
 
 MainWindow::~MainWindow()
 {
   delete ui;
+}
+
+void MainWindow::setDirty(bool on)
+{
+    setWindowModified(on);
+    updateUi();
+}
+
+void MainWindow::updateUi()
+{
+ /// @todo Update actions to reflect application state
 }
 
 QPoint MainWindow::position() //p.426
@@ -31,8 +50,35 @@ QPoint MainWindow::position() //p.426
       _addOffset = OFFSET_INCREMENT;
       _previousPoint = point;
     }
+  return ui->graphicsView->mapToScene(point).toPoint();
+}
 
-  return ui->graphicsView->mapToScene(point - ui->graphicsView->pos()).toPoint();
+void MainWindow::addItem()
+{
+  QAction *action = qobject_cast<QAction*>(sender()); /// voir p349 de AQP
+  qint32 type = action->data().toInt();
+  QObject *item = NULL;
+
+  if (type == EventItemType)
+    item = new GraphicsTimeEvent(position(), 0, _scene);
+  else if(type == ProcessItemType)
+    item = new GraphicsTimeProcess(position(), 0, _scene);
+  else
+    Q_ASSERT(false);
+
+  if(item) {
+      connectItem(item);
+      setDirty(true);
+    }
+}
+
+void MainWindow::connectItem(QObject *item)
+{
+    connect(item, SIGNAL(dirty()), this, SLOT(setDirty()));
+    /// @todo Add metaobject connect
+    //const QMetaObject *metaObject = item->metaObject();
+    //if (metaObject->indexOfProperty("brush") > -1)
+        //connect(brushWidget, SIGNAL(brushChanged(const QBrush&)), item, SLOT(setBrush(const QBrush&)));
 }
 
 
@@ -40,7 +86,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 {
   QMainWindow::mousePressEvent(event);
   //_scene->addLine(0,0,position().x(), position().y());
-  QGraphicsItem *item = new GraphicsTimeEvent(position(), 0, _scene);
   statusBar()->showMessage(QString("position : %1 %2").arg(position().x()).arg(position().y()));
 }
 

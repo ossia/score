@@ -35,7 +35,15 @@
     </property>
     <addaction name="action_New"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionAddTimeEvent"/>
+    <addaction name="actionAddTimeProcess"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -69,6 +77,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_New"/>
+   <addaction name="actionAddTimeEvent"/>
+   <addaction name="actionAddTimeProcess"/>
   </widget>
   <action name="action_New">
    <property name="text">

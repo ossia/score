@@ -27,6 +27,7 @@ public:
   explicit GraphicsTimeProcess(const QPoint &position, QGraphicsItem *parent, QGraphicsScene *scene);
 
 signals:
+  void dirty();
 
 public slots:
 

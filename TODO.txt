@@ -5,5 +5,8 @@ Mettre en place Aide
 Liaison Score
     La barre de progression et les scheduler
         l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
-    Lier des graphicsItem aux objets jamoma
+          ou besoin d'un qtimer en plus ?
+    Lier des graphicsItem aux objets Score
         liaison QMetaObject dans QMainWindow
+        directe depuis les graphicsItem -> essayer ça !
+    On doit créer la première boîte/scénario
