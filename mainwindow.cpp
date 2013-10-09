@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->actionAddTimeEvent, SIGNAL(triggered()), this, SLOT(addItem()));
   connect(ui->actionAddTimeProcess, SIGNAL(triggered()), this, SLOT(addItem()));
 
+  connect(ui->graphicsView, SIGNAL(mousePosition(QPoint)), this, SLOT(setMousePosition(QPoint)));
 }
 
 MainWindow::~MainWindow()
@@ -29,6 +30,11 @@ void MainWindow::setDirty(bool on)
 {
     setWindowModified(on);
     updateUi();
+}
+
+void MainWindow::setMousePosition(QPoint point)
+{
+  statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
 }
 
 void MainWindow::updateUi()
@@ -86,7 +92,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 {
   QMainWindow::mousePressEvent(event);
   //_scene->addLine(0,0,position().x(), position().y());
-  statusBar()->showMessage(QString("position : %1 %2").arg(position().x()).arg(position().y()));
 }
 
 

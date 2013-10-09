@@ -22,6 +22,7 @@ public:
 
 public slots:
     void setDirty(bool on=true);
+    void setMousePosition(QPoint point);
 
 private slots:
   void updateUi();
