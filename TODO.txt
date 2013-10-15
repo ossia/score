@@ -6,7 +6,24 @@ Liaison Score
     La barre de progression et les scheduler
         l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
           ou besoin d'un qtimer en plus ?
+          avec animation framework
     Lier des graphicsItem aux objets Score
         liaison QMetaObject dans QMainWindow
         directe depuis les graphicsItem -> essayer ça !
+            chacun s'occupe de lui et informe ceux que ça intéresse
     On doit créer la première boîte/scénario
+        constructeur avec paramètre mainScenario ou test s'il n'a pas de parent
+
+Général
+    est-il possible de gérer les conditions dans State Machine ?
+        si la taille du timeProcess est trop petite on affiche pas tous les elements
+    mettre une fenêtre d'information/édition sur les objets graphiques
+    Qt's Undo Framework
+
+Environnement
+    Choisir la norme de codage
+        mettre _ ou m_ pour les membres de classe ?
+        ordre des déclarations dans header
+
+Github
+    quel licence pour le code, avant de basculer sur gitHub de OSSIA !

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>527</width>
+    <width>839</width>
     <height>461</height>
    </rect>
   </property>
@@ -32,7 +32,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>527</width>
+     <width>839</width>
      <height>22</height>
     </rect>
    </property>
@@ -59,9 +59,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_New"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="inspector">
+  <widget class="QDockWidget" name="player">
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
@@ -91,7 +92,13 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="player">
+  <widget class="QDockWidget" name="inspector">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="autoFillBackground">
     <bool>false</bool>
    </property>
@@ -141,7 +148,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_New"/>
+   <addaction name="actionMouse"/>
+   <addaction name="actionSelect"/>
+   <addaction name="actionScroll"/>
+   <addaction name="separator"/>
    <addaction name="actionAddTimeEvent"/>
    <addaction name="actionAddTimeProcess"/>
   </widget>
@@ -151,6 +161,9 @@
    </property>
   </action>
   <action name="actionAddTimeEvent">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>addTimeEvent</string>
    </property>
@@ -162,6 +175,9 @@
    </property>
   </action>
   <action name="actionAddTimeProcess">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>addTimeProcess</string>
    </property>
@@ -170,6 +186,30 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionSelect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>select</string>
+   </property>
+  </action>
+  <action name="actionScroll">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>scroll</string>
+   </property>
+  </action>
+  <action name="actionMouse">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>mouse</string>
    </property>
   </action>
  </widget>

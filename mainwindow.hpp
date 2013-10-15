@@ -2,11 +2,9 @@
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
-#include <QMouseEvent>
-#include "graphicstimeevent.hpp"
-#include "graphicstimeprocess.hpp"
 
 class QGraphicsScene;
+class QActionGroup;
 
 namespace Ui {
   class MainWindow;
@@ -16,6 +14,8 @@ class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
+ // garder quel action des menubar sont checkés
+ // Q_PROPERTY(type name READ name WRITE setname NOTIFY nameChanged)
 public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
@@ -33,9 +33,13 @@ private:
   QPoint _previousPoint;
   Ui::MainWindow *ui;
   QGraphicsScene *_scene;
+  QActionGroup *_viewDragModeActionGroup;
+  QActionGroup *m_addGraphicsItemActionGroup;
 
   QPoint position();
   void connectItem(QObject *item);
+  void createConnections();
+  void createActionGroups();
 
   // QWidget interface
 protected:

@@ -1,6 +1,11 @@
 #include "itemTypes.hpp"
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
+#include "graphicstimeevent.hpp"
+#include "graphicstimeprocess.hpp"
+#include <QMouseEvent>
+#include <QActionGroup>
+#include <QGraphicsView>
 
 const qint16 OFFSET_INCREMENT = 5;
 
@@ -12,18 +17,45 @@ MainWindow::MainWindow(QWidget *parent)
   _scene = new QGraphicsScene(this);
   ui->graphicsView->setScene(_scene);
 
-  ui->actionAddTimeEvent->setData(EventItemType);
-  ui->actionAddTimeProcess->setData(ProcessItemType);
-
-  connect(ui->actionAddTimeEvent, SIGNAL(triggered()), this, SLOT(addItem()));
-  connect(ui->actionAddTimeProcess, SIGNAL(triggered()), this, SLOT(addItem()));
-
-  connect(ui->graphicsView, SIGNAL(mousePosition(QPoint)), this, SLOT(setMousePosition(QPoint)));
+  createActionGroups();
+  createConnections();
 }
 
 MainWindow::~MainWindow()
 {
   delete ui;
+}
+
+void MainWindow::createActionGroups()
+{
+  // GraphicsItems relative's actions
+  ui->actionAddTimeEvent->setData(EventItemType);
+  ui->actionAddTimeProcess->setData(ProcessItemType);
+
+  m_addGraphicsItemActionGroup = new QActionGroup(this);
+  m_addGraphicsItemActionGroup->addAction(ui->actionAddTimeEvent);
+  m_addGraphicsItemActionGroup->addAction(ui->actionAddTimeProcess);
+
+  // Mouse cursor relative's actions
+  ui->actionMouse->setData(QGraphicsView::NoDrag);
+  ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
+  ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
+
+  _viewDragModeActionGroup = new QActionGroup(this);
+  _viewDragModeActionGroup->addAction(ui->actionMouse);
+  _viewDragModeActionGroup->addAction(ui->actionScroll);
+  _viewDragModeActionGroup->addAction(ui->actionSelect);
+
+  ui->actionMouse->setChecked(true);
+}
+
+void MainWindow::createConnections()
+{
+  connect(ui->actionAddTimeEvent, SIGNAL(triggered()), this, SLOT(addItem()));
+  connect(ui->actionAddTimeProcess, SIGNAL(triggered()), this, SLOT(addItem()));
+
+  connect(_viewDragModeActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
+  connect(ui->graphicsView, SIGNAL(mousePosition(QPoint)), this, SLOT(setMousePosition(QPoint)));
 }
 
 void MainWindow::setDirty(bool on)
@@ -40,6 +72,7 @@ void MainWindow::setMousePosition(QPoint point)
 void MainWindow::updateUi()
 {
  /// @todo Update actions to reflect application state
+ // ui->actionSelect->setChecked();
 }
 
 QPoint MainWindow::position() //p.426
@@ -65,13 +98,15 @@ void MainWindow::addItem()
   qint32 type = action->data().toInt();
   QObject *item = NULL;
 
-  if (type == EventItemType)
-    item = new GraphicsTimeEvent(position(), 0, _scene);
-  else if(type == ProcessItemType)
-    item = new GraphicsTimeProcess(position(), 0, _scene);
-  else
-    Q_ASSERT(false);
+  Q_ASSERT(type);
+  if (type == EventItemType) {
+      item = new GraphicsTimeEvent(position(), 0, _scene);
+    }
+  else if(type == ProcessItemType) {
+      item = new GraphicsTimeProcess(position(), 0, _scene);
+    }
 
+  Q_CHECK_PTR(item);
   if(item) {
       connectItem(item);
       setDirty(true);
