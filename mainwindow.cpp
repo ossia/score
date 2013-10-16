@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
   : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
+  setWindowTitle(tr("%1").arg(QApplication::applicationName()));
 
   _scene = new QGraphicsScene(this);
   ui->graphicsView->setScene(_scene);
@@ -62,11 +63,6 @@ void MainWindow::setDirty(bool on)
 {
     setWindowModified(on);
     updateUi();
-}
-
-void MainWindow::setMousePosition(QPoint point)
-{
-  statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
 }
 
 void MainWindow::updateUi()
@@ -122,6 +118,10 @@ void MainWindow::connectItem(QObject *item)
         //connect(brushWidget, SIGNAL(brushChanged(const QBrush&)), item, SLOT(setBrush(const QBrush&)));
 }
 
+void MainWindow::setMousePosition(QPoint point)
+{
+  statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
+}
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {

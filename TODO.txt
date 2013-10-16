@@ -19,6 +19,9 @@ Général
         si la taille du timeProcess est trop petite on affiche pas tous les elements
     mettre une fenêtre d'information/édition sur les objets graphiques
     Qt's Undo Framework
+        devra avoir sa contrepartie dans Score
+    un graphicsItem selectionne puis supprimé est destroyed()
+    interface dont hériterait les objets graphiques
 
 Environnement
     Choisir la norme de codage
