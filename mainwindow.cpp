@@ -20,6 +20,9 @@ MainWindow::MainWindow(QWidget *parent)
 
   createActionGroups();
   createConnections();
+
+  //QTimer::singleShot(0, &stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
+
 }
 
 MainWindow::~MainWindow()
@@ -112,10 +115,16 @@ void MainWindow::addItem()
 void MainWindow::connectItem(QObject *item)
 {
     connect(item, SIGNAL(dirty()), this, SLOT(setDirty()));
-    /// @todo Add metaobject connect
-    //const QMetaObject *metaObject = item->metaObject();
-    //if (metaObject->indexOfProperty("brush") > -1)
-        //connect(brushWidget, SIGNAL(brushChanged(const QBrush&)), item, SLOT(setBrush(const QBrush&)));
+
+    const QMetaObject *metaObject = item->metaObject();
+    if (metaObject->indexOfSignal("playOrPauseButtonClicked()") > -1)
+      connect(ui->playButton, SIGNAL(clicked()), item, SIGNAL(playOrPauseButtonClicked())); /// @todo rename playButton to playOrPauseButton and transform it
+    if (metaObject->indexOfSignal("stopButtonClicked()") > -1)
+      connect(ui->stopButton, SIGNAL(clicked()), item, SIGNAL(stopButtonClicked()));
+//    if (metaObject->indexOfProperty("running") > -1) /// @todo change play button to play/pause
+//      connect(ui->playButton, SIGNAL(clicked()), item, SLOT(setrunning(true;)));
+//    if (metaObject->indexOfProperty("stopped"))
+//      connect(ui->stopButton, SIGNAL(clicked()), item, SLOT(setstopped(false;)));
 }
 
 void MainWindow::setMousePosition(QPoint point)
