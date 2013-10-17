@@ -22,6 +22,8 @@ Général
         devra avoir sa contrepartie dans Score
     un graphicsItem selectionne puis supprimé est destroyed()
     interface dont hériterait les objets graphiques
+    m_addGraphicsItemActionGroup à la manière de omnigraffle
+        à gérer dans un stateMachine de mainWindow ?
 
 Environnement
     Choisir la norme de codage

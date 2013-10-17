@@ -1,12 +1,13 @@
 #include "graphicsview.hpp"
 #include "mainwindow.hpp"
+#include "itemTypes.hpp"
 #include <QMouseEvent>
 #include <QPoint>
 #include <QAction>
 #include <QVariant>
 
-GraphicsView::GraphicsView(QWidget *parent) :
-  QGraphicsView(parent)
+GraphicsView::GraphicsView(QWidget *parent)
+  : QGraphicsView(parent)
 {
   setMouseTracking(true); /// Permits to emit mousePosition() when moving the mouse
 }
@@ -16,8 +17,10 @@ void GraphicsView::mouseDragMode(QAction* action)
   Q_ASSERT(action->data().canConvert(QVariant::Int));
   qint32 typeDragMode = action->data().toInt();
 
-  Q_ASSERT(typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag);
+  Q_ASSERT(typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag || typeDragMode == EventItemType || typeDragMode == ProcessItemType);
   switch(typeDragMode){
+    case EventItemType : // we pass Event and Process Item to NoDrag
+    case ProcessItemType :
     case QGraphicsView::NoDrag :
       setCursor(Qt::ArrowCursor);
       setDragMode(QGraphicsView::NoDrag);
@@ -38,11 +41,10 @@ void GraphicsView::mouseDragMode(QAction* action)
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
-  //MainWindow *mainWindow = qobject_cast<MainWindow*>(this->parent());
-  //Q_CHECK_PTR(mainWindow);
-  //if(addItem() && (event->button() == Qt::LeftButton) && (dragMode() == QGraphicsView::NoDrag)) {
-    //emit event->mouseState;
-    //}
+
+  if((event->button() == Qt::LeftButton) && (dragMode() == QGraphicsView::NoDrag)) {
+    emit mousePressAddItem(mapToScene(event->pos()));
+  }
 
   QGraphicsView::mousePressEvent(event);
 

@@ -21,7 +21,7 @@ class GraphicsTimeEvent : public QGraphicsObject
 public:
   enum {Type = EventItemType};
 
-  explicit GraphicsTimeEvent(const QPoint &position, QGraphicsItem *parent, QGraphicsScene *scene);
+  explicit GraphicsTimeEvent(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene);
   QDate date() const { return _date; }
 
 public slots:

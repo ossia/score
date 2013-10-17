@@ -6,6 +6,7 @@
 #include <QMouseEvent>
 #include <QActionGroup>
 #include <QGraphicsView>
+#include <QPointF>
 
 const qint16 OFFSET_INCREMENT = 5;
 
@@ -30,35 +31,34 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::createActionGroups()
+void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion à la omnigraffle
 {
   // GraphicsItems relative's actions
   ui->actionAddTimeEvent->setData(EventItemType);
   ui->actionAddTimeProcess->setData(ProcessItemType);
 
-  m_addGraphicsItemActionGroup = new QActionGroup(this);
-  m_addGraphicsItemActionGroup->addAction(ui->actionAddTimeEvent);
-  m_addGraphicsItemActionGroup->addAction(ui->actionAddTimeProcess);
+  m_mouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
+  m_mouseActionGroup->addAction(ui->actionAddTimeEvent);
+  m_mouseActionGroup->addAction(ui->actionAddTimeProcess);
+  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
 
   // Mouse cursor relative's actions
   ui->actionMouse->setData(QGraphicsView::NoDrag);
   ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
   ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
 
-  _viewDragModeActionGroup = new QActionGroup(this);
-  _viewDragModeActionGroup->addAction(ui->actionMouse);
-  _viewDragModeActionGroup->addAction(ui->actionScroll);
-  _viewDragModeActionGroup->addAction(ui->actionSelect);
+  m_mouseActionGroup->addAction(ui->actionMouse);
+  m_mouseActionGroup->addAction(ui->actionScroll);
+  m_mouseActionGroup->addAction(ui->actionSelect);
 
   ui->actionMouse->setChecked(true);
 }
 
 void MainWindow::createConnections()
 {
-  connect(ui->actionAddTimeEvent, SIGNAL(triggered()), this, SLOT(addItem()));
-  connect(ui->actionAddTimeProcess, SIGNAL(triggered()), this, SLOT(addItem()));
+  connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
 
-  connect(_viewDragModeActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
+  connect(m_mouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPoint)), this, SLOT(setMousePosition(QPoint)));
 }
 
@@ -91,19 +91,25 @@ QPoint MainWindow::position() //p.426
   return ui->graphicsView->mapToScene(point).toPoint();
 }
 
-void MainWindow::addItem()
+void MainWindow::addItem(QPointF pos)
 {
-  QAction *action = qobject_cast<QAction*>(sender()); /// voir p349 de AQP
-  qint32 type = action->data().toInt();
+  QAction *action = m_mouseActionGroup->checkedAction();
+  Q_ASSERT(action);
+  if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeProcess) { /// @todo  pas très découplé mais à cause de la galère des groupActions
+      return;
+    }
+
+  qint32 type = action->data().toInt(); // we recover the data associated with the action (see createActionGroups())
   QObject *item = NULL;
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      item = new GraphicsTimeEvent(position(), 0, _scene);
+      item = new GraphicsTimeEvent(pos, 0, _scene);
     }
   else if(type == ProcessItemType) {
-      item = new GraphicsTimeProcess(position(), 0, _scene);
+      item = new GraphicsTimeProcess(pos, 0, _scene);
     }
+  ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
 
   Q_CHECK_PTR(item);
   if(item) {
@@ -135,7 +141,6 @@ void MainWindow::setMousePosition(QPoint point)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
   QMainWindow::mousePressEvent(event);
-  //_scene->addLine(0,0,position().x(), position().y());
 }
 
 

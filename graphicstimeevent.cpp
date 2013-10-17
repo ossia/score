@@ -1,7 +1,7 @@
 #include "graphicstimeevent.hpp"
 
-GraphicsTimeEvent::GraphicsTimeEvent(const QPoint &position, QGraphicsItem *parent, QGraphicsScene *scene)
-  : QGraphicsObject(parent), _scene(scene), _penWidth(3), _circleRadii(10), _height(100)
+GraphicsTimeEvent::GraphicsTimeEvent(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene)
+  : QGraphicsObject(parent), _scene(scene), _penWidth(1), _circleRadii(10), _height(100)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsMovable |

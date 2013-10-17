@@ -11,6 +11,7 @@ public:
 
 signals:
   void mousePosition(QPoint); /// Used to emit mousePosition to the mainWindow's statusBar
+  void mousePressAddItem(QPointF);
 
 public slots:
   void mouseDragMode(QAction *); /// The DragMode property holds the behavior for dragging the mouse over the scene while the left mouse button is pressed.

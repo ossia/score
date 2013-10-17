@@ -5,6 +5,7 @@
 
 class QGraphicsScene;
 class QActionGroup;
+class QPointF;
 
 namespace Ui {
   class MainWindow;
@@ -26,15 +27,14 @@ public slots:
 
 private slots:
   void updateUi();
-  void addItem();
+  void addItem(QPointF);
 
 private:
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
   QGraphicsScene *_scene;
-  QActionGroup *_viewDragModeActionGroup;
-  QActionGroup *m_addGraphicsItemActionGroup;
+  QActionGroup *m_mouseActionGroup;
 
   QPoint position();
   void connectItem(QObject *item);
