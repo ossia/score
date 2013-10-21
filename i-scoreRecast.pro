@@ -13,34 +13,34 @@ TEMPLATE = app
 CONFIG += x86_64
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    graphicstimeevent.cpp \
-    engine.cpp \
-    graphicstimeprocess.cpp \
-    graphicsview.cpp
+SOURCES += sources/main.cpp\
+        sources/mainwindow.cpp \
+    sources/graphicstimeevent.cpp \
+    sources/engine.cpp \
+    sources/graphicstimeprocess.cpp \
+    sources/graphicsview.cpp
 
-HEADERS  += mainwindow.hpp \
-    graphicstimeevent.hpp \
-    engine.hpp \
-    graphicstimeprocess.hpp \
-    graphicsview.hpp \
-    itemTypes.hpp
+HEADERS  += headers/mainwindow.hpp \
+    headers/graphicstimeevent.hpp \
+    headers/engine.hpp \
+    headers/graphicstimeprocess.hpp \
+    headers/graphicsview.hpp \
+    headers/itemTypes.hpp
 
-FORMS    += mainwindow.ui
+FORMS    += forms/mainwindow.ui
 
 OTHER_FILES += \
     TODO.txt
 
-    INCLUDEPATH += /usr/local/jamoma/includes
-    QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/
+INCLUDEPATH += headers/ /usr/local/jamoma/includes
+QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/
 
-    LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
-    LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
-    LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
-    LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
-    LIBS += -framework gecode
-    LIBS += -lxml2
+LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
+LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
+LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
+LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
+LIBS += -framework gecode
+LIBS += -lxml2
 
 macx-clang {
 
