@@ -38,6 +38,13 @@ void GraphicsView::mouseDragMode(QAction* action)
     }
 }
 
+void GraphicsView::graphicItemEnsureVisible()
+{
+  QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
+  //centerOn(item);
+  fitInView(item, Qt::KeepAspectRatio); /// Automatically resize and center the item, Qt::AspectRatioMode is not ignored
+  //QGraphicsView::AnchorViewCenter
+}
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
@@ -58,7 +65,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
-  emit mousePosition(QPoint(event->x(), event->y()));
+  emit mousePosition(mapToScene(event->pos()));
   QGraphicsView::mouseMoveEvent(event);
 }
 

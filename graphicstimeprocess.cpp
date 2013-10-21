@@ -4,6 +4,10 @@
 #include <QFinalState>
 #include <QDebug>
 #include <QTimer>
+#include <QGraphicsSceneMouseEvent>
+
+/// @todo Use a namespace ?
+const qint32 headerHeight = 20;
 
 GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene)
   : QGraphicsObject(parent), _scene(scene), m_boxEditingBrush(Qt::NoBrush), m_boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
@@ -105,7 +109,7 @@ void GraphicsTimeProcess::paint(QPainter *painter, const QStyleOptionGraphicsIte
   /// Draw the header part
   painter->setPen(Qt::NoPen);
   painter->setBrush(QBrush(Qt::gray));
-  painter->drawRect(0,0,m_width,20);
+  painter->drawRect(0,0,m_width, headerHeight);
 
   painter->setPen(Qt::SolidLine);
   painter->setBrush(boxBrush());
@@ -113,6 +117,16 @@ void GraphicsTimeProcess::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
   /// Draw the bounding rectangle
   painter->drawRect(boundingRect());
+}
+
+void GraphicsTimeProcess::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+  if (event->button() == Qt::LeftButton) {
+      if (event->pos().y() <= headerHeight){
+          emit headerClicked();
+        }
+    }
+  QGraphicsObject::mouseDoubleClickEvent(event);
 }
 
 void GraphicsTimeProcess::setmainScenario(bool arg)

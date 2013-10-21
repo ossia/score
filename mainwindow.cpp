@@ -59,7 +59,7 @@ void MainWindow::createConnections()
   connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
 
   connect(m_mouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
-  connect(ui->graphicsView, SIGNAL(mousePosition(QPoint)), this, SLOT(setMousePosition(QPoint)));
+  connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
 }
 
 void MainWindow::setDirty(bool on)
@@ -95,7 +95,7 @@ void MainWindow::addItem(QPointF pos)
 {
   QAction *action = m_mouseActionGroup->checkedAction();
   Q_ASSERT(action);
-  if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeProcess) { /// @todo  pas très découplé mais à cause de la galère des groupActions
+  if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeProcess) { /// @todo  pas très découplé mais à cause de la galère des groupActions, regarder signalMapper
       return;
     }
 
@@ -127,13 +127,15 @@ void MainWindow::connectItem(QObject *item)
       connect(ui->playButton, SIGNAL(clicked()), item, SIGNAL(playOrPauseButtonClicked())); /// @todo rename playButton to playOrPauseButton and transform it
     if (metaObject->indexOfSignal("stopButtonClicked()") > -1)
       connect(ui->stopButton, SIGNAL(clicked()), item, SIGNAL(stopButtonClicked()));
+    if(metaObject->indexOfSignal("headerClicked()") > -1)
+      connect(item, SIGNAL(headerClicked()), ui->graphicsView, SLOT(graphicItemEnsureVisible()));
 //    if (metaObject->indexOfProperty("running") > -1) /// @todo change play button to play/pause
 //      connect(ui->playButton, SIGNAL(clicked()), item, SLOT(setrunning(true;)));
 //    if (metaObject->indexOfProperty("stopped"))
 //      connect(ui->stopButton, SIGNAL(clicked()), item, SLOT(setstopped(false;)));
 }
 
-void MainWindow::setMousePosition(QPoint point)
+void MainWindow::setMousePosition(QPointF point)
 {
   statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
 }

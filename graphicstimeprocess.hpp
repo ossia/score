@@ -82,6 +82,7 @@ signals:
   void stopButtonClicked();
   void boxBrushChanged(QBrush arg);
   void suppress();
+  void headerClicked();
 
 protected:
   virtual QRectF boundingRect() const;
@@ -105,6 +106,10 @@ public slots:
   void setpaused(bool arg);
   void setstopped(bool arg);
   void setboxBrush(QBrush arg);
+
+  // QGraphicsItem interface
+protected:
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // GRAPHICSTIMEPROCESS_HPP

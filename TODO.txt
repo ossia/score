@@ -1,34 +1,52 @@
-Mettre en place Aide
-    Doxygen -> permettra de montrer les relation de classes
-    Documentation du code Doxygen
-
 Liaison Score
     La barre de progression et les scheduler
         l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
-          ou besoin d'un qtimer en plus ?
-          avec animation framework
-    Lier des graphicsItem aux objets Score
-        liaison QMetaObject dans QMainWindow
-        directe depuis les graphicsItem -> essayer ça !
-            chacun s'occupe de lui et informe ceux que ça intéresse
-    On doit créer la première boîte/scénario
-        constructeur avec paramètre mainScenario ou test s'il n'a pas de parent
+          avec animation framework ?
+    Lier graphicsItem à son jumeau Score
+        liaison directe depuis le graphicsItem : éviter des interfaces supplémentaires
+        déleguer le plus possible les tâches au moteur
+            ex: relation aux autres items lors d'un déplacement
+    Relation temporalité/position des items (voir i-scoreOld)
 
 Général
-    est-il possible de gérer les conditions dans State Machine ?
-        si la taille du timeProcess est trop petite on affiche pas tous les elements
     mettre une fenêtre d'information/édition sur les objets graphiques
     Qt's Undo Framework
         devra avoir sa contrepartie dans Score
-    un graphicsItem selectionne puis supprimé est destroyed()
-    interface dont hériterait les objets graphiques
-    m_addGraphicsItemActionGroup à la manière de omnigraffle
+    m_mouseActionGroup à la manière de omnigraffle
         à gérer dans un stateMachine de mainWindow ?
+
+GraphicsView
+    scroll pour ajuster la taille d'un timeprocess avant sa création
+    gestion de la hiérarchie
+    On doit créer la première boîte/scénario
+        constructeur avec paramètre mainScenario ou test s'il n'a pas de parent
+    bloquer la graphicsscene en haut et à gauche
+    si la taille du timeProcess est trop petite on affiche pas tous les elements
+        gestion dans State Machine ?
+    un graphicsItem selectionné puis supprimé est destroyed()
+    interface (classe avec méthodes virtuelles) dont hériterait les objets graphiques
+    Déplacer un item dans graphicsView
+        les autres items directement en relation sont alertés par
+            Score -> semble mieux, mais si latence constatée alors
+            Qt (plusieurs solutions)
+                classe holder
+                qgraphicsItemGroup
+                les items subclass GGraphicsLayoutItem (pour les layers?)
+    Clique droit sur item pour choisir automation
+        QGraphicsSceneContextMenuEvent
 
 Environnement
     Choisir la norme de codage
         mettre _ ou m_ pour les membres de classe ?
         ordre des déclarations dans header
+    faire des subdirectories pour source et header
+        http://stackoverflow.com/questions/1176666/how-to-create-a-subdirectory-for-a-project-in-qt-creator
 
 Github
-    quel licence pour le code, avant de basculer sur gitHub de OSSIA !
+    mettre licence CecilC !
+    mettre auteurs
+        si on copie/colle des bouts du ancien i-score ?
+
+Mettre en place Aide
+    Doxygen -> permettra de montrer les relation de classes
+    Documentation du code Doxygen
