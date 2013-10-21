@@ -44,6 +44,7 @@ Environnement
 
 Github
     mettre licence CecilC !
+        pourquoi il y a marqué en haut "Copyright : Labri/Scrime" ?
     mettre auteurs
         si on copie/colle des bouts du ancien i-score ?
 
