@@ -66,41 +66,37 @@ private:
   GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
-  QStateMachine stateMachine; /// Permits to maintaining state in complex applications
-  QState *initialState;
-  QState *normalState;
-  QState *editionState;
-  QState *normalSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  QState *extendedSizeState; /// When the graphical timeProcess occupies all size of the view
-  QState *layerSuppState; /// \todo gestion des étages et des layers
-  QState *executionState;
-  QState *runningState;
-  QState *pausedState;
-  QState *stoppedState;
-  QFinalState *finalState;
+  QStateMachine _stateMachine; /// Permits to maintaining state in complex applications
+  QState *_initialState;
+  QState *_normalState;
+  QState *_editionState;
+  QState *_normalSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  QState *_extendedSizeState; /// When the graphical timeProcess occupies all size of the view
+  QState *_layerSuppState; /// \todo gestion des étages et des layers
+  QState *_executionState;
+  QState *_runningState;
+  QState *_pausedState;
+  QState *_stoppedState;
+  QFinalState *_finalState;
 
-  qreal m_width;
-  qreal m_height;
-  bool m_mainScenario;
-  bool m_running;
-  bool m_paused;
-  bool m_stopped;
+  qreal _width;
+  qreal _height;
+  bool _mainScenario;
+  bool _running;
+  bool _paused;
+  bool _stopped;
 
-  QBrush m_boxEditingBrush;
-  QBrush m_boxExecutionBrush;
+  QBrush _boxEditingBrush;
+  QBrush _boxExecutionBrush;
+  QBrush _boxBrush;
 
-  void createStates(const QPointF &position, QGraphicsItem *parent);
-
-  QBrush m_boxBrush;
 
 public:
-  enum {Type = ProcessItemType};
-  virtual int type() const {return Type;}
-
   explicit GraphicsTimeProcess(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene);
   ~GraphicsTimeProcess();
 
-  void createTransitions();
+  enum {Type = ProcessItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  virtual int type() const {return Type;}
 
 signals:
   void dirty();
@@ -116,20 +112,6 @@ signals:
   void suppress();
   void headerClicked();
 
-protected:
-  virtual QRectF boundingRect() const;
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  /// @todo keyPressEvent(QKeyEvent *event) voir p457 AQP
-
-  //Property Getters
-  bool mainScenario() const {return m_mainScenario;} /// @todo add "is" before method in case of boolean return
-  qreal width() const {return m_width;}
-  qreal height() const {return m_height;}
-  bool running() const {return m_running;}
-  bool paused() const {return m_paused;}
-  bool stopped() const {return m_stopped;}
-  QBrush boxBrush() const {return m_boxBrush;}
-
 public slots:
   void setmainScenario(bool arg);
   void setwidth(qreal arg);
@@ -139,9 +121,25 @@ public slots:
   void setstopped(bool arg);
   void setboxBrush(QBrush arg);
 
-  // QGraphicsItem interface
 protected:
+  //Property Getters
+  bool mainScenario() const {return _mainScenario;} /// @todo add "is" before method in case of boolean return
+  qreal width() const {return _width;}
+  qreal height() const {return _height;}
+  bool running() const {return _running;}
+  bool paused() const {return _paused;}
+  bool stopped() const {return _stopped;}
+  QBrush boxBrush() const {return _boxBrush;}
+
+  //Graphic's Item interface
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  /// @todo keyPressEvent(QKeyEvent *event) voir p457 AQP
+
+private:
+  void createStates(const QPointF &position, QGraphicsItem *parent);
+  void createTransitions();
 };
 
 #endif // GRAPHICSTIMEPROCESS_HPP

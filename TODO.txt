@@ -36,11 +36,18 @@ GraphicsView
         QGraphicsSceneContextMenuEvent
 
 Environnement
-    Choisir la norme de codage
-        mettre _ ou m_ pour les membres de classe ?
+    Choisir la norme de codage (Coding style)
+        membres de classe commencent par "_"
         ordre des déclarations dans header
+            Q_PROPERTY
+            attribut (public, protected, private)
+            constructeur/destructeur
+            enums
+            signal
+            slot
+            méthode (tri sémantique)
     faire des subdirectories pour source et header
-        http://stackoverflow.com/questions/1176666/how-to-create-a-subdirectory-for-a-project-in-qt-creator
+        pour l'instant en dur dans le .pro
 
 Github
     mettre licence CecilC !

@@ -50,18 +50,6 @@ class GraphicsTimeEvent : public QGraphicsObject
   Q_OBJECT
   Q_PROPERTY(QDate date READ date WRITE setDate) /// \todo Unification avec la date de TTTimeEvent
 
-public:
-  enum {Type = EventItemType};
-
-  explicit GraphicsTimeEvent(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene);
-  QDate date() const { return _date; }
-
-public slots:
-  void setDate(QDate date);
-
-signals:
-  void dirty();
-
 private:
   QGraphicsScene *_scene;
   qreal _penWidth;
@@ -69,11 +57,22 @@ private:
   qreal _height; /// height of the line
   QDate _date;
 
-  // QGraphicsItem interface
 public:
+  explicit GraphicsTimeEvent(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene);
+
+  enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  virtual int type() const {return Type;}
+
+signals:
+  void dirty();
+
+public slots:
+  void setDate(QDate date);
+
+public:
+  QDate date() const { return _date; }
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual int type() const {return Type;}
   virtual QPainterPath shape() const;
 
 protected:
