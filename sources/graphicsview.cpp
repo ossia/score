@@ -70,7 +70,7 @@ void GraphicsView::mouseDragMode(QAction* action)
     }
 }
 
-void GraphicsView::graphicItemEnsureVisible()
+void GraphicsView::graphicItemEnsureVisible() /// @todo Change behaviour : do a zoom animation and switch the current qGScene
 {
   QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
   //centerOn(item);

@@ -55,14 +55,16 @@ class GraphicsTimeProcess : public QGraphicsObject
   Q_PROPERTY(bool mainScenario READ mainScenario WRITE setmainScenario NOTIFY mainScenarioChanged)
   Q_PROPERTY(qreal width READ width WRITE setwidth NOTIFY widthChanged)
   Q_PROPERTY(qreal height READ height WRITE setheight NOTIFY heightChanged)
-  Q_PROPERTY(bool running READ running WRITE setrunning NOTIFY runningChanged)
-  Q_PROPERTY(bool paused READ paused WRITE setpaused NOTIFY pausedChanged)
-  Q_PROPERTY(bool stopped READ stopped WRITE setstopped NOTIFY stoppedChanged)
+  Q_PROPERTY(bool running READ running WRITE setrunning NOTIFY runningChanged) /// peut-être pas utile à maintenir
+  Q_PROPERTY(bool paused READ paused WRITE setpaused NOTIFY pausedChanged) /// peut-être pas utile à maintenir
+  Q_PROPERTY(bool stopped READ stopped WRITE setstopped NOTIFY stoppedChanged) /// peut-être pas utile à maintenir
   Q_PROPERTY(QBrush boxBrush READ boxBrush WRITE setboxBrush NOTIFY boxBrushChanged)
+  Q_PROPERTY(QGraphicsScene* scene READ scene)
+
   //Q_PROPERTY(qint32 progression READ progression WRITE setprogression NOTIFY progressionChanged)
 
 private:
-  QGraphicsScene *_scene;
+  QGraphicsScene* _scene;
   /// @todo mettre les time event en Q_PROPERTY ?
   GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
@@ -121,6 +123,10 @@ public slots:
   void setpaused(bool arg);
   void setstopped(bool arg);
   void setboxBrush(QBrush arg);
+  void addPlugin(QGraphicsItem *item);
+
+public:
+  QGraphicsScene* scene() const {return _scene;}
 
 protected:
   //Property Getters

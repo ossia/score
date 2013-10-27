@@ -47,13 +47,19 @@ knowledge of the CeCILL license and that you accept its terms.
 const qint16 OFFSET_INCREMENT = 5;
 
 MainWindow::MainWindow(QWidget *parent)
-  : QMainWindow(parent), ui(new Ui::MainWindow)
+  : QMainWindow(parent), ui(new Ui::MainWindow), _scene(NULL)
 {
   ui->setupUi(this);
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
 
+  _mainProcess = new GraphicsTimeProcess(0);
+  Q_CHECK_PTR(_mainProcess);
+  _view = ui->graphicsView;
+
+  //_scene = _mainProcess->scene(); /// @bug le setScene() ne fonctionne pas ici !?
   _scene = new QGraphicsScene(this);
-  ui->graphicsView->setScene(_scene);
+  Q_CHECK_PTR(_scene);
+  _view->setScene(_scene);
 
   createActionGroups();
   createStates();
@@ -185,7 +191,15 @@ void MainWindow::addItem(QPointF pos)
       item = new GraphicsTimeEvent(pos, 0, _scene);
     }
   else if(type == ProcessItemType) {
-      item = new GraphicsTimeProcess(pos, 0, _scene);
+      item = new GraphicsTimeProcess(pos, 300, 200, 0);
+
+      /// test d'un gTP avec un plugin gTP
+      /// @todo gTP n'est pas censé être directement un plugin de gTP, mais d'abord d'un TimeContainer (contruire un gTC)
+      QGraphicsItem* graphicItem = qobject_cast<QGraphicsItem*>(item);
+      GraphicsTimeProcess *plugin = new GraphicsTimeProcess(QPointF(1,20),298,100,graphicItem); // create and position a plugin according to his parent (graphicItem)
+      _scene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
+      _scene->addItem(graphicItem);
+      graphicItem->setSelected(true);
     }
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
 

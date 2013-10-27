@@ -54,6 +54,9 @@ GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, const qreal wi
            QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
+  _scene = new QGraphicsScene(this); /// @todo ajouter un sceneRect
+  Q_CHECK_PTR(_scene);
+
   //creer les time event de début et de fin
 
   createStates(position, parent, width, height);
@@ -151,6 +154,9 @@ void GraphicsTimeProcess::paint(QPainter *painter, const QStyleOptionGraphicsIte
   painter->setBrush(boxBrush());
   painter->drawText(boundingRect(), Qt::AlignLeft | Qt::AlignTop, objectName());
 
+  /// Draw the tabs
+  /// foreach tab draw the layers, seting the position of the plugin in the layer
+
   /// Draw the bounding rectangle
   painter->drawRect(boundingRect());
 }
@@ -219,4 +225,10 @@ void GraphicsTimeProcess::setboxBrush(QBrush arg)
       _boxBrush = arg;
       emit boxBrushChanged(arg);
     }
+}
+
+void GraphicsTimeProcess::addPlugin(QGraphicsItem *item)
+{
+  /// add in our QGScene member
+  /// position it in the good tab
 }
