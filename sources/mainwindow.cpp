@@ -38,6 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QMouseEvent>
 #include <QActionGroup>
 #include <QGraphicsView>
+#include <QStateMachine>
 #include <QPointF>
 #include <QGraphicsLineItem>
 #include <QTimer>
@@ -59,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
   createTransitions();
   createConnections();
 
-  QTimer::singleShot(0, &_stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
+  QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
 MainWindow::~MainWindow()
@@ -91,16 +92,18 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
 
 void MainWindow::createStates()
 {
+  _stateMachine = new QStateMachine(this);
+
   _initialState = new QState();
   _initialState->assignProperty(this, "objectName", tr("mainWindow"));
   _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_mainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
   _initialState->assignProperty(_mouseActionGroup, "enabled", true);
-  _stateMachine.addState(_initialState);
+  _stateMachine->addState(_initialState);
 
   // creating a new top-level state
   _normalState = new QState();
   _editionState = new QState(_normalState);
-  _executionState->assignProperty(_mouseActionGroup, "enabled", true);
+  _editionState->assignProperty(_mouseActionGroup, "enabled", true);
 
   /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing)
   _executionState = new QState(_normalState);
@@ -112,10 +115,10 @@ void MainWindow::createStates()
   _executionState->setInitialState(_runningState);
 
   _normalState->setInitialState(_editionState);
-  _stateMachine.addState(_normalState);
+  _stateMachine->addState(_normalState);
 
   _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
-  _stateMachine.addState(_finalState);
+  _stateMachine->addState(_finalState);
 }
 
 void MainWindow::createTransitions()

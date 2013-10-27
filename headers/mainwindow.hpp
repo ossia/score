@@ -34,7 +34,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
-#include <QStateMachine>
 
 class QGraphicsScene;
 class QActionGroup;
@@ -42,6 +41,8 @@ class QPointF;
 class GraphicsTimeProcess;
 class QFinalState;
 class QGraphicsView;
+class QStateMachine;
+class QState;
 
 namespace Ui {
   class MainWindow;
@@ -57,12 +58,12 @@ private:
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
-  QGraphicsScene *_scene; /// pointer to currentFullView->scene
+  QGraphicsScene *_scene; /// pointer to currentFullView->scene /// @todo J'ai peur qu'on rajoute trop d'attributs pour de simples raccourcis (à voir si on se servira souvent de _scene)
   QGraphicsView *_view; /// pointer to ui->graphicsView
   QActionGroup *_mouseActionGroup;
   GraphicsTimeProcess* _currentFullView;
 
-  QStateMachine _stateMachine; /// Permits to maintaining state in complex applications
+  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
   QState *_initialState;
   QState *_normalState;
   QState *_editionState;

@@ -37,12 +37,18 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QDebug>
 #include <QTimer>
 #include <QGraphicsSceneMouseEvent>
+#include <QStateMachine>
 
 /// @todo Use a namespace ?
 const qint32 headerHeight = 20;
 
-GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene)
-  : QGraphicsObject(parent), _scene(scene), _boxEditingBrush(Qt::NoBrush), _boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
+GraphicsTimeProcess::GraphicsTimeProcess(QGraphicsItem *parent)
+{
+  GraphicsTimeProcess(QPointF(0,0),600,400,parent);
+}
+
+GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent)
+  : QGraphicsObject(parent), _boxEditingBrush(Qt::NoBrush), _boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsMovable |
@@ -50,15 +56,10 @@ GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, QGraphicsItem 
 
   //creer les time event de début et de fin
 
-  createStates(position, parent);
+  createStates(position, parent, width, height);
   createTransitions();
 
-  _stateMachine.setInitialState(_initialState);
-  _stateMachine.start();
-
-  _scene->clearSelection();
-  _scene->addItem(this);
-  setSelected(true);
+  _stateMachine->start();
 }
 
 GraphicsTimeProcess::~GraphicsTimeProcess()
@@ -68,8 +69,10 @@ GraphicsTimeProcess::~GraphicsTimeProcess()
   delete _finalState;
 }
 
-void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *parent)
+void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height)
 {
+  _stateMachine = new QStateMachine(this);
+
   _initialState = new QState();
   _initialState->assignProperty(this, "pos", position);
   _initialState->assignProperty(this, "mainScenario", parent ? false : true); /// \todo peut mieux faire, utiliser propriété parent
@@ -77,9 +80,10 @@ void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *p
   _initialState->assignProperty(this, "running", false);
   _initialState->assignProperty(this, "paused", false);
   _initialState->assignProperty(this, "stopped", false);
-  _initialState->assignProperty(this, "height", 100);
-  _initialState->assignProperty(this, "width", 200);
-  _stateMachine.addState(_initialState);
+  _initialState->assignProperty(this, "height", height);
+  _initialState->assignProperty(this, "width", width);
+  _stateMachine->addState(_initialState);
+  _stateMachine->setInitialState(_initialState);
 
   // creating a new top-level state
   _normalState = new QState();
@@ -107,13 +111,13 @@ void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *p
   _executionState->setInitialState(_runningState);
 
   _normalState->setInitialState(_editionState);
-  _stateMachine.addState(_normalState);
+  _stateMachine->addState(_normalState);
 
   //normalSizeState = new QState(editingState); //Using parrallel states to add normal and extended
   //extendedSizeState = new QState(editingState);
 
   _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
-  _stateMachine.addState(_finalState);
+  _stateMachine->addState(_finalState);
 }
 
 void GraphicsTimeProcess::createTransitions()

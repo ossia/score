@@ -39,13 +39,14 @@ knowledge of the CeCILL license and that you accept its terms.
  */
 
 #include <QGraphicsObject>
-#include <QStateMachine>
 #include <QBrush>
 #include "itemTypes.hpp"
 
 class GraphicsTimeEvent;
 class QGraphicsScene;
 class QFinalState;
+class QStateMachine;
+class QState;
 
 class GraphicsTimeProcess : public QGraphicsObject
 {
@@ -66,7 +67,7 @@ private:
   GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
-  QStateMachine _stateMachine; /// Permits to maintaining state in complex applications
+  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
   QState *_initialState;
   QState *_normalState;
   QState *_editionState;
@@ -90,16 +91,16 @@ private:
   QBrush _boxExecutionBrush;
   QBrush _boxBrush;
 
-
 public:
-  explicit GraphicsTimeProcess(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene);
+  GraphicsTimeProcess(QGraphicsItem *parent);
+  explicit GraphicsTimeProcess(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent);
   ~GraphicsTimeProcess();
 
   enum {Type = ProcessItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
   virtual int type() const {return Type;}
 
 signals:
-  void dirty();
+  void dirty(); /// see AQP pagedesigner demo
   void mainScenarioChanged(bool arg);
   void widthChanged(qreal arg);
   void heightChanged(qreal arg);
@@ -138,7 +139,7 @@ protected:
   /// @todo keyPressEvent(QKeyEvent *event) voir p457 AQP
 
 private:
-  void createStates(const QPointF &position, QGraphicsItem *parent);
+  void createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height);
   void createTransitions();
 };
 
