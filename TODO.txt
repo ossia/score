@@ -1,3 +1,20 @@
+Jalon
+    Architecture
+        gTP
+            niveau enfant
+                dessiner sa carcasse (organisation des items enfants entre eux)
+                    header
+                    onglets
+                        plugins enfants
+        membre QGScene
+        passage au niveau mainScenario (voir si l'organisation graphique change)
+    Visualisation
+        Courbe automation
+        élément textuel
+        Intervalle
+    Interaction
+        *1 Jaime
+            réimplémente les mouseEvent des graphicsItem (voir rubberband)
 Liaison Score
     La barre de progression et les scheduler
         l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
@@ -16,7 +33,7 @@ Général
         à gérer dans un stateMachine de mainWindow ?
 
 GraphicsView
-    scroll pour ajuster la taille d'un timeprocess avant sa création
+    *1: click'n drag pour ajuster la taille d'un timeprocess avant sa création
     gestion de la hiérarchie
     On doit créer la première boîte/scénario
         constructeur avec paramètre mainScenario ou test s'il n'a pas de parent
@@ -25,6 +42,8 @@ GraphicsView
         gestion dans State Machine ?
     un graphicsItem selectionné puis supprimé est destroyed()
     interface (classe avec méthodes virtuelles) dont hériterait les objets graphiques
+    les couches
+        ItemStacksBehindParent
     Déplacer un item dans graphicsView
         les autres items directement en relation sont alertés par
             Score -> semble mieux, mais si latence constatée alors
@@ -58,3 +77,4 @@ Github
 Mettre en place Aide
     Doxygen -> permettra de montrer les relation de classes
     Documentation du code Doxygen
+    Cleaner Asana

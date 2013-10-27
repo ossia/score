@@ -34,10 +34,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
+#include <QStateMachine>
 
 class QGraphicsScene;
 class QActionGroup;
 class QPointF;
+class GraphicsTimeProcess;
+class QFinalState;
+class QGraphicsView;
 
 namespace Ui {
   class MainWindow;
@@ -46,13 +50,27 @@ namespace Ui {
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
+  Q_PROPERTY(GraphicsTimeProcess* currentFullView READ currentFullView WRITE setcurrentFullView NOTIFY currentFullViewChanged)
 
 private:
+  GraphicsTimeProcess* _mainProcess;
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
-  QGraphicsScene *_scene;
-  QActionGroup *m_mouseActionGroup;
+  QGraphicsScene *_scene; /// pointer to currentFullView->scene
+  QGraphicsView *_view; /// pointer to ui->graphicsView
+  QActionGroup *_mouseActionGroup;
+  GraphicsTimeProcess* _currentFullView;
+
+  QStateMachine _stateMachine; /// Permits to maintaining state in complex applications
+  QState *_initialState;
+  QState *_normalState;
+  QState *_editionState;
+  QState *_executionState;
+  QState *_runningState;
+  QState *_pausedState;
+  QState *_stoppedState;
+  QFinalState *_finalState;
 
 public:
   explicit MainWindow(QWidget *parent = 0);
@@ -62,9 +80,16 @@ public slots:
     void setDirty(bool on=true);
     void setMousePosition(QPointF point);
 
+signals:
+    void currentFullViewChanged(GraphicsTimeProcess* arg);
+
 private slots:
   void updateUi();
   void addItem(QPointF);
+
+public:
+  GraphicsTimeProcess* currentFullView() const { return _currentFullView; }
+  void setcurrentFullView(GraphicsTimeProcess* arg);
 
 protected:
   // QWidget interface
@@ -72,11 +97,13 @@ protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
 
 private:
+  void createStates();
+  void createTransitions();
+
   QPoint position();
   void connectItem(QObject *item);
   void createConnections();
   void createActionGroups();
-
 };
 
 #endif // MAINWINDOW_HPP

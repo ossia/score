@@ -39,6 +39,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QActionGroup>
 #include <QGraphicsView>
 #include <QPointF>
+#include <QGraphicsLineItem>
+#include <QTimer>
+#include <QFinalState>
 
 const qint16 OFFSET_INCREMENT = 5;
 
@@ -52,26 +55,26 @@ MainWindow::MainWindow(QWidget *parent)
   ui->graphicsView->setScene(_scene);
 
   createActionGroups();
+  createStates();
+  createTransitions();
   createConnections();
 
-  //QTimer::singleShot(0, &stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
-
+  QTimer::singleShot(0, &_stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
 MainWindow::~MainWindow()
 {
-  delete ui;
 }
 
-void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion à la omnigraffle
+void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
 {
   // GraphicsItems relative's actions
   ui->actionAddTimeEvent->setData(EventItemType);
   ui->actionAddTimeProcess->setData(ProcessItemType);
 
-  m_mouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
-  m_mouseActionGroup->addAction(ui->actionAddTimeEvent);
-  m_mouseActionGroup->addAction(ui->actionAddTimeProcess);
+  _mouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
+  _mouseActionGroup->addAction(ui->actionAddTimeEvent);
+  _mouseActionGroup->addAction(ui->actionAddTimeProcess);
   /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
 
   // Mouse cursor relative's actions
@@ -79,18 +82,58 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
   ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
   ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
 
-  m_mouseActionGroup->addAction(ui->actionMouse);
-  m_mouseActionGroup->addAction(ui->actionScroll);
-  m_mouseActionGroup->addAction(ui->actionSelect);
+  _mouseActionGroup->addAction(ui->actionMouse);
+  _mouseActionGroup->addAction(ui->actionScroll);
+  _mouseActionGroup->addAction(ui->actionSelect);
 
   ui->actionMouse->setChecked(true);
+}
+
+void MainWindow::createStates()
+{
+  _initialState = new QState();
+  _initialState->assignProperty(this, "objectName", tr("mainWindow"));
+  _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_mainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
+  _initialState->assignProperty(_mouseActionGroup, "enabled", true);
+  _stateMachine.addState(_initialState);
+
+  // creating a new top-level state
+  _normalState = new QState();
+  _editionState = new QState(_normalState);
+  _executionState->assignProperty(_mouseActionGroup, "enabled", true);
+
+  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing)
+  _executionState = new QState(_normalState);
+  _executionState->assignProperty(_mouseActionGroup, "enabled", false);
+
+  _runningState = new QState(_executionState);
+  _pausedState = new QState(_executionState);
+  _stoppedState = new QState(_executionState);
+  _executionState->setInitialState(_runningState);
+
+  _normalState->setInitialState(_editionState);
+  _stateMachine.addState(_normalState);
+
+  _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
+  _stateMachine.addState(_finalState);
+}
+
+void MainWindow::createTransitions()
+{
+  _initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
+  _editionState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
+  _runningState->addTransition(ui->playButton, SIGNAL(clicked()), _pausedState);
+  _runningState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
+  _pausedState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
+  _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
+  _stoppedState->addTransition(_stoppedState, SIGNAL(propertiesAssigned()), _editionState);
+  _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
 }
 
 void MainWindow::createConnections()
 {
   connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
-
-  connect(m_mouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
+  connect(_mouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
 }
 
@@ -125,7 +168,7 @@ QPoint MainWindow::position() //p.426
 
 void MainWindow::addItem(QPointF pos)
 {
-  QAction *action = m_mouseActionGroup->checkedAction();
+  QAction *action = _mouseActionGroup->checkedAction();
   Q_ASSERT(action);
   if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeProcess) { /// @todo  pas très découplé mais à cause de la galère des groupActions, regarder signalMapper
       return;
@@ -181,5 +224,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
   QMainWindow::mouseMoveEvent(event);
+}
 
+void MainWindow::setcurrentFullView(GraphicsTimeProcess* arg)
+{
+  if (_currentFullView != arg) {
+      _currentFullView = arg;
+      emit currentFullViewChanged(arg);
+    }
 }
