@@ -94,8 +94,7 @@ private:
   QBrush _boxBrush;
 
 public:
-  GraphicsTimeProcess(QGraphicsItem *parent);
-  explicit GraphicsTimeProcess(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent);
+  GraphicsTimeProcess(const QPointF &position = QPointF(0,0), const qreal width = 600, const qreal height = 400, QGraphicsItem *parent = 0);
   ~GraphicsTimeProcess();
 
   enum {Type = ProcessItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item

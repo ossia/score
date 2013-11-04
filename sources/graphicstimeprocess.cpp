@@ -42,11 +42,6 @@ knowledge of the CeCILL license and that you accept its terms.
 /// @todo Use a namespace ?
 const qint32 headerHeight = 20;
 
-GraphicsTimeProcess::GraphicsTimeProcess(QGraphicsItem *parent)
-{
-  GraphicsTimeProcess(QPointF(0,0),600,400,parent);
-}
-
 GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent)
   : QGraphicsObject(parent), _boxEditingBrush(Qt::NoBrush), _boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
 {

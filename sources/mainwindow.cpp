@@ -52,15 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
 
-  _mainProcess = new GraphicsTimeProcess(0);
-  Q_CHECK_PTR(_mainProcess);
-  _view = ui->graphicsView;
-
-  //_scene = _mainProcess->scene(); /// @bug le setScene() ne fonctionne pas ici !?
-  _scene = new QGraphicsScene(this);
-  Q_CHECK_PTR(_scene);
-  _view->setScene(_scene);
-
+  createGraphics();
   createActionGroups();
   createStates();
   createTransitions();
@@ -71,6 +63,17 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+}
+
+void MainWindow::createGraphics()
+{
+  _view = ui->graphicsView;
+  _mainProcess = new GraphicsTimeProcess();
+  Q_CHECK_PTR(_mainProcess);
+
+  _scene = _mainProcess->scene();
+  Q_CHECK_PTR(_scene);
+  _view->setScene(_scene);
 }
 
 void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle

@@ -98,6 +98,7 @@ protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
 
 private:
+  void createGraphics();
   void createStates();
   void createTransitions();
 
