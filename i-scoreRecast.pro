@@ -17,13 +17,13 @@ SOURCES += sources/main.cpp\
         sources/mainwindow.cpp \
     sources/graphicstimeevent.cpp \
     sources/engine.cpp \
-    sources/graphicstimeprocess.cpp \
+    sources/graphicstimebox.cpp \
     sources/graphicsview.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/graphicstimeevent.hpp \
     headers/engine.hpp \
-    headers/graphicstimeprocess.hpp \
+    headers/graphicstimebox.hpp \
     headers/graphicsview.hpp \
     headers/itemTypes.hpp
 

@@ -34,7 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "graphicstimeevent.hpp"
-#include "graphicstimeprocess.hpp"
+#include "graphicstimebox.hpp"
 #include <QMouseEvent>
 #include <QActionGroup>
 #include <QGraphicsView>
@@ -68,7 +68,7 @@ MainWindow::~MainWindow()
 void MainWindow::createGraphics()
 {
   _view = ui->graphicsView;
-  _mainProcess = new GraphicsTimeProcess();
+  _mainProcess = new GraphicsTimeBox();
   Q_CHECK_PTR(_mainProcess);
 
   _scene = _mainProcess->scene();
@@ -194,12 +194,12 @@ void MainWindow::addItem(QPointF pos)
       item = new GraphicsTimeEvent(pos, 0, _scene);
     }
   else if(type == ProcessItemType) {
-      item = new GraphicsTimeProcess(pos, 300, 200, 0);
+      item = new GraphicsTimeBox(pos, 300, 200, 0);
 
       /// test d'un gTP avec un plugin gTP
       /// @todo gTP n'est pas censé être directement un plugin de gTP, mais d'abord d'un TimeContainer (contruire un gTC)
       QGraphicsItem* graphicItem = qobject_cast<QGraphicsItem*>(item);
-      GraphicsTimeProcess *plugin = new GraphicsTimeProcess(QPointF(1,20),298,100,graphicItem); // create and position a plugin according to his parent (graphicItem)
+      //GraphicsTimeProcess *plugin = new GraphicsTimeProcess(QPointF(1,20),298,100,graphicItem); // create and position a plugin according to his parent (graphicItem)
       _scene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
       _scene->addItem(graphicItem);
       graphicItem->setSelected(true);
@@ -246,7 +246,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
   QMainWindow::mouseMoveEvent(event);
 }
 
-void MainWindow::setcurrentFullView(GraphicsTimeProcess* arg)
+void MainWindow::setcurrentFullView(GraphicsTimeBox* arg)
 {
   if (_currentFullView != arg) {
       _currentFullView = arg;

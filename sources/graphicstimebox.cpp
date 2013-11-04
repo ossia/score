@@ -30,7 +30,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "graphicstimeprocess.hpp"
+#include "graphicstimebox.hpp"
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QFinalState>
@@ -42,7 +42,7 @@ knowledge of the CeCILL license and that you accept its terms.
 /// @todo Use a namespace ?
 const qint32 headerHeight = 20;
 
-GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent)
+GraphicsTimeBox::GraphicsTimeBox(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent)
   : QGraphicsObject(parent), _boxEditingBrush(Qt::NoBrush), _boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
@@ -60,14 +60,14 @@ GraphicsTimeProcess::GraphicsTimeProcess(const QPointF &position, const qreal wi
   _stateMachine->start();
 }
 
-GraphicsTimeProcess::~GraphicsTimeProcess()
+GraphicsTimeBox::~GraphicsTimeBox()
 {
   delete _initialState;
   delete _normalState; //will delete all child states
   delete _finalState;
 }
 
-void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height)
+void GraphicsTimeBox::createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height)
 {
   _stateMachine = new QStateMachine(this);
 
@@ -118,7 +118,7 @@ void GraphicsTimeProcess::createStates(const QPointF &position, QGraphicsItem *p
   _stateMachine->addState(_finalState);
 }
 
-void GraphicsTimeProcess::createTransitions()
+void GraphicsTimeBox::createTransitions()
 {
   _initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
   _editionState->addTransition(this, SIGNAL(playOrPauseButtonClicked()), _runningState);
@@ -130,12 +130,12 @@ void GraphicsTimeProcess::createTransitions()
   _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
 }
 
-QRectF GraphicsTimeProcess::boundingRect() const
+QRectF GraphicsTimeBox::boundingRect() const
 {
   return QRectF(0,0,_width,_height);
 }
 
-void GraphicsTimeProcess::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void GraphicsTimeBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
@@ -156,7 +156,7 @@ void GraphicsTimeProcess::paint(QPainter *painter, const QStyleOptionGraphicsIte
   painter->drawRect(boundingRect());
 }
 
-void GraphicsTimeProcess::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void GraphicsTimeBox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
   if (event->button() == Qt::LeftButton) {
       if (event->pos().y() <= headerHeight){
@@ -166,7 +166,7 @@ void GraphicsTimeProcess::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
   QGraphicsObject::mouseDoubleClickEvent(event);
 }
 
-void GraphicsTimeProcess::setmainScenario(bool arg)
+void GraphicsTimeBox::setmainScenario(bool arg)
 {
   if (_mainScenario != arg) {
       _mainScenario = arg;
@@ -174,7 +174,7 @@ void GraphicsTimeProcess::setmainScenario(bool arg)
     }
 }
 
-void GraphicsTimeProcess::setwidth(qreal arg)
+void GraphicsTimeBox::setwidth(qreal arg)
 {
   if (_width != arg) {
       _width = arg;
@@ -182,7 +182,7 @@ void GraphicsTimeProcess::setwidth(qreal arg)
     }
 }
 
-void GraphicsTimeProcess::setheight(qreal arg)
+void GraphicsTimeBox::setheight(qreal arg)
 {
   if (_height != arg) {
       _height = arg;
@@ -190,7 +190,7 @@ void GraphicsTimeProcess::setheight(qreal arg)
     }
 }
 
-void GraphicsTimeProcess::setrunning(bool arg)
+void GraphicsTimeBox::setrunning(bool arg)
 {
   if (_running != arg) {
       _running = arg;
@@ -198,7 +198,7 @@ void GraphicsTimeProcess::setrunning(bool arg)
     }
 }
 
-void GraphicsTimeProcess::setpaused(bool arg)
+void GraphicsTimeBox::setpaused(bool arg)
 {
   if (_paused != arg) {
       _paused = arg;
@@ -206,7 +206,7 @@ void GraphicsTimeProcess::setpaused(bool arg)
     }
 }
 
-void GraphicsTimeProcess::setstopped(bool arg)
+void GraphicsTimeBox::setstopped(bool arg)
 {
   if (_stopped != arg) {
       _stopped = arg;
@@ -214,7 +214,7 @@ void GraphicsTimeProcess::setstopped(bool arg)
     }
 }
 
-void GraphicsTimeProcess::setboxBrush(QBrush arg)
+void GraphicsTimeBox::setboxBrush(QBrush arg)
 {
   if (_boxBrush != arg) {
       _boxBrush = arg;
@@ -222,7 +222,7 @@ void GraphicsTimeProcess::setboxBrush(QBrush arg)
     }
 }
 
-void GraphicsTimeProcess::addPlugin(QGraphicsItem *item)
+void GraphicsTimeBox::addPlugin(QGraphicsItem *item)
 {
   /// add in our QGScene member
   /// position it in the good tab

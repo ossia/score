@@ -48,7 +48,7 @@ class QFinalState;
 class QStateMachine;
 class QState;
 
-class GraphicsTimeProcess : public QGraphicsObject
+class GraphicsTimeBox : public QGraphicsObject
 {
   Q_OBJECT
 
@@ -94,8 +94,8 @@ private:
   QBrush _boxBrush;
 
 public:
-  GraphicsTimeProcess(const QPointF &position = QPointF(0,0), const qreal width = 600, const qreal height = 400, QGraphicsItem *parent = 0);
-  ~GraphicsTimeProcess();
+  GraphicsTimeBox(const QPointF &position = QPointF(0,0), const qreal width = 600, const qreal height = 400, QGraphicsItem *parent = 0);
+  ~GraphicsTimeBox();
 
   enum {Type = ProcessItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
   virtual int type() const {return Type;}

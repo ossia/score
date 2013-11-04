@@ -38,7 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 class QGraphicsScene;
 class QActionGroup;
 class QPointF;
-class GraphicsTimeProcess;
+class GraphicsTimeBox;
 class QFinalState;
 class QGraphicsView;
 class QStateMachine;
@@ -51,17 +51,17 @@ namespace Ui {
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
-  Q_PROPERTY(GraphicsTimeProcess* currentFullView READ currentFullView WRITE setcurrentFullView NOTIFY currentFullViewChanged)
+  Q_PROPERTY(GraphicsTimeBox* currentFullView READ currentFullView WRITE setcurrentFullView NOTIFY currentFullViewChanged)
 
 private:
-  GraphicsTimeProcess* _mainProcess;
+  GraphicsTimeBox* _mainProcess;
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
   QGraphicsScene *_scene; /// pointer to currentFullView->scene /// @todo J'ai peur qu'on rajoute trop d'attributs pour de simples raccourcis (à voir si on se servira souvent de _scene)
   QGraphicsView *_view; /// pointer to ui->graphicsView
   QActionGroup *_mouseActionGroup;
-  GraphicsTimeProcess* _currentFullView;
+  GraphicsTimeBox* _currentFullView;
 
   QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
   QState *_initialState;
@@ -82,15 +82,15 @@ public slots:
     void setMousePosition(QPointF point);
 
 signals:
-    void currentFullViewChanged(GraphicsTimeProcess* arg);
+    void currentFullViewChanged(GraphicsTimeBox* arg);
 
 private slots:
   void updateUi();
   void addItem(QPointF);
 
 public:
-  GraphicsTimeProcess* currentFullView() const { return _currentFullView; }
-  void setcurrentFullView(GraphicsTimeProcess* arg);
+  GraphicsTimeBox* currentFullView() const { return _currentFullView; }
+  void setcurrentFullView(GraphicsTimeBox* arg);
 
 protected:
   // QWidget interface
