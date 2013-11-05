@@ -1,7 +1,7 @@
 /*
 Copyright: LaBRI / SCRIME
 
-Author: Jaime Chao (01/10/2013)
+Authors : Jaime Chao, Clément Bossut (2013-2014)
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use,

@@ -20,14 +20,14 @@ SOURCES += sources/main.cpp\
     sources/graphicstimebox.cpp \
     sources/graphicsview.cpp \
     sources/timeboxsmallview.cpp \
-    sources/storeyview.cpp \
-    sources/storeybarview.cpp \
     sources/timeboxheaderview.cpp \
     sources/timeboxsmallpresenter.cpp \
     sources/timeboxfullpresenter.cpp \
     sources/timeboxfullview.cpp \
     sources/timeboxmodel.cpp \
-    sources/blankpluginview.cpp
+    sources/blankpluginview.cpp \
+    sources/timeboxstoreyview.cpp \
+    sources/timeboxstoreybarview.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/graphicstimeevent.hpp \
@@ -36,19 +36,20 @@ HEADERS  += headers/mainwindow.hpp \
     headers/graphicsview.hpp \
     headers/itemTypes.hpp \
     headers/timeboxsmallview.hpp \
-    headers/storeyview.hpp \
-    headers/storeybarview.hpp \
     headers/timeboxheaderview.hpp \
     headers/timeboxsmallpresenter.hpp \
     headers/timeboxfullpresenter.hpp \
     headers/timeboxfullview.hpp \
     headers/timeboxmodel.hpp \
-    headers/ blankpluginview.hpp
+    headers/blankpluginview.hpp \
+    headers/timeboxstoreyview.hpp \
+    headers/timeboxstoreybarview.hpp
 
 FORMS    += forms/mainwindow.ui
 
 OTHER_FILES += \
-    TODO.txt
+    TODO.txt \
+    LICENSE.txt
 
 INCLUDEPATH += headers/ /usr/local/jamoma/includes
 QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/

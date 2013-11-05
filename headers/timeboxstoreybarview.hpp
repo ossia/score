@@ -30,21 +30,13 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef TIMEBOXSMALLVIEW_HPP
-#define TIMEBOXSMALLVIEW_HPP
+#ifndef STOREYBARVIEW_HPP
+#define STOREYBARVIEW_HPP
 
-#include <QGraphicsWidget>
-
-class TimeboxSmallView : public QGraphicsWidget
+class TimeboxStoreyBarView
 {
-  Q_OBJECT
 public:
-  explicit TimeboxSmallView(QGraphicsItem *parent = 0);
-
-signals:
-
-public slots:
-
+  TimeboxStoreyBarView();
 };
 
-#endif // TIMEBOXSMALLVIEW_HPP
+#endif // STOREYBARVIEW_HPP
