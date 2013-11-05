@@ -144,6 +144,7 @@ protected:
   /// @todo keyPressEvent(QKeyEvent *event) voir p457 AQP
 
 private:
+  void createScene();
   void createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height);
   void createTransitions();
 };

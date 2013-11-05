@@ -42,6 +42,7 @@ knowledge of the CeCILL license and that you accept its terms.
 /// @todo Use a namespace ?
 const qint32 headerHeight = 20;
 
+
 GraphicsTimeBox::GraphicsTimeBox(const QPointF &position, const qreal width, const qreal height, QGraphicsItem *parent)
   : QGraphicsObject(parent), _boxEditingBrush(Qt::NoBrush), _boxExecutionBrush(Qt::yellow, Qt::Dense6Pattern)
 {
@@ -49,8 +50,6 @@ GraphicsTimeBox::GraphicsTimeBox(const QPointF &position, const qreal width, con
            QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
-  _scene = new QGraphicsScene(this); /// @todo ajouter un sceneRect
-  Q_CHECK_PTR(_scene);
 
   //creer les time event de début et de fin
 
@@ -58,6 +57,7 @@ GraphicsTimeBox::GraphicsTimeBox(const QPointF &position, const qreal width, con
   createTransitions();
 
   _stateMachine->start();
+  createScene();
 }
 
 GraphicsTimeBox::~GraphicsTimeBox()
@@ -65,6 +65,14 @@ GraphicsTimeBox::~GraphicsTimeBox()
   delete _initialState;
   delete _normalState; //will delete all child states
   delete _finalState;
+}
+
+void GraphicsTimeBox::createScene()
+{
+  _scene = new QGraphicsScene(this); /// @todo ajouter un sceneRect
+  Q_CHECK_PTR(_scene);
+
+  _scene->addItem(this);
 }
 
 void GraphicsTimeBox::createStates(const QPointF &position, QGraphicsItem *parent, qreal width, qreal height)

@@ -108,6 +108,7 @@ void MainWindow::createStates()
   _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_mainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
   _initialState->assignProperty(_mouseActionGroup, "enabled", true);
   _stateMachine->addState(_initialState);
+  _stateMachine->setInitialState(_initialState);
 
   // creating a new top-level state
   _normalState = new QState();
