@@ -30,8 +30,20 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxheaderview.hpp"
+#ifndef TIMEBOXHEADER_HPP
+#define TIMEBOXHEADER_HPP
 
-TimeboxHeaderView::TimeboxHeaderView()
+#include <QGraphicsWidget>
+class QGraphicsItem;
+
+class TimeboxHeader : public QGraphicsWidget
 {
-}
+
+public:
+  TimeboxHeader(QGraphicsItem *item);
+
+protected:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+};
+
+#endif // TIMEBOXHEADER_HPP

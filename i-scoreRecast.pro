@@ -20,7 +20,6 @@ SOURCES += sources/main.cpp\
     sources/graphicstimebox.cpp \
     sources/graphicsview.cpp \
     sources/timeboxsmallview.cpp \
-    sources/timeboxheaderview.cpp \
     sources/timeboxsmallpresenter.cpp \
     sources/timeboxfullpresenter.cpp \
     sources/timeboxfullview.cpp \
@@ -28,7 +27,8 @@ SOURCES += sources/main.cpp\
     sources/blankpluginview.cpp \
     sources/timeboxstoreyview.cpp \
     sources/timeboxstoreybarview.cpp \
-    sources/test.cpp
+    sources/test.cpp \
+    sources/timeboxheader.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/graphicstimeevent.hpp \
@@ -37,14 +37,14 @@ HEADERS  += headers/mainwindow.hpp \
     headers/graphicsview.hpp \
     headers/itemTypes.hpp \
     headers/timeboxsmallview.hpp \
-    headers/timeboxheaderview.hpp \
     headers/timeboxsmallpresenter.hpp \
     headers/timeboxfullpresenter.hpp \
     headers/timeboxfullview.hpp \
     headers/timeboxmodel.hpp \
     headers/blankpluginview.hpp \
     headers/timeboxstoreyview.hpp \
-    headers/timeboxstoreybarview.hpp
+    headers/timeboxstoreybarview.hpp \
+    headers/timeboxheader.hpp
 
 FORMS    += forms/mainwindow.ui
 
