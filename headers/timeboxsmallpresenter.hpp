@@ -33,10 +33,17 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXSMALLPRESENTER_HPP
 #define TIMEBOXSMALLPRESENTER_HPP
 
+#include "timeboxmodel.hpp"
+#include "timeboxsmallview.hpp"
+
 class TimeboxSmallPresenter
 {
+private:
+  TimeboxModel *_pModel;
+  TimeboxSmallView *_pView;
+
 public:
-  TimeboxSmallPresenter();
+  TimeboxSmallPresenter(TimeboxModel *pModel, TimeboxSmallView *pView);
 };
 
 #endif // TIMEBOXSMALLPRESENTER_HPP

@@ -35,6 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsWidget>
 
+#include "timeboxheader.hpp"
 #include "timeboxmodel.hpp"
 
 class TimeboxSmallView : public QGraphicsWidget
@@ -42,8 +43,8 @@ class TimeboxSmallView : public QGraphicsWidget
   Q_OBJECT
 
 private:
-    TimeboxHeader *_pHeader;
-    TimeboxModel *_pModel;
+  TimeboxModel *_pModel;
+  TimeboxHeader _header;
 
 public:
   TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);
@@ -52,6 +53,10 @@ signals:
 
 public slots:
 
+  // QGraphicsItem interface
+public:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  QRectF boundingRect() const;
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-  setPreferredSize(300,20);
+  setPreferredSize(item->boundingRect().width()-2,20);
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

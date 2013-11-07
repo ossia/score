@@ -42,6 +42,15 @@ private:
 
 public:
   TimeboxModel(int t = 0, int y = 0, int l = 100, int h = 100);
+
+  int time() const {return _time;};
+//  void setTime(int time);
+  int yPosition() const {return _yPosition;};
+//  void setYPosition(int yPosition);
+  int length() const {return _length;};
+//  void setLength(int length);
+  int height() const {return _height;};
+//  void setHeight(int height);
 };
 
 #endif // TIMEBOXMODEL_HPP

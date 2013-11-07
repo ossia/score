@@ -32,6 +32,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxsmallpresenter.hpp"
 
-TimeboxSmallPresenter::TimeboxSmallPresenter()
+TimeboxSmallPresenter::TimeboxSmallPresenter(TimeboxModel *pModel, TimeboxSmallView *pView)
+  : _pModel(pModel), _pView(pView)
 {
 }

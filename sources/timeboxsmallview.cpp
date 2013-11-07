@@ -32,8 +32,25 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxsmallview.hpp"
 
-TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), _pHeader(this), _pModel(pModel)
-{
+#include <QPainter>
 
+TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pModel(pModel), _header(this)
+{
+  setPos(_pModel->time(), _pModel->yPosition());
+  _header.setPos(1,1);
+}
+
+void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+  painter->setPen(Qt::SolidLine);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
+}
+
+QRectF TimeboxSmallView::boundingRect() const
+{
+  return QRectF(0, 0, _pModel->length(), _pModel->height());
 }

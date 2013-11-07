@@ -13,7 +13,7 @@ TEMPLATE = app
 CONFIG += x86_64
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
-SOURCES += sources/main.cpp\
+SOURCES +=\
         sources/mainwindow.cpp \
     sources/graphicstimeevent.cpp \
     sources/engine.cpp \
