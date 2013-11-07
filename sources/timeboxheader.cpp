@@ -33,13 +33,13 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxheader.hpp"
 #include <QPainter>
 
-TimeboxHeaderView::TimeboxHeaderView(QGraphicsItem *item)
+TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
   setPreferredSize(300,20);
 }
 
-void TimeboxHeaderView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)

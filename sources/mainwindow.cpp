@@ -202,7 +202,7 @@ void MainWindow::addItem(QPointF pos)
       /// test d'un gTP avec un plugin gTP
       /// @todo gTP n'est pas censé être directement un plugin de gTP, mais d'abord d'un TimeContainer (contruire un gTC)
       QGraphicsItem* graphicItem = qobject_cast<QGraphicsItem*>(item);
-      TimeboxHeaderView *plugin = new TimeboxHeaderView(graphicItem); // create and position a plugin according to his parent (graphicItem)
+      TimeboxHeader *plugin = new TimeboxHeader(graphicItem); // create and position a plugin according to his parent (graphicItem)
       _scene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
       _scene->addItem(graphicItem);
       graphicItem->setSelected(true);
