@@ -31,7 +31,82 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxmodel.hpp"
+#include <QStateMachine>
+#include <QFinalState>
+#include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel()
+TimeboxModel::TimeboxModel(QGraphicsItem *parent)
+  : plugins(0)
 {
+
+  createStates(parent);
+  createTransitions();
+  _stateMachine->start();
+
+  createScene();
+}
+
+TimeboxModel::~TimeboxModel()
+{
+  delete _initialState;
+  delete _normalState; //will delete all child states
+  delete _finalState;
+}
+
+void TimeboxModel::createStates(QGraphicsItem *parent)
+{
+  _stateMachine = new QStateMachine(this);
+
+  _initialState = new QState();
+  _initialState->assignProperty(this, "objectName", tr("Box"));
+  _stateMachine->addState(_initialState);
+  _stateMachine->setInitialState(_initialState);
+
+  // creating a new top-level state
+  _normalState = new QState();
+
+  _smallSizeState = new QState(_normalState);
+  _fullSizeState = new QState(_normalState);
+
+  if(parent == NULL) {
+      _normalState->setInitialState(_fullSizeState);
+    }
+  else {
+      _normalState->setInitialState(_smallSizeState);
+    }
+  _stateMachine->addState(_normalState);
+
+  _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
+  _stateMachine->addState(_finalState);
+}
+
+void TimeboxModel::createTransitions()
+{
+  _initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
+  _fullSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _smallSizeState);
+  _smallSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _fullSizeState);
+  _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
+}
+
+void TimeboxModel::createConnections()
+{
+  //connect(_initialState, SIGNAL(entered()), this, SLOT(init()));
+  connect(_smallSizeState, SIGNAL(exited()), this, SLOT(switchToFullView)); /// @todo What happen if we exit to finalState ?
+  connect(_fullSizeState, SIGNAL(exited()), this, SLOT(switchToSmallView));
+}
+
+void TimeboxModel::createScene() /// @todo Lazy construction of _scene : construct one only if needed, and duplicate inside the plugin already created
+{
+  _scene = new QGraphicsScene(this); /// @todo ajouter un sceneRect
+  Q_CHECK_PTR(_scene);
+}
+
+void TimeboxModel::switchToSmallView()
+{
+
+}
+
+void TimeboxModel::switchToFullView()
+{
+
 }

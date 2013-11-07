@@ -30,8 +30,26 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxheaderview.hpp"
+#include "timeboxheader.hpp"
+#include <QPainter>
 
-TimeboxHeaderView::TimeboxHeaderView()
+TimeboxHeaderView::TimeboxHeaderView(QGraphicsItem *item)
+  : QGraphicsWidget(item)
 {
+  setPreferredSize(300,20);
+}
+
+void TimeboxHeaderView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  /// Draw the header part
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(QBrush(Qt::gray));
+  painter->drawRect(0, 0, size().width(), size().height());
+
+  painter->setBrush(QBrush(Qt::NoBrush));
+  painter->setPen(Qt::SolidLine);
+  painter->drawText(boundingRect(), Qt::AlignLeft | Qt::AlignTop, tr("Box"));
 }

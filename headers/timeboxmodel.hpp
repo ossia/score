@@ -1,7 +1,10 @@
-/*
-Copyright: LaBRI / SCRIME
+/*! @file
 
-Authors : Jaime Chao, Clément Bossut (2013-2014)
+ *  @brief Graphical representation of a TTTimeProcess class.
+ *  @author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
+
+Copyright: LaBRI / SCRIME
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use,
@@ -28,15 +31,56 @@ same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
+
 */
 
 #ifndef TIMEBOXMODEL_HPP
 #define TIMEBOXMODEL_HPP
 
-class TimeboxModel
+#include <QObject>
+#include <QVector>
+
+class GraphicsTimeEvent;
+class QGraphicsScene;
+class QFinalState;
+class QStateMachine;
+class QState;
+class QGraphicsItem;
+
+class TimeboxModel : public QObject
 {
+  Q_OBJECT
+
+private:
+  QGraphicsScene* _scene;
+
+  /// @todo creer les time event de début et de fin
+  //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
+  //GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
+
+  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
+  QState *_initialState;
+  QState *_normalState;
+  QState *_smallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  QState *_fullSizeState; /// When the graphical timeProcess occupies all size of the view
+  QFinalState *_finalState;
+
+  QVector<int> plugins; /// @todo Precise template argument to plugin base class
+
 public:
-  TimeboxModel();
+  TimeboxModel(QGraphicsItem *parent);
+  ~TimeboxModel();
+
+public slots:
+  void switchToSmallView();
+  void switchToFullView();
+
+private:
+  void createStates(QGraphicsItem *parent);
+  void createTransitions();
+  void createConnections();
+  void createScene();
+
 };
 
 #endif // TIMEBOXMODEL_HPP

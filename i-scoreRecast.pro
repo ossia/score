@@ -13,44 +13,6 @@ TEMPLATE = app
 CONFIG += x86_64
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
-SOURCES += sources/main.cpp\
-        sources/mainwindow.cpp \
-    sources/graphicstimeevent.cpp \
-    sources/engine.cpp \
-    sources/graphicstimebox.cpp \
-    sources/graphicsview.cpp \
-    sources/timeboxsmallview.cpp \
-    sources/timeboxheaderview.cpp \
-    sources/timeboxsmallpresenter.cpp \
-    sources/timeboxfullpresenter.cpp \
-    sources/timeboxfullview.cpp \
-    sources/timeboxmodel.cpp \
-    sources/blankpluginview.cpp \
-    sources/timeboxstoreyview.cpp \
-    sources/timeboxstoreybarview.cpp
-
-HEADERS  += headers/mainwindow.hpp \
-    headers/graphicstimeevent.hpp \
-    headers/engine.hpp \
-    headers/graphicstimebox.hpp \
-    headers/graphicsview.hpp \
-    headers/itemTypes.hpp \
-    headers/timeboxsmallview.hpp \
-    headers/timeboxheaderview.hpp \
-    headers/timeboxsmallpresenter.hpp \
-    headers/timeboxfullpresenter.hpp \
-    headers/timeboxfullview.hpp \
-    headers/timeboxmodel.hpp \
-    headers/blankpluginview.hpp \
-    headers/timeboxstoreyview.hpp \
-    headers/timeboxstoreybarview.hpp
-
-FORMS    += forms/mainwindow.ui
-
-OTHER_FILES += \
-    TODO.txt \
-    LICENSE.txt
-
 INCLUDEPATH += headers/ /usr/local/jamoma/includes
 QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/
 
@@ -61,20 +23,51 @@ LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
 LIBS += -framework gecode
 LIBS += -lxml2
 
-macx-clang {
+QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -stdlib=libc++
+QMAKE_CXXFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 
-    QMAKE_CXX = /usr/bin/clang++
+QMAKE_LFLAGS += -stdlib=libc++
+#-F/System/Library/Frameworks/
 
-    QMAKE_CXXFLAGS += -std=c++11
-    QMAKE_CXXFLAGS += -stdlib=libc++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
+INCLUDEPATH += .
+# INCLUDEPATH += /Library/Frameworks/
+INCLUDEPATH += /usr/local/include/libxml2
 
-    QMAKE_LFLAGS += -stdlib=libc++
-     #-F/System/Library/Frameworks/
+SOURCES += sources/main.cpp\
+        sources/mainwindow.cpp \
+    sources/graphicstimeevent.cpp \
+    sources/engine.cpp \
+    sources/graphicstimebox.cpp \
+    sources/graphicsview.cpp \
+    sources/timeboxsmallview.cpp \
+    sources/timeboxsmallpresenter.cpp \
+    sources/timeboxfullpresenter.cpp \
+    sources/timeboxfullview.cpp \
+    sources/timeboxmodel.cpp \
+    sources/blankpluginview.cpp \
+    sources/timeboxstoreyview.cpp \
+    sources/timeboxstoreybarview.cpp \
+    sources/timeboxheader.cpp
 
-    INCLUDEPATH += .
-   # INCLUDEPATH += /Library/Frameworks/
-    INCLUDEPATH += /usr/local/include/libxml2
+HEADERS  += headers/mainwindow.hpp \
+    headers/graphicstimeevent.hpp \
+    headers/engine.hpp \
+    headers/graphicstimebox.hpp \
+    headers/graphicsview.hpp \
+    headers/itemTypes.hpp \
+    headers/timeboxsmallview.hpp \
+    headers/timeboxsmallpresenter.hpp \
+    headers/timeboxfullpresenter.hpp \
+    headers/timeboxfullview.hpp \
+    headers/timeboxmodel.hpp \
+    headers/blankpluginview.hpp \
+    headers/timeboxstoreyview.hpp \
+    headers/timeboxstoreybarview.hpp \
+    headers/timeboxheader.hpp
 
+FORMS    += forms/mainwindow.ui
 
-}
+OTHER_FILES += \
+    TODO.txt \
+    LICENSE.txt
