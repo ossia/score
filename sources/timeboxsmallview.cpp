@@ -32,7 +32,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxsmallview.hpp"
 
-TimeboxSmallView::TimeboxSmallView(QGraphicsItem *parent) :
-  QGraphicsWidget(parent)
+TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pHeader(this), _pModel(pModel)
 {
+
 }

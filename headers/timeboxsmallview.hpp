@@ -35,11 +35,18 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsWidget>
 
+#include "timeboxmodel.hpp"
+
 class TimeboxSmallView : public QGraphicsWidget
 {
   Q_OBJECT
+
+private:
+    TimeboxHeader *_pHeader;
+    TimeboxModel *_pModel;
+
 public:
-  explicit TimeboxSmallView(QGraphicsItem *parent = 0);
+  TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);
 
 signals:
 

@@ -33,10 +33,15 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXMODEL_HPP
 #define TIMEBOXMODEL_HPP
 
+#include <List>
+
 class TimeboxModel
 {
+private:
+    int _time, _yPosition, _length, _height;
+
 public:
-  TimeboxModel();
+  TimeboxModel(int t = 0, int y = 0, int l = 100, int h = 100);
 };
 
 #endif // TIMEBOXMODEL_HPP

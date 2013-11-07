@@ -27,7 +27,8 @@ SOURCES += sources/main.cpp\
     sources/timeboxmodel.cpp \
     sources/blankpluginview.cpp \
     sources/timeboxstoreyview.cpp \
-    sources/timeboxstoreybarview.cpp
+    sources/timeboxstoreybarview.cpp \
+    sources/test.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/graphicstimeevent.hpp \
