@@ -30,13 +30,26 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef STOREYBARVIEW_HPP
-#define STOREYBARVIEW_HPP
+#include "timeboxstorey.hpp"
 
-class TimeboxStoreyBarView
+#include <QPainter>
+
+TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pModel(pModel), _bar(this)
 {
-public:
-  TimeboxStoreyBarView();
-};
+  _bar.setPos(1,-1);
+}
 
-#endif // STOREYBARVIEW_HPP
+void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+  painter->setPen(Qt::SolidLine);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
+}
+
+QRectF TimeboxStorey::boundingRect() const
+{
+  return QRectF(0, 0, _pModel->length(), _height);
+}

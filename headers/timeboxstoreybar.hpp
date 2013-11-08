@@ -30,8 +30,13 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxstoreybarview.hpp"
+#ifndef TIMEBOXSTOREYBAR_HPP
+#define TIMEBOXSTOREYBAR_HPP
 
-TimeboxStoreyBarView::TimeboxStoreyBarView()
+class TimeboxStoreyBar
 {
-}
+public:
+  TimeboxStoreyBar();
+};
+
+#endif // TIMEBOXSTOREYBAR_HPP

@@ -30,13 +30,35 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef STOREYVIEW_HPP
-#define STOREYVIEW_HPP
+#ifndef TIMEBOXSTOREY_HPP
+#define TIMEBOXSTOREY_HPP
 
-class TimeboxStoreyView
+#include <QGraphicsWidget>
+
+#include "timeboxstoreybar.hpp"
+#include "timeboxmodel.hpp"
+
+class TimeboxStorey : public QGraphicsWidget
 {
+  Q_OBJECT
+
+private:
+  TimeboxModel *_pModel;
+  TimeboxStoreyBar _bar;
+
+  int _height = 100;
+
 public:
-  TimeboxStoreyView();
+  TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent = 0);
+
+signals:
+
+public slots:
+
+  // QGraphicsItem interface
+public:
+  QRectF boundingRect() const;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
-#endif // STOREYVIEW_HPP
+#endif // TIMEBOXSTOREY_HPP
