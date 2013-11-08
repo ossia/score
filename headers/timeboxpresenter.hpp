@@ -30,8 +30,27 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxfullpresenter.hpp"
+#ifndef TIMEBOXPRESENTER_HPP
+#define TIMEBOXPRESENTER_HPP
 
-TimeboxFullPresenter::TimeboxFullPresenter()
+#include "timeboxmodel.hpp"
+#include "timeboxsmallview.hpp"
+#include "timeboxstorey.hpp"
+#include "pluginview.hpp"
+
+#include <map>
+
+class TimeboxPresenter
 {
-}
+private:
+  TimeboxModel *_pModel;
+
+  TimeboxSmallView *_pSmallView;
+
+  std::map<TimeboxStorey*, PluginView*> _storeysSmallView;
+
+public:
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
+};
+
+#endif // TIMEBOXPRESENTER_HPP

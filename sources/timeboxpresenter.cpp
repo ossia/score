@@ -30,20 +30,15 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef TIMEBOXSMALLPRESENTER_HPP
-#define TIMEBOXSMALLPRESENTER_HPP
+#include "timeboxpresenter.hpp"
 
-#include "timeboxmodel.hpp"
-#include "timeboxsmallview.hpp"
-
-class TimeboxSmallPresenter
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
+  : _pModel(pModel), _pSmallView(pSmallView)
 {
-private:
-  TimeboxModel *_pModel;
-  TimeboxSmallView *_pView;
+  TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
 
-public:
-  TimeboxSmallPresenter(TimeboxModel *pModel, TimeboxSmallView *pView);
-};
+  _pSmallView->addStorey(tmp);
 
-#endif // TIMEBOXSMALLPRESENTER_HPP
+  _storeysSmallView.clear();
+  _storeysSmallView.emplace(tmp, new PluginView());
+}
