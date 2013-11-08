@@ -33,10 +33,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxheader.hpp"
 #include <QPainter>
 
+const int HEADER_HEIGHT = 20;
+
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-  setPreferredSize(item->boundingRect().width()-2,20);
+  setPreferredSize(item->boundingRect().width()-2, HEADER_HEIGHT);
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

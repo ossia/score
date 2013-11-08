@@ -46,9 +46,9 @@ class TimeboxSmallView : public QGraphicsWidget
 
 private:
   TimeboxModel *_pModel;
-  TimeboxHeader _header;
+  TimeboxHeader *_pHeader;
 
-  QGraphicsLinearLayout _layout;
+  QGraphicsLinearLayout *_pLayout;
 
 public:
   TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);

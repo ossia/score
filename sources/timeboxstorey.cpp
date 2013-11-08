@@ -37,7 +37,7 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel), _bar(this)
 {
-  _bar.setPos(1,-1);
+  _bar.setPos(1,1);
 }
 
 void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
