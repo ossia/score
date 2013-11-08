@@ -30,7 +30,6 @@ QMAKE_CXXFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 QMAKE_LFLAGS += -stdlib=libc++
 #-F/System/Library/Frameworks/
 
-INCLUDEPATH += .
 # INCLUDEPATH += /Library/Frameworks/
 INCLUDEPATH += /usr/local/include/libxml2
 
@@ -47,8 +46,8 @@ SOURCES += sources/main.cpp\
     sources/timeboxmodel.cpp \
     sources/blankpluginview.cpp \
     sources/timeboxstoreyview.cpp \
-    sources/timeboxstoreybarview.cpp \
-    sources/timeboxheader.cpp
+    sources/timeboxheader.cpp \
+    sources/timeboxstoreybar.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/graphicstimeevent.hpp \
@@ -63,11 +62,14 @@ HEADERS  += headers/mainwindow.hpp \
     headers/timeboxmodel.hpp \
     headers/blankpluginview.hpp \
     headers/timeboxstoreyview.hpp \
-    headers/timeboxstoreybarview.hpp \
-    headers/timeboxheader.hpp
+    headers/timeboxheader.hpp \
+    headers/timeboxstoreybar.hpp
 
 FORMS    += forms/mainwindow.ui
 
 OTHER_FILES += \
     TODO.txt \
     LICENSE.txt
+
+RESOURCES += \
+    resources/resource.qrc
