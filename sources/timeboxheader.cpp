@@ -32,11 +32,15 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxheader.hpp"
 #include <QPainter>
+#include <QGraphicsPixmapItem>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
   setPreferredSize(300,20);
+
+  _pButtonPlay = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
+  _pButtonPlay->setPos(0,0);
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -51,5 +55,5 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
   painter->setBrush(QBrush(Qt::NoBrush));
   painter->setPen(Qt::SolidLine);
-  painter->drawText(boundingRect(), Qt::AlignLeft | Qt::AlignTop, tr("Box"));
+  painter->drawText(boundingRect(), Qt::AlignCenter | Qt::AlignTop, tr("Box"));
 }

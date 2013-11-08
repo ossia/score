@@ -35,9 +35,14 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsWidget>
 class QGraphicsItem;
+class QGraphicsPixmapItem;
 
 class TimeboxHeader : public QGraphicsWidget
 {
+Q_OBJECT
+
+private:
+  QGraphicsPixmapItem *_pButtonPlay;
 
 public:
   TimeboxHeader(QGraphicsItem *item);
