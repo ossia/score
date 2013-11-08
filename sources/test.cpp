@@ -1,7 +1,7 @@
 #include <QtGui>
 
 #include "timeboxmodel.hpp"
-#include "timeboxsmallpresenter.hpp"
+#include "timeboxpresenter.hpp"
 #include "timeboxsmallview.hpp"
 
 int main(int argc, char *argv[])
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     TimeboxModel *pModel = new TimeboxModel(100, 100, 300, 300);
     TimeboxSmallView *pItem = new TimeboxSmallView(pModel);
-    TimeboxSmallPresenter *pPrez = new TimeboxSmallPresenter(pModel, pItem);
+    TimeboxPresenter *pPrez = new TimeboxPresenter(pModel, pItem);
     scene.addItem(pItem);
 
     QGraphicsView view(&scene);
