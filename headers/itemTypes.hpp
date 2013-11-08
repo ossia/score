@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsItem>
 
-const int ProcessItemType = QGraphicsItem::UserType + 1;
+const int BoxItemType = QGraphicsItem::UserType + 1;
 const int EventItemType = QGraphicsItem::UserType + 2;
 
 #endif // ITEMTYPES_HPP

@@ -34,9 +34,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "graphicstimeevent.hpp"
-#include "graphicstimebox.hpp"
+#include "timeboxmodel.hpp"
 #include "timeboxheader.hpp"
+#include "timeboxstoreybar.hpp"
 
+#include <QGraphicsProxyWidget>
 #include <QMouseEvent>
 #include <QActionGroup>
 #include <QGraphicsView>
@@ -63,17 +65,17 @@ MainWindow::MainWindow(QWidget *parent)
   QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
-MainWindow::~MainWindow()
-{
-}
-
 void MainWindow::createGraphics()
 {
   _view = ui->graphicsView;
-  _mainProcess = new GraphicsTimeBox();
-  Q_CHECK_PTR(_mainProcess);
 
-  _scene = _mainProcess->scene();
+ /*! @todo uncomment when Timebox achieved
+  * _mainProcess = new GraphicsTimeBox();
+  * Q_CHECK_PTR(_mainProcess);
+  * _scene = _mainProcess->scene();
+  */
+
+  _scene = new QGraphicsScene(this);
   Q_CHECK_PTR(_scene);
   _view->setScene(_scene);
 }
@@ -82,11 +84,11 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
 {
   // GraphicsItems relative's actions
   ui->actionAddTimeEvent->setData(EventItemType);
-  ui->actionAddTimeProcess->setData(ProcessItemType);
+  ui->actionAddTimeBox->setData(BoxItemType);
 
   _mouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
   _mouseActionGroup->addAction(ui->actionAddTimeEvent);
-  _mouseActionGroup->addAction(ui->actionAddTimeProcess);
+  _mouseActionGroup->addAction(ui->actionAddTimeBox);
   /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
 
   // Mouse cursor relative's actions
@@ -164,28 +166,11 @@ void MainWindow::updateUi()
  // ui->actionSelect->setChecked();
 }
 
-QPoint MainWindow::position() //p.426
-{
-  QPoint point = mapFromGlobal(QCursor::pos());
-  if(!ui->graphicsView->geometry().contains(point)){
-      point = _previousPoint.isNull() ? ui->graphicsView->pos() + QPoint(10,10) : _previousPoint;
-    }
-  if(!point.isNull() && point == _previousPoint){
-      point += QPoint(_addOffset, _addOffset);
-      _addOffset += OFFSET_INCREMENT;
-    }
-  else {
-      _addOffset = OFFSET_INCREMENT;
-      _previousPoint = point;
-    }
-  return ui->graphicsView->mapToScene(point).toPoint();
-}
-
 void MainWindow::addItem(QPointF pos)
 {
   QAction *action = _mouseActionGroup->checkedAction();
   Q_ASSERT(action);
-  if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeProcess) { /// @todo  pas très découplé mais à cause de la galère des groupActions, regarder signalMapper
+  if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeBox) { /// @todo  pas très découplé mais à cause de la galère des groupActions, regarder signalMapper
       return;
     }
 
@@ -196,16 +181,19 @@ void MainWindow::addItem(QPointF pos)
   if (type == EventItemType) {
       item = new GraphicsTimeEvent(pos, 0, _scene);
     }
-  else if(type == ProcessItemType) {
-      item = new GraphicsTimeBox(pos, 300, 200, 0);
+  else if(type == BoxItemType) {
 
-      /// test d'un gTP avec un plugin gTP
-      /// @todo gTP n'est pas censé être directement un plugin de gTP, mais d'abord d'un TimeContainer (contruire un gTC)
+      /*! @todo uncomment when Timebox is achieved
+      item = new TimeboxModel(pos, 200, 300);
       QGraphicsItem* graphicItem = qobject_cast<QGraphicsItem*>(item);
+
       TimeboxHeader *plugin = new TimeboxHeader(graphicItem); // create and position a plugin according to his parent (graphicItem)
+      new TimeboxStoreyBar(graphicItem);
+
       _scene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
       _scene->addItem(graphicItem);
       graphicItem->setSelected(true);
+      */
     }
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
 

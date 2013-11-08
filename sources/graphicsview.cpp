@@ -49,10 +49,10 @@ void GraphicsView::mouseDragMode(QAction* action)
   Q_ASSERT(action->data().canConvert(QVariant::Int));
   qint32 typeDragMode = action->data().toInt();
 
-  Q_ASSERT(typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag || typeDragMode == EventItemType || typeDragMode == ProcessItemType);
+  Q_ASSERT(typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag || typeDragMode == EventItemType || typeDragMode == BoxItemType);
   switch(typeDragMode){
     case EventItemType : // we pass Event and Process Item to NoDrag
-    case ProcessItemType :
+    case BoxItemType :
     case QGraphicsView::NoDrag :
       setCursor(Qt::ArrowCursor);
       setDragMode(QGraphicsView::NoDrag);

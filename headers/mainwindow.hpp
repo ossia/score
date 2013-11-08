@@ -75,7 +75,6 @@ private:
 
 public:
   explicit MainWindow(QWidget *parent = 0);
-  ~MainWindow();
 
 public slots:
     void setDirty(bool on=true);
@@ -102,7 +101,6 @@ private:
   void createStates();
   void createTransitions();
 
-  QPoint position();
   void connectItem(QObject *item);
   void createConnections();
   void createActionGroups();
