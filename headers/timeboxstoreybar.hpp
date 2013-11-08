@@ -33,10 +33,30 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXSTOREYBAR_HPP
 #define TIMEBOXSTOREYBAR_HPP
 
-class TimeboxStoreyBar
+#include <QGraphicsWidget>
+
+class QGraphicsItem;
+class QGraphicsPixmapItem;
+class QComboBox;
+class QGraphicsProxyWidget;
+
+class TimeboxStoreyBar : public QGraphicsWidget
 {
+  Q_OBJECT
+
+private:
+  QGraphicsPixmapItem *_pButtonAdd;
+  QComboBox *_pComboBox;
+  QGraphicsProxyWidget *_pComboBoxProxy;
+
+signals:
+  void addStorey();
+
 public:
-  TimeboxStoreyBar();
+  TimeboxStoreyBar(QGraphicsItem *item);
+
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP
