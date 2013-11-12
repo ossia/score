@@ -36,9 +36,12 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
   : _pModel(pModel), _pSmallView(pSmallView)
 {
   TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
-
   _pSmallView->addStorey(tmp);
+
+  TimeboxStorey *tmp2 = new TimeboxStorey(_pModel, _pSmallView);
+  _pSmallView->addStorey(tmp2);
 
   _storeysSmallView.clear();
   _storeysSmallView.emplace(tmp, new PluginView());
+  _storeysSmallView.emplace(tmp2, new PluginView());
 }

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
     QGraphicsScene scene(0, 0, 500, 500);
 
-    TimeboxModel *pModel = new TimeboxModel(100, 100, 300, 300);
+    TimeboxModel *pModel = new TimeboxModel(100, 100, 400, 300);
     TimeboxSmallView *pItem = new TimeboxSmallView(pModel);
     TimeboxPresenter *pPrez = new TimeboxPresenter(pModel, pItem);
     scene.addItem(pItem);

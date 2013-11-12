@@ -49,6 +49,10 @@ private:
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
 
+  int _height;
+
+  static const int MARGIN = 2;
+
 signals:
   void addStorey();
 
@@ -57,6 +61,8 @@ public:
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  QRectF boundingRect() const;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP

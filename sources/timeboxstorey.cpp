@@ -31,25 +31,37 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxstorey.hpp"
+#include "timeboxstoreybar.hpp"
+#include "timeboxmodel.hpp"
+
+#include <QDebug>
 
 #include <QPainter>
 
 TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), _pModel(pModel), _bar(this)
+  : QGraphicsWidget(parent), _pModel(pModel), _height(100)
 {
-  _bar.setPos(1,1);
+  setGeometry(0,0, parentItem()->boundingRect().width(), _height);
+  setContentsMargins(00,0,0,0);
+  setMaximumHeight(_height);
+
+  _bar = new TimeboxStoreyBar(this);
 }
 
 void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
+
+  /// Draw the bounding rectangle
   painter->setPen(Qt::SolidLine);
   painter->setBrush(Qt::NoBrush);
-  painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
+  painter->drawRect(contentsRect());
+
+  qDebug() << "TimeBoxStorey: " << contentsRect();
 }
 
 QRectF TimeboxStorey::boundingRect() const
 {
-  return QRectF(0, 0, _pModel->length(), _height);
+  return QRectF(contentsRect()); /// @todo check space shift problem with preferredSize
 }

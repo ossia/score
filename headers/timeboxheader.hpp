@@ -38,12 +38,21 @@ class QGraphicsItem;
 
 class TimeboxHeader : public QGraphicsWidget
 {
+Q_OBJECT
+
+private:
+  static const int HEIGHT = 25;
+  static const int MARGIN = 2;
+
+  QGraphicsPixmapItem *_pButtonAdd;
 
 public:
   TimeboxHeader(QGraphicsItem *item);
 
 protected:
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  QRectF boundingRect() const;
+
 };
 
 #endif // TIMEBOXHEADER_HPP

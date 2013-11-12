@@ -32,13 +32,20 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxheader.hpp"
 #include <QPainter>
-
-const int HEADER_HEIGHT = 20;
+#include <QDebug>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-  setPreferredSize(item->boundingRect().width()-2, HEADER_HEIGHT);
+  setGeometry(0,0, parentItem()->boundingRect().width(), HEIGHT);
+
+  setMaximumHeight(HEIGHT); /// Set height rigidly
+  setMinimumHeight(HEIGHT);
+
+  _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
+  _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+  _pButtonAdd->setPos(0, MARGIN);
+
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -49,9 +56,14 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   /// Draw the header part
   painter->setPen(Qt::NoPen);
   painter->setBrush(QBrush(Qt::gray));
-  painter->drawRect(0, 0, size().width(), size().height());
+  painter->drawRect(contentsRect());
 
   painter->setBrush(QBrush(Qt::NoBrush));
   painter->setPen(Qt::SolidLine);
-  painter->drawText(boundingRect(), Qt::AlignLeft | Qt::AlignTop, tr("Box"));
+  painter->drawText(30, 20, tr("Box"));
+}
+
+QRectF TimeboxHeader::boundingRect() const
+{
+  return QRectF(contentsRect());
 }

@@ -44,6 +44,9 @@ HEADERS  += headers/mainwindow.hpp \
     headers/timeboxstorey.hpp \
     headers/pluginview.hpp
 
+ RESOURCES += \
+     resources/resource.qrc
+
 FORMS    += forms/mainwindow.ui
 
 OTHER_FILES += \

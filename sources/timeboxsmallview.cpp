@@ -34,18 +34,27 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QPainter>
 #include <QGraphicsLinearLayout>
+#include <QDebug>
 
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
-  setPos(_pModel->time(), _pModel->yPosition());
+  /// @todo Connect the model's members height and length to this class
+  setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), _pModel->height());
+  setContentsMargins(0,1,1,1); /// @todo set upper margin to add header without layout
 
-  _pLayout = new QGraphicsLinearLayout(Qt::Vertical);
+  _pLayout = new QGraphicsLinearLayout(Qt::Vertical, this);
+  _pLayout->setContentsMargins(0,0,0,0);
+  _pLayout->setSpacing(0);
+  setLayout(_pLayout);
+
   _pHeader = new TimeboxHeader(this);
-
   _pLayout->addItem(_pHeader);
 
-  setLayout(_pLayout);
+  qDebug() << "smallView: " << contentsRect();
+  qDebug() << "smallView size: " << size();
+  qDebug() << "header 2: " << _pHeader->contentsRect();
+
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *storey)
@@ -64,5 +73,5 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 QRectF TimeboxSmallView::boundingRect() const
 {
-  return QRectF(0, 0, _pModel->length(), _pModel->height());
+  return QRectF(0, 0, _pModel->width(), _pModel->height());
 }

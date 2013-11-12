@@ -38,7 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 class TimeboxModel
 {
 private:
-    int _time, _yPosition, _length, _height;
+    int _time, _yPosition, _width, _height;
 
 public:
   TimeboxModel(int t = 0, int y = 0, int l = 100, int h = 100);
@@ -47,7 +47,7 @@ public:
 //  void setTime(int time);
   int yPosition() const {return _yPosition;};
 //  void setYPosition(int yPosition);
-  int length() const {return _length;};
+  int width() const {return _width;};
 //  void setLength(int length);
   int height() const {return _height;};
 //  void setHeight(int height);

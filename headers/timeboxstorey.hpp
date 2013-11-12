@@ -34,9 +34,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #define TIMEBOXSTOREY_HPP
 
 #include <QGraphicsWidget>
+#include <QGraphicsLinearLayout>
 
-#include "timeboxstoreybar.hpp"
-#include "timeboxmodel.hpp"
+class TimeboxStoreyBar;
+class TimeboxModel;
 
 class TimeboxStorey : public QGraphicsWidget
 {
@@ -44,9 +45,9 @@ class TimeboxStorey : public QGraphicsWidget
 
 private:
   TimeboxModel *_pModel;
-  TimeboxStoreyBar _bar;
+  TimeboxStoreyBar *_bar;
 
-  int _height = 100;
+  int _height;
 
 public:
   TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent = 0);
