@@ -61,8 +61,8 @@ public:
   void addStorey(TimeboxStorey *storey);
 
   // QGraphicsItem interface
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QRectF boundingRect() const;
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

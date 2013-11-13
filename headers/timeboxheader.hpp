@@ -51,9 +51,10 @@ public:
   TimeboxHeader(QGraphicsItem *item);
 
 protected:
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  QRectF boundingRect() const;
-
+  // QGraphicsItem interface
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QRectF boundingRect() const;
+  virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // TIMEBOXHEADER_HPP

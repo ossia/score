@@ -59,9 +59,9 @@ public:
   TimeboxStoreyBar(QGraphicsItem *item);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *event);
-  QRectF boundingRect() const;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP
