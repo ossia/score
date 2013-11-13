@@ -45,13 +45,12 @@ class TimeboxStoreyBar : public QGraphicsWidget
   Q_OBJECT
 
 private:
+  static const int HEIGHT = 25;
+  static const int MARGIN = 2;
+
   QGraphicsPixmapItem *_pButtonAdd;
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
-
-  int _height;
-
-  static const int MARGIN = 2;
 
 signals:
   void buttonAddClicked();

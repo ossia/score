@@ -41,11 +41,11 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
-  : QGraphicsWidget(item), _height(25)
+  : QGraphicsWidget(item)
 {
 
-  setGeometry(1, parentItem()->boundingRect().height()-_height,
-              parentItem()->boundingRect().width()-2, _height);
+  setGeometry(1, parentItem()->boundingRect().height() - HEIGHT,
+              parentItem()->boundingRect().width()-2, HEIGHT);
   //setMaximumWidth(parentItem()->boundingRect().width()-2); /// @todo Connect the model's members width and height to this class
   //setMaximumHeight(_height);
 
