@@ -42,7 +42,6 @@ TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel), _height(100)
 {
   setGeometry(0,0, parentItem()->boundingRect().width(), _height);
-  setContentsMargins(0,0,0,0);
   setMaximumHeight(_height);
   setMinimumHeight(_height);
 
@@ -55,15 +54,16 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   Q_UNUSED(option)
   Q_UNUSED(widget)
 
-  /// Draw the bounding rectangle
+  /// Draw the bounding upper and bottom lines
   painter->setPen(Qt::SolidLine);
   painter->setBrush(Qt::NoBrush);
-  painter->drawRect(contentsRect());
+  painter->drawLine(0,0,size().width(),0);
+  painter->drawLine(0,size().height(),size().width(),size().height());
 
-  //qDebug() << "TimeBoxStorey: " << contentsRect();
+  qDebug() << "storey: " << contentsRect() << size();
 }
 
 QRectF TimeboxStorey::boundingRect() const
 {
-  return QRectF(contentsRect()); /// @todo check space shift problem with preferredSize
+  return QRectF(0,0,size().width(),size().height());
 }

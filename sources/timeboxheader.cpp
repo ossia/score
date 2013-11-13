@@ -49,8 +49,8 @@ TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   _pButtonPlay->setPos(0, MARGIN);
 
   _pTextName = new QGraphicsSimpleTextItem(tr("Box"), this);
-  _pTextName->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pTextName->setPos(30, MARGIN);
+  _pTextName->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom a text
+  _pTextName->setPos(30, MARGIN); /// @todo Find a better position
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

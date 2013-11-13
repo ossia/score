@@ -49,17 +49,12 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
 
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, this);
-  _pLayout->setContentsMargins(0,0,0,0);
+  _pLayout->setContentsMargins(1,1,1,1);
   _pLayout->setSpacing(0);
   setLayout(_pLayout);
 
   _pHeader = new TimeboxHeader(this);
-  _pLayout->addItem(_pHeader);
-
-  qDebug() << "smallView: " << contentsRect();
-  qDebug() << "smallView size: " << size();
-  qDebug() << "header 2: " << _pHeader->contentsRect();
-
+  _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *storey)
@@ -74,9 +69,11 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setPen(Qt::SolidLine);
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
+
+  qDebug() << "smallView: " << contentsRect() << size();
 }
 
 QRectF TimeboxSmallView::boundingRect() const
 {
-  return QRectF(0, 0, _pModel->width(), _pModel->height());
+  return QRectF(0,0,size().width(),size().height());
 }
