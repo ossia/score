@@ -45,7 +45,7 @@ private:
   static const int HEIGHT = 25;
   static const int MARGIN = 2;
 
-  QGraphicsPixmapItem *_pButtonAdd;
+  QGraphicsPixmapItem *_pButtonPlay;
 
 public:
   TimeboxHeader(QGraphicsItem *item);

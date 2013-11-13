@@ -43,9 +43,9 @@ TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   setMaximumHeight(HEIGHT); /// Set height rigidly
   setMinimumHeight(HEIGHT);
 
-  _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
-  _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonAdd->setPos(0, MARGIN);
+  _pButtonPlay = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
+  _pButtonPlay->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+  _pButtonPlay->setPos(0, MARGIN);
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -61,6 +61,9 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->setBrush(QBrush(Qt::NoBrush));
   painter->setPen(Qt::SolidLine);
   painter->drawText(10, 20, tr("Box"));
+
+  qDebug() << "header: " << contentsRect() << size();
+
 }
 
 QRectF TimeboxHeader::boundingRect() const
