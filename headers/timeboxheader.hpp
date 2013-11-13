@@ -34,6 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #define TIMEBOXHEADER_HPP
 
 #include <QGraphicsWidget>
+#include <QObject>
 class QGraphicsItem;
 
 class TimeboxHeader : public QGraphicsWidget

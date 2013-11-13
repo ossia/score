@@ -54,7 +54,7 @@ private:
   static const int MARGIN = 2;
 
 signals:
-  void addStorey();
+  void buttonAddClicked();
 
 public:
   TimeboxStoreyBar(QGraphicsItem *item);

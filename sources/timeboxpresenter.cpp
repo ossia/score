@@ -34,14 +34,17 @@ knowledge of the CeCILL license and that you accept its terms.
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
   : _pModel(pModel), _pSmallView(pSmallView)
+{  
+  _storeysSmallView.clear();
+  addStorey();
+}
+
+void TimeboxPresenter::addStorey()
 {
   TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
   _pSmallView->addStorey(tmp);
-
-  TimeboxStorey *tmp2 = new TimeboxStorey(_pModel, _pSmallView);
-  _pSmallView->addStorey(tmp2);
-
-  _storeysSmallView.clear();
   _storeysSmallView.emplace(tmp, new PluginView());
-  _storeysSmallView.emplace(tmp2, new PluginView());
+
+  connect(tmp, SIGNAL(buttonAddClicked()), this, SLOT(addStorey()));
 }
+

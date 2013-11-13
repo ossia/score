@@ -42,10 +42,12 @@ TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel), _height(100)
 {
   setGeometry(0,0, parentItem()->boundingRect().width(), _height);
-  setContentsMargins(00,0,0,0);
+  setContentsMargins(0,0,0,0);
   setMaximumHeight(_height);
+  setMinimumHeight(_height);
 
   _bar = new TimeboxStoreyBar(this);
+  connect(_bar, SIGNAL(buttonAddClicked()), this, SIGNAL(buttonAddClicked())); /// routing the signal to Presenter
 }
 
 void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -58,7 +60,7 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(contentsRect());
 
-  qDebug() << "TimeBoxStorey: " << contentsRect();
+  //qDebug() << "TimeBoxStorey: " << contentsRect();
 }
 
 QRectF TimeboxStorey::boundingRect() const

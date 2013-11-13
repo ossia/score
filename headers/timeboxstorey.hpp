@@ -53,6 +53,7 @@ public:
   TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent = 0);
 
 signals:
+  void buttonAddClicked();
 
 public slots:
 

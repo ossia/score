@@ -64,8 +64,8 @@ TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   _pComboBoxProxy->setWidget(_pComboBox);
   _pComboBoxProxy->setPos(size().width() -_pComboBoxProxy->size().width() - MARGIN, MARGIN);
 
-  qDebug() << "TimeBoxStoreyBar: " << contentsRect();
-  qDebug() << "TimeBoxStoreyBar size: " << size();
+  //qDebug() << "TimeBoxStoreyBar: " << contentsRect();
+  //qDebug() << "TimeBoxStoreyBar size: " << size();
 }
 
 void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -89,7 +89,7 @@ void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
       if(_pButtonAdd->contains(event->pos())) {
-          emit addStorey();
+          emit buttonAddClicked();
         }
     }
   QGraphicsWidget::mousePressEvent(event);

@@ -33,6 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxheader.hpp"
 #include <QPainter>
 #include <QDebug>
+#include <QGraphicsItem>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
@@ -45,7 +46,6 @@ TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
   _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
   _pButtonAdd->setPos(0, MARGIN);
-
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -60,7 +60,7 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
   painter->setBrush(QBrush(Qt::NoBrush));
   painter->setPen(Qt::SolidLine);
-  painter->drawText(30, 20, tr("Box"));
+  painter->drawText(10, 20, tr("Box"));
 }
 
 QRectF TimeboxHeader::boundingRect() const

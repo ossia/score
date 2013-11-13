@@ -38,10 +38,13 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxstorey.hpp"
 #include "pluginview.hpp"
 
+#include <QObject>
 #include <map>
 
-class TimeboxPresenter
+class TimeboxPresenter : public QObject
 {
+  Q_OBJECT
+
 private:
   TimeboxModel *_pModel;
 
@@ -51,6 +54,9 @@ private:
 
 public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
+
+public slots:
+  void addStorey();
 };
 
 #endif // TIMEBOXPRESENTER_HPP
