@@ -45,13 +45,12 @@ class TimeboxStoreyBar : public QGraphicsWidget
   Q_OBJECT
 
 private:
+  static const int HEIGHT = 25;
+  static const int MARGIN = 2;
+
   QGraphicsPixmapItem *_pButtonAdd;
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
-
-  int _height;
-
-  static const int MARGIN = 2;
 
 signals:
   void buttonAddClicked();
@@ -60,9 +59,9 @@ public:
   TimeboxStoreyBar(QGraphicsItem *item);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *event);
-  QRectF boundingRect() const;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP

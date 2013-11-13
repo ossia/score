@@ -70,3 +70,8 @@ QRectF TimeboxHeader::boundingRect() const
 {
   return QRectF(0,0,size().width(),size().height());
 }
+
+
+void TimeboxHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+}
