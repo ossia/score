@@ -39,9 +39,14 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
+  setFlags(QGraphicsItem::ItemIsMovable);
+
   /// @todo Connect the model's members height and length to this class
-  setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), _pModel->height());
-  setContentsMargins(0,1,1,1); /// @todo set upper margin to add header without layout
+  setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);
+
+  setMaximumWidth(_pModel->width()); /// Set width rigidly according to model
+  setMinimumWidth(_pModel->width());
+
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, this);
   _pLayout->setContentsMargins(0,0,0,0);
