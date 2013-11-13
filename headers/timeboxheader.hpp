@@ -36,6 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsWidget>
 #include <QObject>
 class QGraphicsItem;
+class QGraphicsSimpleTextItem;
 
 class TimeboxHeader : public QGraphicsWidget
 {
@@ -46,6 +47,7 @@ private:
   static const int MARGIN = 2;
 
   QGraphicsPixmapItem *_pButtonPlay;
+  QGraphicsSimpleTextItem *_pTextName;
 
 public:
   TimeboxHeader(QGraphicsItem *item);
