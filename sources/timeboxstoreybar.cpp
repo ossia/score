@@ -88,7 +88,7 @@ QRectF TimeboxStoreyBar::boundingRect() const
 void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-      if(_pButtonAdd->contains(event->pos())) {
+      if(_pButtonAdd->contains(mapToItem(_pButtonAdd, event->pos()))) {
           emit buttonAddClicked();
         }
     }
