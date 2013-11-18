@@ -89,8 +89,8 @@ void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
       if(_pButtonAdd->contains(event->pos())) {
+          event->accept();
           emit buttonAddClicked();
         }
     }
-  QGraphicsWidget::mousePressEvent(event);
 }

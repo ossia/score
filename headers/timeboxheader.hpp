@@ -33,9 +33,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXHEADER_HPP
 #define TIMEBOXHEADER_HPP
 
-#include <QGraphicsWidget>
-#include <QObject>
 class QGraphicsItem;
+
+#include <QGraphicsWidget>
 
 class TimeboxHeader : public QGraphicsWidget
 {
@@ -49,6 +49,9 @@ private:
 
 public:
   TimeboxHeader(QGraphicsItem *item);
+
+signals:
+  void doubleClicked();
 
 protected:
   // QGraphicsItem interface

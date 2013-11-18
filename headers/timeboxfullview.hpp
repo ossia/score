@@ -33,10 +33,19 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXFULLVIEW_HPP
 #define TIMEBOXFULLVIEW_HPP
 
-class TimeboxFullView
+class TimeboxModel;
+
+#include <QGraphicsScene>
+
+class TimeboxFullView : public QGraphicsScene
 {
+  Q_OBJECT
+
+private:
+  TimeboxModel *_pModel;
+
 public:
-  TimeboxFullView();
+  TimeboxFullView(TimeboxModel *pModel);
 };
 
 #endif // TIMEBOXFULLVIEW_HPP

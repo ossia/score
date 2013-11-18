@@ -32,19 +32,48 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxpresenter.hpp"
 
+#include "timeboxsmallview.hpp"
+#include "timeboxfullview.hpp"
+#include "timeboxstorey.hpp"
+#include "pluginview.hpp"
+
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
-  : _pModel(pModel), _pSmallView(pSmallView)
+  : _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _mode(SMALL)
 {  
+  connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
+
   _storeysSmallView.clear();
   addStorey();
 }
 
 void TimeboxPresenter::addStorey()
 {
-  TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
-  _pSmallView->addStorey(tmp);
-  _storeysSmallView.emplace(tmp, new PluginView());
+  TimeboxStorey *storey;
 
-  connect(tmp, SIGNAL(buttonAddClicked()), this, SLOT(addStorey()));
+  switch (_mode) {
+    case SMALL:
+      storey = new TimeboxStorey(_pModel, _pSmallView);
+      _pSmallView->addStorey(storey);
+      _storeysSmallView.emplace(storey, new PluginView());
+      break;
+
+    case FULL:
+      return; // TODO
+    }
+
+  connect(storey, SIGNAL(buttonAddClicked()), this, SLOT(addStorey()));
 }
 
+void TimeboxPresenter::goFullView()
+{
+  if (_pFullView == NULL) {
+      createFullView();
+    }
+}
+
+void TimeboxPresenter::createFullView()
+{
+  _pFullView = new TimeboxFullView(_pModel);
+
+  _storeysFullView.clear();
+}

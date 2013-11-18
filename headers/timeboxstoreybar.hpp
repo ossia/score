@@ -52,11 +52,11 @@ private:
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
 
-signals:
-  void buttonAddClicked();
-
 public:
   TimeboxStoreyBar(QGraphicsItem *item);
+
+signals:
+  void buttonAddClicked();
 
 protected:
   virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);

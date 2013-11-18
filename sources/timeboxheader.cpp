@@ -34,6 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include <QDebug>
 #include <QGraphicsItem>
+#include <QGraphicsSceneMouseEvent>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
@@ -71,4 +72,8 @@ QRectF TimeboxHeader::boundingRect() const
 
 void TimeboxHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+  if (event->button() == Qt::LeftButton) {
+      event->accept();
+      emit doubleClicked();
+    }
 }

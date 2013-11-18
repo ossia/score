@@ -33,10 +33,17 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXPRESENTER_HPP
 #define TIMEBOXPRESENTER_HPP
 
-#include "timeboxmodel.hpp"
-#include "timeboxsmallview.hpp"
-#include "timeboxstorey.hpp"
-#include "pluginview.hpp"
+class TimeboxModel;
+class TimeboxSmallView;
+class TimeboxFullView;
+class TimeboxStorey;
+class PluginView;
+
+enum ViewMode
+{
+  FULL,
+  SMALL
+};
 
 #include <QObject>
 #include <map>
@@ -49,14 +56,21 @@ private:
   TimeboxModel *_pModel;
 
   TimeboxSmallView *_pSmallView;
+  TimeboxFullView *_pFullView;
+  ViewMode _mode;
 
   std::map<TimeboxStorey*, PluginView*> _storeysSmallView;
+  std::map<TimeboxStorey*, PluginView*> _storeysFullView;
 
 public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
 
-public slots:
+private slots:
   void addStorey();
+  void goFullView();
+
+private:
+  void createFullView();
 };
 
 #endif // TIMEBOXPRESENTER_HPP

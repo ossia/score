@@ -33,12 +33,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXSMALLVIEW_HPP
 #define TIMEBOXSMALLVIEW_HPP
 
-#include <QGraphicsWidget>
-#include <QGraphicsLinearLayout>
+class TimeboxHeader;
+class TimeboxStorey;
+class TimeboxModel;
+class QGraphicsLinearLayout;
 
-#include "timeboxheader.hpp"
-#include "timeboxstorey.hpp"
-#include "timeboxmodel.hpp"
+#include <QGraphicsWidget>
 
 class TimeboxSmallView : public QGraphicsWidget
 {
@@ -54,6 +54,7 @@ public:
   TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);
 
 signals:
+  void headerDoubleClicked();
 
 public slots:
 

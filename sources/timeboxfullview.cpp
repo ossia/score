@@ -32,6 +32,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxfullview.hpp"
 
-TimeboxFullView::TimeboxFullView()
+#include "timeboxmodel.hpp"
+
+TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
 {
 }

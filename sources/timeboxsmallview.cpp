@@ -35,6 +35,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include <QGraphicsLinearLayout>
 #include <QDebug>
+#include <QGraphicsLinearLayout>
+
+#include "timeboxheader.hpp"
+#include "timeboxstorey.hpp"
+#include "timeboxmodel.hpp"
+
 
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
@@ -50,6 +56,7 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
 
   _pHeader = new TimeboxHeader(this);
   _pLayout->addItem(_pHeader);
+  connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
 
   qDebug() << "smallView: " << contentsRect();
   qDebug() << "smallView size: " << size();
