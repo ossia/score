@@ -34,6 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #define TIMEBOXHEADER_HPP
 
 class QGraphicsItem;
+class QGraphicsSimpleTextItem;
 
 #include <QGraphicsWidget>
 
@@ -45,7 +46,8 @@ private:
   static const int HEIGHT = 25;
   static const int MARGIN = 2;
 
-  QGraphicsPixmapItem *_pButtonAdd;
+  QGraphicsPixmapItem *_pButtonPlay;
+  QGraphicsSimpleTextItem *_pTextName;
 
 public:
   TimeboxHeader(QGraphicsItem *item);
