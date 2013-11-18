@@ -35,6 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QDebug>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSimpleTextItem>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
@@ -44,9 +45,13 @@ TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   setMaximumHeight(HEIGHT); /// Set height rigidly
   setMinimumHeight(HEIGHT);
 
-  _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
-  _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonAdd->setPos(0, MARGIN);
+  _pButtonPlay = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
+  _pButtonPlay->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+  _pButtonPlay->setPos(0, MARGIN);
+
+  _pTextName = new QGraphicsSimpleTextItem(tr("Box"), this);
+  _pTextName->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom a text
+  _pTextName->setPos(30, MARGIN); /// @todo Find a better position
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -59,14 +64,12 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->setBrush(QBrush(Qt::gray));
   painter->drawRect(contentsRect());
 
-  painter->setBrush(QBrush(Qt::NoBrush));
-  painter->setPen(Qt::SolidLine);
-  painter->drawText(10, 20, tr("Box"));
+  qDebug() << "header: " << contentsRect() << size();
 }
 
 QRectF TimeboxHeader::boundingRect() const
 {
-  return QRectF(contentsRect());
+  return QRectF(0,0,size().width(),size().height());
 }
 
 

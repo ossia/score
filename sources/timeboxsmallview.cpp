@@ -45,23 +45,23 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
+  setFlags(QGraphicsItem::ItemIsMovable);
+
   /// @todo Connect the model's members height and length to this class
-  setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), _pModel->height());
-  setContentsMargins(0,1,1,1); /// @todo set upper margin to add header without layout
+  setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);
+
+  setMaximumWidth(_pModel->width()); /// Set width rigidly according to model
+  setMinimumWidth(_pModel->width());
+
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, this);
-  _pLayout->setContentsMargins(0,0,0,0);
+  _pLayout->setContentsMargins(1,1,1,1);
   _pLayout->setSpacing(0);
   setLayout(_pLayout);
 
   _pHeader = new TimeboxHeader(this);
-  _pLayout->addItem(_pHeader);
+  _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
   connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
-
-  qDebug() << "smallView: " << contentsRect();
-  qDebug() << "smallView size: " << size();
-  qDebug() << "header 2: " << _pHeader->contentsRect();
-
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *storey)
@@ -76,9 +76,11 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setPen(Qt::SolidLine);
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
+
+  qDebug() << "smallView: " << contentsRect() << size();
 }
 
 QRectF TimeboxSmallView::boundingRect() const
 {
-  return QRectF(0, 0, _pModel->width(), _pModel->height());
+  return QRectF(0,0,size().width(),size().height());
 }

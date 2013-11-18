@@ -43,15 +43,12 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-
-  setGeometry(1, parentItem()->boundingRect().height() - HEIGHT,
-              parentItem()->boundingRect().width()-2, HEIGHT);
-  //setMaximumWidth(parentItem()->boundingRect().width()-2); /// @todo Connect the model's members width and height to this class
-  //setMaximumHeight(_height);
+  setGeometry(0, parentItem()->boundingRect().height()-_height,
+              parentItem()->boundingRect().width() - 2, _height); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
   _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/plus.png"), this);
   _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonAdd->setPos(0, MARGIN);
+  _pButtonAdd->setPos(MARGIN, MARGIN);
 
   _pComboBox = new QComboBox(); /// @todo Subclass ant create model to do some extra work
   _pComboBox->setStyleSheet(
@@ -64,8 +61,6 @@ TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   _pComboBoxProxy->setWidget(_pComboBox);
   _pComboBoxProxy->setPos(size().width() -_pComboBoxProxy->size().width() - MARGIN, MARGIN);
 
-  //qDebug() << "TimeBoxStoreyBar: " << contentsRect();
-  //qDebug() << "TimeBoxStoreyBar size: " << size();
 }
 
 void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -76,19 +71,22 @@ void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   /// Draw the bounding rectangle
   painter->setPen(Qt::NoPen);
   painter->setBrush(QBrush(Qt::gray));
-  //painter->drawRect(0, 0, size().width(), size().height());
-  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1));
+
+  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1)); ne change rien ?!
+
+  qDebug() << "storeybar: " << contentsRect() << size();
+
 }
 
 QRectF TimeboxStoreyBar::boundingRect() const
 {
-  return QRectF(contentsRect());
+  return QRectF(0,0,size().width(),size().height());
 }
 
 void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   if(event->button() == Qt::LeftButton) {
-      if(_pButtonAdd->contains(event->pos())) {
+      if(_pButtonAdd->contains(mapToItem(_pButtonAdd, event->pos()))) {
           event->accept();
           emit buttonAddClicked();
         }
