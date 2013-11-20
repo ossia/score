@@ -23,5 +23,7 @@ int main(int argc, char *argv[])
     QGraphicsView view(&scene);
     view.showNormal();
 
+    pPrez->setView(&view);
+
     return app.exec();
 }

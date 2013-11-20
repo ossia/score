@@ -33,6 +33,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxmodel.hpp"
 
 TimeboxModel::TimeboxModel(int t, int y, int l, int h)
-  : _time(t), _yPosition(y), _width(l), _height(h)
+  : _time(t), _yPosition(y), _width(l), _height(h), _pluginsSmallView(1)
 {
+}
+
+void TimeboxModel::addPlugin()
+{
+  _pluginsSmallView.emplace_back();
 }

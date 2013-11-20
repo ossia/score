@@ -34,11 +34,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include <QDebug>
 #include <QGraphicsItem>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSimpleTextItem>
 
 TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
+  setFlags(QGraphicsItem::ItemIsSelectable);
+
   setGeometry(0,0, parentItem()->boundingRect().width(), HEIGHT);
 
   setMaximumHeight(HEIGHT); /// Set height rigidly
@@ -71,7 +74,10 @@ QRectF TimeboxHeader::boundingRect() const
   return QRectF(0,0,size().width(),size().height());
 }
 
-
 void TimeboxHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+  if (event->button() == Qt::LeftButton) {
+      event->accept();
+      emit doubleClicked();
+    }
 }

@@ -36,6 +36,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsLinearLayout>
 #include <QDebug>
 
+#include "timeboxheader.hpp"
+#include "timeboxstorey.hpp"
+#include "timeboxmodel.hpp"
+
+
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
@@ -56,11 +61,12 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
 
   _pHeader = new TimeboxHeader(this);
   _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
+  connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
 }
 
-void TimeboxSmallView::addStorey(TimeboxStorey *storey)
+void TimeboxSmallView::addStorey(TimeboxStorey *pStorey)
 {
-  _pLayout->addItem(storey);
+  _pLayout->addItem(pStorey);
 }
 
 void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

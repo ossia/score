@@ -33,10 +33,23 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxpresenter.hpp"
 #include "automationview.hpp"
 
+class TTTimeProcess;
+
+#include "timeboxmodel.hpp"
+#include "timeboxsmallview.hpp"
+#include "timeboxfullview.hpp"
+#include "timeboxstorey.hpp"
+#include "pluginview.hpp"
+
+#include <QGraphicsView>
+
+#include <QDebug>
+
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
-  : _pModel(pModel), _pSmallView(pSmallView)
+  : _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _mode(SMALL)
 {  
-  _storeysSmallView.clear();
+  connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
+
   addStorey();
 }
 
@@ -55,14 +68,43 @@ void TimeboxPresenter::storeyBarButtonClicked(bool id)
 
 void TimeboxPresenter::addStorey()
 {
-  TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
-  _pSmallView->addStorey(tmp);
-  tmp->setButton(0);
-  _storeysSmallView.emplace(tmp, new AutomationView(tmp));
+  TimeboxStorey *pStorey;
+
+  switch (_mode) {
+    case SMALL:
+      pStorey = new TimeboxStorey(_pModel, _pSmallView);
+      _pSmallView->addStorey(pStorey);
+      pStorey->setButton(0);
+      _storeysSmallView.emplace(pStorey, new PluginView);
+      _pModel->addPlugin();
+      break;
+
+    case FULL:
+      return; // TODO
+    }
 
   connect(tmp, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
 }
 
+void TimeboxPresenter::goFullView()
+{
+  if (_pFullView == NULL) {
+      createFullView();
+    }
+  _pView->setScene(_pFullView);
+}
+
+void TimeboxPresenter::createFullView()
+{
+  _pFullView = new TimeboxFullView(_pModel);
+  std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
+  TimeboxStorey *pStorey;
+  for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it == lst.end() ; ++it) {
+      pStorey = new TimeboxStorey(_pModel);
+      _pFullView->addStorey(pStorey);
+      _storeysFullView.emplace(pStorey, new PluginView);
+    }
+}
 void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
 {
   std::map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);

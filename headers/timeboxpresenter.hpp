@@ -33,24 +33,37 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXPRESENTER_HPP
 #define TIMEBOXPRESENTER_HPP
 
-#include "timeboxmodel.hpp"
-#include "timeboxsmallview.hpp"
-#include "timeboxstorey.hpp"
-#include "pluginview.hpp"
+class TimeboxModel;
+class TimeboxSmallView;
+class TimeboxFullView;
+class TimeboxStorey;
+class PluginView;
+class QGraphicsView;
+
+enum ViewMode
+{
+  FULL,
+  SMALL
+};
 
 #include <QObject>
-#include <map>
+#include <unordered_map>
 
 class TimeboxPresenter : public QObject
 {
   Q_OBJECT
 
 private:
+  QGraphicsView *_pView;
+
   TimeboxModel *_pModel;
 
   TimeboxSmallView *_pSmallView;
+  TimeboxFullView *_pFullView;
+  ViewMode _mode;
 
-  std::map<TimeboxStorey*, PluginView*> _storeysSmallView;
+  std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
+  std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
 public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
@@ -59,7 +72,15 @@ public slots:
   void storeyBarButtonClicked(bool id);
 
 private:
+private slots:
   void addStorey();
+  void goFullView();
+
+public:
+  void setView(QGraphicsView *pView) {_pView=pView;}
+
+private:
+  void createFullView();
   void deleteStorey(TimeboxStorey* tbs);
 
 };

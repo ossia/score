@@ -33,24 +33,39 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXMODEL_HPP
 #define TIMEBOXMODEL_HPP
 
+class TTTimeProcess;
+
 #include <List>
 
 class TimeboxModel
 {
 private:
     int _time, _yPosition, _width, _height;
+    std::list<TTTimeProcess*> _pluginsSmallView;
+    std::list<TTTimeProcess*> _pluginsFullView;
 
 public:
   TimeboxModel(int t = 0, int y = 0, int l = 100, int h = 100);
 
-  int time() const {return _time;};
+  int time() const {return _time;}
 //  void setTime(int time);
-  int yPosition() const {return _yPosition;};
+  int yPosition() const {return _yPosition;}
 //  void setYPosition(int yPosition);
-  int width() const {return _width;};
+  int width() const {return _width;}
 //  void setLength(int length);
-  int height() const {return _height;};
+  int height() const {return _height;}
 //  void setHeight(int height);
+
+  const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
+  const std::list<TTTimeProcess*>& pluginsFullView() {
+    if (_pluginsFullView.empty()) {
+        _pluginsFullView.assign(_pluginsSmallView.begin(), _pluginsSmallView.end());
+      }
+    return _pluginsFullView;
+  }
+
+  void addPlugin();
+
 };
 
 #endif // TIMEBOXMODEL_HPP
