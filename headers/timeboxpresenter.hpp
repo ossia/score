@@ -38,6 +38,7 @@ class TimeboxSmallView;
 class TimeboxFullView;
 class TimeboxStorey;
 class PluginView;
+class QGraphicsView;
 
 enum ViewMode
 {
@@ -46,21 +47,23 @@ enum ViewMode
 };
 
 #include <QObject>
-#include <map>
+#include <unordered_map>
 
 class TimeboxPresenter : public QObject
 {
   Q_OBJECT
 
 private:
+  QGraphicsView *_pView;
+
   TimeboxModel *_pModel;
 
   TimeboxSmallView *_pSmallView;
   TimeboxFullView *_pFullView;
   ViewMode _mode;
 
-  std::map<TimeboxStorey*, PluginView*> _storeysSmallView;
-  std::map<TimeboxStorey*, PluginView*> _storeysFullView;
+  std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
+  std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
 public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
@@ -68,6 +71,9 @@ public:
 private slots:
   void addStorey();
   void goFullView();
+
+public:
+  void setView(QGraphicsView *pView) {_pView=pView;}
 
 private:
   void createFullView();

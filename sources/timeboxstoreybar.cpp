@@ -43,8 +43,8 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-  setGeometry(0, parentItem()->boundingRect().height()-_height,
-              parentItem()->boundingRect().width() - 2, _height); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
+  setGeometry(0, parentItem()->boundingRect().height() - HEIGHT,
+              parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
   _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/plus.png"), this);
   _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon

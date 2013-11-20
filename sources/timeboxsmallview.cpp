@@ -35,7 +35,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include <QGraphicsLinearLayout>
 #include <QDebug>
-#include <QGraphicsLinearLayout>
 
 #include "timeboxheader.hpp"
 #include "timeboxstorey.hpp"
@@ -64,9 +63,9 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
 }
 
-void TimeboxSmallView::addStorey(TimeboxStorey *storey)
+void TimeboxSmallView::addStorey(TimeboxStorey *pStorey)
 {
-  _pLayout->addItem(storey);
+  _pLayout->addItem(pStorey);
 }
 
 void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

@@ -34,6 +34,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #define TIMEBOXFULLVIEW_HPP
 
 class TimeboxModel;
+class QGraphicsWidget;
+class QGraphicsLinearLayout;
+class TimeboxStorey;
 
 #include <QGraphicsScene>
 
@@ -44,8 +47,13 @@ class TimeboxFullView : public QGraphicsScene
 private:
   TimeboxModel *_pModel;
 
+  QGraphicsWidget *_pContainer;
+  QGraphicsLinearLayout *_pLayout;
+
 public:
   TimeboxFullView(TimeboxModel *pModel);
+
+  void addStorey(TimeboxStorey *pStorey);
 };
 
 #endif // TIMEBOXFULLVIEW_HPP

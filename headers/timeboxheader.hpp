@@ -42,8 +42,10 @@ class TimeboxHeader : public QGraphicsWidget
 {
 Q_OBJECT
 
-private:
+public:
   static const int HEIGHT = 25;
+
+private:
   static const int MARGIN = 2;
 
   QGraphicsPixmapItem *_pButtonPlay;

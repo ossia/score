@@ -59,7 +59,7 @@ signals:
 public slots:
 
 public:
-  void addStorey(TimeboxStorey *storey);
+  void addStorey(TimeboxStorey *pStorey);
 
   // QGraphicsItem interface
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
