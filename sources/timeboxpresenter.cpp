@@ -75,7 +75,7 @@ void TimeboxPresenter::addStorey()
       pStorey = new TimeboxStorey(_pModel, _pSmallView);
       _pSmallView->addStorey(pStorey);
       pStorey->setButton(0);
-      _storeysSmallView.emplace(pStorey, new PluginView);
+      _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
       _pModel->addPlugin();
       break;
 
@@ -83,7 +83,7 @@ void TimeboxPresenter::addStorey()
       return; // TODO
     }
 
-  connect(tmp, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
+  connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
 }
 
 void TimeboxPresenter::goFullView()
@@ -102,12 +102,12 @@ void TimeboxPresenter::createFullView()
   for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it == lst.end() ; ++it) {
       pStorey = new TimeboxStorey(_pModel);
       _pFullView->addStorey(pStorey);
-      _storeysFullView.emplace(pStorey, new PluginView);
+      _storeysFullView.emplace(pStorey, new PluginView(pStorey));
     }
 }
 void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
 {
-  std::map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
+  std::unordered_map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
   delete it->first;
   _storeysSmallView.erase(it);
 }
