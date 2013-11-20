@@ -33,7 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxstorey.hpp"
 #include "timeboxstoreybar.hpp"
 #include "timeboxmodel.hpp"
-
+#include "pixmapbutton.hpp"
 #include <QDebug>
 
 #include <QPainter>
@@ -45,8 +45,8 @@ TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
   setMaximumHeight(_height);
   setMinimumHeight(_height);
 
-  _bar = new TimeboxStoreyBar(this);
-  connect(_bar, SIGNAL(buttonAddClicked()), this, SIGNAL(buttonAddClicked())); /// routing the signal to Presenter
+  _pBar = new TimeboxStoreyBar(this);
+  connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
 }
 
 void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -66,4 +66,9 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 QRectF TimeboxStorey::boundingRect() const
 {
   return QRectF(0,0,size().width(),size().height());
+}
+
+void TimeboxStorey::setButton(bool button)
+{
+  _pBar->getButton()->setPixmap(button);
 }

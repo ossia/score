@@ -40,12 +40,33 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
   addStorey();
 }
 
+void TimeboxPresenter::storeyBarButtonClicked(bool id)
+{
+  Q_ASSERT(id == 0 || id == 1);
+  TimeboxStorey* tbs = qobject_cast<TimeboxStorey*>(sender());
+  if(id == 0) { /// We add a new storey
+      addStorey();
+      tbs->setButton(1);
+    }
+  else if(id == 1) {
+      deleteStorey(tbs);
+    }
+}
+
 void TimeboxPresenter::addStorey()
 {
   TimeboxStorey *tmp = new TimeboxStorey(_pModel, _pSmallView);
   _pSmallView->addStorey(tmp);
-  _storeysSmallView.emplace(tmp, new PluginView());
+  tmp->setButton(0);
+  _storeysSmallView.emplace(tmp, new AutomationView(tmp));
 
-  connect(tmp, SIGNAL(buttonAddClicked()), this, SLOT(addStorey()));
+  connect(tmp, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
+}
+
+void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
+{
+  std::map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
+  delete it->first;
+  _storeysSmallView.erase(it);
 }
 

@@ -39,7 +39,8 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
-  setFlags(QGraphicsItem::ItemIsMovable);
+  setFlags(QGraphicsItem::ItemIsMovable |
+           QGraphicsItem::ItemIsSelectable);
 
   /// @todo Connect the model's members height and length to this class
   setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);

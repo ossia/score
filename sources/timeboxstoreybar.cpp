@@ -38,17 +38,17 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 #include <QPainter>
-
+#include "pixmapbutton.hpp"
 
 TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
-  setGeometry(0, parentItem()->boundingRect().height()-_height,
-              parentItem()->boundingRect().width() - 2, _height); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
+  setGeometry(0, parentItem()->boundingRect().height() - HEIGHT,
+              parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
-  _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/plus.png"), this);
-  _pButtonAdd->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonAdd->setPos(MARGIN, MARGIN);
+  _pButton = new PixmapButton(QString(":/plus.png"), QString(":/minus.png"), this);
+  _pButton->setPos(MARGIN, MARGIN);
+  connect(_pButton, SIGNAL(clicked(bool)), this, SIGNAL(buttonClicked(bool)));
 
   _pComboBox = new QComboBox(); /// @todo Subclass ant create model to do some extra work
   _pComboBox->setStyleSheet(
@@ -72,10 +72,9 @@ void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setPen(Qt::NoPen);
   painter->setBrush(QBrush(Qt::gray));
 
-  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1)); ne change rien ?!
+  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1));
 
-  qDebug() << "storeybar: " << contentsRect() << size();
-
+  //qDebug() << "storeybar: " << contentsRect() << size();
 }
 
 QRectF TimeboxStoreyBar::boundingRect() const
@@ -85,10 +84,5 @@ QRectF TimeboxStoreyBar::boundingRect() const
 
 void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-  if(event->button() == Qt::LeftButton) {
-      if(_pButtonAdd->contains(mapToItem(_pButtonAdd, event->pos()))) {
-          emit buttonAddClicked();
-        }
-    }
   QGraphicsWidget::mousePressEvent(event);
 }

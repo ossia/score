@@ -45,15 +45,16 @@ class TimeboxStorey : public QGraphicsWidget
 
 private:
   TimeboxModel *_pModel;
-  TimeboxStoreyBar *_bar;
+  TimeboxStoreyBar *_pBar;
 
   int _height;
 
 public:
   TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent = 0);
+  void setButton(bool button);
 
 signals:
-  void buttonAddClicked();
+  void buttonClicked(bool);
 
 public slots:
 

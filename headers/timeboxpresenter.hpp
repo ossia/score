@@ -56,7 +56,12 @@ public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
 
 public slots:
+  void storeyBarButtonClicked(bool id);
+
+private:
   void addStorey();
+  void deleteStorey(TimeboxStorey* tbs);
+
 };
 
 #endif // TIMEBOXPRESENTER_HPP

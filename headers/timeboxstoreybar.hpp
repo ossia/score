@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsWidget>
 
 class QGraphicsItem;
-class QGraphicsPixmapItem;
+class PixmapButton;
 class QComboBox;
 class QGraphicsProxyWidget;
 
@@ -50,15 +50,18 @@ public:
 private:
   static const int MARGIN = 2;
 
-  QGraphicsPixmapItem *_pButtonAdd;
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
-
-signals:
-  void buttonAddClicked();
+  PixmapButton *_pButton;
 
 public:
   TimeboxStoreyBar(QGraphicsItem *item);
+
+signals:
+  void buttonClicked(bool);
+
+public:
+  PixmapButton * const getButton() const {return _pButton;}
 
 protected:
   virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
