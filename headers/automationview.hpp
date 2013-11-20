@@ -28,23 +28,30 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
+#ifndef AUTOMATIONVIEW_HPP
+#define AUTOMATIONVIEW_HPP
+
 #include "pluginview.hpp"
-#include <QPainter>
-#include "timeboxstoreybar.hpp"
+#include <QpointF>
+#include <QList>
+class QGraphicsItem;
+class QGraphicsPathItem;
 
-PluginView::PluginView(QGraphicsItem *parent)
-  : QGraphicsObject(parent), _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
+class AutomationView : public PluginView
 {
-}
+  Q_OBJECT
 
-QRectF PluginView::boundingRect() const
-{
-  return _boundingRectangle;
-}
+private:
+  QGraphicsPathItem *_pLine;
+  QList<QPointF> _points;
 
-void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
-}
+public:
+  AutomationView(QGraphicsItem *parent);
+
+public:
+  QPainterPath shape() const;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  QRectF boundingRect() const;
+};
+
+#endif // AUTOMATIONVIEW_HPP

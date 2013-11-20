@@ -28,23 +28,35 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "pluginview.hpp"
+#include "automationview.hpp"
+#include <QGraphicsItem>
+#include <QPainterPath>
 #include <QPainter>
-#include "timeboxstoreybar.hpp"
 
-PluginView::PluginView(QGraphicsItem *parent)
-  : QGraphicsObject(parent), _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
+AutomationView::AutomationView(QGraphicsItem *parent)
+  : PluginView(parent), _points()
 {
+  QPainterPath path;
+  path.lineTo(20,30);
+  path.lineTo(79,60);
+  path.lineTo(parentItem()->boundingRect().width() -2,40);
+  _pLine = new QGraphicsPathItem(this);
+  _pLine->setPath(path);
 }
 
-QRectF PluginView::boundingRect() const
+
+QPainterPath AutomationView::shape() const
 {
-  return _boundingRectangle;
+  return _pLine->shape();
 }
 
-void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AutomationView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
+  //painter->setRenderHint(QPainter::Antialiasing, true);
+  _pLine->paint(painter, option, widget);
+}
+
+QRectF AutomationView::boundingRect() const
+{
+  return _pLine->boundingRect();
 }

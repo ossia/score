@@ -31,6 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxpresenter.hpp"
+#include "automationview.hpp"
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
   : _pModel(pModel), _pSmallView(pSmallView)

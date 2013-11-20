@@ -27,7 +27,9 @@ SOURCES +=\
     sources/timeboxpresenter.cpp \
     sources/timeboxstoreybar.cpp \
     sources/timeboxstorey.cpp \
-    sources/pluginview.cpp
+    sources/pluginview.cpp \
+    sources/pixmapbutton.cpp \
+    sources/automationview.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -42,7 +44,9 @@ HEADERS  += headers/mainwindow.hpp \
     headers/timeboxpresenter.hpp \
     headers/timeboxstoreybar.hpp \
     headers/timeboxstorey.hpp \
-    headers/pluginview.hpp
+    headers/pluginview.hpp \
+    headers/pixmapbutton.hpp \
+    headers/automationview.hpp
 
  RESOURCES += \
      resources/resource.qrc
