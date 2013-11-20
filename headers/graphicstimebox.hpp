@@ -42,7 +42,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QBrush>
 #include "itemTypes.hpp"
 
-class GraphicsTimeEvent;
+class TimeEvent;
 class QGraphicsScene;
 class QFinalState;
 class QStateMachine;
@@ -66,8 +66,8 @@ class GraphicsTimeBox : public QGraphicsObject
 private:
   QGraphicsScene* _scene;
   /// @todo mettre les time event en Q_PROPERTY ?
-  GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
-  GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
+  TimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
+  TimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
   QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
   QState *_initialState;

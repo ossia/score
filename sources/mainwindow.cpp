@@ -33,7 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "itemTypes.hpp"
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
-#include "graphicstimeevent.hpp"
+#include "timeevent.hpp"
 #include "graphicstimebox.hpp"
 #include <QMouseEvent>
 #include <QActionGroup>
@@ -192,7 +192,7 @@ void MainWindow::addItem(QPointF pos)
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      item = new GraphicsTimeEvent(pos, 0, _scene);
+      item = new TimeEvent(pos, 0);
     }
   else if(type == ProcessItemType) {
       item = new GraphicsTimeBox(pos, 300, 200, 0);

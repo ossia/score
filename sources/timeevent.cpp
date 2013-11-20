@@ -30,36 +30,33 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "graphicstimeevent.hpp"
+#include "timeevent.hpp"
 
-GraphicsTimeEvent::GraphicsTimeEvent(const QPointF &position, QGraphicsItem *parent, QGraphicsScene *scene)
-  : QGraphicsObject(parent), _scene(scene), _penWidth(1), _circleRadii(10), _height(100)
+TimeEvent::TimeEvent(const QPointF &position, QGraphicsItem *parent)
+  : QGraphicsObject(parent), _penWidth(1), _circleRadii(10), _height(100)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemSendsGeometryChanges);
 
- // qDebug("visible %d", isVisible());
-
   setPos(position);
-  _scene->clearSelection();
-  _scene->addItem(this);
-  setSelected(true);
 }
 
-void GraphicsTimeEvent::setDate(QDate date)
+void TimeEvent::setDate(quint32 date)
 {
   _date = date;
 }
 
-QRectF GraphicsTimeEvent::boundingRect() const
+QRectF TimeEvent::boundingRect() const
 {
   return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
                 2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
 }
 
-void GraphicsTimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
 
   QPen pen(Qt::SolidPattern, _penWidth);
   painter->setPen(pen);
@@ -67,43 +64,10 @@ void GraphicsTimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem 
   painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
 }
 
-QPainterPath GraphicsTimeEvent::shape() const
+QPainterPath TimeEvent::shape() const
 {
   QPainterPath path;
   path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
   path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
   return path;
-}
-
-void GraphicsTimeEvent::keyPressEvent(QKeyEvent *event)
-{
-  QGraphicsObject::keyPressEvent(event);
-}
-
-void GraphicsTimeEvent::keyReleaseEvent(QKeyEvent *event)
-{
-}
-
-void GraphicsTimeEvent::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-  QGraphicsObject::mousePressEvent(event);
-}
-
-void GraphicsTimeEvent::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-  QGraphicsObject::mouseMoveEvent(event);
-}
-
-void GraphicsTimeEvent::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-  QGraphicsObject::mouseReleaseEvent(event);
-}
-
-void GraphicsTimeEvent::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
-{
-}
-
-QVariant GraphicsTimeEvent::itemChange(GraphicsItemChange change, const QVariant &value)
-{
-  return QGraphicsObject::itemChange(change, value);
 }

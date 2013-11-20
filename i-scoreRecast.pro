@@ -15,7 +15,7 @@ QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
 SOURCES +=\
         sources/mainwindow.cpp \
-    sources/graphicstimeevent.cpp \
+    sources/timeevent.cpp \
     sources/engine.cpp \
     sources/graphicstimebox.cpp \
     sources/graphicsview.cpp \
@@ -30,7 +30,7 @@ SOURCES +=\
     sources/pluginview.cpp
 
 HEADERS  += headers/mainwindow.hpp \
-    headers/graphicstimeevent.hpp \
+    headers/timeevent.hpp \
     headers/engine.hpp \
     headers/graphicstimebox.hpp \
     headers/graphicsview.hpp \
