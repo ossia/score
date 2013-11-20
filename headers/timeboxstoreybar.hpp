@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsWidget>
 
 class QGraphicsItem;
-class QGraphicsPixmapItem;
+class PixmapButton;
 class QComboBox;
 class QGraphicsProxyWidget;
 
@@ -44,19 +44,29 @@ class TimeboxStoreyBar : public QGraphicsWidget
 {
   Q_OBJECT
 
+public:
+  static const int HEIGHT = 25;
+
 private:
-  QGraphicsPixmapItem *_pButtonAdd;
+  static const int MARGIN = 2;
+
   QComboBox *_pComboBox;
   QGraphicsProxyWidget *_pComboBoxProxy;
-
-signals:
-  void addStorey();
+  PixmapButton *_pButton;
 
 public:
   TimeboxStoreyBar(QGraphicsItem *item);
 
+signals:
+  void buttonClicked(bool);
+
+public:
+  PixmapButton * const getButton() const {return _pButton;}
+
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP

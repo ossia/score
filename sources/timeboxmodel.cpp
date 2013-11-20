@@ -35,15 +35,13 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(QGraphicsItem *parent)
-  : plugins(0)
+TimeboxModel::TimeboxModel(int t, int y, int l, int h)
+  : _time(t), _yPosition(y), _width(l), _height(h), _pluginsSmallView(1)
 {
 
-  createStates(parent);
+  createStates();
   createTransitions();
   _stateMachine->start();
-
-  createScene();
 }
 
 TimeboxModel::~TimeboxModel()
@@ -53,7 +51,7 @@ TimeboxModel::~TimeboxModel()
   delete _finalState;
 }
 
-void TimeboxModel::createStates(QGraphicsItem *parent)
+void TimeboxModel::createStates()
 {
   _stateMachine = new QStateMachine(this);
 
@@ -68,12 +66,12 @@ void TimeboxModel::createStates(QGraphicsItem *parent)
   _smallSizeState = new QState(_normalState);
   _fullSizeState = new QState(_normalState);
 
-  if(parent == NULL) {
+  //if(parent == NULL) {
       _normalState->setInitialState(_fullSizeState);
-    }
-  else {
-      _normalState->setInitialState(_smallSizeState);
-    }
+   // }
+ // else {
+    //  _normalState->setInitialState(_smallSizeState);
+   // }
   _stateMachine->addState(_normalState);
 
   _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
@@ -95,18 +93,8 @@ void TimeboxModel::createConnections()
   connect(_fullSizeState, SIGNAL(exited()), this, SLOT(switchToSmallView));
 }
 
-void TimeboxModel::createScene() /// @todo Lazy construction of _scene : construct one only if needed, and duplicate inside the plugin already created
+
+void TimeboxModel::addPlugin()
 {
-  _scene = new QGraphicsScene(this); /// @todo ajouter un sceneRect
-  Q_CHECK_PTR(_scene);
-}
-
-void TimeboxModel::switchToSmallView()
-{
-
-}
-
-void TimeboxModel::switchToFullView()
-{
-
+  _pluginsSmallView.emplace_back();
 }

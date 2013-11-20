@@ -30,13 +30,45 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef TIMEBOXFULLPRESENTER_HPP
-#define TIMEBOXFULLPRESENTER_HPP
+#include "timeboxstorey.hpp"
+#include "timeboxstoreybar.hpp"
+#include "timeboxmodel.hpp"
+#include "pixmapbutton.hpp"
+#include <QDebug>
 
-class TimeboxFullPresenter
+#include <QPainter>
+
+TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pModel(pModel), _height(100)
 {
-public:
-  TimeboxFullPresenter();
-};
+  setGeometry(0,0, parentItem()->boundingRect().width(), _height);
+  setMaximumHeight(_height);
+  setMinimumHeight(_height);
 
-#endif // TIMEBOXFULLPRESENTER_HPP
+  _pBar = new TimeboxStoreyBar(this);
+  connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
+}
+
+void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  /// Draw the bounding upper and bottom lines
+  painter->setPen(Qt::SolidLine);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawLine(0,0,size().width(),0);
+  painter->drawLine(0,size().height(),size().width(),size().height());
+
+  qDebug() << "storey: " << contentsRect() << size();
+}
+
+QRectF TimeboxStorey::boundingRect() const
+{
+  return QRectF(0,0,size().width(),size().height());
+}
+
+void TimeboxStorey::setButton(bool button)
+{
+  _pBar->getButton()->setPixmap(button);
+}

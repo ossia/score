@@ -32,6 +32,28 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxfullview.hpp"
 
-TimeboxFullView::TimeboxFullView()
+#include <QGraphicsWidget>
+#include <QGraphicsLinearLayout>
+
+#include "timeboxmodel.hpp"
+#include "timeboxstorey.hpp"
+
+TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
+  : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
+    _pModel(pModel), _pContainer()
 {
+  _pContainer = new QGraphicsWidget;
+  _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
+
+  _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
+  _pLayout->setContentsMargins(0,0,0,0);
+  _pLayout->setSpacing(0);
+  _pContainer->setLayout(_pLayout);
+
+  addItem(_pContainer);
+}
+
+void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
+{
+  _pLayout->addItem(pStorey);
 }

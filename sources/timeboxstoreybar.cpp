@@ -34,19 +34,21 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsPixmapItem>
 #include <QComboBox>
 #include <QGraphicsProxyWidget>
+#include <QGraphicsLinearLayout>
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
+#include <QPainter>
+#include "pixmapbutton.hpp"
 
 TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   : QGraphicsWidget(item)
 {
+  setGeometry(0, parentItem()->boundingRect().height() - HEIGHT,
+              parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
-  setFlags(QGraphicsItem::ItemIsFocusable);
-  //setPreferredSize(parentLayoutItem()->preferredSize());
-  setPreferredSize(parentItem()->boundingRect().size());
-
-  _pButtonAdd = new QGraphicsPixmapItem(QPixmap(":/plus.png"), this);
-  _pButtonAdd->setPos(0,0);
+  _pButton = new PixmapButton(QString(":/plus.png"), QString(":/minus.png"), this);
+  _pButton->setPos(MARGIN, MARGIN);
+  connect(_pButton, SIGNAL(clicked(bool)), this, SIGNAL(buttonClicked(bool)));
 
   _pComboBox = new QComboBox(); /// @todo Subclass ant create model to do some extra work
   _pComboBox->setStyleSheet(
@@ -57,17 +59,30 @@ TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
     );
   _pComboBoxProxy = new QGraphicsProxyWidget(this);
   _pComboBoxProxy->setWidget(_pComboBox);
-  //_pComboBoxProxy->setPos(preferredWidth()-_pComboBoxProxy->size().width(), 0);
-  _pComboBoxProxy->setPos(300,0);
+  _pComboBoxProxy->setPos(size().width() -_pComboBoxProxy->size().width() - MARGIN, MARGIN);
 
+}
+
+void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  /// Draw the bounding rectangle
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(QBrush(Qt::gray));
+
+  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1));
+
+  //qDebug() << "storeybar: " << contentsRect() << size();
+}
+
+QRectF TimeboxStoreyBar::boundingRect() const
+{
+  return QRectF(0,0,size().width(),size().height());
 }
 
 void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-  if(event->button() == Qt::LeftButton) {
-      if(_pButtonAdd->contains(event->pos())) {
-          emit addStorey();
-        }
-    }
   QGraphicsWidget::mousePressEvent(event);
 }

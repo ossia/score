@@ -13,6 +13,49 @@ TEMPLATE = app
 CONFIG += x86_64
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
+SOURCES += sources/main.cpp \
+    sources/mainwindow.cpp \
+    sources/timeevent.cpp \
+    sources/engine.cpp \
+    sources/graphicstimebox.cpp \
+    sources/graphicsview.cpp \
+    sources/timeboxsmallview.cpp \
+    sources/timeboxfullview.cpp \
+    sources/timeboxmodel.cpp \
+    sources/timeboxheader.cpp \
+    sources/timeboxpresenter.cpp \
+    sources/timeboxstoreybar.cpp \
+    sources/timeboxstorey.cpp \
+    sources/pluginview.cpp \
+    sources/pixmapbutton.cpp \
+    sources/automationview.cpp
+
+HEADERS  += headers/mainwindow.hpp \
+    headers/timeevent.hpp \
+    headers/engine.hpp \
+    headers/graphicstimebox.hpp \
+    headers/graphicsview.hpp \
+    headers/itemtypes.hpp \
+    headers/timeboxsmallview.hpp \
+    headers/timeboxfullview.hpp \
+    headers/timeboxmodel.hpp \
+    headers/timeboxheader.hpp \
+    headers/timeboxpresenter.hpp \
+    headers/timeboxstoreybar.hpp \
+    headers/timeboxstorey.hpp \
+    headers/pluginview.hpp \
+    headers/pixmapbutton.hpp \
+    headers/automationview.hpp
+
+RESOURCES += \
+    resources/resource.qrc
+
+FORMS    += forms/mainwindow.ui
+
+OTHER_FILES += \
+    TODO.txt \
+    LICENSE.txt
+
 INCLUDEPATH += headers/ /usr/local/jamoma/includes
 QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/
 
@@ -33,43 +76,3 @@ QMAKE_LFLAGS += -stdlib=libc++
 # INCLUDEPATH += /Library/Frameworks/
 INCLUDEPATH += /usr/local/include/libxml2
 
-SOURCES += sources/main.cpp\
-        sources/mainwindow.cpp \
-    sources/graphicstimeevent.cpp \
-    sources/engine.cpp \
-    sources/graphicstimebox.cpp \
-    sources/graphicsview.cpp \
-    sources/timeboxsmallview.cpp \
-    sources/timeboxsmallpresenter.cpp \
-    sources/timeboxfullpresenter.cpp \
-    sources/timeboxfullview.cpp \
-    sources/timeboxmodel.cpp \
-    sources/blankpluginview.cpp \
-    sources/timeboxstoreyview.cpp \
-    sources/timeboxheader.cpp \
-    sources/timeboxstoreybar.cpp
-
-HEADERS  += headers/mainwindow.hpp \
-    headers/graphicstimeevent.hpp \
-    headers/engine.hpp \
-    headers/graphicstimebox.hpp \
-    headers/graphicsview.hpp \
-    headers/itemTypes.hpp \
-    headers/timeboxsmallview.hpp \
-    headers/timeboxsmallpresenter.hpp \
-    headers/timeboxfullpresenter.hpp \
-    headers/timeboxfullview.hpp \
-    headers/timeboxmodel.hpp \
-    headers/blankpluginview.hpp \
-    headers/timeboxstoreyview.hpp \
-    headers/timeboxheader.hpp \
-    headers/timeboxstoreybar.hpp
-
-FORMS    += forms/mainwindow.ui
-
-OTHER_FILES += \
-    TODO.txt \
-    LICENSE.txt
-
-RESOURCES += \
-    resources/resource.qrc

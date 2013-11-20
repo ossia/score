@@ -1,3 +1,6 @@
 Doxygen/html
 .DS_Store
 i-scoreRecast.pro.user
+
+# temporary files
+*~

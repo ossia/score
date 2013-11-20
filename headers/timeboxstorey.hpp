@@ -30,8 +30,38 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxsmallpresenter.hpp"
+#ifndef TIMEBOXSTOREY_HPP
+#define TIMEBOXSTOREY_HPP
 
-TimeboxSmallPresenter::TimeboxSmallPresenter()
+#include <QGraphicsWidget>
+#include <QGraphicsLinearLayout>
+
+class TimeboxStoreyBar;
+class TimeboxModel;
+
+class TimeboxStorey : public QGraphicsWidget
 {
-}
+  Q_OBJECT
+
+private:
+  TimeboxModel *_pModel;
+  TimeboxStoreyBar *_pBar;
+
+  int _height;
+
+public:
+  TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent = 0);
+  void setButton(bool button);
+
+signals:
+  void buttonClicked(bool);
+
+public slots:
+
+  // QGraphicsItem interface
+public:
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+};
+
+#endif // TIMEBOXSTOREY_HPP

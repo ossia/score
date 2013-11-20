@@ -33,18 +33,37 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXSMALLVIEW_HPP
 #define TIMEBOXSMALLVIEW_HPP
 
+class TimeboxHeader;
+class TimeboxStorey;
+class TimeboxModel;
+class QGraphicsLinearLayout;
+
 #include <QGraphicsWidget>
 
 class TimeboxSmallView : public QGraphicsWidget
 {
   Q_OBJECT
+
+private:
+  TimeboxModel *_pModel;
+  TimeboxHeader *_pHeader;
+
+  QGraphicsLinearLayout *_pLayout;
+
 public:
-  explicit TimeboxSmallView(QGraphicsItem *parent = 0);
+  TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);
 
 signals:
+  void headerDoubleClicked();
 
 public slots:
 
+public:
+  void addStorey(TimeboxStorey *pStorey);
+
+  // QGraphicsItem interface
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QRectF boundingRect() const;
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

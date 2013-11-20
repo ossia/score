@@ -3,7 +3,9 @@
  *  @brief Graphical representation of a TTTimeProcess class.
  *  @author Jaime Chao, Clément Bossut
  *  @date 2013/2014
+*/
 
+/*
 Copyright: LaBRI / SCRIME
 
 This software is governed by the CeCILL license under French law and
@@ -37,9 +39,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXMODEL_HPP
 #define TIMEBOXMODEL_HPP
 
+#include <List>
 #include <QObject>
 #include <QVector>
 
+class TTTimeProcess;
 class GraphicsTimeEvent;
 class QGraphicsScene;
 class QFinalState;
@@ -52,8 +56,6 @@ class TimeboxModel : public QObject
   Q_OBJECT
 
 private:
-  QGraphicsScene* _scene;
-
   /// @todo creer les time event de début et de fin
   //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   //GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
@@ -65,18 +67,35 @@ private:
   QState *_fullSizeState; /// When the graphical timeProcess occupies all size of the view
   QFinalState *_finalState;
 
-  QVector<int> plugins; /// @todo Precise template argument to plugin base class
+  int _time, _yPosition, _width, _height;
+  std::list<TTTimeProcess*> _pluginsSmallView;
+  std::list<TTTimeProcess*> _pluginsFullView;
 
 public:
-  TimeboxModel(QGraphicsItem *parent);
+  TimeboxModel(int t = 0, int y = 0, int l = 100, int h = 100);
   ~TimeboxModel();
 
-public slots:
-  void switchToSmallView();
-  void switchToFullView();
+  int time() const {return _time;}
+//  void setTime(int time);
+  int yPosition() const {return _yPosition;}
+//  void setYPosition(int yPosition);
+  int width() const {return _width;}
+//  void setLength(int length);
+  int height() const {return _height;}
+//  void setHeight(int height);
+
+  const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
+  const std::list<TTTimeProcess*>& pluginsFullView() {
+    if (_pluginsFullView.empty()) {
+        _pluginsFullView.assign(_pluginsSmallView.begin(), _pluginsSmallView.end());
+      }
+    return _pluginsFullView;
+  }
+
+  void addPlugin();
 
 private:
-  void createStates(QGraphicsItem *parent);
+  void createStates();
   void createTransitions();
   void createConnections();
   void createScene();

@@ -30,8 +30,44 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxfullpresenter.hpp"
+#include "timeevent.hpp"
 
-TimeboxFullPresenter::TimeboxFullPresenter()
+TimeEvent::TimeEvent(const QPointF &position, QGraphicsItem *parent)
+  : QGraphicsObject(parent), _penWidth(1), _circleRadii(10), _height(100)
 {
+  setFlags(QGraphicsItem::ItemIsSelectable |
+           QGraphicsItem::ItemIsMovable |
+           QGraphicsItem::ItemSendsGeometryChanges);
+
+  setPos(position);
+}
+
+void TimeEvent::setDate(quint32 date)
+{
+  _date = date;
+}
+
+QRectF TimeEvent::boundingRect() const
+{
+  return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
+                2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
+}
+
+void TimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  QPen pen(Qt::SolidPattern, _penWidth);
+  painter->setPen(pen);
+  painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
+  painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+}
+
+QPainterPath TimeEvent::shape() const
+{
+  QPainterPath path;
+  path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+  path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
+  return path;
 }

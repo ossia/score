@@ -30,15 +30,12 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "itemTypes.hpp"
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
-#include "graphicstimeevent.hpp"
-#include "timeboxmodel.hpp"
-#include "timeboxheader.hpp"
-#include "timeboxstoreybar.hpp"
+#include "timeevent.hpp"
+#include "graphicstimebox.hpp"
+#include "itemtypes.hpp"
 
-#include <QGraphicsProxyWidget>
 #include <QMouseEvent>
 #include <QActionGroup>
 #include <QGraphicsView>
@@ -179,7 +176,7 @@ void MainWindow::addItem(QPointF pos)
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      item = new GraphicsTimeEvent(pos, 0, _scene);
+      item = new TimeEvent(pos, 0);
     }
   else if(type == BoxItemType) {
 

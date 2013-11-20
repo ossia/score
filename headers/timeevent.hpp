@@ -1,8 +1,6 @@
 /*
 Copyright: LaBRI / SCRIME
 
-Authors : Jaime Chao, Clément Bossut (2013-2014)
-
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
@@ -30,8 +28,51 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxstoreyview.hpp"
+/*! @file
+ *  @brief Graphical representation of a TTTimeEvent class.
+ *  @author Jaime Chao
+ */
 
-TimeboxStoreyView::TimeboxStoreyView()
+#ifndef GRAPHICSTIMEEVENT_HPP
+#define GRAPHICSTIMEEVENT_HPP
+
+#include <QGraphicsObject>
+#include <QGraphicsScene>
+#include <QPainter>
+#include <QDate>
+
+#include"itemTypes.hpp"
+
+class TimeEvent : public QGraphicsObject
 {
-}
+  Q_OBJECT
+
+private:
+  QGraphicsScene *_scene;
+  qreal _penWidth;
+  qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
+  qreal _height; /// height of the line
+  quint32 _date; /// \todo Unification avec la date de TTTimeEvent
+
+
+public:
+  explicit TimeEvent(const QPointF &position, QGraphicsItem *parent);
+
+  enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  virtual int type() const {return Type;}
+
+signals:
+  void dirty(); /// @todo Need to think about Save (and when a change implies to authorize saving)
+
+public slots:
+  void setDate(quint32 date);
+
+public:
+  quint32 date() const { return _date; }
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QPainterPath shape() const;
+
+};
+
+#endif // GRAPHICSTIMEEVENT_HPP

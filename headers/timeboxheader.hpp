@@ -33,22 +33,35 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXHEADER_HPP
 #define TIMEBOXHEADER_HPP
 
-#include <QGraphicsWidget>
 class QGraphicsItem;
-class QGraphicsPixmapItem;
+class QGraphicsSimpleTextItem;
+
+#include <QGraphicsWidget>
 
 class TimeboxHeader : public QGraphicsWidget
 {
 Q_OBJECT
 
+public:
+  static const int HEIGHT = 25;
+
 private:
+  static const int MARGIN = 2;
+
   QGraphicsPixmapItem *_pButtonPlay;
+  QGraphicsSimpleTextItem *_pTextName;
 
 public:
   TimeboxHeader(QGraphicsItem *item);
 
+signals:
+  void doubleClicked();
+
 protected:
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  // QGraphicsItem interface
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QRectF boundingRect() const;
+  virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // TIMEBOXHEADER_HPP
