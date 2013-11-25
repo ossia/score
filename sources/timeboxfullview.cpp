@@ -40,7 +40,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
   : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
-    _pModel(pModel), _pContainer()
+    _pModel(pModel)
 {
   _pContainer = new QGraphicsWidget;
   _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);

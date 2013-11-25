@@ -38,10 +38,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QPainter>
 
-TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), _pModel(pModel), _height(100)
+TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pModel(pModel), _width(width), _height(height)
 {
-  setGeometry(0,0, parentItem()->boundingRect().width(), _height);
+  setGeometry(0,0, _width, _height);
   setMaximumHeight(_height);
   setMinimumHeight(_height);
 

@@ -65,6 +65,7 @@ public:
   }
 
   void addPlugin();
+  void removePlugin();
 
 };
 

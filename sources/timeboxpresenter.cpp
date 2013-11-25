@@ -72,7 +72,7 @@ void TimeboxPresenter::addStorey()
 
   switch (_mode) {
     case SMALL:
-      pStorey = new TimeboxStorey(_pModel, _pSmallView);
+      pStorey = new TimeboxStorey(_pModel, _pModel->width(), 100, _pSmallView);
       _pSmallView->addStorey(pStorey);
       pStorey->setButton(0);
       _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
@@ -99,8 +99,8 @@ void TimeboxPresenter::createFullView()
   _pFullView = new TimeboxFullView(_pModel);
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
   TimeboxStorey *pStorey;
-  for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it == lst.end() ; ++it) {
-      pStorey = new TimeboxStorey(_pModel);
+  for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) {
+      pStorey = new TimeboxStorey(_pModel, _pModel->width());
       _pFullView->addStorey(pStorey);
       _storeysFullView.emplace(pStorey, new PluginView(pStorey));
     }
@@ -110,5 +110,6 @@ void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
   std::unordered_map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
   delete it->first;
   _storeysSmallView.erase(it);
+  _pModel->removePlugin(); // TODO : CACAAAAA !!!
 }
 
