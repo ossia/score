@@ -1,0 +1,18 @@
+/**
+	@page page_codingStyle Coding Style
+
+	Voici la norme de codage (Coding style) pour les sources (cpp) et headers (hpp). @n
+	Les membres de classe commencent par "_"
+
+	@subsection Headers
+        
+   	ordre des déclarations dans header : 
+            - Q_PROPERTY
+            - attribut (public, protected, private)
+            - constructeur/destructeur
+            - enums
+            - signal
+            - slot
+            - méthode (tri sémantique)
+
+*/
