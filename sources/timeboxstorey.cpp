@@ -45,7 +45,7 @@ TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraph
   setMaximumHeight(_height);
   setMinimumHeight(_height);
 
-  _pBar = new TimeboxStoreyBar(this);
+  _pBar = new TimeboxStoreyBar(this); /// TODO doit être construit dans le presenter et envoyé dans le constructeur en tant qu'abstractStoreyBar (classe virtuelle).
   connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
 }
 

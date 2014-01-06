@@ -80,7 +80,11 @@ void TimeboxPresenter::addStorey()
       break;
 
     case FULL:
-      return; // TODO
+      pStorey = new TimeboxStorey(_pModel, _pView->width(), 200, _pFullView->pContainer());
+      _pFullView->addStorey(pStorey);
+      pStorey->setButton(0);
+      _storeysFullView.emplace(pStorey, new AutomationView(pStorey));
+      break;
     }
 
   connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
@@ -88,6 +92,7 @@ void TimeboxPresenter::addStorey()
 
 void TimeboxPresenter::goFullView()
 {
+  _mode = FULL;
   if (_pFullView == NULL) {
       createFullView();
     }
@@ -98,18 +103,22 @@ void TimeboxPresenter::createFullView()
 {
   _pFullView = new TimeboxFullView(_pModel);
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
-  TimeboxStorey *pStorey;
+
+  /// TODO placer les plugins de smallsize
+  //TimeboxStorey *pStorey;
   for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) {
-      pStorey = new TimeboxStorey(_pModel, _pModel->width());
-      _pFullView->addStorey(pStorey);
-      _storeysFullView.emplace(pStorey, new PluginView(pStorey));
+     // pStorey = new TimeboxStorey(_pModel, _pModel->width());
+     // _pFullView->addStorey(pStorey);
+     // _storeysFullView.emplace(pStorey, new PluginView(pStorey));
+      addStorey();
     }
 }
+
 void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
 {
   std::unordered_map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
   delete it->first;
   _storeysSmallView.erase(it);
-  _pModel->removePlugin(); // TODO : CACAAAAA !!!
+  _pModel->removePlugin(); // TODO : Il faut permettre de supprimer le bon dans le modèle. et faire un delete pour fullView
 }
 

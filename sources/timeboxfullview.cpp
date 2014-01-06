@@ -38,12 +38,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxmodel.hpp"
 #include "timeboxstorey.hpp"
 
+
 TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
   : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
     _pModel(pModel)
 {
   _pContainer = new QGraphicsWidget;
   _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
+  _pContainer->setPos(0,0); ///TODO problème de décalage des elements graphiques (by jC)
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
   _pLayout->setContentsMargins(0,0,0,0);

@@ -54,6 +54,7 @@ public:
   TimeboxFullView(TimeboxModel *pModel);
 
   void addStorey(TimeboxStorey *pStorey);
+  QGraphicsWidget *pContainer() const {return _pContainer;}
 };
 
 #endif // TIMEBOXFULLVIEW_HPP
