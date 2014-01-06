@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
     view.showNormal();
 
     pPrez->setView(&view);
+    pPrez->setParentScene(&scene);
 
     return app.exec();
 }

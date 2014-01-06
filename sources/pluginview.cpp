@@ -33,7 +33,8 @@
 #include "timeboxstoreybar.hpp"
 
 PluginView::PluginView(QGraphicsItem *parent)
-  : QGraphicsObject(parent), _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
+  : QGraphicsObject(parent),
+    _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
 {
 }
 

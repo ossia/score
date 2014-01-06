@@ -90,6 +90,12 @@ void TimeboxPresenter::addStorey()
   connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
 }
 
+void TimeboxPresenter::goSmallView()
+{
+  _mode = SMALL;
+  _pView->setScene(_pParentScene);
+}
+
 void TimeboxPresenter::goFullView()
 {
   _mode = FULL;
@@ -102,15 +108,18 @@ void TimeboxPresenter::goFullView()
 void TimeboxPresenter::createFullView()
 {
   _pFullView = new TimeboxFullView(_pModel);
+  connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
+
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 
-  /// TODO placer les plugins de smallsize
+  /// @todo récupérer les plugins de smallsize
   //TimeboxStorey *pStorey;
-  for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) {
+  for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) { /// On crée un storey par plugin
      // pStorey = new TimeboxStorey(_pModel, _pModel->width());
      // _pFullView->addStorey(pStorey);
      // _storeysFullView.emplace(pStorey, new PluginView(pStorey));
       addStorey();
+      /// @todo constructeur par copie des plugins pour aller dans full
     }
 }
 
