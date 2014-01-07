@@ -179,7 +179,7 @@ void Engine::initScore()
     TTValue         args;
 
     // this initializes the Score framework
-    TTScoreInit();
+    TTScoreInitialize();
 
     // Create a time event for the start
     args = TTUInt32(0);
