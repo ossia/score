@@ -1,8 +1,10 @@
 /*
-  Copyright: LaBRI / SCRIME
+ *Copyright: LaBRI / SCRIME
 
-  This software is governed by the CeCILL license under French law and
-  abiding by the rules of distribution of free software.  You can  use,
+Authors : Jaime Chao, Clément Bossut (2013-2014)
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.  You can  use,
   modify and/ or redistribute the software under the terms of the CeCILL
   license as circulated by CEA, CNRS and INRIA at the following URL
   "http://www.cecill.info".
@@ -28,24 +30,33 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "pluginview.hpp"
-#include <QPainter>
-#include "timeboxstoreybar.hpp"
+#ifndef TIMEBOXHEADERFULL_HPP
+#define TIMEBOXHEADERFULL_HPP
 
-PluginView::PluginView(QGraphicsItem *parent)
-  : QGraphicsObject(parent),
-    _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
-{
-}
+class QPushButton;
+class QLabel;
 
-QRectF PluginView::boundingRect() const
-{
-  return _boundingRectangle;
-}
+#include <QWidget>
 
-void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+class TimeboxHeaderFull : public QWidget
 {
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
-}
+Q_OBJECT
+
+public:
+  static const int HEIGHT = 45;
+
+private:
+  QPushButton *_pButtonPlay;
+  QLabel *_pTextName;
+
+public:
+  TimeboxHeaderFull(QWidget *parent);
+
+signals:
+  void doubleClicked();
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent *);
+};
+
+#endif // TIMEBOXHEADERFULL_HPP

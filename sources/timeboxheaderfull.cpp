@@ -1,8 +1,10 @@
 /*
-  Copyright: LaBRI / SCRIME
+ *Copyright: LaBRI / SCRIME
 
-  This software is governed by the CeCILL license under French law and
-  abiding by the rules of distribution of free software.  You can  use,
+Authors : Jaime Chao, Clément Bossut (2013-2014)
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.  You can  use,
   modify and/ or redistribute the software under the terms of the CeCILL
   license as circulated by CEA, CNRS and INRIA at the following URL
   "http://www.cecill.info".
@@ -28,24 +30,37 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "pluginview.hpp"
-#include <QPainter>
-#include "timeboxstoreybar.hpp"
+#include "timeboxheaderfull.hpp"
+#include <QPixmap>
+#include <QPushButton>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QMouseEvent>
+#include <QIcon>
+#include <QPalette>
 
-PluginView::PluginView(QGraphicsItem *parent)
-  : QGraphicsObject(parent),
-    _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,- TimeboxStoreyBar::HEIGHT))
+TimeboxHeaderFull::TimeboxHeaderFull(QWidget *parent)
+  : QWidget(parent)
 {
+  move(0,0);
+  setFixedSize(parent->width(), HEIGHT);
+  setStyleSheet("background-color:lightgray;"); ///TODO trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
+
+  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this);
+  _pTextName = new QLabel(tr("Box"), this);
+
+  QHBoxLayout *layout = new QHBoxLayout;
+  layout->addWidget(_pButtonPlay);
+  layout->addWidget(_pTextName);
+
+  setLayout(layout);
+  show();
 }
 
-QRectF PluginView::boundingRect() const
+void TimeboxHeaderFull::mouseDoubleClickEvent(QMouseEvent *event)
 {
-  return _boundingRectangle;
-}
-
-void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
+  if (event->button() == Qt::LeftButton) {
+      event->accept();
+      emit doubleClicked();
+    }
 }

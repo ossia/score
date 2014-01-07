@@ -1,0 +1,10 @@
+/**
+	@page page_installation Installation
+
+	Pour utiliser i-score il faut installer :
+	- Jamoma
+	- la librairie Score
+
+	Pour correctement visualiser ce doxygen :
+	- la librairie dot est nécessaire pour visualiser les graphes (http://www.graphviz.org/)
+*/

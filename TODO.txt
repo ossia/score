@@ -1,43 +1,6 @@
-Jalon
-    Architecture
-        gTP
-            niveau enfant
-                dessiner sa carcasse (organisation des items enfants entre eux)
-                    header
-                    onglets
-                        plugins enfants
-        membre QGScene
-        passage au niveau mainScenario (voir si l'organisation graphique change)
-    Visualisation
-        Courbe automation
-        élément textuel
-        Intervalle
-    Interaction
-        *1 Jaime
-            réimplémente les mouseEvent des graphicsItem (voir rubberband)
-Liaison Score
-    La barre de progression et les scheduler
-        l'aspect  graphique des barres de progression peut-il être (complètement) asservi au moteur ?
-          avec animation framework ?
-    Lier graphicsItem à son jumeau Score
-        liaison directe depuis le graphicsItem : éviter des interfaces supplémentaires
-        déleguer le plus possible les tâches au moteur
-            ex: relation aux autres items lors d'un déplacement
-    Relation temporalité/position des items (voir i-scoreOld)
-
-Général
-    mettre une fenêtre d'information/édition sur les objets graphiques
-    Qt's Undo Framework
-        devra avoir sa contrepartie dans Score
-    m_mouseActionGroup à la manière de omnigraffle
-        à gérer dans un stateMachine de mainWindow ?
-
 GraphicsView
-    *1: click'n drag pour ajuster la taille d'un timeprocess avant sa création
-    gestion de la hiérarchie
     On doit créer la première boîte/scénario
         constructeur avec paramètre mainScenario ou test s'il n'a pas de parent
-    bloquer la graphicsscene en haut et à gauche
     si la taille du timeProcess est trop petite on affiche pas tous les elements
         gestion dans State Machine ?
     un graphicsItem selectionné puis supprimé est destroyed()
@@ -55,16 +18,6 @@ GraphicsView
         QGraphicsSceneContextMenuEvent
 
 Environnement
-    Choisir la norme de codage (Coding style)
-        membres de classe commencent par "_"
-        ordre des déclarations dans header
-            Q_PROPERTY
-            attribut (public, protected, private)
-            constructeur/destructeur
-            enums
-            signal
-            slot
-            méthode (tri sémantique)
     faire des subdirectories pour source et header
         pour l'instant en dur dans le .pro
 
@@ -77,4 +30,3 @@ Github
 Mettre en place Aide
     Doxygen -> permettra de montrer les relation de classes
     Documentation du code Doxygen
-    Cleaner Asana

@@ -93,6 +93,7 @@ public:
   }
 
   void addPlugin();
+  void removePlugin();
 
 private:
   void createStates();

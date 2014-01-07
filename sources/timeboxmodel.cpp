@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsScene>
 
 TimeboxModel::TimeboxModel(int t, int y, int l, int h)
-  : _time(t), _yPosition(y), _width(l), _height(h), _pluginsSmallView(1)
+  : _time(t), _yPosition(y), _width(l), _height(h)
 {
 
   createStates();
@@ -97,4 +97,9 @@ void TimeboxModel::createConnections()
 void TimeboxModel::addPlugin()
 {
   _pluginsSmallView.emplace_back();
+}
+
+void TimeboxModel::removePlugin()
+{
+  _pluginsSmallView.pop_back();
 }

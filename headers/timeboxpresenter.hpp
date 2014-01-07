@@ -39,6 +39,7 @@ class TimeboxFullView;
 class TimeboxStorey;
 class PluginView;
 class QGraphicsView;
+class QGraphicsScene;
 
 enum ViewMode
 {
@@ -55,10 +56,10 @@ class TimeboxPresenter : public QObject
 
 private:
   QGraphicsView *_pView;
-
   TimeboxModel *_pModel;
 
   TimeboxSmallView *_pSmallView;
+  QGraphicsScene *_pParentScene;
   TimeboxFullView *_pFullView;
   ViewMode _mode;
 
@@ -75,9 +76,12 @@ private:
 private slots:
   void addStorey();
   void goFullView();
+  void goSmallView();
 
 public:
   void setView(QGraphicsView *pView) {_pView=pView;}
+  const QGraphicsView* view() const {return _pView;}
+  void setParentScene(QGraphicsScene *pScene) {_pParentScene=pScene;}
 
 private:
   void createFullView();
