@@ -107,7 +107,7 @@ void TimeboxPresenter::goFullView()
 
 void TimeboxPresenter::createFullView()
 {
-  _pFullView = new TimeboxFullView(_pModel);
+  _pFullView = new TimeboxFullView(_pModel, _pView);
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
