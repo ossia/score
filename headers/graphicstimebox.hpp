@@ -33,6 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef GRAPHICSTIMEPROCESS_HPP
 #define GRAPHICSTIMEPROCESS_HPP
 
+///@todo Fusionner cette classe avec TimeBoxModel
 /*! @file
  *  @brief Graphical representation of a TTTimeProcess class.
  *  @author Jaime Chao

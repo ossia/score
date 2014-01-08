@@ -61,7 +61,7 @@ signals:
   void buttonClicked(bool);
 
 public:
-  PixmapButton * const getButton() const {return _pButton;}
+  PixmapButton* getButton() const {return _pButton;}
 
 protected:
   virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);

@@ -54,14 +54,14 @@ class MainWindow : public QMainWindow
   Q_PROPERTY(GraphicsTimeBox* currentFullView READ currentFullView WRITE setcurrentFullView NOTIFY currentFullViewChanged)
 
 private:
-  GraphicsTimeBox* _mainProcess;
+  GraphicsTimeBox* _pMainProcess;
   qint16 _addOffset;
   QPoint _previousPoint;
   Ui::MainWindow *ui;
-  QGraphicsScene *_scene; /// pointer to currentFullView->scene /// @todo J'ai peur qu'on rajoute trop d'attributs pour de simples raccourcis (à voir si on se servira souvent de _scene)
-  QGraphicsView *_view; /// pointer to ui->graphicsView
-  QActionGroup *_mouseActionGroup;
-  GraphicsTimeBox* _currentFullView;
+  QGraphicsScene *_pScene; /// pointer to currentFullView->scene /// @todo J'ai peur qu'on rajoute trop d'attributs pour de simples raccourcis (à voir si on se servira souvent de _scene)
+  QGraphicsView *_pView; /// pointer to ui->graphicsView
+  QActionGroup *_pMouseActionGroup;
+  GraphicsTimeBox* _pCurrentFullView;
 
   QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
   QState *_initialState;
@@ -88,7 +88,7 @@ private slots:
   void addItem(QPointF);
 
 public:
-  GraphicsTimeBox* currentFullView() const { return _currentFullView; }
+  GraphicsTimeBox* currentFullView() const { return _pCurrentFullView; }
   void setcurrentFullView(GraphicsTimeBox* arg);
 
 protected:

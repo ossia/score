@@ -33,7 +33,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "timeevent.hpp"
-#include "graphicstimebox.hpp"
+#include "timeboxmodel.hpp"
+#include "timeboxpresenter.hpp"
+#include "timeboxsmallview.hpp"
 #include "itemtypes.hpp"
 
 #include <QMouseEvent>
@@ -48,7 +50,7 @@ knowledge of the CeCILL license and that you accept its terms.
 const qint16 OFFSET_INCREMENT = 5;
 
 MainWindow::MainWindow(QWidget *parent)
-  : QMainWindow(parent), ui(new Ui::MainWindow), _scene(NULL)
+  : QMainWindow(parent), ui(new Ui::MainWindow), _pScene(NULL)
 {
   ui->setupUi(this);
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
@@ -64,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::createGraphics()
 {
-  _view = ui->graphicsView;
+  _pView = ui->graphicsView;
 
  /*! @todo uncomment when Timebox achieved
   * _mainProcess = new GraphicsTimeBox();
@@ -72,9 +74,9 @@ void MainWindow::createGraphics()
   * _scene = _mainProcess->scene();
   */
 
-  _scene = new QGraphicsScene(this);
-  Q_CHECK_PTR(_scene);
-  _view->setScene(_scene);
+  _pScene = new QGraphicsScene(0,0,1000,800,this); ///@todo adapter dynamiquement la taille du scénario
+  Q_CHECK_PTR(_pScene);
+  _pView->setScene(_pScene);
 }
 
 void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
@@ -83,9 +85,9 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
   ui->actionAddTimeEvent->setData(EventItemType);
   ui->actionAddTimeBox->setData(BoxItemType);
 
-  _mouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
-  _mouseActionGroup->addAction(ui->actionAddTimeEvent);
-  _mouseActionGroup->addAction(ui->actionAddTimeBox);
+  _pMouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
+  _pMouseActionGroup->addAction(ui->actionAddTimeEvent);
+  _pMouseActionGroup->addAction(ui->actionAddTimeBox);
   /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
 
   // Mouse cursor relative's actions
@@ -93,9 +95,9 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
   ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
   ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
 
-  _mouseActionGroup->addAction(ui->actionMouse);
-  _mouseActionGroup->addAction(ui->actionScroll);
-  _mouseActionGroup->addAction(ui->actionSelect);
+  _pMouseActionGroup->addAction(ui->actionMouse);
+  _pMouseActionGroup->addAction(ui->actionScroll);
+  _pMouseActionGroup->addAction(ui->actionSelect);
 
   ui->actionMouse->setChecked(true);
 }
@@ -106,19 +108,19 @@ void MainWindow::createStates()
 
   _initialState = new QState();
   _initialState->assignProperty(this, "objectName", tr("mainWindow"));
-  _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_mainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
-  _initialState->assignProperty(_mouseActionGroup, "enabled", true);
+  _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_pMainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
+  _initialState->assignProperty(_pMouseActionGroup, "enabled", true);
   _stateMachine->addState(_initialState);
   _stateMachine->setInitialState(_initialState);
 
   // creating a new top-level state
   _normalState = new QState();
   _editionState = new QState(_normalState);
-  _editionState->assignProperty(_mouseActionGroup, "enabled", true);
+  _editionState->assignProperty(_pMouseActionGroup, "enabled", true);
 
   /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing)
   _executionState = new QState(_normalState);
-  _executionState->assignProperty(_mouseActionGroup, "enabled", false);
+  _executionState->assignProperty(_pMouseActionGroup, "enabled", false);
 
   _runningState = new QState(_executionState);
   _pausedState = new QState(_executionState);
@@ -147,7 +149,7 @@ void MainWindow::createTransitions()
 void MainWindow::createConnections()
 {
   connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
-  connect(_mouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
+  connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
 }
 
@@ -165,38 +167,41 @@ void MainWindow::updateUi()
 
 void MainWindow::addItem(QPointF pos)
 {
-  QAction *action = _mouseActionGroup->checkedAction();
+  QAction *action = _pMouseActionGroup->checkedAction();
   Q_ASSERT(action);
   if(action != ui->actionAddTimeEvent && action != ui->actionAddTimeBox) { /// @todo  pas très découplé mais à cause de la galère des groupActions, regarder signalMapper
       return;
     }
 
   qint32 type = action->data().toInt(); // we recover the data associated with the action (see createActionGroups())
-  QObject *item = NULL;
+  QObject *pItem = NULL;
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      item = new TimeEvent(pos, 0);
+      pItem = new TimeEvent(pos, 0);
+      TimeEvent* pEvent = qobject_cast<TimeEvent*>(pItem);
+      _pScene->addItem(pEvent);
+      pEvent->setSelected(true);
+
     }
   else if(type == BoxItemType) {
+      TimeboxModel *pModel = new TimeboxModel(pos.x(), pos.y(), 300, 200); ///@todo faire le drag
+      TimeboxSmallView *pBox = new TimeboxSmallView(pModel);
+      pItem = new TimeboxPresenter(pModel, pBox); /// The presenter is handling all the connections, so we put it as the item
+      TimeboxPresenter* pPrez = qobject_cast<TimeboxPresenter*>(pItem);
+      pPrez->setView(_pView);
+      pPrez->setParentScene(_pScene);
 
-      /*! @todo uncomment when Timebox is achieved
-      item = new TimeboxModel(pos, 200, 300);
-      QGraphicsItem* graphicItem = qobject_cast<QGraphicsItem*>(item);
-
-      TimeboxHeader *plugin = new TimeboxHeader(graphicItem); // create and position a plugin according to his parent (graphicItem)
-      new TimeboxStoreyBar(graphicItem);
-
-      _scene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
-      _scene->addItem(graphicItem);
-      graphicItem->setSelected(true);
-      */
+      _pScene->addItem(pBox);
+      //_pScene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
+      pBox->setSelected(true);
     }
+
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
 
-  Q_CHECK_PTR(item);
-  if(item) {
-      connectItem(item);
+  Q_CHECK_PTR(pItem);
+  if(pItem) {
+      connectItem(pItem);
       setDirty(true);
     }
 }
@@ -212,7 +217,7 @@ void MainWindow::connectItem(QObject *item)
       connect(ui->stopButton, SIGNAL(clicked()), item, SIGNAL(stopButtonClicked()));
     if(metaObject->indexOfSignal("headerClicked()") > -1)
       connect(item, SIGNAL(headerClicked()), ui->graphicsView, SLOT(graphicItemEnsureVisible()));
-//    if (metaObject->indexOfProperty("running") > -1) /// @todo change play button to play/pause
+//    if (metaObject->indexOfProperty("running") > -1)
 //      connect(ui->playButton, SIGNAL(clicked()), item, SLOT(setrunning(true;)));
 //    if (metaObject->indexOfProperty("stopped"))
 //      connect(ui->stopButton, SIGNAL(clicked()), item, SLOT(setstopped(false;)));
@@ -236,8 +241,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 void MainWindow::setcurrentFullView(GraphicsTimeBox* arg)
 {
-  if (_currentFullView != arg) {
-      _currentFullView = arg;
+  if (_pCurrentFullView != arg) {
+      _pCurrentFullView = arg;
       emit currentFullViewChanged(arg);
     }
 }

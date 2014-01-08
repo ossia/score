@@ -73,9 +73,8 @@ void GraphicsView::mouseDragMode(QAction* action)
 void GraphicsView::graphicItemEnsureVisible() /// @todo Change behaviour : do a zoom animation and switch the current qGScene
 {
   QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
-  //centerOn(item);
-  fitInView(item, Qt::KeepAspectRatio); /// Automatically resize and center the item, Qt::AspectRatioMode is not ignored
-  //QGraphicsView::AnchorViewCenter
+  centerOn(item);
+  //fitInView(item, Qt::KeepAspectRatio); /// Automatically resize and center the item, Qt::AspectRatioMode is not ignored
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
