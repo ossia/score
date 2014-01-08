@@ -68,6 +68,7 @@ private:
 
 public:
   TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView);
 
 public slots:
   void storeyBarButtonClicked(bool id);

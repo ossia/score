@@ -50,7 +50,13 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
 {  
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 
-  addStorey();
+  addStorey(); // TODO : ?
+}
+
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView)
+  : _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _mode(FULL)
+{
+  connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
