@@ -79,8 +79,8 @@ void TimeboxPresenter::addStorey()
   switch (_mode) {
     case SMALL:
       pStorey = new TimeboxStorey(_pModel, _pModel->width(), 100, _pSmallView);
-      _pSmallView->addStorey(pStorey);
       pStorey->setButton(0);
+      _pSmallView->addStorey(pStorey);
       _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
       _pModel->addPlugin();
       break;
@@ -109,6 +109,7 @@ void TimeboxPresenter::goFullView()
       createFullView();
     }
   _pView->setScene(_pFullView);
+  _pView->fitInView(_pFullView->sceneRect());
 }
 
 void TimeboxPresenter::createFullView()
