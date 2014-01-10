@@ -50,7 +50,7 @@ knowledge of the CeCILL license and that you accept its terms.
 const qint16 OFFSET_INCREMENT = 5;
 
 MainWindow::MainWindow(QWidget *parent)
-  : QMainWindow(parent), ui(new Ui::MainWindow), _pScene(NULL)
+  : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
@@ -68,15 +68,16 @@ void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
 
- /*! @todo uncomment when Timebox achieved
+ /*! @todo uncomment when Timebox 0 (scenario principal) achieved
   * _mainProcess = new GraphicsTimeBox();
   * Q_CHECK_PTR(_mainProcess);
   * _scene = _mainProcess->scene();
   */
 
-  _pScene = new QGraphicsScene(0,0,1000,800,this); ///@todo adapter dynamiquement la taille du scénario
-  Q_CHECK_PTR(_pScene);
-  _pView->setScene(_pScene);
+  _mainTimebox.pScene = new QGraphicsScene(0,0,1000,800,this); ///@todo adapter dynamiquement la taille du scénario
+  Q_CHECK_PTR(_mainTimebox.pScene);
+  _pView->setScene(_mainTimebox.pScene);
+  _currentTimebox = _mainTimebox;
 }
 
 void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
@@ -108,7 +109,7 @@ void MainWindow::createStates()
 
   _initialState = new QState();
   _initialState->assignProperty(this, "objectName", tr("mainWindow"));
-  _initialState->assignProperty(this, "currentFullView", qVariantFromValue((void *)_pMainProcess)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
+  //_initialState->assignProperty(this, "currentTimebox", qVariantFromValue((Timebox)_MainTimebox)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
   _initialState->assignProperty(_pMouseActionGroup, "enabled", true);
   _stateMachine->addState(_initialState);
   _stateMachine->setInitialState(_initialState);
@@ -143,6 +144,7 @@ void MainWindow::createTransitions()
   _pausedState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
   _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
   _stoppedState->addTransition(_stoppedState, SIGNAL(propertiesAssigned()), _editionState);
+
   _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
 }
 
@@ -180,7 +182,7 @@ void MainWindow::addItem(QPointF pos)
   if (type == EventItemType) {
       pItem = new TimeEvent(pos, 0);
       TimeEvent* pEvent = qobject_cast<TimeEvent*>(pItem);
-      _pScene->addItem(pEvent);
+      _currentTimebox.pScene->addItem(pEvent);
       pEvent->setSelected(true);
 
     }
@@ -190,9 +192,9 @@ void MainWindow::addItem(QPointF pos)
       pItem = new TimeboxPresenter(pModel, pBox); /// The presenter is handling all the connections, so we put it as the item
       TimeboxPresenter* pPrez = qobject_cast<TimeboxPresenter*>(pItem);
       pPrez->setView(_pView);
-      pPrez->setParentScene(_pScene);
+      pPrez->setParentScene(_currentTimebox.pScene);
 
-      _pScene->addItem(pBox);
+      _currentTimebox.pScene->addItem(pBox);
       //_pScene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
       pBox->setSelected(true);
     }
@@ -239,10 +241,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
   QMainWindow::mouseMoveEvent(event);
 }
 
-void MainWindow::setcurrentFullView(GraphicsTimeBox* arg)
+void MainWindow::setcurrentTimebox(Timebox arg) ///@todo est-ce que tout ce mécanisme de test et signal est intéressant
 {
-  if (_pCurrentFullView != arg) {
-      _pCurrentFullView = arg;
-      emit currentFullViewChanged(arg);
-    }
+ // if (_CurrentTimebox != arg) {
+      _currentTimebox = arg;
+      emit currentTimeboxChanged(arg);
+   // }
 }
