@@ -38,10 +38,9 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class Engine
 {
-private:
+public:
   TTTimeProcessPtr    _mainScenario;                                 /// The top scenario
 
-public:
   Engine();
 
 private:

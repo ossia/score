@@ -50,7 +50,13 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
 {  
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 
-  addStorey();
+  addStorey(); // TODO : ?
+}
+
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView)
+  : _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _mode(FULL)
+{
+  connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
@@ -73,8 +79,8 @@ void TimeboxPresenter::addStorey()
   switch (_mode) {
     case SMALL:
       pStorey = new TimeboxStorey(_pModel, _pModel->width(), 100, _pSmallView);
-      _pSmallView->addStorey(pStorey);
       pStorey->setButton(0);
+      _pSmallView->addStorey(pStorey);
       _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
       _pModel->addPlugin();
       break;
@@ -103,6 +109,7 @@ void TimeboxPresenter::goFullView()
       createFullView();
     }
   _pView->setScene(_pFullView);
+  _pView->fitInView(_pFullView->sceneRect());
 }
 
 void TimeboxPresenter::createFullView()
