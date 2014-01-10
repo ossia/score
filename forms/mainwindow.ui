@@ -7,14 +7,39 @@
     <x>0</x>
     <y>0</y>
     <width>839</width>
-    <height>461</height>
+    <height>481</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <item>
+     <widget class="HeaderWidget" name="headerWidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">#HeaderWidget {
+padding: 2px;
+border-style: solid;
+border-width: 3px;
+border-radius: 7px;
+border-color: beige;
+}</string>
+      </property>
+     </widget>
+    </item>
     <item>
      <widget class="GraphicsView" name="graphicsView">
       <property name="minimumSize">
@@ -219,6 +244,12 @@
    <class>GraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>graphicsview.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>HeaderWidget</class>
+   <extends>QWidget</extends>
+   <header>headerwidget.hpp</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

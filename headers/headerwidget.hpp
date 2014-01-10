@@ -30,37 +30,33 @@ abiding by the rules of distribution of free software.  You can  use,
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxheaderfull.hpp"
-#include <QPixmap>
-#include <QPushButton>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QMouseEvent>
-#include <QIcon>
-#include <QPalette>
+#ifndef HEADERWIDGET_HPP
+#define HEADERWIDGET_HPP
 
-TimeboxHeaderFull::TimeboxHeaderFull(QWidget *parent)
-  : QWidget(parent)
+class QPushButton;
+class QLabel;
+
+#include <QWidget>
+
+class HeaderWidget : public QWidget
 {
-  move(0,0);
-  setFixedSize(parent->width(), HEIGHT);
-  setStyleSheet("background-color:lightgray;"); ///TODO trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
+Q_OBJECT
 
-  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this);
-  _pTextName = new QLabel(tr("Box"), this);
+public:
+  static const int HEIGHT = 45;
 
-  QHBoxLayout *layout = new QHBoxLayout;
-  layout->addWidget(_pButtonPlay);
-  layout->addWidget(_pTextName);
+private:
+  QPushButton *_pButtonPlay;
+  QLabel *_pTextName;
 
-  setLayout(layout);
-  show();
-}
+public:
+  HeaderWidget(QWidget *parent);
 
-void TimeboxHeaderFull::mouseDoubleClickEvent(QMouseEvent *event)
-{
-  if (event->button() == Qt::LeftButton) {
-      event->accept();
-      emit doubleClicked();
-    }
-}
+signals:
+  void doubleClicked();
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent *);
+};
+
+#endif // HEADERWIDGET_HPP

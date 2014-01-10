@@ -80,7 +80,7 @@ void TimeboxPresenter::addStorey()
       break;
 
     case FULL:
-      pStorey = new TimeboxStorey(_pModel, _pView->width(), 200, _pFullView->pContainer());
+      pStorey = new TimeboxStorey(_pModel, _pView->width(), 200, _pFullView->container());
       _pFullView->addStorey(pStorey);
       pStorey->setButton(0);
       _storeysFullView.emplace(pStorey, new AutomationView(pStorey));
@@ -107,8 +107,7 @@ void TimeboxPresenter::goFullView()
 
 void TimeboxPresenter::createFullView()
 {
-  _pFullView = new TimeboxFullView(_pModel, _pView);
-  connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
+  _pFullView = new TimeboxFullView(_pModel);
 
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 

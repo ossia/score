@@ -38,9 +38,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxmodel.hpp"
 #include "timeboxstorey.hpp"
-#include "timeboxheaderfull.hpp"
 
-TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QGraphicsView *pView)
+TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
   : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
     _pModel(pModel)
 {
@@ -52,9 +51,6 @@ TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QGraphicsView *pView)
   _pLayout->setContentsMargins(1,1,1,1);
   _pLayout->setSpacing(0);
   _pContainer->setLayout(_pLayout);
-
-  _pHeader = new TimeboxHeaderFull(pView);
-  connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
 
   addItem(_pContainer);
 }

@@ -37,7 +37,6 @@ class TimeboxModel;
 class QGraphicsWidget;
 class QGraphicsLinearLayout;
 class TimeboxStorey;
-class TimeboxHeaderFull;
 
 #include <QGraphicsScene>
 
@@ -47,20 +46,16 @@ class TimeboxFullView : public QGraphicsScene
 
 private:
   TimeboxModel *_pModel;
-  TimeboxHeaderFull *_pHeader;
 
   QGraphicsWidget *_pContainer;
   QGraphicsLinearLayout *_pLayout;
 
 public:
-  TimeboxFullView(TimeboxModel *pModel, QGraphicsView *pview);
-
-signals:
-  void headerDoubleClicked();
+  TimeboxFullView(TimeboxModel *pModel);
 
 public :
   void addStorey(TimeboxStorey *pStorey);
-  QGraphicsWidget *pContainer() const {return _pContainer;}
+  QGraphicsWidget* container() const {return _pContainer;}
 };
 
 #endif // TIMEBOXFULLVIEW_HPP

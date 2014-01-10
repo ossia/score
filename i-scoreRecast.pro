@@ -29,7 +29,7 @@ SOURCES += sources/main.cpp \
     sources/pluginview.cpp \
     sources/pixmapbutton.cpp \
     sources/automationview.cpp \
-    sources/timeboxheaderfull.cpp
+    sources/headerwidget.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -47,7 +47,7 @@ HEADERS  += headers/mainwindow.hpp \
     headers/pluginview.hpp \
     headers/pixmapbutton.hpp \
     headers/automationview.hpp \
-    headers/timeboxheaderfull.hpp
+    headers/headerwidget.hpp
 
 RESOURCES += \
     resources/resource.qrc
