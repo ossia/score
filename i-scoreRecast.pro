@@ -4,13 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+cache()
 
+# QT includes the core and gui modules by default
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = i-scoreRecast
 TEMPLATE = app
-CONFIG += x86_64
+TARGET = i-scoreRecast
+CONFIG += x86_64 warn_on qt
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
 SOURCES += sources/main.cpp \
@@ -49,8 +50,7 @@ HEADERS  += headers/mainwindow.hpp \
     headers/automationview.hpp \
     headers/headerwidget.hpp
 
-RESOURCES += \
-    resources/resource.qrc
+RESOURCES += resources/resource.qrc
 
 FORMS    += forms/mainwindow.ui
 
@@ -58,23 +58,22 @@ OTHER_FILES += \
     TODO.txt \
     LICENSE.txt
 
-INCLUDEPATH += headers/ /usr/local/jamoma/includes
-QMAKE_LFLAGS += -L/usr/local/jamoma/lib -F/Library/Frameworks/
+INCLUDEPATH += headers
+INCLUDEPATH += /usr/local/jamoma/includes
+INCLUDEPATH += /usr/local/include/libxml2
 
+#LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
 LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
 LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
 LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
 LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
-LIBS += -framework gecode
+LIBS += -F/Library/Frameworks/ -framework gecode
 LIBS += -lxml2
 
 QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS += -stdlib=libc++
-QMAKE_CXXFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 
+QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 QMAKE_LFLAGS += -stdlib=libc++
-#-F/System/Library/Frameworks/
 
-# INCLUDEPATH += /Library/Frameworks/
-INCLUDEPATH += /usr/local/include/libxml2
 
