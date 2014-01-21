@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxmodel.hpp"
 #include "timeboxpresenter.hpp"
 #include "timeboxsmallview.hpp"
-#include "itemtypes.hpp"
+#include "utils.hpp"
 
 #include <QMouseEvent>
 #include <QActionGroup>
@@ -68,16 +68,10 @@ void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
 
- /*! @todo uncomment when Timebox 0 (scenario principal) achieved
-  * _mainProcess = new GraphicsTimeBox();
-  * Q_CHECK_PTR(_mainProcess);
-  * _scene = _mainProcess->scene();
-  */
-
-  _mainTimebox.pScene = new QGraphicsScene(0,0,1000,800,this); ///@todo adapter dynamiquement la taille du scénario
-  Q_CHECK_PTR(_mainTimebox.pScene);
-  _pView->setScene(_mainTimebox.pScene);
-  _currentTimebox = _mainTimebox;
+  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 800, FULL); ///@todo adapter dynamiquement la taille du scénario
+  Q_CHECK_PTR(_pMainTimebox);
+  connect(_pMainTimebox, SIGNAL(timeboxBecameFull()), this, SLOT(changeCurrentTimeboxScene()));
+  _pCurrentTimebox = _pMainTimebox;
 }
 
 void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
@@ -153,10 +147,13 @@ void MainWindow::createConnections()
   connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
   connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
+  connect(ui->headerWidget, SIGNAL(doubleClicked()), this, SLOT(headerWidgetClicked()));
 }
 
 void MainWindow::setDirty(bool on)
 {
+  /// à rajouter dans les items connect(item, SIGNAL(dirty()), this, SLOT(setDirty()));
+
     setWindowModified(on);
     updateUi();
 }
@@ -176,53 +173,33 @@ void MainWindow::addItem(QPointF pos)
     }
 
   qint32 type = action->data().toInt(); // we recover the data associated with the action (see createActionGroups())
-  QObject *pItem = NULL;
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      pItem = new TimeEvent(pos, 0);
-      TimeEvent* pEvent = qobject_cast<TimeEvent*>(pItem);
-      _currentTimebox.pScene->addItem(pEvent);
-      pEvent->setSelected(true);
-
+      TimeEvent* pEvent = new TimeEvent(pos, 0);
+      _pCurrentTimebox->addChild(pEvent);
     }
   else if(type == BoxItemType) {
-      TimeboxModel *pModel = new TimeboxModel(pos.x(), pos.y(), 300, 200); ///@todo faire le drag
-      TimeboxSmallView *pBox = new TimeboxSmallView(pModel);
-      pItem = new TimeboxPresenter(pModel, pBox); /// The presenter is handling all the connections, so we put it as the item
-      TimeboxPresenter* pPrez = qobject_cast<TimeboxPresenter*>(pItem);
-      pPrez->setView(_pView);
-      pPrez->setParentScene(_currentTimebox.pScene);
-
-      _currentTimebox.pScene->addItem(pBox);
-      //_pScene->clearSelection(); /// @todo Faut-il vraiment garder la QGScene parent dans la classe gTP ? si OUI la renommer parentQGScene.
-      pBox->setSelected(true);
+      Timebox *timebox = new Timebox(_pCurrentTimebox, _pView, pos);
+      connect(timebox, SIGNAL(timeboxBecameFull()), this, SLOT(changeCurrentTimeboxScene()));
     }
 
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
-
-  Q_CHECK_PTR(pItem);
-  if(pItem) {
-      connectItem(pItem);
-      setDirty(true);
-    }
 }
 
-void MainWindow::connectItem(QObject *item)
+void MainWindow::headerWidgetClicked()
 {
-    connect(item, SIGNAL(dirty()), this, SLOT(setDirty()));
+  //if(_pCurrentTimebox->isEqual(_pMainTimebox)) {///@todo On pourrait aussi faire appel à Score pour la parenté, ou le presenter ne fait rien s'il n'est que full.
+  if(_pCurrentTimebox == _pMainTimebox){
+      return;
+    }
 
-    const QMetaObject *metaObject = item->metaObject();
-    if (metaObject->indexOfSignal("playOrPauseButtonClicked()") > -1)
-      connect(ui->playButton, SIGNAL(clicked()), item, SIGNAL(playOrPauseButtonClicked())); /// @todo rename playButton to playOrPauseButton and transform it
-    if (metaObject->indexOfSignal("stopButtonClicked()") > -1)
-      connect(ui->stopButton, SIGNAL(clicked()), item, SIGNAL(stopButtonClicked()));
-    if(metaObject->indexOfSignal("headerClicked()") > -1)
-      connect(item, SIGNAL(headerClicked()), ui->graphicsView, SLOT(graphicItemEnsureVisible()));
-//    if (metaObject->indexOfProperty("running") > -1)
-//      connect(ui->playButton, SIGNAL(clicked()), item, SLOT(setrunning(true;)));
-//    if (metaObject->indexOfProperty("stopped"))
-//      connect(ui->stopButton, SIGNAL(clicked()), item, SLOT(setstopped(false;)));
+  _pCurrentTimebox->_pPresenter->goSmallView();
+}
+
+void MainWindow::changeCurrentTimeboxScene()
+{
+  _pCurrentTimebox = qobject_cast<Timebox*>(sender());
 }
 
 void MainWindow::setMousePosition(QPointF point)
@@ -235,16 +212,15 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
   QMainWindow::mousePressEvent(event);
 }
 
-
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
   QMainWindow::mouseMoveEvent(event);
 }
 
-void MainWindow::setcurrentTimebox(Timebox arg) ///@todo est-ce que tout ce mécanisme de test et signal est intéressant
+void MainWindow::setcurrentTimebox(Timebox *arg) ///@todo est-ce que tout ce mécanisme de test et signal est intéressant
 {
- // if (_CurrentTimebox != arg) {
-      _currentTimebox = arg;
+  if (_pCurrentTimebox != arg) {
+      _pCurrentTimebox = arg;
       emit currentTimeboxChanged(arg);
-   // }
+    }
 }

@@ -34,6 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
+#include "timebox.hpp"
 
 class QGraphicsScene;
 class QActionGroup;
@@ -52,23 +53,14 @@ namespace Ui {
   class MainWindow;
 }
 
-///@todo en faire une classe pour un constructeur et setteur propre et stable, les tests d'égalité et de parenté.
-struct Timebox {
-  TimeboxModel *pModel;
-  TimeboxPresenter *pPresenter;
-  TimeboxFullView *pFullView;
-  TimeboxSmallView *pSmallView;
-  QGraphicsScene *pScene; /// pointer to currentFullView->scene /// @todo J'ai peur qu'on rajoute trop d'attributs pour de simples raccourcis (à voir si on se servira souvent de _scene)
-};
-
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
-  Q_PROPERTY(Timebox currentTimebox READ currentTimebox WRITE setcurrentTimebox NOTIFY currentTimeboxChanged) ///@todo est-ce utile de le garder en property ?
+  //Q_PROPERTY(Timebox currentTimebox READ currentTimebox WRITE setcurrentTimebox NOTIFY currentTimeboxChanged) ///@todo est-ce utile de le garder en property ?
 
 private:
-  Timebox _mainTimebox;
-  Timebox _currentTimebox;
+  Timebox *_pMainTimebox;
+  Timebox *_pCurrentTimebox;
 
   Ui::MainWindow *ui;
   QGraphicsView *_pView; /// pointer to ui->graphicsView
@@ -93,20 +85,22 @@ private:
 public:
   explicit MainWindow(QWidget *parent = 0);
 
+signals:
+    void currentTimeboxChanged(Timebox *arg);
+
 public slots:
     void setDirty(bool on=true);
     void setMousePosition(QPointF point);
-
-signals:
-    void currentTimeboxChanged(Timebox arg);
+    void changeCurrentTimeboxScene(); ///@todo transformer tout pour fonctionner avec API Timebox
 
 private slots:
   void updateUi();
   void addItem(QPointF);
+  void headerWidgetClicked();
 
 public:
-  Timebox currentTimebox() const { return _currentTimebox; }
-  void setcurrentTimebox(Timebox arg);
+  Timebox* currentTimebox() const { return _pCurrentTimebox; }
+  void setcurrentTimebox(Timebox *arg);
 
 protected:
   // QWidget interface

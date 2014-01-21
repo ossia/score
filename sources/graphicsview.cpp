@@ -32,7 +32,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "graphicsview.hpp"
 #include "mainwindow.hpp"
-#include "itemTypes.hpp"
+#include "utils.hpp"
 #include <QMouseEvent>
 #include <QPoint>
 #include <QAction>
@@ -74,7 +74,6 @@ void GraphicsView::graphicItemEnsureVisible() /// @todo Change behaviour : do a 
 {
   QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
   centerOn(item);
-  //fitInView(item, Qt::KeepAspectRatio); /// Automatically resize and center the item, Qt::AspectRatioMode is not ignored
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)

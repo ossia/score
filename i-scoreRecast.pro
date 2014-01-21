@@ -30,14 +30,16 @@ SOURCES += sources/main.cpp \
     sources/pluginview.cpp \
     sources/pixmapbutton.cpp \
     sources/automationview.cpp \
-    sources/headerwidget.cpp
+    sources/headerwidget.cpp \
+    sources/timebox.cpp \
+    sources/scenarioview.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
     headers/engine.hpp \
     headers/graphicstimebox.hpp \
     headers/graphicsview.hpp \
-    headers/itemtypes.hpp \
+    headers/utils.hpp \
     headers/timeboxsmallview.hpp \
     headers/timeboxfullview.hpp \
     headers/timeboxmodel.hpp \
@@ -48,7 +50,9 @@ HEADERS  += headers/mainwindow.hpp \
     headers/pluginview.hpp \
     headers/pixmapbutton.hpp \
     headers/automationview.hpp \
-    headers/headerwidget.hpp
+    headers/headerwidget.hpp \
+    headers/timebox.hpp \
+    headers/scenarioview.hpp
 
 RESOURCES += resources/resource.qrc
 

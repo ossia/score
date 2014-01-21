@@ -1,8 +1,6 @@
 /*
 Copyright: LaBRI / SCRIME
 
-Authors : Jaime Chao, Clément Bossut (2013-2014)
-
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
@@ -30,12 +28,49 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef ITEMTYPES_HPP
-#define ITEMTYPES_HPP
+#ifndef TIMEBOX_HPP
+#define TIMEBOX_HPP
 
-#include <QGraphicsItem>
+class TimeboxModel;
+class TimeboxPresenter;
+class TimeboxFullView;
+class TimeboxSmallView;
+class QGraphicsView;
+class QGraphicsScene;
+class TimeEvent;
 
-const int BoxItemType = QGraphicsItem::UserType + 1;
-const int EventItemType = QGraphicsItem::UserType + 2;
+#include <QObject>
+#include "utils.hpp"
 
-#endif // ITEMTYPES_HPP
+class Timebox : public QObject
+{
+  Q_OBJECT
+
+public:
+  TimeboxPresenter *_pPresenter; /// @todo rendu public pour slot goSmallView()
+  TimeboxSmallView *_pSmallView;
+
+  QGraphicsScene *_pScene; /// @todo Sert actuellement à héberger le scénario principal (qgraphicsscene) qui n'est pas encore un plugin Scenario (par jC)
+
+private:
+  TimeboxModel *_pModel;
+  TimeboxFullView *_pFullView;
+  QGraphicsView *_pView;
+
+public:
+  Timebox(Timebox *pParent = 0);
+  explicit Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos = QPointF(10,10), float width = 300, float height = 200, ViewMode mode = SMALL);
+  ~Timebox();
+
+signals:
+  void timeboxBecameFull();
+
+public:
+  //ViewMode mode() const {return _pPresenter->_mode;}
+  QGraphicsView* view() const {return _pView;}
+  bool isEqual(const Timebox &other);
+  void addChild (Timebox *other);
+  void addChild (TimeEvent *timeEvent);
+};
+
+#endif // TIMEBOX_HPP

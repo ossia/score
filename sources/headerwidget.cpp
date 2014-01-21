@@ -45,7 +45,7 @@ HeaderWidget::HeaderWidget(QWidget *parent)
   /// @todo trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
   //setStyleSheet("background-color:lightgray;");
 
-  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this);
+  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this); ///@todo switch entre play/pause
   _pTextName = new QLabel(tr("Box"), this);
 
   QHBoxLayout *layout = new QHBoxLayout;

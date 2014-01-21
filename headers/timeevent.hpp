@@ -41,7 +41,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include <QDate>
 
-#include"itemTypes.hpp"
+#include"utils.hpp"
 
 class TimeEvent : public QGraphicsObject
 {

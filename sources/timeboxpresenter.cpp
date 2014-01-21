@@ -45,17 +45,18 @@ class TTTimeProcess;
 
 #include <QDebug>
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView)
-  : _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _mode(SMALL)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView)
+  : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pView(pView)
 {  
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 
   addStorey(); // TODO : ?
 }
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView)
-  : _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _mode(FULL)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView)
+  : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pView(pView)
 {
+  _pView->setScene(_pFullView);
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
@@ -108,8 +109,9 @@ void TimeboxPresenter::goFullView()
   if (_pFullView == NULL) {
       createFullView();
     }
+  emit timeboxFullChanged();
   _pView->setScene(_pFullView);
-  _pView->fitInView(_pFullView->sceneRect());
+  //_pView->fitInView(_pFullView->sceneRect()); ///@todo A quoi ça sert ? le faire ici ? (jC)
 }
 
 void TimeboxPresenter::createFullView()

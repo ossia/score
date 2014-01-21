@@ -41,48 +41,47 @@ class PluginView;
 class QGraphicsView;
 class QGraphicsScene;
 
-enum ViewMode
-{
-  FULL,
-  SMALL
-};
-
+#include "timebox.hpp"
 #include <QObject>
 #include <unordered_map>
+#include "utils.hpp"
 
 class TimeboxPresenter : public QObject
 {
   Q_OBJECT
 
 private:
-  QGraphicsView *_pView;
-  TimeboxModel *_pModel;
-
-  TimeboxSmallView *_pSmallView;
-  QGraphicsScene *_pParentScene;
-  TimeboxFullView *_pFullView;
   ViewMode _mode;
+
+  TimeboxModel *_pModel;
+  TimeboxSmallView *_pSmallView;
+  TimeboxFullView *_pFullView;
+  QGraphicsScene *_pParentScene;
+  QGraphicsView *_pView;
 
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
 public:
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView);
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView);
+TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView);
+TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView);
+
+signals:
+  void timeboxFullChanged();
 
 public slots:
   void storeyBarButtonClicked(bool id);
+  void goSmallView(); ///put public because of mainwindow header
 
-private:
 private slots:
   void addStorey();
   void goFullView();
-  void goSmallView();
 
 public:
   void setView(QGraphicsView *pView) {_pView=pView;}
   const QGraphicsView* view() const {return _pView;}
   void setParentScene(QGraphicsScene *pScene) {_pParentScene=pScene;}
+  ViewMode mode() const {return _mode;}
 
 private:
   void createFullView();

@@ -30,36 +30,18 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxfullview.hpp"
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
-#include <QGraphicsWidget>
-#include <QGraphicsLinearLayout>
-#include <QGraphicsView>
-#include <QGraphicsRectItem>
+#include <QGraphicsItem>
 
-#include "timeboxmodel.hpp"
-#include "timeboxstorey.hpp"
+const int BoxItemType = QGraphicsItem::UserType + 1;
+const int EventItemType = QGraphicsItem::UserType + 2;
 
-TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
-  : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
-    _pModel(pModel)
+enum ViewMode
 {
+  FULL,
+  SMALL
+};
 
-
-  addItem(new QGraphicsRectItem(20,20,100,100));
-  _pContainer = new QGraphicsWidget;
-  _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
-  _pContainer->setGeometry(0, 0, _pModel->width(), _pModel->height()); ///TODO problème de décalage des elements graphiques (by jC)
-
-  _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
-  _pLayout->setContentsMargins(1,1,1,1);
-  _pLayout->setSpacing(0);
-  _pContainer->setLayout(_pLayout);
-
-  addItem(_pContainer);
-}
-
-void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
-{
-  _pLayout->addItem(pStorey);
-}
+#endif //UTILS_HPP
