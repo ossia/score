@@ -1,7 +1,11 @@
+/*!
+ *  @file
+ *  @brief Graphical representation of a TTTimeProcess class.
+ *  @author Jaime Chao
+ */
+
 /*
 Copyright: LaBRI / SCRIME
-
-Author: Jaime Chao (01/10/2013)
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use,
@@ -33,12 +37,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef GRAPHICSTIMEPROCESS_HPP
 #define GRAPHICSTIMEPROCESS_HPP
 
-///@todo Fusionner cette classe avec TimeBoxModel
-/*! @file
- *  @brief Graphical representation of a TTTimeProcess class.
- *  @author Jaime Chao
- */
-
 #include <QGraphicsObject>
 #include <QBrush>
 #include "itemTypes.hpp"
@@ -49,6 +47,7 @@ class QFinalState;
 class QStateMachine;
 class QState;
 
+///@todo Fusionner cette classe avec TimeBoxModel
 class GraphicsTimeBox : public QGraphicsObject
 {
   Q_OBJECT
