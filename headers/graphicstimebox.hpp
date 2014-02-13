@@ -1,9 +1,3 @@
-/*!
- *  @file
- *  @brief Graphical representation of a TTTimeProcess class.
- *  @author Jaime Chao
- */
-
 /*
 Copyright: LaBRI / SCRIME
 
@@ -39,7 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsObject>
 #include <QBrush>
-#include "itemTypes.hpp"
+#include "utils.hpp"
 
 class TimeEvent;
 class QGraphicsScene;

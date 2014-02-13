@@ -34,6 +34,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsView>
 
+/*!
+ * \brief The GraphicsView class
+ *  @author Jaime Chao
+ */
 class GraphicsView : public QGraphicsView
 {
   Q_OBJECT

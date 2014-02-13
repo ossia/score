@@ -1,13 +1,3 @@
-/*!
- *  \file timeboxmodel.hpp
- *  The model is linked with Score, and permits to maintain all elements used later by
- *  the other classes of Timebox API
- *
- *  \brief Maintain the model of a Timebox, no graphics here.
- *  \author Jaime Chao, Clément Bossut
- *  @date 2013/2014
-*/
-
 /*
 Copyright: LaBRI / SCRIME
 
@@ -53,6 +43,14 @@ class QStateMachine;
 class QState;
 class QGraphicsItem;
 
+/*!
+ *  The model is linked with Score, and permits to maintain all elements used later by
+ *  the other classes of Timebox API
+ *
+ *  @brief Maintain the model of a Timebox, no graphics here.
+ *  \author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
+*/
 class TimeboxModel : public QObject
 {
   Q_OBJECT
