@@ -179,7 +179,7 @@ void MainWindow::addItem(QPointF pos)
       _pCurrentTimebox->addChild(pEvent);
     }
   else if(type == BoxItemType) {
-      Timebox *timebox = new Timebox(_pCurrentTimebox, _pView, pos);
+      Timebox *timebox = new Timebox(_pCurrentTimebox, _pView, pos, 300, 200);
       connect(timebox, SIGNAL(timeboxBecameFull()), this, SLOT(changeCurrentTimeboxScene()));
     }
 

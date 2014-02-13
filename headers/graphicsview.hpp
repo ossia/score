@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsView>
 
 /*!
- * \brief The GraphicsView class
+ * Inherits the Qt QGraphicsView class, permits to show a QGraphicsScene (a timebox)
  *  @author Jaime Chao
  */
 class GraphicsView : public QGraphicsView

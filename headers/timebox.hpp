@@ -59,7 +59,7 @@ private:
 
 public:
   Timebox(Timebox *pParent = 0);
-  explicit Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos = QPointF(10,10), float width = 300, float height = 200, ViewMode mode = SMALL);
+  explicit Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode = SMALL);
   ~Timebox();
 
 signals:

@@ -55,7 +55,8 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullV
   : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pView(pView)
 {
   _pView->setScene(_pFullView);
-
+  _pView->centerOn(QPointF(0,0));
+  _pView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
