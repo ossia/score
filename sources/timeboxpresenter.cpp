@@ -55,6 +55,7 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullV
   : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pView(pView)
 {
   _pView->setScene(_pFullView);
+
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
@@ -71,7 +72,7 @@ void TimeboxPresenter::storeyBarButtonClicked(bool id)
     }
 }
 
-void TimeboxPresenter::addStorey()
+void TimeboxPresenter::addStorey() ///@todo si on veut rajouter un plugin particulier, argument needed
 {
   TimeboxStorey *pStorey;
 
@@ -81,7 +82,7 @@ void TimeboxPresenter::addStorey()
       pStorey->setButton(0);
       _pSmallView->addStorey(pStorey);
       _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
-      _pModel->addPlugin();
+      _pModel->addPluginSmall();
       break;
 
     case FULL:
@@ -89,6 +90,7 @@ void TimeboxPresenter::addStorey()
       _pFullView->addStorey(pStorey);
       pStorey->setButton(0);
       _storeysFullView.emplace(pStorey, new AutomationView(pStorey));
+      _pModel->addPluginFull();
       break;
     }
 
@@ -119,21 +121,32 @@ void TimeboxPresenter::createFullView()
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 
   /// @todo récupérer les plugins de smallsize
-  //TimeboxStorey *pStorey;
+
   for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) { /// On crée un storey par plugin
-     // pStorey = new TimeboxStorey(_pModel, _pModel->width());
-     // _pFullView->addStorey(pStorey);
-     // _storeysFullView.emplace(pStorey, new PluginView(pStorey));
-      addStorey();
+      addStorey(); ///@todo seul le dernier storey a un "+"
       /// @todo constructeur par copie des plugins pour aller dans full
     }
 }
 
 void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
 {
-  std::unordered_map<TimeboxStorey*, PluginView*>::iterator it = _storeysSmallView.find(tbs);
-  delete it->first;
-  _storeysSmallView.erase(it);
-  _pModel->removePlugin(); // TODO : Il faut permettre de supprimer le bon dans le modèle. et faire un delete pour fullView
+  std::unordered_map<TimeboxStorey*, PluginView*>::iterator it;
+
+  switch(_mode) {
+    case SMALL :
+      it = _storeysSmallView.find(tbs);
+      delete it->first; /// we delete the timeboxstorey
+      _storeysSmallView.erase(it);
+      _pModel->removePluginSmall(); /// @todo supp un storey ne veut pas dire supp son plugin. A changer le temps venu
+      break;
+
+    case FULL :
+      it = _storeysFullView.find(tbs);
+      delete it->first; /// we delete the timeboxstorey
+      _storeysFullView.erase(it);
+      _pModel->removePluginFull();
+      break;
+    }
+
 }
 

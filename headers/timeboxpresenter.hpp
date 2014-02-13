@@ -72,8 +72,8 @@ public slots:
   void goSmallView(); ///put public because of mainwindow header
 
 private slots:
-  void addStorey();
   void goFullView();
+  void addStorey();
 
 public:
   void setView(QGraphicsView *pView) {_pView=pView;}

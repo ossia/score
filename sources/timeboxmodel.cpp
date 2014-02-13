@@ -36,7 +36,6 @@ knowledge of the CeCILL license and that you accept its terms.
 TimeboxModel::TimeboxModel(int t, int y, int l, int h)
   : _time(t), _yPosition(y), _width(l), _height(h)
 {
-
   createStates();
   createTransitions();
   _stateMachine->start();
@@ -91,13 +90,22 @@ void TimeboxModel::createConnections()
   connect(_fullSizeState, SIGNAL(exited()), this, SLOT(switchToSmallView));
 }
 
-
-void TimeboxModel::addPlugin()
+void TimeboxModel::addPluginSmall()
 {
   _pluginsSmallView.emplace_back();
 }
 
-void TimeboxModel::removePlugin()
+void TimeboxModel::removePluginSmall()
 {
   _pluginsSmallView.pop_back();
+}
+
+void TimeboxModel::addPluginFull()
+{
+  _pluginsFullView.emplace_back();
+}
+
+void TimeboxModel::removePluginFull()
+{
+  _pluginsFullView.pop_back();
 }

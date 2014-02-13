@@ -42,9 +42,6 @@ TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
   : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
     _pModel(pModel)
 {
-
-
-  addItem(new QGraphicsRectItem(20,20,100,100));
   _pContainer = new QGraphicsWidget;
   _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
   _pContainer->setGeometry(0, 0, _pModel->width(), _pModel->height()); ///TODO problème de décalage des elements graphiques (by jC)

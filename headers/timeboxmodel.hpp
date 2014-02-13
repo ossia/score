@@ -92,8 +92,10 @@ public:
     return _pluginsFullView;
   }
 
-  void addPlugin();
-  void removePlugin();
+  void addPluginSmall();
+  void removePluginSmall();
+  void addPluginFull();
+  void removePluginFull();
 
 private:
   void createStates();
