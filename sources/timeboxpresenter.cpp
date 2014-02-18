@@ -44,7 +44,7 @@ class TTTimeProcess;
 #include <QDebug>
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView)
-  : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pView(pView)
+  : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
 {  
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 
@@ -52,11 +52,11 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
 }
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView)
-  : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pView(pView)
+  : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pGraphicsView(pView)
 {
-  _pView->setScene(_pFullView);
-  _pView->centerOn(QPointF(0,0));
-  _pView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  _pGraphicsView->setScene(_pFullView);
+  _pGraphicsView->centerOn(QPointF(0,0));
+  _pGraphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
@@ -87,10 +87,10 @@ void TimeboxPresenter::addStorey() ///@todo si on veut rajouter un plugin partic
       break;
 
     case FULL:
-      pStorey = new TimeboxStorey(_pModel, _pView->width(), 200, _pFullView->container());
+      pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), 200, _pFullView->container());
       _pFullView->addStorey(pStorey);
       pStorey->setButton(0);
-      _storeysFullView.emplace(pStorey, new AutomationView(pStorey));
+      _storeysFullView.emplace(pStorey, new AutomationView(pStorey)); /// We put the plugin in the storey
       _pModel->addPluginFull();
       break;
     }
@@ -101,24 +101,21 @@ void TimeboxPresenter::addStorey() ///@todo si on veut rajouter un plugin partic
 void TimeboxPresenter::goSmallView()
 {
   _mode = SMALL;
-  _pView->setScene(_pParentScene);
 }
 
 void TimeboxPresenter::goFullView()
 {
-  _mode = FULL;
+  _mode = FULL; /// mode need to be actualised first
   if (_pFullView == NULL) {
       createFullView();
     }
-  emit timeboxFullChanged();
-  _pView->setScene(_pFullView);
-  //_pView->fitInView(_pFullView->sceneRect()); ///@todo A quoi ça sert ? le faire ici ? (jC)
+  _pGraphicsView->setScene(_pFullView);
+  emit viewModeIsFull();
 }
 
 void TimeboxPresenter::createFullView()
 {
   _pFullView = new TimeboxFullView(_pModel);
-
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 
   /// @todo récupérer les plugins de smallsize

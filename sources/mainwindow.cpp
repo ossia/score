@@ -69,7 +69,7 @@ void MainWindow::createGraphics()
 
   _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 800, FULL); ///@todo adapter dynamiquement la taille du scénario
   Q_CHECK_PTR(_pMainTimebox);
-  connect(_pMainTimebox, SIGNAL(timeboxBecameFull()), this, SLOT(changeCurrentTimeboxScene()));
+  connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
   _pCurrentTimebox = _pMainTimebox;
 }
 
@@ -180,20 +180,19 @@ void MainWindow::addItem(QPointF pos)
     }
   else if(type == BoxItemType) {
       Timebox *timebox = new Timebox(_pCurrentTimebox, _pView, pos, 300, 200);
-      connect(timebox, SIGNAL(timeboxBecameFull()), this, SLOT(changeCurrentTimeboxScene()));
+      connect(timebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
     }
 
-  ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine
+  ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
 }
 
 void MainWindow::headerWidgetClicked()
 {
-  //if(_pCurrentTimebox->isEqual(_pMainTimebox)) {///@todo On pourrait aussi faire appel à Score pour la parenté, ou le presenter ne fait rien s'il n'est que full.
+  ///@todo On pourrait aussi faire appel à Score pour la parenté, ou le presenter ne fait rien s'il n'est que full. (jc)
   if(_pCurrentTimebox == _pMainTimebox){
       return;
     }
-
-  _pCurrentTimebox->_pPresenter->goSmallView();
+  _pCurrentTimebox->goSmall();
 }
 
 void MainWindow::changeCurrentTimeboxScene()

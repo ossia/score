@@ -52,10 +52,9 @@ private:
   ViewMode _mode;
 
   TimeboxModel *_pModel;
-  TimeboxSmallView *_pSmallView;
-  TimeboxFullView *_pFullView;
-  QGraphicsScene *_pParentScene;
-  QGraphicsView *_pView;
+  TimeboxSmallView *_pSmallView = nullptr;
+  TimeboxFullView *_pFullView = nullptr;
+  QGraphicsView *_pGraphicsView;
 
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
@@ -65,20 +64,20 @@ TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsVi
 TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView);
 
 signals:
-  void timeboxFullChanged();
+  void viewModeIsFull();
 
 public slots:
   void storeyBarButtonClicked(bool id);
   void goSmallView(); ///put public because of mainwindow header
+  void goFullView();
 
 private slots:
-  void goFullView();
   void addStorey();
 
 public:
-  void setView(QGraphicsView *pView) {_pView=pView;}
-  const QGraphicsView* view() const {return _pView;}
-  void setParentScene(QGraphicsScene *pScene) {_pParentScene=pScene;}
+  void setView(QGraphicsView *pView) {_pGraphicsView = pView;}
+  const QGraphicsView* view() const {return _pGraphicsView;}
+  TimeboxFullView* fullView() const {return _pFullView;}
   ViewMode mode() const {return _mode;}
 
 private:

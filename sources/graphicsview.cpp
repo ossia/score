@@ -40,7 +40,6 @@ knowledge of the CeCILL license and that you accept its terms.
 GraphicsView::GraphicsView(QWidget *parent)
   : QGraphicsView(parent)
 {
-  setRenderHint(QPainter::Antialiasing);
   setSceneRect(QRectF()); /// we unset graphicsView sceneRect to give this ability to graphicsScene
   setMouseTracking(true); /// Permits to emit mousePosition() when moving the mouse
 }

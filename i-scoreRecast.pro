@@ -59,7 +59,6 @@ RESOURCES += resources/resource.qrc
 FORMS    += forms/mainwindow.ui
 
 OTHER_FILES += \
-    TODO.txt \
     LICENSE.txt
 
 INCLUDEPATH += headers

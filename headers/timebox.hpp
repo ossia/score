@@ -48,14 +48,15 @@ class Timebox : public QObject
 
 public:
   TimeboxPresenter *_pPresenter; /// @todo rendu public pour slot goSmallView()
-  TimeboxSmallView *_pSmallView;
+  TimeboxSmallView *_pSmallView = nullptr;
 
   QGraphicsScene *_pScene; /// @todo Sert actuellement à héberger le scénario principal (qgraphicsscene) qui n'est pas encore un plugin Scenario (par jC)
 
 private:
   TimeboxModel *_pModel;
-  TimeboxFullView *_pFullView;
-  QGraphicsView *_pView;
+  TimeboxFullView *_pFullView = nullptr;
+  QGraphicsView *_pGraphicsView;
+  Timebox *_pParent;
 
 public:
   Timebox(Timebox *pParent = 0);
@@ -63,12 +64,17 @@ public:
   ~Timebox();
 
 signals:
-  void timeboxBecameFull();
+  void isFull();
+
+private slots:
+  void goFull();
+
+public slots:
+  void goSmall();
 
 public:
   //ViewMode mode() const {return _pPresenter->_mode;}
-  QGraphicsView* view() const {return _pView;}
-  bool isEqual(const Timebox &other);
+  QGraphicsView* view() const {return _pGraphicsView;}
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
 };

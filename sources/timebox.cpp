@@ -43,28 +43,27 @@ Timebox::Timebox(Timebox *pParent)
 }
 
 Timebox::Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
-  : QObject(pParent), _pView(pView)
+  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height); ///@todo faire le drag
 
   if(mode == SMALL) {
       _pSmallView = new TimeboxSmallView(_pModel);
-      _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, pView);
+      _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView);
     }
   else if(mode == FULL) {
       _pFullView = new TimeboxFullView(_pModel);
-      _pPresenter = new TimeboxPresenter(_pModel, _pFullView, pView);
+      _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView);
       _pScene = _pFullView;
     }
 
-  if(pParent != NULL) {
-      _pPresenter->setParentScene(pParent->_pFullView);
+  if(_pParent != NULL) {
       if(mode == SMALL) {
-          pParent->addChild(this);
+          _pParent->addChild(this);
         }
     }
 
-  connect(_pPresenter, SIGNAL(timeboxFullChanged()), this, SIGNAL(timeboxBecameFull()));
+  connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
 }
 
 Timebox::~Timebox()
@@ -75,9 +74,20 @@ Timebox::~Timebox()
   delete _pPresenter;
 }
 
-bool Timebox::isEqual(const Timebox &other) ///@bug ne fonctionne pas ?!
+/// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
+void Timebox::goSmall()
 {
-  return _pModel==other._pModel && _pPresenter==other._pPresenter;
+  _pPresenter->goSmallView();
+  _pParent->_pPresenter->goFullView();
+}
+
+/// bottom up (presenter -> mainwindow)
+void Timebox::goFull()
+{
+  if(_pFullView == NULL) { /// retrieve fullView the first time
+      _pFullView = _pPresenter->fullView();
+    }
+  emit isFull();
 }
 
 void Timebox::addChild(Timebox *other)

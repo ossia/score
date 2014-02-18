@@ -48,7 +48,7 @@ class QGraphicsItem;
  *  the other classes of Timebox API
  *
  *  @brief Maintain the model of a Timebox, no graphics here.
- *  \author Jaime Chao, Clément Bossut
+ *  @author Jaime Chao, Clément Bossut
  *  @date 2013/2014
 */
 class TimeboxModel : public QObject
@@ -76,13 +76,9 @@ public:
   ~TimeboxModel();
 
   int time() const {return _time;}
-//  void setTime(int time);
   int yPosition() const {return _yPosition;}
-//  void setYPosition(int yPosition);
   int width() const {return _width;}
-//  void setLength(int length);
   int height() const {return _height;}
-//  void setHeight(int height);
 
   const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
   const std::list<TTTimeProcess*>& pluginsFullView() {
