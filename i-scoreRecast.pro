@@ -18,7 +18,6 @@ SOURCES += sources/main.cpp \
     sources/mainwindow.cpp \
     sources/timeevent.cpp \
     sources/engine.cpp \
-    sources/graphicstimebox.cpp \
     sources/graphicsview.cpp \
     sources/timeboxsmallview.cpp \
     sources/timeboxfullview.cpp \
@@ -37,7 +36,6 @@ SOURCES += sources/main.cpp \
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
     headers/engine.hpp \
-    headers/graphicstimebox.hpp \
     headers/graphicsview.hpp \
     headers/utils.hpp \
     headers/timeboxsmallview.hpp \

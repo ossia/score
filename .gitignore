@@ -1,4 +1,8 @@
+# directories
+Trash
 Doxygen/html
+
+#files
 .DS_Store
 i-scoreRecast.pro.user
 
