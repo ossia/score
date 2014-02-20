@@ -45,7 +45,7 @@ QRectF PluginView::boundingRect() const
 
 void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
+  //painter->setPen(Qt::NoPen);
+  //painter->setBrush(Qt::CrossPattern);
+  //painter->drawRect(_boundingRectangle);
 }

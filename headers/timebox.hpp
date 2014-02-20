@@ -38,6 +38,7 @@ class TimeboxSmallView;
 class QGraphicsView;
 class QGraphicsScene;
 class TimeEvent;
+class QGraphicsRectItem;
 
 #include <QObject>
 #include "utils.hpp"
@@ -68,13 +69,14 @@ signals:
 
 private slots:
   void goFull();
+  void addChild (QGraphicsRectItem *rectItem);
 
 public slots:
   void goSmall();
 
 public:
   //ViewMode mode() const {return _pPresenter->_mode;}
-  QGraphicsView* view() const {return _pGraphicsView;}
+  QGraphicsView* graphicsView() const {return _pGraphicsView;}
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
 };

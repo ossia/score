@@ -49,7 +49,7 @@ private:
   int _height;
 
 public:
-  TimeboxStorey(TimeboxModel *pModel, int width, int height = 100, QGraphicsItem *parent = 0);
+  TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent = 0);
   void setButton(bool button);
 
 signals:

@@ -36,14 +36,15 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include <QGraphicsView>
 #include <QDebug>
+#include <QGraphicsRectItem>
 
 Timebox::Timebox(Timebox *pParent)
   : QObject(pParent)
 {
 }
 
-Timebox::Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
-  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
+Timebox::Timebox(Timebox *pParent, QGraphicsView *pGraphicsView, const QPointF &pos, float width, float height, ViewMode mode)
+  : QObject(pParent), _pGraphicsView(pGraphicsView), _pParent(pParent)
 {
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height); ///@todo faire le drag
 
@@ -64,6 +65,7 @@ Timebox::Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos, flo
     }
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
+  connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
 }
 
 Timebox::~Timebox()
@@ -89,6 +91,16 @@ void Timebox::goFull()
     }
   emit isFull();
 }
+
+void Timebox::addChild (QGraphicsRectItem *rectItem)
+{
+  if(_pFullView == NULL) {
+      qWarning() << "Attention : Full View n'est pas crée !";
+      return;
+    }
+  Timebox *timebox = new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
+}
+
 
 void Timebox::addChild(Timebox *other)
 {

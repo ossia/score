@@ -28,27 +28,26 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxpresenter.hpp"
-#include "automationview.hpp"
-
 class TTTimeProcess;
 
+#include "timeboxpresenter.hpp"
+#include "automationview.hpp"
 #include "timeboxmodel.hpp"
 #include "timeboxsmallview.hpp"
 #include "timeboxfullview.hpp"
 #include "timeboxstorey.hpp"
 #include "pluginview.hpp"
-
+#include "scenarioview.hpp"
 #include <QGraphicsView>
-
 #include <QDebug>
+#include <QGraphicsRectItem>
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView)
   : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
 {  
-  connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
+  addStorey(AutomationPluginType);
 
-  addStorey(); // TODO : ?
+  connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 }
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView)
@@ -57,6 +56,9 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullV
   _pGraphicsView->setScene(_pFullView);
   _pGraphicsView->centerOn(QPointF(0,0));
   _pGraphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+  addStorey(ScenarioPluginType);
+
   connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
@@ -65,7 +67,7 @@ void TimeboxPresenter::storeyBarButtonClicked(bool id)
   Q_ASSERT(id == 0 || id == 1);
   TimeboxStorey* tbs = qobject_cast<TimeboxStorey*>(sender());
   if(id == 0) { /// We add a new storey
-      addStorey();
+      addStorey(AutomationPluginType);
       tbs->setButton(1);
     }
   else if(id == 1) {
@@ -73,29 +75,53 @@ void TimeboxPresenter::storeyBarButtonClicked(bool id)
     }
 }
 
-void TimeboxPresenter::addStorey() ///@todo si on veut rajouter un plugin particulier, argument needed
+void TimeboxPresenter::addStorey(int pluginType)
 {
+  PluginView *plugin;
   TimeboxStorey *pStorey;
-
   switch (_mode) {
     case SMALL:
-      pStorey = new TimeboxStorey(_pModel, _pModel->width(), 100, _pSmallView);
+      pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pSmallView);
       pStorey->setButton(0);
       _pSmallView->addStorey(pStorey);
-      _storeysSmallView.emplace(pStorey, new AutomationView(pStorey));
+      plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
+      _storeysSmallView.emplace(pStorey, plugin);
       _pModel->addPluginSmall();
       break;
 
     case FULL:
-      pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), 200, _pFullView->container());
+      pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), _pGraphicsView->height(), _pFullView->container());
       _pFullView->addStorey(pStorey);
       pStorey->setButton(0);
-      _storeysFullView.emplace(pStorey, new AutomationView(pStorey)); /// We put the plugin in the storey
+      plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
+      _storeysFullView.emplace(pStorey, plugin);
       _pModel->addPluginFull();
       break;
     }
 
   connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
+}
+
+PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
+{
+  PluginView *plugin;
+  switch(pluginType) {
+    case ScenarioPluginType:
+      { /// We have to put braces because we declare a new object
+        ScenarioView *scenarioView = new ScenarioView(pStorey);
+        connect(scenarioView, SIGNAL(addTimebox(QGraphicsRectItem*)), this, SIGNAL(addBoxProxy(QGraphicsRectItem*))); /// We connect the plugin to a Proxy signal to route it to the class Timebox
+        plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
+        break;
+      }
+    case AutomationPluginType:
+      {
+        AutomationView *automationView = new AutomationView(pStorey);
+        plugin = qgraphicsitem_cast<PluginView*>(automationView);
+        break;
+      }
+    }
+
+  return plugin;
 }
 
 void TimeboxPresenter::goSmallView()
@@ -121,7 +147,7 @@ void TimeboxPresenter::createFullView()
   /// @todo récupérer les plugins de smallsize
 
   for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) { /// On crée un storey par plugin
-      addStorey(); ///@todo seul le dernier storey a un "+"
+      addStorey(AutomationPluginType); ///@todo seul le dernier storey a un "+"
       /// @todo constructeur par copie des plugins pour aller dans full
     }
 }

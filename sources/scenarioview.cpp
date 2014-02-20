@@ -30,10 +30,80 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "scenarioview.hpp"
 #include <QGraphicsWidget>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsRectItem>
+#include <QPen>
+#include <QBrush>
+#include <QDebug>
 
 ScenarioView::ScenarioView(QGraphicsItem *parent)
   : PluginView(parent)
 {
-  setFlags(QGraphicsItem::ItemHasNoContents);
+  //setFlags(QGraphicsItem::ItemHasNoContents);
+}
 
+void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+
+  //if (itemAt(mouseEvent->scenePos()) == 0) {
+      if (_pTemporaryBox != NULL) {
+          delete _pTemporaryBox;
+          _pTemporaryBox = NULL;
+        }
+
+      // Store the first pressed point
+      _pressPoint = mouseEvent->pos();
+
+      // Add the temporary box to the scene
+      _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
+      _pTemporaryBox->setPen(QPen(Qt::black));
+      _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
+  //  }
+}
+
+void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+  //case CREATION_MODE:
+   // if (noBoxSelected() || subScenarioMode(mouseEvent)) {
+     //   if (resizeMode() == NO_RESIZE && _pTemporaryBox) {
+  if (_pTemporaryBox != NULL) {
+      int upLeftX, upLeftY, width, height;
+
+      if (_pressPoint.x() < mouseEvent->pos().x()) {
+          upLeftX = _pressPoint.x();
+          width = mouseEvent->pos().x() - upLeftX;
+        }
+      else {
+          upLeftX = mouseEvent->pos().x();
+          width = _pressPoint.x() - upLeftX;
+        }
+
+      if (_pressPoint.y() < mouseEvent->pos().y()) {
+          upLeftY = _pressPoint.y();
+          height = mouseEvent->pos().y() - upLeftY;
+        }
+      else {
+          upLeftY = mouseEvent->pos().y();
+          height = _pressPoint.y() - upLeftY;
+        }
+
+      _pTemporaryBox->setRect(upLeftX, upLeftY, width, height);
+    }
+}
+
+void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+  _releasePoint = mouseEvent->pos();
+    if (_pTemporaryBox != NULL) {
+        if (_releasePoint != _pressPoint && (abs(_releasePoint.x() - _pressPoint.x()) > MIN_BOX_WIDTH && abs(_releasePoint.y() - _pressPoint.y()) > MIN_BOX_HEIGHT)) {
+
+            //qDebug() << "pos :" << _pTemporaryBox->scenePos() << _pTemporaryBox;
+            _pTemporaryBox->setPos(_pressPoint);
+
+            emit addTimebox(_pTemporaryBox);
+            delete _pTemporaryBox;
+            _pTemporaryBox = NULL;
+          }
+
+      }
 }

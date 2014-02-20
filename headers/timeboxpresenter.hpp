@@ -38,6 +38,7 @@ class TimeboxStorey;
 class PluginView;
 class QGraphicsView;
 class QGraphicsScene;
+class QGraphicsRectItem;
 
 #include "timebox.hpp"
 #include <QObject>
@@ -65,6 +66,7 @@ TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView
 
 signals:
   void viewModeIsFull();
+  void addBoxProxy(QGraphicsRectItem *rectItem);
 
 public slots:
   void storeyBarButtonClicked(bool id);
@@ -72,7 +74,8 @@ public slots:
   void goFullView();
 
 private slots:
-  void addStorey();
+  void addStorey(int pluginType);
+  PluginView* addPlugin(int pluginType, TimeboxStorey *pStorey);
 
 public:
   void setView(QGraphicsView *pView) {_pGraphicsView = pView;}

@@ -35,6 +35,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 const int BoxItemType = QGraphicsItem::UserType + 1;
 const int EventItemType = QGraphicsItem::UserType + 2;
+const int AutomationPluginType = QGraphicsItem::UserType + 3;
+const int ScenarioPluginType = QGraphicsItem::UserType + 4;
 
 enum ViewMode
 {

@@ -31,19 +31,33 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef SCENARIOVIEW_HPP
 #define SCENARIOVIEW_HPP
 
-//class QGraphicsItem;
+class QGraphicsRectItem;
 
 #include "pluginview.hpp"
+#include <QPointF>
 
 class ScenarioView : public PluginView
 {
   Q_OBJECT
 
+private:
+  QGraphicsRectItem *_pTemporaryBox = nullptr;  //!< Temporary box when a creation is in progress.
+  QPointF _pressPoint;                          //!< Last pression point.
+  QPointF _releasePoint;                        //!< Last release point.
+
+  static const int MIN_BOX_WIDTH = 50;
+  static const int MIN_BOX_HEIGHT = 30;
+
 public:
-  ScenarioView(QGraphicsItem *parent);
+  ScenarioView(QGraphicsItem *parent = 0);
+
+signals:
+  void addTimebox(QGraphicsRectItem *rectItem);
 
 protected:
-
+  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
 };
 
 #endif // SCENARIOVIEW_HPP
