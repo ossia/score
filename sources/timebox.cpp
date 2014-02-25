@@ -34,9 +34,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxsmallview.hpp"
 #include "timeboxfullview.hpp"
 #include "timeevent.hpp"
+#include "mainwindow.hpp"
 #include <QGraphicsView>
 #include <QDebug>
 #include <QGraphicsRectItem>
+#include <QApplication>
 
 Timebox::Timebox(Timebox *pParent)
   : QObject(pParent)
@@ -66,6 +68,13 @@ Timebox::Timebox(Timebox *pParent, QGraphicsView *pGraphicsView, const QPointF &
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
   connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow());
+  if(window != NULL) {
+      connect(this, SIGNAL(isFull()), window, SLOT(changeCurrentTimeboxScene())); /// Inform mainWindow (and particularly the headerWidget) that there is a new timeBox in fullView. Permits to jump to the parent later.
+    }
+  else {
+      qWarning() << "Attention : Hierarchie vers la timebox parente est brisée car connect() a disfonctionné !";
+    }
 }
 
 Timebox::~Timebox()

@@ -58,8 +58,6 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullV
   _pGraphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
   addStorey(ScenarioPluginType);
-
-  connect(_pFullView, SIGNAL(headerDoubleClicked()), this, SLOT(goSmallView()));
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
