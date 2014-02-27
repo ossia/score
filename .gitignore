@@ -8,3 +8,7 @@ i-scoreRecast.pro.user
 
 # temporary files
 *~
+
+# Eclipse
+.cproject
+.project
