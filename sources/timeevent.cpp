@@ -57,6 +57,7 @@ void TimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   Q_UNUSED(widget)
 
   QPen pen(Qt::SolidPattern, _penWidth);
+  pen.setCosmetic(true);
   painter->setPen(pen);
   painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
   painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);

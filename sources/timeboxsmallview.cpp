@@ -71,11 +71,14 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
-  painter->setPen(Qt::SolidLine);
+
+  QPen pen(Qt::SolidLine);
+  pen.setCosmetic(true);
+  painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
 
-  qDebug() << "smallView: " << contentsRect() << size();
+  //qDebug() << "smallView: " << contentsRect() << size();
 }
 
 QRectF TimeboxSmallView::boundingRect() const

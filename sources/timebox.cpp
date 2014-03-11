@@ -68,7 +68,7 @@ Timebox::Timebox(Timebox *pParent, QGraphicsView *pGraphicsView, const QPointF &
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
   connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
-  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow());
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
   if(window != NULL) {
       connect(this, SIGNAL(isFull()), window, SLOT(changeCurrentTimeboxScene())); /// Inform mainWindow (and particularly the headerWidget) that there is a new timeBox in fullView. Permits to jump to the parent later.
     }
@@ -107,7 +107,7 @@ void Timebox::addChild (QGraphicsRectItem *rectItem)
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
-  Timebox *timebox = new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
+  new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
 }
 
 

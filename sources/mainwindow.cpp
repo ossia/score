@@ -28,7 +28,6 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "timeevent.hpp"
@@ -67,7 +66,7 @@ void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
 
-  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 800, FULL); ///@todo adapter dynamiquement la taille du scénario
+  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 700, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
   Q_CHECK_PTR(_pMainTimebox);
   connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
   _pCurrentTimebox = _pMainTimebox;

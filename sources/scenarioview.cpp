@@ -63,9 +63,6 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-  //case CREATION_MODE:
-   // if (noBoxSelected() || subScenarioMode(mouseEvent)) {
-     //   if (resizeMode() == NO_RESIZE && _pTemporaryBox) {
   if (_pTemporaryBox != NULL) {
       int upLeftX, upLeftY, width, height;
 
@@ -96,7 +93,6 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
   _releasePoint = mouseEvent->pos();
     if (_pTemporaryBox != NULL) {
         if (_releasePoint != _pressPoint && (abs(_releasePoint.x() - _pressPoint.x()) > MIN_BOX_WIDTH && abs(_releasePoint.y() - _pressPoint.y()) > MIN_BOX_HEIGHT)) {
-
             //qDebug() << "pos :" << _pTemporaryBox->scenePos() << _pTemporaryBox;
             _pTemporaryBox->setPos(_pressPoint);
 

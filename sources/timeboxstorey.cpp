@@ -53,7 +53,9 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   Q_UNUSED(widget)
 
   /// Draw the bounding upper and bottom lines
-  painter->setPen(Qt::SolidLine);
+  QPen pen(Qt::SolidLine);
+  pen.setCosmetic(true);
+  painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
   painter->drawLine(0,0,size().width(),0);
   painter->drawLine(0,size().height(),size().width(),size().height());
