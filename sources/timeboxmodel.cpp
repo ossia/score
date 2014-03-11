@@ -33,8 +33,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(int t, int y, int l, int h)
-  : _time(t), _yPosition(y), _width(l), _height(h)
+TimeboxModel::TimeboxModel(int t, int y, int w, int h)
+  : _time(t), _yPosition(y), _width(w), _height(h)
 {
   createStates();
   createTransitions();
