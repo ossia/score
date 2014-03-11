@@ -29,6 +29,7 @@
 */
 
 #include "automationview.hpp"
+#include "timeboxstoreybar.hpp"
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QPainter>
@@ -36,10 +37,8 @@
 AutomationView::AutomationView(QGraphicsItem *parent)
   : PluginView(parent), _points()
 {
-  QPainterPath path;
-  path.lineTo(20,30);
-  path.lineTo(79,60);
-  path.lineTo(parentItem()->boundingRect().width() -2,40);
+  QPainterPath path(QPointF(0, parentItem()->boundingRect().height() - TimeboxStoreyBar::HEIGHT));
+  path.lineTo(parentItem()->boundingRect().width()-2, 0);
   _pLine = new QGraphicsPathItem(this);
   _pLine->setPath(path);
 }
@@ -52,7 +51,7 @@ QPainterPath AutomationView::shape() const
 
 void AutomationView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-  //painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setRenderHint(QPainter::Antialiasing, true);
   _pLine->paint(painter, option, widget);
 }
 
