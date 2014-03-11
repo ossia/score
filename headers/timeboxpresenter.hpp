@@ -36,7 +36,7 @@ class TimeboxSmallView;
 class TimeboxFullView;
 class TimeboxStorey;
 class PluginView;
-class QGraphicsView;
+class GraphicsView;
 class QGraphicsScene;
 class QGraphicsRectItem;
 
@@ -55,14 +55,14 @@ private:
   TimeboxModel *_pModel;
   TimeboxSmallView *_pSmallView = nullptr;
   TimeboxFullView *_pFullView = nullptr;
-  QGraphicsView *_pGraphicsView;
+  GraphicsView *_pGraphicsView;
 
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
 public:
-TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView);
-TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView);
+TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView);
+TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView);
 
 signals:
   void viewModeIsFull();
@@ -78,8 +78,6 @@ private slots:
   PluginView* addPlugin(int pluginType, TimeboxStorey *pStorey);
 
 public:
-  void setView(QGraphicsView *pView) {_pGraphicsView = pView;}
-  const QGraphicsView* view() const {return _pGraphicsView;}
   TimeboxFullView* fullView() const {return _pFullView;}
   ViewMode mode() const {return _mode;}
 

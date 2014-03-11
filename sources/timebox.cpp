@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxfullview.hpp"
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
-#include <QGraphicsView>
+#include "graphicsview.hpp"
 #include <QDebug>
 #include <QGraphicsRectItem>
 #include <QApplication>
@@ -45,7 +45,7 @@ Timebox::Timebox(Timebox *pParent)
 {
 }
 
-Timebox::Timebox(Timebox *pParent, QGraphicsView *pGraphicsView, const QPointF &pos, float width, float height, ViewMode mode)
+Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &pos, float width, float height, ViewMode mode)
   : QObject(pParent), _pGraphicsView(pGraphicsView), _pParent(pParent)
 {
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height); ///@todo faire le drag

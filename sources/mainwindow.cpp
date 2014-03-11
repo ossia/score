@@ -35,10 +35,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxpresenter.hpp"
 #include "timeboxsmallview.hpp"
 #include "utils.hpp"
+#include "graphicsview.hpp"
 
 #include <QMouseEvent>
 #include <QActionGroup>
-#include <QGraphicsView>
 #include <QStateMachine>
 #include <QPointF>
 #include <QGraphicsLineItem>

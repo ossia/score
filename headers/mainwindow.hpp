@@ -39,7 +39,7 @@ class QActionGroup;
 class QPointF;
 class GraphicsTimeBox;
 class QFinalState;
-class QGraphicsView;
+class GraphicsView;
 class QStateMachine;
 class QState;
 class TimeboxFullView;
@@ -61,7 +61,7 @@ private:
   Timebox *_pCurrentTimebox;
 
   Ui::MainWindow *ui;
-  QGraphicsView *_pView; /// pointer to ui->graphicsView
+  GraphicsView *_pView; /// pointer to ui->graphicsView
   QActionGroup *_pMouseActionGroup;
 
   ///@todo Ajouter un offset si on clique au meme endroit qu'un objet déjà ajouté

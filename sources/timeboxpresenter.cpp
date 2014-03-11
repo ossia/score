@@ -38,11 +38,12 @@ class TTTimeProcess;
 #include "timeboxstorey.hpp"
 #include "pluginview.hpp"
 #include "scenarioview.hpp"
-#include <QGraphicsView>
+#include "graphicsview.hpp"
+
 #include <QDebug>
 #include <QGraphicsRectItem>
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, QGraphicsView *pView)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView)
   : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
 {  
   addStorey(AutomationPluginType);
@@ -50,7 +51,7 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
 }
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, QGraphicsView *pView)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView)
   : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pGraphicsView(pView)
 {
   _pGraphicsView->setScene(_pFullView);

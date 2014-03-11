@@ -35,7 +35,7 @@ class TimeboxModel;
 class TimeboxPresenter;
 class TimeboxFullView;
 class TimeboxSmallView;
-class QGraphicsView;
+class GraphicsView;
 class QGraphicsScene;
 class TimeEvent;
 class QGraphicsRectItem;
@@ -56,12 +56,12 @@ public:
 private:
   TimeboxModel *_pModel;
   TimeboxFullView *_pFullView = nullptr;
-  QGraphicsView *_pGraphicsView;
+  GraphicsView *_pGraphicsView;
   Timebox *_pParent;
 
 public:
   Timebox(Timebox *pParent = 0);
-  explicit Timebox(Timebox *pParent, QGraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode = SMALL);
+  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode = SMALL);
   ~Timebox();
 
 signals:
