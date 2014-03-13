@@ -56,7 +56,6 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullV
 {
   _pGraphicsView->setScene(_pFullView);
   _pGraphicsView->centerOn(QPointF(0,0));
-  _pGraphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
   addStorey(ScenarioPluginType);
 }
@@ -89,7 +88,8 @@ void TimeboxPresenter::addStorey(int pluginType)
       break;
 
     case FULL:
-      pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), _pGraphicsView->height(), _pFullView->container());
+      pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pFullView->container());
+      //pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), _pGraphicsView->height(), _pFullView->container());
       _pFullView->addStorey(pStorey);
       pStorey->setButton(0);
       plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
@@ -136,6 +136,7 @@ void TimeboxPresenter::goFullView()
     }
   _pGraphicsView->setScene(_pFullView);
   emit viewModeIsFull();
+  //_pGraphicsView->fitFullView(); @todo Besoin d'etre amélioré
 }
 
 void TimeboxPresenter::createFullView()

@@ -32,16 +32,26 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "graphicsview.hpp"
 #include "mainwindow.hpp"
 #include "utils.hpp"
+#include "timebox.hpp"
+#include "timeboxmodel.hpp"
+
+#include <QDebug>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QAction>
 #include <QVariant>
+#include <QApplication>
+#include <QGraphicsWidget>
 
 GraphicsView::GraphicsView(QWidget *parent)
   : QGraphicsView(parent)
 {
   setSceneRect(QRectF()); /// we unset graphicsView sceneRect to give this ability to graphicsScene
   setMouseTracking(true); /// Permits to emit mousePosition() when moving the mouse
+  setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  setBackgroundBrush(Qt::NoBrush); /// Used in drawBackground().
 }
 
 void GraphicsView::mouseDragMode(QAction* action)
@@ -82,15 +92,12 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
   if((event->button() == Qt::LeftButton) && (dragMode() == QGraphicsView::NoDrag)) {
     emit mousePressAddItem(mapToScene(event->pos()));
   }
-
   QGraphicsView::mousePressEvent(event);
-
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
   QGraphicsView::mouseReleaseEvent(event);
-
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
@@ -99,3 +106,39 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
   QGraphicsView::mouseMoveEvent(event);
 }
 
+/// @todo Il faut reinitialiser la viewMatrix en sortie de fullview
+void GraphicsView::fitFullView()
+{
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
+  if(window != NULL) {
+      if(window->currentTimebox()->timeboxModel()->width() < this->width()) { /// We scale only if the graphicsView is larger than the timebox in fullView
+          foreach (QGraphicsItem *item, scene()->items()) {
+              QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget*>(item);
+              if(graphicsWidget != NULL) {
+                  if(graphicsWidget->objectName().compare("container")) /// container is named in timeboxFullView
+                    fitInView(graphicsWidget, Qt::KeepAspectRatioByExpanding);
+                }
+            }
+        }
+    }
+}
+
+void GraphicsView::resizeEvent(QResizeEvent *event)
+{
+  //fitFullView();
+  QGraphicsView::resizeEvent(event);
+}
+
+
+void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
+{
+  /// Solution temporaire à fitFullView()
+  QRectF rectOutside; /// rectangle outside the current timebox in fullview
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
+  if(window != NULL) {
+      qreal x = window->currentTimebox()->timeboxModel()->width();
+      rectOutside = rect;
+      rectOutside.setLeft(x);
+    }
+  QGraphicsView::drawBackground(painter, rectOutside);
+}

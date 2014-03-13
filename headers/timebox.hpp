@@ -75,8 +75,7 @@ public slots:
   void goSmall();
 
 public:
-  //ViewMode mode() const {return _pPresenter->_mode;}
-  QGraphicsView* graphicsView() const {return _pGraphicsView;}
+  TimeboxModel* timeboxModel() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
 };

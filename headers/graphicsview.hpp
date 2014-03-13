@@ -41,8 +41,10 @@ knowledge of the CeCILL license and that you accept its terms.
 class GraphicsView : public QGraphicsView
 {
   Q_OBJECT
+
 public:
   explicit GraphicsView(QWidget *parent = 0);
+  void fitFullView();
 
 signals:
   void mousePosition(QPointF); /// Used to emit mousePosition to the mainWindow's statusBar
@@ -57,6 +59,10 @@ protected:
   void mousePressEvent(QMouseEvent *);
   void mouseReleaseEvent(QMouseEvent *);
   void mouseMoveEvent(QMouseEvent *);
+  void resizeEvent(QResizeEvent *);
+
+  // QGraphicsView interface
+  void drawBackground(QPainter *painter, const QRectF &rect);
 };
 
 #endif // GRAPHICSVIEW_HPP

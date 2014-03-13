@@ -34,24 +34,28 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsLinearLayout>
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
+#include <QDebug>
 
 #include "timeboxmodel.hpp"
 #include "timeboxstorey.hpp"
+#include "graphicsview.hpp"
 
 TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
   : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
     _pModel(pModel)
 {
   _pContainer = new QGraphicsWidget;
+  _pContainer->setObjectName("container"); /// Used by GraphicsView to fitInView the container
   _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
   _pContainer->setGeometry(0, 0, _pModel->width(), _pModel->height()); ///TODO problème de décalage des elements graphiques (by jC)
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
-  _pLayout->setContentsMargins(1,1,1,1);
+  _pLayout->setContentsMargins(0,0,0,0);
   _pLayout->setSpacing(0);
   _pContainer->setLayout(_pLayout);
 
   addItem(_pContainer);
+  setBackgroundBrush(QBrush(QColor(Qt::gray), Qt::BDiagPattern));
 }
 
 void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
