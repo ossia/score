@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>839</width>
-    <height>481</height>
+    <width>1002</width>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,8 +44,8 @@ border-color: beige;
      <widget class="GraphicsView" name="graphicsView">
       <property name="minimumSize">
        <size>
-        <width>400</width>
-        <height>300</height>
+        <width>715</width>
+        <height>520</height>
        </size>
       </property>
      </widget>
@@ -57,7 +57,7 @@ border-color: beige;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>839</width>
+     <width>1002</width>
      <height>22</height>
     </rect>
    </property>
