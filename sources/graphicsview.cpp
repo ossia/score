@@ -113,7 +113,7 @@ void GraphicsView::fitFullView()
   if(window != NULL) {
       if(window->currentTimebox()->timeboxModel()->width() < this->width()) { /// We scale only if the graphicsView is larger than the timebox in fullView
           foreach (QGraphicsItem *item, scene()->items()) {
-              QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget*>(item);
+              QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget *>(item);
               if(graphicsWidget != NULL) {
                   if(graphicsWidget->objectName().compare("container")) /// container is named in timeboxFullView
                     fitInView(graphicsWidget, Qt::KeepAspectRatioByExpanding);
@@ -141,4 +141,37 @@ void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
       rectOutside.setLeft(x);
     }
   QGraphicsView::drawBackground(painter, rectOutside);
+}
+
+void GraphicsView::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Plus:
+        zoomIn();
+        break;
+    case Qt::Key_Minus:
+        zoomOut();
+        break;
+    default:
+        QGraphicsView::keyPressEvent(event);
+    }
+}
+
+void GraphicsView::scaleView(qreal scaleFactor)
+{
+    qreal factor = transform().scale(scaleFactor, 1.).mapRect(QRectF(0, 0, 1, 1)).width();
+    if (factor < 0.07 || factor > 100) /// Permits to constrain the scaling
+        return;
+
+    scale(scaleFactor, 1.); /// horizontal scaling
+}
+
+void GraphicsView::zoomIn()
+{
+    scaleView(qreal(1.2));
+}
+
+void GraphicsView::zoomOut()
+{
+    scaleView(1 / qreal(1.2));
 }

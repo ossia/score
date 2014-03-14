@@ -63,6 +63,12 @@ protected:
 
   // QGraphicsView interface
   void drawBackground(QPainter *painter, const QRectF &rect);
+  void keyPressEvent(QKeyEvent *event);
+
+private:
+  void scaleView(qreal scaleFactor);
+  void zoomIn();
+  void zoomOut();
 };
 
 #endif // GRAPHICSVIEW_HPP
