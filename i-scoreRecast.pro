@@ -61,7 +61,7 @@ OTHER_FILES += \
 
 INCLUDEPATH += headers
 INCLUDEPATH += /usr/local/jamoma/includes
-INCLUDEPATH += /usr/local/include/libxml2
+INCLUDEPATH += /usr/include/libxml2
 
 #LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
 LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
