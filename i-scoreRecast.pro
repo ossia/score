@@ -11,8 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
 TARGET = i-scoreRecast
-CONFIG += x86_64 warn_on qt
-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+CONFIG += c++11 warn_on
 
 SOURCES += sources/main.cpp \
     sources/mainwindow.cpp \
@@ -60,21 +59,26 @@ OTHER_FILES += \
     LICENSE.txt
 
 INCLUDEPATH += headers
-INCLUDEPATH += /usr/local/jamoma/includes
 INCLUDEPATH += /usr/include/libxml2
 
+macx{
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+CONFIG += x86_64
+INCLUDEPATH += /usr/local/jamoma/includes
 #LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
 LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
 LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
 LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
 LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
 LIBS += -F/Library/Frameworks/ -framework gecode
-LIBS += -lxml2
 
-QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS += -stdlib=libc++
 
 QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
 QMAKE_LFLAGS += -stdlib=libc++
+}
+
+LIBS += -lxml2
+
 
 

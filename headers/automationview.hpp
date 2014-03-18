@@ -32,7 +32,7 @@
 #define AUTOMATIONVIEW_HPP
 
 #include "pluginview.hpp"
-#include <QpointF>
+#include <QPointF>
 #include <QList>
 class QGraphicsItem;
 class QGraphicsPathItem;

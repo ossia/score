@@ -31,7 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEBOXMODEL_HPP
 #define TIMEBOXMODEL_HPP
 
-#include <List>
+#include <list>
 #include <QObject>
 #include <QVector>
 
