@@ -39,6 +39,9 @@ class PluginView;
 class GraphicsView;
 class QGraphicsScene;
 class QGraphicsRectItem;
+class QFinalState;
+class QStateMachine;
+class QState;
 
 #include "timebox.hpp"
 #include <QObject>
@@ -60,10 +63,17 @@ private:
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
-public:
-TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView);
-TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView);
+  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
+  QState *_initialState;
+  QState *_normalState;
+  QState *_smallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  QState *_fullSizeState; /// When the graphical timeProcess occupies all size of the view
+  QFinalState *_finalState;
 
+public:
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView);
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView);
+  ~TimeboxPresenter();
 signals:
   void viewModeIsFull();
   void addBoxProxy(QGraphicsRectItem *rectItem);
@@ -84,6 +94,10 @@ public:
 private:
   void createFullView();
   void deleteStorey(TimeboxStorey* tbs);
+  void createStates();
+  void createTransitions();
+  void createConnections();
+  void createStateMachine();
 
 };
 

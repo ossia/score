@@ -38,9 +38,6 @@ knowledge of the CeCILL license and that you accept its terms.
 class TTTimeProcess;
 class GraphicsTimeEvent;
 class QGraphicsScene;
-class QFinalState;
-class QStateMachine;
-class QState;
 class QGraphicsItem;
 
 /*!
@@ -59,13 +56,6 @@ private:
   /// @todo creer les time event de début et de fin
   //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   //GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
-
-  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
-  QState *_initialState;
-  QState *_normalState;
-  QState *_smallSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  QState *_fullSizeState; /// When the graphical timeProcess occupies all size of the view
-  QFinalState *_finalState;
 
   int _time, _yPosition, _width, _height;
   std::list<TTTimeProcess*> _pluginsSmallView;
@@ -92,12 +82,6 @@ public:
   void removePluginSmall();
   void addPluginFull();
   void removePluginFull();
-
-private:
-  void createStates();
-  void createTransitions();
-  void createConnections();
-  void createScene();
 
 };
 
