@@ -42,6 +42,8 @@ TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraph
   setGeometry(0,0, _width, _height);
   setMaximumHeight(_height);
   setMinimumHeight(_height);
+  //setMaximumWidth(_width);
+  //setMinimumWidth(_width);
 
   _pBar = new TimeboxStoreyBar(this); /// @todo doit être construit dans le presenter et envoyé dans le constructeur en tant qu'abstractStoreyBar (classe virtuelle).
   connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
@@ -60,7 +62,7 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->drawLine(0,0,size().width(),0);
   painter->drawLine(0,size().height(),size().width(),size().height());
 
-  //qDebug() << "storey: " << contentsRect() << size();
+  qDebug() << "storey: " << contentsRect() << size();
 }
 
 QRectF TimeboxStorey::boundingRect() const

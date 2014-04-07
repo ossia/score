@@ -50,7 +50,7 @@ PixmapButton::PixmapButton(const QString &filename1, const QString &filename2, Q
   _pButtonTwo->setVisible(false);
 
   _pBoundingRect = new QRectF(_pButtonOne->boundingRect().united(_pButtonTwo->boundingRect()));
-  qDebug() << *_pBoundingRect;
+  //qDebug() << *_pBoundingRect;
 }
 
 void PixmapButton::setPixmap(bool id)
@@ -71,10 +71,6 @@ void PixmapButton::setPixmap(bool id)
 QRectF PixmapButton::boundingRect() const
 {
   return *_pBoundingRect;
-}
-
-void PixmapButton::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
 }
 
 void PixmapButton::mousePressEvent(QGraphicsSceneMouseEvent *event)

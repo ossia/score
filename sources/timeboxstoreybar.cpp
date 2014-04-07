@@ -44,6 +44,8 @@ TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
   setGeometry(0, parentItem()->boundingRect().height() - HEIGHT,
               parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
+  qDebug() << "timeboxstoreybar constructor:" << parentItem()->boundingRect();
+
   _pButton = new PixmapButton(QString(":/plus.png"), QString(":/minus.png"), this);
   _pButton->setPos(MARGIN, MARGIN);
   connect(_pButton, SIGNAL(clicked(bool)), this, SIGNAL(buttonClicked(bool)));
@@ -72,7 +74,7 @@ void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
   painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1));
 
-  //qDebug() << "storeybar: " << contentsRect() << size();
+  qDebug() << "timeboxstoreybar :" << contentsRect() << size();
 }
 
 QRectF TimeboxStoreyBar::boundingRect() const

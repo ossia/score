@@ -64,7 +64,7 @@ void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->setBrush(QBrush(Qt::gray));
   painter->drawRect(contentsRect());
 
-  qDebug() << "header: " << contentsRect() << size();
+  //qDebug() << "header: " << contentsRect() << size() << " buttonPlay" << _pButtonPlay->boundingRect() << " boxTitle" << _pTextName->boundingRect();
 }
 
 QRectF TimeboxHeader::boundingRect() const

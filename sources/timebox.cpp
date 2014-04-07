@@ -73,7 +73,7 @@ Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &p
       connect(this, SIGNAL(isFull()), window, SLOT(changeCurrentTimeboxScene())); /// Inform mainWindow (and particularly the headerWidget) that there is a new timeBox in fullView. Permits to jump to the parent later.
     }
   else {
-      qWarning() << "Attention : Hierarchie vers la timebox parente est brisée car connect() a disfonctionné !";
+      qWarning() << "Attention : Hierarchie vers la timebox parente est brisée !";
     }
 }
 
