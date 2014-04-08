@@ -42,10 +42,13 @@ class TTTimeProcess;
 
 #include <QDebug>
 #include <QGraphicsRectItem>
+#include <QStateMachine>
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView)
   : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
 {  
+  createStateMachine();
+
   addStorey(AutomationPluginType);
 
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
@@ -55,10 +58,72 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView)
   : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pGraphicsView(pView)
 {
+  createStateMachine();
+
   _pGraphicsView->setScene(_pFullView);
   _pGraphicsView->centerOn(QPointF(0,0));
 
   addStorey(ScenarioPluginType);
+}
+
+TimeboxPresenter::~TimeboxPresenter()
+{
+delete _initialState;
+delete _normalState; //will delete all child states
+delete _finalState;
+}
+
+void TimeboxPresenter::createStateMachine()
+{
+createStates();
+createTransitions();
+_stateMachine->start();
+}
+
+void TimeboxPresenter::createStates()
+{
+_stateMachine = new QStateMachine(this);
+
+_initialState = new QState();
+_initialState->assignProperty(this, "objectName", tr("Box"));
+_stateMachine->addState(_initialState);
+_stateMachine->setInitialState(_initialState);
+
+// creating a new top-level state
+_normalState = new QState();
+
+_smallSizeState = new QState(_normalState);
+_fullSizeState = new QState(_normalState);
+
+if(_mode == FULL) {
+    _normalState->setInitialState(_fullSizeState);
+  }
+else if (_mode == SMALL) {
+    _normalState->setInitialState(_smallSizeState);
+  }
+else {
+    qDebug() << "_mode inconnu dans TimeboxPresenter::createStates()";
+  }
+
+_stateMachine->addState(_normalState);
+
+_finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
+_stateMachine->addState(_finalState);
+}
+
+void TimeboxModel::createTransitions()
+{
+_initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
+_fullSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _smallSizeState);
+_smallSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _fullSizeState);
+_normalState->addTransition(this, SIGNAL(suppress()), _finalState);
+}
+
+void TimeboxModel::createConnections()
+{
+//connect(_initialState, SIGNAL(entered()), this, SLOT(init()));
+connect(_smallSizeState, SIGNAL(exited()), this, SLOT(switchToFullView)); /// @todo What happen if we exit to finalState ?
+connect(_fullSizeState, SIGNAL(exited()), this, SLOT(switchToSmallView));
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
