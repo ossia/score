@@ -137,7 +137,7 @@ void MainWindow::createTransitions()
   _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
   _stoppedState->addTransition(_stoppedState, SIGNAL(propertiesAssigned()), _editionState);
 
-  _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
+  _normalState->addTransition(this, SIGNAL(destroyed()), _finalState);
 }
 
 void MainWindow::createConnections()

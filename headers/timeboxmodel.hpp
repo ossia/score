@@ -63,7 +63,6 @@ private:
 
 public:
   TimeboxModel(int t = 0, int y = 0, int w = 100, int h = 100);
-  ~TimeboxModel();
 
   int time() const {return _time;}
   int yPosition() const {return _yPosition;}

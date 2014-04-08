@@ -41,7 +41,8 @@ const int ScenarioPluginType = QGraphicsItem::UserType + 4;
 enum ViewMode
 {
   FULL,
-  SMALL
+  SMALL,
+  HIDE
 };
 
 #endif //UTILS_HPP

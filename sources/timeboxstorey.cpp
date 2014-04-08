@@ -62,7 +62,7 @@ void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   painter->drawLine(0,0,size().width(),0);
   painter->drawLine(0,size().height(),size().width(),size().height());
 
-  qDebug() << "storey: " << contentsRect() << size();
+  //qDebug() << "storey: " << contentsRect() << size();
 }
 
 QRectF TimeboxStorey::boundingRect() const

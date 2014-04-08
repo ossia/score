@@ -39,91 +39,105 @@ class TTTimeProcess;
 #include "pluginview.hpp"
 #include "scenarioview.hpp"
 #include "graphicsview.hpp"
+#include "timebox.hpp"
 
 #include <QDebug>
 #include <QGraphicsRectItem>
 #include <QStateMachine>
+#include <QFinalState>
+#include <QState>
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView)
-  : _mode(SMALL), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView, Timebox *parent)
+  : QObject(parent), _mode(SMALL), _pTimebox(parent), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
 {  
   createStateMachine();
-
-  addStorey(AutomationPluginType);
-
-  connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
-  connect(_pSmallView, SIGNAL(suppressTimebox()), this, SIGNAL(suppressTimeboxProxy()));
 }
 
-TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView)
-  : _mode(FULL), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pGraphicsView(pView)
+TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView, Timebox *parent)
+  : QObject(parent), _mode(FULL), _pTimebox(parent), _pModel(pModel), _pSmallView(NULL), _pFullView(pFullView), _pGraphicsView(pView)
 {
   createStateMachine();
-
-  _pGraphicsView->setScene(_pFullView);
-  _pGraphicsView->centerOn(QPointF(0,0));
-
-  addStorey(ScenarioPluginType);
 }
 
 TimeboxPresenter::~TimeboxPresenter()
 {
-delete _initialState;
-delete _normalState; //will delete all child states
-delete _finalState;
+  delete _pInitialState;
+  delete _pNormalState; /// will delete all child states
+  delete _pFinalState;
 }
 
 void TimeboxPresenter::createStateMachine()
 {
-createStates();
-createTransitions();
-_stateMachine->start();
+  createStates();
+  createTransitions();
+  createConnections();
+  _pStateMachine->start();
 }
 
 void TimeboxPresenter::createStates()
 {
-_stateMachine = new QStateMachine(this);
+  _pStateMachine = new QStateMachine(this);
 
-_initialState = new QState();
-_initialState->assignProperty(this, "objectName", tr("Box"));
-_stateMachine->addState(_initialState);
-_stateMachine->setInitialState(_initialState);
+  _pInitialState = new QState();
+  _pInitialState->assignProperty(this, "objectName", tr("BoxPresenter"));
+  _pStateMachine->addState(_pInitialState);
+  _pStateMachine->setInitialState(_pInitialState);
 
-// creating a new top-level state
-_normalState = new QState();
+  // creating a new top-level state
+  _pNormalState = new QState();
 
-_smallSizeState = new QState(_normalState);
-_fullSizeState = new QState(_normalState);
+  _pSmallSizeState = new QState(_pNormalState);
+  _pFullSizeState = new QState(_pNormalState);
+  _pHideState = new QState(_pNormalState);
 
-if(_mode == FULL) {
-    _normalState->setInitialState(_fullSizeState);
-  }
-else if (_mode == SMALL) {
-    _normalState->setInitialState(_smallSizeState);
-  }
-else {
-    qDebug() << "_mode inconnu dans TimeboxPresenter::createStates()";
-  }
+  if(_mode == FULL) {
+      _pNormalState->setInitialState(_pFullSizeState);
+    }
+  else if (_mode == SMALL) {
+      _pNormalState->setInitialState(_pSmallSizeState);
+    }
+  else {
+      qDebug() << "_mode inconnu dans TimeboxPresenter::createStates()";
+    }
 
-_stateMachine->addState(_normalState);
+  _pStateMachine->addState(_pNormalState);
 
-_finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
-_stateMachine->addState(_finalState);
+  _pFinalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
+  _pStateMachine->addState(_pFinalState);
 }
 
-void TimeboxModel::createTransitions()
+void TimeboxPresenter::createTransitions()
 {
-_initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
-_fullSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _smallSizeState);
-_smallSizeState->addTransition(this, SIGNAL(timeboxHeaderClicked()), _fullSizeState);
-_normalState->addTransition(this, SIGNAL(suppress()), _finalState);
+  _pInitialState->addTransition(_pInitialState, SIGNAL(propertiesAssigned()), _pNormalState);
+
+  _pSmallSizeState->addTransition(_pSmallView, SIGNAL(headerDoubleClicked()), _pFullSizeState); /// User clicked on timeboxHeader (smallView)
+  _pSmallSizeState->addTransition(_pTimebox, SIGNAL(isHide()), _pHideState); /// Sister of the timebox passing from small to full
+
+  _pFullSizeState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// User clicked on headerWidget. timebox's class is needed to route signal from the mouseClick from MainWindow::headerWidgetClicked()
+  _pFullSizeState->addTransition(_pTimebox, SIGNAL(isHide()), _pHideState); /// His child go from small to full
+
+  _pHideState->addTransition(_pTimebox, SIGNAL(isFull()), _pFullSizeState); /// His child go from full to small
+  _pHideState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// Sister of the timebox passing from full to small
+  _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
 }
 
-void TimeboxModel::createConnections()
+void TimeboxPresenter::createConnections()
 {
-//connect(_initialState, SIGNAL(entered()), this, SLOT(init()));
-connect(_smallSizeState, SIGNAL(exited()), this, SLOT(switchToFullView)); /// @todo What happen if we exit to finalState ?
-connect(_fullSizeState, SIGNAL(exited()), this, SLOT(switchToSmallView));
+  connect(_pInitialState, SIGNAL(entered()), this, SLOT(init()));
+  connect(_pSmallSizeState, SIGNAL(entered()), this, SLOT(goSmallView()));
+  connect(_pFullSizeState, SIGNAL(entered()), this, SLOT(goFullView()));
+  connect(_pFinalState, SIGNAL(exited()), this, SIGNAL(suppressTimeboxProxy()));
+}
+
+void TimeboxPresenter::init() {
+  if(_mode == FULL) {
+      _pGraphicsView->setScene(_pFullView);
+      _pGraphicsView->centerOn(QPointF(0,0));
+      addStorey(ScenarioPluginType);
+    }
+  else if (_mode == SMALL) {
+      addStorey(AutomationPluginType);
+    }
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
@@ -162,6 +176,9 @@ void TimeboxPresenter::addStorey(int pluginType)
       _storeysFullView.emplace(pStorey, plugin);
       _pModel->addPluginFull();
       break;
+
+    case HIDE:
+      return;
     }
 
   connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
@@ -205,6 +222,11 @@ void TimeboxPresenter::goFullView()
   //_pGraphicsView->fitFullView(); @todo Besoin d'etre amélioré
 }
 
+void TimeboxPresenter::goHide()
+{
+  _mode = HIDE;
+}
+
 void TimeboxPresenter::createFullView()
 {
   _pFullView = new TimeboxFullView(_pModel);
@@ -223,18 +245,21 @@ void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
   std::unordered_map<TimeboxStorey*, PluginView*>::iterator it;
 
   switch(_mode) {
-    case SMALL :
+    case SMALL:
       it = _storeysSmallView.find(tbs);
       delete it->first; /// we delete the timeboxstorey
       _storeysSmallView.erase(it);
       _pModel->removePluginSmall(); /// @todo supp un storey ne veut pas dire supp son plugin. A changer le temps venu
       break;
 
-    case FULL :
+    case FULL:
       it = _storeysFullView.find(tbs);
       delete it->first; /// we delete the timeboxstorey
       _storeysFullView.erase(it);
       _pModel->removePluginFull();
+      break;
+
+    case HIDE:
       break;
     }
 

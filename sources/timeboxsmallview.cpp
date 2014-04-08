@@ -81,7 +81,7 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
 
-  qDebug() << "smallView: " << contentsRect() << size() << " - is selected " << isSelected();
+  //qDebug() << "smallView: " << contentsRect() << size() << " - is selected " << isSelected();
 }
 
 QRectF TimeboxSmallView::boundingRect() const

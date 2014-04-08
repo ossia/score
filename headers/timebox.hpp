@@ -57,7 +57,7 @@ private:
   TimeboxModel *_pModel;
   TimeboxFullView *_pFullView = nullptr;
   GraphicsView *_pGraphicsView;
-  Timebox *_pParent;
+  Timebox *_pParent = nullptr;
 
 public:
   Timebox(Timebox *pParent = 0);
@@ -66,9 +66,12 @@ public:
 
 signals:
   void isFull();
+  void isSmall();
+  void isHide();
 
 private slots:
   void goFull();
+  void goHide();
   void addChild (QGraphicsRectItem *rectItem);
 
 public slots:
