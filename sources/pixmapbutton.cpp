@@ -50,7 +50,6 @@ PixmapButton::PixmapButton(const QString &filename1, const QString &filename2, Q
   _pButtonTwo->setVisible(false);
 
   _pBoundingRect = new QRectF(_pButtonOne->boundingRect().united(_pButtonTwo->boundingRect()));
-  //qDebug() << *_pBoundingRect;
 }
 
 void PixmapButton::setPixmap(bool id)

@@ -43,7 +43,8 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   : QGraphicsWidget(parent), _pModel(pModel)
 {
   setFlags(QGraphicsItem::ItemIsMovable |
-           QGraphicsItem::ItemIsSelectable);
+           QGraphicsItem::ItemIsSelectable |
+           QGraphicsItem::ItemIsFocusable);
 
   /// @todo Connect the model's members height and length to this class
   setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);
@@ -51,6 +52,8 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   setMaximumWidth(_pModel->width()); /// Set width rigidly according to model
   setMinimumWidth(_pModel->width());
 
+  setSelected(true);
+  setFocus();
 
   _pLayout = new QGraphicsLinearLayout(Qt::Vertical, this);
   _pLayout->setContentsMargins(1,1,1,1);
@@ -78,10 +81,20 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
 
-  //qDebug() << "smallView: " << contentsRect() << size();
+  qDebug() << "smallView: " << contentsRect() << size() << " - is selected " << isSelected();
 }
 
 QRectF TimeboxSmallView::boundingRect() const
 {
   return QRectF(0,0,size().width(),size().height());
+}
+
+void TimeboxSmallView::keyPressEvent(QKeyEvent *event)
+{
+  switch(event->key()) {
+    case Qt::Key_Backspace :
+      emit suppressTimebox();
+      break;
+    }
+ QGraphicsWidget::keyPressEvent(event);
 }

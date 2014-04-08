@@ -67,6 +67,7 @@ TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView 
 signals:
   void viewModeIsFull();
   void addBoxProxy(QGraphicsRectItem *rectItem);
+  void suppressTimeboxProxy();
 
 public slots:
   void storeyBarButtonClicked(bool id);

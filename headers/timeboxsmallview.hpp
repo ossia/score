@@ -53,6 +53,7 @@ public:
 
 signals:
   void headerDoubleClicked();
+  void suppressTimebox();
 
 public slots:
 
@@ -62,6 +63,10 @@ public:
   // QGraphicsItem interface
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   virtual QRectF boundingRect() const;
+
+  // QGraphicsItem interface
+protected:
+  void keyPressEvent(QKeyEvent *event);
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

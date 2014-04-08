@@ -49,6 +49,7 @@ TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmal
   addStorey(AutomationPluginType);
 
   connect(_pSmallView, SIGNAL(headerDoubleClicked()), this, SLOT(goFullView()));
+  connect(_pSmallView, SIGNAL(suppressTimebox()), this, SIGNAL(suppressTimeboxProxy()));
 }
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView)
