@@ -4,10 +4,10 @@
 #
 #-------------------------------------------------
 
-cache()
-
-# QT includes the core and gui modules by default
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4) {
+    cache()
+    QT += widgets # QT includes the core and gui modules by default
+}
 
 TEMPLATE = app
 TARGET = i-scoreRecast
@@ -80,20 +80,20 @@ INCLUDEPATH += /usr/include/libxml2 \
 }
 
 macx{
-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
-CONFIG += x86_64
-INCLUDEPATH += /usr/local/jamoma/includes
-#LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
-LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
-LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
-LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
-LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
-LIBS += -F/Library/Frameworks/ -framework gecode
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+    CONFIG += x86_64
+    INCLUDEPATH += /usr/local/jamoma/includes
+    #LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
+    LIBS += /usr/local/jamoma/lib/JamomaFoundation.dylib
+    LIBS += /usr/local/jamoma/lib/JamomaDSP.dylib
+    LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
+    LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
+    LIBS += -F/Library/Frameworks/ -framework gecode
 
-QMAKE_CXXFLAGS += -stdlib=libc++
+    QMAKE_CXXFLAGS += -stdlib=libc++
 
-QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
-QMAKE_LFLAGS += -stdlib=libc++
+    QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
+    QMAKE_LFLAGS += -stdlib=libc++
 }
 
 LIBS += -lxml2
