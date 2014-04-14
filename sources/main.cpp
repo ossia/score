@@ -33,6 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QApplication>
 #include "engine.hpp"
 
+/*
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
@@ -51,6 +52,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         abort();
     }
 }
+*/
 
 int main(int argc, char *argv[])
 {
