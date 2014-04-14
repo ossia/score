@@ -178,7 +178,7 @@ void MainWindow::addItem(QPointF pos)
       _pCurrentTimebox->addChild(pEvent);
     }
   else if(type == BoxItemType) {
-      new Timebox(_pCurrentTimebox, _pView, pos, 300, 200);
+      new Timebox(_pCurrentTimebox, _pView, pos, 300, 200, SMALL);
     }
 
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)

@@ -40,17 +40,40 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsRectItem>
 #include <QApplication>
 
+int Timebox::staticId = 1;
+
 Timebox::Timebox(Timebox *pParent)
   : QObject(pParent)
 {
 }
 
-Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &pos, float width, float height, ViewMode mode)
-  : QObject(pParent), _pGraphicsView(pGraphicsView), _pParent(pParent)
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
+  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
+  ///If no name was given, we construct a name with a unique ID
+  QString name = QString("Timebox%1").arg(staticId++);
+  setObjectName(name);
 
-  setObjectName("Timebox");
-  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height); ///@todo faire le drag
+  init(pos, height, width, mode, name);
+}
+
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name)
+  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
+{
+  init(pos, height, width, mode, name);
+}
+
+Timebox::~Timebox()
+{
+  delete _pSmallView;
+  delete _pFullView;
+  delete _pModel;
+  //delete _pPresenter;
+}
+
+void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)
+{
+  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
 
   if(mode == SMALL) {
       _pSmallView = new TimeboxSmallView(_pModel);
@@ -79,14 +102,6 @@ Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &p
   else {
       qWarning() << "Attention : Hierarchie vers la timebox parente est brisée !";
     }
-}
-
-Timebox::~Timebox()
-{
-  delete _pSmallView;
-  delete _pFullView;
-  delete _pModel;
-  delete _pPresenter;
 }
 
 /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
