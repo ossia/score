@@ -69,7 +69,7 @@ Timebox::~Timebox()
   delete _pSmallView;
   delete _pFullView;
   delete _pModel;
-  //delete _pPresenter;
+  delete _pPresenter;
 }
 
 void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)

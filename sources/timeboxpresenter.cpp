@@ -119,6 +119,7 @@ void TimeboxPresenter::createTransitions()
 
   _pHideState->addTransition(_pTimebox, SIGNAL(isFull()), _pFullSizeState); /// His child go from full to small
   _pHideState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// Sister of the timebox passing from full to small
+
   _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
 }
 
@@ -127,7 +128,7 @@ void TimeboxPresenter::createConnections()
   connect(_pInitialState, SIGNAL(entered()), this, SLOT(init()));
   connect(_pSmallSizeState, SIGNAL(entered()), this, SLOT(goSmallView()));
   connect(_pFullSizeState, SIGNAL(entered()), this, SLOT(goFullView()));
-  connect(_pFinalState, SIGNAL(exited()), this, SIGNAL(suppressTimeboxProxy()));
+  connect(_pStateMachine, SIGNAL(finished()), this, SIGNAL(suppressTimeboxProxy())); /// The finalState has been entered
 }
 
 void TimeboxPresenter::init() {
