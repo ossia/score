@@ -90,7 +90,7 @@ macx{
     LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
     LIBS += -F/Library/Frameworks/ -framework gecode
 
-    QMAKE_CXXFLAGS += -stdlib=libc++
+    QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11
 
     QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
     QMAKE_LFLAGS += -stdlib=libc++

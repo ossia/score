@@ -33,6 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QApplication>
 #include "engine.hpp"
 
+#if QT_VERSION > 0x050000
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
@@ -51,10 +52,13 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         abort();
     }
 }
+#endif
 
 int main(int argc, char *argv[])
 {
-  // qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
+#if QT_VERSION > 0x050000
+  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
+#endif
 
   QApplication app(argc, argv);
   app.setApplicationName("i-score");
