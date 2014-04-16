@@ -30,6 +30,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 #include "headerwidget.hpp"
+#include "mainwindow.hpp"
+#include "timebox.hpp"
+#include "timeboxmodel.hpp"
+
 #include <QPixmap>
 #include <QPushButton>
 #include <QLabel>
@@ -45,13 +49,24 @@ HeaderWidget::HeaderWidget(QWidget *parent)
   //setStyleSheet("background-color:lightgray;");
 
   _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this); ///@todo switch entre play/pause
-  _pTextName = new QLabel(tr("Box"), this);
+
+  /// @todo ui->headerwidget et construit avant la première timebox -> donc currentTimebox = NULL. Pour l'instant on met un nom par défaut.
+  //MainWindow *mainwindow = qobject_cast<MainWindow*>(parent);
+  //QString name = mainwindow->currentTimebox()->model()->name(); /// We retrieve the timebox's name stored in the model for the first time
+  //_pTextName = new QLabel(name, this);
+  _pTextName = new QLabel(tr("Timebox1"), this);
 
   QHBoxLayout *layout = new QHBoxLayout;
   layout->addWidget(_pButtonPlay);
   layout->addWidget(_pTextName);
 
   setLayout(layout);
+}
+
+/// Slot connected to timeboxModel's signal nameChanged()
+void HeaderWidget::changeName(QString name)
+{
+  _pTextName->setText(name);
 }
 
 void HeaderWidget::mouseDoubleClickEvent(QMouseEvent *event)

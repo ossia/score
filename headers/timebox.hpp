@@ -39,6 +39,7 @@ class GraphicsView;
 class QGraphicsScene;
 class TimeEvent;
 class QGraphicsRectItem;
+class QString;
 
 #include <QObject>
 #include "utils.hpp"
@@ -57,18 +58,23 @@ private:
   TimeboxModel *_pModel;
   TimeboxFullView *_pFullView = nullptr;
   GraphicsView *_pGraphicsView;
-  Timebox *_pParent;
+  Timebox *_pParent = nullptr;
+  static int staticId;
 
 public:
   Timebox(Timebox *pParent = 0);
-  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode = SMALL);
+  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode);
+  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name);
   ~Timebox();
 
 signals:
   void isFull();
+  void isSmall();
+  void isHide();
 
 private slots:
   void goFull();
+  void goHide();
   void addChild (QGraphicsRectItem *rectItem);
 
 public slots:
@@ -78,6 +84,10 @@ public:
   TimeboxModel* timeboxModel() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
+  TimeboxModel* model() const {return _pModel;}
+
+private:
+  void init(const QPointF &pos, float height, float width, ViewMode mode, QString name);
 };
 
 #endif // TIMEBOX_HPP

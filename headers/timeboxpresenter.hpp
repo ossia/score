@@ -42,6 +42,8 @@ class QGraphicsRectItem;
 class QFinalState;
 class QStateMachine;
 class QState;
+class Timebox;
+class State;
 
 #include "timebox.hpp"
 #include <QObject>
@@ -55,6 +57,7 @@ class TimeboxPresenter : public QObject
 private:
   ViewMode _mode;
 
+  Timebox *_pTimebox;
   TimeboxModel *_pModel;
   TimeboxSmallView *_pSmallView = nullptr;
   TimeboxFullView *_pFullView = nullptr;
@@ -63,17 +66,19 @@ private:
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
   std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
-  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
-  QState *_initialState;
-  QState *_normalState;
-  QState *_smallSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  QState *_fullSizeState; /// When the graphical timeProcess occupies all size of the view
-  QFinalState *_finalState;
+  QStateMachine *_pStateMachine; /// Permits to maintaining state in complex applications
+  QState *_pInitialState;
+  QState *_pNormalState;
+  State *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  State *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
+  State *_pHideState; /// When the graphical timeProcess is not showed in the view
+  QFinalState *_pFinalState;
 
 public:
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView);
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView);
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView, Timebox *parent);
+  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView, Timebox *parent);
   ~TimeboxPresenter();
+
 signals:
   void viewModeIsFull();
   void addBoxProxy(QGraphicsRectItem *rectItem);
@@ -83,8 +88,10 @@ public slots:
   void storeyBarButtonClicked(bool id);
   void goSmallView(); ///put public because of mainwindow header
   void goFullView();
+  void goHide();
 
 private slots:
+  void init();
   void addStorey(int pluginType);
   PluginView* addPlugin(int pluginType, TimeboxStorey *pStorey);
 

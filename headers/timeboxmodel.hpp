@@ -39,6 +39,8 @@ class TTTimeProcess;
 class GraphicsTimeEvent;
 class QGraphicsScene;
 class QGraphicsItem;
+class QString;
+class Timebox;
 
 /*!
  *  The model is linked with Score, and permits to maintain all elements used later by
@@ -52,18 +54,20 @@ class TimeboxModel : public QObject
 {
   Q_OBJECT
 
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+
 private:
   /// @todo creer les time event de début et de fin
   //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
   //GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
   int _time, _yPosition, _width, _height;
+  QString _name;
   std::list<TTTimeProcess*> _pluginsSmallView;
   std::list<TTTimeProcess*> _pluginsFullView;
 
 public:
-  TimeboxModel(int t = 0, int y = 0, int w = 100, int h = 100);
-  ~TimeboxModel();
+  TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent);
 
   int time() const {return _time;}
   int yPosition() const {return _yPosition;}
@@ -83,6 +87,13 @@ public:
   void addPluginFull();
   void removePluginFull();
 
+  QString name() const {return _name;}
+
+public slots:
+  void setname(QString arg);
+
+signals:
+  void nameChanged(QString arg);
 };
 
 #endif // TIMEBOXMODEL_HPP

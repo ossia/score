@@ -40,23 +40,49 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsRectItem>
 #include <QApplication>
 
+int Timebox::staticId = 1;
+
 Timebox::Timebox(Timebox *pParent)
   : QObject(pParent)
 {
 }
 
-Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &pos, float width, float height, ViewMode mode)
-  : QObject(pParent), _pGraphicsView(pGraphicsView), _pParent(pParent)
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
+  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
-  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height); ///@todo faire le drag
+  ///If no name was given, we construct a name with a unique ID
+  QString name = QString("Timebox%1").arg(staticId++);
+  setObjectName(name);
+
+  init(pos, height, width, mode, name);
+}
+
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name)
+  : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
+{
+  ///@todo Vérifier si le nom existe déjà
+  init(pos, height, width, mode, name);
+}
+
+Timebox::~Timebox()
+{
+  delete _pSmallView;
+  delete _pFullView;
+  delete _pModel;
+  //delete _pPresenter;
+}
+
+void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)
+{
+  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
 
   if(mode == SMALL) {
-      _pSmallView = new TimeboxSmallView(_pModel);
-      _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView);
+      _pSmallView = new TimeboxSmallView(_pModel, this);
+      _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView, this);
     }
   else if(mode == FULL) {
       _pFullView = new TimeboxFullView(_pModel);
-      _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView);
+      _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView, this);
       _pScene = _pFullView;
     }
 
@@ -79,28 +105,31 @@ Timebox::Timebox(Timebox *pParent, GraphicsView *pGraphicsView, const QPointF &p
     }
 }
 
-Timebox::~Timebox()
-{
-  delete _pSmallView;
-  delete _pFullView;
-  delete _pModel;
-  delete _pPresenter;
-}
-
 /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 void Timebox::goSmall()
 {
-  _pPresenter->goSmallView();
-  _pParent->_pPresenter->goFullView();
+  emit isSmall();
+  /// @todo toutes mes timebox soeurs doivent devenir small
+  _pParent->goFull();
 }
 
 /// bottom up (presenter -> mainwindow)
 void Timebox::goFull()
 {
-  if(_pFullView == NULL) { /// retrieve fullView the first time
+  if(_pParent != nullptr) {
+      _pParent->goHide();
+      _pParent->dumpObjectTree();
+    }
+  if(_pFullView == nullptr) { /// retrieve fullView the first time
       _pFullView = _pPresenter->fullView();
     }
   emit isFull();
+  /// @todo toutes mes timebox soeurs doivent devenir hide
+}
+
+void Timebox::goHide()
+{
+  emit isHide(); /// inform stateMachine's presenter that timebox is hidden
 }
 
 void Timebox::addChild (QGraphicsRectItem *rectItem)

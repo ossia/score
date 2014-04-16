@@ -29,6 +29,9 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxheader.hpp"
+#include "timeboxsmallview.hpp"
+#include "timeboxmodel.hpp"
+
 #include <QPainter>
 #include <QDebug>
 #include <QGraphicsItem>
@@ -49,9 +52,17 @@ TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
   _pButtonPlay->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
   _pButtonPlay->setPos(0, MARGIN);
 
-  _pTextName = new QGraphicsSimpleTextItem(tr("Box"), this);
+  TimeboxSmallView *tbsmall = qgraphicsitem_cast<TimeboxSmallView*>(parentWidget());
+  QString name = tbsmall->model()->name(); /// We retrieve the timebox's name stored in the model for the first time
+  _pTextName = new QGraphicsSimpleTextItem(name, this);
   _pTextName->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom a text
   _pTextName->setPos(30, MARGIN); /// @todo Find a better position
+}
+
+/// Slot connected to timeboxModel's signal nameChanged()
+void TimeboxHeader::changeName(QString name)
+{
+  _pTextName->setText(name);
 }
 
 void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

@@ -29,22 +29,23 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxsmallview.hpp"
+#include "timebox.hpp"
+#include "timeboxheader.hpp"
+#include "timeboxstorey.hpp"
+#include "timeboxmodel.hpp"
 
 #include <QPainter>
 #include <QGraphicsLinearLayout>
 #include <QDebug>
 
-#include "timeboxheader.hpp"
-#include "timeboxstorey.hpp"
-#include "timeboxmodel.hpp"
-
-
-TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), _pModel(pModel)
+TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject, QGraphicsItem *parentGraphics) ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
+  : QGraphicsWidget(parentGraphics), _pModel(pModel)
 {
   setFlags(QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsFocusable);
+
+  setParent(parentObject);
 
   /// @todo Connect the model's members height and length to this class
   setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);
@@ -63,6 +64,7 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent)
   _pHeader = new TimeboxHeader(this);
   _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
   connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
+  connect(_pModel, SIGNAL(nameChanged(QString)), _pHeader, SLOT(changeName(QString)));
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *pStorey)
@@ -81,7 +83,7 @@ void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect().adjusted(0,0,-1,-1));
 
-  qDebug() << "smallView: " << contentsRect() << size() << " - is selected " << isSelected();
+  //qDebug() << "smallView: " << contentsRect() << size() << " - is selected " << isSelected();
 }
 
 QRectF TimeboxSmallView::boundingRect() const

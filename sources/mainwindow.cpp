@@ -137,7 +137,7 @@ void MainWindow::createTransitions()
   _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
   _stoppedState->addTransition(_stoppedState, SIGNAL(propertiesAssigned()), _editionState);
 
-  _normalState->addTransition(this, SIGNAL(suppress()), _finalState);
+  _normalState->addTransition(this, SIGNAL(destroyed()), _finalState);
 }
 
 void MainWindow::createConnections()
@@ -178,7 +178,7 @@ void MainWindow::addItem(QPointF pos)
       _pCurrentTimebox->addChild(pEvent);
     }
   else if(type == BoxItemType) {
-      new Timebox(_pCurrentTimebox, _pView, pos, 300, 200);
+      new Timebox(_pCurrentTimebox, _pView, pos, 300, 200, SMALL);
     }
 
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
@@ -196,6 +196,7 @@ void MainWindow::headerWidgetClicked()
 void MainWindow::changeCurrentTimeboxScene()
 {
   _pCurrentTimebox = qobject_cast<Timebox*>(sender());
+  ui->headerWidget->changeName(_pCurrentTimebox->model()->name()); /// @todo le faire avec un connect ?
 }
 
 void MainWindow::setMousePosition(QPointF point)

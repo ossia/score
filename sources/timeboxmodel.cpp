@@ -29,11 +29,12 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeboxmodel.hpp"
+#include "timebox.hpp"
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(int t, int y, int w, int h)
-  : _time(t), _yPosition(y), _width(w), _height(h)
+TimeboxModel::TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent)
+  : QObject(parent), _time(t), _yPosition(y), _width(w), _height(h), _name(name)
 {
 }
 
@@ -55,4 +56,12 @@ void TimeboxModel::addPluginFull()
 void TimeboxModel::removePluginFull()
 {
   _pluginsFullView.pop_back();
+}
+
+void TimeboxModel::setname(QString arg)
+{
+  if (_name != arg) {
+      _name = arg;
+      emit nameChanged(arg);
+    }
 }

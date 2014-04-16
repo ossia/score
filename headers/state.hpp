@@ -28,49 +28,33 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxstorey.hpp"
-#include "timeboxstoreybar.hpp"
-#include "timeboxmodel.hpp"
-#include "pixmapbutton.hpp"
-#include <QDebug>
+#ifndef STATE_HPP
+#define STATE_HPP
 
-#include <QPainter>
+#include <QState>
 
-TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), _pModel(pModel), _width(width), _height(height)
+class State : public QState
 {
-  setGeometry(0,0, _width, _height);
-  setMaximumHeight(_height);
-  setMinimumHeight(_height);
-  //setMaximumWidth(_width);
-  //setMinimumWidth(_width);
+  Q_OBJECT
+public:
+  explicit State( const QString& name, QState* parent = 0 );
+  explicit State( const QString& name, const QString& prefix, QState* parent = 0 );
 
-  _pBar = new TimeboxStoreyBar(this); /// @todo doit être construit dans le presenter et envoyé dans le constructeur en tant qu'abstractStoreyBar (classe virtuelle).
-  connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
-}
+  QString name() const { return m_name; }
+  QString prefix() const { return m_prefix; }
 
-void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+public slots:
+  void setName( const QString& name ) { m_name = name; }
+  void setPrefix( const QString& prefix ) { m_prefix = prefix; }
 
-  /// Draw the bounding upper and bottom lines
-  QPen pen(Qt::SolidLine);
-  pen.setCosmetic(true);
-  painter->setPen(pen);
-  painter->setBrush(Qt::NoBrush);
-  painter->drawLine(0,0,size().width(),0);
-  painter->drawLine(0,size().height(),size().width(),size().height());
+protected:
+  virtual void onEntry( QEvent* e );
+  virtual void onExit( QEvent* e );
 
-  //qDebug() << "storey: " << contentsRect() << size();
-}
+protected:
+  QString m_name;
+  QString m_prefix;
 
-QRectF TimeboxStorey::boundingRect() const
-{
-  return QRectF(0,0,size().width(),size().height());
-}
+};
 
-void TimeboxStorey::setButton(bool button)
-{
-  _pBar->getButton()->setPixmap(button);
-}
+#endif // STATE_HPP

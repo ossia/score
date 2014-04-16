@@ -54,6 +54,9 @@ public:
 signals:
   void doubleClicked();
 
+public slots:
+  void changeName(QString name);
+
 protected:
   virtual void mouseDoubleClickEvent(QMouseEvent *);
 };
