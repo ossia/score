@@ -43,6 +43,7 @@ class QFinalState;
 class QStateMachine;
 class QState;
 class Timebox;
+class State;
 
 #include "timebox.hpp"
 #include <QObject>
@@ -68,9 +69,9 @@ private:
   QStateMachine *_pStateMachine; /// Permits to maintaining state in complex applications
   QState *_pInitialState;
   QState *_pNormalState;
-  QState *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  QState *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
-  QState *_pHideState; /// When the graphical timeProcess is not showed in the view
+  State *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  State *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
+  State *_pHideState; /// When the graphical timeProcess is not showed in the view
   QFinalState *_pFinalState;
 
 public:

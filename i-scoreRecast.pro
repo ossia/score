@@ -30,7 +30,8 @@ SOURCES += sources/main.cpp \
     sources/automationview.cpp \
     sources/headerwidget.cpp \
     sources/timebox.cpp \
-    sources/scenarioview.cpp
+    sources/scenarioview.cpp \
+    sources/state.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -49,7 +50,8 @@ HEADERS  += headers/mainwindow.hpp \
     headers/automationview.hpp \
     headers/headerwidget.hpp \
     headers/timebox.hpp \
-    headers/scenarioview.hpp
+    headers/scenarioview.hpp \
+    headers/state.hpp
 
 RESOURCES += resources/resource.qrc
 
