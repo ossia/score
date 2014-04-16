@@ -54,6 +54,8 @@ class TimeboxModel : public QObject
 {
   Q_OBJECT
 
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+
 private:
   /// @todo creer les time event de début et de fin
   //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
@@ -85,6 +87,13 @@ public:
   void addPluginFull();
   void removePluginFull();
 
+  QString name() const {return _name;}
+
+public slots:
+  void setname(QString arg);
+
+signals:
+  void nameChanged(QString arg);
 };
 
 #endif // TIMEBOXMODEL_HPP

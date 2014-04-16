@@ -84,6 +84,7 @@ public:
   TimeboxModel* timeboxModel() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
+  TimeboxModel* model() const {return _pModel;}
 
 private:
   void init(const QPointF &pos, float height, float width, ViewMode mode, QString name);

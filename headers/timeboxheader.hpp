@@ -55,6 +55,9 @@ public:
 signals:
   void doubleClicked();
 
+public slots:
+  void changeName(QString name);
+
 protected:
   // QGraphicsItem interface
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

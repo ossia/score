@@ -196,6 +196,7 @@ void MainWindow::headerWidgetClicked()
 void MainWindow::changeCurrentTimeboxScene()
 {
   _pCurrentTimebox = qobject_cast<Timebox*>(sender());
+  ui->headerWidget->changeName(_pCurrentTimebox->model()->name()); /// @todo le faire avec un connect ?
 }
 
 void MainWindow::setMousePosition(QPointF point)

@@ -60,6 +60,7 @@ Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, floa
 Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name)
   : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
+  ///@todo Vérifier si le nom existe déjà
   init(pos, height, width, mode, name);
 }
 
@@ -76,7 +77,7 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
 
   if(mode == SMALL) {
-      _pSmallView = new TimeboxSmallView(_pModel);
+      _pSmallView = new TimeboxSmallView(_pModel, this);
       _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView, this);
     }
   else if(mode == FULL) {
@@ -110,7 +111,6 @@ void Timebox::goSmall()
   emit isSmall();
   /// @todo toutes mes timebox soeurs doivent devenir small
   _pParent->goFull();
-
 }
 
 /// bottom up (presenter -> mainwindow)

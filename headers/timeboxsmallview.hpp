@@ -35,6 +35,7 @@ class TimeboxHeader;
 class TimeboxStorey;
 class TimeboxModel;
 class QGraphicsLinearLayout;
+class Timebox;
 
 #include <QGraphicsWidget>
 
@@ -49,7 +50,7 @@ private:
   QGraphicsLinearLayout *_pLayout;
 
 public:
-  TimeboxSmallView(TimeboxModel *pModel, QGraphicsItem *parent = 0);
+  TimeboxSmallView(TimeboxModel *pModel, Timebox *parentObject, QGraphicsItem *parentGraphics = 0);
 
 signals:
   void headerDoubleClicked();
@@ -63,6 +64,7 @@ public:
   // QGraphicsItem interface
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   virtual QRectF boundingRect() const;
+  TimeboxModel* model() const {return _pModel;}
 
   // QGraphicsItem interface
 protected:

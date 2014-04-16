@@ -57,3 +57,11 @@ void TimeboxModel::removePluginFull()
 {
   _pluginsFullView.pop_back();
 }
+
+void TimeboxModel::setname(QString arg)
+{
+  if (_name != arg) {
+      _name = arg;
+      emit nameChanged(arg);
+    }
+}
