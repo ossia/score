@@ -111,7 +111,7 @@ void GraphicsView::fitFullView()
 {
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
   if(window != NULL) {
-      if(window->currentTimebox()->timeboxModel()->width() < this->width()) { /// We scale only if the graphicsView is larger than the timebox in fullView
+      if(window->currentTimebox()->model()->width() < this->width()) { /// We scale only if the graphicsView is larger than the timebox in fullView
           foreach (QGraphicsItem *item, scene()->items()) {
               QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget *>(item);
               if(graphicsWidget != NULL) {
@@ -136,7 +136,7 @@ void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
   QRectF rectOutside; /// rectangle outside the current timebox in fullview
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
   if(window != NULL) {
-      qreal x = window->currentTimebox()->timeboxModel()->width();
+      qreal x = window->currentTimebox()->model()->width();
       rectOutside = rect;
       rectOutside.setLeft(x);
     }

@@ -83,7 +83,6 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
   else if(mode == FULL) {
       _pFullView = new TimeboxFullView(_pModel);
       _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView, this);
-      _pScene = _pFullView;
     }
 
   if(_pParent != NULL) {

@@ -48,18 +48,14 @@ class Timebox : public QObject
 {
   Q_OBJECT
 
-public:
-  TimeboxPresenter *_pPresenter; /// @todo rendu public pour slot goSmallView()
-  TimeboxSmallView *_pSmallView = nullptr;
-
-  QGraphicsScene *_pScene; /// @todo Sert actuellement à héberger le scénario principal (qgraphicsscene) qui n'est pas encore un plugin Scenario (par jC)
-
 private:
+  TimeboxSmallView *_pSmallView = nullptr;
+  TimeboxPresenter *_pPresenter;
   TimeboxModel *_pModel;
   TimeboxFullView *_pFullView = nullptr;
   GraphicsView *_pGraphicsView;
   Timebox *_pParent = nullptr;
-  static int staticId;
+  static int staticId; /// Give a unique number to each instance of Timebox
 
 public:
   Timebox(Timebox *pParent = 0);
@@ -81,10 +77,10 @@ public slots:
   void goSmall();
 
 public:
-  TimeboxModel* timeboxModel() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
-  TimeboxModel* model() const {return _pModel;}
+  TimeboxModel* model() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
+  TimeboxFullView* fullView() const {return _pFullView;}
 
 private:
   void init(const QPointF &pos, float height, float width, ViewMode mode, QString name);
