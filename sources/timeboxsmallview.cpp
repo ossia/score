@@ -93,10 +93,14 @@ QRectF TimeboxSmallView::boundingRect() const
 
 void TimeboxSmallView::keyPressEvent(QKeyEvent *event)
 {
+  ///@todo adapter cette méthode et la liaison de connexion existante pour rajouter une feature de keypress intéressante (par jC)
+  /*
+   *Now done in MainWindow::deleteSelectedItems()
   switch(event->key()) {
     case Qt::Key_Backspace :
       emit suppressTimebox();
       break;
     }
+    */
  QGraphicsWidget::keyPressEvent(event);
 }

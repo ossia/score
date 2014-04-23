@@ -36,14 +36,17 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxsmallview.hpp"
 #include "utils.hpp"
 #include "graphicsview.hpp"
+#include "timeboxfullview.hpp"
 
 #include <QMouseEvent>
+#include <QAction>
 #include <QActionGroup>
 #include <QStateMachine>
 #include <QPointF>
 #include <QGraphicsLineItem>
 #include <QTimer>
 #include <QFinalState>
+#include <QDebug>
 
 const qint16 OFFSET_INCREMENT = 5;
 
@@ -54,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
 
   createGraphics();
+  createActions();
   createActionGroups();
   createStates();
   createTransitions();
@@ -72,7 +76,15 @@ void MainWindow::createGraphics()
   _pCurrentTimebox = _pMainTimebox;
 }
 
-void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
+/// The majority of actions are created in the Qt designer mainwindow.ui
+void MainWindow::createActions() {
+  _pDeleteAction = new QAction(tr("Delete"), this);
+  /// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)
+  _pDeleteAction->setShortcuts(QList<QKeySequence>() << QKeySequence(Qt::CTRL + Qt::Key_Backspace) << QKeySequence::Delete); /// @bug Bug dans Qt pour les raccourcis mac https://bugreports.qt-project.org/browse/QTBUG-33015 (by jC)
+  ui->menuEdit->addAction(_pDeleteAction);
+}
+
+void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle (par jC)
 {
   // GraphicsItems relative's actions
   ui->actionAddTimeEvent->setData(EventItemType);
@@ -81,7 +93,7 @@ void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié po
   _pMouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
   _pMouseActionGroup->addAction(ui->actionAddTimeEvent);
   _pMouseActionGroup->addAction(ui->actionAddTimeBox);
-  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
+  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false); (by jC)
 
   // Mouse cursor relative's actions
   ui->actionMouse->setData(QGraphicsView::NoDrag);
@@ -111,7 +123,7 @@ void MainWindow::createStates()
   _editionState = new QState(_normalState);
   _editionState->assignProperty(_pMouseActionGroup, "enabled", true);
 
-  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing)
+  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing) (by jC)
   _executionState = new QState(_normalState);
   _executionState->assignProperty(_pMouseActionGroup, "enabled", false);
 
@@ -146,6 +158,7 @@ void MainWindow::createConnections()
   connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
   connect(ui->headerWidget, SIGNAL(doubleClicked()), this, SLOT(headerWidgetClicked()));
+  connect(_pDeleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedItems()));
 }
 
 void MainWindow::setDirty(bool on)
@@ -191,6 +204,19 @@ void MainWindow::headerWidgetClicked()
       return;
     }
   _pCurrentTimebox->goSmall();
+}
+
+void MainWindow::deleteSelectedItems()
+{
+  QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
+  if (items.isEmpty())
+      return;
+
+  QListIterator<QGraphicsItem*> i(items);
+  while (i.hasNext()) {
+      QScopedPointer<QGraphicsItem> item(i.next());
+      _pCurrentTimebox->fullView()->removeItem(item.data());
+    }
 }
 
 void MainWindow::changeCurrentTimeboxScene()

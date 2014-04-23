@@ -35,6 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timebox.hpp"
 
 class QGraphicsScene;
+class QAction;
 class QActionGroup;
 class QPointF;
 class GraphicsTimeBox;
@@ -62,9 +63,9 @@ private:
 
   Ui::MainWindow *ui;
   GraphicsView *_pView; /// pointer to ui->graphicsView
+  QAction *_pDeleteAction;
   QActionGroup *_pMouseActionGroup;
-
-  ///@todo Ajouter un offset si on clique au meme endroit qu'un objet déjà ajouté
+  ///@todo Ajouter un offset si on clique au meme endroit qu'un objet déjà ajouté (par jC)
   /*
   qint16 _addOffset;
   QPoint _previousPoint;
@@ -95,6 +96,7 @@ private slots:
   void updateUi();
   void addItem(QPointF);
   void headerWidgetClicked();
+  void deleteSelectedItems();
 
 public:
   Timebox* currentTimebox() const { return _pCurrentTimebox; }
@@ -113,6 +115,7 @@ private:
   void connectItem(QObject *item);
   void createConnections();
   void createActionGroups();
+  void createActions();
 };
 
 #endif // MAINWINDOW_HPP
