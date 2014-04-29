@@ -63,6 +63,8 @@ OTHER_FILES += \
 INCLUDEPATH += headers
 INCLUDEPATH += /usr/include/libxml2
 
+JAMOMA_INCLUDE_PATH=$$(JAMOMA_INCLUDE_PATH)
+
 unix:!macx{
     LIBS += -lJamomaFoundation \
 	    -lJamomaDSP \
@@ -70,7 +72,7 @@ unix:!macx{
 	    -lJamomaModular
 
 # This variable specifies the #include directories which should be searched when compiling the project.
-INCLUDEPATH += /usr/include/libxml2 \
+    INCLUDEPATH += /usr/include/libxml2 \
 		$$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
 		$$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
 		$$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
@@ -83,6 +85,27 @@ INCLUDEPATH += /usr/include/libxml2 \
 
 macx{
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+
+    !isEmpty(JAMOMA_INCLUDE_PATH) {
+message(JAMOMA_INCLUDE_PATH)
+    LIBS += -L/usr/local/jamoma/lib
+    LIBS += -lJamomaFoundation \
+            -lJamomaDSP \
+            -lJamomaScore \
+            -lJamomaModular
+
+# This variable specifies the #include directories which should be searched when compiling the project.
+    INCLUDEPATH += /usr/include/libxml2 \
+                $$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
+                $$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
+                $$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
+                $$(JAMOMA_INCLUDE_PATH)/Modular/library/SchedulerLib \
+                $$(JAMOMA_INCLUDE_PATH)/DSP/library/includes \
+                $$(JAMOMA_INCLUDE_PATH)/Modular/library/includes \
+                $$(JAMOMA_INCLUDE_PATH)/Score/library/includes \
+                $$(JAMOMA_INCLUDE_PATH)/Foundation/library/includes
+
+    } else {
     CONFIG += x86_64
     INCLUDEPATH += /usr/local/jamoma/includes
     #LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
@@ -91,14 +114,12 @@ macx{
     LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
     LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
     LIBS += -F/Library/Frameworks/ -framework gecode
-
+    }
     QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11
 
     QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
     QMAKE_LFLAGS += -stdlib=libc++
+
 }
 
 LIBS += -lxml2
-
-
-
