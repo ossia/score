@@ -71,14 +71,14 @@ unix:!macx{
 
 # This variable specifies the #include directories which should be searched when compiling the project.
 INCLUDEPATH += /usr/include/libxml2 \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Score/library/tests/ \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Modular/library/PeerObject \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Modular/library/ProtocolLib \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Modular/library/SchedulerLib \
-		$$(JAMOMA_INCLUDE_PATH)/Core/DSP/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Modular/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Score/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Core/Foundation/library/includes
+		$$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
+		$$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
+		$$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
+		$$(JAMOMA_INCLUDE_PATH)/Modular/library/SchedulerLib \
+		$$(JAMOMA_INCLUDE_PATH)/DSP/library/includes \
+		$$(JAMOMA_INCLUDE_PATH)/Modular/library/includes \
+		$$(JAMOMA_INCLUDE_PATH)/Score/library/includes \
+		$$(JAMOMA_INCLUDE_PATH)/Foundation/library/includes
 }
 
 macx{
