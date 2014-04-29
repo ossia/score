@@ -61,7 +61,46 @@ OTHER_FILES += \
     LICENSE.txt
 
 INCLUDEPATH += headers
+
+android-g++|android-clang{
+INCLUDEPATH += /include/libxml2
+INCLUDEPATH+=/opt/android-toolchain/include
+LIBS += -L/opt/android-toolchain/lib -L/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/
+ANDROID_EXTRA_LIBS = \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAnalysisLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAudioGraphUtilityLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAutomation.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libClipper.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libCrossfade.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libDataspaceLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libDictionaryLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libEffectsLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFFTLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFilterLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFunctionLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libGeneratorLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libInterval.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaAudioGraph.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaDSP.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaFoundation.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaGraph.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaModular.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaScore.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libMatrixProcessingLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libMinuit.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libNetworkLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libOSC.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libPlugtastic.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libResamplingLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libScenario.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSoundfileLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSpatLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSystem.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libTrajectoryLib.so \
+			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libWindowFunctionLib.so
+}else{
 INCLUDEPATH += /usr/include/libxml2
+}
 
 JAMOMA_INCLUDE_PATH=$$(JAMOMA_INCLUDE_PATH)
 
@@ -71,8 +110,7 @@ unix:!macx{
 	    -lJamomaScore \
 	    -lJamomaModular
 
-# This variable specifies the #include directories which should be searched when compiling the project.
-    INCLUDEPATH += /usr/include/libxml2 \
+    INCLUDEPATH += \
 		$$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
 		$$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
 		$$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
@@ -87,15 +125,13 @@ macx{
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
     !isEmpty(JAMOMA_INCLUDE_PATH) {
-message(JAMOMA_INCLUDE_PATH)
     LIBS += -L/usr/local/jamoma/lib
     LIBS += -lJamomaFoundation \
             -lJamomaDSP \
             -lJamomaScore \
             -lJamomaModular
 
-# This variable specifies the #include directories which should be searched when compiling the project.
-    INCLUDEPATH += /usr/include/libxml2 \
+    INCLUDEPATH += \
                 $$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
                 $$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
                 $$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
@@ -123,3 +159,4 @@ message(JAMOMA_INCLUDE_PATH)
 }
 
 LIBS += -lxml2
+
