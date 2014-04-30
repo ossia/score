@@ -44,7 +44,8 @@ class Timebox;
 
 /*!
  *  The model is linked with Score, and permits to maintain all elements used later by
- *  the other classes of Timebox API
+ *  the other classes of Timebox API (such as TimeboxPresenter TimeboxSmallView and TimeboxFullView).
+ *  This class stores and maintains the plugins, separating them in two lists depending if they are hosted in small or full view.
  *
  *  @brief Maintain the model of a Timebox, no graphics here.
  *  @author Jaime Chao, Clément Bossut
@@ -73,8 +74,10 @@ public:
   int yPosition() const {return _yPosition;}
   int width() const {return _width;}
   int height() const {return _height;}
+  QString name() const {return _name;}
 
   const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
+  /// The plugins in full are retrieved when first needed (lazy implementation)
   const std::list<TTTimeProcess*>& pluginsFullView() {
     if (_pluginsFullView.empty()) {
         _pluginsFullView.assign(_pluginsSmallView.begin(), _pluginsSmallView.end());
@@ -86,8 +89,6 @@ public:
   void removePluginSmall();
   void addPluginFull();
   void removePluginFull();
-
-  QString name() const {return _name;}
 
 public slots:
   void setname(QString arg);
