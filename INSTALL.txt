@@ -1,0 +1,60 @@
+==  INSTALLATION INSTRUCTIONS  ==
+
+
+   ==<[ MacOS (10.4+/10.9) ]>==
+   	== By Hand
+	   . Download and install libraries from :
+			  Qt 5.1 or more recent (LGPL) : http://qt-project.org/downloads
+	   		  Gecode 3.2.0 : http://www.gecode.org/download/Gecode-3.2.0.dmg
+		  LibXml2 : http://www.explain.com.au/download/combo-2007-10-07.dmg.gz -> copy libxml.framework to /Library/Frameworks
+
+	   . Get git repositories by downloading (or cloning) :
+	   		  Score : https://github.com/OSSIA/Score
+			  i-score : https://github.com/OSSIA/i-score
+
+	   . Build Score, following the steps in the README.
+
+	   . Create a build directory for i-score (mkdir and cd)
+	   . qmake -spec macx-clang PATH_TO_GIT_REPO_ISCORE
+	     Warning : If you have multiple versions of Qt in your Mac a problem may appear using "qmake" command, because it will use the old one (qmake version 2.01)
+	     Qt5 will install stuff in a Qt folder in your Home. To create the Makefile properly you have to launch qmake v3.0 (somewhere in Qt/5.XXX/clang_64/bin/qmake) 
+	   . make
+
+	== With a script (Using homebrew)
+	   . Download the script at https://github.com/i-score/i-score/blob/feature/cmake/FullBuild.sh
+	   . Run : ./FullBuild.sh --install-deps --install-jamoma --fetch-all --iscore-recast
+	   
+   ==<[ Linux ]>==
+   	   . Requires a system using apt.
+	   . Run : ./FullBuild.sh --install-deps --install-jamoma --iscore-recast
+	   
+   	   . If it doesn't work try installing the following packages prior to running.
+   	   . Debian Jessie, Ubuntu 14.04 : 
+   	   	sudo apt-get install libqt4-dev qt4-qmake libgl1-mesa-dev libgecode-dev libxml2-dev libsndfile-dev portaudio19-dev libportmidi-dev git clang-3.4 cmake libstdc++-4.8-dev
+
+
+	   . Ubuntu 13.10 :
+		sudo apt-get install libgmp-dev libqt4-dev qt4-qmake libgl1-mesa-dev libxml2-dev libsndfile-dev portaudio19-dev libportmidi-dev git clang-3.4 cmake libstdc++-4.8-dev
+
+		And install the following packages from the Trusty archive in this order: 
+		http://packages.ubuntu.com/trusty/libmpfr4
+		http://packages.ubuntu.com/trusty/libmpfr-dev
+		http://packages.ubuntu.com/trusty/libgecode36
+		http://packages.ubuntu.com/trusty/libgecodegist36
+		http://packages.ubuntu.com/trusty/libgecodeflatzinc36
+		http://packages.ubuntu.com/trusty/libgecode-dev
+			
+		(Using dpkg -i ThePackageName.deb)
+		
+   ==<[ Qt Creator ]>==
+
+In order to work with QtCreator you will have to define two environment variables in the project settings (Project->Compilation->panel at the bottom)
+JAMOMA_INCLUDE_PATH : path to JamomaCore folder created by the script
+
+   ==<[ Doxygen Documentation ]>==
+
+
+In order to have documentation of the sources you have to install Doxygen (www.doxygen.org),
+and the Graphviz package to generate graph with Doxygen (www.graphviz.org).
+To generate documentation,
+load ./doxygen/Doxyfile with Doxygen and run it.
