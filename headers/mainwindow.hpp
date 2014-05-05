@@ -52,30 +52,35 @@ namespace Ui {
   class MainWindow;
 }
 
+/*!
+ *  This class constructs the main interface of i-score, notably in relation with the designer's file "mainwindow.ui".
+ *  A StateMachine permits to identify and drive the changes beetween the main states of i-score, like the user is in edition or execution mode.
+ *  MainWindow is aware of the hierarchical changes of timeBox, to maintain the _pCurrentTimebox (actual timebox in fullView), and permits to connect this timebox with the headerWiget.
+ *
+ *  @todo Creer une classe Editor pour regrouper GraphicsView, HeaderWidget, et la gestion des timebox. MainWindow ne devrait pas etre au courant et s'en occuper des timebox pour une meilleure séparation.
+ *
+ *  @brief i-score main class
+ *  @author Jaime Chao
+ *  @date 2013/2014
+*/
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
-  //Q_PROPERTY(Timebox currentTimebox READ currentTimebox WRITE setcurrentTimebox NOTIFY currentTimeboxChanged) ///@todo est-ce utile de le garder en property ?
 
 private:
-  Timebox *_pMainTimebox;
-  Timebox *_pCurrentTimebox;
+  Timebox *_pMainTimebox = nullptr; /// Timebox parent
+  Timebox *_pCurrentTimebox = nullptr; /// Current Timebox in fullView (showed by GraphicsView)
 
-  Ui::MainWindow *ui;
+  Ui::MainWindow *ui; /// pointer to elements stored in mainwindow.ui
   GraphicsView *_pView; /// pointer to ui->graphicsView
   QAction *_pDeleteAction;
-  QActionGroup *_pMouseActionGroup;
-  ///@todo Ajouter un offset si on clique au meme endroit qu'un objet déjà ajouté (par jC)
-  /*
-  qint16 _addOffset;
-  QPoint _previousPoint;
-  */
+  QActionGroup *_pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)
 
-  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications
+  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications. Especially for managing graphicals and interaction changes beetween execution and edition phases.
   QState *_initialState;
-  QState *_normalState;
+  QState *_normalState; /// parent state of edition and execution states
   QState *_editionState;
-  QState *_executionState;
+  QState *_executionState; /// parent state of running, paused and stopped state
   QState *_runningState;
   QState *_pausedState;
   QState *_stoppedState;
@@ -84,16 +89,11 @@ private:
 public:
   explicit MainWindow(QWidget *parent = 0);
 
-signals:
-    void currentTimeboxChanged(Timebox *arg);
-
 public slots:
-    void setDirty(bool on=true);
     void setMousePosition(QPointF point);
-    void changeCurrentTimeboxScene(); ///@todo transformer tout pour fonctionner avec API Timebox
+    void changeCurrentTimeboxScene();
 
 private slots:
-  void updateUi();
   void addItem(QPointF);
   void headerWidgetClicked();
   void deleteSelectedItems();
@@ -102,20 +102,14 @@ public:
   Timebox* currentTimebox() const { return _pCurrentTimebox; }
   void setcurrentTimebox(Timebox *arg);
 
-protected:
-  // QWidget interface
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-
 private:
   void createGraphics();
+  void createActions();
+  void createActionGroups();
   void createStates();
   void createTransitions();
-
-  void connectItem(QObject *item);
   void createConnections();
-  void createActionGroups();
-  void createActions();
+
 };
 
 #endif // MAINWINDOW_HPP
