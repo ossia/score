@@ -120,6 +120,7 @@ void TimeboxPresenter::createTransitions()
   _pHideState->addTransition(_pTimebox, SIGNAL(isFull()), _pFullSizeState); /// His child go from full to small
   _pHideState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// Sister of the timebox passing from full to small
 
+  ///@todo cette méthode de suppression n'est plus utilisée (on passe par mainWindow::deleteSelectedItems())
   _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
 }
 
@@ -191,7 +192,7 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
   PluginView *plugin;
   switch(pluginType) {
     case ScenarioPluginType:
-      { /// We have to put braces because we declare a new object
+      { /// We have to put braces because we declare a new object in a switch statement
         ScenarioView *scenarioView = new ScenarioView(pStorey);
         connect(scenarioView, SIGNAL(addTimebox(QGraphicsRectItem*)), this, SIGNAL(addBoxProxy(QGraphicsRectItem*))); /// We connect the plugin to a Proxy signal to route it to the class Timebox
         plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
@@ -231,7 +232,7 @@ void TimeboxPresenter::goHide()
 
 void TimeboxPresenter::createFullView()
 {
-  _pFullView = new TimeboxFullView(_pModel);
+  _pFullView = new TimeboxFullView(_pModel, _pTimebox);
   std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 
   /// @todo récupérer les plugins de smallsize

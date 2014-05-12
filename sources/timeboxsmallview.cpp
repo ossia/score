@@ -45,7 +45,7 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject,
            QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsFocusable);
 
-  setParent(parentObject);
+  setParent(parentObject); ///
 
   /// @todo Connect the model's members height and length to this class
   setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);
@@ -65,6 +65,7 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject,
   _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
   connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
   connect(_pModel, SIGNAL(nameChanged(QString)), _pHeader, SLOT(changeName(QString)));
+  connect(_pHeader, SIGNAL(destroyed()), parentObject, SLOT(deleteLater())); /// Connect header deletion with timebox (to avoid header becoming the only one deleted if selected)
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *pStorey)
@@ -93,7 +94,7 @@ QRectF TimeboxSmallView::boundingRect() const
 
 void TimeboxSmallView::keyPressEvent(QKeyEvent *event)
 {
-  ///@todo adapter cette méthode et la liaison de connexion existante pour rajouter une feature de keypress intéressante (par jC)
+  ///@todo adapter cette méthode et la liaison de connexion existante pour rajouter une feature de keypress intéressante "+" pour ajouter un plugin (par jC)
   /*
    *Now done in MainWindow::deleteSelectedItems()
   switch(event->key()) {

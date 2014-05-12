@@ -40,8 +40,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxstorey.hpp"
 #include "graphicsview.hpp"
 
-TimeboxFullView::TimeboxFullView(TimeboxModel *pModel)
-  : QGraphicsScene(0, 0, pModel->width(), pModel->height()),
+TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QObject *parent)
+  : QGraphicsScene(0, 0, pModel->width(), pModel->height(), parent),
     _pModel(pModel)
 {
   _pContainer = new QGraphicsWidget;

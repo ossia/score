@@ -195,10 +195,11 @@ void MainWindow::deleteSelectedItems()
   if (items.isEmpty())
       return;
 
-  QListIterator<QGraphicsItem*> i(items);
-  while (i.hasNext()) {
-      QScopedPointer<QGraphicsItem> item(i.next());
-      _pCurrentTimebox->fullView()->removeItem(item.data());
+  QListIterator<QGraphicsItem*> list(items);
+  while (list.hasNext()) {
+      if(QGraphicsWidget* gwidget = dynamic_cast<QGraphicsWidget*>(list.next())) {
+          gwidget->deleteLater();
+        }
     }
 }
 

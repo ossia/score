@@ -36,6 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
 #include "graphicsview.hpp"
+
 #include <QDebug>
 #include <QGraphicsRectItem>
 #include <QApplication>
@@ -66,10 +67,6 @@ Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, floa
 
 Timebox::~Timebox()
 {
-  delete _pSmallView;
-  delete _pFullView;
-  delete _pModel;
-  delete _pPresenter;
 }
 
 void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)
