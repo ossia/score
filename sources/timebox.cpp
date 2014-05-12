@@ -78,11 +78,11 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
       _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView, this);
     }
   else if(mode == FULL) {
-      _pFullView = new TimeboxFullView(_pModel);
+      _pFullView = new TimeboxFullView(_pModel, this);
       _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView, this);
     }
 
-  if(_pParent != NULL) {
+  if(_pParent != nullptr) {
       if(mode == SMALL) {
           _pParent->addChild(this);
         }
@@ -104,9 +104,16 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
 /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 void Timebox::goSmall()
 {
-  emit isSmall();
-  /// @todo toutes mes timebox soeurs doivent devenir small
-  _pParent->goFull();
+  if (_pParent == nullptr) {
+      /// Timebox with no parent is the mainTimebox.
+      /// @todo Construct a parent Timebox and switch this one in smallView (and in sandbox mode) (by jC)
+      return;
+    }
+  else {
+      emit isSmall();
+      /// @todo toutes mes timebox soeurs doivent devenir small (par jC)
+      _pParent->goFull();
+    }
 }
 
 /// bottom up (presenter -> mainwindow)
@@ -120,6 +127,7 @@ void Timebox::goFull()
       _pFullView = _pPresenter->fullView();
     }
   emit isFull();
+
   /// @todo toutes mes timebox soeurs doivent devenir hide
 }
 
@@ -130,7 +138,7 @@ void Timebox::goHide()
 
 void Timebox::addChild (QGraphicsRectItem *rectItem)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
@@ -140,7 +148,7 @@ void Timebox::addChild (QGraphicsRectItem *rectItem)
 
 void Timebox::addChild(Timebox *other)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
@@ -151,7 +159,7 @@ void Timebox::addChild(Timebox *other)
 
 void Timebox::addChild(TimeEvent *timeEvent)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
