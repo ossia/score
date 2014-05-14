@@ -55,7 +55,7 @@ TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QObject *parent)
   _pContainer->setLayout(_pLayout);
 
   addItem(_pContainer);
-  setBackgroundBrush(QBrush(QColor(Qt::gray), Qt::BDiagPattern));
+  setBackgroundBrush(QBrush(QColor(Qt::gray), Qt::BDiagPattern)); /// Used with GraphicsView::drawBackground()
 }
 
 void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
