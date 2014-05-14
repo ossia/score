@@ -36,23 +36,32 @@ class QGraphicsRectItem;
 #include "pluginview.hpp"
 #include <QPointF>
 
+/*!
+ *  View of the Scenario plugin, inherits the class PluginView.
+ *  Permits to draw a timebox in smallView, and add it as child to the current one in fullView. @n
+ *  NOTE : in ScoreAPI the hierarchy is managed by Scenario, in i-score it is managed by Timebox.
+ *
+ *  @brief View of the Scenario plugin
+ *  @author Jaime Chao
+ *  @date 2013/2014
+ */
 class ScenarioView : public PluginView
 {
   Q_OBJECT
 
 private:
-  QGraphicsRectItem *_pTemporaryBox = nullptr;  //!< Temporary box when a creation is in progress.
-  QPointF _pressPoint;                          //!< Last pression point.
-  QPointF _releasePoint;                        //!< Last release point.
+  QGraphicsRectItem *_pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
+  QPointF _pressPoint;                          /// Last pression point.
+  QPointF _releasePoint;                        /// Last release point.
 
-  static const int MIN_BOX_WIDTH = 50;
-  static const int MIN_BOX_HEIGHT = 30;
+  static const int MIN_BOX_WIDTH = 100;          /// The minimal width constraint to the new timebox being added
+  static const int MIN_BOX_HEIGHT = 50;
 
 public:
   ScenarioView(QGraphicsItem *parent = 0);
 
 signals:
-  void addTimebox(QGraphicsRectItem *rectItem);
+  void addTimebox(QGraphicsRectItem *rectItem);  /// Add a child timebox to the current one
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);

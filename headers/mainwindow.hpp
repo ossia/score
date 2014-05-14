@@ -68,10 +68,10 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 private:
-  Timebox *_pMainTimebox = nullptr; /// Timebox parent
-  Timebox *_pCurrentTimebox = nullptr; /// Current Timebox in fullView (showed by GraphicsView)
+  Timebox *_pMainTimebox = nullptr;     /// Timebox parent
+  Timebox *_pCurrentTimebox = nullptr;  /// Current Timebox in fullView (showed by GraphicsView)
 
-  Ui::MainWindow *ui; /// pointer to elements stored in mainwindow.ui
+  Ui::MainWindow *ui;   /// pointer to elements stored in mainwindow.ui
   GraphicsView *_pView; /// pointer to ui->graphicsView
   QAction *_pDeleteAction;
   QActionGroup *_pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)

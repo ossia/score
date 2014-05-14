@@ -45,12 +45,12 @@ knowledge of the CeCILL license and that you accept its terms.
 GraphicsView::GraphicsView(QWidget *parent)
   : QGraphicsView(parent)
 {
-  setSceneRect(QRectF()); /// we unset graphicsView sceneRect to give this ability to graphicsScene
-  setMouseTracking(true); /// Permits to emit mousePosition() when moving the mouse
+  setSceneRect(QRectF()); // we unset graphicsView sceneRect to give this ability to graphicsScene
+  setMouseTracking(true); // Permits to emit mousePosition() when moving the mouse
   setAlignment(Qt::AlignLeft | Qt::AlignTop);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  setBackgroundBrush(Qt::NoBrush); /// Used in drawBackground().
+  setBackgroundBrush(Qt::NoBrush); // Used in drawBackground().
 }
 
 void GraphicsView::mouseDragMode(QAction* action)
@@ -103,13 +103,13 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
 /// @todo Il faut reinitialiser la viewMatrix en sortie de fullview
 void GraphicsView::fitFullView()
 {
-  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
   if(window != NULL) {
-      if(window->currentTimebox()->model()->width() < this->width()) { /// We scale only if the graphicsView is larger than the timebox in fullView
+      if(window->currentTimebox()->model()->width() < this->width()) { // We scale only if the graphicsView is larger than the timebox in fullView
           foreach (QGraphicsItem *item, scene()->items()) {
               QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget *>(item);
               if(graphicsWidget != NULL) {
-                  if(graphicsWidget->objectName().compare("container")) /// Test if the graphicsWidget is named "container" (set in timeboxFullView)
+                  if(graphicsWidget->objectName().compare("container")) // Test if the graphicsWidget is named "container" (set in timeboxFullView)
                     fitInView(graphicsWidget, Qt::KeepAspectRatioByExpanding);
                 }
             }
@@ -126,8 +126,8 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
 /// @todo Solution temporaire à fitFullView()
 void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
 {
-  QRectF rectOutside; /// rectangle outside the current timebox in fullview
-  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
+  QRectF rectOutside; // rectangle outside the current timebox in fullview
+  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
   if(window != NULL) {
       qreal x = window->currentTimebox()->model()->width();
       rectOutside = rect;
@@ -153,12 +153,12 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
 /// Horizontal scaling with constraints checking
 void GraphicsView::scaleView(qreal scaleFactor)
 {
-    /// Permits to constrain the scaling
+    // Permits to constrain the scaling
     qreal factor = transform().scale(scaleFactor, 1.).mapRect(QRectF(0, 0, 1, 1)).width();
     if (factor < 0.07 || factor > 100)
         return;
 
-    scale(scaleFactor, 1.); /// horizontal scaling
+    scale(scaleFactor, 1.); // horizontal scaling
 }
 
 void GraphicsView::zoomIn()
