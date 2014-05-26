@@ -13,6 +13,8 @@ TEMPLATE = app
 TARGET = i-scoreRecast
 CONFIG += c++11 warn_on
 
+QMAKE_LFLAGS += -L/usr/local/lib/jamoma/lib -L/usr/local/lib/ -Wl,-rpath,/usr/local/jamoma/lib -Wl,-rpath,/usr/local/jamoma/extensions
+
 SOURCES += sources/main.cpp \
     sources/mainwindow.cpp \
     sources/timeevent.cpp \
