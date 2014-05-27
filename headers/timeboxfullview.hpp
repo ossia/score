@@ -51,7 +51,6 @@ private:
 public:
   TimeboxFullView(TimeboxModel *pModel, QObject *parent);
 
-public :
   void addStorey(TimeboxStorey *pStorey);
   QGraphicsWidget* container() const {return _pContainer;}
 };

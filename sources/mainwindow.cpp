@@ -173,7 +173,7 @@ void MainWindow::addItem(QPointF pos)
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      TimeEvent* pEvent = new TimeEvent(pos, 0);
+      TimeEvent* pEvent = new TimeEvent(_pCurrentTimebox, pos);
       _pCurrentTimebox->addChild(pEvent);
     }
   else if(type == BoxItemType) {

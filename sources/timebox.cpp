@@ -36,6 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
 #include "graphicsview.hpp"
+#include "timeeventview.hpp"
 
 #include <QDebug>
 #include <QGraphicsRectItem>
@@ -145,7 +146,6 @@ void Timebox::addChild (QGraphicsRectItem *rectItem)
   new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
 }
 
-
 void Timebox::addChild(Timebox *other)
 {
   if(_pFullView == nullptr) {
@@ -163,9 +163,12 @@ void Timebox::addChild(TimeEvent *timeEvent)
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
-  _pFullView->addItem(timeEvent);
+
+  _pFullView->addItem(timeEvent->view());
+
+  /// @todo Problème avec la selection
   _pFullView->clearSelection();
-  timeEvent->setSelected(true);
+  //timeEvent->setSelected(true);
 }
 
 

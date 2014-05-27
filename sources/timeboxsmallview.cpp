@@ -38,14 +38,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsLinearLayout>
 #include <QDebug>
 
-TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject, QGraphicsItem *parentGraphics) ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
-  : QGraphicsWidget(parentGraphics), _pModel(pModel)
+TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject, QGraphicsItem *parentGraphics) ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ? (par jC)
+  : QGraphicsWidget(parentGraphics), _pModel(pModel) /// @todo parentGraphics n'est pas utilisé, mais appel de Timebox::addChild(Timebox*) dans un second temps (par jC)
 {
   setFlags(QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsFocusable);
 
-  setParent(parentObject); ///
+  setParent(parentObject); /// Timebox is the parent object (especially for destruction)
 
   /// @todo Connect the model's members height and length to this class
   setGeometry(_pModel->time(), _pModel->yPosition(), _pModel->width(), 1);

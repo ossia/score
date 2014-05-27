@@ -28,30 +28,47 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeevent.hpp"
-#include "timeeventmodel.hpp"
-#include "timeeventpresenter.hpp"
 #include "timeeventview.hpp"
-#include "timebox.hpp"
-#include "timeboxfullview.hpp"
+#include "timeeventmodel.hpp"
+#include "timeevent.hpp"
 
-int TimeEvent::staticId = 1;
+#include <QPen>
+#include <QPainter>
 
-TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
-  : QObject(pParent)
+TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
+  QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(100)
 {
-  ///If no name was given, we construct a name with a unique ID
-  QString name = QString("TimeEvent%1").arg(staticId++);
-  setObjectName(name);
+  setFlags(QGraphicsItem::ItemIsSelectable |
+           QGraphicsItem::ItemIsMovable |
+           QGraphicsItem::ItemSendsGeometryChanges);
 
-  _pModel = new TimeEventModel(pos.x(), pos.y(), name, this);
-  _pView = new TimeEventView(_pModel, this);
-  _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
+  setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
+  setPos(_pModel->time(), _pModel->yPosition());
+  setSelected(true);
 }
 
-TimeEvent::~TimeEvent()
+QRectF TimeEventView::boundingRect() const
 {
+  return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
+                2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
 }
 
-///@todo addTimeboxandTimeEvent()
+void TimeEventView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
 
+  QPen pen(Qt::SolidPattern, _penWidth);
+  pen.setCosmetic(true);
+  painter->setPen(pen);
+  painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
+  painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+}
+
+QPainterPath TimeEventView::shape() const
+{
+  QPainterPath path;
+  path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+  path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
+  return path;
+}

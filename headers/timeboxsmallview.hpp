@@ -37,7 +37,17 @@ class TimeboxModel;
 class QGraphicsLinearLayout;
 class Timebox;
 
+#include "utils.hpp"
 #include <QGraphicsWidget>
+
+/*!
+ *  This class is the graphical representation of a child Timebox.
+ *  This class manages a TimeboxHeader and the storeys with the Qt layout system.
+ *
+ *  @brief Timebox small view
+ *  @author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
+ */
 
 class TimeboxSmallView : public QGraphicsWidget
 {
@@ -56,9 +66,10 @@ signals:
   void headerDoubleClicked();
   void suppressTimebox();
 
-public slots:
-
 public:
+  enum {Type = BoxItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  virtual int type() const {return Type;}
+
   void addStorey(TimeboxStorey *pStorey);
 
   // QGraphicsItem interface

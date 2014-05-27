@@ -40,7 +40,7 @@ class TTTimeProcess;
 #include "scenarioview.hpp"
 #include "graphicsview.hpp"
 #include "timebox.hpp"
-#include "state.hpp"
+#include "statedebug.hpp"
 
 #include <QDebug>
 #include <QGraphicsRectItem>
@@ -87,9 +87,9 @@ void TimeboxPresenter::createStates()
   // creating a new top-level state
   _pNormalState = new QState();
 
-  _pSmallSizeState = new State("smallSize", parent()->objectName(), _pNormalState);
-  _pFullSizeState = new State("fullSize", parent()->objectName(), _pNormalState);
-  _pHideState = new State("hide", parent()->objectName(), _pNormalState);
+  _pSmallSizeState = new StateDebug("smallSize", parent()->objectName(), _pNormalState);
+  _pFullSizeState = new StateDebug("fullSize", parent()->objectName(), _pNormalState);
+  _pHideState = new StateDebug("hide", parent()->objectName(), _pNormalState);
 
   if(_mode == FULL) {
       _pNormalState->setInitialState(_pFullSizeState);

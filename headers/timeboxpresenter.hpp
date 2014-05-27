@@ -43,12 +43,21 @@ class QFinalState;
 class QStateMachine;
 class QState;
 class Timebox;
-class State;
+class StateDebug;
 
 #include "timebox.hpp"
 #include <QObject>
 #include <unordered_map>
 #include "utils.hpp"
+
+/*!
+ *  This class is the logic of a Timebox view, independently of the actual graphical representations of a Timebox ; which can be full, small or hide.
+ *  This class drives the different states of a timebox and the permitted transitions beetween them.
+ *
+ *  @brief Timebox view logic
+ *  @author Jaime Chao
+ *  @date 2014
+ */
 
 class TimeboxPresenter : public QObject
 {
@@ -69,9 +78,9 @@ private:
   QStateMachine *_pStateMachine; /// Permits to maintaining state in complex applications
   QState *_pInitialState;
   QState *_pNormalState;
-  State *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  State *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
-  State *_pHideState; /// When the graphical timeProcess is not showed in the view
+  StateDebug *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+  StateDebug *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
+  StateDebug *_pHideState; /// When the graphical timeProcess is not showed in the view
   QFinalState *_pFinalState;
 
 public:
@@ -81,7 +90,7 @@ public:
 
 signals:
   void viewModeIsFull();
-  void addBoxProxy(QGraphicsRectItem *rectItem);
+  void addBoxProxy(QGraphicsRectItem *rectItem); /// Proxy signal from Scenario plugin to Timebox
   void suppressTimeboxProxy();
 
 public slots:

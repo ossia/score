@@ -34,22 +34,20 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <list>
 #include <QObject>
 #include <QVector>
+#include <QString>
 
 class TTTimeProcess;
-class GraphicsTimeEvent;
-class QGraphicsScene;
-class QGraphicsItem;
-class QString;
 class Timebox;
 
 /*!
- *  The model is linked with Score, and permits to maintain all elements used later by
- *  the other classes of Timebox API
+ *  The model is linked with OSSIA API, and permits to maintain all elements used later by
+ *  the other classes of Timebox.
  *
  *  @brief Maintain the model of a Timebox, no graphics here.
  *  @author Jaime Chao, Clément Bossut
  *  @date 2013/2014
 */
+
 class TimeboxModel : public QObject
 {
   Q_OBJECT
@@ -69,6 +67,13 @@ private:
 public:
   TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent);
 
+signals:
+  void nameChanged(QString arg);
+
+public slots:
+  void setname(QString arg);
+
+public:
   int time() const {return _time;}
   int yPosition() const {return _yPosition;}
   int width() const {return _width;}
@@ -88,12 +93,6 @@ public:
   void removePluginFull();
 
   QString name() const {return _name;}
-
-public slots:
-  void setname(QString arg);
-
-signals:
-  void nameChanged(QString arg);
 };
 
 #endif // TIMEBOXMODEL_HPP

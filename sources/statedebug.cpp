@@ -28,42 +28,49 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef GRAPHICSTIMEEVENT_HPP
-#define GRAPHICSTIMEEVENT_HPP
+#include "statedebug.hpp"
+#include <QDebug>
 
-class TimeEventModel;
-class TimeEventPresenter;
-class TimeEventView;
-class Timebox;
-class GraphicsView;
-
-#include <QObject>
-#include"utils.hpp"
-
-/*!
- *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
- *
- *  @brief TimeEvent Interface
- *  @author Jaime Chao
- *  @date 2014
- */
-
-class TimeEvent : public QObject
+StateDebug::StateDebug( const QString& name, QState* parent )
+    : QState( parent ),
+      m_name( name ),
+      m_prefix()
 {
-  Q_OBJECT
+}
 
-private:
-  TimeEventModel *_pModel = nullptr;
-  TimeEventPresenter *_pPresenter = nullptr;
-  TimeEventView *_pView = nullptr;
+StateDebug::StateDebug( const QString& name, const QString& prefix, QState* parent )
+    : QState( parent ),
+      m_name( name ),
+      m_prefix( prefix )
+{
+}
 
-  static int staticId; /// Give a unique number to each instance of TimeEvent
+void StateDebug::onEntry( QEvent* e )
+{
+    Q_UNUSED( e );
 
-public:
-  TimeEvent(Timebox *pParent, const QPointF &pos);
-  ~TimeEvent();
+    // Print out the state we are entering and it's parents
+    QString state = m_name;
+    StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+    while ( parent != 0 )
+    {
+        state = parent->name() + "->" + state;
+        parent = dynamic_cast<StateDebug*>( parent->parentState() );
+    }
+    qDebug() << m_prefix << "Entering state:" << state;
+}
 
-  TimeEventView* view() const {return _pView;}
-};
+void StateDebug::onExit( QEvent* e )
+{
+    Q_UNUSED( e );
 
-#endif // GRAPHICSTIMEEVENT_HPP
+    // Print out the state we are exiting and it's parents
+    QString state = m_name;
+    StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+    while ( parent != 0 )
+    {
+        state = parent->name() + "->" + state;
+        parent = dynamic_cast<StateDebug*>( parent->parentState() );
+    }
+    qDebug() << m_prefix << "Exiting state:" << state;
+}

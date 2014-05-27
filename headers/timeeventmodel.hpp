@@ -28,33 +28,37 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef STATE_HPP
-#define STATE_HPP
+#ifndef TIMEEVENTMODEL_HPP
+#define TIMEEVENTMODEL_HPP
 
-#include <QState>
+#include <QObject>
+#include <QString>
 
-class State : public QState
+class TimeEvent;
+
+/*!
+ *  The model is linked with OSSIA API, and permits to maintain all elements used later by
+ *  the other classes of TimeEvent.
+ *
+ *  @brief Maintain the model of a TimeEvent, no graphics here.
+ *  @author Jaime Chao
+ *  @date 2014
+*/
+
+class TimeEventModel : public QObject
 {
   Q_OBJECT
+
+private:
+  int _time, _yPosition;
+  QString _name;
+
 public:
-  explicit State( const QString& name, QState* parent = 0 );
-  explicit State( const QString& name, const QString& prefix, QState* parent = 0 );
+  TimeEventModel(int t, int y, QString name, TimeEvent *parent);
 
-  QString name() const { return m_name; }
-  QString prefix() const { return m_prefix; }
-
-public slots:
-  void setName( const QString& name ) { m_name = name; }
-  void setPrefix( const QString& prefix ) { m_prefix = prefix; }
-
-protected:
-  virtual void onEntry( QEvent* e );
-  virtual void onExit( QEvent* e );
-
-protected:
-  QString m_name;
-  QString m_prefix;
-
+  int time() const {return _time;}
+  int yPosition() const {return _yPosition;}
+  QString name() const {return _name;}
 };
 
-#endif // STATE_HPP
+#endif // TIMEEVENTMODEL_HPP

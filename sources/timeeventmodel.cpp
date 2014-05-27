@@ -28,49 +28,10 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "state.hpp" 
-#include <QDebug>
+#include "timeeventmodel.hpp"
+#include "timeevent.hpp"
 
-State::State( const QString& name, QState* parent )
-    : QState( parent ),
-      m_name( name ),
-      m_prefix()
+TimeEventModel::TimeEventModel(int t, int y, QString name, TimeEvent *parent)
+  : QObject(parent), _time(t), _yPosition(y), _name(name)
 {
-}
-
-State::State( const QString& name, const QString& prefix, QState* parent )
-    : QState( parent ),
-      m_name( name ),
-      m_prefix( prefix )
-{
-}
-
-void State::onEntry( QEvent* e )
-{
-    Q_UNUSED( e );
-
-    // Print out the state we are entering and it's parents
-    QString state = m_name;
-    State* parent = dynamic_cast<State*>( parentState() );
-    while ( parent != 0 )
-    {
-        state = parent->name() + "->" + state;
-        parent = dynamic_cast<State*>( parent->parentState() );
-    }
-    qDebug() << m_prefix << "Entering state:" << state;
-}
-
-void State::onExit( QEvent* e )
-{
-    Q_UNUSED( e );
-
-    // Print out the state we are exiting and it's parents
-    QString state = m_name;
-    State* parent = dynamic_cast<State*>( parentState() );
-    while ( parent != 0 )
-    {
-        state = parent->name() + "->" + state;
-        parent = dynamic_cast<State*>( parent->parentState() );
-    }
-    qDebug() << m_prefix << "Exiting state:" << state;
 }
