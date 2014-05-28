@@ -66,9 +66,8 @@ private:
   static int staticId; /// Give a unique number to each instance of Timebox
 
 public:
-  Timebox(Timebox *pParent = 0);
-  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode);
-  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name);
+  explicit Timebox(Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
+  explicit Timebox(Timebox *pParent, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
   ~Timebox();
 
 signals:
@@ -91,7 +90,7 @@ public:
   TimeboxFullView* fullView() const {return _pFullView;} /// Used by Mainwindow to retrieve the selected items
 
 private:
-  void init(const QPointF &pos, float height, float width, ViewMode mode, QString name);
+  void init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name);
 };
 
 #endif // TIMEBOX_HPP

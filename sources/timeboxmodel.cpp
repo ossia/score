@@ -30,6 +30,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "timeboxmodel.hpp"
 #include "timebox.hpp"
+#include "timeevent.hpp"
+
 #include <QFinalState>
 #include <QGraphicsScene>
 

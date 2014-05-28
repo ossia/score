@@ -44,34 +44,35 @@ knowledge of the CeCILL license and that you accept its terms.
 
 int Timebox::staticId = 1;
 
-Timebox::Timebox(Timebox *pParent)
-  : QObject(pParent)
-{
-}
-
-Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
+Timebox::Timebox(Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name)
   : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
-  ///If no name was given, we construct a name with a unique ID
-  QString name = QString("Timebox%1").arg(staticId++);
-  setObjectName(name);
-
-  init(pos, height, width, mode, name);
+  init(pTimeEventStart, pTimeEventEnd, pos, height, width, mode, name);
 }
 
-Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name)
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name)
   : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
-  ///@todo Vérifier si le nom existe déjà
-  init(pos, height, width, mode, name);
+  TimeEvent *timeEventStart = new TimeEvent(pParent, pos);
+  QPointF posEnd = pos + QPointF(width, 0);
+  TimeEvent *timeEventEnd = new TimeEvent(pParent, posEnd);
+
+  init(timeEventStart, timeEventEnd, pos, height, width, mode, name);
 }
 
 Timebox::~Timebox()
 {
 }
 
-void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)
+void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name)
 {
+  ///@todo Vérifier si le nom existe déjà (par jC)
+  if (name.isEmpty()){
+      /// If no name was given, we construct a name with a unique ID
+      QString name = QString("Timebox%1").arg(staticId++);
+      setObjectName(name);
+    }
+
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
 
   if(mode == SMALL) {

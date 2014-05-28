@@ -38,6 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class TTTimeProcess;
 class Timebox;
+class TimeEvent;
 
 /*!
  *  The model is linked with OSSIA API, and permits to maintain all elements used later by
@@ -55,14 +56,13 @@ class TimeboxModel : public QObject
   Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
 
 private:
-  /// @todo creer les time event de début et de fin
-  //GraphicsTimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
-  //GraphicsTimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
-
   int _time, _yPosition, _width, _height;
   QString _name;
   std::list<TTTimeProcess*> _pluginsSmallView;
   std::list<TTTimeProcess*> _pluginsFullView;
+
+  TimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
+  TimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
 public:
   TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent);
