@@ -47,6 +47,8 @@ TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
   _pModel = new TimeEventModel(pos.x(), pos.y(), name, this);
   _pView = new TimeEventView(_pModel, this);
   _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
+
+  pParent->addChild(this);
 }
 
 TimeEvent::~TimeEvent()

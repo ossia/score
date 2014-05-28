@@ -38,7 +38,7 @@ class QGraphicsRectItem;
 
 /*!
  *  View of the Scenario plugin, inherits the class PluginView.
- *  Permits to draw a timebox in smallView, and add it as child to the current one in fullView. @n
+ *  Permits to add a TimeEvent and draw a Timebox in smallView by adding it as child to the current one in fullView. @n
  *  NOTE : in ScoreAPI the hierarchy is managed by Scenario, in i-score it is managed by Timebox.
  *
  *  @brief View of the Scenario plugin

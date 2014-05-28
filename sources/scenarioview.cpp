@@ -29,6 +29,11 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "scenarioview.hpp"
+#include "timeevent.hpp"
+#include "mainwindow.hpp"
+#include "timebox.hpp"
+
+#include <QApplication>
 #include <QGraphicsObject>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsRectItem>
@@ -45,23 +50,35 @@ ScenarioView::ScenarioView(QGraphicsItem *parent)
 
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-  /// @todo Testing if no one is under the mousePosition. uncomment when done
-  //scene()->views().first()->itemAt(mouseEvent->scenePos().toPoint()) == 0)
+  if (mouseEvent->button() == Qt::LeftButton) {
 
-  // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
-  if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
-      if (_pTemporaryBox != nullptr) {
-          delete _pTemporaryBox;
-          _pTemporaryBox = nullptr;
+      // Create a TimeEvent in case of Command + LeftClick
+      if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
+          MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
+          if(window != NULL) {
+              Timebox *tb = window->currentTimebox();
+              new TimeEvent(tb, mouseEvent->pos()); // TimeEvent is child of current Timebox in fullView
+            }
         }
 
-      // Store the first pressed point
-      _pressPoint = mouseEvent->pos();
+      /// @todo Testing if no one is under the mousePosition. uncomment when done
+      //scene()->views().first()->itemAt(mouseEvent->scenePos().toPoint()) == 0)
 
-      // Add the temporary box to the scene
-      _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
-      _pTemporaryBox->setPen(QPen(Qt::black));
-      _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
+      // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
+      if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
+          if (_pTemporaryBox != nullptr) {
+              delete _pTemporaryBox;
+              _pTemporaryBox = nullptr;
+            }
+
+          // Store the first pressed point
+          _pressPoint = mouseEvent->pos();
+
+          // Add the temporary box to the scene
+          _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
+          _pTemporaryBox->setPen(QPen(Qt::black));
+          _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
+        }
     }
 }
 
