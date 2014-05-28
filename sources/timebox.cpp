@@ -36,44 +36,43 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
 #include "graphicsview.hpp"
+#include "timeeventview.hpp"
+
 #include <QDebug>
 #include <QGraphicsRectItem>
 #include <QApplication>
 
 int Timebox::staticId = 1;
 
-Timebox::Timebox(Timebox *pParent)
-  : QObject(pParent)
-{
-}
-
-Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode)
+Timebox::Timebox(Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name)
   : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
-  ///If no name was given, we construct a name with a unique ID
-  QString name = QString("Timebox%1").arg(staticId++);
-  setObjectName(name);
-
-  init(pos, height, width, mode, name);
+  init(pTimeEventStart, pTimeEventEnd, pos, height, width, mode, name);
 }
 
-Timebox::Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name)
+Timebox::Timebox(Timebox *pParent, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name)
   : QObject(pParent), _pGraphicsView(pView), _pParent(pParent)
 {
-  ///@todo Vérifier si le nom existe déjà
-  init(pos, height, width, mode, name);
+  TimeEvent *timeEventStart = new TimeEvent(pParent, pos);
+  QPointF posEnd = pos + QPointF(width, 0);
+  TimeEvent *timeEventEnd = new TimeEvent(pParent, posEnd);
+
+  init(timeEventStart, timeEventEnd, pos, height, width, mode, name);
 }
 
 Timebox::~Timebox()
 {
-  delete _pSmallView;
-  delete _pFullView;
-  delete _pModel;
-  //delete _pPresenter;
 }
 
-void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode, QString name)
+void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name)
 {
+  ///@todo Vérifier si le nom existe déjà (par jC)
+  if (name.isEmpty()){
+      /// If no name was given, we construct a name with a unique ID
+      QString name = QString("Timebox%1").arg(staticId++);
+      setObjectName(name);
+    }
+
   _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
 
   if(mode == SMALL) {
@@ -81,12 +80,11 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
       _pPresenter = new TimeboxPresenter(_pModel, _pSmallView, _pGraphicsView, this);
     }
   else if(mode == FULL) {
-      _pFullView = new TimeboxFullView(_pModel);
+      _pFullView = new TimeboxFullView(_pModel, this);
       _pPresenter = new TimeboxPresenter(_pModel, _pFullView, _pGraphicsView, this);
-      _pScene = _pFullView;
     }
 
-  if(_pParent != NULL) {
+  if(_pParent != nullptr) {
       if(mode == SMALL) {
           _pParent->addChild(this);
         }
@@ -108,9 +106,16 @@ void Timebox::init(const QPointF &pos, float height, float width, ViewMode mode,
 /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 void Timebox::goSmall()
 {
-  emit isSmall();
-  /// @todo toutes mes timebox soeurs doivent devenir small
-  _pParent->goFull();
+  if (_pParent == nullptr) {
+      /// Timebox with no parent is the mainTimebox.
+      /// @todo Construct a parent Timebox and switch this one in smallView (and in sandbox mode) (by jC)
+      return;
+    }
+  else {
+      emit isSmall();
+      /// @todo toutes mes timebox soeurs doivent devenir small (par jC)
+      _pParent->goFull();
+    }
 }
 
 /// bottom up (presenter -> mainwindow)
@@ -124,6 +129,7 @@ void Timebox::goFull()
       _pFullView = _pPresenter->fullView();
     }
   emit isFull();
+
   /// @todo toutes mes timebox soeurs doivent devenir hide
 }
 
@@ -134,17 +140,16 @@ void Timebox::goHide()
 
 void Timebox::addChild (QGraphicsRectItem *rectItem)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
   new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
 }
 
-
 void Timebox::addChild(Timebox *other)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
@@ -155,13 +160,16 @@ void Timebox::addChild(Timebox *other)
 
 void Timebox::addChild(TimeEvent *timeEvent)
 {
-  if(_pFullView == NULL) {
+  if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
-  _pFullView->addItem(timeEvent);
+
+  _pFullView->addItem(timeEvent->view());
+
+  /// @todo Problème avec la selection
   _pFullView->clearSelection();
-  timeEvent->setSelected(true);
+  //timeEvent->setSelected(true);
 }
 
 

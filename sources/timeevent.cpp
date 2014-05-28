@@ -29,44 +29,33 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventpresenter.hpp"
+#include "timeeventview.hpp"
+#include "timebox.hpp"
+#include "timeboxfullview.hpp"
 
-TimeEvent::TimeEvent(const QPointF &position, QGraphicsItem *parent)
-  : QGraphicsObject(parent), _penWidth(1), _circleRadii(10), _height(100)
+int TimeEvent::staticId = 1;
+
+TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
+  : QObject(pParent)
 {
-  setFlags(QGraphicsItem::ItemIsSelectable |
-           QGraphicsItem::ItemIsMovable |
-           QGraphicsItem::ItemSendsGeometryChanges);
+  ///If no name was given, we construct a name with a unique ID
+  QString name = QString("TimeEvent%1").arg(staticId++);
+  setObjectName(name);
 
-  setPos(position);
+  _pModel = new TimeEventModel(pos.x(), pos.y(), name, this);
+  _pView = new TimeEventView(_pModel, this);
+  _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
+
+  if (pParent != nullptr) {
+      pParent->addChild(this);
+    }
 }
 
-void TimeEvent::setDate(quint32 date)
+TimeEvent::~TimeEvent()
 {
-  _date = date;
 }
 
-QRectF TimeEvent::boundingRect() const
-{
-  return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
-                2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
-}
+///@todo addTimeboxandTimeEvent()
 
-void TimeEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
-
-  QPen pen(Qt::SolidPattern, _penWidth);
-  pen.setCosmetic(true);
-  painter->setPen(pen);
-  painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
-  painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
-}
-
-QPainterPath TimeEvent::shape() const
-{
-  QPainterPath path;
-  path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
-  path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
-  return path;
-}

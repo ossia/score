@@ -45,6 +45,7 @@ QRectF PluginView::boundingRect() const
 
 void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+  //Uncomment to show a cross pattern in an empty plugin
   //painter->setPen(Qt::NoPen);
   //painter->setBrush(Qt::CrossPattern);
   //painter->drawRect(_boundingRectangle);

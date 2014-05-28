@@ -49,9 +49,8 @@ private:
   QGraphicsLinearLayout *_pLayout;
 
 public:
-  TimeboxFullView(TimeboxModel *pModel);
+  TimeboxFullView(TimeboxModel *pModel, QObject *parent);
 
-public :
   void addStorey(TimeboxStorey *pStorey);
   QGraphicsWidget* container() const {return _pContainer;}
 };

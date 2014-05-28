@@ -31,7 +31,10 @@ SOURCES += sources/main.cpp \
     sources/headerwidget.cpp \
     sources/timebox.cpp \
     sources/scenarioview.cpp \
-    sources/state.cpp
+    sources/statedebug.cpp \
+    sources/timeeventpresenter.cpp \
+    sources/timeeventview.cpp \
+    sources/timeeventmodel.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -51,7 +54,10 @@ HEADERS  += headers/mainwindow.hpp \
     headers/headerwidget.hpp \
     headers/timebox.hpp \
     headers/scenarioview.hpp \
-    headers/state.hpp
+    headers/statedebug.hpp \
+    headers/timeeventpresenter.hpp \
+    headers/timeeventview.hpp \
+    headers/timeeventmodel.hpp
 
 RESOURCES += resources/resource.qrc
 

@@ -1,10 +1,12 @@
 /**
 	@mainpage Documentation
 
-	i-score est un séquenceur temps souple pour le spectacle vivant. C'est un outil d'édition qui repose en grande partie sur la librairie Score. @n
+	i-score est un séquenceur temps souple pour le spectacle vivant, un outil d'édition se scénarios temporels qui repose en grande partie sur la librairie Score, une sorte de chef d'orchestre pour d'autres environnement de création (protocole de communication : Minuit et OSC). @n
+	Ce logiciel est une interface graphique permettant à des utilisateurs non-spécialistes de la programmation informatique de créer des scénarios interactifs complexes en rendant transparent à l’utilisateur le formalisme sous-jacent à la création des scénarios.
+
 	Cette version reprend depuis le départ le code source pour notamment permettre : 
 	- une meilleure gestion de la hiérarchie des scénarios ;
-	- un couplage plus simple à la librairie @ref jamoma
+	- un couplage plus direct à la librairie @ref Score
 
 	Une explication plus détaillée des choix d'architecture de programmation sera présentée ici en plus des commentaires de classes propres à Doxygen.
 	
@@ -14,6 +16,7 @@
 	- @subpage page_Qt
 	- @subpage page_terminologie
 	- @subpage page_codingStyle
+	- @subpage page_explicationCode
 	- @subpage page_lien
 	- @subpage page_contact
 

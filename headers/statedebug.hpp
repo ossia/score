@@ -28,42 +28,42 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef GRAPHICSTIMEEVENT_HPP
-#define GRAPHICSTIMEEVENT_HPP
+#ifndef STATE_HPP
+#define STATE_HPP
 
-class TimeEventModel;
-class TimeEventPresenter;
-class TimeEventView;
-class Timebox;
-class GraphicsView;
-
-#include <QObject>
-#include"utils.hpp"
+#include <QState>
 
 /*!
- *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
+ *  This class permits to debug QState, by showing a message when entering and exiting the State.
  *
- *  @brief TimeEvent Interface
- *  @author Jaime Chao
- *  @date 2014
+ *  @brief QState debug info
+ *  @author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
  */
 
-class TimeEvent : public QObject
+class StateDebug : public QState
 {
   Q_OBJECT
 
-private:
-  TimeEventModel *_pModel = nullptr;
-  TimeEventPresenter *_pPresenter = nullptr;
-  TimeEventView *_pView = nullptr;
-
-  static int staticId; /// Give a unique number to each instance of TimeEvent
-
 public:
-  TimeEvent(Timebox *pParent, const QPointF &pos);
-  ~TimeEvent();
+  explicit StateDebug( const QString& name, QState* parent = 0 );
+  explicit StateDebug( const QString& name, const QString& prefix, QState* parent = 0 );
 
-  TimeEventView* view() const {return _pView;}
+  QString name() const { return m_name; }
+  QString prefix() const { return m_prefix; }
+
+public slots:
+  void setName( const QString& name ) { m_name = name; }
+  void setPrefix( const QString& prefix ) { m_prefix = prefix; }
+
+protected:
+  virtual void onEntry( QEvent* e );
+  virtual void onExit( QEvent* e );
+
+protected:
+  QString m_name;
+  QString m_prefix;
+
 };
 
-#endif // GRAPHICSTIMEEVENT_HPP
+#endif // STATE_HPP

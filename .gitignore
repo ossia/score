@@ -12,3 +12,5 @@ i-scoreRecast.pro.user
 # Eclipse
 .cproject
 .project
+
+/i-scoreRecast.app/

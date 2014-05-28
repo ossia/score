@@ -28,42 +28,47 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "timeboxmodel.hpp"
-#include "timebox.hpp"
+#include "timeeventview.hpp"
+#include "timeeventmodel.hpp"
 #include "timeevent.hpp"
 
-#include <QFinalState>
-#include <QGraphicsScene>
+#include <QPen>
+#include <QPainter>
 
-TimeboxModel::TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent)
-  : QObject(parent), _time(t), _yPosition(y), _width(w), _height(h), _name(name)
+TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
+  QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(100)
 {
+  setFlags(QGraphicsItem::ItemIsSelectable |
+           QGraphicsItem::ItemIsMovable |
+           QGraphicsItem::ItemSendsGeometryChanges);
+
+  setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
+  setPos(_pModel->time(), _pModel->yPosition());
+  setSelected(true);
 }
 
-void TimeboxModel::addPluginSmall()
+QRectF TimeEventView::boundingRect() const
 {
-  _pluginsSmallView.emplace_back();
+  return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
+                2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
 }
 
-void TimeboxModel::removePluginSmall()
+void TimeEventView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-  _pluginsSmallView.pop_back();
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  QPen pen(Qt::SolidPattern, _penWidth);
+  pen.setCosmetic(true);
+  painter->setPen(pen);
+  painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
+  painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
 }
 
-void TimeboxModel::addPluginFull()
+QPainterPath TimeEventView::shape() const
 {
-  _pluginsFullView.emplace_back();
-}
-
-void TimeboxModel::removePluginFull()
-{
-  _pluginsFullView.pop_back();
-}
-
-void TimeboxModel::setname(QString arg)
-{
-  if (_name != arg) {
-      _name = arg;
-      emit nameChanged(arg);
-    }
+  QPainterPath path;
+  path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+  path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
+  return path;
 }

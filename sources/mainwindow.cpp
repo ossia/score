@@ -36,24 +36,26 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxsmallview.hpp"
 #include "utils.hpp"
 #include "graphicsview.hpp"
+#include "timeboxfullview.hpp"
 
 #include <QMouseEvent>
+#include <QAction>
 #include <QActionGroup>
 #include <QStateMachine>
 #include <QPointF>
 #include <QGraphicsLineItem>
 #include <QTimer>
 #include <QFinalState>
-
-const qint16 OFFSET_INCREMENT = 5;
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
   : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-  ui->setupUi(this);
+  ui->setupUi(this); /// Bounding with mainwindow.ui
   setWindowTitle(tr("%1").arg(QApplication::applicationName()));
 
   createGraphics();
+  createActions();
   createActionGroups();
   createStates();
   createTransitions();
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
   QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
+/// Creation of the mainTimebox of the Scenario, the first one in fullView.
 void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
@@ -69,21 +72,30 @@ void MainWindow::createGraphics()
   _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 700, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
   Q_CHECK_PTR(_pMainTimebox);
   connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
-  _pCurrentTimebox = _pMainTimebox;
+  setcurrentTimebox(_pMainTimebox);
 }
 
-void MainWindow::createActionGroups() /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle
+/// The majority of actions are created in the Qt designer mainwindow.ui
+void MainWindow::createActions() {
+  _pDeleteAction = new QAction(tr("Delete"), this);
+  /// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)
+  _pDeleteAction->setShortcuts(QList<QKeySequence>() << QKeySequence(Qt::CTRL + Qt::Key_Backspace) << QKeySequence::Delete); /// @bug Bug dans Qt pour les raccourcis mac https://bugreports.qt-project.org/browse/QTBUG-33015 (by jC)
+  ui->menuEdit->addAction(_pDeleteAction);
+}
+
+void MainWindow::createActionGroups()
 {
-  // GraphicsItems relative's actions
+  /// GraphicsItems type stocked in relative's actions, used in MainWindow::addItem()
   ui->actionAddTimeEvent->setData(EventItemType);
   ui->actionAddTimeBox->setData(BoxItemType);
 
-  _pMouseActionGroup = new QActionGroup(this); // actiongroup keeping all mouse relatives actions
+  /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle (par jC)
+  _pMouseActionGroup = new QActionGroup(this);
   _pMouseActionGroup->addAction(ui->actionAddTimeEvent);
   _pMouseActionGroup->addAction(ui->actionAddTimeBox);
-  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false);
+  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false); (by jC)
 
-  // Mouse cursor relative's actions
+  /// Mouse cursor relative's actions
   ui->actionMouse->setData(QGraphicsView::NoDrag);
   ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
   ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
@@ -101,17 +113,17 @@ void MainWindow::createStates()
 
   _initialState = new QState();
   _initialState->assignProperty(this, "objectName", tr("mainWindow"));
-  //_initialState->assignProperty(this, "currentTimebox", qVariantFromValue((Timebox)_MainTimebox)); /// @todo Peut etre trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
+  //_initialState->assignProperty(this, "currentTimebox", qVariantFromValue((Timebox)_MainTimebox)); Si on veut un jour stocker la currentTimebox en tant que Q_PROPERTY, pour gérer la navigation hiérarchique depuis le StateMachine. Abandonné car surement trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
   _initialState->assignProperty(_pMouseActionGroup, "enabled", true);
   _stateMachine->addState(_initialState);
   _stateMachine->setInitialState(_initialState);
 
-  // creating a new top-level state
+  /// creating a new top-level state
   _normalState = new QState();
   _editionState = new QState(_normalState);
   _editionState->assignProperty(_pMouseActionGroup, "enabled", true);
 
-  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing)
+  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing) (by jC)
   _executionState = new QState(_normalState);
   _executionState->assignProperty(_pMouseActionGroup, "enabled", false);
 
@@ -146,20 +158,7 @@ void MainWindow::createConnections()
   connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
   connect(ui->headerWidget, SIGNAL(doubleClicked()), this, SLOT(headerWidgetClicked()));
-}
-
-void MainWindow::setDirty(bool on)
-{
-  /// à rajouter dans les items connect(item, SIGNAL(dirty()), this, SLOT(setDirty()));
-
-    setWindowModified(on);
-    updateUi();
-}
-
-void MainWindow::updateUi()
-{
- /// @todo Update actions to reflect application state
- // ui->actionSelect->setChecked();
+  connect(_pDeleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedItems()));
 }
 
 void MainWindow::addItem(QPointF pos)
@@ -170,12 +169,11 @@ void MainWindow::addItem(QPointF pos)
       return;
     }
 
-  qint32 type = action->data().toInt(); // we recover the data associated with the action (see createActionGroups())
+  qint32 type = action->data().toInt(); /// we recover the data associated with the action (see createActionGroups())
 
   Q_ASSERT(type);
   if (type == EventItemType) {
-      TimeEvent* pEvent = new TimeEvent(pos, 0);
-      _pCurrentTimebox->addChild(pEvent);
+      new TimeEvent(_pCurrentTimebox, pos);
     }
   else if(type == BoxItemType) {
       new Timebox(_pCurrentTimebox, _pView, pos, 300, 200, SMALL);
@@ -184,19 +182,30 @@ void MainWindow::addItem(QPointF pos)
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
 }
 
+/// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
 void MainWindow::headerWidgetClicked()
 {
-  ///@todo On pourrait aussi faire appel à Score pour la parenté, ou le presenter ne fait rien s'il n'est que full. (jc)
-  if(_pCurrentTimebox == _pMainTimebox){
-      return;
-    }
   _pCurrentTimebox->goSmall();
+}
+
+void MainWindow::deleteSelectedItems()
+{
+  QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
+  if (items.isEmpty())
+      return;
+
+  QListIterator<QGraphicsItem*> list(items);
+  while (list.hasNext()) {
+      if(QGraphicsWidget* gwidget = dynamic_cast<QGraphicsWidget*>(list.next())) {
+          gwidget->deleteLater();
+        }
+    }
 }
 
 void MainWindow::changeCurrentTimeboxScene()
 {
-  _pCurrentTimebox = qobject_cast<Timebox*>(sender());
-  ui->headerWidget->changeName(_pCurrentTimebox->model()->name()); /// @todo le faire avec un connect ?
+  setcurrentTimebox(qobject_cast<Timebox*>(sender()));
+  ui->headerWidget->changeName(_pCurrentTimebox->model()->name()); /// Actualize headerWidget's name according to the current Timebox
 }
 
 void MainWindow::setMousePosition(QPointF point)
@@ -204,20 +213,9 @@ void MainWindow::setMousePosition(QPointF point)
   statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-  QMainWindow::mousePressEvent(event);
-}
-
-void MainWindow::mouseMoveEvent(QMouseEvent *event)
-{
-  QMainWindow::mouseMoveEvent(event);
-}
-
-void MainWindow::setcurrentTimebox(Timebox *arg) ///@todo est-ce que tout ce mécanisme de test et signal est intéressant
+void MainWindow::setcurrentTimebox(Timebox *arg)
 {
   if (_pCurrentTimebox != arg) {
       _pCurrentTimebox = arg;
-      emit currentTimeboxChanged(arg);
     }
 }

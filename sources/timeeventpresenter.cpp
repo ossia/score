@@ -28,42 +28,12 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef GRAPHICSTIMEEVENT_HPP
-#define GRAPHICSTIMEEVENT_HPP
+#include "timeeventpresenter.hpp"
+#include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventview.hpp"
 
-class TimeEventModel;
-class TimeEventPresenter;
-class TimeEventView;
-class Timebox;
-class GraphicsView;
-
-#include <QObject>
-#include"utils.hpp"
-
-/*!
- *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
- *
- *  @brief TimeEvent Interface
- *  @author Jaime Chao
- *  @date 2014
- */
-
-class TimeEvent : public QObject
+TimeEventPresenter::TimeEventPresenter(TimeEventModel *pModel, TimeEventView *pView, TimeEvent *parent) :
+  QObject(parent), _pTimeEvent(parent), _pModel(pModel), _pView(pView)
 {
-  Q_OBJECT
-
-private:
-  TimeEventModel *_pModel = nullptr;
-  TimeEventPresenter *_pPresenter = nullptr;
-  TimeEventView *_pView = nullptr;
-
-  static int staticId; /// Give a unique number to each instance of TimeEvent
-
-public:
-  TimeEvent(Timebox *pParent, const QPointF &pos);
-  ~TimeEvent();
-
-  TimeEventView* view() const {return _pView;}
-};
-
-#endif // GRAPHICSTIMEEVENT_HPP
+}

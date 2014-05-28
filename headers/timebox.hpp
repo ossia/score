@@ -44,27 +44,30 @@ class QString;
 #include <QObject>
 #include "utils.hpp"
 
+/*!
+ *  This class maintains together all the classes needed by a Timebox, offering a placeholder and makes interaction easier with Timebox object in i-score. @n
+ *  This class drives the hierarchical changes and permits to maintain a consistent hierarchical relationship with other timebox.
+ *
+ *  @brief Timebox Interface
+ *  @author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
+*/
 class Timebox : public QObject
 {
   Q_OBJECT
 
-public:
-  TimeboxPresenter *_pPresenter; /// @todo rendu public pour slot goSmallView()
-  TimeboxSmallView *_pSmallView = nullptr;
-
-  QGraphicsScene *_pScene; /// @todo Sert actuellement à héberger le scénario principal (qgraphicsscene) qui n'est pas encore un plugin Scenario (par jC)
-
 private:
-  TimeboxModel *_pModel;
+  TimeboxSmallView *_pSmallView = nullptr;
+  TimeboxPresenter *_pPresenter = nullptr;
+  TimeboxModel *_pModel = nullptr;
   TimeboxFullView *_pFullView = nullptr;
-  GraphicsView *_pGraphicsView;
-  Timebox *_pParent = nullptr;
-  static int staticId;
+  GraphicsView *_pGraphicsView; /// Pointer to the graphicsView's widget
+  Timebox *_pParent = nullptr; /// Pointer to the Timebox parent
+  static int staticId; /// Give a unique number to each instance of Timebox
 
 public:
-  Timebox(Timebox *pParent = 0);
-  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode);
-  explicit Timebox(Timebox *pParent, GraphicsView *pView, const QPointF &pos, float width, float height, ViewMode mode, QString name);
+  explicit Timebox(Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
+  explicit Timebox(Timebox *pParent, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
   ~Timebox();
 
 signals:
@@ -81,13 +84,13 @@ public slots:
   void goSmall();
 
 public:
-  TimeboxModel* timeboxModel() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   void addChild (Timebox *other);
   void addChild (TimeEvent *timeEvent);
-  TimeboxModel* model() const {return _pModel;}
+  TimeboxModel* model() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
+  TimeboxFullView* fullView() const {return _pFullView;} /// Used by Mainwindow to retrieve the selected items
 
 private:
-  void init(const QPointF &pos, float height, float width, ViewMode mode, QString name);
+  void init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name);
 };
 
 #endif // TIMEBOX_HPP

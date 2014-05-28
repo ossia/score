@@ -35,8 +35,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsView>
 
 /*!
- * Inherits the Qt QGraphicsView class, permits to show a QGraphicsScene (a timebox)
+ *  Inherits the Qt QGraphicsView class, permits to show a QGraphicsScene (a timebox in fullView).
+ *  Manage the different types of mouse interactions and zooming changes (with + and - keys). @n
+ *
+ *  WIP : scaling automatically to fit a timebox in fullView.
+ *
+ *  @brief Widget displaying a Timebox
  *  @author Jaime Chao
+ *  @date 2013/2014
  */
 class GraphicsView : public QGraphicsView
 {
@@ -44,7 +50,6 @@ class GraphicsView : public QGraphicsView
 
 public:
   explicit GraphicsView(QWidget *parent = 0);
-  void fitFullView();
 
 signals:
   void mousePosition(QPointF); /// Used to emit mousePosition to the mainWindow's statusBar
@@ -52,20 +57,20 @@ signals:
 
 public slots:
   void mouseDragMode(QAction *); /// The DragMode property holds the behavior for dragging the mouse over the scene while the left mouse button is pressed.
-  void graphicItemEnsureVisible();
+  void graphicItemEnsureVisible(); /// Center the view on the graphicsitem's calling the slot
 
-  // QWidget interface
 protected:
-  void mousePressEvent(QMouseEvent *);
-  void mouseReleaseEvent(QMouseEvent *);
-  void mouseMoveEvent(QMouseEvent *);
+  // QWidget interface
+  void mousePressEvent(QMouseEvent *); /// Send a signal to add a timebox in SmallView
+  void mouseMoveEvent(QMouseEvent *); /// Send position of the mouse to mainwindow's statusBar
   void resizeEvent(QResizeEvent *);
+  void keyPressEvent(QKeyEvent *event); /// Zooming with + and - keys
 
   // QGraphicsView interface
-  void drawBackground(QPainter *painter, const QRectF &rect);
-  void keyPressEvent(QKeyEvent *event);
+  void drawBackground(QPainter *painter, const QRectF &rect); /// Draw a filled brush pattern to show the space outside the scenario
 
 private:
+  void fitFullView(); /// Arrange the FullView's container to fit inside the new space (called after a resize). @todo WIP
   void scaleView(qreal scaleFactor);
   void zoomIn();
   void zoomOut();

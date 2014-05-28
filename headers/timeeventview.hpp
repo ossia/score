@@ -28,42 +28,44 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef GRAPHICSTIMEEVENT_HPP
-#define GRAPHICSTIMEEVENT_HPP
+#ifndef TIMEEVENTVIEW_HPP
+#define TIMEEVENTVIEW_HPP
 
 class TimeEventModel;
-class TimeEventPresenter;
-class TimeEventView;
-class Timebox;
-class GraphicsView;
+class TimeEvent;
 
-#include <QObject>
-#include"utils.hpp"
+#include "utils.hpp"
+#include <QGraphicsObject>
 
 /*!
- *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
+ *  This class is the graphical representation of a TimeEvent.
  *
- *  @brief TimeEvent Interface
+ *  @brief TimeEvent view
  *  @author Jaime Chao
  *  @date 2014
  */
 
-class TimeEvent : public QObject
+class TimeEventView : public QGraphicsObject
 {
   Q_OBJECT
 
 private:
-  TimeEventModel *_pModel = nullptr;
-  TimeEventPresenter *_pPresenter = nullptr;
-  TimeEventView *_pView = nullptr;
+  TimeEventModel *_pModel;
 
-  static int staticId; /// Give a unique number to each instance of TimeEvent
+  qreal _penWidth;
+  qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
+  qreal _height; /// height of the line
 
 public:
-  TimeEvent(Timebox *pParent, const QPointF &pos);
-  ~TimeEvent();
+  explicit TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics = 0);
 
-  TimeEventView* view() const {return _pView;}
+public:
+  enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  virtual int type() const {return Type;}
+
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual QPainterPath shape() const;
 };
 
-#endif // GRAPHICSTIMEEVENT_HPP
+#endif // TIMEEVENTVIEW_HPP
