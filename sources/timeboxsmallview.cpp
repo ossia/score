@@ -35,6 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxmodel.hpp"
 
 #include <QPainter>
+#include <QGraphicsScene>
 #include <QGraphicsLinearLayout>
 #include <QDebug>
 
@@ -43,6 +44,7 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject,
 {
   setFlags(QGraphicsItem::ItemIsMovable |
            QGraphicsItem::ItemIsSelectable |
+           QGraphicsItem::ItemSendsScenePositionChanges |
            QGraphicsItem::ItemIsFocusable);
 
   setParent(parentObject); /// Timebox is the parent object (especially for destruction)
@@ -64,13 +66,39 @@ TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject,
   _pHeader = new TimeboxHeader(this);
   _pLayout->addItem(_pHeader);  /// @bug header without layout (add margins) to avoid bad repaint of new storey
   connect(_pHeader, SIGNAL(doubleClicked()), this, SIGNAL(headerDoubleClicked()));
-  connect(_pModel, SIGNAL(nameChanged(QString)), _pHeader, SLOT(changeName(QString)));
   connect(_pHeader, SIGNAL(destroyed()), parentObject, SLOT(deleteLater())); /// Connect header deletion with timebox (to avoid header becoming the only one deleted if selected)
+
+  connect(_pModel, SIGNAL(nameChanged(QString)), _pHeader, SLOT(changeName(QString)));
+  connect(_pModel, SIGNAL(timeChanged(qreal)), this, SLOT(setX(qreal)));
+  connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
+
+  connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
+  connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
 }
 
 void TimeboxSmallView::addStorey(TimeboxStorey *pStorey)
 {
   _pLayout->addItem(pStorey);
+}
+
+QVariant TimeboxSmallView::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    if (change == ItemPositionChange && scene()) {
+        QPointF newPos = value.toPointF();  // value is the new position
+
+        QRectF rect = scene()->sceneRect();
+        QRectF tbrect = boundingRect();
+        tbrect.moveTo(newPos);
+        if (!rect.contains(tbrect)) { // if item-timebox exceed plugin scenario we keep the item inside the scene rect
+            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
+            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
+            return newPos;
+        }
+
+        emit xChanged(newPos.x());  // Inform the model
+        emit yChanged(newPos.y());
+    }
+    return QGraphicsWidget::itemChange(change, value);
 }
 
 void TimeboxSmallView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

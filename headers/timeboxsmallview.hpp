@@ -65,6 +65,8 @@ public:
 signals:
   void headerDoubleClicked();
   void suppressTimebox();
+  void xChanged(qreal);
+  void yChanged(qreal);
 
 public:
   enum {Type = BoxItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
@@ -77,9 +79,11 @@ public:
   virtual QRectF boundingRect() const;
   TimeboxModel* model() const {return _pModel;}
 
-  // QGraphicsItem interface
 protected:
+  // QGraphicsItem interface
   void keyPressEvent(QKeyEvent *event);
+  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

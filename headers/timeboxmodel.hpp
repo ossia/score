@@ -54,9 +54,11 @@ class TimeboxModel : public QObject
   Q_OBJECT
 
   Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
+  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
 
 private:
-  int _time, _yPosition, _width, _height;
+  qreal _time, _yPosition, _width, _height;
   QString _name;
   std::list<TTTimeProcess*> _pluginsSmallView;
   std::list<TTTimeProcess*> _pluginsFullView;
@@ -65,19 +67,24 @@ private:
   TimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
 
 public:
-  TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent);
+  TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *parent);
 
 signals:
   void nameChanged(QString arg);
+  void timeChanged(qreal arg);
+  void yPositionChanged(qreal arg);
 
 public slots:
   void setname(QString arg);
+  void settime(qreal arg);
+  void setYPosition(qreal arg);
 
 public:
-  int time() const {return _time;}
-  int yPosition() const {return _yPosition;}
-  int width() const {return _width;}
-  int height() const {return _height;}
+  qreal time() const {return _time;}
+  qreal yPosition() const {return _yPosition;}
+  qreal width() const {return _width;}
+  qreal height() const {return _height;}
+  QString name() const {return _name;}
 
   const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
   const std::list<TTTimeProcess*>& pluginsFullView() {
@@ -91,8 +98,6 @@ public:
   void removePluginSmall();
   void addPluginFull();
   void removePluginFull();
-
-  QString name() const {return _name;}
 };
 
 #endif // TIMEBOXMODEL_HPP

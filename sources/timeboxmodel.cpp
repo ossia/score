@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent)
+TimeboxModel::TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *parent)
   : QObject(parent), _time(t), _yPosition(y), _width(w), _height(h), _name(name)
 {
 }
@@ -65,5 +65,21 @@ void TimeboxModel::setname(QString arg)
   if (_name != arg) {
       _name = arg;
       emit nameChanged(arg);
+    }
+}
+
+void TimeboxModel::settime(qreal arg)
+{
+  if (_time != arg) {
+      _time = arg;
+      emit timeChanged(arg);
+    }
+}
+
+void TimeboxModel::setYPosition(qreal arg)
+{
+  if (_yPosition != arg) {
+      _yPosition = arg;
+      emit yPositionChanged(arg);
     }
 }
