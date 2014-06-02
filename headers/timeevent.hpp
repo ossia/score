@@ -64,6 +64,7 @@ public:
   ~TimeEvent();
 
   TimeEventView* view() const {return _pView;}
+  TimeEventModel* model() const {return _pModel;}
 };
 
 #endif // GRAPHICSTIMEEVENT_HPP

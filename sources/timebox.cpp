@@ -34,9 +34,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxsmallview.hpp"
 #include "timeboxfullview.hpp"
 #include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventview.hpp"
 #include "mainwindow.hpp"
 #include "graphicsview.hpp"
-#include "timeeventview.hpp"
 
 #include <QDebug>
 #include <QGraphicsRectItem>
@@ -73,7 +74,7 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
       setObjectName(name);
     }
 
-  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
+  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this, pTimeEventStart, pTimeEventEnd);
 
   if(mode == SMALL) {
       _pSmallView = new TimeboxSmallView(_pModel, this);

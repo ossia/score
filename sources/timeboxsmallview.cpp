@@ -38,6 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsScene>
 #include <QGraphicsLinearLayout>
 #include <QDebug>
+#include <QGraphicsItem>
 
 TimeboxSmallView::TimeboxSmallView(TimeboxModel *pModel,  Timebox *parentObject, QGraphicsItem *parentGraphics) ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ? (par jC)
   : QGraphicsWidget(parentGraphics), _pModel(pModel) /// @todo parentGraphics n'est pas utilisé, mais appel de Timebox::addChild(Timebox*) dans un second temps (par jC)
@@ -132,4 +133,14 @@ void TimeboxSmallView::keyPressEvent(QKeyEvent *event)
     }
     */
  QGraphicsWidget::keyPressEvent(event);
+}
+
+void TimeboxSmallView::setY(qreal arg)
+{
+  setPos(x(), arg);
+}
+
+void TimeboxSmallView::setX(qreal arg)
+{
+  setPos(arg, y());
 }

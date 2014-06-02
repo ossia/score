@@ -35,6 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsItem>
 
 TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
   QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
@@ -53,6 +54,10 @@ TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QG
   connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
   connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
   connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
+}
+
+TimeEventView::~TimeEventView()
+{
 }
 
 QVariant TimeEventView::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -98,4 +103,14 @@ QPainterPath TimeEventView::shape() const
   path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
   path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
   return path;
+}
+
+void TimeEventView::setY(qreal arg)
+{
+  setPos(x(), arg);
+}
+
+void TimeEventView::setX(qreal arg)
+{
+  setPos(arg, y());
 }

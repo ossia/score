@@ -59,3 +59,8 @@ void TimeEventModel::setYPosition(qreal arg)
       emit yPositionChanged(arg);
     }
 }
+
+void TimeEventModel::addTimebox(Timebox *tb)
+{
+  _timeboxes.append(tb);
+}

@@ -33,8 +33,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 class TimeEvent;
+class Timebox;
 
 /*!
  *  The model is linked with OSSIA API, and permits to maintain all elements used later by
@@ -57,6 +59,8 @@ private:
   qreal _time, _yPosition;
   QString _name;
 
+  QVector<Timebox*> _timeboxes; /// Vector containing all the Timebox linked to this TimeEvent
+
 public:
   TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
 
@@ -74,6 +78,8 @@ public:
   qreal time() const {return _time;}
   qreal yPosition() const {return _yPosition;}
   QString name() const {return _name;}
+
+  void addTimebox(Timebox *tb);
 };
 
 #endif // TIMEEVENTMODEL_HPP

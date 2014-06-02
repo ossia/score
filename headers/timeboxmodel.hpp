@@ -63,20 +63,22 @@ private:
   std::list<TTTimeProcess*> _pluginsSmallView;
   std::list<TTTimeProcess*> _pluginsFullView;
 
-  TimeEvent *_startTimeEvent; /// The start timeEvent of the timeProcess
-  TimeEvent *_endTimeEvent; /// The end timeEvent of the timeProcess
+  TimeEvent *_pStartTimeEvent; /// The start timeEvent of the timeProcess
+  TimeEvent *_pEndTimeEvent; /// The end timeEvent of the timeProcess
 
 public:
-  TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *parent);
+  TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd);
 
 signals:
   void nameChanged(QString arg);
   void timeChanged(qreal arg);
+  void timeEndChanged(qreal arg);
   void yPositionChanged(qreal arg);
 
 public slots:
   void setname(QString arg);
   void settime(qreal arg);
+  void settimeEnd(qreal arg);
   void setYPosition(qreal arg);
 
 public:
@@ -85,6 +87,8 @@ public:
   qreal width() const {return _width;}
   qreal height() const {return _height;}
   QString name() const {return _name;}
+  TimeEvent* startTimeEvent() const {return _pStartTimeEvent;}
+  TimeEvent* endTimeEvent() const {return _pEndTimeEvent;}
 
   const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
   const std::list<TTTimeProcess*>& pluginsFullView() {

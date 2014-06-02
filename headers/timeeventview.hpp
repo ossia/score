@@ -58,10 +58,15 @@ private:
 
 public:
   explicit TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics = 0);
+  ~TimeEventView();
 
 signals:
   void xChanged(qreal);
   void yChanged(qreal);
+
+public slots:
+  void setY(qreal);
+  void setX(qreal);
 
 public:
   enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
