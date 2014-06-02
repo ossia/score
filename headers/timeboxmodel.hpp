@@ -95,15 +95,6 @@ public:
   void addPluginFull();
   void removePluginFull();
 
-<<<<<<< HEAD
-public slots:
-  void setname(QString arg);
-
-signals:
-  void nameChanged(QString arg);
-=======
-  QString name() const {return _name;}
->>>>>>> dev
 };
 
 #endif // TIMEBOXMODEL_HPP
