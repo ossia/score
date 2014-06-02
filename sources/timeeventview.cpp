@@ -36,7 +36,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 
 TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
-  QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(100)
+  QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsMovable |
@@ -44,6 +44,7 @@ TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QG
 
   setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
   setPos(_pModel->time(), _pModel->yPosition());
+  setZValue(1); // Draw on top of Timebox
   setSelected(true);
 }
 
