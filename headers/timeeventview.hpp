@@ -59,6 +59,10 @@ private:
 public:
   explicit TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics = 0);
 
+signals:
+  void xChanged(qreal);
+  void yChanged(qreal);
+
 public:
   enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
   virtual int type() const {return Type;}
@@ -66,6 +70,10 @@ public:
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   virtual QPainterPath shape() const;
+
+protected:
+  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+
 };
 
 #endif // TIMEEVENTVIEW_HPP

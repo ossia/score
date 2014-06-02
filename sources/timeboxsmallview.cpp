@@ -87,9 +87,9 @@ QVariant TimeboxSmallView::itemChange(GraphicsItemChange change, const QVariant 
         QPointF newPos = value.toPointF();  // value is the new position
 
         QRectF rect = scene()->sceneRect();
-        QRectF tbrect = boundingRect();
-        tbrect.moveTo(newPos);
-        if (!rect.contains(tbrect)) { // if item-timebox exceed plugin scenario we keep the item inside the scene rect
+        QRectF bRectMoved = boundingRect();
+        bRectMoved.moveTo(newPos);
+        if (!rect.contains(bRectMoved)) { // if item exceed plugin scenario we keep the item inside the scene rect
             newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
             newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
             return newPos;

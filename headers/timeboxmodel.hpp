@@ -53,9 +53,9 @@ class TimeboxModel : public QObject
 {
   Q_OBJECT
 
-  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
   Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
   Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
 
 private:
   qreal _time, _yPosition, _width, _height;

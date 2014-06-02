@@ -34,20 +34,46 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QPen>
 #include <QPainter>
+#include <QGraphicsScene>
 
 TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
   QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
 {
   setFlags(QGraphicsItem::ItemIsSelectable |
            QGraphicsItem::ItemIsMovable |
+           QGraphicsItem::ItemSendsScenePositionChanges |
            QGraphicsItem::ItemSendsGeometryChanges);
 
   setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
   setPos(_pModel->time(), _pModel->yPosition());
   setZValue(1); // Draw on top of Timebox
   setSelected(true);
+
+  connect(_pModel, SIGNAL(timeChanged(qreal)), this, SLOT(setX(qreal)));
+  connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
+  connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
+  connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
 }
 
+QVariant TimeEventView::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    if (change == ItemPositionChange && scene()) {
+        QPointF newPos = value.toPointF();  // value is the new position
+
+        QRectF rect = scene()->sceneRect();
+        QRectF bRectMoved = boundingRect();
+        bRectMoved.moveTo(newPos);
+        if (!rect.contains(bRectMoved)) { // if item exceed plugin scenario we keep the item inside the scene rect
+            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
+            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
+            return newPos;
+        }
+
+        emit xChanged(newPos.x());  // Inform the model
+        emit yChanged(newPos.y());
+    }
+    return QGraphicsObject::itemChange(change, value);
+}
 QRectF TimeEventView::boundingRect() const
 {
   return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,

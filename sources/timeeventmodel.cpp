@@ -31,7 +31,31 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeeventmodel.hpp"
 #include "timeevent.hpp"
 
-TimeEventModel::TimeEventModel(int t, int y, QString name, TimeEvent *parent)
+TimeEventModel::TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent)
   : QObject(parent), _time(t), _yPosition(y), _name(name)
 {
+}
+
+void TimeEventModel::setname(QString arg)
+{
+  if (_name != arg) {
+      _name = arg;
+      emit nameChanged(arg);
+    }
+}
+
+void TimeEventModel::settime(qreal arg)
+{
+  if (_time != arg) {
+      _time = arg;
+      emit timeChanged(arg);
+    }
+}
+
+void TimeEventModel::setYPosition(qreal arg)
+{
+  if (_yPosition != arg) {
+      _yPosition = arg;
+      emit yPositionChanged(arg);
+    }
 }

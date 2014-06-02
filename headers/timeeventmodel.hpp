@@ -49,15 +49,30 @@ class TimeEventModel : public QObject
 {
   Q_OBJECT
 
+  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
+  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+
 private:
-  int _time, _yPosition;
+  qreal _time, _yPosition;
   QString _name;
 
 public:
-  TimeEventModel(int t, int y, QString name, TimeEvent *parent);
+  TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
 
-  int time() const {return _time;}
-  int yPosition() const {return _yPosition;}
+signals:
+  void nameChanged(QString arg);
+  void timeChanged(qreal arg);
+  void yPositionChanged(qreal arg);
+
+public slots:
+  void setname(QString arg);
+  void settime(qreal arg);
+  void setYPosition(qreal arg);
+
+public:
+  qreal time() const {return _time;}
+  qreal yPosition() const {return _yPosition;}
   QString name() const {return _name;}
 };
 
