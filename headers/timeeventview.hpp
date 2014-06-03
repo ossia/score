@@ -33,9 +33,11 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class TimeEventModel;
 class TimeEvent;
+class QGraphicsLineItem;
 
 #include "utils.hpp"
 #include <QGraphicsObject>
+#include <QPointF>
 
 /*!
  *  This class is the graphical representation of a TimeEvent.
@@ -50,11 +52,13 @@ class TimeEventView : public QGraphicsObject
   Q_OBJECT
 
 private:
-  TimeEventModel *_pModel;
+  TimeEventModel *_pModel = nullptr;
 
   qreal _penWidth;
   qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
   qreal _height; /// height of the line
+
+  QGraphicsLineItem *_pTemporaryRelation = nullptr; /// Temporary graphical line when a creation is in progress. Line is horizontal and always attached at the center of the circle (0,0)
 
 public:
   explicit TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics = 0);
@@ -63,6 +67,7 @@ public:
 signals:
   void xChanged(qreal);
   void yChanged(qreal);
+  void addTimebox(QGraphicsLineItem *lineItem);  /// Add a child timebox to the current one
 
 public slots:
   void setY(qreal);
@@ -78,6 +83,9 @@ public:
 
 protected:
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
 
 };
 

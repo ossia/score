@@ -39,6 +39,7 @@ class GraphicsView;
 class QGraphicsScene;
 class TimeEvent;
 class QGraphicsRectItem;
+class QGraphicsLineItem;
 class QString;
 
 #include <QObject>
@@ -79,6 +80,7 @@ private slots:
   void goFull();
   void goHide();
   void addChild (QGraphicsRectItem *rectItem);
+  void addChild (QGraphicsLineItem *lineItem);
 
 public slots:
   void goSmall();

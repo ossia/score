@@ -36,6 +36,7 @@ class TimeEventPresenter;
 class TimeEventView;
 class Timebox;
 class GraphicsView;
+class QGraphicsLineItem;
 
 #include <QObject>
 #include"utils.hpp"
@@ -63,6 +64,10 @@ public:
   TimeEvent(Timebox *pParent, const QPointF &pos);
   ~TimeEvent();
 
+signals:
+  void addTimeboxProxy(QGraphicsLineItem *lineItem);  /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
+
+public:
   TimeEventView* view() const {return _pView;}
   TimeEventModel* model() const {return _pModel;}
 };

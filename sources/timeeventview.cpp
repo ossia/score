@@ -31,11 +31,18 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeeventview.hpp"
 #include "timeeventmodel.hpp"
 #include "timeevent.hpp"
+#include "mainwindow.hpp"
+#include "utils.hpp"
 
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QGraphicsItem>
+#include <QGraphicsLineItem>
+#include <QLineF>
+#include <QGraphicsSceneMouseEvent>
+#include <QApplication>
 
 TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
   QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
@@ -46,14 +53,16 @@ TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QG
            QGraphicsItem::ItemSendsGeometryChanges);
 
   setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
-  setPos(_pModel->time(), _pModel->yPosition());
   setZValue(1); // Draw on top of Timebox
   setSelected(true);
 
-  connect(_pModel, SIGNAL(timeChanged(qreal)), this, SLOT(setX(qreal)));
-  connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
-  connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
-  connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
+  if (_pModel != nullptr) {
+      setPos(_pModel->time(), _pModel->yPosition());
+      connect(_pModel, SIGNAL(timeChanged(qreal)), this, SLOT(setX(qreal)));
+      connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
+      connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
+      connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
+    }
 }
 
 TimeEventView::~TimeEventView()
@@ -79,6 +88,71 @@ QVariant TimeEventView::itemChange(GraphicsItemChange change, const QVariant &va
     }
     return QGraphicsObject::itemChange(change, value);
 }
+
+void TimeEventView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+  // Testing that GraphicsView's DragMode property is NoDrag
+  if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
+      if (mouseEvent->button() == Qt::LeftButton) {
+          if (mouseEvent->modifiers() == Qt::SHIFT) {
+
+              if (_pTemporaryRelation != nullptr) {
+                  delete _pTemporaryRelation;
+                  _pTemporaryRelation = nullptr;
+                }
+
+              // Add the temporary relation to the scene
+              _pTemporaryRelation = new QGraphicsLineItem(QLineF(0, 0, 0, 0), this);
+              _pTemporaryRelation->setPen(QPen(Qt::black));
+            }
+
+        }
+    }
+  QGraphicsObject::mousePressEvent(mouseEvent);
+}
+
+void TimeEventView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+  if (_pTemporaryRelation != nullptr) {
+      int LeftX, width;
+
+      if (mouseEvent->pos().x() > 0) {
+          LeftX = 0;
+          width = mouseEvent->pos().x();
+        }
+      else {
+          LeftX = mouseEvent->pos().x();
+          width = - LeftX;
+        }
+
+      // If temporaryBox is inside the scenarioView
+      if (scene()->sceneRect().contains(mapToScene(mouseEvent->pos()))) {
+          _pTemporaryRelation->setLine(LeftX, 0, LeftX + width, 0);
+        }
+      else {
+          delete _pTemporaryRelation;
+          _pTemporaryRelation = nullptr;
+        }
+    }
+  else { // else we move the TimeEvent
+      QGraphicsObject::mouseMoveEvent(mouseEvent);
+    }
+}
+
+void TimeEventView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
+{
+  if (_pTemporaryRelation != nullptr) {
+      //If temporaryRelation is bigger enough
+      if (abs(_pTemporaryRelation->line().dx()) > MIN_BOX_WIDTH) {
+          _pTemporaryRelation->setPos(mapToScene(_pTemporaryRelation->line().p1()));
+          emit addTimebox(_pTemporaryRelation);
+        }
+      delete _pTemporaryRelation;
+      _pTemporaryRelation = nullptr;
+    }
+  QGraphicsObject::mouseReleaseEvent(mouseEvent);
+}
+
 QRectF TimeEventView::boundingRect() const
 {
   return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,

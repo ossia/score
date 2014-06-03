@@ -48,8 +48,11 @@ TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
   _pView = new TimeEventView(_pModel, this);
   _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
 
+  connect(_pView, SIGNAL(addTimebox(QGraphicsLineItem*)), this, SIGNAL(addTimeboxProxy(QGraphicsLineItem*)));
+
   if (pParent != nullptr) {
       pParent->addChild(this);
+      connect(this, SIGNAL(addTimeboxProxy(QGraphicsLineItem*)), pParent, SLOT(addChild(QGraphicsLineItem*)));
     }
 }
 

@@ -41,6 +41,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QDebug>
 #include <QGraphicsRectItem>
+#include <QGraphicsLineItem>
 #include <QApplication>
 
 int Timebox::staticId = 1;
@@ -93,6 +94,7 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
   connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
+  connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsLineItem*)), this, SLOT(addChild(QGraphicsLineItem*)));
   connect(_pPresenter, SIGNAL(suppressTimeboxProxy()), this, SLOT(deleteLater()));
 
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
@@ -146,6 +148,32 @@ void Timebox::addChild (QGraphicsRectItem *rectItem)
       return;
     }
   new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
+}
+
+void Timebox::addChild (QGraphicsLineItem *lineItem)
+{
+  if(_pFullView == nullptr) {
+      qWarning() << "Attention : Full View n'est pas crée !";
+      return;
+    }
+
+  TimeEvent *startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
+  senderTimeEvent = qobject_cast<TimeEvent*>(QObject::sender());
+  Q_ASSERT(senderTimeEvent != 0 );
+  QPointF p2 = lineItem->line().p2() + lineItem->pos();
+  otherTimeEvent = new TimeEvent(qobject_cast<Timebox*>(senderTimeEvent->parent()), p2);
+
+  // check the direction of the click-drag
+  if(lineItem->line().dx() >= 0) {
+      startTimeEvent = senderTimeEvent;
+      endTimeEvent = otherTimeEvent;
+    }
+  else {
+      startTimeEvent = otherTimeEvent;
+      endTimeEvent = senderTimeEvent;
+    }
+
+  new Timebox(this, startTimeEvent, endTimeEvent, _pGraphicsView, lineItem->pos(), lineItem->line().dx(), 2*MIN_BOX_HEIGHT, SMALL);
 }
 
 void Timebox::addChild(Timebox *other)
