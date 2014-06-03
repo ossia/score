@@ -91,13 +91,13 @@ QVariant TimeboxSmallView::itemChange(GraphicsItemChange change, const QVariant 
         QRectF bRectMoved = boundingRect();
         bRectMoved.moveTo(newPos);
         if (!rect.contains(bRectMoved)) { // if item exceed plugin scenario we keep the item inside the scene rect
-            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
-            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
-            return newPos;
+            newPos = pos(); // we keep old value
         }
 
         emit xChanged(newPos.x());  // Inform the model
         emit yChanged(newPos.y());
+
+        return newPos;
     }
     return QGraphicsWidget::itemChange(change, value);
 }
