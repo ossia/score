@@ -38,6 +38,9 @@ const int EventItemType = QGraphicsItem::UserType + 2;
 const int AutomationPluginType = QGraphicsItem::UserType + 3;
 const int ScenarioPluginType = QGraphicsItem::UserType + 4;
 
+static const int MIN_BOX_WIDTH = 100;          /// The minimal width constraint to the new timebox being added
+static const int MIN_BOX_HEIGHT = 50;
+
 enum ViewMode
 {
   FULL,

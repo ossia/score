@@ -54,9 +54,6 @@ private:
   QPointF _pressPoint;                          /// Last pression point.
   QPointF _releasePoint;                        /// Last release point.
 
-  static const int MIN_BOX_WIDTH = 100;          /// The minimal width constraint to the new timebox being added
-  static const int MIN_BOX_HEIGHT = 50;
-
 public:
   ScenarioView(QGraphicsItem *parent = 0);
 

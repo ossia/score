@@ -32,11 +32,13 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
 #include "timebox.hpp"
+#include "utils.hpp"
 
 #include <QApplication>
 #include <QGraphicsObject>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsRectItem>
+#include <QRectF>
 #include <QPen>
 #include <QBrush>
 #include <QGraphicsView>
@@ -121,9 +123,8 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
   _releasePoint = mouseEvent->pos();
     if (_pTemporaryBox != nullptr) {
         //If temporaryBox is bigger enough
-        if (_releasePoint != _pressPoint && (abs(_releasePoint.x() - _pressPoint.x()) > MIN_BOX_WIDTH && abs(_releasePoint.y() - _pressPoint.y()) > MIN_BOX_HEIGHT)) {
-            //qDebug() << "pos :" << _pTemporaryBox->scenePos() << _pTemporaryBox;
-            _pTemporaryBox->setPos(_pressPoint);
+        if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
+            _pTemporaryBox->setPos(_pTemporaryBox->rect().topLeft());
             emit addTimebox(_pTemporaryBox);
           }
         delete _pTemporaryBox;
