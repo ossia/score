@@ -57,12 +57,9 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
   // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
   if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
       if (mouseEvent->button() == Qt::LeftButton) {
-
-          // Create a TimeEvent in case of Command + LeftClick
+          // Create an object in case of Command + LeftClick
           if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
-              emit createTimeEvent(mouseEvent->pos());
-            }
-          else  { //
+
               if (_pTemporaryBox != nullptr) {
                   delete _pTemporaryBox;
                   _pTemporaryBox = nullptr;
@@ -78,7 +75,7 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             }
         }
     }
-  PluginView::mousePressEvent(mouseEvent);
+  QGraphicsObject::mousePressEvent(mouseEvent);
 }
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -113,22 +110,22 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
           _pTemporaryBox = nullptr;
         }
     }
-  else {
-      PluginView::mouseMoveEvent(mouseEvent);
-    }
+  QGraphicsObject::mouseMoveEvent(mouseEvent);
+
 }
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
   if (_pTemporaryBox != nullptr) {
-      //If temporaryBox is bigger enough
+      //If temporaryBox is bigger enough we create a Timebox
       if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
           emit createTimebox(_pTemporaryBox->rect());
+        }
+      else { // we create a TimeEvent
+          emit createTimeEvent(mouseEvent->pos());
         }
       delete _pTemporaryBox;
       _pTemporaryBox = nullptr;
     }
-  else {
-      PluginView::mouseReleaseEvent(mouseEvent);
-    }
+  QGraphicsObject::mouseReleaseEvent(mouseEvent);
 }
