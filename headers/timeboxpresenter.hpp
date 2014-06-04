@@ -38,7 +38,6 @@ class TimeboxStorey;
 class PluginView;
 class GraphicsView;
 class QGraphicsScene;
-class QGraphicsRectItem;
 class QFinalState;
 class QStateMachine;
 class QState;
@@ -46,9 +45,11 @@ class Timebox;
 class StateDebug;
 
 #include "timebox.hpp"
-#include <QObject>
-#include <unordered_map>
 #include "utils.hpp"
+#include <QObject>
+#include <QRectF>
+#include <QPointF>
+#include <unordered_map>
 
 /*!
  *  This class is the logic of a Timebox view, independently of the actual graphical representations of a Timebox ; which can be full, small or hide.
@@ -90,7 +91,8 @@ public:
 
 signals:
   void viewModeIsFull();
-  void addBoxProxy(QGraphicsRectItem *rectItem); /// Proxy signal from Scenario plugin to Timebox
+  void createBoxProxy(QRectF rectItem); /// Proxy signal for TimeBox creation from Scenario plugin to Timebox parent
+  void createTimeEventProxy(QPointF pos); /// Proxy signal for TimeEvent creation from Scenario plugin to Timebox parent
   void suppressTimeboxProxy();
 
 public slots:

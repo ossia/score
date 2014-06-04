@@ -3,6 +3,12 @@
 ScenarioView @n
 Deux manières différentes sont implémentées pour avertir la Timebox parente d'un ajout d'objet, j'ai décidé de les laisser toutes deux car la plus complexe pourrait être utile à terme. @n
 Celle pour rajouter un TimeEvent est la plus simple, on récupère un pointeur vers la mainWindow, puis vers la Timebox actuellement en fullView (qu'on assigne alors en tant que parent du TimeEvent). 
+          MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
+          if(window != NULL) {
+              Timebox *tb = window->currentTimebox();
+              new TimeEvent(tb, mouseEvent->pos()); // TimeEvent is child of current Timebox in fullView
+            }
+
 Pour une Timebox on utilise une chaîne de signaux qui part de ScenarioView::addTimebox(QGraphicsRectItem) -> TimeboxPresenter::addBoxProxy(QGraphicsRectItem) -> Timebox::addChild(QGraphicsRectItem). Le signal addBoxProxy() ne fait que transiter l'information vers le slot addChild(). Cette technique me semble intéressante dans le cas où on voudrait faire de l'édition multi-hiérarchique depuis un même niveau de hiérarchie, car on avertit la Timebox qui héberge le plugin Scénario, et pas forcément celle en fullView comme c'était le cas avec la première technique.
 
 @n

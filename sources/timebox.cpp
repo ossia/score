@@ -40,8 +40,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "graphicsview.hpp"
 
 #include <QDebug>
-#include <QGraphicsRectItem>
-#include <QGraphicsLineItem>
 #include <QApplication>
 
 int Timebox::staticId = 1;
@@ -93,8 +91,8 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
     }
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
-  connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
-  connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsLineItem*)), this, SLOT(addChild(QGraphicsLineItem*)));
+  connect(_pPresenter, SIGNAL(createBoxProxy(QRectF)), this, SLOT(createTimeboxAndTimeEvents(QRectF)));
+  connect(_pPresenter, SIGNAL(createTimeEventProxy(QPointF)), this, SLOT(createTimeEvent(QPointF)));
   connect(_pPresenter, SIGNAL(suppressTimeboxProxy()), this, SLOT(deleteLater()));
 
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
@@ -141,16 +139,25 @@ void Timebox::goHide()
   emit isHide(); /// inform stateMachine's presenter that timebox is hidden
 }
 
-void Timebox::addChild (QGraphicsRectItem *rectItem)
+void Timebox::createTimeEvent(QPointF pos)
 {
   if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
-  new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
+  new TimeEvent(this, pos);
 }
 
-void Timebox::addChild (QGraphicsLineItem *lineItem)
+void Timebox::createTimeboxAndTimeEvents(QRectF rect)
+{
+  if(_pFullView == nullptr) {
+      qWarning() << "Attention : Full View n'est pas crée !";
+      return;
+    }
+  new Timebox(this, _pGraphicsView, rect.topLeft(), rect.width(), rect.height(), SMALL);
+}
+
+void Timebox::createTimeEventAndTimebox(QLineF line)
 {
   if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
@@ -158,22 +165,24 @@ void Timebox::addChild (QGraphicsLineItem *lineItem)
     }
 
   TimeEvent *startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
+  QPointF posLeft;
   senderTimeEvent = qobject_cast<TimeEvent*>(QObject::sender());
   Q_ASSERT(senderTimeEvent != 0 );
-  QPointF p2 = lineItem->line().p2() + lineItem->pos();
-  otherTimeEvent = new TimeEvent(qobject_cast<Timebox*>(senderTimeEvent->parent()), p2);
+  otherTimeEvent = new TimeEvent(qobject_cast<Timebox*>(senderTimeEvent->parent()), line.p2()); // They have the same timebox parent
 
   // check the direction of the click-drag
-  if(lineItem->line().dx() >= 0) {
+  if(line.dx() >= 0) {
       startTimeEvent = senderTimeEvent;
       endTimeEvent = otherTimeEvent;
+      posLeft = line.p1();
     }
   else {
       startTimeEvent = otherTimeEvent;
       endTimeEvent = senderTimeEvent;
+      posLeft = line.p2();
     }
 
-  new Timebox(this, startTimeEvent, endTimeEvent, _pGraphicsView, lineItem->pos(), lineItem->line().dx(), 2*MIN_BOX_HEIGHT, SMALL);
+  new Timebox(this, startTimeEvent, endTimeEvent, _pGraphicsView, posLeft, abs(line.dx()), 2*MIN_BOX_HEIGHT, SMALL);
 }
 
 void Timebox::addChild(Timebox *other)

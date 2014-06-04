@@ -37,7 +37,7 @@ class QGraphicsLineItem;
 
 #include "utils.hpp"
 #include <QGraphicsObject>
-#include <QPointF>
+#include <QLineF>
 
 /*!
  *  This class is the graphical representation of a TimeEvent.
@@ -67,7 +67,7 @@ public:
 signals:
   void xChanged(qreal);
   void yChanged(qreal);
-  void addTimebox(QGraphicsLineItem *lineItem);  /// Add a child timebox to the current one
+  void createTimeEventAndTimebox(QLineF line);  /// emit a signal to create a Timebox and another TimeEvent in the current Scenario
 
 public slots:
   void setY(qreal);

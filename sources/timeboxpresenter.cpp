@@ -43,7 +43,6 @@ class TTTimeProcess;
 #include "statedebug.hpp"
 
 #include <QDebug>
-#include <QGraphicsRectItem>
 #include <QStateMachine>
 #include <QFinalState>
 #include <QState>
@@ -194,7 +193,11 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
     case ScenarioPluginType:
       { /// We have to put braces because we declare a new object in a switch statement
         ScenarioView *scenarioView = new ScenarioView(pStorey);
-        connect(scenarioView, SIGNAL(addTimebox(QGraphicsRectItem*)), this, SIGNAL(addBoxProxy(QGraphicsRectItem*))); /// We connect the plugin to a Proxy signal to route it to the class Timebox
+
+        /// We connect the plugin to proxies signals, to route them to the class Timebox
+        connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
+        connect(scenarioView, SIGNAL(createTimeEvent(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
+
         plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
         break;
       }

@@ -38,12 +38,13 @@ class TimeboxSmallView;
 class GraphicsView;
 class QGraphicsScene;
 class TimeEvent;
-class QGraphicsRectItem;
-class QGraphicsLineItem;
 class QString;
 
-#include <QObject>
 #include "utils.hpp"
+#include <QLineF>
+#include <QRectF>
+#include <QPointF>
+#include <QObject>
 
 /*!
  *  This class maintains together all the classes needed by a Timebox, offering a placeholder and makes interaction easier with Timebox object in i-score. @n
@@ -63,8 +64,8 @@ private:
   TimeboxModel *_pModel = nullptr;
   TimeboxFullView *_pFullView = nullptr;
   GraphicsView *_pGraphicsView; /// Pointer to the graphicsView's widget
-  Timebox *_pParent = nullptr; /// Pointer to the Timebox parent
-  static int staticId; /// Give a unique number to each instance of Timebox
+  Timebox *_pParent = nullptr;  /// Pointer to the Timebox parent
+  static int staticId;          /// Give a unique number to each instance of Timebox
 
 public:
   explicit Timebox(Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, GraphicsView *pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
@@ -79,15 +80,16 @@ signals:
 private slots:
   void goFull();
   void goHide();
-  void addChild (QGraphicsRectItem *rectItem);
-  void addChild (QGraphicsLineItem *lineItem);
+  void createTimeEvent (QPointF pos);   /// Create a TimeEvent (signal emitted from ScenarioView)
+  void createTimeboxAndTimeEvents (QRectF rect);   /// Create a Timebox and two surrounding TimeEvent (signal emitted from ScenarioView)
+  void createTimeEventAndTimebox (QLineF line);   /// Click-drag in a already existing TimeEvent. Create another TimeEvent and a Timebox (signal emitted from TimeEventView)
 
 public slots:
   void goSmall();
 
 public:
-  void addChild (Timebox *other);
-  void addChild (TimeEvent *timeEvent);
+  void addChild (Timebox *other);       /// Add an already created Timebox to fullView
+  void addChild (TimeEvent *timeEvent); /// Add an already created TimeEvent to fullView
   TimeboxModel* model() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   TimeboxFullView* fullView() const {return _pFullView;} /// Used by Mainwindow to retrieve the selected items
 

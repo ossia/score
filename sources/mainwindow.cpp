@@ -43,7 +43,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QActionGroup>
 #include <QStateMachine>
 #include <QPointF>
-#include <QGraphicsLineItem>
 #include <QTimer>
 #include <QFinalState>
 #include <QDebug>

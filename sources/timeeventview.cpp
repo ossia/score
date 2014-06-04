@@ -40,9 +40,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QGraphicsLineItem>
-#include <QLineF>
 #include <QGraphicsSceneMouseEvent>
-#include <QApplication>
+#include <QDebug>
 
 TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
   QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
@@ -80,11 +79,12 @@ QVariant TimeEventView::itemChange(GraphicsItemChange change, const QVariant &va
         if (!rect.contains(bRectMoved)) { // if item exceed plugin scenario we keep the item inside the scene rect
             newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
             newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
-            return newPos;
         }
 
         emit xChanged(newPos.x());  // Inform the model
         emit yChanged(newPos.y());
+
+        return newPos;
     }
     return QGraphicsObject::itemChange(change, value);
 }
@@ -127,7 +127,7 @@ void TimeEventView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
       // If temporaryBox is inside the scenarioView
       if (scene()->sceneRect().contains(mapToScene(mouseEvent->pos()))) {
-          _pTemporaryRelation->setLine(LeftX, 0, LeftX + width, 0);
+          _pTemporaryRelation->setLine(0, 0, mouseEvent->pos().x(), 0);
         }
       else {
           delete _pTemporaryRelation;
@@ -144,13 +144,16 @@ void TimeEventView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
   if (_pTemporaryRelation != nullptr) {
       //If temporaryRelation is bigger enough
       if (abs(_pTemporaryRelation->line().dx()) > MIN_BOX_WIDTH) {
-          _pTemporaryRelation->setPos(mapToScene(_pTemporaryRelation->line().p1()));
-          emit addTimebox(_pTemporaryRelation);
+          QLineF line = _pTemporaryRelation->line();
+          line.translate(mapToScene(line.p1())); /// We need to map the position to the coordinate system of the parent scene (Timebox in fullView)
+          emit createTimeEventAndTimebox(line);
         }
       delete _pTemporaryRelation;
       _pTemporaryRelation = nullptr;
     }
-  QGraphicsObject::mouseReleaseEvent(mouseEvent);
+  else {
+      QGraphicsObject::mouseReleaseEvent(mouseEvent);
+    }
 }
 
 QRectF TimeEventView::boundingRect() const
@@ -181,10 +184,14 @@ QPainterPath TimeEventView::shape() const
 
 void TimeEventView::setY(qreal arg)
 {
-  setPos(x(), arg);
+  if (pos().y() != arg) {
+      setPos(x(), arg);
+    }
 }
 
 void TimeEventView::setX(qreal arg)
 {
-  setPos(arg, y());
+  if (pos().x() != arg) {
+      setPos(arg, y());
+    }
 }

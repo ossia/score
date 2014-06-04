@@ -36,9 +36,9 @@ class TimeEventPresenter;
 class TimeEventView;
 class Timebox;
 class GraphicsView;
-class QGraphicsLineItem;
 
 #include <QObject>
+#include <QLineF>
 #include"utils.hpp"
 
 /*!
@@ -65,7 +65,7 @@ public:
   ~TimeEvent();
 
 signals:
-  void addTimeboxProxy(QGraphicsLineItem *lineItem);  /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
+  void createTimeEventAndTimeboxProxy(QLineF line);  /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
 
 public:
   TimeEventView* view() const {return _pView;}

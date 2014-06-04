@@ -137,10 +137,14 @@ void TimeboxSmallView::keyPressEvent(QKeyEvent *event)
 
 void TimeboxSmallView::setY(qreal arg)
 {
-  setPos(x(), arg);
+  if (pos().y() != arg) {
+      setPos(x(), arg);
+    }
 }
 
 void TimeboxSmallView::setX(qreal arg)
 {
-  setPos(arg, y());
+  if (pos().x() != arg) {
+      setPos(arg, y());
+    }
 }
