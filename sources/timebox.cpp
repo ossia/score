@@ -64,16 +64,16 @@ Timebox::~Timebox()
 {
 }
 
-void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name)
+void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString nameBox)
 {
   ///@todo Vérifier si le nom existe déjà (par jC)
-  if (name.isEmpty()){
+  if (nameBox.isEmpty()){
       /// If no name was given, we construct a name with a unique ID
-      QString name = QString("Timebox%1").arg(staticId++);
-      setObjectName(name);
+      QString nameID = QString("Timebox%1").arg(staticId++);
+      setObjectName(nameID);
     }
 
-  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this, pTimeEventStart, pTimeEventEnd);
+  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, objectName(), this, pTimeEventStart, pTimeEventEnd);
 
   if(mode == SMALL) {
       _pSmallView = new TimeboxSmallView(_pModel, this);
@@ -141,28 +141,19 @@ void Timebox::goHide()
 
 void Timebox::createTimeEvent(QPointF pos)
 {
-  if(_pFullView == nullptr) {
-      qWarning() << "Attention : Full View n'est pas crée !";
-      return;
-    }
+
   new TimeEvent(this, pos);
 }
 
 void Timebox::createTimeboxAndTimeEvents(QRectF rect)
 {
-  if(_pFullView == nullptr) {
-      qWarning() << "Attention : Full View n'est pas crée !";
-      return;
-    }
+
   new Timebox(this, _pGraphicsView, rect.topLeft(), rect.width(), rect.height(), SMALL);
 }
 
 void Timebox::createTimeEventAndTimebox(QLineF line)
 {
-  if(_pFullView == nullptr) {
-      qWarning() << "Attention : Full View n'est pas crée !";
-      return;
-    }
+
 
   TimeEvent *startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
   QPointF posLeft;
@@ -187,10 +178,12 @@ void Timebox::createTimeEventAndTimebox(QLineF line)
 
 void Timebox::addChild(Timebox *other)
 {
+
   if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
+
   _pFullView->addItem(other->_pSmallView);
   _pFullView->clearSelection();
   other->_pSmallView->setSelected(true);
