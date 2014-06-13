@@ -52,6 +52,11 @@ PixmapButton::PixmapButton(const QString &filename1, const QString &filename2, Q
   _pBoundingRect = new QRectF(_pButtonOne->boundingRect().united(_pButtonTwo->boundingRect()));
 }
 
+PixmapButton::~PixmapButton()
+{
+  delete _pBoundingRect;
+}
+
 void PixmapButton::setPixmap(bool id)
 {
   Q_ASSERT(id == 0 || id == 1);

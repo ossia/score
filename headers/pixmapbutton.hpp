@@ -48,6 +48,7 @@ private:
 
 public:
   PixmapButton(const QString &filename1, const QString &filename2, QGraphicsItem *parent);
+  ~PixmapButton();
 
 signals:
   void clicked(bool); /// @return 0 = first pixmap clicked, 1 = second
