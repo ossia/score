@@ -64,7 +64,6 @@ MainWindow::MainWindow(QWidget *parent)
   QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
-/// Creation of the mainTimebox of the Scenario, the first one in fullView.
 void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
@@ -75,7 +74,6 @@ void MainWindow::createGraphics()
   setcurrentTimebox(_pMainTimebox);
 }
 
-/// The majority of actions are created in the Qt designer mainwindow.ui
 void MainWindow::createActions() {
   _pDeleteAction = new QAction(tr("Delete"), this);
   /// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)

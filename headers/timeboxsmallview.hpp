@@ -73,7 +73,7 @@ public slots:
   void setX(qreal);
 
 public:
-  enum {Type = BoxItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+  enum {Type = BoxItemType}; /// Type value for custom item. Enable the use of qgraphicsitem_cast with this item
   virtual int type() const {return Type;}
 
   void addStorey(TimeboxStorey *pStorey);

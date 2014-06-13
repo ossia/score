@@ -61,10 +61,13 @@ signals:
   void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
   void createTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
 
+public:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
   void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);  
 };
 
 #endif // SCENARIOVIEW_HPP

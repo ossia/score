@@ -94,7 +94,7 @@ public slots:
     void changeCurrentTimeboxScene();
 
 private slots:
-  void addItem(QPointF);
+  void addItem(QPointF); /// @todo Old way to add an item in the Timebox in fullView, now is directly in Scenario plugin. Could be deleted !
   void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
   void deleteSelectedItems();
 
@@ -103,8 +103,8 @@ public:
   void setcurrentTimebox(Timebox *arg);
 
 private:
-  void createGraphics();
-  void createActions();
+  void createGraphics(); /// Creation of the mainTimebox of the Scenario, the first one in fullView.
+  void createActions(); /// The majority of actions are created in the Qt designer mainwindow.ui
   void createActionGroups();
   void createStates();
   void createTransitions();

@@ -151,9 +151,7 @@ void TimeEventView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
       delete _pTemporaryRelation;
       _pTemporaryRelation = nullptr;
     }
-  else {
-      QGraphicsObject::mouseReleaseEvent(mouseEvent);
-    }
+  QGraphicsObject::mouseReleaseEvent(mouseEvent);
 }
 
 QRectF TimeEventView::boundingRect() const

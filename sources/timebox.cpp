@@ -104,7 +104,6 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
     }
 }
 
-/// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 void Timebox::goSmall()
 {
   if (_pParent == nullptr) {
@@ -119,7 +118,6 @@ void Timebox::goSmall()
     }
 }
 
-/// bottom up (presenter -> mainwindow)
 void Timebox::goFull()
 {
   if(_pParent != nullptr) {
@@ -136,25 +134,21 @@ void Timebox::goFull()
 
 void Timebox::goHide()
 {
-  emit isHide(); /// inform stateMachine's presenter that timebox is hidden
+  emit isHide();
 }
 
 void Timebox::createTimeEvent(QPointF pos)
 {
-
   new TimeEvent(this, pos);
 }
 
 void Timebox::createTimeboxAndTimeEvents(QRectF rect)
 {
-
   new Timebox(this, _pGraphicsView, rect.topLeft(), rect.width(), rect.height(), SMALL);
 }
 
 void Timebox::createTimeEventAndTimebox(QLineF line)
 {
-
-
   TimeEvent *startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
   QPointF posLeft;
   senderTimeEvent = qobject_cast<TimeEvent*>(QObject::sender());
@@ -178,7 +172,6 @@ void Timebox::createTimeEventAndTimebox(QLineF line)
 
 void Timebox::addChild(Timebox *other)
 {
-
   if(_pFullView == nullptr) {
       qWarning() << "Attention : Full View n'est pas crée !";
       return;

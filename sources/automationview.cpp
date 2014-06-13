@@ -51,6 +51,9 @@ QPainterPath AutomationView::shape() const
 
 void AutomationView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
   painter->setRenderHint(QPainter::Antialiasing, true);
   _pLine->paint(painter, option, widget);
 }

@@ -111,7 +111,6 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         }
     }
   QGraphicsObject::mouseMoveEvent(mouseEvent);
-
 }
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -128,4 +127,15 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
       _pTemporaryBox = nullptr;
     }
   QGraphicsObject::mouseReleaseEvent(mouseEvent);
+}
+
+void ScenarioView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  //Re-implemented to not draw background like PluginView::paint()
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(boundingRect());
 }

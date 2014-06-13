@@ -67,11 +67,11 @@ protected:
   void keyPressEvent(QKeyEvent *event); /// Zooming with + and - keys
 
   // QGraphicsView interface
-  void drawBackground(QPainter *painter, const QRectF &rect); /// Draw a filled brush pattern to show the space outside the scenario
+  void drawBackground(QPainter *painter, const QRectF &rect); /// Draw a filled brush pattern to show the space outside the scenario (temporary solution replacing fitFullView)
 
 private:
   void fitFullView(); /// Arrange the FullView's container to fit inside the new space (called after a resize). @todo WIP
-  void scaleView(qreal scaleFactor);
+  void scaleView(qreal scaleFactor); /// Horizontal scaling with constraints checking
   void zoomIn();
   void zoomOut();
 };

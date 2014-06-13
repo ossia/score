@@ -35,17 +35,24 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QRectF>
 class QGraphicsItem;
 
+/*!
+ *  This virtual class is the base class for plugins. It's parent is the TimeboxStorey.
+ *
+ *  @todo We could inherit from QGraphicsWidget if we want to resize easily with layout system
+ *
+ *  @brief Plugin View Virtual
+ *  @author Jaime Chao
+ *  @date 2013/2014
+*/
 class PluginView : public QGraphicsObject
 {
   Q_OBJECT
 
 private:
-  QRectF _boundingRectangle;
+  QRectF _boundingRectangle; /// Retrieved from parent's bounding rectangle at creation.
 
 public:
   PluginView(QGraphicsItem *parent);
-
-public:
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };

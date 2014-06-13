@@ -75,17 +75,17 @@ public:
 signals:
   void isFull();
   void isSmall();
-  void isHide();
+  void isHide(); /// inform stateMachine's presenter that timebox is hidden
 
 private slots:
-  void goFull();
+  void goFull(); /// bottom up (presenter -> mainwindow)
   void goHide();
   void createTimeEvent (QPointF pos);   /// Create a TimeEvent (signal emitted from ScenarioView)
   void createTimeboxAndTimeEvents (QRectF rect);   /// Create a Timebox and two surrounding TimeEvent (signal emitted from ScenarioView)
   void createTimeEventAndTimebox (QLineF line);   /// Click-drag in a already existing TimeEvent. Create another TimeEvent and a Timebox (signal emitted from TimeEventView)
 
 public slots:
-  void goSmall();
+  void goSmall(); /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 
 public:
   void addChild (Timebox *other);       /// Add an already created Timebox to fullView
