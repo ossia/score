@@ -95,7 +95,7 @@ public slots:
 
 private slots:
   void addItem(QPointF);
-  void headerWidgetClicked();
+  void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
   void deleteSelectedItems();
 
 public:

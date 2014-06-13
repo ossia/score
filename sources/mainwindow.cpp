@@ -31,6 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "timeevent.hpp"
+#include "timeeventview.hpp"
 #include "timeboxmodel.hpp"
 #include "timeboxpresenter.hpp"
 #include "timeboxsmallview.hpp"
@@ -181,7 +182,6 @@ void MainWindow::addItem(QPointF pos)
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
 }
 
-/// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
 void MainWindow::headerWidgetClicked()
 {
   _pCurrentTimebox->goSmall();
@@ -190,13 +190,18 @@ void MainWindow::headerWidgetClicked()
 void MainWindow::deleteSelectedItems()
 {
   QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
-  if (items.isEmpty())
+  if (items.isEmpty()) {
       return;
+    }
 
   QListIterator<QGraphicsItem*> list(items);
   while (list.hasNext()) {
-      if(QGraphicsWidget* gwidget = dynamic_cast<QGraphicsWidget*>(list.next())) {
-          gwidget->deleteLater();
+      QGraphicsItem *item = list.next();
+      if(TimeboxSmallView *tb = qgraphicsitem_cast<TimeboxSmallView*>(item)){
+          tb->deleteLater();
+        }
+      else if(TimeEventView *te = qgraphicsitem_cast<TimeEventView*>(item)){
+          te->deleteLater();
         }
     }
 }
