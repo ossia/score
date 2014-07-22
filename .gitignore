@@ -5,9 +5,11 @@ Doxygen/html
 #files
 .DS_Store
 i-scoreRecast.pro.user
+Makefile
 
 # temporary files
 *~
+*.o
 
 # Eclipse
 .cproject
