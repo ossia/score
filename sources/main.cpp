@@ -30,7 +30,6 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "mainwindow.hpp"
 #include <QApplication>
-#include "engine.hpp"
 
 #if QT_VERSION > 0x050000
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)

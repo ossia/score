@@ -16,7 +16,6 @@ CONFIG += c++11 warn_on
 SOURCES += sources/main.cpp \
     sources/mainwindow.cpp \
     sources/timeevent.cpp \
-    sources/engine.cpp \
     sources/graphicsview.cpp \
     sources/timeboxsmallview.cpp \
     sources/timeboxfullview.cpp \
@@ -38,7 +37,6 @@ SOURCES += sources/main.cpp \
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
-    headers/engine.hpp \
     headers/graphicsview.hpp \
     headers/utils.hpp \
     headers/timeboxsmallview.hpp \
@@ -67,7 +65,7 @@ OTHER_FILES += \
     LICENSE.txt
 
 INCLUDEPATH += headers
-INCLUDEPATH += /usr/include/libxml2
+INCLUDEPATH += /usr/include/libxml2 /usr/local/jamoma/include /usr/local/jamoma/includes
 
 unix:!macx{
     LIBS += -lJamomaFoundation \
