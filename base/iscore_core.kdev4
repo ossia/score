@@ -1,0 +1,4 @@
+[Project]
+Name=iscore_core
+Manager=KDevCMakeManager
+VersionControl=git

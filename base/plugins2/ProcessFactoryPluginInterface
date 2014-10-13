@@ -1,0 +1,26 @@
+#pragma once
+#include <QStringList>
+
+class IScoreProcess
+{
+	// Behind the scene, an API object.
+	// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?
+	
+	QStringList available_views() = 0;
+};
+class IScoreProcessSmallView { };
+class IScoreProcessStandardView { };
+class IScoreProcessFullView { };
+class IScoreProcessFactoryPluginInterface
+{
+	public:
+		// List the Processes offered by the plugin
+		QStringList process_list() = 0;
+		std::unique_ptr<IScoreProcess> process_make(QString name) = 0;
+		
+		
+		const AbstractCapabilityFactoryInterface_p& smallViewFactory();
+		const AbstractCapabilityFactoryInterface_p& standardViewFactory();
+		const AbstractCapabilityFactoryInterface_p& fullViewFactory();
+	
+}
