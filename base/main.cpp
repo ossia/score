@@ -1,11 +1,8 @@
 #include <iostream>
-#include <core/plugin/PluginManager.h>
-#include <QCoreApplication>
+#include <core/application/Application.hpp>
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
-    QCoreApplication app(argc, argv);
-    iscore::PluginManager p;
-    p.loadPlugins();
-    return 0;
+	iscore::Application app(argc, argv);
+	return app.exec();
 }

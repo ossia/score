@@ -14,13 +14,13 @@ find_package(Qt5Core)
 include_directories(.)
 
 set(HEADER_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.h
+	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.hpp
 )
 
 set(SOURCE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.cpp
 )
 
 add_library(simple_process SHARED ${HEADER_FILES} ${SOURCE_FILES})
