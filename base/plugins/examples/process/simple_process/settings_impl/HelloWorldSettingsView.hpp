@@ -13,6 +13,7 @@ class HelloWorldSettingsView : public QWidget, public iscore::SettingsGroupView
 		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
 
 		void setText(QString text);
+		virtual QWidget* getWidget() override;
 
 	signals:
 		void submitCommand(iscore::Command* cmd);
@@ -24,4 +25,8 @@ class HelloWorldSettingsView : public QWidget, public iscore::SettingsGroupView
 		HelloWorldSettingsPresenter* m_presenter;
 		QLineEdit* m_lineEdit; // Ownership goes to the widget parent class.
 		QString m_previousText;
+
+		// SettingsGroupView interface
+	public:
+
 };

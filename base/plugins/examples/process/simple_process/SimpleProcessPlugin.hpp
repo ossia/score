@@ -11,12 +11,14 @@ class SimpleProcessPlugin :
 {
 		Q_OBJECT
 		Q_PLUGIN_METADATA(IID ProcessFactoryPluginInterface_iid)
-		Q_INTERFACES(iscore::ProcessFactoryPluginInterface)
+		Q_INTERFACES(iscore::ProcessFactoryPluginInterface
+					 iscore::SettingsFactoryPluginInterface)
 
 	public:
 		SimpleProcessPlugin():
 			QObject{},
-			iscore::ProcessFactoryPluginInterface{}
+			iscore::ProcessFactoryPluginInterface{},
+			iscore::SettingsFactoryPluginInterface{}
 		{
 			setObjectName("SimpleProcessPlugin");
 		}

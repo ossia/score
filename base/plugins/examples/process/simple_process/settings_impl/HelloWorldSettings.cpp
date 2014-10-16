@@ -15,10 +15,11 @@ std::unique_ptr<SettingsGroupView> HelloWorldSettings::makeView()
 	return std::make_unique<HelloWorldSettingsView>(nullptr);
 }
 
-std::unique_ptr<SettingsGroupPresenter> HelloWorldSettings::makePresenter(SettingsGroupModel* m,
+std::unique_ptr<SettingsGroupPresenter> HelloWorldSettings::makePresenter(SettingsPresenter* p,
+																		  SettingsGroupModel* m,
 																		  SettingsGroupView* v)
 {
-	auto pres = std::make_unique<HelloWorldSettingsPresenter>(m, v);
+	auto pres = std::make_unique<HelloWorldSettingsPresenter>(p, m, v);
 	m->setPresenter(pres.get());
 	v->setPresenter(pres.get());
 

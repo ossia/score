@@ -19,6 +19,9 @@ Application::Application(int argc, char** argv):
 			this, &Application::dispatchPlugin);
 
 	m_pluginManager.reloadPlugins();
+
+	m_view->setCentralWidget(m_settings.view());
+	m_view->show();
 }
 
 void Application::dispatchPlugin(QObject* plugin)

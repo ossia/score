@@ -29,6 +29,11 @@ void HelloWorldSettingsView::setText(QString text)
 	m_lineEdit->setText(text);
 }
 
+QWidget* HelloWorldSettingsView::getWidget()
+{
+	return static_cast<QWidget*>(this);
+}
+
 void HelloWorldSettingsView::on_textChanged()
 {
 	auto newText = m_lineEdit->text();

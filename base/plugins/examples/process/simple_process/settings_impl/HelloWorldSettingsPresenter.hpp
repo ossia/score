@@ -7,7 +7,8 @@ class HelloWorldSettingsPresenter : public QObject, public iscore::SettingsGroup
 {
 		Q_OBJECT
 	public:
-		HelloWorldSettingsPresenter(iscore::SettingsGroupModel* model,
+		HelloWorldSettingsPresenter(iscore::SettingsPresenter* parent,
+									iscore::SettingsGroupModel* model,
 									iscore::SettingsGroupView* view);
 
 		void setText(QString text);

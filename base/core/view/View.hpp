@@ -3,15 +3,8 @@
 
 namespace iscore
 {
-	class View
+	class View : public QMainWindow
 	{
-		public:
-			View()
-			{
-				m_mainWindow.show();
-			}
 
-		private:
-			QMainWindow m_mainWindow;
 	};
 }
