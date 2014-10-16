@@ -19,8 +19,4 @@ class HelloWorldSettingsModel :
 
 	private:
 		QString helloText;
-
-
 };
-
-

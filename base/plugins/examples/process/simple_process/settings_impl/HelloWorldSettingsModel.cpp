@@ -1,4 +1,5 @@
 #include "HelloWorldSettingsModel.hpp"
+#include <QDebug>
 using namespace iscore;
 
 void HelloWorldSettingsModel::setText(QString txt)

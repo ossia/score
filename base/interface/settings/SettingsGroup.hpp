@@ -30,6 +30,8 @@ namespace iscore
 			{}
 
 			virtual ~SettingsGroupPresenter() = default;
+			virtual void on_accept() = 0;
+			virtual void on_reject() = 0;
 
 		protected:
 			SettingsGroupModel* m_model;

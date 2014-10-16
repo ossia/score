@@ -26,7 +26,8 @@ void HelloWorldSettingsView::setPresenter(iscore::SettingsGroupPresenter* presen
 
 void HelloWorldSettingsView::setText(QString text)
 {
-	m_lineEdit->setText(text);
+	if(text != m_lineEdit->text())
+		m_lineEdit->setText(text);
 }
 
 QWidget* HelloWorldSettingsView::getWidget()
@@ -37,9 +38,12 @@ QWidget* HelloWorldSettingsView::getWidget()
 void HelloWorldSettingsView::on_textChanged()
 {
 	auto newText = m_lineEdit->text();
-	iscore::Command* cmd = new TextChangedCommand{m_previousText,
-						   newText,
-						   static_cast<iscore::SettingsGroupPresenter*>(m_presenter)};
-	emit submitCommand(cmd);
-	m_previousText = newText;
+	if(newText != m_previousText)
+	{
+		iscore::Command* cmd = new TextChangedCommand{m_previousText,
+							   newText,
+							   static_cast<iscore::SettingsGroupPresenter*>(m_presenter)};
+		emit submitCommand(cmd);
+		m_previousText = newText;
+	}
 }

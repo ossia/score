@@ -25,6 +25,18 @@ void HelloWorldSettingsPresenter::setText(QString text)
 	model->setText(text); // Ou setter.
 }
 
+void HelloWorldSettingsPresenter::on_accept()
+{
+	if(m_currentCommand)
+		m_currentCommand->redo();
+}
+
+void HelloWorldSettingsPresenter::on_reject()
+{
+	delete m_currentCommand;
+	m_currentCommand = nullptr;
+}
+
 void HelloWorldSettingsPresenter::updateViewText()
 {
 	auto model = dynamic_cast<HelloWorldSettingsModel*>(m_model);
@@ -34,5 +46,6 @@ void HelloWorldSettingsPresenter::updateViewText()
 
 void HelloWorldSettingsPresenter::submitCommand(iscore::Command* cmd)
 {
-	m_parentPresenter->submitCommand(cmd);
+	delete m_currentCommand;
+	m_currentCommand = cmd;
 }

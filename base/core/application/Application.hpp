@@ -19,6 +19,7 @@ namespace iscore
 			int exec() { return m_app->exec(); }
 
 		public slots:
+			// Cela mérite-t-il d'avoir un objet propre ?
 			void dispatchPlugin(QObject*);
 
 		private:
