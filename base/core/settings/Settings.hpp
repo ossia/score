@@ -9,6 +9,8 @@
 
 namespace iscore
 {
+	// Les settings ont leur propre "file de commande" pour ne pas interférer avec le reste.
+	// (on ne "undo" généralement pas les settings).
 	class Settings
 	{
 		public:
