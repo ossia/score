@@ -5,12 +5,8 @@ namespace iscore
 {
 	class SettingsPresenter;
 	class SettingsGroupPresenter;
-	class SettingsGroupModel
-	{
-		public:
-			virtual ~SettingsGroupModel() = default;
-			virtual void setPresenter(SettingsGroupPresenter* presenter) = 0;
-	};
+	class SettingsGroupModel;
+
 
 	class SettingsGroupView
 	{

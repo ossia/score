@@ -3,6 +3,7 @@
 #include <plugin_interface/ProcessFactoryPluginInterface.hpp>
 #include <plugin_interface/SettingsFactoryPluginInterface.hpp>
 #include <QObject>
+class HelloWorldSettings;
 
 class SimpleProcessPlugin :
 		public QObject,
@@ -29,4 +30,7 @@ class SimpleProcessPlugin :
 
 		// Settings interface
 		virtual std::unique_ptr<iscore::SettingsGroup> settings_make() override;
+
+	private:
+		HelloWorldSettings* m_currentSettings;
 };

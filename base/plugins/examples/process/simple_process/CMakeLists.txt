@@ -17,6 +17,9 @@ include_directories(.)
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettings.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsView.hpp
@@ -27,6 +30,9 @@ set(HEADER_FILES
 set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettings.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsView.cpp

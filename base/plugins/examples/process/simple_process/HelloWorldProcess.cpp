@@ -1,19 +1,7 @@
 #include "HelloWorldProcess.hpp"
+#include "process_impl/HelloWorldProcessModel.hpp"
+#include <QDebug>
 
-
-struct TestModel : public iscore::ProcessModel
-{
-	TestModel() :
-		iscore::ProcessModel()
-	{
-		qDebug("The TestModel begins.");
-	}
-
-	virtual ~TestModel()
-	{
-		qDebug("The TestModel ends.");
-	}
-};
 
 HelloWorldProcess::HelloWorldProcess():
 	iscore::Process()
@@ -38,5 +26,5 @@ std::unique_ptr<iscore::ProcessPresenter> HelloWorldProcess::makePresenter()
 
 std::unique_ptr<iscore::ProcessModel> HelloWorldProcess::makeModel()
 {
-	return std::make_unique<TestModel>();
+	return std::make_unique<HelloWorldProcessModel>();
 }

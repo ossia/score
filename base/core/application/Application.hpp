@@ -6,6 +6,7 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
 
+#include <interface/processes/ProcessModel.hpp>
 #include <memory>
 #include <QApplication>
 
@@ -31,5 +32,6 @@ namespace iscore
 			std::unique_ptr<Model> m_model;
 			std::unique_ptr<View> m_view;
 			std::unique_ptr<Presenter> m_presenter;
+			std::unique_ptr<iscore::ProcessModel> pm;
 	};
 }

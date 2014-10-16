@@ -1,10 +1,13 @@
 #pragma once
 #include <interface/settings/SettingsGroup.hpp>
+#include <QObject>
+
 
 class HelloWorldSettings : public iscore::SettingsGroup
 {
 	public:
 		HelloWorldSettings();
+		virtual ~HelloWorldSettings() = default;
 
 		// SettingsGroup interface
 	public:

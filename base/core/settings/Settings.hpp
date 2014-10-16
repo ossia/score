@@ -17,7 +17,8 @@ namespace iscore
 			Settings();
 
 			void addSettingsPlugin(std::unique_ptr<SettingsGroup>&& plugin);
-			SettingsView* view() { return m_settingsView.get(); }
+			SettingsView*  view()  { return m_settingsView.get();  }
+			SettingsModel* model() { return m_settingsModel.get(); }
 
 		private:
 			std::unique_ptr<SettingsModel> m_settingsModel;

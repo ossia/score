@@ -1,14 +1,18 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settings/SettingsGroupModel.hpp>
 #include <QString>
 #include <QObject>
 
-class HelloWorldSettingsModel :
-		public QObject,
-		public iscore::SettingsGroupModel
+namespace iscore
+{
+	class SettingsGroupPresenter;
+}
+class HelloWorldSettingsModel : public iscore::SettingsGroupModel
 {
 		Q_OBJECT
 	public:
+		HelloWorldSettingsModel();
+
 		void setText(QString txt);
 		QString getText() const;
 

@@ -2,6 +2,12 @@
 #include <QDebug>
 using namespace iscore;
 
+HelloWorldSettingsModel::HelloWorldSettingsModel():
+	iscore::SettingsGroupModel{}
+{
+	this->setObjectName("HelloWorldSettingsModel");
+}
+
 void HelloWorldSettingsModel::setText(QString txt)
 {
 	helloText = txt;

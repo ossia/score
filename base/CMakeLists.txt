@@ -24,7 +24,10 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/Process.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/ProcessModel.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroup.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupModel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/PanelFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/LibraryElementFactoryPluginInterface.hpp
