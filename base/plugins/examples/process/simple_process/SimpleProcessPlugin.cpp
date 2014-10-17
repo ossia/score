@@ -22,8 +22,14 @@ SimpleProcessPlugin::SimpleProcessPlugin():
 QList<iscore::Autoconnect> SimpleProcessPlugin::autoconnect_list() const
 {
 	return {
-		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
-			{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}}
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}},
+
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldCommand", SIGNAL(incrementProcesses())},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(increment())}},
+
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldCommand", SIGNAL(decrementProcesses())},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(decrement())}}
 		   };
 }
 

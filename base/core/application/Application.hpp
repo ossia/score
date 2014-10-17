@@ -10,7 +10,7 @@
 #include <memory>
 #include <QApplication>
 #include <vector>
-
+#include <interface/processes/ProcessModel.hpp>
 namespace iscore
 {
 	class Application : public QObject
@@ -21,6 +21,9 @@ namespace iscore
 
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
+
+			//FOR TESTING
+			ProcessModel* pm;
 
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?

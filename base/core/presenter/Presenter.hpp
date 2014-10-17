@@ -7,12 +7,23 @@ namespace iscore
 	class CustomCommand;
 	class Model;
 	class View;
-	class Presenter : public QObject
+	class Action
 	{
 		public:
-			Presenter(iscore::Model* model, iscore::View* view);
+			// Ex. Fichier/SousMenu
+			QString path; // Think of something better.
+			QAction* action;
+	};
 
+	class Presenter : public QObject
+	{
+			Q_OBJECT
+		public:
+			Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
+
+			View* view() { return m_view; }
 			void addCustomCommand(CustomCommand*);
+			void insertActionIntoMenu(Action);
 
 		private slots:
 			void applyCommand(Command*);

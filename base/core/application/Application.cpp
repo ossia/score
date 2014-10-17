@@ -16,7 +16,7 @@ Application::Application(int argc, char** argv):
 	m_app = std::make_unique<QApplication>(argc, argv);
 	m_model = new Model{this};
 	m_view = new View(qobject_cast<QObject*>(this));
-	m_presenter = new Presenter(m_model, m_view);
+	m_presenter = new Presenter(m_model, m_view, this);
 	m_settings = std::make_unique<Settings>(this);
 
 	QCoreApplication::setOrganizationName("OSSIA");
@@ -75,8 +75,9 @@ void Application::dispatchPlugin(QObject* plugin)
 		qDebug() << "The plugin has custom processes";
 
 		auto custom_process = process_plugin->process_make(process_plugin->process_list().first());
-		//pm = custom_process->makeModel();
-		//pm->setParent(this);
+
+		pm = custom_process->makeModel();
+		pm->setParent(this);
 	}
 
 	doConnections();
