@@ -14,9 +14,9 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-			SettingsPresenter(SettingsModel* model, SettingsView* view);
+			SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent);
 
-			void addSettingsPresenter(std::unique_ptr<SettingsGroupPresenter>&& presenter);
+			void addSettingsPresenter(SettingsGroupPresenter* presenter);
 
 		private slots:
 			void on_accept();
@@ -26,6 +26,6 @@ namespace iscore
 			SettingsModel* m_model;
 			SettingsView* m_view;
 
-			std::set<std::unique_ptr<SettingsGroupPresenter>> m_pluginPresenters;
+			std::set<SettingsGroupPresenter*> m_pluginPresenters;
 	};
 }

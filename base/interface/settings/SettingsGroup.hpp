@@ -43,11 +43,11 @@ namespace iscore
 	class SettingsGroup
 	{
 		public:
-			virtual std::unique_ptr<SettingsGroupView> makeView() = 0;
+			virtual SettingsGroupView* makeView() = 0;
 			// Mission : transmettre au présenteur global pour validation de l'action.
 			// Ou bien c'est directement la vue qui s'en charge?
 			// Risque de duplication dans le cas SmallView / StandardView / FullView...
-			virtual std::unique_ptr<SettingsGroupPresenter> makePresenter(SettingsPresenter*, SettingsGroupModel* m, SettingsGroupView* v) = 0;
-			virtual std::unique_ptr<SettingsGroupModel> makeModel() = 0; // Accédé par les commandes uniquement.
+			virtual SettingsGroupPresenter* makePresenter(SettingsPresenter*, SettingsGroupModel* m, SettingsGroupView* v) = 0;
+			virtual SettingsGroupModel* makeModel() = 0; // Accédé par les commandes uniquement.
 	};
 }

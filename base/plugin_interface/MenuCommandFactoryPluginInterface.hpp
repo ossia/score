@@ -9,6 +9,6 @@ namespace iscore
 		virtual ~MenuCommandFactoryPluginInterface() = default;
 
 		virtual QStringList menuCommand_list() const = 0;
-		virtual std::unique_ptr<MenuCommand> menuCommand_make(QString) = 0;
+		virtual MenuCommand* menuCommand_make(QString) = 0;
 	};
 }

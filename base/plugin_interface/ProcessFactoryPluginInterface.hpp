@@ -15,7 +15,7 @@ namespace iscore
 			// List the Processes offered by the plugin.
 
 			virtual QStringList process_list() const = 0;
-			virtual std::unique_ptr<iscore::Process> process_make(QString name) = 0;
+			virtual iscore::Process* process_make(QString name) = 0;
 	};
 }
 

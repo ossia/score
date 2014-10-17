@@ -7,7 +7,11 @@ namespace iscore
 	{
 		public:
 			using QObject::QObject;
-			virtual ~SettingsGroupModel() = default;
+			virtual ~SettingsGroupModel()
+			{
+				this->setParent(nullptr);
+			}
+
 			virtual void setPresenter(SettingsGroupPresenter* presenter) = 0;
 	};
 }

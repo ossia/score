@@ -9,7 +9,7 @@ namespace iscore
 	{
 		public:
 			virtual ~SettingsFactoryPluginInterface() = default;
-			virtual std::unique_ptr<SettingsGroup> settings_make() = 0;
+			virtual SettingsGroup* settings_make() = 0;
 	};
 }
 

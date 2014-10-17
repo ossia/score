@@ -1,7 +1,5 @@
 #pragma once
-#include <QStringList>
 #include <interface/autoconnect/Autoconnect.hpp>
-
 
 namespace iscore
 {
@@ -11,11 +9,10 @@ namespace iscore
 			virtual ~AutoconnectFactoryPluginInterface() = default;
 			// List the Processes offered by the plugin.
 
-			virtual QStringList process_list() const = 0;
-			virtual std::unique_ptr<iscore::Process> process_make(QString name) = 0;
+			virtual QList<iscore::Autoconnect> autoconnect_list() const = 0;
 	};
 }
 
-#define ProcessFactoryPluginInterface_iid "org.ossia.i-score.plugins.ProcessFactoryPluginInterface"
+#define AutoconnectFactoryPluginInterface_iid "org.ossia.i-score.plugins.AutoconnectFactoryPluginInterface"
 
-Q_DECLARE_INTERFACE(iscore::ProcessFactoryPluginInterface, ProcessFactoryPluginInterface_iid)
+Q_DECLARE_INTERFACE(iscore::AutoconnectFactoryPluginInterface, AutoconnectFactoryPluginInterface_iid)

@@ -5,7 +5,7 @@ namespace iscore
 {
 	class Model;
 	class View;
-	class Presenter
+	class Presenter : public QObject
 	{
 		public:
 			Presenter(iscore::Model* model, iscore::View* view):

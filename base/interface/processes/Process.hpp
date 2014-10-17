@@ -38,11 +38,11 @@ namespace iscore
 		// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?
 
 		virtual QStringList availableViews() = 0;
-		virtual std::unique_ptr<ProcessView> makeView(QString view) = 0;
+		virtual ProcessView* makeView(QString view) = 0;
 		// Mission : transmettre au présenteur global pour validation de l'action.
 		// Ou bien c'est directement la vue qui s'en charge?
 		// Risque de duplication dans le cas SmallView / StandardView / FullView...
-		virtual std::unique_ptr<ProcessPresenter> makePresenter() = 0;
-		virtual std::unique_ptr<ProcessModel> makeModel() = 0; // Accédé par les commandes uniquement.
+		virtual ProcessPresenter* makePresenter() = 0;
+		virtual ProcessModel* makeModel() = 0; // Accédé par les commandes uniquement.
 	};
 }

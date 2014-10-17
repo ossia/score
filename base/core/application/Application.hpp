@@ -6,9 +6,10 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
 
-#include <interface/processes/ProcessModel.hpp>
+#include <interface/autoconnect/Autoconnect.hpp>
 #include <memory>
 #include <QApplication>
+#include <vector>
 
 namespace iscore
 {
@@ -17,21 +18,31 @@ namespace iscore
 			Q_OBJECT
 		public:
 			Application(int argc, char** argv);
+			
 			int exec() { return m_app->exec(); }
+			View* view() { return m_view; }
 
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?
 			void dispatchPlugin(QObject*);
 
+		protected:
+			virtual void childEvent(QChildEvent*) override;
+			
 		private:
+			void doConnections();
+			
 			std::unique_ptr<QApplication> m_app;
 			PluginManager m_pluginManager;
-			Settings m_settings;
+			std::unique_ptr<Settings> m_settings;
 
 			// Are they polymorphic ? Don't think so... They just hold plug-ins.
-			std::unique_ptr<Model> m_model;
-			std::unique_ptr<View> m_view;
-			std::unique_ptr<Presenter> m_presenter;
-			std::unique_ptr<iscore::ProcessModel> pm;
+			Model* m_model{};
+			View* m_view{};
+			Presenter* m_presenter{};
+			
+			std::vector<Autoconnect> m_autoconnections; // try unordered_set
+			
+
 	};
 }

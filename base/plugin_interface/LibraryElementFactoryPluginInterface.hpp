@@ -10,6 +10,6 @@ namespace iscore
 		virtual ~LibraryElementFactoryPluginInterface() = default;
 
 		virtual QStringList libraryElement_list() const = 0;
-		virtual std::unique_ptr<LibraryElement> libraryElement_make(QString) = 0;
+		virtual LibraryElement* libraryElement_make(QString) = 0;
 	};
 }

@@ -11,20 +11,18 @@ namespace iscore
 {
 	// Les settings ont leur propre "file de commande" pour ne pas interférer avec le reste.
 	// (on ne "undo" généralement pas les settings).
-	class Settings
+	class Settings : public QObject
 	{
 		public:
-			Settings();
+			Settings(QObject* parent);
 
-			void addSettingsPlugin(std::unique_ptr<SettingsGroup>&& plugin);
-			SettingsView*  view()  { return m_settingsView.get();  }
-			SettingsModel* model() { return m_settingsModel.get(); }
+			void addSettingsPlugin(SettingsGroup* plugin);
+			SettingsView*  view()  { return m_settingsView;  }
+			SettingsModel* model() { return m_settingsModel; }
 
 		private:
-			std::unique_ptr<SettingsModel> m_settingsModel;
-			std::unique_ptr<SettingsView> m_settingsView;
-			std::unique_ptr<SettingsPresenter> m_settingsPresenter;
-
-			std::set<std::unique_ptr<SettingsGroup>> m_plugins;
+			SettingsModel* m_settingsModel;
+			SettingsView* m_settingsView;
+			SettingsPresenter* m_settingsPresenter;
 	};
 }

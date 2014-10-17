@@ -4,8 +4,8 @@
 
 using namespace iscore;
 
-SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view):
-	QObject{},
+SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent):
+	QObject{parent},
 	m_model{model},
 	m_view{view}
 {
@@ -15,9 +15,9 @@ SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view):
 			this, &SettingsPresenter::on_reject);
 }
 
-void SettingsPresenter::addSettingsPresenter(std::unique_ptr<SettingsGroupPresenter>&& presenter)
+void SettingsPresenter::addSettingsPresenter(SettingsGroupPresenter* presenter)
 {
-	m_pluginPresenters.insert(std::move(presenter));
+	m_pluginPresenters.insert(presenter);
 }
 
 void SettingsPresenter::on_accept()

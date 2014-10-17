@@ -11,8 +11,10 @@ class HelloWorldSettings : public iscore::SettingsGroup
 
 		// SettingsGroup interface
 	public:
-		virtual std::unique_ptr<iscore::SettingsGroupView> makeView() override;
-		virtual std::unique_ptr<iscore::SettingsGroupPresenter> makePresenter(iscore::SettingsPresenter*, iscore::SettingsGroupModel* m, iscore::SettingsGroupView* v) override;
-		virtual std::unique_ptr<iscore::SettingsGroupModel> makeModel() override;
+		virtual iscore::SettingsGroupView* makeView() override;
+		virtual iscore::SettingsGroupPresenter* makePresenter(iscore::SettingsPresenter*, 
+															  iscore::SettingsGroupModel* m, 
+															  iscore::SettingsGroupView* v) override;
+		virtual iscore::SettingsGroupModel* makeModel() override;
 };
 

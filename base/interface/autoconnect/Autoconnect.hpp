@@ -14,13 +14,18 @@ namespace iscore
 			enum class ObjectRepresentationType { QObjectName, Inheritance };
 			struct ObjectRepresentation 
 			{
-					const ObjectRepresentationType type;
+					ObjectRepresentation(const ObjectRepresentation&) = default;
+					ObjectRepresentation& operator=(const ObjectRepresentation&) = default;
+					ObjectRepresentationType type;
 					const char* name;
 					const char* method;
 			};
+			
+			Autoconnect(const Autoconnect&) = default;
+			Autoconnect& operator=(const Autoconnect&) = default;
 
-			const ObjectRepresentation source;
-			const ObjectRepresentation target;
+			ObjectRepresentation source;
+			ObjectRepresentation target;
 			
 			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,  const QObject* obj) const
 			{
@@ -34,12 +39,11 @@ namespace iscore
 					}
 					case ObjectRepresentationType::Inheritance:
 					{
-						auto l1 = obj->findChildren<QObject*>();
-						for(auto& elt : l1)
+						for(auto& elt : obj->children())
 						{
 							if(elt->inherits(obj_repr.name))
 							{
-								children.push_back(elt);
+								children.append(elt);
 							}
 						}
 						break;
@@ -53,6 +57,7 @@ namespace iscore
 			{
 				return std::move(getMatchingChildren(source, obj));
 			}
+			
 			QList<QObject*> getMatchingChildrenForTarget(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(target, obj));

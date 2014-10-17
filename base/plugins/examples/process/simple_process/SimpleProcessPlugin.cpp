@@ -3,23 +3,31 @@
 #include <settings_impl/HelloWorldSettings.hpp>
 
 #define PROCESS_NAME "HelloWorld Process"
+QList<iscore::Autoconnect> SimpleProcessPlugin::autoconnect_list() const
+{
+	return {
+				{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
+				 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}}
+		   };
+}
+
 QStringList SimpleProcessPlugin::process_list() const
 {
 	return {PROCESS_NAME};
 }
 
-std::unique_ptr<iscore::Process> SimpleProcessPlugin::process_make(QString name)
+iscore::Process* SimpleProcessPlugin::process_make(QString name)
 {
 	if(name == QString(PROCESS_NAME))
 	{
-		return std::make_unique<HelloWorldProcess>();
+		return new HelloWorldProcess;
 	}
 
-	return std::unique_ptr<iscore::Process>();
+	return nullptr;
 }
 
 
-std::unique_ptr<iscore::SettingsGroup> SimpleProcessPlugin::settings_make()
+iscore::SettingsGroup* SimpleProcessPlugin::settings_make()
 {
-	return std::make_unique<HelloWorldSettings>();
+	return new HelloWorldSettings;
 }

@@ -10,23 +10,23 @@ HelloWorldSettings::HelloWorldSettings()
 {
 }
 
-std::unique_ptr<SettingsGroupView> HelloWorldSettings::makeView()
+SettingsGroupView* HelloWorldSettings::makeView()
 {
-	return std::make_unique<HelloWorldSettingsView>(nullptr);
+	return new HelloWorldSettingsView(nullptr);
 }
 
-std::unique_ptr<SettingsGroupPresenter> HelloWorldSettings::makePresenter(SettingsPresenter* p,
-																		  SettingsGroupModel* m,
-																		  SettingsGroupView* v)
+SettingsGroupPresenter* HelloWorldSettings::makePresenter(SettingsPresenter* p,
+														  SettingsGroupModel* m,
+														  SettingsGroupView* v)
 {
-	auto pres = std::make_unique<HelloWorldSettingsPresenter>(p, m, v);
-	m->setPresenter(pres.get());
-	v->setPresenter(pres.get());
+	auto pres = new HelloWorldSettingsPresenter(p, m, v);
+	m->setPresenter(pres);
+	v->setPresenter(pres);
 
-	return std::move(pres);
+	return pres;
 }
 
-std::unique_ptr<SettingsGroupModel> HelloWorldSettings::makeModel()
+SettingsGroupModel* HelloWorldSettings::makeModel()
 {
-	return std::make_unique<HelloWorldSettingsModel>();
+	return new HelloWorldSettingsModel();
 }

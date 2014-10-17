@@ -14,17 +14,17 @@ QStringList HelloWorldProcess::availableViews()
 	return {};
 }
 
-std::unique_ptr<iscore::ProcessView> HelloWorldProcess::makeView(QString view)
+iscore::ProcessView* HelloWorldProcess::makeView(QString view)
 {
-	return std::make_unique<iscore::ProcessView>();
+	return new iscore::ProcessView();
 }
 
-std::unique_ptr<iscore::ProcessPresenter> HelloWorldProcess::makePresenter()
+iscore::ProcessPresenter* HelloWorldProcess::makePresenter()
 {
-	return std::make_unique<iscore::ProcessPresenter>();
+	return new iscore::ProcessPresenter();
 }
 
-std::unique_ptr<iscore::ProcessModel> HelloWorldProcess::makeModel()
+iscore::ProcessModel* HelloWorldProcess::makeModel()
 {
-	return std::make_unique<HelloWorldProcessModel>();
+	return new HelloWorldProcessModel();
 }
