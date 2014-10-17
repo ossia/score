@@ -18,7 +18,7 @@ class HelloWorldSettingsPresenter : public QObject, public iscore::SettingsGroup
 
 	public slots:
 		void updateViewText();
-		void submitCommand(iscore::Command* cmd);
+		void on_submitCommand(iscore::Command* cmd);
 
 	private:
 		// S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".

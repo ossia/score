@@ -13,7 +13,7 @@ HelloWorldSettingsPresenter::HelloWorldSettingsPresenter(SettingsPresenter* pare
 	auto hw_view = static_cast<HelloWorldSettingsView*>(view);
 	auto hw_model = static_cast<HelloWorldSettingsModel*>(model);
 	connect(hw_view, SIGNAL(submitCommand(iscore::Command*)),
-			this, SLOT(submitCommand(iscore::Command*)));
+			this, SLOT(on_submitCommand(iscore::Command*)));
 
 	connect(hw_model, SIGNAL(textChanged()),
 			this, SLOT(updateViewText()));
@@ -44,7 +44,7 @@ void HelloWorldSettingsPresenter::updateViewText()
 	view->setText(model->getText());
 }
 
-void HelloWorldSettingsPresenter::submitCommand(iscore::Command* cmd)
+void HelloWorldSettingsPresenter::on_submitCommand(iscore::Command* cmd)
 {
 	delete m_currentCommand;
 	m_currentCommand = cmd;

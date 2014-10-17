@@ -18,7 +18,7 @@ namespace iscore
 			Q_OBJECT
 		public:
 			Application(int argc, char** argv);
-			
+
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
 
@@ -28,10 +28,11 @@ namespace iscore
 
 		protected:
 			virtual void childEvent(QChildEvent*) override;
-			
+
 		private:
 			void doConnections();
-			
+
+			// Base stuff.
 			std::unique_ptr<QApplication> m_app;
 			PluginManager m_pluginManager;
 			std::unique_ptr<Settings> m_settings;
@@ -40,9 +41,9 @@ namespace iscore
 			Model* m_model{};
 			View* m_view{};
 			Presenter* m_presenter{};
-			
+
 			std::vector<Autoconnect> m_autoconnections; // try unordered_set
-			
+
 
 	};
 }

@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_core)
 
-# Settings
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
-
 # Configuration for the subprojects
 set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 
@@ -24,7 +18,7 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/menu/MenuCommand.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/interface/customcommand/CustomCommand.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
@@ -38,7 +32,7 @@ set(HEADER_FILES
 ### plugin_interface ###
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/PanelFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/LibraryElementFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/MenuCommandFactoryPluginInterface.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/CustomCommandFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/ProcessFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/SettingsFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/AutoconnectFactoryPluginInterface.hpp
@@ -81,7 +75,8 @@ target_link_libraries(iscore_core Qt5::Core
 								  Qt5::Gui
 								  Qt5::Widgets)
 
+
+install(TARGETS iscore_core DESTINATION ${CMAKE_BINARY_DIR})
+
 # Other targets
 add_subdirectory(plugins)
-add_subdirectory(plugin_interface)
-add_subdirectory(interface)
