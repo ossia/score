@@ -1,10 +1,17 @@
 #pragma once
 #include <QMainWindow>
 #include <QDebug>
+#include <QMenuBar>
 namespace iscore
 {
 	class View : public QMainWindow
 	{
-			using QObject::QObject;
+		public:
+			View(QObject* parent):
+				QMainWindow{}
+			{
+				this->menuBar()->addMenu("Fichier");
+			}
+
 	};
 }

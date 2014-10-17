@@ -1,6 +1,7 @@
 #include <core/application/Application.hpp>
 #include <QDebug>
 
+#include <plugin_interface/MenuCommandFactoryPluginInterface.hpp>
 #include <plugin_interface/AutoconnectFactoryPluginInterface.hpp>
 #include <plugin_interface/ProcessFactoryPluginInterface.hpp>
 #include <plugin_interface/SettingsFactoryPluginInterface.hpp>
@@ -27,8 +28,9 @@ Application::Application(int argc, char** argv):
 
 	m_pluginManager.reloadPlugins();
 
-	m_view->setCentralWidget(m_settings->view()); // m_view takes ownership of the widget, this is why 
+	// m_view takes ownership of the widget, this is why 
 	// we can't use a unique_ptr...
+	m_view->setCentralWidget(m_settings->view()); 
 	m_view->show();
 }
 
@@ -36,6 +38,7 @@ void Application::dispatchPlugin(QObject* plugin)
 {
 	qDebug() << plugin->objectName() << "was dispatched";
 	auto autoconn_plugin = qobject_cast<AutoconnectFactoryPluginInterface*>(plugin);
+	auto menu_plugin = qobject_cast<MenuCommandFactoryPluginInterface*>(plugin);
 	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
 	auto process_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
 
@@ -49,6 +52,11 @@ void Application::dispatchPlugin(QObject* plugin)
 		}
 		
 		doConnections();
+	}
+	
+	if(menu_plugin)
+	{
+		qDebug() << "The plugin adds menu options";
 	}
 	
 	if(settings_plugin)
