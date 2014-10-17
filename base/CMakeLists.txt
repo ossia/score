@@ -19,22 +19,31 @@ find_package(Qt5Widgets)
 include_directories(.)
 
 set(HEADER_FILES
+### interface ###
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/autoconnect/Autoconnect.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/menu/MenuCommand.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/Process.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/ProcessModel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroup.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupModel.hpp
 
+### plugin_interface ###
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/PanelFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/LibraryElementFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/MenuCommandFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/ProcessFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/SettingsFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/AutoconnectFactoryPluginInterface.hpp
 
+### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.hpp

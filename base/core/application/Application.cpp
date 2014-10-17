@@ -3,6 +3,8 @@
 
 #include <plugin_interface/ProcessFactoryPluginInterface.hpp>
 #include <plugin_interface/SettingsFactoryPluginInterface.hpp>
+
+#include <interface/autoconnect/Autoconnect.hpp>
 using namespace iscore;
 
 Application::Application(int argc, char** argv):
@@ -24,22 +26,6 @@ Application::Application(int argc, char** argv):
 	m_view->show();
 }
 
-/*
- * auto-connect : faire à chaque fois qu'on fait un make_qqch sur un truc issu d'un plug-in.
- * Pour que ça marche on utilise la notion parent - children des QObject, qui permettent
- * facilement de faire une recherche récursive.
- */
-class Autoconnect
-{
-	public:
-		// CF : http://www.qtforum.org/article/515/connecting-signals-and-slots-by-name-at-runtime.html
-		QString origin{"HelloWorldSettingsModel"};
-		QString signal{"2textChanged()"};
-		QString target{"HelloWorldProcessModel"};
-		QString target_method{"1setText()"};
-};
-
-
 void Application::dispatchPlugin(QObject* plugin)
 {
 	qDebug() << plugin->objectName() << "was dispatched";
@@ -57,21 +43,32 @@ void Application::dispatchPlugin(QObject* plugin)
 	{
 		qDebug() << "I have custom processes";
 		custom_process = process_plugin->process_make(process_plugin->process_list().first());
+		pm = custom_process->makeModel();
+		pm->setParent(this);
 	}
 
 	if(settings_plugin && process_plugin)
 	{
-		Autoconnect a;
-		for(auto& elt : m_settings.model()->findChildren<QObject*>(a.origin))
+		Autoconnect a{{Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
+					  {Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}};
+		
+		// Find sources
+		QList<QObject*> potential_sources = a.getMatchingChildrenForSource(m_settings.model());
+		QList<QObject*> potential_targets = a.getMatchingChildrenForTarget(this);
+		
+		// Find targets (or just do on the "make'd" element ? we have to search if it is on the newly created object)
+		for(auto& s_elt : potential_sources)
 		{
-			qDebug() << "FOUND";
-			pm = custom_process->makeModel();
-			if(pm->objectName() == a.target)
+			for(auto& t_elt : potential_targets)
 			{
-				pm->connect(elt,
-							a.signal.toLatin1().constData(),
-							a.target_method.toLatin1().constData());
+				qDebug() << "FOUND";
+				t_elt->connect(s_elt,
+							   a.source.method,
+							   a.target.method,
+							   Qt::UniqueConnection);
+				
 			}
 		}
+		
 	}
 }
