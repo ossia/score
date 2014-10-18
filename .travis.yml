@@ -11,7 +11,7 @@ before_install:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100
     
     - wget http://www.cmake.org/files/v3.0/cmake-3.0.2.tar.gz
-    - tar zxvf cmake-3.0.2.tar.gz; cd cmake-3.0.2; ./bootstrap; make; sudo make install
+    - tar zxf cmake-3.0.2.tar.gz; cd cmake-3.0.2; ./bootstrap; make; sudo make install
 
 script: 
   - source /opt/qt53/bin/qt53-env.sh
