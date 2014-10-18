@@ -2,8 +2,9 @@ language: cpp
 install:
   - sudo add-apt-repository ppa:packetlost/cmake
   - sudo apt-add-repository ppa:ubuntu-sdk-team/ppa
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-  - sudo apt-get install cmake3  qtbase-opensource-src
+  - sudo apt-get install cmake3  qtbase-opensource-src g++-4.9
 
 script: 
   - cmake . 
