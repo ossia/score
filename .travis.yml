@@ -15,6 +15,6 @@ before_install:
 
 script: 
   - source /opt/qt53/bin/qt53-env.sh
-  - export CXX=/usr/bin/clang++
+  - export CXX=clang-3.5
   - cmake-3.0.2/bin/cmake . 
   - make install
