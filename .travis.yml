@@ -1,21 +1,17 @@
 before_install:
-    - sudo mkdir -p /etc/apt/sources.list.d/
-    - echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
-    
     - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
     - sudo add-apt-repository --yes ppa:beineri/opt-qt532
 
     - sudo apt-get update -qq
-    - sudo apt-get install -qq g++-4.8 clang-3.5 libc++-dev qt53-meta-full
-    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100
+    - sudo apt-get install -qq qt53-meta-full
     
-    - wget http://www.cmake.org/files/v3.0/cmake-3.0.2.tar.gz
-    - (tar zxf cmake-3.0.2.tar.gz; cd cmake-3.0.2; cmake .; make; find . -executable -name cmake -type f)
+    - wget https://www.dropbox.com/s/e0o670ve6gv1dgt/cmake-3.0.2-Linux-x86_64.tar.gz?dl=0 -o cmake-3.0.2-Linux-x86_64.tar.gz
+    - tar zxf cmake-3.0.2-Linux-x86_64.tar.gz
+    
+    - wget https://www.dropbox.com/s/exjazsh5epqet2g/gcc_4.9.1-1_amd64.deb?dl=0 -o gcc_4.9.1-1_amd64.deb
+    - sudo dpkg -i gcc_4.9.1-1_amd64.deb
 
 script: 
   - source /opt/qt53/bin/qt53-env.sh
-  - export CXX=clang-3.5
-  - export CXXFLAGS=-stdlib=libc++
-  - cmake-3.0.2/bin/cmake . 
+  - cmake-3.0.2-Linux-x86_64/bin/cmake . 
   - make install
