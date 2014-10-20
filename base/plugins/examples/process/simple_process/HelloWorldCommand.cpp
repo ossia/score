@@ -2,6 +2,8 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/presenter/Command.hpp>
 #include <core/view/View.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <interface/customcommand/MenuInterface.hpp>
 
 using namespace iscore;
 HelloWorldCommand::HelloWorldCommand():
@@ -15,9 +17,11 @@ HelloWorldCommand::HelloWorldCommand():
 			this, &HelloWorldCommand::on_actionTrigger);
 }
 
-void HelloWorldCommand::populateMenus()
+void HelloWorldCommand::populateMenus(MenubarManager* menu)
 {
-	m_presenter->insertActionIntoMenu({"Fichier/trololo", m_action_HelloWorldigate});
+	MenuInterface m;
+	// Use identifiers for the common menus
+	menu->insertActionIntoMenubar({m.name(ToplevelMenuElement::FileMenu) + "/" + tr("trololo"), m_action_HelloWorldigate});
 }
 
 void HelloWorldCommand::populateToolbars()

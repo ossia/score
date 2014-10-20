@@ -1,18 +1,15 @@
 #pragma once
 #include <interface/customcommand/CustomCommand.hpp>
 #include <QAction>
-namespace iscore
-{
-	class Presenter;
-}
+
 class HelloWorldCommand : public iscore::CustomCommand
 {
 		Q_OBJECT
 	public:
 		HelloWorldCommand();
-		virtual void populateMenus();
-		virtual void populateToolbars();
-		virtual void setPresenter(iscore::Presenter*);
+		virtual void populateMenus(iscore::MenubarManager*) override;
+		virtual void populateToolbars() override;
+		virtual void setPresenter(iscore::Presenter*) override;
 
 	signals:
 		void incrementProcesses();

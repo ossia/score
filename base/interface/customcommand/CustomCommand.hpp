@@ -10,6 +10,7 @@ namespace iscore
 // A l'ownsership des actions.
 	class Command;
 	class Presenter;
+	class MenubarManager;
 	class CustomCommand : public QObject
 	{
 		Q_OBJECT
@@ -19,7 +20,7 @@ namespace iscore
 		// Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 	public:
 		virtual ~CustomCommand() = default;
-		virtual void populateMenus() = 0;
+		virtual void populateMenus(iscore::MenubarManager*) = 0;
 		virtual void populateToolbars() = 0;
 		virtual void setPresenter(Presenter*) = 0;
 

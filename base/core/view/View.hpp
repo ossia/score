@@ -10,7 +10,6 @@ namespace iscore
 			View(QObject* parent):
 				QMainWindow{}
 			{
-				this->menuBar()->addMenu("Fichier");
 			}
 
 	};

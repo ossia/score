@@ -14,10 +14,12 @@ Application::Application(int argc, char** argv):
 {
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
+	
+	m_settings = std::make_unique<Settings>(this);
+	
 	m_model = new Model{this};
 	m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
-	m_settings = std::make_unique<Settings>(this);
 
 	QCoreApplication::setOrganizationName("OSSIA");
 	QCoreApplication::setOrganizationDomain("i-score.com");
@@ -30,7 +32,6 @@ Application::Application(int argc, char** argv):
 
 	// m_view takes ownership of the widget, this is why
 	// we can't use a unique_ptr...
-	m_view->setCentralWidget(m_settings->view());
 	m_view->show();
 }
 

@@ -17,10 +17,6 @@ namespace iscore
 			SettingsView(QWidget* parent);
 			void addSettingsView(SettingsGroupView* view);
 
-		signals:
-			void accept();
-			void reject();
-
 		private:
 			std::set<SettingsGroupView*> m_pluginViews;
 

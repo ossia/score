@@ -9,10 +9,10 @@ SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, Q
 	m_model{model},
 	m_view{view}
 {
-	connect(view, &SettingsView::accept,
-			this, &SettingsPresenter::on_accept);
-	connect(view, &SettingsView::reject,
-			this, &SettingsPresenter::on_reject);
+	connect(m_view, &SettingsView::accepted,
+			this,   &SettingsPresenter::on_accept);
+	connect(m_view, &SettingsView::rejected,
+			this,   &SettingsPresenter::on_reject);
 }
 
 void SettingsPresenter::addSettingsPresenter(SettingsGroupPresenter* presenter)
