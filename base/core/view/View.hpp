@@ -14,6 +14,8 @@ namespace iscore
 			{
 			}
 			
+			void addPanel(PanelView*);
+			
 		private:
 			std::set<PanelView*> m_panelsViews;
 	};

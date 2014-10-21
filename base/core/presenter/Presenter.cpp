@@ -1,10 +1,10 @@
-#include <core/presenter/Presenter.hpp>
 #include <interface/customcommand/CustomCommand.hpp>
 #include <core/presenter/Command.hpp>
-#include <core/view/View.hpp>
+
 #include <core/application/Application.hpp>
 #include <interface/panels/Panel.hpp>
 #include <functional>
+
 using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
@@ -31,7 +31,22 @@ void Presenter::addCustomCommand(CustomCommand* cmd)
 
 void Presenter::addPanel(Panel* p)
 {
+	auto model = p->makeModel();
+	auto view = p->makeView();
+	auto pres = p->makePresenter(this, model, view);
+	pres->setParent(this);
 	
+	connect(pres, &PanelPresenter::submitCommand,
+			this, &Presenter::applyCommand);
+	
+	view->setPresenter(pres);
+	model->setPresenter(pres);
+	
+	m_model->addPanel(model);
+	m_view->addPanel(view);
+	m_panelsPresenters.insert(pres);
+	
+
 }
 
 void Presenter::applyCommand(Command* cmd)

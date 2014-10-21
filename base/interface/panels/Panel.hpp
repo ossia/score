@@ -1,29 +1,38 @@
 #pragma once
+#include <QObject>
 
 class QWidget;
-class Presenter;
-
 namespace iscore
 {
+	class Presenter;	
 	class PanelPresenter;
+	class Command;
 	
-	class PanelModel
+	class PanelModel : public QObject
 	{
+			Q_OBJECT
+		public:
+			using QObject::QObject;
 			
+			virtual void setPresenter(PanelPresenter* presenter) = 0;
 	};
 	
-	class PanelView
+	class PanelView : public QObject
 	{
+			Q_OBJECT
 		public:
+			using QObject::QObject;
 			virtual ~PanelView() = default;
 			virtual void setPresenter(PanelPresenter* presenter) = 0;
 			virtual QWidget* getWidget() = 0; 
 	};
 	
-	class PanelPresenter
+	class PanelPresenter : public QObject
 	{
+			Q_OBJECT
 		public:
 			PanelPresenter(Presenter* parent_presenter, PanelModel* model, PanelView* view):
+				QObject{},
 				m_model{model},
 				m_view{view},
 				m_parentPresenter{parent_presenter}
@@ -32,6 +41,9 @@ namespace iscore
 			}
 
 			virtual ~PanelPresenter() = default;
+			
+		signals:
+			void submitCommand(Command* cmd);
 
 		protected:
 			PanelModel* m_model;
@@ -42,8 +54,8 @@ namespace iscore
 	class Panel
 	{
 		public:
-			virtual PanelView* makeView(QString view) = 0;
-			virtual PanelPresenter* makePresenter() = 0;
+			virtual PanelView* makeView() = 0;
+			virtual PanelPresenter* makePresenter(Presenter* parent_presenter, PanelModel* model, PanelView* view) = 0;
 			virtual PanelModel* makeModel() = 0;
 	};
 }

@@ -9,6 +9,7 @@ namespace iscore
 	{
 		public:
 			using QObject::QObject;
+			void addPanel(PanelModel*);
 			
 		private:
 			std::set<PanelModel*> m_panelsModels;
