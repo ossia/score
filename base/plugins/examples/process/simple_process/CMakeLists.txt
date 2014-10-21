@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(simple_process)
-
-# Settings
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/modules")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
-
 # Packages
 find_package(Qt5Core)
 find_package(Qt5Widgets)
@@ -18,6 +16,15 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldPanel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCentralPanel.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelPresenter.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.hpp
 
@@ -32,6 +39,15 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCentralPanel.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelPresenter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelPresenter.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.cpp
 

@@ -22,6 +22,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/customcommand/MenuInterface.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/PanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/Process.hpp

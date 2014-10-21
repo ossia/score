@@ -3,6 +3,7 @@
 
 #include <core/application/Application.hpp>
 #include <interface/panels/Panel.hpp>
+#include <interface/panels/PanelModel.hpp>
 #include <functional>
 
 using namespace iscore;
@@ -20,7 +21,7 @@ void Presenter::addCustomCommand(CustomCommand* cmd)
 {
 	cmd->setParent(this); // Ownership transfer
 	cmd->setPresenter(this);
-	connect(cmd, &CustomCommand::submitCommand,
+	connect(cmd,  &CustomCommand::submitCommand,
 			this, &Presenter::applyCommand);
 
 	cmd->populateMenus(&m_menubar);
@@ -45,8 +46,6 @@ void Presenter::addPanel(Panel* p)
 	m_model->addPanel(model);
 	m_view->addPanel(view);
 	m_panelsPresenters.insert(pres);
-	
-
 }
 
 void Presenter::applyCommand(Command* cmd)

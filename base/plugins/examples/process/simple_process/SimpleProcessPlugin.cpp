@@ -1,16 +1,21 @@
 #include <SimpleProcessPlugin.hpp>
 #include <HelloWorldProcess.hpp>
 #include <HelloWorldCommand.hpp>
+#include <HelloWorldPanel.hpp>
+#include <HelloWorldCentralPanel.hpp>
 #include <settings_impl/HelloWorldSettings.hpp>
 
 #define PROCESS_NAME "HelloWorld Process"
-#define CMD1_NAME "HelloWorldigate"
+#define CMD_NAME "HelloWorldigate"
+#define MAIN_PANEL_NAME "HelloWorldCentralPanel"
+#define SECONDARY_PANEL_NAME "HelloWorldSmallPanel"
 
 SimpleProcessPlugin::SimpleProcessPlugin():
 	QObject{},
 	iscore::AutoconnectFactoryPluginInterface{},
 	iscore::CustomCommandFactoryPluginInterface{},
 	iscore::ProcessFactoryPluginInterface{},
+	iscore::PanelFactoryPluginInterface{},
 	iscore::SettingsFactoryPluginInterface{}
 {
 	setObjectName("SimpleProcessPlugin");
@@ -58,13 +63,35 @@ iscore::SettingsGroup* SimpleProcessPlugin::settings_make()
 //////////////////////////
 QStringList SimpleProcessPlugin::customCommand_list() const
 {
-	return {CMD1_NAME};
+	return {CMD_NAME};
 }
 
 iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
 {
-	if(name == QString(CMD1_NAME))
+	if(name == QString(CMD_NAME))
 	{
 		return new HelloWorldCommand;
 	}
+	
+	return nullptr;
 }
+
+QStringList SimpleProcessPlugin::panel_list() const
+{
+	return {/*MAIN_PANEL_NAME, */SECONDARY_PANEL_NAME};
+}
+
+iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
+{
+	if(name == QString(MAIN_PANEL_NAME))
+	{
+		return new HelloWorldCentralPanel;
+	}
+	else if(name == QString(SECONDARY_PANEL_NAME))
+	{
+		return new HelloWorldPanel;
+	}
+	
+	return nullptr;
+}
+

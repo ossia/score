@@ -1,22 +1,13 @@
 #pragma once
-#include <QObject>
+#include <QWidget>
 
-class QWidget;
 namespace iscore
 {
 	class Presenter;	
 	class PanelPresenter;
 	class Command;
-	
-	class PanelModel : public QObject
-	{
-			Q_OBJECT
-		public:
-			using QObject::QObject;
-			
-			virtual void setPresenter(PanelPresenter* presenter) = 0;
-	};
-	
+	class PanelModel;
+
 	class PanelView : public QObject
 	{
 			Q_OBJECT

@@ -17,5 +17,5 @@ SettingsView::SettingsView(QWidget* parent):
 void SettingsView::addSettingsView(SettingsGroupView* view)
 {
 	m_layout->addWidget(view->getWidget());
-	m_pluginViews.insert(std::move(view));
+	m_pluginViews.insert(view);
 }

@@ -30,10 +30,13 @@ void PluginManager::reloadPlugins()
 
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
+		
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
+qDebug() << loader.errorString();
 
 		if (QObject *plugin = loader.instance())
 		{
+			qDebug("LALALA");
 			m_availablePlugins[fileName] = plugin;
 			emit newPlugin(plugin);
 		}
