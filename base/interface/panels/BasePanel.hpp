@@ -3,6 +3,7 @@
 
 namespace iscore
 {
+	// The central widget
 	class BasePanel : public Panel
 	{
 

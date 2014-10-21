@@ -2,8 +2,10 @@
 #include <QMainWindow>
 #include <QDebug>
 #include <QMenuBar>
+#include <set>
 namespace iscore
 {
+	class PanelView;
 	class View : public QMainWindow
 	{
 		public:
@@ -11,6 +13,8 @@ namespace iscore
 				QMainWindow{}
 			{
 			}
-
+			
+		private:
+			std::set<PanelView*> m_panelsViews;
 	};
 }

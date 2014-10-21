@@ -3,6 +3,7 @@
 
 #include <plugin_interface/CustomCommandFactoryPluginInterface.hpp>
 #include <plugin_interface/AutoconnectFactoryPluginInterface.hpp>
+#include <plugin_interface/PanelFactoryPluginInterface.hpp>
 #include <plugin_interface/ProcessFactoryPluginInterface.hpp>
 #include <plugin_interface/SettingsFactoryPluginInterface.hpp>
 
@@ -42,6 +43,7 @@ void Application::dispatchPlugin(QObject* plugin)
 	auto menu_plugin = qobject_cast<CustomCommandFactoryPluginInterface*>(plugin);
 	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
 	auto process_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
+	auto panel_plugin = qobject_cast<PanelFactoryPluginInterface*>(plugin);
 
 	if(autoconn_plugin)
 	{
@@ -51,8 +53,6 @@ void Application::dispatchPlugin(QObject* plugin)
 		{
 			m_autoconnections.push_back(connection);
 		}
-
-		doConnections();
 	}
 
 	if(menu_plugin)
@@ -79,6 +79,11 @@ void Application::dispatchPlugin(QObject* plugin)
 
 		pm = custom_process->makeModel();
 		pm->setParent(this);
+	}
+	
+	if(panel_plugin)
+	{
+		qDebug() << "The plugin adds panels";
 	}
 
 	doConnections();

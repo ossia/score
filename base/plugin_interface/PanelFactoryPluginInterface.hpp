@@ -14,3 +14,7 @@ namespace iscore
 			virtual Panel* panel_make(QString name) = 0;
 	};
 }
+
+#define PanelFactoryPluginInterface_iid "org.ossia.i-score.plugins.PanelFactoryPluginInterface"
+
+Q_DECLARE_INTERFACE(iscore::PanelFactoryPluginInterface, PanelFactoryPluginInterface_iid)
