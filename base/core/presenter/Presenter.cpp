@@ -4,6 +4,7 @@
 #include <core/application/Application.hpp>
 #include <interface/panels/Panel.hpp>
 #include <interface/panels/PanelModel.hpp>
+#include <interface/panels/BasePanel.hpp>
 #include <functional>
 
 using namespace iscore;
@@ -15,6 +16,9 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	m_menubar{view->menuBar(), this}
 {
 	setupMenus();
+	
+	connect(m_view,		&View::insertActionIntoMenubar,
+			&m_menubar, &MenubarManager::insertActionIntoMenubar);
 }
 
 void Presenter::addCustomCommand(CustomCommand* cmd)
@@ -43,8 +47,12 @@ void Presenter::addPanel(Panel* p)
 	view->setPresenter(pres);
 	model->setPresenter(pres);
 	
+	if(dynamic_cast<BasePanel*>(p))
+		m_view->setCentralPanel(view);
+	else
+		m_view->addPanel(view);
+	
 	m_model->addPanel(model);
-	m_view->addPanel(view);
 	m_panelsPresenters.insert(pres);
 }
 

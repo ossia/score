@@ -84,9 +84,11 @@ void Application::dispatchPlugin(QObject* plugin)
 	if(panel_plugin)
 	{
 		qDebug() << "The plugin adds panels";
-		auto name = panel_plugin->panel_list().first();
-		qDebug() << name;
-		m_presenter->addPanel(panel_plugin->panel_make(name));
+		for(auto name : panel_plugin->panel_list())
+		{
+			qDebug() << name;
+			m_presenter->addPanel(panel_plugin->panel_make(name));
+		}
 	}
 
 	doConnections();

@@ -15,12 +15,13 @@ namespace iscore
 		public:
 			explicit MenubarManager(QMenuBar* bar, QObject *parent = 0);
 			
-			void insertActionIntoMenubar(Action);
+
 			void insertActionIntoToplevelMenu(ToplevelMenuElement, QAction*);
 			
 		signals:
 			
 		public slots:
+			void insertActionIntoMenubar(Action);
 			
 		private:
 			QMenuBar* m_menuBar{};

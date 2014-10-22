@@ -8,7 +8,7 @@ using namespace iscore;
 HelloWorldPanelView::HelloWorldPanelView():
 	iscore::PanelView{nullptr}
 {
-	
+	this->setObjectName("Hello Small Panel");
 }
 
 void HelloWorldPanelView::setPresenter(PanelPresenter* presenter)
@@ -18,5 +18,5 @@ void HelloWorldPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* HelloWorldPanelView::getWidget()
 {
-	return new QLabel("la roulade");
+	return new QLabel("Roulade latérale");
 }
