@@ -11,6 +11,8 @@
 #include <QApplication>
 #include <vector>
 #include <interface/processes/ProcessModel.hpp>
+#include <core/processes/ProcessList.hpp>
+
 namespace iscore
 {
 	class Application : public QObject
@@ -47,7 +49,6 @@ namespace iscore
 			Presenter* m_presenter{};
 
 			std::vector<Autoconnect> m_autoconnections; // try unordered_set
-
-
+			ProcessList m_processList;
 	};
 }

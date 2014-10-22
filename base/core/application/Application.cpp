@@ -79,9 +79,8 @@ void Application::dispatchPlugin(QObject* plugin)
 		// Ajouter à la liste des process disponibles
 		qDebug() << "The plugin has custom processes";
 
-		auto custom_process = process_plugin->process_make(process_plugin->process_list().first());
-
-		pm = custom_process->makeModel(0, this);
+		for(auto procname : process_plugin->process_list())
+			m_processList.addProcess(process_plugin->process_make(procname));
 	}
 
 	if(panel_plugin)

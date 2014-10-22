@@ -47,6 +47,8 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Action.hpp
@@ -70,6 +72,9 @@ set(SOURCE_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp

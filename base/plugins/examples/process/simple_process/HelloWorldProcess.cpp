@@ -9,6 +9,11 @@ HelloWorldProcess::HelloWorldProcess():
 	qDebug("Successfully instantiated HelloWorldProcess");
 }
 
+QString HelloWorldProcess::name() const
+{
+	return "HelloWorld Example Process";
+}
+
 QStringList HelloWorldProcess::availableViews()
 {
 	return {};
@@ -24,7 +29,7 @@ iscore::ProcessPresenter* HelloWorldProcess::makePresenter()
 	return new iscore::ProcessPresenter();
 }
 
-iscore::ProcessModel* HelloWorldProcess::makeModel(unsigned int id, QObject* parent) 
+iscore::ProcessModel* HelloWorldProcess::makeModel(unsigned int id, QObject* parent)
 {
 	return new HelloWorldProcessModel(id, parent);
 }

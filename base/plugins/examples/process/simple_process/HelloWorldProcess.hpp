@@ -7,6 +7,8 @@ public:
 	HelloWorldProcess();
 	~HelloWorldProcess() = default;
 
+	virtual QString name() const override;
+
 	virtual QStringList availableViews() override;
 	virtual iscore::ProcessView* makeView(QString view) override;
 	// Mission : transmettre au présenteur global pour validation de l'action.
