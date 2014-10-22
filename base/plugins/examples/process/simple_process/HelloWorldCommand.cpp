@@ -4,6 +4,7 @@
 #include <core/view/View.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <interface/customcommand/MenuInterface.hpp>
+#include <QApplication>
 
 using namespace iscore;
 HelloWorldCommand::HelloWorldCommand():
@@ -19,9 +20,9 @@ HelloWorldCommand::HelloWorldCommand():
 
 void HelloWorldCommand::populateMenus(MenubarManager* menu)
 {
-	MenuInterface m;
 	// Use identifiers for the common menus
-	menu->insertActionIntoMenubar({m.name(ToplevelMenuElement::FileMenu) + "/" + tr("trololo"), m_action_HelloWorldigate});
+	menu->insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::FileMenu) + "/" + tr("trololo"),
+								   m_action_HelloWorldigate});
 }
 
 void HelloWorldCommand::populateToolbars()
@@ -37,27 +38,36 @@ void HelloWorldCommand::setPresenter(iscore::Presenter* pres)
 
 void HelloWorldCommand::on_actionTrigger()
 {
+	// Exemple of a global command that acts on every object with goes by the name "HelloWorldCommand"
+	// We MUST NOT pass pointers of ANY KIND as data because of the distribution needs.
+	// If an object must be reference, it has to get an id, a name, or something from which
+	// it can be referenced.
 	class HelloWorldIncrementCommandImpl : public Command
 	{
 		public:
-			HelloWorldIncrementCommandImpl(HelloWorldCommand* parent):
+			HelloWorldIncrementCommandImpl():
 				Command{"Increment process"},
-				m_parent{parent}
+				m_parentName{"HelloWorldCommand"}
 			{
 			}
 
 			virtual void undo() override
 			{
-				emit m_parent->decrementProcesses();
+				auto target = qApp->findChild<HelloWorldCommand*>(m_parentName);
+				if(target)
+					target->decrementProcesses();
 			}
+
 			virtual void redo() override
 			{
-				emit m_parent->incrementProcesses();
+				auto target = qApp->findChild<HelloWorldCommand*>(m_parentName);
+				if(target)
+					target->incrementProcesses();
 			}
 
 		private:
-			HelloWorldCommand* m_parent;
+			QString m_parentName;
 	};
 
-	emit submitCommand(new HelloWorldIncrementCommandImpl(this));
+	emit submitCommand(new HelloWorldIncrementCommandImpl());
 }

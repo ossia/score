@@ -1,13 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(simple_process)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/modules")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
+
 # Packages
-find_package(Qt5Core)
-find_package(Qt5Widgets)
+find_package(Qt5Core 5.3 REQUIRED)
+find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
@@ -17,7 +13,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCommand.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldPanel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCentralPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldCentralPanel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldPanelView.hpp

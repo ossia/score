@@ -9,8 +9,7 @@ MenubarManager::MenubarManager(QMenuBar* bar, QObject *parent) :
 	QObject(parent),
 	m_menuBar{bar}
 {
-	MenuInterface m;
-	for(auto& elt : m.m_map)
+	for(auto& elt : MenuInterface::map<ToplevelMenuElement>())
 	{
 		m_menusMap[elt.first] = m_menuBar->addMenu(elt.second);
 	}

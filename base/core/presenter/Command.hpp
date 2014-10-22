@@ -13,6 +13,8 @@ namespace iscore
 			{
 			}
 
+		protected:
+
 		private:
 			//TODO check if this is UTC
 			std::chrono::milliseconds m_timestamp{std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch())};

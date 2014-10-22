@@ -15,6 +15,7 @@ Application::Application(int argc, char** argv):
 {
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
+	this->setParent(m_app.get());
 
 	m_settings = std::make_unique<Settings>(this);
 
@@ -31,9 +32,12 @@ Application::Application(int argc, char** argv):
 
 	m_pluginManager.reloadPlugins();
 
-	// m_view takes ownership of the widget, this is why
-	// we can't use a unique_ptr...
 	m_view->show();
+}
+
+Application::~Application()
+{
+	this->setParent(nullptr);
 }
 
 void Application::dispatchPlugin(QObject* plugin)
@@ -113,7 +117,6 @@ void Application::doConnections()
 		}
 	}
 }
-
 
 void Application::childEvent(QChildEvent* ev)
 {

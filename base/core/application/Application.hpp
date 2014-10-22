@@ -18,6 +18,7 @@ namespace iscore
 			Q_OBJECT
 		public:
 			Application(int argc, char** argv);
+			~Application();
 
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
