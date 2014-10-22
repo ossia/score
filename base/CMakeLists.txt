@@ -9,11 +9,25 @@ set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Gui 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5Network 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
+include_directories("${CMAKE_SOURCE_DIR}")
+include_directories("${CMAKE_SOURCE_DIR}/API/Headers/Repartition")
+include_directories("${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers")
+include_directories("${CMAKE_SOURCE_DIR}/API/Deps/oscpack")
+
+set(HEADERS
+${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourserviceresolver.h
+${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourservicebrowser.h
+${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourserviceregister.h
+${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfClient.h
+${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfClientThread.h
+${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfServer.h
+${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfServerThread.h
+)
 
 set(HEADER_FILES
 ### interface ###
@@ -88,11 +102,14 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp
 )
 
-add_executable(iscore_core ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(iscore_core ${SOURCE_FILES} ${HEADER_FILES} ${HEADERS})
 
 target_link_libraries(iscore_core Qt5::Core
-								  Qt5::Gui
-								  Qt5::Widgets)
+								  Qt5::Widgets
+								  Qt5::Network
+								  pthread
+								  oscpack
+								  dns_sd)
 
 
 install(TARGETS iscore_core DESTINATION ${CMAKE_BINARY_DIR})

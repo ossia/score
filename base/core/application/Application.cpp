@@ -11,30 +11,38 @@
 #include <interface/plugins/SettingsFactoryPluginInterface.hpp>
 
 #include <interface/autoconnect/Autoconnect.hpp>
+
+#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
+#include <API/Headers/Repartition/session/MasterSession.h>
+
 using namespace iscore;
 
 Application::Application(int argc, char** argv):
 	QObject{}
 {
+	// Application
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
 	this->setParent(m_app.get());
-
-	m_settings = std::make_unique<Settings>(this);
-
-	m_model = new Model{this};
-	m_view = new View(qobject_cast<QObject*>(this));
-	m_presenter = new Presenter(m_model, m_view, this);
 
 	QCoreApplication::setOrganizationName("OSSIA");
 	QCoreApplication::setOrganizationDomain("i-score.com");
 	QCoreApplication::setApplicationName("i-score");
 
+	// Settings
+	m_settings = std::make_unique<Settings>(this);
+
+	// MVP
+	m_model = new Model{this};
+	m_view = new View(qobject_cast<QObject*>(this));
+	m_presenter = new Presenter(m_model, m_view, this);
+
+	// Plugins
 	connect(&m_pluginManager, &PluginManager::newPlugin,
 			this,			  &Application::dispatchPlugin);
-
 	m_pluginManager.reloadPlugins();
 
+	// View
 	m_view->show();
 }
 
@@ -126,4 +134,20 @@ void Application::childEvent(QChildEvent* ev)
 	{
 		doConnections();
 	}
+}
+
+void Application::setupMasterSession()
+{
+	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
+}
+
+void Application::setupClientSession()
+{
+	auto vec = ClientSessionBuilder::list();
+	std::cerr << vec.size();
+
+	ClientSessionBuilder builder(vec[0].ip, vec[0].port, "JeanMi", 7888);
+	builder.join();
+	sleep(2);
+	m_networkSession = builder.getBuiltSession();
 }

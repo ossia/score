@@ -9,6 +9,8 @@
 #include <memory>
 #include <QApplication>
 
+#include <API/Headers/Repartition/session/Session.h>
+
 namespace iscore
 {
 	class Model;
@@ -26,6 +28,9 @@ namespace iscore
 			View* view() { return m_view; }
 			Settings* settings() { return m_settings.get(); }
 
+			void setupMasterSession();
+			void setupClientSession();
+
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?
 			void dispatchPlugin(QObject*);
@@ -38,14 +43,17 @@ namespace iscore
 
 			// Base stuff.
 			std::unique_ptr<QApplication> m_app;
-			PluginManager m_pluginManager;
 			std::unique_ptr<Settings> m_settings; // Global settings
+			std::unique_ptr<Session> m_networkSession; // For distribution
 
+			// MVP
 			Model* m_model{};
 			View* m_view{};
 			Presenter* m_presenter{};
 
-			std::vector<Autoconnect> m_autoconnections; // try unordered_set
+			// Data
+			std::vector<Autoconnect> m_autoconnections; // TODO try unordered_set
 			ProcessList m_processList;
+			PluginManager m_pluginManager;
 	};
 }
