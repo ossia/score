@@ -77,8 +77,7 @@ void Application::dispatchPlugin(QObject* plugin)
 
 		auto custom_process = process_plugin->process_make(process_plugin->process_list().first());
 
-		pm = custom_process->makeModel();
-		pm->setParent(this);
+		pm = custom_process->makeModel(0, this);
 	}
 	
 	if(panel_plugin)

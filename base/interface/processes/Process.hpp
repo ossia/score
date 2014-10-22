@@ -43,6 +43,6 @@ namespace iscore
 		// Ou bien c'est directement la vue qui s'en charge?
 		// Risque de duplication dans le cas SmallView / StandardView / FullView...
 		virtual ProcessPresenter* makePresenter() = 0;
-		virtual ProcessModel* makeModel() = 0; // Accédé par les commandes uniquement.
+		virtual ProcessModel* makeModel(unsigned int id, QObject* parent)  = 0; // Accédé par les commandes uniquement.
 	};
 }

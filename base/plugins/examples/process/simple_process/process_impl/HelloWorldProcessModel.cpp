@@ -3,8 +3,8 @@
 using namespace iscore;
 
 
-HelloWorldProcessModel::HelloWorldProcessModel() :
-	iscore::ProcessModel()
+HelloWorldProcessModel::HelloWorldProcessModel(unsigned int id, QObject* parent) :
+	iscore::ProcessModel{id, parent}
 {
 	this->setObjectName("HelloWorldProcessModel");
 	qDebug("The TestModel begins.");

@@ -5,6 +5,6 @@ using namespace iscore;
 
 void Model::addPanel(PanelModel* m)
 {
-///	m->setParent(this);
+	m->setParent(this);
 	m_panelsModels.insert(m);
 }

@@ -1,11 +1,11 @@
 #pragma once
 #include <QWidget>
-
+#include <core/presenter/Presenter.hpp>
 namespace iscore
 {
-	class Presenter;	
+//	class Presenter;	
 	class PanelPresenter;
-	class Command;
+//	class Command;
 	class PanelModel;
 
 	class PanelView : public QObject
@@ -23,7 +23,7 @@ namespace iscore
 			Q_OBJECT
 		public:
 			PanelPresenter(Presenter* parent_presenter, PanelModel* model, PanelView* view):
-				QObject{},
+				QObject{parent_presenter},
 				m_model{model},
 				m_view{view},
 				m_parentPresenter{parent_presenter}

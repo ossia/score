@@ -7,7 +7,7 @@ class HelloWorldProcessModel : public iscore::ProcessModel
 {
 		Q_OBJECT
 	public:
-		HelloWorldProcessModel();
+		HelloWorldProcessModel(unsigned int id, QObject* parent);
 		virtual ~HelloWorldProcessModel();
 
 	public slots:

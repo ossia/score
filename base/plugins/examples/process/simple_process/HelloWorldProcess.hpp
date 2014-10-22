@@ -13,5 +13,5 @@ public:
 	// Ou bien c'est directement la vue qui s'en charge?
 	// Risque de duplication dans le cas SmallView / StandardView / FullView...
 	virtual iscore::ProcessPresenter* makePresenter() override;
-	virtual iscore::ProcessModel* makeModel() override; // Accédé par les commandes uniquement.
+	virtual iscore::ProcessModel* makeModel(unsigned int id, QObject* parent)  override; // Accédé par les commandes uniquement.
 };

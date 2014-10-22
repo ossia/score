@@ -39,7 +39,6 @@ void Presenter::addPanel(Panel* p)
 	auto model = p->makeModel();
 	auto view = p->makeView();
 	auto pres = p->makePresenter(this, model, view);
-	pres->setParent(this);
 	
 	connect(pres, &PanelPresenter::submitCommand,
 			this, &Presenter::applyCommand);
