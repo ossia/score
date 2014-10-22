@@ -1,20 +1,20 @@
 #pragma once
-#include <core/model/Model.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
-
+#include <core/processes/ProcessList.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
 
 #include <interface/autoconnect/Autoconnect.hpp>
+
+#include <vector>
 #include <memory>
 #include <QApplication>
-#include <vector>
-#include <interface/processes/ProcessModel.hpp>
-#include <core/processes/ProcessList.hpp>
 
 namespace iscore
 {
+	class Model;
+	class Presenter;
+	class View;
+
 	class Application : public QObject
 	{
 			Q_OBJECT
@@ -25,9 +25,6 @@ namespace iscore
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
 			Settings* settings() { return m_settings.get(); }
-
-			//FOR TESTING
-			ProcessModel* pm;
 
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?

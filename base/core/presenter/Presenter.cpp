@@ -2,9 +2,13 @@
 #include <core/presenter/Command.hpp>
 
 #include <core/application/Application.hpp>
+#include <core/view/View.hpp>
+#include <core/model/Model.hpp>
+
 #include <interface/panels/Panel.hpp>
 #include <interface/panels/PanelModel.hpp>
 #include <interface/panels/BasePanel.hpp>
+
 #include <functional>
 
 using namespace iscore;

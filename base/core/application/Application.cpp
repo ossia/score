@@ -1,5 +1,8 @@
 #include <core/application/Application.hpp>
-#include <QDebug>
+
+#include <core/model/Model.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/View.hpp>
 
 #include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
 #include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
