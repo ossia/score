@@ -1,10 +1,10 @@
 #pragma once
 
-#include <plugin_interface/AutoconnectFactoryPluginInterface.hpp>
-#include <plugin_interface/CustomCommandFactoryPluginInterface.hpp>
-#include <plugin_interface/ProcessFactoryPluginInterface.hpp>
-#include <plugin_interface/PanelFactoryPluginInterface.hpp>
-#include <plugin_interface/SettingsFactoryPluginInterface.hpp>
+#include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
+#include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
+#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
+#include <interface/plugins/PanelFactoryPluginInterface.hpp>
+#include <interface/plugins/SettingsFactoryPluginInterface.hpp>
 #include <QObject>
 class HelloWorldSettings;
 
@@ -41,7 +41,7 @@ class SimpleProcessPlugin :
 		// CustomCommand interface
 		virtual QStringList customCommand_list() const override;
 		virtual iscore::CustomCommand* customCommand_make(QString) override;
-		
+
 		// Panel interface
 		virtual QStringList panel_list() const override;
 		virtual iscore::Panel* panel_make(QString name) override;

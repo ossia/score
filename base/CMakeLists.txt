@@ -31,13 +31,13 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroup.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupModel.hpp
 
-### plugin_interface ###
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/PanelFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/LibraryElementFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/CustomCommandFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/ProcessFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/SettingsFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/AutoconnectFactoryPluginInterface.hpp
+### interface/plugins ###
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/LibraryElementFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/CustomCommandFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/AutoconnectFactoryPluginInterface.hpp
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp

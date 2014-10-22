@@ -16,7 +16,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	m_menubar{view->menuBar(), this}
 {
 	setupMenus();
-	
+
 	connect(m_view,		&View::insertActionIntoMenubar,
 			&m_menubar, &MenubarManager::insertActionIntoMenubar);
 }
@@ -39,18 +39,18 @@ void Presenter::addPanel(Panel* p)
 	auto model = p->makeModel();
 	auto view = p->makeView();
 	auto pres = p->makePresenter(this, model, view);
-	
+
 	connect(pres, &PanelPresenter::submitCommand,
 			this, &Presenter::applyCommand);
-	
+
 	view->setPresenter(pres);
 	model->setPresenter(pres);
-	
+
 	if(dynamic_cast<BasePanel*>(p))
 		m_view->setCentralPanel(view);
 	else
 		m_view->addPanel(view);
-	
+
 	m_model->addPanel(model);
 	m_panelsPresenters.insert(pres);
 }
@@ -62,13 +62,13 @@ void Presenter::applyCommand(Command* cmd)
 
 void Presenter::setupMenus()
 {
-	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu, 
+	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   m_commandQueue.createUndoAction(this));
-	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu, 
+	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   m_commandQueue.createRedoAction(this));
-	
+
 	auto settings_act = new QAction(tr("Settings"), nullptr);
-	
+
 	connect(settings_act, &QAction::triggered,
 			qobject_cast<Application*>(parent())->settings()->view(), &SettingsView::exec);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,

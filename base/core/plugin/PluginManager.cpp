@@ -1,6 +1,6 @@
 #include <core/plugin/PluginManager.hpp>
 
-#include <plugin_interface/ProcessFactoryPluginInterface.hpp>
+#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
@@ -30,7 +30,7 @@ void PluginManager::reloadPlugins()
 
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
-		
+
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
 qDebug() << loader.errorString();
 

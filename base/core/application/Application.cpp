@@ -1,11 +1,11 @@
 #include <core/application/Application.hpp>
 #include <QDebug>
 
-#include <plugin_interface/CustomCommandFactoryPluginInterface.hpp>
-#include <plugin_interface/AutoconnectFactoryPluginInterface.hpp>
-#include <plugin_interface/PanelFactoryPluginInterface.hpp>
-#include <plugin_interface/ProcessFactoryPluginInterface.hpp>
-#include <plugin_interface/SettingsFactoryPluginInterface.hpp>
+#include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
+#include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
+#include <interface/plugins/PanelFactoryPluginInterface.hpp>
+#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
+#include <interface/plugins/SettingsFactoryPluginInterface.hpp>
 
 #include <interface/autoconnect/Autoconnect.hpp>
 using namespace iscore;
@@ -15,9 +15,9 @@ Application::Application(int argc, char** argv):
 {
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
-	
+
 	m_settings = std::make_unique<Settings>(this);
-	
+
 	m_model = new Model{this};
 	m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
@@ -79,7 +79,7 @@ void Application::dispatchPlugin(QObject* plugin)
 
 		pm = custom_process->makeModel(0, this);
 	}
-	
+
 	if(panel_plugin)
 	{
 		qDebug() << "The plugin adds panels";
