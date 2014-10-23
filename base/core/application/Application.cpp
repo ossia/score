@@ -16,7 +16,7 @@
 #include <API/Headers/Repartition/session/ClientSessionBuilder.h>
 using namespace iscore;
 
-Application::Application(int argc, char** argv):
+Application::Application(int& argc, char** argv):
 	QObject{}
 {
 	// Application

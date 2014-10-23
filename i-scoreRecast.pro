@@ -33,7 +33,8 @@ SOURCES += sources/main.cpp \
     sources/statedebug.cpp \
     sources/timeeventpresenter.cpp \
     sources/timeeventview.cpp \
-    sources/timeeventmodel.cpp
+    sources/timeeventmodel.cpp \
+    sources/timebarwidget.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -55,7 +56,8 @@ HEADERS  += headers/mainwindow.hpp \
     headers/statedebug.hpp \
     headers/timeeventpresenter.hpp \
     headers/timeeventview.hpp \
-    headers/timeeventmodel.hpp
+    headers/timeeventmodel.hpp \
+    headers/timebarwidget.hpp
 
 RESOURCES += resources/resource.qrc
 
@@ -68,22 +70,14 @@ INCLUDEPATH += headers
 INCLUDEPATH += /usr/include/libxml2 /usr/local/jamoma/include /usr/local/jamoma/includes
 
 unix:!macx{
-    LIBS += -lJamomaFoundation \
+    LIBS += -L /usr/local/lib/jamoma/lib \
+            -lJamomaFoundation \
 	    -lJamomaDSP \
 	    -lJamomaScore \
 	    -lJamomaModular
 
 # This variable specifies the #include directories which should be searched when compiling the project.
-INCLUDEPATH += /usr/include/libxml2 \
-		$$(JAMOMA_INCLUDE_PATH)/Score/library/includes/ \
-		$$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/SchedulerLib \
-		$$(JAMOMA_INCLUDE_PATH)/DSP/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Score/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Foundation/library/includes
+INCLUDEPATH += /usr/local/lib/jamoma/include
 }
 
 macx{

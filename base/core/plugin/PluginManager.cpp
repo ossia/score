@@ -31,7 +31,6 @@ void PluginManager::reloadPlugins()
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
-
 		if (QObject *plugin = loader.instance())
 		{
 			m_availablePlugins[fileName] = plugin;

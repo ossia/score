@@ -196,5 +196,3 @@ void Timebox::addChild(TimeEvent *timeEvent)
   //timeEvent->setSelected(true);
 }
 
-
-
