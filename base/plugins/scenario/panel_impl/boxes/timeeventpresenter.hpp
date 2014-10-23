@@ -28,47 +28,34 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef TIMEEVENTPRESENTER_HPP
+#define TIMEEVENTPRESENTER_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+class TimeEvent;
+class TimeEventView;
+class TimeEventModel;
+
+#include <QObject>
+
+/*!
+ *  This class is the logic of a TimeEvent view.
+ *
+ *  @brief TimeEvent view logic
+ *  @author Jaime Chao
+ *  @date 2014
+ */
+
+class TimeEventPresenter : public QObject
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
+private:
+  TimeEvent *_pTimeEvent;
+  TimeEventModel *_pModel;
+  TimeEventView *_pView;
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+public:
+  explicit TimeEventPresenter(TimeEventModel *pModel, TimeEventView *pView, TimeEvent *parent);
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+};
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
-
-  //Engine();
-
-  return app.exec();
-}
+#endif // TIMEEVENTPRESENTER_HPP

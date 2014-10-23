@@ -28,47 +28,42 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef STATE_HPP
+#define STATE_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QState>
+
+/*!
+ *  This class permits to debug QState, by showing a message when entering and exiting the State.
+ *
+ *  @brief QState debug info
+ *  @author Jaime Chao, Clément Bossut
+ *  @date 2013/2014
+ */
+
+class StateDebug : public QState
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+public:
+  explicit StateDebug( const QString& name, QState* parent = 0 );
+  explicit StateDebug( const QString& name, const QString& prefix, QState* parent = 0 );
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+  QString name() const { return m_name; }
+  QString prefix() const { return m_prefix; }
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+public slots:
+  void setName( const QString& name ) { m_name = name; }
+  void setPrefix( const QString& prefix ) { m_prefix = prefix; }
 
-  //Engine();
+protected:
+  virtual void onEntry( QEvent* e );
+  virtual void onExit( QEvent* e );
 
-  return app.exec();
-}
+protected:
+  QString m_name;
+  QString m_prefix;
+
+};
+
+#endif // STATE_HPP

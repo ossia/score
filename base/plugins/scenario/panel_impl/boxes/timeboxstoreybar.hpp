@@ -28,47 +28,43 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef TIMEBOXSTOREYBAR_HPP
+#define TIMEBOXSTOREYBAR_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QGraphicsWidget>
+
+class QGraphicsItem;
+class PixmapButton;
+class QComboBox;
+class QGraphicsProxyWidget;
+
+class TimeboxStoreyBar : public QGraphicsWidget
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+public:
+  static const int HEIGHT = 25;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+private:
+  static const int MARGIN = 2;
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+  QComboBox *_pComboBox;
+  QGraphicsProxyWidget *_pComboBoxProxy;
+  PixmapButton *_pButton;
 
-  //Engine();
+public:
+  TimeboxStoreyBar(QGraphicsItem *item);
 
-  return app.exec();
-}
+signals:
+  void buttonClicked(bool);
+
+public:
+  PixmapButton* getButton() const {return _pButton;}
+
+protected:
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+};
+
+#endif // TIMEBOXSTOREYBAR_HPP

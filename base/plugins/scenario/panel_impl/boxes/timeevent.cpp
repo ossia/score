@@ -28,47 +28,37 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventpresenter.hpp"
+#include "timeeventview.hpp"
+#include "timebox.hpp"
+#include "timeboxfullview.hpp"
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+int TimeEvent::staticId = 1;
+
+TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
+  : QObject(pParent)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
+  ///If no name was given, we construct a name with a unique ID
+  QString name = QString("TimeEvent%1").arg(staticId++);
+  setObjectName(name);
+
+  _pModel = new TimeEventModel(pos.x(), pos.y(), name, this);
+  _pView = new TimeEventView(_pModel, this);
+  _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
+
+  connect(_pView, SIGNAL(createTimeEventAndTimebox(QLineF)), this, SIGNAL(createTimeEventAndTimeboxProxy(QLineF)));
+
+  if (pParent != nullptr) {
+      pParent->addChild(this);
+      connect(this, SIGNAL(createTimeEventAndTimeboxProxy(QLineF)), pParent, SLOT(createTimeEventAndTimebox(QLineF)));
     }
 }
-#endif
 
-int main(int argc, char *argv[])
+TimeEvent::~TimeEvent()
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
-
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
-
-  MainBox window;
-//  MainWindow window;
-  window.show();
-
-  //Engine();
-
-  return app.exec();
 }
+
+///@todo addTimeboxandTimeEvent()
+

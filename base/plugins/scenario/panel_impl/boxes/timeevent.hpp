@@ -28,47 +28,48 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef GRAPHICSTIMEEVENT_HPP
+#define GRAPHICSTIMEEVENT_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+class TimeEventModel;
+class TimeEventPresenter;
+class TimeEventView;
+class Timebox;
+class GraphicsView;
+
+#include <QObject>
+#include <QLineF>
+#include"utils.hpp"
+
+/*!
+ *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
+ *
+ *  @brief TimeEvent Interface
+ *  @author Jaime Chao
+ *  @date 2014
+ */
+
+class TimeEvent : public QObject
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+private:
+  TimeEventModel *_pModel = nullptr;
+  TimeEventPresenter *_pPresenter = nullptr;
+  TimeEventView *_pView = nullptr;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+  static int staticId; /// Give a unique number to each instance of TimeEvent
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+public:
+  TimeEvent(Timebox *pParent, const QPointF &pos);
+  ~TimeEvent();
 
-  //Engine();
+signals:
+  void createTimeEventAndTimeboxProxy(QLineF line);  /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
 
-  return app.exec();
-}
+public:
+  TimeEventView* view() const {return _pView;}
+  TimeEventModel* model() const {return _pModel;}
+};
+
+#endif // GRAPHICSTIMEEVENT_HPP

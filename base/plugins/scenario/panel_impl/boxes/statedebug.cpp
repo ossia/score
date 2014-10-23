@@ -28,47 +28,49 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "statedebug.hpp"
+#include <QDebug>
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+StateDebug::StateDebug( const QString& name, QState* parent )
+    : QState( parent ),
+      m_name( name ),
+      m_prefix()
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
 }
-#endif
 
-int main(int argc, char *argv[])
+StateDebug::StateDebug( const QString& name, const QString& prefix, QState* parent )
+    : QState( parent ),
+      m_name( name ),
+      m_prefix( prefix )
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+}
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+void StateDebug::onEntry( QEvent* e )
+{
+    Q_UNUSED( e );
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+    // Print out the state we are entering and it's parents
+    QString state = m_name;
+    StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+    while ( parent != 0 )
+    {
+        state = parent->name() + "->" + state;
+        parent = dynamic_cast<StateDebug*>( parent->parentState() );
+    }
+    qDebug() << m_prefix << "Entering state:" << state;
+}
 
-  //Engine();
+void StateDebug::onExit( QEvent* e )
+{
+    Q_UNUSED( e );
 
-  return app.exec();
+    // Print out the state we are exiting and it's parents
+    QString state = m_name;
+    StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+    while ( parent != 0 )
+    {
+        state = parent->name() + "->" + state;
+        parent = dynamic_cast<StateDebug*>( parent->parentState() );
+    }
+    qDebug() << m_prefix << "Exiting state:" << state;
 }

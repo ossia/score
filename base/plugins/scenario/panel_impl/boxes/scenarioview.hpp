@@ -28,47 +28,46 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef SCENARIOVIEW_HPP
+#define SCENARIOVIEW_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+class QGraphicsRectItem;
+
+#include "pluginview.hpp"
+#include <QPointF>
+#include <QRectF>
+
+/*!
+ *  View of the Scenario plugin, inherits the class PluginView.
+ *  Permits to add a TimeEvent and draw a Timebox in smallView by adding it as child to the current one in fullView. @n
+ *  NOTE : in ScoreAPI the hierarchy is managed by Scenario, in i-score it is managed by Timebox.
+ *
+ *  @brief View of the Scenario plugin
+ *  @author Jaime Chao
+ *  @date 2013/2014
+ */
+class ScenarioView : public PluginView
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+private:
+  QGraphicsRectItem *_pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
+  QPointF _pressPoint;                          /// Last pression point.
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+public:
+  ScenarioView(QGraphicsItem *parent = 0);
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+signals:
+  void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
+  void createTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
 
-  //Engine();
+public:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-  return app.exec();
-}
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);  
+};
+
+#endif // SCENARIOVIEW_HPP

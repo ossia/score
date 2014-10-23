@@ -28,47 +28,31 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef TIMEBOXFULLVIEW_HPP
+#define TIMEBOXFULLVIEW_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+class TimeboxModel;
+class QGraphicsWidget;
+class QGraphicsLinearLayout;
+class TimeboxStorey;
+
+#include <QGraphicsScene>
+
+class TimeboxFullView : public QGraphicsScene
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+private:
+  TimeboxModel *_pModel;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+  QGraphicsWidget *_pContainer;
+  QGraphicsLinearLayout *_pLayout;
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+public:
+  TimeboxFullView(TimeboxModel *pModel, QObject *parent);
 
-  //Engine();
+  void addStorey(TimeboxStorey *pStorey);
+  QGraphicsWidget* container() const {return _pContainer;}
+};
 
-  return app.exec();
-}
+#endif // TIMEBOXFULLVIEW_HPP

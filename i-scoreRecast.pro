@@ -34,7 +34,8 @@ SOURCES += sources/main.cpp \
     sources/timeeventpresenter.cpp \
     sources/timeeventview.cpp \
     sources/timeeventmodel.cpp \
-    sources/timebarwidget.cpp
+    sources/timebarwidget.cpp \
+    sources/mainbox.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
@@ -57,11 +58,13 @@ HEADERS  += headers/mainwindow.hpp \
     headers/timeeventpresenter.hpp \
     headers/timeeventview.hpp \
     headers/timeeventmodel.hpp \
-    headers/timebarwidget.hpp
+    headers/timebarwidget.hpp \
+    headers/mainbox.h
 
 RESOURCES += resources/resource.qrc
 
-FORMS    += forms/mainwindow.ui
+FORMS    += forms/mainwindow.ui \
+    forms/mainbox.ui
 
 OTHER_FILES += \
     LICENSE.txt

@@ -28,47 +28,39 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef PIXMAPBUTTON_HPP
+#define PIXMAPBUTTON_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QGraphicsWidget>
+
+class QGraphicsPixmapItem;
+class QRectF;
+
+class PixmapButton : public QGraphicsWidget
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+private:
+  QGraphicsPixmapItem *_pButtonOne;
+  QGraphicsPixmapItem *_pButtonTwo;
+  QRectF *_pBoundingRect;
+  bool isPixmap;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+public:
+  PixmapButton(const QString &filename1, const QString &filename2, QGraphicsItem *parent);
+  ~PixmapButton();
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+signals:
+  void clicked(bool); /// @return 0 = first pixmap clicked, 1 = second
 
-  //Engine();
+public:
+  void setPixmap(bool button); /// @arg 0 = set first pixmap, 1 = second
 
-  return app.exec();
-}
+  // QGraphicsItem interface
+  QRectF boundingRect() const;
+
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent *event);
+};
+
+#endif // PIXMAPBUTTON_HPP

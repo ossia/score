@@ -28,47 +28,37 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#ifndef HEADERWIDGET_HPP
+#define HEADERWIDGET_HPP
+
+class QPushButton;
+class QLabel;
+
+#include <QWidget>
+
+class HeaderWidget : public QWidget
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+public:
+  static const int HEIGHT = 45;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+private:
+  QPushButton *_pButtonPlay;
+  QLabel *_pTextName;
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+public:
+  HeaderWidget(QWidget *parent);
 
-  //Engine();
+signals:
+  void doubleClicked();
 
-  return app.exec();
-}
+public slots:
+  void changeName(QString name);
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent *);
+};
+
+#endif // HEADERWIDGET_HPP

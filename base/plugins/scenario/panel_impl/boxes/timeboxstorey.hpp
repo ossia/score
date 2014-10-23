@@ -28,47 +28,39 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "mainwindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef TIMEBOXSTOREY_HPP
+#define TIMEBOXSTOREY_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QGraphicsWidget>
+#include <QGraphicsLinearLayout>
+
+class TimeboxStoreyBar;
+class TimeboxModel;
+
+class TimeboxStorey : public QGraphicsWidget
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+private:
+  TimeboxModel *_pModel;
+  TimeboxStoreyBar *_pBar;
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+  int _width;
+  int _height;
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+public:
+  TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent = 0);
+  void setButton(bool button);
 
-  //Engine();
+signals:
+  void buttonClicked(bool);
 
-  return app.exec();
-}
+public slots:
+
+  // QGraphicsItem interface
+public:
+  virtual QRectF boundingRect() const;
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+};
+
+#endif // TIMEBOXSTOREY_HPP
