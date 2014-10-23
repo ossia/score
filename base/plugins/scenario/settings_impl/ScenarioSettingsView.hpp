@@ -2,7 +2,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <interface/settings/SettingsGroup.hpp>
-#include <core/presenter/Command.hpp>
+#include <core/presenter/command/Command.hpp>
 
 class ScenarioSettingsPresenter;
 class ScenarioSettingsView : public QWidget, public iscore::SettingsGroupView

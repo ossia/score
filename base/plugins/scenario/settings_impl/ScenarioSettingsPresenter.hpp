@@ -1,6 +1,6 @@
 #pragma once
 #include <interface/settings/SettingsGroup.hpp>
-#include <core/presenter/Command.hpp>
+#include <core/presenter/command/Command.hpp>
 #include <QObject>
 
 class ScenarioSettingsPresenter : public QObject, public iscore::SettingsGroupPresenter
