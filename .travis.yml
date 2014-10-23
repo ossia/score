@@ -12,8 +12,8 @@ before_install:
     - sudo dpkg -i gcc_4.9.1-1_amd64.deb
 
 script: 
-  - git clone http://github.com/OSSIA/API --depth=1
+  - git clone https://github.com/OSSIA/API --depth=1
   - (cd API; git checkout dev)
   - source /opt/qt53/bin/qt53-env.sh
-  - cmake-3.0.2-Linux-x86_64/bin/cmake . 
+  - cmake . 
   - make install
