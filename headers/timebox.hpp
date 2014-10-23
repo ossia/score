@@ -65,6 +65,7 @@ private:
   TimeboxFullView *_pFullView = nullptr;
   GraphicsView *_pGraphicsView; /// Pointer to the graphicsView's widget
   Timebox *_pParent = nullptr;  /// Pointer to the Timebox parent
+//  TimeBarWidget *_timeBar = nullptr;
   static int staticId;          /// Give a unique number to each instance of Timebox
 
 public:
@@ -92,6 +93,7 @@ public:
   void addChild (TimeEvent *timeEvent); /// Add an already created TimeEvent to fullView
   TimeboxModel* model() const {return _pModel;} /// Used by GraphicsView's methods to retrieve width of the timebox
   TimeboxFullView* fullView() const {return _pFullView;} /// Used by Mainwindow to retrieve the selected items
+  GraphicsView* getView() const {return _pGraphicsView;}
 
 private:
   void init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name);

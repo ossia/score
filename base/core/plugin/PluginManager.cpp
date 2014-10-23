@@ -26,17 +26,22 @@ if(casted_plugin)
 void PluginManager::reloadPlugins()
 {
 	clearPlugins();
-	auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
+    auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
 
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
+<<<<<<< Updated upstream
 qDebug() << loader.errorString();
 
 		if (QObject *plugin = loader.instance())
 		{
 			qDebug("LALALA");
+=======
+		if (QObject *plugin = loader.instance())
+        {
+>>>>>>> Stashed changes
 			m_availablePlugins[fileName] = plugin;
 			emit newPlugin(plugin);
 		}

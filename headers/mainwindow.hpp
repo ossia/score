@@ -32,7 +32,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
+#include <QGraphicsScene>
 #include "timebox.hpp"
+#include "timebarwidget.hpp"
 
 class QGraphicsScene;
 class QAction;
@@ -75,6 +77,8 @@ private:
   GraphicsView *_pView; /// pointer to ui->graphicsView
   QAction *_pDeleteAction;
   QActionGroup *_pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)
+
+  TimeBarWidget *_timeBar = nullptr;
 
   QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications. Especially for managing graphicals and interaction changes beetween execution and edition phases.
   QState *_initialState;
