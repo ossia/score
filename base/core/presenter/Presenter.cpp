@@ -66,6 +66,18 @@ void Presenter::applyCommand(Command* cmd)
 
 void Presenter::setupMenus()
 {
+	// Networking
+	QAction* newSession = new QAction{tr("New"), this};
+	connect(newSession, SIGNAL(triggered()), parent(), SLOT(setupMasterSession()));
+	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										   newSession);
+
+	QAction* joinSession = new QAction{tr("Join"), this};
+	connect(joinSession, SIGNAL(triggered()), m_view, SLOT(createZeroconfSelectionDialog()));
+	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										   joinSession);
+
+	// Undo / redo
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   m_commandQueue.createUndoAction(this));
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,

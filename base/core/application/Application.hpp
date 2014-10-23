@@ -10,6 +10,7 @@
 #include <QApplication>
 
 #include <API/Headers/Repartition/session/Session.h>
+#include <API/Headers/Repartition/session/ConnectionData.hpp>
 
 namespace iscore
 {
@@ -28,12 +29,12 @@ namespace iscore
 			View* view() { return m_view; }
 			Settings* settings() { return m_settings.get(); }
 
-			void setupMasterSession();
-			void setupClientSession();
-
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?
 			void dispatchPlugin(QObject*);
+
+			void setupMasterSession();
+			void setupClientSession(ConnectionData d);
 
 		protected:
 			virtual void childEvent(QChildEvent*) override;

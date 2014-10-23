@@ -72,6 +72,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Command.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/view/dialogs/zeroconf/ZeroConfConnectDialog.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/Settings.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsModel.hpp
@@ -89,13 +90,17 @@ set(SOURCE_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.cpp
 
+# MVP
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/CommandQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Command.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/view/dialogs/zeroconf/ZeroConfConnectDialog.cpp
+
+# Settings
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/Settings.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsView.cpp

@@ -12,9 +12,8 @@
 
 #include <interface/autoconnect/Autoconnect.hpp>
 
-#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
 #include <API/Headers/Repartition/session/MasterSession.h>
-
+#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
 using namespace iscore;
 
 Application::Application(int argc, char** argv):
@@ -141,12 +140,10 @@ void Application::setupMasterSession()
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
 }
 
-void Application::setupClientSession()
+void Application::setupClientSession(ConnectionData d)
 {
-	auto vec = ClientSessionBuilder::list();
-	std::cerr << vec.size();
-
-	ClientSessionBuilder builder(vec[0].ip, vec[0].port, "JeanMi", 7888);
+	qDebug(Q_FUNC_INFO);
+	ClientSessionBuilder builder(d.remote_ip, d.remote_port, "JeanMi", 7888);
 	builder.join();
 	sleep(2);
 	m_networkSession = builder.getBuiltSession();

@@ -4,7 +4,15 @@
 #include <QDockWidget>
 #include <QGridLayout>
 
+#include <core/application/Application.hpp>
 using namespace iscore;
+
+View::View(QObject* parent):
+	QMainWindow{},
+	m_application{qobject_cast<Application*>(parent)}
+{
+
+}
 
 void View::addPanel(PanelView* v)
 {
@@ -34,4 +42,17 @@ void View::setCentralPanel(PanelView* v)
 	m_panelsViews.insert(v);
 
 	this->setCentralWidget(v->getWidget());
+}
+
+
+//#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
+#include <core/view/dialogs/zeroconf/ZeroConfConnectDialog.hpp>
+void View::createZeroconfSelectionDialog()
+{
+	auto diag = new ZeroconfConnectDialog(this);
+
+	connect(diag,			&ZeroconfConnectDialog::connectedTo,
+			m_application,	&Application::setupClientSession);
+
+	diag->exec();
 }
