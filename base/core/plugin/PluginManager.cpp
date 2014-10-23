@@ -33,11 +33,16 @@ void PluginManager::reloadPlugins()
 
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 qDebug() << loader.errorString();
 
 		if (QObject *plugin = loader.instance())
 		{
 			qDebug("LALALA");
+=======
+		if (QObject *plugin = loader.instance())
+        {
+>>>>>>> Stashed changes
 =======
 		if (QObject *plugin = loader.instance())
         {
