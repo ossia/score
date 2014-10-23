@@ -1,6 +1,6 @@
 #include "HelloWorldCommand.hpp"
 #include <core/presenter/Presenter.hpp>
-#include <core/presenter/Command.hpp>
+#include <core/presenter/command/Command.hpp>
 #include <core/view/View.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <interface/customcommand/MenuInterface.hpp>
@@ -46,9 +46,30 @@ void HelloWorldCommand::on_actionTrigger()
 	{
 		public:
 			HelloWorldIncrementCommandImpl():
-				Command{"Increment process"},
+				Command{QString("HelloWorldIncrementCommandImpl"), QString("Increment process")},
 				m_parentName{"HelloWorldCommand"}
 			{
+			}
+
+			virtual QByteArray serialize() override
+			{
+				auto arr = Command::serialize();
+				QDataStream s(&arr, QIODevice::Append);
+				s << m_parentName.toLatin1().constData();
+
+				return arr;
+			}
+
+			void deserialize(QByteArray arr) override
+			{
+				QBuffer buf(&arr, nullptr);
+				cmd_deserialize(&buf);
+
+				QDataStream stream(&buf);
+				char* string;
+				stream >> string;
+				m_parentName = string;
+				delete[] string;
 			}
 
 			virtual void undo() override
@@ -69,5 +90,6 @@ void HelloWorldCommand::on_actionTrigger()
 			QString m_parentName;
 	};
 
-	emit submitCommand(new HelloWorldIncrementCommandImpl());
+	auto cmd = new HelloWorldIncrementCommandImpl();
+	emit submitCommand(cmd);
 }

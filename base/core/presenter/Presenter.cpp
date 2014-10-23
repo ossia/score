@@ -1,5 +1,5 @@
 #include <interface/customcommand/CustomCommand.hpp>
-#include <core/presenter/Command.hpp>
+#include <core/presenter/command/Command.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>

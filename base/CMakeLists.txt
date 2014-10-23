@@ -68,8 +68,11 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Action.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/CommandQueue.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Command.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionReceiver.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/dialogs/zeroconf/ZeroConfConnectDialog.hpp
@@ -94,8 +97,10 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/CommandQueue.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Command.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionReceiver.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/dialogs/zeroconf/ZeroConfConnectDialog.cpp

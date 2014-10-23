@@ -3,7 +3,7 @@
 #include <memory>
 #include <queue>
 #include <interface/settings/SettingsGroup.hpp>
-#include <core/presenter/Command.hpp>
+#include <core/presenter/command/Command.hpp>
 #include <QDebug>
 
 namespace iscore

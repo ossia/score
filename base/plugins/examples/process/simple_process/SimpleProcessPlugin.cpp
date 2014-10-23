@@ -72,7 +72,7 @@ iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
 	{
 		return new HelloWorldCommand;
 	}
-	
+
 	return nullptr;
 }
 
@@ -91,7 +91,7 @@ iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
 	{
 		return new HelloWorldPanel;
 	}
-	
+
 	return nullptr;
 }
 

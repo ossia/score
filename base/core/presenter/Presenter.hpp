@@ -1,5 +1,5 @@
 #pragma once
-#include <core/presenter/CommandQueue.hpp>
+#include <core/presenter/command/CommandQueue.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <set>
 
@@ -16,7 +16,7 @@ namespace iscore
 			Q_OBJECT
 		public:
 			Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
-			
+
 			View* view() { return m_view; }
 			void addCustomCommand(CustomCommand*);
 			void addPanel(Panel*);
@@ -26,8 +26,9 @@ namespace iscore
 
 		private:
 			void setupMenus();
-			
+
 			CommandQueue m_commandQueue;
+
 			Model* m_model;
 			View* m_view;
 
