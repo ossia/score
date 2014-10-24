@@ -1,4 +1,6 @@
 #include "ScenarioCommand.hpp"
+#include "scenarioview.hpp"
+#include "panel_impl/timeEvent/timeevent.hpp"
 #include <core/presenter/Presenter.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <core/view/View.hpp>
@@ -6,23 +8,21 @@
 #include <interface/customcommand/MenuInterface.hpp>
 #include <QApplication>
 
+#include <QDebug>
+
 using namespace iscore;
 ScenarioCommand::ScenarioCommand():
-	CustomCommand{},
-	m_action_Scenarioigate{new QAction("Scenarioigate!", this)}
+    CustomCommand{}
+//  ,
+ //   m_action_Scenarioigate{new QAction("CreateTimeEvent", this)}
 {
 	this->setObjectName("ScenarioCommand");
 
-	m_action_Scenarioigate->setObjectName("ScenarioigateAction");
-	connect(m_action_Scenarioigate, &QAction::triggered,
-			this, &ScenarioCommand::on_actionTrigger);
+ //   m_action_Scenarioigate->setObjectName("CreateTimeEventAction");
 }
 
 void ScenarioCommand::populateMenus(MenubarManager* menu)
 {
-	// Use identifiers for the common menus
-	menu->insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::FileMenu) + "/" + tr("trololo"),
-								   m_action_Scenarioigate});
 }
 
 void ScenarioCommand::populateToolbars()
@@ -34,9 +34,13 @@ void ScenarioCommand::setPresenter(iscore::Presenter* pres)
 	m_presenter = pres;
 }
 
+void ScenarioCommand::emitCreateTimeEvent(QPointF pos)
+{
+    emit createTimeEvent(pos);
+}
 
 
-void ScenarioCommand::on_actionTrigger()
+void ScenarioCommand::on_createTimeEvent(QPointF position)
 {
 	// Exemple of a global command that acts on every object with goes by the name "ScenarioCommand"
 	// We MUST NOT pass pointers of ANY KIND as data because of the distribution needs.
@@ -45,9 +49,10 @@ void ScenarioCommand::on_actionTrigger()
 	class ScenarioIncrementCommandImpl : public Command
 	{
 		public:
-			ScenarioIncrementCommandImpl():
+            ScenarioIncrementCommandImpl(QPointF pos):
 				Command{"Increment process"},
-				m_parentName{"ScenarioCommand"}
+                m_parentName{"ScenarioCommand"},
+                _position{pos}
 			{
 			}
             virtual QByteArray serialize() override
@@ -81,13 +86,18 @@ void ScenarioCommand::on_actionTrigger()
 			virtual void redo() override
 			{
 				auto target = qApp->findChild<ScenarioCommand*>(m_parentName);
-				if(target)
+                if(target) {
 					target->incrementProcesses();
+                    target->emitCreateTimeEvent(_position);
+
+                }
 			}
 
 		private:
 			QString m_parentName;
+            QPointF _position;
 	};
-    auto cmd = new ScenarioIncrementCommandImpl();
+    qDebug() << "command" << position;
+    auto cmd = new ScenarioIncrementCommandImpl(position);
     emit submitCommand(cmd);
 }

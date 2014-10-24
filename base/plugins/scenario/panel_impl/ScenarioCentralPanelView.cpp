@@ -1,7 +1,6 @@
 #include "ScenarioCentralPanelView.hpp"
 #include "ScenarioCentralPanelPresenter.hpp"
-#include "boxes/mainbox.hpp"
-#include "boxes/mainwindow.hpp"
+#include "mainwindow.hpp"
 #include <QPushButton>
 
 using namespace iscore;
