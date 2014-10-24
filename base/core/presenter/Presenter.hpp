@@ -1,7 +1,9 @@
 #pragma once
-#include <core/presenter/command/CommandQueue.hpp>
 #include <core/presenter/MenubarManager.hpp>
+
+
 #include <set>
+#include <core/document/Document.hpp>
 
 namespace iscore
 {
@@ -18,22 +20,24 @@ namespace iscore
 			Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
 
 			View* view() { return m_view; }
-			void addCustomCommand(CustomCommand*);
+
+			void setupCommand(CustomCommand*);
 			void addPanel(Panel*);
 
-		private slots:
-			void applyCommand(Command*);
+			void newDocument();
 
+		public slots:
+			void applyCommand(Command*);
 		private:
 			void setupMenus();
 
-			CommandQueue m_commandQueue;
+			Document* m_document;
+			MenubarManager m_menubar;
 
 			Model* m_model;
 			View* m_view;
 
 			std::vector<CustomCommand*> m_customCommands;
 			std::set<PanelPresenter*> m_panelsPresenters;
-			MenubarManager m_menubar;
 	};
 }

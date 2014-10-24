@@ -60,6 +60,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/application/SessionType.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.hpp
 
@@ -72,6 +73,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitterClient.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitterMaster.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionReceiver.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.hpp
@@ -81,6 +84,14 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/Document.hpp
+
+
+
 )
 
 set(SOURCE_FILES
@@ -93,6 +104,11 @@ set(SOURCE_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentPresenter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/document/Document.cpp
+
 # MVP
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp
@@ -100,6 +116,8 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitterClient.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionEmitterMaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/remote/RemoteActionReceiver.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp

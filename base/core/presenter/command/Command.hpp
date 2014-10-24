@@ -18,6 +18,9 @@ namespace iscore
 			{
 			}
 
+			QString name() const
+			{ return m_name; }
+
 			virtual QByteArray serialize();
 			virtual void deserialize(QByteArray) = 0;
 

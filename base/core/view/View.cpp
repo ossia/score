@@ -8,8 +8,7 @@
 using namespace iscore;
 
 View::View(QObject* parent):
-	QMainWindow{},
-	m_application{qobject_cast<Application*>(parent)}
+	QMainWindow{}
 {
 
 }
@@ -36,12 +35,18 @@ void View::addPanel(PanelView* v)
 	this->addDockWidget(Qt::RightDockWidgetArea, dial);
 }
 
+// TODO devenir updateDocument ?
 void View::setCentralPanel(PanelView* v)
 {
 	v->setParent(this);
 	m_panelsViews.insert(v);
 
 	this->setCentralWidget(v->getWidget());
+}
+
+void View::setPresenter(Presenter* pres)
+{
+	m_presenter = pres;
 }
 
 
@@ -51,8 +56,8 @@ void View::createZeroconfSelectionDialog()
 {
 	auto diag = new ZeroconfConnectDialog(this);
 
-	connect(diag,			&ZeroconfConnectDialog::connectedTo,
-			m_application,	&Application::setupClientSession);
+//	connect(diag,			&ZeroconfConnectDialog::connectedTo,
+//			m_presenter,	&Presenter::setupClientSession);
 
 	diag->exec();
 }

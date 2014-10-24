@@ -16,7 +16,7 @@ namespace iscore
 		public:
 			Settings(QObject* parent);
 
-			void addSettingsPlugin(SettingsGroup* plugin);
+			void setupSettingsPlugin(SettingsGroup* plugin);
 			SettingsView*  view()  { return m_settingsView;  }
 			SettingsModel* model() { return m_settingsModel; }
 

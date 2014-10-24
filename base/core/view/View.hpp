@@ -8,7 +8,7 @@
 namespace iscore
 {
 	class PanelView;
-	class Application;
+	class Presenter;
 	class View : public QMainWindow
 	{
 			Q_OBJECT
@@ -18,6 +18,8 @@ namespace iscore
 			void addPanel(PanelView*);
 			void setCentralPanel(PanelView*);
 
+			void setPresenter(Presenter*);
+
 		public slots:
 			void createZeroconfSelectionDialog();
 
@@ -26,6 +28,6 @@ namespace iscore
 
 		private:
 			std::set<PanelView*> m_panelsViews;
-			Application* m_application;
+			Presenter* m_presenter;
 	};
 }

@@ -1,16 +1,11 @@
 #pragma once
-#include <core/processes/ProcessList.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
 
-#include <interface/autoconnect/Autoconnect.hpp>
 
 #include <vector>
 #include <memory>
 #include <QApplication>
-
-#include <API/Headers/Repartition/session/Session.h>
-#include <API/Headers/Repartition/session/ConnectionData.hpp>
 
 namespace iscore
 {
@@ -22,30 +17,29 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-	                Application(int& argc, char** argv);
+			Application(int& argc, char** argv);
 			~Application();
 
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
+			Presenter* presenter() { return m_presenter; }
 			Settings* settings() { return m_settings.get(); }
 
 		public slots:
 			// Cela mérite-t-il d'avoir un objet propre ?
-			void dispatchPlugin(QObject*);
-
-			void setupMasterSession();
-			void setupClientSession(ConnectionData d);
+			void on_New();
 
 		protected:
 			virtual void childEvent(QChildEvent*) override;
 
 		private:
+			void loadPerInstancePluginData();
+			void loadGlobalPluginData();
 			void doConnections();
 
 			// Base stuff.
 			std::unique_ptr<QApplication> m_app;
 			std::unique_ptr<Settings> m_settings; // Global settings
-			std::unique_ptr<Session> m_networkSession; // For distribution
 
 			// MVP
 			Model* m_model{};
@@ -53,8 +47,6 @@ namespace iscore
 			Presenter* m_presenter{};
 
 			// Data
-			std::vector<Autoconnect> m_autoconnections; // TODO try unordered_set
-			ProcessList m_processList;
 			PluginManager m_pluginManager;
 	};
 }

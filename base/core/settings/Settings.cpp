@@ -9,13 +9,13 @@ Settings::Settings(QObject* parent):
 	QObject{parent},
 	m_settingsModel{new SettingsModel(this)},
 	m_settingsView{new SettingsView(nullptr)},
-	m_settingsPresenter{new SettingsPresenter(m_settingsModel, 
-											  m_settingsView, 
+	m_settingsPresenter{new SettingsPresenter(m_settingsModel,
+											  m_settingsView,
 											  this)}
 {
 }
 
-void Settings::addSettingsPlugin(SettingsGroup* plugin)
+void Settings::setupSettingsPlugin(SettingsGroup* plugin)
 {
 	auto model = plugin->makeModel();
 	auto view = plugin->makeView();
@@ -23,7 +23,7 @@ void Settings::addSettingsPlugin(SettingsGroup* plugin)
 	// Ownership transfer
 	m_settingsPresenter->addSettingsPresenter(plugin->makePresenter(m_settingsPresenter,
 																	model,
-																    view));
+																	view));
 	m_settingsModel->addSettingsModel(model);
 	m_settingsView->addSettingsView(view);
 }

@@ -4,16 +4,6 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
-#include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
-#include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
-#include <interface/plugins/PanelFactoryPluginInterface.hpp>
-#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
-#include <interface/plugins/SettingsFactoryPluginInterface.hpp>
-
-#include <interface/autoconnect/Autoconnect.hpp>
-
-#include <API/Headers/Repartition/session/MasterSession.h>
-#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
 using namespace iscore;
 
 Application::Application(int& argc, char** argv):
@@ -31,18 +21,9 @@ Application::Application(int& argc, char** argv):
 	// Settings
 	m_settings = std::make_unique<Settings>(this);
 
-	// MVP
-	m_model = new Model{this};
-	m_view = new View(qobject_cast<QObject*>(this));
-	m_presenter = new Presenter(m_model, m_view, this);
-
-	// Plugins
-	connect(&m_pluginManager, &PluginManager::newPlugin,
-			this,			  &Application::dispatchPlugin);
 	m_pluginManager.reloadPlugins();
-
-	// View
-	m_view->show();
+	loadGlobalPluginData();
+	on_New();
 }
 
 Application::~Application()
@@ -50,65 +31,48 @@ Application::~Application()
 	this->setParent(nullptr);
 }
 
-void Application::dispatchPlugin(QObject* plugin)
+
+// Passe dans le Presenter, qui l'applique au Document
+void Application::on_New()
 {
-	qDebug() << plugin->objectName() << "was dispatched";
-	auto autoconn_plugin = qobject_cast<AutoconnectFactoryPluginInterface*>(plugin);
-	auto menu_plugin = qobject_cast<CustomCommandFactoryPluginInterface*>(plugin);
-	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
-	auto process_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
-	auto panel_plugin = qobject_cast<PanelFactoryPluginInterface*>(plugin);
+	m_app->removePostedEvents(0, 0);
+	// MVP
+	//if(m_view) m_view->hide();
+	//delete m_view;
+	delete m_model;
+	delete m_presenter;
 
-	if(autoconn_plugin)
-	{
-		qDebug() << "The plugin has auto-connections";
-		// I auto-connect stuff
-		for(const auto& connection : autoconn_plugin->autoconnect_list())
-		{
-			m_autoconnections.push_back(connection);
-		}
-	}
-
-	if(menu_plugin)
-	{
-		qDebug() << "The plugin adds menu options";
-		for(const auto& cmd : menu_plugin->customCommand_list())
-		{
-			m_presenter->addCustomCommand(menu_plugin->customCommand_make(cmd));
-		}
-	}
-
-	if(settings_plugin)
-	{
-		qDebug() << "The plugin has settings";
-		m_settings->addSettingsPlugin(settings_plugin->settings_make());
-	}
-
-	if(process_plugin)
-	{
-		// Ajouter à la liste des process disponibles
-		qDebug() << "The plugin has custom processes";
-
-		for(auto procname : process_plugin->process_list())
-			m_processList.addProcess(process_plugin->process_make(procname));
-	}
-
-	if(panel_plugin)
-	{
-		qDebug() << "The plugin adds panels";
-		for(auto name : panel_plugin->panel_list())
-		{
-			qDebug() << name;
-			m_presenter->addPanel(panel_plugin->panel_make(name));
-		}
-	}
-
+	m_model = new Model{this}; // ? Utile ? Ce sont les settings, non ?
+	if (!m_view)
+		m_view = new View(qobject_cast<QObject*>(this));
+	m_presenter = new Presenter(m_model, m_view, this);
+	m_view->setPresenter(m_presenter);
+	// Plugins
+	loadPerInstancePluginData();
 	doConnections();
+
+	// View
+	m_view->show();
+}
+
+void Application::loadPerInstancePluginData()
+{
+	for(auto& cmd : m_pluginManager.m_commandList)
+		m_presenter->setupCommand(cmd);
+
+	for(auto& pnl : m_pluginManager.m_panelList)
+		m_presenter->addPanel(pnl);
+}
+
+void Application::loadGlobalPluginData()
+{
+	for(auto& set : m_pluginManager.m_settingsList)
+		m_settings->setupSettingsPlugin(set);
 }
 
 void Application::doConnections()
 {
-	for(auto& a : m_autoconnections)
+	for(auto& a : m_pluginManager.m_autoconnections)
 	{
 		auto potential_sources = a.getMatchingChildrenForSource(this);
 		auto potential_targets = a.getMatchingChildrenForTarget(this);
@@ -135,16 +99,3 @@ void Application::childEvent(QChildEvent* ev)
 	}
 }
 
-void Application::setupMasterSession()
-{
-	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
-}
-
-void Application::setupClientSession(ConnectionData d)
-{
-	qDebug(Q_FUNC_INFO);
-	ClientSessionBuilder builder(d.remote_ip, d.remote_port, "JeanMi", 7888);
-	builder.join();
-	sleep(2);
-	m_networkSession = builder.getBuiltSession();
-}
