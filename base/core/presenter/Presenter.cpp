@@ -51,10 +51,13 @@ void Presenter::addPanel(Panel* p)
 	model->setPresenter(pres);
 
 	if(dynamic_cast<BasePanel*>(p))
+	{
 		m_view->setCentralPanel(view);
+	}
 	else
+	{
 		m_view->addPanel(view);
-
+	}
 	m_model->addPanel(model);
 	m_panelsPresenters.insert(pres);
 }

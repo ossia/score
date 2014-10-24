@@ -46,30 +46,30 @@ void ScenarioCommand::on_actionTrigger()
 	{
 		public:
 			ScenarioIncrementCommandImpl():
-				Command{"Increment process"},
+				Command{"ScenarioIncrementCommandImpl", "Increment process"},
 				m_parentName{"ScenarioCommand"}
 			{
 			}
-            virtual QByteArray serialize() override
-            {
-                auto arr = Command::serialize();
-                QDataStream s(&arr, QIODevice::Append);
-                s << m_parentName.toLatin1().constData();
+			virtual QByteArray serialize() override
+			{
+				auto arr = Command::serialize();
+				QDataStream s(&arr, QIODevice::Append);
+				s << m_parentName.toLatin1().constData();
 
-                return arr;
-            }
+				return arr;
+			}
 
-            void deserialize(QByteArray arr) override
-            {
-                QBuffer buf(&arr, nullptr);
-                cmd_deserialize(&buf);
+			void deserialize(QByteArray arr) override
+			{
+				QBuffer buf(&arr, nullptr);
+				cmd_deserialize(&buf);
 
-                QDataStream stream(&buf);
-                char* string;
-                stream >> string;
-                m_parentName = string;
-                delete[] string;
-            }
+				QDataStream stream(&buf);
+				char* string;
+				stream >> string;
+				m_parentName = string;
+				delete[] string;
+			}
 
 			virtual void undo() override
 			{
@@ -88,6 +88,6 @@ void ScenarioCommand::on_actionTrigger()
 		private:
 			QString m_parentName;
 	};
-    auto cmd = new ScenarioIncrementCommandImpl();
-    emit submitCommand(cmd);
+	auto cmd = new ScenarioIncrementCommandImpl();
+	emit submitCommand(cmd);
 }

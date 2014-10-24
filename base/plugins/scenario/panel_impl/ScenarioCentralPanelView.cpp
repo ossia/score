@@ -1,6 +1,6 @@
 #include "ScenarioCentralPanelView.hpp"
 #include "ScenarioCentralPanelPresenter.hpp"
-#include "boxes/mainbox.hpp"
+//#include "boxes/mainbox.hpp"
 #include "boxes/mainwindow.hpp"
 #include <QPushButton>
 
@@ -9,7 +9,7 @@ using namespace iscore;
 ScenarioCentralPanelView::ScenarioCentralPanelView():
 	iscore::PanelView{nullptr}
 {
-	
+
 }
 
 void ScenarioCentralPanelView::setPresenter(PanelPresenter* presenter)
@@ -19,5 +19,5 @@ void ScenarioCentralPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* ScenarioCentralPanelView::getWidget()
 {
-    return new MainWindow;
+	return new MainWindow;
 }

@@ -78,7 +78,7 @@ iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
 
 QStringList SimpleProcessPlugin::panel_list() const
 {
-	return {MAIN_PANEL_NAME, SECONDARY_PANEL_NAME};
+	return {/*MAIN_PANEL_NAME, */SECONDARY_PANEL_NAME};
 }
 
 iscore::Panel* SimpleProcessPlugin::panel_make(QString name)

@@ -12,14 +12,13 @@ namespace iscore
 	class Command : public QUndoCommand
 	{
 		public:
-			explicit Command(QByteArray arr);
 			Command(QString cmdname, QString text):
 				QUndoCommand{text},
 				m_name{cmdname}
 			{
 			}
 
-			virtual QByteArray  serialize();
+			virtual QByteArray serialize();
 			virtual void deserialize(QByteArray) = 0;
 
 		protected:
