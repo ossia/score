@@ -29,7 +29,6 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "mainwindow.hpp"
-#include "mainbox.h"
 #include <QApplication>
 
 #if QT_VERSION > 0x050000
@@ -64,8 +63,7 @@ int main(int argc, char *argv[])
   app.setOrganizationName("OSSIA");
  /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
 
-  MainBox window;
-//  MainWindow window;
+  MainWindow window;
   window.show();
 
   //Engine();
