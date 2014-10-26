@@ -1,5 +1,5 @@
 #pragma once
-#include <core/presenter/command/remote/RemoteActionEmitter.hpp>
+#include "RemoteActionEmitter.hpp"
 
 class MasterSession;
 namespace iscore

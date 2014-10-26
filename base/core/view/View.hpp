@@ -21,7 +21,6 @@ namespace iscore
 			void setPresenter(Presenter*);
 
 		public slots:
-			void createZeroconfSelectionDialog();
 
 		signals:
 			void insertActionIntoMenubar(Action);

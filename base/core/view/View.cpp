@@ -5,6 +5,8 @@
 #include <QGridLayout>
 
 #include <core/application/Application.hpp>
+#include <core/document/DocumentView.hpp>
+
 using namespace iscore;
 
 View::View(QObject* parent):
@@ -37,27 +39,19 @@ void View::addPanel(PanelView* v)
 
 // TODO devenir updateDocument ?
 void View::setCentralPanel(PanelView* v)
-{
+{/*
 	v->setParent(this);
 	m_panelsViews.insert(v);
 
-	this->setCentralWidget(v->getWidget());
+	this->setCentralWidget(v->getWidget());*/
 }
 
 void View::setPresenter(Presenter* pres)
 {
 	m_presenter = pres;
+
+	auto view = m_presenter->document()->view();
+	view->setParent(this);
+	this->setCentralWidget(view);
 }
 
-
-//#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
-#include <core/view/dialogs/zeroconf/ZeroConfConnectDialog.hpp>
-void View::createZeroconfSelectionDialog()
-{
-	auto diag = new ZeroconfConnectDialog(this);
-
-//	connect(diag,			&ZeroconfConnectDialog::connectedTo,
-//			m_presenter,	&Presenter::setupClientSession);
-
-	diag->exec();
-}

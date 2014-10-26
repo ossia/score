@@ -25,7 +25,7 @@
 #define CLIENT_H
 
 #include <QDialog>
-#include <QTcpSocket>
+#include <QtNetwork/QTcpSocket>
 #include <bonjourrecord.h>
 #include <bonjourservicebrowser.h>
 #include <bonjourserviceresolver.h>

@@ -1,23 +1,22 @@
 #pragma once
 #include <QUndoStack>
-#include <core/application/SessionType.hpp>
-#include <core/presenter/command/remote/RemoteActionEmitter.hpp>
-#include <core/presenter/command/remote/RemoteActionReceiver.hpp>
+#include <core/presenter/command/Command.hpp>
 #include <memory>
 
 class Session;
 namespace iscore
 {
-	class RemoteActionEmitter;
-	class RemoteActionReceiver;
 	class CommandQueue : public QUndoStack
 	{
+			Q_OBJECT
 		public:
-			CommandQueue(Session*);
+			CommandQueue();
 			void push(Command *cmd);
 
-		private:
-			std::unique_ptr<RemoteActionEmitter> m_emitter;
-			std::unique_ptr<RemoteActionReceiver> m_receiver;
+		signals:
+			void push_start(iscore::Command* cmd);
+
+		public slots:
+			void receiveCommand(iscore::Command* cmd);
 	};
 }

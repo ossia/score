@@ -1,4 +1,4 @@
-#include <core/presenter/command/remote/RemoteActionEmitterMaster.hpp>
+#include "RemoteActionEmitterMaster.hpp""
 #include <API/Headers/Repartition/session/MasterSession.h>
 #include <core/presenter/command/Command.hpp>
 using namespace iscore;

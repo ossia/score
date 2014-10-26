@@ -4,9 +4,6 @@
 
 #include <core/presenter/command/CommandQueue.hpp>
 
-#include <API/Headers/Repartition/session/Session.h>
-#include <API/Headers/Repartition/session/ConnectionData.hpp>
-
 namespace iscore
 {
 	class DocumentModel;
@@ -15,19 +12,18 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-			DocumentPresenter(DocumentModel*, DocumentView*);
-			Session* session() { return m_networkSession.get(); }
+			DocumentPresenter(QObject* parent, DocumentModel*, DocumentView*);
 			CommandQueue* commandQueue() { return m_commandQueue.get(); }
 
+			void newDocument();
+			void reset();
+
 		public slots:
-			void setupClientSession(ConnectionData d);
 
 		private slots:
-			void setupMasterSession();
 			void applyCommand(Command*);
 
 		private:
-			std::unique_ptr<Session> m_networkSession; // For distribution
 			std::unique_ptr<CommandQueue> m_commandQueue;
 	};
 }

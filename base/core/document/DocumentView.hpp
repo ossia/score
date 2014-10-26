@@ -1,9 +1,12 @@
 #pragma once
+#include <QWidget>
 
 namespace iscore
 {
-	class DocumentView
+	// Vue du central panel
+	class DocumentView : public QWidget
 	{
-
+		public:
+			DocumentView(QWidget* parent);
 	};
 }

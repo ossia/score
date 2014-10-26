@@ -25,10 +25,6 @@ namespace iscore
 			Presenter* presenter() { return m_presenter; }
 			Settings* settings() { return m_settings.get(); }
 
-		public slots:
-			// Cela mérite-t-il d'avoir un objet propre ?
-			void on_New();
-
 		protected:
 			virtual void childEvent(QChildEvent*) override;
 

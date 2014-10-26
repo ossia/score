@@ -20,18 +20,19 @@ namespace iscore
 			Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
 
 			View* view() { return m_view; }
+			Document* document() { return m_document; }
 
 			void setupCommand(CustomCommand*);
 			void addPanel(Panel*);
 
-			void newDocument();
-
 		public slots:
+			void newDocument();
 			void applyCommand(Command*);
+
 		private:
 			void setupMenus();
 
-			Document* m_document;
+			Document* m_document{};
 			MenubarManager m_menubar;
 
 			Model* m_model;

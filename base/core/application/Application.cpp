@@ -21,38 +21,28 @@ Application::Application(int& argc, char** argv):
 	// Settings
 	m_settings = std::make_unique<Settings>(this);
 
-	m_pluginManager.reloadPlugins();
-	loadGlobalPluginData();
-	on_New();
-}
-
-Application::~Application()
-{
-	this->setParent(nullptr);
-}
 
 
-// Passe dans le Presenter, qui l'applique au Document
-void Application::on_New()
-{
-	m_app->removePostedEvents(0, 0);
 	// MVP
-	//if(m_view) m_view->hide();
-	//delete m_view;
-	delete m_model;
-	delete m_presenter;
-
 	m_model = new Model{this}; // ? Utile ? Ce sont les settings, non ?
 	if (!m_view)
 		m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
 	m_view->setPresenter(m_presenter);
+
 	// Plugins
+	m_pluginManager.reloadPlugins();
+	loadGlobalPluginData();
 	loadPerInstancePluginData();
 	doConnections();
 
 	// View
 	m_view->show();
+}
+
+Application::~Application()
+{
+	this->setParent(nullptr);
 }
 
 void Application::loadPerInstancePluginData()
