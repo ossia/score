@@ -29,7 +29,7 @@
 */
 
 #include "automationview.hpp"
-#include "timeboxstoreybar.hpp"
+#include "../timeBox/timeboxstoreybar.hpp"
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QPainter>

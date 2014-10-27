@@ -33,7 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QMainWindow>
 #include <QGraphicsScene>
-#include "timebox.hpp"
+#include "../timeBox/timebox.hpp"
 #include "timebarwidget.hpp"
 
 class QGraphicsScene;
@@ -98,7 +98,7 @@ public slots:
     void changeCurrentTimeboxScene();
 
 private slots:
-  void addItem(QPointF); /// @todo Old way to add an item in the Timebox in fullView, now is directly in Scenario plugin. Could be deleted !
+//  void addItem(QPointF); /// @todo Old way to add an item in the Timebox in fullView, now is directly in Scenario plugin. Could be deleted !
   void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
   void deleteSelectedItems();
 

@@ -29,9 +29,9 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "scenarioview.hpp"
-#include "timeevent.hpp"
+#include "../timeEvent/timeevent.hpp"
 #include "mainwindow.hpp"
-#include "timebox.hpp"
+#include "../timeBox/timebox.hpp"
 #include "utils.hpp"
 
 #include <QGraphicsObject>
@@ -47,6 +47,7 @@ ScenarioView::ScenarioView(QGraphicsItem *parent)
   : PluginView(parent)
 {
   setFlags(QGraphicsItem::ItemIsSelectable);
+  setObjectName("ScenarioView");
 }
 
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -115,13 +116,16 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    qDebug() << "blop event" << _pTemporaryBox ;
+
   if (_pTemporaryBox != nullptr) {
       //If temporaryBox is bigger enough we create a Timebox
       if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
           emit createTimebox(_pTemporaryBox->rect());
         }
       else { // we create a TimeEvent
-          emit createTimeEvent(mouseEvent->pos());
+          emit createTimeEventAction(mouseEvent->pos()); //
+         qDebug() << "blop emit" << mouseEvent->pos();
         }
       delete _pTemporaryBox;
       _pTemporaryBox = nullptr;

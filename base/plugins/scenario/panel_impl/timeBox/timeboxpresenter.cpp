@@ -201,7 +201,7 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
 
         /// We connect the plugin to proxies signals, to route them to the class Timebox
         connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
-        connect(scenarioView, SIGNAL(createTimeEvent(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
+        connect(scenarioView, SIGNAL(createTimeEventAction(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
 
         plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
         break;

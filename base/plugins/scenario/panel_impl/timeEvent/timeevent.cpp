@@ -28,46 +28,37 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef SCENARIOVIEW_HPP
-#define SCENARIOVIEW_HPP
+#include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventpresenter.hpp"
+#include "timeeventview.hpp"
+#include "../timeBox/timebox.hpp"
+#include "../timeBox/timeboxfullview.hpp"
 
-class QGraphicsRectItem;
+int TimeEvent::staticId = 1;
 
-#include "pluginview.hpp"
-#include <QPointF>
-#include <QRectF>
-
-/*!
- *  View of the Scenario plugin, inherits the class PluginView.
- *  Permits to add a TimeEvent and draw a Timebox in smallView by adding it as child to the current one in fullView. @n
- *  NOTE : in ScoreAPI the hierarchy is managed by Scenario, in i-score it is managed by Timebox.
- *
- *  @brief View of the Scenario plugin
- *  @author Jaime Chao
- *  @date 2013/2014
- */
-class ScenarioView : public PluginView
+TimeEvent::TimeEvent(Timebox *pParent, const QPointF &pos)
+  : QObject(pParent)
 {
-  Q_OBJECT
+  ///If no name was given, we construct a name with a unique ID
+  QString name = QString("TimeEvent%1").arg(staticId++);
+  setObjectName(name);
 
-private:
-  QGraphicsRectItem *_pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
-  QPointF _pressPoint;                          /// Last pression point.
+  _pModel = new TimeEventModel(pos.x(), pos.y(), name, this);
+  _pView = new TimeEventView(_pModel, this);
+  _pPresenter = new TimeEventPresenter(_pModel, _pView, this);
 
-public:
-  ScenarioView(QGraphicsItem *parent = 0);
+  connect(_pView, SIGNAL(createTimeEventAndTimebox(QLineF)), this, SIGNAL(createTimeEventAndTimeboxProxy(QLineF)));
 
-signals:
-  void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
-  void createTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
+  if (pParent != nullptr) {
+      pParent->addChild(this);
+      connect(this, SIGNAL(createTimeEventAndTimeboxProxy(QLineF)), pParent, SLOT(createTimeEventAndTimebox(QLineF)));
+    }
+}
 
-public:
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+TimeEvent::~TimeEvent()
+{
+}
 
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);  
-};
+///@todo addTimeboxandTimeEvent()
 
-#endif // SCENARIOVIEW_HPP

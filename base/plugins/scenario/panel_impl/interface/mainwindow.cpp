@@ -30,14 +30,14 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
-#include "timeevent.hpp"
-#include "timeeventview.hpp"
-#include "timeboxmodel.hpp"
-#include "timeboxpresenter.hpp"
-#include "timeboxsmallview.hpp"
+#include "../timeEvent/timeevent.hpp"
+#include "../timeEvent/timeeventview.hpp"
+#include "../timeBox/timeboxmodel.hpp"
+#include "../timeBox/timeboxpresenter.hpp"
+#include "../timeBox/timeboxsmallview.hpp"
 #include "utils.hpp"
 #include "graphicsview.hpp"
-#include "timeboxfullview.hpp"
+#include "../timeBox/timeboxfullview.hpp"
 
 #include <QMouseEvent>
 #include <QAction>
@@ -156,13 +156,13 @@ void MainWindow::createTransitions()
 
 void MainWindow::createConnections()
 {
-  connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
+//  connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
   connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
   connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
   connect(ui->headerWidget, SIGNAL(doubleClicked()), this, SLOT(headerWidgetClicked()));
   connect(_pDeleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedItems()));
 }
-
+/*
 void MainWindow::addItem(QPointF pos)
 {
   QAction *action = _pMouseActionGroup->checkedAction();
@@ -183,7 +183,7 @@ void MainWindow::addItem(QPointF pos)
 
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
 }
-
+*/
 void MainWindow::headerWidgetClicked()
 {
   _pCurrentTimebox->goSmall();
