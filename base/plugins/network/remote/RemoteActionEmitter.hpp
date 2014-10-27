@@ -5,7 +5,7 @@ namespace iscore
 {
 	class Command;
 }
-
+class Session;
 // Pour l'instant, envoyer les actions à tous ?
 // Plus tard, faire du fine-grain
 
@@ -14,5 +14,11 @@ namespace iscore
 class RemoteActionEmitter
 {
 	public:
-		virtual void sendCommand(iscore::Command*) = 0;
+		RemoteActionEmitter(Session* session);
+		virtual void sendCommand(iscore::Command*);
+		virtual void undo();
+		virtual void redo();
+
+	private:
+		Session* m_session;
 };

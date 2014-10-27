@@ -1,5 +1,4 @@
 #include "RemoteActionReceiverClient.hpp"
-#include <API/Headers/Repartition/session/ClientSession.h>
 #include <QDebug>
 
 #include <QApplication>
@@ -10,18 +9,19 @@ RemoteActionReceiverClient::RemoteActionReceiverClient(QObject* parent, ClientSe
 	RemoteActionReceiver{},
 	m_session{s}
 {
-	QObject* rec_parent = this;
-
-	while(rec_parent != nullptr)
-	{
-		rec_parent = rec_parent->parent();
-	}
 	s->cmdCallback = std::bind(&RemoteActionReceiverClient::onReceive,
 							   this,
 							   std::placeholders::_1,
 							   std::placeholders::_2,
 							   std::placeholders::_3,
 							   std::placeholders::_4);
+
+	s->getLocalClient().receiver().addHandler("/edit/undo",
+										 &RemoteActionReceiverClient::handle__edit_undo,
+										 this);
+	s->getLocalClient().receiver().addHandler("/edit/redo",
+										 &RemoteActionReceiverClient::handle__edit_redo,
+										 this);
 }
 
 void RemoteActionReceiverClient::onReceive(std::string parname, std::string name, const char* data, int len)
@@ -36,4 +36,16 @@ void RemoteActionReceiverClient::applyCommand(iscore::Command* cmd)
 {
 	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
 	queue->push(cmd);
+}
+
+void RemoteActionReceiverClient::handle__edit_undo(osc::ReceivedMessageArgumentStream)
+{
+	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
+	queue->undo();
+}
+
+void RemoteActionReceiverClient::handle__edit_redo(osc::ReceivedMessageArgumentStream)
+{
+	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
+	queue->redo();
 }

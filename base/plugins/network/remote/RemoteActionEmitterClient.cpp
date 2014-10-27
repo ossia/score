@@ -16,3 +16,13 @@ void RemoteActionEmitterClient::sendCommand(iscore::Command* cmd)
 						   data.length());
 
 }
+
+void RemoteActionEmitterClient::undo()
+{
+	m_session->undoCommand
+}
+
+void RemoteActionEmitterClient::redo()
+{
+
+}

@@ -41,8 +41,9 @@ void NetworkCommand::setupMasterSession()
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
 
 	auto session = static_cast<MasterSession*>(m_networkSession.get());
-	m_emitter = std::make_unique<RemoteActionEmitterMaster>(session);
-	//m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
+	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
+	m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
+	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early.
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
@@ -53,9 +54,9 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 	m_networkSession = builder.getBuiltSession();
 
 	auto session = static_cast<ClientSession*>(m_networkSession.get());
-	m_emitter  = std::make_unique<RemoteActionEmitterClient>(session);
+	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
 	m_receiver = std::make_unique<RemoteActionReceiverClient>(this, session);
-	m_receiver->setParent(this);
+	m_receiver->setParent(this);// Else it does not work because childEvent is sent too early.
 }
 
 #include "zeroconf/ZeroConfConnectDialog.hpp"
@@ -72,4 +73,14 @@ void NetworkCommand::createZeroconfSelectionDialog()
 void NetworkCommand::commandPush(Command* cmd)
 {
 	m_emitter->sendCommand(cmd);
+}
+
+void NetworkCommand::sendUndo()
+{
+	m_emitter->undo();
+}
+
+void NetworkCommand::sendRedo()
+{
+	m_emitter->redo();
 }

@@ -112,9 +112,14 @@ void Presenter::setupMenus()
 
 	// Undo / redo
 	auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
+	connect(undoAct,								 &QAction::triggered,
+			m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   undoAct);
+
 	auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
+	connect(redoAct,								 &QAction::triggered,
+			m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   redoAct);
 }

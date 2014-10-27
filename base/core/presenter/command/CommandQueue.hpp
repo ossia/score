@@ -15,9 +15,13 @@ namespace iscore
 		signals:
 			void push_start(iscore::Command* cmd);
 
+			void onUndo();
+			void onRedo();
+
 		public slots:
 			void push(iscore::Command* cmd);
 			void pushAndEmit(iscore::Command* cmd);
+
 
 	};
 }
