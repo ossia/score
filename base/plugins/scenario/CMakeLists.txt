@@ -31,7 +31,10 @@ set(HEADER_FILES
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/mainwindow.hpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pixmapbutton.hpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pluginview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/scenarioview.hpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenarioview.hpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariomodel.hpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariopresenter.hpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariocontainer.hpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/statedebug.hpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/timebarwidget.hpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxfullview.hpp
@@ -79,7 +82,10 @@ set(SOURCE_FILES
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/mainwindow.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pixmapbutton.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pluginview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/scenarioview.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenarioview.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariomodel.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariopresenter.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariocontainer.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/statedebug.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/timebarwidget.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timebox.cpp

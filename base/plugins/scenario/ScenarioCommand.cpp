@@ -41,8 +41,6 @@ void ScenarioCommand::on_createTimeEvent(QPointF position)
 	// it can be referenced.
 
     _pos = position;
-    qDebug() << "scenario command" ;
-
 	class ScenarioIncrementCommandImpl : public Command
 	{
 		public:
