@@ -1,5 +1,7 @@
 #pragma once
 #include <QObject>
+#include <QGraphicsObject>
+#include <QDebug>
 namespace iscore
 {
 	/*
@@ -12,7 +14,7 @@ namespace iscore
 	{
 		public:
 			enum class ObjectRepresentationType { QObjectName, Inheritance };
-			struct ObjectRepresentation 
+			struct ObjectRepresentation
 			{
 					ObjectRepresentation(const ObjectRepresentation&) = default;
 					ObjectRepresentation& operator=(const ObjectRepresentation&) = default;
@@ -20,15 +22,18 @@ namespace iscore
 					const char* name;
 					const char* method;
 			};
-			
+
 			Autoconnect(const Autoconnect&) = default;
 			Autoconnect& operator=(const Autoconnect&) = default;
 
 			ObjectRepresentation source;
 			ObjectRepresentation target;
-			
+
 			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,  const QObject* obj) const
 			{
+				qDebug() << "Is QGraphicsObject?" << dynamic_cast<const QGraphicsObject*>(obj);
+				qDebug() << obj->metaObject()->className();
+
 				QList<QObject*> children;
 				switch(obj_repr.type)
 				{
@@ -49,15 +54,15 @@ namespace iscore
 						break;
 					}
 				}
-				
+
 				return children;
 			}
-			
+
 			QList<QObject*> getMatchingChildrenForSource(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(source, obj));
 			}
-			
+
 			QList<QObject*> getMatchingChildrenForTarget(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(target, obj));

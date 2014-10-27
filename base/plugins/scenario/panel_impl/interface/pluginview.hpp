@@ -52,7 +52,7 @@ private:
   QRectF _boundingRectangle; /// Retrieved from parent's bounding rectangle at creation.
 
 public:
-  PluginView(QGraphicsItem *parent);
+  PluginView(QGraphicsObject* parent);
   virtual QRectF boundingRect() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };

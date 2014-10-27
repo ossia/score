@@ -32,10 +32,10 @@
 #include <QPainter>
 #include "../timeBox/timeboxstoreybar.hpp"
 #include <iostream>
-
-PluginView::PluginView(QGraphicsItem *parent)
+#include <QDebug>
+PluginView::PluginView(QGraphicsObject *parent)
   : QGraphicsObject(parent),
-    _boundingRectangle(parent->boundingRect().adjusted(1,1,-1,-TimeboxStoreyBar::HEIGHT))
+	_boundingRectangle(parent->boundingRect().adjusted(1,1,-1,-TimeboxStoreyBar::HEIGHT))
 {
 }
 

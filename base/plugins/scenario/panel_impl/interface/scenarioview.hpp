@@ -55,7 +55,7 @@ private:
   QPointF _pressPoint;                          /// Last pression point.
 
 public:
-  ScenarioView(QGraphicsItem *parent = 0);
+  ScenarioView(QGraphicsObject* parent);
 
 signals:
   void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
@@ -67,7 +67,7 @@ public:
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
   void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);  
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
 };
 
 #endif // SCENARIOVIEW_HPP

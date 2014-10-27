@@ -13,7 +13,8 @@ void RemoteActionReceiverClient::onReceive(std::string parname, std::string name
 {
 	QByteArray{data, len};
 
-	qDebug() << "NAME:" << parname.c_str() << name.c_str() ;
+	qDebug() << "NAME:" << parname.c_str() << name.c_str();
 
 	// Instancier la bonne commande
+
 }

@@ -34,7 +34,7 @@
 #include <QPainterPath>
 #include <QPainter>
 
-AutomationView::AutomationView(QGraphicsItem *parent)
+AutomationView::AutomationView(QGraphicsObject *parent)
   : PluginView(parent), _points()
 {
   QPainterPath path(QPointF(0, parentItem()->boundingRect().height() - TimeboxStoreyBar::HEIGHT));

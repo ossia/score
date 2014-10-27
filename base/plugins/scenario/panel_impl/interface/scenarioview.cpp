@@ -43,7 +43,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsScene>
 #include <QDebug>
 
-ScenarioView::ScenarioView(QGraphicsItem *parent)
+ScenarioView::ScenarioView(QGraphicsObject *parent)
   : PluginView(parent)
 {
   setFlags(QGraphicsItem::ItemIsSelectable);
@@ -57,79 +57,79 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
   // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
   if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
-      if (mouseEvent->button() == Qt::LeftButton) {
-          // Create an object in case of Command + LeftClick
-          if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
+	  if (mouseEvent->button() == Qt::LeftButton) {
+		  // Create an object in case of Command + LeftClick
+		  if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
 
-              if (_pTemporaryBox != nullptr) {
-                  delete _pTemporaryBox;
-                  _pTemporaryBox = nullptr;
-                }
+			  if (_pTemporaryBox != nullptr) {
+				  delete _pTemporaryBox;
+				  _pTemporaryBox = nullptr;
+				}
 
-              // Store the first pressed point
-              _pressPoint = mouseEvent->pos();
+			  // Store the first pressed point
+			  _pressPoint = mouseEvent->pos();
 
-              // Add the temporary box to the scene
-              _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
-              _pTemporaryBox->setPen(QPen(Qt::black));
-              _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
-            }
-        }
-    }
+			  // Add the temporary box to the scene
+			  _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
+			  _pTemporaryBox->setPen(QPen(Qt::black));
+			  _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
+			}
+		}
+	}
   QGraphicsObject::mousePressEvent(mouseEvent);
 }
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
   if (_pTemporaryBox != nullptr) {
-      int upLeftX, upLeftY, width, height;
+	  int upLeftX, upLeftY, width, height;
 
-      if (_pressPoint.x() < mouseEvent->pos().x()) {
-          upLeftX = _pressPoint.x();
-          width = mouseEvent->pos().x() - upLeftX;
-        }
-      else {
-          upLeftX = mouseEvent->pos().x();
-          width = _pressPoint.x() - upLeftX;
-        }
+	  if (_pressPoint.x() < mouseEvent->pos().x()) {
+		  upLeftX = _pressPoint.x();
+		  width = mouseEvent->pos().x() - upLeftX;
+		}
+	  else {
+		  upLeftX = mouseEvent->pos().x();
+		  width = _pressPoint.x() - upLeftX;
+		}
 
-      if (_pressPoint.y() < mouseEvent->pos().y()) {
-          upLeftY = _pressPoint.y();
-          height = mouseEvent->pos().y() - upLeftY;
-        }
-      else {
-          upLeftY = mouseEvent->pos().y();
-          height = _pressPoint.y() - upLeftY;
-        }
+	  if (_pressPoint.y() < mouseEvent->pos().y()) {
+		  upLeftY = _pressPoint.y();
+		  height = mouseEvent->pos().y() - upLeftY;
+		}
+	  else {
+		  upLeftY = mouseEvent->pos().y();
+		  height = _pressPoint.y() - upLeftY;
+		}
 
-      //If temporaryBox is inside the scenarioView
-      if (boundingRect().contains(QRect(upLeftX, upLeftY, width, height))) {
-          _pTemporaryBox->setRect(upLeftX, upLeftY, width, height);
-        }
-      else {
-          delete _pTemporaryBox;
-          _pTemporaryBox = nullptr;
-        }
-    }
+	  //If temporaryBox is inside the scenarioView
+	  if (boundingRect().contains(QRect(upLeftX, upLeftY, width, height))) {
+		  _pTemporaryBox->setRect(upLeftX, upLeftY, width, height);
+		}
+	  else {
+		  delete _pTemporaryBox;
+		  _pTemporaryBox = nullptr;
+		}
+	}
   QGraphicsObject::mouseMoveEvent(mouseEvent);
 }
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    qDebug() << "blop event" << _pTemporaryBox ;
+	qDebug() << "blop event" << _pTemporaryBox ;
 
   if (_pTemporaryBox != nullptr) {
-      //If temporaryBox is bigger enough we create a Timebox
-      if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
-          emit createTimebox(_pTemporaryBox->rect());
-        }
-      else { // we create a TimeEvent
-          emit createTimeEventAction(mouseEvent->pos()); //
-         qDebug() << "blop emit" << mouseEvent->pos();
-        }
-      delete _pTemporaryBox;
-      _pTemporaryBox = nullptr;
-    }
+	  //If temporaryBox is bigger enough we create a Timebox
+	  if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
+		  emit createTimebox(_pTemporaryBox->rect());
+		}
+	  else { // we create a TimeEvent
+		  emit createTimeEventAction(mouseEvent->pos()); //
+		 qDebug() << "blop emit" << mouseEvent->pos();
+		}
+	  delete _pTemporaryBox;
+	  _pTemporaryBox = nullptr;
+	}
   QGraphicsObject::mouseReleaseEvent(mouseEvent);
 }
 

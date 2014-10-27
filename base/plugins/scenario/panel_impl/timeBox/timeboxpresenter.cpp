@@ -50,7 +50,7 @@ class TTTimeProcess;
 
 TimeboxPresenter::TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView, Timebox *parent)
   : QObject(parent), _mode(SMALL), _pTimebox(parent), _pModel(pModel), _pSmallView(pSmallView), _pFullView(NULL), _pGraphicsView(pView)
-{  
+{
   createStateMachine();
 }
 
@@ -92,14 +92,14 @@ void TimeboxPresenter::createStates()
   _pHideState = new StateDebug("hide", parent()->objectName(), _pNormalState);
 
   if(_mode == FULL) {
-      _pNormalState->setInitialState(_pFullSizeState);
-    }
+	  _pNormalState->setInitialState(_pFullSizeState);
+	}
   else if (_mode == SMALL) {
-      _pNormalState->setInitialState(_pSmallSizeState);
-    }
+	  _pNormalState->setInitialState(_pSmallSizeState);
+	}
   else {
-      qDebug() << "_mode inconnu dans TimeboxPresenter::createStates()";
-    }
+	  qDebug() << "_mode inconnu dans TimeboxPresenter::createStates()";
+	}
 
   _pStateMachine->addState(_pNormalState);
 
@@ -112,8 +112,8 @@ void TimeboxPresenter::createTransitions()
   _pInitialState->addTransition(_pInitialState, SIGNAL(propertiesAssigned()), _pNormalState);
 
   if (_pSmallView != nullptr) {
-      _pSmallSizeState->addTransition(_pSmallView, SIGNAL(headerDoubleClicked()), _pFullSizeState); /// User clicked on timeboxHeader (smallView)
-    }
+	  _pSmallSizeState->addTransition(_pSmallView, SIGNAL(headerDoubleClicked()), _pFullSizeState); /// User clicked on timeboxHeader (smallView)
+	}
   _pSmallSizeState->addTransition(_pTimebox, SIGNAL(isHide()), _pHideState); /// Sister of the timebox passing from small to full
 
   _pFullSizeState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// User clicked on headerWidget. timebox's class is needed to route signal from the mouseClick from MainWindow::headerWidgetClicked()
@@ -123,9 +123,9 @@ void TimeboxPresenter::createTransitions()
   _pHideState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// Sister of the timebox passing from full to small
 
   if (_pSmallView != nullptr) {
-      ///@bug cette méthode de suppression n'est plus utilisée (on passe par mainWindow::deleteSelectedItems())
-      _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
-    }
+	  ///@bug cette méthode de suppression n'est plus utilisée (on passe par mainWindow::deleteSelectedItems())
+	  _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
+	}
 }
 
 void TimeboxPresenter::createConnections()
@@ -138,13 +138,13 @@ void TimeboxPresenter::createConnections()
 
 void TimeboxPresenter::init() {
   if(_mode == FULL) {
-      _pGraphicsView->setScene(_pFullView);
-      _pGraphicsView->centerOn(QPointF(0,0));
-      addStorey(ScenarioPluginType);
-    }
+	  _pGraphicsView->setScene(_pFullView);
+	  _pGraphicsView->centerOn(QPointF(0,0));
+	  addStorey(ScenarioPluginType);
+	}
   else if (_mode == SMALL) {
-      addStorey(AutomationPluginType);
-    }
+	  addStorey(AutomationPluginType);
+	}
 }
 
 void TimeboxPresenter::storeyBarButtonClicked(bool id)
@@ -152,12 +152,12 @@ void TimeboxPresenter::storeyBarButtonClicked(bool id)
   Q_ASSERT(id == 0 || id == 1);
   TimeboxStorey* tbs = qobject_cast<TimeboxStorey*>(sender());
   if(id == 0) { /// We add a new storey
-      addStorey(AutomationPluginType);
-      tbs->setButton(1);
-    }
+	  addStorey(AutomationPluginType);
+	  tbs->setButton(1);
+	}
   else if(id == 1) {
-      deleteStorey(tbs);
-    }
+	  deleteStorey(tbs);
+	}
 }
 
 void TimeboxPresenter::addStorey(int pluginType)
@@ -165,28 +165,28 @@ void TimeboxPresenter::addStorey(int pluginType)
   PluginView *plugin;
   TimeboxStorey *pStorey;
   switch (_mode) {
-    case SMALL:
-      pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pSmallView);
-      pStorey->setButton(0);
-      _pSmallView->addStorey(pStorey);
-      plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
-      _storeysSmallView.emplace(pStorey, plugin);
-      _pModel->addPluginSmall();
-      break;
+	case SMALL:
+	  pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pSmallView);
+	  pStorey->setButton(0);
+	  _pSmallView->addStorey(pStorey);
+	  plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
+	  _storeysSmallView.emplace(pStorey, plugin);
+	  _pModel->addPluginSmall();
+	  break;
 
-    case FULL:
-      pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pFullView->container());
-      //pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), _pGraphicsView->height(), _pFullView->container());
-      _pFullView->addStorey(pStorey);
-      pStorey->setButton(0);
-      plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
-      _storeysFullView.emplace(pStorey, plugin);
-      _pModel->addPluginFull();
-      break;
+	case FULL:
+	  pStorey = new TimeboxStorey(_pModel, _pModel->width(), _pModel->height(), _pFullView->container());
+	  //pStorey = new TimeboxStorey(_pModel, _pGraphicsView->width(), _pGraphicsView->height(), _pFullView->container());
+	  _pFullView->addStorey(pStorey);
+	  pStorey->setButton(0);
+	  plugin = addPlugin(pluginType, pStorey); /// We put the plugin in the storey
+	  _storeysFullView.emplace(pStorey, plugin);
+	  _pModel->addPluginFull();
+	  break;
 
-    case HIDE:
-      return;
-    }
+	case HIDE:
+	  return;
+	}
 
   connect(pStorey, SIGNAL(buttonClicked(bool)), this, SLOT(storeyBarButtonClicked(bool)));
 }
@@ -195,26 +195,37 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
 {
   PluginView *plugin;
   switch(pluginType) {
-    case ScenarioPluginType:
-      { /// We have to put braces because we declare a new object in a switch statement
-        ScenarioView *scenarioView = new ScenarioView(pStorey);
+	case ScenarioPluginType:
+	  { /// We have to put braces because we declare a new object in a switch statement
+		ScenarioView *scenarioView = new ScenarioView(pStorey);
+		qDebug();
+		qDebug() << pStorey;
+		qDebug() << scenarioView->parentItem();
+		qDebug() << scenarioView->parentObject();
+		qDebug() << scenarioView->parentWidget();
 
-        /// We connect the plugin to proxies signals, to route them to the class Timebox
-        connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
-        connect(scenarioView, SIGNAL(createTimeEventAction(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
+		qDebug();
+		qDebug() << scenarioView;
+		qDebug() << scenarioView->parentItem()->childItems();
+		qDebug() << scenarioView->parentObject()->children();
+		qDebug() << scenarioView->parentObject()->childItems();
 
-        plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
-        break;
-      }
+		/// We connect the plugin to proxies signals, to route them to the class Timebox
+		connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
+		connect(scenarioView, SIGNAL(createTimeEventAction(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
 
-    case AutomationPluginType:
-      {
-        AutomationView *automationView = new AutomationView(pStorey);
-        plugin = qgraphicsitem_cast<PluginView*>(automationView);
-        break;
-      }
+		plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
+		break;
+	  }
 
-    }
+	case AutomationPluginType:
+	  {
+		AutomationView *automationView = new AutomationView(pStorey);
+		plugin = qgraphicsitem_cast<PluginView*>(automationView);
+		break;
+	  }
+
+	}
 
   return plugin;
 }
@@ -228,8 +239,8 @@ void TimeboxPresenter::goFullView()
 {
   _mode = FULL; /// mode need to be actualised first
   if (_pFullView == NULL) {
-      createFullView();
-    }
+	  createFullView();
+	}
   _pGraphicsView->setScene(_pFullView);
   emit viewModeIsFull();
   //_pGraphicsView->fitFullView(); @todo Besoin d'etre amélioré
@@ -248,9 +259,9 @@ void TimeboxPresenter::createFullView()
   /// @todo récupérer les plugins de smallsize
 
   for (std::list<TTTimeProcess*>::iterator it = lst.begin() ; it != lst.end() ; ++it) { /// On crée un storey par plugin
-      addStorey(AutomationPluginType); ///@todo seul le dernier storey a un "+"
-      /// @todo constructeur par copie des plugins pour aller dans full
-    }
+	  addStorey(AutomationPluginType); ///@todo seul le dernier storey a un "+"
+	  /// @todo constructeur par copie des plugins pour aller dans full
+	}
 }
 
 void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
@@ -258,23 +269,23 @@ void TimeboxPresenter::deleteStorey(TimeboxStorey* tbs)
   std::unordered_map<TimeboxStorey*, PluginView*>::iterator it;
 
   switch(_mode) {
-    case SMALL:
-      it = _storeysSmallView.find(tbs);
-      delete it->first; /// we delete the timeboxstorey
-      _storeysSmallView.erase(it);
-      _pModel->removePluginSmall(); /// @todo supp un storey ne veut pas dire supp son plugin. A changer le temps venu
-      break;
+	case SMALL:
+	  it = _storeysSmallView.find(tbs);
+	  delete it->first; /// we delete the timeboxstorey
+	  _storeysSmallView.erase(it);
+	  _pModel->removePluginSmall(); /// @todo supp un storey ne veut pas dire supp son plugin. A changer le temps venu
+	  break;
 
-    case FULL:
-      it = _storeysFullView.find(tbs);
-      delete it->first; /// we delete the timeboxstorey
-      _storeysFullView.erase(it);
-      _pModel->removePluginFull();
-      break;
+	case FULL:
+	  it = _storeysFullView.find(tbs);
+	  delete it->first; /// we delete the timeboxstorey
+	  _storeysFullView.erase(it);
+	  _pModel->removePluginFull();
+	  break;
 
-    case HIDE:
-      break;
-    }
+	case HIDE:
+	  break;
+	}
 
 }
 

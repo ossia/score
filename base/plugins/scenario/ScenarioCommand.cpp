@@ -63,7 +63,7 @@ void ScenarioCommand::on_actionTrigger()
 				return arr;
 			}
 
-			void deserialize(QByteArray arr) override
+			virtual void deserialize(QByteArray arr) override
 			{
 				QBuffer buf(&arr, nullptr);
 				cmd_deserialize(&buf);

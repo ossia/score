@@ -46,7 +46,7 @@ private:
   QList<QPointF> _points;
 
 public:
-  AutomationView(QGraphicsItem *parent = 0);
+  AutomationView(QGraphicsObject* parent = 0);
 
 public:
   QPainterPath shape() const;
