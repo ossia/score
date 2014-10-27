@@ -30,7 +30,7 @@
 
 #include "pluginview.hpp"
 #include <QPainter>
-#include "timeboxstoreybar.hpp"
+#include "../timeBox/timeboxstoreybar.hpp"
 #include <iostream>
 
 PluginView::PluginView(QGraphicsItem *parent)

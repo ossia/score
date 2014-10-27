@@ -31,8 +31,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "headerwidget.hpp"
 #include "mainwindow.hpp"
-#include "timebox.hpp"
-#include "timeboxmodel.hpp"
+#include "../timeBox/timebox.hpp"
+#include "../timeBox/timeboxmodel.hpp"
 
 #include <QPixmap>
 #include <QPushButton>
