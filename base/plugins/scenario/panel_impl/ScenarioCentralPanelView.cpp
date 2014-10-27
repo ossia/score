@@ -18,5 +18,5 @@ void ScenarioCentralPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* ScenarioCentralPanelView::getWidget()
 {
-	return new MainWindow;
+    return new MainWindow;
 }
