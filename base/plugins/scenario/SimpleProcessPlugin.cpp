@@ -34,8 +34,11 @@ QList<iscore::Autoconnect> SimpleProcessPlugin::autoconnect_list() const
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(increment())}},
 
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioCommand", SIGNAL(decrementProcesses())},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(decrement())}}
-		   };
+             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(decrement())}},
+
+            {{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioView", SIGNAL(createTimeEventAction(QPointF))},
+             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioCommand", SLOT(on_createTimeEvent(QPointF))}}
+    };
 }
 
 //////////////////////////
