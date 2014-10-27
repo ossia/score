@@ -11,8 +11,8 @@ RemoteActionEmitter::RemoteActionEmitter(Session* session):
 void RemoteActionEmitter::sendCommand(iscore::Command* cmd)
 {
 	QByteArray data = cmd->serialize();
-	m_session->sendCommand(cmd->parentName().toStdString(),
-						   cmd->name().toStdString(),
+	m_session->sendCommand(cmd->parentName().toLatin1().constData(),
+						   cmd->name().toLatin1().constData(),
 						   data.constData(),
 						   data.length());
 

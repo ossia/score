@@ -11,11 +11,15 @@ class Session;
 
 // Comme clients individuels ne connaissent pas tout le monde,
 // envoyer au master qui se charge de répercuter ?
-class RemoteActionEmitter
+class RemoteActionEmitter : public QObject
 {
+		Q_OBJECT
 	public:
+		using QObject::QObject;
 		RemoteActionEmitter(Session* session);
 		virtual void sendCommand(iscore::Command*);
+
+	public slots:
 		virtual void undo();
 		virtual void redo();
 

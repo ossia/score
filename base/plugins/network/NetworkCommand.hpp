@@ -29,12 +29,9 @@ class NetworkCommand : public iscore::CustomCommand
 
 		void commandPush(iscore::Command*);
 
-		void sendUndo();
-		void sendRedo();
-
 	private:
 		iscore::Presenter* m_presenter{};
-		std::unique_ptr<Session> m_networkSession; // For distribution
+		std::unique_ptr<Session> m_networkSession;
 
 	private:
 		std::unique_ptr<RemoteActionEmitter> m_emitter;

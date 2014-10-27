@@ -42,19 +42,21 @@ void NetworkCommand::setupMasterSession()
 
 	auto session = static_cast<MasterSession*>(m_networkSession.get());
 	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
+	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
 	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early.
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
 {
-	ClientSessionBuilder builder(d.remote_ip, d.remote_port, "JeanMi", 7888);
+	ClientSessionBuilder builder(d.remote_ip, d.remote_port, QString("JeanMi%1").arg(generateRandom64()).toStdString(), 7888);
 	builder.join();
-	sleep(2);
+	while(!builder.isReady()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	m_networkSession = builder.getBuiltSession();
 
 	auto session = static_cast<ClientSession*>(m_networkSession.get());
 	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
+	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverClient>(this, session);
 	m_receiver->setParent(this);// Else it does not work because childEvent is sent too early.
 }
@@ -73,14 +75,4 @@ void NetworkCommand::createZeroconfSelectionDialog()
 void NetworkCommand::commandPush(Command* cmd)
 {
 	m_emitter->sendCommand(cmd);
-}
-
-void NetworkCommand::sendUndo()
-{
-	m_emitter->undo();
-}
-
-void NetworkCommand::sendRedo()
-{
-	m_emitter->redo();
 }
