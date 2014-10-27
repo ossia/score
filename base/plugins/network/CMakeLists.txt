@@ -41,6 +41,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterClient.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterMaster.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiver.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiverMaster.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiverClient.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/zeroconf/ZeroConfConnectDialog.hpp
 )
@@ -63,8 +65,10 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterClient.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterMaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiver.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiverClient.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionReceiverMaster.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/zeroconf/ZeroConfConnectDialog.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/zeroconf/ZeroConfConnectDialog.cpp
 
 )
 

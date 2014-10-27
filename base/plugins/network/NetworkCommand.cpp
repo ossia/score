@@ -7,6 +7,9 @@
 #include "remote/RemoteActionEmitterMaster.hpp"
 #include "remote/RemoteActionEmitterClient.hpp"
 
+#include "remote/RemoteActionReceiverMaster.hpp"
+#include "remote/RemoteActionReceiverClient.hpp"
+
 #include <QAction>
 using namespace iscore;
 NetworkCommand::NetworkCommand():
@@ -37,7 +40,6 @@ void NetworkCommand::setupMasterSession()
 {
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
 	m_emitter = std::make_unique<RemoteActionEmitterMaster>(static_cast<MasterSession*>(m_networkSession.get()));
-
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
@@ -48,18 +50,18 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 	sleep(2);
 	m_networkSession = builder.getBuiltSession();
 
-	m_emitter = std::make_unique<RemoteActionEmitterClient>(static_cast<ClientSession*>(m_networkSession.get()));
+	auto session = static_cast<ClientSession*>(m_networkSession.get());
+	m_emitter  = std::make_unique<RemoteActionEmitterClient>(session);
+	m_receiver = std::make_unique<RemoteActionReceiverClient>(session);
 }
 
-
-//#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
 #include "zeroconf/ZeroConfConnectDialog.hpp"
 void NetworkCommand::createZeroconfSelectionDialog()
 {
 	auto diag = new ZeroconfConnectDialog();
 
-//	connect(diag,			&ZeroconfConnectDialog::connectedTo,
-//			m_presenter,	&Presenter::setupClientSession);
+	connect(diag,	&ZeroconfConnectDialog::connectedTo,
+			this,	&NetworkCommand::setupClientSession);
 
 	diag->exec();
 }

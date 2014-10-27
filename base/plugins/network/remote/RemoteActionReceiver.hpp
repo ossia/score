@@ -1,9 +1,7 @@
 #pragma once
-
-namespace iscore
+#include <string>
+class RemoteActionReceiver
 {
-	class RemoteActionReceiver
-	{
-
-	};
-}
+	public:
+		virtual void onReceive(std::string, std::string, const char*, int) = 0;
+};

@@ -50,7 +50,7 @@ void PluginManager::clearPlugins()
 
 void PluginManager::dispatch(QObject* plugin)
 {
-	qDebug() << plugin->objectName() << "was dispatched";
+	//qDebug() << plugin->objectName() << "was dispatched";
 	auto autoconn_plugin = qobject_cast<AutoconnectFactoryPluginInterface*>(plugin);
 	auto cmd_plugin = qobject_cast<CustomCommandFactoryPluginInterface*>(plugin);
 	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
@@ -59,7 +59,7 @@ void PluginManager::dispatch(QObject* plugin)
 
 	if(autoconn_plugin)
 	{
-		qDebug() << "The plugin has auto-connections";
+		//qDebug() << "The plugin has auto-connections";
 		// I auto-connect stuff
 		for(const auto& connection : autoconn_plugin->autoconnect_list())
 		{

@@ -2,16 +2,13 @@
 #include "RemoteActionEmitter.hpp"
 
 class MasterSession;
-namespace iscore
+class RemoteActionEmitterMaster : public RemoteActionEmitter
 {
-	class RemoteActionEmitterMaster : public RemoteActionEmitter
-	{
-		public:
-			RemoteActionEmitterMaster(MasterSession* session);
+	public:
+		RemoteActionEmitterMaster(MasterSession* session);
 
-			virtual void sendCommand(Command*) override;
+		virtual void sendCommand(iscore::Command*) override;
 
-		private:
-			MasterSession* m_session;
-	};
-}
+	private:
+		MasterSession* m_session;
+};

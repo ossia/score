@@ -36,6 +36,8 @@ Application::Application(int& argc, char** argv):
 	loadPerInstancePluginData();
 	doConnections();
 
+	m_presenter->newDocument();
+
 	// View
 	m_view->show();
 }
@@ -66,6 +68,8 @@ void Application::doConnections()
 	{
 		auto potential_sources = a.getMatchingChildrenForSource(this);
 		auto potential_targets = a.getMatchingChildrenForTarget(this);
+		potential_sources.append(a.getMatchingChildrenForSource(view()));
+		potential_targets.append(a.getMatchingChildrenForTarget(view()));
 
 		for(auto& s_elt : potential_sources)
 		{

@@ -6,7 +6,7 @@
 HelloWorldProcess::HelloWorldProcess():
 	iscore::Process()
 {
-	qDebug("Successfully instantiated HelloWorldProcess");
+	//qDebug("Successfully instantiated HelloWorldProcess");
 }
 
 QString HelloWorldProcess::name() const

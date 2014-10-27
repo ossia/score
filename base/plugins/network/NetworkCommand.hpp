@@ -37,6 +37,6 @@ class NetworkCommand : public iscore::CustomCommand
 		std::unique_ptr<Session> m_networkSession; // For distribution
 
 	private:
-		std::unique_ptr<iscore::RemoteActionEmitter> m_emitter;
-		std::unique_ptr<iscore::RemoteActionReceiver> m_receiver;
+		std::unique_ptr<RemoteActionEmitter> m_emitter;
+		std::unique_ptr<RemoteActionReceiver> m_receiver;
 };

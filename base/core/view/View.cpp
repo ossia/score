@@ -12,7 +12,6 @@ using namespace iscore;
 View::View(QObject* parent):
 	QMainWindow{}
 {
-
 }
 
 void View::addPanel(PanelView* v)

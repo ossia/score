@@ -46,16 +46,21 @@ void HelloWorldCommand::on_actionTrigger()
 	{
 		public:
 			HelloWorldIncrementCommandImpl():
-				Command{QString("HelloWorldIncrementCommandImpl"), QString("Increment process")},
-				m_parentName{"HelloWorldCommand"}
+				Command{QString("HelloWorldCommand"),
+						QString("HelloWorldIncrementCommandImpl"),
+						QString("Increment process")}
 			{
 			}
 
 			virtual QByteArray serialize() override
 			{
 				auto arr = Command::serialize();
-				QDataStream s(&arr, QIODevice::Append);
-				s << m_parentName.toLatin1().constData();
+				{
+					QDataStream s(&arr, QIODevice::Append);
+					s.setVersion(QDataStream::Qt_5_3);
+
+					s << 42;
+				}
 
 				return arr;
 			}
@@ -66,22 +71,20 @@ void HelloWorldCommand::on_actionTrigger()
 				cmd_deserialize(&buf);
 
 				QDataStream stream(&buf);
-				char* string;
-				stream >> string;
-				m_parentName = string;
-				delete[] string;
+				int test;
+				stream >> test;
 			}
 
 			virtual void undo() override
 			{
-				auto target = qApp->findChild<HelloWorldCommand*>(m_parentName);
+				auto target = qApp->findChild<HelloWorldCommand*>(parentName());
 				if(target)
 					target->decrementProcesses();
 			}
 
 			virtual void redo() override
 			{
-				auto target = qApp->findChild<HelloWorldCommand*>(m_parentName);
+				auto target = qApp->findChild<HelloWorldCommand*>(parentName());
 				if(target)
 					target->incrementProcesses();
 			}

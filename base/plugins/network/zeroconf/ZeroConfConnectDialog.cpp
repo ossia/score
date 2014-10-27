@@ -97,8 +97,6 @@ void ZeroconfConnectDialog::readConnectionData()
 	QHostAddress ip;
 	in >> ip >> port;
 
-
-
 	ConnectionData d{ip.toString().toStdString(), port, tcpSocket->localAddress().toString().toStdString()};
 	emit connectedTo(d);
 }
