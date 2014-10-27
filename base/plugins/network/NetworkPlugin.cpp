@@ -24,14 +24,19 @@ NetworkPlugin::NetworkPlugin():
 QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
 {
 	return {
-			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Document", SIGNAL(newDocument_start())},
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Document",		SIGNAL(newDocument_start())},
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand", SLOT(setupMasterSession())}},
 
-			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue", SIGNAL(push_start(iscore::Command*))},
+			// Emission
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",	SIGNAL(push_start(iscore::Command*))},
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand", SLOT(commandPush(iscore::Command*))}},
 
-			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand", SIGNAL(receivedCommand(iscore::Command*))},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue", SLOT(receiveCommand(iscore::Command*))}}
+			// Reception
+			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(receivedCommand(QString, QString, QByteArray))},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter",			  SLOT(instantiateUndoCommand(QString, QString, QByteArray))}},
+
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter",				SIGNAL(instantiatedCommand(iscore::Command*))},
+			 {iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver",	SLOT(applyCommand(iscore::Command*))}}
 		   };
 }
 

@@ -11,12 +11,13 @@ namespace iscore
 			Q_OBJECT
 		public:
 			CommandQueue();
-			void push(Command *cmd);
 
 		signals:
 			void push_start(iscore::Command* cmd);
 
 		public slots:
-			void receiveCommand(iscore::Command* cmd);
+			void push(iscore::Command* cmd);
+			void pushAndEmit(iscore::Command* cmd);
+
 	};
 }

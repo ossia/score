@@ -6,7 +6,68 @@
 #include <interface/customcommand/MenuInterface.hpp>
 #include <QApplication>
 
+
 using namespace iscore;
+
+// Exemple of a global command that acts on every object with goes by the name "HelloWorldCommand"
+// We MUST NOT pass pointers of ANY KIND as data because of the distribution needs.
+// If an object must be reference, it has to get an id, a name, or something from which
+// it can be referenced.
+class HelloWorldIncrementCommandImpl : public Command
+{
+	public:
+		HelloWorldIncrementCommandImpl():
+			Command{QString("HelloWorldCommand"),
+					QString("HelloWorldIncrementCommandImpl"),
+					QString("Increment process")}
+		{
+		}
+
+		virtual QByteArray serialize() override
+		{
+			auto arr = Command::serialize();
+			{
+				QDataStream s(&arr, QIODevice::Append);
+				s.setVersion(QDataStream::Qt_5_3);
+
+				s << 42;
+			}
+
+			return arr;
+		}
+
+		void deserialize(QByteArray arr) override
+		{
+			QBuffer buf(&arr, nullptr);
+			buf.open(QIODevice::ReadOnly);
+			cmd_deserialize(&buf);
+
+			QDataStream stream(&buf);
+			int test;
+			stream >> test;
+		}
+
+		virtual void undo() override
+		{
+			qDebug(Q_FUNC_INFO);
+			auto target = qApp->findChild<HelloWorldCommand*>(parentName());
+			if(target)
+				target->decrementProcesses();
+		}
+
+		virtual void redo() override
+		{
+			qDebug(Q_FUNC_INFO);
+			auto target = qApp->findChild<HelloWorldCommand*>(parentName());
+			if(target)
+				target->incrementProcesses();
+		}
+
+	private:
+		QString m_parentName;
+};
+
+
 HelloWorldCommand::HelloWorldCommand():
 	CustomCommand{},
 	m_action_HelloWorldigate{new QAction("HelloWorldigate!", this)}
@@ -34,65 +95,23 @@ void HelloWorldCommand::setPresenter(iscore::Presenter* pres)
 	m_presenter = pres;
 }
 
+Command*HelloWorldCommand::instantiateUndoCommand(QString name, QByteArray data)
+{
+	qDebug(Q_FUNC_INFO);
+	if(name == "HelloWorldIncrementCommandImpl")
+	{
+		auto cmd = new HelloWorldIncrementCommandImpl;
+		cmd->deserialize(data);
+		return cmd;
+	}
+
+	return nullptr;
+}
+
 
 
 void HelloWorldCommand::on_actionTrigger()
 {
-	// Exemple of a global command that acts on every object with goes by the name "HelloWorldCommand"
-	// We MUST NOT pass pointers of ANY KIND as data because of the distribution needs.
-	// If an object must be reference, it has to get an id, a name, or something from which
-	// it can be referenced.
-	class HelloWorldIncrementCommandImpl : public Command
-	{
-		public:
-			HelloWorldIncrementCommandImpl():
-				Command{QString("HelloWorldCommand"),
-						QString("HelloWorldIncrementCommandImpl"),
-						QString("Increment process")}
-			{
-			}
-
-			virtual QByteArray serialize() override
-			{
-				auto arr = Command::serialize();
-				{
-					QDataStream s(&arr, QIODevice::Append);
-					s.setVersion(QDataStream::Qt_5_3);
-
-					s << 42;
-				}
-
-				return arr;
-			}
-
-			void deserialize(QByteArray arr) override
-			{
-				QBuffer buf(&arr, nullptr);
-				cmd_deserialize(&buf);
-
-				QDataStream stream(&buf);
-				int test;
-				stream >> test;
-			}
-
-			virtual void undo() override
-			{
-				auto target = qApp->findChild<HelloWorldCommand*>(parentName());
-				if(target)
-					target->decrementProcesses();
-			}
-
-			virtual void redo() override
-			{
-				auto target = qApp->findChild<HelloWorldCommand*>(parentName());
-				if(target)
-					target->incrementProcesses();
-			}
-
-		private:
-			QString m_parentName;
-	};
-
 	auto cmd = new HelloWorldIncrementCommandImpl();
 	emit submitCommand(cmd);
 }

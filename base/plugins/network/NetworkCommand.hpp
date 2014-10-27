@@ -21,9 +21,6 @@ class NetworkCommand : public iscore::CustomCommand
 		virtual void populateToolbars() override;
 		virtual void setPresenter(iscore::Presenter*) override;
 
-	signals:
-		void receivedCommand(iscore::Command*);
-
 	public slots:
 		void setupMasterSession();
 		void setupClientSession(ConnectionData d);

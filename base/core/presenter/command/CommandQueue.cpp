@@ -10,11 +10,11 @@ CommandQueue::CommandQueue()
 
 void CommandQueue::push(Command* cmd)
 {
-	emit push_start(cmd);
 	QUndoStack::push(cmd);
 }
 
-void CommandQueue::receiveCommand(Command* cmd)
+void CommandQueue::pushAndEmit(Command* cmd)
 {
+	emit push_start(cmd);
 	QUndoStack::push(cmd);
 }

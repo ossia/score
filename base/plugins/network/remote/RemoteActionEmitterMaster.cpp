@@ -17,5 +17,4 @@ void RemoteActionEmitterMaster::sendCommand(iscore::Command* cmd)
 						   data.constData(),
 						   data.length());
 
-	qDebug() << "Master. Sending : " << cmd->parentName() << cmd->name();
 }

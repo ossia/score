@@ -25,9 +25,15 @@ namespace iscore
 			void setupCommand(CustomCommand*);
 			void addPanel(Panel*);
 
+		signals:
+			void instantiatedCommand(iscore::Command*);
+
 		public slots:
 			void newDocument();
 			void applyCommand(Command*);
+			void instantiateUndoCommand(QString parent_name,
+										QString name,
+										QByteArray data);
 
 		private:
 			void setupMenus();

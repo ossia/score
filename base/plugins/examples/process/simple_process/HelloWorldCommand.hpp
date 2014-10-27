@@ -11,6 +11,8 @@ class HelloWorldCommand : public iscore::CustomCommand
 		virtual void populateToolbars() override;
 		virtual void setPresenter(iscore::Presenter*) override;
 
+		virtual iscore::Command* instantiateUndoCommand(QString name, QByteArray data) override;
+
 	signals:
 		void incrementProcesses();
 		void decrementProcesses();

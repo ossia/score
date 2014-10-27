@@ -44,7 +44,6 @@ ZeroconfConnectDialog::ZeroconfConnectDialog(QWidget *parent)
 
 void ZeroconfConnectDialog::connectTo()
 {
-	qDebug(Q_FUNC_INFO);
 	blockSize = 0;
 	tcpSocket->abort();
 
@@ -70,7 +69,6 @@ void ZeroconfConnectDialog::connectTo()
 
 void ZeroconfConnectDialog::connectToServer(const QHostInfo &hostInfo, int port)
 {
-	qDebug(Q_FUNC_INFO);
 	const QList<QHostAddress> &addresses = hostInfo.addresses();
 	if (!addresses.isEmpty())
 		tcpSocket->connectToHost(addresses.first(), port);
@@ -78,7 +76,6 @@ void ZeroconfConnectDialog::connectToServer(const QHostInfo &hostInfo, int port)
 
 void ZeroconfConnectDialog::readConnectionData()
 {
-	qDebug(Q_FUNC_INFO);
 	QDataStream in(tcpSocket);
 	in.setVersion(QDataStream::Qt_5_2);
 
@@ -128,7 +125,6 @@ void ZeroconfConnectDialog::displayError(QAbstractSocket::SocketError socketErro
 
 void ZeroconfConnectDialog::updateRecords(const QList<BonjourRecord> &list)
 {
-	qDebug(Q_FUNC_INFO);
 	treeWidget->clear();
 	foreach (BonjourRecord record, list)
 	{

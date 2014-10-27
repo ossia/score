@@ -25,13 +25,13 @@ namespace iscore
 			Presenter* presenter() { return m_presenter; }
 			Settings* settings() { return m_settings.get(); }
 
-		protected:
-			virtual void childEvent(QChildEvent*) override;
+			void doConnections();
+
+		public slots:
+			void addAutoconnection(Autoconnect);
 
 		private:
-			void loadPerInstancePluginData();
-			void loadGlobalPluginData();
-			void doConnections();
+			void loadPluginData();
 
 			// Base stuff.
 			std::unique_ptr<QApplication> m_app;
@@ -43,6 +43,6 @@ namespace iscore
 			Presenter* m_presenter{};
 
 			// Data
-			PluginManager m_pluginManager;
+			PluginManager m_pluginManager{this};
 	};
 }

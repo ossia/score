@@ -41,7 +41,7 @@ namespace iscore
 					}
 					case ObjectRepresentationType::Inheritance:
 					{
-						for(auto& elt : obj->children())
+						for(auto& elt : obj->findChildren<QObject*>())
 						{
 							if(elt->inherits(obj_repr.name))
 							{

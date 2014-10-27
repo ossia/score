@@ -23,6 +23,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	m_menubar{view->menuBar(), this},
 	m_document{new Document{this, view}}
 {
+	setObjectName("Presenter");
 	m_view->setPresenter(this);
 	setupMenus();
 
@@ -41,7 +42,7 @@ void Presenter::setupCommand(CustomCommand* cmd)
 	cmd->populateMenus(&m_menubar);
 	cmd->populateToolbars();
 
-//	m_customCommands.push_back(cmd);
+	m_customCommands.push_back(cmd);
 }
 
 void Presenter::addPanel(Panel* p)
@@ -78,7 +79,18 @@ void Presenter::newDocument()
 
 void Presenter::applyCommand(Command* cmd)
 {
-	m_document->presenter()->commandQueue()->push(cmd);
+	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
+}
+
+void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
+{
+	for(auto& ccmd : m_customCommands)
+	{
+		if(ccmd->objectName() == parent_name)
+		{
+			emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
+		}
+	}
 }
 
 void Presenter::setupMenus()
@@ -99,10 +111,12 @@ void Presenter::setupMenus()
 										   settings_act);
 
 	// Undo / redo
+	auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-										   m_document->presenter()->commandQueue()->createUndoAction(this));
+										   undoAct);
+	auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-										   m_document->presenter()->commandQueue()->createRedoAction(this));
+										   redoAct);
 }
 
 

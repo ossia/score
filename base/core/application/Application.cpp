@@ -3,7 +3,7 @@
 #include <core/model/Model.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-
+#include <core/application/ChildEventFilter.hpp>
 using namespace iscore;
 
 Application::Application(int& argc, char** argv):
@@ -13,6 +13,8 @@ Application::Application(int& argc, char** argv):
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
 	this->setParent(m_app.get());
+	this->setObjectName("Application");
+	m_app->installEventFilter(new ChildEventFilter(this));
 
 	QCoreApplication::setOrganizationName("OSSIA");
 	QCoreApplication::setOrganizationDomain("i-score.com");
@@ -21,20 +23,16 @@ Application::Application(int& argc, char** argv):
 	// Settings
 	m_settings = std::make_unique<Settings>(this);
 
-
-
 	// MVP
 	m_model = new Model{this}; // ? Utile ? Ce sont les settings, non ?
-	if (!m_view)
-		m_view = new View(qobject_cast<QObject*>(this));
+
+	m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
 	m_view->setPresenter(m_presenter);
 
 	// Plugins
 	m_pluginManager.reloadPlugins();
-	loadGlobalPluginData();
-	loadPerInstancePluginData();
-	doConnections();
+	loadPluginData();
 
 	m_presenter->newDocument();
 
@@ -47,8 +45,11 @@ Application::~Application()
 	this->setParent(nullptr);
 }
 
-void Application::loadPerInstancePluginData()
+void Application::loadPluginData()
 {
+	for(auto& set : m_pluginManager.m_settingsList)
+		m_settings->setupSettingsPlugin(set);
+
 	for(auto& cmd : m_pluginManager.m_commandList)
 		m_presenter->setupCommand(cmd);
 
@@ -56,14 +57,9 @@ void Application::loadPerInstancePluginData()
 		m_presenter->addPanel(pnl);
 }
 
-void Application::loadGlobalPluginData()
-{
-	for(auto& set : m_pluginManager.m_settingsList)
-		m_settings->setupSettingsPlugin(set);
-}
-
 void Application::doConnections()
 {
+	// Trouver toutes les connections qui peuvent concerner ce "child"
 	for(auto& a : m_pluginManager.m_autoconnections)
 	{
 		auto potential_sources = a.getMatchingChildrenForSource(this);
@@ -75,21 +71,19 @@ void Application::doConnections()
 		{
 			for(auto& t_elt : potential_targets)
 			{
-				t_elt->connect(s_elt,
+				s_elt->disconnect(a.source.method, t_elt);
+				bool res = t_elt->connect(s_elt,
 							   a.source.method,
 							   a.target.method,
 							   Qt::UniqueConnection);
-
 			}
 		}
 	}
 }
 
-void Application::childEvent(QChildEvent* ev)
+void Application::addAutoconnection(Autoconnect a)
 {
-	if(ev->type() == QEvent::ChildAdded)
-	{
-		doConnections();
-	}
+	m_pluginManager.m_autoconnections.push_back(a);
+	doConnections();
 }
 

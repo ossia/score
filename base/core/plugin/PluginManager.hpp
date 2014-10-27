@@ -45,7 +45,6 @@ namespace iscore
 			void clearPlugins();
 			QMap<QString, QObject*> m_availablePlugins;
 
-
 			AutoconnectList m_autoconnections; // TODO try unordered_set
 			ProcessList  m_processList;
 			CommandList  m_commandList;

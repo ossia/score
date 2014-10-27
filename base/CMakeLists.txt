@@ -45,6 +45,7 @@ set(HEADER_FILES
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/SessionType.hpp
 

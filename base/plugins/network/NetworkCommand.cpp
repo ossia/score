@@ -39,12 +39,14 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 void NetworkCommand::setupMasterSession()
 {
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
-	m_emitter = std::make_unique<RemoteActionEmitterMaster>(static_cast<MasterSession*>(m_networkSession.get()));
+
+	auto session = static_cast<MasterSession*>(m_networkSession.get());
+	m_emitter = std::make_unique<RemoteActionEmitterMaster>(session);
+	//m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
 {
-	qDebug(Q_FUNC_INFO);
 	ClientSessionBuilder builder(d.remote_ip, d.remote_port, "JeanMi", 7888);
 	builder.join();
 	sleep(2);
@@ -52,7 +54,8 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 
 	auto session = static_cast<ClientSession*>(m_networkSession.get());
 	m_emitter  = std::make_unique<RemoteActionEmitterClient>(session);
-	m_receiver = std::make_unique<RemoteActionReceiverClient>(session);
+	m_receiver = std::make_unique<RemoteActionReceiverClient>(this, session);
+	m_receiver->setParent(this);
 }
 
 #include "zeroconf/ZeroConfConnectDialog.hpp"
