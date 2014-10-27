@@ -31,9 +31,6 @@ namespace iscore
 
 			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,  const QObject* obj) const
 			{
-				qDebug() << "Is QGraphicsObject?" << dynamic_cast<const QGraphicsObject*>(obj);
-				qDebug() << obj->metaObject()->className();
-
 				QList<QObject*> children;
 				switch(obj_repr.type)
 				{

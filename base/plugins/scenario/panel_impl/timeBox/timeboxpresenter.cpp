@@ -198,17 +198,6 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
 	case ScenarioPluginType:
 	  { /// We have to put braces because we declare a new object in a switch statement
 		ScenarioView *scenarioView = new ScenarioView(pStorey);
-		qDebug();
-		qDebug() << pStorey;
-		qDebug() << scenarioView->parentItem();
-		qDebug() << scenarioView->parentObject();
-		qDebug() << scenarioView->parentWidget();
-
-		qDebug();
-		qDebug() << scenarioView;
-		qDebug() << scenarioView->parentItem()->childItems();
-		qDebug() << scenarioView->parentObject()->children();
-		qDebug() << scenarioView->parentObject()->childItems();
 
 		/// We connect the plugin to proxies signals, to route them to the class Timebox
 		connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
