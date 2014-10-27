@@ -59,7 +59,7 @@ public:
 
 signals:
   void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
-  void createTimeEventAction(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
+  void viewAskForTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
 
 public:
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

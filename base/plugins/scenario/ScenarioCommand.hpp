@@ -11,7 +11,7 @@ class ScenarioCommand : public iscore::CustomCommand
 		virtual void populateToolbars() override;
 		virtual void setPresenter(iscore::Presenter*) override;
 
-        void emitCreateTimeEvent();
+        void emitCreateTimeEvent(QPointF pos);
 
 	signals:
 		void incrementProcesses();
@@ -24,6 +24,4 @@ class ScenarioCommand : public iscore::CustomCommand
 	private:
 		QAction* m_action_Scenarioigate;
 		iscore::Presenter* m_presenter{};
-
-        QPointF _pos;
 };

@@ -39,6 +39,7 @@ class TTTimeProcess;
 #include "pluginview.hpp"
 #include "../ScenarioContainer/scenariocontainer.hpp"
 #include "../ScenarioContainer/scenarioview.hpp"
+#include "../ScenarioContainer/scenariopresenter.hpp"
 #include "graphicsview.hpp"
 #include "timebox.hpp"
 #include "statedebug.hpp"
@@ -200,10 +201,11 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
 	  { /// We have to put braces because we declare a new object in a switch statement
         ScenarioContainer *scenarioContainer = new ScenarioContainer(this, pStorey);
         ScenarioView *scenarioView = scenarioContainer->view();
+        ScenarioPresenter *scenarioPresenter = scenarioContainer->presenter();
 
-		/// We connect the plugin to proxies signals, to route them to the class Timebox
+        /// We connect the plugin to proxies signals, to route them to the class Timebox
 		connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
-		connect(scenarioView, SIGNAL(createTimeEventAction(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
+        connect(scenarioPresenter, SIGNAL(addTimeEvent(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
 
 		plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
 		break;

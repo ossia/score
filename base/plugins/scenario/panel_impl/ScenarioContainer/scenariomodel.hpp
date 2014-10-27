@@ -2,6 +2,7 @@
 #define SCENARIOMODEL_HPP
 
 #include <QObject>
+#include <QPointF>
 
 class ScenarioModel : public QObject
 {
@@ -11,9 +12,10 @@ public:
     ~ScenarioModel();
 
 signals:
+    void timeEventAddedInModel(QPointF pos);
 
 public slots:
-
+    void addTimeEvent(QPointF pos);
 };
 
 #endif // SCENARIOMODEL_HPP

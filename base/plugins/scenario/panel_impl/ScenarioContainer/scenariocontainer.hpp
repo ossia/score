@@ -16,7 +16,8 @@ public:
     ~ScenarioContainer();
 
     ScenarioView* view() const {return _pView;}
-    ScenarioModel* model() const {return _pModel;}
+    ScenarioPresenter* presenter() const {return _pPresenter;}
+
 signals:
 
 public slots:

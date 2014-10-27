@@ -15,7 +15,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioProcess.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelModel.hpp

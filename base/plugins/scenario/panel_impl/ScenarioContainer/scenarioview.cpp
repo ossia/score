@@ -123,7 +123,7 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 		  emit createTimebox(_pTemporaryBox->rect());
 		}
 	  else { // we create a TimeEvent
-		  emit createTimeEventAction(mouseEvent->pos()); //
+          emit viewAskForTimeEvent(mouseEvent->pos()); //
 		}
 	  delete _pTemporaryBox;
 	  _pTemporaryBox = nullptr;

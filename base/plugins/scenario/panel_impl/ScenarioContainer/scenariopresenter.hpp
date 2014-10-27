@@ -2,6 +2,7 @@
 #define SCENARIOPRESENTER_H
 
 #include <QObject>
+#include <QPointF>
 
 class ScenarioModel;
 class ScenarioView;
@@ -14,8 +15,11 @@ public:
     ~ScenarioPresenter();
 
 signals:
+    void addTimeEvent(QPointF pos);
 
 public slots:
+    void addTimeEventInModel(QPointF pos);
+    void addTimeEventInView(QPointF pos);
 
 private:
     ScenarioModel *_pModel = nullptr;
