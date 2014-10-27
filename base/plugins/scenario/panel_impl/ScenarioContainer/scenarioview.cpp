@@ -116,7 +116,6 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-	qDebug() << "blop event" << _pTemporaryBox ;
 
   if (_pTemporaryBox != nullptr) {
 	  //If temporaryBox is bigger enough we create a Timebox
@@ -125,7 +124,6 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 		}
 	  else { // we create a TimeEvent
 		  emit createTimeEventAction(mouseEvent->pos()); //
-		 qDebug() << "blop emit" << mouseEvent->pos();
 		}
 	  delete _pTemporaryBox;
 	  _pTemporaryBox = nullptr;
