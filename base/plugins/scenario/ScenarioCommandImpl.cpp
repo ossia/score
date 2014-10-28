@@ -1,52 +1,54 @@
 #include "ScenarioCommandImpl.hpp"
 #include "ScenarioCommand.hpp"
-
+#include <core/presenter/command/Command.hpp>
+#include <QApplication>
+using namespace iscore;
 ScenarioCommandImpl::ScenarioCommandImpl(QPointF pos):
-    Command{QString("ScenarioCommand"),
-            QString("ScenarioCommandImpl"),
-            QString("Increment process")}
+	Command{QString("ScenarioCommand"),
+			QString("ScenarioCommandImpl"),
+			QString("Increment process")}
 {
-    m_position = pos;
+	m_position = pos;
 }
 
-virtual QByteArray serialize()
+QByteArray ScenarioCommandImpl::serialize()
 {
-    auto arr = Command::serialize();
-    {
-        QDataStream s(&arr, QIODevice::Append);
-        s.setVersion(QDataStream::Qt_5_3);
+	auto arr = Command::serialize();
+	{
+		QDataStream s(&arr, QIODevice::Append);
+		s.setVersion(QDataStream::Qt_5_3);
 
-        s << 42;
-    }
+		s << 42;
+	}
 
-    return arr;
+	return arr;
 }
 
-void deserialize(QByteArray arr)
+void ScenarioCommandImpl::deserialize(QByteArray arr)
 {
-    QBuffer buf(&arr, nullptr);
-    buf.open(QIODevice::ReadOnly);
-    cmd_deserialize(&buf);
+	QBuffer buf(&arr, nullptr);
+	buf.open(QIODevice::ReadOnly);
+	cmd_deserialize(&buf);
 
-    QDataStream stream(&buf);
-    int test;
-    stream >> test;
+	QDataStream stream(&buf);
+	int test;
+	stream >> test;
 }
 
-virtual void undo()
+void ScenarioCommandImpl::undo()
 {
-    qDebug(Q_FUNC_INFO);
-    auto target = qApp->findChild<ScenarioCommand*>(parentName());
-    if(target)
-        target->decrementProcesses();
+	qDebug(Q_FUNC_INFO);
+	auto target = qApp->findChild<ScenarioCommand*>(parentName());
+	if(target)
+		target->decrementProcesses();
 }
 
-virtual void redo()
+void ScenarioCommandImpl::redo()
 {
-    qDebug(Q_FUNC_INFO);
-    auto target = qApp->findChild<ScenarioCommand*>(parentName());
-    if(target)
-        target->incrementProcesses();
-        target->emitCreateTimeEvent(m_position);
+	qDebug(Q_FUNC_INFO);
+	auto target = qApp->findChild<ScenarioCommand*>(parentName());
+	if(target)
+		target->incrementProcesses();
+		target->emitCreateTimeEvent(m_position);
 }
 
