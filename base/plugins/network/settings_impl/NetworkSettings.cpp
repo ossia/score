@@ -23,6 +23,7 @@ SettingsGroupPresenter* NetworkSettings::makePresenter(SettingsPresenter* p,
 	v->setPresenter(pres);
 
 	pres->load();
+	pres->view()->doConnections();
 
 	return pres;
 }

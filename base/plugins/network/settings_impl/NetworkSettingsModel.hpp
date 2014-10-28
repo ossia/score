@@ -7,6 +7,11 @@ namespace iscore
 {
 	class SettingsGroupPresenter;
 }
+// TODO find a better way...
+#define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
+#define SETTINGS_MASTERPORT "NetworkPlugin/MasterPort"
+#define SETTINGS_CLIENTNAME "NetworkPlugin/ClientName"
+
 class NetworkSettingsModel : public iscore::SettingsGroupModel
 {
 		Q_OBJECT

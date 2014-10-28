@@ -17,6 +17,8 @@ class NetworkSettingsView : public QWidget, public iscore::SettingsGroupView
 		void setClientName(QString text);
 
 		virtual QWidget* getWidget() override;
+		void load();
+		void doConnections();
 
 	signals:
 		void submitCommand(iscore::Command* cmd);

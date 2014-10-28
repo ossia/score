@@ -57,6 +57,8 @@ void NetworkSettingsPresenter::load()
 	updateMasterPort();
 	updateClientPort();
 	updateClientName();
+
+	view()->load();
 }
 
 // Partie modèle -> vue

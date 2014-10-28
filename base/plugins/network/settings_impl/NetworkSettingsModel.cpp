@@ -2,9 +2,6 @@
 #include <QDebug>
 #include <QSettings>
 
-#define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
-#define SETTINGS_MASTERPORT "NetworkPlugin/MasterPort"
-#define SETTINGS_CLIENTNAME "NetworkPlugin/ClientName"
 using namespace iscore;
 
 NetworkSettingsModel::NetworkSettingsModel():

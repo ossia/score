@@ -18,7 +18,16 @@ class NetworkSettingsPresenter : public iscore::SettingsGroupPresenter
 		virtual void on_accept() override;
 		virtual void on_reject() override;
 
+		virtual QString settingsName() override
+		{
+			return tr("Network");
+		}
+
+		virtual QIcon settingsIcon() override;
+
 		void load();
+		NetworkSettingsModel* model();
+		NetworkSettingsView* view();
 
 	public slots:
 		void updateMasterPort();
@@ -30,18 +39,8 @@ class NetworkSettingsPresenter : public iscore::SettingsGroupPresenter
 		void setClientNameCommand(ClientNameChangedCommand* cmd);
 
 	private:
-		NetworkSettingsModel* model();
-		NetworkSettingsView* view();
 		// S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".
 		iscore::Command* m_masterportCommand{nullptr};
 		iscore::Command* m_clientportCommand{nullptr};
 		iscore::Command* m_clientnameCommand{nullptr};
-
-		// SettingsGroupPresenter interface
-	public:
-		virtual QString settingsName() override
-		{
-			return tr("Network");
-		}
-		virtual QIcon settingsIcon() override;
 };

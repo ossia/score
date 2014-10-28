@@ -10,6 +10,8 @@
 #include "remote/RemoteActionReceiverMaster.hpp"
 #include "remote/RemoteActionReceiverClient.hpp"
 
+#include "settings_impl/NetworkSettingsModel.hpp"
+
 #include <QAction>
 using namespace iscore;
 NetworkCommand::NetworkCommand():
@@ -38,18 +40,27 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 
 void NetworkCommand::setupMasterSession()
 {
-	m_networkSession = std::make_unique<MasterSession>("Session Maitre", 5678);
+	QSettings s;
+	m_networkSession = std::make_unique<MasterSession>("Session Maitre", s.value(SETTINGS_MASTERPORT).toInt());
 
 	auto session = static_cast<MasterSession*>(m_networkSession.get());
 	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
 	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
-	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early.
+	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early (only QObject is created)
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
 {
-	ClientSessionBuilder builder(d.remote_ip, d.remote_port, QString("JeanMi%1").arg(generateRandom64()).toStdString(), 7888);
+	QSettings s;
+	qDebug() << "BLOPBLOP" << s.value(SETTINGS_CLIENTNAME).toString();
+	ClientSessionBuilder builder(d.remote_ip,
+								 d.remote_port,
+								 QString("%1%2")
+									.arg(s.value(SETTINGS_CLIENTNAME).toString())
+									.arg(generateRandom64())
+									.toStdString(),
+								 s.value(SETTINGS_CLIENTPORT).toInt());
 	builder.join();
 	while(!builder.isReady()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	m_networkSession = builder.getBuiltSession();

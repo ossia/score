@@ -29,15 +29,6 @@ NetworkSettingsView::NetworkSettingsView(QWidget* parent):
 
 	layout->addWidget(new QLabel{"Client Name"}, 2, 0);
 	layout->addWidget(m_clientName, 2, 1);
-
-	connect(m_clientName,	&QLineEdit::textChanged,
-			this,			&NetworkSettingsView::on_clientNameChanged);
-
-	// http://stackoverflow.com/questions/16794695/qt5-overloaded-signals-and-slots
-	connect(m_masterPort,	SIGNAL(valueChanged(int)),
-			this,			SLOT(on_masterPortChanged(int)));
-	connect(m_clientPort,	SIGNAL(valueChanged(int)),
-			this,			SLOT(on_clientPortChanged(int)));
 }
 
 void NetworkSettingsView::setClientName(QString text)
@@ -47,6 +38,7 @@ void NetworkSettingsView::setClientName(QString text)
 }
 void NetworkSettingsView::setMasterPort(int val)
 {
+	qDebug() << Q_FUNC_INFO << val;
 	if(val != m_masterPort->value())
 		m_masterPort->setValue(val);
 }
@@ -61,9 +53,29 @@ QWidget* NetworkSettingsView::getWidget()
 	return static_cast<QWidget*>(this);
 }
 
-void NetworkSettingsView::on_masterPortChanged(int)
+void NetworkSettingsView::load()
+{
+	m_previousMasterPort = m_masterPort->value();
+	m_previousClientPort = m_clientPort->value();
+	m_previousClientName = m_clientName->text();
+}
+
+void NetworkSettingsView::doConnections()
+{
+	connect(m_clientName,	&QLineEdit::textChanged,
+			this,			&NetworkSettingsView::on_clientNameChanged);
+
+	// http://stackoverflow.com/questions/16794695/qt5-overloaded-signals-and-slots
+	connect(m_masterPort,	SIGNAL(valueChanged(int)),
+			this,			SLOT(on_masterPortChanged(int)));
+	connect(m_clientPort,	SIGNAL(valueChanged(int)),
+			this,			SLOT(on_clientPortChanged(int)));
+}
+
+void NetworkSettingsView::on_masterPortChanged(int x)
 {
 	auto newVal = m_masterPort->value();
+	qDebug() << Q_FUNC_INFO << x << newVal << m_previousMasterPort;
 	if(newVal != m_previousMasterPort)
 	{
 		presenter()->setMasterPortCommand(new MasterPortChangedCommand{m_previousMasterPort, newVal});
