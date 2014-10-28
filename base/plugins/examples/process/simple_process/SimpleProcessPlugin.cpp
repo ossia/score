@@ -3,7 +3,6 @@
 #include <HelloWorldCommand.hpp>
 #include <HelloWorldPanel.hpp>
 #include <HelloWorldCentralPanel.hpp>
-#include <settings_impl/HelloWorldSettings.hpp>
 
 #define PROCESS_NAME "HelloWorld Process"
 #define CMD_NAME "HelloWorldigate"
