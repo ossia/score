@@ -11,7 +11,7 @@ class ScenarioPresenter : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScenarioPresenter(ScenarioModel *model, ScenarioView *view, QObject *parent = 0);
+    explicit ScenarioPresenter(ScenarioModel *model, ScenarioView *view, QObject *parent);
     ~ScenarioPresenter();
 
 signals:

@@ -70,6 +70,7 @@ void MainWindow::createGraphics()
 
   _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
   Q_CHECK_PTR(_pMainTimebox);
+  _pMainTimebox->setParent(this);
   connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
   setcurrentTimebox(_pMainTimebox);
 
