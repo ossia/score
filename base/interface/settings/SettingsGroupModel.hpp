@@ -10,5 +10,6 @@ namespace iscore
 			virtual ~SettingsGroupModel() = default;
 
 			virtual void setPresenter(SettingsGroupPresenter* presenter) = 0;
+			virtual void setFirstTimeSettings() = 0;
 	};
 }

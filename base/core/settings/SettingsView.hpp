@@ -23,10 +23,9 @@ namespace iscore
 		private:
 			std::set<SettingsGroupView*> m_pluginViews;
 
-			QVBoxLayout* m_vertLayout{new QVBoxLayout{this}};
-			QHBoxLayout* m_hboxLayout{new QHBoxLayout{this}};
+			QVBoxLayout* m_vertLayout{new QVBoxLayout{}};
+			QHBoxLayout* m_hboxLayout{new QHBoxLayout{}};
 			QListWidget* m_settingsList{new QListWidget{this}};
-			QVBoxLayout* m_subVertLayout{new QVBoxLayout{this}};
 			QStackedWidget* m_stackedWidget{new QStackedWidget{this}};
 
 			QDialogButtonBox* m_buttons{new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel,

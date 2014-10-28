@@ -10,6 +10,7 @@ HelloWorldSettingsPresenter::HelloWorldSettingsPresenter(SettingsPresenter* pare
 														 SettingsGroupView* view):
 	SettingsGroupPresenter{parent, model, view}
 {
+	this->setObjectName("Hello World Settings");
 	auto hw_view = static_cast<HelloWorldSettingsView*>(view);
 	auto hw_model = static_cast<HelloWorldSettingsModel*>(model);
 	connect(hw_view, SIGNAL(submitCommand(iscore::Command*)),

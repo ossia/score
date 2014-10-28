@@ -1,9 +1,9 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settings/SettingsGroupPresenter.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QObject>
 
-class ScenarioSettingsPresenter : public QObject, public iscore::SettingsGroupPresenter
+class ScenarioSettingsPresenter : public iscore::SettingsGroupPresenter
 {
 		Q_OBJECT
 	public:
@@ -23,4 +23,12 @@ class ScenarioSettingsPresenter : public QObject, public iscore::SettingsGroupPr
 	private:
 		// S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".
 		iscore::Command* m_currentCommand{nullptr};
+
+		// SettingsGroupPresenter interface
+	public:
+		virtual QString settingsName()
+		{
+			return "Scenario plugin";
+		}
+		virtual QIcon settingsIcon();
 };

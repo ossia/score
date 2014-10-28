@@ -2,6 +2,8 @@
 #include <core/settings/SettingsView.hpp>
 #include <core/settings/SettingsModel.hpp>
 
+#include <interface/settings/SettingsGroupPresenter.hpp>
+
 using namespace iscore;
 
 SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent):

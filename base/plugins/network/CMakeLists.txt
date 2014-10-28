@@ -37,6 +37,12 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsPresenter.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/ClientPortChangedCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/ClientNameChangedCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/MasterPortChangedCommand.hpp
+
+#	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/TextChangedCommand.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitter.hpp
 #	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterClient.hpp
 #	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterMaster.hpp
@@ -60,6 +66,7 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsPresenter.cpp
+#	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/TextChangedCommand.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitter.cpp
 #	${CMAKE_CURRENT_SOURCE_DIR}/remote/RemoteActionEmitterClient.cpp

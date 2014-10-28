@@ -23,4 +23,10 @@ class HelloWorldSettingsModel : public iscore::SettingsGroupModel
 
 	private:
 		QString helloText;
+
+		// SettingsGroupModel interface
+	public:
+		virtual void setFirstTimeSettings()
+		{
+		}
 };

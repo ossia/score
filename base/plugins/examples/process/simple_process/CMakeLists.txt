@@ -23,12 +23,6 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelPresenter.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.hpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettings.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsPresenter.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/TextChangedCommand.hpp
 )
 
 set(SOURCE_FILES
@@ -46,12 +40,6 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/HelloWorldCentralPanelPresenter.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/HelloWorldProcessModel.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettings.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsModel.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/HelloWorldSettingsPresenter.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/TextChangedCommand.cpp
 )
 
 add_library(simple_process SHARED ${HEADER_FILES} ${SOURCE_FILES})

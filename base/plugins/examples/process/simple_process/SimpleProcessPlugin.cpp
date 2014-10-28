@@ -15,8 +15,7 @@ SimpleProcessPlugin::SimpleProcessPlugin():
 	iscore::AutoconnectFactoryPluginInterface{},
 	iscore::CustomCommandFactoryPluginInterface{},
 	iscore::ProcessFactoryPluginInterface{},
-	iscore::PanelFactoryPluginInterface{},
-	iscore::SettingsFactoryPluginInterface{}
+	iscore::PanelFactoryPluginInterface{}
 {
 	setObjectName("SimpleProcessPlugin");
 }
@@ -27,8 +26,8 @@ SimpleProcessPlugin::SimpleProcessPlugin():
 QList<iscore::Autoconnect> SimpleProcessPlugin::autoconnect_list() const
 {
 	return {
-			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}},
+//			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldSettingsModel", SIGNAL(textChanged())},
+//			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(setText())}},
 
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldCommand", SIGNAL(incrementProcesses())},
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "HelloWorldProcessModel", SLOT(increment())}},
@@ -52,12 +51,6 @@ iscore::Process* SimpleProcessPlugin::process_make(QString name)
 	}
 
 	return nullptr;
-}
-
-//////////////////////////
-iscore::SettingsGroup* SimpleProcessPlugin::settings_make()
-{
-	return new HelloWorldSettings;
 }
 
 //////////////////////////

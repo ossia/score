@@ -3,6 +3,7 @@
 #include <QLineEdit>
 #include <interface/settings/SettingsGroup.hpp>
 #include <core/presenter/command/Command.hpp>
+#include <QSpinBox>
 
 class NetworkSettingsPresenter;
 class NetworkSettingsView : public QWidget, public iscore::SettingsGroupView
@@ -10,23 +11,29 @@ class NetworkSettingsView : public QWidget, public iscore::SettingsGroupView
 		Q_OBJECT
 	public:
 		NetworkSettingsView(QWidget* parent);
-		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
 
-		void setText(QString text);
+		void setMasterPort(int val);
+		void setClientPort(int val);
+		void setClientName(QString text);
+
 		virtual QWidget* getWidget() override;
 
 	signals:
 		void submitCommand(iscore::Command* cmd);
 
 	public slots:
-		void on_textChanged();
+		void on_masterPortChanged(int);
+		void on_clientPortChanged(int);
+		void on_clientNameChanged();
 
 	private:
-		NetworkSettingsPresenter* m_presenter;
-		QLineEdit* m_lineEdit; // Ownership goes to the widget parent class.
-		QString m_previousText;
+		NetworkSettingsPresenter* presenter();
 
-		// SettingsGroupView interface
-	public:
+		QSpinBox* m_masterPort{new QSpinBox(this)};
+		QSpinBox* m_clientPort{new QSpinBox(this)};
+		QLineEdit* m_clientName{new QLineEdit(this)};
 
+		int m_previousMasterPort{};
+		int m_previousClientPort{};
+		QString m_previousClientName{};
 };

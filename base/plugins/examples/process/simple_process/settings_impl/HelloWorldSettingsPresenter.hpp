@@ -1,9 +1,9 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settings/SettingsGroupPresenter.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QObject>
 
-class HelloWorldSettingsPresenter : public QObject, public iscore::SettingsGroupPresenter
+class HelloWorldSettingsPresenter : public iscore::SettingsGroupPresenter
 {
 		Q_OBJECT
 	public:

@@ -13,6 +13,8 @@ Settings::Settings(QObject* parent):
 											  m_settingsView,
 											  this)}
 {
+	// TODO Check if it is the first startup. If it is the case, set default settings.
+	// Each plugin has to do this because we might add new plugins later.
 }
 
 void Settings::setupSettingsPlugin(SettingsGroup* plugin)

@@ -3,49 +3,122 @@
 #include "NetworkSettingsView.hpp"
 
 #include <core/settings/SettingsPresenter.hpp>
+
+#include "commands/ClientPortChangedCommand.hpp"
+#include "commands/MasterPortChangedCommand.hpp"
+#include "commands/ClientNameChangedCommand.hpp"
+
 using namespace iscore;
 
 NetworkSettingsPresenter::NetworkSettingsPresenter(SettingsPresenter* parent,
-														 SettingsGroupModel* model,
-														 SettingsGroupView* view):
+												   SettingsGroupModel* model,
+												   SettingsGroupView* view):
 	SettingsGroupPresenter{parent, model, view}
 {
-	auto hw_view = static_cast<NetworkSettingsView*>(view);
-	auto hw_model = static_cast<NetworkSettingsModel*>(model);
-	connect(hw_view, SIGNAL(submitCommand(iscore::Command*)),
-			this, SLOT(on_submitCommand(iscore::Command*)));
-
-	connect(hw_model, SIGNAL(textChanged()),
-			this, SLOT(updateViewText()));
-}
-
-void NetworkSettingsPresenter::setText(QString text)
-{
-	auto model = dynamic_cast<NetworkSettingsModel*>(m_model);
-	model->setText(text); // Ou setter.
+	auto net_model = static_cast<NetworkSettingsModel*>(model);
+	connect(net_model, SIGNAL(masterPortChanged()),
+			this,	   SLOT(updateMasterPort()));
+	connect(net_model, SIGNAL(clientPortChanged()),
+			this,	   SLOT(updateClientPort()));
+	connect(net_model, SIGNAL(clientNameChanged()),
+			this,	   SLOT(updateClientName()));
 }
 
 void NetworkSettingsPresenter::on_accept()
 {
-	if(m_currentCommand)
-		m_currentCommand->redo();
+	if(m_masterportCommand)
+		m_masterportCommand->redo();
+	if(m_clientportCommand)
+		m_clientportCommand->redo();
+	if(m_clientnameCommand)
+		m_clientnameCommand->redo();
+
+	delete m_masterportCommand;	m_masterportCommand = nullptr;
+	delete m_clientportCommand;	m_clientportCommand = nullptr;
+	delete m_clientnameCommand;	m_clientnameCommand = nullptr;
 }
 
 void NetworkSettingsPresenter::on_reject()
 {
-	delete m_currentCommand;
-	m_currentCommand = nullptr;
+	if(m_masterportCommand)
+		m_masterportCommand->undo();
+	if(m_clientportCommand)
+		m_clientportCommand->undo();
+	if(m_clientnameCommand)
+		m_clientnameCommand->undo();
+
+	delete m_masterportCommand;	m_masterportCommand = nullptr;
+	delete m_clientportCommand;	m_clientportCommand = nullptr;
+	delete m_clientnameCommand;	m_clientnameCommand = nullptr;
 }
 
-void NetworkSettingsPresenter::updateViewText()
+void NetworkSettingsPresenter::load()
 {
-	auto model = dynamic_cast<NetworkSettingsModel*>(m_model);
-	auto view = dynamic_cast<NetworkSettingsView*>(m_view);
-	view->setText(model->getText());
+	updateMasterPort();
+	updateClientPort();
+	updateClientName();
 }
 
-void NetworkSettingsPresenter::on_submitCommand(iscore::Command* cmd)
+// Partie modèle -> vue
+void NetworkSettingsPresenter::updateMasterPort()
 {
-	delete m_currentCommand;
-	m_currentCommand = cmd;
+	view()->setMasterPort(model()->getMasterPort());
+}
+void NetworkSettingsPresenter::updateClientPort()
+{
+	view()->setClientPort(model()->getClientPort());
+}
+void NetworkSettingsPresenter::updateClientName()
+{
+	view()->setClientName(model()->getClientName());
+}
+
+// Partie vue -> commande
+void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cmd)
+{
+	if(!m_masterportCommand)
+		m_masterportCommand = cmd;
+	else
+	{
+		m_masterportCommand->mergeWith(cmd);
+		delete cmd;
+	}
+}
+void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cmd)
+{
+	if(!m_clientportCommand)
+		m_clientportCommand = cmd;
+	else
+	{
+		m_clientportCommand->mergeWith(cmd);
+		delete cmd;
+	}
+}
+void NetworkSettingsPresenter::setClientNameCommand(ClientNameChangedCommand* cmd)
+{
+	if(!m_clientnameCommand)
+		m_clientnameCommand = cmd;
+	else
+	{
+		m_clientnameCommand->mergeWith(cmd);
+		delete cmd;
+	}
+}
+
+
+NetworkSettingsModel*NetworkSettingsPresenter::model()
+{
+	return static_cast<NetworkSettingsModel*>(m_model);
+}
+
+NetworkSettingsView*NetworkSettingsPresenter::view()
+{
+	return static_cast<NetworkSettingsView*>(m_view);
+}
+
+#include <QApplication>
+#include <QStyle>
+QIcon NetworkSettingsPresenter::settingsIcon()
+{
+	return QApplication::style()->standardIcon(QStyle::SP_DriveNetIcon);
 }

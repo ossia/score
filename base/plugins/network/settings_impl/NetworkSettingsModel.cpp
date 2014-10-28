@@ -1,25 +1,73 @@
 #include "NetworkSettingsModel.hpp"
 #include <QDebug>
+#include <QSettings>
+
+#define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
+#define SETTINGS_MASTERPORT "NetworkPlugin/MasterPort"
+#define SETTINGS_CLIENTNAME "NetworkPlugin/ClientName"
 using namespace iscore;
 
 NetworkSettingsModel::NetworkSettingsModel():
 	iscore::SettingsGroupModel{}
 {
 	this->setObjectName("NetworkSettingsModel");
+
+	QSettings s;
+	if(!s.contains(SETTINGS_CLIENTPORT))
+		setFirstTimeSettings();
+
+	setClientPort(s.value(SETTINGS_CLIENTPORT).toInt());
+	setMasterPort(s.value(SETTINGS_MASTERPORT).toInt());
+	setClientName(s.value(SETTINGS_CLIENTNAME).toString());
 }
 
-void NetworkSettingsModel::setText(QString txt)
+void NetworkSettingsModel::setClientName(QString txt)
 {
-	helloText = txt;
-	emit textChanged();
+	clientName = txt;
+	QSettings s;
+	s.setValue(SETTINGS_CLIENTNAME, txt);
+	emit clientNameChanged();
 }
 
-QString NetworkSettingsModel::getText() const
+QString NetworkSettingsModel::getClientName() const
 {
-	return helloText;
+	return clientName;
 }
 
+void NetworkSettingsModel::setClientPort(int val)
+{
+	clientPort = val;
+	QSettings s;
+	s.setValue(SETTINGS_CLIENTPORT, val);
+	emit clientPortChanged();
+}
+
+int NetworkSettingsModel::getClientPort() const
+{
+	return clientPort;
+}
+
+void NetworkSettingsModel::setMasterPort(int val)
+{
+	masterPort = val;
+	QSettings s;
+	s.setValue(SETTINGS_MASTERPORT, val);
+	emit masterPortChanged();
+}
+
+int NetworkSettingsModel::getMasterPort() const
+{
+	return masterPort;
+}
 
 void NetworkSettingsModel::setPresenter(SettingsGroupPresenter* presenter)
 {
+}
+
+void NetworkSettingsModel::setFirstTimeSettings()
+{
+	QSettings s;
+	s.setValue(SETTINGS_CLIENTNAME, "i-score client");
+	s.setValue(SETTINGS_CLIENTPORT, 7888);
+	s.setValue(SETTINGS_MASTERPORT, 5678);
 }

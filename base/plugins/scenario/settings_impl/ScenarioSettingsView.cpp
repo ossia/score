@@ -19,11 +19,6 @@ ScenarioSettingsView::ScenarioSettingsView(QWidget* parent):
 			this,		&ScenarioSettingsView::on_textChanged);
 }
 
-void ScenarioSettingsView::setPresenter(iscore::SettingsGroupPresenter* presenter)
-{
-	m_presenter = static_cast<ScenarioSettingsPresenter*>(presenter);
-}
-
 void ScenarioSettingsView::setText(QString text)
 {
 	if(text != m_lineEdit->text())
@@ -42,7 +37,7 @@ void ScenarioSettingsView::on_textChanged()
 	{
 		iscore::Command* cmd = new TextChangedCommand{m_previousText,
 							   newText,
-							   static_cast<iscore::SettingsGroupPresenter*>(m_presenter)};
+							   getPresenter()};
 		emit submitCommand(cmd);
 		m_previousText = newText;
 	}

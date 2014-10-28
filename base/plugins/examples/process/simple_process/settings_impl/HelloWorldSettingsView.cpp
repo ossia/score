@@ -19,11 +19,6 @@ HelloWorldSettingsView::HelloWorldSettingsView(QWidget* parent):
 			this,		&HelloWorldSettingsView::on_textChanged);
 }
 
-void HelloWorldSettingsView::setPresenter(iscore::SettingsGroupPresenter* presenter)
-{
-	m_presenter = static_cast<HelloWorldSettingsPresenter*>(presenter);
-}
-
 void HelloWorldSettingsView::setText(QString text)
 {
 	if(text != m_lineEdit->text())
@@ -42,7 +37,7 @@ void HelloWorldSettingsView::on_textChanged()
 	{
 		iscore::Command* cmd = new TextChangedCommand{m_previousText,
 							   newText,
-							   static_cast<iscore::SettingsGroupPresenter*>(m_presenter)};
+							   getPresenter()};
 		emit submitCommand(cmd);
 		m_previousText = newText;
 	}

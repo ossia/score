@@ -33,6 +33,7 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroup.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupPresenter.hpp
 
 ### interface/plugins ###
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryPluginInterface.hpp

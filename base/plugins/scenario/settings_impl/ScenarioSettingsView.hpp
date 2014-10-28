@@ -10,7 +10,6 @@ class ScenarioSettingsView : public QWidget, public iscore::SettingsGroupView
 		Q_OBJECT
 	public:
 		ScenarioSettingsView(QWidget* parent);
-		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
 
 		void setText(QString text);
 		virtual QWidget* getWidget() override;
@@ -22,7 +21,6 @@ class ScenarioSettingsView : public QWidget, public iscore::SettingsGroupView
 		void on_textChanged();
 
 	private:
-		ScenarioSettingsPresenter* m_presenter;
 		QLineEdit* m_lineEdit; // Ownership goes to the widget parent class.
 		QString m_previousText;
 

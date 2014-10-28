@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+
 class QWidget;
 namespace iscore
 {
@@ -12,31 +13,21 @@ namespace iscore
 	{
 		public:
 			virtual ~SettingsGroupView() = default;
-			virtual void setPresenter(SettingsGroupPresenter* presenter) = 0;
+			virtual void setPresenter(SettingsGroupPresenter* presenter)
+			{
+				m_presenter = presenter;
+			}
+
+			SettingsGroupPresenter* getPresenter()
+			{
+				return m_presenter;
+			}
+
 			virtual QWidget* getWidget() = 0; // Y U NO QML? . ps : ownership transfer ? ? ? what about "this" ?
-	};
-
-	class SettingsGroupPresenter
-	{
-		public:
-			SettingsGroupPresenter(SettingsPresenter* parent_presenter, SettingsGroupModel* model, SettingsGroupView* view):
-				m_model{model},
-				m_view{view},
-				m_parentPresenter{parent_presenter}
-			{}
-
-			virtual ~SettingsGroupPresenter() = default;
-			virtual void on_accept() = 0;
-			virtual void on_reject() = 0;
 
 		protected:
-			SettingsGroupModel* m_model;
-			SettingsGroupView* m_view;
-			SettingsPresenter* m_parentPresenter;
+			SettingsGroupPresenter* m_presenter;
 	};
-
-
-
 
 	// This should separate the settings model and settings view (there should be no need for a presenter here?)
 	// Als, should settings be remotely transmitted so that they are the same everywhere ? (guess : yes)

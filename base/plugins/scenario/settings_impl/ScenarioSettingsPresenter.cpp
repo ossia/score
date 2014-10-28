@@ -10,6 +10,7 @@ ScenarioSettingsPresenter::ScenarioSettingsPresenter(SettingsPresenter* parent,
 														 SettingsGroupView* view):
 	SettingsGroupPresenter{parent, model, view}
 {
+	this->setObjectName("Scenario plugind");
 	auto hw_view = static_cast<ScenarioSettingsView*>(view);
 	auto hw_model = static_cast<ScenarioSettingsModel*>(model);
 	connect(hw_view, SIGNAL(submitCommand(iscore::Command*)),
@@ -48,4 +49,11 @@ void ScenarioSettingsPresenter::on_submitCommand(iscore::Command* cmd)
 {
 	delete m_currentCommand;
 	m_currentCommand = cmd;
+}
+
+#include <QApplication>
+#include <QStyle>
+QIcon ScenarioSettingsPresenter::settingsIcon()
+{
+	return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
 }
