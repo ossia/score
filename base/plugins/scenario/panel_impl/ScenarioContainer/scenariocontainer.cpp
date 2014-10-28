@@ -4,13 +4,13 @@
 #include "scenarioview.hpp"
 
 ScenarioContainer::ScenarioContainer(QObject *parent , QGraphicsObject *parentView) :
-    QObject{parent},
-    _pModel{new ScenarioModel(this)},
-    _pView {new ScenarioView(parentView)},
-    _pPresenter {new ScenarioPresenter(_pModel, _pView, this)}
+	QObject{parent},
+	_pModel{new ScenarioModel(this)},
+	_pView {new ScenarioView(parentView)},
+	_pPresenter {new ScenarioPresenter(_pModel, _pView, this)}
 
 {
-    setObjectName("ScenarioContainer");
+	setObjectName("ScenarioContainer");
 }
 
 ScenarioContainer::~ScenarioContainer()

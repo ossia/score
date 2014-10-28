@@ -5,9 +5,12 @@
 
 #include <QDialog>
 #include <QWidget>
+#include <QListWidget>
+#include <QVBoxLayout>
+#include <QTabWidget>
 #include <QHBoxLayout>
 #include <QDialogButtonBox>
-
+#include <QStackedWidget>
 namespace iscore
 {
 	class SettingsView : public QDialog
@@ -20,7 +23,12 @@ namespace iscore
 		private:
 			std::set<SettingsGroupView*> m_pluginViews;
 
-			QHBoxLayout* m_layout{new QHBoxLayout{this}};
+			QVBoxLayout* m_vertLayout{new QVBoxLayout{this}};
+			QHBoxLayout* m_hboxLayout{new QHBoxLayout{this}};
+			QListWidget* m_settingsList{new QListWidget{this}};
+			QVBoxLayout* m_subVertLayout{new QVBoxLayout{this}};
+			QStackedWidget* m_stackedWidget{new QStackedWidget{this}};
+
 			QDialogButtonBox* m_buttons{new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
 															 this}};
 

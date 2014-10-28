@@ -71,7 +71,7 @@ void Application::doConnections()
 		{
 			for(auto& t_elt : potential_targets)
 			{
-				s_elt->disconnect(a.source.method, t_elt);
+				//s_elt->disconnect(a.source.method, t_elt);
 				bool res = t_elt->connect(s_elt,
 							   a.source.method,
 							   a.target.method,
