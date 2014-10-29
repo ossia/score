@@ -29,7 +29,8 @@ namespace iscore
 			ObjectRepresentation source;
 			ObjectRepresentation target;
 
-			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,  const QObject* obj) const
+			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,
+												const QObject* obj) const
 			{
 				QList<QObject*> children;
 				switch(obj_repr.type)
@@ -55,6 +56,7 @@ namespace iscore
 				return children;
 			}
 
+			// TODO put variadic templates in here to have infinite appending on the QList.
 			QList<QObject*> getMatchingChildrenForSource(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(source, obj));

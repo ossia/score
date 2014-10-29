@@ -38,7 +38,6 @@ void NetworkSettingsView::setClientName(QString text)
 }
 void NetworkSettingsView::setMasterPort(int val)
 {
-	qDebug() << Q_FUNC_INFO << val;
 	if(val != m_masterPort->value())
 		m_masterPort->setValue(val);
 }
@@ -75,7 +74,6 @@ void NetworkSettingsView::doConnections()
 void NetworkSettingsView::on_masterPortChanged(int x)
 {
 	auto newVal = m_masterPort->value();
-	qDebug() << Q_FUNC_INFO << x << newVal << m_previousMasterPort;
 	if(newVal != m_previousMasterPort)
 	{
 		presenter()->setMasterPortCommand(new MasterPortChangedCommand{m_previousMasterPort, newVal});

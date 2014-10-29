@@ -44,6 +44,7 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 void NetworkCommand::setupMasterSession()
 {
 	QSettings s;
+	m_networkSession.reset();
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", s.value(SETTINGS_MASTERPORT).toInt());
 
 	auto session = static_cast<MasterSession*>(m_networkSession.get());
@@ -56,7 +57,6 @@ void NetworkCommand::setupMasterSession()
 void NetworkCommand::setupClientSession(ConnectionData d)
 {
 	QSettings s;
-	qDebug() << "BLOPBLOP" << s.value(SETTINGS_CLIENTNAME).toString();
 	ClientSessionBuilder builder(d.remote_ip,
 								 d.remote_port,
 								 QString("%1%2")
@@ -66,6 +66,7 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 								 s.value(SETTINGS_CLIENTPORT).toInt());
 	builder.join();
 	while(!builder.isReady()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	m_networkSession.reset();
 	m_networkSession = builder.getBuiltSession();
 
 	auto session = static_cast<ClientSession*>(m_networkSession.get());
@@ -75,6 +76,8 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 	m_receiver->setParent(this);// Else it does not work because childEvent is sent too early.
 }
 
+// TODO plutôt dans une vue ?
+// TODO delete (mais pb avec threads...)
 #include "zeroconf/ZeroConfConnectDialog.hpp"
 void NetworkCommand::createZeroconfSelectionDialog()
 {

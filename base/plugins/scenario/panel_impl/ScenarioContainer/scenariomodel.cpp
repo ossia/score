@@ -3,9 +3,10 @@
 #include <QDebug>
 
 ScenarioModel::ScenarioModel(QObject *parent) :
-    QObject(parent)
+	QObject(nullptr)
 {
-    setObjectName("ScenarioModel");
+	setObjectName("ScenarioModel");
+	setParent(parent);
 }
 
 ScenarioModel::~ScenarioModel()
@@ -15,5 +16,5 @@ ScenarioModel::~ScenarioModel()
 
 void ScenarioModel::addTimeEvent(QPointF pos)
 {
-    emit timeEventAddedInModel(pos);
+	emit timeEventAddedInModel(pos);
 }

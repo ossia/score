@@ -7,13 +7,14 @@
 using namespace iscore;
 
 Application::Application(int& argc, char** argv):
-	QObject{}
+	 QNamedObject{nullptr, "Application"}
 {
 	// Application
 	// Crashes if put in member initialization list... :(
 	m_app = std::make_unique<QApplication>(argc, argv);
 	this->setParent(m_app.get());
 	this->setObjectName("Application");
+
 	m_app->installEventFilter(new ChildEventFilter(this));
 
 	QCoreApplication::setOrganizationName("OSSIA");
@@ -76,6 +77,50 @@ void Application::doConnections()
 							   a.source.method,
 							   a.target.method,
 							   Qt::UniqueConnection);
+			}
+		}
+	}
+}
+
+// TODO essayer de voir si on peut réduire la duplication de code ici ?
+void Application::doConnections(QObject* obj)
+{
+	// 1. Chercher s'il est source
+	for(auto& a : m_pluginManager.m_autoconnections)
+	{
+		// obj is source
+		if( (a.source.type == Autoconnect::ObjectRepresentationType::QObjectName &&
+			 obj->objectName() == QString(a.source.name)) ||
+			(a.source.type == Autoconnect::ObjectRepresentationType::Inheritance &&
+			 obj->inherits(a.source.name)))
+		{
+			auto potential_targets = a.getMatchingChildrenForTarget(this);
+			potential_targets.append(a.getMatchingChildrenForTarget(view()));
+			for(auto& t_elt : potential_targets)
+			{
+				bool res = t_elt->connect(obj,
+										  a.source.method,
+										  a.target.method,
+										  Qt::UniqueConnection);
+			}
+		}
+
+		// obj is target
+		if( (a.target.type == Autoconnect::ObjectRepresentationType::QObjectName &&
+			 obj->objectName() == QString(a.target.name))
+				||
+			(a.target.type == Autoconnect::ObjectRepresentationType::Inheritance &&
+			 obj->inherits(a.target.name)))
+		{
+			// Obj. est source.
+			auto potential_sources = a.getMatchingChildrenForSource(this);
+			potential_sources.append(a.getMatchingChildrenForSource(view()));
+			for(auto& s_elt : potential_sources)
+			{
+				bool res = obj->connect(s_elt,
+										a.source.method,
+										a.target.method,
+										Qt::UniqueConnection);
 			}
 		}
 	}

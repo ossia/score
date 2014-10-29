@@ -48,6 +48,7 @@ ScenarioView::ScenarioView(QGraphicsObject *parent)
 {
   setFlags(QGraphicsItem::ItemIsSelectable);
   setObjectName("ScenarioView");
+  setParent(parent);
 }
 
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -123,7 +124,7 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 		  emit createTimebox(_pTemporaryBox->rect());
 		}
 	  else { // we create a TimeEvent
-          emit viewAskForTimeEvent(mouseEvent->pos()); //
+		  emit viewAskForTimeEvent(mouseEvent->pos()); //
 		}
 	  delete _pTemporaryBox;
 	  _pTemporaryBox = nullptr;

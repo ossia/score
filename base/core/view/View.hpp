@@ -16,8 +16,6 @@ namespace iscore
 			View(QObject* parent);
 
 			void addPanel(PanelView*);
-			void setCentralPanel(PanelView*);
-
 			void setPresenter(Presenter*);
 
 		public slots:

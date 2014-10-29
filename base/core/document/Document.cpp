@@ -2,7 +2,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
+#include <QDebug>
 using namespace iscore;
 Document::Document(QObject* parent, QWidget* parentview):
 	QObject{parent},

@@ -61,7 +61,7 @@ void ZeroconfConnectDialog::connectTo()
 
 	QTreeWidgetItem *item = selectedItems.at(0);
 	QVariant variant = item->data(0, Qt::UserRole);
-	qDebug() << "Bonjour record:" << variant.value<BonjourRecord>().serviceName << variant.value<BonjourRecord>().registeredType << variant.value<BonjourRecord>().replyDomain;
+	//qDebug() << "Bonjour record:" << variant.value<BonjourRecord>().serviceName << variant.value<BonjourRecord>().registeredType << variant.value<BonjourRecord>().replyDomain;
 	bonjourResolver->resolveBonjourRecord(variant.value<BonjourRecord>());
 
 	close();

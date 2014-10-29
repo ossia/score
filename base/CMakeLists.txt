@@ -13,6 +13,7 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
+include_directories(core)
 include_directories("${CMAKE_SOURCE_DIR}")
 
 set(HEADER_FILES
@@ -45,6 +46,8 @@ set(HEADER_FILES
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/core/QNamedObject
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp

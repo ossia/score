@@ -1,7 +1,7 @@
 #pragma once
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
-
+#include <QNamedObject>
 
 #include <vector>
 #include <memory>
@@ -13,7 +13,7 @@ namespace iscore
 	class Presenter;
 	class View;
 
-	class Application : public QObject
+	class Application : public QNamedObject
 	{
 			Q_OBJECT
 		public:
@@ -26,6 +26,7 @@ namespace iscore
 			Settings* settings() { return m_settings.get(); }
 
 			void doConnections();
+			void doConnections(QObject*);
 
 		public slots:
 			void addAutoconnection(Autoconnect);

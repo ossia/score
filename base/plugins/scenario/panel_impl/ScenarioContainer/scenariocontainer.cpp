@@ -11,6 +11,7 @@ ScenarioContainer::ScenarioContainer(QObject *parent , QGraphicsObject *parentVi
 
 {
 	setObjectName("ScenarioContainer");
+	setParent(parent);
 }
 
 ScenarioContainer::~ScenarioContainer()

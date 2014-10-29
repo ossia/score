@@ -10,7 +10,7 @@ ScenarioSettingsPresenter::ScenarioSettingsPresenter(SettingsPresenter* parent,
 														 SettingsGroupView* view):
 	SettingsGroupPresenter{parent, model, view}
 {
-	this->setObjectName("Scenario plugind");
+	this->setObjectName("Scenario plugin");
 	auto hw_view = static_cast<ScenarioSettingsView*>(view);
 	auto hw_model = static_cast<ScenarioSettingsModel*>(model);
 	connect(hw_view, SIGNAL(submitCommand(iscore::Command*)),

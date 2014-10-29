@@ -16,7 +16,7 @@ namespace iscore
 			{
 				if(ev->type() == QEvent::ChildAdded)
 				{
-					m_app->doConnections();
+					m_app->doConnections(static_cast<QChildEvent*>(ev)->child());
 					return true;
 				}
 				else

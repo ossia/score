@@ -12,6 +12,7 @@ using namespace iscore;
 View::View(QObject* parent):
 	QMainWindow{}
 {
+	setObjectName("View");
 }
 
 void View::addPanel(PanelView* v)
@@ -34,15 +35,6 @@ void View::addPanel(PanelView* v)
 								  hideDialog});
 
 	this->addDockWidget(Qt::RightDockWidgetArea, dial);
-}
-
-// TODO devenir updateDocument ?
-void View::setCentralPanel(PanelView* v)
-{/*
-	v->setParent(this);
-	m_panelsViews.insert(v);
-
-	this->setCentralWidget(v->getWidget());*/
 }
 
 void View::setPresenter(Presenter* pres)

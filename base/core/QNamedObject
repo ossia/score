@@ -1,0 +1,21 @@
+#pragma once
+#include <QObject>
+#include <QWidget>
+#include <QGraphicsObject>
+
+template<typename QType>
+class QNamedType : public QType
+{
+	public:
+		template<typename... Args>
+		QNamedType(QType* parent, QString name, Args&&... args):
+			QType{std::forward<Args>(args)...}
+		{
+			QType::setObjectName(name);
+			QType::setParent(parent);
+		}
+};
+
+using QNamedObject = QNamedType<QObject>;
+using QNamedGraphicsObject = QNamedType<QGraphicsObject>;
+using QNamedWidget = QNamedType<QWidget>;
