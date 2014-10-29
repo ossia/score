@@ -70,7 +70,7 @@ class HelloWorldIncrementCommandImpl : public Command
 
 HelloWorldCommand::HelloWorldCommand():
 	CustomCommand{},
-	m_action_HelloWorldigate{new QAction("HelloWorldigate!", this)}
+	m_action_HelloWorldigate{new QAction("Action test!", this)}
 {
 	this->setObjectName("HelloWorldCommand");
 
@@ -82,7 +82,7 @@ HelloWorldCommand::HelloWorldCommand():
 void HelloWorldCommand::populateMenus(MenubarManager* menu)
 {
 	// Use identifiers for the common menus
-	menu->insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::FileMenu) + "/" + tr("trololo"),
+	menu->insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::FileMenu) + "/" + tr("Test"),
 								   m_action_HelloWorldigate});
 }
 

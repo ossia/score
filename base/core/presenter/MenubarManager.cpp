@@ -1,6 +1,5 @@
 #include "MenubarManager.hpp"
 #include <QStringList>
-#include <QMenuBar>
 #include <functional>
 
 using namespace iscore;
@@ -91,7 +90,12 @@ void MenubarManager::insertActionIntoMenubar(Action actionToInsert)
 
 void MenubarManager::insertActionIntoToplevelMenu(ToplevelMenuElement tl, QAction* act)
 {
-	m_menusMap[tl]->insertAction(0, act);
+	insertActionIntoToplevelMenu(tl, nullptr, act);
+}
+
+void MenubarManager::insertActionIntoToplevelMenu(ToplevelMenuElement tl, QAction* before, QAction* act)
+{
+	m_menusMap[tl]->insertAction(before, act);
 }
 
 

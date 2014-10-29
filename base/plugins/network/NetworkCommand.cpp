@@ -26,6 +26,7 @@ void NetworkCommand::populateMenus(MenubarManager* menu)
 	connect(joinSession, &QAction::triggered,
 			this, &NetworkCommand::createZeroconfSelectionDialog);
 	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+									   FileMenuElement::Separator_Load,
 									   joinSession);
 }
 
@@ -38,6 +39,8 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 	m_presenter = pres;
 }
 
+
+//////////////////////////////////
 void NetworkCommand::setupMasterSession()
 {
 	QSettings s;

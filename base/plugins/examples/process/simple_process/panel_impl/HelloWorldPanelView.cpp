@@ -18,5 +18,5 @@ void HelloWorldPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* HelloWorldPanelView::getWidget()
 {
-	return new QLabel("Roulade latérale");
+	return new QLabel("Panneau latéral");
 }

@@ -92,24 +92,43 @@ void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteA
 		}
 	}
 }
-
+#include <QMessageBox>
 void Presenter::setupMenus()
 {
-	// Networking
-	QAction* newSession = new QAction{tr("New"), this};
-	connect(newSession,		&QAction::triggered,
-			this,			&Presenter::newDocument);
-	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-										   newSession);
+	auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
 
-	// Settings
-	auto settings_act = new QAction(tr("Settings"), nullptr);
+	////// File //////
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										FileMenuElement::New,
+										std::bind(&Presenter::newDocument, this));
 
-	connect(settings_act, &QAction::triggered,
-			qobject_cast<Application*>(parent())->settings()->view(), &SettingsView::exec);
-	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
-										   settings_act);
+	// ----------
+	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										   FileMenuElement::Separator_Load);
 
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										FileMenuElement::Load,
+										notyet);
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										FileMenuElement::Save,
+										notyet);
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										FileMenuElement::SaveAs,
+										notyet);
+
+	// ----------
+	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										   FileMenuElement::Separator_Export);
+
+	// ----------
+	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										   FileMenuElement::Separator_Quit);
+
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+										FileMenuElement::Quit,
+										&QApplication::quit);
+
+	////// Edit //////
 	// Undo / redo
 	auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
 	connect(undoAct,								 &QAction::triggered,
@@ -122,6 +141,12 @@ void Presenter::setupMenus()
 			m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   redoAct);
+
+	////// Settings //////
+	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
+										SettingsMenuElement::Settings,
+										std::bind(&SettingsView::exec,
+												  qobject_cast<Application*>(parent())->settings()->view()));
 }
 
 

@@ -18,5 +18,5 @@ void ScenarioPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* ScenarioPanelView::getWidget()
 {
-	return new QLabel("Roulade latérale");
+	return new QLabel("Panneau Scenario latéral");
 }

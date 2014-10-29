@@ -8,7 +8,7 @@ using namespace iscore;
 HelloWorldCentralPanelView::HelloWorldCentralPanelView():
 	iscore::PanelView{nullptr}
 {
-	
+
 }
 
 void HelloWorldCentralPanelView::setPresenter(PanelPresenter* presenter)
@@ -18,5 +18,5 @@ void HelloWorldCentralPanelView::setPresenter(PanelPresenter* presenter)
 
 QWidget* HelloWorldCentralPanelView::getWidget()
 {
-	return new QLabel("Panneau de roulade central");
+	return new QLabel("Panneau central");
 }
