@@ -94,8 +94,7 @@ void Application::doConnections(QObject* obj)
 			(a.source.type == Autoconnect::ObjectRepresentationType::Inheritance &&
 			 obj->inherits(a.source.name)))
 		{
-			auto potential_targets = a.getMatchingChildrenForTarget(this);
-			potential_targets.append(a.getMatchingChildrenForTarget(view()));
+			auto potential_targets = a.getMatchingChildrenForTarget(this, view());
 			for(auto& t_elt : potential_targets)
 			{
 				bool res = t_elt->connect(obj,
@@ -113,8 +112,7 @@ void Application::doConnections(QObject* obj)
 			 obj->inherits(a.target.name)))
 		{
 			// Obj. est source.
-			auto potential_sources = a.getMatchingChildrenForSource(this);
-			potential_sources.append(a.getMatchingChildrenForSource(view()));
+			auto potential_sources = a.getMatchingChildrenForSource(this, view());
 			for(auto& s_elt : potential_sources)
 			{
 				bool res = obj->connect(s_elt,

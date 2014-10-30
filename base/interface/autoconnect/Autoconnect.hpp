@@ -62,15 +62,55 @@ namespace iscore
 				return children;
 			}
 
+			QList<QObject*> getMatchingChildrenForSource() const
+			{
+				return QList<QObject*>{};
+			}
+			
 			// TODO put variadic templates in here to have infinite appending on the QList.
+			template<typename Arg>  // static assert that Arg has a pointer somewhere ?
+			QList<QObject*> getMatchingChildrenForSource(Arg&& obj) const
+			{
+				return getMatchingChildren(source, obj);
+			}
+			
+			template<typename Arg, typename... ObjectType>
+			QList<QObject*> getMatchingChildrenForSource(Arg obj, ObjectType&&... further_objs) const
+			{
+				return getMatchingChildrenForSource(obj) + 
+					   getMatchingChildrenForSource(std::forward<ObjectType>(further_objs)...);
+			}
+			
+			template<typename Arg>  // static assert that Arg has a pointer somewhere ?
+			QList<QObject*> getMatchingChildrenForTarget(Arg&& obj) const
+			{
+				return getMatchingChildren(target, obj);
+			}
+			
+			template<typename Arg, typename... ObjectType>
+			QList<QObject*> getMatchingChildrenForTarget(Arg obj, ObjectType&&... further_objs) const
+			{
+				return getMatchingChildrenForTarget(obj) + 
+					   getMatchingChildrenForTarget(std::forward<ObjectType>(further_objs)...);
+			}
+			
+			QList<QObject*> getMatchingChildrenForTarget() const
+			{
+				return QList<QObject*>{};
+			}
+			
+			
+			/// OK
+/*
 			QList<QObject*> getMatchingChildrenForSource(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(source, obj));
 			}
-
+*/
+			/*
 			QList<QObject*> getMatchingChildrenForTarget(const QObject* obj) const
 			{
 				return std::move(getMatchingChildren(target, obj));
-			}
+			}*/
 	};
 }
