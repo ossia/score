@@ -51,7 +51,6 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/application/SessionType.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.hpp
 

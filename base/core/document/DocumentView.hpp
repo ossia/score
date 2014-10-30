@@ -3,7 +3,11 @@
 
 namespace iscore
 {
-	// Vue du central panel
+	/**
+	 * @brief The DocumentView class is the central view of i-score.
+	 * 
+	 * It displays the @c{PanelView} of a @c{BasePanel}. 
+	 */
 	class DocumentView : public QWidget
 	{
 		public:

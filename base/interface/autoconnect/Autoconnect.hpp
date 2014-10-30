@@ -10,6 +10,12 @@ namespace iscore
 	 * facilement de faire une recherche récursive.
 	 */
 	// CF : http://www.qtforum.org/article/515/connecting-signals-and-slots-by-name-at-runtime.html
+	
+	/**
+	 * @brief The Autoconnect class
+	 *
+	 * Allows for auto-connection of two objects, either by name or by inheritance relationship.
+	 */
 	class Autoconnect
 	{
 		public:

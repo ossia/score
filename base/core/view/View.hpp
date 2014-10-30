@@ -9,6 +9,11 @@ namespace iscore
 {
 	class PanelView;
 	class Presenter;
+	/**
+	 * @brief The View class
+	 *
+	 * The main display of the application.
+	 */
 	class View : public QMainWindow
 	{
 			Q_OBJECT

@@ -13,6 +13,13 @@ namespace iscore
 	class Presenter;
 	class View;
 
+	/**
+	 * @brief Application
+	 * 
+	 * This class is the main object in i-score. It is the 
+	 * parent of every other object created.
+	 * It does instantiate the rest of the software (MVP, settings, plugins).
+	 */
 	class Application : public QNamedObject
 	{
 			Q_OBJECT

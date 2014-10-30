@@ -11,6 +11,14 @@ class QMenu;
 
 namespace iscore
 {
+	/**
+	 * @brief The MenubarManager class
+	 *
+	 * These are mainly convenience methods to add elements in a non-anarchic way
+	 * to the menu bar, using the information in \c{MenuInterface}.
+	 * 
+	 * @todo{Test on OS X}
+	 */
 	class MenubarManager : public QObject
 	{
 			Q_OBJECT

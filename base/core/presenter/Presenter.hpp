@@ -13,6 +13,15 @@ namespace iscore
 	class View;
 	class Panel;
 	class PanelPresenter;
+	/**
+	 * @brief The Presenter class
+	 *
+	 * Certainly needs refactoring. 
+	 * For now, manages menus and plug-in objects.
+	 * 
+	 * It is also able to instantiate a Command from serialized Undo/Redo data.
+	 * (this should go in the DocumentPresenter maybe ?)
+	 */
 	class Presenter : public QObject
 	{
 			Q_OBJECT

@@ -3,14 +3,17 @@
 
 namespace iscore
 {
-	// Offre des actions, qui peuvent s'afficher dans:
-	// - menu
-	// - toolbar...
-	// Les actions, lorsque déclenchées, appellent un slot de la classe Commande correspondante qui génère une action et la soumet au présenteur qui la place dans le stack.
-	// A l'ownsership des actions.
 	class Command;
 	class Presenter;
 	class MenubarManager;
+	/**
+	 * @brief The CustomCommand class
+	 *
+	 * The name is bad. This is not related to the Command class.
+	 * 
+	 * TODO: refactor. Too much responsibilities for such a little thing.
+	 * 
+	 */
 	class CustomCommand : public QObject
 	{
 			Q_OBJECT

@@ -6,23 +6,6 @@
 #include <QDebug>
 using namespace iscore;
 
-
-/*
- * Example of usage of a plugin:
- *
-
-auto casted_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
-if(casted_plugin)
-{
-	auto custom_process = casted_plugin->process_make(casted_plugin->process_list().first());
-	auto model = custom_process->makeModel();
-}
-
- *
- *
- */
-
-
 void PluginManager::reloadPlugins()
 {
 	clearPlugins();
@@ -34,6 +17,7 @@ void PluginManager::reloadPlugins()
 		if (QObject *plugin = loader.instance())
 		{
 			m_availablePlugins[fileName] = plugin;
+			plugin->setParent(this);
 			dispatch(plugin);
 		}
 	}
@@ -42,7 +26,7 @@ void PluginManager::reloadPlugins()
 void PluginManager::clearPlugins()
 {
 	for(auto& elt : m_availablePlugins)
-		delete elt;
+		if(elt) elt->deleteLater();
 
 	m_availablePlugins.clear();
 }

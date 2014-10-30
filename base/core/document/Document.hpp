@@ -7,6 +7,12 @@ namespace iscore
 	class DocumentPresenter;
 	class DocumentView;
 
+	/**
+	 * @brief The Document class is the central part of the software.
+	 *
+	 * It is akin to the opened file in Word for instance, this is the 
+	 * data on which i-score operates, further defined by the plugins.
+	 */
 	class Document : public QObject
 	{
 			Q_OBJECT

@@ -21,7 +21,9 @@ namespace iscore
 	using SettingsList = std::vector<SettingsGroup*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
-	//Has the ownership of the plug-ins.
+	/**
+	 * @brief The PluginManager class loads and keeps track of the plug-ins.
+	 */
 	class PluginManager : public QObject
 	{
 			Q_OBJECT

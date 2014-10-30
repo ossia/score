@@ -6,6 +6,12 @@
 class Session;
 namespace iscore
 {
+	/**
+	 * @brief The CommandQueue class
+	 *
+	 * Mostly equivalent to QUndoStack, but has added signals / slots.
+	 * They are used to send & receive the commands to the network, for instance.
+	 */
 	class CommandQueue : public QUndoStack
 	{
 			Q_OBJECT

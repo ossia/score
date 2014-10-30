@@ -7,9 +7,17 @@
 
 namespace iscore
 {
-	// The base of the command system in i-score
-	// It is timestamped, because we can then compare between clients
 
+
+	/**
+	 * @brief The Command class
+	 * 
+	 * The base of the command system in i-score
+	 * It is timestamped, because we can then compare between clients.
+	 * 
+	 * Maybe the NetworkPlugin should replace the Command by a TimestampedCommand instead ?
+	 * What if other plug-ins also want to add functionality ? 
+	 */
 	class Command : public QUndoCommand
 	{
 			enum class Origin { Local, Remote };
