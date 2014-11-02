@@ -27,7 +27,6 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/PanelModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanel.hpp

@@ -7,7 +7,6 @@
 
 #include <interface/panels/Panel.hpp>
 #include <interface/panels/PanelModel.hpp>
-#include <interface/panels/BasePanel.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
