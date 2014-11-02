@@ -79,7 +79,7 @@ void GraphicsView::mouseDragMode(QAction* action)
     }
 }
 
-/// @todo Pourrait être utilisé pour centrer sur un objet ayant le focus
+/// @todo Non utilisé ! Pourrait être utilisé pour centrer sur un objet ayant le focus. (par jC)
 void GraphicsView::graphicItemEnsureVisible()
 {
   QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
@@ -119,11 +119,12 @@ void GraphicsView::fitFullView()
 
 void GraphicsView::resizeEvent(QResizeEvent *event)
 {
-  /// @todo A arranger pour pouvoir décommenter -> //fitFullView();
+  /// @todo A arranger pour pouvoir décommenter (par jC)
+  //fitFullView();
+
   QGraphicsView::resizeEvent(event);
 }
 
-/// @todo Solution temporaire à fitFullView()
 void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
 {
   QRectF rectOutside; // rectangle outside the current timebox in fullview
@@ -150,7 +151,6 @@ void GraphicsView::keyPressEvent(QKeyEvent *event)
     }
 }
 
-/// Horizontal scaling with constraints checking
 void GraphicsView::scaleView(qreal scaleFactor)
 {
     // Permits to constrain the scaling

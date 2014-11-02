@@ -4,9 +4,9 @@ Doxygen/html
 
 #files
 .DS_Store
-i-scoreRecast.pro.user
+*.user
 Makefile
-
+*.autosave
 # temporary files
 *~
 *.o
@@ -16,3 +16,5 @@ Makefile
 .project
 
 /i-scoreRecast.app/
+*.db
+API

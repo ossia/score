@@ -32,7 +32,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
+#include <QGraphicsScene>
 #include "timebox.hpp"
+#include "timebarwidget.hpp"
 
 class QGraphicsScene;
 class QAction;
@@ -76,6 +78,8 @@ private:
   QAction *_pDeleteAction;
   QActionGroup *_pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)
 
+  TimeBarWidget *_timeBar = nullptr;
+
   QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications. Especially for managing graphicals and interaction changes beetween execution and edition phases.
   QState *_initialState;
   QState *_normalState; /// parent state of edition and execution states
@@ -94,8 +98,8 @@ public slots:
     void changeCurrentTimeboxScene();
 
 private slots:
-  void addItem(QPointF);
-  void headerWidgetClicked();
+  void addItem(QPointF); /// @todo Old way to add an item in the Timebox in fullView, now is directly in Scenario plugin. Could be deleted !
+  void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
   void deleteSelectedItems();
 
 public:
@@ -103,8 +107,8 @@ public:
   void setcurrentTimebox(Timebox *arg);
 
 private:
-  void createGraphics();
-  void createActions();
+  void createGraphics(); /// Creation of the mainTimebox of the Scenario, the first one in fullView.
+  void createActions(); /// The majority of actions are created in the Qt designer mainwindow.ui
   void createActionGroups();
   void createStates();
   void createTransitions();

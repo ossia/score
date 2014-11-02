@@ -31,6 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "timeevent.hpp"
+#include "timeeventview.hpp"
 #include "timeboxmodel.hpp"
 #include "timeboxpresenter.hpp"
 #include "timeboxsmallview.hpp"
@@ -43,7 +44,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QActionGroup>
 #include <QStateMachine>
 #include <QPointF>
-#include <QGraphicsLineItem>
 #include <QTimer>
 #include <QFinalState>
 #include <QDebug>
@@ -64,18 +64,18 @@ MainWindow::MainWindow(QWidget *parent)
   QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
-/// Creation of the mainTimebox of the Scenario, the first one in fullView.
 void MainWindow::createGraphics()
 {
   _pView = ui->graphicsView;
 
-  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 700, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
+  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
   Q_CHECK_PTR(_pMainTimebox);
   connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
   setcurrentTimebox(_pMainTimebox);
+
+  _timeBar = new TimeBarWidget(_pMainTimebox->getView());
 }
 
-/// The majority of actions are created in the Qt designer mainwindow.ui
 void MainWindow::createActions() {
   _pDeleteAction = new QAction(tr("Delete"), this);
   /// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)
@@ -182,7 +182,6 @@ void MainWindow::addItem(QPointF pos)
   ui->actionMouse->setChecked(true); /// @todo Pas joli, à faire dans la méthode dirty ou  dans un stateMachine (jc)
 }
 
-/// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
 void MainWindow::headerWidgetClicked()
 {
   _pCurrentTimebox->goSmall();
@@ -191,13 +190,18 @@ void MainWindow::headerWidgetClicked()
 void MainWindow::deleteSelectedItems()
 {
   QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
-  if (items.isEmpty())
+  if (items.isEmpty()) {
       return;
+    }
 
   QListIterator<QGraphicsItem*> list(items);
   while (list.hasNext()) {
-      if(QGraphicsWidget* gwidget = dynamic_cast<QGraphicsWidget*>(list.next())) {
-          gwidget->deleteLater();
+      QGraphicsItem *item = list.next();
+      if(TimeboxSmallView *tb = qgraphicsitem_cast<TimeboxSmallView*>(item)){
+          tb->deleteLater();
+        }
+      else if(TimeEventView *te = qgraphicsitem_cast<TimeEventView*>(item)){
+          te->deleteLater();
         }
     }
 }

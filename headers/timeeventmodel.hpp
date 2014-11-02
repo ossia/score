@@ -33,8 +33,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 class TimeEvent;
+class Timebox;
 
 /*!
  *  The model is linked with OSSIA API, and permits to maintain all elements used later by
@@ -49,16 +51,35 @@ class TimeEventModel : public QObject
 {
   Q_OBJECT
 
+  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
+  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+
 private:
-  int _time, _yPosition;
+  qreal _time, _yPosition;
   QString _name;
 
-public:
-  TimeEventModel(int t, int y, QString name, TimeEvent *parent);
+  QVector<Timebox*> _timeboxes; /// Vector containing all the Timebox linked to this TimeEvent
 
-  int time() const {return _time;}
-  int yPosition() const {return _yPosition;}
+public:
+  TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
+
+signals:
+  void nameChanged(QString arg);
+  void timeChanged(qreal arg);
+  void yPositionChanged(qreal arg);
+
+public slots:
+  void setname(QString arg);
+  void settime(qreal arg);
+  void setYPosition(qreal arg);
+
+public:
+  qreal time() const {return _time;}
+  qreal yPosition() const {return _yPosition;}
   QString name() const {return _name;}
+
+  void addTimebox(Timebox *tb);
 };
 
 #endif // TIMEEVENTMODEL_HPP

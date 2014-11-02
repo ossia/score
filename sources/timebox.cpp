@@ -34,12 +34,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxsmallview.hpp"
 #include "timeboxfullview.hpp"
 #include "timeevent.hpp"
+#include "timeeventmodel.hpp"
+#include "timeeventview.hpp"
 #include "mainwindow.hpp"
 #include "graphicsview.hpp"
-#include "timeeventview.hpp"
 
 #include <QDebug>
-#include <QGraphicsRectItem>
 #include <QApplication>
 
 int Timebox::staticId = 1;
@@ -64,16 +64,16 @@ Timebox::~Timebox()
 {
 }
 
-void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString name)
+void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const QPointF &pos, float height, float width, ViewMode mode, QString nameBox)
 {
   ///@todo Vérifier si le nom existe déjà (par jC)
-  if (name.isEmpty()){
+  if (nameBox.isEmpty()){
       /// If no name was given, we construct a name with a unique ID
-      QString name = QString("Timebox%1").arg(staticId++);
-      setObjectName(name);
+      QString nameID = QString("Timebox%1").arg(staticId++);
+      setObjectName(nameID);
     }
 
-  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, name, this);
+  _pModel = new TimeboxModel(pos.x(), pos.y(), width, height, objectName(), this, pTimeEventStart, pTimeEventEnd);
 
   if(mode == SMALL) {
       _pSmallView = new TimeboxSmallView(_pModel, this);
@@ -91,7 +91,8 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
     }
 
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
-  connect(_pPresenter, SIGNAL(addBoxProxy(QGraphicsRectItem*)), this, SLOT(addChild(QGraphicsRectItem*)));
+  connect(_pPresenter, SIGNAL(createBoxProxy(QRectF)), this, SLOT(createTimeboxAndTimeEvents(QRectF)));
+  connect(_pPresenter, SIGNAL(createTimeEventProxy(QPointF)), this, SLOT(createTimeEvent(QPointF)));
   connect(_pPresenter, SIGNAL(suppressTimeboxProxy()), this, SLOT(deleteLater()));
 
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
@@ -103,7 +104,6 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
     }
 }
 
-/// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 void Timebox::goSmall()
 {
   if (_pParent == nullptr) {
@@ -118,7 +118,6 @@ void Timebox::goSmall()
     }
 }
 
-/// bottom up (presenter -> mainwindow)
 void Timebox::goFull()
 {
   if(_pParent != nullptr) {
@@ -135,16 +134,40 @@ void Timebox::goFull()
 
 void Timebox::goHide()
 {
-  emit isHide(); /// inform stateMachine's presenter that timebox is hidden
+  emit isHide();
 }
 
-void Timebox::addChild (QGraphicsRectItem *rectItem)
+void Timebox::createTimeEvent(QPointF pos)
 {
-  if(_pFullView == nullptr) {
-      qWarning() << "Attention : Full View n'est pas crée !";
-      return;
+  new TimeEvent(this, pos);
+}
+
+void Timebox::createTimeboxAndTimeEvents(QRectF rect)
+{
+  new Timebox(this, _pGraphicsView, rect.topLeft(), rect.width(), rect.height(), SMALL);
+}
+
+void Timebox::createTimeEventAndTimebox(QLineF line)
+{
+  TimeEvent *startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
+  QPointF posLeft;
+  senderTimeEvent = qobject_cast<TimeEvent*>(QObject::sender());
+  Q_ASSERT(senderTimeEvent != 0 );
+  otherTimeEvent = new TimeEvent(qobject_cast<Timebox*>(senderTimeEvent->parent()), line.p2()); // They have the same timebox parent
+
+  // check the direction of the click-drag
+  if(line.dx() >= 0) {
+      startTimeEvent = senderTimeEvent;
+      endTimeEvent = otherTimeEvent;
+      posLeft = line.p1();
     }
-  new Timebox(this, _pGraphicsView, rectItem->pos(), rectItem->rect().width(), rectItem->rect().height(), SMALL);
+  else {
+      startTimeEvent = otherTimeEvent;
+      endTimeEvent = senderTimeEvent;
+      posLeft = line.p2();
+    }
+
+  new Timebox(this, startTimeEvent, endTimeEvent, _pGraphicsView, posLeft, abs(line.dx()), 2*MIN_BOX_HEIGHT, SMALL);
 }
 
 void Timebox::addChild(Timebox *other)
@@ -153,6 +176,7 @@ void Timebox::addChild(Timebox *other)
       qWarning() << "Attention : Full View n'est pas crée !";
       return;
     }
+
   _pFullView->addItem(other->_pSmallView);
   _pFullView->clearSelection();
   other->_pSmallView->setSelected(true);
@@ -171,6 +195,4 @@ void Timebox::addChild(TimeEvent *timeEvent)
   _pFullView->clearSelection();
   //timeEvent->setSelected(true);
 }
-
-
 

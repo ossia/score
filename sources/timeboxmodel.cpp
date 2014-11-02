@@ -31,13 +31,28 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeboxmodel.hpp"
 #include "timebox.hpp"
 #include "timeevent.hpp"
+#include "timeeventmodel.hpp"
 
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(int t, int y, int w, int h, QString name, Timebox *parent)
-  : QObject(parent), _time(t), _yPosition(y), _width(w), _height(h), _name(name)
+TimeboxModel::TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd)
+  : QObject(pParent), _time(t), _yPosition(y), _width(w), _height(h), _name(name), _pStartTimeEvent(pTimeEventStart), _pEndTimeEvent(pTimeEventEnd)
 {
+
+  TimeEventModel *timeEventModel = _pStartTimeEvent->model();
+  timeEventModel->addTimebox(pParent);
+  connect(timeEventModel, SIGNAL(timeChanged(qreal)), this, SLOT(settime(qreal)));
+  connect(this, SIGNAL(timeChanged(qreal)), timeEventModel, SLOT(settime(qreal)));
+  connect(timeEventModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setYPosition(qreal)));
+  connect(this, SIGNAL(yPositionChanged(qreal)), timeEventModel, SLOT(setYPosition(qreal)));
+
+  timeEventModel = _pEndTimeEvent->model();
+  timeEventModel->addTimebox(pParent);
+  connect(timeEventModel, SIGNAL(timeChanged(qreal)), this, SLOT(settimeEnd(qreal)));
+  connect(this, SIGNAL(timeEndChanged(qreal)), timeEventModel, SLOT(settime(qreal)));
+  connect(timeEventModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setYPosition(qreal)));
+  connect(this, SIGNAL(yPositionChanged(qreal)), timeEventModel, SLOT(setYPosition(qreal)));
 }
 
 void TimeboxModel::addPluginSmall()
@@ -65,5 +80,28 @@ void TimeboxModel::setname(QString arg)
   if (_name != arg) {
       _name = arg;
       emit nameChanged(arg);
+    }
+}
+
+void TimeboxModel::settime(qreal arg)
+{
+  if (_time != arg) {
+      _time = arg;
+      emit timeChanged(arg);
+      emit timeEndChanged(arg+width());
+    }
+}
+
+void TimeboxModel::settimeEnd(qreal arg)
+{
+  arg -= width();
+  settime(arg);
+}
+
+void TimeboxModel::setYPosition(qreal arg)
+{
+  if (_yPosition != arg) {
+      _yPosition = arg;
+      emit yPositionChanged(arg);
     }
 }

@@ -35,6 +35,7 @@ class QGraphicsRectItem;
 
 #include "pluginview.hpp"
 #include <QPointF>
+#include <QRectF>
 
 /*!
  *  View of the Scenario plugin, inherits the class PluginView.
@@ -52,21 +53,21 @@ class ScenarioView : public PluginView
 private:
   QGraphicsRectItem *_pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
   QPointF _pressPoint;                          /// Last pression point.
-  QPointF _releasePoint;                        /// Last release point.
-
-  static const int MIN_BOX_WIDTH = 100;          /// The minimal width constraint to the new timebox being added
-  static const int MIN_BOX_HEIGHT = 50;
 
 public:
   ScenarioView(QGraphicsItem *parent = 0);
 
 signals:
-  void addTimebox(QGraphicsRectItem *rectItem);  /// Add a child timebox to the current one
+  void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
+  void createTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
+
+public:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
   void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);  
 };
 
 #endif // SCENARIOVIEW_HPP

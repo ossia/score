@@ -43,7 +43,6 @@ class TTTimeProcess;
 #include "statedebug.hpp"
 
 #include <QDebug>
-#include <QGraphicsRectItem>
 #include <QStateMachine>
 #include <QFinalState>
 #include <QState>
@@ -111,7 +110,9 @@ void TimeboxPresenter::createTransitions()
 {
   _pInitialState->addTransition(_pInitialState, SIGNAL(propertiesAssigned()), _pNormalState);
 
-  _pSmallSizeState->addTransition(_pSmallView, SIGNAL(headerDoubleClicked()), _pFullSizeState); /// User clicked on timeboxHeader (smallView)
+  if (_pSmallView != nullptr) {
+      _pSmallSizeState->addTransition(_pSmallView, SIGNAL(headerDoubleClicked()), _pFullSizeState); /// User clicked on timeboxHeader (smallView)
+    }
   _pSmallSizeState->addTransition(_pTimebox, SIGNAL(isHide()), _pHideState); /// Sister of the timebox passing from small to full
 
   _pFullSizeState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// User clicked on headerWidget. timebox's class is needed to route signal from the mouseClick from MainWindow::headerWidgetClicked()
@@ -120,8 +121,10 @@ void TimeboxPresenter::createTransitions()
   _pHideState->addTransition(_pTimebox, SIGNAL(isFull()), _pFullSizeState); /// His child go from full to small
   _pHideState->addTransition(_pTimebox, SIGNAL(isSmall()), _pSmallSizeState); /// Sister of the timebox passing from full to small
 
-  ///@todo cette méthode de suppression n'est plus utilisée (on passe par mainWindow::deleteSelectedItems())
-  _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
+  if (_pSmallView != nullptr) {
+      ///@bug cette méthode de suppression n'est plus utilisée (on passe par mainWindow::deleteSelectedItems())
+      _pNormalState->addTransition(_pSmallView, SIGNAL(suppressTimebox()), _pFinalState); /// we only allow to suppress a timebox in SMALL mode
+    }
 }
 
 void TimeboxPresenter::createConnections()
@@ -194,7 +197,11 @@ PluginView * TimeboxPresenter::addPlugin(int pluginType, TimeboxStorey *pStorey)
     case ScenarioPluginType:
       { /// We have to put braces because we declare a new object in a switch statement
         ScenarioView *scenarioView = new ScenarioView(pStorey);
-        connect(scenarioView, SIGNAL(addTimebox(QGraphicsRectItem*)), this, SIGNAL(addBoxProxy(QGraphicsRectItem*))); /// We connect the plugin to a Proxy signal to route it to the class Timebox
+
+        /// We connect the plugin to proxies signals, to route them to the class Timebox
+        connect(scenarioView, SIGNAL(createTimebox(QRectF)), this, SIGNAL(createBoxProxy(QRectF)));
+        connect(scenarioView, SIGNAL(createTimeEvent(QPointF)), this, SIGNAL(createTimeEventProxy(QPointF)));
+
         plugin = qgraphicsitem_cast<PluginView*>(scenarioView);
         break;
       }

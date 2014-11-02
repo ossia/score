@@ -28,22 +28,58 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#ifndef ENGINE_HPP
-#define ENGINE_HPP
+#ifndef TIMEEVENTMODEL_HPP
+#define TIMEEVENTMODEL_HPP
 
-#include "TTScoreAPI.h"
-#include "TTModular.h"
+#include <QObject>
+#include <QString>
+#include <QVector>
 
-class Engine
+class TimeEvent;
+class Timebox;
+
+/*!
+ *  The model is linked with OSSIA API, and permits to maintain all elements used later by
+ *  the other classes of TimeEvent.
+ *
+ *  @brief Maintain the model of a TimeEvent, no graphics here.
+ *  @author Jaime Chao
+ *  @date 2014
+*/
+
+class TimeEventModel : public QObject
 {
-public:
-  TTTimeProcessPtr    _mainScenario;                                 /// The top scenario
+  Q_OBJECT
 
-  Engine();
+  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
+  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
 
 private:
-  void initModular();
-  void initScore();
+  qreal _time, _yPosition;
+  QString _name;
+
+  QVector<Timebox*> _timeboxes; /// Vector containing all the Timebox linked to this TimeEvent
+
+public:
+  TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
+
+signals:
+  void nameChanged(QString arg);
+  void timeChanged(qreal arg);
+  void yPositionChanged(qreal arg);
+
+public slots:
+  void setname(QString arg);
+  void settime(qreal arg);
+  void setYPosition(qreal arg);
+
+public:
+  qreal time() const {return _time;}
+  qreal yPosition() const {return _yPosition;}
+  QString name() const {return _name;}
+
+  void addTimebox(Timebox *tb);
 };
 
-#endif // ENGINE_HPP
+#endif // TIMEEVENTMODEL_HPP

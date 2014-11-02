@@ -32,11 +32,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "timeevent.hpp"
 #include "mainwindow.hpp"
 #include "timebox.hpp"
+#include "utils.hpp"
 
-#include <QApplication>
 #include <QGraphicsObject>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsRectItem>
+#include <QRectF>
 #include <QPen>
 #include <QBrush>
 #include <QGraphicsView>
@@ -46,40 +46,36 @@ knowledge of the CeCILL license and that you accept its terms.
 ScenarioView::ScenarioView(QGraphicsItem *parent)
   : PluginView(parent)
 {
+  setFlags(QGraphicsItem::ItemIsSelectable);
 }
 
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-  if (mouseEvent->button() == Qt::LeftButton) {
+  /// @todo Add test to check if no one is under the mousePosition. uncomment when done
+  //scene()->views().first()->itemAt(mouseEvent->scenePos().toPoint()) == 0)
 
-      // Create a TimeEvent in case of Command + LeftClick
-      if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
-          MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
-          if(window != NULL) {
-              Timebox *tb = window->currentTimebox();
-              new TimeEvent(tb, mouseEvent->pos()); // TimeEvent is child of current Timebox in fullView
+  // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
+  if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
+      if (mouseEvent->button() == Qt::LeftButton) {
+          // Create an object in case of Command + LeftClick
+          if (mouseEvent->modifiers() == Qt::CTRL) { // Qt::CTRL is equal to Command in Mac
+
+              if (_pTemporaryBox != nullptr) {
+                  delete _pTemporaryBox;
+                  _pTemporaryBox = nullptr;
+                }
+
+              // Store the first pressed point
+              _pressPoint = mouseEvent->pos();
+
+              // Add the temporary box to the scene
+              _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
+              _pTemporaryBox->setPen(QPen(Qt::black));
+              _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
             }
-        }
-
-      /// @todo Testing if no one is under the mousePosition. uncomment when done
-      //scene()->views().first()->itemAt(mouseEvent->scenePos().toPoint()) == 0)
-
-      // Testing that GraphicsView's DragMode property is NoDrag (ex: to avoid adding a Timebox in case of selection)
-      if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
-          if (_pTemporaryBox != nullptr) {
-              delete _pTemporaryBox;
-              _pTemporaryBox = nullptr;
-            }
-
-          // Store the first pressed point
-          _pressPoint = mouseEvent->pos();
-
-          // Add the temporary box to the scene
-          _pTemporaryBox = new QGraphicsRectItem(QRectF(_pressPoint.x(), _pressPoint.y(), 0, 0), this);
-          _pTemporaryBox->setPen(QPen(Qt::black));
-          _pTemporaryBox->setBrush(QBrush(Qt::NoBrush));
         }
     }
+  QGraphicsObject::mousePressEvent(mouseEvent);
 }
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -114,19 +110,32 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
           _pTemporaryBox = nullptr;
         }
     }
+  QGraphicsObject::mouseMoveEvent(mouseEvent);
 }
 
 void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-  _releasePoint = mouseEvent->pos();
-    if (_pTemporaryBox != nullptr) {
-        //If temporaryBox is bigger enough
-        if (_releasePoint != _pressPoint && (abs(_releasePoint.x() - _pressPoint.x()) > MIN_BOX_WIDTH && abs(_releasePoint.y() - _pressPoint.y()) > MIN_BOX_HEIGHT)) {
-            //qDebug() << "pos :" << _pTemporaryBox->scenePos() << _pTemporaryBox;
-            _pTemporaryBox->setPos(_pressPoint);
-            emit addTimebox(_pTemporaryBox);
-          }
-        delete _pTemporaryBox;
-        _pTemporaryBox = nullptr;
-      }
+  if (_pTemporaryBox != nullptr) {
+      //If temporaryBox is bigger enough we create a Timebox
+      if (_pTemporaryBox->rect().width() > MIN_BOX_WIDTH && _pTemporaryBox->rect().height() > MIN_BOX_HEIGHT) {
+          emit createTimebox(_pTemporaryBox->rect());
+        }
+      else { // we create a TimeEvent
+          emit createTimeEvent(mouseEvent->pos());
+        }
+      delete _pTemporaryBox;
+      _pTemporaryBox = nullptr;
+    }
+  QGraphicsObject::mouseReleaseEvent(mouseEvent);
+}
+
+void ScenarioView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  //Re-implemented to not draw background like PluginView::paint()
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
+
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(boundingRect());
 }

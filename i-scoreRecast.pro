@@ -13,12 +13,9 @@ TEMPLATE = app
 TARGET = i-scoreRecast
 CONFIG += c++11 warn_on
 
-QMAKE_LFLAGS += -L/usr/local/lib/jamoma/lib -L/usr/local/lib/ -Wl,-rpath,/usr/local/jamoma/lib -Wl,-rpath,/usr/local/jamoma/extensions
-
 SOURCES += sources/main.cpp \
     sources/mainwindow.cpp \
     sources/timeevent.cpp \
-    sources/engine.cpp \
     sources/graphicsview.cpp \
     sources/timeboxsmallview.cpp \
     sources/timeboxfullview.cpp \
@@ -36,11 +33,11 @@ SOURCES += sources/main.cpp \
     sources/statedebug.cpp \
     sources/timeeventpresenter.cpp \
     sources/timeeventview.cpp \
-    sources/timeeventmodel.cpp
+    sources/timeeventmodel.cpp \
+    sources/timebarwidget.cpp
 
 HEADERS  += headers/mainwindow.hpp \
     headers/timeevent.hpp \
-    headers/engine.hpp \
     headers/graphicsview.hpp \
     headers/utils.hpp \
     headers/timeboxsmallview.hpp \
@@ -59,7 +56,8 @@ HEADERS  += headers/mainwindow.hpp \
     headers/statedebug.hpp \
     headers/timeeventpresenter.hpp \
     headers/timeeventview.hpp \
-    headers/timeeventmodel.hpp
+    headers/timeeventmodel.hpp \
+    headers/timebarwidget.hpp
 
 RESOURCES += resources/resource.qrc
 
@@ -69,87 +67,21 @@ OTHER_FILES += \
     LICENSE.txt
 
 INCLUDEPATH += headers
-
-android-g++|android-clang{
-INCLUDEPATH += /include/libxml2
-INCLUDEPATH+=/opt/android-toolchain/include
-LIBS += -L/opt/android-toolchain/lib -L/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/
-ANDROID_EXTRA_LIBS = \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAnalysisLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAudioGraphUtilityLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libAutomation.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libClipper.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libCrossfade.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libDataspaceLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libDictionaryLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libEffectsLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFFTLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFilterLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libFunctionLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libGeneratorLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libInterval.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaAudioGraph.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaDSP.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaFoundation.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaGraph.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaModular.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libJamomaScore.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libMatrixProcessingLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libMinuit.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libNetworkLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libOSC.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libPlugtastic.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libResamplingLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libScenario.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSoundfileLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSpatLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libSystem.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libTrajectoryLib.so \
-			/opt/android-toolchain/arm-linux-androideabi/lib/jamoma/libWindowFunctionLib.so
-}else{
-INCLUDEPATH += /usr/include/libxml2
-}
-
-JAMOMA_INCLUDE_PATH=$$(JAMOMA_INCLUDE_PATH)
+INCLUDEPATH += /usr/include/libxml2 /usr/local/jamoma/include /usr/local/jamoma/includes
 
 unix:!macx{
-    LIBS += -lJamomaFoundation \
+    LIBS += -L /usr/local/lib/jamoma/lib \
+            -lJamomaFoundation \
 	    -lJamomaDSP \
 	    -lJamomaScore \
 	    -lJamomaModular
 
-    INCLUDEPATH += \
-		$$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/SchedulerLib \
-		$$(JAMOMA_INCLUDE_PATH)/DSP/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Modular/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Score/library/includes \
-		$$(JAMOMA_INCLUDE_PATH)/Foundation/library/includes
+# This variable specifies the #include directories which should be searched when compiling the project.
+INCLUDEPATH += /usr/local/lib/jamoma/include
 }
 
 macx{
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
-
-    !isEmpty(JAMOMA_INCLUDE_PATH) {
-    LIBS += -L/usr/local/jamoma/lib
-    LIBS += -lJamomaFoundation \
-            -lJamomaDSP \
-            -lJamomaScore \
-            -lJamomaModular
-
-    INCLUDEPATH += \
-                $$(JAMOMA_INCLUDE_PATH)/Score/library/tests/ \
-                $$(JAMOMA_INCLUDE_PATH)/Modular/library/PeerObject \
-                $$(JAMOMA_INCLUDE_PATH)/Modular/library/ProtocolLib \
-                $$(JAMOMA_INCLUDE_PATH)/Modular/library/SchedulerLib \
-                $$(JAMOMA_INCLUDE_PATH)/DSP/library/includes \
-                $$(JAMOMA_INCLUDE_PATH)/Modular/library/includes \
-                $$(JAMOMA_INCLUDE_PATH)/Score/library/includes \
-                $$(JAMOMA_INCLUDE_PATH)/Foundation/library/includes
-
-    } else {
     CONFIG += x86_64
     INCLUDEPATH += /usr/local/jamoma/includes
     #LIBS += -L/usr/local/jamoma/lib and -lJamomaFoundation don't work ! Why ??
@@ -158,13 +90,14 @@ macx{
     LIBS += /usr/local/jamoma/lib/JamomaScore.dylib
     LIBS += /usr/local/jamoma/lib/JamomaModular.dylib
     LIBS += -F/Library/Frameworks/ -framework gecode
-    }
+
     QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11
 
     QMAKE_LFLAGS += -mmacosx-version-min=$$QMAKE_MACOSX_DEPLOYMENT_TARGET
     QMAKE_LFLAGS += -stdlib=libc++
-
 }
 
 LIBS += -lxml2
+
+
 
