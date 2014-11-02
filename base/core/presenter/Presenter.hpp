@@ -33,6 +33,7 @@ namespace iscore
 
 			void setupCommand(CustomCommand*);
 			void addPanel(Panel*);
+			void setDocumentPanel(DocumentPanel*);
 
 		signals:
 			void instantiatedCommand(iscore::Command*);

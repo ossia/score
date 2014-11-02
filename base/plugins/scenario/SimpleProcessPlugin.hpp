@@ -5,6 +5,7 @@
 #include <interface/plugins/ProcessFactoryPluginInterface.hpp>
 #include <interface/plugins/PanelFactoryPluginInterface.hpp>
 #include <interface/plugins/SettingsFactoryPluginInterface.hpp>
+#include <interface/plugins/DocumentPanelFactoryPluginInterface.hpp>
 #include <QObject>
 class ScenarioSettings;
 
@@ -14,7 +15,8 @@ class SimpleProcessPlugin :
 		public iscore::CustomCommandFactoryPluginInterface,
 		public iscore::ProcessFactoryPluginInterface,
 		public iscore::PanelFactoryPluginInterface,
-		public iscore::SettingsFactoryPluginInterface
+		public iscore::SettingsFactoryPluginInterface,
+		public iscore::DocumentPanelFactoryPluginInterface
 {
 		Q_OBJECT
 		Q_PLUGIN_METADATA(IID ProcessFactoryPluginInterface_iid)
@@ -22,7 +24,8 @@ class SimpleProcessPlugin :
 					 iscore::CustomCommandFactoryPluginInterface
 					 iscore::ProcessFactoryPluginInterface
 					 iscore::PanelFactoryPluginInterface
-					 iscore::SettingsFactoryPluginInterface)
+					 iscore::SettingsFactoryPluginInterface
+					 iscore::DocumentPanelFactoryPluginInterface)
 
 	public:
 		SimpleProcessPlugin();
@@ -45,4 +48,8 @@ class SimpleProcessPlugin :
 		// Panel interface
 		virtual QStringList panel_list() const override;
 		virtual iscore::Panel* panel_make(QString name) override;
+		
+		// Docpanel interface
+		virtual QStringList document_list() const override;
+		virtual iscore::DocumentPanel* document_make(QString name) override;
 };

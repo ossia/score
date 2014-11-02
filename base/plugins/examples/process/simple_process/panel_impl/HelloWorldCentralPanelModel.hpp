@@ -1,15 +1,15 @@
 #pragma once
-#include <interface/panels/PanelModel.hpp>
+#include <interface/docpanel/DocumentPanelModel.hpp>
 
-class HelloWorldCentralPanelModel  : public iscore::PanelModel
+class HelloWorldCentralPanelModel  : public iscore::DocumentPanelModel
 {
 	public:
 		HelloWorldCentralPanelModel():
-			iscore::PanelModel{nullptr}
+			iscore::DocumentPanelModel{nullptr}
 		{
 			
 		}
 		virtual ~HelloWorldCentralPanelModel() = default; 
 
-		virtual void setPresenter(iscore::PanelPresenter* presenter) override;
+		virtual void setPresenter(iscore::DocumentPanelPresenter* presenter) override;
 };

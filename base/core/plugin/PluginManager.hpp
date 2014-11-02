@@ -8,6 +8,7 @@
 #include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
 #include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
 #include <interface/plugins/PanelFactoryPluginInterface.hpp>
+#include <interface/plugins/DocumentPanelFactoryPluginInterface.hpp>
 #include <interface/plugins/ProcessFactoryPluginInterface.hpp>
 #include <interface/plugins/SettingsFactoryPluginInterface.hpp>
 
@@ -18,6 +19,7 @@ namespace iscore
 
 	using CommandList = std::vector<CustomCommand*>;
 	using PanelList = std::vector<Panel*>;
+	using DocumentPanelList = std::vector<DocumentPanel*>;
 	using SettingsList = std::vector<SettingsGroup*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
@@ -51,6 +53,7 @@ namespace iscore
 			ProcessList  m_processList;
 			CommandList  m_commandList;
 			PanelList    m_panelList;
+			DocumentPanelList m_documentPanelList;
 			SettingsList m_settingsList;
 	};
 }

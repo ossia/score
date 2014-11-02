@@ -1,15 +1,15 @@
 #pragma once
-#include <interface/panels/PanelModel.hpp>
+#include <interface/docpanel/DocumentPanelModel.hpp>
 
-class ScenarioCentralPanelModel  : public iscore::PanelModel
+class ScenarioCentralPanelModel  : public iscore::DocumentPanelModel
 {
 	public:
 		ScenarioCentralPanelModel():
-			iscore::PanelModel{nullptr}
+			iscore::DocumentPanelModel{nullptr}
 		{
 			
 		}
 		virtual ~ScenarioCentralPanelModel() = default; 
 
-		virtual void setPresenter(iscore::PanelPresenter* presenter) override;
+		virtual void setPresenter(iscore::DocumentPanelPresenter* presenter) override;
 };

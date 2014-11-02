@@ -81,20 +81,33 @@ iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
 
 QStringList SimpleProcessPlugin::panel_list() const
 {
-	return {MAIN_PANEL_NAME, SECONDARY_PANEL_NAME};
+	return {SECONDARY_PANEL_NAME};
 }
 
 iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
 {
-	if(name == QString(MAIN_PANEL_NAME))
-	{
-		return new ScenarioCentralPanel;
-	}
-	else if(name == QString(SECONDARY_PANEL_NAME))
+	if(name == QString(SECONDARY_PANEL_NAME))
 	{
 		return new ScenarioPanel;
 	}
 	
 	return nullptr;
 }
+
+
+QStringList SimpleProcessPlugin::document_list() const
+{
+	return {MAIN_PANEL_NAME};
+}
+
+iscore::DocumentPanel*SimpleProcessPlugin::document_make(QString name)
+{
+	if(name == QString(MAIN_PANEL_NAME))
+	{
+		return new ScenarioCentralPanel;
+	}
+	
+	return nullptr;
+}
+
 

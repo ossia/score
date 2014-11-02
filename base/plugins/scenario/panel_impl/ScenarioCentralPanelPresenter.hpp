@@ -1,11 +1,11 @@
 #pragma once
-#include <interface/panels/Panel.hpp>
+#include <interface/docpanel/DocumentPanelPresenter.hpp>
 
-class ScenarioCentralPanelPresenter : public iscore::PanelPresenter
+class ScenarioCentralPanelPresenter : public iscore::DocumentPanelPresenter
 {
 		Q_OBJECT
 	public:
 		
-		using iscore::PanelPresenter::PanelPresenter;
+		using iscore::DocumentPanelPresenter::DocumentPanelPresenter;
 		virtual ~ScenarioCentralPanelPresenter() = default;
 };

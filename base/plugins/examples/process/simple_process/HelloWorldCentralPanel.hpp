@@ -1,10 +1,12 @@
 #pragma once
-#include <interface/panels/BasePanel.hpp>
+#include <interface/docpanel/DocumentPanel.hpp>
 
-class HelloWorldCentralPanel :  public iscore::BasePanel
+class HelloWorldCentralPanel :  public iscore::DocumentPanel
 {
 	public:
-		virtual iscore::PanelView* makeView() override;
-		virtual iscore::PanelPresenter* makePresenter(iscore::Presenter* parent_presenter, iscore::PanelModel* model, iscore::PanelView* view) override;
-		virtual iscore::PanelModel* makeModel() override;
+		virtual iscore::DocumentPanelView* makeView() override;
+		virtual iscore::DocumentPanelPresenter* makePresenter(iscore::DocumentPresenter* parent_presenter, 
+															  iscore::DocumentPanelModel* model, 
+															  iscore::DocumentPanelView* view) override;
+		virtual iscore::DocumentPanelModel* makeModel() override;
 };

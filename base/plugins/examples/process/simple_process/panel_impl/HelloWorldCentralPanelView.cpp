@@ -6,12 +6,12 @@
 using namespace iscore;
 
 HelloWorldCentralPanelView::HelloWorldCentralPanelView():
-	iscore::PanelView{nullptr}
+	iscore::DocumentPanelView{nullptr}
 {
 
 }
 
-void HelloWorldCentralPanelView::setPresenter(PanelPresenter* presenter)
+void HelloWorldCentralPanelView::setPresenter(DocumentPanelPresenter* presenter)
 {
 	m_presenter = static_cast<HelloWorldCentralPanelPresenter*>(presenter);
 }

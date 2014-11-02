@@ -75,15 +75,25 @@ QStringList SimpleProcessPlugin::panel_list() const
 
 iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
 {
+	if(name == QString(SECONDARY_PANEL_NAME))
+	{
+		return new HelloWorldPanel;
+	}
+}
+
+
+QStringList SimpleProcessPlugin::document_list() const
+{
+	return {MAIN_PANEL_NAME};
+}
+
+iscore::DocumentPanel*SimpleProcessPlugin::document_make(QString name)
+{
 	if(name == QString(MAIN_PANEL_NAME))
 	{
 		return new HelloWorldCentralPanel;
 	}
-	else if(name == QString(SECONDARY_PANEL_NAME))
-	{
-		return new HelloWorldPanel;
-	}
-
+	
 	return nullptr;
 }
 

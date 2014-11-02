@@ -1,11 +1,11 @@
 #pragma once
-#include <interface/panels/Panel.hpp>
+#include <interface/docpanel/DocumentPanelPresenter.hpp>
 
-class HelloWorldCentralPanelPresenter : public iscore::PanelPresenter
+class HelloWorldCentralPanelPresenter : public iscore::DocumentPanelPresenter
 {
 		Q_OBJECT
 	public:
 		
-		using iscore::PanelPresenter::PanelPresenter;
+		using iscore::DocumentPanelPresenter::DocumentPanelPresenter;
 		virtual ~HelloWorldCentralPanelPresenter() = default;
 };

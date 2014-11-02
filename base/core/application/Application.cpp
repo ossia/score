@@ -56,11 +56,13 @@ void Application::loadPluginData()
 
 	for(auto& pnl : m_pluginManager.m_panelList)
 		m_presenter->addPanel(pnl);
+	
+	// TODO permettre le choix en ajoutant chaque type de document dans "Nouveau ->" ?
+	m_presenter->setDocumentPanel(m_pluginManager.m_documentPanelList.front());
 }
 
 void Application::doConnections()
 {
-	// Trouver toutes les connections qui peuvent concerner ce "child"
 	for(auto& a : m_pluginManager.m_autoconnections)
 	{
 		auto potential_sources = a.getMatchingChildrenForSource(this);

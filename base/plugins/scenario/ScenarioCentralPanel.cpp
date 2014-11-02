@@ -6,19 +6,19 @@
 using namespace iscore;
 
 
-PanelView* ScenarioCentralPanel::makeView()
+DocumentPanelView* ScenarioCentralPanel::makeView()
 {
 	return new ScenarioCentralPanelView;
 }
 
-PanelPresenter* ScenarioCentralPanel::makePresenter(Presenter* parent_presenter, 
-													  PanelModel* model, 
-													  PanelView* view)
+DocumentPanelPresenter* ScenarioCentralPanel::makePresenter(DocumentPresenter* parent_presenter, 
+													  DocumentPanelModel* model, 
+													  DocumentPanelView* view)
 {
 	return new ScenarioCentralPanelPresenter(parent_presenter, model, view);
 }
 
-iscore::PanelModel* ScenarioCentralPanel::makeModel()
+DocumentPanelModel* ScenarioCentralPanel::makeModel()
 {
 	return new ScenarioCentralPanelModel;
 }

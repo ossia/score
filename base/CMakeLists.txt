@@ -29,6 +29,12 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/PanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/BasePanel.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelView.hpp
+
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/Process.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/ProcessModel.hpp
 
@@ -43,6 +49,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsFactoryPluginInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/AutoconnectFactoryPluginInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/DocumentPanelFactoryPluginInterface.hpp
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp

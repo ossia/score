@@ -40,6 +40,7 @@ void PluginManager::dispatch(QObject* plugin)
 	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
 	auto process_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
 	auto panel_plugin = qobject_cast<PanelFactoryPluginInterface*>(plugin);
+	auto docpanel_plugin = qobject_cast<DocumentPanelFactoryPluginInterface*>(plugin);
 
 	if(autoconn_plugin)
 	{
@@ -56,7 +57,6 @@ void PluginManager::dispatch(QObject* plugin)
 		//qDebug() << "The plugin adds menu options";
 		for(const auto& cmd : cmd_plugin->customCommand_list())
 		{
-			//m_presenter->addCustomCommand(menu_plugin->customCommand_make(cmd));
 			m_commandList.push_back(cmd_plugin->customCommand_make(cmd));
 		}
 	}
@@ -64,7 +64,6 @@ void PluginManager::dispatch(QObject* plugin)
 	if(settings_plugin)
 	{
 		//qDebug() << "The plugin has settings";
-		//m_settings->addSettingsPlugin(settings_plugin->settings_make());
 		m_settingsList.push_back(settings_plugin->settings_make());
 	}
 
@@ -82,9 +81,16 @@ void PluginManager::dispatch(QObject* plugin)
 		//qDebug() << "The plugin adds panels";
 		for(auto name : panel_plugin->panel_list())
 		{
-			//qDebug() << name;
-			//m_presenter->addPanel(panel_plugin->panel_make(name));
 			m_panelList.push_back(panel_plugin->panel_make(name));
+		}
+	}
+	
+	if(docpanel_plugin)
+	{
+		//qDebug() << "The plugin adds doc panels";
+		for(auto name : docpanel_plugin->document_list())
+		{
+			m_documentPanelList.push_back(docpanel_plugin->document_make(name));
 		}
 	}
 }

@@ -6,11 +6,12 @@ namespace iscore
 	class DocumentModel;
 	class DocumentPresenter;
 	class DocumentView;
+	class DocumentPanel;
 
 	/**
 	 * @brief The Document class is the central part of the software.
 	 *
-	 * It is akin to the opened file in Word for instance, this is the 
+	 * It is similar to the opened file in Word for instance, this is the 
 	 * data on which i-score operates, further defined by the plugins.
 	 */
 	class Document : public QObject
@@ -22,10 +23,16 @@ namespace iscore
 			DocumentView* view() { return m_view; }
 
 			void newDocument();
+			void setBasePanel(DocumentPanel* p);
 			void reset();
 
 		signals:
-			void newDocument_start(); // Faire end si nécessaire
+			/**
+			 * @brief newDocument_start
+			 *
+			 * This signal is emitted before a new document is created.
+			 */
+			void newDocument_start(); // TODO Faire end si nécessaire
 
 		private:
 			DocumentModel* m_model;

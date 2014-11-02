@@ -32,6 +32,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 
 }
 
+// TODO is this the place ?
 void Presenter::setupCommand(CustomCommand* cmd)
 {
 	cmd->setParent(this); // Ownership transfer
@@ -45,8 +46,9 @@ void Presenter::setupCommand(CustomCommand* cmd)
 	m_customCommands.push_back(cmd);
 }
 
+// TODO is this the place ?
 void Presenter::addPanel(Panel* p)
-{
+{	
 	auto model = p->makeModel();
 	auto view = p->makeView();
 	auto pres = p->makePresenter(this, model, view);
@@ -56,20 +58,15 @@ void Presenter::addPanel(Panel* p)
 
 	view->setPresenter(pres);
 	model->setPresenter(pres);
-
-	if(dynamic_cast<BasePanel*>(p))
-	{
-		auto lay = m_document->view()->layout();
-		auto widg = view->getWidget();
-		lay->addWidget(widg);
-	}
-	else
-	{
-		m_view->addPanel(view);
-	}
-
+	
+	m_view->addPanel(view);
 	m_model->addPanel(model);
 	m_panelsPresenters.insert(pres);
+}
+
+void Presenter::setDocumentPanel(DocumentPanel* docpanel)
+{
+	m_document->setBasePanel(docpanel);
 }
 
 void Presenter::newDocument()
@@ -92,9 +89,11 @@ void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteA
 		}
 	}
 }
+
 #include <QMessageBox>
 void Presenter::setupMenus()
 {
+	//TODO
 	auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
 
 	////// File //////
