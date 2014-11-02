@@ -26,6 +26,12 @@ namespace iscore
 		public slots:
 
 		signals:
+			/**
+			 * @brief insertActionIntoMenubar
+			 * 
+			 * A quick signal to add an action. TODO why not call MenuBar directly ?
+			 * Especially considering that we already know the presenter.
+			 */
 			void insertActionIntoMenubar(Action);
 
 		private:

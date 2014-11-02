@@ -42,6 +42,11 @@ namespace iscore
 			Presenter* m_parentPresenter;
 	};
 	
+	/**
+	 * @brief The Panel class
+	 * 
+	 * A side panel. Think of the palettes in photoshop.
+	 */
 	class Panel
 	{
 		public:

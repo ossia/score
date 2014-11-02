@@ -65,7 +65,7 @@ void Presenter::addPanel(Panel* p)
 
 void Presenter::setDocumentPanel(DocumentPanel* docpanel)
 {
-	m_document->setBasePanel(docpanel);
+	m_document->setDocumentPanel(docpanel);
 }
 
 void Presenter::newDocument()

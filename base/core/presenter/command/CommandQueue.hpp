@@ -19,15 +19,35 @@ namespace iscore
 			CommandQueue();
 
 		signals:
+			/**
+			 * @brief push_start Is emitted when a command was pushed on the stack
+			 * @param cmd the command that was pushed 
+			 */
 			void push_start(iscore::Command* cmd);
 
+			/**
+			 * @brief onUndo Is emitted when the user calls "Undo"
+			 */
 			void onUndo();
+			
+			/**
+			 * @brief onRedo Is emitted when the user calls "Redo"
+			 */
 			void onRedo();
 
 		public slots:
+			/**
+			 * @brief push Pushes a command on the stack
+			 * @param cmd The command
+			 * 
+			 * Calls QUndoStack::push
+			 */
 			void push(iscore::Command* cmd);
+			
+			/**
+			 * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
+			 * @param cmd The command
+			 */
 			void pushAndEmit(iscore::Command* cmd);
-
-
 	};
 }

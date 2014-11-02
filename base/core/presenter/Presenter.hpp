@@ -36,11 +36,30 @@ namespace iscore
 			void setDocumentPanel(DocumentPanel*);
 
 		signals:
+			/**
+			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
+			 */
 			void instantiatedCommand(iscore::Command*);
 
 		public slots:
+			/**
+			 * @brief newDocument Create a new document.
+			 */
 			void newDocument();
+			
+			/**
+			 * @brief applyCommand
+			 * 
+			 * Forwards a command to the undo/redo stack
+			 */
 			void applyCommand(Command*);
+			
+			/**
+			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
+			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
+			 * @param name The name of the command to generate.
+			 * @param data The data of the command.
+			 */
 			void instantiateUndoCommand(QString parent_name,
 										QString name,
 										QByteArray data);

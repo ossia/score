@@ -10,7 +10,7 @@ namespace iscore
 	 * It is used to specify paths in menus like : 
 	 * File/MyPlugin/SomeSubmenu/AnotherSubmenu
 	 * 
-	 * NOTE : very different from QAction, maybe find a better name ?
+	 * TODO : very different from QAction, maybe find a better name ?
 	 */
 	class Action
 	{

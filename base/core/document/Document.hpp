@@ -23,7 +23,7 @@ namespace iscore
 			DocumentView* view() { return m_view; }
 
 			void newDocument();
-			void setBasePanel(DocumentPanel* p);
+			void setDocumentPanel(DocumentPanel* p);
 			void reset();
 
 		signals:

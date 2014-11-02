@@ -3,6 +3,11 @@
 namespace iscore
 {
 	class DocumentPanelModel;
+	/**
+	 * @brief The DocumentModel class
+	 * 
+	 * TODO
+	 */
 	class DocumentModel
 	{
 		public:

@@ -7,6 +7,12 @@ namespace iscore
 	class DocumentPanelPresenter;
 	class DocumentPanelModel;
 	class DocumentPresenter;
+	
+	/**
+	 * @brief The DocumentPanel class
+	 * 
+	 * Similar to panel, but for the main document (like MS Word's main page)
+	 */
 	class DocumentPanel
 	{
 		public:

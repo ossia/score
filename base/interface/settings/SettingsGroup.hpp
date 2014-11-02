@@ -9,6 +9,7 @@ namespace iscore
 	class SettingsGroupModel;
 
 
+	
 	class SettingsGroupView
 	{
 		public:
@@ -31,6 +32,11 @@ namespace iscore
 
 	// This should separate the settings model and settings view (there should be no need for a presenter here?)
 	// Als, should settings be remotely transmitted so that they are the same everywhere ? (guess : yes)
+	/**
+	 * @brief The SettingsGroup class
+	 *
+	 * Reimplement in order to provide custom settings for the plug-in. 
+	 */
 	class SettingsGroup
 	{
 		public:

@@ -21,6 +21,8 @@ namespace iscore
 	 * their respective models.
 	 * Else they discard them.
 	 * 
+	 * An exemple is given in the network plugin.
+	 * 
 	 */
 	class Settings : public QObject
 	{

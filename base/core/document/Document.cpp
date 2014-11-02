@@ -28,7 +28,7 @@ void Document::newDocument()
 	emit newDocument_start();
 }
 
-void Document::setBasePanel(DocumentPanel* p)
+void Document::setDocumentPanel(DocumentPanel* p)
 {
 	auto model = p->makeModel();
 	auto view = p->makeView();

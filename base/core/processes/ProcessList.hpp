@@ -5,7 +5,11 @@
 namespace iscore
 {
 	class Process;
-	// Contains the list of the process plug-ins that can be loaded.
+	/**
+	 * @brief The ProcessList class
+	 * 
+	 * Contains the list of the process plug-ins that can be loaded.
+	 */
 	class ProcessList
 	{
 		public:

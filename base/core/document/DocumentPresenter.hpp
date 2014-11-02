@@ -14,7 +14,7 @@ namespace iscore
 	 * @brief The DocumentPresenter class holds the logic for the main document.
 	 * 
 	 * Its main use is to manage the command queue, since we use the Command pattern, 
-	 * by taking the commands from the document view and applying themé on the document model.
+	 * by taking the commands from the document view and applying them on the document model.
 	 */
 	class DocumentPresenter : public QObject
 	{

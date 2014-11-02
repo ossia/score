@@ -15,6 +15,11 @@ namespace iscore
 	{
 	};
 
+	/**
+	 * @brief The Process class
+	 *
+	 * TODO. Or to put in Scenario ?? 
+	 */
 	class Process
 	{
 		public:
