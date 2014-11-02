@@ -16,3 +16,5 @@ Makefile
 .project
 
 /i-scoreRecast.app/
+*.db
+API
