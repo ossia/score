@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(simple_process)
+project(network_plugin)
 
 # Packages
 find_package(Qt5Core 5.3 REQUIRED)
