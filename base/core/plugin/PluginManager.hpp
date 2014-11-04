@@ -31,7 +31,9 @@ namespace iscore
 			Q_OBJECT
 			friend class Application;
 		public:
-			using QObject::QObject;
+			PluginManager(QObject* parent): QObject{parent}
+			{ this->setObjectName("PluginManager"); }
+
 			~PluginManager()
 			{
 				clearPlugins();
@@ -43,10 +45,22 @@ namespace iscore
 			}
 
 			void reloadPlugins();
+			QStringList pluginsOnSystem() const
+			{
+				return m_pluginsOnSystem;
+			}
 
 		private:
+			// We need a list for all the plug-ins present on the system even if we do not load them.
+			// Else we can't blacklist / unblacklist plug-ins.
+			QStringList m_pluginsOnSystem;
+
 			void dispatch(QObject* plugin);
 			void clearPlugins();
+
+			QStringList pluginsBlacklist();
+
+			// Here, the plug-ins that are effectively loaded.
 			QMap<QString, QObject*> m_availablePlugins;
 
 			AutoconnectList m_autoconnections; // TODO try unordered_set

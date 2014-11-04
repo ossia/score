@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
+#include <QSettings>
 using namespace iscore;
 
 void PluginManager::reloadPlugins()
@@ -11,14 +12,25 @@ void PluginManager::reloadPlugins()
 	clearPlugins();
 	auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
+	auto blacklist = pluginsBlacklist();
+
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
 		if (QObject *plugin = loader.instance())
 		{
-			m_availablePlugins[fileName] = plugin;
-			plugin->setParent(this);
-			dispatch(plugin);
+			if(!blacklist.contains(fileName))
+			{
+				m_availablePlugins[fileName] = plugin;
+				plugin->setParent(this);
+				dispatch(plugin);
+			}
+			else
+			{
+				plugin->deleteLater();
+			}
+
+			m_pluginsOnSystem.push_back(fileName);
 		}
 	}
 }
@@ -29,6 +41,13 @@ void PluginManager::clearPlugins()
 		if(elt) elt->deleteLater();
 
 	m_availablePlugins.clear();
+}
+
+QStringList PluginManager::pluginsBlacklist()
+{
+	QSettings s;
+	// TODO stock the key in some generic place.
+	return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
 }
 
 
@@ -84,7 +103,7 @@ void PluginManager::dispatch(QObject* plugin)
 			m_panelList.push_back(panel_plugin->panel_make(name));
 		}
 	}
-	
+
 	if(docpanel_plugin)
 	{
 		//qDebug() << "The plugin adds doc panels";

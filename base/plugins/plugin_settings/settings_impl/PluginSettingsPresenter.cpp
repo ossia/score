@@ -3,6 +3,7 @@
 #include "PluginSettingsView.hpp"
 
 #include <core/settings/SettingsPresenter.hpp>
+#include "commands/BlacklistCommand.hpp"
 
 /*#include "commands/ClientPortChangedCommand.hpp"
 #include "commands/MasterPortChangedCommand.hpp"
@@ -31,7 +32,12 @@ PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
 }
 
 void PluginSettingsPresenter::on_accept()
-{/*
+{
+	if(m_blacklistCommand)
+		m_blacklistCommand->redo();
+
+	delete m_blacklistCommand; m_blacklistCommand = nullptr;
+	/*
 	if(m_masterportCommand)
 		m_masterportCommand->redo();
 	if(m_clientportCommand)
@@ -45,7 +51,10 @@ void PluginSettingsPresenter::on_accept()
 */}
 
 void PluginSettingsPresenter::on_reject()
-{/*
+{
+
+	delete m_blacklistCommand; m_blacklistCommand = nullptr;
+	/*
 	if(m_masterportCommand)
 		m_masterportCommand->undo();
 	if(m_clientportCommand)
@@ -124,9 +133,20 @@ PluginSettingsView*PluginSettingsPresenter::view()
 	return static_cast<PluginSettingsView*>(m_view);
 }
 
+void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
+{
+	if(!m_blacklistCommand)
+		m_blacklistCommand = cmd;
+	else
+	{
+		m_blacklistCommand->mergeWith(cmd);
+		delete cmd;
+	}
+}
+
 #include <QApplication>
 #include <QStyle>
 QIcon PluginSettingsPresenter::settingsIcon()
 {
-	return QApplication::style()->standardIcon(QStyle::SP_DriveNetIcon);
+	return QApplication::style()->standardIcon(QStyle::SP_CommandLink);
 }

@@ -16,6 +16,9 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.hpp
+
 )
 
 set(SOURCE_FILES
@@ -25,6 +28,8 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.cpp
 )
 
 add_library(pluginsettings_plugin SHARED ${HEADER_FILES} ${SOURCE_FILES})

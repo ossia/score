@@ -14,10 +14,12 @@ PluginSettingsView::PluginSettingsView(QWidget* parent):
 	QWidget{parent},
 	iscore::SettingsGroupView{}
 {
+	m_listView = new QListView{this};
+
 	auto layout = new QGridLayout(this);
 	this->setLayout(layout);
 
-	m_listView = new QListView{this};
+	layout->addWidget(m_listView);
 /*
 	m_masterPort->setMinimum(1001);
 	m_clientPort->setMinimum(1001);

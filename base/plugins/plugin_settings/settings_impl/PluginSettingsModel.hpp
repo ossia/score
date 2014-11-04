@@ -13,6 +13,8 @@ namespace iscore
 #define SETTINGS_MASTERPORT "PluginPlugin/MasterPort"
 #define SETTINGS_CLIENTNAME "PluginPlugin/ClientName"
 */
+
+class PluginSettingsPresenter;
 class PluginSettingsModel : public iscore::SettingsGroupModel
 {
 		Q_OBJECT
@@ -29,9 +31,14 @@ class PluginSettingsModel : public iscore::SettingsGroupModel
 */
 		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
 		virtual void setFirstTimeSettings() override;
+		PluginSettingsPresenter* presenter() { return m_presenter; }
+
+	public slots:
+		void on_itemChanged(QStandardItem*);
 
 	private:
 		QStandardItemModel* m_plugins{};
+		PluginSettingsPresenter* m_presenter;
 /*
 	signals:
 		void clientNameChanged();
