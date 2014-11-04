@@ -28,47 +28,39 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "MainWindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "TimeEventModel.hpp"
+#include "TimeEvent.hpp"
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+TimeEventModel::TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent)
+  : QObject(parent), _time(t), _yPosition(y), _name(name)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
+}
+
+void TimeEventModel::setname(QString arg)
+{
+  if (_name != arg) {
+      _name = arg;
+      emit nameChanged(arg);
     }
 }
-#endif
 
-int main(int argc, char *argv[])
+void TimeEventModel::settime(qreal arg)
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+  if (_time != arg) {
+      _time = arg;
+      emit timeChanged(arg);
+    }
+}
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+void TimeEventModel::setYPosition(qreal arg)
+{
+  if (_yPosition != arg) {
+      _yPosition = arg;
+      emit yPositionChanged(arg);
+    }
+}
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
-
-  //Engine();
-
-  return app.exec();
+void TimeEventModel::addTimebox(Timebox *tb)
+{
+  _TimeBoxes.append(tb);
 }

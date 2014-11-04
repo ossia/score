@@ -28,47 +28,49 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "MainWindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "TimeBoxStorey.hpp"
+#include "TimeBoxStoreyBar.hpp"
+#include "TimeBoxModel.hpp"
+#include "PixmapButton.hpp"
+#include <QDebug>
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QPainter>
+
+TimeboxStorey::TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent)
+  : QGraphicsWidget(parent), _pModel(pModel), _width(width), _height(height)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
+  setGeometry(0,0, _width, _height);
+  setMaximumHeight(_height);
+  setMinimumHeight(_height);
+  //setMaximumWidth(_width);
+  //setMinimumWidth(_width);
+
+  _pBar = new TimeboxStoreyBar(this); /// @todo doit être construit dans le presenter et envoyé dans le constructeur en tant qu'abstractStoreyBar (classe virtuelle).
+  connect(_pBar, SIGNAL(buttonClicked(bool)), this, SIGNAL(buttonClicked(bool))); /// routing the signal to Presenter
 }
-#endif
 
-int main(int argc, char *argv[])
+void TimeboxStorey::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+  Q_UNUSED(option)
+  Q_UNUSED(widget)
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+  /// Draw the bounding upper and bottom lines
+  QPen pen(Qt::SolidLine);
+  pen.setCosmetic(true);
+  painter->setPen(pen);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawLine(0,0,size().width(),0);
+  painter->drawLine(0,size().height(),size().width(),size().height());
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+  //qDebug() << "storey: " << contentsRect() << size();
+}
 
-  //Engine();
+QRectF TimeboxStorey::boundingRect() const
+{
+  return QRectF(0,0,size().width(),size().height());
+}
 
-  return app.exec();
+void TimeboxStorey::setButton(bool button)
+{
+  _pBar->getButton()->setPixmap(button);
 }

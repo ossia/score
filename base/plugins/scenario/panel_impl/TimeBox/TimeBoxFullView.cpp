@@ -28,47 +28,37 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "MainWindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "TimeBoxFullView.hpp"
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QGraphicsWidget>
+#include <QGraphicsLinearLayout>
+#include <QGraphicsView>
+#include <QGraphicsRectItem>
+#include <QDebug>
+
+#include "TimeBoxModel.hpp"
+#include "TimeBoxStorey.hpp"
+#include "GraphicsView.hpp"
+
+TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QObject *parent)
+  : QGraphicsScene(0, 0, pModel->width(), pModel->height(), parent),
+	_pModel(pModel)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
+  _pContainer = new QGraphicsWidget;
+  _pContainer->setObjectName("container"); /// Used by GraphicsView to fitInView the container
+  _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
+  _pContainer->setGeometry(0, 0, _pModel->width(), _pModel->height()); ///TODO problème de décalage des elements graphiques (by jC)
+
+  _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
+  _pLayout->setContentsMargins(0,0,0,0);
+  _pLayout->setSpacing(0);
+  _pContainer->setLayout(_pLayout);
+
+  addItem(_pContainer);
+  setBackgroundBrush(QBrush(QColor(Qt::gray), Qt::BDiagPattern)); /// Used with GraphicsView::drawBackground()
 }
-#endif
 
-int main(int argc, char *argv[])
+void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
-
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
-
-  MainBox window;
-//  MainWindow window;
-  window.show();
-
-  //Engine();
-
-  return app.exec();
+  _pLayout->addItem(pStorey);
 }

@@ -15,8 +15,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioProcess.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelModel.hpp
@@ -26,33 +26,31 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelPresenter.hpp
 
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/automationview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/graphicsview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/headerwidget.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/mainwindow.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pixmapbutton.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pluginview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenarioview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariomodel.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariopresenter.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariocontainer.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/statedebug.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/timebarwidget.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxfullview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxheader.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timebox.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxmodel.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxpresenter.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxsmallview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxstoreybar.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxstorey.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeevent.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventmodel.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventpresenter.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventview.hpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/utils.hpp
-
-
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/AutomationView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/GraphicsView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/HeaderWidget.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/MainWindow.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/PixmapButton.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/PluginView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioContainer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/StateDebug.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/TimeBarWidget.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxFullView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxHeader.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBox.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxSmallView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxStoreyBar.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxStorey.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEvent.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/Utils.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/ScenarioProcessModel.hpp
 
@@ -67,8 +65,8 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioProcess.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelModel.cpp
@@ -78,30 +76,30 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelPresenter.cpp
 
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/automationview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/graphicsview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/headerwidget.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/mainwindow.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pixmapbutton.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/pluginview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenarioview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariomodel.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariopresenter.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/scenariocontainer.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/statedebug.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/timebarwidget.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timebox.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxfullview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxheader.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxmodel.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxpresenter.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxsmallview.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxstoreybar.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeBox/timeboxstorey.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeevent.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventmodel.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventpresenter.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/timeEvent/timeeventview.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/AutomationView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/GraphicsView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/HeaderWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/MainWindow.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/PixmapButton.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/PluginView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioPresenter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioContainer/ScenarioContainer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/StateDebug.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface/TimeBarWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBox.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxFullView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxHeader.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxPresenter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxSmallView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxStoreyBar.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeBox/TimeBoxStorey.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEvent.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventModel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventPresenter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/TimeEvent/TimeEventView.cpp
 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/process_impl/ScenarioProcessModel.cpp

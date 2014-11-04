@@ -1,6 +1,6 @@
 #include "ScenarioCentralPanelView.hpp"
 #include "ScenarioCentralPanelPresenter.hpp"
-#include "mainwindow.hpp"
+#include "MainWindow.hpp"
 #include <QPushButton>
 #include <interface/docpanel/DocumentPanelView.hpp>
 #include <interface/docpanel/DocumentPanelPresenter.hpp>

@@ -28,47 +28,51 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
+
+#include "HeaderWidget.hpp"
 #include "MainWindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#include "../TimeBox/TimeBox.hpp"
+#include "../TimeBox/TimeBoxModel.hpp"
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QPixmap>
+#include <QPushButton>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QMouseEvent>
+#include <QIcon>
+#include <QPalette>
+
+HeaderWidget::HeaderWidget(QWidget *parent)
+  : QWidget(parent)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
+  /// @todo trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
+  //setStyleSheet("background-color:lightgray;");
+
+  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this); ///@todo switch entre play/pause
+
+  /// @todo ui->headerwidget et construit avant la première TimeBox -> donc currentTimebox = NULL. Pour l'instant on met un nom par défaut.
+  //MainWindow *mainwindow = qobject_cast<MainWindow*>(parent);
+  //QString name = mainwindow->currentTimebox()->model()->name(); /// We retrieve the TimeBox's name stored in the model for the first time
+  //_pTextName = new QLabel(name, this);
+  _pTextName = new QLabel(tr("Timebox1"), this);
+
+  QHBoxLayout *layout = new QHBoxLayout;
+  layout->addWidget(_pButtonPlay);
+  layout->addWidget(_pTextName);
+
+  setLayout(layout);
 }
-#endif
 
-int main(int argc, char *argv[])
+/// Slot connected to TimeBoxModel's signal nameChanged()
+void HeaderWidget::changeName(QString name)
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+  _pTextName->setText(name);
+}
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
-
-  MainBox window;
-//  MainWindow window;
-  window.show();
-
-  //Engine();
-
-  return app.exec();
+void HeaderWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  if (event->button() == Qt::LeftButton) {
+	  event->accept();
+	  emit doubleClicked();
+	}
 }

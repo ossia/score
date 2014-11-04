@@ -28,47 +28,58 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "MainWindow.hpp"
-#include "mainbox.h"
-#include <QApplication>
+#ifndef TIMEEVENTMODEL_HPP
+#define TIMEEVENTMODEL_HPP
 
-#if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+#include <QObject>
+#include <QString>
+#include <QVector>
+
+class TimeEvent;
+class Timebox;
+
+/*!
+ *  The model is linked with OSSIA API, and permits to maintain all elements used later by
+ *  the other classes of TimeEvent.
+ *
+ *  @brief Maintain the model of a TimeEvent, no graphics here.
+ *  @author Jaime Chao
+ *  @date 2014
+*/
+
+class TimeEventModel : public QObject
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
-}
-#endif
+  Q_OBJECT
 
-int main(int argc, char *argv[])
-{
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
+  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+private:
+  qreal _time, _yPosition;
+  QString _name;
 
-  MainBox window;
-//  MainWindow window;
-  window.show();
+  QVector<Timebox*> _TimeBoxes; /// Vector containing all the Timebox linked to this TimeEvent
 
-  //Engine();
+public:
+  TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
 
-  return app.exec();
-}
+signals:
+  void nameChanged(QString arg);
+  void timeChanged(qreal arg);
+  void yPositionChanged(qreal arg);
+
+public slots:
+  void setname(QString arg);
+  void settime(qreal arg);
+  void setYPosition(qreal arg);
+
+public:
+  qreal time() const {return _time;}
+  qreal yPosition() const {return _yPosition;}
+  QString name() const {return _name;}
+
+  void addTimebox(Timebox *tb);
+};
+
+#endif // TIMEEVENTMODEL_HPP
