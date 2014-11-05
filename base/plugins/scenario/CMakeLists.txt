@@ -16,12 +16,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioProcess.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelPresenter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelPresenter.hpp
@@ -66,12 +62,8 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioProcess.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelModel.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioPanelPresenter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelPresenter.cpp
