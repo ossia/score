@@ -1,7 +1,7 @@
 #pragma once
 #include "RemoteActionReceiver.hpp"
 
-#include <API/Headers/Repartition/session/ClientSession.h>
+#include <Repartition/session/ClientSession.h>
 
 class ClientSession;
 class RemoteActionReceiverClient : public RemoteActionReceiver

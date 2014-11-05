@@ -1,8 +1,8 @@
 #pragma once
 #include <interface/customcommand/CustomCommand.hpp>
 
-#include <API/Headers/Repartition/session/Session.h>
-#include <API/Headers/Repartition/session/ConnectionData.hpp>
+#include <Repartition/session/Session.h>
+#include <Repartition/session/ConnectionData.hpp>
 #include <memory>
 
 #include "remote/RemoteActionEmitter.hpp"

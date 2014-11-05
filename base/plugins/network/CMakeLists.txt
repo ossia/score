@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(network_plugin)
 
+add_subdirectory(Deps)
+add_subdirectory(Repartition)
+
 # Packages
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
@@ -16,18 +19,18 @@ endif()
 # Files & main target
 include_directories(.)
 include_directories("${CMAKE_SOURCE_DIR}")
-include_directories("${CMAKE_SOURCE_DIR}/API/Headers/Repartition")
-include_directories("${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers")
-include_directories("${CMAKE_SOURCE_DIR}/API/Deps/oscpack")
-message (${CMAKE_SOURCE_DIR}/bonjour-qt/headers)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/oscpack")
+
 set(HEADERS
-${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourserviceresolver.h
-${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourservicebrowser.h
-${CMAKE_SOURCE_DIR}/API/Deps/bonjour-qt/headers/bonjourserviceregister.h
-${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfClient.h
-${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfClientThread.h
-${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfServer.h
-${CMAKE_SOURCE_DIR}/API/Headers/Repartition/session/ZeroConfServerThread.h
+${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers/bonjourserviceresolver.h
+${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers/bonjourservicebrowser.h
+${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers/bonjourserviceregister.h
+${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ZeroConfClient.h
+${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ZeroConfClientThread.h
+${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ZeroConfServer.h
+${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ZeroConfServerThread.h
 )
 
 set(HEADER_FILES
