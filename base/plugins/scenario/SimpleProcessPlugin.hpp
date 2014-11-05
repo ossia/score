@@ -3,7 +3,6 @@
 #include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
 #include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
 #include <interface/plugins/ProcessFactoryPluginInterface.hpp>
-#include <interface/plugins/PanelFactoryPluginInterface.hpp>
 #include <interface/plugins/SettingsFactoryPluginInterface.hpp>
 #include <interface/plugins/DocumentPanelFactoryPluginInterface.hpp>
 #include <QObject>
@@ -14,7 +13,6 @@ class SimpleProcessPlugin :
 		public iscore::AutoconnectFactoryPluginInterface,
 		public iscore::CustomCommandFactoryPluginInterface,
 		public iscore::ProcessFactoryPluginInterface,
-		public iscore::PanelFactoryPluginInterface,
 		public iscore::SettingsFactoryPluginInterface,
 		public iscore::DocumentPanelFactoryPluginInterface
 {
@@ -23,7 +21,6 @@ class SimpleProcessPlugin :
 		Q_INTERFACES(iscore::AutoconnectFactoryPluginInterface
 					 iscore::CustomCommandFactoryPluginInterface
 					 iscore::ProcessFactoryPluginInterface
-					 iscore::PanelFactoryPluginInterface
 					 iscore::SettingsFactoryPluginInterface
 					 iscore::DocumentPanelFactoryPluginInterface)
 
@@ -45,10 +42,6 @@ class SimpleProcessPlugin :
 		virtual QStringList customCommand_list() const override;
 		virtual iscore::CustomCommand* customCommand_make(QString) override;
 
-		// Panel interface
-		virtual QStringList panel_list() const override;
-		virtual iscore::Panel* panel_make(QString name) override;
-		
 		// Docpanel interface
 		virtual QStringList document_list() const override;
 		virtual iscore::DocumentPanel* document_make(QString name) override;

@@ -1,7 +1,6 @@
 #include <SimpleProcessPlugin.hpp>
 #include <ScenarioProcess.hpp>
 #include <ScenarioCommand.hpp>
-#include <ScenarioPanel.hpp>
 #include <ScenarioCentralPanel.hpp>
 #include <settings_impl/ScenarioSettings.hpp>
 
@@ -15,7 +14,6 @@ SimpleProcessPlugin::SimpleProcessPlugin():
 	iscore::AutoconnectFactoryPluginInterface{},
 	iscore::CustomCommandFactoryPluginInterface{},
 	iscore::ProcessFactoryPluginInterface{},
-	iscore::PanelFactoryPluginInterface{},
 	iscore::SettingsFactoryPluginInterface{}
 {
 	setObjectName("SimpleProcessPlugin");
@@ -34,10 +32,10 @@ QList<iscore::Autoconnect> SimpleProcessPlugin::autoconnect_list() const
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(increment())}},
 
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioCommand", SIGNAL(decrementProcesses())},
-             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(decrement())}},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioProcessModel", SLOT(decrement())}},
 
-            {{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioPresenter", SIGNAL(addTimeEvent(QPointF))},
-             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioCommand", SLOT(on_createTimeEvent(QPointF))}}
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioPresenter", SIGNAL(addTimeEvent(QPointF))},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "ScenarioCommand", SLOT(on_createTimeEvent(QPointF))}}
    };
 }
 
@@ -75,25 +73,9 @@ iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
 	{
 		return new ScenarioCommand;
 	}
-	
+
 	return nullptr;
 }
-
-QStringList SimpleProcessPlugin::panel_list() const
-{
-	return {SECONDARY_PANEL_NAME};
-}
-
-iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
-{
-	if(name == QString(SECONDARY_PANEL_NAME))
-	{
-		return new ScenarioPanel;
-	}
-	
-	return nullptr;
-}
-
 
 QStringList SimpleProcessPlugin::document_list() const
 {
@@ -106,7 +88,7 @@ iscore::DocumentPanel*SimpleProcessPlugin::document_make(QString name)
 	{
 		return new ScenarioCentralPanel;
 	}
-	
+
 	return nullptr;
 }
 

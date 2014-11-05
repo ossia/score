@@ -1,5 +1,5 @@
 #include "RemoteActionEmitterMaster.hpp"
-#include <API/Headers/Repartition/session/MasterSession.h>
+#include <Repartition/session/MasterSession.h>
 #include <core/presenter/command/Command.hpp>
 #include <QDebug>
 

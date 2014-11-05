@@ -30,7 +30,7 @@
 #include <bonjourservicebrowser.h>
 #include <bonjourserviceresolver.h>
 
-#include <API/Headers/Repartition/session/ConnectionData.hpp>
+#include <Repartition/session/ConnectionData.hpp>
 
 
 class QDialogButtonBox;

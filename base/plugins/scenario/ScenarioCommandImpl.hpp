@@ -5,22 +5,27 @@
 #include <QPointF>
 #include <core/presenter/command/Command.hpp>
 
+/**
+ * @brief The ScenarioCommandImpl class
+ *
+ * @todo{Rename as ScenarioCreateEventCommand}
+ */
 class ScenarioCommandImpl : public iscore::Command
 {
-    public:
-        ScenarioCommandImpl(QPointF pos);
+	public:
+		ScenarioCommandImpl(QPointF pos);
 
-        virtual QByteArray serialize() override;
+		virtual QByteArray serialize() override;
 
-        void deserialize(QByteArray arr) override;
+		void deserialize(QByteArray arr) override;
 
-        virtual void undo() override;
+		virtual void undo() override;
 
-        virtual void redo() override;
+		virtual void redo() override;
 
-    private:
-        QString m_parentName;
-        QPointF m_position;
+	private:
+		QString m_parentName;
+		QPointF m_position;
 };
 
 #endif // SCENARIOCOMMANDIMPL_H

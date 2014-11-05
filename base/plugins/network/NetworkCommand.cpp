@@ -1,8 +1,8 @@
 #include "NetworkCommand.hpp"
 #include <core/presenter/Presenter.hpp>
 
-#include <API/Headers/Repartition/session/MasterSession.h>
-#include <API/Headers/Repartition/session/ClientSessionBuilder.h>
+#include <Repartition/session/MasterSession.h>
+#include <Repartition/session/ClientSessionBuilder.h>
 
 #include "remote/RemoteActionEmitterMaster.hpp"
 #include "remote/RemoteActionEmitterClient.hpp"
