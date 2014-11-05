@@ -6,6 +6,13 @@ find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 find_package(Qt5Network 5.3 REQUIRED)
 
+find_package(Boost) 
+
+if(NOT Boost_FOUND)
+	message("The network plugin requires boost to build")
+	return()
+endif()
+
 # Files & main target
 include_directories(.)
 include_directories("${CMAKE_SOURCE_DIR}")
