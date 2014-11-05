@@ -44,7 +44,12 @@ namespace iscore
 			 */
 			void addAutoconnection(Autoconnect);
 
-		private:
+        private:
+
+            Application(const Application &);
+            Application &operator=(const Application &);
+
+
 			void loadPluginData();
 			
 			void doConnections();

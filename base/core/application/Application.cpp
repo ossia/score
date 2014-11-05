@@ -4,7 +4,10 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <core/application/ChildEventFilter.hpp>
+#include <core/utilsCPP11.hpp>
 using namespace iscore;
+
+
 
 Application::Application(int& argc, char** argv):
 	 QNamedObject{nullptr, "Application"}

@@ -9,6 +9,8 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 include_directories(.)
 include_directories("${CMAKE_SOURCE_DIR}")
 
+
+
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp
 
@@ -36,3 +38,6 @@ add_library(pluginsettings_plugin SHARED ${HEADER_FILES} ${SOURCE_FILES})
 install(TARGETS pluginsettings_plugin LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets)
+if(APPLE)
+     SET_TARGET_PROPERTIES(pluginsettings_plugin PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+endif()

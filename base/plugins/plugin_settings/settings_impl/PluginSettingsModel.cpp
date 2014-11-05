@@ -105,5 +105,5 @@ void PluginSettingsModel::on_itemChanged(QStandardItem* it)
 	auto name = it->text();
 	qDebug() << name << it->checkState();
 
-	presenter()->setBlacklistCommand(new BlacklistCommand{it->text(), it->checkState()});
+	presenter()->setBlacklistCommand(new BlacklistCommand(it->text(), it->checkState()));
 }

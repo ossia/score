@@ -1,5 +1,6 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <interface/docpanel/DocumentPanelPresenter.hpp>
+#include <core/utilsCPP11.hpp>
 
 
 using namespace iscore;

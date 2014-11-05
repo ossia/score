@@ -8,6 +8,10 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 # Files & main target
 include_directories(.)
 
+#if(APPLE)
+#	set(LDFLAGS "${LDFLAGS} -undefined dynamic_lookup")
+#endif()
+
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HelloWorldProcess.hpp
@@ -46,3 +50,6 @@ add_library(simple_process SHARED ${HEADER_FILES} ${SOURCE_FILES})
 install(TARGETS simple_process LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(simple_process Qt5::Core Qt5::Widgets)
+if(APPLE)
+     SET_TARGET_PROPERTIES(simple_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+endif()

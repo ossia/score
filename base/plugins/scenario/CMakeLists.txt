@@ -115,3 +115,6 @@ add_library(example_process SHARED ${HEADER_FILES} ${SOURCE_FILES})
 install(TARGETS example_process LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(example_process Qt5::Core Qt5::Widgets)
+if(APPLE)
+     SET_TARGET_PROPERTIES(example_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+endif()

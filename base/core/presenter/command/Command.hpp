@@ -7,7 +7,6 @@
 
 namespace iscore
 {
-	using namespace std::chrono;
 	/**
 	 * @brief The Command class
 	 * 
@@ -54,11 +53,11 @@ namespace iscore
 			const Origin m_origin;
 			
 			//TODO check if this is UTC
-			milliseconds m_timestamp
+            std::chrono::milliseconds m_timestamp
 			{
-				duration_cast<milliseconds>
+                std::chrono::duration_cast<std::chrono::milliseconds>
 				(
-					high_resolution_clock::now().time_since_epoch()
+                    std::chrono::high_resolution_clock::now().time_since_epoch()
 				)
 			};
 	};
