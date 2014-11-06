@@ -2,11 +2,16 @@
 
   * i-score requirements : Qt5, CMake 3.0
   * Network plug-in requirements : boost, an implementation of dns_sd.h (ex. : libavahi-compat-libdnssd-dev on Debian/Ubuntu).
+
+### Build : 
   
-    $ cmake path/to/i-score
+    $ mkdir -p build_folder
+    $ cd build_folder
+    $ cmake path/to/i-score/repo
     $ make install
     
-    And run : 
+### And run : 
+
     $ ./iscore_core
 
 # DOCUMENTATION
@@ -18,5 +23,4 @@ To generate documentation :
     $ cd Doxygen
     $ doxygen
     
-    And open : 
-    `Doxygen/html/index.html`
+And open : `Doxygen/html/index.html`
