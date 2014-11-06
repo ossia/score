@@ -36,7 +36,7 @@ namespace iscore
 
 		private:
 			DocumentModel* m_model;
-			DocumentPresenter* m_presenter;
-			DocumentView* m_view;
+            DocumentView* m_view;
+            DocumentPresenter* m_presenter;
 	};
 }
