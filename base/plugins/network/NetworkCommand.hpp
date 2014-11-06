@@ -1,4 +1,5 @@
 #pragma once
+#include <core/utilsCPP11.hpp>
 #include <interface/customcommand/CustomCommand.hpp>
 
 #include <Repartition/session/Session.h>
