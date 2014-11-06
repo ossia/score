@@ -79,6 +79,7 @@ iscore::Panel* SimpleProcessPlugin::panel_make(QString name)
 	{
 		return new HelloWorldPanel;
 	}
+    return nullptr;
 }
 
 

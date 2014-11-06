@@ -27,7 +27,7 @@ namespace iscore
 			virtual void populateToolbars() = 0;
 			virtual void setPresenter(Presenter*) = 0;
 
-			virtual Command* instantiateUndoCommand(QString name, QByteArray data) {}
+            virtual Command* instantiateUndoCommand(QString name, QByteArray data) { return nullptr; }
 
 		signals:
 			void submitCommand(Command*);
