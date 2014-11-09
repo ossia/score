@@ -4,12 +4,12 @@
 #include <core/presenter/command/Command.hpp>
 #include <core/view/View.hpp>
 #include <core/presenter/MenubarManager.hpp>
-#include <interface/customcommand/MenuInterface.hpp>
+#include <interface/plugincontrol/MenuInterface.hpp>
 #include <QApplication>
 
 using namespace iscore;
 ScenarioCommand::ScenarioCommand():
-    CustomCommand{}
+    PluginControlInterface{}
 {
 	this->setObjectName("ScenarioCommand");
 }

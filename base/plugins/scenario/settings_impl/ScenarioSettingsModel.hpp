@@ -1,13 +1,13 @@
 #pragma once
-#include <interface/settings/SettingsGroupModel.hpp>
+#include <interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QString>
 #include <QObject>
 
 namespace iscore
 {
-	class SettingsGroupPresenter;
+	class SettingsDelegatePresenterInterface;
 }
-class ScenarioSettingsModel : public iscore::SettingsGroupModel
+class ScenarioSettingsModel : public iscore::SettingsDelegateModelInterface
 {
 		Q_OBJECT
 	public:
@@ -16,7 +16,7 @@ class ScenarioSettingsModel : public iscore::SettingsGroupModel
 		void setText(QString txt);
 		QString getText() const;
 
-		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
+		virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) override;
 
 	signals:
 		void textChanged();

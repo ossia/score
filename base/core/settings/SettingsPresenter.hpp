@@ -2,7 +2,7 @@
 #include <set>
 #include <memory>
 #include <queue>
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QDebug>
 
@@ -16,7 +16,7 @@ namespace iscore
 		public:
 			SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent);
 
-			void addSettingsPresenter(SettingsGroupPresenter* presenter);
+			void addSettingsPresenter(SettingsDelegatePresenterInterface* presenter);
 
 		private slots:
 			void on_accept();
@@ -26,6 +26,6 @@ namespace iscore
 			SettingsModel* m_model;
 			SettingsView* m_view;
 
-			std::set<SettingsGroupPresenter*> m_pluginPresenters;
+			std::set<SettingsDelegatePresenterInterface*> m_pluginPresenters;
 	};
 }

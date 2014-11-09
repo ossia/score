@@ -3,10 +3,10 @@
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
-#include <interface/docpanel/DocumentPanel.hpp>
-#include <interface/docpanel/DocumentPanelModel.hpp>
-#include <interface/docpanel/DocumentPanelView.hpp>
-#include <interface/docpanel/DocumentPanelPresenter.hpp>
+#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 #include <QDebug>
 #include <QLayout>
@@ -28,7 +28,7 @@ void Document::newDocument()
 	emit newDocument_start();
 }
 
-void Document::setDocumentPanel(DocumentPanel* p)
+void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
 {
 	auto model = p->makeModel();
 	auto view = p->makeView();
@@ -36,15 +36,15 @@ void Document::setDocumentPanel(DocumentPanel* p)
 
 	view->setPresenter(pres);
 	model->setPresenter(pres);
-	
+
 	// View setup
 	auto lay = m_view->layout();
 	auto widg = view->getWidget();
 	lay->addWidget(widg);
-	
+
 	// Model setup
 	m_model->setModel(model);
-	
+
 	// Presenter setup
 	m_presenter->setPresenter(pres);
 }

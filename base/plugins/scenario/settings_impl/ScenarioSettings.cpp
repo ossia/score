@@ -10,14 +10,14 @@ ScenarioSettings::ScenarioSettings()
 {
 }
 
-SettingsGroupView* ScenarioSettings::makeView()
+SettingsDelegateViewInterface* ScenarioSettings::makeView()
 {
 	return new ScenarioSettingsView(nullptr);
 }
 
-SettingsGroupPresenter* ScenarioSettings::makePresenter(SettingsPresenter* p,
-														  SettingsGroupModel* m,
-														  SettingsGroupView* v)
+SettingsDelegatePresenterInterface* ScenarioSettings::makePresenter(SettingsPresenter* p,
+														  SettingsDelegateModelInterface* m,
+														  SettingsDelegateViewInterface* v)
 {
 	auto pres = new ScenarioSettingsPresenter(p, m, v);
 	m->setPresenter(pres);
@@ -26,7 +26,7 @@ SettingsGroupPresenter* ScenarioSettings::makePresenter(SettingsPresenter* p,
 	return pres;
 }
 
-SettingsGroupModel* ScenarioSettings::makeModel()
+SettingsDelegateModelInterface* ScenarioSettings::makeModel()
 {
 	return new ScenarioSettingsModel();
 }

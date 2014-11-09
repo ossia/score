@@ -5,13 +5,11 @@
 
 using namespace iscore;
 
-ScenarioSettingsView::ScenarioSettingsView(QWidget* parent):
-	QWidget{parent},
-	iscore::SettingsGroupView{},
-	m_lineEdit{new QLineEdit(this)}
+ScenarioSettingsView::ScenarioSettingsView(QObject* parent):
+	iscore::SettingsDelegateViewInterface{parent}
 {
-	auto layout = new QHBoxLayout(this);
-	this->setLayout(layout);
+	auto layout = new QHBoxLayout(m_widget);
+	m_widget->setLayout(layout);
 
 	layout->addWidget(m_lineEdit);
 
@@ -27,7 +25,7 @@ void ScenarioSettingsView::setText(QString text)
 
 QWidget* ScenarioSettingsView::getWidget()
 {
-	return static_cast<QWidget*>(this);
+	return m_widget;
 }
 
 void ScenarioSettingsView::on_textChanged()

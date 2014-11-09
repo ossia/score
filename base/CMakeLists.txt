@@ -22,33 +22,39 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/customcommand/CustomCommand.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/customcommand/MenuInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/PluginControlInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/Panel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/panels/PanelModel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/panel/PanelFactoryInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/panel/PanelModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/panel/PanelViewInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/panel/PanelPresenterInterface.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelPresenter.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/docpanel/DocumentPanelView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateFactoryInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegatePresenterInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateViewInterface.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessFactoryInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessPresenterInterface.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/Process.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/processes/ProcessModel.hpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroup.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/settings/SettingsGroupPresenter.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateViewInterface.hpp
 
 ### interface/plugins ###
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryPluginInterface.hpp
+#todo
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/LibraryElementFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/CustomCommandFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/AutoconnectFactoryPluginInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/DocumentPanelFactoryPluginInterface.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PluginControlInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/Autoconnect_QtInterface.hpp
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
@@ -88,7 +94,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/customcommand/MenuInterface.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp

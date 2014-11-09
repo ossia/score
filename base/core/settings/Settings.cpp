@@ -15,7 +15,7 @@ Settings::Settings(QObject* parent):
 {
 }
 
-void Settings::setupSettingsPlugin(SettingsGroup* plugin)
+void Settings::setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin)
 {
 	auto model = plugin->makeModel();
 	auto view = plugin->makeView();

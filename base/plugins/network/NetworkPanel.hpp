@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/panels/Panel.hpp>
+#include <interface/panel/PanelFactoryInterface.hpp>
 
 class NetworkPanel : public iscore::Panel
 {

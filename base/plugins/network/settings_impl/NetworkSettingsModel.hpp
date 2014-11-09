@@ -1,18 +1,18 @@
 #pragma once
-#include <interface/settings/SettingsGroupModel.hpp>
+#include <interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QString>
 #include <QObject>
 
 namespace iscore
 {
-	class SettingsGroupPresenter;
+	class SettingsDelegatePresenterInterface;
 }
 // TODO find a better way...
 #define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
 #define SETTINGS_MASTERPORT "NetworkPlugin/MasterPort"
 #define SETTINGS_CLIENTNAME "NetworkPlugin/ClientName"
 
-class NetworkSettingsModel : public iscore::SettingsGroupModel
+class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
 {
 		Q_OBJECT
 	public:
@@ -25,7 +25,7 @@ class NetworkSettingsModel : public iscore::SettingsGroupModel
 		void setMasterPort(int val);
 		int getMasterPort() const;
 
-		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
+		virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) override;
 		virtual void setFirstTimeSettings() override;
 
 	signals:

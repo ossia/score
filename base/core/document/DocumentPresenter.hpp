@@ -8,7 +8,7 @@ namespace iscore
 {
 	class DocumentModel;
 	class DocumentView;
-	class DocumentPanelPresenter;
+	class DocumentDelegatePresenterInterface;
 	
 	/**
 	 * @brief The DocumentPresenter class holds the logic for the main document.
@@ -25,13 +25,13 @@ namespace iscore
 
 			void newDocument();
 			void reset();
-			void setPresenter(DocumentPanelPresenter* pres);
+			void setPresenter(DocumentDelegatePresenterInterface* pres);
 
 		private slots:
 			void applyCommand(Command*);
 
 		private:
 			std::unique_ptr<CommandQueue> m_commandQueue;
-			DocumentPanelPresenter* m_presenter{};
+			DocumentDelegatePresenterInterface* m_presenter{};
 	};
 }

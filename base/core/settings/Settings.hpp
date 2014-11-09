@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <set>
 
 #include <core/settings/SettingsModel.hpp>
@@ -29,7 +29,7 @@ namespace iscore
 		public:
 			Settings(QObject* parent);
 
-			void setupSettingsPlugin(SettingsGroup* plugin);
+			void setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin);
 			SettingsView*  view()  { return m_settingsView;  }
 			SettingsModel* model() { return m_settingsModel; }
 

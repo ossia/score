@@ -6,12 +6,12 @@
 using namespace iscore;
 
 HelloWorldPanelView::HelloWorldPanelView():
-	iscore::PanelView{nullptr}
+	iscore::PanelViewInterface{nullptr}
 {
 	this->setObjectName("Hello Small Panel");
 }
 
-void HelloWorldPanelView::setPresenter(PanelPresenter* presenter)
+void HelloWorldPanelView::setPresenter(PanelPresenterInterface* presenter)
 {
 	m_presenter = static_cast<HelloWorldPanelPresenter*>(presenter);
 }

@@ -1,15 +1,15 @@
 #pragma once
-#include <interface/settings/SettingsGroupPresenter.hpp>
+#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QObject>
 
-class ScenarioSettingsPresenter : public iscore::SettingsGroupPresenter
+class ScenarioSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
 		Q_OBJECT
 	public:
 		ScenarioSettingsPresenter(iscore::SettingsPresenter* parent,
-									iscore::SettingsGroupModel* model,
-									iscore::SettingsGroupView* view);
+									iscore::SettingsDelegateModelInterface* model,
+									iscore::SettingsDelegateViewInterface* view);
 
 		void setText(QString text);
 

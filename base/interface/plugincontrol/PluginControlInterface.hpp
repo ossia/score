@@ -10,11 +10,11 @@ namespace iscore
 	 * @brief The CustomCommand class
 	 *
 	 * The name is bad. This is not related to the Command class.
-	 * 
+	 *
 	 * TODO: refactor. Too much responsibilities for such a little thing.
-	 * 
+	 *
 	 */
-	class CustomCommand : public QObject
+	class PluginControlInterface : public QObject
 	{
 			Q_OBJECT
 			// Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
@@ -22,12 +22,12 @@ namespace iscore
 			// Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
 			// Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 		public:
-			virtual ~CustomCommand() = default;
+			virtual ~PluginControlInterface() = default;
 			virtual void populateMenus(iscore::MenubarManager*) = 0;
 			virtual void populateToolbars() = 0;
 			virtual void setPresenter(Presenter*) = 0;
 
-            virtual Command* instantiateUndoCommand(QString name, QByteArray data) { return nullptr; }
+			virtual Command* instantiateUndoCommand(QString name, QByteArray data) { return nullptr; }
 
 		signals:
 			void submitCommand(Command*);

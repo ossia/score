@@ -6,19 +6,19 @@
 using namespace iscore;
 
 
-DocumentPanelView* HelloWorldCentralPanel::makeView()
+DocumentDelegateViewInterface* HelloWorldCentralPanel::makeView()
 {
 	return new HelloWorldCentralPanelView;
 }
 
-DocumentPanelPresenter* HelloWorldCentralPanel::makePresenter(DocumentPresenter* parent_presenter, 
-													  DocumentPanelModel* model, 
-													  DocumentPanelView* view)
+DocumentDelegatePresenterInterface* HelloWorldCentralPanel::makePresenter(DocumentPresenter* parent_presenter, 
+													  DocumentDelegateModelInterface* model, 
+													  DocumentDelegateViewInterface* view)
 {
 	return new HelloWorldCentralPanelPresenter(parent_presenter, model, view);
 }
 
-DocumentPanelModel* HelloWorldCentralPanel::makeModel()
+DocumentDelegateModelInterface* HelloWorldCentralPanel::makeModel()
 {
 	return new HelloWorldCentralPanelModel;
 }

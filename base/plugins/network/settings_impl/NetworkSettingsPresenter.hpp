@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/settings/SettingsGroupPresenter.hpp>
+#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <QObject>
 
 class NetworkSettingsModel;
@@ -7,13 +7,13 @@ class NetworkSettingsView;
 class MasterPortChangedCommand;
 class ClientPortChangedCommand;
 class ClientNameChangedCommand;
-class NetworkSettingsPresenter : public iscore::SettingsGroupPresenter
+class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
 		Q_OBJECT
 	public:
 		NetworkSettingsPresenter(iscore::SettingsPresenter* parent,
-								 iscore::SettingsGroupModel* model,
-								 iscore::SettingsGroupView* view);
+								 iscore::SettingsDelegateModelInterface* model,
+								 iscore::SettingsDelegateViewInterface* view);
 
 		virtual void on_accept() override;
 		virtual void on_reject() override;

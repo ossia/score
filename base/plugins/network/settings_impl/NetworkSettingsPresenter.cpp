@@ -11,9 +11,9 @@
 using namespace iscore;
 
 NetworkSettingsPresenter::NetworkSettingsPresenter(SettingsPresenter* parent,
-												   SettingsGroupModel* model,
-												   SettingsGroupView* view):
-	SettingsGroupPresenter{parent, model, view}
+												   SettingsDelegateModelInterface* model,
+												   SettingsDelegateViewInterface* view):
+	SettingsDelegatePresenterInterface{parent, model, view}
 {
 	auto net_model = static_cast<NetworkSettingsModel*>(model);
 	connect(net_model, SIGNAL(masterPortChanged()),

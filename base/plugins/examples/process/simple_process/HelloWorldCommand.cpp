@@ -3,7 +3,7 @@
 #include <core/presenter/command/Command.hpp>
 #include <core/view/View.hpp>
 #include <core/presenter/MenubarManager.hpp>
-#include <interface/customcommand/MenuInterface.hpp>
+#include <interface/plugincontrol/MenuInterface.hpp>
 #include <QApplication>
 
 
@@ -69,7 +69,7 @@ class HelloWorldIncrementCommandImpl : public Command
 
 
 HelloWorldCommand::HelloWorldCommand():
-	CustomCommand{},
+	PluginControlInterface{},
 	m_action_HelloWorldigate{new QAction("Action test!", this)}
 {
 	this->setObjectName("HelloWorldCommand");

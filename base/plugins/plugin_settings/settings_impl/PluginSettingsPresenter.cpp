@@ -12,9 +12,9 @@
 using namespace iscore;
 
 PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
-												 SettingsGroupModel* model,
-												 SettingsGroupView* view):
-	SettingsGroupPresenter{parent, model, view}
+												 SettingsDelegateModelInterface* model,
+												 SettingsDelegateViewInterface* view):
+	SettingsDelegatePresenterInterface{parent, model, view}
 {
 	auto ps_model = static_cast<PluginSettingsModel*>(model);
 	auto ps_view  = static_cast<PluginSettingsView*>(view);

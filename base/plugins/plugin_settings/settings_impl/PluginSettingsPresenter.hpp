@@ -1,17 +1,17 @@
 #pragma once
-#include <interface/settings/SettingsGroupPresenter.hpp>
+#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <QObject>
 
 class PluginSettingsModel;
 class PluginSettingsView;
 class BlacklistCommand;
-class PluginSettingsPresenter : public iscore::SettingsGroupPresenter
+class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
 {
 		Q_OBJECT
 	public:
 		PluginSettingsPresenter(iscore::SettingsPresenter* parent,
-								iscore::SettingsGroupModel* model,
-								iscore::SettingsGroupView* view);
+								iscore::SettingsDelegateModelInterface* model,
+								iscore::SettingsDelegateViewInterface* view);
 
 		virtual void on_accept() override;
 		virtual void on_reject() override;

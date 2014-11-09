@@ -1,8 +1,8 @@
 #pragma once
-#include <interface/customcommand/CustomCommand.hpp>
+#include <interface/plugincontrol/PluginControlInterface.hpp>
 #include <QAction>
 
-class ScenarioCommand : public iscore::CustomCommand
+class ScenarioCommand : public iscore::PluginControlInterface
 {
 		Q_OBJECT
 	public:

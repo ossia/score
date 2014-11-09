@@ -1,15 +1,15 @@
 #pragma once
 #include <QWidget>
 #include <QLineEdit>
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 
 class ScenarioSettingsPresenter;
-class ScenarioSettingsView : public QWidget, public iscore::SettingsGroupView
+class ScenarioSettingsView : public iscore::SettingsDelegateViewInterface
 {
 		Q_OBJECT
 	public:
-		ScenarioSettingsView(QWidget* parent);
+		ScenarioSettingsView(QObject* parent);
 
 		void setText(QString text);
 		virtual QWidget* getWidget() override;
@@ -21,10 +21,8 @@ class ScenarioSettingsView : public QWidget, public iscore::SettingsGroupView
 		void on_textChanged();
 
 	private:
-		QLineEdit* m_lineEdit; // Ownership goes to the widget parent class.
+		QWidget* m_widget{new QWidget};
+		QLineEdit* m_lineEdit{new QLineEdit{m_widget}};
 		QString m_previousText;
-
-		// SettingsGroupView interface
-	public:
 
 };

@@ -1,12 +1,12 @@
 #pragma once
-#include <interface/settings/SettingsGroupModel.hpp>
+#include <interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QStandardItemModel>
 #include <QString>
 #include <QObject>
 
 namespace iscore
 {
-	class SettingsGroupPresenter;
+	class SettingsDelegatePresenterInterface;
 }
 // TODO find a better way...
 /*#define SETTINGS_CLIENTPORT "PluginPlugin/ClientPort"
@@ -15,7 +15,7 @@ namespace iscore
 */
 
 class PluginSettingsPresenter;
-class PluginSettingsModel : public iscore::SettingsGroupModel
+class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
 {
 		Q_OBJECT
 	public:
@@ -29,7 +29,7 @@ class PluginSettingsModel : public iscore::SettingsGroupModel
 		void setMasterPort(int val);
 		int getMasterPort() const;
 */
-		virtual void setPresenter(iscore::SettingsGroupPresenter* presenter) override;
+		virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) override;
 		virtual void setFirstTimeSettings() override;
 		PluginSettingsPresenter* presenter() { return m_presenter; }
 

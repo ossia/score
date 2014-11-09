@@ -1,6 +1,6 @@
 #pragma once
 #include <core/utilsCPP11.hpp>
-#include <interface/customcommand/CustomCommand.hpp>
+#include <interface/plugincontrol/PluginControlInterface.hpp>
 
 #include <Repartition/session/Session.h>
 #include <Repartition/session/ConnectionData.hpp>
@@ -12,7 +12,7 @@
 
 #include <core/presenter/command/Command.hpp>
 
-class NetworkCommand : public iscore::CustomCommand
+class NetworkCommand : public iscore::PluginControlInterface
 {
 		Q_OBJECT
 

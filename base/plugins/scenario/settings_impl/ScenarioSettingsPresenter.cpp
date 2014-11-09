@@ -6,9 +6,9 @@
 using namespace iscore;
 
 ScenarioSettingsPresenter::ScenarioSettingsPresenter(SettingsPresenter* parent,
-														 SettingsGroupModel* model,
-														 SettingsGroupView* view):
-	SettingsGroupPresenter{parent, model, view}
+														 SettingsDelegateModelInterface* model,
+														 SettingsDelegateViewInterface* view):
+	SettingsDelegatePresenterInterface{parent, model, view}
 {
 	this->setObjectName("Scenario plugin");
 	auto hw_view = static_cast<ScenarioSettingsView*>(view);

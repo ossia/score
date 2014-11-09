@@ -9,12 +9,11 @@
 #include <QApplication>
 using namespace iscore;
 
-NetworkSettingsView::NetworkSettingsView(QWidget* parent):
-	QWidget{parent},
-	iscore::SettingsGroupView{}
+NetworkSettingsView::NetworkSettingsView(QObject* parent):
+	iscore::SettingsDelegateViewInterface{parent}
 {
-	auto layout = new QGridLayout(this);
-	this->setLayout(layout);
+	auto layout = new QGridLayout(m_widget);
+	m_widget->setLayout(layout);
 
 	m_masterPort->setMinimum(1001);
 	m_clientPort->setMinimum(1001);
@@ -49,7 +48,7 @@ void NetworkSettingsView::setClientPort(int val)
 
 QWidget* NetworkSettingsView::getWidget()
 {
-	return static_cast<QWidget*>(this);
+	return m_widget;
 }
 
 void NetworkSettingsView::load()

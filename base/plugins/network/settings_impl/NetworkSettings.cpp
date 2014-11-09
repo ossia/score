@@ -9,14 +9,14 @@ NetworkSettings::NetworkSettings()
 {
 }
 
-SettingsGroupView* NetworkSettings::makeView()
+SettingsDelegateViewInterface* NetworkSettings::makeView()
 {
 	return new NetworkSettingsView(nullptr);
 }
 
-SettingsGroupPresenter* NetworkSettings::makePresenter(SettingsPresenter* p,
-													   SettingsGroupModel* m,
-													   SettingsGroupView* v)
+SettingsDelegatePresenterInterface* NetworkSettings::makePresenter(SettingsPresenter* p,
+													   SettingsDelegateModelInterface* m,
+													   SettingsDelegateViewInterface* v)
 {
 	auto pres = new NetworkSettingsPresenter(p, m, v);
 	m->setPresenter(pres);
@@ -28,7 +28,7 @@ SettingsGroupPresenter* NetworkSettings::makePresenter(SettingsPresenter* p,
 	return pres;
 }
 
-SettingsGroupModel* NetworkSettings::makeModel()
+SettingsDelegateModelInterface* NetworkSettings::makeModel()
 {
 	return new NetworkSettingsModel();
 }

@@ -4,7 +4,7 @@ using namespace iscore;
 
 
 HelloWorldProcessModel::HelloWorldProcessModel(unsigned int id, QObject* parent) :
-	iscore::ProcessModel{id, parent}
+	iscore::ProcessModelInterface{id, parent}
 {
 	this->setObjectName("HelloWorldProcessModel");
 	qDebug("The TestModel begins.");

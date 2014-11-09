@@ -3,7 +3,7 @@
 using namespace iscore;
 
 ScenarioSettingsModel::ScenarioSettingsModel():
-	iscore::SettingsGroupModel{}
+	iscore::SettingsDelegateModelInterface{}
 {
 	this->setObjectName("ScenarioSettingsModel");
 }
@@ -20,6 +20,6 @@ QString ScenarioSettingsModel::getText() const
 }
 
 
-void ScenarioSettingsModel::setPresenter(SettingsGroupPresenter* presenter)
+void ScenarioSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
 {
 }

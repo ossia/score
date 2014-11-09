@@ -1,16 +1,17 @@
 #pragma once
-#include <interface/panels/Panel.hpp>
+#include <interface/panel/PanelViewInterface.hpp>
+
 class HelloWorldPanelPresenter;
-class HelloWorldPanelView : public iscore::PanelView
+class HelloWorldPanelView : public iscore::PanelViewInterface
 {
 	public:
 		HelloWorldPanelView();
 		virtual ~HelloWorldPanelView() = default;
-		
-		virtual void setPresenter(iscore::PanelPresenter* presenter) override;
-		
+
+		virtual void setPresenter(iscore::PanelPresenterInterface* presenter) override;
+
 		virtual QWidget*getWidget() override;
-		
+
 	private:
 		HelloWorldPanelPresenter* m_presenter;
 };

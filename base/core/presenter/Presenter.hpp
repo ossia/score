@@ -8,11 +8,11 @@
 namespace iscore
 {
 	class Command;
-	class CustomCommand;
+	class PluginControlInterface;
 	class Model;
 	class View;
-	class Panel;
-	class PanelPresenter;
+	class PanelFactoryInterface;
+	class PanelPresenterInterface;
 	/**
 	 * @brief The Presenter class
 	 *
@@ -31,9 +31,9 @@ namespace iscore
 			View* view() { return m_view; }
 			Document* document() { return m_document; }
 
-			void setupCommand(CustomCommand*);
-			void addPanel(Panel*);
-			void setDocumentPanel(DocumentPanel*);
+			void setupCommand(PluginControlInterface*);
+			void addPanel(PanelFactoryInterface*);
+			void setDocumentPanel(DocumentDelegateFactoryInterface*);
 
 		signals:
 			/**
@@ -73,7 +73,7 @@ namespace iscore
 			Model* m_model;
 			View* m_view;
 
-			std::vector<CustomCommand*> m_customCommands;
-			std::set<PanelPresenter*> m_panelsPresenters;
+			std::vector<PluginControlInterface*> m_customCommands;
+			std::set<PanelPresenterInterface*> m_panelsPresenters;
 	};
 }

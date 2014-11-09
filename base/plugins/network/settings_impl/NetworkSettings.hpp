@@ -1,9 +1,9 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <QObject>
 
 
-class NetworkSettings : public iscore::SettingsGroup
+class NetworkSettings : public iscore::SettingsDelegateFactoryInterface
 {
 	public:
 		NetworkSettings();
@@ -11,10 +11,10 @@ class NetworkSettings : public iscore::SettingsGroup
 
 		// SettingsGroup interface
 	public:
-		virtual iscore::SettingsGroupView* makeView() override;
-		virtual iscore::SettingsGroupPresenter* makePresenter(iscore::SettingsPresenter*, 
-															  iscore::SettingsGroupModel* m, 
-															  iscore::SettingsGroupView* v) override;
-		virtual iscore::SettingsGroupModel* makeModel() override;
+		virtual iscore::SettingsDelegateViewInterface* makeView() override;
+		virtual iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
+															  iscore::SettingsDelegateModelInterface* m,
+															  iscore::SettingsDelegateViewInterface* v) override;
+		virtual iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 

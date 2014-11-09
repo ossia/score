@@ -1,27 +1,27 @@
 #pragma once
 
-#include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
-#include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
-#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
-#include <interface/plugins/PanelFactoryPluginInterface.hpp>
-#include <interface/plugins/DocumentPanelFactoryPluginInterface.hpp>
+#include <interface/plugins/Autoconnect_QtInterface.hpp>
+#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <QObject>
 
 class SimpleProcessPlugin :
 		public QObject,
-		public iscore::AutoconnectFactoryPluginInterface,
-		public iscore::CustomCommandFactoryPluginInterface,
-		public iscore::ProcessFactoryPluginInterface,
-		public iscore::PanelFactoryPluginInterface,
-		public iscore::DocumentPanelFactoryPluginInterface
+		public iscore::Autoconnect_QtInterface,
+		public iscore::PluginControlInterface_QtInterface,
+		public iscore::ProcessFactoryInterface_QtInterface,
+		public iscore::PanelFactoryInterface_QtInterface,
+		public iscore::DocumentDelegateFactoryInterface_QtInterface
 {
 		Q_OBJECT
-		Q_PLUGIN_METADATA(IID ProcessFactoryPluginInterface_iid)
-		Q_INTERFACES(iscore::AutoconnectFactoryPluginInterface
-					 iscore::CustomCommandFactoryPluginInterface
-					 iscore::ProcessFactoryPluginInterface
-					 iscore::PanelFactoryPluginInterface
-					 iscore::DocumentPanelFactoryPluginInterface)
+		Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
+		Q_INTERFACES(iscore::Autoconnect_QtInterface
+					 iscore::PluginControlInterface_QtInterface
+					 iscore::ProcessFactoryInterface_QtInterface
+					 iscore::PanelFactoryInterface_QtInterface
+					 iscore::DocumentDelegateFactoryInterface_QtInterface)
 
 	public:
 		SimpleProcessPlugin();
@@ -32,17 +32,17 @@ class SimpleProcessPlugin :
 
 		// Process interface
 		virtual QStringList process_list() const override;
-		virtual iscore::Process* process_make(QString name) override;
+		virtual iscore::ProcessFactoryInterface* process_make(QString name) override;
 
 		// CustomCommand interface
 		virtual QStringList customCommand_list() const override;
-		virtual iscore::CustomCommand* customCommand_make(QString) override;
+		virtual iscore::PluginControlInterface* customCommand_make(QString) override;
 
 		// Panel interface
 		virtual QStringList panel_list() const override;
-		virtual iscore::Panel* panel_make(QString name) override;
-		
+		virtual iscore::PanelFactoryInterface* panel_make(QString name) override;
+
 		// Docpanel interface
 		virtual QStringList document_list() const override;
-		virtual iscore::DocumentPanel* document_make(QString name) override;
+		virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
 };

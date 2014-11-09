@@ -6,19 +6,19 @@
 using namespace iscore;
 
 
-PanelView* HelloWorldPanel::makeView()
+PanelViewInterface* HelloWorldPanel::makeView()
 {
 	return new HelloWorldPanelView;
 }
 
-PanelPresenter* HelloWorldPanel::makePresenter(Presenter* parent_presenter, 
-											   PanelModel* model, 
-											   PanelView* view)
+PanelPresenterInterface* HelloWorldPanel::makePresenter(Presenter* parent_presenter, 
+											   PanelModelInterface* model, 
+											   PanelViewInterface* view)
 {
 	return new HelloWorldPanelPresenter(parent_presenter, model, view);
 }
 
-iscore::PanelModel* HelloWorldPanel::makeModel()
+iscore::PanelModelInterface* HelloWorldPanel::makeModel()
 {
 	return new HelloWorldPanelModel;
 }

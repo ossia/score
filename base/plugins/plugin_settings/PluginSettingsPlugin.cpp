@@ -8,8 +8,8 @@
 
 PluginSettingsPlugin::PluginSettingsPlugin():
 	QObject{},
-	iscore::AutoconnectFactoryPluginInterface{},
-	iscore::SettingsFactoryPluginInterface{}
+	iscore::Autoconnect_QtInterface{},
+	iscore::SettingsDelegateFactoryInterface_QtInterface{}
 {
 	setObjectName("Plugin Settings");
 }
@@ -42,7 +42,7 @@ QList<iscore::Autoconnect> PluginSettingsPlugin::autoconnect_list() const
 }
 
 //////////////////////////
-iscore::SettingsGroup* PluginSettingsPlugin::settings_make()
+iscore::SettingsDelegateFactoryInterface* PluginSettingsPlugin::settings_make()
 {
 	return new PluginSettings;
 }

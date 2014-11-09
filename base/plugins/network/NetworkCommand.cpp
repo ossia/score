@@ -15,7 +15,7 @@
 #include <QAction>
 using namespace iscore;
 NetworkCommand::NetworkCommand():
-	CustomCommand{}
+	PluginControlInterface{}
 {
 	this->setObjectName("NetworkCommand");
 }

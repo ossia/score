@@ -1,14 +1,14 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QListView>
 
 class PluginSettingsPresenter;
-class PluginSettingsView : public QWidget, public iscore::SettingsGroupView
+class PluginSettingsView : public iscore::SettingsDelegateViewInterface
 {
 		Q_OBJECT
 	public:
-		PluginSettingsView(QWidget* parent);
+		PluginSettingsView(QObject* parent);
 
 		QListView* view() { return m_listView; }
 /*
@@ -30,7 +30,9 @@ class PluginSettingsView : public QWidget, public iscore::SettingsGroupView
 */
 	private:
 		PluginSettingsPresenter* presenter();
-		QListView* m_listView{};
+
+		QWidget* m_widget{new QWidget};
+		QListView* m_listView{new QListView{m_widget}};
 /*
 		QSpinBox* m_masterPort{new QSpinBox(this)};
 		QSpinBox* m_clientPort{new QSpinBox(this)};

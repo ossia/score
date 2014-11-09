@@ -6,7 +6,7 @@ namespace iscore
 	class DocumentModel;
 	class DocumentPresenter;
 	class DocumentView;
-	class DocumentPanel;
+	class DocumentDelegateFactoryInterface;
 
 	/**
 	 * @brief The Document class is the central part of the software.
@@ -23,7 +23,7 @@ namespace iscore
 			DocumentView* view() { return m_view; }
 
 			void newDocument();
-			void setDocumentPanel(DocumentPanel* p);
+			void setDocumentPanel(DocumentDelegateFactoryInterface* p);
 			void reset();
 
 		signals:

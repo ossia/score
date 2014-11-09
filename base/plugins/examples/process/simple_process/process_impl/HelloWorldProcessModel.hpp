@@ -1,9 +1,10 @@
 #pragma once
 #include <QObject>
-#include <interface/processes/Process.hpp>
+#include <interface/process/ProcessFactoryInterface.hpp>
+#include <interface/process/ProcessModelInterface.hpp>
 #include <QDebug>
 
-class HelloWorldProcessModel : public iscore::ProcessModel
+class HelloWorldProcessModel : public iscore::ProcessModelInterface
 {
 		Q_OBJECT
 	public:

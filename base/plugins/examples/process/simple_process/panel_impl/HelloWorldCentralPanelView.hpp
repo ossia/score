@@ -1,17 +1,17 @@
 #pragma once
-#include <interface/docpanel/DocumentPanelView.hpp>
+#include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
 
 class HelloWorldCentralPanelPresenter;
-class HelloWorldCentralPanelView : public iscore::DocumentPanelView
+class HelloWorldCentralPanelView : public iscore::DocumentDelegateViewInterface
 {
 	public:
 		HelloWorldCentralPanelView();
 		virtual ~HelloWorldCentralPanelView() = default;
-		
-		virtual void setPresenter(iscore::DocumentPanelPresenter* presenter) override;
-		
+
+		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter) override;
+
 		virtual QWidget*getWidget() override;
-		
+
 	private:
 		HelloWorldCentralPanelPresenter* m_presenter;
 };

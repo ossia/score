@@ -1,6 +1,7 @@
 #include <core/view/View.hpp>
-#include <interface/panels/Panel.hpp>
-#include <interface/customcommand/MenuInterface.hpp>
+#include <interface/panel/PanelViewInterface.hpp>
+#include <interface/panel/PanelPresenterInterface.hpp>
+#include <interface/plugincontrol/MenuInterface.hpp>
 #include <QDockWidget>
 #include <QGridLayout>
 
@@ -15,7 +16,7 @@ View::View(QObject* parent):
 	setObjectName("View");
 }
 
-void View::addPanel(PanelView* v)
+void View::addPanel(PanelViewInterface* v)
 {
 	v->setParent(this);
 	m_panelsViews.insert(v);

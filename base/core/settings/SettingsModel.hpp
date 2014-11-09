@@ -1,8 +1,8 @@
 #pragma once
 #include <set>
 #include <memory>
-#include <interface/settings/SettingsGroup.hpp>
-#include <interface/settings/SettingsGroupModel.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QObject>
 #include <QChildEvent>
 #include <QDebug>
@@ -17,7 +17,7 @@ namespace iscore
 			{
 			}
 
-			void addSettingsModel(SettingsGroupModel* model)
+			void addSettingsModel(SettingsDelegateModelInterface* model)
 			{
 				model->setParent(this); // TODO careful with double-deletion.
 				m_pluginModels.insert(model);
@@ -33,6 +33,6 @@ namespace iscore
 			}
 
 		private:
-			std::set<SettingsGroupModel*> m_pluginModels;
+			std::set<SettingsDelegateModelInterface*> m_pluginModels;
 	};
 }

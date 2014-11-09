@@ -1,6 +1,6 @@
 #include <core/plugin/PluginManager.hpp>
 
-#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
+#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
@@ -54,12 +54,12 @@ QStringList PluginManager::pluginsBlacklist()
 void PluginManager::dispatch(QObject* plugin)
 {
 	//qDebug() << plugin->objectName() << "was dispatched";
-	auto autoconn_plugin = qobject_cast<AutoconnectFactoryPluginInterface*>(plugin);
-	auto cmd_plugin = qobject_cast<CustomCommandFactoryPluginInterface*>(plugin);
-	auto settings_plugin = qobject_cast<SettingsFactoryPluginInterface*>(plugin);
-	auto process_plugin = qobject_cast<ProcessFactoryPluginInterface*>(plugin);
-	auto panel_plugin = qobject_cast<PanelFactoryPluginInterface*>(plugin);
-	auto docpanel_plugin = qobject_cast<DocumentPanelFactoryPluginInterface*>(plugin);
+	auto autoconn_plugin = qobject_cast<Autoconnect_QtInterface*>(plugin);
+	auto cmd_plugin = qobject_cast<PluginControlInterface_QtInterface*>(plugin);
+	auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*>(plugin);
+	auto process_plugin = qobject_cast<ProcessFactoryInterface_QtInterface*>(plugin);
+	auto panel_plugin = qobject_cast<PanelFactoryInterface_QtInterface*>(plugin);
+	auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*>(plugin);
 
 	if(autoconn_plugin)
 	{

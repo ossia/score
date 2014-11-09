@@ -2,6 +2,6 @@
 using namespace iscore;
 
 
-void HelloWorldCentralPanelModel::setPresenter(DocumentPanelPresenter* presenter)
+void HelloWorldCentralPanelModel::setPresenter(DocumentDelegatePresenterInterface* presenter)
 {
 }

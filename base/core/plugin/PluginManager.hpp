@@ -5,22 +5,22 @@
 #include <core/processes/ProcessList.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
-#include <interface/plugins/CustomCommandFactoryPluginInterface.hpp>
-#include <interface/plugins/AutoconnectFactoryPluginInterface.hpp>
-#include <interface/plugins/PanelFactoryPluginInterface.hpp>
-#include <interface/plugins/DocumentPanelFactoryPluginInterface.hpp>
-#include <interface/plugins/ProcessFactoryPluginInterface.hpp>
-#include <interface/plugins/SettingsFactoryPluginInterface.hpp>
+#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <interface/plugins/Autoconnect_QtInterface.hpp>
+#include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <interface/autoconnect/Autoconnect.hpp>
 
 namespace iscore
 {
 
-	using CommandList = std::vector<CustomCommand*>;
-	using PanelList = std::vector<Panel*>;
-	using DocumentPanelList = std::vector<DocumentPanel*>;
-	using SettingsList = std::vector<SettingsGroup*>;
+	using CommandList = std::vector<PluginControlInterface*>;
+	using PanelList = std::vector<PanelFactoryInterface*>;
+	using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
+	using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
 	/**

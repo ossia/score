@@ -1,10 +1,12 @@
 #include "ScenarioProcess.hpp"
 #include "process_impl/ScenarioProcessModel.hpp"
+#include <interface/process/ProcessPresenterInterface.hpp>
+#include <interface/process/ProcessViewInterface.hpp>
 #include <QDebug>
 
 
 ScenarioProcess::ScenarioProcess():
-	iscore::Process()
+	iscore::ProcessFactoryInterface()
 {
 	qDebug("Successfully instantiated ScenarioProcess");
 }
@@ -19,17 +21,17 @@ QStringList ScenarioProcess::availableViews()
 	return {};
 }
 
-iscore::ProcessView* ScenarioProcess::makeView(QString view)
+iscore::ProcessViewInterface* ScenarioProcess::makeView(QString view)
 {
-	return new iscore::ProcessView();
+	return new iscore::ProcessViewInterface();
 }
 
-iscore::ProcessPresenter* ScenarioProcess::makePresenter()
+iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter()
 {
-	return new iscore::ProcessPresenter();
+	return new iscore::ProcessPresenterInterface();
 }
 
-iscore::ProcessModel* ScenarioProcess::makeModel(unsigned int id, QObject* parent)
+iscore::ProcessModelInterface* ScenarioProcess::makeModel(unsigned int id, QObject* parent)
 {
 	return new ScenarioProcessModel(id, parent);
 }

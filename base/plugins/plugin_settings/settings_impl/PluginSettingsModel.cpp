@@ -9,7 +9,7 @@
 using namespace iscore;
 
 PluginSettingsModel::PluginSettingsModel():
-	iscore::SettingsGroupModel{}
+	iscore::SettingsDelegateModelInterface{}
 {
 	this->setObjectName("PluginSettingsModel");
 
@@ -86,7 +86,7 @@ int PluginSettingsModel::getMasterPort() const
 	return masterPort;
 }
 */
-void PluginSettingsModel::setPresenter(SettingsGroupPresenter* presenter)
+void PluginSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
 {
 	m_presenter = static_cast<PluginSettingsPresenter*>(presenter);
 }

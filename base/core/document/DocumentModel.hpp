@@ -2,7 +2,7 @@
 
 namespace iscore
 {
-	class DocumentPanelModel;
+	class DocumentDelegateModelInterface;
 	/**
 	 * @brief The DocumentModel class
 	 * 
@@ -12,6 +12,6 @@ namespace iscore
 	{
 		public:
 			void reset(){}
-			void setModel(DocumentPanelModel* m){ qDebug("TODO"); }
+			void setModel(DocumentDelegateModelInterface* m){ qDebug("TODO"); }
 	};
 }

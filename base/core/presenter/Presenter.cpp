@@ -1,12 +1,14 @@
-#include <interface/customcommand/CustomCommand.hpp>
+#include <interface/plugincontrol/PluginControlInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 #include <core/model/Model.hpp>
 
-#include <interface/panels/Panel.hpp>
-#include <interface/panels/PanelModel.hpp>
+#include <interface/panel/PanelFactoryInterface.hpp>
+#include <interface/panel/PanelPresenterInterface.hpp>
+#include <interface/panel/PanelModelInterface.hpp>
+#include <interface/panel/PanelViewInterface.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
@@ -32,11 +34,11 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 }
 
 // TODO is this the place ?
-void Presenter::setupCommand(CustomCommand* cmd)
+void Presenter::setupCommand(PluginControlInterface* cmd)
 {
 	cmd->setParent(this); // Ownership transfer
 	cmd->setPresenter(this);
-	connect(cmd,  &CustomCommand::submitCommand,
+	connect(cmd,  &PluginControlInterface::submitCommand,
 			this, &Presenter::applyCommand);
 
 	cmd->populateMenus(&m_menubar);
@@ -46,24 +48,24 @@ void Presenter::setupCommand(CustomCommand* cmd)
 }
 
 // TODO is this the place ?
-void Presenter::addPanel(Panel* p)
-{	
+void Presenter::addPanel(PanelFactoryInterface* p)
+{
 	auto model = p->makeModel();
 	auto view = p->makeView();
 	auto pres = p->makePresenter(this, model, view);
 
-	connect(pres, &PanelPresenter::submitCommand,
+	connect(pres, &PanelPresenterInterface::submitCommand,
 			this, &Presenter::applyCommand);
 
 	view->setPresenter(pres);
 	model->setPresenter(pres);
-	
+
 	m_view->addPanel(view);
 	m_model->addPanel(model);
 	m_panelsPresenters.insert(pres);
 }
 
-void Presenter::setDocumentPanel(DocumentPanel* docpanel)
+void Presenter::setDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
 {
 	m_document->setDocumentPanel(docpanel);
 }

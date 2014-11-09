@@ -4,17 +4,17 @@ class TimeProcess { };
 
 namespace iscore
 {
-	class ProcessModel: public QObject
+	class ProcessModelInterface: public QObject
 	{
 		public:
-			ProcessModel(unsigned int id, QObject* parent):
+			ProcessModelInterface(unsigned int id, QObject* parent):
 				QObject{parent},
 				m_modelId{id}
 			{
 				
 			}
 			
-			virtual ~ProcessModel() = default;
+			virtual ~ProcessModelInterface() = default;
 			
 		private:
 			TimeProcess process;

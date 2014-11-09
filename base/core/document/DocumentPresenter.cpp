@@ -1,5 +1,5 @@
 #include <core/document/DocumentPresenter.hpp>
-#include <interface/docpanel/DocumentPanelPresenter.hpp>
+#include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <core/utilsCPP11.hpp>
 
 
@@ -26,11 +26,11 @@ void DocumentPresenter::reset()
 	m_commandQueue->clear();
 }
 
-void DocumentPresenter::setPresenter(DocumentPanelPresenter* pres)
-{ 
+void DocumentPresenter::setPresenter(DocumentDelegatePresenterInterface* pres)
+{
 	if(m_presenter) m_presenter->deleteLater();
 	m_presenter = pres;
-	
-	connect(m_presenter, &DocumentPanelPresenter::submitCommand,
+
+	connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
 			this, &DocumentPresenter::applyCommand);
 }

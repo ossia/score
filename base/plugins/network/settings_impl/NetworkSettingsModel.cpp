@@ -5,7 +5,7 @@
 using namespace iscore;
 
 NetworkSettingsModel::NetworkSettingsModel():
-	iscore::SettingsGroupModel{}
+	iscore::SettingsDelegateModelInterface{}
 {
 	this->setObjectName("NetworkSettingsModel");
 
@@ -57,7 +57,7 @@ int NetworkSettingsModel::getMasterPort() const
 	return masterPort;
 }
 
-void NetworkSettingsModel::setPresenter(SettingsGroupPresenter* presenter)
+void NetworkSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
 {
 }
 

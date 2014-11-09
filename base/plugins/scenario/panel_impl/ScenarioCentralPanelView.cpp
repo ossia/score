@@ -2,24 +2,24 @@
 #include "ScenarioCentralPanelPresenter.hpp"
 #include "MainWindow.hpp"
 #include <QPushButton>
-#include <interface/docpanel/DocumentPanelView.hpp>
-#include <interface/docpanel/DocumentPanelPresenter.hpp>
+#include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 
 using namespace iscore;
 
 ScenarioCentralPanelView::ScenarioCentralPanelView():
-	iscore::DocumentPanelView{nullptr}
+	iscore::DocumentDelegateViewInterface{nullptr}
 {
 
 }
 
-void ScenarioCentralPanelView::setPresenter(DocumentPanelPresenter* presenter)
+void ScenarioCentralPanelView::setPresenter(DocumentDelegatePresenterInterface* presenter)
 {
 	m_presenter = static_cast<ScenarioCentralPanelPresenter*>(presenter);
 }
 
 QWidget* ScenarioCentralPanelView::getWidget()
 {
-    return new MainWindow;
+	return new MainWindow;
 }

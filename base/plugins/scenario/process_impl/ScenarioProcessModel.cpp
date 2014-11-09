@@ -4,7 +4,7 @@ using namespace iscore;
 
 
 ScenarioProcessModel::ScenarioProcessModel(unsigned int id, QObject* parent) :
-	iscore::ProcessModel{id, parent}
+	iscore::ProcessModelInterface{id, parent}
 {
 	this->setObjectName("ScenarioProcessModel");
 	qDebug("The TestModel begins.");

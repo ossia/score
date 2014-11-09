@@ -10,10 +10,10 @@
 
 NetworkPlugin::NetworkPlugin():
 	QObject{},
-	iscore::AutoconnectFactoryPluginInterface{},
-	iscore::CustomCommandFactoryPluginInterface{},
+	iscore::Autoconnect_QtInterface{},
+	iscore::PluginControlInterface_QtInterface{},
 //	iscore::PanelFactoryPluginInterface{},
-	iscore::SettingsFactoryPluginInterface{}
+	iscore::SettingsDelegateFactoryInterface_QtInterface{}
 {
 	setObjectName("NetworkPlugin");
 }
@@ -46,7 +46,7 @@ QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
 }
 
 //////////////////////////
-iscore::SettingsGroup* NetworkPlugin::settings_make()
+iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
 {
 	return new NetworkSettings;
 }
@@ -57,7 +57,7 @@ QStringList NetworkPlugin::customCommand_list() const
 	return {CMD_NAME};
 }
 
-iscore::CustomCommand* NetworkPlugin::customCommand_make(QString name)
+iscore::PluginControlInterface* NetworkPlugin::customCommand_make(QString name)
 {
 	if(name == QString(CMD_NAME))
 	{

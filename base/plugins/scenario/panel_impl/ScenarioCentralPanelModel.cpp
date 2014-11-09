@@ -2,6 +2,6 @@
 using namespace iscore;
 
 
-void ScenarioCentralPanelModel::setPresenter(DocumentPanelPresenter* presenter)
+void ScenarioCentralPanelModel::setPresenter(DocumentDelegatePresenterInterface* presenter)
 {
 }

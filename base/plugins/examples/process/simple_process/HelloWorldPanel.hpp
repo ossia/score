@@ -1,20 +1,20 @@
 #pragma once
-#include <interface/panels/Panel.hpp>
+#include <interface/panel/PanelFactoryInterface.hpp>
 
-class HelloWorldPanel : public iscore::Panel
+class HelloWorldPanel : public iscore::PanelFactoryInterface
 {
 	public:
-		HelloWorldPanel(): 
-			iscore::Panel{}
+		HelloWorldPanel():
+			iscore::PanelFactoryInterface{}
 		{
-			
+
 		}
-		
+
 		virtual ~HelloWorldPanel() = default;
 
-		virtual iscore::PanelView* makeView() override;
-		virtual iscore::PanelPresenter* makePresenter(iscore::Presenter* parent_presenter, 
-													  iscore::PanelModel* model, 
-													  iscore::PanelView* view) override;
-		virtual iscore::PanelModel* makeModel() override;
+		virtual iscore::PanelViewInterface* makeView() override;
+		virtual iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
+													  iscore::PanelModelInterface* model,
+													  iscore::PanelViewInterface* view) override;
+		virtual iscore::PanelModelInterface* makeModel() override;
 };

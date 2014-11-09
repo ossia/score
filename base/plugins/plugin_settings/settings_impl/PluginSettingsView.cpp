@@ -10,14 +10,11 @@
 #include <QApplication>
 using namespace iscore;
 
-PluginSettingsView::PluginSettingsView(QWidget* parent):
-	QWidget{parent},
-	iscore::SettingsGroupView{}
+PluginSettingsView::PluginSettingsView(QObject* parent):
+	iscore::SettingsDelegateViewInterface{parent}
 {
-	m_listView = new QListView{this};
-
-	auto layout = new QGridLayout(this);
-	this->setLayout(layout);
+	auto layout = new QGridLayout(m_widget);
+	m_widget->setLayout(layout);
 
 	layout->addWidget(m_listView);
 /*
@@ -54,7 +51,7 @@ void PluginSettingsView::setClientPort(int val)
 */
 QWidget* PluginSettingsView::getWidget()
 {
-	return static_cast<QWidget*>(this);
+	return m_widget;
 }
 
 void PluginSettingsView::load()

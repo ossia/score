@@ -1,5 +1,6 @@
 #include <core/settings/SettingsView.hpp>
-#include <interface/settings/SettingsGroupPresenter.hpp>
+#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <QListWidgetItem>
 #include <QStyle>
 using namespace iscore;
@@ -30,7 +31,7 @@ SettingsView::SettingsView(QWidget* parent):
 			this,	   &SettingsView::reject);
 }
 
-void SettingsView::addSettingsView(SettingsGroupView* view)
+void SettingsView::addSettingsView(SettingsDelegateViewInterface* view)
 {
 	QListWidgetItem* it = new QListWidgetItem{view->getPresenter()->settingsIcon(),
 											  view->getPresenter()->settingsName(),

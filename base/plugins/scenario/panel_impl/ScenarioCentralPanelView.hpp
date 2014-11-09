@@ -1,20 +1,21 @@
 #pragma once
-#include <interface/docpanel/DocumentPanelView.hpp>
+#include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+
 namespace iscore
 {
-	class DocumentPanelPresenter;	
+	class DocumentDelegatePresenterInterface;
 }
 class ScenarioCentralPanelPresenter;
-class ScenarioCentralPanelView : public iscore::DocumentPanelView
+class ScenarioCentralPanelView : public iscore::DocumentDelegateViewInterface
 {
 	public:
 		ScenarioCentralPanelView();
 		virtual ~ScenarioCentralPanelView() = default;
-		
-		virtual void setPresenter(iscore::DocumentPanelPresenter* presenter) override;
-		
+
+		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter) override;
+
 		virtual QWidget*getWidget() override;
-		
+
 	private:
 		ScenarioCentralPanelPresenter* m_presenter;
 };

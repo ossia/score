@@ -1,16 +1,16 @@
 #pragma once
 #include <QWidget>
 #include <QLineEdit>
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QSpinBox>
 
 class NetworkSettingsPresenter;
-class NetworkSettingsView : public QWidget, public iscore::SettingsGroupView
+class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
 {
 		Q_OBJECT
 	public:
-		NetworkSettingsView(QWidget* parent);
+		NetworkSettingsView(QObject* parent);
 
 		void setMasterPort(int val);
 		void setClientPort(int val);
@@ -31,11 +31,14 @@ class NetworkSettingsView : public QWidget, public iscore::SettingsGroupView
 	private:
 		NetworkSettingsPresenter* presenter();
 
-		QSpinBox* m_masterPort{new QSpinBox(this)};
-		QSpinBox* m_clientPort{new QSpinBox(this)};
-		QLineEdit* m_clientName{new QLineEdit(this)};
+		QWidget* m_widget{new QWidget};
+
+		QSpinBox* m_masterPort{new QSpinBox{m_widget}};
+		QSpinBox* m_clientPort{new QSpinBox{m_widget}};
+		QLineEdit* m_clientName{new QLineEdit{m_widget}};
 
 		int m_previousMasterPort{};
 		int m_previousClientPort{};
 		QString m_previousClientName{};
+
 };

@@ -1,8 +1,8 @@
 #pragma once
-#include <interface/customcommand/CustomCommand.hpp>
+#include <interface/plugincontrol/PluginControlInterface.hpp>
 #include <QAction>
 
-class HelloWorldCommand : public iscore::CustomCommand
+class HelloWorldCommand : public iscore::PluginControlInterface
 {
 		Q_OBJECT
 	public:

@@ -7,7 +7,7 @@
 #include <core/presenter/Action.hpp>
 namespace iscore
 {
-	class PanelView;
+	class PanelViewInterface;
 	class Presenter;
 	/**
 	 * @brief The View class
@@ -20,7 +20,7 @@ namespace iscore
 		public:
 			View(QObject* parent);
 
-			void addPanel(PanelView*);
+			void addPanel(PanelViewInterface*);
 			void setPresenter(Presenter*);
 
 		public slots:
@@ -35,7 +35,7 @@ namespace iscore
 			void insertActionIntoMenubar(Action);
 
 		private:
-			std::set<PanelView*> m_panelsViews;
+			std::set<PanelViewInterface*> m_panelsViews;
 			Presenter* m_presenter;
 	};
 }

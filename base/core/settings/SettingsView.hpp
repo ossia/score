@@ -1,7 +1,7 @@
 #pragma once
 #include <set>
 #include <memory>
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 
 #include <QDialog>
 #include <QWidget>
@@ -18,10 +18,10 @@ namespace iscore
 			Q_OBJECT
 		public:
 			SettingsView(QWidget* parent);
-			void addSettingsView(SettingsGroupView* view);
+			void addSettingsView(SettingsDelegateViewInterface* view);
 
 		private:
-			std::set<SettingsGroupView*> m_pluginViews;
+			std::set<SettingsDelegateViewInterface*> m_pluginViews;
 
 			QVBoxLayout* m_vertLayout{new QVBoxLayout{}};
 			QHBoxLayout* m_hboxLayout{new QHBoxLayout{}};

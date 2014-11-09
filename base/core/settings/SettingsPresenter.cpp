@@ -2,7 +2,7 @@
 #include <core/settings/SettingsView.hpp>
 #include <core/settings/SettingsModel.hpp>
 
-#include <interface/settings/SettingsGroupPresenter.hpp>
+#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 
 using namespace iscore;
 
@@ -17,7 +17,7 @@ SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, Q
 			this,   &SettingsPresenter::on_reject);
 }
 
-void SettingsPresenter::addSettingsPresenter(SettingsGroupPresenter* presenter)
+void SettingsPresenter::addSettingsPresenter(SettingsDelegatePresenterInterface* presenter)
 {
 	m_pluginPresenters.insert(presenter);
 }

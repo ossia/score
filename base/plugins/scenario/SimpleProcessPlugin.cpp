@@ -11,10 +11,10 @@
 
 SimpleProcessPlugin::SimpleProcessPlugin():
 	QObject{},
-	iscore::AutoconnectFactoryPluginInterface{},
-	iscore::CustomCommandFactoryPluginInterface{},
-	iscore::ProcessFactoryPluginInterface{},
-	iscore::SettingsFactoryPluginInterface{}
+	iscore::Autoconnect_QtInterface{},
+	iscore::PluginControlInterface_QtInterface{},
+	iscore::ProcessFactoryInterface_QtInterface{},
+	iscore::SettingsDelegateFactoryInterface_QtInterface{}
 {
 	setObjectName("SimpleProcessPlugin");
 }
@@ -45,7 +45,7 @@ QStringList SimpleProcessPlugin::process_list() const
 	return {PROCESS_NAME};
 }
 
-iscore::Process* SimpleProcessPlugin::process_make(QString name)
+iscore::ProcessFactoryInterface* SimpleProcessPlugin::process_make(QString name)
 {
 	if(name == QString(PROCESS_NAME))
 	{
@@ -56,7 +56,7 @@ iscore::Process* SimpleProcessPlugin::process_make(QString name)
 }
 
 //////////////////////////
-iscore::SettingsGroup* SimpleProcessPlugin::settings_make()
+iscore::SettingsDelegateFactoryInterface* SimpleProcessPlugin::settings_make()
 {
 	return new ScenarioSettings;
 }
@@ -67,7 +67,7 @@ QStringList SimpleProcessPlugin::customCommand_list() const
 	return {CMD_NAME};
 }
 
-iscore::CustomCommand* SimpleProcessPlugin::customCommand_make(QString name)
+iscore::PluginControlInterface* SimpleProcessPlugin::customCommand_make(QString name)
 {
 	if(name == QString(CMD_NAME))
 	{
@@ -82,7 +82,7 @@ QStringList SimpleProcessPlugin::document_list() const
 	return {MAIN_PANEL_NAME};
 }
 
-iscore::DocumentPanel*SimpleProcessPlugin::document_make(QString name)
+iscore::DocumentDelegateFactoryInterface*SimpleProcessPlugin::document_make(QString name)
 {
 	if(name == QString(MAIN_PANEL_NAME))
 	{

@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/settings/SettingsGroup.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <QObject>
 
 
@@ -10,7 +10,7 @@
  * Format : save on the config the name of each blacklisted plugin.
  * If a name is not there the plug-in is not blacklisted. Takes effect on next restart ?
  */
-class PluginSettings : public iscore::SettingsGroup
+class PluginSettings : public iscore::SettingsDelegateFactoryInterface
 {
 	public:
 		PluginSettings();
@@ -18,10 +18,10 @@ class PluginSettings : public iscore::SettingsGroup
 
 		// SettingsGroup interface
 	public:
-		virtual iscore::SettingsGroupView* makeView() override;
-		virtual iscore::SettingsGroupPresenter* makePresenter(iscore::SettingsPresenter*,
-															  iscore::SettingsGroupModel* m,
-															  iscore::SettingsGroupView* v) override;
-		virtual iscore::SettingsGroupModel* makeModel() override;
+		virtual iscore::SettingsDelegateViewInterface* makeView() override;
+		virtual iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
+															  iscore::SettingsDelegateModelInterface* m,
+															  iscore::SettingsDelegateViewInterface* v) override;
+		virtual iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 

@@ -1,5 +1,5 @@
 #include <core/processes/ProcessList.hpp>
-#include <interface/processes/Process.hpp>
+#include <interface/process/ProcessFactoryInterface.hpp>
 #include <algorithm>
 
 using namespace iscore;
@@ -13,21 +13,21 @@ QStringList ProcessList::getProcessesName() const
 	return lst;
 }
 
-Process* ProcessList::getProcess(QString name)
+ProcessFactoryInterface* ProcessList::getProcess(QString name)
 {
 	auto it = std::find_if(m_processes.begin(),
 						   m_processes.end(),
-						   [&name] (Process* p)
+						   [&name] (ProcessFactoryInterface* p)
 	{ return p->name() == name;});
 
 	return it != m_processes.end()? *it : nullptr;
 }
 
-void ProcessList::addProcess(Process* p)
+void ProcessList::addProcess(ProcessFactoryInterface* p)
 {
 	auto it = std::find_if(m_processes.begin(),
 						   m_processes.end(),
-						   [&p] (Process* inner_p)
+						   [&p] (ProcessFactoryInterface* inner_p)
 	{ return inner_p->name() == p->name();});
 
 	if(it == m_processes.end())

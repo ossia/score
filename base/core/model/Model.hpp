@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-	class PanelModel;
+	class PanelModelInterface;
 	/**
 	 * @brief The Model class holds the models of the panels.
 	 * 
@@ -14,9 +14,9 @@ namespace iscore
 	{
 		public:
 			using QObject::QObject;
-			void addPanel(PanelModel*);
+			void addPanel(PanelModelInterface*);
 
 		private:
-			std::set<PanelModel*> m_panelsModels;
+			std::set<PanelModelInterface*> m_panelsModels;
 	};
 }
