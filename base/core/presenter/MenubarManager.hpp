@@ -16,7 +16,7 @@ namespace iscore
 	 *
 	 * These are mainly convenience methods to add elements in a non-anarchic way
 	 * to the menu bar, using the information in \c{MenuInterface}.
-	 * 
+	 *
 	 * @todo{Test on OS X}
 	 */
 	class MenubarManager : public QObject
@@ -49,8 +49,8 @@ namespace iscore
 				auto beforeact_it = std::find_if(
 										actions.begin(),
 										actions.end(),
-										[name = MenuInterface::name(before)] (QAction* act)
-										{ return act->objectName() == name; });
+										[&before] (QAction* act)
+										{ return act->objectName() == MenuInterface::name(before); });
 
 				if(beforeact_it != actions.end())
 					m_menusMap[tl]->insertAction(*beforeact_it, act);

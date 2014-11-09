@@ -27,8 +27,8 @@ void ProcessList::addProcess(Process* p)
 {
 	auto it = std::find_if(m_processes.begin(),
 						   m_processes.end(),
-						   [name = p->name()] (Process* p)
-	{ return p->name() == name;});
+						   [&p] (Process* inner_p)
+	{ return inner_p->name() == p->name();});
 
 	if(it == m_processes.end())
 		m_processes.push_back(p);
