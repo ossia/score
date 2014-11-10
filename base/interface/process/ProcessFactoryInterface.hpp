@@ -9,9 +9,9 @@ namespace iscore
 	class ProcessPresenterInterface;
 
 	/**
-	 * @brief The Process class
+	 * @brief The ProcessFactoryInterface class
 	 *
-	 * TODO. Or to put in Scenario ??
+	 * Interface to make processes, like Scenario, Automation...
 	 */
 	class ProcessFactoryInterface
 	{
@@ -23,10 +23,6 @@ namespace iscore
 
 			virtual QStringList availableViews() = 0;
 			virtual ProcessViewInterface* makeView(QString view) = 0;
-
-			// Mission : transmettre au présenteur global pour validation de l'action.
-			// Ou bien c'est directement la vue qui s'en charge?
-			// Risque de duplication dans le cas SmallView / StandardView / FullView...
 			virtual ProcessPresenterInterface* makePresenter() = 0;
 
 			// Behind the scene, an API object.

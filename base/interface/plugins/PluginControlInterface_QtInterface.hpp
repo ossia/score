@@ -10,8 +10,8 @@ namespace iscore
 
 			virtual ~PluginControlInterface_QtInterface() = default;
 
-			virtual QStringList customCommand_list() const = 0;
-			virtual PluginControlInterface* customCommand_make(QString) = 0;
+			virtual QStringList control_list() const = 0;
+			virtual PluginControlInterface* control_make(QString) = 0;
 	};
 }
 

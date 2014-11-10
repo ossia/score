@@ -52,12 +52,12 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
 }
 
 //////////////////////////
-QStringList NetworkPlugin::customCommand_list() const
+QStringList NetworkPlugin::control_list() const
 {
 	return {CMD_NAME};
 }
 
-iscore::PluginControlInterface* NetworkPlugin::customCommand_make(QString name)
+iscore::PluginControlInterface* NetworkPlugin::control_make(QString name)
 {
 	if(name == QString(CMD_NAME))
 	{

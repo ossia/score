@@ -62,12 +62,12 @@ iscore::SettingsDelegateFactoryInterface* SimpleProcessPlugin::settings_make()
 }
 
 //////////////////////////
-QStringList SimpleProcessPlugin::customCommand_list() const
+QStringList SimpleProcessPlugin::control_list() const
 {
 	return {CMD_NAME};
 }
 
-iscore::PluginControlInterface* SimpleProcessPlugin::customCommand_make(QString name)
+iscore::PluginControlInterface* SimpleProcessPlugin::control_make(QString name)
 {
 	if(name == QString(CMD_NAME))
 	{

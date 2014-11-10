@@ -74,9 +74,9 @@ void PluginManager::dispatch(QObject* plugin)
 	if(cmd_plugin)
 	{
 		//qDebug() << "The plugin adds menu options";
-		for(const auto& cmd : cmd_plugin->customCommand_list())
+		for(const auto& cmd : cmd_plugin->control_list())
 		{
-			m_commandList.push_back(cmd_plugin->customCommand_make(cmd));
+			m_commandList.push_back(cmd_plugin->control_make(cmd));
 		}
 	}
 

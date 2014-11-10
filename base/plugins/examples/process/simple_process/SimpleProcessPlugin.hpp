@@ -35,8 +35,8 @@ class SimpleProcessPlugin :
 		virtual iscore::ProcessFactoryInterface* process_make(QString name) override;
 
 		// CustomCommand interface
-		virtual QStringList customCommand_list() const override;
-		virtual iscore::PluginControlInterface* customCommand_make(QString) override;
+		virtual QStringList control_list() const override;
+		virtual iscore::PluginControlInterface* control_make(QString) override;
 
 		// Panel interface
 		virtual QStringList panel_list() const override;

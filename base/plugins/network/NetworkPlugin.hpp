@@ -32,8 +32,8 @@ class NetworkPlugin :
 		virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
 		// CustomCommand interface
-		virtual QStringList customCommand_list() const override;
-		virtual iscore::PluginControlInterface* customCommand_make(QString) override;
+		virtual QStringList control_list() const override;
+		virtual iscore::PluginControlInterface* control_make(QString) override;
 
 		/* Pour les groupes
 		// Panel interface
