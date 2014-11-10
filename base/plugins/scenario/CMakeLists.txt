@@ -18,6 +18,39 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.hpp
 
+# Commands
+## Events
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CreateEventCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/MoveEventCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteEventCommand.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AddStateToEventCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteStateFromEventCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/SwitchStatePositionCommand.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AssignMessagesToStateCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/UnassignMessagesFromStateCommand.hpp
+# Que faire quand il n'y a pas de state et qu'on assigne ?
+
+# TODO: ajout, modification, suppression de condition.
+
+## Relations
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CreateRelationCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/MoveRelationCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteRelationCommand.hpp
+
+## Processes
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AddProcessToRelationCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteProcessCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/SwitchProcessPositionCommand.hpp
+
+## Scenario
+### Pour copy/cut & paste : on stocke dans un buffer les données à coller ?
+### Que faire si on supprime des trucs entre temps ? (ex. nœud de l'arbre...)
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CutCommand.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/PasteCommand.hpp
+
+# To sort
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelModel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelPresenter.hpp
@@ -63,6 +96,41 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommand.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCommandImpl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ScenarioCentralPanel.cpp
+
+# Commands
+## Events
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CreateEventCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/MoveEventCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteEventCommand.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AddStateToEventCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteStateFromEventCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/SwitchStatePositionCommand.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AssignMessagesToStateCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/UnassignMessagesFromStateCommand.cpp
+# Que faire quand il n'y a pas de state et qu'on assigne ?
+
+# TODO: ajout, modification, suppression de condition.
+
+## Relations
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CreateRelationCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/MoveRelationCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteRelationCommand.cpp
+
+## Processes
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/AddProcessToRelationCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/DeleteProcessCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/SwitchProcessPositionCommand.cpp
+
+## Scenario
+### Pour copy/cut & paste : on stocke dans un buffer les données à coller ?
+### Que faire si on supprime des trucs entre temps ? (ex. nœud de l'arbre...)
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/CutCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commands/PasteCommand.cpp
+
+
+
 
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/ScenarioCentralPanelView.cpp

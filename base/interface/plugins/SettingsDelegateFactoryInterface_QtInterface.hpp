@@ -1,5 +1,6 @@
 #pragma once
 #include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <QObject>
 
 namespace iscore
 {
@@ -14,6 +15,6 @@ namespace iscore
 }
 
 
-#define SettingsDelegateFactoryInterface_QtInterface_iid "org.ossia.i-score.plugins.SettingsDelegateFactoryInterface"
+#define SettingsDelegateFactoryInterface_QtInterface_iid "org.ossia.i-score.plugins.SettingsDelegateFactoryInterface_QtInterface"
 
 Q_DECLARE_INTERFACE(iscore::SettingsDelegateFactoryInterface_QtInterface, SettingsDelegateFactoryInterface_QtInterface_iid)
