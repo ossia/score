@@ -8,9 +8,9 @@ namespace iscore
 	class Presenter;
 
 	/**
-	 * @brief The Panel class
+	 * @brief The PanelFactoryInterface class
 	 *
-	 * A side panel. Think of the palettes in photoshop.
+	 * Factory for a side panel. Think of the palettes in photoshop.
 	 */
 	class PanelFactoryInterface
 	{

@@ -2,16 +2,15 @@
 
 namespace iscore
 {
-	// TODO better name, to prevent ambiguous "Panel".
 	class DocumentDelegateViewInterface;
 	class DocumentDelegatePresenterInterface;
 	class DocumentDelegateModelInterface;
 	class DocumentPresenter;
 
 	/**
-	 * @brief The DocumentPanel class
+	 * @brief The DocumentDelegateFactoryInterface class
 	 *
-	 * Similar to panel, but for the main document (like MS Word's main page)
+	 * The interface required to create a custom main document (like MS Word's main page)
 	 */
 	class DocumentDelegateFactoryInterface
 	{

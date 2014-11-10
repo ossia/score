@@ -38,6 +38,14 @@ namespace iscore
 		Settings
 	};
 
+	/**
+	 * @brief The MenuInterface class
+	 *
+	 * It is a way to allow plug-ins to put their options in a sensible place.
+	 * For instance, add an "Export" option after the standard "Save as...".
+	 *
+	 * The strings are not directly available to the plug-ins because they have to be translated.
+	 */
 	class MenuInterface
 	{
 		public:

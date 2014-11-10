@@ -6,13 +6,16 @@ namespace iscore
 	class Command;
 	class Presenter;
 	class MenubarManager;
+
 	/**
-	 * @brief The CustomCommand class
+	 * @brief The PluginControlInterface class
 	 *
-	 * The name is bad. This is not related to the Command class.
+	 * This class's goal is to :
+	 * * Instantiate some elements that are deeply intertwined with Qt : menus, toolbars
+	 * * Manage the Commands of the plug-in : it has to be able to instantiate any meaningful
+	 *   Command, if received by the network.
 	 *
-	 * TODO: refactor. Too much responsibilities for such a little thing.
-	 *
+	 * It is instatiated exactly once by the Presenter class in i-score.
 	 */
 	class PluginControlInterface : public QObject
 	{
