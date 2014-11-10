@@ -41,51 +41,8 @@ PluginSettingsModel::PluginSettingsModel():
 
 	connect(m_plugins,  &QStandardItemModel::itemChanged,
 			this,		&PluginSettingsModel::on_itemChanged);
-/*
-	setClientPort(s.value(SETTINGS_CLIENTPORT).toInt());
-	setMasterPort(s.value(SETTINGS_MASTERPORT).toInt());
-	setClientName(s.value(SETTINGS_CLIENTNAME).toString());
-*/}
-/*
-void PluginSettingsModel::setClientName(QString txt)
-{
-	clientName = txt;
-	QSettings s;
-	s.setValue(SETTINGS_CLIENTNAME, txt);
-	emit clientNameChanged();
 }
 
-QString PluginSettingsModel::getClientName() const
-{
-	return clientName;
-}
-
-void PluginSettingsModel::setClientPort(int val)
-{
-	clientPort = val;
-	QSettings s;
-	s.setValue(SETTINGS_CLIENTPORT, val);
-	emit clientPortChanged();
-}
-
-int PluginSettingsModel::getClientPort() const
-{
-	return clientPort;
-}
-
-void PluginSettingsModel::setMasterPort(int val)
-{
-	masterPort = val;
-	QSettings s;
-	s.setValue(SETTINGS_MASTERPORT, val);
-	emit masterPortChanged();
-}
-
-int PluginSettingsModel::getMasterPort() const
-{
-	return masterPort;
-}
-*/
 void PluginSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
 {
 	m_presenter = static_cast<PluginSettingsPresenter*>(presenter);
@@ -93,10 +50,6 @@ void PluginSettingsModel::setPresenter(SettingsDelegatePresenterInterface* prese
 
 void PluginSettingsModel::setFirstTimeSettings()
 {
-	QSettings s;
-	/*s.setValue(SETTINGS_CLIENTNAME, "i-score client");
-	s.setValue(SETTINGS_CLIENTPORT, 7888);
-	s.setValue(SETTINGS_MASTERPORT, 5678);*/
 }
 
 void PluginSettingsModel::on_itemChanged(QStandardItem* it)

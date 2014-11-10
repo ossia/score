@@ -4,8 +4,8 @@ namespace iscore
 {
 	class DocumentDelegateModelInterface;
 	/**
-	 * @brief The DocumentModel class
-	 * 
+	 * @brief The DocumentDelegateModelInterface class
+	 *
 	 * TODO
 	 */
 	class DocumentModel
