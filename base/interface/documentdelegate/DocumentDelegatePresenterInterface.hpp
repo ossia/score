@@ -7,28 +7,28 @@ namespace iscore
 	class DocumentPresenter;
 	class DocumentDelegateModelInterface;
 	class DocumentDelegateViewInterface;
-	class Command;
-	
+	class SerializableCommand;
+
 	class DocumentDelegatePresenterInterface : public QObject
 	{
 			Q_OBJECT
 		public:
-			DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter, 
-								   DocumentDelegateModelInterface* model, 
+			DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter,
+								   DocumentDelegateModelInterface* model,
 								   DocumentDelegateViewInterface* view):
 				QObject{parent_presenter},
 				m_model{model},
 				m_view{view},
 				m_parentPresenter{parent_presenter}
 			{
-				
+
 			}
-			
+
 			virtual ~DocumentDelegatePresenterInterface() = default;
-			
+
 		signals:
-			void submitCommand(Command* cmd);
-			
+			void submitCommand(SerializableCommand* cmd);
+
 		protected:
 			DocumentDelegateModelInterface* m_model;
 			DocumentDelegateViewInterface* m_view;

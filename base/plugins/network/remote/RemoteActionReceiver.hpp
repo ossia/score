@@ -5,7 +5,7 @@
 
 namespace iscore
 {
-	class Command;
+	class SerializableCommand;
 }
 
 class RemoteActionReceiver : public QObject
@@ -18,7 +18,7 @@ class RemoteActionReceiver : public QObject
 		void receivedCommand(QString, QString, QByteArray);
 
 	public slots:
-		void applyCommand(iscore::Command*);
+		void applyCommand(iscore::SerializableCommand*);
 
 	protected:
 		virtual void handle__edit_command(osc::ReceivedMessageArgumentStream);

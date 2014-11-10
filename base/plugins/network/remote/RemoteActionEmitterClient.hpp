@@ -7,7 +7,7 @@ class RemoteActionEmitterClient : public RemoteActionEmitter
 	public:
 		RemoteActionEmitterClient(ClientSession* session);
 
-		virtual void sendCommand(iscore::Command*) override;
+		virtual void sendCommand(iscore::SerializableCommand*) override;
 		virtual void undo() override;
 		virtual void redo() override;
 

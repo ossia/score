@@ -1,6 +1,6 @@
 #include "HelloWorldCommand.hpp"
 #include <core/presenter/Presenter.hpp>
-#include <core/presenter/command/Command.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 #include <core/view/View.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <interface/plugincontrol/MenuInterface.hpp>
@@ -13,39 +13,16 @@ using namespace iscore;
 // We MUST NOT pass pointers of ANY KIND as data because of the distribution needs.
 // If an object must be reference, it has to get an id, a name, or something from which
 // it can be referenced.
-class HelloWorldIncrementCommandImpl : public Command
+class HelloWorldIncrementCommandImpl : public SerializableCommand
 {
 	public:
 		HelloWorldIncrementCommandImpl():
-			Command{QString("HelloWorldCommand"),
+			SerializableCommand{QString("HelloWorldCommand"),
 					QString("HelloWorldIncrementCommandImpl"),
 					QString("Increment process")}
 		{
 		}
 
-		virtual QByteArray serialize() override
-		{
-			auto arr = Command::serialize();
-			{
-				QDataStream s(&arr, QIODevice::Append);
-				s.setVersion(QDataStream::Qt_5_3);
-
-				s << 42;
-			}
-
-			return arr;
-		}
-
-		void deserialize(QByteArray arr) override
-		{
-			QBuffer buf(&arr, nullptr);
-			buf.open(QIODevice::ReadOnly);
-			cmd_deserialize(&buf);
-
-			QDataStream stream(&buf);
-			int test;
-			stream >> test;
-		}
 
 		virtual void undo() override
 		{
@@ -61,6 +38,19 @@ class HelloWorldIncrementCommandImpl : public Command
 			auto target = qApp->findChild<HelloWorldCommand*>(parentName());
 			if(target)
 				target->incrementProcesses();
+		}
+
+	protected:
+		virtual void serializeImpl(QDataStream& s) override
+		{
+			s << 42;
+		}
+
+		virtual void deserializeImpl(QDataStream& s) override
+		{
+			int test;
+			s >> test;
+			qDebug() << Q_FUNC_INFO << test;
 		}
 
 	private:
@@ -95,7 +85,7 @@ void HelloWorldCommand::setPresenter(iscore::Presenter* pres)
 	m_presenter = pres;
 }
 
-Command*HelloWorldCommand::instantiateUndoCommand(QString name, QByteArray data)
+SerializableCommand* HelloWorldCommand::instantiateUndoCommand(QString name, QByteArray data)
 {
 	qDebug(Q_FUNC_INFO);
 	if(name == "HelloWorldIncrementCommandImpl")

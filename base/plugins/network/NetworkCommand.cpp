@@ -89,7 +89,7 @@ void NetworkCommand::createZeroconfSelectionDialog()
 	diag->exec();
 }
 
-void NetworkCommand::commandPush(Command* cmd)
+void NetworkCommand::commandPush(SerializableCommand* cmd)
 {
 	m_emitter->sendCommand(cmd);
 }

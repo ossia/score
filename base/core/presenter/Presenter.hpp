@@ -7,7 +7,7 @@
 
 namespace iscore
 {
-	class Command;
+	class SerializableCommand;
 	class PluginControlInterface;
 	class Model;
 	class View;
@@ -16,9 +16,9 @@ namespace iscore
 	/**
 	 * @brief The Presenter class
 	 *
-	 * Certainly needs refactoring. 
+	 * Certainly needs refactoring.
 	 * For now, manages menus and plug-in objects.
-	 * 
+	 *
 	 * It is also able to instantiate a Command from serialized Undo/Redo data.
 	 * (this should go in the DocumentPresenter maybe ?)
 	 */
@@ -39,21 +39,21 @@ namespace iscore
 			/**
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
 			 */
-			void instantiatedCommand(iscore::Command*);
+			void instantiatedCommand(iscore::SerializableCommand*);
 
 		public slots:
 			/**
 			 * @brief newDocument Create a new document.
 			 */
 			void newDocument();
-			
+
 			/**
 			 * @brief applyCommand
-			 * 
+			 *
 			 * Forwards a command to the undo/redo stack
 			 */
-			void applyCommand(Command*);
-			
+			void applyCommand(SerializableCommand*);
+
 			/**
 			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
 			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.

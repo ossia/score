@@ -5,7 +5,7 @@ namespace iscore
 {
 	class PanelModelInterface;
 	class PanelViewInterface;
-	class Command;
+	class SerializableCommand;
 
 	class PanelPresenterInterface : public QObject
 	{
@@ -23,7 +23,7 @@ namespace iscore
 			virtual ~PanelPresenterInterface() = default;
 
 		signals:
-			void submitCommand(Command* cmd);
+			void submitCommand(SerializableCommand* cmd);
 
 		protected:
 			PanelModelInterface* m_model;

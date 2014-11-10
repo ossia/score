@@ -1,9 +1,9 @@
 #pragma once
 
-#include <core/presenter/command/Command.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 #include <QMap>
 #include <QString>
-class BlacklistCommand : public iscore::Command
+class BlacklistCommand : public iscore::SerializableCommand
 {
 		// QUndoCommand interface
 	public:
@@ -13,9 +13,9 @@ class BlacklistCommand : public iscore::Command
 		virtual void redo();
 		virtual bool mergeWith(const QUndoCommand* other);
 
-		// Command interface
-	public:
-		virtual void deserialize(QByteArray);
+	protected:
+		virtual void serializeImpl(QDataStream&) override { }
+		virtual void deserializeImpl(QDataStream&) override { }
 
 		QMap<QString, bool> m_blacklistedState;
 };

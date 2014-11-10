@@ -75,7 +75,7 @@ void Presenter::newDocument()
 	m_document->newDocument();
 }
 
-void Presenter::applyCommand(Command* cmd)
+void Presenter::applyCommand(SerializableCommand* cmd)
 {
 	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
 }

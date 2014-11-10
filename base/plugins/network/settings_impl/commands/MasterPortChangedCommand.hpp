@@ -36,10 +36,6 @@ class MasterPortChangedCommand : public iscore::Command
 			target->setMasterPort(m_newval);
 		}
 
-		virtual void deserialize(QByteArray) override
-		{
-		}
-
 	private:
 		int m_oldval;
 		int m_newval;

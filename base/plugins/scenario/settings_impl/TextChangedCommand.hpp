@@ -10,10 +10,6 @@ class TextChangedCommand : public iscore::Command
 						   QString new_text,
 						   iscore::SettingsDelegatePresenterInterface* pres);
 
-		virtual void deserialize(QByteArray) override
-		{
-		}
-
 		virtual void undo() override;
 		virtual void redo() override;
 
@@ -21,5 +17,4 @@ class TextChangedCommand : public iscore::Command
 		QString m_old;
 		QString m_new;
 		ScenarioSettingsPresenter* m_presenter;
-
 };

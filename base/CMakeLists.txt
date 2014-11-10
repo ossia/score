@@ -74,6 +74,7 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/SerializableCommand.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.hpp
 
@@ -111,7 +112,7 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/CommandQueue.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/Command.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/command/SerializableCommand.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp
 

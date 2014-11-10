@@ -3,7 +3,7 @@
 
 namespace iscore
 {
-	class Command;
+	class SerializableCommand;
 	class Presenter;
 	class MenubarManager;
 
@@ -30,9 +30,9 @@ namespace iscore
 			virtual void populateToolbars() = 0;
 			virtual void setPresenter(Presenter*) = 0;
 
-			virtual Command* instantiateUndoCommand(QString name, QByteArray data) { return nullptr; }
+			virtual SerializableCommand* instantiateUndoCommand(QString name, QByteArray data) { return nullptr; }
 
 		signals:
-			void submitCommand(Command*);
+			void submitCommand(SerializableCommand*);
 	};
 }

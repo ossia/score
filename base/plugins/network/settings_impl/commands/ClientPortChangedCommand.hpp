@@ -36,10 +36,6 @@ class ClientPortChangedCommand : public iscore::Command
 			target->setClientPort(m_newval);
 		}
 
-		virtual void deserialize(QByteArray) override
-		{
-		}
-
 	private:
 		int m_oldval;
 		int m_newval;

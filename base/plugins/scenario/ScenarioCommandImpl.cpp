@@ -4,35 +4,19 @@
 #include <QApplication>
 using namespace iscore;
 ScenarioCommandImpl::ScenarioCommandImpl(QPointF pos):
-	Command{QString("ScenarioCommand"),
+	SerializableCommand{QString("ScenarioCommand"),
 			QString("ScenarioCommandImpl"),
 			QString("Increment process")}
 {
 	m_position = pos;
 }
 
-QByteArray ScenarioCommandImpl::serialize()
+void ScenarioCommandImpl::serializeImpl(QDataStream&)
 {
-	auto arr = Command::serialize();
-	{
-		QDataStream s(&arr, QIODevice::Append);
-		s.setVersion(QDataStream::Qt_5_3);
-
-		s << 42;
-	}
-
-	return arr;
 }
 
-void ScenarioCommandImpl::deserialize(QByteArray arr)
+void ScenarioCommandImpl::deserializeImpl(QDataStream&)
 {
-	QBuffer buf(&arr, nullptr);
-	buf.open(QIODevice::ReadOnly);
-	cmd_deserialize(&buf);
-
-	QDataStream stream(&buf);
-	int test;
-	stream >> test;
 }
 
 void ScenarioCommandImpl::undo()

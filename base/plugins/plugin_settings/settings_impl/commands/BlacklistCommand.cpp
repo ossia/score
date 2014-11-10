@@ -4,7 +4,7 @@ using namespace iscore;
 #include <QDebug>
 
 BlacklistCommand::BlacklistCommand(QString name, bool value):
-	Command{"", "", ""},
+	SerializableCommand{"", "", ""},
 	m_blacklistedState{{name, value}}
 {
 
@@ -53,8 +53,4 @@ bool BlacklistCommand::mergeWith(const QUndoCommand* other)
 	}
 
 	return true;
-}
-
-void BlacklistCommand::deserialize(QByteArray)
-{
 }

@@ -20,11 +20,11 @@ struct FakeModel : public QNamedObject
 	int value{};
 };
 
-class FakeCommand : public Command
+class FakeCommand : public SerializableCommand
 {
 	public:
 		FakeCommand(int modelId):
-			Command{"", "FakeCommand", "" },
+			SerializableCommand{"", "FakeCommand", "" },
 			m_modelId{modelId}
 		{
 
@@ -59,16 +59,17 @@ class FakeCommand : public Command
 			return 1;
 		}
 
-		virtual QByteArray serialize()
-		{
-		}
-
-		virtual void deserialize(QByteArray)
-		{
-		}
-
 	private:
 		int m_modelId{};
+
+		// SerializableCommand interface
+	protected:
+		virtual void serializeImpl(QDataStream&) override
+		{
+		}
+		virtual void deserializeImpl(QDataStream&) override
+		{
+		}
 };
 
 class TestCommand: public QObject

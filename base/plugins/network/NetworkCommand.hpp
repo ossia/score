@@ -28,7 +28,7 @@ class NetworkCommand : public iscore::PluginControlInterface
 
 		void createZeroconfSelectionDialog();
 
-		void commandPush(iscore::Command*);
+		void commandPush(iscore::SerializableCommand*);
 
 	private:
 		iscore::Presenter* m_presenter{};

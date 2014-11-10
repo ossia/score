@@ -7,7 +7,7 @@ class RemoteActionEmitterMaster : public RemoteActionEmitter
 	public:
 		RemoteActionEmitterMaster(MasterSession* session);
 
-		virtual void sendCommand(iscore::Command*) override;
+		virtual void sendCommand(iscore::SerializableCommand*) override;
 
 	private:
 		MasterSession* m_session;

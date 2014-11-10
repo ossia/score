@@ -16,7 +16,7 @@ void DocumentPresenter::newDocument()
 {
 }
 
-void DocumentPresenter::applyCommand(Command* cmd)
+void DocumentPresenter::applyCommand(SerializableCommand* cmd)
 {
 	m_commandQueue->push(cmd);
 }

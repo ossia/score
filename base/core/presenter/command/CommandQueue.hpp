@@ -1,6 +1,6 @@
 #pragma once
 #include <QUndoStack>
-#include <core/presenter/command/Command.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 #include <memory>
 
 class Session;
@@ -21,15 +21,15 @@ namespace iscore
 		signals:
 			/**
 			 * @brief push_start Is emitted when a command was pushed on the stack
-			 * @param cmd the command that was pushed 
+			 * @param cmd the command that was pushed
 			 */
-			void push_start(iscore::Command* cmd);
+			void push_start(iscore::SerializableCommand* cmd);
 
 			/**
 			 * @brief onUndo Is emitted when the user calls "Undo"
 			 */
 			void onUndo();
-			
+
 			/**
 			 * @brief onRedo Is emitted when the user calls "Redo"
 			 */
@@ -39,15 +39,15 @@ namespace iscore
 			/**
 			 * @brief push Pushes a command on the stack
 			 * @param cmd The command
-			 * 
+			 *
 			 * Calls QUndoStack::push
 			 */
-			void push(iscore::Command* cmd);
-			
+			void push(iscore::SerializableCommand* cmd);
+
 			/**
 			 * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
 			 * @param cmd The command
 			 */
-			void pushAndEmit(iscore::Command* cmd);
+			void pushAndEmit(iscore::SerializableCommand* cmd);
 	};
 }

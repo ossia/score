@@ -36,10 +36,6 @@ class ClientNameChangedCommand : public iscore::Command
 			target->setClientName(m_newval);
 		}
 
-		virtual void deserialize(QByteArray) override
-		{
-		}
-
 	private:
 		QString m_oldval;
 		QString m_newval;

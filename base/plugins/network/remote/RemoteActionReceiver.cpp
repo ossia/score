@@ -8,7 +8,7 @@ RemoteActionReceiver::RemoteActionReceiver(Session* s)
 {
 }
 
-void RemoteActionReceiver::applyCommand(iscore::Command* cmd)
+void RemoteActionReceiver::applyCommand(iscore::SerializableCommand* cmd)
 {
 	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
 	queue->push(cmd);
