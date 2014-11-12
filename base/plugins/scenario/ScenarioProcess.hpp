@@ -1,6 +1,12 @@
 #pragma once
 #include <interface/process/ProcessFactoryInterface.hpp>
 
+/* TODO @Nico
+ * 
+ * Ici il faut donc faire le processus scénario, qui permet d'instancier events et relations.
+ * Il faut que le présenteur du processus papote avec le présenteur du processus parent, 
+ * jusqu'à celui du document, qui fait remonter  à ScenarioCommand (qui va changer de nom en ScenarioControl je pense).
+ */
 class ScenarioProcess : public iscore::ProcessFactoryInterface
 {
 public:

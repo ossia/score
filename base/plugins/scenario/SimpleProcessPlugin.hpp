@@ -8,6 +8,10 @@
 #include <QObject>
 class ScenarioSettings;
 
+/* TODO @Nico
+ * 
+ * Renommer en ScenarioPlugin :)
+ */
 class SimpleProcessPlugin :
 		public QObject,
 		public iscore::Autoconnect_QtInterface,

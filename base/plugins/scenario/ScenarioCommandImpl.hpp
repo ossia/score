@@ -8,7 +8,7 @@
 /**
  * @brief The ScenarioCommandImpl class
  *
- * @todo{Rename as ScenarioCreateEventCommand}
+ * @todo{À finir de déplacer dans commands/CreateEventCommand}
  */
 class ScenarioCommandImpl : public iscore::SerializableCommand
 {

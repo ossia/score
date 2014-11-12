@@ -2,6 +2,11 @@
 #include <interface/plugincontrol/PluginControlInterface.hpp>
 #include <QAction>
 
+/* TODO @Nico
+ * - Renommer en ScenarioControl
+ * - Virer le action_scenarioigate
+ * - Réimplémenter instatiateUndoCommand pour qu'il génère les bonnes actions à la réception.
+ */ 
 class ScenarioCommand : public iscore::PluginControlInterface
 {
 		Q_OBJECT
