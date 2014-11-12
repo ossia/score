@@ -93,6 +93,7 @@ signals:
   void viewModeIsFull();
   void createBoxProxy(QRectF rectItem); /// Proxy signal for TimeBox creation from Scenario plugin to Timebox parent
   void createTimeEventProxy(QPointF pos); /// Proxy signal for TimeEvent creation from Scenario plugin to Timebox parent
+  void removeTimeEventProxy(QPointF pos); /// Proxy signal for TimeEvent deletion from Scenario plugin to Timebox parent
   void suppressTimeboxProxy();
 
 public slots:

@@ -16,10 +16,12 @@ public:
 
 signals:
     void addTimeEvent(QPointF pos);
+	void removeTimeEvent(QPointF pos);
 
 public slots:
     void addTimeEventInModel(QPointF pos);
     void addTimeEventInView(QPointF pos);
+	void removeTimeEventInView(QPointF pos);
 
 private:
     ScenarioModel *_pModel = nullptr;

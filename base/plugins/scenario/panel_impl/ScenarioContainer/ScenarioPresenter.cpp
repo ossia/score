@@ -3,7 +3,10 @@
 #include "ScenarioView.hpp"
 
 #include <QDebug>
+#include <QApplication>
 
+#include "commands/CreateEventCommand.hpp"
+#include <core/presenter/Presenter.hpp>
 ScenarioPresenter::ScenarioPresenter(ScenarioModel* model, ScenarioView* view, QObject *parent) :
 	QObject{nullptr},
 	_pModel{model},
@@ -13,6 +16,7 @@ ScenarioPresenter::ScenarioPresenter(ScenarioModel* model, ScenarioView* view, Q
 	setParent(parent);
 	connect(_pView, &ScenarioView::viewAskForTimeEvent, this, &ScenarioPresenter::addTimeEventInModel);
 	connect(_pModel, &ScenarioModel::TimeEventAddedInModel, this, &ScenarioPresenter::addTimeEventInView);
+	connect(_pModel, &ScenarioModel::TimeEventRemovedInModel, this, &ScenarioPresenter::removeTimeEventInView);
 }
 
 ScenarioPresenter::~ScenarioPresenter()
@@ -21,11 +25,24 @@ ScenarioPresenter::~ScenarioPresenter()
 
 void ScenarioPresenter::addTimeEventInModel(QPointF pos)
 {
+	qDebug(Q_FUNC_INFO);
+	// On instancie la commande
+	auto cmd = new CreatEventCommand(_pModel->id(), pos);
+	
+	// Puis on la fait remonter au présenteur
+	auto pres = qApp->findChild<iscore::Presenter*>("Presenter");
+	pres->applyCommand(cmd);
+	
 	// send request to the model
-	_pModel->addTimeEvent(pos);
+	//_pModel->addTimeEvent(pos);
 }
 
 void ScenarioPresenter::addTimeEventInView(QPointF pos)
 {
 	emit addTimeEvent(pos);
+}
+
+void ScenarioPresenter::removeTimeEventInView(QPointF pos)
+{
+	emit removeTimeEvent(pos);
 }

@@ -93,6 +93,7 @@ void Timebox::init(TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd, const Q
   connect(_pPresenter, SIGNAL(viewModeIsFull()), this, SLOT(goFull()));
   connect(_pPresenter, SIGNAL(createBoxProxy(QRectF)), this, SLOT(createTimeboxAndTimeEvents(QRectF)));
   connect(_pPresenter, SIGNAL(createTimeEventProxy(QPointF)), this, SLOT(createTimeEvent(QPointF)));
+  connect(_pPresenter, SIGNAL(removeTimeEventProxy(QPointF)), this, SLOT(removeTimeEvent(QPointF)));
   connect(_pPresenter, SIGNAL(suppressTimeboxProxy()), this, SLOT(deleteLater()));
 
   MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); /// We retrieve a pointer to mainWindow
@@ -140,6 +141,11 @@ void Timebox::goHide()
 void Timebox::createTimeEvent(QPointF pos)
 {
   new TimeEvent(this, pos);
+}
+void Timebox::removeTimeEvent(QPointF pos)
+{
+	auto item = _pFullView->itemAt(pos, _pGraphicsView->transform());
+	_pFullView->removeItem(item);
 }
 
 void Timebox::createTimeboxAndTimeEvents(QRectF rect)

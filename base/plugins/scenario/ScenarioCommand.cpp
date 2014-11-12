@@ -39,6 +39,6 @@ void ScenarioCommand::on_createTimeEvent(QPointF position)
 	// If an object must be reference, it has to get an id, a name, or something from which
 	// it can be referenced.
     qDebug() << "receive signal" ;
-    auto cmd = new ScenarioCommandImpl(position);
-	emit submitCommand(cmd);
+ //   auto cmd = new ScenarioCommandImpl(position);
+//	emit submitCommand(cmd);
 }

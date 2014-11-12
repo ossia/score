@@ -32,6 +32,7 @@ namespace iscore
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
 			Settings* settings() { return m_settings.get(); }
+			
 
 		public slots:
 			/**

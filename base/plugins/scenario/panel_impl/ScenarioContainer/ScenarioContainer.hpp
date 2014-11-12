@@ -1,14 +1,19 @@
 #ifndef SCENARIOCONTAINER_HPP
 #define SCENARIOCONTAINER_HPP
 
-#include <QObject>
+#include <QNamedObject>
 
 class ScenarioModel;
 class ScenarioView;
 class ScenarioPresenter;
 class QGraphicsObject;
 
-class ScenarioContainer : public QObject
+
+/*
+ * TODO @Nico
+ * En fait ça il faut (suffit) d'en faire le ScenarioProcess en gros.
+ */
+class ScenarioContainer : public QNamedObject
 {
     Q_OBJECT
 public:
@@ -26,6 +31,8 @@ private:
     ScenarioModel* _pModel = nullptr;
     ScenarioView* _pView = nullptr;
     ScenarioPresenter* _pPresenter = nullptr;
+	
+	int m_modelId{0};
 
 };
 
