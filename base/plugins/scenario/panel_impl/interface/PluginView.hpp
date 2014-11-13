@@ -46,15 +46,15 @@ class QGraphicsItem;
 */
 class PluginView : public QGraphicsObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  QRectF _boundingRectangle; /// Retrieved from parent's bounding rectangle at creation.
+	private:
+		QRectF _boundingRectangle; /// Retrieved from parent's bounding rectangle at creation.
 
-public:
-  PluginView(QGraphicsObject* parent);
-  virtual QRectF boundingRect() const;
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	public:
+		PluginView (QGraphicsObject* parent);
+		virtual QRectF boundingRect() const;
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 };
 
 #endif // PLUGINVIEW_HPP

@@ -36,72 +36,75 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QFinalState>
 #include <QGraphicsScene>
 
-TimeboxModel::TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd)
-  : QObject(pParent), _time(t), _yPosition(y), _width(w), _height(h), _name(name), _pStartTimeEvent(pTimeEventStart), _pEndTimeEvent(pTimeEventEnd)
+TimeboxModel::TimeboxModel (qreal t, qreal y, qreal w, qreal h, QString name, Timebox* pParent, TimeEvent* pTimeEventStart, TimeEvent* pTimeEventEnd)
+	: QObject (pParent), _time (t), _yPosition (y), _width (w), _height (h), _name (name), _pStartTimeEvent (pTimeEventStart), _pEndTimeEvent (pTimeEventEnd)
 {
 
-  TimeEventModel *TimeEventModel = _pStartTimeEvent->model();
-  TimeEventModel->addTimebox(pParent);
-  connect(TimeEventModel, SIGNAL(timeChanged(qreal)), this, SLOT(settime(qreal)));
-  connect(this, SIGNAL(timeChanged(qreal)), TimeEventModel, SLOT(settime(qreal)));
-  connect(TimeEventModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setYPosition(qreal)));
-  connect(this, SIGNAL(yPositionChanged(qreal)), TimeEventModel, SLOT(setYPosition(qreal)));
+	TimeEventModel* TimeEventModel = _pStartTimeEvent->model();
+	TimeEventModel->addTimebox (pParent);
+	connect (TimeEventModel, SIGNAL (timeChanged (qreal) ), this, SLOT (settime (qreal) ) );
+	connect (this, SIGNAL (timeChanged (qreal) ), TimeEventModel, SLOT (settime (qreal) ) );
+	connect (TimeEventModel, SIGNAL (yPositionChanged (qreal) ), this, SLOT (setYPosition (qreal) ) );
+	connect (this, SIGNAL (yPositionChanged (qreal) ), TimeEventModel, SLOT (setYPosition (qreal) ) );
 
-  TimeEventModel = _pEndTimeEvent->model();
-  TimeEventModel->addTimebox(pParent);
-  connect(TimeEventModel, SIGNAL(timeChanged(qreal)), this, SLOT(settimeEnd(qreal)));
-  connect(this, SIGNAL(timeEndChanged(qreal)), TimeEventModel, SLOT(settime(qreal)));
-  connect(TimeEventModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setYPosition(qreal)));
-  connect(this, SIGNAL(yPositionChanged(qreal)), TimeEventModel, SLOT(setYPosition(qreal)));
+	TimeEventModel = _pEndTimeEvent->model();
+	TimeEventModel->addTimebox (pParent);
+	connect (TimeEventModel, SIGNAL (timeChanged (qreal) ), this, SLOT (settimeEnd (qreal) ) );
+	connect (this, SIGNAL (timeEndChanged (qreal) ), TimeEventModel, SLOT (settime (qreal) ) );
+	connect (TimeEventModel, SIGNAL (yPositionChanged (qreal) ), this, SLOT (setYPosition (qreal) ) );
+	connect (this, SIGNAL (yPositionChanged (qreal) ), TimeEventModel, SLOT (setYPosition (qreal) ) );
 }
 
 void TimeboxModel::addPluginSmall()
 {
-  _pluginsSmallView.emplace_back();
+	_pluginsSmallView.emplace_back();
 }
 
 void TimeboxModel::removePluginSmall()
 {
-  _pluginsSmallView.pop_back();
+	_pluginsSmallView.pop_back();
 }
 
 void TimeboxModel::addPluginFull()
 {
-  _pluginsFullView.emplace_back();
+	_pluginsFullView.emplace_back();
 }
 
 void TimeboxModel::removePluginFull()
 {
-  _pluginsFullView.pop_back();
+	_pluginsFullView.pop_back();
 }
 
-void TimeboxModel::setname(QString arg)
+void TimeboxModel::setname (QString arg)
 {
-  if (_name != arg) {
-      _name = arg;
-      emit nameChanged(arg);
-    }
+	if (_name != arg)
+	{
+		_name = arg;
+		emit nameChanged (arg);
+	}
 }
 
-void TimeboxModel::settime(qreal arg)
+void TimeboxModel::settime (qreal arg)
 {
-  if (_time != arg) {
-      _time = arg;
-      emit timeChanged(arg);
-      emit timeEndChanged(arg+width());
-    }
+	if (_time != arg)
+	{
+		_time = arg;
+		emit timeChanged (arg);
+		emit timeEndChanged (arg + width() );
+	}
 }
 
-void TimeboxModel::settimeEnd(qreal arg)
+void TimeboxModel::settimeEnd (qreal arg)
 {
-  arg -= width();
-  settime(arg);
+	arg -= width();
+	settime (arg);
 }
 
-void TimeboxModel::setYPosition(qreal arg)
+void TimeboxModel::setYPosition (qreal arg)
 {
-  if (_yPosition != arg) {
-      _yPosition = arg;
-      emit yPositionChanged(arg);
-    }
+	if (_yPosition != arg)
+	{
+		_yPosition = arg;
+		emit yPositionChanged (arg);
+	}
 }

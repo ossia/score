@@ -38,31 +38,31 @@ class QGraphicsSimpleTextItem;
 
 class TimeboxHeader : public QGraphicsWidget
 {
-Q_OBJECT
+		Q_OBJECT
 
-public:
-  static const int HEIGHT = 25;
+	public:
+		static const int HEIGHT = 25;
 
-private:
-  static const int MARGIN = 2;
+	private:
+		static const int MARGIN = 2;
 
-  QGraphicsPixmapItem *_pButtonPlay;
-  QGraphicsSimpleTextItem *_pTextName;
+		QGraphicsPixmapItem* _pButtonPlay;
+		QGraphicsSimpleTextItem* _pTextName;
 
-public:
-  TimeboxHeader(QGraphicsItem *item);
+	public:
+		TimeboxHeader (QGraphicsItem* item);
 
-signals:
-  void doubleClicked();
+	signals:
+		void doubleClicked();
 
-public slots:
-  void changeName(QString name);
+	public slots:
+		void changeName (QString name);
 
-protected:
-  // QGraphicsItem interface
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual QRectF boundingRect() const;
-  virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+	protected:
+		// QGraphicsItem interface
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+		virtual QRectF boundingRect() const;
+		virtual void mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event);
 };
 
 #endif // TIMEBOXHEADER_HPP

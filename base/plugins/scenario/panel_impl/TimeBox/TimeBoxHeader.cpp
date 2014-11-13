@@ -38,55 +38,56 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSimpleTextItem>
 
-TimeboxHeader::TimeboxHeader(QGraphicsItem *item)
-  : QGraphicsWidget(item)
+TimeboxHeader::TimeboxHeader (QGraphicsItem* item)
+	: QGraphicsWidget (item)
 {
-  setFlags(QGraphicsItem::ItemIsSelectable);
+	setFlags (QGraphicsItem::ItemIsSelectable);
 
-  setGeometry(0,0, parentItem()->boundingRect().width(), HEIGHT);
+	setGeometry (0, 0, parentItem()->boundingRect().width(), HEIGHT);
 
-  setMaximumHeight(HEIGHT); /// Set height rigidly
-  setMinimumHeight(HEIGHT);
+	setMaximumHeight (HEIGHT); /// Set height rigidly
+	setMinimumHeight (HEIGHT);
 
-  _pButtonPlay = new QGraphicsPixmapItem(QPixmap(":/play.png"), this);
-  _pButtonPlay->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonPlay->setPos(0, MARGIN);
+	_pButtonPlay = new QGraphicsPixmapItem (QPixmap (":/play.png"), this);
+	_pButtonPlay->setFlags (QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+	_pButtonPlay->setPos (0, MARGIN);
 
-  TimeboxSmallView *tbsmall = qgraphicsitem_cast<TimeboxSmallView*>(parentWidget());
-  QString name = tbsmall->model()->name(); /// We retrieve the TimeBox's name stored in the model for the first time
-  _pTextName = new QGraphicsSimpleTextItem(name, this);
-  _pTextName->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom a text
-  _pTextName->setPos(30, MARGIN); /// @todo Find a better position
+	TimeboxSmallView* tbsmall = qgraphicsitem_cast<TimeboxSmallView*> (parentWidget() );
+	QString name = tbsmall->model()->name(); /// We retrieve the TimeBox's name stored in the model for the first time
+	_pTextName = new QGraphicsSimpleTextItem (name, this);
+	_pTextName->setFlags (QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom a text
+	_pTextName->setPos (30, MARGIN); /// @todo Find a better position
 }
 
 /// Slot connected to TimeBoxModel's signal nameChanged()
-void TimeboxHeader::changeName(QString name)
+void TimeboxHeader::changeName (QString name)
 {
-  _pTextName->setText(name);
+	_pTextName->setText (name);
 }
 
-void TimeboxHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeboxHeader::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+	Q_UNUSED (option)
+	Q_UNUSED (widget)
 
-  /// Draw the header part
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(QBrush(Qt::gray));
-  painter->drawRect(contentsRect());
+	/// Draw the header part
+	painter->setPen (Qt::NoPen);
+	painter->setBrush (QBrush (Qt::gray) );
+	painter->drawRect (contentsRect() );
 
-  //qDebug() << "header: " << contentsRect() << size() << " buttonPlay" << _pButtonPlay->boundingRect() << " boxTitle" << _pTextName->boundingRect();
+	//qDebug() << "header: " << contentsRect() << size() << " buttonPlay" << _pButtonPlay->boundingRect() << " boxTitle" << _pTextName->boundingRect();
 }
 
 QRectF TimeboxHeader::boundingRect() const
 {
-  return QRectF(0,0,size().width(),size().height());
+	return QRectF (0, 0, size().width(), size().height() );
 }
 
-void TimeboxHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void TimeboxHeader::mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::LeftButton) {
-	  event->accept();
-	  emit doubleClicked();
+	if (event->button() == Qt::LeftButton)
+	{
+		event->accept();
+		emit doubleClicked();
 	}
 }

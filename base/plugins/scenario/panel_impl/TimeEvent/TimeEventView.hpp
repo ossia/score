@@ -49,43 +49,46 @@ class QGraphicsLineItem;
 
 class TimeEventView : public QGraphicsObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  TimeEventModel *_pModel = nullptr;
+	private:
+		TimeEventModel* _pModel = nullptr;
 
-  qreal _penWidth;
-  qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
-  qreal _height; /// height of the line
+		qreal _penWidth;
+		qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
+		qreal _height; /// height of the line
 
-  QGraphicsLineItem *_pTemporaryRelation = nullptr; /// Temporary graphical line when a creation is in progress. Line is horizontal and always attached at the center of the circle (0,0)
+		QGraphicsLineItem* _pTemporaryRelation = nullptr; /// Temporary graphical line when a creation is in progress. Line is horizontal and always attached at the center of the circle (0,0)
 
-public:
-  explicit TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics = 0);
-  ~TimeEventView();
+	public:
+		explicit TimeEventView (TimeEventModel* pModel, TimeEvent* parentObject, QGraphicsItem* parentGraphics = 0);
+		~TimeEventView();
 
-signals:
-  void xChanged(qreal);
-  void yChanged(qreal);
-  void createTimeEventAndTimebox(QLineF line);  /// emit a signal to create a Timebox and another TimeEvent in the current Scenario
+	signals:
+		void xChanged (qreal);
+		void yChanged (qreal);
+		void createTimeEventAndTimebox (QLineF line); /// emit a signal to create a Timebox and another TimeEvent in the current Scenario
 
-public slots:
-  void setY(qreal);
-  void setX(qreal);
+	public slots:
+		void setY (qreal);
+		void setX (qreal);
 
-public:
-  enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
-  virtual int type() const {return Type;}
+	public:
+		enum {Type = EventItemType}; //! Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+		virtual int type() const
+		{
+			return Type;
+		}
 
-  virtual QRectF boundingRect() const;
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual QPainterPath shape() const;
+		virtual QRectF boundingRect() const;
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+		virtual QPainterPath shape() const;
 
-protected:
-  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+	protected:
+		QVariant itemChange (GraphicsItemChange change, const QVariant& value);
+		void mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		void mouseMoveEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		void mouseReleaseEvent (QGraphicsSceneMouseEvent* mouseEvent);
 
 };
 

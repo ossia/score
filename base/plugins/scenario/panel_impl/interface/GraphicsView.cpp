@@ -42,131 +42,155 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QApplication>
 #include <QGraphicsWidget>
 
-GraphicsView::GraphicsView(QWidget *parent)
-  : QGraphicsView(parent)
+GraphicsView::GraphicsView (QWidget* parent)
+	: QGraphicsView (parent)
 {
-  setSceneRect(QRectF()); // we unset graphicsView sceneRect to give this ability to graphicsScene
-  setMouseTracking(true); // Permits to emit mousePosition() when moving the mouse
-  setAlignment(Qt::AlignLeft | Qt::AlignTop);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  setBackgroundBrush(Qt::NoBrush); // Used in drawBackground().
+	setSceneRect (QRectF() ); // we unset graphicsView sceneRect to give this ability to graphicsScene
+	setMouseTracking (true); // Permits to emit mousePosition() when moving the mouse
+	setAlignment (Qt::AlignLeft | Qt::AlignTop);
+	setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOn);
+	setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOn);
+	setBackgroundBrush (Qt::NoBrush); // Used in drawBackground().
 }
 
-void GraphicsView::mouseDragMode(QAction* action)
+void GraphicsView::mouseDragMode (QAction* action)
 {
-  Q_ASSERT(action->data().canConvert(QVariant::Int));
-  qint32 typeDragMode = action->data().toInt();
+	Q_ASSERT (action->data().canConvert (QVariant::Int) );
+	qint32 typeDragMode = action->data().toInt();
 
-  Q_ASSERT(typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag || typeDragMode == EventItemType || typeDragMode == BoxItemType);
-  switch(typeDragMode){
-	case EventItemType : // we pass Event and Process Item to NoDrag
-	case BoxItemType :
-	case QGraphicsView::NoDrag :
-	  setCursor(Qt::ArrowCursor);
-	  setDragMode(QGraphicsView::NoDrag);
-	  break;
-	case QGraphicsView::ScrollHandDrag :
-	  setCursor(Qt::OpenHandCursor);
-	  setDragMode(QGraphicsView::ScrollHandDrag);
-	  break;
-	case QGraphicsView::RubberBandDrag :
-	  setCursor(Qt::CrossCursor);
-	  setDragMode(QGraphicsView::RubberBandDrag);
-	  break;
-	default :
-	  qWarning("Undefined mouse drag mode : %d", typeDragMode);
+	Q_ASSERT (typeDragMode >= QGraphicsView::NoDrag && typeDragMode <= QGraphicsView::RubberBandDrag || typeDragMode == EventItemType || typeDragMode == BoxItemType);
+
+	switch (typeDragMode)
+	{
+		case EventItemType : // we pass Event and Process Item to NoDrag
+		case BoxItemType :
+		case QGraphicsView::NoDrag :
+			setCursor (Qt::ArrowCursor);
+			setDragMode (QGraphicsView::NoDrag);
+			break;
+
+		case QGraphicsView::ScrollHandDrag :
+			setCursor (Qt::OpenHandCursor);
+			setDragMode (QGraphicsView::ScrollHandDrag);
+			break;
+
+		case QGraphicsView::RubberBandDrag :
+			setCursor (Qt::CrossCursor);
+			setDragMode (QGraphicsView::RubberBandDrag);
+			break;
+
+		default :
+			qWarning ("Undefined mouse drag mode : %d", typeDragMode);
 	}
 }
 
 /// @todo Non utilisé ! Pourrait être utilisé pour centrer sur un objet ayant le focus. (par jC)
 void GraphicsView::graphicItemEnsureVisible()
 {
-  QGraphicsItem *item = qobject_cast<QGraphicsItem*>(sender());
-  centerOn(item);
+	QGraphicsItem* item = qobject_cast<QGraphicsItem*> (sender() );
+	centerOn (item);
 }
 
-void GraphicsView::mousePressEvent(QMouseEvent *event)
+void GraphicsView::mousePressEvent (QMouseEvent* event)
 {
-  if((event->button() == Qt::LeftButton) && (dragMode() == QGraphicsView::NoDrag)) {
-	emit mousePressAddItem(mapToScene(event->pos()));
-  }
-  QGraphicsView::mousePressEvent(event);
+	if ( (event->button() == Qt::LeftButton) && (dragMode() == QGraphicsView::NoDrag) )
+	{
+		emit mousePressAddItem (mapToScene (event->pos() ) );
+	}
+
+	QGraphicsView::mousePressEvent (event);
 }
 
-void GraphicsView::mouseMoveEvent(QMouseEvent *event)
+void GraphicsView::mouseMoveEvent (QMouseEvent* event)
 {
-  emit mousePosition(mapToScene(event->pos()));
-  QGraphicsView::mouseMoveEvent(event);
+	emit mousePosition (mapToScene (event->pos() ) );
+	QGraphicsView::mouseMoveEvent (event);
 }
 
 /// @todo Il faut reinitialiser la viewMatrix en sortie de fullview
 void GraphicsView::fitFullView()
 {
-  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
-  if(window != NULL) {
-	  if(window->currentTimebox()->model()->width() < this->width()) { // We scale only if the graphicsView is larger than the TimeBox in fullView
-		  foreach (QGraphicsItem *item, scene()->items()) {
-			  QGraphicsWidget *graphicsWidget = qgraphicsitem_cast<QGraphicsWidget *>(item);
-			  if(graphicsWidget != NULL) {
-				  if(graphicsWidget->objectName().compare("container")) // Test if the graphicsWidget is named "container" (set in TimeBoxFullView)
-					fitInView(graphicsWidget, Qt::KeepAspectRatioByExpanding);
+	MainWindow* window = qobject_cast<MainWindow*> (QApplication::activeWindow() ); // We retrieve a pointer to mainWindow
+
+	if (window != NULL)
+	{
+		if (window->currentTimebox()->model()->width() < this->width() ) // We scale only if the graphicsView is larger than the TimeBox in fullView
+		{
+			foreach (QGraphicsItem * item, scene()->items() )
+			{
+				QGraphicsWidget* graphicsWidget = qgraphicsitem_cast<QGraphicsWidget*> (item);
+
+				if (graphicsWidget != NULL)
+				{
+					if (graphicsWidget->objectName().compare ("container") ) // Test if the graphicsWidget is named "container" (set in TimeBoxFullView)
+					{
+						fitInView (graphicsWidget, Qt::KeepAspectRatioByExpanding);
+					}
 				}
 			}
 		}
 	}
 }
 
-void GraphicsView::resizeEvent(QResizeEvent *event)
+void GraphicsView::resizeEvent (QResizeEvent* event)
 {
-  /// @todo A arranger pour pouvoir décommenter (par jC)
-  //fitFullView();
+	/// @todo A arranger pour pouvoir décommenter (par jC)
+	//fitFullView();
 
-  QGraphicsView::resizeEvent(event);
+	QGraphicsView::resizeEvent (event);
 }
 
-void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
+void GraphicsView::drawBackground (QPainter* painter, const QRectF& rect)
 {
-  QRectF rectOutside; // rectangle outside the current TimeBox in fullview
-  MainWindow *window = qobject_cast<MainWindow*>(QApplication::activeWindow()); // We retrieve a pointer to mainWindow
-  if(window != NULL) {
-	  qreal x = window->currentTimebox()->model()->width();
-	  rectOutside = rect;
-	  rectOutside.setLeft(x);
+	QRectF rectOutside; // rectangle outside the current TimeBox in fullview
+	MainWindow* window = qobject_cast<MainWindow*> (QApplication::activeWindow() ); // We retrieve a pointer to mainWindow
+
+	if (window != NULL)
+	{
+		qreal x = window->currentTimebox()->model()->width();
+		rectOutside = rect;
+		rectOutside.setLeft (x);
 	}
-  QGraphicsView::drawBackground(painter, rectOutside);
+
+	QGraphicsView::drawBackground (painter, rectOutside);
 }
 
-void GraphicsView::keyPressEvent(QKeyEvent *event)
+void GraphicsView::keyPressEvent (QKeyEvent* event)
 {
-	switch (event->key()) {
-	case Qt::Key_Plus:
-		zoomIn();
-		break;
-	case Qt::Key_Minus:
-		zoomOut();
-		break;
-	default:
-		QGraphicsView::keyPressEvent(event);
+	switch (event->key() )
+	{
+		case Qt::Key_Plus:
+			zoomIn();
+			break;
+
+		case Qt::Key_Minus:
+			zoomOut();
+			break;
+
+		default:
+			QGraphicsView::keyPressEvent (event);
 	}
 }
 
-void GraphicsView::scaleView(qreal scaleFactor)
+void GraphicsView::scaleView (qreal scaleFactor)
 {
 	// Permits to constrain the scaling
-	qreal factor = transform().scale(scaleFactor, 1.).mapRect(QRectF(0, 0, 1, 1)).width();
-	if (factor < 0.07 || factor > 100)
-		return;
+	qreal factor = transform().scale (scaleFactor, 1.).mapRect (QRectF (0, 0, 1, 1) ).width();
 
-	scale(scaleFactor, 1.); // horizontal scaling
+	if (factor < 0.07 || factor > 100)
+	{
+		return;
+	}
+
+	scale (scaleFactor, 1.); // horizontal scaling
 }
 
 void GraphicsView::zoomIn()
 {
-	scaleView(qreal(1.2));
+	scaleView (qreal (1.2) );
 }
 
 void GraphicsView::zoomOut()
 {
-	scaleView(1 / qreal(1.2));
+	scaleView (1 / qreal (1.2) );
 }

@@ -39,28 +39,28 @@ class TimeboxModel;
 
 class TimeboxStorey : public QGraphicsWidget
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  TimeboxModel *_pModel;
-  TimeboxStoreyBar *_pBar;
+	private:
+		TimeboxModel* _pModel;
+		TimeboxStoreyBar* _pBar;
 
-  int _width;
-  int _height;
+		int _width;
+		int _height;
 
-public:
-  TimeboxStorey(TimeboxModel *pModel, int width, int height, QGraphicsItem *parent = 0);
-  void setButton(bool button);
+	public:
+		TimeboxStorey (TimeboxModel* pModel, int width, int height, QGraphicsItem* parent = 0);
+		void setButton (bool button);
 
-signals:
-  void buttonClicked(bool);
+	signals:
+		void buttonClicked (bool);
 
-public slots:
+	public slots:
 
-  // QGraphicsItem interface
-public:
-  virtual QRectF boundingRect() const;
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+		// QGraphicsItem interface
+	public:
+		virtual QRectF boundingRect() const;
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 };
 
 #endif // TIMEBOXSTOREY_HPP

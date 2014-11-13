@@ -51,25 +51,31 @@ class GraphicsView;
 
 class TimeEvent : public QObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  TimeEventModel *_pModel = nullptr;
-  TimeEventPresenter *_pPresenter = nullptr;
-  TimeEventView *_pView = nullptr;
+	private:
+		TimeEventModel* _pModel = nullptr;
+		TimeEventPresenter* _pPresenter = nullptr;
+		TimeEventView* _pView = nullptr;
 
-  static int staticId; /// Give a unique number to each instance of TimeEvent
+		static int staticId; /// Give a unique number to each instance of TimeEvent
 
-public:
-  TimeEvent(Timebox *pParent, const QPointF &pos);
-  ~TimeEvent();
+	public:
+		TimeEvent (Timebox* pParent, const QPointF& pos);
+		~TimeEvent();
 
-signals:
-  void createTimeEventAndTimeboxProxy(QLineF line);  /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
+	signals:
+		void createTimeEventAndTimeboxProxy (QLineF line); /// Proxy signal for TimeBox creation from TimeEvent view to Timebox parent
 
-public:
-  TimeEventView* view() const {return _pView;}
-  TimeEventModel* model() const {return _pModel;}
+	public:
+		TimeEventView* view() const
+		{
+			return _pView;
+		}
+		TimeEventModel* model() const
+		{
+			return _pModel;
+		}
 };
 
 #endif // TIMEEVENT_HPP

@@ -15,24 +15,30 @@ class QGraphicsObject;
  */
 class ScenarioContainer : public QNamedObject
 {
-    Q_OBJECT
-public:
-    explicit ScenarioContainer(QObject *parent, QGraphicsObject *parentView);
-    ~ScenarioContainer();
+		Q_OBJECT
+	public:
+		explicit ScenarioContainer (QObject* parent, QGraphicsObject* parentView);
+		~ScenarioContainer();
 
-    ScenarioView* view() const {return _pView;}
-    ScenarioPresenter* presenter() const {return _pPresenter;}
+		ScenarioView* view() const
+		{
+			return _pView;
+		}
+		ScenarioPresenter* presenter() const
+		{
+			return _pPresenter;
+		}
 
-signals:
+	signals:
 
-public slots:
+	public slots:
 
-private:
-    ScenarioModel* _pModel = nullptr;
-    ScenarioView* _pView = nullptr;
-    ScenarioPresenter* _pPresenter = nullptr;
-	
-	int m_modelId{0};
+	private:
+		ScenarioModel* _pModel = nullptr;
+		ScenarioView* _pView = nullptr;
+		ScenarioPresenter* _pPresenter = nullptr;
+
+		int m_modelId {0};
 
 };
 

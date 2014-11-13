@@ -12,9 +12,9 @@ class ScenarioCentralPanelView : public iscore::DocumentDelegateViewInterface
 		ScenarioCentralPanelView();
 		virtual ~ScenarioCentralPanelView() = default;
 
-		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter) override;
+		virtual void setPresenter (iscore::DocumentDelegatePresenterInterface* presenter) override;
 
-		virtual QWidget*getWidget() override;
+		virtual QWidget* getWidget() override;
 
 	private:
 		ScenarioCentralPanelPresenter* m_presenter;

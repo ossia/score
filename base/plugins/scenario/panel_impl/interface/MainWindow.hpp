@@ -50,8 +50,9 @@ class TimeboxPresenter;
 class TimeboxSmallView;
 class TimeboxModel;
 
-namespace Ui {
-  class MainWindow;
+namespace Ui
+{
+	class MainWindow;
 }
 
 /*!
@@ -67,52 +68,55 @@ namespace Ui {
 */
 class MainWindow : public QMainWindow
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  Timebox *_pMainTimebox = nullptr;     /// Timebox parent
-  Timebox *_pCurrentTimebox = nullptr;  /// Current Timebox in fullView (showed by GraphicsView)
+	private:
+		Timebox* _pMainTimebox = nullptr;     /// Timebox parent
+		Timebox* _pCurrentTimebox = nullptr;  /// Current Timebox in fullView (showed by GraphicsView)
 
-  Ui::MainWindow *ui;   /// pointer to elements stored in mainwindow.ui
-  GraphicsView *_pView; /// pointer to ui->graphicsView
-  QAction *_pDeleteAction;
-  QActionGroup *_pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)
+		Ui::MainWindow* ui;   /// pointer to elements stored in mainwindow.ui
+		GraphicsView* _pView; /// pointer to ui->graphicsView
+		QAction* _pDeleteAction;
+		QActionGroup* _pMouseActionGroup; /// actiongroup keeping all mouse relatives actions (mouse, scroll, select)
 
-  TimeBarWidget *_timeBar = nullptr;
+		TimeBarWidget* _timeBar = nullptr;
 
-  QStateMachine *_stateMachine; /// Permits to maintaining state in complex applications. Especially for managing graphicals and interaction changes beetween execution and edition phases.
-  QState *_initialState;
-  QState *_normalState; /// parent state of edition and execution states
-  QState *_editionState;
-  QState *_executionState; /// parent state of running, paused and stopped state
-  QState *_runningState;
-  QState *_pausedState;
-  QState *_stoppedState;
-  QFinalState *_finalState;
+		QStateMachine* _stateMachine; /// Permits to maintaining state in complex applications. Especially for managing graphicals and interaction changes beetween execution and edition phases.
+		QState* _initialState;
+		QState* _normalState; /// parent state of edition and execution states
+		QState* _editionState;
+		QState* _executionState; /// parent state of running, paused and stopped state
+		QState* _runningState;
+		QState* _pausedState;
+		QState* _stoppedState;
+		QFinalState* _finalState;
 
-public:
-  explicit MainWindow(QWidget *parent = 0);
+	public:
+		explicit MainWindow (QWidget* parent = 0);
 
-public slots:
-	void setMousePosition(QPointF point);
-	void changeCurrentTimeboxScene();
+	public slots:
+		void setMousePosition (QPointF point);
+		void changeCurrentTimeboxScene();
 
-private slots:
+	private slots:
 //  void addItem(QPointF); /// @todo Old way to add an item in the Timebox in fullView, now is directly in Scenario plugin. Could be deleted !
-  void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
-  void deleteSelectedItems();
+		void headerWidgetClicked(); /// Connect the headerWidget with the currentTimebox (in full view) and tell it to goSmall
+		void deleteSelectedItems();
 
-public:
-  Timebox* currentTimebox() const { return _pCurrentTimebox; }
-  void setcurrentTimebox(Timebox *arg);
+	public:
+		Timebox* currentTimebox() const
+		{
+			return _pCurrentTimebox;
+		}
+		void setcurrentTimebox (Timebox* arg);
 
-private:
-  void createGraphics(); /// Creation of the mainTimebox of the Scenario, the first one in fullView.
-  void createActions(); /// The majority of actions are created in the Qt designer mainwindow.ui
-  void createActionGroups();
-  void createStates();
-  void createTransitions();
-  void createConnections();
+	private:
+		void createGraphics(); /// Creation of the mainTimebox of the Scenario, the first one in fullView.
+		void createActions(); /// The majority of actions are created in the Qt designer mainwindow.ui
+		void createActionGroups();
+		void createStates();
+		void createTransitions();
+		void createConnections();
 
 };
 

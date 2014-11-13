@@ -51,42 +51,48 @@ class Timebox;
 
 class TimeboxSmallView : public QGraphicsWidget
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  TimeboxModel *_pModel;
-  TimeboxHeader *_pHeader;
+	private:
+		TimeboxModel* _pModel;
+		TimeboxHeader* _pHeader;
 
-  QGraphicsLinearLayout *_pLayout;
+		QGraphicsLinearLayout* _pLayout;
 
-public:
-  TimeboxSmallView(TimeboxModel *pModel, Timebox *parentObject, QGraphicsItem *parentGraphics = 0);
+	public:
+		TimeboxSmallView (TimeboxModel* pModel, Timebox* parentObject, QGraphicsItem* parentGraphics = 0);
 
-signals:
-  void headerDoubleClicked();
-  void suppressTimebox();
-  void xChanged(qreal);
-  void yChanged(qreal);
+	signals:
+		void headerDoubleClicked();
+		void suppressTimebox();
+		void xChanged (qreal);
+		void yChanged (qreal);
 
-public slots:
-  void setY(qreal);
-  void setX(qreal);
+	public slots:
+		void setY (qreal);
+		void setX (qreal);
 
-public:
-  enum {Type = BoxItemType}; /// Type value for custom item. Enable the use of qgraphicsitem_cast with this item
-  virtual int type() const {return Type;}
+	public:
+		enum {Type = BoxItemType}; /// Type value for custom item. Enable the use of qgraphicsitem_cast with this item
+		virtual int type() const
+		{
+			return Type;
+		}
 
-  void addStorey(TimeboxStorey *pStorey);
-  TimeboxModel* model() const {return _pModel;}
+		void addStorey (TimeboxStorey* pStorey);
+		TimeboxModel* model() const
+		{
+			return _pModel;
+		}
 
-  // QGraphicsItem interface
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  virtual QRectF boundingRect() const;
+		// QGraphicsItem interface
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+		virtual QRectF boundingRect() const;
 
-protected:
-  // QGraphicsItem interface
-  void keyPressEvent(QKeyEvent *event);
-  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+	protected:
+		// QGraphicsItem interface
+		void keyPressEvent (QKeyEvent* event);
+		QVariant itemChange (GraphicsItemChange change, const QVariant& value);
 };
 
 #endif // TIMEBOXSMALLVIEW_HPP

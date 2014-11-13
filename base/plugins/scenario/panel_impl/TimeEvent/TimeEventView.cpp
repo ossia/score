@@ -43,153 +43,175 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 
-TimeEventView::TimeEventView(TimeEventModel *pModel, TimeEvent *parentObject, QGraphicsItem *parentGraphics) :
-  QGraphicsObject(parentGraphics), _pModel(pModel), _penWidth(1), _circleRadii(10), _height(0)
+TimeEventView::TimeEventView (TimeEventModel* pModel, TimeEvent* parentObject, QGraphicsItem* parentGraphics) :
+	QGraphicsObject (parentGraphics), _pModel (pModel), _penWidth (1), _circleRadii (10), _height (0)
 {
-  setFlags(QGraphicsItem::ItemIsSelectable |
-           QGraphicsItem::ItemIsMovable |
-           QGraphicsItem::ItemSendsScenePositionChanges |
-           QGraphicsItem::ItemSendsGeometryChanges);
+	setFlags (QGraphicsItem::ItemIsSelectable |
+	          QGraphicsItem::ItemIsMovable |
+	          QGraphicsItem::ItemSendsScenePositionChanges |
+	          QGraphicsItem::ItemSendsGeometryChanges);
 
-  setParent(parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
-  setZValue(1); // Draw on top of Timebox
-  setSelected(true);
+	setParent (parentObject); ///@todo vérifier si ça ne pose pas problème d'avoir un parent graphique et object différents ?
+	setZValue (1); // Draw on top of Timebox
+	setSelected (true);
 
-  if (_pModel != nullptr) {
-      setPos(_pModel->time(), _pModel->yPosition());
-      connect(_pModel, SIGNAL(timeChanged(qreal)), this, SLOT(setX(qreal)));
-      connect(_pModel, SIGNAL(yPositionChanged(qreal)), this, SLOT(setY(qreal)));
-      connect(this, SIGNAL(xChanged(qreal)), _pModel, SLOT(settime(qreal)));
-      connect(this, SIGNAL(yChanged(qreal)), _pModel, SLOT(setYPosition(qreal)));
-    }
+	if (_pModel != nullptr)
+	{
+		setPos (_pModel->time(), _pModel->yPosition() );
+		connect (_pModel, SIGNAL (timeChanged (qreal) ), this, SLOT (setX (qreal) ) );
+		connect (_pModel, SIGNAL (yPositionChanged (qreal) ), this, SLOT (setY (qreal) ) );
+		connect (this, SIGNAL (xChanged (qreal) ), _pModel, SLOT (settime (qreal) ) );
+		connect (this, SIGNAL (yChanged (qreal) ), _pModel, SLOT (setYPosition (qreal) ) );
+	}
 }
 
 TimeEventView::~TimeEventView()
 {
 }
 
-QVariant TimeEventView::itemChange(GraphicsItemChange change, const QVariant &value)
+QVariant TimeEventView::itemChange (GraphicsItemChange change, const QVariant& value)
 {
-    if (change == ItemPositionChange && scene()) {
-        QPointF newPos = value.toPointF();  // value is the new position
+	if (change == ItemPositionChange && scene() )
+	{
+		QPointF newPos = value.toPointF();  // value is the new position
 
-        QRectF rect = scene()->sceneRect();
-        QRectF bRectMoved = boundingRect();
-        bRectMoved.moveTo(newPos);
-        if (!rect.contains(bRectMoved)) { // if item exceed plugin scenario we keep the item inside the scene rect
-            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
-            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
-        }
+		QRectF rect = scene()->sceneRect();
+		QRectF bRectMoved = boundingRect();
+		bRectMoved.moveTo (newPos);
 
-        emit xChanged(newPos.x());  // Inform the model
-        emit yChanged(newPos.y());
+		if (!rect.contains (bRectMoved) ) // if item exceed plugin scenario we keep the item inside the scene rect
+		{
+			newPos.setX (qMin (rect.right(), qMax (newPos.x(), rect.left() ) ) );
+			newPos.setY (qMin (rect.bottom(), qMax (newPos.y(), rect.top() ) ) );
+		}
 
-        return newPos;
-    }
-    return QGraphicsObject::itemChange(change, value);
+		emit xChanged (newPos.x() ); // Inform the model
+		emit yChanged (newPos.y() );
+
+		return newPos;
+	}
+
+	return QGraphicsObject::itemChange (change, value);
 }
 
-void TimeEventView::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
+void TimeEventView::mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
-  // Testing that GraphicsView's DragMode property is NoDrag
-  if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag) {
-      if (mouseEvent->button() == Qt::LeftButton) {
-          if (mouseEvent->modifiers() == Qt::SHIFT) {
+	// Testing that GraphicsView's DragMode property is NoDrag
+	if (scene()->views().first()->dragMode() == QGraphicsView::NoDrag)
+	{
+		if (mouseEvent->button() == Qt::LeftButton)
+		{
+			if (mouseEvent->modifiers() == Qt::SHIFT)
+			{
 
-              if (_pTemporaryRelation != nullptr) {
-                  delete _pTemporaryRelation;
-                  _pTemporaryRelation = nullptr;
-                }
+				if (_pTemporaryRelation != nullptr)
+				{
+					delete _pTemporaryRelation;
+					_pTemporaryRelation = nullptr;
+				}
 
-              // Add the temporary relation to the scene
-              _pTemporaryRelation = new QGraphicsLineItem(QLineF(0, 0, 0, 0), this);
-              _pTemporaryRelation->setPen(QPen(Qt::black));
-            }
+				// Add the temporary relation to the scene
+				_pTemporaryRelation = new QGraphicsLineItem (QLineF (0, 0, 0, 0), this);
+				_pTemporaryRelation->setPen (QPen (Qt::black) );
+			}
 
-        }
-    }
-  QGraphicsObject::mousePressEvent(mouseEvent);
+		}
+	}
+
+	QGraphicsObject::mousePressEvent (mouseEvent);
 }
 
-void TimeEventView::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
+void TimeEventView::mouseMoveEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
-  if (_pTemporaryRelation != nullptr) {
-      int LeftX, width;
+	if (_pTemporaryRelation != nullptr)
+	{
+		int LeftX, width;
 
-      if (mouseEvent->pos().x() > 0) {
-          LeftX = 0;
-          width = mouseEvent->pos().x();
-        }
-      else {
-          LeftX = mouseEvent->pos().x();
-          width = - LeftX;
-        }
+		if (mouseEvent->pos().x() > 0)
+		{
+			LeftX = 0;
+			width = mouseEvent->pos().x();
+		}
+		else
+		{
+			LeftX = mouseEvent->pos().x();
+			width = - LeftX;
+		}
 
-      // If temporaryBox is inside the scenarioView
-      if (scene()->sceneRect().contains(mapToScene(mouseEvent->pos()))) {
-          _pTemporaryRelation->setLine(0, 0, mouseEvent->pos().x(), 0);
-        }
-      else {
-          delete _pTemporaryRelation;
-          _pTemporaryRelation = nullptr;
-        }
-    }
-  else { // else we move the TimeEvent
-      QGraphicsObject::mouseMoveEvent(mouseEvent);
-    }
+		// If temporaryBox is inside the scenarioView
+		if (scene()->sceneRect().contains (mapToScene (mouseEvent->pos() ) ) )
+		{
+			_pTemporaryRelation->setLine (0, 0, mouseEvent->pos().x(), 0);
+		}
+		else
+		{
+			delete _pTemporaryRelation;
+			_pTemporaryRelation = nullptr;
+		}
+	}
+	else   // else we move the TimeEvent
+	{
+		QGraphicsObject::mouseMoveEvent (mouseEvent);
+	}
 }
 
-void TimeEventView::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
+void TimeEventView::mouseReleaseEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
-  if (_pTemporaryRelation != nullptr) {
-      //If temporaryRelation is bigger enough
-      if (abs(_pTemporaryRelation->line().dx()) > MIN_BOX_WIDTH) {
-          QLineF line = _pTemporaryRelation->line();
-          line.translate(mapToScene(line.p1())); /// We need to map the position to the coordinate system of the parent scene (Timebox in fullView)
-          emit createTimeEventAndTimebox(line);
-        }
-      delete _pTemporaryRelation;
-      _pTemporaryRelation = nullptr;
-    }
-  QGraphicsObject::mouseReleaseEvent(mouseEvent);
+	if (_pTemporaryRelation != nullptr)
+	{
+		//If temporaryRelation is bigger enough
+		if (abs (_pTemporaryRelation->line().dx() ) > MIN_BOX_WIDTH)
+		{
+			QLineF line = _pTemporaryRelation->line();
+			line.translate (mapToScene (line.p1() ) ); /// We need to map the position to the coordinate system of the parent scene (Timebox in fullView)
+			emit createTimeEventAndTimebox (line);
+		}
+
+		delete _pTemporaryRelation;
+		_pTemporaryRelation = nullptr;
+	}
+
+	QGraphicsObject::mouseReleaseEvent (mouseEvent);
 }
 
 QRectF TimeEventView::boundingRect() const
 {
-  return QRectF(-_circleRadii - _penWidth/2, -_circleRadii - _penWidth / 2,
-                2*_circleRadii + _penWidth, 2*_circleRadii + _height + _penWidth);
+	return QRectF (-_circleRadii - _penWidth / 2, -_circleRadii - _penWidth / 2,
+	               2 * _circleRadii + _penWidth, 2 * _circleRadii + _height + _penWidth);
 }
 
-void TimeEventView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeEventView::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+	Q_UNUSED (option)
+	Q_UNUSED (widget)
 
-  QPen pen(Qt::SolidPattern, _penWidth);
-  pen.setCosmetic(true);
-  painter->setPen(pen);
-  painter->drawLine(0,_circleRadii, 0, _circleRadii +_height);
-  painter->drawEllipse(QPointF(0,0), _circleRadii, _circleRadii);
+	QPen pen (Qt::SolidPattern, _penWidth);
+	pen.setCosmetic (true);
+	painter->setPen (pen);
+	painter->drawLine (0, _circleRadii, 0, _circleRadii + _height);
+	painter->drawEllipse (QPointF (0, 0), _circleRadii, _circleRadii);
 }
 
 QPainterPath TimeEventView::shape() const
 {
-  QPainterPath path;
-  path.addEllipse(QPointF(0,0), _circleRadii, _circleRadii);
-  path.addRect(0,_circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
-  return path;
+	QPainterPath path;
+	path.addEllipse (QPointF (0, 0), _circleRadii, _circleRadii);
+	path.addRect (0, _circleRadii, _penWidth, _height); /// We can select the object 1 pixel surrounding the line
+	return path;
 }
 
-void TimeEventView::setY(qreal arg)
+void TimeEventView::setY (qreal arg)
 {
-  if (pos().y() != arg) {
-      setPos(x(), arg);
-    }
+	if (pos().y() != arg)
+	{
+		setPos (x(), arg);
+	}
 }
 
-void TimeEventView::setX(qreal arg)
+void TimeEventView::setX (qreal arg)
 {
-  if (pos().x() != arg) {
-      setPos(arg, y());
-    }
+	if (pos().x() != arg)
+	{
+		setPos (arg, y() );
+	}
 }

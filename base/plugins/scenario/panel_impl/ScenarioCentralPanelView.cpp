@@ -8,15 +8,15 @@
 
 using namespace iscore;
 
-ScenarioCentralPanelView::ScenarioCentralPanelView():
-	iscore::DocumentDelegateViewInterface{nullptr}
+ScenarioCentralPanelView::ScenarioCentralPanelView() :
+	iscore::DocumentDelegateViewInterface {nullptr}
 {
 
 }
 
-void ScenarioCentralPanelView::setPresenter(DocumentDelegatePresenterInterface* presenter)
+void ScenarioCentralPanelView::setPresenter (DocumentDelegatePresenterInterface* presenter)
 {
-	m_presenter = static_cast<ScenarioCentralPanelPresenter*>(presenter);
+	m_presenter = static_cast<ScenarioCentralPanelPresenter*> (presenter);
 }
 
 QWidget* ScenarioCentralPanelView::getWidget()

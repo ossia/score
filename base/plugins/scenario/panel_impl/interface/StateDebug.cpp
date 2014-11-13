@@ -31,46 +31,50 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "StateDebug.hpp"
 #include <QDebug>
 
-StateDebug::StateDebug( const QString& name, QState* parent )
-	: QState( parent ),
-	  m_name( name ),
+StateDebug::StateDebug ( const QString& name, QState* parent )
+	: QState ( parent ),
+	  m_name ( name ),
 	  m_prefix()
 {
 }
 
-StateDebug::StateDebug( const QString& name, const QString& prefix, QState* parent )
-	: QState( parent ),
-	  m_name( name ),
-	  m_prefix( prefix )
+StateDebug::StateDebug ( const QString& name, const QString& prefix, QState* parent )
+	: QState ( parent ),
+	  m_name ( name ),
+	  m_prefix ( prefix )
 {
 }
 
-void StateDebug::onEntry( QEvent* e )
+void StateDebug::onEntry ( QEvent* e )
 {
-	Q_UNUSED( e );
+	Q_UNUSED ( e );
 
 	// Print out the state we are entering and it's parents
 	QString state = m_name;
-	StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+	StateDebug* parent = dynamic_cast<StateDebug*> ( parentState() );
+
 	while ( parent != 0 )
 	{
 		state = parent->name() + "->" + state;
-		parent = dynamic_cast<StateDebug*>( parent->parentState() );
+		parent = dynamic_cast<StateDebug*> ( parent->parentState() );
 	}
+
 	qDebug() << m_prefix << "Entering state:" << state;
 }
 
-void StateDebug::onExit( QEvent* e )
+void StateDebug::onExit ( QEvent* e )
 {
-	Q_UNUSED( e );
+	Q_UNUSED ( e );
 
 	// Print out the state we are exiting and it's parents
 	QString state = m_name;
-	StateDebug* parent = dynamic_cast<StateDebug*>( parentState() );
+	StateDebug* parent = dynamic_cast<StateDebug*> ( parentState() );
+
 	while ( parent != 0 )
 	{
 		state = parent->name() + "->" + state;
-		parent = dynamic_cast<StateDebug*>( parent->parentState() );
+		parent = dynamic_cast<StateDebug*> ( parent->parentState() );
 	}
+
 	qDebug() << m_prefix << "Exiting state:" << state;
 }

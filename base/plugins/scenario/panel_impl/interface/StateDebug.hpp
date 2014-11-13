@@ -43,26 +43,38 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class StateDebug : public QState
 {
-  Q_OBJECT
+		Q_OBJECT
 
-public:
-  explicit StateDebug( const QString& name, QState* parent = 0 );
-  explicit StateDebug( const QString& name, const QString& prefix, QState* parent = 0 );
+	public:
+		explicit StateDebug ( const QString& name, QState* parent = 0 );
+		explicit StateDebug ( const QString& name, const QString& prefix, QState* parent = 0 );
 
-  QString name() const { return m_name; }
-  QString prefix() const { return m_prefix; }
+		QString name() const
+		{
+			return m_name;
+		}
+		QString prefix() const
+		{
+			return m_prefix;
+		}
 
-public slots:
-  void setName( const QString& name ) { m_name = name; }
-  void setPrefix( const QString& prefix ) { m_prefix = prefix; }
+	public slots:
+		void setName ( const QString& name )
+		{
+			m_name = name;
+		}
+		void setPrefix ( const QString& prefix )
+		{
+			m_prefix = prefix;
+		}
 
-protected:
-  virtual void onEntry( QEvent* e );
-  virtual void onExit( QEvent* e );
+	protected:
+		virtual void onEntry ( QEvent* e );
+		virtual void onExit ( QEvent* e );
 
-protected:
-  QString m_name;
-  QString m_prefix;
+	protected:
+		QString m_name;
+		QString m_prefix;
 
 };
 

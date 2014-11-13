@@ -62,62 +62,68 @@ class StateDebug;
 
 class TimeboxPresenter : public QObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  ViewMode _mode;
+	private:
+		ViewMode _mode;
 
-  Timebox *_pTimebox;
-  TimeboxModel *_pModel;
-  TimeboxSmallView *_pSmallView = nullptr;
-  TimeboxFullView *_pFullView = nullptr;
-  GraphicsView *_pGraphicsView;
+		Timebox* _pTimebox;
+		TimeboxModel* _pModel;
+		TimeboxSmallView* _pSmallView = nullptr;
+		TimeboxFullView* _pFullView = nullptr;
+		GraphicsView* _pGraphicsView;
 
-  std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
-  std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
+		std::unordered_map<TimeboxStorey*, PluginView*> _storeysSmallView;
+		std::unordered_map<TimeboxStorey*, PluginView*> _storeysFullView;
 
-  QStateMachine *_pStateMachine; /// Permits to maintaining state in complex applications
-  QState *_pInitialState;
-  QState *_pNormalState;
-  StateDebug *_pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
-  StateDebug *_pFullSizeState; /// When the graphical timeProcess occupies all size of the view
-  StateDebug *_pHideState; /// When the graphical timeProcess is not showed in the view
-  QFinalState *_pFinalState;
+		QStateMachine* _pStateMachine; /// Permits to maintaining state in complex applications
+		QState* _pInitialState;
+		QState* _pNormalState;
+		StateDebug* _pSmallSizeState; /// When the graphical timeProcess is not occupying all size of the view
+		StateDebug* _pFullSizeState; /// When the graphical timeProcess occupies all size of the view
+		StateDebug* _pHideState; /// When the graphical timeProcess is not showed in the view
+		QFinalState* _pFinalState;
 
-public:
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxSmallView *pSmallView, GraphicsView *pView, Timebox *parent);
-  TimeboxPresenter(TimeboxModel *pModel, TimeboxFullView *pFullView, GraphicsView *pView, Timebox *parent);
-  ~TimeboxPresenter();
+	public:
+		TimeboxPresenter (TimeboxModel* pModel, TimeboxSmallView* pSmallView, GraphicsView* pView, Timebox* parent);
+		TimeboxPresenter (TimeboxModel* pModel, TimeboxFullView* pFullView, GraphicsView* pView, Timebox* parent);
+		~TimeboxPresenter();
 
-signals:
-  void viewModeIsFull();
-  void createBoxProxy(QRectF rectItem); /// Proxy signal for TimeBox creation from Scenario plugin to Timebox parent
-  void createTimeEventProxy(QPointF pos); /// Proxy signal for TimeEvent creation from Scenario plugin to Timebox parent
-  void removeTimeEventProxy(QPointF pos); /// Proxy signal for TimeEvent deletion from Scenario plugin to Timebox parent
-  void suppressTimeboxProxy();
+	signals:
+		void viewModeIsFull();
+		void createBoxProxy (QRectF rectItem); /// Proxy signal for TimeBox creation from Scenario plugin to Timebox parent
+		void createTimeEventProxy (QPointF pos); /// Proxy signal for TimeEvent creation from Scenario plugin to Timebox parent
+		void removeTimeEventProxy (QPointF pos); /// Proxy signal for TimeEvent deletion from Scenario plugin to Timebox parent
+		void suppressTimeboxProxy();
 
-public slots:
-  void storeyBarButtonClicked(bool id);
-  void goSmallView(); ///put public because of mainwindow header
-  void goFullView();
-  void goHide();
+	public slots:
+		void storeyBarButtonClicked (bool id);
+		void goSmallView(); ///put public because of mainwindow header
+		void goFullView();
+		void goHide();
 
-private slots:
-  void init();
-  void addStorey(int pluginType);
-  PluginView* addPlugin(int pluginType, TimeboxStorey *pStorey);
+	private slots:
+		void init();
+		void addStorey (int pluginType);
+		PluginView* addPlugin (int pluginType, TimeboxStorey* pStorey);
 
-public:
-  TimeboxFullView* fullView() const {return _pFullView;}
-  ViewMode mode() const {return _mode;}
+	public:
+		TimeboxFullView* fullView() const
+		{
+			return _pFullView;
+		}
+		ViewMode mode() const
+		{
+			return _mode;
+		}
 
-private:
-  void createFullView();
-  void deleteStorey(TimeboxStorey* tbs);
-  void createStates();
-  void createTransitions();
-  void createConnections();
-  void createStateMachine();
+	private:
+		void createFullView();
+		void deleteStorey (TimeboxStorey* tbs);
+		void createStates();
+		void createTransitions();
+		void createConnections();
+		void createStateMachine();
 
 };
 

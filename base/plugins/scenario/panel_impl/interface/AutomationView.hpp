@@ -39,19 +39,19 @@ class QGraphicsPathItem;
 
 class AutomationView : public PluginView
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  QGraphicsPathItem *_pLine;
-  QList<QPointF> _points;
+	private:
+		QGraphicsPathItem* _pLine;
+		QList<QPointF> _points;
 
-public:
-  AutomationView(QGraphicsObject* parent = 0);
+	public:
+		AutomationView (QGraphicsObject* parent = 0);
 
-public:
-  QPainterPath shape() const;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  QRectF boundingRect() const;
+	public:
+		QPainterPath shape() const;
+		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+		QRectF boundingRect() const;
 };
 
 #endif // AUTOMATIONVIEW_HPP

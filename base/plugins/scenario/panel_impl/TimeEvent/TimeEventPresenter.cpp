@@ -33,7 +33,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "TimeEventModel.hpp"
 #include "TimeEventView.hpp"
 
-TimeEventPresenter::TimeEventPresenter(TimeEventModel *pModel, TimeEventView *pView, TimeEvent *parent) :
-  QObject(parent), _pTimeEvent(parent), _pModel(pModel), _pView(pView)
+TimeEventPresenter::TimeEventPresenter (TimeEventModel* pModel, TimeEventView* pView, TimeEvent* parent) :
+	QObject (parent), _pTimeEvent (parent), _pModel (pModel), _pView (pView)
 {
 }

@@ -51,57 +51,84 @@ class TimeEvent;
 
 class TimeboxModel : public QObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
-  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
-  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+		Q_PROPERTY (qreal _time READ time WRITE settime NOTIFY timeChanged)
+		Q_PROPERTY (qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+		Q_PROPERTY (QString _name READ name WRITE setname NOTIFY nameChanged)
 
-private:
-  qreal _time, _yPosition, _width, _height;
-  QString _name;
-  std::list<TTTimeProcess*> _pluginsSmallView;
-  std::list<TTTimeProcess*> _pluginsFullView;
+	private:
+		qreal _time, _yPosition, _width, _height;
+		QString _name;
+		std::list<TTTimeProcess*> _pluginsSmallView;
+		std::list<TTTimeProcess*> _pluginsFullView;
 
-  TimeEvent *_pStartTimeEvent; /// The start TimeEvent of the timeProcess
-  TimeEvent *_pEndTimeEvent; /// The end TimeEvent of the timeProcess
+		TimeEvent* _pStartTimeEvent; /// The start TimeEvent of the timeProcess
+		TimeEvent* _pEndTimeEvent; /// The end TimeEvent of the timeProcess
 
-public:
-  TimeboxModel(qreal t, qreal y, qreal w, qreal h, QString name, Timebox *pParent, TimeEvent *pTimeEventStart, TimeEvent *pTimeEventEnd);
+	public:
+		TimeboxModel (qreal t, qreal y, qreal w, qreal h, QString name, Timebox* pParent, TimeEvent* pTimeEventStart, TimeEvent* pTimeEventEnd);
 
-signals:
-  void nameChanged(QString arg);
-  void timeChanged(qreal arg);
-  void timeEndChanged(qreal arg);
-  void yPositionChanged(qreal arg);
+	signals:
+		void nameChanged (QString arg);
+		void timeChanged (qreal arg);
+		void timeEndChanged (qreal arg);
+		void yPositionChanged (qreal arg);
 
-public slots:
-  void setname(QString arg);
-  void settime(qreal arg);
-  void settimeEnd(qreal arg);
-  void setYPosition(qreal arg);
+	public slots:
+		void setname (QString arg);
+		void settime (qreal arg);
+		void settimeEnd (qreal arg);
+		void setYPosition (qreal arg);
 
-public:
-  qreal time() const {return _time;}
-  qreal yPosition() const {return _yPosition;}
-  qreal width() const {return _width;}
-  qreal height() const {return _height;}
-  QString name() const {return _name;}
-  TimeEvent* startTimeEvent() const {return _pStartTimeEvent;}
-  TimeEvent* endTimeEvent() const {return _pEndTimeEvent;}
+	public:
+		qreal time() const
+		{
+			return _time;
+		}
+		qreal yPosition() const
+		{
+			return _yPosition;
+		}
+		qreal width() const
+		{
+			return _width;
+		}
+		qreal height() const
+		{
+			return _height;
+		}
+		QString name() const
+		{
+			return _name;
+		}
+		TimeEvent* startTimeEvent() const
+		{
+			return _pStartTimeEvent;
+		}
+		TimeEvent* endTimeEvent() const
+		{
+			return _pEndTimeEvent;
+		}
 
-  const std::list<TTTimeProcess*>& pluginsSmallView() const {return _pluginsSmallView;}
-  const std::list<TTTimeProcess*>& pluginsFullView() {
-    if (_pluginsFullView.empty()) {
-        _pluginsFullView.assign(_pluginsSmallView.begin(), _pluginsSmallView.end());
-      }
-    return _pluginsFullView;
-  }
+		const std::list<TTTimeProcess*>& pluginsSmallView() const
+		{
+			return _pluginsSmallView;
+		}
+		const std::list<TTTimeProcess*>& pluginsFullView()
+		{
+			if (_pluginsFullView.empty() )
+			{
+				_pluginsFullView.assign (_pluginsSmallView.begin(), _pluginsSmallView.end() );
+			}
 
-  void addPluginSmall();
-  void removePluginSmall();
-  void addPluginFull();
-  void removePluginFull();
+			return _pluginsFullView;
+		}
+
+		void addPluginSmall();
+		void removePluginSmall();
+		void addPluginFull();
+		void removePluginFull();
 };
 
 #endif // TIMEBOXMODEL_HPP

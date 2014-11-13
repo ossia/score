@@ -34,53 +34,57 @@
 #include <QGraphicsPixmapItem>
 #include <QDebug>
 
-PixmapButton::PixmapButton(const QString &filename1, const QString &filename2, QGraphicsItem *parent)
-  : QGraphicsWidget(parent), isPixmap(0)
+PixmapButton::PixmapButton (const QString& filename1, const QString& filename2, QGraphicsItem* parent)
+	: QGraphicsWidget (parent), isPixmap (0)
 {
-  setFlags(ItemHasNoContents);
-  _pButtonOne = new QGraphicsPixmapItem(QPixmap(filename1), this); /// @todo Possible to cache the same pixmap for all storeybar ?
-  _pButtonOne->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonOne->setCacheMode(QGraphicsItem::ItemCoordinateCache); /// @todo choose between this one and the other cache mode
-  _pButtonOne->setShapeMode(QGraphicsPixmapItem::BoundingRectShape); /// Don't compute transparency to set the boundingRect
-  _pButtonOne->setVisible(true);
+	setFlags (ItemHasNoContents);
+	_pButtonOne = new QGraphicsPixmapItem (QPixmap (filename1), this); /// @todo Possible to cache the same pixmap for all storeybar ?
+	_pButtonOne->setFlags (QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+	_pButtonOne->setCacheMode (QGraphicsItem::ItemCoordinateCache); /// @todo choose between this one and the other cache mode
+	_pButtonOne->setShapeMode (QGraphicsPixmapItem::BoundingRectShape); /// Don't compute transparency to set the boundingRect
+	_pButtonOne->setVisible (true);
 
-  _pButtonTwo = new QGraphicsPixmapItem(QPixmap(filename2), this); /// @todo Possible to cache the same pixmap for all storeybar ?
-  _pButtonTwo->setFlags(QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
-  _pButtonOne->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-  _pButtonTwo->setVisible(false);
+	_pButtonTwo = new QGraphicsPixmapItem (QPixmap (filename2), this); /// @todo Possible to cache the same pixmap for all storeybar ?
+	_pButtonTwo->setFlags (QGraphicsItem::ItemIgnoresTransformations); /// No need to zoom an icon
+	_pButtonOne->setCacheMode (QGraphicsItem::DeviceCoordinateCache);
+	_pButtonTwo->setVisible (false);
 
-  _pBoundingRect = new QRectF(_pButtonOne->boundingRect().united(_pButtonTwo->boundingRect()));
+	_pBoundingRect = new QRectF (_pButtonOne->boundingRect().united (_pButtonTwo->boundingRect() ) );
 }
 
 PixmapButton::~PixmapButton()
 {
-  delete _pBoundingRect;
+	delete _pBoundingRect;
 }
 
-void PixmapButton::setPixmap(bool id)
+void PixmapButton::setPixmap (bool id)
 {
-  Q_ASSERT(id == 0 || id == 1);
-  if (id == 0) {
-      _pButtonOne->setVisible(true);
-      _pButtonTwo->setVisible(false);
-      isPixmap = 0;
-    }
-  else if (id == 1) {
-      _pButtonOne->setVisible(false);
-      _pButtonTwo->setVisible(true);
-      isPixmap = 1;
-    }
+	Q_ASSERT (id == 0 || id == 1);
+
+	if (id == 0)
+	{
+		_pButtonOne->setVisible (true);
+		_pButtonTwo->setVisible (false);
+		isPixmap = 0;
+	}
+	else if (id == 1)
+	{
+		_pButtonOne->setVisible (false);
+		_pButtonTwo->setVisible (true);
+		isPixmap = 1;
+	}
 }
 
 QRectF PixmapButton::boundingRect() const
 {
-  return *_pBoundingRect;
+	return *_pBoundingRect;
 }
 
-void PixmapButton::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void PixmapButton::mousePressEvent (QGraphicsSceneMouseEvent* event)
 {
-  if(event->button() == Qt::LeftButton) {
-      event->accept();
-      emit clicked(isPixmap);
-    }
+	if (event->button() == Qt::LeftButton)
+	{
+		event->accept();
+		emit clicked (isPixmap);
+	}
 }

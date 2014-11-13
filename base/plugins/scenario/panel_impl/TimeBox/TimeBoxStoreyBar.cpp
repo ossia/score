@@ -38,51 +38,51 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QPainter>
 #include "PixmapButton.hpp"
 
-TimeboxStoreyBar::TimeboxStoreyBar(QGraphicsItem *item)
-  : QGraphicsWidget(item)
+TimeboxStoreyBar::TimeboxStoreyBar (QGraphicsItem* item)
+	: QGraphicsWidget (item)
 {
-  setGeometry(0, parentItem()->boundingRect().height() - HEIGHT,
-              parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
+	setGeometry (0, parentItem()->boundingRect().height() - HEIGHT,
+	             parentItem()->boundingRect().width() - 2, HEIGHT); /// -2 to fit in storey (because storeybar is not managed by graphicslayout)
 
-  //qDebug() << "TimeBoxstoreybar constructor:" << parentItem()->boundingRect();
+	//qDebug() << "TimeBoxstoreybar constructor:" << parentItem()->boundingRect();
 
-  _pButton = new PixmapButton(QString(":/plus.png"), QString(":/minus.png"), this);
-  _pButton->setPos(MARGIN, MARGIN);
-  connect(_pButton, SIGNAL(clicked(bool)), this, SIGNAL(buttonClicked(bool)));
+	_pButton = new PixmapButton (QString (":/plus.png"), QString (":/minus.png"), this);
+	_pButton->setPos (MARGIN, MARGIN);
+	connect (_pButton, SIGNAL (clicked (bool) ), this, SIGNAL (buttonClicked (bool) ) );
 
-  _pComboBox = new QComboBox(); /// @todo Subclass ant create model to do some extra work
-  _pComboBox->setStyleSheet(
-    "QComboBox {"
-    "border: none;"
-    "border-radius: none;"
-    "};"
-    );
-  _pComboBoxProxy = new QGraphicsProxyWidget(this);
-  _pComboBoxProxy->setWidget(_pComboBox);
-  _pComboBoxProxy->setPos(size().width() -_pComboBoxProxy->size().width() - MARGIN, MARGIN);
+	_pComboBox = new QComboBox(); /// @todo Subclass ant create model to do some extra work
+	_pComboBox->setStyleSheet (
+	    "QComboBox {"
+	    "border: none;"
+	    "border-radius: none;"
+	    "};"
+	);
+	_pComboBoxProxy = new QGraphicsProxyWidget (this);
+	_pComboBoxProxy->setWidget (_pComboBox);
+	_pComboBoxProxy->setPos (size().width() - _pComboBoxProxy->size().width() - MARGIN, MARGIN);
 
 }
 
-void TimeboxStoreyBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeboxStoreyBar::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+	Q_UNUSED (option)
+	Q_UNUSED (widget)
 
-  /// Draw the bounding rectangle
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(QBrush(Qt::gray));
+	/// Draw the bounding rectangle
+	painter->setPen (Qt::NoPen);
+	painter->setBrush (QBrush (Qt::gray) );
 
-  painter->drawRect(boundingRect());//.adjusted(0,0,-1,-1));
+	painter->drawRect (boundingRect() ); //.adjusted(0,0,-1,-1));
 
-  //qDebug() << "TimeBoxstoreybar :" << contentsRect() << size();
+	//qDebug() << "TimeBoxstoreybar :" << contentsRect() << size();
 }
 
 QRectF TimeboxStoreyBar::boundingRect() const
 {
-  return QRectF(0,0,size().width(),size().height());
+	return QRectF (0, 0, size().width(), size().height() );
 }
 
-void TimeboxStoreyBar::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void TimeboxStoreyBar::mousePressEvent (QGraphicsSceneMouseEvent* event)
 {
-  QGraphicsWidget::mousePressEvent(event);
+	QGraphicsWidget::mousePressEvent (event);
 }

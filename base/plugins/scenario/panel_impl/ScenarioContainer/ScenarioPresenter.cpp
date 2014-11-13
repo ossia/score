@@ -7,42 +7,51 @@
 
 #include "commands/CreateEventCommand.hpp"
 #include <core/presenter/Presenter.hpp>
-ScenarioPresenter::ScenarioPresenter(ScenarioModel* model, ScenarioView* view, QObject *parent) :
-	QObject{nullptr},
-	_pModel{model},
-	_pView{view}
+ScenarioPresenter::ScenarioPresenter (ScenarioModel* model, ScenarioView* view, QObject* parent) :
+	QObject {nullptr},
+        _pModel {model},
+_pView {view}
 {
-	setObjectName("ScenarioPresenter");
-	setParent(parent);
-	connect(_pView, &ScenarioView::viewAskForTimeEvent, this, &ScenarioPresenter::addTimeEventInModel);
-	connect(_pModel, &ScenarioModel::TimeEventAddedInModel, this, &ScenarioPresenter::addTimeEventInView);
-	connect(_pModel, &ScenarioModel::TimeEventRemovedInModel, this, &ScenarioPresenter::removeTimeEventInView);
+	setObjectName ("ScenarioPresenter");
+	setParent (parent);
+	connect (_pView, &ScenarioView::viewAskForTimeEvent,
+	this, &ScenarioPresenter::on_askTimeEvent);
+	connect (_pModel, &ScenarioModel::TimeEventAddedInModel,
+	this, &ScenarioPresenter::instantiateTimeEvent);
+	connect (_pModel, &ScenarioModel::TimeEventRemovedInModel,
+	this, &ScenarioPresenter::removeTimeEventInView);
 }
 
 ScenarioPresenter::~ScenarioPresenter()
 {
+
 }
 
-void ScenarioPresenter::addTimeEventInModel(QPointF pos)
+void ScenarioPresenter::on_askTimeEvent (QPointF pos)
 {
-	qDebug(Q_FUNC_INFO);
+	qDebug (Q_FUNC_INFO);
 	// On instancie la commande
-	auto cmd = new CreatEventCommand(_pModel->id(), pos);
-	
+	auto cmd = new CreatEventCommand (_pModel->id(), pos);
+
 	// Puis on la fait remonter au présenteur
-	auto pres = qApp->findChild<iscore::Presenter*>("Presenter");
-	pres->applyCommand(cmd);
-	
+	auto pres = qApp->findChild<iscore::Presenter*> ("Presenter");
+	pres->applyCommand (cmd);
+
 	// send request to the model
 	//_pModel->addTimeEvent(pos);
 }
 
-void ScenarioPresenter::addTimeEventInView(QPointF pos)
+void ScenarioPresenter::addTimeEventInView (QPointF pos)
 {
-	emit addTimeEvent(pos);
+	emit addTimeEvent (pos);
 }
 
-void ScenarioPresenter::removeTimeEventInView(QPointF pos)
+void ScenarioPresenter::removeTimeEventInView (QPointF pos)
 {
-	emit removeTimeEvent(pos);
+	emit removeTimeEvent (pos);
+}
+
+void ScenarioPresenter::instantiateTimeEvent (QPointF pos)
+{
+
 }

@@ -34,31 +34,31 @@
 #include <QPainterPath>
 #include <QPainter>
 
-AutomationView::AutomationView(QGraphicsObject *parent)
-  : PluginView(parent), _points()
+AutomationView::AutomationView (QGraphicsObject* parent)
+	: PluginView (parent), _points()
 {
-  QPainterPath path(QPointF(0, parentItem()->boundingRect().height() - TimeboxStoreyBar::HEIGHT));
-  path.lineTo(parentItem()->boundingRect().width()-2, 0);
-  _pLine = new QGraphicsPathItem(this);
-  _pLine->setPath(path);
+	QPainterPath path (QPointF (0, parentItem()->boundingRect().height() - TimeboxStoreyBar::HEIGHT) );
+	path.lineTo (parentItem()->boundingRect().width() - 2, 0);
+	_pLine = new QGraphicsPathItem (this);
+	_pLine->setPath (path);
 }
 
 
 QPainterPath AutomationView::shape() const
 {
-  return _pLine->shape();
+	return _pLine->shape();
 }
 
-void AutomationView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AutomationView::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+	Q_UNUSED (option)
+	Q_UNUSED (widget)
 
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  _pLine->paint(painter, option, widget);
+	painter->setRenderHint (QPainter::Antialiasing, true);
+	_pLine->paint (painter, option, widget);
 }
 
 QRectF AutomationView::boundingRect() const
 {
-  return _pLine->boundingRect();
+	return _pLine->boundingRect();
 }

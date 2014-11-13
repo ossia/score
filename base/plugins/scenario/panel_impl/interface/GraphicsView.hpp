@@ -46,34 +46,34 @@ knowledge of the CeCILL license and that you accept its terms.
  */
 class GraphicsView : public QGraphicsView
 {
-  Q_OBJECT
+		Q_OBJECT
 
-public:
-  explicit GraphicsView(QWidget *parent = 0);
+	public:
+		explicit GraphicsView (QWidget* parent = 0);
 
-signals:
-  void mousePosition(QPointF); /// Used to emit mousePosition to the mainWindow's statusBar
-  void mousePressAddItem(QPointF);
+	signals:
+		void mousePosition (QPointF); /// Used to emit mousePosition to the mainWindow's statusBar
+		void mousePressAddItem (QPointF);
 
-public slots:
-  void mouseDragMode(QAction *); /// The DragMode property holds the behavior for dragging the mouse over the scene while the left mouse button is pressed.
-  void graphicItemEnsureVisible(); /// Center the view on the graphicsitem's calling the slot
+	public slots:
+		void mouseDragMode (QAction*); /// The DragMode property holds the behavior for dragging the mouse over the scene while the left mouse button is pressed.
+		void graphicItemEnsureVisible(); /// Center the view on the graphicsitem's calling the slot
 
-protected:
-  // QWidget interface
-  void mousePressEvent(QMouseEvent *); /// Send a signal to add a TimeBox in SmallView
-  void mouseMoveEvent(QMouseEvent *); /// Send position of the mouse to mainwindow's statusBar
-  void resizeEvent(QResizeEvent *);
-  void keyPressEvent(QKeyEvent *event); /// Zooming with + and - keys
+	protected:
+		// QWidget interface
+		void mousePressEvent (QMouseEvent*); /// Send a signal to add a TimeBox in SmallView
+		void mouseMoveEvent (QMouseEvent*); /// Send position of the mouse to mainwindow's statusBar
+		void resizeEvent (QResizeEvent*);
+		void keyPressEvent (QKeyEvent* event); /// Zooming with + and - keys
 
-  // QGraphicsView interface
-  void drawBackground(QPainter *painter, const QRectF &rect); /// Draw a filled brush pattern to show the space outside the scenario (temporary solution replacing fitFullView)
+		// QGraphicsView interface
+		void drawBackground (QPainter* painter, const QRectF& rect); /// Draw a filled brush pattern to show the space outside the scenario (temporary solution replacing fitFullView)
 
-private:
-  void fitFullView(); /// Arrange the FullView's container to fit inside the new space (called after a resize). @todo WIP
-  void scaleView(qreal scaleFactor); /// Horizontal scaling with constraints checking
-  void zoomIn();
-  void zoomOut();
+	private:
+		void fitFullView(); /// Arrange the FullView's container to fit inside the new space (called after a resize). @todo WIP
+		void scaleView (qreal scaleFactor); /// Horizontal scaling with constraints checking
+		void zoomIn();
+		void zoomOut();
 };
 
 #endif // GRAPHICSVIEW_HPP

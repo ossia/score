@@ -40,25 +40,25 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "TimeBoxStorey.hpp"
 #include "GraphicsView.hpp"
 
-TimeboxFullView::TimeboxFullView(TimeboxModel *pModel, QObject *parent)
-  : QGraphicsScene(0, 0, pModel->width(), pModel->height(), parent),
-	_pModel(pModel)
+TimeboxFullView::TimeboxFullView (TimeboxModel* pModel, QObject* parent)
+	: QGraphicsScene (0, 0, pModel->width(), pModel->height(), parent),
+	  _pModel (pModel)
 {
-  _pContainer = new QGraphicsWidget;
-  _pContainer->setObjectName("container"); /// Used by GraphicsView to fitInView the container
-  _pContainer->setFlags(QGraphicsItem::ItemHasNoContents);
-  _pContainer->setGeometry(0, 0, _pModel->width(), _pModel->height()); ///TODO problème de décalage des elements graphiques (by jC)
+	_pContainer = new QGraphicsWidget;
+	_pContainer->setObjectName ("container"); /// Used by GraphicsView to fitInView the container
+	_pContainer->setFlags (QGraphicsItem::ItemHasNoContents);
+	_pContainer->setGeometry (0, 0, _pModel->width(), _pModel->height() ); ///TODO problème de décalage des elements graphiques (by jC)
 
-  _pLayout = new QGraphicsLinearLayout(Qt::Vertical, _pContainer);
-  _pLayout->setContentsMargins(0,0,0,0);
-  _pLayout->setSpacing(0);
-  _pContainer->setLayout(_pLayout);
+	_pLayout = new QGraphicsLinearLayout (Qt::Vertical, _pContainer);
+	_pLayout->setContentsMargins (0, 0, 0, 0);
+	_pLayout->setSpacing (0);
+	_pContainer->setLayout (_pLayout);
 
-  addItem(_pContainer);
-  setBackgroundBrush(QBrush(QColor(Qt::gray), Qt::BDiagPattern)); /// Used with GraphicsView::drawBackground()
+	addItem (_pContainer);
+	setBackgroundBrush (QBrush (QColor (Qt::gray), Qt::BDiagPattern) ); /// Used with GraphicsView::drawBackground()
 }
 
-void TimeboxFullView::addStorey(TimeboxStorey *pStorey)
+void TimeboxFullView::addStorey (TimeboxStorey* pStorey)
 {
-  _pLayout->addItem(pStorey);
+	_pLayout->addItem (pStorey);
 }

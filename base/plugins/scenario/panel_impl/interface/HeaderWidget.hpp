@@ -39,26 +39,26 @@ class QLabel;
 
 class HeaderWidget : public QWidget
 {
-Q_OBJECT
+		Q_OBJECT
 
-public:
-  static const int HEIGHT = 45;
+	public:
+		static const int HEIGHT = 45;
 
-private:
-  QPushButton *_pButtonPlay;
-  QLabel *_pTextName;
+	private:
+		QPushButton* _pButtonPlay;
+		QLabel* _pTextName;
 
-public:
-  HeaderWidget(QWidget *parent);
+	public:
+		HeaderWidget (QWidget* parent);
 
-signals:
-  void doubleClicked();
+	signals:
+		void doubleClicked();
 
-public slots:
-  void changeName(QString name);
+	public slots:
+		void changeName (QString name);
 
-protected:
-  virtual void mouseDoubleClickEvent(QMouseEvent *);
+	protected:
+		virtual void mouseDoubleClickEvent (QMouseEvent*);
 };
 
 #endif // HEADERWIDGET_HPP

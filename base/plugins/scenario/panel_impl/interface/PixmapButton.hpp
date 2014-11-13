@@ -38,29 +38,29 @@ class QRectF;
 
 class PixmapButton : public QGraphicsWidget
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  QGraphicsPixmapItem *_pButtonOne;
-  QGraphicsPixmapItem *_pButtonTwo;
-  QRectF *_pBoundingRect;
-  bool isPixmap;
+	private:
+		QGraphicsPixmapItem* _pButtonOne;
+		QGraphicsPixmapItem* _pButtonTwo;
+		QRectF* _pBoundingRect;
+		bool isPixmap;
 
-public:
-  PixmapButton(const QString &filename1, const QString &filename2, QGraphicsItem *parent);
-  ~PixmapButton();
+	public:
+		PixmapButton (const QString& filename1, const QString& filename2, QGraphicsItem* parent);
+		~PixmapButton();
 
-signals:
-  void clicked(bool); /// @return 0 = first pixmap clicked, 1 = second
+	signals:
+		void clicked (bool); /// @return 0 = first pixmap clicked, 1 = second
 
-public:
-  void setPixmap(bool button); /// @arg 0 = set first pixmap, 1 = second
+	public:
+		void setPixmap (bool button); /// @arg 0 = set first pixmap, 1 = second
 
-  // QGraphicsItem interface
-  QRectF boundingRect() const;
+		// QGraphicsItem interface
+		QRectF boundingRect() const;
 
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *event);
+	protected:
+		void mousePressEvent (QGraphicsSceneMouseEvent* event);
 };
 
 #endif // PIXMAPBUTTON_HPP

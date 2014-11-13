@@ -47,14 +47,14 @@ class TimeEventModel;
 
 class TimeEventPresenter : public QObject
 {
-  Q_OBJECT
-private:
-  TimeEvent *_pTimeEvent;
-  TimeEventModel *_pModel;
-  TimeEventView *_pView;
+		Q_OBJECT
+	private:
+		TimeEvent* _pTimeEvent;
+		TimeEventModel* _pModel;
+		TimeEventView* _pView;
 
-public:
-  explicit TimeEventPresenter(TimeEventModel *pModel, TimeEventView *pView, TimeEvent *parent);
+	public:
+		explicit TimeEventPresenter (TimeEventModel* pModel, TimeEventView* pView, TimeEvent* parent);
 
 };
 

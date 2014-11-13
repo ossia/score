@@ -4,12 +4,12 @@
 class ScenarioCentralPanelModel  : public iscore::DocumentDelegateModelInterface
 {
 	public:
-		ScenarioCentralPanelModel():
-			iscore::DocumentDelegateModelInterface{nullptr}
+		ScenarioCentralPanelModel() :
+			iscore::DocumentDelegateModelInterface {nullptr}
 		{
 
 		}
 		virtual ~ScenarioCentralPanelModel() = default;
 
-		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter) override;
+		virtual void setPresenter (iscore::DocumentDelegatePresenterInterface* presenter) override;
 };

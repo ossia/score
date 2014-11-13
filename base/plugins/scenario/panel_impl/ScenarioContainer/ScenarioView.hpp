@@ -48,26 +48,26 @@ class QGraphicsRectItem;
  */
 class ScenarioView : public PluginView
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  QGraphicsRectItem *_pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
-  QPointF _pressPoint;                          /// Last pression point.
+	private:
+		QGraphicsRectItem* _pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
+		QPointF _pressPoint;                          /// Last pression point.
 
-public:
-  ScenarioView(QGraphicsObject* parent);
+	public:
+		ScenarioView (QGraphicsObject* parent);
 
-signals:
-  void createTimebox(QRectF rectItem);  /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
-  void viewAskForTimeEvent(QPointF pos);  /// emit a signal to create a TimeEvent in the current Scenario
+	signals:
+		void createTimebox (QRectF rectItem); /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
+		void viewAskForTimeEvent (QPointF pos); /// emit a signal to create a TimeEvent in the current Scenario
 
-public:
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	public:
+		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+	protected:
+		void mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		void mouseMoveEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		void mouseReleaseEvent (QGraphicsSceneMouseEvent* mouseEvent);
 };
 
 #endif // SCENARIOVIEW_HPP

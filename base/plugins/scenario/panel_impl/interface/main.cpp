@@ -33,42 +33,47 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QApplication>
 
 #if QT_VERSION > 0x050000
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void myMessageOutput (QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        abort();
-    }
+	QByteArray localMsg = msg.toLocal8Bit();
+
+	switch (type)
+	{
+		case QtDebugMsg:
+			fprintf (stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+			break;
+
+		case QtWarningMsg:
+			fprintf (stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+			break;
+
+		case QtCriticalMsg:
+			fprintf (stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+			break;
+
+		case QtFatalMsg:
+			fprintf (stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+			abort();
+	}
 }
 #endif
 
-int main(int argc, char *argv[])
+int main (int argc, char* argv[])
 {
-#if QT_VERSION > 0x050000
-  //qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
-#endif
+	#if QT_VERSION > 0x050000
+	//qInstallMessageHandler(myMessageOutput); /// Uncomment if we want a more verbose msg handler
+	#endif
 
-  QApplication app(argc, argv);
-  app.setApplicationName("i-score");
-  app.setOrganizationName("OSSIA");
- /// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
+	QApplication app (argc, argv);
+	app.setApplicationName ("i-score");
+	app.setOrganizationName ("OSSIA");
+/// @todo set qrc app.setWindowIcon(QIcon(":/icon.png"));
 
-  MainBox window;
+	MainBox window;
 //  MainWindow window;
-  window.show();
+	window.show();
 
-  //Engine();
+	//Engine();
 
-  return app.exec();
+	return app.exec();
 }

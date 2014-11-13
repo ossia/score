@@ -49,37 +49,46 @@ class Timebox;
 
 class TimeEventModel : public QObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-  Q_PROPERTY(qreal _time READ time WRITE settime NOTIFY timeChanged)
-  Q_PROPERTY(qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
-  Q_PROPERTY(QString _name READ name WRITE setname NOTIFY nameChanged)
+		Q_PROPERTY (qreal _time READ time WRITE settime NOTIFY timeChanged)
+		Q_PROPERTY (qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
+		Q_PROPERTY (QString _name READ name WRITE setname NOTIFY nameChanged)
 
-private:
-  qreal _time, _yPosition;
-  QString _name;
+	private:
+		qreal _time, _yPosition;
+		QString _name;
 
-  QVector<Timebox*> _TimeBoxes; /// Vector containing all the Timebox linked to this TimeEvent
+		QVector<Timebox*> _TimeBoxes; /// Vector containing all the Timebox linked to this TimeEvent
 
-public:
-  TimeEventModel(qreal t, qreal y, QString name, TimeEvent *parent);
+	public:
+		TimeEventModel (qreal t, qreal y, QString name, TimeEvent* parent);
 
-signals:
-  void nameChanged(QString arg);
-  void timeChanged(qreal arg);
-  void yPositionChanged(qreal arg);
+	signals:
+		void nameChanged (QString arg);
+		void timeChanged (qreal arg);
+		void yPositionChanged (qreal arg);
 
-public slots:
-  void setname(QString arg);
-  void settime(qreal arg);
-  void setYPosition(qreal arg);
+	public slots:
+		void setname (QString arg);
+		void settime (qreal arg);
+		void setYPosition (qreal arg);
 
-public:
-  qreal time() const {return _time;}
-  qreal yPosition() const {return _yPosition;}
-  QString name() const {return _name;}
+	public:
+		qreal time() const
+		{
+			return _time;
+		}
+		qreal yPosition() const
+		{
+			return _yPosition;
+		}
+		QString name() const
+		{
+			return _name;
+		}
 
-  void addTimebox(Timebox *tb);
+		void addTimebox (Timebox* tb);
 };
 
 #endif // TIMEEVENTMODEL_HPP

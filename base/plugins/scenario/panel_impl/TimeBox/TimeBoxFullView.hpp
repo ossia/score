@@ -40,19 +40,22 @@ class TimeboxStorey;
 
 class TimeboxFullView : public QGraphicsScene
 {
-  Q_OBJECT
+		Q_OBJECT
 
-private:
-  TimeboxModel *_pModel;
+	private:
+		TimeboxModel* _pModel;
 
-  QGraphicsWidget *_pContainer;
-  QGraphicsLinearLayout *_pLayout;
+		QGraphicsWidget* _pContainer;
+		QGraphicsLinearLayout* _pLayout;
 
-public:
-  TimeboxFullView(TimeboxModel *pModel, QObject *parent);
+	public:
+		TimeboxFullView (TimeboxModel* pModel, QObject* parent);
 
-  void addStorey(TimeboxStorey *pStorey);
-  QGraphicsWidget* container() const {return _pContainer;}
+		void addStorey (TimeboxStorey* pStorey);
+		QGraphicsWidget* container() const
+		{
+			return _pContainer;
+		}
 };
 
 #endif // TIMEBOXFULLVIEW_HPP

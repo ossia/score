@@ -33,24 +33,24 @@
 #include "../TimeBox/TimeBoxStoreyBar.hpp"
 #include <iostream>
 #include <QDebug>
-PluginView::PluginView(QGraphicsObject *parent)
-  : QGraphicsObject(parent),
-	_boundingRectangle(parent->boundingRect().adjusted(1,1,-1,-TimeboxStoreyBar::HEIGHT))
+PluginView::PluginView (QGraphicsObject* parent)
+	: QGraphicsObject (parent),
+	  _boundingRectangle (parent->boundingRect().adjusted (1, 1, -1, -TimeboxStoreyBar::HEIGHT) )
 {
 }
 
 QRectF PluginView::boundingRect() const
 {
-  return _boundingRectangle;
+	return _boundingRectangle;
 }
 
-void PluginView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PluginView::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Q_UNUSED(option)
-  Q_UNUSED(widget)
+	Q_UNUSED (option)
+	Q_UNUSED (widget)
 
-  //Show a cross pattern in an empty plugin (to make a difference with a plugin scenario )
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::CrossPattern);
-  painter->drawRect(_boundingRectangle);
+	//Show a cross pattern in an empty plugin (to make a difference with a plugin scenario )
+	painter->setPen (Qt::NoPen);
+	painter->setBrush (Qt::CrossPattern);
+	painter->drawRect (_boundingRectangle);
 }

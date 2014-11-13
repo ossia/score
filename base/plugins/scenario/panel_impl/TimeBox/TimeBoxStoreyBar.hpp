@@ -40,31 +40,34 @@ class QGraphicsProxyWidget;
 
 class TimeboxStoreyBar : public QGraphicsWidget
 {
-  Q_OBJECT
+		Q_OBJECT
 
-public:
-  static const int HEIGHT = 25;
+	public:
+		static const int HEIGHT = 25;
 
-private:
-  static const int MARGIN = 2;
+	private:
+		static const int MARGIN = 2;
 
-  QComboBox *_pComboBox;
-  QGraphicsProxyWidget *_pComboBoxProxy;
-  PixmapButton *_pButton;
+		QComboBox* _pComboBox;
+		QGraphicsProxyWidget* _pComboBoxProxy;
+		PixmapButton* _pButton;
 
-public:
-  TimeboxStoreyBar(QGraphicsItem *item);
+	public:
+		TimeboxStoreyBar (QGraphicsItem* item);
 
-signals:
-  void buttonClicked(bool);
+	signals:
+		void buttonClicked (bool);
 
-public:
-  PixmapButton* getButton() const {return _pButton;}
+	public:
+		PixmapButton* getButton() const
+		{
+			return _pButton;
+		}
 
-protected:
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
-  virtual QRectF boundingRect() const;
-  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	protected:
+		virtual void mousePressEvent (QGraphicsSceneMouseEvent* event);
+		virtual QRectF boundingRect() const;
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 };
 
 #endif // TIMEBOXSTOREYBAR_HPP

@@ -48,120 +48,121 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QFinalState>
 #include <QDebug>
 
-MainWindow::MainWindow(QWidget *parent)
-  : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow (QWidget* parent)
+	: QMainWindow (parent), ui (new Ui::MainWindow)
 {
-  ui->setupUi(this); /// Bounding with mainwindow.ui
-  setWindowTitle(tr("%1").arg(QApplication::applicationName()));
+	ui->setupUi (this); /// Bounding with mainwindow.ui
+	setWindowTitle (tr ("%1").arg (QApplication::applicationName() ) );
 
-  createGraphics();
-  createActions();
-  createActionGroups();
-  createStates();
-  createTransitions();
-  createConnections();
+	createGraphics();
+	createActions();
+	createActionGroups();
+	createStates();
+	createTransitions();
+	createConnections();
 
-  QTimer::singleShot(0, _stateMachine, SLOT(start())); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
+	QTimer::singleShot (0, _stateMachine, SLOT (start() ) ); /// Using a single shot timer to ensure that the window is fully constructed before we start processing
 }
 
 void MainWindow::createGraphics()
 {
-  _pView = ui->graphicsView;
+	_pView = ui->graphicsView;
 
-  _pMainTimebox = new Timebox(0, _pView, QPointF(0,0), 1000, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
-  Q_CHECK_PTR(_pMainTimebox);
-  _pMainTimebox->setParent(this);
-  connect(_pMainTimebox, SIGNAL(isFull()), this, SLOT(changeCurrentTimeboxScene()));
-  setcurrentTimebox(_pMainTimebox);
+	_pMainTimebox = new Timebox (0, _pView, QPointF (0, 0), 1000, 500, FULL); ///@todo adapter dynamiquement la taille du scénario
+	Q_CHECK_PTR (_pMainTimebox);
+	_pMainTimebox->setParent (this);
+	connect (_pMainTimebox, SIGNAL (isFull() ), this, SLOT (changeCurrentTimeboxScene() ) );
+	setcurrentTimebox (_pMainTimebox);
 
-  _timeBar = new TimeBarWidget(_pMainTimebox->getView());
+	_timeBar = new TimeBarWidget (_pMainTimebox->getView() );
 }
 
-void MainWindow::createActions() {
-  _pDeleteAction = new QAction(tr("Delete"), this);
-  /// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)
-  _pDeleteAction->setShortcuts(QList<QKeySequence>() << QKeySequence(Qt::CTRL + Qt::Key_Backspace) << QKeySequence::Delete); /// @bug Bug dans Qt pour les raccourcis mac https://bugreports.qt-project.org/browse/QTBUG-33015 (by jC)
-  //ui->menuEdit->addAction(_pDeleteAction);
+void MainWindow::createActions()
+{
+	_pDeleteAction = new QAction (tr ("Delete"), this);
+	/// QKeySequence(Qt::CTRL + Qt::Key_Backspace) = Command + backSpace in MacOSX (see QKeySequence doc)
+	_pDeleteAction->setShortcuts (QList<QKeySequence>() << QKeySequence (Qt::CTRL + Qt::Key_Backspace) << QKeySequence::Delete); /// @bug Bug dans Qt pour les raccourcis mac https://bugreports.qt-project.org/browse/QTBUG-33015 (by jC)
+	//ui->menuEdit->addAction(_pDeleteAction);
 }
 
 void MainWindow::createActionGroups()
 {
-  /// GraphicsItems type stocked in relative's actions, used in MainWindow::addItem()
-  ui->actionAddTimeEvent->setData(EventItemType);
-  ui->actionAddTimeBox->setData(BoxItemType);
+	/// GraphicsItems type stocked in relative's actions, used in MainWindow::addItem()
+	ui->actionAddTimeEvent->setData (EventItemType);
+	ui->actionAddTimeBox->setData (BoxItemType);
 
-  /// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle (par jC)
-  _pMouseActionGroup = new QActionGroup(this);
-  _pMouseActionGroup->addAction(ui->actionAddTimeEvent);
-  _pMouseActionGroup->addAction(ui->actionAddTimeBox);
-  /// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false); (by jC)
+	/// @todo Faire un stateMachine dédié pour gestion de la actionBar à la omnigraffle (par jC)
+	_pMouseActionGroup = new QActionGroup (this);
+	_pMouseActionGroup->addAction (ui->actionAddTimeEvent);
+	_pMouseActionGroup->addAction (ui->actionAddTimeBox);
+	/// @bug QActionGroup always return 0 in checkedAction() if we set m_mouseActionGroup->setExclusive(false); (by jC)
 
-  /// Mouse cursor relative's actions
-  ui->actionMouse->setData(QGraphicsView::NoDrag);
-  ui->actionScroll->setData(QGraphicsView::ScrollHandDrag);
-  ui->actionSelect->setData(QGraphicsView::RubberBandDrag);
+	/// Mouse cursor relative's actions
+	ui->actionMouse->setData (QGraphicsView::NoDrag);
+	ui->actionScroll->setData (QGraphicsView::ScrollHandDrag);
+	ui->actionSelect->setData (QGraphicsView::RubberBandDrag);
 
-  _pMouseActionGroup->addAction(ui->actionMouse);
-  _pMouseActionGroup->addAction(ui->actionScroll);
-  _pMouseActionGroup->addAction(ui->actionSelect);
+	_pMouseActionGroup->addAction (ui->actionMouse);
+	_pMouseActionGroup->addAction (ui->actionScroll);
+	_pMouseActionGroup->addAction (ui->actionSelect);
 
-  ui->actionMouse->setChecked(true);
+	ui->actionMouse->setChecked (true);
 }
 
 void MainWindow::createStates()
 {
-  _stateMachine = new QStateMachine(this);
+	_stateMachine = new QStateMachine (this);
 
-  _initialState = new QState();
-  _initialState->assignProperty(this, "objectName", tr("mainWindow"));
-  //_initialState->assignProperty(this, "currentTimebox", qVariantFromValue((Timebox)_MainTimebox)); Si on veut un jour stocker la currentTimebox en tant que Q_PROPERTY, pour gérer la navigation hiérarchique depuis le StateMachine. Abandonné car surement trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
-  _initialState->assignProperty(_pMouseActionGroup, "enabled", true);
-  _stateMachine->addState(_initialState);
-  _stateMachine->setInitialState(_initialState);
+	_initialState = new QState();
+	_initialState->assignProperty (this, "objectName", tr ("mainWindow") );
+	//_initialState->assignProperty(this, "currentTimebox", qVariantFromValue((Timebox)_MainTimebox)); Si on veut un jour stocker la currentTimebox en tant que Q_PROPERTY, pour gérer la navigation hiérarchique depuis le StateMachine. Abandonné car surement trop compliqué pour pas grand chose. sinon http://blog.bigpixel.ro/2010/04/storing-pointer-in-qvariant/
+	_initialState->assignProperty (_pMouseActionGroup, "enabled", true);
+	_stateMachine->addState (_initialState);
+	_stateMachine->setInitialState (_initialState);
 
-  /// creating a new top-level state
-  _normalState = new QState();
-  _editionState = new QState(_normalState);
-  _editionState->assignProperty(_pMouseActionGroup, "enabled", true);
+	/// creating a new top-level state
+	_normalState = new QState();
+	_editionState = new QState (_normalState);
+	_editionState->assignProperty (_pMouseActionGroup, "enabled", true);
 
-  /// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing) (by jC)
-  _executionState = new QState(_normalState);
-  _executionState->assignProperty(_pMouseActionGroup, "enabled", false);
+	/// @todo create a state when changing the _currenFullView. do it history state or parallel (because can occur during execution or editing) (by jC)
+	_executionState = new QState (_normalState);
+	_executionState->assignProperty (_pMouseActionGroup, "enabled", false);
 
-  _runningState = new QState(_executionState);
-  _pausedState = new QState(_executionState);
-  _stoppedState = new QState(_executionState);
-  _executionState->setInitialState(_runningState);
+	_runningState = new QState (_executionState);
+	_pausedState = new QState (_executionState);
+	_stoppedState = new QState (_executionState);
+	_executionState->setInitialState (_runningState);
 
-  _normalState->setInitialState(_editionState);
-  _stateMachine->addState(_normalState);
+	_normalState->setInitialState (_editionState);
+	_stateMachine->addState (_normalState);
 
-  _finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
-  _stateMachine->addState(_finalState);
+	_finalState = new QFinalState(); /// @todo gérer le final state et la suppression d'objets graphiques
+	_stateMachine->addState (_finalState);
 }
 
 void MainWindow::createTransitions()
 {
-  _initialState->addTransition(_initialState, SIGNAL(propertiesAssigned()), _normalState);
-/*
-  _editionState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
-  _runningState->addTransition(ui->playButton, SIGNAL(clicked()), _pausedState);
-  _runningState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
-  _pausedState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
-  _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
-  */
-  _stoppedState->addTransition(_stoppedState, SIGNAL(propertiesAssigned()), _editionState);
+	_initialState->addTransition (_initialState, SIGNAL (propertiesAssigned() ), _normalState);
+	/*
+	  _editionState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
+	  _runningState->addTransition(ui->playButton, SIGNAL(clicked()), _pausedState);
+	  _runningState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
+	  _pausedState->addTransition(ui->playButton, SIGNAL(clicked()), _runningState);
+	  _pausedState->addTransition(ui->stopButton, SIGNAL(clicked()), _stoppedState);
+	  */
+	_stoppedState->addTransition (_stoppedState, SIGNAL (propertiesAssigned() ), _editionState);
 
-  _normalState->addTransition(this, SIGNAL(destroyed()), _finalState);
+	_normalState->addTransition (this, SIGNAL (destroyed() ), _finalState);
 }
 
 void MainWindow::createConnections()
 {
 //  connect(ui->graphicsView, SIGNAL(mousePressAddItem(QPointF)), this, SLOT(addItem(QPointF)));
-  connect(_pMouseActionGroup, SIGNAL(triggered(QAction*)), ui->graphicsView, SLOT(mouseDragMode(QAction*)));
-  connect(ui->graphicsView, SIGNAL(mousePosition(QPointF)), this, SLOT(setMousePosition(QPointF)));
-  connect(ui->headerWidget, SIGNAL(doubleClicked()), this, SLOT(headerWidgetClicked()));
-  connect(_pDeleteAction, SIGNAL(triggered()), this, SLOT(deleteSelectedItems()));
+	connect (_pMouseActionGroup, SIGNAL (triggered (QAction*) ), ui->graphicsView, SLOT (mouseDragMode (QAction*) ) );
+	connect (ui->graphicsView, SIGNAL (mousePosition (QPointF) ), this, SLOT (setMousePosition (QPointF) ) );
+	connect (ui->headerWidget, SIGNAL (doubleClicked() ), this, SLOT (headerWidgetClicked() ) );
+	connect (_pDeleteAction, SIGNAL (triggered() ), this, SLOT (deleteSelectedItems() ) );
 }
 /*
 void MainWindow::addItem(QPointF pos)
@@ -187,42 +188,50 @@ void MainWindow::addItem(QPointF pos)
 */
 void MainWindow::headerWidgetClicked()
 {
-  _pCurrentTimebox->goSmall();
+	_pCurrentTimebox->goSmall();
 }
 
 void MainWindow::deleteSelectedItems()
 {
-  QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
-  if (items.isEmpty()) {
-	  return;
+	QList<QGraphicsItem*> items = _pCurrentTimebox->fullView()->selectedItems();
+
+	if (items.isEmpty() )
+	{
+		return;
 	}
 
-  QListIterator<QGraphicsItem*> list(items);
-  while (list.hasNext()) {
-	  QGraphicsItem *item = list.next();
-	  if(TimeboxSmallView *tb = qgraphicsitem_cast<TimeboxSmallView*>(item)){
-		  tb->deleteLater();
+	QListIterator<QGraphicsItem*> list (items);
+
+	while (list.hasNext() )
+	{
+		QGraphicsItem* item = list.next();
+
+		if (TimeboxSmallView* tb = qgraphicsitem_cast<TimeboxSmallView*> (item) )
+		{
+			tb->deleteLater();
 		}
-	  else if(TimeEventView *te = qgraphicsitem_cast<TimeEventView*>(item)){
-		  te->deleteLater();
+		else if (TimeEventView* te = qgraphicsitem_cast<TimeEventView*> (item) )
+		{
+			te->deleteLater();
 		}
 	}
 }
 
 void MainWindow::changeCurrentTimeboxScene()
 {
-  setcurrentTimebox(qobject_cast<Timebox*>(sender()));
-  ui->headerWidget->changeName(_pCurrentTimebox->model()->name()); /// Actualize headerWidget's name according to the current Timebox
+	setcurrentTimebox (qobject_cast<Timebox*> (sender() ) );
+	ui->headerWidget->changeName (_pCurrentTimebox->model()->name() ); /// Actualize headerWidget's name according to the current Timebox
 }
 
-void MainWindow::setMousePosition(QPointF point)
+void MainWindow::setMousePosition (QPointF point)
 {
-  statusBar()->showMessage(QString("position : %1 %2").arg(point.x()).arg(point.y()));
+	statusBar()->showMessage (QString ("position : %1 %2").arg (point.x() ).arg (point.y() ) );
 }
 
-void MainWindow::setcurrentTimebox(Timebox *arg)
+void MainWindow::setcurrentTimebox (Timebox* arg)
 {
-  if (_pCurrentTimebox != arg) {
-	  _pCurrentTimebox = arg;
+	if (_pCurrentTimebox != arg)
+	{
+		_pCurrentTimebox = arg;
 	}
 }

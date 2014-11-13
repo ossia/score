@@ -42,37 +42,38 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QIcon>
 #include <QPalette>
 
-HeaderWidget::HeaderWidget(QWidget *parent)
-  : QWidget(parent)
+HeaderWidget::HeaderWidget (QWidget* parent)
+	: QWidget (parent)
 {
-  /// @todo trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
-  //setStyleSheet("background-color:lightgray;");
+	/// @todo trouver une couleur pour le background du header (cette méthode ne fonctionne pas vraiment).
+	//setStyleSheet("background-color:lightgray;");
 
-  _pButtonPlay = new QPushButton(QIcon(QPixmap(":/play.png")), "play", this); ///@todo switch entre play/pause
+	_pButtonPlay = new QPushButton (QIcon (QPixmap (":/play.png") ), "play", this); ///@todo switch entre play/pause
 
-  /// @todo ui->headerwidget et construit avant la première TimeBox -> donc currentTimebox = NULL. Pour l'instant on met un nom par défaut.
-  //MainWindow *mainwindow = qobject_cast<MainWindow*>(parent);
-  //QString name = mainwindow->currentTimebox()->model()->name(); /// We retrieve the TimeBox's name stored in the model for the first time
-  //_pTextName = new QLabel(name, this);
-  _pTextName = new QLabel(tr("Timebox1"), this);
+	/// @todo ui->headerwidget et construit avant la première TimeBox -> donc currentTimebox = NULL. Pour l'instant on met un nom par défaut.
+	//MainWindow *mainwindow = qobject_cast<MainWindow*>(parent);
+	//QString name = mainwindow->currentTimebox()->model()->name(); /// We retrieve the TimeBox's name stored in the model for the first time
+	//_pTextName = new QLabel(name, this);
+	_pTextName = new QLabel (tr ("Timebox1"), this);
 
-  QHBoxLayout *layout = new QHBoxLayout;
-  layout->addWidget(_pButtonPlay);
-  layout->addWidget(_pTextName);
+	QHBoxLayout* layout = new QHBoxLayout;
+	layout->addWidget (_pButtonPlay);
+	layout->addWidget (_pTextName);
 
-  setLayout(layout);
+	setLayout (layout);
 }
 
 /// Slot connected to TimeBoxModel's signal nameChanged()
-void HeaderWidget::changeName(QString name)
+void HeaderWidget::changeName (QString name)
 {
-  _pTextName->setText(name);
+	_pTextName->setText (name);
 }
 
-void HeaderWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void HeaderWidget::mouseDoubleClickEvent (QMouseEvent* event)
 {
-  if (event->button() == Qt::LeftButton) {
-	  event->accept();
-	  emit doubleClicked();
+	if (event->button() == Qt::LeftButton)
+	{
+		event->accept();
+		emit doubleClicked();
 	}
 }

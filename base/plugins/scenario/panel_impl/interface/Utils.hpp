@@ -43,9 +43,9 @@ static const int MIN_BOX_HEIGHT = 50;
 
 enum ViewMode
 {
-  FULL,
-  SMALL,
-  HIDE
+	FULL,
+	SMALL,
+	HIDE
 };
 
 #endif //UTILS_HPP
