@@ -1,15 +1,17 @@
 #include "CreateEventCommand.hpp"
 #include "panel_impl/ScenarioContainer/ScenarioModel.hpp"
+#include "panel_impl/TimeEvent/TimeEventModel.hpp"
 
 #include <QApplication>
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 using namespace iscore;
 
-
+// TODO maybe the to-be-added event id should be created here ?
 CreatEventCommand::CreatEventCommand(int modelId, QPointF position):
 	SerializableCommand{"ScenarioControl", "CreateEventCommand", QObject::tr("Event creation")},
 	m_modelId{modelId},
+	m_timeEventId{TimeEventModel::nextId()},
 	m_position{position}
 {
 	
@@ -32,7 +34,7 @@ void CreatEventCommand::undo()
 	if(scenar_p != std::end(scenarios))
 	{
 		// @todo removeTimeEvent required
-		(*scenar_p)->removeTimeEvent(m_position);
+		(*scenar_p)->removeTimeEvent(m_timeEventId);
 	}
 }
 
@@ -57,7 +59,7 @@ void CreatEventCommand::redo()
 	if(scenar_p != std::end(scenarios))
 	{
 		qDebug("1");
-		(*scenar_p)->addTimeEvent(m_position);
+		(*scenar_p)->addTimeEvent(m_timeEventId, m_position);  // TODO what about serialization ??
 		// @todo Is it useful to do error checking here ?
 	}
 }
@@ -73,10 +75,10 @@ bool CreatEventCommand::mergeWith(const QUndoCommand* other)
 
 void CreatEventCommand::serializeImpl(QDataStream& s)
 {
-	s << m_modelId << m_position;
+	s << m_modelId << m_timeEventId << m_position;
 }
 
 void CreatEventCommand::deserializeImpl(QDataStream& s)
 {
-	s >> m_modelId >> m_position;
+	s >> m_modelId >> m_timeEventId >> m_position;
 }

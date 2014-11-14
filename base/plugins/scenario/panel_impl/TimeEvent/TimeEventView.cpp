@@ -29,7 +29,7 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 #include "TimeEventView.hpp"
-#include "TimeEventModel.hpp"
+#include "TimeEventPresenter.hpp"
 #include "TimeEvent.hpp"
 #include "MainWindow.hpp"
 #include "Utils.hpp"
@@ -43,8 +43,24 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 
-TimeEventView::TimeEventView (TimeEventModel* pModel, TimeEvent* parentObject, QGraphicsItem* parentGraphics) :
-	QGraphicsObject (parentGraphics), _pModel (pModel), _penWidth (1), _circleRadii (10), _height (0)
+
+TimeEventPresenter* TimeEventView::presenter() const
+{
+	return m_presenter;
+}
+
+void TimeEventView::setPresenter(TimeEventPresenter* presenter)
+{
+	m_presenter = presenter;
+}
+TimeEventView::TimeEventView (int index, 
+							  QObject* parentObject, 
+							  QGraphicsItem* parentGraphics) :
+	QGraphicsObject (parentGraphics), 
+	m_index{index},
+	_penWidth (1), 
+	_circleRadii (10), 
+	_height (0)
 {
 	setFlags (QGraphicsItem::ItemIsSelectable |
 	          QGraphicsItem::ItemIsMovable |
@@ -55,14 +71,6 @@ TimeEventView::TimeEventView (TimeEventModel* pModel, TimeEvent* parentObject, Q
 	setZValue (1); // Draw on top of Timebox
 	setSelected (true);
 
-	if (_pModel != nullptr)
-	{
-		setPos (_pModel->time(), _pModel->yPosition() );
-		connect (_pModel, SIGNAL (timeChanged (qreal) ), this, SLOT (setX (qreal) ) );
-		connect (_pModel, SIGNAL (yPositionChanged (qreal) ), this, SLOT (setY (qreal) ) );
-		connect (this, SIGNAL (xChanged (qreal) ), _pModel, SLOT (settime (qreal) ) );
-		connect (this, SIGNAL (yChanged (qreal) ), _pModel, SLOT (setYPosition (qreal) ) );
-	}
 }
 
 TimeEventView::~TimeEventView()

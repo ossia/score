@@ -7,19 +7,30 @@
 
 #include "commands/CreateEventCommand.hpp"
 #include <core/presenter/Presenter.hpp>
-ScenarioPresenter::ScenarioPresenter (ScenarioModel* model, ScenarioView* view, QObject* parent) :
+ScenarioPresenter::ScenarioPresenter (ScenarioModel* model, 
+									  ScenarioView* view, 
+									  QObject* parent) :
 	QObject {nullptr},
-        _pModel {model},
-_pView {view}
+	m_model {model},
+	m_view {view}
 {
 	setObjectName ("ScenarioPresenter");
 	setParent (parent);
-	connect (_pView, &ScenarioView::viewAskForTimeEvent,
-	this, &ScenarioPresenter::on_askTimeEvent);
-	connect (_pModel, &ScenarioModel::TimeEventAddedInModel,
-	this, &ScenarioPresenter::instantiateTimeEvent);
-	connect (_pModel, &ScenarioModel::TimeEventRemovedInModel,
-	this, &ScenarioPresenter::removeTimeEventInView);
+	connect (m_view,	&ScenarioView::viewAskForTimeEvent,
+			 this,		&ScenarioPresenter::on_askTimeEvent);
+	
+	connect(m_model,	&ScenarioModel::timeEventAdded,
+			this,		&ScenarioPresenter::on_timeEventAdded);
+	connect(m_model,	&ScenarioModel::timeEventRemoved,
+			this,		&ScenarioPresenter::on_timeEventRemoved);
+	/*
+	auto parent_ptr = (QObject*) this;
+	while(parent_ptr != nullptr)
+	{
+		qDebug() << parent_ptr->objectName();
+		parent_ptr = parent_ptr->parent();
+	}
+	*/
 }
 
 ScenarioPresenter::~ScenarioPresenter()
@@ -30,28 +41,50 @@ ScenarioPresenter::~ScenarioPresenter()
 void ScenarioPresenter::on_askTimeEvent (QPointF pos)
 {
 	qDebug (Q_FUNC_INFO);
+	
 	// On instancie la commande
-	auto cmd = new CreatEventCommand (_pModel->id(), pos);
+	auto cmd = new CreatEventCommand (m_model->id(), pos);
 
 	// Puis on la fait remonter au présenteur
 	auto pres = qApp->findChild<iscore::Presenter*> ("Presenter");
 	pres->applyCommand (cmd);
+}
+/* Not yet :-(
+#include <functional>
+std::function<bool (int)> index_is(int index)
+{
+	return [&index] (auto elt)
+	{
+		return elt->index() == index;
+	};
+}
+*/
+#include "panel_impl/TimeEvent/TimeEventModel.hpp"
+#include "panel_impl/TimeEvent/TimeEventView.hpp"
+#include "panel_impl/TimeEvent/TimeEventPresenter.hpp"
 
-	// send request to the model
-	//_pModel->addTimeEvent(pos);
+void ScenarioPresenter::on_timeEventAdded(TimeEventModel* model)
+{
+	qDebug(Q_FUNC_INFO);
+	auto view = new TimeEventView (model->index(), this);
+	auto presenter = new TimeEventPresenter (model, view, this);
+	view->setPresenter(presenter);
+	
+	m_view->addTimeEventView(view);
+	m_timeEvents.push_back(presenter);
 }
 
-void ScenarioPresenter::addTimeEventInView (QPointF pos)
+void ScenarioPresenter::on_timeEventRemoved(TimeEventModel* model)
 {
-	emit addTimeEvent (pos);
-}
-
-void ScenarioPresenter::removeTimeEventInView (QPointF pos)
-{
-	emit removeTimeEvent (pos);
-}
-
-void ScenarioPresenter::instantiateTimeEvent (QPointF pos)
-{
-	addTimeEventInView(pos);
+	qDebug(Q_FUNC_INFO);
+	m_view->removeTimeEvent(model->index());
+	
+	auto it = std::find_if(std::begin(m_timeEvents),
+						   std::end(m_timeEvents),
+						   [&model] (TimeEventPresenter* p)
+							{
+								return p->index() == model->index();
+							});
+	
+	m_timeEvents.erase(it);
 }

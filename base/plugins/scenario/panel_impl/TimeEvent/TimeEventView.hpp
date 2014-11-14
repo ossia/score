@@ -31,8 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEEVENTVIEW_HPP
 #define TIMEEVENTVIEW_HPP
 
-class TimeEventModel;
-class TimeEvent;
+class TimeEventPresenter;
 class QGraphicsLineItem;
 
 #include "Utils.hpp"
@@ -52,8 +51,9 @@ class TimeEventView : public QGraphicsObject
 		Q_OBJECT
 
 	private:
-		TimeEventModel* _pModel = nullptr;
+		TimeEventPresenter* m_presenter = nullptr;
 
+		int m_index{};
 		qreal _penWidth;
 		qreal _circleRadii; /// a straight line from the centre to the circumference of the bottom circle
 		qreal _height; /// height of the line
@@ -61,7 +61,7 @@ class TimeEventView : public QGraphicsObject
 		QGraphicsLineItem* _pTemporaryRelation = nullptr; /// Temporary graphical line when a creation is in progress. Line is horizontal and always attached at the center of the circle (0,0)
 
 	public:
-		explicit TimeEventView (TimeEventModel* pModel, TimeEvent* parentObject, QGraphicsItem* parentGraphics = 0);
+		explicit TimeEventView (int index, QObject* parentObject, QGraphicsItem* parentGraphics = 0);
 		~TimeEventView();
 
 	signals:
@@ -84,6 +84,9 @@ class TimeEventView : public QGraphicsObject
 		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 		virtual QPainterPath shape() const;
 
+		TimeEventPresenter* presenter() const;
+		void setPresenter(TimeEventPresenter* presenter);
+		
 	protected:
 		QVariant itemChange (GraphicsItemChange change, const QVariant& value);
 		void mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent);

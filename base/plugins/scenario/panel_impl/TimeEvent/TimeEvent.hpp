@@ -60,7 +60,7 @@ class TimeEvent : public QObject
 		TimeEventPresenter* _pPresenter = nullptr;
 		TimeEventView* _pView = nullptr;
 
-		static int staticId; /// Give a unique number to each instance of TimeEvent
+		static int m_staticId; /// Give a unique number to each instance of TimeEvent
 
 	public:
 		TimeEvent (ScenarioContainer* pParent, const QPointF& pos);

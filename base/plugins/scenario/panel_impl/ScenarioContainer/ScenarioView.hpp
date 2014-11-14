@@ -37,6 +37,8 @@ class QGraphicsRectItem;
 #include <QPointF>
 #include <QRectF>
 
+class TimeEventView;
+#include <QDebug>
 /*!
  *  View of the Scenario plugin, inherits the class PluginView.
  *  Permits to add a TimeEvent and draw a Timebox in smallView by adding it as child to the current one in fullView. @n
@@ -50,24 +52,35 @@ class ScenarioView : public PluginView
 {
 		Q_OBJECT
 
-	private:
-		QGraphicsRectItem* _pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
-		QPointF _pressPoint;                          /// Last pression point.
-
 	public:
 		ScenarioView (QGraphicsObject* parent);
+		void addTimeEventView(TimeEventView* v)
+		{
+			qDebug() << this->parent()->inherits("TimeboxView");
+			m_timeEvents.push_back(v);
+		}
+		
+		void removeTimeEvent(int index)
+		{
+			//TODO
+		}
+
+		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 	signals:
 		void createTimebox (QRectF rectItem); /// emit a signal to create a Timebox and two surrounding TimeEvent in the current Scenario
 		void viewAskForTimeEvent (QPointF pos); /// emit a signal to create a TimeEvent in the current Scenario
 
-	public:
-		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-
 	protected:
 		void mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent);
 		void mouseMoveEvent (QGraphicsSceneMouseEvent* mouseEvent);
 		void mouseReleaseEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		
+	private:
+		QGraphicsRectItem* _pTemporaryBox = nullptr;  /// Temporary graphical box when a creation is in progress.
+		QPointF _pressPoint;                          /// Last pression point.
+
+		std::vector<TimeEventView*> m_timeEvents;
 };
 
 #endif // SCENARIOVIEW_HPP

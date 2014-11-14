@@ -16,5 +16,6 @@ class CreatEventCommand : public iscore::SerializableCommand
 		
 	private:
 		int m_modelId{};
+		int m_timeEventId{};
 		QPointF m_position{};
 };

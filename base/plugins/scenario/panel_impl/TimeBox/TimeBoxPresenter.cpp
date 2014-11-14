@@ -176,6 +176,7 @@ void TimeboxPresenter::storeyBarButtonClicked (bool id)
 
 void TimeboxPresenter::addStorey (int pluginType)
 {
+	/*
 	PluginView* plugin;
 	TimeboxStorey* pStorey;
 
@@ -205,10 +206,12 @@ void TimeboxPresenter::addStorey (int pluginType)
 	}
 
 	connect (pStorey, SIGNAL (buttonClicked (bool) ), this, SLOT (storeyBarButtonClicked (bool) ) );
+*/
 }
 
 PluginView* TimeboxPresenter::addPlugin (int pluginType, TimeboxStorey* pStorey)
 {
+	/*
 	PluginView* plugin;
 
 	switch (pluginType)
@@ -223,11 +226,11 @@ PluginView* TimeboxPresenter::addPlugin (int pluginType, TimeboxStorey* pStorey)
 			/// We connect the plugin to proxies signals, to route them to the class Timebox
 			connect (scenarioView, SIGNAL (createTimebox (QRectF) ), 
 					 this, SIGNAL (createBoxProxy (QRectF) ) );
-/*			connect (scenarioPresenter, SIGNAL (addTimeEvent (QPointF) ), 
-					 this, SIGNAL (createTimeEventProxy (QPointF) ) );
-			connect (scenarioPresenter, SIGNAL (removeTimeEvent (QPointF) ), 
-					 this, SIGNAL (removeTimeEventProxy (QPointF) ) );
-*/
+//			connect (scenarioPresenter, SIGNAL (addTimeEvent (QPointF) ), 
+//					 this, SIGNAL (createTimeEventProxy (QPointF) ) );
+//			connect (scenarioPresenter, SIGNAL (removeTimeEvent (QPointF) ), 
+//					 this, SIGNAL (removeTimeEventProxy (QPointF) ) );
+
 			plugin = qgraphicsitem_cast<PluginView*> (scenarioView);
 			break;
 		}
@@ -242,6 +245,7 @@ PluginView* TimeboxPresenter::addPlugin (int pluginType, TimeboxStorey* pStorey)
 	}
 
 	return plugin;
+*/
 }
 
 void TimeboxPresenter::goSmallView()
@@ -270,6 +274,7 @@ void TimeboxPresenter::goHide()
 
 void TimeboxPresenter::createFullView()
 {
+	/*
 	_pFullView = new TimeboxFullView (_pModel, _pTimebox);
 	std::list<TTTimeProcess*> lst = _pModel->pluginsFullView();
 
@@ -280,10 +285,12 @@ void TimeboxPresenter::createFullView()
 		addStorey (AutomationPluginType); ///@todo seul le dernier storey a un "+"
 		/// @todo constructeur par copie des plugins pour aller dans full
 	}
+	*/
 }
 
 void TimeboxPresenter::deleteStorey (TimeboxStorey* tbs)
 {
+	/*
 	std::unordered_map<TimeboxStorey*, PluginView*>::iterator it;
 
 	switch (_mode)
@@ -306,5 +313,6 @@ void TimeboxPresenter::deleteStorey (TimeboxStorey* tbs)
 			break;
 	}
 
+	*/
 }
 

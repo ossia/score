@@ -6,6 +6,8 @@
 
 class ScenarioModel;
 class ScenarioView;
+class TimeEventPresenter;
+class TimeEventModel;
 
 class ScenarioPresenter : public QObject
 {
@@ -13,21 +15,22 @@ class ScenarioPresenter : public QObject
 	public:
 		explicit ScenarioPresenter (ScenarioModel* model, ScenarioView* view, QObject* parent);
 		~ScenarioPresenter();
-
-	signals:
-		void addTimeEvent (QPointF pos);
-		void removeTimeEvent (QPointF pos);
+		
+		void addTimeEventPresenter(TimeEventPresenter* p)
+		{
+			m_timeEvents.push_back(p);
+		}
 
 	public slots:
 		void on_askTimeEvent (QPointF pos);
-		void addTimeEventInView (QPointF pos);
-		void removeTimeEventInView (QPointF pos);
-
-		void instantiateTimeEvent (QPointF pos);
+		void on_timeEventAdded(TimeEventModel* model);
+		void on_timeEventRemoved(TimeEventModel* model);
 
 	private:
-		ScenarioModel* _pModel = nullptr;
-		ScenarioView* _pView = nullptr;
+		ScenarioModel* m_model = nullptr;
+		ScenarioView* m_view = nullptr;
+		
+		std::vector<TimeEventPresenter*> m_timeEvents;
 };
 
 #endif // SCENARIOPRESENTER_H

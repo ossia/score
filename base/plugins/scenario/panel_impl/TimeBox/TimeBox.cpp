@@ -57,6 +57,7 @@ Timebox::Timebox (Timebox* pParent,
 	  _pGraphicsView (pView),
 	  _pParent (pParent)
 {
+	this->setObjectName("Timebox");
 	init (pTimeEventStart, pTimeEventEnd, pos, height, width, mode, name);
 }
 
@@ -72,9 +73,9 @@ Timebox::Timebox (Timebox* pParent,
 	  _pParent (pParent)
 {
 /*
-	TimeEvent* TimeEventStart = new TimeEvent (pParent, pos);
+	TimeEvent* TimeEventStart = new TimeEvent (nullptr, pos);
 	QPointF posEnd = pos + QPointF (width, 0);
-	TimeEvent* TimeEventEnd = new TimeEvent (pParent, posEnd);
+	TimeEvent* TimeEventEnd = new TimeEvent (nullptr, posEnd);
 
 	init (TimeEventStart, TimeEventEnd, pos, height, width, mode, name);
 */
@@ -92,6 +93,7 @@ void Timebox::init (TimeEvent* pTimeEventStart,
                     ViewMode mode,
                     QString nameBox)
 {
+	/*
 	///@todo Vérifier si le nom existe déjà (par jC)
 	if (nameBox.isEmpty() )
 	{
@@ -112,12 +114,18 @@ void Timebox::init (TimeEvent* pTimeEventStart,
 	if (mode == SMALL)
 	{
 		_pSmallView = new TimeboxSmallView (_pModel, this);
-		_pPresenter = new TimeboxPresenter (_pModel, _pSmallView, _pGraphicsView, this);
+		_pPresenter = new TimeboxPresenter (_pModel, 
+											_pSmallView, 
+											_pGraphicsView, 
+											this);
 	}
 	else if (mode == FULL)
 	{
 		_pFullView = new TimeboxFullView (_pModel, this);
-		_pPresenter = new TimeboxPresenter (_pModel, _pFullView, _pGraphicsView, this);
+		_pPresenter = new TimeboxPresenter (_pModel, 
+											_pFullView, 
+											_pGraphicsView, 
+											this);
 	}
 
 	if (_pParent != nullptr)
@@ -128,22 +136,29 @@ void Timebox::init (TimeEvent* pTimeEventStart,
 		}
 	}
 
-	connect (_pPresenter, SIGNAL (viewModeIsFull() ), this, SLOT (goFull() ) );
-	connect (_pPresenter, SIGNAL (createBoxProxy (QRectF) ), this, SLOT (createTimeboxAndTimeEvents (QRectF) ) );
-	connect (_pPresenter, SIGNAL (createTimeEventProxy (QPointF) ), this, SLOT (createTimeEvent (QPointF) ) );
-	connect (_pPresenter, SIGNAL (removeTimeEventProxy (QPointF) ), this, SLOT (removeTimeEvent (QPointF) ) );
-	connect (_pPresenter, SIGNAL (suppressTimeboxProxy() ), this, SLOT (deleteLater() ) );
+	connect (_pPresenter, SIGNAL (viewModeIsFull() ), 
+			 this, SLOT (goFull() ) );
+	connect (_pPresenter, SIGNAL (createBoxProxy (QRectF) ), 
+			 this, SLOT (createTimeboxAndTimeEvents (QRectF) ) );
+	connect (_pPresenter, SIGNAL (createTimeEventProxy (QPointF) ), 
+			 this, SLOT (createTimeEvent (QPointF) ) );
+	connect (_pPresenter, SIGNAL (removeTimeEventProxy (QPointF) ), 
+			 this, SLOT (removeTimeEvent (QPointF) ) );
+	connect (_pPresenter, SIGNAL (suppressTimeboxProxy() ), 
+			 this, SLOT (deleteLater() ) );
 
 	MainWindow* window = qobject_cast<MainWindow*> (QApplication::activeWindow() ); /// We retrieve a pointer to mainWindow
 
 	if (window != NULL)
 	{
-		connect (this, SIGNAL (isFull() ), window, SLOT (changeCurrentTimeboxScene() ) ); /// Inform mainWindow (and particularly the headerWidget) that there is a new TimeBox in fullView. Permits to jump to the parent later.
+		connect (this, SIGNAL (isFull() ), 
+				 window, SLOT (changeCurrentTimeboxScene() ) ); /// Inform mainWindow (and particularly the headerWidget) that there is a new TimeBox in fullView. Permits to jump to the parent later.
 	}
 	else
 	{
 		qWarning() << "Attention : Hierarchie vers la TimeBox parente est brisée !";
 	}
+	*/
 }
 
 void Timebox::goSmall()
@@ -197,11 +212,13 @@ void Timebox::removeTimeEvent (QPointF pos)
 
 void Timebox::createTimeboxAndTimeEvents (QRectF rect)
 {
+	qDebug(Q_FUNC_INFO);
 	new Timebox (this, _pGraphicsView, rect.topLeft(), rect.width(), rect.height(), SMALL);
 }
 
 void Timebox::createTimeEventAndTimebox (QLineF line)
 {
+	qDebug(Q_FUNC_INFO);
 /*
 	TimeEvent* startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
 	QPointF posLeft;

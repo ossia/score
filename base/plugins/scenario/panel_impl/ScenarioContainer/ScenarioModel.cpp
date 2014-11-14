@@ -32,12 +32,26 @@ int ScenarioModel::id() const
 	return m_id;
 }
 
-void ScenarioModel::addTimeEvent (QPointF pos)
+void ScenarioModel::removeTimeEvent(int modelIndex)
 {
-	emit TimeEventAddedInModel (pos);
+	auto model = std::find_if(std::begin(timeEvents()),
+							  std::end(timeEvents()),
+							  [&modelIndex] (TimeEventModel* elt)
+								  {
+									  return elt->index() == modelIndex;
+								  });
+	
+	if(model != std::end(timeEvents()))
+	{
+		emit timeEventRemoved(*model);
+		
+		delete *model;
+		m_timeEvents.erase(model);
+	}
 }
 
-void ScenarioModel::removeTimeEvent (QPointF pos)
+int ScenarioModel::addTimeEvent(int id, QPointF p)
 {
-	emit TimeEventRemovedInModel (pos);
+	auto model = new TimeEventModel(id, p.x(), p.y(), "TimeEvent", nullptr);
+	emit timeEventAdded(model);
 }

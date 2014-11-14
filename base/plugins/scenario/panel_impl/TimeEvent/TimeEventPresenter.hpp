@@ -31,7 +31,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef TIMEEVENTPRESENTER_HPP
 #define TIMEEVENTPRESENTER_HPP
 
-class TimeEvent;
 class TimeEventView;
 class TimeEventModel;
 
@@ -49,12 +48,16 @@ class TimeEventPresenter : public QObject
 {
 		Q_OBJECT
 	private:
-		TimeEvent* _pTimeEvent;
-		TimeEventModel* _pModel;
-		TimeEventView* _pView;
+		int m_index{};
+		TimeEventModel* m_model;
+		TimeEventView* m_view;
 
 	public:
-		explicit TimeEventPresenter (TimeEventModel* pModel, TimeEventView* pView, TimeEvent* parent);
+		explicit TimeEventPresenter (TimeEventModel* pModel, TimeEventView* pView, QObject* parent);
+		int index() const
+		{
+			return m_index;
+		}
 
 };
 

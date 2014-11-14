@@ -35,7 +35,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QString>
 #include <QVector>
 
-class TimeEvent;
 class Timebox;
 
 /*!
@@ -51,44 +50,60 @@ class TimeEventModel : public QObject
 {
 		Q_OBJECT
 
-		Q_PROPERTY (qreal _time READ time WRITE settime NOTIFY timeChanged)
-		Q_PROPERTY (qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
-		Q_PROPERTY (QString _name READ name WRITE setname NOTIFY nameChanged)
-
-	private:
-		qreal _time, _yPosition;
-		QString _name;
-
-		QVector<Timebox*> _TimeBoxes; /// Vector containing all the Timebox linked to this TimeEvent
+		Q_PROPERTY (int index READ index)
+		Q_PROPERTY (qreal m_time READ time WRITE setTime NOTIFY timeChanged)
+		Q_PROPERTY (qreal m_yPosition READ yPosition 
+									  WRITE setYPosition 
+									  NOTIFY yPositionChanged)
+		Q_PROPERTY (QString m_name READ name WRITE setName NOTIFY nameChanged)
 
 	public:
-		TimeEventModel (qreal t, qreal y, QString name, TimeEvent* parent);
+		TimeEventModel (int id, qreal t, qreal y, QString name, QObject* parent);
+		
+		qreal time() const
+		{
+			return m_time;
+		}
+		
+		qreal yPosition() const
+		{
+			return m_yPosition;
+		}
+		
+		QString name() const
+		{
+			return m_name;
+		}
 
+		void addTimebox (Timebox* tb);
+		
+		int index() const
+		{
+			return m_index;
+		}
+		
+		static const int nextId() ;
+		
 	signals:
 		void nameChanged (QString arg);
 		void timeChanged (qreal arg);
 		void yPositionChanged (qreal arg);
 
 	public slots:
-		void setname (QString arg);
-		void settime (qreal arg);
+		void setName (QString arg);
+		void setTime (qreal arg);
 		void setYPosition (qreal arg);
+		
+	private: 
+		qreal m_time{};
+		qreal m_yPosition{};
+		QString m_name;
 
-	public:
-		qreal time() const
-		{
-			return _time;
-		}
-		qreal yPosition() const
-		{
-			return _yPosition;
-		}
-		QString name() const
-		{
-			return _name;
-		}
-
-		void addTimebox (Timebox* tb);
+		QVector<Timebox*> _TimeBoxes; /// Vector containing all the Timebox linked to this TimeEvent
+		
+		int m_index;
+		
+		static int m_staticId;
 };
 
 #endif // TIMEEVENTMODEL_HPP

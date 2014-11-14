@@ -36,26 +36,29 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "../TimeBox/TimeBoxFullView.hpp"
 #include "../ScenarioContainer/ScenarioContainer.hpp"
 
-int TimeEvent::staticId = 1;
+int TimeEvent::m_staticId = 1;
 
 TimeEvent::TimeEvent (ScenarioContainer* pParent, const QPointF& pos)
 	: QObject (pParent)
-{
+{/*
 	///If no name was given, we construct a name with a unique ID
-	QString name = QString ("TimeEvent%1").arg (staticId++);
+	QString name = QString ("TimeEvent%1").arg (m_staticId++);
 	setObjectName (name);
 
 	_pModel = new TimeEventModel (pos.x(), pos.y(), name, this);
-	_pView = new TimeEventView (_pModel, this);
+	_pView = new TimeEventView (this);
 	_pPresenter = new TimeEventPresenter (_pModel, _pView, this);
-
+	_pView->setPresenter(_pPresenter);
+*/
 	/*
-	connect (_pView, SIGNAL (createTimeEventAndTimebox (QLineF) ), this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ) );
+	connect (_pView, SIGNAL (createTimeEventAndTimebox (QLineF) ), 
+			 this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ) );
 
 	if (pParent != nullptr)
 	{
 		pParent->addChild (this);
-		connect (this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ), pParent, SLOT (createTimeEventAndTimebox (QLineF) ) );
+		connect (this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ), 
+				 pParent, SLOT (createTimeEventAndTimebox (QLineF) ) );
 	}*/
 }
 

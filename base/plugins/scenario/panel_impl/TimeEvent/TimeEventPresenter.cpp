@@ -33,7 +33,27 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "TimeEventModel.hpp"
 #include "TimeEventView.hpp"
 
-TimeEventPresenter::TimeEventPresenter (TimeEventModel* pModel, TimeEventView* pView, TimeEvent* parent) :
-	QObject (parent), _pTimeEvent (parent), _pModel (pModel), _pView (pView)
+TimeEventPresenter::TimeEventPresenter (TimeEventModel* pModel, 
+										TimeEventView* pView, 
+										QObject* parent) :
+	QObject (parent),
+	m_index(pModel->index()),
+	m_model (pModel), 
+	m_view (pView)
 {
+	
+	m_view->setPos (m_model->time(), m_model->yPosition() );
+	connect (m_model, SIGNAL (timeChanged (qreal) ), 
+			 m_view, SLOT (setX (qreal) ) );
+	connect (m_model, SIGNAL (yPositionChanged (qreal) ), 
+			 m_view, SLOT (setY (qreal) ) );
+	
+	/* TODO commands instead (only updatePosition)
+	connect (this, SIGNAL (xChanged (qreal) ), 
+			 m_presenter, SLOT (setTime (qreal) ) );
+	connect (this, SIGNAL (yChanged (qreal) ), 
+			 m_presenter, SLOT (setYPosition (qreal) ) );
+	*/
+	
+	
 }

@@ -20,10 +20,15 @@ class ScenarioContainer : public QNamedObject
 		explicit ScenarioContainer (QObject* parent, QGraphicsObject* parentView);
 		~ScenarioContainer();
 
+		ScenarioModel* model() const
+		{
+			return _pModel;
+		}
 		ScenarioView* view() const
 		{
 			return _pView;
 		}
+		
 		ScenarioPresenter* presenter() const
 		{
 			return _pPresenter;
@@ -32,18 +37,14 @@ class ScenarioContainer : public QNamedObject
 	signals:
 
 	public slots:
-		
-		void instantiateTimeEvent(QPointF pos);
 
 	private:
 		ScenarioModel* _pModel = nullptr;
 		ScenarioView* _pView = nullptr;
 		ScenarioPresenter* _pPresenter = nullptr;
 
-		int m_modelId {0};
-		
-		std::vector<TimeEvent*> m_timeEvent;
-		
+		static int m_modelId;
+
 };
 
 #endif // SCENARIOCONTAINER_HPP

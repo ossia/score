@@ -31,35 +31,41 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "TimeEventModel.hpp"
 #include "TimeEvent.hpp"
 
-TimeEventModel::TimeEventModel (qreal t, qreal y, QString name, TimeEvent* parent)
-	: QObject (parent), _time (t), _yPosition (y), _name (name)
+int TimeEventModel::m_staticId = 1;
+
+TimeEventModel::TimeEventModel (int id, qreal t, qreal y, QString name, QObject* parent)
+	: QObject (parent), 
+	  m_time (t), 
+	  m_yPosition (y), 
+	  m_name (name), 
+	  m_index{id}
 {
 	qDebug (Q_FUNC_INFO);
 }
 
-void TimeEventModel::setname (QString arg)
+void TimeEventModel::setName (QString arg)
 {
-	if (_name != arg)
+	if (m_name != arg)
 	{
-		_name = arg;
+		m_name = arg;
 		emit nameChanged (arg);
 	}
 }
 
-void TimeEventModel::settime (qreal arg)
+void TimeEventModel::setTime (qreal arg)
 {
-	if (_time != arg)
+	if (m_time != arg)
 	{
-		_time = arg;
+		m_time = arg;
 		emit timeChanged (arg);
 	}
 }
 
 void TimeEventModel::setYPosition (qreal arg)
 {
-	if (_yPosition != arg)
+	if (m_yPosition != arg)
 	{
-		_yPosition = arg;
+		m_yPosition = arg;
 		emit yPositionChanged (arg);
 	}
 }
@@ -67,4 +73,9 @@ void TimeEventModel::setYPosition (qreal arg)
 void TimeEventModel::addTimebox (Timebox* tb)
 {
 	_TimeBoxes.append (tb);
+}
+
+const int TimeEventModel::nextId()
+{
+	return m_staticId++;
 }

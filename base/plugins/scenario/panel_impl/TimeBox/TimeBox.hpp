@@ -69,8 +69,22 @@ class Timebox : public QObject
 		static int staticId;          /// Give a unique number to each instance of Timebox
 
 	public:
-		explicit Timebox (Timebox* pParent, TimeEvent* pTimeEventStart, TimeEvent* pTimeEventEnd, GraphicsView* pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
-		explicit Timebox (Timebox* pParent, GraphicsView* pView, QPointF pos, float width, float height, ViewMode mode, QString name = "");
+		explicit Timebox (Timebox* pParent, 
+						  TimeEvent* pTimeEventStart, 
+						  TimeEvent* pTimeEventEnd, 
+						  GraphicsView* pView, 
+						  QPointF pos, 
+						  float width, 
+						  float height, 
+						  ViewMode mode, 
+						  QString name = "");
+		explicit Timebox (Timebox* pParent, 
+						  GraphicsView* pView, 
+						  QPointF pos, 
+						  float width, 
+						  float height, 
+						  ViewMode mode, 
+						  QString name = "");
 		~Timebox();
 
 	signals:
@@ -107,7 +121,14 @@ class Timebox : public QObject
 		}
 
 	private:
-		void init (TimeEvent* pTimeEventStart, TimeEvent* pTimeEventEnd, const QPointF& pos, float height, float width, ViewMode mode, QString name);
+		// TODO no goddamn init method. Use constructor delegation instead
+		void init (TimeEvent* pTimeEventStart, 
+				   TimeEvent* pTimeEventEnd, 
+				   const QPointF& pos, 
+				   float height, 
+				   float width, 
+				   ViewMode mode, 
+				   QString name);
 };
 
 #endif // TIMEBOX_HPP

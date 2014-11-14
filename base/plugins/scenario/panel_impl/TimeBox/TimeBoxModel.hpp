@@ -38,7 +38,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class TTTimeProcess;
 class Timebox;
-class TimeEvent;
+class TimeEventModel;
 
 /*!
  *  The model is linked with OSSIA API, and permits to maintain all elements used later by
@@ -53,21 +53,29 @@ class TimeboxModel : public QObject
 {
 		Q_OBJECT
 
-		Q_PROPERTY (qreal _time READ time WRITE settime NOTIFY timeChanged)
+		Q_PROPERTY (qreal _time READ time WRITE setTime NOTIFY timeChanged)
 		Q_PROPERTY (qreal _yPosition READ yPosition WRITE setYPosition NOTIFY yPositionChanged)
-		Q_PROPERTY (QString _name READ name WRITE setname NOTIFY nameChanged)
+		Q_PROPERTY (QString _name READ name WRITE setName NOTIFY nameChanged)
 
 	private:
 		qreal _time, _yPosition, _width, _height;
 		QString _name;
+		/*
 		std::list<TTTimeProcess*> _pluginsSmallView;
 		std::list<TTTimeProcess*> _pluginsFullView;
-
-		TimeEvent* _pStartTimeEvent; /// The start TimeEvent of the timeProcess
-		TimeEvent* _pEndTimeEvent; /// The end TimeEvent of the timeProcess
+		*/
+		TimeEventModel* _pStartTimeEvent; /// The start TimeEvent of the timeProcess
+		TimeEventModel* _pEndTimeEvent; /// The end TimeEvent of the timeProcess
 
 	public:
-		TimeboxModel (qreal t, qreal y, qreal w, qreal h, QString name, Timebox* pParent, TimeEvent* pTimeEventStart, TimeEvent* pTimeEventEnd);
+		TimeboxModel (qreal t, 
+					  qreal y, 
+					  qreal w, 
+					  qreal h, 
+					  QString name, 
+					  Timebox* pParent, 
+					  TimeEventModel* pTimeEventStart, 
+					  TimeEventModel* pTimeEventEnd);
 
 	signals:
 		void nameChanged (QString arg);
@@ -76,9 +84,9 @@ class TimeboxModel : public QObject
 		void yPositionChanged (qreal arg);
 
 	public slots:
-		void setname (QString arg);
-		void settime (qreal arg);
-		void settimeEnd (qreal arg);
+		void setName (QString arg);
+		void setTime (qreal arg);
+		void setTimeEnd (qreal arg);
 		void setYPosition (qreal arg);
 
 	public:
@@ -102,15 +110,17 @@ class TimeboxModel : public QObject
 		{
 			return _name;
 		}
-		TimeEvent* startTimeEvent() const
+		
+		TimeEventModel* startTimeEvent() const
 		{
 			return _pStartTimeEvent;
 		}
-		TimeEvent* endTimeEvent() const
+		TimeEventModel* endTimeEvent() const
 		{
 			return _pEndTimeEvent;
 		}
 
+		/*
 		const std::list<TTTimeProcess*>& pluginsSmallView() const
 		{
 			return _pluginsSmallView;
@@ -129,6 +139,7 @@ class TimeboxModel : public QObject
 		void removePluginSmall();
 		void addPluginFull();
 		void removePluginFull();
+*/
 };
 
 #endif // TIMEBOXMODEL_HPP
