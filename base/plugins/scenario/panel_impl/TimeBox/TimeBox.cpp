@@ -71,11 +71,13 @@ Timebox::Timebox (Timebox* pParent,
 	  _pGraphicsView (pView),
 	  _pParent (pParent)
 {
+/*
 	TimeEvent* TimeEventStart = new TimeEvent (pParent, pos);
 	QPointF posEnd = pos + QPointF (width, 0);
 	TimeEvent* TimeEventEnd = new TimeEvent (pParent, posEnd);
 
 	init (TimeEventStart, TimeEventEnd, pos, height, width, mode, name);
+*/
 }
 
 Timebox::~Timebox()
@@ -185,7 +187,7 @@ void Timebox::goHide()
 
 void Timebox::createTimeEvent (QPointF pos)
 {
-	new TimeEvent (this, pos);
+//	new TimeEvent (this, pos);
 }
 void Timebox::removeTimeEvent (QPointF pos)
 {
@@ -200,6 +202,7 @@ void Timebox::createTimeboxAndTimeEvents (QRectF rect)
 
 void Timebox::createTimeEventAndTimebox (QLineF line)
 {
+/*
 	TimeEvent* startTimeEvent, *endTimeEvent, *senderTimeEvent, *otherTimeEvent;
 	QPointF posLeft;
 	senderTimeEvent = qobject_cast<TimeEvent*> (QObject::sender() );
@@ -221,6 +224,7 @@ void Timebox::createTimeEventAndTimebox (QLineF line)
 	}
 
 	new Timebox (this, startTimeEvent, endTimeEvent, _pGraphicsView, posLeft, abs (line.dx() ), 2 * MIN_BOX_HEIGHT, SMALL);
+	*/
 }
 
 void Timebox::addChild (Timebox* other)

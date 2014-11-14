@@ -34,10 +34,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "TimeEventView.hpp"
 #include "../TimeBox/TimeBox.hpp"
 #include "../TimeBox/TimeBoxFullView.hpp"
+#include "../ScenarioContainer/ScenarioContainer.hpp"
 
 int TimeEvent::staticId = 1;
 
-TimeEvent::TimeEvent (Timebox* pParent, const QPointF& pos)
+TimeEvent::TimeEvent (ScenarioContainer* pParent, const QPointF& pos)
 	: QObject (pParent)
 {
 	///If no name was given, we construct a name with a unique ID
@@ -48,13 +49,14 @@ TimeEvent::TimeEvent (Timebox* pParent, const QPointF& pos)
 	_pView = new TimeEventView (_pModel, this);
 	_pPresenter = new TimeEventPresenter (_pModel, _pView, this);
 
+	/*
 	connect (_pView, SIGNAL (createTimeEventAndTimebox (QLineF) ), this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ) );
 
 	if (pParent != nullptr)
 	{
 		pParent->addChild (this);
 		connect (this, SIGNAL (createTimeEventAndTimeboxProxy (QLineF) ), pParent, SLOT (createTimeEventAndTimebox (QLineF) ) );
-	}
+	}*/
 }
 
 TimeEvent::~TimeEvent()

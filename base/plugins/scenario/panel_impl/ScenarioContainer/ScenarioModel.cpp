@@ -11,6 +11,7 @@ ScenarioModel::ScenarioModel (int modelId, QObject* parent) :
 	setObjectName ("ScenarioModel");
 	setParent (parent);
 
+	/*
 	QObject* parent_test = this;
 
 	while (parent_test != nullptr)
@@ -18,6 +19,7 @@ ScenarioModel::ScenarioModel (int modelId, QObject* parent) :
 		qDebug() << parent_test->objectName();
 		parent_test = parent_test->parent();
 	}
+	*/
 }
 
 ScenarioModel::~ScenarioModel()

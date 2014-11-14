@@ -214,17 +214,20 @@ PluginView* TimeboxPresenter::addPlugin (int pluginType, TimeboxStorey* pStorey)
 	switch (pluginType)
 	{
 		case ScenarioPluginType:
-		{
+		{ // TODO PAS ICI 
 			/// We have to put braces because we declare a new object in a switch statement
 			ScenarioContainer* scenarioContainer = new ScenarioContainer (this, pStorey);
 			ScenarioView* scenarioView = scenarioContainer->view();
 			ScenarioPresenter* scenarioPresenter = scenarioContainer->presenter();
 
 			/// We connect the plugin to proxies signals, to route them to the class Timebox
-			connect (scenarioView, SIGNAL (createTimebox (QRectF) ), this, SIGNAL (createBoxProxy (QRectF) ) );
-			connect (scenarioPresenter, SIGNAL (addTimeEvent (QPointF) ), this, SIGNAL (createTimeEventProxy (QPointF) ) );
-			connect (scenarioPresenter, SIGNAL (removeTimeEvent (QPointF) ), this, SIGNAL (removeTimeEventProxy (QPointF) ) );
-
+			connect (scenarioView, SIGNAL (createTimebox (QRectF) ), 
+					 this, SIGNAL (createBoxProxy (QRectF) ) );
+/*			connect (scenarioPresenter, SIGNAL (addTimeEvent (QPointF) ), 
+					 this, SIGNAL (createTimeEventProxy (QPointF) ) );
+			connect (scenarioPresenter, SIGNAL (removeTimeEvent (QPointF) ), 
+					 this, SIGNAL (removeTimeEventProxy (QPointF) ) );
+*/
 			plugin = qgraphicsitem_cast<PluginView*> (scenarioView);
 			break;
 		}

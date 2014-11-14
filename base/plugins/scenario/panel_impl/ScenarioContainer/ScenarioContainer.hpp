@@ -7,7 +7,7 @@ class ScenarioModel;
 class ScenarioView;
 class ScenarioPresenter;
 class QGraphicsObject;
-
+class TimeEvent;
 
 /*
  * TODO @Nico
@@ -32,6 +32,8 @@ class ScenarioContainer : public QNamedObject
 	signals:
 
 	public slots:
+		
+		void instantiateTimeEvent(QPointF pos);
 
 	private:
 		ScenarioModel* _pModel = nullptr;
@@ -39,7 +41,9 @@ class ScenarioContainer : public QNamedObject
 		ScenarioPresenter* _pPresenter = nullptr;
 
 		int m_modelId {0};
-
+		
+		std::vector<TimeEvent*> m_timeEvent;
+		
 };
 
 #endif // SCENARIOCONTAINER_HPP

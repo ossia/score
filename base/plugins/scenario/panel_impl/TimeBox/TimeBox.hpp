@@ -90,6 +90,7 @@ class Timebox : public QObject
 		void goSmall(); /// Drive the hierarchical changes, instead of presenter.goSmallView() that check graphism. top-down (mainwindow -> presenter)
 
 	public:
+		// TODO NOT IN TIMEBOX.......
 		void addChild (Timebox* other);       /// Add an already created Timebox to fullView
 		void addChild (TimeEvent* TimeEvent); /// Add an already created TimeEvent to fullView
 		TimeboxModel* model() const

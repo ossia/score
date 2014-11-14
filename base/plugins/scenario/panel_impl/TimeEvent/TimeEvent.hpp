@@ -41,6 +41,8 @@ class GraphicsView;
 #include <QLineF>
 #include"Utils.hpp"
 
+class ScenarioContainer;
+
 /*!
  *  This class maintains together all the classes needed by a TimeEvent, offering a placeholder and makes interaction easier with TimeEvent object in i-score. @n
  *
@@ -61,7 +63,7 @@ class TimeEvent : public QObject
 		static int staticId; /// Give a unique number to each instance of TimeEvent
 
 	public:
-		TimeEvent (Timebox* pParent, const QPointF& pos);
+		TimeEvent (ScenarioContainer* pParent, const QPointF& pos);
 		~TimeEvent();
 
 	signals:
@@ -72,9 +74,15 @@ class TimeEvent : public QObject
 		{
 			return _pView;
 		}
+		
 		TimeEventModel* model() const
 		{
 			return _pModel;
+		}
+		
+		TimeEventPresenter* presenter() const
+		{
+			return _pPresenter;
 		}
 };
 

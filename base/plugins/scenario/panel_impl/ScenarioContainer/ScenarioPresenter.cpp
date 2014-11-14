@@ -53,5 +53,5 @@ void ScenarioPresenter::removeTimeEventInView (QPointF pos)
 
 void ScenarioPresenter::instantiateTimeEvent (QPointF pos)
 {
-
+	addTimeEventInView(pos);
 }
