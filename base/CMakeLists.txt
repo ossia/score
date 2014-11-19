@@ -22,6 +22,8 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorWidgetFactoryInterface.hpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/PluginControlInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.hpp
 
@@ -54,6 +56,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PluginControlInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/Autoconnect_QtInterface.hpp
 
 ### core ###
