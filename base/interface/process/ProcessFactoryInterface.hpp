@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-	class ProcessModelInterface;
+	class ProcessSharedModelInterface;
 	class ProcessViewInterface;
 	class ProcessPresenterInterface;
 
@@ -27,6 +27,6 @@ namespace iscore
 
 			// Behind the scene, an API object.
 			// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?
-			virtual ProcessModelInterface* makeModel(unsigned int id, QObject* parent)  = 0; // Accédé par les commandes uniquement.
+			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  = 0; // Accédé par les commandes uniquement.
 	};
 }

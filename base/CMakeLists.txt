@@ -36,7 +36,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateViewInterface.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessFactoryInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessSharedModelInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewModelInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessPresenterInterface.hpp
 

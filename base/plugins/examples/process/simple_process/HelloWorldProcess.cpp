@@ -31,7 +31,7 @@ iscore::ProcessPresenterInterface* HelloWorldProcess::makePresenter()
 	return new iscore::ProcessPresenterInterface();
 }
 
-iscore::ProcessModelInterface* HelloWorldProcess::makeModel(unsigned int id, QObject* parent)
+iscore::ProcessSharedModelInterface* HelloWorldProcess::makeModel(unsigned int id, QObject* parent)
 {
 	return new HelloWorldProcessModel(id, parent);
 }

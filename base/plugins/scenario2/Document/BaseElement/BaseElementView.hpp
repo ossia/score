@@ -10,7 +10,10 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 	
 		virtual ~BaseElementView() = default;
 		
+		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter);
+		virtual QWidget*getWidget();
+		
 	private:
-	
+		
 };
 

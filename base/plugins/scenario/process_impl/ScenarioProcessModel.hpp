@@ -1,9 +1,9 @@
 #pragma once
 #include <QObject>
-#include <interface/process/ProcessModelInterface.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
 #include <QDebug>
 
-class ScenarioProcessModel : public iscore::ProcessModelInterface
+class ScenarioProcessModel : public iscore::ProcessSharedModelInterface
 {
 		Q_OBJECT
 	public:
@@ -18,4 +18,8 @@ class ScenarioProcessModel : public iscore::ProcessModelInterface
 	private:
 		QString m_processText{"Text not set"};
 		int m_counter{};
+		
+		// ProcessSharedModelInterface interface
+	public:
+		virtual ProcessViewModelInterface*makeViewModel();
 };
