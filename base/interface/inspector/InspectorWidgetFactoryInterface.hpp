@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-class QWidget;
+class CommonInterface;
 
 namespace iscore
 {
@@ -24,13 +24,13 @@ namespace iscore
 			 * @param sourceElement Element from which an inspector widget is to be made
 			 * @return An inspector widget corresponding to the object.
 			 */
-			QWidget* makeWidget(QObject* sourceElement);
+			CommonInterface* makeWidget(QObject* sourceElement) = 0;
 			
 			/**
 			 * @brief makeWidget Makes a widget for the inspector from a list of objects
 			 * @param sourceElements List of elements
 			 * @return An inspector widget corresponding to the objects
 			 */
-			QWidget* makeWidget(QList<QObject*> sourceElements);
+			CommonInterface* makeWidget(QList<QObject*> sourceElements) = 0;
 	};
 }
