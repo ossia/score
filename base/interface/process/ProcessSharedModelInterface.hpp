@@ -22,6 +22,9 @@ namespace iscore
 			virtual ~ProcessSharedModelInterface() = default;
 			virtual ProcessViewModelInterface* makeViewModel() = 0;
 			
+			int id() const 
+			{ return m_modelId; }
+			
 		private:
 			const unsigned int m_modelId;
 	};

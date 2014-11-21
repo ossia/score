@@ -3,8 +3,14 @@
 #include <QColor>
 #include <vector>
 
+
+namespace iscore
+{
+	class ProcessSharedModelInterface;
+}
+
 class IntervalContentModel;
-class ProcessSharedModel;
+
 class IntervalModel : public QNamedObject
 {
 	Q_OBJECT
@@ -45,7 +51,7 @@ class IntervalModel : public QNamedObject
 		
 	private:
 		std::vector<IntervalContentModel*> m_contents;
-		std::vector<ProcessSharedModel*> m_processes;
+		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 		
 		// TODO Mute ? Solo ?
 		QString m_name;

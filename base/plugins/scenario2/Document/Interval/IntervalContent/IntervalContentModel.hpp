@@ -8,6 +8,7 @@ class IntervalContentModel : public QNamedObject
 	public:
 	
 		virtual ~IntervalContentModel() = default;
+		int id() { return 0; }
 		
 	private:
 	

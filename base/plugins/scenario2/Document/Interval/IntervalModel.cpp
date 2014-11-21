@@ -1,4 +1,6 @@
 #include "IntervalModel.hpp"
+#include "interface/process/ProcessSharedModelInterface.hpp"
+#include "IntervalContent/IntervalContentModel.hpp"
 using namespace std;
 IntervalModel::IntervalModel(QObject* parent):
 	QNamedObject{parent, "IntervalModel"}
@@ -22,7 +24,7 @@ void IntervalModel::deleteProcess(int processId)
 {
 	emit processDeleted(processId);
 	removeFromVectorIf(m_processes, 
-					   [&processId] (ProcessSharedModel* model)  // TODO faire une macro pour recherche par id.
+					   [&processId] (iscore::ProcessSharedModelInterface* model)  // TODO faire une macro pour recherche par id.
 						  { 
 							  bool to_delete = model->id() == processId;
 							  if(to_delete) delete model;
@@ -38,7 +40,7 @@ void IntervalModel::createView()
 
 void IntervalModel::deleteView(int viewId)
 {
-	emit viewDeleted(processId);
+	emit viewDeleted(viewId);
 	removeFromVectorIf(m_contents, 
 					   [&viewId] (IntervalContentModel* model) 
 						  { 
