@@ -1,7 +1,7 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 
-class AddProcessToRelationCommand : public iscore::SerializableCommand
+class CreateIntervalCommand : public iscore::SerializableCommand
 {
 	public:
 		virtual void undo() override;

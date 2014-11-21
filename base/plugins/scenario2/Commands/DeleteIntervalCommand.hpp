@@ -1,7 +1,7 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 
-class MoveRelationCommand : public iscore::SerializableCommand
+class DeleteIntervalCommand : public iscore::SerializableCommand
 {
 	public:
 		virtual void undo() override;
