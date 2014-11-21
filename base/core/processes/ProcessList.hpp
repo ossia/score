@@ -1,5 +1,6 @@
 #pragma once
 #include <QStringList>
+#include <QNamedObject>
 #include <vector>
 
 namespace iscore
@@ -10,9 +11,12 @@ namespace iscore
 	 *
 	 * Contains the list of the process plug-ins that can be loaded.
 	 */
-	class ProcessList
+	class ProcessList : public QNamedObject
 	{
+			Q_OBJECT
 		public:
+			ProcessList(QNamedObject* parent);
+			
 			QStringList getProcessesName() const;
 			ProcessFactoryInterface* getProcess(QString);
 			void addProcess(ProcessFactoryInterface*);

@@ -1,7 +1,19 @@
 #include "IntervalModel.hpp"
-#include "interface/process/ProcessSharedModelInterface.hpp"
+#include <interface/process/ProcessSharedModelInterface.hpp>
 #include "IntervalContent/IntervalContentModel.hpp"
+
+#include <QApplication>
+#include <core/processes/ProcessList.hpp>
+#include <interface/process/ProcessFactoryInterface.hpp>
 using namespace std;
+
+iscore::ProcessFactoryInterface* getProcessFactory(QString processName)
+{
+	return qApp
+			->findChild<iscore::ProcessList*>("ProcessList")
+			->getProcess(processName);
+}
+
 IntervalModel::IntervalModel(QObject* parent):
 	QNamedObject{parent, "IntervalModel"}
 {
@@ -17,7 +29,14 @@ void removeFromVectorIf(Vector& v, Functor&& f )
 //// Complex commands
 void IntervalModel::createProcess(QString processName)
 {
+	auto processFactory = getProcessFactory(processName);
 	
+	if(processFactory)
+	{
+		auto model = processFactory->makeModel(m_nextProcessId++, this);
+		m_processes.push_back(model);
+		emit processCreated(processName, model->id());
+	}
 }
 
 void IntervalModel::deleteProcess(int processId)
@@ -33,15 +52,16 @@ void IntervalModel::deleteProcess(int processId)
 }
 
 
-void IntervalModel::createView()
+void IntervalModel::createContentModel()
 {
-	
+	auto content = new IntervalContentModel{this};
+	emit viewCreated(content->id());
 }
 
-void IntervalModel::deleteView(int viewId)
+void IntervalModel::deleteContentModel(int viewId)
 {
 	emit viewDeleted(viewId);
-	removeFromVectorIf(m_contents, 
+	removeFromVectorIf(m_contentModel, 
 					   [&viewId] (IntervalContentModel* model) 
 						  { 
 							  bool to_delete = model->id() == viewId;
@@ -50,7 +70,7 @@ void IntervalModel::deleteView(int viewId)
 						  });
 }
 
-void IntervalModel::duplicateView(int viewId)
+void IntervalModel::duplicateContentModel(int viewId)
 {
 	
 }

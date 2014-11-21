@@ -4,6 +4,12 @@
 
 using namespace iscore;
 
+ProcessList::ProcessList(QNamedObject* parent):
+	QNamedObject{parent, "ProcessList"}
+{
+	
+}
+
 QStringList ProcessList::getProcessesName() const
 {
 	QStringList lst;

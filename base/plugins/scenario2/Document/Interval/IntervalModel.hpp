@@ -25,9 +25,9 @@ class IntervalModel : public QNamedObject
 		void createProcess(QString processName); // TODO void createProcessFromData();
 		void deleteProcess(int processId);
 		
-		void createView();
-		void deleteView(int viewId);
-		void duplicateView(int viewId);
+		void createContentModel();
+		void deleteContentModel(int viewId);
+		void duplicateContentModel(int viewId);
 		
 		QString name() const;
 		QString comment() const;
@@ -50,7 +50,7 @@ class IntervalModel : public QNamedObject
 		void colorChanged(QColor arg);
 		
 	private:
-		std::vector<IntervalContentModel*> m_contents;
+		std::vector<IntervalContentModel*> m_contentModel;
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 		
 		// TODO Mute ? Solo ?
@@ -58,5 +58,8 @@ class IntervalModel : public QNamedObject
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ? 
 		int m_intervalId;
+		
+		int m_nextProcessId{};
+		int m_nextContentId{};
 };
 
