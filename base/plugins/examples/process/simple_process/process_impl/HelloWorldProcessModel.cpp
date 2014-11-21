@@ -18,6 +18,6 @@ HelloWorldProcessModel::~HelloWorldProcessModel()
 }
 
 
-ProcessViewModelInterface*HelloWorldProcessModel::makeViewModel()
+ProcessViewModelInterface*HelloWorldProcessModel::makeViewModel(int id, QObject* parent)
 {
 }

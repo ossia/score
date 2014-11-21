@@ -5,14 +5,8 @@
 #include <QApplication>
 #include <core/processes/ProcessList.hpp>
 #include <interface/process/ProcessFactoryInterface.hpp>
-using namespace std;
 
-iscore::ProcessFactoryInterface* getProcessFactory(QString processName)
-{
-	return qApp
-			->findChild<iscore::ProcessList*>("ProcessList")
-			->getProcess(processName);
-}
+#include <utilsCPP11.hpp>
 
 IntervalModel::IntervalModel(QObject* parent):
 	QNamedObject{parent, "IntervalModel"}
@@ -20,16 +14,10 @@ IntervalModel::IntervalModel(QObject* parent):
 	
 }
 
-template <typename Vector, typename Functor>
-void removeFromVectorIf(Vector& v, Functor&& f )
-{
-	v.erase(remove_if(begin(v), end(v), f), end(v));
-}
-
 //// Complex commands
 void IntervalModel::createProcess(QString processName)
 {
-	auto processFactory = getProcessFactory(processName);
+	auto processFactory = iscore::ProcessList::getFactory(processName);
 	
 	if(processFactory)
 	{
@@ -42,7 +30,7 @@ void IntervalModel::createProcess(QString processName)
 void IntervalModel::deleteProcess(int processId)
 {
 	emit processDeleted(processId);
-	removeFromVectorIf(m_processes, 
+	vec_erase_remove_if(m_processes, 
 					   [&processId] (iscore::ProcessSharedModelInterface* model)  // TODO faire une macro pour recherche par id.
 						  { 
 							  bool to_delete = model->id() == processId;
@@ -61,7 +49,7 @@ void IntervalModel::createContentModel()
 void IntervalModel::deleteContentModel(int viewId)
 {
 	emit viewDeleted(viewId);
-	removeFromVectorIf(m_contentModel, 
+	vec_erase_remove_if(m_contentModel, 
 					   [&viewId] (IntervalContentModel* model) 
 						  { 
 							  bool to_delete = model->id() == viewId;
@@ -72,7 +60,22 @@ void IntervalModel::deleteContentModel(int viewId)
 
 void IntervalModel::duplicateContentModel(int viewId)
 {
+	// TODO
+}
+
+iscore::ProcessSharedModelInterface* IntervalModel::process(int processId)
+{
+	auto it = std::find_if(std::begin(m_processes),
+						   std::end(m_processes),
+						   [&processId] (iscore::ProcessSharedModelInterface* model)
+							{
+							  return model->id() == processId;
+							});
 	
+	if(it != std::end(m_processes))
+		return *it;
+	
+	return nullptr;
 }
 
 

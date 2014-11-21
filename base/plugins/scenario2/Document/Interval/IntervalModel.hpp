@@ -29,6 +29,8 @@ class IntervalModel : public QNamedObject
 		void deleteContentModel(int viewId);
 		void duplicateContentModel(int viewId);
 		
+		iscore::ProcessSharedModelInterface* process(int processId);
+		
 		QString name() const;
 		QString comment() const;
 		QColor color() const;

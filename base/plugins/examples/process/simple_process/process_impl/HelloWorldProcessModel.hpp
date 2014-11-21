@@ -22,5 +22,5 @@ class HelloWorldProcessModel : public iscore::ProcessSharedModelInterface
 		
 		// ProcessSharedModelInterface interface
 	public:
-		virtual ProcessViewModelInterface*makeViewModel();
+		virtual ProcessViewModelInterface*makeViewModel(int id, QObject* parent);
 };

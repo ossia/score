@@ -20,7 +20,7 @@ namespace iscore
 			}
 			
 			virtual ~ProcessSharedModelInterface() = default;
-			virtual ProcessViewModelInterface* makeViewModel() = 0;
+			virtual ProcessViewModelInterface* makeViewModel(int id, QObject* parent) = 0;
 			
 			int id() const 
 			{ return m_modelId; }

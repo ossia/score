@@ -11,17 +11,20 @@ namespace iscore
 	class ProcessViewModelInterface: public QObject
 	{
 		public:
-			ProcessViewModelInterface(unsigned int id, QObject* parent):
+			ProcessViewModelInterface(int id, QObject* parent):
 				QObject{parent},
-				m_modelId{id}
+				m_id{id}
 			{
 				
 			}
 			
+			int id() const
+			{ return m_id; }
+			
 			virtual ~ProcessViewModelInterface() = default;
 			
 		private:
-			const unsigned int m_modelId;
+			int m_id{};
 	};
 
 }

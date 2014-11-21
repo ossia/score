@@ -20,6 +20,8 @@ namespace iscore
 			QStringList getProcessesName() const;
 			ProcessFactoryInterface* getProcess(QString);
 			void addProcess(ProcessFactoryInterface*);
+			
+			static iscore::ProcessFactoryInterface* getFactory(QString processName);
 
 		private:
 			std::vector<ProcessFactoryInterface*> m_processes;

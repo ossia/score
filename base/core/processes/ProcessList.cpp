@@ -41,3 +41,11 @@ void ProcessList::addProcess(ProcessFactoryInterface* p)
 	else
 		qDebug("Alert : a process with the same name already exists.");
 }
+
+#include <QApplication>
+ProcessFactoryInterface* ProcessList::getFactory(QString processName)
+{
+	return qApp
+			->findChild<iscore::ProcessList*>("ProcessList")
+			->getProcess(processName);
+}

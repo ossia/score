@@ -18,6 +18,6 @@ ScenarioProcessModel::~ScenarioProcessModel()
 }
 
 
-ProcessViewModelInterface*ScenarioProcessModel::makeViewModel()
+ProcessViewModelInterface*ScenarioProcessModel::makeViewModel(int id, QObject* parent)
 {
 }

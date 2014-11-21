@@ -1,35 +1,9 @@
 #pragma once
 #include <QNamedObject>
-#include "Storey/StoreyModel.hpp"
 #include <vector>
+
 class IntervalModel;
-class PositionedStoreyModel : public StoreyModel
-{
-		Q_OBJECT
-		Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
-		
-	public:
-		int position() const
-		{
-			return m_position;
-		}
-		
-	signals:
-		void positionChanged(int arg);
-		
-	public slots:
-		void setPosition(int arg)
-		{
-			if (m_position == arg)
-				return;
-			
-			m_position = arg;
-			emit positionChanged(arg);
-		}
-		
-	private:
-		int m_position;
-};
+class PositionedStoreyModel;
 
 class IntervalContentModel : public QNamedObject
 {
@@ -47,9 +21,16 @@ class IntervalContentModel : public QNamedObject
 		void changeStoreyOrder(int storeyId, int position);
 		void duplicateStorey();
 		
+	signals:
+		void storeyCreated(int id);
+		void storeyDeleted(int id);
+		void storeyOrderChanged(int storeyId);
+		
 	private:
-		std::vector<StoreyModel*> m_storeys;
+		std::vector<PositionedStoreyModel*> m_storeys;
 		
 		int m_id{};
+		
+		int m_nextStoreyId{};
 };
 
