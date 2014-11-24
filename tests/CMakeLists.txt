@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
+return()
 project(iscore_tests)
 include (CTest)
 include(CppcheckTargets)
@@ -11,11 +12,11 @@ include_directories("${CMAKE_SOURCE_DIR}/base")
 
 add_executable(iscore_test1 main.cpp)
 
-set (TEST2_HDRS  "${CMAKE_SOURCE_DIR}/base/core/presenter/command/Command.hpp"
-				 "${CMAKE_SOURCE_DIR}/base/core/presenter/command/CommandQueue.hpp")
+set (TEST2_HDRS  "${CMAKE_SOURCE_DIR}/base/lib/presenter/command/Command.hpp"
+				 "${CMAKE_SOURCE_DIR}/base/lib/presenter/command/CommandQueue.hpp")
 set (TEST2_SRCS "test_command.cpp"
-				"${CMAKE_SOURCE_DIR}/base/core/presenter/command/Command.cpp"
-				"${CMAKE_SOURCE_DIR}/base/core/presenter/command/CommandQueue.cpp")
+				"${CMAKE_SOURCE_DIR}/base/lib/presenter/command/Command.cpp"
+				"${CMAKE_SOURCE_DIR}/base/lib/presenter/command/CommandQueue.cpp")
 
 add_executable(iscore_test2 ${TEST2_SRCS} ${TEST2_HDRS})
 

@@ -5,20 +5,22 @@
 class IntervalModel;
 class PositionedStoreyModel;
 
-class IntervalContentModel : public QNamedObject
+class IntervalContentModel : public QIdentifiedObject
 {
 	Q_OBJECT
 	
 	public:
-		IntervalContentModel(IntervalModel* parent);
+		IntervalContentModel(int id, IntervalModel* parent);
 		
 		virtual ~IntervalContentModel() = default;
-		int id() const 
-		{ return m_id; }
 		
 		void createStorey();
 		void deleteStorey(int storeyId);
 		void changeStoreyOrder(int storeyId, int position);
+		
+		PositionedStoreyModel* storey(int storeyId);
+		
+		// Devrait peut-être aller dans une Command à la place ?
 		void duplicateStorey();
 		
 	signals:
@@ -28,8 +30,6 @@ class IntervalContentModel : public QNamedObject
 		
 	private:
 		std::vector<PositionedStoreyModel*> m_storeys;
-		
-		int m_id{};
 		
 		int m_nextStoreyId{};
 };

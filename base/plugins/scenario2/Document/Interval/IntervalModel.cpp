@@ -8,8 +8,13 @@
 
 #include <utilsCPP11.hpp>
 
-IntervalModel::IntervalModel(QObject* parent):
-	QNamedObject{parent, "IntervalModel"}
+IntervalModel::IntervalModel(EventModel* beginEvent, 
+							 EventModel* endEvent, 
+							 int id, 
+							 QObject* parent):
+	QIdentifiedObject{parent, "IntervalModel", id},
+	m_startEvent{beginEvent},
+	m_endEvent{endEvent}
 {
 	
 }
@@ -42,14 +47,15 @@ void IntervalModel::deleteProcess(int processId)
 
 void IntervalModel::createContentModel()
 {
-	auto content = new IntervalContentModel{this};
+	auto content = new IntervalContentModel{m_nextContentId++, this};
+	m_contentModels.push_back(content);
 	emit viewCreated(content->id());
 }
 
 void IntervalModel::deleteContentModel(int viewId)
 {
 	emit viewDeleted(viewId);
-	vec_erase_remove_if(m_contentModel, 
+	vec_erase_remove_if(m_contentModels, 
 					   [&viewId] (IntervalContentModel* model) 
 						  { 
 							  bool to_delete = model->id() == viewId;
@@ -61,6 +67,31 @@ void IntervalModel::deleteContentModel(int viewId)
 void IntervalModel::duplicateContentModel(int viewId)
 {
 	// TODO
+}
+
+EventModel* IntervalModel::startEvent()
+{
+	return m_startEvent;
+}
+
+EventModel* IntervalModel::endEvent()
+{
+	return m_endEvent;
+}
+
+IntervalContentModel*IntervalModel::contentModel(int contentId)
+{
+	auto it = std::find_if(std::begin(m_contentModels),
+						   std::end(m_contentModels),
+						   [&contentId] (IntervalContentModel* model)
+							{
+							  return model->id() == contentId;
+							});
+	
+	if(it != std::end(m_contentModels))
+		return *it;
+	
+	return nullptr;
 }
 
 iscore::ProcessSharedModelInterface* IntervalModel::process(int processId)

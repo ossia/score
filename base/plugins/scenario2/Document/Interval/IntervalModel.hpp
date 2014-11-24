@@ -10,8 +10,9 @@ namespace iscore
 }
 
 class IntervalContentModel;
-
-class IntervalModel : public QNamedObject
+class EventModel;
+class TimeBox;
+class IntervalModel : public QIdentifiedObject
 {
 	Q_OBJECT
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
@@ -19,7 +20,7 @@ class IntervalModel : public QNamedObject
 		Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 	
 	public:
-		IntervalModel(QObject* parent);
+		IntervalModel(EventModel* beginEvent, EventModel* endEvent, int id, QObject* parent);
 		virtual ~IntervalModel() = default;
 		
 		void createProcess(QString processName); // TODO void createProcessFromData();
@@ -29,11 +30,16 @@ class IntervalModel : public QNamedObject
 		void deleteContentModel(int viewId);
 		void duplicateContentModel(int viewId);
 		
+		EventModel* startEvent();
+		EventModel* endEvent();
+		
+		IntervalContentModel* contentModel(int contentId);
 		iscore::ProcessSharedModelInterface* process(int processId);
 		
 		QString name() const;
 		QString comment() const;
 		QColor color() const;
+		
 		
 	public slots:
 		void setName(QString arg);
@@ -52,16 +58,19 @@ class IntervalModel : public QNamedObject
 		void colorChanged(QColor arg);
 		
 	private:
-		std::vector<IntervalContentModel*> m_contentModel;
+		std::vector<IntervalContentModel*> m_contentModels;
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 		
 		// TODO Mute ? Solo ?
 		QString m_name;
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ? 
-		int m_intervalId;
 		
 		int m_nextProcessId{};
 		int m_nextContentId{};
+		
+		TimeBox* m_timebox{};
+		EventModel* m_startEvent{};
+		EventModel* m_endEvent{};
 };
 

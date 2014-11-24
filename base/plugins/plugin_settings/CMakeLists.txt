@@ -9,6 +9,8 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 include_directories(.)
 include_directories("${CMAKE_SOURCE_DIR}")
 
+include_directories("${ISCORE_INTERFACE_FOLDER}")
+include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
 
 set(HEADER_FILES

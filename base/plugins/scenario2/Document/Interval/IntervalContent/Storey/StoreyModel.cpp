@@ -8,8 +8,7 @@
 #include <utilsCPP11.hpp>
 
 StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
-	QNamedObject{parent, "StoreyModel"},
-	m_id{id}
+	QIdentifiedObject{parent, "StoreyModel", id}
 {
 	
 }
@@ -18,7 +17,7 @@ void StoreyModel::createProcessViewModel(int processId)
 {
 	// Search the corresponding process in the parent interval.
 	auto process = parentInterval()->process(processId);
-	auto viewmodel = process->makeViewModel(m_nextProcessViewModelId, this);
+	auto viewmodel = process->makeViewModel(m_nextProcessViewModelId++, this);
 	
 	m_processViewModels.push_back(viewmodel);
 	

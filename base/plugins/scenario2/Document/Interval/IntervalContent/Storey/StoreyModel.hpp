@@ -21,18 +21,13 @@ namespace iscore
 /// puis relance et rejoint la session réseau: 
 /// les ids doivent rester les mêmes
 /////////////////// !!!
-class StoreyModel : public QNamedObject
+class StoreyModel : public QIdentifiedObject
 {
 	Q_OBJECT
 	
 	public:
 		StoreyModel(int id, IntervalContentModel* parent);
 		virtual ~StoreyModel() = default;
-		
-		int id() const
-		{
-			return m_id;
-		}
 		
 		void createProcessViewModel(int processId);
 		void deleteProcessViewModel(int processViewModelId);
@@ -59,12 +54,9 @@ class StoreyModel : public QNamedObject
 		 */
 		IntervalModel* parentInterval();
 		
-		int m_id{};
-		
 		int m_editedProcessId{};
 		std::vector<iscore::ProcessViewModelInterface*> m_processViewModels;
 		
-		int m_nextProcessViewModelId{};
-	
+		int m_nextProcessViewModelId{};	
 };
 

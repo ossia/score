@@ -2,15 +2,15 @@
 #include "Interval/IntervalModel.hpp"
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
 #include <utilsCPP11.hpp>
-IntervalContentModel::IntervalContentModel(IntervalModel* parent):
-	QNamedObject{parent, "IntervalContentModel"}
+IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
+	QIdentifiedObject{parent, "IntervalContentModel", id}
 {
 	
 }
 
 void IntervalContentModel::createStorey()
 {
-	auto storey = new PositionedStoreyModel{m_storeys.size(), 
+	auto storey = new PositionedStoreyModel{(int) m_storeys.size(), 
 											m_nextStoreyId++, 
 											this};
 	m_storeys.push_back(storey);
@@ -33,6 +33,21 @@ void IntervalContentModel::deleteStorey(int storeyId)
 
 void IntervalContentModel::changeStoreyOrder(int storeyId, int position)
 {
+}
+
+PositionedStoreyModel* IntervalContentModel::storey(int storeyId)
+{
+	auto it = std::find_if(std::begin(m_storeys),
+						   std::end(m_storeys),
+						   [&storeyId] (StoreyModel* model)
+							{
+							  return model->id() == storeyId;
+							});
+	
+	if(it != std::end(m_storeys))
+		return *it;
+	
+	return nullptr;
 }
 
 void IntervalContentModel::duplicateStorey()

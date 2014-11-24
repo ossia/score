@@ -16,6 +16,34 @@ class QNamedType : public QType
 		}
 };
 
+
+
 using QNamedObject = QNamedType<QObject>;
 using QNamedGraphicsObject = QNamedType<QGraphicsObject>;
 using QNamedWidget = QNamedType<QWidget>;
+
+
+class QIdentifiedObject : public QNamedObject
+{
+	public:
+		template<typename... Args>
+		QIdentifiedObject(QObject* parent, 
+						QString name, 
+						int id, 
+						Args&&... args):
+			QNamedObject{parent, 
+						 name, 
+						 std::forward<Args>(args)...},
+			m_id{id}
+		{
+			
+		}
+		
+		int id() const
+		{
+			return m_id;
+		}
+		
+	private:
+		int m_id{};
+};

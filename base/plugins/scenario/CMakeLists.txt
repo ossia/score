@@ -10,6 +10,8 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 # Files & main target
 include_directories(.)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/panel_impl/interface")
+include_directories("${ISCORE_INTERFACE_FOLDER}")
+include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
 set(HEADER_FILES
 #	${CMAKE_CURRENT_SOURCE_DIR}/SimpleProcessPlugin.hpp
