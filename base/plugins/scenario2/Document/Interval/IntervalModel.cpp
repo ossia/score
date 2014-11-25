@@ -35,6 +35,21 @@ int IntervalModel::createProcess(QString processName)
 	
 	return -1;
 }
+int IntervalModel::createProcess(QString processName, QByteArray data)
+{
+	auto processFactory = iscore::ProcessList::getFactory(processName);
+	
+	if(processFactory)
+	{
+		auto model = processFactory->makeModel(m_nextProcessId++, data, this);
+		m_processes.push_back(model);
+		emit processCreated(processName, model->id());
+		
+		return model->id();
+	}
+	
+	return -1;
+}
 
 void IntervalModel::deleteProcess(int processId)
 {
@@ -46,6 +61,8 @@ void IntervalModel::deleteProcess(int processId)
 							  if(to_delete) delete model;
 							  return to_delete; 
 						  });
+	
+	m_nextProcessId--;
 }
 
 

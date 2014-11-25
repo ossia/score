@@ -1,6 +1,7 @@
 #pragma once
 #include <QStringList>
 #include <QObject>
+#include <QByteArray>
 
 namespace iscore
 {
@@ -27,6 +28,7 @@ namespace iscore
 
 			// Behind the scene, an API object.
 			// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?
-			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  = 0; // Accédé par les commandes uniquement.
+			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  = 0;
+			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QByteArray data, QObject* parent)  = 0;
 	};
 }

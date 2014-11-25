@@ -9,6 +9,9 @@ class ScenarioProcessModel : public iscore::ProcessSharedModelInterface
 	public:
 		ScenarioProcessModel(unsigned int id, QObject* parent);
 		virtual ~ScenarioProcessModel();
+		
+		virtual QByteArray serialize() override { return {}; }
+		virtual void deserialize(QByteArray&&) override { }
 
 	public slots:
 		void setText() { qDebug() << "Text set in process"; }

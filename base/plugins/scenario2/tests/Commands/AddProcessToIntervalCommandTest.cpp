@@ -14,7 +14,10 @@ class AddProcessToIntervalCommandTest: public QObject
 	public:
 
 	private slots:
-
+		void CreateCommandTest()
+		{
+			
+		}
 
 };
 

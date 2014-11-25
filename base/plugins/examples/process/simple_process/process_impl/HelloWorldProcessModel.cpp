@@ -11,6 +11,14 @@ HelloWorldProcessModel::HelloWorldProcessModel(unsigned int id, QObject* parent)
 	qDebug() << m_processText;
 }
 
+HelloWorldProcessModel::HelloWorldProcessModel(unsigned int id, QByteArray arr, QObject* parent) :
+	iscore::ProcessSharedModelInterface{parent, "HelloWorldProcessModel", id}
+{
+	this->setObjectName("HelloWorldProcessModel");
+	qDebug("The TestModel begins.");
+	qDebug() << m_processText;
+}
+
 HelloWorldProcessModel::~HelloWorldProcessModel()
 {
 	qDebug("The TestModel ends.");

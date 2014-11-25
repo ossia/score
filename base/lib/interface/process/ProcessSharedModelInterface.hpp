@@ -16,6 +16,9 @@ namespace iscore
 			
 			virtual ~ProcessSharedModelInterface() = default;
 			virtual ProcessViewModelInterface* makeViewModel(int id, QObject* parent) = 0;
+			
+			virtual QByteArray serialize() = 0;
+			virtual void deserialize(QByteArray&&) = 0;
 	};
 
 }

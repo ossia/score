@@ -12,6 +12,9 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		virtual ~ScenarioProcessSharedModel() = default;
 		virtual iscore::ProcessViewModelInterface* makeViewModel(int id, QObject* parent);
 		
+		virtual QByteArray serialize() override { return {}; }
+		virtual void deserialize(QByteArray&&) override { }
+		
 		void createInterval(int dur); // Depuis start.
 		void createInterval(EventModel* start, int dur);
 		

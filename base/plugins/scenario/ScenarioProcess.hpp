@@ -22,4 +22,5 @@ public:
 	// Risque de duplication dans le cas SmallView / StandardView / FullView...
 	virtual iscore::ProcessPresenterInterface* makePresenter() override;
 	virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  override; // Accédé par les commandes uniquement.
+	virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, QByteArray ar, QObject* parent)  override; // Accédé par les commandes uniquement.
 };

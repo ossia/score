@@ -35,3 +35,8 @@ iscore::ProcessSharedModelInterface* HelloWorldProcess::makeModel(unsigned int i
 {
 	return new HelloWorldProcessModel(id, parent);
 }
+
+iscore::ProcessSharedModelInterface* HelloWorldProcess::makeModel(unsigned int id, QByteArray array, QObject* parent)
+{
+	return new HelloWorldProcessModel(id, array, parent);
+}

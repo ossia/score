@@ -24,6 +24,7 @@ class IntervalModel : public QIdentifiedObject
 		virtual ~IntervalModel() = default;
 		
 		int createProcess(QString processName); // TODO void createProcessFromData();
+		int createProcess(QString processName, QByteArray data); // TODO void createProcessFromData();
 		void deleteProcess(int processId);
 		
 		void createContentModel();

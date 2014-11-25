@@ -9,7 +9,11 @@ class HelloWorldProcessModel : public iscore::ProcessSharedModelInterface
 		Q_OBJECT
 	public:
 		HelloWorldProcessModel(unsigned int id, QObject* parent);
+		HelloWorldProcessModel(unsigned int id, QByteArray arr, QObject* parent);
 		virtual ~HelloWorldProcessModel();
+		
+		virtual QByteArray serialize() override { return {}; }
+		virtual void deserialize(QByteArray&&) override { }
 
 	public slots:
 		void setText() { qDebug() << "Text set in process"; }
