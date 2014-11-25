@@ -1,11 +1,10 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-/*
-class ObjectIdentifier
+#include <QNamedObject>
+struct ObjectIdentifier
 {
-	public:
-		int id{}; // 0 by default;
 		QString child_name;
+		int id; // 0 by default;
 };
 #include <QApplication>
 #include <QMetaObject>
@@ -13,13 +12,8 @@ class ObjectPath
 {
 	public:
 		QString baseObject;
-		char* x = "BaseInterval, \
-				  3 : Scenario, \
-				  2 : Interval, \
-				  3 : Scenario, \
-				  1 : Interval";
+		std::vector<ObjectIdentifier> v;
 		
-					  
 		QObject* find()
 		{
 			auto it = v.begin();
@@ -27,21 +21,19 @@ class ObjectPath
 			QObject* obj = qApp->findChild<QObject*>(baseObject);
 			while(it != v.end())
 			{
-				auto childs = obj->findChildren<QObject*>(it->child_name);
-				for(auto& elt : childs)
-				{
-					QMetaObject* metaobj = elt->metaObject();
-					QGenericReturnArgument ret;
-					auto meth_id = metaobj->invokeMethod(elt, 
-														 "id",
-														 Qt::DirectConnection,
-														 ret);
-					ret.data();
-				}
+				auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+				
+				auto elt = findById(childs, it->id);
+				if(elt) obj = elt;
+				else return nullptr;
+				
+				++it;
 			}
+			
+			return obj;
 		}
-		std::vector<ObjectIdentifier> v;
-};*/
+		
+};
 
 
 class AddProcessToIntervalCommand : public iscore::SerializableCommand

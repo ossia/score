@@ -47,3 +47,19 @@ class QIdentifiedObject : public QNamedObject
 	private:
 		int m_id{};
 };
+
+template<typename Container>
+typename Container::value_type findById(const Container& c, int id)
+{
+	auto it = std::find_if(std::begin(c),
+						   std::end(c),
+						   [&id] (typename Container::value_type model)
+							{
+							  return model->id() == id;
+							});
+	
+	if(it != std::end(c))
+		return *it;
+	
+	return nullptr;
+}

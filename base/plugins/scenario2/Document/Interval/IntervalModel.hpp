@@ -58,7 +58,7 @@ class IntervalModel : public QIdentifiedObject
 		void colorChanged(QColor arg);
 		
 	private:
-		std::vector<IntervalContentModel*> m_contentModels;
+		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 		
 		// TODO Mute ? Solo ?

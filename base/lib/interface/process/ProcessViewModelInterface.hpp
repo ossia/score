@@ -1,5 +1,5 @@
 #pragma once
-#include <QObject>
+#include <QNamedObject>
 
 namespace iscore
 {
@@ -8,23 +8,11 @@ namespace iscore
 	 *
 	 * Interface to implement to make a process view model.  
 	 */
-	class ProcessViewModelInterface: public QObject
+	class ProcessViewModelInterface: public QIdentifiedObject
 	{
 		public:
-			ProcessViewModelInterface(int id, QObject* parent):
-				QObject{parent},
-				m_id{id}
-			{
-				
-			}
-			
-			int id() const
-			{ return m_id; }
-			
+			using QIdentifiedObject::QIdentifiedObject;
 			virtual ~ProcessViewModelInterface() = default;
-			
-		private:
-			int m_id{};
 	};
 
 }

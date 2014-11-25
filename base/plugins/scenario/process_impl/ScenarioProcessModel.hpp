@@ -21,5 +21,5 @@ class ScenarioProcessModel : public iscore::ProcessSharedModelInterface
 		
 		// ProcessSharedModelInterface interface
 	public:
-		virtual ProcessViewModelInterface* makeViewModel(int id, QObject* parent);
+		virtual iscore::ProcessViewModelInterface* makeViewModel(int id, QObject* parent);
 };
