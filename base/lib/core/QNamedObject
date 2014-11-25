@@ -3,6 +3,10 @@
 #include <QWidget>
 #include <QGraphicsObject>
 
+////////////////////////////////////////////////
+// This file contains utility algorithms & classes that can be used
+// everywhere (core, plugins...)
+////////////////////////////////////////////////
 template<typename QType>
 class QNamedType : public QType
 {
@@ -48,6 +52,7 @@ class QIdentifiedObject : public QNamedObject
 		int m_id{};
 };
 
+////////////////////////////////////////////////
 template<typename Container>
 typename Container::value_type findById(const Container& c, int id)
 {
@@ -63,3 +68,42 @@ typename Container::value_type findById(const Container& c, int id)
 	
 	return nullptr;
 }
+
+
+////////////////////////////////////////////////
+#include <QApplication>
+struct ObjectIdentifier
+{
+		QString child_name;
+		int id;
+};
+
+class ObjectPath
+{
+	public:
+		ObjectPath(const ObjectPath& obj) = default;
+		ObjectPath(ObjectPath&&) = default;
+		
+		QString baseObject;
+		std::vector<ObjectIdentifier> v;
+		
+		QObject* find()
+		{
+			QObject* obj = qApp->findChild<QObject*>(baseObject);
+			
+			for(auto it = v.begin(); it != v.end(); ++it)
+			{
+				auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+				
+				auto elt = findById(childs, it->id);
+				if(!elt) 
+				{
+					return nullptr;
+				}
+				
+				obj = elt;
+			}
+			
+			return obj;
+		}
+};

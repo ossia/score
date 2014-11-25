@@ -23,7 +23,7 @@ class IntervalModel : public QIdentifiedObject
 		IntervalModel(EventModel* beginEvent, EventModel* endEvent, int id, QObject* parent);
 		virtual ~IntervalModel() = default;
 		
-		void createProcess(QString processName); // TODO void createProcessFromData();
+		int createProcess(QString processName); // TODO void createProcessFromData();
 		void deleteProcess(int processId);
 		
 		void createContentModel();

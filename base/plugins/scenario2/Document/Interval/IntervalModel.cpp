@@ -20,7 +20,7 @@ IntervalModel::IntervalModel(EventModel* beginEvent,
 }
 
 //// Complex commands
-void IntervalModel::createProcess(QString processName)
+int IntervalModel::createProcess(QString processName)
 {
 	auto processFactory = iscore::ProcessList::getFactory(processName);
 	
@@ -29,7 +29,11 @@ void IntervalModel::createProcess(QString processName)
 		auto model = processFactory->makeModel(m_nextProcessId++, this);
 		m_processes.push_back(model);
 		emit processCreated(processName, model->id());
+		
+		return model->id();
 	}
+	
+	return -1;
 }
 
 void IntervalModel::deleteProcess(int processId)
