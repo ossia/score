@@ -2,10 +2,10 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QNamedObject>
 
-class DeleteProcessCommand : public iscore::SerializableCommand
+class DeleteProcessFromIntervalCommand : public iscore::SerializableCommand
 {
 	public:
-		DeleteProcessCommand(ObjectPath&& intervalPath, QString processName, int processId);
+		DeleteProcessFromIntervalCommand(ObjectPath&& intervalPath, QString processName, int processId);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
