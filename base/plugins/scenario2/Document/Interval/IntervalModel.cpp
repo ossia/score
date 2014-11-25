@@ -8,13 +8,9 @@
 
 #include <utilsCPP11.hpp>
 
-IntervalModel::IntervalModel(EventModel* beginEvent, 
-							 EventModel* endEvent, 
-							 int id, 
+IntervalModel::IntervalModel(int id, 
 							 QObject* parent):
-	QIdentifiedObject{parent, "IntervalModel", id},
-	m_startEvent{beginEvent},
-	m_endEvent{endEvent}
+	QIdentifiedObject{parent, "IntervalModel", id}
 {
 	
 }

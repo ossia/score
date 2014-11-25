@@ -20,7 +20,7 @@ class IntervalModel : public QIdentifiedObject
 		Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 	
 	public:
-		IntervalModel(EventModel* beginEvent, EventModel* endEvent, int id, QObject* parent);
+		IntervalModel(int id, QObject* parent);
 		virtual ~IntervalModel() = default;
 		
 		int createProcess(QString processName); // TODO void createProcessFromData();

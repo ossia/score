@@ -20,7 +20,7 @@ class IntervalModelTests: public QObject
 		
 		void CreateStoreyTest()
 		{
-			IntervalModel model{nullptr, nullptr, 0, this};
+			IntervalModel model{0, this};
 			model.createContentModel();
 			auto content = model.contentModel(0);
 			QVERIFY(content != nullptr);
@@ -33,7 +33,7 @@ class IntervalModelTests: public QObject
 		void DeleteStoreyTest()
 		{
 			/////
-			IntervalModel model{nullptr, nullptr, 0, this};
+			IntervalModel model{0, this};
 			model.createContentModel();
 			auto content = model.contentModel(0);
 			
@@ -42,7 +42,7 @@ class IntervalModelTests: public QObject
 			model.deleteContentModel(0);
 			
 			//////
-			IntervalModel model2{nullptr, nullptr, 0, this};
+			IntervalModel model2{0, this};
 			model2.createContentModel();
 			auto content2 = model2.contentModel(0);
 			
@@ -54,12 +54,12 @@ class IntervalModelTests: public QObject
 		
 		void FindSubProcessTest()
 		{
-			IntervalModel i0{nullptr, nullptr, 0, qApp}; 
+			IntervalModel i0{0, qApp}; 
 			i0.setObjectName("OriginalInterval");
 			auto s0 = new ScenarioProcessSharedModel{0, &i0};
 			
-			s0->createInterval(34);
-			s0->createInterval(42);
+			s0->createIntervalAndBothEvents(1, 34);
+			s0->createIntervalAndBothEvents(42, 46);
 			
 			auto i1 = s0->interval(0);
 			auto s1 = new ScenarioProcessSharedModel{0, i1};

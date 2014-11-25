@@ -3,7 +3,7 @@
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{parent},
-	m_baseInterval{new IntervalModel{nullptr, nullptr, 0, this}}
+	m_baseInterval{new IntervalModel{0, this}}
 {
 	
 }

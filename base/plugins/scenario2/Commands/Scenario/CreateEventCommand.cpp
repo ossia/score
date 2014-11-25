@@ -1,6 +1,7 @@
 #include "CreateEventCommand.hpp"
-//#include "panel_impl/ScenarioContainer/ScenarioModel.hpp"
 //#include "panel_impl/TimeEvent/TimeEventModel.hpp"
+
+#include <Document/Process/ScenarioProcessSharedModel.hpp>
 
 #include <QApplication>
 #include <core/application/Application.hpp>
@@ -8,11 +9,10 @@
 using namespace iscore;
 
 // TODO maybe the to-be-added event id should be created here ?
-CreatEventCommand::CreatEventCommand(int modelId, QPointF position):
+CreatEventCommand::CreatEventCommand(ObjectPath&& scenarioPath, int time):
 	SerializableCommand{"ScenarioControl", "CreateEventCommand", QObject::tr("Event creation")},
-	m_modelId{modelId},
-//	m_timeEventId{TimeEventModel::nextId()},
-	m_position{position}
+	m_path(std::move(scenarioPath)),
+	m_time{time}
 {
 	
 }
@@ -40,28 +40,11 @@ void CreatEventCommand::undo()
 
 void CreatEventCommand::redo()
 {
-//	qDebug(Q_FUNC_INFO);
-	
-//	// Proper way should be : 
-//	// auto scenarios = qApp->findChildren<ScenarioModel*>("ScenarioModel");
-//	// But for now dirty hack because everything is in DocumentView -> MainWindow
-//	auto app = qApp->findChild<iscore::Application*>("Application");
-//	auto scenarios = app->view()->findChildren<ScenarioModel*>("ScenarioModel");
-	
-	
-//	qDebug() << scenarios.size();
-//	auto scenar_p = std::find_if(
-//						std::begin(scenarios),
-//						std::end(scenarios),
-//						[&] (ScenarioModel* model)
-//						{qDebug() << model->id();  return model->id() == m_modelId; });
-	
-//	if(scenar_p != std::end(scenarios))
-//	{
-//		qDebug("1");
-//		(*scenar_p)->addTimeEvent(m_timeEventId, m_position);  // TODO what about serialization ??
-//		// @todo Is it useful to do error checking here ?
-//	}
+	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	if(scenar != nullptr)
+	{ 
+		scenar->createEvent(m_time); 
+	}
 }
 
 int CreatEventCommand::id() const
@@ -75,10 +58,8 @@ bool CreatEventCommand::mergeWith(const QUndoCommand* other)
 
 void CreatEventCommand::serializeImpl(QDataStream& s)
 {
-	s << m_modelId << m_timeEventId << m_position;
 }
 
 void CreatEventCommand::deserializeImpl(QDataStream& s)
 {
-	s >> m_modelId >> m_timeEventId >> m_position;
 }
