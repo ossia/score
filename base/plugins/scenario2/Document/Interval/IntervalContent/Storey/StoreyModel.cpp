@@ -13,7 +13,7 @@ StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
 	
 }
 
-void StoreyModel::createProcessViewModel(int processId)
+int StoreyModel::createProcessViewModel(int processId)
 {
 	// Search the corresponding process in the parent interval.
 	auto process = parentInterval()->process(processId);
@@ -22,6 +22,7 @@ void StoreyModel::createProcessViewModel(int processId)
 	m_processViewModels.push_back(viewmodel);
 	
 	emit processViewModelCreated(viewmodel->id());
+	return viewmodel->id();
 }
 
 void StoreyModel::deleteProcessViewModel(int processViewId)

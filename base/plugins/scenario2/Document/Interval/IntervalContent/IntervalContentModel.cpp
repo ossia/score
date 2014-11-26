@@ -8,7 +8,7 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 	
 }
 
-void IntervalContentModel::createStorey()
+int IntervalContentModel::createStorey()
 {
 	auto storey = new PositionedStoreyModel{(int) m_storeys.size(), 
 											m_nextStoreyId++, 
@@ -16,6 +16,7 @@ void IntervalContentModel::createStorey()
 	m_storeys.push_back(storey);
 	
 	emit storeyCreated(storey->id());
+	return storey->id();
 }
 
 void IntervalContentModel::deleteStorey(int storeyId)

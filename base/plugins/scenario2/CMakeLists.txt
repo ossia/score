@@ -20,9 +20,13 @@ file(GLOB_RECURSE DOCUMENT_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Document/*.hpp")
 file(GLOB_RECURSE DOCUMENT_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Document/*.cpp")
 file(GLOB_RECURSE COMMANDS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp")
 file(GLOB_RECURSE COMMANDS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.cpp")
-
+set(PLUGIN_FILES 
+	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.cpp")
 add_library(scenario_process SHARED 
-			${DOCUMENT_HDRS} ${DOCUMENT_SRCS} ${COMMANDS_HDRS} ${COMMANDS_SRCS})
+			${DOCUMENT_HDRS} ${DOCUMENT_SRCS} 
+			${COMMANDS_HDRS} ${COMMANDS_SRCS}
+			${PLUGIN_FILES})
 install(TARGETS scenario_process LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock)

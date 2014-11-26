@@ -15,7 +15,7 @@ class IntervalContentModel : public QIdentifiedObject
 		
 		virtual ~IntervalContentModel() = default;
 		
-		void createStorey();
+		int createStorey();
 		void deleteStorey(int storeyId);
 		void changeStoreyOrder(int storeyId, int position);
 		

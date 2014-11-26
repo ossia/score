@@ -15,7 +15,7 @@ iscore::DocumentDelegatePresenterInterface*ScenarioDocument::makePresenter(iscor
 	return new BaseElementPresenter{parent_presenter, model, view};
 }
 
-iscore::DocumentDelegateModelInterface*ScenarioDocument::makeModel()
+iscore::DocumentDelegateModelInterface* ScenarioDocument::makeModel()
 {
 	return new BaseElementModel{nullptr};
 }

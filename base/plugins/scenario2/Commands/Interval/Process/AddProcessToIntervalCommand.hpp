@@ -4,6 +4,11 @@
 #include <QString>
 
 
+/**
+ * @brief The AddProcessToIntervalCommand class
+ * 
+ * For now this command creates a new storey in the current intervalcontentmodel with a new processviewmodel inside
+ */
 class AddProcessToIntervalCommand : public iscore::SerializableCommand
 {
 	public:
@@ -23,4 +28,6 @@ class AddProcessToIntervalCommand : public iscore::SerializableCommand
 		QString m_processName;
 		
 		int m_createdProcessId{-1};
+		int m_createdStoreyId{-1};
+		int m_createdProcessViewModelId{-1};
 };

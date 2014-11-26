@@ -29,7 +29,7 @@ class StoreyModel : public QIdentifiedObject
 		StoreyModel(int id, IntervalContentModel* parent);
 		virtual ~StoreyModel() = default;
 		
-		void createProcessViewModel(int processId);
+		int createProcessViewModel(int processId);
 		void deleteProcessViewModel(int processViewModelId);
 		
 		/**

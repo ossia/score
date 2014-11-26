@@ -4,7 +4,6 @@
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
 #include <Document/Process/ScenarioProcessSharedModel.hpp>
 
-#include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
 using namespace iscore;
 
 
