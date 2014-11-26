@@ -7,10 +7,12 @@
 #include <interface/process/ProcessFactoryInterface.hpp>
 
 #include <utilsCPP11.hpp>
+#include <API/Headers/Editor/TimeBox.h>
 
 IntervalModel::IntervalModel(int id, 
 							 QObject* parent):
-	QIdentifiedObject{parent, "IntervalModel", id}
+	QIdentifiedObject{parent, "IntervalModel", id},
+	m_timeBox{new OSSIA::TimeBox}
 {
 	
 }
@@ -50,13 +52,8 @@ int IntervalModel::createProcess(QString processName, QByteArray data)
 void IntervalModel::deleteProcess(int processId)
 {
 	emit processDeleted(processId);
-	vec_erase_remove_if(m_processes, 
-					   [&processId] (iscore::ProcessSharedModelInterface* model)  // TODO faire une macro pour recherche par id.
-						  { 
-							  bool to_delete = model->id() == processId;
-							  if(to_delete) delete model;
-							  return to_delete; 
-						  });
+	removeById(m_processes, 
+			   processId);
 	
 	m_nextProcessId--;
 }
@@ -98,32 +95,12 @@ EventModel* IntervalModel::endEvent()
 
 IntervalContentModel*IntervalModel::contentModel(int contentId)
 {
-	auto it = std::find_if(std::begin(m_contentModels),
-						   std::end(m_contentModels),
-						   [&contentId] (IntervalContentModel* model)
-							{
-							  return model->id() == contentId;
-							});
-	
-	if(it != std::end(m_contentModels))
-		return *it;
-	
-	return nullptr;
+	return findById(m_contentModels, contentId);
 }
 
 iscore::ProcessSharedModelInterface* IntervalModel::process(int processId)
 {
-	auto it = std::find_if(std::begin(m_processes),
-						   std::end(m_processes),
-						   [&processId] (iscore::ProcessSharedModelInterface* model)
-							{
-							  return model->id() == processId;
-							});
-	
-	if(it != std::end(m_processes))
-		return *it;
-	
-	return nullptr;
+	return findById(m_processes, processId);
 }
 
 

@@ -1,6 +1,10 @@
 #pragma once
 #include <interface/process/ProcessSharedModelInterface.hpp>
 
+namespace OSSIA
+{
+	class Scenario;
+}
 class IntervalModel;
 class EventModel;
 class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
@@ -30,7 +34,15 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		int createEvent(int time); // Creates an interval btween the start event and this one
 		void deleteEvent(int eventId); // ?
 		
+		EventModel* event(int eventId);
+		
+	signals:
+		void eventCreated(int eventId);
+		void intervalCreated(int intervalId);
+		
 	private:
+		OSSIA::Scenario* m_scenario;
+		
 		std::vector<IntervalModel*> m_intervals;
 		std::vector<EventModel*> m_events;
 
@@ -38,5 +50,7 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		EventModel* endEvent() { return m_events[1]; }
 		
 		int m_nextIntervalId{};
+		int m_nextEventId{};
+		
 };
 

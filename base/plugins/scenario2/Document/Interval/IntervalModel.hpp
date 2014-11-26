@@ -3,7 +3,10 @@
 #include <QColor>
 #include <vector>
 
-
+namespace OSSIA
+{
+	class TimeBox;
+}
 namespace iscore
 {
 	class ProcessSharedModelInterface;
@@ -42,6 +45,9 @@ class IntervalModel : public QIdentifiedObject
 		QColor color() const;
 		
 		
+		OSSIA::TimeBox* apiObject()
+		{ return m_timeBox;}
+
 	public slots:
 		void setName(QString arg);
 		void setComment(QString arg);
@@ -59,6 +65,8 @@ class IntervalModel : public QIdentifiedObject
 		void colorChanged(QColor arg);
 		
 	private:
+		OSSIA::TimeBox* m_timeBox{};
+		
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 		
@@ -70,7 +78,6 @@ class IntervalModel : public QIdentifiedObject
 		int m_nextProcessId{};
 		int m_nextContentId{};
 		
-		TimeBox* m_timebox{};
 		EventModel* m_startEvent{};
 		EventModel* m_endEvent{};
 };

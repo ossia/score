@@ -21,3 +21,15 @@ void vec_erase_remove_if(Vector& v, Functor&& f )
 {
 	v.erase(std::remove_if(std::begin(v), std::end(v), f), std::end(v));
 }
+
+template <typename Vector>
+void removeById(Vector& c, int id)
+{
+	vec_erase_remove_if(c, 
+						[&id] (typename Vector::value_type model) 
+						{ 
+							bool to_delete = model->id() == id;
+							if(to_delete) delete model;
+							return to_delete; 
+						} );
+}

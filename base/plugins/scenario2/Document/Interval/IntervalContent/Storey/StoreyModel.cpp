@@ -28,13 +28,8 @@ void StoreyModel::deleteProcessViewModel(int processViewId)
 {
 	emit processViewModelDeleted(processViewId);
 	
-	vec_erase_remove_if(m_processViewModels, 
-					   [&processViewId] (iscore::ProcessViewModelInterface* model) 
-						  { 
-							  bool to_delete = model->id() == processViewId;
-							  if(to_delete) delete model;
-							  return to_delete; 
-						  });
+	removeById(m_processViewModels, processViewId);
+	m_nextProcessViewModelId--;
 }
 
 void StoreyModel::selectForEdition(int processViewId)
