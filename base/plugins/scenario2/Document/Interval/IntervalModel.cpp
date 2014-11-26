@@ -93,6 +93,16 @@ EventModel* IntervalModel::endEvent()
 	return m_endEvent;
 }
 
+void IntervalModel::setStartEvent(EventModel* e)
+{
+	m_startEvent = e;
+}
+
+void IntervalModel::setEndEvent(EventModel* e)
+{
+	m_endEvent = e;
+}
+
 IntervalContentModel*IntervalModel::contentModel(int contentId)
 {
 	return findById(m_contentModels, contentId);

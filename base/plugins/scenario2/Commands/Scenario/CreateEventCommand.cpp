@@ -19,31 +19,21 @@ CreatEventCommand::CreatEventCommand(ObjectPath&& scenarioPath, int time):
 #include <QDebug>
 void CreatEventCommand::undo()
 {
-//	// Proper way should be : 
-//	// auto scenarios = qApp->findChildren<ScenarioModel*>("ScenarioModel");
-//	// But for now dirty hack because everything is in DocumentView -> MainWindow
-//	auto app = qApp->findChild<iscore::Application*>("Application");
-//	auto scenarios = app->view()->findChildren<ScenarioModel*>("ScenarioModel");
-	
-//	auto scenar_p = std::find_if(
-//						std::begin(scenarios),
-//						std::end(scenarios),
-//						[&] (ScenarioModel* model)
-//						{ return model->id() == m_modelId; });
-	
-//	if(scenar_p != std::end(scenarios))
-//	{
-//		// @todo removeTimeEvent required
-//		(*scenar_p)->removeTimeEvent(m_timeEventId);
-//	}
+	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	if(scenar != nullptr)
+	{
+		scenar->undo_createIntervalAndEndEventFromStartEvent(m_intervalId);
+		m_intervalId = -1;
+	}
 }
 
 void CreatEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
-	{ 
-		scenar->createEvent(m_time); 
+	{
+		auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time);
+		m_intervalId = std::get<0>(ids);
 	}
 }
 

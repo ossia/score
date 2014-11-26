@@ -26,8 +26,8 @@ class IntervalModel : public QIdentifiedObject
 		IntervalModel(int id, QObject* parent);
 		virtual ~IntervalModel() = default;
 		
-		int createProcess(QString processName); // TODO void createProcessFromData();
-		int createProcess(QString processName, QByteArray data); // TODO void createProcessFromData();
+		int createProcess(QString processName);
+		int createProcess(QString processName, QByteArray data);
 		void deleteProcess(int processId);
 		
 		void createContentModel();
@@ -36,6 +36,8 @@ class IntervalModel : public QIdentifiedObject
 		
 		EventModel* startEvent();
 		EventModel* endEvent();
+		void setStartEvent(EventModel* m); // Use ScenarioKey
+		void setEndEvent(EventModel* m); // Use ScenarioKey
 		
 		IntervalContentModel* contentModel(int contentId);
 		iscore::ProcessSharedModelInterface* process(int processId);
@@ -65,7 +67,7 @@ class IntervalModel : public QIdentifiedObject
 		void colorChanged(QColor arg);
 		
 	private:
-		OSSIA::TimeBox* m_timeBox{};
+		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 		
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;

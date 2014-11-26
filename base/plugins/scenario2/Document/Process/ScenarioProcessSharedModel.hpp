@@ -7,6 +7,12 @@ namespace OSSIA
 }
 class IntervalModel;
 class EventModel;
+/**
+ * @brief The ScenarioProcessSharedModel class
+ *
+ * Creation methods return tuples with the identifiers of the objects in their temporal order.
+ * (first to last)
+ */
 class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 {
 	Q_OBJECT
@@ -19,26 +25,51 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		virtual QByteArray serialize() override { return {}; }
 		virtual void deserialize(QByteArray&&) override { }
 		
-		// Intervals
-		int createIntervalAndBothEvents(int startTime, int duration);
-		int createIntervalAndEndEvent(int startEventId, int duration);
+		// Creation of objects.
+		
+		// Creates an interval between two pre-existing events
 		int createIntervalBetweenEvents(int startEventId, int endEventId);
 		
-		void deleteInterval(int intervalId);
-		void deleteIntervalAndLastEvent(int intervalId);
-		void deleteIntervalAndBothEvents(int intervalId);
+		/**
+		 * @brief createIntervalAndEndEventFromEvent Base building block of a scenario.
+		 * @param startEventId Identifier of the start event of the new interval
+		 * @param duration duration of the new interval
+		 * @return A pair : <new interval id, new event id>
+		 * 
+		 * Given a starting event and a duration, creates an interval and an event where 
+		 * the interval is linked to both events. 
+		 */
+		std::tuple<int, int> createIntervalAndEndEventFromEvent(int startEventId, 
+															   int duration);
+		
+		// Creates an interval between the start event of the scenario and this one
+		// and an event at the end of this interval
+		std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time);
+		
+		// Creates : 
+		/// - An interval from the start event of the scenario to an event at startTime
+		/// - The event at startTime
+		/// - An interval going from the event at startTime to the event at startTime + duration
+		/// - The event at startTime + duration 
+		std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime, 
+																   int duration);
+		
+		
+		void undo_createIntervalBetweenEvents(int intervalId);
+		void undo_createIntervalAndEndEventFromEvent(int intervalId);
+		void undo_createIntervalAndEndEventFromStartEvent(int intervalId);
+		void undo_createIntervalAndBothEvents(int intervalId);
+		
+		
 		
 		IntervalModel* interval(int intervalId);
-		
-		// Events
-		int createEvent(int time); // Creates an interval btween the start event and this one
-		void deleteEvent(int eventId); // ?
-		
 		EventModel* event(int eventId);
 		
 	signals:
 		void eventCreated(int eventId);
 		void intervalCreated(int intervalId);
+		void eventDeleted(int eventId);
+		void intervalDeleted(int intervalId);
 		
 	private:
 		OSSIA::Scenario* m_scenario;
