@@ -23,7 +23,6 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QByteArray data, 
 
 iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int id, QObject* parent)
 {
-	qDebug(Q_FUNC_INFO);
 	return new ScenarioProcessViewModel(id, parent);
 }
 

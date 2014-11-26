@@ -31,12 +31,11 @@ void AddProcessToIntervalCommand::undo()
 void AddProcessToIntervalCommand::redo()
 {
 	auto interval = static_cast<IntervalModel*>(m_path.find());
-	// Create process model
 	
-	qDebug("YEY");
+	// Create process model
 	m_createdProcessId = interval->createProcess(m_processName);
-	qDebug("WOW");
 	auto contentModel = interval->contentModel(0);
+	
 	// Create storey
 	m_createdStoreyId = contentModel->createStorey();
 	auto storey = contentModel->storey(m_createdStoreyId);

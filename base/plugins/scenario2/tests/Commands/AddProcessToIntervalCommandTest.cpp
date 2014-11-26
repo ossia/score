@@ -19,20 +19,22 @@ class AddProcessToIntervalCommandTest: public QObject
 	private slots:
 		void CreateCommandTest()
 		{
-			//ProcessList plist(qApp);
-			//plist.addProcess(new );
+			QNamedObject *obj = new QNamedObject(qApp, "obj");
+			ProcessList plist(obj); 
+			plist.addProcess(new ScenarioProcessFactory);
 			
-			IntervalModel int_model{0, qApp};
-			
-			int_model.createContentModel();
+			IntervalModel* int_model  = new IntervalModel{0, qApp};
+			IntervalModel* int_model2 = new IntervalModel{0, int_model};
 			
 			AddProcessToIntervalCommand cmd(
 			{
-				"QApplication",
+				"IntervalModel",
 				{
 					{"IntervalModel", 0}
 				}
-			}, "ScenarioProcess");
+			}, "Scenario");
+			cmd.redo();
+			cmd.undo();
 			cmd.redo();
 		}
 

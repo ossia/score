@@ -14,7 +14,7 @@ IntervalModel::IntervalModel(int id,
 	QIdentifiedObject{parent, "IntervalModel", id},
 	m_timeBox{new OSSIA::TimeBox}
 {
-	
+	createContentModel();
 }
 
 //// Complex commands
