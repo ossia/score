@@ -19,6 +19,7 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 	
 	public:
 		ScenarioProcessSharedModel(int id, QObject* parent);
+		ScenarioProcessSharedModel(int id, QByteArray data, QObject* parent);
 		virtual ~ScenarioProcessSharedModel() = default;
 		virtual iscore::ProcessViewModelInterface* makeViewModel(int id, QObject* parent);
 		

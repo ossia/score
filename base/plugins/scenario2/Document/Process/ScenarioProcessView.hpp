@@ -1,7 +1,7 @@
 #pragma once
-#include <QNamedObject>
+#include <interface/process/ProcessViewInterface.hpp>
 
-class ScenarioProcessView : public QNamedGraphicsObject
+class ScenarioProcessView : public iscore::ProcessViewInterface
 {
 	Q_OBJECT
 	

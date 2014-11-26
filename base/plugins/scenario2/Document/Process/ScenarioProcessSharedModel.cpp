@@ -5,6 +5,7 @@
 #include <API/Headers/Editor/Scenario.h>
 
 #include <QDebug>
+#include "ScenarioProcessViewModel.hpp"
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id}, 
@@ -14,10 +15,16 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	m_events.push_back(new EventModel(1, this));
 }
 
+ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QByteArray data, QObject* parent):
+	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id}
+{
+	qDebug() << "TODO =====" << Q_FUNC_INFO;
+}
+
 iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int id, QObject* parent)
 {
-	qDebug("TODO");
-	return nullptr;
+	qDebug(Q_FUNC_INFO);
+	return new ScenarioProcessViewModel(id, parent);
 }
 
 //////// Creation ////////
