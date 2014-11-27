@@ -23,6 +23,8 @@ class IntervalModel : public QIdentifiedObject
 		Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 	
 	public:
+		friend QDataStream& operator << (QDataStream&, const IntervalModel&);
+		
 		IntervalModel(int id, QObject* parent);
 		virtual ~IntervalModel() = default;
 		
@@ -83,4 +85,3 @@ class IntervalModel : public QIdentifiedObject
 		EventModel* m_startEvent{};
 		EventModel* m_endEvent{};
 };
-

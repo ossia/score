@@ -11,6 +11,8 @@ class EventModel : public QIdentifiedObject
 	Q_OBJECT
 	
 	public:
+		friend QDataStream& operator << (QDataStream&, const EventModel&);
+		
 		EventModel(int id, QObject* parent);
 		virtual ~EventModel() = default;
 		

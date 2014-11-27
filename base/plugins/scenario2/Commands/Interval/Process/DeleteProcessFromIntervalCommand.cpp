@@ -26,7 +26,10 @@ void DeleteProcessFromIntervalCommand::redo()
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 	auto process = interval->process(m_processId);
 	
-	m_serializedProcessData = process->serialize();
+	QByteArray arr;
+	QDataStream s(&arr, QIODevice::Append);
+	s.setVersion(QDataStream::Qt_5_3);
+	process->serialize(s);
 	interval->deleteProcess(m_processId);
 }
 

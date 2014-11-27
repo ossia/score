@@ -6,6 +6,20 @@
 #include <Interval/IntervalModel.hpp>
 
 #include <utilsCPP11.hpp>
+#include <QDebug>
+QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
+{
+	qDebug() << Q_FUNC_INFO;
+	s << storey.id() 
+	  << storey.m_editedProcessId;
+	
+	s << (int) storey.m_processViewModels.size();
+	for(auto& pvm : storey.m_processViewModels)
+	{
+		s << *pvm;
+	}
+	s << storey.m_nextProcessViewModelId;
+}
 
 StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
 	QIdentifiedObject{parent, "StoreyModel", id}
@@ -13,11 +27,11 @@ StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
 	
 }
 
-int StoreyModel::createProcessViewModel(int processId)
+int StoreyModel::createProcessViewModel(int sharedProcessId)
 {
 	// Search the corresponding process in the parent interval.
-	auto process = parentInterval()->process(processId);
-	auto viewmodel = process->makeViewModel(m_nextProcessViewModelId++, this);
+	auto process = parentInterval()->process(sharedProcessId);
+	auto viewmodel = process->makeViewModel(m_nextProcessViewModelId++, sharedProcessId, this);
 	
 	m_processViewModels.push_back(viewmodel);
 	
@@ -39,6 +53,20 @@ void StoreyModel::selectForEdition(int processViewId)
 	{
 		m_editedProcessId = processViewId;
 		emit processViewModelSelected(processViewId);
+	}
+}
+
+void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
+{
+	// We HAVE to do a copy here because deleteProcessViewModel use the erase-remove idiom.
+	auto viewmodels = m_processViewModels; 
+	
+	for(auto process_vm : viewmodels)
+	{
+		if(process_vm->sharedProcessId() == sharedProcessId)
+		{
+			deleteProcessViewModel(process_vm->id());
+		}
 	}
 }
 

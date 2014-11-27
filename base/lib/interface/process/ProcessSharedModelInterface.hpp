@@ -1,6 +1,6 @@
 #pragma once
 #include <QNamedObject>
-
+class QDataStream;
 namespace iscore
 {
 	class ProcessViewModelInterface;
@@ -15,10 +15,18 @@ namespace iscore
 			using QIdentifiedObject::QIdentifiedObject;
 			
 			virtual ~ProcessSharedModelInterface() = default;
-			virtual ProcessViewModelInterface* makeViewModel(int id, QObject* parent) = 0;
+			virtual ProcessViewModelInterface* makeViewModel(int viewModelId, int sharedProcessId, QObject* parent) = 0;
 			
-			virtual QByteArray serialize() = 0;
-			virtual void deserialize(QByteArray&&) = 0;
+			virtual void serialize(QDataStream&) const = 0;
+			virtual void deserialize(QDataStream&) = 0;
 	};
+}
 
+inline QDataStream& operator <<(QDataStream& s, const iscore::ProcessSharedModelInterface& p)
+{
+	s << p.id();
+	s << p.objectName();
+	
+	p.serialize(s);
+	return s;
 }

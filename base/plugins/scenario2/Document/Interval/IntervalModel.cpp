@@ -8,6 +8,35 @@
 
 #include <utilsCPP11.hpp>
 #include <API/Headers/Editor/TimeBox.h>
+#include <QDebug>
+QDataStream& operator <<(QDataStream& s, const IntervalModel& i) 
+{
+	qDebug() << Q_FUNC_INFO;
+	// Metadata
+	s	<< i.id() 
+		<< i.name()
+		<< i.comment()
+		<< i.color();
+	
+	// Content Views
+	s	<<  (int) i.m_contentModels.size();
+	for(auto& content : i.m_contentModels)
+	{
+		s << *content;
+	}
+	s	<< i.m_nextContentId;
+	
+	// Processes
+	s	<< (int) i.m_processes.size();
+	for(auto& process : i.m_processes)
+	{
+		s << *process;
+	}
+	s	<< i.m_nextProcessId;
+	
+	// API Object
+	// s << i.apiObject()->save();
+}
 
 IntervalModel::IntervalModel(int id, 
 							 QObject* parent):
@@ -20,17 +49,20 @@ IntervalModel::IntervalModel(int id,
 //// Complex commands
 int IntervalModel::createProcess(QString processName)
 {
+	qDebug() << m_nextProcessId;
 	auto processFactory = iscore::ProcessList::getFactory(processName);
 	
 	if(processFactory)
 	{
-		auto model = processFactory->makeModel(m_nextProcessId++, this);
+		auto model = processFactory->makeModel(m_nextProcessId, this);
+		m_nextProcessId++;
+		
 		m_processes.push_back(model);
 		emit processCreated(processName, model->id());
 		
 		return model->id();
 	}
-	
+	qDebug() << "FAIL: " << Q_FUNC_INFO;
 	return -1;
 }
 int IntervalModel::createProcess(QString processName, QByteArray data)
@@ -39,7 +71,9 @@ int IntervalModel::createProcess(QString processName, QByteArray data)
 	
 	if(processFactory)
 	{
-		auto model = processFactory->makeModel(m_nextProcessId++, data, this);
+		auto model = processFactory->makeModel(m_nextProcessId, data, this);
+		m_nextProcessId++;
+				
 		m_processes.push_back(model);
 		emit processCreated(processName, model->id());
 		
@@ -62,6 +96,9 @@ void IntervalModel::deleteProcess(int processId)
 void IntervalModel::createContentModel()
 {
 	auto content = new IntervalContentModel{m_nextContentId++, this};
+	connect(this,	 &IntervalModel::processDeleted, 
+			content, &IntervalContentModel::on_deleteSharedProcessModel);
+	
 	m_contentModels.push_back(content);
 	emit viewCreated(content->id());
 }
@@ -69,13 +106,10 @@ void IntervalModel::createContentModel()
 void IntervalModel::deleteContentModel(int viewId)
 {
 	emit viewDeleted(viewId);
-	vec_erase_remove_if(m_contentModels, 
-					   [&viewId] (IntervalContentModel* model) 
-						  { 
-							  bool to_delete = model->id() == viewId;
-							  if(to_delete) delete model;
-							  return to_delete; 
-						  });
+	removeById(m_contentModels, 
+			   viewId);
+	
+	m_nextContentId--;
 }
 
 void IntervalModel::duplicateContentModel(int viewId)

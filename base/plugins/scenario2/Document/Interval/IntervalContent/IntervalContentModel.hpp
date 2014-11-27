@@ -11,6 +11,7 @@ class IntervalContentModel : public QIdentifiedObject
 	Q_OBJECT
 	
 	public:
+		friend QDataStream& operator << (QDataStream&, const IntervalContentModel&);
 		IntervalContentModel(int id, IntervalModel* parent);
 		
 		virtual ~IntervalContentModel() = default;
@@ -28,6 +29,8 @@ class IntervalContentModel : public QIdentifiedObject
 		void storeyCreated(int id);
 		void storeyDeleted(int id);
 		void storeyOrderChanged(int storeyId);
+		
+		void on_deleteSharedProcessModel(int processId);
 		
 	private:
 		std::vector<PositionedStoreyModel*> m_storeys;

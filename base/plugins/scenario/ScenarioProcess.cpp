@@ -33,10 +33,10 @@ iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter()
 
 iscore::ProcessSharedModelInterface* ScenarioProcess::makeModel(unsigned int id, QObject* parent)
 {
-	return new ScenarioProcessModel(id, parent);
+	return nullptr;//new ScenarioProcessModel(id, parent);
 }
 
 iscore::ProcessSharedModelInterface* ScenarioProcess::makeModel(unsigned int id, QByteArray ar, QObject* parent)
 {
-	return new ScenarioProcessModel(id, parent);
+	return nullptr; //new ScenarioProcessModel(id, parent);
 }

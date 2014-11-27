@@ -10,6 +10,7 @@ class PositionedStoreyModel : public StoreyModel
 				   NOTIFY positionChanged)
 		
 	public:
+		friend QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& c);
 		PositionedStoreyModel(int position, int id, IntervalContentModel* parent):
 			StoreyModel{id, parent},
 			m_position{position}

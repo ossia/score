@@ -7,3 +7,8 @@ EventModel::EventModel(int id, QObject* parent):
 {
 	
 }
+
+QDataStream& operator << (QDataStream&, const EventModel&)
+{
+	qDebug(Q_FUNC_INFO);
+}

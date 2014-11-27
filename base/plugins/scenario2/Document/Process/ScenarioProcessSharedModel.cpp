@@ -15,15 +15,38 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	m_events.push_back(new EventModel(1, this));
 }
 
-ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QByteArray data, QObject* parent):
+ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, 
+													   QByteArray data, 
+													   QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id}
 {
 	qDebug() << "TODO =====" << Q_FUNC_INFO;
 }
 
-iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int id, QObject* parent)
+iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId, 
+																			 int processId, 
+																			 QObject* parent)
 {
-	return new ScenarioProcessViewModel(id, parent);
+	return new ScenarioProcessViewModel(viewModelId, processId, this);
+}
+
+void ScenarioProcessSharedModel::serialize(QDataStream& s) const 
+{
+	qDebug() << Q_FUNC_INFO;
+	s << (int) m_intervals.size();
+	for(auto& interval : m_intervals)
+	{
+		s << *interval;
+	}
+	
+	s << (int) m_events.size();
+	for(auto& event : m_events)
+	{
+		s << *event;
+	}
+	
+	s << m_nextIntervalId;
+	s << m_nextEventId;
 }
 
 //////// Creation ////////

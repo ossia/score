@@ -1,7 +1,7 @@
 #include "ScenarioProcessViewModel.hpp"
 
 
-ScenarioProcessViewModel::ScenarioProcessViewModel(int id, QObject* parent):
-	iscore::ProcessViewModelInterface(parent, "ScenarioProcessViewModel", id)
+ScenarioProcessViewModel::ScenarioProcessViewModel(int viewModelId, int sharedProcessId, QObject* parent):
+	iscore::ProcessViewModelInterface(parent, "ScenarioProcessViewModel", viewModelId, sharedProcessId)
 {
 }

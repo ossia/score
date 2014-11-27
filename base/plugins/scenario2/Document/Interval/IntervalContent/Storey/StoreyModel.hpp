@@ -26,6 +26,8 @@ class StoreyModel : public QIdentifiedObject
 	Q_OBJECT
 	
 	public:
+		friend QDataStream& operator << (QDataStream& , const StoreyModel& );
+		
 		StoreyModel(int id, IntervalContentModel* parent);
 		virtual ~StoreyModel() = default;
 		
@@ -46,6 +48,9 @@ class StoreyModel : public QIdentifiedObject
 		void processViewModelDeleted(int processViewModelId);
 		
 		void processViewModelSelected(int processViewModelId);
+		
+	public slots:
+		void on_deleteSharedProcessModel(int sharedProcessId);
 		
 	private:
 		/**

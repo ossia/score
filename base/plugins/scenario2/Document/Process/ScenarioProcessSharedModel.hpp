@@ -21,10 +21,10 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		ScenarioProcessSharedModel(int id, QObject* parent);
 		ScenarioProcessSharedModel(int id, QByteArray data, QObject* parent);
 		virtual ~ScenarioProcessSharedModel() = default;
-		virtual iscore::ProcessViewModelInterface* makeViewModel(int id, QObject* parent);
+		virtual iscore::ProcessViewModelInterface* makeViewModel(int viewModelId, int processId, QObject* parent) override;
 		
-		virtual QByteArray serialize() override { return {}; }
-		virtual void deserialize(QByteArray&&) override { }
+		virtual void serialize(QDataStream&) const override;
+		virtual void deserialize(QDataStream&) override { }
 		
 		// Creation of objects.
 		

@@ -3,6 +3,7 @@
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
 #include <Document/Interval/IntervalContent/Storey/StoreyModel.hpp>
 #include <Document/Interval/IntervalContent/Storey/PositionedStorey/PositionedStoreyModel.hpp>
+#include <QDebug>
 using namespace iscore;
 
 
@@ -26,6 +27,8 @@ void AddProcessToIntervalCommand::undo()
 	
 	interval->deleteProcess(m_createdProcessId);
 	m_createdProcessId = -1;
+	m_createdStoreyId = -1;
+	m_createdProcessViewModelId = -1;
 }
 
 void AddProcessToIntervalCommand::redo()
@@ -34,6 +37,7 @@ void AddProcessToIntervalCommand::redo()
 	
 	// Create process model
 	m_createdProcessId = interval->createProcess(m_processName);
+	qDebug() << "Create process id: " << m_createdProcessId;
 	auto contentModel = interval->contentModel(0);
 	
 	// Create storey
