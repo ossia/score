@@ -27,6 +27,9 @@ class IntervalContentModel : public QIdentifiedObject
 		// Devrait peut-être aller dans une Command à la place ?
 		void duplicateStorey();
 
+		const std::vector<PositionedStoreyModel*>& storeys()
+		{ return m_storeys; }
+
 	signals:
 		void storeyCreated(int id);
 		void storeyDeleted(int id);

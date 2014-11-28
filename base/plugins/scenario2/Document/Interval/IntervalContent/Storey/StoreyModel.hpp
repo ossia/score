@@ -45,6 +45,19 @@ class StoreyModel : public QIdentifiedObject
 		 */
 		void selectForEdition(int processViewId);
 
+		const std::vector<iscore::ProcessViewModelInterface*>&
+		processViewModels()
+		{
+			return m_processViewModels;
+		}
+
+
+		/**
+		 * @brief parentInterval
+		 * @return the interval this storey is part of.
+		 */
+		IntervalModel* parentInterval();
+
 	signals:
 		void processViewModelCreated(int processViewModelId);
 		void processViewModelDeleted(int processViewModelId);
@@ -55,11 +68,6 @@ class StoreyModel : public QIdentifiedObject
 		void on_deleteSharedProcessModel(int sharedProcessId);
 
 	private:
-		/**
-		 * @brief parentInterval
-		 * @return the interval this storey is part of.
-		 */
-		IntervalModel* parentInterval();
 
 		int m_editedProcessId{};
 		std::vector<iscore::ProcessViewModelInterface*> m_processViewModels;

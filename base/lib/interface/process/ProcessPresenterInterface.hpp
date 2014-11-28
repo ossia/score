@@ -5,5 +5,5 @@ namespace iscore
 {
 	class ProcessPresenterInterface : public QObject
 	{
-	};	
+	};
 }

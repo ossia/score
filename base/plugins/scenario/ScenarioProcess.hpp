@@ -20,7 +20,7 @@ public:
 	// Mission : transmettre au présenteur global pour validation de l'action.
 	// Ou bien c'est directement la vue qui s'en charge?
 	// Risque de duplication dans le cas SmallView / StandardView / FullView...
-	virtual iscore::ProcessPresenterInterface* makePresenter() override;
+	virtual iscore::ProcessPresenterInterface* makePresenter(iscore::ProcessViewModelInterface*, QObject* parent) override;
 	virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  override; // Accédé par les commandes uniquement.
 	virtual iscore::ProcessSharedModelInterface* makeModel(QDataStream& ar, QObject* parent)  override; // Accédé par les commandes uniquement.
 };

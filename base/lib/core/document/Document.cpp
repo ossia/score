@@ -32,10 +32,8 @@ void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
 {
 	auto model = p->makeModel();
 	auto view = p->makeView();
-	auto pres = p->makePresenter(m_presenter, model, view);
 
-	view->setPresenter(pres);
-	model->setPresenter(pres);
+	auto pres = p->makePresenter(m_presenter, model, view);
 
 	// View setup
 	auto lay = m_view->layout();

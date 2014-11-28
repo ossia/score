@@ -18,9 +18,10 @@ iscore::ProcessViewInterface*ScenarioProcessFactory::makeView(QString view)
 	return new ScenarioProcessView;
 }
 
-iscore::ProcessPresenterInterface*ScenarioProcessFactory::makePresenter()
+iscore::ProcessPresenterInterface* ScenarioProcessFactory::makePresenter(iscore::ProcessViewModelInterface* pvm,
+																		QObject* parent)
 {
-	return new ScenarioProcessPresenter;
+	return new ScenarioProcessPresenter(pvm, parent);
 }
 
 iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(unsigned int id, QObject* parent)

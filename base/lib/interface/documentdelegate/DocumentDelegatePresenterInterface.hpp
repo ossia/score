@@ -26,6 +26,11 @@ namespace iscore
 
 			virtual ~DocumentDelegatePresenterInterface() = default;
 
+			void setModel(DocumentDelegateModelInterface* m)
+			{ m_model = m; }
+			void setView(DocumentDelegateViewInterface* v)
+			{ m_view = v; }
+
 		signals:
 			void submitCommand(SerializableCommand* cmd);
 

@@ -3,6 +3,7 @@
 #include <QGridLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include "BaseElementPresenter.hpp"
 
 BaseElementView::BaseElementView(QObject* parent):
 	iscore::DocumentDelegateViewInterface{parent},
@@ -14,6 +15,7 @@ BaseElementView::BaseElementView(QObject* parent):
 
 void BaseElementView::setPresenter(iscore::DocumentDelegatePresenterInterface* presenter)
 {
+	m_presenter = static_cast<BaseElementPresenter*>(presenter);
 }
 
 QWidget* BaseElementView::getWidget()

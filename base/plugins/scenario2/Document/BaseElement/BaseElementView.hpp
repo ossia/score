@@ -3,6 +3,7 @@
 #include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
 class QGraphicsScene;
 class QGraphicsView;
+class BaseElementPresenter;
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
 	Q_OBJECT
@@ -15,7 +16,9 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 		virtual QWidget*getWidget();
 
 	private:
-		QGraphicsScene *m_scene{};
+		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
+
+		BaseElementPresenter* m_presenter{};
 };
 

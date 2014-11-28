@@ -10,13 +10,13 @@ namespace iscore
 		public:
 			using QObject::QObject;
 			virtual ~DocumentDelegateModelInterface() = default;
-			
-			void setPresenter(DocumentDelegatePresenterInterface* presenter)
+
+			/*void setPresenter(DocumentDelegatePresenterInterface* presenter)
 			{
 				m_presenter = presenter;
-			}
-			
-		protected:
-			DocumentDelegatePresenterInterface* m_presenter;
+			}*/
+
+		//protected:
+			//DocumentDelegatePresenterInterface* m_presenter;
 	};
 }

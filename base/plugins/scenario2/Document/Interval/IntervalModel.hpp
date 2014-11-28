@@ -54,6 +54,9 @@ class IntervalModel : public QIdentifiedObject
 		OSSIA::TimeBox* apiObject()
 		{ return m_timeBox;}
 
+		// For the presenter :
+		const std::vector<IntervalContentModel*>& contentModels()
+		{ return m_contentModels; }
 	public slots:
 		void setName(QString arg);
 		void setComment(QString arg);

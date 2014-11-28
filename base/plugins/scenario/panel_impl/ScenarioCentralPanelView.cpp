@@ -14,11 +14,6 @@ ScenarioCentralPanelView::ScenarioCentralPanelView() :
 
 }
 
-void ScenarioCentralPanelView::setPresenter (DocumentDelegatePresenterInterface* presenter)
-{
-	m_presenter = static_cast<ScenarioCentralPanelPresenter*> (presenter);
-}
-
 QWidget* ScenarioCentralPanelView::getWidget()
 {
 	return new MainWindow;

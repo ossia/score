@@ -5,6 +5,7 @@
 
 namespace iscore
 {
+	class ProcessViewModelInterface;
 	class ProcessSharedModelInterface;
 	class ProcessViewInterface;
 	class ProcessPresenterInterface;
@@ -22,9 +23,9 @@ namespace iscore
 			// The process name
 			virtual QString name() const = 0;
 
-			virtual QStringList availableViews() = 0;
+			virtual QStringList availableViews() = 0; // Bof. Plutôt dans le ViewModelInterface...
 			virtual ProcessViewInterface* makeView(QString view) = 0;
-			virtual ProcessPresenterInterface* makePresenter() = 0;
+			virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*, QObject* parent) = 0;
 
 			// Behind the scene, an API object.
 			// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?'
