@@ -63,7 +63,6 @@ class AddProcessToIntervalCommandTest: public QObject
 
 			auto scen_model = static_cast<ScenarioProcessSharedModel*>(int_model2->process(0));
 			scen_model->createIntervalAndBothEvents(34, 55);
-			scen_model->interval(0)->createProcess("Scenario");
 			AddProcessToIntervalCommand cmd2(
 			{
 				"IntervalModel",
@@ -84,8 +83,16 @@ class AddProcessToIntervalCommandTest: public QObject
 				}
 			}, "ScenarioProcessSharedModel", 0);
 
+
+			qDebug("\n\n\n============= Before");
+			int_model->dumpObjectTree();
 			cmd3.redo();
+			qDebug("\n\n\n============= Redo");
+			int_model->dumpObjectTree();
 			cmd3.undo();
+			qDebug("\n\n\n============= Undo");
+			int_model->dumpObjectTree();
+			cmd3.redo();
 		}
 
 };

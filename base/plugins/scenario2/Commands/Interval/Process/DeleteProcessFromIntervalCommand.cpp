@@ -10,7 +10,6 @@ DeleteProcessFromIntervalCommand::DeleteProcessFromIntervalCommand(ObjectPath&& 
 						"DeleteProcessCommand",
 						"Delete process"},
 	m_path(std::move(intervalPath)),
-	m_processName{processName},
 	m_processId{processId}
 {
 }
@@ -20,6 +19,7 @@ void DeleteProcessFromIntervalCommand::undo()
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
+		qDebug() << m_processName;
 		interval->createProcess(m_processName, s);
 	}
 }
@@ -28,13 +28,14 @@ void DeleteProcessFromIntervalCommand::redo()
 {
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 	auto process = interval->process(m_processId);
-	
+
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::Append);
 		s.setVersion(QDataStream::Qt_5_3);
-		process->serialize(s);
+		s << *process;
 	}
-	
+	m_processName = process->processName();
+
 	interval->deleteProcess(m_processId);
 }
 

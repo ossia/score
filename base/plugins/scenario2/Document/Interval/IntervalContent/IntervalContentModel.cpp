@@ -23,6 +23,7 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
 	QIdentifiedObject{nullptr, "IntervalContentModel", -1}
 {
+	qDebug(Q_FUNC_INFO);
 	int id;
 	s >> id;
 	this->setId(id);

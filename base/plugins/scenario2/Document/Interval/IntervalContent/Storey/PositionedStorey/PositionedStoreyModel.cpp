@@ -3,8 +3,8 @@
 
 QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& storey)
 {
-	qDebug() << "PositionedStoreyModel";
 	s << static_cast<const StoreyModel&>(storey);
+	qDebug(Q_FUNC_INFO);
 
 	s << storey.position();
 }
@@ -12,6 +12,7 @@ QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& storey)
 PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, IntervalContentModel* parent):
 	StoreyModel{s, parent}
 {
+	qDebug(Q_FUNC_INFO);
 	int pos;
 	s >> pos;
 	setPosition(pos);

@@ -12,6 +12,7 @@ EventModel::EventModel(int id, QObject* parent):
 EventModel::EventModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "EventModel", -1}
 {
+	qDebug(Q_FUNC_INFO);
 	int id;
 	s >> id >> m_previousIntervals >> m_nextIntervals;
 	this->setId(id);

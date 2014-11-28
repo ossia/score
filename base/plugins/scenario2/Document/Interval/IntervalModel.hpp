@@ -34,6 +34,7 @@ class IntervalModel : public QIdentifiedObject
 		void deleteProcess(int processId);
 
 		void createContentModel();
+		void createContentModel(QDataStream& s);
 		void deleteContentModel(int viewId);
 		void duplicateContentModel(int viewId);
 

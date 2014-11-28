@@ -29,24 +29,24 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 																			 int processId,
 																			 QObject* parent)
 {
-	return new ScenarioProcessViewModel(viewModelId, processId, this);
+	return new ScenarioProcessViewModel(viewModelId, processId, parent);
 }
 
-iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream&, QObject* parent)
+iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)
 {
-	qDebug() << "TODODODODODOD";
+	return new ScenarioProcessViewModel(s, parent);
 }
 
 void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 {
-	qDebug() << Q_FUNC_INFO;
-	s << (int) m_intervals.size();
+	qDebug() << Q_FUNC_INFO << (void*) this;
+	s << (int) m_intervals.size(); qDebug() << (void*) this << "Saving" << m_intervals.size() << " intervals";
 	for(auto& interval : m_intervals)
 	{
 		s << *interval;
 	}
 
-	s << (int) m_events.size();
+	s << (int) m_events.size(); qDebug() << (void*) this << "Saving" << m_events.size() << " events";
 	for(auto& event : m_events)
 	{
 		s << *event;
@@ -55,22 +55,40 @@ void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 
 void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 {
+	qDebug() << Q_FUNC_INFO << (void*) this;
+
+	// Intervals
 	int interval_count;
-	s >> interval_count;
-	std::vector<IntervalModel*> tmp_intervals;
+	s >> interval_count; qDebug() << (void*) this << "Loading" << interval_count << "intervals";
 	for(int i = 0; i < interval_count; i++)
 	{
-		tmp_intervals.push_back(new IntervalModel(s, this));
+		IntervalModel* interval = new IntervalModel(s, this);
+		m_intervals.push_back(interval);
+		emit intervalCreated(interval->id());
+
 		m_nextIntervalId++;
 	}
 
+	// Events
 	int event_count;
-	s >> event_count;
-	std::vector<EventModel*> tmp_events;
+	s >> event_count;  qDebug() << (void*) this << "Loading" << event_count << "events";
 	for(int i = 0; i < event_count; i++)
 	{
-		tmp_events.push_back(new EventModel(s, this));
+		EventModel* evmodel = new EventModel(s, this);
+		m_events.push_back(evmodel);
+
+		emit eventCreated(evmodel->id());
 		m_nextEventId++;
+	}
+
+	for(IntervalModel* interval : m_intervals)
+	{
+		auto sev = event(interval->startEvent());
+		auto eev = event(interval->endEvent());
+
+		m_scenario->addTimeBox(*interval->apiObject(),
+							   *sev->apiObject(),
+							   *eev->apiObject());
 	}
 }
 
@@ -228,5 +246,5 @@ IntervalModel* ScenarioProcessSharedModel::interval(int intervalId)
 
 EventModel* ScenarioProcessSharedModel::event(int eventId)
 {
-
+	return findById(m_events, eventId);
 }
