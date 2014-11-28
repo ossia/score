@@ -9,7 +9,12 @@ class ScenarioProcessModel : public iscore::ProcessSharedModelInterface
 	public:
 		ScenarioProcessModel(unsigned int id, QObject* parent);
 		virtual ~ScenarioProcessModel();
-		
+
+		virtual QString processName() const override
+		{
+			return "Scenario_old";
+		}
+
 		virtual void serialize(QDataStream&) const override { }
 		virtual void deserialize(QDataStream&) override { }
 
@@ -21,7 +26,7 @@ class ScenarioProcessModel : public iscore::ProcessSharedModelInterface
 	private:
 		QString m_processText{"Text not set"};
 		int m_counter{};
-		
+
 		// ProcessSharedModelInterface interface
 	public:
 		virtual iscore::ProcessViewModelInterface* makeViewModel(int id, QObject* parent);

@@ -8,10 +8,9 @@ class ScenarioProcessFactory : public iscore::ProcessFactoryInterface
 		virtual QStringList availableViews();
 		virtual iscore::ProcessViewInterface* makeView(QString view) override;
 		virtual iscore::ProcessPresenterInterface* makePresenter() override;
-		
-		virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, 
+
+		virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id,
 															   QObject* parent) override;
-		virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, 
-															   QByteArray data, 
+		virtual iscore::ProcessSharedModelInterface* makeModel(QDataStream& data,
 															   QObject* parent) override;
 };

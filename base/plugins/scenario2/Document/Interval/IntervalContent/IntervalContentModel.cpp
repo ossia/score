@@ -5,32 +5,60 @@
 #include <QDebug>
 QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 {
-	qDebug() << Q_FUNC_INFO;
 	s << c.id();
-	
-	s << (int)c.m_storeys.size(); qDebug() << "Storey size : " << c.m_storeys.size();
+
+	s << (int)c.m_storeys.size();
 	for(auto& storey : c.m_storeys)
 	{
 		s << *storey;
 	}
-	s << c.m_nextStoreyId;
 }
 
 IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 	QIdentifiedObject{parent, "IntervalContentModel", id}
 {
-	
+
 }
 
+IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
+	QIdentifiedObject{nullptr, "IntervalContentModel", -1}
+{
+	int id;
+	s >> id;
+	this->setId(id);
+	this->setParent(parent);
+
+	int storeys_size;
+	s >> storeys_size;
+	for(int i = 0; i < storeys_size; i++)
+	{
+		createStorey(s);
+	}
+
+
+}
+
+// TODO refactor stuff like this
 int IntervalContentModel::createStorey()
 {
-	auto storey = new PositionedStoreyModel{(int) m_storeys.size(), 
-											m_nextStoreyId++, 
+	auto storey = new PositionedStoreyModel{(int) m_storeys.size(),
+											m_nextStoreyId++,
 											this};
-	connect(this,	&IntervalContentModel::on_deleteSharedProcessModel, 
+	connect(this,	&IntervalContentModel::on_deleteSharedProcessModel,
 			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
 	m_storeys.push_back(storey);
-	
+
+	emit storeyCreated(storey->id());
+	return storey->id();
+}
+
+int IntervalContentModel::createStorey(QDataStream& s)
+{
+	auto storey = new PositionedStoreyModel{s, this};
+	connect(this,	&IntervalContentModel::on_deleteSharedProcessModel,
+			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
+	m_storeys.push_back(storey);
+
 	emit storeyCreated(storey->id());
 	return storey->id();
 }
@@ -38,7 +66,7 @@ int IntervalContentModel::createStorey()
 void IntervalContentModel::deleteStorey(int storeyId)
 {
 	emit storeyDeleted(storeyId);
-	
+
 	removeById(m_storeys, storeyId);
 	m_nextStoreyId--;
 }
@@ -54,6 +82,6 @@ PositionedStoreyModel* IntervalContentModel::storey(int storeyId)
 
 void IntervalContentModel::duplicateStorey()
 {
-	
+
 }
 

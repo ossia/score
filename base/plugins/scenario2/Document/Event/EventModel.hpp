@@ -14,11 +14,12 @@ class EventModel : public QIdentifiedObject
 		friend QDataStream& operator << (QDataStream&, const EventModel&);
 		
 		EventModel(int id, QObject* parent);
+		EventModel(QDataStream& s, QObject* parent);
 		virtual ~EventModel() = default;
 		
-		const std::vector<IntervalModel*>& previousIntervals() const
+		const QVector<int>& previousIntervals() const
 		{ return m_previousIntervals; }
-		const std::vector<IntervalModel*>& nextIntervals() const
+		const QVector<int>& nextIntervals() const
 		{ return m_nextIntervals; }
 		
 		OSSIA::TimeNode* apiObject()
@@ -28,8 +29,8 @@ class EventModel : public QIdentifiedObject
 	private:
 		OSSIA::TimeNode* m_timeNode{};
 		
-		std::vector<IntervalModel*> m_previousIntervals;
-		std::vector<IntervalModel*> m_nextIntervals;
+		QVector<int> m_previousIntervals;
+		QVector<int> m_nextIntervals;
 		
 };
 

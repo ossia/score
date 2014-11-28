@@ -2,9 +2,9 @@
 #include <interface/process/ProcessFactoryInterface.hpp>
 
 /* TODO @Nico
- * 
+ *
  * Ici il faut donc faire le processus scénario, qui permet d'instancier events et relations.
- * Il faut que le présenteur du processus papote avec le présenteur du processus parent, 
+ * Il faut que le présenteur du processus papote avec le présenteur du processus parent,
  * jusqu'à celui du document, qui fait remonter  à ScenarioCommand (qui va changer de nom en ScenarioControl je pense).
  */
 class ScenarioProcess : public iscore::ProcessFactoryInterface
@@ -22,5 +22,5 @@ public:
 	// Risque de duplication dans le cas SmallView / StandardView / FullView...
 	virtual iscore::ProcessPresenterInterface* makePresenter() override;
 	virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  override; // Accédé par les commandes uniquement.
-	virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id, QByteArray ar, QObject* parent)  override; // Accédé par les commandes uniquement.
+	virtual iscore::ProcessSharedModelInterface* makeModel(QDataStream& ar, QObject* parent)  override; // Accédé par les commandes uniquement.
 };

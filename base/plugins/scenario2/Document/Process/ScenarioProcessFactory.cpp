@@ -28,7 +28,7 @@ iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(unsigned i
 	return new ScenarioProcessSharedModel(id, parent);
 }
 
-iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(unsigned int id, QByteArray data, QObject* parent)
+iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(QDataStream& data, QObject* parent)
 {
-	return new ScenarioProcessSharedModel(id, data, parent);
+	return new ScenarioProcessSharedModel(data, parent);
 }

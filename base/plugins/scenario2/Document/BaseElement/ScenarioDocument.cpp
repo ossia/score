@@ -8,8 +8,8 @@ iscore::DocumentDelegateViewInterface*ScenarioDocument::makeView()
 	return new BaseElementView;
 }
 
-iscore::DocumentDelegatePresenterInterface*ScenarioDocument::makePresenter(iscore::DocumentPresenter* parent_presenter, 
-																		   iscore::DocumentDelegateModelInterface* model, 
+iscore::DocumentDelegatePresenterInterface*ScenarioDocument::makePresenter(iscore::DocumentPresenter* parent_presenter,
+																		   iscore::DocumentDelegateModelInterface* model,
 																		   iscore::DocumentDelegateViewInterface* view)
 {
 	return new BaseElementPresenter{parent_presenter, model, view};

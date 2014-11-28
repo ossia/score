@@ -48,6 +48,11 @@ class QIdentifiedObject : public QNamedObject
 			return m_id;
 		}
 		
+		void setId(int id)
+		{
+			m_id = id;
+		}
+		
 	private:
 		int m_id{};
 };

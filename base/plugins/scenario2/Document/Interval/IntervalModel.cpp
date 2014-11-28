@@ -1,6 +1,7 @@
 #include "IntervalModel.hpp"
 #include <interface/process/ProcessSharedModelInterface.hpp>
 #include "IntervalContent/IntervalContentModel.hpp"
+#include <Document/Event/EventModel.hpp>
 
 #include <QApplication>
 #include <core/processes/ProcessList.hpp>
@@ -17,22 +18,25 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 		<< i.name()
 		<< i.comment()
 		<< i.color();
+		
+	// Processes
+	s	<< (int) i.m_processes.size();
+	for(auto& process : i.m_processes)
+	{
+		s << process->processName();
+		s << *process;
+	}
 	
-	// Content Views
+	// Contents 
 	s	<<  (int) i.m_contentModels.size();
 	for(auto& content : i.m_contentModels)
 	{
 		s << *content;
 	}
-	s	<< i.m_nextContentId;
 	
-	// Processes
-	s	<< (int) i.m_processes.size();
-	for(auto& process : i.m_processes)
-	{
-		s << *process;
-	}
-	s	<< i.m_nextProcessId;
+	// Events
+	s	<< i.m_startEvent;
+	s	<< i.m_endEvent;
 	
 	// API Object
 	// s << i.apiObject()->save();
@@ -44,6 +48,46 @@ IntervalModel::IntervalModel(int id,
 	m_timeBox{new OSSIA::TimeBox}
 {
 	createContentModel();
+}
+
+IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
+	QIdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
+{
+	// Metadata
+	int id;
+	QString name;
+	QString comment;
+	QString color;
+	s >> id >> name >> comment >> color;
+	this->setId(id);
+	this->setName(name);
+	this->setComment(comment);
+	this->setColor(color);
+	
+	this->setParent(parent);
+	
+	// Processes
+	int process_size;
+	s >> process_size;
+	for(int i = 0; i < process_size; i++)
+	{
+		QString name; 
+		s >> name;
+		createProcess(name, s);
+	}
+	
+	// Contents
+	int content_models_size;
+	s >> content_models_size;
+	for(int i = 0; i < content_models_size; i++)
+	{
+		createContentModel();
+	}
+	
+	// Events
+	s >> m_startEvent;
+	s >> m_endEvent;
+	
 }
 
 //// Complex commands
@@ -65,13 +109,13 @@ int IntervalModel::createProcess(QString processName)
 	qDebug() << "FAIL: " << Q_FUNC_INFO;
 	return -1;
 }
-int IntervalModel::createProcess(QString processName, QByteArray data)
+int IntervalModel::createProcess(QString processName, QDataStream& data)
 {
 	auto processFactory = iscore::ProcessList::getFactory(processName);
 	
 	if(processFactory)
 	{
-		auto model = processFactory->makeModel(m_nextProcessId, data, this);
+		auto model = processFactory->makeModel(data, this);
 		m_nextProcessId++;
 				
 		m_processes.push_back(model);
@@ -117,22 +161,22 @@ void IntervalModel::duplicateContentModel(int viewId)
 	// TODO
 }
 
-EventModel* IntervalModel::startEvent()
+int IntervalModel::startEvent()
 {
 	return m_startEvent;
 }
 
-EventModel* IntervalModel::endEvent()
+int IntervalModel::endEvent()
 {
 	return m_endEvent;
 }
 
-void IntervalModel::setStartEvent(EventModel* e)
+void IntervalModel::setStartEvent(int e)
 {
 	m_startEvent = e;
 }
 
-void IntervalModel::setEndEvent(EventModel* e)
+void IntervalModel::setEndEvent(int e)
 {
 	m_endEvent = e;
 }

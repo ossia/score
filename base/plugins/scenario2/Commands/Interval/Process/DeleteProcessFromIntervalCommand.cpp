@@ -1,7 +1,7 @@
 #include "DeleteProcessFromIntervalCommand.hpp"
 #include <Document/Interval/IntervalModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
-
+#include <QDebug>
 using namespace iscore;
 
 
@@ -18,7 +18,10 @@ DeleteProcessFromIntervalCommand::DeleteProcessFromIntervalCommand(ObjectPath&& 
 void DeleteProcessFromIntervalCommand::undo()
 {
 	auto interval = static_cast<IntervalModel*>(m_path.find());
-	interval->createProcess(m_processName, m_serializedProcessData);
+	{
+		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
+		interval->createProcess(m_processName, s);
+	}
 }
 
 void DeleteProcessFromIntervalCommand::redo()
@@ -26,10 +29,12 @@ void DeleteProcessFromIntervalCommand::redo()
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 	auto process = interval->process(m_processId);
 	
-	QByteArray arr;
-	QDataStream s(&arr, QIODevice::Append);
-	s.setVersion(QDataStream::Qt_5_3);
-	process->serialize(s);
+	{
+		QDataStream s(&m_serializedProcessData, QIODevice::Append);
+		s.setVersion(QDataStream::Qt_5_3);
+		process->serialize(s);
+	}
+	
 	interval->deleteProcess(m_processId);
 }
 

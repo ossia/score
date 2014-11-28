@@ -29,6 +29,6 @@ namespace iscore
 			// Behind the scene, an API object.
 			// Also contains all the drag&drop stuff? Or is more specifically in TimeProcess?'
 			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QObject* parent)  = 0;
-			virtual ProcessSharedModelInterface* makeModel(unsigned int id, QByteArray data, QObject* parent)  = 0;
+			virtual ProcessSharedModelInterface* makeModel(QDataStream& data, QObject* parent)  = 0;
 	};
 }
