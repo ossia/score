@@ -5,7 +5,7 @@
 
 iscore::DocumentDelegateViewInterface*ScenarioDocument::makeView()
 {
-	return new BaseElementView;
+	return new BaseElementView{nullptr};
 }
 
 iscore::DocumentDelegatePresenterInterface*ScenarioDocument::makePresenter(iscore::DocumentPresenter* parent_presenter,

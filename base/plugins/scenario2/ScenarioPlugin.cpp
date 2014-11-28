@@ -5,7 +5,7 @@ ScenarioPlugin::ScenarioPlugin():
 	QObject{},
 	DocumentDelegateFactoryInterface_QtInterface{}
 {
-	setObjectName("ScenarioPlugin");
+	setObjectName("ScenarioPluginRework");
 }
 
 // Interfaces implementations :
@@ -17,7 +17,7 @@ QStringList ScenarioPlugin::document_list() const
 
 #include "Document/BaseElement/ScenarioDocument.hpp"
 iscore::DocumentDelegateFactoryInterface* ScenarioPlugin::document_make(QString name)
-{
+{qDebug(Q_FUNC_INFO);
 	if(name == QString("Scenario document"))
 	{
 		return new ScenarioDocument;
