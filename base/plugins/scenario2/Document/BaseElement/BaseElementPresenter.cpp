@@ -5,6 +5,7 @@
 #include <Document/BaseElement/BaseElementView.hpp>
 #include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
 #include <Commands/Scenario/CreateEventCommand.hpp>
+#include <Commands/Scenario/CreateIntervalCommand.hpp>
 
 #include <QTimer>
 using namespace iscore;
@@ -36,12 +37,18 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 		150);
 	cmd2->redo();
 
-	/*
-	QTimer* t = new QTimer;
-	connect(t, &QTimer::timeout,
-			[cmd] () { cmd->undo(); });
-	t->start(5000);
-	*/
+	auto cmd3 = new CreateEventAfterEventCommand(
+	{
+		"BaseElementModel",
+		{
+			{"IntervalModel", -1},
+			{"ScenarioProcessSharedModel", 0}
+		}
+	},
+	1,
+	400);
+	cmd3->redo();
+
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),
 													this};

@@ -12,6 +12,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	m_scenario{new OSSIA::Scenario}
 {
 	m_events.push_back(new EventModel(0, this));
+	m_nextEventId++;
 	//m_events.push_back(new EventModel(1, this)); //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 
 //	event(0)->m_y = 75;
@@ -97,7 +98,8 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new IntervalModel{m_nextIntervalId++, this};
+	auto inter = new IntervalModel{m_nextIntervalId, this};
+	m_nextIntervalId++;
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -124,8 +126,11 @@ std::tuple<int, int>
 ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 															   int interval_duration)
 {
-	auto event = new EventModel{m_nextEventId++, this};
-	auto inter = new IntervalModel{m_nextIntervalId++, this};
+	auto event = new EventModel{m_nextEventId, this};
+	m_nextEventId++;
+	auto inter = new IntervalModel{m_nextIntervalId, this};
+	m_nextIntervalId++;
+
 	// TEMPORARY :
 	inter->m_x = this->event(startEventId)->m_x;
 	inter->m_width = interval_duration;

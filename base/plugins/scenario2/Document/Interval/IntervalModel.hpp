@@ -32,7 +32,7 @@ class IntervalModel : public QIdentifiedObject
 
 		// ___ TEMPORARY ___
 		int m_width{200};
-		int m_height{500};
+		int m_height{200};
 		int m_x{};
 
 		friend QDataStream& operator << (QDataStream&, const IntervalModel&);

@@ -1,9 +1,11 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
+#include <QNamedObject>
 
-class CreateIntervalCommand : public iscore::SerializableCommand
+class CreateEventAfterEventCommand : public iscore::SerializableCommand
 {
 	public:
+		CreateEventAfterEventCommand(ObjectPath&& scenarioPath, int firstEventId, int time);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -12,4 +14,12 @@ class CreateIntervalCommand : public iscore::SerializableCommand
 	protected:
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
+
+	private:
+		ObjectPath m_path;
+
+		int m_intervalId{};
+
+		int m_firstEventId{};
+		int m_time{};
 };

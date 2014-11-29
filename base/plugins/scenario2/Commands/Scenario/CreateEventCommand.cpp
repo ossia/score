@@ -1,6 +1,4 @@
 #include "CreateEventCommand.hpp"
-//#include "panel_impl/TimeEvent/TimeEventModel.hpp"
-
 #include <Document/Process/ScenarioProcessSharedModel.hpp>
 
 #include <QApplication>
@@ -10,12 +8,15 @@ using namespace iscore;
 
 // TODO maybe the to-be-added event id should be created here ?
 CreatEventCommand::CreatEventCommand(ObjectPath&& scenarioPath, int time):
-	SerializableCommand{"ScenarioControl", "CreateEventCommand", QObject::tr("Event creation")},
+	SerializableCommand{"ScenarioControl",
+						"CreateEventCommand",
+						QObject::tr("Event creation")},
 	m_path(std::move(scenarioPath)),
 	m_time{time}
 {
-	
+
 }
+
 #include <QDebug>
 void CreatEventCommand::undo()
 {
