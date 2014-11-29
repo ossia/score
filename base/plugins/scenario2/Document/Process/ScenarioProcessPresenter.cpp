@@ -21,8 +21,6 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	m_model{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {
-	qDebug(Q_FUNC_INFO);
-
 	// TODO Question : étirement temporel d'une boîte qui contient un scénario hiérarchique ? veut on étirer les choses ou les laisser à leur place ?
 	// For each interval & event, display' em
 	for(auto interval_model : m_model->model()->intervals())
@@ -32,10 +30,8 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 														interval_view,
 														this};
 
-		interval_view->m_rect.setX(m_view->boundingRect().x() + interval_model->m_x);
-
-		auto interval_y = m_view->boundingRect().y() + m_view->boundingRect().height() * interval_model->heightPercentage();
-		interval_view->m_rect.setY(interval_y);
+		interval_view->setTopLeft({m_view->boundingRect().x() + interval_model->m_x,
+								   m_view->boundingRect().y() + m_view->boundingRect().height() * interval_model->heightPercentage()});
 
 		m_intervals.push_back(interval_presenter);
 	}
@@ -47,10 +43,8 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 												  event_view,
 												  this};
 
-		event_view->m_rect.setX(m_view->boundingRect().x() + event_model->m_x - ((event_model->m_x)? event_view->m_rect.width() / 2. : 0));
-
-		auto event_y = m_view->boundingRect().y() + m_view->boundingRect().height() * event_model->heightPercentage();
-		event_view->m_rect.setY(event_y);
+		event_view->setTopLeft({m_view->boundingRect().x() + event_model->m_x,
+								m_view->boundingRect().y() + m_view->boundingRect().height() * event_model->heightPercentage()});
 
 		m_events.push_back(event_presenter);
 	}

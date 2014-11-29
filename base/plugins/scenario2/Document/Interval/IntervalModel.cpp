@@ -48,7 +48,6 @@ IntervalModel::IntervalModel(int id,
 	QIdentifiedObject{parent, "IntervalModel", id},
 	m_timeBox{new OSSIA::TimeBox}
 {
-	qDebug() << Q_FUNC_INFO << id;
 	createContentModel();
 }
 

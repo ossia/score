@@ -15,18 +15,14 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 	m_view{view}
 {
 	m_view->m_height = m_model->height();
-	qDebug(Q_FUNC_INFO);
+
 	for(iscore::ProcessViewModelInterface* proc_vm : m_model->processViewModels())
 	{
-		qDebug("Adding a PVM");
 		auto procname = m_model->parentInterval()->process(proc_vm->sharedProcessId())->processName();
 		auto factory = iscore::ProcessList::getFactory(procname);
 
 		auto proc_view = factory->makeView(factory->availableViews().first(), view);
 		auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 		m_processes.push_back(presenter);
-
-
-
 	}
 }

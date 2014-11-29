@@ -1,15 +1,12 @@
 #include "EventView.hpp"
 #include <QPainter>
 #include <QGraphicsScene>
-
+#include <QDebug>
 
 EventView::EventView(QGraphicsObject* parent):
 	QNamedGraphicsObject{parent, "EventView"}
 {
 	this->setParentItem(parent);
-	//this->parentItem()->scene()->addItem(this);
-	m_rect.setHeight(30);
-	m_rect.setWidth(30);
 }
 
 QRectF EventView::boundingRect() const
@@ -22,4 +19,9 @@ void EventView::paint(QPainter* painter,
 					  QWidget* widget)
 {
 	painter->drawEllipse(m_rect.topLeft(), 15, 15);
+}
+
+void EventView::setTopLeft(QPointF p)
+{
+	m_rect = {p.x(), p.y(), m_rect.width(), m_rect.height()};
 }

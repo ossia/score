@@ -13,12 +13,8 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 	m_model{model},
 	m_view{view}
 {
-	qDebug(Q_FUNC_INFO);
-
 	for(auto& storeyModel : m_model->storeys())
 	{
-		qDebug("Adding storey");
-
 		auto storeyView = new StoreyView{view};
 		m_storeys.push_back(new StoreyPresenter{storeyModel,
 												storeyView,

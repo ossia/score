@@ -15,6 +15,8 @@ class IntervalView : public QNamedGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
+		void setTopLeft(QPointF p);
+
 		QRectF m_rect;
 };
 

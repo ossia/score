@@ -13,11 +13,8 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	m_model{model},
 	m_view{view}
 {
-	qDebug(Q_FUNC_INFO);
 	view->m_rect.setWidth(model->m_width);
 	view->m_rect.setHeight(model->m_height);
-	qDebug() << "IntervalPresenter: setting width, height" << model->m_width << model->m_height;
-	qDebug("Adding Interval Content");
 
 	// Todo : ou s'enregistre le contentView? Dans le présenteur ?
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants

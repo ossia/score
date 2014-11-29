@@ -12,6 +12,8 @@ class EventView : public QNamedGraphicsObject
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-		QRectF m_rect;
+		virtual void setTopLeft(QPointF p);
+
+		QRectF m_rect{0, 0, 30, 30};
 };
 

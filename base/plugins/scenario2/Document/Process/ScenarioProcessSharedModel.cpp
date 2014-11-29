@@ -11,7 +11,6 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
 	m_scenario{new OSSIA::Scenario}
 {
-	qDebug() << "ScenarioProcessSharedModel parent : " << parent->objectName() << static_cast<QIdentifiedObject*>(parent)->id();
 	m_events.push_back(new EventModel(0, this));
 	//m_events.push_back(new EventModel(1, this)); //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 
@@ -24,7 +23,6 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 													   QObject* parent):
 	iscore::ProcessSharedModelInterface{nullptr, "ScenarioProcessSharedModel", -1}
 {
-	qDebug() << Q_FUNC_INFO;
 	s >> static_cast<iscore::ProcessSharedModelInterface&>(*this);
 
 	this->setParent(parent);
@@ -44,14 +42,13 @@ iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDat
 
 void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 {
-	qDebug() << Q_FUNC_INFO << (void*) this;
-	s << (int) m_intervals.size(); qDebug() << (void*) this << "Saving" << m_intervals.size() << " intervals";
+	s << (int) m_intervals.size();
 	for(auto& interval : m_intervals)
 	{
 		s << *interval;
 	}
 
-	s << (int) m_events.size(); qDebug() << (void*) this << "Saving" << m_events.size() << " events";
+	s << (int) m_events.size();
 	for(auto& event : m_events)
 	{
 		s << *event;
@@ -60,11 +57,9 @@ void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 
 void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 {
-	qDebug() << Q_FUNC_INFO << (void*) this;
-
 	// Intervals
 	int interval_count;
-	s >> interval_count; qDebug() << (void*) this << "Loading" << interval_count << "intervals";
+	s >> interval_count;
 	for(int i = 0; i < interval_count; i++)
 	{
 		IntervalModel* interval = new IntervalModel(s, this);
@@ -76,7 +71,7 @@ void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 
 	// Events
 	int event_count;
-	s >> event_count;  qDebug() << (void*) this << "Loading" << event_count << "events";
+	s >> event_count;
 	for(int i = 0; i < event_count; i++)
 	{
 		EventModel* evmodel = new EventModel(s, this);

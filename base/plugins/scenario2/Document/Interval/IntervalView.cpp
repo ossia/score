@@ -6,7 +6,6 @@ IntervalView::IntervalView(QGraphicsObject* parent):
 	QNamedGraphicsObject{parent, "IntervalView"}
 {
 	this->setParentItem(parent);
-	//this->parentItem()->scene()->addItem(this);
 }
 
 QRectF IntervalView::boundingRect() const
@@ -16,11 +15,15 @@ QRectF IntervalView::boundingRect() const
 
 void IntervalView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	qDebug() << "Interval rect: " << m_rect;
 	painter->drawRect(m_rect);
 	painter->drawRect(m_rect.x(),
 					  m_rect.y(),
 					  m_rect.width(),
 					  15);
 	painter->drawText(m_rect, "Interval");
+}
+
+void IntervalView::setTopLeft(QPointF p)
+{
+	m_rect = {p.x(), p.y(), m_rect.width(), m_rect.height()};
 }
