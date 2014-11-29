@@ -26,3 +26,8 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 		m_processes.push_back(presenter);
 	}
 }
+
+StoreyPresenter::~StoreyPresenter()
+{
+	m_view->deleteLater();
+}

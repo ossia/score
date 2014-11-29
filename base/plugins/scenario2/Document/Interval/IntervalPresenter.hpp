@@ -24,10 +24,11 @@ class IntervalPresenter : public QNamedObject
 		IntervalPresenter(IntervalModel* model,
 						  IntervalView* view,
 						  QObject* parent);
-		virtual ~IntervalPresenter() = default;
+		virtual ~IntervalPresenter();
+
+		int id() const;
 
 	private:
-
 		std::vector<IntervalContentPresenter*> m_contentPresenters; // No content -> Phantom ?
 		// Process presenters are in the storey presenters.
 		IntervalModel* m_model{};

@@ -11,7 +11,7 @@ class IntervalContentPresenter : public QNamedObject
 		IntervalContentPresenter(IntervalContentModel* model,
 								 IntervalContentView* view,
 								 QObject* parent);
-		virtual ~IntervalContentPresenter() = default;
+		virtual ~IntervalContentPresenter();
 
 	private:
 		IntervalContentModel* m_model;

@@ -19,6 +19,13 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 								 QObject* parent);
 		virtual ~ScenarioProcessPresenter() = default;
 
+
+	public slots:
+		void on_eventCreated(int eventId);
+		void on_intervalCreated(int intervalId);
+		void on_eventDeleted(int eventId);
+		void on_intervalDeleted(int intervalId);
+
 	private:
 		ScenarioProcessViewModel* m_model;
 		ScenarioProcessView* m_view;

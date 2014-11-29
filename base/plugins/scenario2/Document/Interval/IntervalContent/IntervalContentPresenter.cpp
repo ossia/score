@@ -21,3 +21,8 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												this});
 	}
 }
+
+IntervalContentPresenter::~IntervalContentPresenter()
+{
+	m_view->deleteLater();
+}

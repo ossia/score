@@ -9,7 +9,9 @@ class EventPresenter : public QNamedObject
 
 	public:
 		EventPresenter(EventModel* model, EventView* view, QObject* parent);
-		virtual ~EventPresenter() = default;
+		virtual ~EventPresenter();
+
+		int id() const;
 
 	private:
 		EventModel* m_model{};

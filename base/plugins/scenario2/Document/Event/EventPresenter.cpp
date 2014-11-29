@@ -11,3 +11,13 @@ EventPresenter::EventPresenter(EventModel* model,
 	m_view{view}
 {
 }
+
+EventPresenter::~EventPresenter()
+{
+	delete m_view;
+}
+
+int EventPresenter::id() const
+{
+	return m_model->id();
+}

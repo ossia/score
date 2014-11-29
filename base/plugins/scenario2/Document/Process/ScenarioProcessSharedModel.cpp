@@ -33,7 +33,16 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 																			 int processId,
 																			 QObject* parent)
 {
-	return new ScenarioProcessViewModel(viewModelId, processId, parent);
+	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
+	connect(this, SIGNAL(eventCreated(int)),
+			scen, SIGNAL(eventCreated(int)));
+	connect(this, SIGNAL(eventDeleted(int)),
+			scen, SIGNAL(eventDeleted(int)));
+	connect(this, SIGNAL(intervalCreated(int)),
+			scen, SIGNAL(intervalCreated(int)));
+	connect(this, SIGNAL(intervalDeleted(int)),
+			scen, SIGNAL(intervalDeleted(int)));
+	return scen;
 }
 
 iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)

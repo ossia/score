@@ -12,7 +12,7 @@ class StoreyPresenter : public QNamedObject
 
 	public:
 		StoreyPresenter(StoreyModel* model, StoreyView* view, QObject* parent);
-		virtual ~StoreyPresenter() = default;
+		virtual ~StoreyPresenter();
 
 	private:
 		StoreyModel* m_model;

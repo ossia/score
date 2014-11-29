@@ -21,9 +21,21 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	auto contentView = new IntervalContentView{view};
 
 	// Cas par défaut
-	m_contentPresenters.push_back(new IntervalContentPresenter{model->contentModel(0),
-															   contentView,
-															   this});
+	auto interval_presenter = new IntervalContentPresenter{model->contentModel(0),
+														   contentView,
+														   this};
+
+	m_contentPresenters.push_back(interval_presenter);
+}
+
+IntervalPresenter::~IntervalPresenter()
+{
+	m_view->deleteLater();
+}
+
+int IntervalPresenter::id() const
+{
+	return m_model->id();
 }
 
 

@@ -21,31 +21,105 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	m_model{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {
-	// TODO Question : étirement temporel d'une boîte qui contient un scénario hiérarchique ? veut on étirer les choses ou les laisser à leur place ?
+	/////// Setup of existing data
+	// TODO Question :
+	// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
+	// veut on étirer les choses ou les laisser à leur place ?
 	// For each interval & event, display' em
+	auto rect = m_view->boundingRect();
 	for(auto interval_model : m_model->model()->intervals())
 	{
-		auto interval_view = new IntervalView{view};
+		auto interval_view = new IntervalView{m_view};
 		auto interval_presenter = new IntervalPresenter{interval_model,
 														interval_view,
 														this};
 
-		interval_view->setTopLeft({m_view->boundingRect().x() + interval_model->m_x,
-								   m_view->boundingRect().y() + m_view->boundingRect().height() * interval_model->heightPercentage()});
+		interval_view->setTopLeft({rect.x() + interval_model->m_x,
+								   rect.y() + rect.height() * interval_model->heightPercentage()});
 
 		m_intervals.push_back(interval_presenter);
 	}
 
 	for(auto event_model : m_model->model()->events())
 	{
-		auto event_view = new EventView{view};
+		auto event_view = new EventView{m_view};
 		auto event_presenter = new EventPresenter{event_model,
 												  event_view,
 												  this};
 
-		event_view->setTopLeft({m_view->boundingRect().x() + event_model->m_x,
-								m_view->boundingRect().y() + m_view->boundingRect().height() * event_model->heightPercentage()});
+		event_view->setTopLeft({rect.x() + event_model->m_x,
+								rect.y() + rect.height() * event_model->heightPercentage()});
 
 		m_events.push_back(event_presenter);
+	}
+
+	/////// Connections
+	connect(m_model, SIGNAL(eventCreated(int)), this, SLOT(on_eventCreated(int)));
+	connect(m_model, SIGNAL(eventDeleted(int)), this, SLOT(on_eventDeleted(int)));
+	connect(m_model, SIGNAL(intervalCreated(int)), this, SLOT(on_intervalCreated(int)));
+	connect(m_model, SIGNAL(intervalDeleted(int)), this, SLOT(on_intervalDeleted(int)));
+}
+
+void ScenarioProcessPresenter::on_eventCreated(int eventId)
+{
+	auto rect = m_view->boundingRect();
+	auto event_model = m_model->model()->event(eventId);
+
+	auto event_view = new EventView{m_view};
+	auto event_presenter = new EventPresenter{event_model,
+						   event_view,
+						   this};
+
+	event_view->setTopLeft({rect.x() + event_model->m_x,
+							rect.y() + rect.height() * event_model->heightPercentage()});
+
+	m_events.push_back(event_presenter);
+
+}
+
+void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
+{
+	auto rect = m_view->boundingRect();
+	auto interval_model = m_model->model()->interval(intervalId);
+	auto interval_view = new IntervalView{m_view};
+	auto interval_presenter = new IntervalPresenter{interval_model,
+													interval_view,
+													this};
+
+	interval_view->setTopLeft({rect.x() + interval_model->m_x,
+							   rect.y() + rect.height() * interval_model->heightPercentage()});
+
+	m_intervals.push_back(interval_presenter);
+}
+
+void ScenarioProcessPresenter::on_eventDeleted(int eventId)
+{
+	auto it = std::find_if(std::begin(m_events),
+						   std::end(m_events),
+						   [eventId] (EventPresenter const * pres)
+	{
+		return pres->id() == eventId;
+	});
+
+	if(it != std::end(m_events))
+	{
+		delete *it;
+		m_events.erase(it);
+	}
+}
+
+void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
+{
+	auto it = std::find_if(std::begin(m_intervals),
+						   std::end(m_intervals),
+						   [intervalId] (IntervalPresenter const * pres)
+	{
+		return pres->id() == intervalId;
+	});
+
+	if(it != std::end(m_intervals))
+	{
+		delete *it;
+		m_intervals.erase(it);
 	}
 }

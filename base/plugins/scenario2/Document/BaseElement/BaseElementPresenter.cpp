@@ -47,7 +47,16 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	},
 	1,
 	400);
-	cmd3->redo();
+	//cmd3->redo();
+
+	QTimer* t = new QTimer; t->setSingleShot(true);
+
+	QTimer* t2 = new QTimer; t2->setSingleShot(true);
+	connect(t, &QTimer::timeout, [=] () { cmd3->redo(); this->view()->intervalView()->update(); t2->start(300);});
+	connect(t2, &QTimer::timeout, [=] () { cmd3->undo(); this->view()->intervalView()->update(); t->start(300); });
+
+	t->start(300);
+
 
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),

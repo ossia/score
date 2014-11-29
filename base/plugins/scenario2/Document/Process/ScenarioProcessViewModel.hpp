@@ -22,6 +22,13 @@ class ScenarioProcessViewModel : public iscore::ProcessViewModelInterface
 		ScenarioProcessSharedModel* model();
 		IntervalContentModel* intervals();
 
+	signals: // Transmitted from ScenarioProcessSharedModel. They might become slots.
+		void eventCreated(int eventId);
+		void intervalCreated(int intervalId);
+		void eventDeleted(int eventId);
+		void intervalDeleted(int intervalId);
+
+
 	private:
 		IntervalModel* parentInterval() const;
 
