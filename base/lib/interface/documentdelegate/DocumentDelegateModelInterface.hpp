@@ -1,14 +1,14 @@
 #pragma once
-#include <QObject>
+#include <QNamedObject>
 
 namespace iscore
 {
 	class DocumentDelegatePresenterInterface;
-	class DocumentDelegateModelInterface : public QObject
+	class DocumentDelegateModelInterface : public QNamedObject
 	{
 			Q_OBJECT
 		public:
-			using QObject::QObject;
+			using QNamedObject::QNamedObject;
 			virtual ~DocumentDelegateModelInterface() = default;
 
 			/*void setPresenter(DocumentDelegatePresenterInterface* presenter)

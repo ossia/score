@@ -5,7 +5,7 @@ class ScenarioCentralPanelModel  : public iscore::DocumentDelegateModelInterface
 {
 	public:
 		ScenarioCentralPanelModel() :
-			iscore::DocumentDelegateModelInterface {nullptr}
+			iscore::DocumentDelegateModelInterface {nullptr, ""}
 		{
 
 		}

@@ -1,9 +1,12 @@
 #pragma once
-#include <QObject>
+#include <QNamedObject>
 
 namespace iscore
 {
-	class ProcessPresenterInterface : public QObject
+	class ProcessPresenterInterface : public QNamedObject
 	{
+		public:
+			using QNamedObject::QNamedObject;
+			virtual ~ProcessPresenterInterface() = default;
 	};
 }

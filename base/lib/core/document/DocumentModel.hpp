@@ -1,4 +1,5 @@
 #pragma once
+#include <QObject>
 
 namespace iscore
 {
@@ -8,10 +9,15 @@ namespace iscore
 	 *
 	 * TODO
 	 */
-	class DocumentModel
+	class DocumentModel : public QObject
 	{
 		public:
+			using QObject::QObject;
 			void reset(){}
-			void setModel(DocumentDelegateModelInterface* m){ qDebug("TODO"); }
+			void setModel(DocumentDelegateModelInterface* m);
+
+
+		private:
+			DocumentDelegateModelInterface* m_model{};
 	};
 }

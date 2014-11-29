@@ -14,7 +14,7 @@
 using namespace iscore;
 Document::Document(QObject* parent, QWidget* parentview):
 	QObject{parent},
-	m_model{new DocumentModel},
+	m_model{new DocumentModel{this}},
 	m_view{new DocumentView{parentview}},
 	m_presenter{new DocumentPresenter(this, m_model, m_view)}
 {
@@ -30,20 +30,18 @@ void Document::newDocument()
 
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
 {
+	// Model setup
 	auto model = p->makeModel();
-	auto view = p->makeView();
-
-	auto pres = p->makePresenter(m_presenter, model, view);
+	m_model->setModel(model);
 
 	// View setup
+	auto view = p->makeView();
 	auto lay = m_view->layout();
 	auto widg = view->getWidget();
 	lay->addWidget(widg);
 
-	// Model setup
-	m_model->setModel(model);
-
 	// Presenter setup
+	auto pres = p->makePresenter(m_presenter, model, view);
 	m_presenter->setPresenter(pres);
 }
 

@@ -6,6 +6,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model, QObject* parent):
 	QNamedObject{parent, "IntervalPresenter"},
 	m_model{model}
 {
+	qDebug(Q_FUNC_INFO);
 	// Faire un parcours récursif du modèle pour créer des présenteurs adaptés ?
 	for(auto& contentModel : m_model->contentModels())
 	{

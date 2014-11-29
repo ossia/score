@@ -1,7 +1,10 @@
 #include "ScenarioProcessPresenter.hpp"
 #include "ScenarioProcessViewModel.hpp"
 #include <QDebug>
-ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model, QObject* parent)
+
+ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model, QObject* parent):
+	iscore::ProcessPresenterInterface{parent, "ScenarioProcessPresenter"},
+	m_model{static_cast<ScenarioProcessViewModel*>(model)}
 {
-	qDebug() << "yolo swag";
+	qDebug(Q_FUNC_INFO);
 }

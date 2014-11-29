@@ -31,28 +31,28 @@ class QIdentifiedObject : public QNamedObject
 {
 	public:
 		template<typename... Args>
-		QIdentifiedObject(QObject* parent, 
-						QString name, 
-						int id, 
+		QIdentifiedObject(QObject* parent,
+						QString name,
+						int id,
 						Args&&... args):
-			QNamedObject{parent, 
-						 name, 
+			QNamedObject{parent,
+						 name,
 						 std::forward<Args>(args)...},
 			m_id{id}
 		{
-			
+
 		}
-		
+
 		int id() const
 		{
 			return m_id;
 		}
-		
+
 		void setId(int id)
 		{
 			m_id = id;
 		}
-		
+
 	private:
 		int m_id{};
 };
@@ -67,10 +67,10 @@ typename Container::value_type findById(const Container& c, int id)
 							{
 							  return model->id() == id;
 							});
-	
+
 	if(it != std::end(c))
 		return *it;
-	
+
 	return nullptr;
 }
 
@@ -81,6 +81,7 @@ struct ObjectIdentifier
 {
 		QString child_name;
 		int id;
+		//bool use_id = true;
 };
 
 class ObjectPath
@@ -88,27 +89,40 @@ class ObjectPath
 	public:
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
-		
+
 		QString baseObject;
 		std::vector<ObjectIdentifier> v;
-		
+
 		QObject* find()
 		{
 			QObject* obj = qApp->findChild<QObject*>(baseObject);
-			
+
 			for(auto it = v.begin(); it != v.end(); ++it)
 			{
-				auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
-				
-				auto elt = findById(childs, it->id);
-				if(!elt) 
+				if(it->id != -1)
 				{
-					return nullptr;
+					auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+
+					auto elt = findById(childs, it->id);
+					if(!elt)
+					{
+						return nullptr;
+					}
+
+					obj = elt;
 				}
-				
-				obj = elt;
+				else
+				{
+					auto child = obj->findChild<QNamedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+					if(!child)
+					{
+						return nullptr;
+					}
+
+					obj = child;
+				}
 			}
-			
+
 			return obj;
 		}
 };

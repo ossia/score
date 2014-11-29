@@ -10,6 +10,7 @@ StoreyPresenter::StoreyPresenter(StoreyModel* const model, QObject* parent):
 	QNamedObject{parent, "StoreyPresenter"},
 	m_model{model}
 {
+	qDebug(Q_FUNC_INFO);
 	for(iscore::ProcessViewModelInterface* pvm : m_model->processViewModels())
 	{
 		auto procname = m_model->parentInterval()->process(pvm->sharedProcessId())->processName();

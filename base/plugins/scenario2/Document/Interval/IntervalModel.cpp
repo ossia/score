@@ -96,7 +96,6 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 //// Complex commands
 int IntervalModel::createProcess(QString processName)
 {
-	qDebug() << m_nextProcessId;
 	auto processFactory = iscore::ProcessList::getFactory(processName);
 
 	if(processFactory)

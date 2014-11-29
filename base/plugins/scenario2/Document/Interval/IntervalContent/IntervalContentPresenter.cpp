@@ -8,6 +8,7 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model, 
 	QNamedObject{parent, "IntervalContentPresenter"},
 	m_model{model}
 {
+	qDebug(Q_FUNC_INFO);
 	for(auto& storey : m_model->storeys())
 	{
 		m_storeys.push_back(new StoreyPresenter{storey, this});

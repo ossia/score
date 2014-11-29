@@ -4,6 +4,7 @@ namespace iscore
 {
 	class ProcessViewModelInterface;
 }
+class ScenarioProcessViewModel;
 class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 {
 	Q_OBJECT
@@ -13,6 +14,6 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		virtual ~ScenarioProcessPresenter() = default;
 
 	private:
-
+		ScenarioProcessViewModel* m_model;
 };
 
