@@ -25,6 +25,8 @@ class StoreyModel : public QIdentifiedObject
 {
 	Q_OBJECT
 
+		Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
+
 	public:
 		friend QDataStream& operator << (QDataStream& , const StoreyModel& );
 
@@ -58,14 +60,29 @@ class StoreyModel : public QIdentifiedObject
 		 */
 		IntervalModel* parentInterval();
 
+		int height() const
+		{
+			return m_height;
+		}
+
 	signals:
 		void processViewModelCreated(int processViewModelId);
 		void processViewModelDeleted(int processViewModelId);
 
 		void processViewModelSelected(int processViewModelId);
 
+		void heightChanged(int arg);
+
 	public slots:
 		void on_deleteSharedProcessModel(int sharedProcessId);
+
+		void setHeight(int arg)
+		{
+			if (m_height != arg) {
+				m_height = arg;
+				emit heightChanged(arg);
+			}
+		}
 
 	private:
 
@@ -73,5 +90,6 @@ class StoreyModel : public QIdentifiedObject
 		std::vector<iscore::ProcessViewModelInterface*> m_processViewModels;
 
 		int m_nextProcessViewModelId{};
+		int m_height{500};
 };
 

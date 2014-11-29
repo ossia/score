@@ -84,6 +84,7 @@ struct ObjectIdentifier
 		//bool use_id = true;
 };
 
+// TODO Find way for an object to give his own path
 class ObjectPath
 {
 	public:
@@ -126,3 +127,5 @@ class ObjectPath
 			return obj;
 		}
 };
+
+#define DEMO_PIXEL_SPACING_TEST 5

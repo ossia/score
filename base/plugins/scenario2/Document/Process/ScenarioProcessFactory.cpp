@@ -13,15 +13,20 @@ QStringList ScenarioProcessFactory::availableViews()
 	return {"Temporal"};
 }
 
-iscore::ProcessViewInterface*ScenarioProcessFactory::makeView(QString view)
+iscore::ProcessViewInterface* ScenarioProcessFactory::makeView(QString view, QObject* parent)
 {
-	return new ScenarioProcessView;
+	if(view == "Temporal")
+		return new ScenarioProcessView{static_cast<QGraphicsObject*>(parent)};
+
+	return nullptr;
 }
 
-iscore::ProcessPresenterInterface* ScenarioProcessFactory::makePresenter(iscore::ProcessViewModelInterface* pvm,
-																		QObject* parent)
+iscore::ProcessPresenterInterface*
+ScenarioProcessFactory::makePresenter(iscore::ProcessViewModelInterface* pvm,
+									  iscore::ProcessViewInterface* view,
+									  QObject* parent)
 {
-	return new ScenarioProcessPresenter(pvm, parent);
+	return new ScenarioProcessPresenter(pvm, view, parent);
 }
 
 iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(unsigned int id, QObject* parent)

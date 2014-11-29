@@ -15,14 +15,26 @@ namespace iscore
 class IntervalContentModel;
 class EventModel;
 class TimeBox;
+/**
+ * @brief The IntervalModel class
+ *
+ * Contains at least 1 IntervalContentModel (else nothing can be displayed)
+ */
 class IntervalModel : public QIdentifiedObject
 {
 	Q_OBJECT
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 		Q_PROPERTY(QString comment READ comment WRITE setComment NOTIFY commentChanged)
 		Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+		Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 	public:
+
+		// ___ TEMPORARY ___
+		int m_width{200};
+		int m_height{500};
+		int m_x{};
+
 		friend QDataStream& operator << (QDataStream&, const IntervalModel&);
 
 		IntervalModel(int id, QObject* parent);
@@ -57,10 +69,13 @@ class IntervalModel : public QIdentifiedObject
 		// For the presenter :
 		const std::vector<IntervalContentModel*>& contentModels()
 		{ return m_contentModels; }
+		double heightPercentage() const;
+
 	public slots:
 		void setName(QString arg);
 		void setComment(QString arg);
 		void setColor(QColor arg);
+		void setHeightPercentage(double arg);
 
 	signals:
 		void processCreated(QString processName, int processId);
@@ -72,6 +87,7 @@ class IntervalModel : public QIdentifiedObject
 		void nameChanged(QString arg);
 		void commentChanged(QString arg);
 		void colorChanged(QColor arg);
+		void heightPercentageChanged(double arg);
 
 	private:
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
@@ -83,6 +99,7 @@ class IntervalModel : public QIdentifiedObject
 		QString m_name;
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ?
+		double m_heightPercentage{0.5}; // Relative y position of the top-left corner. Should maybe be in Scenario ?
 
 		int m_nextProcessId{};
 		int m_nextContentId{};

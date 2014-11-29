@@ -6,8 +6,10 @@ class ScenarioProcessFactory : public iscore::ProcessFactoryInterface
 	public:
 		virtual QString name() const override;
 		virtual QStringList availableViews();
-		virtual iscore::ProcessViewInterface* makeView(QString view) override;
-		virtual iscore::ProcessPresenterInterface* makePresenter(iscore::ProcessViewModelInterface*, QObject* parent) override;
+		virtual iscore::ProcessViewInterface* makeView(QString view, QObject* parent) override;
+		virtual iscore::ProcessPresenterInterface* makePresenter(iscore::ProcessViewModelInterface*,
+																 iscore::ProcessViewInterface*,
+																 QObject* parent) override;
 
 		virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id,
 															   QObject* parent) override;

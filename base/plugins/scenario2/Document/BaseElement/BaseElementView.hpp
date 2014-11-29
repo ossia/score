@@ -3,7 +3,7 @@
 #include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
 class QGraphicsScene;
 class QGraphicsView;
-class BaseElementPresenter;
+class IntervalView;
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
 	Q_OBJECT
@@ -12,13 +12,16 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 		BaseElementView(QObject* parent);
 		virtual ~BaseElementView() = default;
 
-		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter);
 		virtual QWidget*getWidget();
+
+		IntervalView* intervalView()
+		{ return m_interval; }
 
 	private:
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
+		QGraphicsObject* m_baseObject{};
+		IntervalView* m_interval{};
 
-		BaseElementPresenter* m_presenter{};
 };
 

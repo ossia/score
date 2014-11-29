@@ -4,6 +4,7 @@
 
 
 class IntervalModel;
+class IntervalView;
 class IntervalContentPresenter;
 namespace iscore
 {
@@ -20,15 +21,17 @@ class IntervalPresenter : public QNamedObject
 	Q_OBJECT
 
 	public:
-		IntervalPresenter(IntervalModel* model, QObject* parent);
+		IntervalPresenter(IntervalModel* model,
+						  IntervalView* view,
+						  QObject* parent);
 		virtual ~IntervalPresenter() = default;
 
 	private:
 
-		std::vector<IntervalContentPresenter*> m_contentModels; // No content -> Phantom ?
-		std::vector<iscore::ProcessPresenterInterface*> m_processes;
-
-		IntervalModel* m_model;
+		std::vector<IntervalContentPresenter*> m_contentPresenters; // No content -> Phantom ?
+		// Process presenters are in the storey presenters.
+		IntervalModel* m_model{};
+		IntervalView* m_view{};
 
 };
 

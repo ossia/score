@@ -1,11 +1,15 @@
 #pragma once
-#include <QObject>
+#include <QGraphicsObject>
 
 namespace iscore
 {
-	class ProcessViewInterface : public QObject { };
+	class ProcessViewInterface : public QGraphicsObject
+	{
+		public:
+			using QGraphicsObject::QGraphicsObject;
+	};
 
-	class ProcessSmallView { };
+	/* class ProcessSmallView { };
 	class ProcessStandardView { };
-	class ProcessFullView { };
+	class ProcessFullView { }; */
 }

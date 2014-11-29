@@ -11,8 +11,13 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
 	m_scenario{new OSSIA::Scenario}
 {
+	qDebug() << "ScenarioProcessSharedModel parent : " << parent->objectName() << static_cast<QIdentifiedObject*>(parent)->id();
 	m_events.push_back(new EventModel(0, this));
-	m_events.push_back(new EventModel(1, this));
+	//m_events.push_back(new EventModel(1, this)); //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
+
+//	event(0)->m_y = 75;
+//	event(1)->m_y = 75;
+//	event(1)->m_x = 150;
 }
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
@@ -120,10 +125,18 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 	return inter->id();
 }
 
-std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId, int dur)
+std::tuple<int, int>
+ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
+															   int interval_duration)
 {
 	auto event = new EventModel{m_nextEventId++, this};
 	auto inter = new IntervalModel{m_nextIntervalId++, this};
+	// TEMPORARY :
+	inter->m_x = this->event(startEventId)->m_x;
+	inter->m_width = interval_duration;
+	event->m_x = inter->m_x + inter->m_width;
+//	event->m_y = inter->heightPercentage() * 75;
+
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();

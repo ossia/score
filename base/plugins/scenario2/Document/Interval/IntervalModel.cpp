@@ -48,6 +48,7 @@ IntervalModel::IntervalModel(int id,
 	QIdentifiedObject{parent, "IntervalModel", id},
 	m_timeBox{new OSSIA::TimeBox}
 {
+	qDebug() << Q_FUNC_INFO << id;
 	createContentModel();
 }
 
@@ -221,6 +222,11 @@ QColor IntervalModel::color() const
 	return m_color;
 }
 
+double IntervalModel::heightPercentage() const
+{
+	return m_heightPercentage;
+}
+
 void IntervalModel::setName(QString arg)
 {
 	if (m_name == arg)
@@ -246,4 +252,12 @@ void IntervalModel::setColor(QColor arg)
 
 	m_color = arg;
 	emit colorChanged(arg);
+}
+
+void IntervalModel::setHeightPercentage(double arg)
+{
+	if (m_heightPercentage != arg) {
+		m_heightPercentage = arg;
+		emit heightPercentageChanged(arg);
+	}
 }

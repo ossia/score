@@ -72,6 +72,12 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		IntervalModel* interval(int intervalId);
 		EventModel* event(int eventId);
 
+		// For the presenter :
+		const std::vector<IntervalModel*> intervals() const
+		{ return m_intervals; }
+		const std::vector<EventModel*> events() const
+		{ return m_events; }
+
 	signals:
 		void eventCreated(int eventId);
 		void intervalCreated(int intervalId);

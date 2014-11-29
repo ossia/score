@@ -3,19 +3,39 @@
 #include <QGridLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include "BaseElementPresenter.hpp"
+#include "Interval/IntervalView.hpp"
 
+class GrapicsProxyObject : public QGraphicsObject
+{
+	public:
+		using QGraphicsObject::QGraphicsObject;
+		public:
+		virtual QRectF boundingRect() const
+		{
+			return QRectF{};
+		}
+		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+		{
+		}
+};
+
+
+
+
+#include <QDebug>
 BaseElementView::BaseElementView(QObject* parent):
 	iscore::DocumentDelegateViewInterface{parent},
 	m_scene{new QGraphicsScene{this}},
-	m_view{new QGraphicsView{m_scene}}
+	m_view{new QGraphicsView{m_scene}},
+	m_baseObject{new GrapicsProxyObject{}}
 {
+	m_scene->setSceneRect(0, 0, 500, 200);
 	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-}
 
-void BaseElementView::setPresenter(iscore::DocumentDelegatePresenterInterface* presenter)
-{
-	m_presenter = static_cast<BaseElementPresenter*>(presenter);
+	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	m_scene->addItem(m_baseObject);
+	m_interval = new IntervalView{m_baseObject};
+
 }
 
 QWidget* BaseElementView::getWidget()

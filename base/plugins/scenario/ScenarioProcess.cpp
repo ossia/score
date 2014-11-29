@@ -21,12 +21,14 @@ QStringList ScenarioProcess::availableViews()
 	return {};
 }
 
-iscore::ProcessViewInterface* ScenarioProcess::makeView(QString view)
+iscore::ProcessViewInterface* ScenarioProcess::makeView(QString view, QObject* parent)
 {
-	return new iscore::ProcessViewInterface();
+	return nullptr;
 }
 
-iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter(iscore::ProcessViewModelInterface* pvm, QObject* parent)
+iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter(iscore::ProcessViewModelInterface* pvm,
+																  iscore::ProcessViewInterface* view,
+																  QObject* parent)
 {
 	return nullptr; //new iscore::ProcessPresenterInterface(nullptr, "");
 }

@@ -24,6 +24,25 @@ EventModel::EventModel(QDataStream& s, QObject* parent):
 
 }
 
+const QVector<int>&EventModel::previousIntervals() const
+{ return m_previousIntervals; }
+
+const QVector<int>&EventModel::nextIntervals() const
+{ return m_nextIntervals; }
+
+double EventModel::heightPercentage() const
+{
+	return m_heightPercentage;
+}
+
+void EventModel::setHeightPercentage(double arg)
+{
+	if (m_heightPercentage != arg) {
+		m_heightPercentage = arg;
+		emit heightPercentageChanged(arg);
+	}
+}
+
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
 	qDebug(Q_FUNC_INFO);
