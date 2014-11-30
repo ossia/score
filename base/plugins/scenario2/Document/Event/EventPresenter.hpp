@@ -13,6 +13,10 @@ class EventPresenter : public QNamedObject
 
 		int id() const;
 
+	signals:
+		void eventSelected(int id);
+		void eventReleased(int id, int x);
+
 	private:
 		EventModel* m_model{};
 		EventView* m_view{};

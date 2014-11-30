@@ -16,6 +16,7 @@ class ScenarioProcessView : public iscore::ProcessViewInterface
 
 	signals:
 		void scenarioPressed(QPointF);
+		void scenarioReleased(QPointF);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

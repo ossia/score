@@ -20,8 +20,13 @@ class EventView : public QNamedGraphicsObject
 
 		QRectF m_rect{0, 0, 30, 30};
 
+	signals:
+		void eventPressed();
+		void eventReleased(QPointF);
+
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
 };
 

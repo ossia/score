@@ -14,6 +14,7 @@
 #include "Event/EventView.hpp"
 
 #include "Commands/Scenario/CreateEventCommand.hpp"
+#include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 #include <QDebug>
 
 #include "utilsCPP11.hpp"
@@ -55,6 +56,11 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 			this,		 &ScenarioProcessPresenter::on_intervalCreated);
 	connect(m_viewModel, &ScenarioProcessViewModel::intervalDeleted,
 			this,		 &ScenarioProcessPresenter::on_intervalDeleted);
+}
+
+int ScenarioProcessPresenter::currentlySelectedEvent() const
+{
+	return m_currentlySelectedEvent;
 }
 
 void ScenarioProcessPresenter::on_eventCreated(int eventId)
@@ -100,7 +106,26 @@ void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 
 void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 {
-	auto cmd = new CreatEventCommand(ObjectPath::pathFromObject("BaseIntervalModel", m_viewModel->model()), point.x());
+	auto cmd = new CreatEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
+																m_viewModel->model()),
+									 point.x());
+	submitCommand(cmd);
+}
+
+void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
+{
+	if (m_currentlySelectedEvent != arg) {
+		m_currentlySelectedEvent = arg;
+		emit currentlySelectedEventChanged(arg);
+	}
+}
+
+void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int distance)
+{
+	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
+																		   m_viewModel->model()),
+												id,
+												distance);
 	submitCommand(cmd);
 }
 
@@ -120,6 +145,11 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 							rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
+
+	connect(event_presenter, &EventPresenter::eventSelected,
+			this,			 &ScenarioProcessPresenter::setCurrentlySelectedEvent);
+	connect(event_presenter, &EventPresenter::eventReleased,
+			this,			 &ScenarioProcessPresenter::createIntervalAndEventFromEvent);
 }
 
 void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_model)

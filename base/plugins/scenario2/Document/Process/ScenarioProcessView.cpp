@@ -45,4 +45,6 @@ void ScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void ScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+	qDebug() << "Scenario: mouse release";
+	emit scenarioReleased(event->pos());
 }

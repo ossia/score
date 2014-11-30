@@ -38,5 +38,13 @@ void EventView::setTopLeft(QPointF p)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-	qDebug() <<"Event clicked";
+	qDebug() << "Event clicked; transmitting to scenario";
+	emit eventPressed();
+}
+
+void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
+{
+	qDebug() << "Event released; transmitting to scenario";
+
+	emit eventReleased(m->pos() - m_rect.topLeft());
 }

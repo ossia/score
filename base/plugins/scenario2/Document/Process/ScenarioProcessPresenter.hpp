@@ -17,6 +17,11 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 {
 	Q_OBJECT
 
+		Q_PROPERTY(int currentlySelectedEvent
+				   READ currentlySelectedEvent
+				   WRITE setCurrentlySelectedEvent
+				   NOTIFY currentlySelectedEventChanged)
+
 	public:
 		ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 								 iscore::ProcessViewInterface* view,
@@ -24,8 +29,11 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		virtual ~ScenarioProcessPresenter() = default;
 
 
+		int currentlySelectedEvent() const;
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
+		void currentlySelectedEventChanged(int arg);
 
 	public slots:
 		// Model -> view
@@ -37,6 +45,10 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		// View -> Command
 		void on_scenarioPressed(QPointF);
 
+	private slots:
+		void setCurrentlySelectedEvent(int arg);
+		void createIntervalAndEventFromEvent(int id, int distance);
+
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
 		void on_intervalCreated_impl(IntervalModel* interval_model);
@@ -47,5 +59,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 
 		std::vector<IntervalPresenter*> m_intervals;
 		std::vector<EventPresenter*> m_events;
+
+		int m_currentlySelectedEvent{};
 };
 
