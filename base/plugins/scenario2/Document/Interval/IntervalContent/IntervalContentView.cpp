@@ -17,7 +17,6 @@ QRectF IntervalContentView::boundingRect() const
 			parentItem()->boundingRect().y() + 50 + DEMO_PIXEL_SPACING_TEST,
 			parentItem()->boundingRect().width()  - 2 * DEMO_PIXEL_SPACING_TEST,
 			parentItem()->boundingRect().height() - 50 - 2 * DEMO_PIXEL_SPACING_TEST};
-	// TODO : plutôt prendre le height de chaque storey
 }
 
 void IntervalContentView::paint(QPainter* painter,

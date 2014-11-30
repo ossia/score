@@ -67,37 +67,31 @@ void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 	on_intervalCreated_impl(m_viewModel->model()->interval(intervalId));
 }
 
-// Todo : deduplicate with a templates
-void ScenarioProcessPresenter::on_eventDeleted(int eventId)
+template<typename hasId>
+void removeFromVectorWithId(std::vector<hasId*>& v, int id)
 {
-	auto it = std::find_if(std::begin(m_events),
-						   std::end(m_events),
-						   [eventId] (EventPresenter const * pres)
-	{
-		return pres->id() == eventId;
-	});
+	auto it = std::find_if(std::begin(v),
+						   std::end(v),
+						   [id] (hasId const * elt)
+				{
+					return elt->id() == id;
+				});
 
-	if(it != std::end(m_events))
+	if(it != std::end(v))
 	{
 		delete *it;
-		m_events.erase(it);
+		v.erase(it);
 	}
+}
+
+void ScenarioProcessPresenter::on_eventDeleted(int eventId)
+{
+	removeFromVectorWithId(m_events, eventId);
 }
 
 void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 {
-	auto it = std::find_if(std::begin(m_intervals),
-						   std::end(m_intervals),
-						   [intervalId] (IntervalPresenter const * pres)
-	{
-		return pres->id() == intervalId;
-	});
-
-	if(it != std::end(m_intervals))
-	{
-		delete *it;
-		m_intervals.erase(it);
-	}
+	removeFromVectorWithId(m_intervals, intervalId);
 }
 
 

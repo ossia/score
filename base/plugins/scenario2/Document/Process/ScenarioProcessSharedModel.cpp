@@ -11,13 +11,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
 	m_scenario{new OSSIA::Scenario}
 {
-	m_events.push_back(new EventModel(0, this));
+	m_events.push_back(new EventModel{0, this});
 	m_nextEventId++;
 	//m_events.push_back(new EventModel(1, this)); //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
-
-//	event(0)->m_y = 75;
-//	event(1)->m_y = 75;
-//	event(1)->m_x = 150;
 }
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
@@ -33,7 +29,6 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 																			 int processId,
 																			 QObject* parent)
 {
-	// TODO should the parent be the storey?
 	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
 			scen, &ScenarioProcessViewModel::eventCreated);

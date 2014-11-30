@@ -95,7 +95,6 @@ class IntervalModel : public QIdentifiedObject
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 
-		// TODO Mute ? Solo ?
 		QString m_name;
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ?

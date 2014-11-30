@@ -38,6 +38,7 @@ class IntervalContentModel : public QIdentifiedObject
 		void on_deleteSharedProcessModel(int processId);
 
 	private:
+		int createStorey_impl(PositionedStoreyModel* m);
 		std::vector<PositionedStoreyModel*> m_storeys;
 
 		int m_nextStoreyId{};

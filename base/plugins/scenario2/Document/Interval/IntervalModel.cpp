@@ -167,7 +167,7 @@ void IntervalModel::deleteContentModel(int viewId)
 
 void IntervalModel::duplicateContentModel(int viewId)
 {
-	// TODO
+	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
 int IntervalModel::startEvent()

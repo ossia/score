@@ -17,7 +17,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	view->m_rect.setWidth(model->m_width);
 	view->m_rect.setHeight(model->m_height);
 
-	// Todo : ou s'enregistre le contentView? Dans le présenteur ?
+	// Le contentView est child de IntervalView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
 	auto contentView = new IntervalContentView{view};
 

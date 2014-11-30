@@ -9,7 +9,7 @@ EventView::EventView(QGraphicsObject* parent):
 {
 	this->setParentItem(parent);
 
-	// TODO hack. How to do it properly ?
+	// TODO hack. How to do it properly ? should events be "over" intervals ? maybe +1.5 ?
 	this->setZValue(parent->zValue() + 2);
 }
 

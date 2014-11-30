@@ -25,6 +25,7 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
 	QIdentifiedObject{nullptr, "IntervalContentModel", -1}
 {
+	// TODO should this go in a "operator >>" ?
 	int id;
 	s >> id;
 	this->setId(id);
@@ -38,23 +39,24 @@ IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent
 	}
 }
 
-// TODO refactor stuff like this
 int IntervalContentModel::createStorey()
 {
-	auto storey = new PositionedStoreyModel{(int) m_storeys.size(),
-											m_nextStoreyId++,
-											this};
-	connect(this,	&IntervalContentModel::on_deleteSharedProcessModel,
-			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
-	m_storeys.push_back(storey);
+	return createStorey_impl(
+				new PositionedStoreyModel{(int) m_storeys.size(),
+										  m_nextStoreyId++,
+										  this});
 
-	emit storeyCreated(storey->id());
-	return storey->id();
 }
 
 int IntervalContentModel::createStorey(QDataStream& s)
 {
-	auto storey = new PositionedStoreyModel{s, this};
+	return createStorey_impl(
+				new PositionedStoreyModel{s,
+										  this});
+}
+
+int IntervalContentModel::createStorey_impl(PositionedStoreyModel* storey)
+{
 	connect(this,	&IntervalContentModel::on_deleteSharedProcessModel,
 			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
 	m_storeys.push_back(storey);
@@ -62,6 +64,7 @@ int IntervalContentModel::createStorey(QDataStream& s)
 	emit storeyCreated(storey->id());
 	return storey->id();
 }
+
 
 void IntervalContentModel::deleteStorey(int storeyId)
 {
@@ -73,6 +76,7 @@ void IntervalContentModel::deleteStorey(int storeyId)
 
 void IntervalContentModel::changeStoreyOrder(int storeyId, int position)
 {
+	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
 PositionedStoreyModel* IntervalContentModel::storey(int storeyId)
@@ -82,6 +86,7 @@ PositionedStoreyModel* IntervalContentModel::storey(int storeyId)
 
 void IntervalContentModel::duplicateStorey()
 {
-
+	qDebug() << Q_FUNC_INFO << "TODO";
 }
+
 
