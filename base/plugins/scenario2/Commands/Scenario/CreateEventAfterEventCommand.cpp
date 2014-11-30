@@ -8,6 +8,14 @@
 using namespace iscore;
 
 
+
+CreateEventAfterEventCommand::CreateEventAfterEventCommand():
+	SerializableCommand{"ScenarioControl",
+						"CreateEventAfterEventCommand",
+						QObject::tr("Event creation")}
+{
+}
+
 CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath&& scenarioPath,
 														   int firstEventId,
 														   int time):

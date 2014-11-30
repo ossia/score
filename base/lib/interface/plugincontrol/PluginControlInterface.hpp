@@ -1,5 +1,5 @@
 #pragma once
-#include <QObject>
+#include <QNamedObject>
 
 namespace iscore
 {
@@ -17,7 +17,7 @@ namespace iscore
 	 *
 	 * It is instatiated exactly once by the Presenter class in i-score.
 	 */
-	class PluginControlInterface : public QObject
+	class PluginControlInterface : public QNamedObject
 	{
 			Q_OBJECT
 			// Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
@@ -25,6 +25,7 @@ namespace iscore
 			// Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
 			// Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
 		public:
+			using QNamedObject::QNamedObject;
 			virtual ~PluginControlInterface() = default;
 			virtual void populateMenus(iscore::MenubarManager*) = 0;
 			virtual void populateToolbars() = 0;

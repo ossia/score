@@ -3,10 +3,11 @@
 #include <QPointF>
 #include <QNamedObject>
 
-class CreatEventCommand : public iscore::SerializableCommand
+class CreateEventCommand : public iscore::SerializableCommand
 {
 	public:
-		CreatEventCommand(ObjectPath&& scenarioPath, int time);
+		CreateEventCommand();
+		CreateEventCommand(ObjectPath&& scenarioPath, int time);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -15,10 +16,10 @@ class CreatEventCommand : public iscore::SerializableCommand
 	protected:
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
-		
+
 	private:
 		ObjectPath m_path;
-		
+
 		int m_intervalId{};
 		int m_time{};
 };

@@ -5,6 +5,7 @@
 class CreateEventAfterEventCommand : public iscore::SerializableCommand
 {
 	public:
+		CreateEventAfterEventCommand();
 		CreateEventAfterEventCommand(ObjectPath&& scenarioPath, int firstEventId, int time);
 		virtual void undo() override;
 		virtual void redo() override;

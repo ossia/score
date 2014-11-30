@@ -1,10 +1,12 @@
 #include <ScenarioPlugin.hpp>
 #include <QStringList>
+#include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioProcessFactory.hpp>
 
 ScenarioPlugin::ScenarioPlugin():
 	QObject{},
 	iscore::Autoconnect_QtInterface{},
+	iscore::PluginControlInterface_QtInterface{},
 	iscore::DocumentDelegateFactoryInterface_QtInterface{},
 	iscore::ProcessFactoryInterface_QtInterface{}
 {
@@ -16,14 +18,11 @@ QList<iscore::Autoconnect> ScenarioPlugin::autoconnect_list() const
 {
 	return
 	{
-	//	{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "BaseElementPresenter", SIGNAL(submitCommand(iscore::SerializableCommand*))},
-	//	 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}}
 	};
 }
 
 
 // Interfaces implementations :
-
 QStringList ScenarioPlugin::document_list() const
 {
 	return {"Scenario document"};
@@ -50,6 +49,21 @@ iscore::ProcessFactoryInterface* ScenarioPlugin::process_make(QString name)
 	if(name == "Scenario")
 	{
 		return new ScenarioProcessFactory;
+	}
+
+	return nullptr;
+}
+
+QStringList ScenarioPlugin::control_list() const
+{
+	return {"Scenario control"};
+}
+
+iscore::PluginControlInterface*ScenarioPlugin::control_make(QString name)
+{
+	if(name == "Scenario control")
+	{
+		return new ScenarioControl{nullptr};
 	}
 
 	return nullptr;

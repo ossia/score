@@ -85,10 +85,24 @@ struct ObjectIdentifier
 		//bool use_id = true;
 };
 
+
+inline QDataStream& operator <<(QDataStream& s, const ObjectIdentifier& obj)
+{
+	s << obj.child_name << obj.id;
+	return s;
+}
+
+inline QDataStream& operator >>(QDataStream& s, ObjectIdentifier& obj)
+{
+	s >> obj.child_name >> obj.id;
+	return s;
+}
+
 // TODO Find way for an object to give his own path
 class ObjectPath
 {
 	public:
+		ObjectPath() = default;
 		// Creates a path object going from the (named) object with the "origin" name, to the identified object obj.
 		static ObjectPath pathFromObject(QString origin, QIdentifiedObject* obj)
 		{
@@ -158,5 +172,22 @@ class ObjectPath
 			return obj;
 		}
 };
+
+inline QDataStream& operator <<(QDataStream& s, const ObjectPath& path)
+{
+	s << path.baseObject;
+	s << QVector<ObjectIdentifier>::fromStdVector(path.v);
+	return s;
+}
+
+inline QDataStream& operator >>(QDataStream& s, ObjectPath& path)
+{
+	s >> path.baseObject;
+	QVector<ObjectIdentifier> vec;
+	s >> vec;
+
+	path.v = vec.toStdVector();
+	return s;
+}
 
 #define DEMO_PIXEL_SPACING_TEST 5

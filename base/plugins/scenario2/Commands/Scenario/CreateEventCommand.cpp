@@ -7,7 +7,15 @@
 using namespace iscore;
 
 // TODO maybe the to-be-added event id should be created here ?
-CreatEventCommand::CreatEventCommand(ObjectPath&& scenarioPath, int time):
+CreateEventCommand::CreateEventCommand():
+	SerializableCommand{"ScenarioControl",
+						"CreateEventCommand",
+						QObject::tr("Event creation")}
+{
+
+}
+
+CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time):
 	SerializableCommand{"ScenarioControl",
 						"CreateEventCommand",
 						QObject::tr("Event creation")},
@@ -18,7 +26,7 @@ CreatEventCommand::CreatEventCommand(ObjectPath&& scenarioPath, int time):
 }
 
 #include <QDebug>
-void CreatEventCommand::undo()
+void CreateEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
@@ -28,7 +36,7 @@ void CreatEventCommand::undo()
 	}
 }
 
-void CreatEventCommand::redo()
+void CreateEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
@@ -38,20 +46,22 @@ void CreatEventCommand::redo()
 	}
 }
 
-int CreatEventCommand::id() const
+int CreateEventCommand::id() const
 {
 	return 1;
 }
 
-bool CreatEventCommand::mergeWith(const QUndoCommand* other)
+bool CreateEventCommand::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void CreatEventCommand::serializeImpl(QDataStream& s)
+void CreateEventCommand::serializeImpl(QDataStream& s)
 {
+	s << m_path << m_intervalId << m_time;
 }
 
-void CreatEventCommand::deserializeImpl(QDataStream& s)
+void CreateEventCommand::deserializeImpl(QDataStream& s)
 {
+	s >> m_path >> m_intervalId >> m_time;
 }

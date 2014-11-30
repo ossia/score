@@ -108,7 +108,7 @@ void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 
 void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 {
-	auto cmd = new CreatEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
+	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																m_viewModel->model()),
 									 point.x());
 	submitCommand(cmd);
