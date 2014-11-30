@@ -2,6 +2,9 @@
 #include <API/Headers/Editor/TimeNode.h>
 #include <QVector>
 
+// TODO possibilité temporaire pour tester ce que l'on veut faire :
+// FAire une copie du scénario, appliquer la commande dessus, et si elle throw pas sur la copie, l'appliquer pour de vrai.
+
 EventModel::EventModel(int id, QObject* parent):
 	QIdentifiedObject{parent, "EventModel", id},
 	m_timeNode{new OSSIA::TimeNode}

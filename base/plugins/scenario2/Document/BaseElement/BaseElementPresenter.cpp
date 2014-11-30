@@ -15,8 +15,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
 	m_baseIntervalPresenter{}
 {
-	this->setObjectName("BaseElementPresenter");
-	this->setParent(parent_presenter);
 	auto cmd = new AddProcessToIntervalCommand(
 		{
 			"BaseElementModel",
@@ -26,39 +24,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 		},
 		"Scenario");
 	cmd->redo();
-/*
-	auto cmd2 = new CreatEventCommand(
-		{
-			"BaseElementModel",
-			{
-				{"IntervalModel", -1},
-				{"ScenarioProcessSharedModel", 0}
-			}
-		},
-		150);
-	cmd2->redo();
-
-	auto cmd3 = new CreateEventAfterEventCommand(
-	{
-		"BaseElementModel",
-		{
-			{"IntervalModel", -1},
-			{"ScenarioProcessSharedModel", 0}
-		}
-	},
-	1,
-	400);
-	//cmd3->redo();
-
-	QTimer* t = new QTimer; t->setSingleShot(true);
-
-	QTimer* t2 = new QTimer; t2->setSingleShot(true);
-	connect(t, &QTimer::timeout, [=] () { cmd3->redo(); this->view()->intervalView()->update(); t2->start(300);});
-	connect(t2, &QTimer::timeout, [=] () { cmd3->undo(); this->view()->intervalView()->update(); t->start(300); });
-
-	t->start(300);
-	*/
-
 
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),
