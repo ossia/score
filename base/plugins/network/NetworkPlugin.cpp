@@ -39,6 +39,10 @@ QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
 			// Reception
 			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(receivedCommand(QString, QString, QByteArray))},
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter",			  SLOT(instantiateUndoCommand(QString, QString, QByteArray))}},
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(undo())},
+			{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			  SLOT(undo())}},
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(redo())},
+			{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			  SLOT(redo())}},
 
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter",				SIGNAL(instantiatedCommand(iscore::SerializableCommand*))},
 			 {iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver",	SLOT(applyCommand(iscore::SerializableCommand*))}}

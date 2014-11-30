@@ -187,6 +187,7 @@ void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromEvent(int int
 {
 	// End event suppression
 	{
+		qDebug() << "suppressing event";
 		auto end_event_id = this->interval(intervalId)->endEvent();
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
@@ -194,6 +195,7 @@ void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromEvent(int int
 
 	// Interval suppression
 	{
+		qDebug() << "suppressing interval";
 		emit intervalDeleted(intervalId);
 		removeById(m_intervals, intervalId);
 	}

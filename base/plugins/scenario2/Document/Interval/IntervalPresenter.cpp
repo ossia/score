@@ -6,6 +6,7 @@
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QDebug>
+#include <QGraphicsScene>
 
 IntervalPresenter::IntervalPresenter(IntervalModel* model,
 									 IntervalView* view,
@@ -35,6 +36,8 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 
 IntervalPresenter::~IntervalPresenter()
 {
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
 }
 

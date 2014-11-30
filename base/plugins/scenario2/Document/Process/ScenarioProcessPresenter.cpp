@@ -95,11 +95,13 @@ void removeFromVectorWithId(std::vector<hasId*>& v, int id)
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
 {
 	removeFromVectorWithId(m_events, eventId);
+	m_view->update();
 }
 
 void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 {
 	removeFromVectorWithId(m_intervals, intervalId);
+	m_view->update();
 }
 
 

@@ -22,7 +22,7 @@ void RemoteActionReceiver::handle__edit_undo(osc::ReceivedMessageArgumentStream 
 	args >> sessionId >> clientId;
 	if(sessionId != session()->getId()) return;
 
-	undo();
+	emit undo();
 }
 
 void RemoteActionReceiver::handle__edit_redo(osc::ReceivedMessageArgumentStream args)
@@ -33,19 +33,7 @@ void RemoteActionReceiver::handle__edit_redo(osc::ReceivedMessageArgumentStream 
 	args >> sessionId >> clientId;
 	if(sessionId != session()->getId()) return;
 
-	redo();
-}
-
-void RemoteActionReceiver::undo()
-{
-	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
-	queue->undo();
-}
-
-void RemoteActionReceiver::redo()
-{
-	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
-	queue->redo();
+	emit redo();
 }
 
 void RemoteActionReceiver::handle__edit_command(osc::ReceivedMessageArgumentStream args)

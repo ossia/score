@@ -7,7 +7,7 @@
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
-
+#include <QGraphicsScene>
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,
 												   QObject* parent):
@@ -30,5 +30,7 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 
 IntervalContentPresenter::~IntervalContentPresenter()
 {
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
 }

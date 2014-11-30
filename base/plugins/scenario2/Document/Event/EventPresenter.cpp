@@ -2,7 +2,7 @@
 #include "EventModel.hpp"
 #include "EventView.hpp"
 #include <QPointF>
-
+#include <QGraphicsScene>
 
 EventPresenter::EventPresenter(EventModel* model,
 							   EventView* view,
@@ -23,7 +23,9 @@ EventPresenter::EventPresenter(EventModel* model,
 
 EventPresenter::~EventPresenter()
 {
-	delete m_view;
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
+	m_view->deleteLater();
 }
 
 int EventPresenter::id() const

@@ -7,7 +7,7 @@
 #include <Interval/IntervalModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
-
+#include <QGraphicsScene>
 StoreyPresenter::StoreyPresenter(StoreyModel* model,
 								 StoreyView* view,
 								 QObject* parent):
@@ -33,5 +33,7 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 
 StoreyPresenter::~StoreyPresenter()
 {
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
 }
