@@ -11,7 +11,7 @@ class ScenarioProcessFactory : public iscore::ProcessFactoryInterface
 																 iscore::ProcessViewInterface*,
 																 QObject* parent) override;
 
-		virtual iscore::ProcessSharedModelInterface* makeModel(unsigned int id,
+		virtual iscore::ProcessSharedModelInterface* makeModel(int id,
 															   QObject* parent) override;
 		virtual iscore::ProcessSharedModelInterface* makeModel(QDataStream& data,
 															   QObject* parent) override;

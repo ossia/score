@@ -90,6 +90,9 @@ class IntervalModel : public QIdentifiedObject
 		void heightPercentageChanged(double arg);
 
 	private:
+		int createProcess_impl(iscore::ProcessSharedModelInterface*);
+		void createContentModel_impl(IntervalContentModel*);
+
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
@@ -99,9 +102,6 @@ class IntervalModel : public QIdentifiedObject
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ?
 		double m_heightPercentage{0.5}; // Relative y position of the top-left corner. Should maybe be in Scenario ?
-
-		int m_nextProcessId{};
-		int m_nextContentId{};
 
 		int m_startEvent{};
 		int m_endEvent{};

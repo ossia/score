@@ -10,6 +10,16 @@ EventModel::EventModel(int id, QObject* parent):
 
 }
 
+QDataStream& operator << (QDataStream& s, const EventModel& ev)
+{
+	s << ev.id()
+	  << ev.m_previousIntervals
+	  << ev.m_nextIntervals;
+
+	// TODO s << ev.m_timeNode->save();
+	return s;
+}
+
 EventModel::EventModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "EventModel", -1}
 {
@@ -18,16 +28,20 @@ EventModel::EventModel(QDataStream& s, QObject* parent):
 	this->setId(id);
 
 	m_timeNode = new OSSIA::TimeNode;
-	// TODO load
+	// TODO load the timenode
 	this->setParent(parent); // Safer, if somebody receives a signal
 
 }
 
 const QVector<int>&EventModel::previousIntervals() const
-{ return m_previousIntervals; }
+{
+	return m_previousIntervals;
+}
 
 const QVector<int>&EventModel::nextIntervals() const
-{ return m_nextIntervals; }
+{
+	return m_nextIntervals;
+}
 
 double EventModel::heightPercentage() const
 {
@@ -40,14 +54,4 @@ void EventModel::setHeightPercentage(double arg)
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
 	}
-}
-
-QDataStream& operator << (QDataStream& s, const EventModel& ev)
-{
-	s << ev.id()
-	  << ev.m_previousIntervals
-	  << ev.m_nextIntervals;
-
-	// TODO s << ev.m_timeNode->save();
-	return s;
 }

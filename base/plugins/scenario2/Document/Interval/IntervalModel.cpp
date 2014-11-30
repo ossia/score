@@ -42,14 +42,6 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 	return s;
 }
 
-IntervalModel::IntervalModel(int id,
-							 QObject* parent):
-	QIdentifiedObject{parent, "IntervalModel", id},
-	m_timeBox{new OSSIA::TimeBox}
-{
-	createContentModel();
-}
-
 IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
 {
@@ -87,82 +79,74 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	// Events
 	s >> m_startEvent;
 	s >> m_endEvent;
+}
 
+
+IntervalModel::IntervalModel(int id,
+							 QObject* parent):
+	QIdentifiedObject{parent, "IntervalModel", id},
+	m_timeBox{new OSSIA::TimeBox}
+{
+	createContentModel();
 }
 
 //// Complex commands
 int IntervalModel::createProcess(QString processName)
 {
-	auto processFactory = iscore::ProcessList::getFactory(processName);
-
-	if(processFactory)
-	{
-		auto model = processFactory->makeModel(m_nextProcessId, this);
-		m_nextProcessId++;
-
-		m_processes.push_back(model);
-		emit processCreated(processName, model->id());
-
-		return model->id();
-	}
-	qDebug() << "FAIL: " << Q_FUNC_INFO;
-	return -1;
+	auto model = iscore::ProcessList::getFactory(processName)->makeModel(m_processes.size(), this);
+	return createProcess_impl(model);
 }
+
 int IntervalModel::createProcess(QString processName, QDataStream& data)
 {
-	auto processFactory = iscore::ProcessList::getFactory(processName);
-
-	if(processFactory)
-	{
-		auto model = processFactory->makeModel(data, this);
-		m_nextProcessId++;
-
-		m_processes.push_back(model);
-		emit processCreated(processName, model->id());
-
-		return model->id();
-	}
-
-	return -1;
+	auto model = iscore::ProcessList::getFactory(processName)->makeModel(data, this);
+	return createProcess_impl(model);
 }
+
+int IntervalModel::createProcess_impl(iscore::ProcessSharedModelInterface* model)
+{
+	m_processes.push_back(model);
+	emit processCreated(model->processName(), model->id());
+
+	return model->id();
+}
+
 
 void IntervalModel::deleteProcess(int processId)
 {
 	emit processDeleted(processId);
 	removeById(m_processes,
 			   processId);
-
-	m_nextProcessId--;
 }
 
 
 void IntervalModel::createContentModel()
 {
-	auto content = new IntervalContentModel{m_nextContentId++, this};
-	connect(this,	 &IntervalModel::processDeleted,
-			content, &IntervalContentModel::on_deleteSharedProcessModel);
-
-	m_contentModels.push_back(content);
-	emit viewCreated(content->id());
+	auto content = new IntervalContentModel{int(m_contentModels.size()), this};
+	createContentModel_impl(content);
 }
 
 void IntervalModel::createContentModel(QDataStream& s)
 {
 	auto content = new IntervalContentModel{s, this};
+	createContentModel_impl(content);
+}
+
+void IntervalModel::createContentModel_impl(IntervalContentModel* content)
+{
 	connect(this,	 &IntervalModel::processDeleted,
 			content, &IntervalContentModel::on_deleteSharedProcessModel);
 
 	m_contentModels.push_back(content);
 	emit viewCreated(content->id());
 }
+
 
 void IntervalModel::deleteContentModel(int viewId)
 {
 	emit viewDeleted(viewId);
 	removeById(m_contentModels,
 			   viewId);
-
-	m_nextContentId--;
 }
 
 void IntervalModel::duplicateContentModel(int viewId)

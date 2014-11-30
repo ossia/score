@@ -43,7 +43,7 @@ int IntervalContentModel::createStorey()
 {
 	return createStorey_impl(
 				new PositionedStoreyModel{(int) m_storeys.size(),
-										  m_nextStoreyId++,
+										  (int) m_storeys.size(),
 										  this});
 
 }
@@ -71,7 +71,6 @@ void IntervalContentModel::deleteStorey(int storeyId)
 	emit storeyDeleted(storeyId);
 
 	removeById(m_storeys, storeyId);
-	m_nextStoreyId--;
 }
 
 void IntervalContentModel::changeStoreyOrder(int storeyId, int position)

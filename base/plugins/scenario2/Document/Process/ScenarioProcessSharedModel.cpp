@@ -11,9 +11,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
 	m_scenario{new OSSIA::Scenario}
 {
-	m_events.push_back(new EventModel{0, this});
-	m_nextEventId++;
-	//m_events.push_back(new EventModel(1, this)); //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
+	m_events.push_back(new EventModel{int(m_events.size()), this});
+	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
+	//m_events.push_back(new EventModel(1, this));
 }
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
@@ -72,8 +72,6 @@ void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 		IntervalModel* interval = new IntervalModel(s, this);
 		m_intervals.push_back(interval);
 		emit intervalCreated(interval->id());
-
-		m_nextIntervalId++;
 	}
 
 	// Events
@@ -85,7 +83,6 @@ void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 		m_events.push_back(evmodel);
 
 		emit eventCreated(evmodel->id());
-		m_nextEventId++;
 	}
 
 	for(IntervalModel* interval : m_intervals)
@@ -104,8 +101,7 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new IntervalModel{m_nextIntervalId, this};
-	m_nextIntervalId++;
+	auto inter = new IntervalModel{int(m_intervals.size()), this};
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -132,10 +128,8 @@ std::tuple<int, int>
 ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 															   int interval_duration)
 {
-	auto event = new EventModel{m_nextEventId, this};
-	m_nextEventId++;
-	auto inter = new IntervalModel{m_nextIntervalId, this};
-	m_nextIntervalId++;
+	auto event = new EventModel{int(m_events.size()), this};
+	auto inter = new IntervalModel{int(m_intervals.size()), this};
 
 	// TEMPORARY :
 	inter->m_x = this->event(startEventId)->m_x;
@@ -187,8 +181,6 @@ void ScenarioProcessSharedModel::undo_createIntervalBetweenEvents(int intervalId
 {
 	emit intervalDeleted(intervalId);
 	removeById(m_intervals, intervalId);
-
-	m_nextIntervalId--;
 }
 
 void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromEvent(int intervalId)
@@ -198,14 +190,12 @@ void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromEvent(int int
 		auto end_event_id = this->interval(intervalId)->endEvent();
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
-		m_nextEventId--;
 	}
 
 	// Interval suppression
 	{
 		emit intervalDeleted(intervalId);
 		removeById(m_intervals, intervalId);
-		m_nextIntervalId--;
 	}
 }
 
@@ -221,7 +211,6 @@ void ScenarioProcessSharedModel::undo_createIntervalAndBothEvents(int intervalId
 		auto end_event_id = this->interval(intervalId)->endEvent();
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
-		m_nextEventId--;
 	}
 
 	// Get the mid event id before deletion of the interval
@@ -234,21 +223,18 @@ void ScenarioProcessSharedModel::undo_createIntervalAndBothEvents(int intervalId
 	{
 		emit intervalDeleted(intervalId);
 		removeById(m_intervals, intervalId);
-		m_nextIntervalId--;
 	}
 
 	// Mid event suppression
 	{
 		emit eventDeleted(mid_event->id());
 		removeById(m_events, mid_event->id());
-		m_nextEventId--;
 	}
 
 	// First interval suppression
 	{
 		emit intervalDeleted(start_interval->id());
 		removeById(m_intervals, start_interval->id());
-		m_nextIntervalId--;
 	}
 }
 

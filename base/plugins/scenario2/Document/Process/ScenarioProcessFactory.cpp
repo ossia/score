@@ -29,7 +29,7 @@ ScenarioProcessFactory::makePresenter(iscore::ProcessViewModelInterface* pvm,
 	return new ScenarioProcessPresenter(pvm, view, parent);
 }
 
-iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(unsigned int id, QObject* parent)
+iscore::ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(int id, QObject* parent)
 {
 	return new ScenarioProcessSharedModel(id, parent);
 }

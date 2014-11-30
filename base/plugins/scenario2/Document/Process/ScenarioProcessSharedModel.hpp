@@ -92,9 +92,5 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 
 		EventModel* startEvent() { return m_events[0]; }
 		EventModel* endEvent() { return m_events[1]; }
-
-		int m_nextIntervalId{};
-		int m_nextEventId{};
-
 };
 

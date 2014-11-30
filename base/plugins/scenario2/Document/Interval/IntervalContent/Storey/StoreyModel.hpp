@@ -89,7 +89,6 @@ class StoreyModel : public QIdentifiedObject
 		int m_editedProcessId{};
 		std::vector<iscore::ProcessViewModelInterface*> m_processViewModels;
 
-		int m_nextProcessViewModelId{};
 		int m_height{500};
 };
 

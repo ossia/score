@@ -19,6 +19,11 @@
 
 #include "utilsCPP11.hpp"
 
+// TODO Question :
+// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
+// veut on étirer les choses ou les laisser à leur place ?
+
+
 ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 												   iscore::ProcessViewInterface* view,
 												   QObject* parent):
@@ -27,9 +32,6 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {
 	/////// Setup of existing data
-	// TODO Question :
-	// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
-	// veut on étirer les choses ou les laisser à leur place ?
 	// For each interval & event, display' em
 	for(auto interval_model : m_viewModel->model()->intervals())
 	{

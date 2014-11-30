@@ -54,8 +54,7 @@ int StoreyModel::createProcessViewModel(int sharedProcessId)
 {
 	// Search the corresponding process in the parent interval.
 	auto process = parentInterval()->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(m_nextProcessViewModelId, sharedProcessId, this);
-	m_nextProcessViewModelId++;
+	auto viewmodel = process->makeViewModel(m_processViewModels.size(), sharedProcessId, this);
 
 	m_processViewModels.push_back(viewmodel);
 
@@ -68,7 +67,6 @@ int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 	// Search the corresponding process in the parent interval.
 	auto process = parentInterval()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(s, this);
-	m_nextProcessViewModelId++;
 
 	m_processViewModels.push_back(viewmodel);
 
@@ -81,7 +79,6 @@ void StoreyModel::deleteProcessViewModel(int processViewId)
 	emit processViewModelDeleted(processViewId);
 
 	removeById(m_processViewModels, processViewId);
-	m_nextProcessViewModelId--;
 }
 
 void StoreyModel::selectForEdition(int processViewId)

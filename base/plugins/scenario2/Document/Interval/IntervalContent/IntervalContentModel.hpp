@@ -40,7 +40,5 @@ class IntervalContentModel : public QIdentifiedObject
 	private:
 		int createStorey_impl(PositionedStoreyModel* m);
 		std::vector<PositionedStoreyModel*> m_storeys;
-
-		int m_nextStoreyId{};
 };
 
