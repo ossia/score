@@ -37,7 +37,7 @@ void Presenter::setupCommand(PluginControlInterface* cmd)
 	cmd->setParent(this); // Ownership transfer
 	cmd->setPresenter(this);
 	connect(cmd,  &PluginControlInterface::submitCommand,
-			this, &Presenter::applyCommand);
+			this, &Presenter::applyCommand, Qt::QueuedConnection);
 
 	cmd->populateMenus(&m_menubar);
 	cmd->populateToolbars();
@@ -53,7 +53,7 @@ void Presenter::addPanel(PanelFactoryInterface* p)
 	auto pres = p->makePresenter(this, model, view);
 
 	connect(pres, &PanelPresenterInterface::submitCommand,
-			this, &Presenter::applyCommand);
+			this, &Presenter::applyCommand, Qt::QueuedConnection);
 
 	view->setPresenter(pres);
 	model->setPresenter(pres);

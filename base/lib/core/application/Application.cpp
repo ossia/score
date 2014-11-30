@@ -82,7 +82,7 @@ void Application::doConnections()
 				/*bool res = */t_elt->connect(s_elt,
 							   a.source.method,
 							   a.target.method,
-							   Qt::UniqueConnection);
+							   (Qt::ConnectionType) (Qt::QueuedConnection | Qt::UniqueConnection));
 			}
 		}
 	}
@@ -106,7 +106,7 @@ void Application::doConnections(QObject* obj)
 				/*bool res = */t_elt->connect(obj,
 										  a.source.method,
 										  a.target.method,
-										  Qt::UniqueConnection);
+										  (Qt::ConnectionType) (Qt::QueuedConnection | Qt::UniqueConnection));
 			}
 		}
 

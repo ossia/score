@@ -59,10 +59,12 @@ bool CreateEventAfterEventCommand::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateEventAfterEventCommand::serializeImpl(QDataStream&)
+void CreateEventAfterEventCommand::serializeImpl(QDataStream& s)
 {
+	s << m_path << m_firstEventId << m_time;
 }
 
-void CreateEventAfterEventCommand::deserializeImpl(QDataStream&)
+void CreateEventAfterEventCommand::deserializeImpl(QDataStream& s)
 {
+	s >> m_path >> m_firstEventId >> m_time;
 }
