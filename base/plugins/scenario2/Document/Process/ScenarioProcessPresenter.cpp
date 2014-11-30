@@ -26,31 +26,14 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
 	// veut on étirer les choses ou les laisser à leur place ?
 	// For each interval & event, display' em
-	auto rect = m_view->boundingRect();
 	for(auto interval_model : m_model->model()->intervals())
 	{
-		auto interval_view = new IntervalView{m_view};
-		auto interval_presenter = new IntervalPresenter{interval_model,
-														interval_view,
-														this};
-
-		interval_view->setTopLeft({rect.x() + interval_model->m_x,
-								   rect.y() + rect.height() * interval_model->heightPercentage()});
-
-		m_intervals.push_back(interval_presenter);
+		on_intervalCreated_sub(interval_model);
 	}
 
 	for(auto event_model : m_model->model()->events())
 	{
-		auto event_view = new EventView{m_view};
-		auto event_presenter = new EventPresenter{event_model,
-												  event_view,
-												  this};
-
-		event_view->setTopLeft({rect.x() + event_model->m_x,
-								rect.y() + rect.height() * event_model->heightPercentage()});
-
-		m_events.push_back(event_presenter);
+		on_eventCreated_sub(event_model);
 	}
 
 	/////// Connections
@@ -62,34 +45,12 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 
 void ScenarioProcessPresenter::on_eventCreated(int eventId)
 {
-	auto rect = m_view->boundingRect();
-	auto event_model = m_model->model()->event(eventId);
-
-	auto event_view = new EventView{m_view};
-	auto event_presenter = new EventPresenter{event_model,
-						   event_view,
-						   this};
-
-	event_view->setTopLeft({rect.x() + event_model->m_x,
-							rect.y() + rect.height() * event_model->heightPercentage()});
-
-	m_events.push_back(event_presenter);
-
+	on_eventCreated_sub(m_model->model()->event(eventId));
 }
 
 void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 {
-	auto rect = m_view->boundingRect();
-	auto interval_model = m_model->model()->interval(intervalId);
-	auto interval_view = new IntervalView{m_view};
-	auto interval_presenter = new IntervalPresenter{interval_model,
-													interval_view,
-													this};
-
-	interval_view->setTopLeft({rect.x() + interval_model->m_x,
-							   rect.y() + rect.height() * interval_model->heightPercentage()});
-
-	m_intervals.push_back(interval_presenter);
+	on_intervalCreated_sub(m_model->model()->interval(intervalId));
 }
 
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
@@ -122,4 +83,34 @@ void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 		delete *it;
 		m_intervals.erase(it);
 	}
+}
+
+void ScenarioProcessPresenter::on_eventCreated_sub(EventModel* event_model)
+{
+	auto rect = m_view->boundingRect();
+
+	auto event_view = new EventView{m_view};
+	auto event_presenter = new EventPresenter{event_model,
+						   event_view,
+						   this};
+
+	event_view->setTopLeft({rect.x() + event_model->m_x,
+							rect.y() + rect.height() * event_model->heightPercentage()});
+
+	m_events.push_back(event_presenter);
+}
+
+void ScenarioProcessPresenter::on_intervalCreated_sub(IntervalModel* interval_model)
+{
+	auto rect = m_view->boundingRect();
+
+	auto interval_view = new IntervalView{m_view};
+	auto interval_presenter = new IntervalPresenter{interval_model,
+													interval_view,
+													this};
+
+	interval_view->setTopLeft({rect.x() + interval_model->m_x,
+							   rect.y() + rect.height() * interval_model->heightPercentage()});
+
+	m_intervals.push_back(interval_presenter);
 }

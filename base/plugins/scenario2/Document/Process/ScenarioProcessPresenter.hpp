@@ -9,6 +9,9 @@ class IntervalPresenter;
 class EventPresenter;
 class ScenarioProcessViewModel;
 class ScenarioProcessView;
+class EventModel;
+class IntervalModel;
+
 class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 {
 	Q_OBJECT
@@ -27,6 +30,9 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		void on_intervalDeleted(int intervalId);
 
 	private:
+
+		void on_eventCreated_sub(EventModel* event_model);
+		void on_intervalCreated_sub(IntervalModel* interval_model);
 		ScenarioProcessViewModel* m_model;
 		ScenarioProcessView* m_view;
 
