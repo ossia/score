@@ -6,6 +6,8 @@
 #include "Storey/StoreyView.hpp"
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
 
+#include <core/presenter/command/SerializableCommand.hpp>
+
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,
 												   QObject* parent):
@@ -20,6 +22,13 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												storeyView,
 												this});
 	}
+
+
+	connect(this, &IntervalContentPresenter::submitCommand,
+			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
+	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
+
 }
 
 IntervalContentPresenter::~IntervalContentPresenter()

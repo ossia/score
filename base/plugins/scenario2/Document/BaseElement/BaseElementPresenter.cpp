@@ -13,19 +13,21 @@ using namespace iscore;
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
 										   DocumentDelegateViewInterface* view):
-	DocumentDelegatePresenterInterface{parent_presenter, model, view},
+	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
 	m_baseIntervalPresenter{}
 {
+	this->setObjectName("BaseElementPresenter");
+	this->setParent(parent_presenter);
 	auto cmd = new AddProcessToIntervalCommand(
 		{
 			"BaseElementModel",
 			{
-				{"IntervalModel", -1}
+				{"BaseIntervalModel", -1}
 			}
 		},
 		"Scenario");
 	cmd->redo();
-
+/*
 	auto cmd2 = new CreatEventCommand(
 		{
 			"BaseElementModel",
@@ -56,14 +58,16 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	connect(t2, &QTimer::timeout, [=] () { cmd3->undo(); this->view()->intervalView()->update(); t->start(300); });
 
 	t->start(300);
+	*/
 
 
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),
 													this};
 
-	this->view()->intervalView()->m_rect.setX(0);
-	this->view()->intervalView()->m_rect.setY(0);
+
+	connect(this, &BaseElementPresenter::submitCommand,
+			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
 }
 
 BaseElementModel* BaseElementPresenter::model()

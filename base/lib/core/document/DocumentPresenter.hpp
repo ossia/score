@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <QObject>
+#include <QNamedObject>
 
 #include <core/presenter/command/CommandQueue.hpp>
 
@@ -16,7 +16,7 @@ namespace iscore
 	 * Its main use is to manage the command queue, since we use the Command pattern,
 	 * by taking the commands from the document view and applying them on the document model.
 	 */
-	class DocumentPresenter : public QObject
+	class DocumentPresenter : public QNamedObject
 	{
 			Q_OBJECT
 		public:

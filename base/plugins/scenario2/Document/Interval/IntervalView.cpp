@@ -6,6 +6,9 @@ IntervalView::IntervalView(QGraphicsObject* parent):
 	QNamedGraphicsObject{parent, "IntervalView"}
 {
 	this->setParentItem(parent);
+
+	// TODO hack. How to do it properly ?
+	this->setZValue(parent->zValue() + 1);
 }
 
 QRectF IntervalView::boundingRect() const

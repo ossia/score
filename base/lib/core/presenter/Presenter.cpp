@@ -18,19 +18,17 @@
 using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
-	QObject{arg_parent},
+	QNamedObject{arg_parent, "Presenter"},
 	m_model{model},
 	m_view{view},
 	m_menubar{view->menuBar(), this},
 	m_document{new Document{this, view}}
 {
-	setObjectName("Presenter");
 	m_view->setPresenter(this);
 	setupMenus();
 
 	connect(m_view,		&View::insertActionIntoMenubar,
 			&m_menubar, &MenubarManager::insertActionIntoMenubar);
-
 }
 
 // TODO is this the place ?
@@ -75,8 +73,9 @@ void Presenter::newDocument()
 	m_document->newDocument();
 }
 
-void Presenter::applyCommand(SerializableCommand* cmd)
+void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 {
+	qDebug(Q_FUNC_INFO);
 	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
 }
 

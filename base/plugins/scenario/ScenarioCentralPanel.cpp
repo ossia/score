@@ -8,17 +8,17 @@ using namespace iscore;
 
 DocumentDelegateViewInterface* ScenarioCentralPanel::makeView()
 {
-	return new ScenarioCentralPanelView;
+	return nullptr; // new ScenarioCentralPanelView;
 }
 
-DocumentDelegatePresenterInterface* ScenarioCentralPanel::makePresenter(DocumentPresenter* parent_presenter, 
-													  DocumentDelegateModelInterface* model, 
+DocumentDelegatePresenterInterface* ScenarioCentralPanel::makePresenter(DocumentPresenter* parent_presenter,
+													  DocumentDelegateModelInterface* model,
 													  DocumentDelegateViewInterface* view)
 {
-	return new ScenarioCentralPanelPresenter(parent_presenter, model, view);
+	return nullptr; // new ScenarioCentralPanelPresenter(parent_presenter, model, view);
 }
 
 DocumentDelegateModelInterface* ScenarioCentralPanel::makeModel()
 {
-	return new ScenarioCentralPanelModel;
+	return nullptr; //new ScenarioCentralPanelModel;
 }

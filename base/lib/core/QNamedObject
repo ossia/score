@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QGraphicsObject>
+#include <QDebug>
 
 ////////////////////////////////////////////////
 // This file contains utility algorithms & classes that can be used
@@ -88,6 +89,37 @@ struct ObjectIdentifier
 class ObjectPath
 {
 	public:
+		// Creates a path object going from the (named) object with the "origin" name, to the identified object obj.
+		static ObjectPath pathFromObject(QString origin, QIdentifiedObject* obj)
+		{
+			std::vector<ObjectIdentifier> v;
+			QObject* obj_origin = qApp->findChild<QObject*>(origin);
+			qDebug() << (void*) obj_origin;
+			auto parent = obj;
+			while(parent != obj_origin)
+			{
+				qDebug() << parent->objectName();
+				v.push_back({parent->objectName(), parent->id()});
+
+				auto tmp_parent = parent;
+				parent = dynamic_cast<QIdentifiedObject*>(tmp_parent->parent());
+				if(!parent)
+				{
+					auto parent2 = dynamic_cast<QObject*>(tmp_parent->parent());
+					if(parent2 && parent2->objectName() == origin)
+					{
+						break;
+					}
+
+					throw std::runtime_error("Could not find parent object");
+				}
+			}
+
+			std::reverse(std::begin(v), std::end(v));
+
+			return {origin, v};
+		}
+
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
 
@@ -100,7 +132,7 @@ class ObjectPath
 
 			for(auto it = v.begin(); it != v.end(); ++it)
 			{
-				if(it->id != -1)
+				if(it->id != -1) // TODO : instead use a Value class that can be Uninitialized
 				{
 					auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
 

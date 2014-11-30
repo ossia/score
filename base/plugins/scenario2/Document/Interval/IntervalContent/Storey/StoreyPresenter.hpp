@@ -4,6 +4,7 @@ class StoreyModel;
 class StoreyView;
 namespace iscore
 {
+	class SerializableCommand;
 	class ProcessPresenterInterface;
 }
 class StoreyPresenter : public QNamedObject
@@ -13,6 +14,9 @@ class StoreyPresenter : public QNamedObject
 	public:
 		StoreyPresenter(StoreyModel* model, StoreyView* view, QObject* parent);
 		virtual ~StoreyPresenter();
+
+	signals:
+		void submitCommand(iscore::SerializableCommand*);
 
 	private:
 		StoreyModel* m_model;

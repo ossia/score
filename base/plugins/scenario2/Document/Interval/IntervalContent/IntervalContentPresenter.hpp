@@ -3,6 +3,10 @@
 class StoreyPresenter;
 class IntervalContentModel;
 class IntervalContentView;
+namespace iscore
+{
+	class SerializableCommand;
+}
 class IntervalContentPresenter : public QNamedObject
 {
 	Q_OBJECT
@@ -12,6 +16,9 @@ class IntervalContentPresenter : public QNamedObject
 								 IntervalContentView* view,
 								 QObject* parent);
 		virtual ~IntervalContentPresenter();
+
+	signals:
+		void submitCommand(iscore::SerializableCommand*);
 
 	private:
 		IntervalContentModel* m_model;

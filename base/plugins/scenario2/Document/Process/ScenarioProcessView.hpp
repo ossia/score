@@ -10,13 +10,17 @@ class ScenarioProcessView : public iscore::ProcessViewInterface
 
 		virtual ~ScenarioProcessView() = default;
 
-	private:
-
-
-		// QGraphicsItem interface
-	public:
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+
+
+	signals:
+		void scenarioPressed(QPointF);
+
+	protected:
+		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
 

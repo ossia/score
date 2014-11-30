@@ -9,14 +9,15 @@ namespace iscore
 	class DocumentDelegateViewInterface;
 	class SerializableCommand;
 
-	class DocumentDelegatePresenterInterface : public QObject
+	class DocumentDelegatePresenterInterface : public QNamedObject
 	{
 			Q_OBJECT
 		public:
 			DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter,
+								   QString object_name,
 								   DocumentDelegateModelInterface* model,
 								   DocumentDelegateViewInterface* view):
-				QObject{parent_presenter},
+				QNamedObject{parent_presenter, object_name},
 				m_model{model},
 				m_view{view},
 				m_parentPresenter{parent_presenter}
@@ -32,7 +33,7 @@ namespace iscore
 			{ m_view = v; }
 
 		signals:
-			void submitCommand(SerializableCommand* cmd);
+			void submitCommand(iscore::SerializableCommand* cmd);
 
 		protected:
 			DocumentDelegateModelInterface* m_model;

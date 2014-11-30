@@ -2,20 +2,26 @@
 #include <QObject>
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/Autoconnect_QtInterface.hpp>
 
 class ScenarioPlugin :
 		public QObject,
+		public iscore::Autoconnect_QtInterface,
 		public iscore::DocumentDelegateFactoryInterface_QtInterface,
 		public iscore::ProcessFactoryInterface_QtInterface
 {
 		Q_OBJECT
 		Q_PLUGIN_METADATA(IID DocumentDelegateFactoryInterface_QtInterface_iid)
-		Q_INTERFACES(iscore::DocumentDelegateFactoryInterface_QtInterface
+		Q_INTERFACES(iscore::Autoconnect_QtInterface
+					 iscore::DocumentDelegateFactoryInterface_QtInterface
 					 iscore::ProcessFactoryInterface_QtInterface)
 
 	public:
 		ScenarioPlugin();
 		virtual ~ScenarioPlugin() = default;
+
+		// Autoconnect interface
+		virtual QList<iscore::Autoconnect> autoconnect_list() const override;
 
 		// Docpanel interface
 		virtual QStringList document_list() const override;

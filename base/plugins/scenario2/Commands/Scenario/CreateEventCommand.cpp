@@ -30,6 +30,7 @@ void CreatEventCommand::undo()
 
 void CreatEventCommand::redo()
 {
+	qDebug(Q_FUNC_INFO);
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
@@ -45,6 +46,7 @@ int CreatEventCommand::id() const
 
 bool CreatEventCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void CreatEventCommand::serializeImpl(QDataStream& s)

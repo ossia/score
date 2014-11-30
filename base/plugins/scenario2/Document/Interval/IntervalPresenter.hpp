@@ -8,6 +8,7 @@ class IntervalView;
 class IntervalContentPresenter;
 namespace iscore
 {
+	class SerializableCommand;
 	class ProcessPresenterInterface;
 }
 /**
@@ -27,6 +28,10 @@ class IntervalPresenter : public QNamedObject
 		virtual ~IntervalPresenter();
 
 		int id() const;
+
+	signals:
+		void submitCommand(iscore::SerializableCommand*);
+
 
 	private:
 		std::vector<IntervalContentPresenter*> m_contentPresenters; // No content -> Phantom ?

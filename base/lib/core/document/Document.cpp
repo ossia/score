@@ -13,12 +13,11 @@
 
 using namespace iscore;
 Document::Document(QObject* parent, QWidget* parentview):
-	QObject{parent},
+	QNamedObject{parent, "Document"},
 	m_model{new DocumentModel{this}},
 	m_view{new DocumentView{parentview}},
 	m_presenter{new DocumentPresenter(this, m_model, m_view)}
 {
-	setObjectName("Document");
 }
 
 void Document::newDocument()

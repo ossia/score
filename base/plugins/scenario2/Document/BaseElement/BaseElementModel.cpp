@@ -7,5 +7,6 @@ BaseElementModel::BaseElementModel(QObject* parent):
 {
 	m_baseInterval->m_width = 1000;
 	m_baseInterval->m_height = 1000;
+	m_baseInterval->setObjectName("BaseIntervalModel");
 }
 

@@ -6,6 +6,7 @@
 #include <interface/process/ProcessFactoryInterface.hpp>
 #include <Interval/IntervalModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 
 StoreyPresenter::StoreyPresenter(StoreyModel* model,
 								 StoreyView* view,
@@ -25,6 +26,12 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 		auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 		m_processes.push_back(presenter);
 	}
+
+
+	connect(this, &StoreyPresenter::submitCommand,
+			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
+	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
 }
 
 StoreyPresenter::~StoreyPresenter()

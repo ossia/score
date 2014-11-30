@@ -5,6 +5,8 @@ StoreyView::StoreyView(QGraphicsObject* parent):
 	QNamedGraphicsObject{parent, "StoreyView"}
 {
 	this->setParentItem(parent);
+
+	this->setZValue(parent->zValue() + 1);
 	//parentItem()->scene()->addItem(this);
 }
 

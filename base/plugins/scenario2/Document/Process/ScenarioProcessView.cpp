@@ -1,13 +1,17 @@
 #include "ScenarioProcessView.hpp"
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QNamedObject>
+#include <QDebug>
 
 ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):
 	iscore::ProcessViewInterface{parent}
 {
 	this->setParentItem(parent);
 	this->setFlags(ItemClipsChildrenToShape);
+
+	this->setZValue(parent->zValue() + 1);
 	//this->parentItem()->scene()->addItem(this);
 }
 
@@ -26,4 +30,19 @@ void ScenarioProcessView::paint(QPainter* painter, const QStyleOptionGraphicsIte
 {
 	painter->drawText(boundingRect(), "Scenario");
 	painter->drawRect(boundingRect());
+}
+
+
+void ScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+	qDebug() << "Scenario: mouse press";
+	emit scenarioPressed(event->pos());
+}
+
+void ScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+}
+
+void ScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
 }

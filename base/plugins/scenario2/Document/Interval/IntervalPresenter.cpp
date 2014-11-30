@@ -4,6 +4,7 @@
 #include "IntervalContent/IntervalContentPresenter.hpp"
 #include "IntervalContent/IntervalContentView.hpp"
 
+#include <core/presenter/command/SerializableCommand.hpp>
 #include <QDebug>
 
 IntervalPresenter::IntervalPresenter(IntervalModel* model,
@@ -26,6 +27,15 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 														   this};
 
 	m_contentPresenters.push_back(interval_presenter);
+
+
+	connect(this, &IntervalPresenter::submitCommand,
+			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
+
+	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
+
+
 }
 
 IntervalPresenter::~IntervalPresenter()

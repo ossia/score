@@ -1,6 +1,6 @@
 #include <core/presenter/command/CommandQueue.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
-
+#include <QDebug>
 using namespace iscore;
 
 CommandQueue::CommandQueue()
@@ -15,6 +15,8 @@ void CommandQueue::push(SerializableCommand* cmd)
 
 void CommandQueue::pushAndEmit(SerializableCommand* cmd)
 {
+	qDebug(Q_FUNC_INFO);
+	qDebug() << this->count();
 	emit push_start(cmd);
 	QUndoStack::push(cmd);
 }

@@ -12,13 +12,17 @@
 #include "Event/EventModel.hpp"
 #include "Event/EventPresenter.hpp"
 #include "Event/EventView.hpp"
+
+#include "Commands/Scenario/CreateEventCommand.hpp"
 #include <QDebug>
+
+#include "utilsCPP11.hpp"
 
 ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 												   iscore::ProcessViewInterface* view,
 												   QObject* parent):
 	iscore::ProcessPresenterInterface{parent, "ScenarioProcessPresenter"},
-	m_model{static_cast<ScenarioProcessViewModel*>(model)},
+	m_viewModel{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {
 	/////// Setup of existing data
@@ -26,33 +30,40 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
 	// veut on étirer les choses ou les laisser à leur place ?
 	// For each interval & event, display' em
-	for(auto interval_model : m_model->model()->intervals())
+	for(auto interval_model : m_viewModel->model()->intervals())
 	{
-		on_intervalCreated_sub(interval_model);
+		on_intervalCreated_impl(interval_model);
 	}
 
-	for(auto event_model : m_model->model()->events())
+	for(auto event_model : m_viewModel->model()->events())
 	{
-		on_eventCreated_sub(event_model);
+		on_eventCreated_impl(event_model);
 	}
 
 	/////// Connections
-	connect(m_model, SIGNAL(eventCreated(int)), this, SLOT(on_eventCreated(int)));
-	connect(m_model, SIGNAL(eventDeleted(int)), this, SLOT(on_eventDeleted(int)));
-	connect(m_model, SIGNAL(intervalCreated(int)), this, SLOT(on_intervalCreated(int)));
-	connect(m_model, SIGNAL(intervalDeleted(int)), this, SLOT(on_intervalDeleted(int)));
+	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
+
+	connect(m_view, SIGNAL(scenarioPressed(QPointF)),
+			this, SLOT(on_scenarioPressed(QPointF)));
+
+	connect(m_viewModel, SIGNAL(eventCreated(int)), this, SLOT(on_eventCreated(int)));
+	connect(m_viewModel, SIGNAL(eventDeleted(int)), this, SLOT(on_eventDeleted(int)));
+	connect(m_viewModel, SIGNAL(intervalCreated(int)), this, SLOT(on_intervalCreated(int)));
+	connect(m_viewModel, SIGNAL(intervalDeleted(int)), this, SLOT(on_intervalDeleted(int)));
 }
 
 void ScenarioProcessPresenter::on_eventCreated(int eventId)
 {
-	on_eventCreated_sub(m_model->model()->event(eventId));
+	on_eventCreated_impl(m_viewModel->model()->event(eventId));
 }
 
 void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 {
-	on_intervalCreated_sub(m_model->model()->interval(intervalId));
+	on_intervalCreated_impl(m_viewModel->model()->interval(intervalId));
 }
 
+// Todo : deduplicate with a templates
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
 {
 	auto it = std::find_if(std::begin(m_events),
@@ -85,7 +96,22 @@ void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 	}
 }
 
-void ScenarioProcessPresenter::on_eventCreated_sub(EventModel* event_model)
+
+
+
+
+void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
+{
+	qDebug(Q_FUNC_INFO);
+	qDebug() << point.x();
+	auto cmd = new CreatEventCommand(ObjectPath::pathFromObject("BaseIntervalModel", m_viewModel->model()), point.x());
+	submitCommand(cmd);
+}
+
+
+
+
+void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
 	auto rect = m_view->boundingRect();
 
@@ -100,7 +126,7 @@ void ScenarioProcessPresenter::on_eventCreated_sub(EventModel* event_model)
 	m_events.push_back(event_presenter);
 }
 
-void ScenarioProcessPresenter::on_intervalCreated_sub(IntervalModel* interval_model)
+void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_model)
 {
 	auto rect = m_view->boundingRect();
 

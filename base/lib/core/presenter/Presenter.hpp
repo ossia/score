@@ -1,9 +1,10 @@
 #pragma once
 #include <core/presenter/MenubarManager.hpp>
 
-
 #include <set>
 #include <core/document/Document.hpp>
+
+#include <QNamedObject>
 
 namespace iscore
 {
@@ -22,7 +23,7 @@ namespace iscore
 	 * It is also able to instantiate a Command from serialized Undo/Redo data.
 	 * (this should go in the DocumentPresenter maybe ?)
 	 */
-	class Presenter : public QObject
+	class Presenter : public QNamedObject
 	{
 			Q_OBJECT
 		public:
@@ -52,7 +53,7 @@ namespace iscore
 			 *
 			 * Forwards a command to the undo/redo stack
 			 */
-			void applyCommand(SerializableCommand*);
+			void applyCommand(iscore::SerializableCommand*);
 
 			/**
 			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.

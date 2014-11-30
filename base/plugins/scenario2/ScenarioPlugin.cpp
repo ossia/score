@@ -4,10 +4,24 @@
 
 ScenarioPlugin::ScenarioPlugin():
 	QObject{},
-	DocumentDelegateFactoryInterface_QtInterface{}
+	iscore::Autoconnect_QtInterface{},
+	iscore::DocumentDelegateFactoryInterface_QtInterface{},
+	iscore::ProcessFactoryInterface_QtInterface{}
 {
 	setObjectName("ScenarioPluginRework");
 }
+
+
+QList<iscore::Autoconnect> ScenarioPlugin::autoconnect_list() const
+{
+	qDebug(Q_FUNC_INFO);
+	return
+	{
+	//	{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "BaseElementPresenter", SIGNAL(submitCommand(iscore::SerializableCommand*))},
+	//	 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}}
+	};
+}
+
 
 // Interfaces implementations :
 

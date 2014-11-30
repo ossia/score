@@ -33,6 +33,7 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 																			 int processId,
 																			 QObject* parent)
 {
+	// TODO should the parent be the storey?
 	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
 	connect(this, SIGNAL(eventCreated(int)),
 			scen, SIGNAL(eventCreated(int)));

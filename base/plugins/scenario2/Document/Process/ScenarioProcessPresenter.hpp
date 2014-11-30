@@ -4,6 +4,7 @@ namespace iscore
 {
 	class ProcessViewModelInterface;
 	class ProcessViewInterface;
+	class SerializableCommand;
 }
 class IntervalPresenter;
 class EventPresenter;
@@ -23,17 +24,25 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		virtual ~ScenarioProcessPresenter() = default;
 
 
+	signals:
+		void submitCommand(iscore::SerializableCommand*);
+
 	public slots:
+		// Model -> view
 		void on_eventCreated(int eventId);
 		void on_intervalCreated(int intervalId);
 		void on_eventDeleted(int eventId);
 		void on_intervalDeleted(int intervalId);
 
-	private:
+		// View -> Command
+		void on_scenarioPressed(QPointF);
 
-		void on_eventCreated_sub(EventModel* event_model);
-		void on_intervalCreated_sub(IntervalModel* interval_model);
-		ScenarioProcessViewModel* m_model;
+	private:
+		void on_eventCreated_impl(EventModel* event_model);
+		void on_intervalCreated_impl(IntervalModel* interval_model);
+
+
+		ScenarioProcessViewModel* m_viewModel;
 		ScenarioProcessView* m_view;
 
 		std::vector<IntervalPresenter*> m_intervals;
