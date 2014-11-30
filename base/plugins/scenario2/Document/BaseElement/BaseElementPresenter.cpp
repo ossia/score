@@ -5,7 +5,6 @@
 #include <Document/BaseElement/BaseElementView.hpp>
 #include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
 #include <Commands/Scenario/CreateEventCommand.hpp>
-#include <Commands/Scenario/CreateIntervalCommand.hpp>
 
 #include <QTimer>
 using namespace iscore;
