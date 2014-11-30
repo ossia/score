@@ -35,14 +35,15 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 {
 	// TODO should the parent be the storey?
 	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
-	connect(this, SIGNAL(eventCreated(int)),
-			scen, SIGNAL(eventCreated(int)));
-	connect(this, SIGNAL(eventDeleted(int)),
-			scen, SIGNAL(eventDeleted(int)));
-	connect(this, SIGNAL(intervalCreated(int)),
-			scen, SIGNAL(intervalCreated(int)));
-	connect(this, SIGNAL(intervalDeleted(int)),
-			scen, SIGNAL(intervalDeleted(int)));
+	connect(this, &ScenarioProcessSharedModel::eventCreated,
+			scen, &ScenarioProcessViewModel::eventCreated);
+	connect(this, &ScenarioProcessSharedModel::eventDeleted,
+			scen, &ScenarioProcessViewModel::eventDeleted);
+	connect(this, &ScenarioProcessSharedModel::intervalCreated,
+			scen, &ScenarioProcessViewModel::intervalCreated);
+	connect(this, &ScenarioProcessSharedModel::intervalDeleted,
+			scen, &ScenarioProcessViewModel::intervalDeleted);
+
 	return scen;
 }
 

@@ -19,7 +19,6 @@ void DeleteProcessFromIntervalCommand::undo()
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
-		qDebug() << m_processName;
 		interval->createProcess(m_processName, s);
 	}
 }
@@ -46,6 +45,7 @@ int DeleteProcessFromIntervalCommand::id() const
 
 bool DeleteProcessFromIntervalCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void DeleteProcessFromIntervalCommand::serializeImpl(QDataStream&)

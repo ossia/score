@@ -12,10 +12,12 @@ void SwitchStatePositionCommand::redo()
 
 int SwitchStatePositionCommand::id() const
 {
+	return 1;
 }
 
 bool SwitchStatePositionCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void SwitchStatePositionCommand::serializeImpl(QDataStream&)

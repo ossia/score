@@ -12,10 +12,12 @@ void MoveIntervalCommand::redo()
 
 int MoveIntervalCommand::id() const
 {
+	return 1;
 }
 
 bool MoveIntervalCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void MoveIntervalCommand::serializeImpl(QDataStream&)

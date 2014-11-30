@@ -14,7 +14,6 @@ ScenarioPlugin::ScenarioPlugin():
 
 QList<iscore::Autoconnect> ScenarioPlugin::autoconnect_list() const
 {
-	qDebug(Q_FUNC_INFO);
 	return
 	{
 	//	{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "BaseElementPresenter", SIGNAL(submitCommand(iscore::SerializableCommand*))},

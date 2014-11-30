@@ -96,7 +96,7 @@ class ZeroConfClient: public QObject
 			QHostAddress ip;
 
 			in >> ip >> port;
-			_connectData.push_back({ip.toString().toStdString().c_str(), port});
+			_connectData.push_back({ip.toString().toStdString().c_str(), port, "0.0.0.0"}); // TODO recheck this localip
 		}
 
 		void displayError(QAbstractSocket::SocketError socketError)

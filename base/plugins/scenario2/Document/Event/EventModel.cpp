@@ -13,7 +13,6 @@ EventModel::EventModel(int id, QObject* parent):
 EventModel::EventModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "EventModel", -1}
 {
-	qDebug(Q_FUNC_INFO);
 	int id;
 	s >> id >> m_previousIntervals >> m_nextIntervals;
 	this->setId(id);
@@ -45,10 +44,10 @@ void EventModel::setHeightPercentage(double arg)
 
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
-	qDebug(Q_FUNC_INFO);
 	s << ev.id()
 	  << ev.m_previousIntervals
 	  << ev.m_nextIntervals;
 
 	// TODO s << ev.m_timeNode->save();
+	return s;
 }

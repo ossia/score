@@ -27,9 +27,6 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 		m_processes.push_back(presenter);
 	}
 
-
-	connect(this, &StoreyPresenter::submitCommand,
-			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
 }

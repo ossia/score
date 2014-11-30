@@ -23,9 +23,6 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												this});
 	}
 
-
-	connect(this, &IntervalContentPresenter::submitCommand,
-			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
 

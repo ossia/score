@@ -12,16 +12,14 @@
 #include <QDebug>
 QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 {
-	qDebug() << Q_FUNC_INFO;
 	// Metadata
 	s	<< i.id()
 		<< i.name()
 		<< i.comment()
 		<< i.color();
 
-	qDebug() << i.id() << i.name() << i.comment() << i.color();
 	// Processes
-	s	<< (int) i.m_processes.size(); qDebug() << "Saving processes: " << i.m_processes.size();
+	s	<< (int) i.m_processes.size();
 	for(auto& process : i.m_processes)
 	{
 		s << process->processName();
@@ -29,7 +27,7 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 	}
 
 	// Contents
-	s	<<  (int) i.m_contentModels.size(); qDebug() << "Saving contentmodels: " << i.m_contentModels.size();
+	s	<<  (int) i.m_contentModels.size();
 	for(auto& content : i.m_contentModels)
 	{
 		s << *content;
@@ -41,6 +39,7 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 
 	// API Object
 	// s << i.apiObject()->save();
+	return s;
 }
 
 IntervalModel::IntervalModel(int id,
@@ -54,7 +53,6 @@ IntervalModel::IntervalModel(int id,
 IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
 {
-	qDebug(Q_FUNC_INFO);
 	// Metadata
 	int id;
 	QString name;
@@ -65,13 +63,12 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	this->setName(name);
 	this->setComment(comment);
 	this->setColor(color);
-	qDebug() << id << name << comment << color;
 
 	this->setParent(parent);
 
 	// Processes
 	int process_size;
-	s >> process_size; qDebug() << "interval process size:" << process_size;
+	s >> process_size;
 	for(int i = 0; i < process_size; i++)
 	{
 		QString name;
@@ -81,7 +78,7 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 
 	// Contents
 	int content_models_size;
-	s >> content_models_size; qDebug() << "interval content model size:" << content_models_size;
+	s >> content_models_size;
 	for(int i = 0; i < content_models_size; i++)
 	{
 		createContentModel(s);

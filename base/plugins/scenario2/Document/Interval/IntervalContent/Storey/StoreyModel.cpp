@@ -9,22 +9,22 @@
 #include <QDebug>
 QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 {
-	qDebug(Q_FUNC_INFO);
 	s << storey.id()
 	  << storey.m_editedProcessId;
 
-	s << (int) storey.m_processViewModels.size(); qDebug() << "PVM Size: " << (int) storey.m_processViewModels.size();
+	s << (int) storey.m_processViewModels.size();
 	for(auto& pvm : storey.m_processViewModels)
 	{
 		s << pvm->sharedProcessId();
 		s << *pvm;
 	}
+
+	return s;
 }
 
 StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
 	QIdentifiedObject{nullptr, "StoreyModel", -1}
 {
-	qDebug(Q_FUNC_INFO);
 	int id, editedProcessId;
 	s >> id;
 	s >> editedProcessId;
@@ -32,7 +32,7 @@ StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
 	this->setParent(parent);
 
 	int pvm_size;
-	s >> pvm_size;  qDebug() << "PVM Size: " << (int) pvm_size;
+	s >> pvm_size;
 	for(int i = 0; i < pvm_size; i++)
 	{
 		int sharedprocess_id;

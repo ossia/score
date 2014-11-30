@@ -64,10 +64,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),
 													this};
-
-
-	connect(this, &BaseElementPresenter::submitCommand,
-			[ ](iscore::SerializableCommand*) { qDebug(Q_FUNC_INFO); });
 }
 
 BaseElementModel* BaseElementPresenter::model()

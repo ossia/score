@@ -44,13 +44,17 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
 
-	connect(m_view, SIGNAL(scenarioPressed(QPointF)),
-			this, SLOT(on_scenarioPressed(QPointF)));
+	connect(m_view, &ScenarioProcessView::scenarioPressed,
+			this,	&ScenarioProcessPresenter::on_scenarioPressed);
 
-	connect(m_viewModel, SIGNAL(eventCreated(int)), this, SLOT(on_eventCreated(int)));
-	connect(m_viewModel, SIGNAL(eventDeleted(int)), this, SLOT(on_eventDeleted(int)));
-	connect(m_viewModel, SIGNAL(intervalCreated(int)), this, SLOT(on_intervalCreated(int)));
-	connect(m_viewModel, SIGNAL(intervalDeleted(int)), this, SLOT(on_intervalDeleted(int)));
+	connect(m_viewModel, &ScenarioProcessViewModel::eventCreated,
+			this,		 &ScenarioProcessPresenter::on_eventCreated);
+	connect(m_viewModel, &ScenarioProcessViewModel::eventDeleted,
+			this,		 &ScenarioProcessPresenter::on_eventDeleted);
+	connect(m_viewModel, &ScenarioProcessViewModel::intervalCreated,
+			this,		 &ScenarioProcessPresenter::on_intervalCreated);
+	connect(m_viewModel, &ScenarioProcessViewModel::intervalDeleted,
+			this,		 &ScenarioProcessPresenter::on_intervalDeleted);
 }
 
 void ScenarioProcessPresenter::on_eventCreated(int eventId)
@@ -102,8 +106,6 @@ void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 
 void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 {
-	qDebug(Q_FUNC_INFO);
-	qDebug() << point.x();
 	auto cmd = new CreatEventCommand(ObjectPath::pathFromObject("BaseIntervalModel", m_viewModel->model()), point.x());
 	submitCommand(cmd);
 }

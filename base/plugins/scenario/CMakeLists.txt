@@ -173,7 +173,7 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/TextChangedCommand.cpp
 )
 
-add_library(example_process SHARED ${HEADER_FILES} ${SOURCE_FILES})
+add_custom_target(example_process ${HEADER_FILES} ${SOURCE_FILES})
 # install(TARGETS example_process LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(example_process Qt5::Core Qt5::Widgets)

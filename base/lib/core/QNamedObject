@@ -94,11 +94,10 @@ class ObjectPath
 		{
 			std::vector<ObjectIdentifier> v;
 			QObject* obj_origin = qApp->findChild<QObject*>(origin);
-			qDebug() << (void*) obj_origin;
+
 			auto parent = obj;
 			while(parent != obj_origin)
 			{
-				qDebug() << parent->objectName();
 				v.push_back({parent->objectName(), parent->id()});
 
 				auto tmp_parent = parent;

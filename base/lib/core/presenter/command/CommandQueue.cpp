@@ -15,8 +15,6 @@ void CommandQueue::push(SerializableCommand* cmd)
 
 void CommandQueue::pushAndEmit(SerializableCommand* cmd)
 {
-	qDebug(Q_FUNC_INFO);
-	qDebug() << this->count();
 	emit push_start(cmd);
 	QUndoStack::push(cmd);
 }

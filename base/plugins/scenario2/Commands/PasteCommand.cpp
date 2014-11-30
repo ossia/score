@@ -12,10 +12,12 @@ void PasteCommand::redo()
 
 int PasteCommand::id() const
 {
+	return 1;
 }
 
 bool PasteCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void PasteCommand::serializeImpl(QDataStream&)

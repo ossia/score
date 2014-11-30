@@ -68,11 +68,10 @@ namespace iscore
 		private:
 			void setupMenus();
 
-			Document* m_document{};
-			MenubarManager m_menubar;
-
 			Model* m_model;
 			View* m_view;
+			MenubarManager m_menubar;
+			Document* m_document{};
 
 			std::vector<PluginControlInterface*> m_customCommands;
 			std::set<PanelPresenterInterface*> m_panelsPresenters;

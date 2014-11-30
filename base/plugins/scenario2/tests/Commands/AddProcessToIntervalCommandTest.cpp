@@ -25,7 +25,7 @@ class AddProcessToIntervalCommandTest: public QObject
 			plist->addProcess(new ScenarioProcessFactory);
 
 			IntervalModel* int_model  = new IntervalModel{0, qApp};
-			IntervalModel* int_model2 = new IntervalModel{0, int_model};
+			new IntervalModel{0, int_model};
 
 			AddProcessToIntervalCommand cmd(
 			{

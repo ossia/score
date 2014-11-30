@@ -14,7 +14,7 @@ AddProcessToIntervalCommand::AddProcessToIntervalCommand(ObjectPath&& intervalPa
 	m_path(std::move(intervalPath)),
 	m_processName{process}
 {
-	
+
 }
 
 void AddProcessToIntervalCommand::undo()
@@ -24,7 +24,7 @@ void AddProcessToIntervalCommand::undo()
 	auto storey = contentModel->storey(m_createdStoreyId);
 	storey->deleteProcessViewModel(m_createdProcessViewModelId);
 	contentModel->deleteStorey(storey->id());
-	
+
 	interval->deleteProcess(m_createdProcessId);
 	m_createdProcessId = -1;
 	m_createdStoreyId = -1;
@@ -34,16 +34,15 @@ void AddProcessToIntervalCommand::undo()
 void AddProcessToIntervalCommand::redo()
 {
 	auto interval = static_cast<IntervalModel*>(m_path.find());
-	
+
 	// Create process model
 	m_createdProcessId = interval->createProcess(m_processName);
-	qDebug() << "Create process id: " << m_createdProcessId;
 	auto contentModel = interval->contentModel(0);
-	
+
 	// Create storey
 	m_createdStoreyId = contentModel->createStorey();
 	auto storey = contentModel->storey(m_createdStoreyId);
-	
+
 	// Create process view model in the storey
 	m_createdProcessViewModelId = storey->createProcessViewModel(m_createdProcessId);
 }
@@ -55,6 +54,7 @@ int AddProcessToIntervalCommand::id() const
 
 bool AddProcessToIntervalCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void AddProcessToIntervalCommand::serializeImpl(QDataStream&)

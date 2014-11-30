@@ -12,6 +12,8 @@ QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 	{
 		s << *storey;
 	}
+
+	return s;
 }
 
 IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
@@ -23,7 +25,6 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
 	QIdentifiedObject{nullptr, "IntervalContentModel", -1}
 {
-	qDebug(Q_FUNC_INFO);
 	int id;
 	s >> id;
 	this->setId(id);
@@ -35,8 +36,6 @@ IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent
 	{
 		createStorey(s);
 	}
-
-
 }
 
 // TODO refactor stuff like this

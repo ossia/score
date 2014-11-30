@@ -48,6 +48,7 @@ int CreateEventAfterEventCommand::id() const
 
 bool CreateEventAfterEventCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void CreateEventAfterEventCommand::serializeImpl(QDataStream&)

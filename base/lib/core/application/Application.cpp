@@ -79,7 +79,7 @@ void Application::doConnections()
 			for(auto& t_elt : potential_targets)
 			{
 				//s_elt->disconnect(a.source.method, t_elt);
-				bool res = t_elt->connect(s_elt,
+				/*bool res = */t_elt->connect(s_elt,
 							   a.source.method,
 							   a.target.method,
 							   Qt::UniqueConnection);
@@ -103,7 +103,7 @@ void Application::doConnections(QObject* obj)
 			auto potential_targets = a.getMatchingChildrenForTarget(this, view());
 			for(auto& t_elt : potential_targets)
 			{
-				bool res = t_elt->connect(obj,
+				/*bool res = */t_elt->connect(obj,
 										  a.source.method,
 										  a.target.method,
 										  Qt::UniqueConnection);
@@ -121,7 +121,7 @@ void Application::doConnections(QObject* obj)
 			auto potential_sources = a.getMatchingChildrenForSource(this, view());
 			for(auto& s_elt : potential_sources)
 			{
-				bool res = obj->connect(s_elt,
+				/*bool res = */obj->connect(s_elt,
 										a.source.method,
 										a.target.method,
 										Qt::UniqueConnection);
