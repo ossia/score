@@ -7,9 +7,12 @@ L'interface i-score repose sur cette librairie et ses nombreux frameworks (sous-
 
 L’affichage de la maquette repose sur le framework Graphics View de Qt, qui permet de manipuler des objets graphiques (classe QGraphicsItem7) dans une scène (QGraphicsScene), indépendamment de leurs affichages dans une vue (QGraphicsView)
 
+i-score 0.3 nécessite Qt en version 5.
+
+
 @section Histoire
-Avant la version 4.6 de Qt, il fallait hériter à la fois de QGraphicsI- tem et de QObject pour avoir accès au mécanisme de communication par signaux/slots dans le framework Graphics View. À partir de la version 4.6 est apparue la classe QGraphicsObject qui unifie les deux précédentes. Dans un souci d’aider le lecteur, un schéma de la hiérarchie des QGraphicsItem est observable en annexe à la figure C.3. La classe QGraphicsWidget – sous- classe de QGraphicsObject – permet en plus d’utiliser les QGraphicsLayout, une manière d’organiser spatialement les QGraphicsProxyWidget entre eux, propre au framework Graphics View. La classe QGraphicsProxyWidget est essentielle dans notre cas, en cela qu’elle offre une manière propre de porter un QWidget dans le framework Graphics View.
-Les problèmes rencontrés dans i-score sont dus au morcellement des don- nées et des tâches entre deux parties distinctes de la librairie Qt, les objets graphiques de base (interface utilisateur héritant de QWidget) et la hiérarchie des GraphicsItem du framework Graphics View
+Avant la version 4.6 de Qt, il fallait hériter à la fois de QGraphicsI- tem et de QObject pour avoir accès au mécanisme de communication par signaux/slots dans le framework Graphics View. À partir de la version 4.6 est apparue la classe QGraphicsObject qui unifie les deux précédentes. Dans un souci d’aider le lecteur, un schéma de la hiérarchie des QGraphicsItem est observable en annexe à la figure C.3. La classe QGraphicsWidget – sous-classe de QGraphicsObject – permet en plus d’utiliser les QGraphicsLayout, une manière d’organiser spatialement les QGraphicsProxyWidget entre eux, propre au framework Graphics View. La classe QGraphicsProxyWidget est essentielle dans notre cas, en cela qu’elle offre une manière propre de porter un QWidget dans le framework Graphics View.
+Les problèmes rencontrés dans i-score sont dus au morcellement des données et des tâches entre deux parties distinctes de la librairie Qt, les objets graphiques de base (interface utilisateur héritant de QWidget) et la hiérarchie des GraphicsItem du framework Graphics View
 
 @dot
 digraph "g" { Paco -> List; List -> LotsOfPeople; LotsOfPeople -> List; List -> Archives; }

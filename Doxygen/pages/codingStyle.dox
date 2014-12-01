@@ -2,9 +2,26 @@
 	@page page_codingStyle Coding Style
 
 	Voici la norme de codage (Coding style) pour les sources (cpp) et headers (hpp). @n
-	Les membres de classe commencent par "_"
 
-	@subsection Headers
+	@section Nommage
+
+	Les noms des classes commencent par une majuscule. Les méthdoes commencent par des minuscules. Ensuite, les mots commencent par des majuscules.
+ 	    
+	Les membres de classe commencent par "m_"
+
+	exemple:
+	\code
+	class MyClass
+	{
+	  public:
+	    void addNewParameter(const MyParameter &p);
+
+	  protected:  
+	    MyMember m_member;
+	};
+	\endcode
+
+	@section Headers
         
    	ordre des déclarations dans header : 
             - Q_PROPERTY
@@ -14,5 +31,14 @@
             - signal
             - slot
             - méthode (tri sémantique)
+
+	@section CPP11
+
+	Le code d'i-score 0.3 est écrit en C++11.
+	Il est recommandé d'utiliser toutes les facilités offertes par C++11 (cf http://en.wikipedia.org/wiki/C%2B%2B11 ).
+ 	- utiliser nullptr à la place de NULL
+	- utiliser le mot clé "override" pour les méthodes virtuelles
+	- TODO: à compléter     
+
 
 */
