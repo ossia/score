@@ -1,0 +1,25 @@
+
+Features:
+
+
+- drag'n drop: insert between node ? Is it feasible with Qt5 ?
+
+- context menu on header of tree view should list columns in the same order that they are visualized ?
+
+
+
+------------------
+
+Code:
+
+- Not sure the "delete m_cmdQ->command(0);" works (in NetworkTreeModel.cpp)
+  It seems that we can not delete a QCommand once it has been pushed on a QUndoStack !?
+  If it is the case, doce for DeviceExplorer*Commands & DeviceExplorerModel.cpp could be simplified : no need for setCachedResult().
+
+
+- For now, no notion of Device/Address in NetworkTree, just Node !
+  Use i-score/API  
+
+- NetworkTree*Command : some commands have the same data.
+  Thus we should factorize some code !
+

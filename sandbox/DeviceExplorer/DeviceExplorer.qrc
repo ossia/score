@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/images/add.png</file>
+        <file>resources/images/addChild.png</file>
+        <file>resources/images/addSibling.png</file>
+        <file>resources/images/edit.png</file>
+    </qresource>
+</RCC>

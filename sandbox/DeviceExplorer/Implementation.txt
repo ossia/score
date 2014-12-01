@@ -1,0 +1,6 @@
+
+
+
+NetworkTreeModel::Result class allows to return both a bool & a QModelIndex.
+Returning a bool is required for commands. [if false is returned, command is removed from the stack]
+But sometimes command change the model (ex: paste) and it is complicated to compute the QModelInedx outside the command (or the model's method the command called). It is better that the command (or the model's method the command called) also computes the QModelIndex.
