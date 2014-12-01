@@ -19,6 +19,9 @@ endif()
 # Files & main target
 
 include_directories(.)
+if(APPLE)
+	include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
@@ -97,9 +100,13 @@ add_library(networkplugin SHARED ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
 install(TARGETS networkplugin LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
 
 target_link_libraries(networkplugin
+								  iscore_lib
 								  Qt5::Core
 								  Qt5::Widgets
 								  Qt5::Network
 								  pthread
-								  oscpack
-								  dns_sd)
+								  oscpack)
+
+if(NOT APPLE)
+	target_link_libraries(networkplugin dns_sd)
+endif()
