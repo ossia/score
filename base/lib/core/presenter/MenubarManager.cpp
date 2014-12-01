@@ -6,7 +6,11 @@ using namespace iscore;
 
 MenubarManager::MenubarManager(QMenuBar* bar, QObject *parent) :
 	QObject(parent),
+	#ifdef __APPLE__
+	m_menuBar{nullptr}
+	#else
 	m_menuBar{bar}
+	#endif
 {
 	for(auto& elt : MenuInterface::map<ToplevelMenuElement>())
 	{

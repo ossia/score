@@ -17,7 +17,7 @@ DocumentPresenter::DocumentPresenter(QObject* parent, DocumentModel* m, Document
 	QNamedObject{parent, "DocumentPresenter"},
 	m_commandQueue{std::make_unique<CommandQueue>()}
 {
-	parentHierarchy(this);
+	//parentHierarchy(this);
 	m_commandQueue->setParent(this);
 }
 
