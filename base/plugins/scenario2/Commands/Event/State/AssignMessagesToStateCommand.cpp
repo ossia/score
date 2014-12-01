@@ -12,10 +12,12 @@ void AssignMessagesToStateCommand::redo()
 
 int AssignMessagesToStateCommand::id() const
 {
+	return -1;
 }
 
 bool AssignMessagesToStateCommand::mergeWith(const QUndoCommand* other)
 {
+	return false;
 }
 
 void AssignMessagesToStateCommand::serializeImpl(QDataStream&)
