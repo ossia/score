@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <QApplication>
 
-#include "commands/CreateEventCommand.hpp"
+//#include "commands/CreateEventCommand.hpp"
 #include <core/presenter/Presenter.hpp>
 ScenarioPresenter::ScenarioPresenter (ScenarioModel* model, 
 									  ScenarioView* view, 
@@ -41,13 +41,14 @@ ScenarioPresenter::~ScenarioPresenter()
 void ScenarioPresenter::on_askTimeEvent (QPointF pos)
 {
 	qDebug (Q_FUNC_INFO);
-	
+/*	
 	// On instancie la commande
 	auto cmd = new CreatEventCommand (m_model->id(), pos);
 
 	// Puis on la fait remonter au présenteur
 	auto pres = qApp->findChild<iscore::Presenter*> ("Presenter");
 	pres->applyCommand (cmd);
+	*/
 }
 /* Not yet :-(
 #include <functional>

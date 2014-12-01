@@ -1,11 +1,11 @@
 #pragma once
 
+#include <QObject>
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <QObject>
 class ScenarioSettings;
 
 /* TODO @Nico

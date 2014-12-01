@@ -1,15 +1,19 @@
 #pragma once
 #include <QObject>
 #include <interface/process/ProcessFactoryInterface.hpp>
-#include <interface/process/ProcessModelInterface.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
 #include <QDebug>
 
-class HelloWorldProcessModel : public iscore::ProcessModelInterface
+class HelloWorldProcessModel : public iscore::ProcessSharedModelInterface
 {
 		Q_OBJECT
 	public:
 		HelloWorldProcessModel(unsigned int id, QObject* parent);
+		HelloWorldProcessModel(unsigned int id, QByteArray arr, QObject* parent);
 		virtual ~HelloWorldProcessModel();
+		
+		virtual QByteArray serialize() override { return {}; }
+		virtual void deserialize(QByteArray&&) override { }
 
 	public slots:
 		void setText() { qDebug() << "Text set in process"; }
@@ -19,4 +23,8 @@ class HelloWorldProcessModel : public iscore::ProcessModelInterface
 	private:
 		QString m_processText{"Text not set"};
 		int m_counter{};
+		
+		// ProcessSharedModelInterface interface
+	public:
+		virtual iscore::ProcessViewModelInterface*makeViewModel(int id, QObject* parent);
 };

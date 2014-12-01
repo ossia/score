@@ -7,6 +7,8 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
+include_directories(${ISCORE_INTERFACE_FOLDER})
+include_directories(${ISCORE_INTERFACE_FOLDER}/..)
 
 #if(APPLE)
 #	set(LDFLAGS "${LDFLAGS} -undefined dynamic_lookup")

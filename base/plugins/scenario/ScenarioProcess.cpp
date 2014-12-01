@@ -21,17 +21,24 @@ QStringList ScenarioProcess::availableViews()
 	return {};
 }
 
-iscore::ProcessViewInterface* ScenarioProcess::makeView(QString view)
+iscore::ProcessViewInterface* ScenarioProcess::makeView(QString view, QObject* parent)
 {
-	return new iscore::ProcessViewInterface();
+	return nullptr;
 }
 
-iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter()
+iscore::ProcessPresenterInterface* ScenarioProcess::makePresenter(iscore::ProcessViewModelInterface* pvm,
+																  iscore::ProcessViewInterface* view,
+																  QObject* parent)
 {
-	return new iscore::ProcessPresenterInterface();
+	return nullptr; //new iscore::ProcessPresenterInterface(nullptr, "");
 }
 
-iscore::ProcessModelInterface* ScenarioProcess::makeModel(unsigned int id, QObject* parent)
+iscore::ProcessSharedModelInterface* ScenarioProcess::makeModel(unsigned int id, QObject* parent)
 {
-	return new ScenarioProcessModel(id, parent);
+	return nullptr;//new ScenarioProcessModel(id, parent);
+}
+
+iscore::ProcessSharedModelInterface* ScenarioProcess::makeModel(QDataStream& ar, QObject* parent)
+{
+	return nullptr; //new ScenarioProcessModel(id, parent);
 }

@@ -15,9 +15,8 @@
 #include <QAction>
 using namespace iscore;
 NetworkCommand::NetworkCommand():
-	PluginControlInterface{}
+	PluginControlInterface{nullptr, "NetworkCommand"}
 {
-	this->setObjectName("NetworkCommand");
 }
 
 void NetworkCommand::populateMenus(MenubarManager* menu)

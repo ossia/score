@@ -11,5 +11,4 @@ class HelloWorldCentralPanelModel  : public iscore::DocumentDelegateModelInterfa
 		}
 		virtual ~HelloWorldCentralPanelModel() = default;
 
-		virtual void setPresenter(iscore::DocumentDelegatePresenterInterface* presenter) override;
 };
