@@ -21,7 +21,11 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	QNamedObject{arg_parent, "Presenter"},
 	m_model{model},
 	m_view{view},
+	#ifdef __APPLE__
+	m_menubar{new QMenuBar, this},
+	#else
 	m_menubar{view->menuBar(), this},
+	#endif
 	m_document{new Document{this, view}}
 {
 	m_view->setPresenter(this);
