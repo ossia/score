@@ -38,6 +38,7 @@ class IntervalModel : public QIdentifiedObject
 		friend QDataStream& operator << (QDataStream&, const IntervalModel&);
 
 		IntervalModel(int id, QObject* parent);
+        IntervalModel(int id, double yPos, QObject* parent);
 		IntervalModel(QDataStream&, QObject* parent);
 		virtual ~IntervalModel() = default;
 

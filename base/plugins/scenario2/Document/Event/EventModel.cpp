@@ -13,11 +13,18 @@ EventModel::EventModel(int id, QObject* parent):
 
 }
 
+EventModel::EventModel(int id, double yPos, QObject *parent):
+    EventModel(id,parent)
+{
+    m_heightPercentage = yPos;
+}
+
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
 	s << ev.id()
 	  << ev.m_previousIntervals
-	  << ev.m_nextIntervals;
+      << ev.m_nextIntervals
+      << ev.m_heightPercentage;
 
 	// TODO s << ev.m_timeNode->save();
 	return s;
@@ -27,7 +34,7 @@ EventModel::EventModel(QDataStream& s, QObject* parent):
 	QIdentifiedObject{nullptr, "EventModel", -1}
 {
 	int id;
-	s >> id >> m_previousIntervals >> m_nextIntervals;
+    s >> id >> m_previousIntervals >> m_nextIntervals >> m_heightPercentage;
 	this->setId(id);
 
 	m_timeNode = new OSSIA::TimeNode;

@@ -17,6 +17,8 @@
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 #include <QDebug>
 
+#include <QRectF>
+
 #include "utilsCPP11.hpp"
 
 // TODO Question :
@@ -112,8 +114,9 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 {
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																m_viewModel->model()),
-									 point.x());
-	submitCommand(cmd);
+                                                                point.x(),
+                                                                (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
+    submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
@@ -124,12 +127,16 @@ void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 	}
 }
 
-void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int distance)
+void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int distance, double heightPos)
 {
 	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																		   m_viewModel->model()),
 												id,
-												distance);
+                                                distance,
+                                                (heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+
+    qDebug() << "heightPos : " <<  heightPos << " y :" << m_view->boundingRect().topLeft().y();
+    qDebug() << "y relatif :" << (heightPos - m_view->boundingRect().top())/m_view->boundingRect().height();
 	submitCommand(cmd);
 }
 

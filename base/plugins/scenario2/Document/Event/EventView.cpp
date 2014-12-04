@@ -30,7 +30,7 @@ void EventView::paint(QPainter* painter,
 
 void EventView::setTopLeft(QPointF p)
 {
-	m_rect = {p.x() - m_rect.width() / 2,
+    m_rect = {p.x() - m_rect.width() / 2,
 			  p.y() - m_rect.height() / 2,
 			  m_rect.width(),
 			  m_rect.height()};
@@ -46,5 +46,5 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
 	qDebug() << "Event released; transmitting to scenario";
 
-	emit eventReleased(m->pos() - m_rect.topLeft());
+    emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
 }
