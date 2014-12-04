@@ -3,7 +3,7 @@
 using namespace iscore;
 
 DocumentView::DocumentView(QWidget* parent):
-	QGLWidget{parent}
+    QWidget{parent}
 {
 	this->setObjectName("DocumentView");
 	this->setLayout(new QGridLayout{this});

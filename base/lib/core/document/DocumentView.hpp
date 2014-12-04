@@ -1,5 +1,5 @@
 #pragma once
-#include <QGLWidget>
+#include <QWidget>
 
 namespace iscore
 {
@@ -10,7 +10,7 @@ namespace iscore
 	 */
 	// TODO prévoir une vue tabbée ou on puisse voir plusieurs documents ?
 	// Comment gérer les liens d'un plug-in à un document ? (ex. réseau ?)
-	class DocumentView : public QGLWidget
+    class DocumentView : public QWidget
 	{
 		public:
 			DocumentView(QWidget* parent);
