@@ -7,7 +7,7 @@
 
 #include "../Interval/IntervalInspectorview.hpp"
 #include "InspectorSectionWidget.hpp"
-#include "InspectorWidget.hpp"
+#include <Interval/InspectorWidget.hpp>
 
 InspectorPanel::InspectorPanel (QWidget* parent) :
 	QWidget (parent)

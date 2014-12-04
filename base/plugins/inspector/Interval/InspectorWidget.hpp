@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include "InspectorWidgetFactoryInterface.hpp"
+#include <interface/inspector/InspectorWidgetFactoryInterface.hpp>
 
 class InspectorWidgetInterface;
 
