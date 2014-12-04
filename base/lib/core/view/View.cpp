@@ -18,7 +18,6 @@ View::View(QObject* parent):
 
 void View::addPanel(PanelViewInterface* v)
 {
-	v->setParent(this);
 	m_panelsViews.insert(v);
 
 	QDockWidget* dial = new QDockWidget(this);

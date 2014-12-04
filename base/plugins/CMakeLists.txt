@@ -13,3 +13,11 @@ endif()
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/network")
 	add_subdirectory(network)
 endif()
+
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/inspector")
+	add_subdirectory(inspector)
+endif()
+
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/device_explorer")
+	add_subdirectory(device_explorer)
+endif()

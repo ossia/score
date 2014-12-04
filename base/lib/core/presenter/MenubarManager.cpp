@@ -36,7 +36,7 @@ void MenubarManager::insertActionIntoMenubar(Action actionToInsert)
 									   menu_actions.end(),
 			[&car] (QAction* act)
 			{
-						  return act->text() == car;
+				return act->text() == car;
 			});
 
 			// A submenu of a part of the name already exists.

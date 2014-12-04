@@ -52,15 +52,12 @@ void Presenter::setupCommand(PluginControlInterface* cmd)
 // TODO is this the place ?
 void Presenter::addPanel(PanelFactoryInterface* p)
 {
-	auto model = p->makeModel();
-	auto view = p->makeView();
+	auto model = p->makeModel(m_model);
+	auto view = p->makeView(m_view);
 	auto pres = p->makePresenter(this, model, view);
 
 	connect(pres, &PanelPresenterInterface::submitCommand,
 			this, &Presenter::applyCommand, Qt::QueuedConnection);
-
-	view->setPresenter(pres);
-	model->setPresenter(pres);
 
 	m_view->addPanel(view);
 	m_model->addPanel(model);
