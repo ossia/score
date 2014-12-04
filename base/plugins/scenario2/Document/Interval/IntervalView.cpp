@@ -18,8 +18,8 @@ QRectF IntervalView::boundingRect() const
 
 void IntervalView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	painter->drawRect(m_rect);
-	painter->drawRect(m_rect.x(),
+    painter->drawRect(m_rect);
+    painter->drawRect(m_rect.x(),
 					  m_rect.y(),
 					  m_rect.width(),
 					  15);

@@ -46,6 +46,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 
 		// View -> Command
 		void on_scenarioPressed(QPointF);
+        void on_scenarioReleased(QPointF);
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);

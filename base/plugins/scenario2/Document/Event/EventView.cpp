@@ -38,13 +38,16 @@ void EventView::setTopLeft(QPointF p)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-	qDebug() << "Event clicked; transmitting to scenario";
-	emit eventPressed();
+    if(m->modifiers() == Qt::ControlModifier) {
+        emit eventPressed();
+        qDebug() << "Event clicked while ctrl key pressed; transmitting to scenario";
+    }
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
-	qDebug() << "Event released; transmitting to scenario";
-
-    emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+    if(m->modifiers() == Qt::ControlModifier) {
+        emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+        qDebug() << "Event released while ctrl key pressed; transmitting to scenario";
+    }
 }

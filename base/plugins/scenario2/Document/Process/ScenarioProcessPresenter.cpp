@@ -53,6 +53,8 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 
 	connect(m_view, &ScenarioProcessView::scenarioPressed,
 			this,	&ScenarioProcessPresenter::on_scenarioPressed);
+    connect(m_view, &ScenarioProcessView::scenarioReleased,
+            this,	&ScenarioProcessPresenter::on_scenarioReleased);
 
 	connect(m_viewModel, &ScenarioProcessViewModel::eventCreated,
 			this,		 &ScenarioProcessPresenter::on_eventCreated);
@@ -124,6 +126,14 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
     submitCommand(cmd);
 }
 
+void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
+{
+    //createIntervalAndEventFromEvent();
+
+
+    //submitCommand(cmd);
+}
+
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 {
 	if (m_currentlySelectedEvent != arg) {
@@ -140,8 +150,6 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 												distance,
 												(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
 
-    qDebug() << "heightPos : " <<  heightPos << " y :" << m_view->boundingRect().topLeft().y();
-    qDebug() << "y relatif :" << (heightPos - m_view->boundingRect().top())/m_view->boundingRect().height();
 	submitCommand(cmd);
 }
 

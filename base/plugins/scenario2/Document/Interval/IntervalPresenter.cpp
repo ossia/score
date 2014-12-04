@@ -21,7 +21,8 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	// Le contentView est child de IntervalView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
 	// TODO mettre ça dans la doc des classes
-	auto contentView = new IntervalContentView{view};
+//*
+    auto contentView = new IntervalContentView{view};
 
 	// Cas par défaut
 	auto interval_presenter = new IntervalContentPresenter{model->contentModel(0),
@@ -29,7 +30,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 														   this};
 
 	m_contentPresenters.push_back(interval_presenter);
-
+//*/
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
 	
