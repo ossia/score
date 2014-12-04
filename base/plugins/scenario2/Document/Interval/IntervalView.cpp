@@ -18,15 +18,20 @@ QRectF IntervalView::boundingRect() const
 
 void IntervalView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    painter->drawRect(m_rect);
-    painter->drawRect(m_rect.x(),
+	painter->drawRect(m_rect);
+	painter->drawRect(m_rect.x(),
 					  m_rect.y(),
 					  m_rect.width(),
 					  15);
-    painter->drawText(m_rect, "Constraint");
+	painter->drawText(m_rect, "Constraint");
 }
 
 void IntervalView::setTopLeft(QPointF p)
 {
 	m_rect = {p.x(), p.y(), m_rect.width(), m_rect.height()};
+}
+
+void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+{
+	emit intervalPressed();
 }

@@ -53,8 +53,8 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 
 	connect(m_view, &ScenarioProcessView::scenarioPressed,
 			this,	&ScenarioProcessPresenter::on_scenarioPressed);
-    connect(m_view, &ScenarioProcessView::scenarioReleased,
-            this,	&ScenarioProcessPresenter::on_scenarioReleased);
+	connect(m_view, &ScenarioProcessView::scenarioReleased,
+			this,	&ScenarioProcessPresenter::on_scenarioReleased);
 
 	connect(m_viewModel, &ScenarioProcessViewModel::eventCreated,
 			this,		 &ScenarioProcessPresenter::on_eventCreated);
@@ -68,7 +68,7 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 
 int ScenarioProcessPresenter::id() const
 {
-	return m_viewModel->model()->id(); 
+	return m_viewModel->model()->id();
 }
 
 int ScenarioProcessPresenter::currentlySelectedEvent() const
@@ -84,9 +84,6 @@ void ScenarioProcessPresenter::on_eventCreated(int eventId)
 void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 {
 	on_intervalCreated_impl(m_viewModel->model()->interval(intervalId));
-	
-	//TODO this is a test
-	emit elementSelected(m_viewModel->model()->interval(intervalId));
 }
 
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
@@ -111,15 +108,15 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 																m_viewModel->model()),
 									 point.x(),
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
-    submitCommand(cmd);
+	submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 {
-    //createIntervalAndEventFromEvent();
+	//createIntervalAndEventFromEvent();
 
 
-    //submitCommand(cmd);
+	//submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)

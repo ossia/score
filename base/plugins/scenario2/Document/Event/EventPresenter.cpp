@@ -12,7 +12,7 @@ EventPresenter::EventPresenter(EventModel* model,
 	m_view{view}
 {
 	// The scenario catches this :
-	connect(m_view, &EventView::eventPressed,
+	connect(m_view, &EventView::eventPressedWithControl,
 			[this] () { emit eventSelected(id()); });
 	connect(m_view, &EventView::eventReleased,
 			[&] (QPointF p)

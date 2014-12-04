@@ -22,6 +22,7 @@ class EventView : public QNamedGraphicsObject
 
 	signals:
 		void eventPressed();
+		void eventPressedWithControl();
 		void eventReleased(QPointF);
 
 	protected:

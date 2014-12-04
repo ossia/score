@@ -36,6 +36,9 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 
 	connect(this, SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
+
+	connect(m_view, &IntervalView::intervalPressed,
+			this, &IntervalPresenter::on_intervalPressed);
 }
 
 IntervalPresenter::~IntervalPresenter()
@@ -48,4 +51,9 @@ IntervalPresenter::~IntervalPresenter()
 int IntervalPresenter::id() const
 {
 	return m_model->id();
+}
+
+void IntervalPresenter::on_intervalPressed()
+{
+	emit elementSelected(m_model);
 }

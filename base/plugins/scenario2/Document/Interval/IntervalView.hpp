@@ -18,5 +18,11 @@ class IntervalView : public QNamedGraphicsObject
 		void setTopLeft(QPointF p);
 
 		QRectF m_rect;
+
+	signals:
+		void intervalPressed();
+
+	protected:
+		virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
 };
 

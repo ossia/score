@@ -11,7 +11,7 @@ EventView::EventView(QGraphicsObject* parent):
 
 	// TODO hack. How to do it properly ? should events be "over" intervals ? maybe +1.5 ?
 	this->setZValue(parent->zValue() + 2);
-	
+
 	this->setFlag(ItemIsSelectable);
 }
 
@@ -32,7 +32,7 @@ void EventView::paint(QPainter* painter,
 
 void EventView::setTopLeft(QPointF p)
 {
-    m_rect = {p.x() - m_rect.width() / 2,
+	m_rect = {p.x() - m_rect.width() / 2,
 			  p.y() - m_rect.height() / 2,
 			  m_rect.width(),
 			  m_rect.height()};
@@ -40,16 +40,21 @@ void EventView::setTopLeft(QPointF p)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-    if(m->modifiers() == Qt::ControlModifier) {
-        emit eventPressed();
-        qDebug() << "Event clicked while ctrl key pressed; transmitting to scenario";
-    }
+	if(m->modifiers() == Qt::ControlModifier)
+	{
+		emit eventPressedWithControl();
+		qDebug() << "Event clicked while ctrl key pressed; transmitting to scenario";
+	}
+	else
+	{
+		emit eventPressed();
+	}
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
-    if(m->modifiers() == Qt::ControlModifier) {
-        emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
-        qDebug() << "Event released while ctrl key pressed; transmitting to scenario";
-    }
+	if(m->modifiers() == Qt::ControlModifier) {
+		emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+		qDebug() << "Event released while ctrl key pressed; transmitting to scenario";
+	}
 }
