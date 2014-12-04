@@ -3,6 +3,7 @@
 #include "IntervalView.hpp"
 #include "IntervalContent/IntervalContentPresenter.hpp"
 #include "IntervalContent/IntervalContentView.hpp"
+#include "Commands/Interval/Process/AddProcessToIntervalCommand.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QDebug>
@@ -39,6 +40,16 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 
 	connect(m_view, &IntervalView::intervalPressed,
 			this, &IntervalPresenter::on_intervalPressed);
+
+
+	connect(m_view, &IntervalView::addScenarioProcessClicked,
+			[&] ()
+	{
+		auto path = ObjectPath::pathFromObject("BaseIntervalModel", m_model);
+		auto cmd = new AddProcessToIntervalCommand(std::move(path), "Scenario");
+		emit submitCommand(cmd);
+		qDebug("bumpimpuppefsldmsdfsf");
+	});
 }
 
 IntervalPresenter::~IntervalPresenter()

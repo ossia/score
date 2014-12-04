@@ -24,7 +24,7 @@ class IntervalContentPresenter : public QNamedObject
 
 	public slots:
 		void on_storeyCreated(int storeyId);
-		void on_storeyRemoved(int storeyId);
+		void on_storeyDeleted(int storeyId);
 
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);

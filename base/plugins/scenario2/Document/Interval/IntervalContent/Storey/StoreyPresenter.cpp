@@ -29,9 +29,14 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-	
+
 	connect(this, SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
+
+	connect(m_model, SIGNAL(processViewModelCreated(int)),
+			this,	SLOT(on_processViewModelCreated(int)));
+	connect(m_model, SIGNAL(processViewModelDeleted(int)),
+			this,	SLOT(on_processViewModelDeleted(int)));
 }
 
 StoreyPresenter::~StoreyPresenter()
@@ -54,7 +59,7 @@ void StoreyPresenter::on_processViewModelCreated(int processId)
 void StoreyPresenter::on_processViewModelDeleted(int processId)
 {
 	removeFromVectorWithId(m_processes, processId);
-	m_view->update();	
+	m_view->update();
 }
 
 void StoreyPresenter::on_processViewModelCreated_impl(iscore::ProcessViewModelInterface* proc_vm)
@@ -62,7 +67,7 @@ void StoreyPresenter::on_processViewModelCreated_impl(iscore::ProcessViewModelIn
 	auto procname = m_model
 						->parentInterval()
 						->process(proc_vm->sharedProcessId())->processName();
-	
+
 	auto factory = iscore::ProcessList::getFactory(procname);
 
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);

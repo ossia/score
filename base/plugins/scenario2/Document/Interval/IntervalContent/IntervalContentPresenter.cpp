@@ -28,6 +28,11 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 	connect(this, SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
+	connect(m_model, SIGNAL(storeyCreated(int)),
+			this,	SLOT(on_storeyCreated(int)));
+	connect(m_model, SIGNAL(storeyDeleted(int)),
+			this,	SLOT(on_storeyDeleted(int)));
+
 }
 
 IntervalContentPresenter::~IntervalContentPresenter()
@@ -50,7 +55,7 @@ void IntervalContentPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 											this});
 }
 
-void IntervalContentPresenter::on_storeyRemoved(int storeyId)
+void IntervalContentPresenter::on_storeyDeleted(int storeyId)
 {
 	removeFromVectorWithId(m_storeys, storeyId);
 	m_view->update();

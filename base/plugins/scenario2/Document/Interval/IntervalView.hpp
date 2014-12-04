@@ -21,8 +21,12 @@ class IntervalView : public QNamedGraphicsObject
 
 	signals:
 		void intervalPressed();
+		void addScenarioProcessClicked();
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+
+	private:
+		QGraphicsProxyWidget* m_button{};
 };
 
