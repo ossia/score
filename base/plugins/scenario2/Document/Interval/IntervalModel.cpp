@@ -99,7 +99,7 @@ IntervalModel::IntervalModel(int id, double yPos, QObject *parent):
 //// Complex commands
 int IntervalModel::createProcess(QString processName)
 {
-	auto model = iscore::ProcessList::getFactory(processName)->makeModel(m_processes.size(), this);
+	auto model = iscore::ProcessList::getFactory(processName)->makeModel(getNextId(m_processes), this);
 	return createProcess_impl(model);
 }
 
@@ -128,7 +128,7 @@ void IntervalModel::deleteProcess(int processId)
 
 void IntervalModel::createContentModel()
 {
-	auto content = new IntervalContentModel{int(m_contentModels.size()), this};
+	auto content = new IntervalContentModel{getNextId(m_contentModels), this};
 	createContentModel_impl(content);
 }
 
@@ -195,7 +195,7 @@ iscore::ProcessSharedModelInterface* IntervalModel::process(int processId)
 //// Simple properties
 QString IntervalModel::name() const
 {
-	return m_name;
+	return m_name + QString::number(id());
 }
 
 QString IntervalModel::comment() const

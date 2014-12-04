@@ -191,3 +191,21 @@ inline QDataStream& operator >>(QDataStream& s, ObjectPath& path)
 }
 
 #define DEMO_PIXEL_SPACING_TEST 5
+
+template <typename Vector>
+int getNextId(Vector& v)
+{
+	if(v.size() == 0) 
+	{
+		return 0;
+	}
+	
+	std::vector<int> ids(v.size()); // Map reduce
+	std::transform(std::begin(v), 
+				   std::end(v), 
+				   std::begin(ids), 
+				   [] (typename Vector::value_type elt) { return elt->id(); });
+	
+	return *(std::max_element(std::begin(ids),
+							  std::end(ids))) + 1;
+}

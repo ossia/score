@@ -11,7 +11,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
 	m_scenario{new OSSIA::Scenario}
 {
-	m_events.push_back(new EventModel{int(m_events.size()), this});
+	m_events.push_back(new EventModel{getNextId(m_events), this});
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 	//m_events.push_back(new EventModel(1, this));
 }
@@ -101,7 +101,7 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new IntervalModel{int(m_intervals.size()), this};
+	auto inter = new IntervalModel{getNextId(m_intervals), this};
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -129,8 +129,8 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
                                                                int interval_duration,
                                                                double heightPos)
 {
-    auto event = new EventModel{int(m_events.size()), this->event(startEventId)->heightPercentage(), this};
-    auto inter = new IntervalModel{int(m_intervals.size()), this->event(startEventId)->heightPercentage(), this};
+    auto event = new EventModel{getNextId(m_events), this->event(startEventId)->heightPercentage(), this};
+    auto inter = new IntervalModel{getNextId(m_intervals), this->event(startEventId)->heightPercentage(), this};
 
 
     if (startEventId == startEvent()->id()) {

@@ -130,7 +130,7 @@ void IntervalInspectorWidget::updateDisplayedValues (IntervalModel* interval)
 			if(process->processName() == "Automation")
 			{
 				addAutomation("/test/lol");
-				// Todo : caster en AutomationProcessModel, qui n'existe pas encore ^_^.
+				// Todo : caster en AutomationProcessModel et l'afficher, qui n'existe pas encore ^_^.
 			}
 			
 			if (!_automations->empty() )

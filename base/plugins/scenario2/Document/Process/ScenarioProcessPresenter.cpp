@@ -137,8 +137,8 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																		   m_viewModel->model()),
 												id,
-                                                distance,
-                                                (heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+												distance,
+												(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
 
     qDebug() << "heightPos : " <<  heightPos << " y :" << m_view->boundingRect().topLeft().y();
     qDebug() << "y relatif :" << (heightPos - m_view->boundingRect().top())/m_view->boundingRect().height();

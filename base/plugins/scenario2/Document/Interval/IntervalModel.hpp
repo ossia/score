@@ -102,7 +102,7 @@ class IntervalModel : public QIdentifiedObject
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
 		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
 
-		QString m_name;
+		QString m_name{"Interval."};
 		QString m_comment;
 		QColor m_color; // Maybe in ContentModel ?
 		double m_heightPercentage{0.5}; // Relative y position of the top-left corner. Should maybe be in Scenario ?

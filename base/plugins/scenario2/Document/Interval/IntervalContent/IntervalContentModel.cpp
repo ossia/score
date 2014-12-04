@@ -43,7 +43,7 @@ int IntervalContentModel::createStorey()
 {
 	return createStorey_impl(
 				new PositionedStoreyModel{(int) m_storeys.size(),
-										  (int) m_storeys.size(),
+										  getNextId(m_storeys),
 										  this});
 
 }
