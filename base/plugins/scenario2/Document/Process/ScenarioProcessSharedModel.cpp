@@ -126,10 +126,17 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 
 std::tuple<int, int>
 ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
-															   int interval_duration)
+                                                               int interval_duration,
+                                                               double heightPos)
 {
-	auto event = new EventModel{int(m_events.size()), this};
-	auto inter = new IntervalModel{int(m_intervals.size()), this};
+    auto event = new EventModel{int(m_events.size()), this->event(startEventId)->heightPercentage(), this};
+    auto inter = new IntervalModel{int(m_intervals.size()), this->event(startEventId)->heightPercentage(), this};
+
+
+    if (startEventId == startEvent()->id()) {
+        event->setHeightPercentage(heightPos);
+        inter->setHeightPercentage(heightPos);
+    }
 
 	// TEMPORARY :
 	inter->m_x = this->event(startEventId)->m_x;
@@ -162,17 +169,17 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 }
 
 
-std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur)
+std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur, double heightPos)
 {
-	auto t1 = createIntervalAndEndEventFromStartEvent(start);
-	auto t2 = createIntervalAndEndEventFromEvent(std::get<1>(t1), dur);
+    auto t1 = createIntervalAndEndEventFromStartEvent(start, heightPos);
+    auto t2 = createIntervalAndEndEventFromEvent(std::get<1>(t1), dur, heightPos);
 
 	return std::tuple_cat(t1, t2);
 }
 
-std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime)
+std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime, double heightPos)
 {
-	return createIntervalAndEndEventFromEvent(startEvent()->id(), endTime);
+    return createIntervalAndEndEventFromEvent(startEvent()->id(), endTime, heightPos);
 }
 
 ///////// DELETION //////////

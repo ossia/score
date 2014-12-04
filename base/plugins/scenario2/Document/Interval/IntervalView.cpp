@@ -23,7 +23,7 @@ void IntervalView::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
 					  m_rect.y(),
 					  m_rect.width(),
 					  15);
-	painter->drawText(m_rect, "Interval");
+    painter->drawText(m_rect, "Constraint");
 }
 
 void IntervalView::setTopLeft(QPointF p)

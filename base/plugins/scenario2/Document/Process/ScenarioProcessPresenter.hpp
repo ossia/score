@@ -49,7 +49,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
-		void createIntervalAndEventFromEvent(int id, int distance);
+        void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

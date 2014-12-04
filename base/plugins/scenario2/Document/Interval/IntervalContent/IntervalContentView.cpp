@@ -23,6 +23,6 @@ void IntervalContentView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {
-	painter->drawText(boundingRect(), "content model");
+    painter->drawText(boundingRect(), "Box");
 	painter->drawRect(boundingRect());
 }

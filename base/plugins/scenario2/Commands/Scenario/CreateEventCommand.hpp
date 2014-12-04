@@ -7,7 +7,7 @@ class CreateEventCommand : public iscore::SerializableCommand
 {
 	public:
 		CreateEventCommand();
-		CreateEventCommand(ObjectPath&& scenarioPath, int time);
+        CreateEventCommand(ObjectPath&& scenarioPath, int time, float heightPosition);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -22,4 +22,5 @@ class CreateEventCommand : public iscore::SerializableCommand
 
 		int m_intervalId{};
 		int m_time{};
+        float m_heightPosition{};
 };

@@ -57,8 +57,8 @@ class IntervalModelTests: public QObject
 			i0.setObjectName("OriginalInterval");
 			auto s0 = new ScenarioProcessSharedModel{0, &i0};
 
-			s0->createIntervalAndBothEvents(1, 34);
-			s0->createIntervalAndBothEvents(42, 46);
+            s0->createIntervalAndBothEvents(1, 34, 10);
+            s0->createIntervalAndBothEvents(42, 46, 10);
 
 			auto i1 = s0->interval(0);
 			new ScenarioProcessSharedModel{0, i1};

@@ -15,12 +15,13 @@ CreateEventCommand::CreateEventCommand():
 
 }
 
-CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time):
+CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, float heightPosition):
 	SerializableCommand{"ScenarioControl",
 						"CreateEventCommand",
 						QObject::tr("Event creation")},
 	m_path(std::move(scenarioPath)),
-	m_time{time}
+    m_time{time},
+    m_heightPosition{heightPosition}
 {
 
 }
@@ -41,7 +42,7 @@ void CreateEventCommand::redo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-		auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time);
+        auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time, m_heightPosition);
 		m_intervalId = std::get<0>(ids);
 	}
 }

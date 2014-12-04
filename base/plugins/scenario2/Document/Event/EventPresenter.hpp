@@ -15,7 +15,7 @@ class EventPresenter : public QNamedObject
 
 	signals:
 		void eventSelected(int id);
-		void eventReleased(int id, int x);
+        void eventReleased(int id, int x, int y);
 
 	private:
 		EventModel* m_model{};

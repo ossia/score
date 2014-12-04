@@ -17,7 +17,7 @@ EventPresenter::EventPresenter(EventModel* model,
 	connect(m_view, &EventView::eventReleased,
 			[&] (QPointF p)
 	{
-		emit eventReleased(id(), p.x());
+        emit eventReleased(id(), p.x(), p.y());
 	});
 }
 

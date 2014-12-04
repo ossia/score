@@ -41,4 +41,4 @@ if(APPLE)
 	 SET_TARGET_PROPERTIES(scenario_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-add_subdirectory(tests)
+#add_subdirectory(tests)

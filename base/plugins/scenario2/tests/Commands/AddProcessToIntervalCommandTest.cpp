@@ -62,7 +62,7 @@ class AddProcessToIntervalCommandTest: public QObject
 			cmd.redo();
 
 			auto scen_model = static_cast<ScenarioProcessSharedModel*>(int_model2->process(0));
-			scen_model->createIntervalAndBothEvents(34, 55);
+            scen_model->createIntervalAndBothEvents(34, 55, 10);
 			AddProcessToIntervalCommand cmd2(
 			{
 				"IntervalModel",
