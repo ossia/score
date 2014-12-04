@@ -12,7 +12,7 @@ void PluginManager::reloadPlugins()
 	clearPlugins();
 	auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
-	auto blacklist = pluginsBlacklist();
+    auto blacklist = pluginsBlacklist(); // TODO prevent the Plugin Settings plugin from being blacklisted
 
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
