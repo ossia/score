@@ -29,6 +29,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		virtual ~ScenarioProcessPresenter() = default;
 
 
+		virtual int id() const;
 		int currentlySelectedEvent() const;
 
 	signals:
@@ -46,11 +47,11 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 
 		// View -> Command
 		void on_scenarioPressed(QPointF);
-        void on_scenarioReleased(QPointF);
+		void on_scenarioReleased(QPointF);
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
-        void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
+		void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

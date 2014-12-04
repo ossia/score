@@ -87,13 +87,13 @@ IntervalModel::IntervalModel(int id,
 	QIdentifiedObject{parent, "IntervalModel", id},
 	m_timeBox{new OSSIA::TimeBox}
 {
-    createContentModel();
+	createContentModel();
 }
 
 IntervalModel::IntervalModel(int id, double yPos, QObject *parent):
-    IntervalModel(id, parent)
+	IntervalModel(id, parent)
 {
-    setHeightPercentage(yPos);
+	setHeightPercentage(yPos);
 }
 
 //// Complex commands

@@ -33,3 +33,20 @@ void removeById(Vector& c, int id)
 							return to_delete;
 						} );
 }
+
+template<typename hasId>
+void removeFromVectorWithId(std::vector<hasId*>& v, int id)
+{
+	auto it = std::find_if(std::begin(v),
+						   std::end(v),
+						   [id] (hasId const * elt)
+				{
+					return elt->id() == id;
+				});
+
+	if(it != std::end(v))
+	{
+		delete *it;
+		v.erase(it);
+	}
+}

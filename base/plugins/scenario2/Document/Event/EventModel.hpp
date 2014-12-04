@@ -17,7 +17,7 @@ class EventModel : public QIdentifiedObject
 		friend QDataStream& operator << (QDataStream&, const EventModel&);
 
 		EventModel(int id, QObject* parent);
-        EventModel(int id, double yPos, QObject *parent);
+		EventModel(int id, double yPos, QObject *parent);
 		EventModel(QDataStream& s, QObject* parent);
 		virtual ~EventModel() = default;
 

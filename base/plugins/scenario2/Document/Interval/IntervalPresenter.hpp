@@ -33,7 +33,6 @@ class IntervalPresenter : public QNamedObject
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
-
 	private:
 		std::vector<IntervalContentPresenter*> m_contentPresenters; // No content -> Phantom ?
 		// Process presenters are in the storey presenters.

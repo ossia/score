@@ -11,6 +11,8 @@ EventView::EventView(QGraphicsObject* parent):
 
 	// TODO hack. How to do it properly ? should events be "over" intervals ? maybe +1.5 ?
 	this->setZValue(parent->zValue() + 2);
+	
+	this->setFlag(ItemIsSelectable);
 }
 
 QRectF EventView::boundingRect() const

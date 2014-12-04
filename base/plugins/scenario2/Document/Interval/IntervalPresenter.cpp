@@ -22,7 +22,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
 	// TODO mettre ça dans la doc des classes
 //*
-    auto contentView = new IntervalContentView{view};
+	auto contentView = new IntervalContentView{view};
 
 	// Cas par défaut
 	auto interval_presenter = new IntervalContentPresenter{model->contentModel(0),
@@ -33,7 +33,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 //*/
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-	
+
 	connect(this, SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 }

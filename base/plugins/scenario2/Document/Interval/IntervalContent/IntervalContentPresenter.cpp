@@ -8,6 +8,8 @@
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QGraphicsScene>
+#include <utilsCPP11.hpp>
+
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,
 												   QObject* parent):
@@ -17,15 +19,12 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 {
 	for(auto& storeyModel : m_model->storeys())
 	{
-		auto storeyView = new StoreyView{view};
-		m_storeys.push_back(new StoreyPresenter{storeyModel,
-												storeyView,
-												this});
+		on_storeyCreated_impl(storeyModel);
 	}
 
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-	
+
 	connect(this, SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
@@ -36,4 +35,23 @@ IntervalContentPresenter::~IntervalContentPresenter()
 	auto sc = m_view->scene();
 	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
+}
+
+void IntervalContentPresenter::on_storeyCreated(int storeyId)
+{
+	on_storeyCreated_impl(m_model->storey(storeyId));
+}
+
+void IntervalContentPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
+{
+	auto storeyView = new StoreyView{m_view};
+	m_storeys.push_back(new StoreyPresenter{storeyModel,
+											storeyView,
+											this});
+}
+
+void IntervalContentPresenter::on_storeyRemoved(int storeyId)
+{
+	removeFromVectorWithId(m_storeys, storeyId);
+	m_view->update();
 }

@@ -90,6 +90,11 @@ void StoreyModel::selectForEdition(int processViewId)
 	}
 }
 
+iscore::ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId)
+{
+	return findById(m_processViewModels, processViewModelId);
+}
+
 void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 {
 	// We HAVE to do a copy here because deleteProcessViewModel use the erase-remove idiom.

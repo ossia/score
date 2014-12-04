@@ -132,7 +132,7 @@ void IntervalInspectorWidget::updateDisplayedValues (IntervalModel* interval)
 				addAutomation("/test/lol");
 				// Todo : caster en AutomationProcessModel et l'afficher, qui n'existe pas encore ^_^.
 			}
-			
+
 			if (!_automations->empty() )
 			{
 				static_cast<InspectorSectionWidget*> (_automations->back() )->nameEditDisable();

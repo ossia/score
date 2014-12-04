@@ -8,5 +8,7 @@ namespace iscore
 		public:
 			using QNamedObject::QNamedObject;
 			virtual ~ProcessPresenterInterface() = default;
+			
+			virtual int id() const = 0;
 	};
 }

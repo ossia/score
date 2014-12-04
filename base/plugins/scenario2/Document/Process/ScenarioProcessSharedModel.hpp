@@ -46,19 +46,19 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an interval and an event where
 		 * the interval is linked to both events.
 		 */
-        std::tuple<int, int> createIntervalAndEndEventFromEvent(int startEventId,
+		std::tuple<int, int> createIntervalAndEndEventFromEvent(int startEventId,
 																int duration, double heightPos);
 
 		// Creates an interval between the start event of the scenario and this one
 		// and an event at the end of this interval
-        std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time, double heightPos);
+		std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time, double heightPos);
 
 		// Creates :
 		/// - An interval from the start event of the scenario to an event at startTime
 		/// - The event at startTime
 		/// - An interval going from the event at startTime to the event at startTime + duration
 		/// - The event at startTime + duration
-        std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime,
+		std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime,
 																   int duration, double heightPos);
 
 

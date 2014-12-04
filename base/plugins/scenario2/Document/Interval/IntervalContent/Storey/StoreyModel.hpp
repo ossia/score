@@ -53,6 +53,7 @@ class StoreyModel : public QIdentifiedObject
 			return m_processViewModels;
 		}
 
+		iscore::ProcessViewModelInterface* processViewModel(int processViewModelId);
 
 		/**
 		 * @brief parentInterval

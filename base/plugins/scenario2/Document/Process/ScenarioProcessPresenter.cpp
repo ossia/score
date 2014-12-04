@@ -66,6 +66,11 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 			this,		 &ScenarioProcessPresenter::on_intervalDeleted);
 }
 
+int ScenarioProcessPresenter::id() const
+{
+	return m_viewModel->model()->id(); 
+}
+
 int ScenarioProcessPresenter::currentlySelectedEvent() const
 {
 	return m_currentlySelectedEvent;
@@ -82,23 +87,6 @@ void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 	
 	//TODO this is a test
 	emit elementSelected(m_viewModel->model()->interval(intervalId));
-}
-
-template<typename hasId>
-void removeFromVectorWithId(std::vector<hasId*>& v, int id)
-{
-	auto it = std::find_if(std::begin(v),
-						   std::end(v),
-						   [id] (hasId const * elt)
-				{
-					return elt->id() == id;
-				});
-
-	if(it != std::end(v))
-	{
-		delete *it;
-		v.erase(it);
-	}
 }
 
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
