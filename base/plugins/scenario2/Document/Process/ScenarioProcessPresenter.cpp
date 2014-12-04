@@ -46,6 +46,8 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	/////// Connections
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
+	connect(this, SIGNAL(elementSelected(QObject*)),
+			parent, SIGNAL(elementSelected(QObject*)));
 
 	connect(m_view, &ScenarioProcessView::scenarioPressed,
 			this,	&ScenarioProcessPresenter::on_scenarioPressed);
@@ -73,6 +75,9 @@ void ScenarioProcessPresenter::on_eventCreated(int eventId)
 void ScenarioProcessPresenter::on_intervalCreated(int intervalId)
 {
 	on_intervalCreated_impl(m_viewModel->model()->interval(intervalId));
+	
+	//TODO this is a test
+	emit elementSelected(m_viewModel->model()->interval(intervalId));
 }
 
 template<typename hasId>
@@ -113,7 +118,8 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																m_viewModel->model()),
 									 point.x());
-	submitCommand(cmd);
+
+	emit submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)

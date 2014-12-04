@@ -1,5 +1,5 @@
 #include "InspectorPlugin.hpp"
-#include "InspectorPanelFactory.hpp"
+#include "Panel/InspectorPanelFactory.hpp"
 using namespace iscore;
 
 InspectorPlugin::InspectorPlugin() :
@@ -19,7 +19,10 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 {
 	return
 	{
-
+		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, 
+		  "Presenter",			 SIGNAL(elementSelected(QObject*))},
+		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, 
+		  "InspectorPanelModel", SLOT(newItemInspected(QObject*))}}
 	};
 }
 

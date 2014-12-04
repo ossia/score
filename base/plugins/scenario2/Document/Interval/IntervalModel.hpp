@@ -67,8 +67,11 @@ class IntervalModel : public QIdentifiedObject
 		{ return m_timeBox;}
 
 		// For the presenter :
-		const std::vector<IntervalContentModel*>& contentModels()
+		const std::vector<IntervalContentModel*>& contentModels() const
 		{ return m_contentModels; }
+		const std::vector<iscore::ProcessSharedModelInterface*>& processes() const
+		{ return m_processes; }
+		
 		double heightPercentage() const;
 
 	public slots:

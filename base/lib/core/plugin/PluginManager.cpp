@@ -50,7 +50,8 @@ QStringList PluginManager::pluginsBlacklist()
 	return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
 }
 
-
+// @todo refactor : make a single loop (use a tuple ? objects? a tempalte function?) or
+// make a method return_all in each interface ?
 void PluginManager::dispatch(QObject* plugin)
 {
 	//qDebug() << plugin->objectName() << "was dispatched";
@@ -60,6 +61,7 @@ void PluginManager::dispatch(QObject* plugin)
 	auto process_plugin = qobject_cast<ProcessFactoryInterface_QtInterface*>(plugin);
 	auto panel_plugin = qobject_cast<PanelFactoryInterface_QtInterface*>(plugin);
 	auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*>(plugin);
+	auto inspector_plugin = qobject_cast<InspectorWidgetFactoryInterface_QtInterface*>(plugin);
 
 	if(autoconn_plugin)
 	{
@@ -110,6 +112,14 @@ void PluginManager::dispatch(QObject* plugin)
 		for(auto name : docpanel_plugin->document_list())
 		{
 			m_documentPanelList.push_back(docpanel_plugin->document_make(name));
+		}
+	}
+	
+	if(inspector_plugin)
+	{
+		for(auto name : inspector_plugin->inspectorFactory_list())
+		{
+			m_inspectorList.push_back(inspector_plugin->inspectorFactory_make(name));
 		}
 	}
 }

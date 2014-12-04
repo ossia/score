@@ -33,6 +33,8 @@ namespace iscore
 			 * This signal is emitted before a new document is created.
 			 */
 			void newDocument_start(); // TODO Faire end si nécessaire
+			
+			void on_elementSelected(QObject*);
 
 		private:
 			DocumentModel* m_model;

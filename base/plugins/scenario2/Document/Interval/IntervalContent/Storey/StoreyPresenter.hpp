@@ -17,6 +17,7 @@ class StoreyPresenter : public QNamedObject
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
+		void elementSelected(QObject*);
 
 	private:
 		StoreyModel* m_model;

@@ -29,6 +29,9 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 
 	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
+	
+	connect(this, SIGNAL(elementSelected(QObject*)),
+			parent, SIGNAL(elementSelected(QObject*)));
 }
 
 StoreyPresenter::~StoreyPresenter()

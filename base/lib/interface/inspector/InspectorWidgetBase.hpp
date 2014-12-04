@@ -10,22 +10,22 @@ class InspectorSectionWidget;
 class QScrollArea;
 
 /*!
- * \brief The InspectorWidgetInterface class
+ * \brief The InspectorWidgetBase class
  * Set the global structuration for an inspected element. Inherited by class that implement specific type
  *
  * Setup standard fields : name, color and comments. Manage additional sections added by user.
  */
 
-class InspectorWidgetInterface : public QWidget
+class InspectorWidgetBase : public QWidget
 {
 		Q_OBJECT
 	public:
 		/*!
-		 * \brief InspectorWidgetInterface Constructor
+		 * \brief InspectorWidgetBase Constructor
 		 * \param inspectedObj The selected object
 		 * \param parent The parent Widget
 		 */
-		explicit InspectorWidgetInterface (QObject* inspectedObj = 0, QWidget* parent = 0);
+		explicit InspectorWidgetBase (QObject* inspectedObj = 0, QWidget* parent = 0);
 
 	signals:
 

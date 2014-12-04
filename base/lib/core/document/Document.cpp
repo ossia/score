@@ -18,6 +18,8 @@ Document::Document(QObject* parent, QWidget* parentview):
 	m_view{new DocumentView{parentview}},
 	m_presenter{new DocumentPresenter(this, m_model, m_view)}
 {
+	connect(m_presenter, &DocumentPresenter::on_elementSelected,
+			this,		 &Document::on_elementSelected);
 }
 
 void Document::newDocument()

@@ -33,6 +33,9 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 
 	connect(m_view,		&View::insertActionIntoMenubar,
 			&m_menubar, &MenubarManager::insertActionIntoMenubar);
+	
+	connect(m_document, &Document::on_elementSelected,
+			this,		&Presenter::on_elementSelected);
 }
 
 // TODO is this the place ?
@@ -89,6 +92,12 @@ void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteA
 			emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
 		}
 	}
+}
+
+void Presenter::on_elementSelected(QObject* elt)
+{
+	qDebug(Q_FUNC_INFO);
+	emit elementSelected(elt);
 }
 
 #include <QMessageBox>

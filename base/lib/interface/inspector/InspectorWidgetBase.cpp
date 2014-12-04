@@ -1,5 +1,5 @@
 #include "InspectorSectionWidget.hpp"
-#include "InspectorWidgetInterface.hpp"
+#include "InspectorWidgetBase.hpp"
 
 #include <QLayout>
 #include <QLineEdit>
@@ -14,7 +14,7 @@
 
 static const int COLOR_ICON_SIZE = 21;
 
-InspectorWidgetInterface::InspectorWidgetInterface (QObject* inspectedObj, QWidget* parent) :
+InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent) :
 	QWidget (parent), _inspectedObject {inspectedObj}
 {
 	_sections = new std::vector<QWidget*>;
@@ -77,14 +77,14 @@ InspectorWidgetInterface::InspectorWidgetInterface (QObject* inspectedObj, QWidg
 }
 
 
-void InspectorWidgetInterface::addNewSection (QString sectionName, QWidget* content)
+void InspectorWidgetBase::addNewSection (QString sectionName, QWidget* content)
 {
 	InspectorSectionWidget* section = new InspectorSectionWidget (sectionName, this);
 	section->addContent (content);
 	_scrollAreaLayout->addWidget (section);
 }
 
-void InspectorWidgetInterface::addSubSection (QString parentSection, QString subSection, InspectorSectionWidget* content)
+void InspectorWidgetBase::addSubSection (QString parentSection, QString subSection, InspectorSectionWidget* content)
 {
 	InspectorSectionWidget* section = findChild<InspectorSectionWidget*> (parentSection);
 
@@ -98,7 +98,7 @@ void InspectorWidgetInterface::addSubSection (QString parentSection, QString sub
 	}
 }
 
-void InspectorWidgetInterface::insertSection (int index, QString name, QWidget* content)
+void InspectorWidgetBase::insertSection (int index, QString name, QWidget* content)
 {
 	if (index < 0)
 	{
@@ -117,12 +117,12 @@ void InspectorWidgetInterface::insertSection (int index, QString name, QWidget* 
 	_scrollAreaLayout->insertWidget (index, section);
 }
 
-void InspectorWidgetInterface::removeSection (QString sectionName)
+void InspectorWidgetBase::removeSection (QString sectionName)
 {
 
 }
 
-void InspectorWidgetInterface::updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>* contents)
+void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>* contents)
 {
 	while (! layout->isEmpty() )
 	{
@@ -135,7 +135,7 @@ void InspectorWidgetInterface::updateSectionsView (QVBoxLayout* layout, std::vec
 	}
 }
 
-void InspectorWidgetInterface::changeColor()
+void InspectorWidgetBase::changeColor()
 {
 
 	QColor color = QColorDialog::getColor (_currentColor, this, "Select Color");
@@ -146,29 +146,29 @@ void InspectorWidgetInterface::changeColor()
 	}
 }
 
-void InspectorWidgetInterface::setName (QString newName)
+void InspectorWidgetBase::setName (QString newName)
 {
 	_objectName->setText (newName);
 }
 
-void InspectorWidgetInterface::setComments (QString newComments)
+void InspectorWidgetBase::setComments (QString newComments)
 {
 	_comments->setText (newComments);
 }
 
-void InspectorWidgetInterface::setColor (QColor newColor)
+void InspectorWidgetBase::setColor (QColor newColor)
 {
 	_colorButtonPixmap->fill (newColor);
 	_colorButton->setIcon (QIcon (*_colorButtonPixmap) );
 	_currentColor = newColor;
 }
 
-void InspectorWidgetInterface::changeLabelType (QString type)
+void InspectorWidgetBase::changeLabelType (QString type)
 {
 	_objectType->setText (type);
 }
 
-void InspectorWidgetInterface::setInspectedObject (QObject* object)
+void InspectorWidgetBase::setInspectedObject (QObject* object)
 {
 	_inspectedObject = object;
 }

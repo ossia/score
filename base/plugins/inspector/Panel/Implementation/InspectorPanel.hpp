@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QWidget>
+#include <QNamedObject>
 
 class QVBoxLayout;
-class InspectorWidgetInterface;
+class InspectorWidgetBase;
 
 namespace Ui
 {
@@ -16,24 +16,25 @@ namespace Ui
  *  It creates and displays the view for each inspected element.
  */
 
-class InspectorPanel : public QWidget
+class InspectorPanel : public QNamedWidget
 {
 		Q_OBJECT
 
 	public:
-		explicit InspectorPanel (QWidget* parent = 0);
+		explicit InspectorPanel (QWidget* parent);
 		~InspectorPanel();
 
+	public slots:
 		/*!
 		 * \brief newItemInspected load the view for the selected object
 		 *
 		 *  It's called when the user selects a new item
 		 * \param object The selected objet.
 		 */
-		void newItemInspected (QObject* object = 0);
+		void newItemInspected (QObject*);
 
 	private:
 
-		QVBoxLayout* _layout;
-		InspectorWidgetInterface* itemInspected = nullptr;
+		QVBoxLayout* m_layout;
+		InspectorWidgetBase* m_itemInspected{};
 };

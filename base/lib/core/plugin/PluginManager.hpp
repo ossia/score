@@ -11,6 +11,7 @@
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
 
 #include <interface/autoconnect/Autoconnect.hpp>
 
@@ -21,6 +22,7 @@ namespace iscore
 	using PanelList = std::vector<PanelFactoryInterface*>;
 	using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
 	using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
+	using InspectorList = std::vector<InspectorWidgetFactoryInterface*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
 	/**
@@ -48,9 +50,15 @@ namespace iscore
 			}
 
 			void reloadPlugins();
+			
 			QStringList pluginsOnSystem() const
 			{
 				return m_pluginsOnSystem;
+			}
+			
+			const InspectorList& inspectorFactoriesList() const
+			{
+				return m_inspectorList;
 			}
 
 		private:
@@ -72,5 +80,6 @@ namespace iscore
 			PanelList    m_panelList;
 			DocumentPanelList m_documentPanelList;
 			SettingsList m_settingsList;
+			InspectorList m_inspectorList;
 	};
 }

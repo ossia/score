@@ -1,0 +1,45 @@
+#include "InspectorPanel.hpp"
+#include "ui_InspectorPanel.h"
+#include "QPushButton"
+#include <QLayout>
+#include <QDebug>
+#include <QScrollArea>
+#include <interface/inspector/InspectorWidgetBase.hpp>
+#include <interface/inspector/InspectorSectionWidget.hpp>
+
+InspectorPanel::InspectorPanel (QWidget* parent) :
+	QNamedWidget {parent, "InspectorPanel"},
+	m_layout{new QVBoxLayout{this}}
+{
+	m_layout->setMargin (8);
+	
+	setMinimumWidth (300);
+	setMaximumHeight (800);
+}
+
+InspectorPanel::~InspectorPanel()
+{
+}
+
+#include <core/plugin/PluginManager.hpp>
+void InspectorPanel::newItemInspected (QObject* object)
+{
+	delete m_itemInspected;
+	auto pmgr = qApp->findChild<iscore::PluginManager*>("PluginManager");
+	auto factories = pmgr->inspectorFactoriesList();
+	
+	for(auto factory : factories)
+	{
+		if(factory->correspondingObjectName() == object->objectName())
+		{
+			qDebug() << "Factory found: " << object->objectName();
+			
+			m_itemInspected = factory->makeWidget(object); // TODO multiple items.
+			
+			// Note : private method QLayout::addItem takes ownership
+			m_layout->addWidget(m_itemInspected);
+			
+			return;
+		}
+	}
+}

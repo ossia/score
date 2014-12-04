@@ -19,6 +19,7 @@ class IntervalContentPresenter : public QNamedObject
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
+		void elementSelected(QObject*);
 
 	private:
 		IntervalContentModel* m_model;

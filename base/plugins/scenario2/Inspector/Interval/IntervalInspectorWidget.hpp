@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Inspector/InspectorWidgetInterface.hpp>
+#include <interface/inspector/InspectorWidgetBase.hpp>
 #include "objectinterval.hpp"
+class IntervalModel;
 
 class QFormLayout;
 
@@ -9,12 +10,12 @@ class QFormLayout;
  * \brief The IntervalInspectorView class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Interval (Timebox) element.
  */
-
-class IntervalInspectorView : public InspectorWidgetInterface
+// @todo Rename in IntervalInspectorWidget
+class IntervalInspectorWidget : public InspectorWidgetBase
 {
 		Q_OBJECT
 	public:
-		explicit IntervalInspectorView (ObjectInterval* object, QWidget* parent = 0);
+		explicit IntervalInspectorWidget (IntervalModel* object, QWidget* parent = 0);
 
 	signals:
 
@@ -23,7 +24,7 @@ class IntervalInspectorView : public InspectorWidgetInterface
 		 * \brief addAutomation Add an automation
 		 */
 		void addAutomation (QString address = "automation");
-		void updateDisplayedValues (ObjectInterval* obj);
+		void updateDisplayedValues (IntervalModel* obj);
 		void reorderAutomations();
 
 	private:

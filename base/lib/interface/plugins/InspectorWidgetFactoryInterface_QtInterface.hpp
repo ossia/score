@@ -9,7 +9,9 @@ namespace iscore
 		public:
 			virtual ~InspectorWidgetFactoryInterface_QtInterface() = default;
 
-			virtual InspectorWidgetFactoryInterface* inspectorFactory_make() = 0;
+			// One factory per element to inspect. Example : IntervalInspectorFactory, EventInspectorFactory...
+			virtual QStringList inspectorFactory_list() const = 0;
+			virtual InspectorWidgetFactoryInterface* inspectorFactory_make(QString) = 0;
 	};
 }
 

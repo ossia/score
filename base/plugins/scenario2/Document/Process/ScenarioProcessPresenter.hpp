@@ -34,6 +34,8 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void currentlySelectedEventChanged(int arg);
+		
+		void elementSelected(QObject* obj);
 
 	public slots:
 		// Model -> view

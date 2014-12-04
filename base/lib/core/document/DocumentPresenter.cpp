@@ -41,5 +41,8 @@ void DocumentPresenter::setPresenter(DocumentDelegatePresenterInterface* pres)
 	m_presenter = pres;
 
 	connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
-			this, &DocumentPresenter::applyCommand, Qt::QueuedConnection);
+			this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
+	
+	connect(m_presenter, &DocumentDelegatePresenterInterface::elementSelected,
+			this,		 &DocumentPresenter::on_elementSelected, Qt::QueuedConnection);
 }

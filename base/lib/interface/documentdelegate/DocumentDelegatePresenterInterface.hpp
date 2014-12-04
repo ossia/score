@@ -33,6 +33,7 @@ namespace iscore
 			{ m_view = v; }
 
 		signals:
+			void elementSelected(QObject* obj);
 			void submitCommand(iscore::SerializableCommand* cmd);
 
 		protected:

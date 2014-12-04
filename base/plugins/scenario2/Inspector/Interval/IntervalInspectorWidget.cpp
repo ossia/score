@@ -1,6 +1,5 @@
-#include "IntervalInspectorview.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/ReorderWidget.hpp>
+#include "IntervalInspectorWidget.hpp"
+#include <interface/inspector/InspectorSectionWidget.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
@@ -12,9 +11,11 @@
 #include <QPushButton>
 #include <QDebug>
 #include <QScrollArea>
+#include <Interval/IntervalModel.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
 
-IntervalInspectorView::IntervalInspectorView (ObjectInterval* object, QWidget* parent) :
-	InspectorWidgetInterface (parent)
+IntervalInspectorWidget::IntervalInspectorWidget (IntervalModel* object, QWidget* parent) :
+	InspectorWidgetBase (parent)
 {
 	setObjectName ("Interval");
 	_properties = new std::vector<QWidget*>;
@@ -91,7 +92,7 @@ IntervalInspectorView::IntervalInspectorView (ObjectInterval* object, QWidget* p
 	updateDisplayedValues (object);
 }
 
-void IntervalInspectorView::addAutomation (QString address)
+void IntervalInspectorWidget::addAutomation (QString address)
 {
 	InspectorSectionWidget* autom = findChild<InspectorSectionWidget*> ("Automations");
 
@@ -111,25 +112,27 @@ void IntervalInspectorView::addAutomation (QString address)
 	}
 }
 
-void IntervalInspectorView::updateDisplayedValues (ObjectInterval* obj)
+void IntervalInspectorWidget::updateDisplayedValues (IntervalModel* interval)
 {
 	// DEMO
-	if (obj != nullptr)
+	if (interval != nullptr)
 	{
-		setName (obj->name() );
-		setColor (obj->color() );
-		setComments (obj->comments() );
-		setInspectedObject (obj);
+		setName (interval->name() );
+		setColor (interval->color() );
+		setComments (interval->comment() );
+		setInspectedObject (interval);
 		changeLabelType ("TimeBox");
 		_startForm->addRow ("/first/message", new QLineEdit);
-		_endForm->addRow ("Last/message", new QLineEdit );
+		_endForm->addRow ("/Last/message", new QLineEdit );
 
-		std::vector<QString>::iterator it;
-
-		for ( it = obj->automations()->begin(); it != obj->automations()->end() ; it++ )
+		for(iscore::ProcessSharedModelInterface* process : interval->processes())
 		{
-			addAutomation (*it);
-
+			if(process->processName() == "Automation")
+			{
+				addAutomation("/test/lol");
+				// Todo : caster en AutomationProcessModel, qui n'existe pas encore ^_^.
+			}
+			
 			if (!_automations->empty() )
 			{
 				static_cast<InspectorSectionWidget*> (_automations->back() )->nameEditDisable();
@@ -138,7 +141,7 @@ void IntervalInspectorView::updateDisplayedValues (ObjectInterval* obj)
 	}
 }
 
-void IntervalInspectorView::reorderAutomations()
+void IntervalInspectorWidget::reorderAutomations()
 {
-	new ReorderWidget (_automations);
+//	new ReorderWidget (_automations);
 }

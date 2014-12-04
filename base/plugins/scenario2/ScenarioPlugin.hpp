@@ -4,12 +4,14 @@
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
+#include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
 
 class ScenarioPlugin :
 		public QObject,
 		public iscore::Autoconnect_QtInterface,
 		public iscore::PluginControlInterface_QtInterface,
 		public iscore::DocumentDelegateFactoryInterface_QtInterface,
+		public iscore::InspectorWidgetFactoryInterface_QtInterface,
 		public iscore::ProcessFactoryInterface_QtInterface
 {
 		Q_OBJECT
@@ -17,6 +19,7 @@ class ScenarioPlugin :
 		Q_INTERFACES(iscore::Autoconnect_QtInterface
 					 iscore::PluginControlInterface_QtInterface
 					 iscore::DocumentDelegateFactoryInterface_QtInterface
+					 iscore::InspectorWidgetFactoryInterface_QtInterface
 					 iscore::ProcessFactoryInterface_QtInterface)
 
 	public:
@@ -37,5 +40,8 @@ class ScenarioPlugin :
 		// Plugin control interface
 		virtual QStringList control_list() const override;
 		virtual iscore::PluginControlInterface* control_make(QString) override;
-
+		
+		// Inspector interface
+		virtual QStringList inspectorFactory_list() const override;
+		virtual iscore::InspectorWidgetFactoryInterface* inspectorFactory_make(QString);
 };
