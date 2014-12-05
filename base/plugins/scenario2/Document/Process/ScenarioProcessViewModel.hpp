@@ -27,6 +27,8 @@ class ScenarioProcessViewModel : public iscore::ProcessViewModelInterface
 		void intervalCreated(int intervalId);
 		void eventDeleted(int eventId);
 		void intervalDeleted(int intervalId);
+        void eventMoved(int eventId);
+        void intervalMoved(int intervalId);
 
 
 	private:

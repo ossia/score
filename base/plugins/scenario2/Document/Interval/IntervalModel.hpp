@@ -74,6 +74,7 @@ class IntervalModel : public QIdentifiedObject
 		{ return m_processes; }
 
 		double heightPercentage() const;
+        int startDate() const;
 
         int width() const;
         void setWidth(int width);

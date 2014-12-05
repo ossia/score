@@ -41,6 +41,11 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	connect(m_view, &IntervalView::intervalPressed,
 			this,	&IntervalPresenter::on_intervalPressed);
 
+    connect(m_view, &IntervalView::intervalReleased,
+            [&] (QPointF p)
+    {
+        emit intervalReleased(id(), p.y());
+    });
 
 	connect(m_view, &IntervalView::addScenarioProcessClicked,
 			[&] ()
@@ -60,7 +65,17 @@ IntervalPresenter::~IntervalPresenter()
 
 int IntervalPresenter::id() const
 {
-	return m_model->id();
+    return m_model->id();
+}
+
+IntervalView *IntervalPresenter::view()
+{
+    return m_view;
+}
+
+IntervalModel *IntervalPresenter::model()
+{
+    return m_model;
 }
 
 void IntervalPresenter::on_intervalPressed()

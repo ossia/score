@@ -12,6 +12,8 @@ class EventPresenter : public QNamedObject
 		virtual ~EventPresenter();
 
 		int id() const;
+        EventView* view() const;
+        EventModel* model() const;
 
 	signals:
 		void eventSelected(int id);

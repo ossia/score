@@ -1,6 +1,7 @@
 #include "IntervalView.hpp"
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 #include <QWidget>
 #include <QGraphicsProxyWidget>
@@ -46,7 +47,13 @@ void IntervalView::setTopLeft(QPointF p)
 	m_button->setPos(m_rect.x() + 30, m_rect.y());
 }
 
-void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-	emit intervalPressed();
+    emit intervalPressed();
+}
+
+void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
+{
+    emit intervalReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+    qDebug() <<  (m->pos().x() - m_rect.left()) << m->pos().y() ;
 }

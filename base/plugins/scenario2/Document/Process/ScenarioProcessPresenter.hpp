@@ -44,6 +44,8 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		void on_intervalCreated(int intervalId);
 		void on_eventDeleted(int eventId);
 		void on_intervalDeleted(int intervalId);
+        void on_eventMoved(int eventId);
+        void on_intervalMoved(int intervalId);
 
 		// View -> Command
 		void on_scenarioPressed(QPointF);
@@ -53,6 +55,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 		void setCurrentlySelectedEvent(int arg);
 		void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
         void moveEventAndInterval(int id, int distance, double heightPos);
+        void moveIntervalOnVertical(int id, double heightPos);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

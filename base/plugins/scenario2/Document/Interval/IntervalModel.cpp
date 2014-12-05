@@ -230,7 +230,12 @@ QColor IntervalModel::color() const
 
 double IntervalModel::heightPercentage() const
 {
-	return m_heightPercentage;
+    return m_heightPercentage;
+}
+
+int IntervalModel::startDate() const
+{
+    return m_x;
 }
 
 void IntervalModel::setName(QString arg)

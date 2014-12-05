@@ -43,5 +43,15 @@ EventPresenter::~EventPresenter()
 
 int EventPresenter::id() const
 {
-	return m_model->id();
+    return m_model->id();
+}
+
+EventView *EventPresenter::view() const
+{
+    return m_view;
+}
+
+EventModel *EventPresenter::model() const
+{
+    return m_model;
 }

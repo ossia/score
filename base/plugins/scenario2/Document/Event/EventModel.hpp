@@ -37,6 +37,7 @@ class EventModel : public QIdentifiedObject
 		{ return m_timeNode;}
 
 		double heightPercentage() const;
+        int date() const;
 
 	public slots:
 		void setHeightPercentage(double arg);

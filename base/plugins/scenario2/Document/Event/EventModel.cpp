@@ -57,7 +57,12 @@ const QVector<int>&EventModel::nextIntervals() const
 
 double EventModel::heightPercentage() const
 {
-	return m_heightPercentage;
+    return m_heightPercentage;
+}
+
+int EventModel::date() const
+{
+    return m_x;
 }
 
 const std::vector<State*>&EventModel::states() const
@@ -95,5 +100,6 @@ void EventModel::setHeightPercentage(double arg)
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
+        qDebug() << heightPercentage();
 	}
 }

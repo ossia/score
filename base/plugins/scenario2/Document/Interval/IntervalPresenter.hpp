@@ -28,10 +28,13 @@ class IntervalPresenter : public QNamedObject
 		virtual ~IntervalPresenter();
 
 		int id() const;
+        IntervalView* view();
+        IntervalModel* model();
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
+        void intervalReleased(int id, int heightPos);
 
 	public slots:
 		void on_intervalPressed();

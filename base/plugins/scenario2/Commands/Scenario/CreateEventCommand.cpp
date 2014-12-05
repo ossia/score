@@ -59,10 +59,10 @@ bool CreateEventCommand::mergeWith(const QUndoCommand* other)
 
 void CreateEventCommand::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_time;
+    s << m_path << m_time << m_heightPosition;
 }
 
 void CreateEventCommand::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_time;
+    s >> m_path >> m_time >> m_heightPosition;
 }
