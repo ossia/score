@@ -71,15 +71,20 @@ iscore::PluginControlInterface*ScenarioPlugin::control_make(QString name)
 
 QStringList ScenarioPlugin::inspectorFactory_list() const
 {
-	return {"IntervalInspectorFactory"/*, "EventInspectorFactory"*/};
+	return {"IntervalInspectorFactory", "EventInspectorFactory"};
 }
 
 #include <Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Inspector/Event/EventInspectorFactory.hpp>
 iscore::InspectorWidgetFactoryInterface*ScenarioPlugin::inspectorFactory_make(QString str)
 {
 	if(str == "IntervalInspectorFactory")
 	{
 		return new IntervalInspectorFactory;
+	}
+	else if(str == "EventInspectorFactory")
+	{
+		return new EventInspectorFactory;
 	}
 
 	return nullptr;

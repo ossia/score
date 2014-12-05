@@ -16,8 +16,8 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	m_model{model},
 	m_view{view}
 {
-    view->m_rect.setWidth(model->width()/m_millisecPerPixel);
-    view->m_rect.setHeight(model->height());
+	view->m_rect.setWidth(model->width()/m_millisecPerPixel);
+	view->m_rect.setHeight(model->height());
 
 	// Le contentView est child de IntervalView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants

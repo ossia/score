@@ -46,9 +46,10 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	}
 
 	/////// Connections
-	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+	connect(this,	SIGNAL(submitCommand(iscore::SerializableCommand*)),
 			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-	connect(this, SIGNAL(elementSelected(QObject*)),
+
+	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
 	connect(m_view, &ScenarioProcessView::scenarioPressed,
@@ -135,7 +136,7 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 												distance,
 												(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
 
-    submitCommand(cmd);
+	submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double heightPos)
@@ -148,12 +149,13 @@ void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double
 
 void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
+	qDebug() << Q_FUNC_INFO << event_model;
 	auto rect = m_view->boundingRect();
 
 	auto event_view = new EventView{m_view};
 	auto event_presenter = new EventPresenter{event_model,
-						   event_view,
-						   this};
+											  event_view,
+											  this};
 
 	event_view->setTopLeft({rect.x() + event_model->m_x,
 							rect.y() + rect.height() * event_model->heightPercentage()});
@@ -162,10 +164,10 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &ScenarioProcessPresenter::setCurrentlySelectedEvent);
-    connect(event_presenter, &EventPresenter::eventReleasedWithControl,
+	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
 			this,			 &ScenarioProcessPresenter::createIntervalAndEventFromEvent);
-    connect(event_presenter, &EventPresenter::eventReleased,
-            this,			 &ScenarioProcessPresenter::moveEventAndInterval);
+	connect(event_presenter, &EventPresenter::eventReleased,
+			this,			 &ScenarioProcessPresenter::moveEventAndInterval);
 }
 
 void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_model)

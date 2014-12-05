@@ -2,6 +2,8 @@
 #include <API/Headers/Editor/TimeNode.h>
 #include <QVector>
 
+#include "State/State.hpp"
+
 // TODO possibilité temporaire pour tester ce que l'on veut faire :
 // FAire une copie du scénario, appliquer la commande dessus, et si elle throw pas sur la copie, l'appliquer pour de vrai.
 
@@ -10,7 +12,7 @@ EventModel::EventModel(int id, QObject* parent):
 	m_timeNode{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the intervals are correctly created.
-
+	m_states.push_back(new FakeState{this});
 }
 
 EventModel::EventModel(int id, double yPos, QObject *parent):
@@ -56,6 +58,32 @@ const QVector<int>&EventModel::nextIntervals() const
 double EventModel::heightPercentage() const
 {
 	return m_heightPercentage;
+}
+
+const std::vector<State*>&EventModel::states() const
+{
+	return m_states;
+}
+
+void EventModel::addMessage(QString s)
+{
+	FakeState* state = new FakeState{this};
+	state->addMessage(s);
+
+	m_states.push_back(state);
+}
+
+void EventModel::removeMessage(QString s)
+{
+	auto state_it = std::find_if(std::begin(m_states),
+								 std::end(m_states),
+								 [&] (State* state) { return state->messages()[0] == s; });
+
+	if(state_it != std::end(m_states))
+	{
+		delete *state_it;
+		m_states.erase(state_it);
+	}
 }
 
 void EventModel::setHeightPercentage(double arg)

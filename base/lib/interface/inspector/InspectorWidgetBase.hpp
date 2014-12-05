@@ -9,6 +9,10 @@ class QPushButton;
 class InspectorSectionWidget;
 class QScrollArea;
 
+namespace iscore
+{
+	class SerializableCommand;
+}
 /*!
  * \brief The InspectorWidgetBase class
  * Set the global structuration for an inspected element. Inherited by class that implement specific type
@@ -28,6 +32,7 @@ class InspectorWidgetBase : public QWidget
 		explicit InspectorWidgetBase (QObject* inspectedObj = 0, QWidget* parent = 0);
 
 	signals:
+		void submitCommand(iscore::SerializableCommand*);
 
 	public slots:
 

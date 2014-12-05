@@ -5,12 +5,16 @@ namespace OSSIA
 {
 	class TimeNode;
 }
+class State;
 class IntervalModel;
 class EventModel : public QIdentifiedObject
 {
 	Q_OBJECT
 
-		Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+		Q_PROPERTY(double heightPercentage
+				   READ heightPercentage
+				   WRITE setHeightPercentage
+				   NOTIFY heightPercentageChanged)
 	public:
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
 		int m_x{0};
@@ -23,6 +27,11 @@ class EventModel : public QIdentifiedObject
 
 		const QVector<int>& previousIntervals() const;
 		const QVector<int>& nextIntervals() const;
+
+		const std::vector<State*>& states() const;
+		void addMessage(QString s);
+		void removeMessage(QString s);
+
 
 		OSSIA::TimeNode* apiObject()
 		{ return m_timeNode;}
@@ -42,5 +51,7 @@ class EventModel : public QIdentifiedObject
 		QVector<int> m_nextIntervals;
 
 		double m_heightPercentage{0.5};
+
+		std::vector<State*> m_states;
 };
 

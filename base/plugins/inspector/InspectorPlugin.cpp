@@ -4,7 +4,7 @@ using namespace iscore;
 
 InspectorPlugin::InspectorPlugin() :
 	QObject {},
-        iscore::Autoconnect_QtInterface {},
+		iscore::Autoconnect_QtInterface {},
 //	iscore::PluginControlInterface_QtInterface{},
 iscore::PanelFactoryInterface_QtInterface {}
 {
@@ -19,10 +19,15 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 {
 	return
 	{
-		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, 
+		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName,
 		  "Presenter",			 SIGNAL(elementSelected(QObject*))},
-		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, 
-		  "InspectorPanelModel", SLOT(newItemInspected(QObject*))}}
+		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "InspectorPanelModel", SLOT(newItemInspected(QObject*))}},
+
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
+		  "InspectorWidgetBase", SIGNAL(submitCommand(iscore::SerializableCommand*))},
+		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}}
 	};
 }
 
