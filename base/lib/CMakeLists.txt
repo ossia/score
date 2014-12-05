@@ -10,7 +10,6 @@ set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
-find_package(Qt5OpenGL 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
@@ -131,6 +130,6 @@ set(SOURCE_FILES
 )
 
 add_library(iscore_lib SHARED ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)
 
 install(TARGETS iscore_lib DESTINATION ${CMAKE_BINARY_DIR})

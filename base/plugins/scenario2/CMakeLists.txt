@@ -8,7 +8,6 @@ find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
-include_directories(.)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Document")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")

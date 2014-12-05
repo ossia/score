@@ -4,7 +4,6 @@ project(iscore_app)
 
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
-find_package(Qt5OpenGL 5.3 REQUIRED)
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
