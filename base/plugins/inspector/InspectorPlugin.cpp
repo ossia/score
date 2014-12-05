@@ -19,6 +19,7 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 {
 	return
 	{
+		/// Common
 		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName,
 		  "Presenter",			 SIGNAL(elementSelected(QObject*))},
 		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
@@ -27,7 +28,7 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
 		  "InspectorWidgetBase", SIGNAL(submitCommand(iscore::SerializableCommand*))},
 		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-		  "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}}
+		  "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}},
 	};
 }
 

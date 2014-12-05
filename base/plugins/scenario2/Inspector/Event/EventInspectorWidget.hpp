@@ -24,6 +24,8 @@ class EventInspectorWidget : public InspectorWidgetBase
 
 		void on_addAddressClicked();
 
+		void updateMessages();
+
 	private:
 		std::vector<QWidget*> m_properties;
 

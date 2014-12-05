@@ -71,6 +71,8 @@ void EventModel::addMessage(QString s)
 	state->addMessage(s);
 
 	m_states.push_back(state);
+
+	emit messagesChanged();
 }
 
 void EventModel::removeMessage(QString s)
@@ -84,6 +86,8 @@ void EventModel::removeMessage(QString s)
 		delete *state_it;
 		m_states.erase(state_it);
 	}
+
+	emit messagesChanged();
 }
 
 void EventModel::setHeightPercentage(double arg)

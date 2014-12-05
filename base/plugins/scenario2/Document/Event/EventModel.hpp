@@ -43,6 +43,7 @@ class EventModel : public QIdentifiedObject
 
 	signals:
 		void heightPercentageChanged(double arg);
+		void messagesChanged();
 
 	private:
 		OSSIA::TimeNode* m_timeNode{};

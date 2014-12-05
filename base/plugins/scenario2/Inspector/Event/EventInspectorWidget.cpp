@@ -18,10 +18,11 @@
 #include <Commands/Event/AddStateToEventCommand.hpp>
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
-	InspectorWidgetBase{parent},
+	InspectorWidgetBase{nullptr},
 	m_eventModel{object}
 {
-	setObjectName ("Event");
+	setObjectName ("EventInspectorWidget");
+	setParent(parent);
 
 	QWidget* addressesWidget = new QWidget{this};
 	auto dispLayout = new QVBoxLayout{addressesWidget};
@@ -78,7 +79,6 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 		{
 			for(auto& msg : state->messages())
 			{
-				qDebug() << msg;
 				addAddress(msg);
 			}
 		}
@@ -92,4 +92,9 @@ void EventInspectorWidget::on_addAddressClicked()
 										  txt);
 
 	emit submitCommand(cmd);
+}
+
+void EventInspectorWidget::updateMessages()
+{
+	updateDisplayedValues(m_eventModel);
 }
