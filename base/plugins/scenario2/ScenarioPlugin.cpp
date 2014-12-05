@@ -71,7 +71,7 @@ iscore::PluginControlInterface*ScenarioPlugin::control_make(QString name)
 
 QStringList ScenarioPlugin::inspectorFactory_list() const
 {
-	return {"IntervalInspectorFactory", "EventInspectorFactory"};
+	return {"IntervalInspectorFactory"/*, "EventInspectorFactory"*/};
 }
 
 #include <Inspector/Interval/IntervalInspectorFactory.hpp>
@@ -81,7 +81,7 @@ iscore::InspectorWidgetFactoryInterface*ScenarioPlugin::inspectorFactory_make(QS
 	{
 		return new IntervalInspectorFactory;
 	}
-	
+
 	return nullptr;
 }
 

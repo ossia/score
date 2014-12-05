@@ -12,7 +12,7 @@ void PluginManager::reloadPlugins()
 	clearPlugins();
 	auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
-    auto blacklist = pluginsBlacklist(); // TODO prevent the Plugin Settings plugin from being blacklisted
+	auto blacklist = pluginsBlacklist(); // TODO prevent the Plugin Settings plugin from being blacklisted
 
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
@@ -114,11 +114,12 @@ void PluginManager::dispatch(QObject* plugin)
 			m_documentPanelList.push_back(docpanel_plugin->document_make(name));
 		}
 	}
-	
+
 	if(inspector_plugin)
 	{
 		for(auto name : inspector_plugin->inspectorFactory_list())
 		{
+			qDebug() << "===== Adding inspector factory" << name;
 			m_inspectorList.push_back(inspector_plugin->inspectorFactory_make(name));
 		}
 	}

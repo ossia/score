@@ -15,17 +15,13 @@ IntervalView::IntervalView(QGraphicsObject* parent):
 
 	m_button = new QGraphicsProxyWidget(this);
 	auto pb = new QPushButton("Add scenario");
-	connect(pb,		&QPushButton::clicked,
+	connect(pb,	&QPushButton::clicked,
 			[&] ()
 		{
 			emit addScenarioProcessClicked();
 		});
 
 	m_button->setWidget(pb);
-
-	//qDebug() << "Adding widget on" << widg->pos();
-
-	//this->scene()->addItem(widg);
 }
 
 QRectF IntervalView::boundingRect() const
