@@ -54,7 +54,16 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
 	if(m->modifiers() == Qt::ControlModifier) {
-		emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+        emit eventReleasedWithControl(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
 		qDebug() << "Event released while ctrl key pressed; transmitting to scenario";
-	}
+    }
+    else
+    {
+        emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+    }
+}
+
+void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
+{
+
 }

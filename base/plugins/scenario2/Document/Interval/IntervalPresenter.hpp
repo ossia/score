@@ -42,5 +42,7 @@ class IntervalPresenter : public QNamedObject
 		IntervalModel* m_model{};
 		IntervalView* m_view{};
 
+        long m_millisecPerPixel{1};
+
 };
 

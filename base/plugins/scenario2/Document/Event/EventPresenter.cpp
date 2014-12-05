@@ -12,13 +12,18 @@ EventPresenter::EventPresenter(EventModel* model,
 	m_view{view}
 {
 	// The scenario catches this :
-	connect(m_view, &EventView::eventPressedWithControl,
+    connect(m_view, &EventView::eventPressed,
 			[this] () { emit eventSelected(id()); });
-	connect(m_view, &EventView::eventReleased,
+    connect(m_view, &EventView::eventReleasedWithControl,
 			[&] (QPointF p)
 	{
-        emit eventReleased(id(), p.x(), p.y());
+        emit eventReleasedWithControl(id(), p.x(), p.y());
 	});
+    connect(m_view, &EventView::eventReleased,
+            [&] (QPointF p)
+    {
+        emit eventReleased(id(), p.x(), p.y());
+    });
 }
 
 EventPresenter::~EventPresenter()

@@ -135,7 +135,12 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 												distance,
 												(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
 
-	submitCommand(cmd);
+    submitCommand(cmd);
+}
+
+void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double heightPos)
+{
+
 }
 
 
@@ -157,8 +162,10 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &ScenarioProcessPresenter::setCurrentlySelectedEvent);
-	connect(event_presenter, &EventPresenter::eventReleased,
+    connect(event_presenter, &EventPresenter::eventReleasedWithControl,
 			this,			 &ScenarioProcessPresenter::createIntervalAndEventFromEvent);
+    connect(event_presenter, &EventPresenter::eventReleased,
+            this,			 &ScenarioProcessPresenter::moveEventAndInterval);
 }
 
 void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_model)

@@ -75,9 +75,15 @@ class IntervalModel : public QIdentifiedObject
 
 		double heightPercentage() const;
 
-	public slots:
-		void setName(QString arg);
-		void setComment(QString arg);
+        int width() const;
+        void setWidth(int width);
+
+        int height() const;
+        void setHeight(int height);
+
+public slots:
+        void setName(QString arg);
+        void setComment(QString arg);
 		void setColor(QColor arg);
 		void setHeightPercentage(double arg);
 

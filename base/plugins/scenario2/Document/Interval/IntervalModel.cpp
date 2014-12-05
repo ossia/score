@@ -82,10 +82,30 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 }
 
 
+
+int IntervalModel::width() const
+{
+    return m_width;
+}
+
+void IntervalModel::setWidth(int width)
+{
+    m_width = width;
+}
+
+int IntervalModel::height() const
+{
+    return m_height;
+}
+
+void IntervalModel::setHeight(int height)
+{
+    m_height = height;
+}
 IntervalModel::IntervalModel(int id,
-							 QObject* parent):
-	QIdentifiedObject{parent, "IntervalModel", id},
-	m_timeBox{new OSSIA::TimeBox}
+                             QObject* parent):
+    QIdentifiedObject{parent, "IntervalModel", id},
+    m_timeBox{new OSSIA::TimeBox}
 {
 	createContentModel();
 }
