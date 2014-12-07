@@ -129,7 +129,11 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp
 )
 
-add_library(iscore_lib SHARED ${SOURCE_FILES} ${HEADER_FILES})
+if(ANDROID)
+	add_library(iscore_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
+else()
+	add_library(iscore_lib SHARED ${SOURCE_FILES} ${HEADER_FILES})
+endif()
 target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)
 
 install(TARGETS iscore_lib DESTINATION ${CMAKE_BINARY_DIR})
