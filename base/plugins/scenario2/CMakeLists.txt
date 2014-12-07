@@ -33,7 +33,10 @@ add_library(scenario_process SHARED
 			${INSPECTOR_HDRS} ${INSPECTOR_SRCS}
 			${PLUGIN_FILES})
 
-install(TARGETS scenario_process LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
+install(TARGETS scenario_process
+		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		COMPONENT plugins)
 
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock)
 if(APPLE)

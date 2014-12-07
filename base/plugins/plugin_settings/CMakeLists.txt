@@ -37,9 +37,12 @@ set(SOURCE_FILES
 )
 
 add_library(pluginsettings_plugin SHARED ${HEADER_FILES} ${SOURCE_FILES})
-install(TARGETS pluginsettings_plugin LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
+install(TARGETS pluginsettings_plugin
+		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		COMPONENT plugins)
 
-target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets)
+target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
 if(APPLE)
-     SET_TARGET_PROPERTIES(pluginsettings_plugin PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+	 SET_TARGET_PROPERTIES(pluginsettings_plugin PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()

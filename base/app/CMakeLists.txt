@@ -13,7 +13,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 
-add_executable(iscore_app main.cpp)
+add_executable(iscore_app WIN32 main.cpp)
 
 target_link_libraries(iscore_app iscore_lib)
 

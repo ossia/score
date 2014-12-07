@@ -9,7 +9,7 @@ find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 find_package(Qt5Network 5.3 REQUIRED)
 
-find_package(Boost) 
+find_package(Boost)
 
 if(NOT Boost_FOUND)
 	message("The network plugin requires boost to build")
@@ -97,7 +97,10 @@ set(SOURCE_FILES
 )
 
 add_library(networkplugin SHARED ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
-install(TARGETS networkplugin LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
+install(TARGETS networkplugin
+		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		COMPONENT plugins)
 
 target_link_libraries(networkplugin
 								  iscore_lib

@@ -83,7 +83,10 @@ add_library(device_explorer_plugin SHARED
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${PANEL_HDRS} ${PANEL_SRCS}
 			${PLUGIN_FILES} ${EXPLORER_RESOURCES_RCC})
-install(TARGETS device_explorer_plugin LIBRARY DESTINATION ${ISCORE_PLUGINS_FOLDER})
+install(TARGETS device_explorer_plugin
+		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
+		COMPONENT plugins)
 
 target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets iscore_lib)
 if(APPLE)
