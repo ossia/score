@@ -96,7 +96,7 @@ set(SOURCE_FILES
 
 )
 
-add_library(networkplugin SHARED ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
+add_library(networkplugin ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
 
 target_link_libraries(networkplugin
 								  iscore_lib

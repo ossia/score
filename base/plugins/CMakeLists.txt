@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins/)
 
+if(ISCORE_STATIC_PLUGINS)
+	add_definitions(-DQT_STATICPLUGIN)
+endif()
 # add_subdirectory(examples)
 
 add_subdirectory(plugin_settings)

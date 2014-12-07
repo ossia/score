@@ -36,7 +36,7 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.cpp
 )
 
-add_library(pluginsettings_plugin SHARED ${HEADER_FILES} ${SOURCE_FILES})
+add_library(pluginsettings_plugin ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
 if(APPLE)

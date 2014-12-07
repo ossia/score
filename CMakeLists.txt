@@ -14,5 +14,11 @@ if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/API")
 	add_subdirectory("${CMAKE_SOURCE_DIR}/API")
 endif()
 
+if(ISCORE_STATIC_PLUGINS OR ANDROID)
+	set(BUILD_SHARED_LIBS OFF)
+else()
+	set(BUILD_SHARED_LIBS ON)
+endif()
+
 add_subdirectory(base)
 add_subdirectory(tests)

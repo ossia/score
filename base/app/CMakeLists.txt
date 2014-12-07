@@ -4,6 +4,7 @@ project(iscore_app)
 
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5Network 5.3 REQUIRED)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
@@ -14,7 +15,16 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
-
+add_definitions(-DQT_STATICPLUGIN)
 add_executable(iscore_app WIN32 main.cpp)
 
 target_link_libraries(iscore_app iscore_lib)
+if(ISCORE_STATIC_PLUGINS)
+	add_definitions(-DISCORE_STATIC_PLUGINS)
+	target_link_libraries(iscore_app 
+		inspector_plugin 
+		networkplugin 
+		scenario_process 
+		pluginsettings_plugin 
+		device_explorer_plugin)
+endif()

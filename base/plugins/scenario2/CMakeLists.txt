@@ -27,7 +27,7 @@ set(PLUGIN_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.cpp")
 	
-add_library(scenario_process SHARED
+add_library(scenario_process
 			${DOCUMENT_HDRS} ${DOCUMENT_SRCS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${CONTROL_HDRS} ${CONTROL_SRCS}

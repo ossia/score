@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QDebug>
 #include <QSettings>
+#include <QStaticPlugin>
+
 using namespace iscore;
 
 void PluginManager::reloadPlugins()
@@ -32,6 +34,12 @@ void PluginManager::reloadPlugins()
 
 			m_pluginsOnSystem.push_back(fileName);
 		}
+	}
+	
+	// Load static plug-ins
+	for(auto obj : QPluginLoader::staticInstances())
+	{
+		dispatch(obj);
 	}
 }
 

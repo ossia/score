@@ -17,7 +17,7 @@ file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE UIS "${CMAKE_CURRENT_SOURCE_DIR}/*.ui")
 
-add_library(inspector_plugin SHARED	${HDRS} ${SRCS} ${UIS})
+add_library(inspector_plugin ${HDRS} ${SRCS} ${UIS})
 
 target_link_libraries(inspector_plugin Qt5::Core Qt5::Widgets iscore_lib)
 if(APPLE)
