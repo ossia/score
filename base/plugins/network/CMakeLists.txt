@@ -97,10 +97,6 @@ set(SOURCE_FILES
 )
 
 add_library(networkplugin SHARED ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
-install(TARGETS networkplugin
-		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
-		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
-		COMPONENT plugins)
 
 target_link_libraries(networkplugin
 								  iscore_lib

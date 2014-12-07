@@ -22,12 +22,9 @@ add_library(iscore_app_android SHARED
     main.cpp)
  
 target_link_libraries(iscore_app_android iscore_lib)
-target_link_libraries(iscore_app_android Qt5::Core Qt5::Widgets )
-target_link_libraries(iscore_app_android log "/opt/android-ndk/platforms/android-19/arch-arm/usr/lib/libandroid.so")
+target_link_libraries(iscore_app_android Qt5::Core Qt5::Widgets)
+target_link_libraries(iscore_app_android log "${ANDROID_NDK}/platforms/android-19/arch-arm/usr/lib/libandroid.so")
 
- 
- 
- 
  
 set(ANDROID_DEPLOY_QT /opt/Qt/5.3/android_armv7/bin/androiddeployqt)
 
@@ -37,7 +34,7 @@ if (NOT ANDROID_DEPLOY_QT)
 endif(NOT ANDROID_DEPLOY_QT)
 
 # Set version
-set(ANDROID_VERSION_NAME "0.3")
+set(ANDROID_VERSION_NAME "03")
 
 # set android package source for androiddeployqt json file
 set(PACKAGE_SOURCE_ANDROID ${CMAKE_BINARY_DIR}/tmpAndroid)

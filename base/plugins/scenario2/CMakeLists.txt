@@ -26,17 +26,13 @@ file(GLOB_RECURSE INSPECTOR_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.cpp")
 set(PLUGIN_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.cpp")
+	
 add_library(scenario_process SHARED
 			${DOCUMENT_HDRS} ${DOCUMENT_SRCS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${CONTROL_HDRS} ${CONTROL_SRCS}
 			${INSPECTOR_HDRS} ${INSPECTOR_SRCS}
 			${PLUGIN_FILES})
-
-install(TARGETS scenario_process
-		ARCHIVE DESTINATION "${ISCORE_PLUGINS_FOLDER}"
-		LIBRARY DESTINATION "${ISCORE_PLUGINS_FOLDER}"
-		COMPONENT plugins)
 
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock)
 if(APPLE)
