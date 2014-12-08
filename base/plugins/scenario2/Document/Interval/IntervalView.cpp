@@ -55,5 +55,4 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	emit intervalReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
-	qDebug() <<  (m->pos().x() - m_rect.left()) << m->pos().y() ;
 }

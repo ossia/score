@@ -2,7 +2,6 @@
 #include "EventInspectorWidget.hpp"
 
 #include <Document/Event/EventModel.hpp>
-#include <QDebug>
 
 //using namespace iscore;
 

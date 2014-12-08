@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QColor>
 
+// "Fake" object, just for tests.
+
 class ObjectInterval : public QObject
 {
 		Q_OBJECT
