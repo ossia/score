@@ -34,9 +34,10 @@ void View::addPanel(PanelViewInterface* v)
 								  MenuInterface::name(ViewMenuElement::Windows),
 								  hideDialog});
 
-	this->addDockWidget(Qt::RightDockWidgetArea, dial);
+	this->addDockWidget(v->defaultDock(), dial);
 }
 
+// @todo do this elsewhere... The View must not know the presenter.
 void View::setPresenter(Presenter* pres)
 {
 	m_presenter = pres;

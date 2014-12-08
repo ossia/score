@@ -4,9 +4,8 @@ using namespace iscore;
 
 InspectorPlugin::InspectorPlugin() :
 	QObject {},
-		iscore::Autoconnect_QtInterface {},
-//	iscore::PluginControlInterface_QtInterface{},
-iscore::PanelFactoryInterface_QtInterface {}
+	iscore::Autoconnect_QtInterface {},
+	iscore::PanelFactoryInterface_QtInterface {}
 {
 	setObjectName ("InspectorPlugin");
 }
@@ -31,18 +30,6 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 		  "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}},
 	};
 }
-
-
-/*
-QStringList InspectorPlugin::control_list() const
-{
-	return {""};
-}
-
-PluginControlInterface* InspectorPlugin::control_make(QString)
-{
-	return nullptr;
-}*/
 
 
 

@@ -16,6 +16,23 @@ QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 	return s;
 }
 
+QDataStream& operator >> (QDataStream& s, IntervalContentModel& c)
+{
+	int id;
+	s >> id;
+	c.setId(id);
+
+	int storeys_size;
+	s >> storeys_size;
+	for(; storeys_size --> 0 ;)
+	{
+		c.createStorey(s);
+	}
+
+	return s;
+}
+
+
 IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 	IdentifiedObject{parent, "IntervalContentModel", id}
 {
@@ -23,20 +40,9 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 }
 
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
-	IdentifiedObject{nullptr, "IntervalContentModel", -1}
+	IdentifiedObject{parent, "IntervalContentModel", -1}
 {
-	// TODO should this go in a "operator >>" ?
-	int id;
-	s >> id;
-	this->setId(id);
-	this->setParent(parent);
-
-	int storeys_size;
-	s >> storeys_size;
-	for(int i = 0; i < storeys_size; i++)
-	{
-		createStorey(s);
-	}
+	s >> *this;
 }
 
 int IntervalContentModel::createStorey()

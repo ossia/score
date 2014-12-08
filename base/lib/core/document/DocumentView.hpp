@@ -3,6 +3,8 @@
 
 namespace iscore
 {
+	class DocumentDelegateViewInterface;
+
 	/**
 	 * @brief The DocumentView class is the central view of i-score.
 	 *
@@ -12,5 +14,9 @@ namespace iscore
 	{
 		public:
 			DocumentView(QWidget* parent);
+			void setViewDelegate(DocumentDelegateViewInterface*);
+
+		private:
+			DocumentDelegateViewInterface* m_view{};
 	};
 }

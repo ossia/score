@@ -6,10 +6,9 @@ class EventModel;
 class QFormLayout;
 
 /*!
- * \brief The EventInspectorView class
+ * \brief The EventInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Event (Timebox) element.
  */
-// @todo Rename in EventInspectorWidget
 class EventInspectorWidget : public InspectorWidgetBase
 {
 		Q_OBJECT

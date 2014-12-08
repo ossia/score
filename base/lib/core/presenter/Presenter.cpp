@@ -81,7 +81,6 @@ void Presenter::newDocument()
 
 void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 {
-	qDebug(Q_FUNC_INFO);
 	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
 }
 

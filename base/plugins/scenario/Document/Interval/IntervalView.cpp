@@ -11,7 +11,6 @@ IntervalView::IntervalView(QGraphicsObject* parent):
 {
 	this->setParentItem(parent);
 
-	// TODO hack. How to do it properly ?
 	this->setZValue(parent->zValue() + 1);
 
 	m_button = new QGraphicsProxyWidget(this);

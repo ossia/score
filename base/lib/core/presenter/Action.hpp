@@ -5,7 +5,7 @@ class QAction;
 namespace iscore
 {
 	/**
-	 * @brief The Action class
+	 * @brief The PositionedMenuAction class
 	 *
 	 * It is used to specify paths in menus like :
 	 * File/MyPlugin/SomeSubmenu/AnotherSubmenu

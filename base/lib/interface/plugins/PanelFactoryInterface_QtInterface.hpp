@@ -1,7 +1,7 @@
 #pragma once
 #include <QString>
 #include <interface/panel/PanelFactoryInterface.hpp>
-
+#include <QObject>
 namespace iscore
 {
 	class PanelFactoryInterface_QtInterface

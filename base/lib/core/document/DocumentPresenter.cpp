@@ -26,7 +26,7 @@ void DocumentPresenter::reset()
 	m_commandQueue->clear();
 }
 
-void DocumentPresenter::setPresenter(DocumentDelegatePresenterInterface* pres)
+void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)
 {
 	if(m_presenter) m_presenter->deleteLater();
 	m_presenter = pres;

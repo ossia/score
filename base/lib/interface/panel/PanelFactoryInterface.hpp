@@ -18,7 +18,9 @@ namespace iscore
 	{
 		public:
 			virtual PanelViewInterface* makeView(View* parent) = 0;
-			virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter, PanelModelInterface* model, PanelViewInterface* view) = 0;
+			virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter,
+														   PanelModelInterface* model,
+														   PanelViewInterface* view) = 0;
 			virtual PanelModelInterface* makeModel(Model* parent) = 0;
 	};
 }

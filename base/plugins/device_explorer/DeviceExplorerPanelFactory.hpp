@@ -28,13 +28,16 @@ class DeviceExplorerPanelView : public iscore::PanelViewInterface
 	public:
 		DeviceExplorerPanelView(iscore::View* parent);
 		virtual QWidget* getWidget() override;
+
+		virtual Qt::DockWidgetArea defaultDock() const
+		{ return Qt::LeftDockWidgetArea; }
 };
 
 
 class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
 {
-		
-		
+
+
 		// PanelFactoryInterface interface
 	public:
 		virtual iscore::PanelViewInterface* makeView(iscore::View*);

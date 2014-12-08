@@ -7,10 +7,9 @@ class IntervalModel;
 class QFormLayout;
 
 /*!
- * \brief The IntervalInspectorView class
+ * \brief The IntervalInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Interval (Timebox) element.
  */
-// @todo Rename in IntervalInspectorWidget
 class IntervalInspectorWidget : public InspectorWidgetBase
 {
 		Q_OBJECT

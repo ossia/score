@@ -25,7 +25,7 @@ namespace iscore
 
 			void newDocument();
 			void reset();
-			void setPresenter(DocumentDelegatePresenterInterface* pres);
+			void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
 
 		signals:
 			void on_elementSelected(QObject* element);

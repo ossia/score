@@ -14,6 +14,6 @@ InspectorWidgetBase* EventInspectorFactory::makeWidget (QObject* sourceElement)
 
 InspectorWidgetBase* EventInspectorFactory::makeWidget (QList<QObject*> sourceElements)
 {
-	//TODO (in the inspector, too)
+	// @todo make a tabbed view when there is a list.
 	return new EventInspectorWidget (static_cast<EventModel*> (sourceElements.at (0) ) );
 }

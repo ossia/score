@@ -5,7 +5,6 @@
 class IntervalModel;
 class PositionedStoreyModel;
 
-// TODO maybe IntervalStoreyGroup instead?
 class IntervalContentModel : public IdentifiedObject
 {
 	Q_OBJECT

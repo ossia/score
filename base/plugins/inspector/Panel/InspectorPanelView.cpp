@@ -5,12 +5,13 @@
 InspectorPanelView::InspectorPanelView (iscore::View* parent) :
 	iscore::PanelViewInterface{parent}
 {
+	this->setObjectName(tr("Inspector"));
 	m_panelWidget = new InspectorPanel{parent};
 }
 
 QWidget* InspectorPanelView::getWidget()
 {
-	
+
 //	ObjectInterval* test1 = new ObjectInterval ("MonNom", "remarques diverses", Qt::red );
 
 //	ptr->newItemInspected (test1);

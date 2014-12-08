@@ -24,11 +24,6 @@
 
 #include <tools/utilsCPP11.hpp>
 
-// TODO Question :
-// étirement temporel d'une boîte qui contient un scénario hiérarchique ?
-// veut on étirer les choses ou les laisser à leur place ?
-
-
 ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 												   iscore::ProcessViewInterface* view,
 												   QObject* parent):
