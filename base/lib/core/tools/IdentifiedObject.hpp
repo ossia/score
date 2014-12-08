@@ -8,7 +8,7 @@ class IdentifiedObject : public NamedObject
 		template<typename... Args>
 		IdentifiedObject(QObject* parent,
 						  QString name,
-						  int id,
+						  SettableIdentifier id,
 						  Args&&... args):
 			NamedObject{parent,
 						 name,
@@ -22,7 +22,7 @@ class IdentifiedObject : public NamedObject
 			return m_id;
 		}
 
-		void setId(int id)
+		void setId(SettableIdentifier id)
 		{
 			m_id = id;
 		}

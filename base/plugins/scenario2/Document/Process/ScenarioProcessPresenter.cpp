@@ -179,7 +179,6 @@ void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double
 									id,
 									distance,
 									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
-	qDebug() << "scenar : event move";
 	submitCommand(cmd);
 }
 
@@ -197,7 +196,7 @@ void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double heightPos)
 									id,
 									endEventId,
 									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
-	qDebug() << "scenar : interval move";
+
 	submitCommand(cmd);
 }
 
@@ -206,7 +205,6 @@ void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double heightPos)
 
 void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
-	qDebug() << Q_FUNC_INFO << event_model;
 	auto rect = m_view->boundingRect();
 
 	auto event_view = new EventView{m_view};
@@ -242,6 +240,6 @@ void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_m
 	m_intervals.push_back(interval_presenter);
 
 	connect(interval_presenter, &IntervalPresenter::intervalReleased,
-			this,			 &ScenarioProcessPresenter::moveIntervalOnVertical);
+			this,				&ScenarioProcessPresenter::moveIntervalOnVertical);
 
 }

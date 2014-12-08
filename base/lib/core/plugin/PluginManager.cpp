@@ -61,8 +61,10 @@ QStringList PluginManager::pluginsBlacklist()
 // @todo refactor : make a single loop (use a tuple ? objects? a tempalte function?) or
 // make a method return_all in each interface ?
 // @todo : make a generic way for plug-ins to register plugin factories. For instance scenario could register a scenario view factory ?
-// the PluginFactoryInterface has a dispatch(qobject* ) and does the cast. Must be in two passes : first pass : get the possible interfaces (or use a map ?)
-// second pass load the plug-ins.
+// the PluginFactoryInterface has a dispatch(qobject* ) and does the cast.
+// Must be in two passes :
+//   first pass : get the possible interfaces (or use a map ?)
+//   second pass: load the plug-ins.
 void PluginManager::dispatch(QObject* plugin)
 {
 	//qDebug() << plugin->objectName() << "was dispatched";
