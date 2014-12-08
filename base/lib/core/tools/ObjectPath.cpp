@@ -62,23 +62,3 @@ QObject*ObjectPath::find()
 
 	return obj;
 }
-
-
-
-QDataStream& operator <<(QDataStream& s, const ObjectPath& path)
-{
-	s << path.baseObject;
-	s << QVector<ObjectIdentifier>::fromStdVector(path.v);
-	return s;
-}
-
-
-QDataStream& operator >>(QDataStream& s, ObjectPath&& path)
-{
-	s >> path.baseObject;
-	QVector<ObjectIdentifier> vec;
-	s >> vec;
-
-	path.v = vec.toStdVector();
-	return s;
-}
