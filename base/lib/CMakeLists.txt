@@ -67,6 +67,8 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/NamedObject.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/IdentifiedObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/SettableIdentifier.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectIdentifier.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/utilsCPP11.hpp
 

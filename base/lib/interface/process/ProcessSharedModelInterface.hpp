@@ -9,10 +9,10 @@ namespace iscore
 	 *
 	 * Interface to implement to make a process.
 	 */
-	class ProcessSharedModelInterface: public QIdentifiedObject
+	class ProcessSharedModelInterface: public IdentifiedObject
 	{
 		public:
-			using QIdentifiedObject::QIdentifiedObject;
+			using IdentifiedObject::IdentifiedObject;
 
 			/**
 			 * @brief processName

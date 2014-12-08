@@ -1,11 +1,12 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifier.hpp>
 
-class QIdentifiedObject : public NamedObject
+class IdentifiedObject : public NamedObject
 {
 	public:
 		template<typename... Args>
-		QIdentifiedObject(QObject* parent,
+		IdentifiedObject(QObject* parent,
 						  QString name,
 						  int id,
 						  Args&&... args):
@@ -16,7 +17,7 @@ class QIdentifiedObject : public NamedObject
 		{
 		}
 
-		int id() const
+		const SettableIdentifier& id() const
 		{
 			return m_id;
 		}
@@ -27,9 +28,13 @@ class QIdentifiedObject : public NamedObject
 		}
 
 	private:
-		int m_id{};
+		SettableIdentifier m_id{};
 };
 
+////////////////////////////////////////////////
+///
+///Functions that operate on collections of identified objects.
+///
 ////////////////////////////////////////////////
 template<typename Container>
 typename Container::value_type findById(const Container& c, int id)
@@ -46,9 +51,6 @@ typename Container::value_type findById(const Container& c, int id)
 
 	return nullptr;
 }
-
-
-////////////////////////////////////////////////
 
 template <typename Vector>
 int getNextId(Vector& v)

@@ -1,46 +1,64 @@
-#include <tools/ObjectPath.hpp>
+#include <QApplication>
+#include <core/tools/IdentifiedObject.hpp>
+#include <core/tools/ObjectPath.hpp>
 
-
-ObjectPath ObjectPath::pathFromObject(QString origin, QIdentifiedObject* obj)
+ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* origin_object)
 {
-	std::vector<ObjectIdentifier> v;
-	QObject* obj_origin = qApp->findChild<QObject*>(origin);
+	QVector<ObjectIdentifier> v;
+	QObject* parent_obj = qApp->findChild<QObject*>(parent_name);
 
-	auto parent = obj;
-	while(parent != obj_origin)
+	auto current_obj = origin_object;
+	auto add_parent_to_vector = [&v] (QObject* ptr)
 	{
-		v.push_back({parent->objectName(), parent->id()});
+		if(auto id_obj = dynamic_cast<IdentifiedObject*>(ptr))
+			v.push_back({id_obj->objectName(), id_obj->id()});
+		else
+			v.push_back({ptr->objectName(), {}});
+	};
 
-		auto tmp_parent = parent;
-		parent = dynamic_cast<QIdentifiedObject*>(tmp_parent->parent());
-		if(!parent)
+	// Recursively go through the object and all the parents
+	while(current_obj != parent_obj)
+	{
+		if(current_obj->objectName().isEmpty())
 		{
-			auto parent2 = dynamic_cast<QObject*>(tmp_parent->parent());
-			if(parent2 && parent2->objectName() == origin)
-			{
-				break;
-			}
+			throw std::runtime_error("ObjectPath::pathFromObject : an object in the hierarchy does not have a name.");
+		}
 
-			throw std::runtime_error("Could not find parent object");
+		add_parent_to_vector(current_obj);
+
+		current_obj = current_obj->parent();
+		if(!current_obj)
+		{
+			throw std::runtime_error("ObjectPath::pathFromObject : Could not find path to parent object");
 		}
 	}
 
-	std::reverse(std::begin(v), std::end(v));
+	// Add the last parent (the one specified with parent_name)
+	add_parent_to_vector(current_obj);
 
-	return {std::move(origin), std::move(v)};
+	// Search goes from top to bottom (of the parent hierarchy) instead
+	std::reverse(std::begin(v), std::end(v));
+	return std::move(v);
 }
 
-QObject*ObjectPath::find()
+QObject* ObjectPath::find() const
 {
-	QObject* obj = qApp->findChild<QObject*>(baseObject);
+	auto parent_name = m_objectIdentifiers.at(0).childName();
+	std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
+	std::copy(std::begin(m_objectIdentifiers) + 1,
+			  std::end(m_objectIdentifiers),
+			  std::begin(children));
 
-	for(auto it = v.begin(); it != v.end(); ++it)
+	QObject* obj = qApp->findChild<QObject*>(parent_name);
+
+	for(const auto& currentObjIdentifier : children)
 	{
-		if(it->id != -1) // TODO : instead use a Value class that can be Uninitialized
+		if(currentObjIdentifier.id().set())
 		{
-			auto childs = obj->findChildren<QIdentifiedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.childName(),
+																Qt::FindDirectChildrenOnly);
 
-			auto elt = findById(childs, it->id);
+			auto elt = findById(childs, currentObjIdentifier.id());
 			if(!elt)
 			{
 				return nullptr;
@@ -50,7 +68,8 @@ QObject*ObjectPath::find()
 		}
 		else
 		{
-			auto child = obj->findChild<NamedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+			auto child = obj->findChild<NamedObject*>(currentObjIdentifier.childName(),
+													  Qt::FindDirectChildrenOnly);
 			if(!child)
 			{
 				return nullptr;

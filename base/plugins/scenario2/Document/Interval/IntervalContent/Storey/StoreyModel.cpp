@@ -23,7 +23,7 @@ QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 }
 
 StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
-	QIdentifiedObject{nullptr, "StoreyModel", -1}
+	IdentifiedObject{nullptr, "StoreyModel", -1}
 {
 	int id, editedProcessId;
 	s >> id;
@@ -45,7 +45,7 @@ StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
 }
 
 StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
-	QIdentifiedObject{parent, "StoreyModel", id}
+	IdentifiedObject{parent, "StoreyModel", id}
 {
 
 }

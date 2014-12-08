@@ -17,13 +17,13 @@ QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 }
 
 IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
-	QIdentifiedObject{parent, "IntervalContentModel", id}
+	IdentifiedObject{parent, "IntervalContentModel", id}
 {
 
 }
 
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
-	QIdentifiedObject{nullptr, "IntervalContentModel", -1}
+	IdentifiedObject{nullptr, "IntervalContentModel", -1}
 {
 	// TODO should this go in a "operator >>" ?
 	int id;

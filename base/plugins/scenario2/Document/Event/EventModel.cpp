@@ -8,7 +8,7 @@
 // FAire une copie du scénario, appliquer la commande dessus, et si elle throw pas sur la copie, l'appliquer pour de vrai.
 
 EventModel::EventModel(int id, QObject* parent):
-	QIdentifiedObject{parent, "EventModel", id},
+	IdentifiedObject{parent, "EventModel", id},
 	m_timeNode{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the intervals are correctly created.
@@ -33,7 +33,7 @@ QDataStream& operator << (QDataStream& s, const EventModel& ev)
 }
 
 EventModel::EventModel(QDataStream& s, QObject* parent):
-	QIdentifiedObject{nullptr, "EventModel", -1}
+	IdentifiedObject{nullptr, "EventModel", -1}
 {
 	int id;
 	s >> id >> m_previousIntervals >> m_nextIntervals >> m_heightPercentage;

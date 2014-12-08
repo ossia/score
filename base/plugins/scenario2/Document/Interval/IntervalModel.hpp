@@ -20,7 +20,7 @@ class TimeBox;
  *
  * Contains at least 1 IntervalContentModel (else nothing can be displayed)
  */
-class IntervalModel : public QIdentifiedObject
+class IntervalModel : public IdentifiedObject
 {
 	Q_OBJECT
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)

@@ -17,10 +17,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 {
 	auto cmd = new AddProcessToIntervalCommand(
 		{
-			"BaseElementModel",
-			{
-				{"BaseIntervalModel", -1}
-			}
+			{"BaseIntervalModel", {}}
 		},
 		"Scenario");
 	cmd->redo();

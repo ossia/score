@@ -7,7 +7,7 @@ namespace OSSIA
 }
 class State;
 class IntervalModel;
-class EventModel : public QIdentifiedObject
+class EventModel : public IdentifiedObject
 {
 	Q_OBJECT
 

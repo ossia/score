@@ -21,7 +21,7 @@ namespace iscore
 /// puis relance et rejoint la session réseau:
 /// les ids doivent rester les mêmes
 /////////////////// !!!
-class StoreyModel : public QIdentifiedObject
+class StoreyModel : public IdentifiedObject
 {
 	Q_OBJECT
 

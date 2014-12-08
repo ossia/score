@@ -43,7 +43,7 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 }
 
 IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
-	QIdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
+	IdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
 {
 	// Metadata
 	int id;
@@ -104,7 +104,7 @@ void IntervalModel::setHeight(int height)
 }
 IntervalModel::IntervalModel(int id,
 							 QObject* parent):
-	QIdentifiedObject{parent, "IntervalModel", id},
+	IdentifiedObject{parent, "IntervalModel", id},
 	m_timeBox{new OSSIA::TimeBox}
 {
 	createContentModel();

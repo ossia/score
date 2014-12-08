@@ -8,11 +8,11 @@ namespace iscore
 	 *
 	 * Interface to implement to make a process view model.
 	 */
-	class ProcessViewModelInterface: public QIdentifiedObject
+	class ProcessViewModelInterface: public IdentifiedObject
 	{
 		public:
 			ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, int sharedProcessId):
-				QIdentifiedObject{parent, name, viewModelId},
+				IdentifiedObject{parent, name, viewModelId},
 				m_sharedProcessId{sharedProcessId}
 			{
 
