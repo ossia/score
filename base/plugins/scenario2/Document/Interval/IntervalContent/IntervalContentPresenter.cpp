@@ -8,7 +8,7 @@
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QGraphicsScene>
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,

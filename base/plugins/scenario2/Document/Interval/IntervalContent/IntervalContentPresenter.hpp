@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 class StoreyPresenter;
 class IntervalContentModel;
 class IntervalContentView;

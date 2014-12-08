@@ -9,7 +9,7 @@
 #include <interface/process/ProcessSharedModelInterface.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QGraphicsScene>
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 
 // @todo vérifier en créant un nouvel élément
 // qu'il n'existe pas déjà dans un tableau.

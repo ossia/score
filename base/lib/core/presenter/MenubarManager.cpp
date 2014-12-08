@@ -16,7 +16,6 @@ MenubarManager::MenubarManager(QMenuBar* bar, QObject *parent) :
 
 
 
-//TODO what happens if two plug-ins add the same action name ?
 void MenubarManager::insertActionIntoMenubar(Action actionToInsert)
 {
 	std::function<void(QMenu*, QStringList)> recurse =

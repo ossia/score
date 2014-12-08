@@ -1,7 +1,7 @@
 #pragma once
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 #include <vector>
 #include <memory>

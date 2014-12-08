@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/IdentifiedObject.hpp>
 #include <vector>
 
 class IntervalModel;

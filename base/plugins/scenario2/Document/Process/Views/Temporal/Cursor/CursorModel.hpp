@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 class CursorModel : public QNamedObject
 {

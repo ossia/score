@@ -4,7 +4,7 @@
 #include <set>
 #include <core/document/Document.hpp>
 
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 namespace iscore
 {

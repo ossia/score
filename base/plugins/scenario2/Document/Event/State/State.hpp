@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 class DataType { };
 class Impulse : public DataType { }; // ignore QVariant

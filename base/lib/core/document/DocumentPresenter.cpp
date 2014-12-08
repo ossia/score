@@ -1,15 +1,8 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <core/utilsCPP11.hpp>
+#include <core/tools/utilsCPP11.hpp>
 
-void parentHierarchy(QObject* obj)
-{
-	while(obj)
-	{
-		qDebug() << obj->objectName();
-		obj = obj->parent();
-	}
-}
+
 
 using namespace iscore;
 
@@ -17,7 +10,6 @@ DocumentPresenter::DocumentPresenter(QObject* parent, DocumentModel* m, Document
 	QNamedObject{parent, "DocumentPresenter"},
 	m_commandQueue{std::make_unique<CommandQueue>()}
 {
-	//parentHierarchy(this);
 	m_commandQueue->setParent(this);
 }
 
@@ -42,7 +34,7 @@ void DocumentPresenter::setPresenter(DocumentDelegatePresenterInterface* pres)
 
 	connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
 			this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
-	
+
 	connect(m_presenter, &DocumentDelegatePresenterInterface::elementSelected,
 			this,		 &DocumentPresenter::on_elementSelected, Qt::QueuedConnection);
 }

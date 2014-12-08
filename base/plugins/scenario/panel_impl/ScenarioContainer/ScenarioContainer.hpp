@@ -1,7 +1,7 @@
 #ifndef SCENARIOCONTAINER_HPP
 #define SCENARIOCONTAINER_HPP
 
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 class ScenarioModel;
 class ScenarioView;

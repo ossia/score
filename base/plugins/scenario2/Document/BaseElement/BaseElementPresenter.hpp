@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 #include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 class BaseElementModel;

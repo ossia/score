@@ -7,7 +7,7 @@ namespace iscore
 	/**
 	 * @brief The DocumentDelegateModelInterface class
 	 *
-	 * TODO
+	 * Drawbridge between the application and a model given by a plugin.
 	 */
 	class DocumentModel : public QObject
 	{

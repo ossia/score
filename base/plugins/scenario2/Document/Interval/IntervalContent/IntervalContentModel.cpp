@@ -1,7 +1,7 @@
 #include "IntervalContentModel.hpp"
 #include "Interval/IntervalModel.hpp"
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 #include <QDebug>
 QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 {

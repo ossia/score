@@ -2,7 +2,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 #include <QDebug>
 
 ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):

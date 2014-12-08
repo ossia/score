@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 class QVBoxLayout;
 class InspectorWidgetBase;

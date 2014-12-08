@@ -1,11 +1,11 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QNamedObject>
+#include <tools/ObjectPath.hpp>
 
 class MoveIntervalCommand : public iscore::SerializableCommand
 {
 	public:
-        MoveIntervalCommand(ObjectPath &&scenarioPath, int intervalId, int endEvent, double heightPosition);
+		MoveIntervalCommand(ObjectPath &&scenarioPath, int intervalId, int endEvent, double heightPosition);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -15,12 +15,12 @@ class MoveIntervalCommand : public iscore::SerializableCommand
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
 
-    private:
-        ObjectPath m_scenarioPath;
-        int m_intervalId{};
-        int m_endEventId{};
+	private:
+		ObjectPath m_scenarioPath;
+		int m_intervalId{};
+		int m_endEventId{};
 
-        double m_heightPosition{};
+		double m_heightPosition{};
 
-        double m_oldHeightPosition{};
+		double m_oldHeightPosition{};
 };

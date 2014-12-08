@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/IdentifiedObject.hpp>
 #include <QColor>
 #include <vector>
 
@@ -74,17 +74,17 @@ class IntervalModel : public QIdentifiedObject
 		{ return m_processes; }
 
 		double heightPercentage() const;
-        int startDate() const;
+		int startDate() const;
 
-        int width() const;
-        void setWidth(int width);
+		int width() const;
+		void setWidth(int width);
 
-        int height() const;
-        void setHeight(int height);
+		int height() const;
+		void setHeight(int height);
 
 public slots:
-        void setName(QString arg);
-        void setComment(QString arg);
+		void setName(QString arg);
+		void setComment(QString arg);
 		void setColor(QColor arg);
 		void setHeightPercentage(double arg);
 

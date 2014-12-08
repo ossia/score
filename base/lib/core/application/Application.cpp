@@ -4,7 +4,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <core/application/ChildEventFilter.hpp>
-#include <core/utilsCPP11.hpp>
+#include <core/tools/utilsCPP11.hpp>
 using namespace iscore;
 
 
@@ -28,7 +28,7 @@ Application::Application(int& argc, char** argv):
 	m_settings = std::make_unique<Settings>(this);
 
 	// MVP
-	m_model = new Model{this}; // ? Utile ? Ce sont les settings, non ?
+	m_model = new Model{this};
 
 	m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
@@ -69,10 +69,8 @@ void Application::doConnections()
 {
 	for(auto& a : m_pluginManager.m_autoconnections)
 	{
-		auto potential_sources = a.getMatchingChildrenForSource(this);
-		auto potential_targets = a.getMatchingChildrenForTarget(this);
-		potential_sources.append(a.getMatchingChildrenForSource(view()));
-		potential_targets.append(a.getMatchingChildrenForTarget(view()));
+		auto potential_sources = a.getMatchingChildrenForSource(this) + a.getMatchingChildrenForSource(view());
+		auto potential_targets = a.getMatchingChildrenForTarget(this) + a.getMatchingChildrenForTarget(view());
 
 		for(auto& s_elt : potential_sources)
 		{

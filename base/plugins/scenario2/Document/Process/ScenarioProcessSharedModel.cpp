@@ -38,10 +38,10 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 			scen, &ScenarioProcessViewModel::intervalCreated);
 	connect(this, &ScenarioProcessSharedModel::intervalDeleted,
 			scen, &ScenarioProcessViewModel::intervalDeleted);
-    connect(this, &ScenarioProcessSharedModel::eventMoved,
-            scen, &ScenarioProcessViewModel::eventMoved);
-    connect(this, &ScenarioProcessSharedModel::intervalMoved,
-            scen, &ScenarioProcessViewModel::intervalMoved);
+	connect(this, &ScenarioProcessSharedModel::eventMoved,
+			scen, &ScenarioProcessViewModel::eventMoved);
+	connect(this, &ScenarioProcessSharedModel::intervalMoved,
+			scen, &ScenarioProcessViewModel::intervalMoved);
 
 	return scen;
 }
@@ -130,17 +130,17 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 
 std::tuple<int, int>
 ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
-                                                               int interval_duration,
-                                                               double heightPos)
+															   int interval_duration,
+															   double heightPos)
 {
-    auto event = new EventModel{getNextId(m_events), this->event(startEventId)->heightPercentage(), this};
-    auto inter = new IntervalModel{getNextId(m_intervals), this->event(startEventId)->heightPercentage(), this};
+	auto event = new EventModel{getNextId(m_events), this->event(startEventId)->heightPercentage(), this};
+	auto inter = new IntervalModel{getNextId(m_intervals), this->event(startEventId)->heightPercentage(), this};
 
 
-    if (startEventId == startEvent()->id()) {
-        event->setHeightPercentage(heightPos);
-        inter->setHeightPercentage(heightPos);
-    }
+	if (startEventId == startEvent()->id()) {
+		event->setHeightPercentage(heightPos);
+		inter->setHeightPercentage(heightPos);
+	}
 
 	// TEMPORARY :
 	inter->m_x = this->event(startEventId)->m_x;
@@ -175,37 +175,37 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 
 std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur, double heightPos)
 {
-    auto t1 = createIntervalAndEndEventFromStartEvent(start, heightPos);
-    auto t2 = createIntervalAndEndEventFromEvent(std::get<1>(t1), dur, heightPos);
+	auto t1 = createIntervalAndEndEventFromStartEvent(start, heightPos);
+	auto t2 = createIntervalAndEndEventFromEvent(std::get<1>(t1), dur, heightPos);
 
-    return std::tuple_cat(t1, t2);
+	return std::tuple_cat(t1, t2);
 }
 
 void ScenarioProcessSharedModel::moveEventAndInterval(int eventId, int time, double heightPosition)
 {
-    event(eventId)->setHeightPercentage(heightPosition);
-    emit eventMoved(eventId);
+	event(eventId)->setHeightPercentage(heightPosition);
+	emit eventMoved(eventId);
 }
 
 void ScenarioProcessSharedModel::moveEventAndInterval(int eventId, double heightPosition)
 {
-    event(eventId)->setHeightPercentage(heightPosition);
-    emit eventMoved(eventId);
+	event(eventId)->setHeightPercentage(heightPosition);
+	emit eventMoved(eventId);
 }
 
 void ScenarioProcessSharedModel::moveInterval(int intervalId, double heightPosition)
 {
-    interval(intervalId)->setHeightPercentage(heightPosition);
-    emit intervalMoved(intervalId);
+	interval(intervalId)->setHeightPercentage(heightPosition);
+	emit intervalMoved(intervalId);
 }
 
 std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime, double heightPos)
 {
-    return createIntervalAndEndEventFromEvent(startEvent()->id(), endTime, heightPos);
+	return createIntervalAndEndEventFromEvent(startEvent()->id(), endTime, heightPos);
 }
 
 ///////// DELETION //////////
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 void ScenarioProcessSharedModel::undo_createIntervalBetweenEvents(int intervalId)
 {
 	emit intervalDeleted(intervalId);

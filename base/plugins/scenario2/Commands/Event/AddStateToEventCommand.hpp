@@ -1,6 +1,6 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QNamedObject>
+#include <tools/ObjectPath.hpp>
 
 class AddStateToEventCommand : public iscore::SerializableCommand
 {

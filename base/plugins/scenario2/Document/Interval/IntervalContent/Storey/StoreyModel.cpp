@@ -5,7 +5,7 @@
 #include <interface/process/ProcessViewModelInterface.hpp>
 #include <Interval/IntervalModel.hpp>
 
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 #include <QDebug>
 QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 {

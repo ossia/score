@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 #include <QMap>
 #include <interface/process/ProcessViewModelInterface.hpp>
 class ScenarioProcessSharedModel;

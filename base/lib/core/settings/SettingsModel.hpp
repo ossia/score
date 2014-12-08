@@ -25,10 +25,7 @@ namespace iscore
 
 		protected:
 			virtual void childEvent(QChildEvent* ev) override
-			{/*
-				if(ev->type() == QEvent::ChildAdded)
-					qDebug() << "SettingsModel: Child added";
-				*/
+			{
 				QCoreApplication::sendEvent(parent(), ev);
 			}
 

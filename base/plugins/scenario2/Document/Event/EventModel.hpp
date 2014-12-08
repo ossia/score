@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/IdentifiedObject.hpp>
 
 namespace OSSIA
 {
@@ -37,7 +37,7 @@ class EventModel : public QIdentifiedObject
 		{ return m_timeNode;}
 
 		double heightPercentage() const;
-        int date() const;
+		int date() const;
 
 	public slots:
 		void setHeightPercentage(double arg);

@@ -7,7 +7,7 @@
 #include <core/processes/ProcessList.hpp>
 #include <interface/process/ProcessFactoryInterface.hpp>
 
-#include <utilsCPP11.hpp>
+#include <tools/utilsCPP11.hpp>
 #include <API/Headers/Editor/TimeBox.h>
 #include <QDebug>
 QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
@@ -85,27 +85,27 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 
 int IntervalModel::width() const
 {
-    return m_width;
+	return m_width;
 }
 
 void IntervalModel::setWidth(int width)
 {
-    m_width = width;
+	m_width = width;
 }
 
 int IntervalModel::height() const
 {
-    return m_height;
+	return m_height;
 }
 
 void IntervalModel::setHeight(int height)
 {
-    m_height = height;
+	m_height = height;
 }
 IntervalModel::IntervalModel(int id,
-                             QObject* parent):
-    QIdentifiedObject{parent, "IntervalModel", id},
-    m_timeBox{new OSSIA::TimeBox}
+							 QObject* parent):
+	QIdentifiedObject{parent, "IntervalModel", id},
+	m_timeBox{new OSSIA::TimeBox}
 {
 	createContentModel();
 }
@@ -230,12 +230,12 @@ QColor IntervalModel::color() const
 
 double IntervalModel::heightPercentage() const
 {
-    return m_heightPercentage;
+	return m_heightPercentage;
 }
 
 int IntervalModel::startDate() const
 {
-    return m_x;
+	return m_x;
 }
 
 void IntervalModel::setName(QString arg)

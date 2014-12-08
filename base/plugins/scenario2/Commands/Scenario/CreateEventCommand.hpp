@@ -1,13 +1,13 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QPointF>
-#include <QNamedObject>
+#include <tools/ObjectPath.hpp>
 
 class CreateEventCommand : public iscore::SerializableCommand
 {
 	public:
 		CreateEventCommand();
-        CreateEventCommand(ObjectPath&& scenarioPath, int time, float heightPosition);
+		CreateEventCommand(ObjectPath&& scenarioPath, int time, float heightPosition);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -22,5 +22,5 @@ class CreateEventCommand : public iscore::SerializableCommand
 
 		int m_intervalId{};
 		int m_time{};
-        float m_heightPosition{};
+		float m_heightPosition{};
 };

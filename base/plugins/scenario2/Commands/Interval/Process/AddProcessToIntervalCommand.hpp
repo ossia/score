@@ -1,12 +1,12 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QNamedObject>
+#include <tools/ObjectPath.hpp>
 #include <QString>
 
 
 /**
  * @brief The AddProcessToIntervalCommand class
- * 
+ *
  * For now this command creates a new storey in the current intervalcontentmodel with a new processviewmodel inside
  */
 class AddProcessToIntervalCommand : public iscore::SerializableCommand
@@ -22,11 +22,11 @@ class AddProcessToIntervalCommand : public iscore::SerializableCommand
 	protected:
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
-		
+
 	private:
 		ObjectPath m_path;
 		QString m_processName;
-		
+
 		int m_createdProcessId{-1};
 		int m_createdStoreyId{-1};
 		int m_createdProcessViewModelId{-1};

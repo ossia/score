@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 #include <core/presenter/command/CommandQueue.hpp>
 
@@ -29,7 +29,7 @@ namespace iscore
 
 		signals:
 			void on_elementSelected(QObject* element);
-			
+
 		private slots:
 			void applyCommand(SerializableCommand*);
 

@@ -65,7 +65,10 @@ set(HEADER_FILES
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/core/QNamedObject
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/NamedObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/IdentifiedObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/utilsCPP11.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
@@ -99,6 +102,8 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorWidgetBase.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorSectionWidget.cpp

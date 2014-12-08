@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 #include <QPointF>
 
 class IntervalView : public QNamedGraphicsObject

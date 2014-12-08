@@ -1,6 +1,6 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QNamedObject>
+#include <tools/ObjectPath.hpp>
 
 class DeleteProcessFromIntervalCommand : public iscore::SerializableCommand
 {
@@ -14,11 +14,11 @@ class DeleteProcessFromIntervalCommand : public iscore::SerializableCommand
 	protected:
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
-		
+
 	private:
 		ObjectPath m_path;
 		QString m_processName;
 		int m_processId;
-		
+
 		QByteArray m_serializedProcessData;
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/IdentifiedObject.hpp>
 class QDataStream;
 namespace iscore
 {

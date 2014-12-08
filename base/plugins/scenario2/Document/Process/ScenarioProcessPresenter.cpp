@@ -22,7 +22,7 @@
 
 #include <QRectF>
 
-#include "utilsCPP11.hpp"
+#include <tools/utilsCPP11.hpp>
 
 // TODO Question :
 // étirement temporel d'une boîte qui contient un scénario hiérarchique ?
@@ -68,10 +68,10 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 			this,		 &ScenarioProcessPresenter::on_intervalCreated);
 	connect(m_viewModel, &ScenarioProcessViewModel::intervalDeleted,
 			this,		 &ScenarioProcessPresenter::on_intervalDeleted);
-    connect(m_viewModel, &ScenarioProcessViewModel::eventMoved,
-            this,		 &ScenarioProcessPresenter::on_eventMoved);
-    connect(m_viewModel, &ScenarioProcessViewModel::intervalMoved,
-            this,		 &ScenarioProcessPresenter::on_intervalMoved);
+	connect(m_viewModel, &ScenarioProcessViewModel::eventMoved,
+			this,		 &ScenarioProcessPresenter::on_eventMoved);
+	connect(m_viewModel, &ScenarioProcessViewModel::intervalMoved,
+			this,		 &ScenarioProcessPresenter::on_intervalMoved);
 
 
 }
@@ -105,34 +105,34 @@ void ScenarioProcessPresenter::on_eventDeleted(int eventId)
 void ScenarioProcessPresenter::on_intervalDeleted(int intervalId)
 {
 	removeFromVectorWithId(m_intervals, intervalId);
-    m_view->update();
+	m_view->update();
 }
 
 void ScenarioProcessPresenter::on_eventMoved(int eventId)
 {
-    auto rect = m_view->boundingRect();
+	auto rect = m_view->boundingRect();
 
-    for(auto ev : m_events) {
-        if(ev->id() == eventId ) {
-            ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
-                                    rect.y() + rect.height() * ev->model()->heightPercentage()});
-        }
-    }
-    m_view->update();
+	for(auto ev : m_events) {
+		if(ev->id() == eventId ) {
+			ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
+									rect.y() + rect.height() * ev->model()->heightPercentage()});
+		}
+	}
+	m_view->update();
 }
 
 void ScenarioProcessPresenter::on_intervalMoved(int intervalId)
 {
 
-    auto rect = m_view->boundingRect();
+	auto rect = m_view->boundingRect();
 
-    for(auto inter : m_intervals) {
-        if(inter->id() == intervalId ) {
-            inter->view()->setTopLeft({rect.x() + inter->model()->startDate(),
-                                    rect.y() + rect.height() * inter->model()->heightPercentage()});
-        }
-    }
-    m_view->update();
+	for(auto inter : m_intervals) {
+		if(inter->id() == intervalId ) {
+			inter->view()->setTopLeft({rect.x() + inter->model()->startDate(),
+									rect.y() + rect.height() * inter->model()->heightPercentage()});
+		}
+	}
+	m_view->update();
 }
 
 
@@ -174,31 +174,31 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 
 void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double heightPos)
 {
-    auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
-                                                               m_viewModel->model()),
-                                    id,
-                                    distance,
-                                    (heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
-    qDebug() << "scenar : event move";
-    submitCommand(cmd);
+	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
+															   m_viewModel->model()),
+									id,
+									distance,
+									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+	qDebug() << "scenar : event move";
+	submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double heightPos)
 {
-    int endEventId{};
-    for(auto inter : m_intervals) {
-        if(inter->id() == id ) {
-            endEventId = inter->model()->endEvent();
-        }
-    }
+	int endEventId{};
+	for(auto inter : m_intervals) {
+		if(inter->id() == id ) {
+			endEventId = inter->model()->endEvent();
+		}
+	}
 
-    auto cmd = new MoveIntervalCommand(ObjectPath::pathFromObject("BaseIntervalModel",
-                                                               m_viewModel->model()),
-                                    id,
-                                    endEventId,
-                                    (heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
-    qDebug() << "scenar : interval move";
-    submitCommand(cmd);
+	auto cmd = new MoveIntervalCommand(ObjectPath::pathFromObject("BaseIntervalModel",
+															   m_viewModel->model()),
+									id,
+									endEventId,
+									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+	qDebug() << "scenar : interval move";
+	submitCommand(cmd);
 }
 
 
@@ -241,7 +241,7 @@ void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_m
 
 	m_intervals.push_back(interval_presenter);
 
-    connect(interval_presenter, &IntervalPresenter::intervalReleased,
-            this,			 &ScenarioProcessPresenter::moveIntervalOnVertical);
+	connect(interval_presenter, &IntervalPresenter::intervalReleased,
+			this,			 &ScenarioProcessPresenter::moveIntervalOnVertical);
 
 }
