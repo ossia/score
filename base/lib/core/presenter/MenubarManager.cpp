@@ -16,7 +16,7 @@ MenubarManager::MenubarManager(QMenuBar* bar, QObject *parent) :
 
 
 
-void MenubarManager::insertActionIntoMenubar(Action actionToInsert)
+void MenubarManager::insertActionIntoMenubar(PositionedMenuAction actionToInsert)
 {
 	std::function<void(QMenu*, QStringList)> recurse =
 	[&] (QMenu* menu, QStringList path_lst) -> void

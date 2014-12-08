@@ -68,7 +68,7 @@ namespace iscore
 		signals:
 
 		public slots:
-			void insertActionIntoMenubar(Action);
+			void insertActionIntoMenubar(PositionedMenuAction);
 
 		private:
 			QMenuBar* m_menuBar{};

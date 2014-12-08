@@ -24,25 +24,25 @@
 
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget *parent)
   : QWidget(parent),
-    m_proxyModel(nullptr),
-    m_deviceDialog(nullptr), m_addressDialog(nullptr),
-    m_cmdQ(nullptr)
+	m_proxyModel(nullptr),
+	m_deviceDialog(nullptr), m_addressDialog(nullptr),
+	m_cmdQ(nullptr)
 {
   buildGUI();
-  
+
 }
 
 void
 DeviceExplorerWidget::buildGUI()
 {
   m_ntView = new DeviceExplorerView(this);
-  
+
   m_ntView->setItemDelegateForColumn(m_ntView->getIOTypeColumn(), new IOTypeDelegate);
 
   connect(m_ntView, SIGNAL(selectionChanged()), this, SLOT(updateActions()));
-  
 
-  m_cmdQ = new iscore::CommandQueue(); //TODO: CommandQueue(this)
+
+  m_cmdQ = new iscore::CommandQueue(this);
   m_undoAction = m_cmdQ->createUndoAction(this, tr("&Undo"));
   m_undoAction->setShortcuts(QKeySequence::Undo);
   m_redoAction = m_cmdQ->createRedoAction(this, tr("&Redo"));
@@ -125,7 +125,7 @@ DeviceExplorerWidget::buildGUI()
   addMenu->addAction(m_addDeviceAction);
   addMenu->addAction(m_addSiblingAction);
   addMenu->addAction(m_addChildAction);
-  
+
   addButton->setMenu(addMenu);
 
 
@@ -148,7 +148,7 @@ DeviceExplorerWidget::buildGUI()
   editMenu->addAction(m_redoAction);
 
   editButton->setMenu(editMenu);
-  
+
 
 
   m_columnCBox = new QComboBox(this);
@@ -156,13 +156,13 @@ DeviceExplorerWidget::buildGUI()
 
   connect(m_columnCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(filterChanged()));
   connect(m_nameLEdit, SIGNAL(textEdited(const QString &)), this, SLOT(filterChanged()));
-  
+
   QHBoxLayout *filterHLayout = new QHBoxLayout;
   filterHLayout->setContentsMargins(0, 0, 0, 0);
   filterHLayout->addWidget(m_columnCBox);
   filterHLayout->addWidget(m_nameLEdit);
 
-  
+
 
 
   QHBoxLayout *hLayout = new QHBoxLayout;
@@ -178,7 +178,7 @@ DeviceExplorerWidget::buildGUI()
 
   setLayout(vLayout);
 
-  
+
   installStyleSheet();
 }
 
@@ -186,9 +186,9 @@ void
 DeviceExplorerWidget::installStyleSheet()
 {
   setStyleSheet(
-                "* {"
-                "background-color: #5a5a5a;"
-                "}"
+				"* {"
+				"background-color: #5a5a5a;"
+				"}"
 		);
 }
 
@@ -222,7 +222,7 @@ void
 DeviceExplorerWidget::setModel(DeviceExplorerModel *model)
 {
   if (m_proxyModel)
-    delete m_proxyModel; //? will also delete previous model ??
+	delete m_proxyModel; //? will also delete previous model ??
 
   Q_ASSERT(model);
   m_proxyModel = new DeviceExplorerFilterProxyModel(this);
@@ -252,52 +252,52 @@ DeviceExplorerWidget::updateActions()
   Q_ASSERT(model());
 
   if (! model()->isEmpty()) {
-    
-    //TODO: we should also test/handle multi-selection !?!
 
-    Q_ASSERT(m_ntView);
-    QModelIndexList selection = m_ntView->selectedIndexes();
+	//TODO: we should also test/handle multi-selection !?!
 
-    //std::cerr<<"DeviceExplorerWidget::updateActions() selection.size()="<<selection.size()<<"\n";
+	Q_ASSERT(m_ntView);
+	QModelIndexList selection = m_ntView->selectedIndexes();
+
+	//std::cerr<<"DeviceExplorerWidget::updateActions() selection.size()="<<selection.size()<<"\n";
 
 
-    if (selection.size() == 1) {
+	if (selection.size() == 1) {
 
-      const bool aDeviceIsSelected = model()->isDevice(selection.at(0));
-      if (! aDeviceIsSelected) {
+	  const bool aDeviceIsSelected = model()->isDevice(selection.at(0));
+	  if (! aDeviceIsSelected) {
 	m_addSiblingAction->setEnabled(true);
 	m_promoteAction->setEnabled(true);
 	m_demoteAction->setEnabled(true);
-      }
-      else {
+	  }
+	  else {
 	m_addSiblingAction->setEnabled(false);
 	m_promoteAction->setEnabled(false);
 	m_demoteAction->setEnabled(false);
-      }
+	  }
 
-      m_addChildAction->setEnabled(true);
-      m_copyAction->setEnabled(true);
-      m_cutAction->setEnabled(true);
-      m_moveUpAction->setEnabled(true);
-      m_moveDownAction->setEnabled(true);
-    }
-    else {
-      m_copyAction->setEnabled(false);
-      m_cutAction->setEnabled(false);
-      m_promoteAction->setEnabled(false);
-      m_demoteAction->setEnabled(false);
-      m_moveUpAction->setEnabled(false);
-      m_moveDownAction->setEnabled(false);
-    }
+	  m_addChildAction->setEnabled(true);
+	  m_copyAction->setEnabled(true);
+	  m_cutAction->setEnabled(true);
+	  m_moveUpAction->setEnabled(true);
+	  m_moveDownAction->setEnabled(true);
+	}
+	else {
+	  m_copyAction->setEnabled(false);
+	  m_cutAction->setEnabled(false);
+	  m_promoteAction->setEnabled(false);
+	  m_demoteAction->setEnabled(false);
+	  m_moveUpAction->setEnabled(false);
+	  m_moveDownAction->setEnabled(false);
+	}
 
   }
   else {
-    m_copyAction->setEnabled(false);
-    m_cutAction->setEnabled(false);
-    m_promoteAction->setEnabled(false);
-    m_demoteAction->setEnabled(false);
-    m_moveUpAction->setEnabled(false);
-    m_moveDownAction->setEnabled(false);
+	m_copyAction->setEnabled(false);
+	m_cutAction->setEnabled(false);
+	m_promoteAction->setEnabled(false);
+	m_demoteAction->setEnabled(false);
+	m_moveUpAction->setEnabled(false);
+	m_moveDownAction->setEnabled(false);
   }
 
 
@@ -329,7 +329,7 @@ DeviceExplorerWidget::loadModel(const QString filename)
   populateColumnCBox();
   updateActions();
   //}
-  
+
   return loadOk;
 
 }
@@ -340,27 +340,27 @@ void
 DeviceExplorerWidget::addDevice()
 {
   if (! m_deviceDialog) {
-    m_deviceDialog = new DeviceEditDialog(this);
+	m_deviceDialog = new DeviceEditDialog(this);
   }
-  
+
   QDialog::DialogCode code = static_cast<QDialog::DialogCode>( m_deviceDialog->exec() );
   if (code == QDialog::Accepted) {
-    QList<QString> deviceSettings = m_deviceDialog->getSettings();
-    Q_ASSERT(model());
-    model()->addDevice(deviceSettings); //TODO: pass a API::Device ???
-    //TODO: we should set the focus on this Node & expand it 
-    //m_ntView->setCurrentIndex(?)
+	QList<QString> deviceSettings = m_deviceDialog->getSettings();
+	Q_ASSERT(model());
+	model()->addDevice(deviceSettings); //TODO: pass a API::Device ???
+	//TODO: we should set the focus on this Node & expand it
+	//m_ntView->setCurrentIndex(?)
   }
-  
+
   //m_deviceDialog->hide();
-  
+
   updateActions();
 }
 
 void
 DeviceExplorerWidget::addChild()
 {
-  addAddress(DeviceExplorerModel::AsChild);    
+  addAddress(DeviceExplorerModel::AsChild);
 }
 
 void
@@ -379,18 +379,18 @@ DeviceExplorerWidget::addAddress(int insertType)
 
 
   if (! m_addressDialog) {
-    m_addressDialog = new AddressEditDialog(this);
+	m_addressDialog = new AddressEditDialog(this);
   }
 
   QDialog::DialogCode code = static_cast<QDialog::DialogCode>( m_addressDialog->exec() );
   if (code == QDialog::Accepted) {
-    QList<QString> addressSettings = m_addressDialog->getSettings();
-    Q_ASSERT(model());
-    QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-    model()->addAddress(index, insert, addressSettings); //TODO: pass a API::Device ???
-    //TODO: we should set the focus on this Node & expand it 
-    //m_ntView->setCurrentIndex(?)
-  }  
+	QList<QString> addressSettings = m_addressDialog->getSettings();
+	Q_ASSERT(model());
+	QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
+	model()->addAddress(index, insert, addressSettings); //TODO: pass a API::Device ???
+	//TODO: we should set the focus on this Node & expand it
+	//m_ntView->setCurrentIndex(?)
+  }
 
 }
 

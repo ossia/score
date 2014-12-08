@@ -19,7 +19,7 @@ namespace iscore
 
 			void addSettingsModel(SettingsDelegateModelInterface* model)
 			{
-				model->setParent(this); // TODO careful with double-deletion.
+				model->setParent(this);
 				m_pluginModels.insert(model);
 			}
 

@@ -16,7 +16,7 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-			CommandQueue();
+			CommandQueue(QObject* parent);
 
 		signals:
 			/**

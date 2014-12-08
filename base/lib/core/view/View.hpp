@@ -32,7 +32,7 @@ namespace iscore
 			 * A quick signal to add an action.
 			 * Especially considering that we already know the presenter.
 			 */
-			void insertActionIntoMenubar(Action);
+			void insertActionIntoMenubar(PositionedMenuAction);
 
 		private:
 			std::set<PanelViewInterface*> m_panelsViews;

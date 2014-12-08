@@ -15,7 +15,7 @@ void PluginManager::reloadPlugins()
 	auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
 	auto blacklist = pluginsBlacklist(); // TODO prevent the Plugin Settings plugin from being blacklisted
-
+	// TODO the plug-ins should have a "blacklistable" attribute. -> Do a generic iscorePlugin from which they inherit, with this attribute ?
 	for(QString fileName : pluginsDir.entryList(QDir::Files))
 	{
 		QPluginLoader loader{pluginsDir.absoluteFilePath(fileName)};
@@ -35,7 +35,7 @@ void PluginManager::reloadPlugins()
 			m_pluginsOnSystem.push_back(fileName);
 		}
 	}
-	
+
 	// Load static plug-ins
 	for(auto obj : QPluginLoader::staticInstances())
 	{
@@ -60,6 +60,9 @@ QStringList PluginManager::pluginsBlacklist()
 
 // @todo refactor : make a single loop (use a tuple ? objects? a tempalte function?) or
 // make a method return_all in each interface ?
+// @todo : make a generic way for plug-ins to register plugin factories. For instance scenario could register a scenario view factory ?
+// the PluginFactoryInterface has a dispatch(qobject* ) and does the cast. Must be in two passes : first pass : get the possible interfaces (or use a map ?)
+// second pass load the plug-ins.
 void PluginManager::dispatch(QObject* plugin)
 {
 	//qDebug() << plugin->objectName() << "was dispatched";
@@ -127,7 +130,6 @@ void PluginManager::dispatch(QObject* plugin)
 	{
 		for(auto name : inspector_plugin->inspectorFactory_list())
 		{
-			qDebug() << "===== Adding inspector factory" << name;
 			m_inspectorList.push_back(inspector_plugin->inspectorFactory_make(name));
 		}
 	}

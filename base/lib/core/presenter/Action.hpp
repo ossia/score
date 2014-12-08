@@ -7,12 +7,11 @@ namespace iscore
 	/**
 	 * @brief The Action class
 	 *
-	 * It is used to specify paths in menus like : 
+	 * It is used to specify paths in menus like :
 	 * File/MyPlugin/SomeSubmenu/AnotherSubmenu
-	 * 
-	 * TODO : very different from QAction, maybe find a better name ?
+	 *
 	 */
-	class Action
+	class PositionedMenuAction
 	{
 		public:
 			// Ex. Fichier/SousMenu

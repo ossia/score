@@ -67,3 +67,32 @@ int getNextId(Vector& v)
 	return *(std::max_element(std::begin(ids),
 							  std::end(ids))) + 1;
 }
+
+template <typename Vector>
+void removeById(Vector& c, int id)
+{
+	vec_erase_remove_if(c,
+						[&id] (typename Vector::value_type model)
+						{
+							bool to_delete = model->id() == id;
+							if(to_delete) delete model;
+							return to_delete;
+						} );
+}
+
+template<typename hasId>
+void removeFromVectorWithId(std::vector<hasId*>& v, int id)
+{
+	auto it = std::find_if(std::begin(v),
+						   std::end(v),
+						   [id] (hasId const * elt)
+				{
+					return elt->id() == id;
+				});
+
+	if(it != std::end(v))
+	{
+		delete *it;
+		v.erase(it);
+	}
+}

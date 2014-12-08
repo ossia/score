@@ -41,6 +41,13 @@ class ObjectPath
 
 	public:
 		ObjectPath() = default;
+		ObjectPath(QString&& obj, std::vector<ObjectIdentifier>&& vec):
+			baseObject{std::move(obj)},
+			v{std::move(vec)}
+		{
+
+		}
+
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
 
@@ -50,7 +57,7 @@ class ObjectPath
 		// Find an object in the hierarchy of the application.
 		QObject* find();
 
-
+	private:
 		QString baseObject;
 		std::vector<ObjectIdentifier> v;
 

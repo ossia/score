@@ -27,7 +27,7 @@ ObjectPath ObjectPath::pathFromObject(QString origin, QIdentifiedObject* obj)
 
 	std::reverse(std::begin(v), std::end(v));
 
-	return {origin, v};
+	return {std::move(origin), std::move(v)};
 }
 
 QObject*ObjectPath::find()
