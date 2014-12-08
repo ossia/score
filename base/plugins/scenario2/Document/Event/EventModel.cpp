@@ -100,6 +100,5 @@ void EventModel::setHeightPercentage(double arg)
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
-        qDebug() << heightPercentage();
 	}
 }

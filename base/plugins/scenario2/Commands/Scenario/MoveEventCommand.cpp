@@ -41,7 +41,6 @@ void MoveEventCommand::redo()
         m_oldTime = scenar->event(m_eventId)->date();
         m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
         scenar->moveEventAndInterval(m_eventId, m_time, m_heightPosition);
-        qDebug() << "doing command " << m_oldHeightPosition << " -> " << m_heightPosition;
     }
 }
 

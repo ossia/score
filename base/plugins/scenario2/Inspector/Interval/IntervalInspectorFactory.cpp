@@ -2,7 +2,7 @@
 #include "IntervalInspectorWidget.hpp"
 
 #include <Document/Interval/IntervalModel.hpp>
-#include <QDebug>
+//#include <QDebug>
 
 //using namespace iscore;
 

@@ -41,7 +41,6 @@ void MoveIntervalCommand::redo()
         m_oldHeightPosition = scenar->interval(m_intervalId)->heightPercentage();
         scenar->moveInterval(m_intervalId, m_heightPosition);
         scenar->moveEventAndInterval(m_endEventId, m_heightPosition);
-        qDebug() << "doing command " << m_oldHeightPosition << " -> " << m_heightPosition;
     }
 }
 

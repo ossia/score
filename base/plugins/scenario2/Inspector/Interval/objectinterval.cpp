@@ -1,5 +1,5 @@
 #include "objectinterval.hpp"
-#include <QDebug>
+//#include <QDebug>
 
 ObjectInterval::ObjectInterval (QObject* parent) :
 	QObject (parent)

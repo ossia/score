@@ -3,14 +3,15 @@
 
 #include <QLabel>
 #include <QLineEdit>
-#include <QSpinBox>
+//#include <QSpinBox>
 #include <QLayout>
 #include <QFormLayout>
 #include <QWidget>
-#include <QToolButton>
+//#include <QToolButton>
 #include <QPushButton>
-#include <QDebug>
+//#include <QDebug>
 #include <QScrollArea>
+
 #include <Event/EventModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
 

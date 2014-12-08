@@ -1,16 +1,16 @@
 #include "IntervalInspectorWidget.hpp"
 #include <interface/inspector/InspectorSectionWidget.hpp>
 
-#include <QLabel>
+//#include <QLabel>
 #include <QLineEdit>
-#include <QSpinBox>
+//#include <QSpinBox>
 #include <QLayout>
 #include <QFormLayout>
 #include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-#include <QDebug>
-#include <QScrollArea>
+//#include <QDebug>
+//#include <QScrollArea>
 #include <Interval/IntervalModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
 
