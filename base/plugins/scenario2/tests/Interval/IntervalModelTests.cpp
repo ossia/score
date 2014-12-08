@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include <core/QNamedObject>
+#include <core/NamedObject>
 #include <Document/Interval/IntervalModel.hpp>
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
 #include <Document/Process/ScenarioProcessSharedModel.hpp>

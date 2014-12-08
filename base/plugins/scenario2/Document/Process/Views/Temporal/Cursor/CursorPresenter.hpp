@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 
-class CursorPresenter : public QNamedObject
+class CursorPresenter : public NamedObject
 {
 	Q_OBJECT
 	

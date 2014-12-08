@@ -25,12 +25,12 @@ struct Message
 		Domain domain;
 };
 
-class State : public QNamedObject
+class State : public NamedObject
 {
 		Q_OBJECT
 
 	public:
-		State(QObject* parent): QNamedObject{parent, "State"}
+		State(QObject* parent): NamedObject{parent, "State"}
 		{
 
 		}

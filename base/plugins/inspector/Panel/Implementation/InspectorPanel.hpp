@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tools/NamedObject.hpp>
+#include <QWidget>
 
 class QVBoxLayout;
 class InspectorWidgetBase;
@@ -16,7 +16,7 @@ namespace Ui
  *  It creates and displays the view for each inspected element.
  */
 
-class InspectorPanel : public QNamedWidget
+class InspectorPanel : public QWidget
 {
 		Q_OBJECT
 

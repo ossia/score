@@ -8,7 +8,7 @@ namespace iscore
 {
 	class SerializableCommand;
 }
-class IntervalContentPresenter : public QNamedObject
+class IntervalContentPresenter : public NamedObject
 {
 	Q_OBJECT
 

@@ -1,15 +1,15 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QWidget>
 
-class EventEditorWidget : public QNamedWidget
+class EventEditorWidget : public QWidget
 {
 	Q_OBJECT
-	
+
 	public:
-	
+
 		virtual ~EventEditorWidget() = default;
-		
+
 	private:
-	
+
 };
 

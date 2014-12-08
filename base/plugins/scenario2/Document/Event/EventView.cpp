@@ -5,7 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 
 EventView::EventView(QGraphicsObject* parent):
-	QNamedGraphicsObject{parent, "EventView"}
+	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
 
@@ -45,24 +45,24 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 		emit eventPressedWithControl();
 		qDebug() << "Event clicked while ctrl key pressed; transmitting to scenario";
 	}
-    else
+	else
 	{
 		emit eventPressed();
-        qDebug() << "Event clicked; transmitting to scenario";
+		qDebug() << "Event clicked; transmitting to scenario";
 	}
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
 	if(m->modifiers() == Qt::ControlModifier) {
-        emit eventReleasedWithControl(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+		emit eventReleasedWithControl(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
 		qDebug() << "Event released while ctrl key pressed; transmitting to scenario";
-    }
-    else
-    {
-        emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
-        qDebug() << "Event released; transmitting to scenario";
-    }
+	}
+	else
+	{
+		emit eventReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+		qDebug() << "Event released; transmitting to scenario";
+	}
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)

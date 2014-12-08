@@ -1,15 +1,15 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
 
-class CursorView : public QNamedGraphicsObject
+class CursorView : public QGraphicsObject
 {
 	Q_OBJECT
-	
+
 	public:
-	
+
 		virtual ~CursorView() = default;
-		
+
 	private:
-	
+
 };
 

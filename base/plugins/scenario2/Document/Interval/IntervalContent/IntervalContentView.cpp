@@ -2,8 +2,9 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QDebug>
+#include <tools/NamedObject.hpp>
 IntervalContentView::IntervalContentView(QGraphicsObject* parent):
-	QNamedGraphicsObject{parent, "IntervalContentView"}
+	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
 
@@ -23,6 +24,6 @@ void IntervalContentView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {
-    painter->drawText(boundingRect(), "Box");
-    painter->drawRect(boundingRect());
+	painter->drawText(boundingRect(), "Box");
+	painter->drawRect(boundingRect());
 }

@@ -11,11 +11,11 @@ namespace iscore
 	 *
 	 * Contains the list of the process plug-ins that can be loaded.
 	 */
-	class ProcessList : public QNamedObject
+	class ProcessList : public NamedObject
 	{
 			Q_OBJECT
 		public:
-			ProcessList(QNamedObject* parent);
+			ProcessList(NamedObject* parent);
 			
 			QStringList getProcessesName() const;
 			ProcessFactoryInterface* getProcess(QString);

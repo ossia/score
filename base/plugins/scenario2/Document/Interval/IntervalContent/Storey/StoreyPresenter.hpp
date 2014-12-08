@@ -8,7 +8,7 @@ namespace iscore
 	class ProcessPresenterInterface;
 	class ProcessViewModelInterface;
 }
-class StoreyPresenter : public QNamedObject
+class StoreyPresenter : public NamedObject
 {
 	Q_OBJECT
 

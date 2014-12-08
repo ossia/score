@@ -7,7 +7,7 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 IntervalView::IntervalView(QGraphicsObject* parent):
-	QNamedGraphicsObject{parent, "IntervalView"}
+	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
 
@@ -49,11 +49,11 @@ void IntervalView::setTopLeft(QPointF p)
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-    emit intervalPressed();
+	emit intervalPressed();
 }
 
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
-    emit intervalReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
-    qDebug() <<  (m->pos().x() - m_rect.left()) << m->pos().y() ;
+	emit intervalReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+	qDebug() <<  (m->pos().x() - m_rect.left()) << m->pos().y() ;
 }

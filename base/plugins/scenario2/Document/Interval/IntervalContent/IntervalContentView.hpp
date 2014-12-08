@@ -1,7 +1,7 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
 
-class IntervalContentView : public QNamedGraphicsObject
+class IntervalContentView : public QGraphicsObject
 {
 	Q_OBJECT
 

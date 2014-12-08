@@ -16,7 +16,7 @@ namespace iscore
 	 * Its main use is to manage the command queue, since we use the Command pattern,
 	 * by taking the commands from the document view and applying them on the document model.
 	 */
-	class DocumentPresenter : public QNamedObject
+	class DocumentPresenter : public NamedObject
 	{
 			Q_OBJECT
 		public:

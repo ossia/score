@@ -13,7 +13,7 @@ class TimeEvent;
  * TODO @Nico
  * En fait ça il faut (suffit) d'en faire le ScenarioProcess en gros.
  */
-class ScenarioContainer : public QNamedObject
+class ScenarioContainer : public NamedObject
 {
 		Q_OBJECT
 	public:

@@ -28,13 +28,13 @@ namespace iscore
 	/**
 	 * @brief The PluginManager class loads and keeps track of the plug-ins.
 	 */
-	class PluginManager : public QNamedObject
+	class PluginManager : public NamedObject
 	{
 			Q_OBJECT
 			friend class Application;
 		public:
 			PluginManager(QObject* parent): 
-				QNamedObject{parent, "PluginManager"},
+				NamedObject{parent, "PluginManager"},
 				m_processList{this}
 			{ 
 			}

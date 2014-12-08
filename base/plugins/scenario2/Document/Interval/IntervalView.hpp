@@ -1,8 +1,9 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
+#include <QGraphicsProxyWidget>
 #include <QPointF>
 
-class IntervalView : public QNamedGraphicsObject
+class IntervalView : public QGraphicsObject
 {
 	Q_OBJECT
 
@@ -22,12 +23,12 @@ class IntervalView : public QNamedGraphicsObject
 
 	signals:
 		void intervalPressed();
-        void intervalReleased(QPointF);
+		void intervalReleased(QPointF);
 		void addScenarioProcessClicked();
 
 	protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
 	private:
 		QGraphicsProxyWidget* m_button{};

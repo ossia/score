@@ -21,7 +21,7 @@ namespace iscore
 	 * parent of every other object created.
 	 * It does instantiate the rest of the software (MVP, settings, plugins).
 	 */
-	class Application : public QNamedObject
+	class Application : public NamedObject
 	{
 			Q_OBJECT
 			friend class ChildEventFilter;

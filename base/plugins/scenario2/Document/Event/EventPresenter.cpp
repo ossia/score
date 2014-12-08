@@ -7,7 +7,7 @@
 EventPresenter::EventPresenter(EventModel* model,
 							   EventView* view,
 							   QObject* parent):
-	QNamedObject{parent, "EventPresenter"},
+	NamedObject{parent, "EventPresenter"},
 	m_model{model},
 	m_view{view}
 {
@@ -43,15 +43,15 @@ EventPresenter::~EventPresenter()
 
 int EventPresenter::id() const
 {
-    return m_model->id();
+	return m_model->id();
 }
 
 EventView *EventPresenter::view() const
 {
-    return m_view;
+	return m_view;
 }
 
 EventModel *EventPresenter::model() const
 {
-    return m_model;
+	return m_model;
 }

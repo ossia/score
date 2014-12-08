@@ -3,10 +3,10 @@
 
 namespace iscore
 {
-	class ProcessPresenterInterface : public QNamedObject
+	class ProcessPresenterInterface : public NamedObject
 	{
 		public:
-			using QNamedObject::QNamedObject;
+			using NamedObject::NamedObject;
 			virtual ~ProcessPresenterInterface() = default;
 			
 			virtual int id() const = 0;

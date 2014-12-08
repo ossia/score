@@ -1,7 +1,7 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
 
-class StoreyView : public QNamedGraphicsObject
+class StoreyView : public QGraphicsObject
 {
 	Q_OBJECT
 

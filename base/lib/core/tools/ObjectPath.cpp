@@ -50,7 +50,7 @@ QObject*ObjectPath::find()
 		}
 		else
 		{
-			auto child = obj->findChild<QNamedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
+			auto child = obj->findChild<NamedObject*>(it->child_name, Qt::FindDirectChildrenOnly);
 			if(!child)
 			{
 				return nullptr;

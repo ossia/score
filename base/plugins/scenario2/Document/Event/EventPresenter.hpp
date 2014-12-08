@@ -3,7 +3,7 @@
 
 class EventModel;
 class EventView;
-class EventPresenter : public QNamedObject
+class EventPresenter : public NamedObject
 {
 	Q_OBJECT
 

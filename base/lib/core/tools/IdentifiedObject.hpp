@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 
-class QIdentifiedObject : public QNamedObject
+class QIdentifiedObject : public NamedObject
 {
 	public:
 		template<typename... Args>
@@ -9,7 +9,7 @@ class QIdentifiedObject : public QNamedObject
 						  QString name,
 						  int id,
 						  Args&&... args):
-			QNamedObject{parent,
+			NamedObject{parent,
 						 name,
 						 std::forward<Args>(args)...},
 			m_id{id}

@@ -7,7 +7,7 @@
 using namespace iscore;
 
 DocumentPresenter::DocumentPresenter(QObject* parent, DocumentModel* m, DocumentView* v):
-	QNamedObject{parent, "DocumentPresenter"},
+	NamedObject{parent, "DocumentPresenter"},
 	m_commandQueue{std::make_unique<CommandQueue>()}
 {
 	m_commandQueue->setParent(this);

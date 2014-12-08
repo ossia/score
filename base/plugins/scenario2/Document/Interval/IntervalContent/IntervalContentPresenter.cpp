@@ -13,7 +13,7 @@
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,
 												   QObject* parent):
-	QNamedObject{parent, "IntervalContentPresenter"},
+	NamedObject{parent, "IntervalContentPresenter"},
 	m_model{model},
 	m_view{view}
 {

@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include <core/QNamedObject>
+#include <core/NamedObject>
 #include <Document/Interval/IntervalModel.hpp>
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
 #include <Document/Process/ScenarioProcessSharedModel.hpp>
@@ -20,7 +20,7 @@ class AddProcessToIntervalCommandTest: public QObject
 	private slots:
 		void CreateCommandTest()
 		{
-			QNamedObject *obj = new QNamedObject(qApp, "obj");
+			NamedObject *obj = new NamedObject(qApp, "obj");
 			ProcessList* plist = new ProcessList(obj);
 			plist->addProcess(new ScenarioProcessFactory);
 
@@ -45,7 +45,7 @@ class AddProcessToIntervalCommandTest: public QObject
 
 		void DeleteCommandTest()
 		{
-			QNamedObject *obj = new QNamedObject(qApp, "obj");
+			NamedObject *obj = new NamedObject(qApp, "obj");
 			ProcessList plist(obj);
 			plist.addProcess(new ScenarioProcessFactory);
 

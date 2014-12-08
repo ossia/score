@@ -2,7 +2,7 @@
 #include <tools/NamedObject.hpp>
 #include <QMouseEvent>
 
-class EventView : public QNamedGraphicsObject
+class EventView : public QGraphicsObject
 {
 	Q_OBJECT
 
@@ -23,13 +23,13 @@ class EventView : public QNamedGraphicsObject
 	signals:
 		void eventPressed();
 		void eventPressedWithControl();
-        void eventReleasedWithControl(QPointF);
-        void eventReleased(QPointF);
+		void eventReleasedWithControl(QPointF);
+		void eventReleased(QPointF);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
 
 };
 

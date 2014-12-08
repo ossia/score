@@ -1,15 +1,15 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
 
-class TemporalScenarioView : public QNamedGraphicsObject
+class TemporalScenarioView : public QGraphicsObject
 {
 	Q_OBJECT
-	
+
 	public:
-	
+
 		virtual ~TemporalScenarioView() = default;
-		
+
 	private:
-	
+
 };
 

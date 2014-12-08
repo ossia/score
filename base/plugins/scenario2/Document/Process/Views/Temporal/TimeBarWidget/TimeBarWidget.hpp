@@ -1,15 +1,15 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QWidget>
 
-class TimeBarWidget : public QNamedWidget
+class TimeBarWidget : public QWidget
 {
 	Q_OBJECT
-	
+
 	public:
-	
+
 		virtual ~TimeBarWidget() = default;
-		
+
 	private:
-	
+
 };
 

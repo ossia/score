@@ -9,11 +9,11 @@
 // everywhere (core, plugins...)
 ////////////////////////////////////////////////
 template<typename QType>
-class QNamedType : public QType
+class NamedType : public QType
 {
 	public:
 		template<typename... Args>
-		QNamedType(QType* parent, QString name, Args&&... args):
+		NamedType(QType* parent, QString name, Args&&... args):
 			QType{std::forward<Args>(args)...}
 		{
 			QType::setObjectName(name);
@@ -23,9 +23,7 @@ class QNamedType : public QType
 
 
 
-using QNamedObject = QNamedType<QObject>;
-using QNamedGraphicsObject = QNamedType<QGraphicsObject>;
-using QNamedWidget = QNamedType<QWidget>;
+using NamedObject = NamedType<QObject>;
 
 
 inline void debug_parentHierarchy(QObject* obj)

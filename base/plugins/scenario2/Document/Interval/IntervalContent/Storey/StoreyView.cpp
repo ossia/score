@@ -1,8 +1,10 @@
 #include "StoreyView.hpp"
 #include <QGraphicsScene>
 #include <QPainter>
+
+#include <tools/NamedObject.hpp>
 StoreyView::StoreyView(QGraphicsObject* parent):
-	QNamedGraphicsObject{parent, "StoreyView"}
+	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
 

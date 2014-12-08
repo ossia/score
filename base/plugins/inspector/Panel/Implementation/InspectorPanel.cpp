@@ -10,7 +10,7 @@
 #include <core/plugin/PluginManager.hpp>
 
 InspectorPanel::InspectorPanel (QWidget* parent) :
-	QNamedWidget {parent, "InspectorPanel"},
+	QWidget {parent},
 	m_layout{new QVBoxLayout{this}}
 {
 	m_layout->setMargin (8);

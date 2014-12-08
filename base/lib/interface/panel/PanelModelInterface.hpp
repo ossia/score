@@ -4,11 +4,11 @@
 namespace iscore
 {
 	class PanelPresenterInterface;
-	class PanelModelInterface : public QNamedObject
+	class PanelModelInterface : public NamedObject
 	{
 			Q_OBJECT
 		public:
-			using QNamedObject::QNamedObject;
+			using NamedObject::NamedObject;
 			virtual ~PanelModelInterface() = default;
 	};
 }

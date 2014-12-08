@@ -4,8 +4,8 @@
 
 using namespace iscore;
 
-ProcessList::ProcessList(QNamedObject* parent):
-	QNamedObject{parent, "ProcessList"}
+ProcessList::ProcessList(NamedObject* parent):
+	NamedObject{parent, "ProcessList"}
 {
 	
 }
