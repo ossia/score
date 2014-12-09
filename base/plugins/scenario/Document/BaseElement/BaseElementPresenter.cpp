@@ -25,6 +25,12 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
 													this->view()->intervalView(),
 													this};
+
+	connect(m_baseIntervalPresenter,	&IntervalPresenter::submitCommand,
+			this,						&BaseElementPresenter::submitCommand);
+
+	connect(m_baseIntervalPresenter, &IntervalPresenter::elementSelected,
+			this,					 &BaseElementPresenter::elementSelected);
 }
 
 BaseElementModel* BaseElementPresenter::model()

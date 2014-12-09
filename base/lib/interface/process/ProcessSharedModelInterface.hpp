@@ -4,6 +4,7 @@ class QDataStream;
 namespace iscore
 {
 	class ProcessViewModelInterface;
+
 	/**
 	 * @brief The ProcessSharedModelInterface class
 	 *
@@ -32,6 +33,7 @@ namespace iscore
 
 			virtual void serialize(QDataStream&) const = 0;
 			virtual void deserialize(QDataStream&) = 0;
+
 	};
 }
 

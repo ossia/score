@@ -28,10 +28,6 @@ EventPresenter::EventPresenter(EventModel* model,
 	{
 		emit eventReleased(id(), p.x(), p.y());
 	});
-
-	connect(this,	SIGNAL(elementSelected(QObject*)),
-			parent,	SIGNAL(elementSelected(QObject*)));
-
 }
 
 EventPresenter::~EventPresenter()

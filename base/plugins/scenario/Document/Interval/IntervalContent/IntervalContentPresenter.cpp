@@ -22,17 +22,10 @@ IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 		on_storeyCreated_impl(storeyModel);
 	}
 
-	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
-			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-
-	connect(this, SIGNAL(elementSelected(QObject*)),
-			parent, SIGNAL(elementSelected(QObject*)));
-
-	connect(m_model, SIGNAL(storeyCreated(int)),
-			this,	SLOT(on_storeyCreated(int)));
-	connect(m_model, SIGNAL(storeyDeleted(int)),
-			this,	SLOT(on_storeyDeleted(int)));
-
+	connect(m_model,	&IntervalContentModel::storeyCreated,
+			this,		&IntervalContentPresenter::on_storeyCreated);
+	connect(m_model,	&IntervalContentModel::storeyDeleted,
+			this,		&IntervalContentPresenter::on_storeyDeleted);
 }
 
 IntervalContentPresenter::~IntervalContentPresenter()
@@ -50,9 +43,16 @@ void IntervalContentPresenter::on_storeyCreated(int storeyId)
 void IntervalContentPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 {
 	auto storeyView = new StoreyView{m_view};
-	m_storeys.push_back(new StoreyPresenter{storeyModel,
-											storeyView,
-											this});
+	auto storeyPres = new StoreyPresenter{storeyModel,
+					  storeyView,
+					  this};
+	m_storeys.push_back(storeyPres);
+
+
+	connect(storeyPres, &StoreyPresenter::submitCommand,
+			this,		&IntervalContentPresenter::submitCommand);
+	connect(storeyPres, &StoreyPresenter::elementSelected,
+			this,		&IntervalContentPresenter::elementSelected);
 }
 
 void IntervalContentPresenter::on_storeyDeleted(int storeyId)

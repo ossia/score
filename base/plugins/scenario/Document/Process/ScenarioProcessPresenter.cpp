@@ -44,9 +44,6 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInter
 	}
 
 	/////// Connections
-	connect(this,	SIGNAL(submitCommand(iscore::SerializableCommand*)),
-			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
@@ -137,7 +134,7 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 																m_viewModel->model()),
 									 point.x(),
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
-	submitCommand(cmd);
+	this->submitCommand(cmd);
 }
 
 void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
@@ -218,6 +215,8 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 			this,			 &ScenarioProcessPresenter::createIntervalAndEventFromEvent);
 	connect(event_presenter, &EventPresenter::eventReleased,
 			this,			 &ScenarioProcessPresenter::moveEventAndInterval);
+	connect(event_presenter, &EventPresenter::elementSelected,
+			this,			 &ScenarioProcessPresenter::elementSelected);
 }
 
 void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_model)
@@ -236,5 +235,8 @@ void ScenarioProcessPresenter::on_intervalCreated_impl(IntervalModel* interval_m
 
 	connect(interval_presenter, &IntervalPresenter::intervalReleased,
 			this,				&ScenarioProcessPresenter::moveIntervalOnVertical);
-
+	connect(interval_presenter,	&IntervalPresenter::submitCommand,
+			this,				&ScenarioProcessPresenter::submitCommand);
+	connect(interval_presenter,	&IntervalPresenter::elementSelected,
+			this,				&ScenarioProcessPresenter::elementSelected);
 }

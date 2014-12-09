@@ -26,34 +26,35 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	auto contentView = new IntervalContentView{view};
 
 	// Cas par défaut
-	auto interval_presenter = new IntervalContentPresenter{model->contentModel(0),
-														   contentView,
-														   this};
+	auto interval_presenter =
+			new IntervalContentPresenter{
+							  model->contentModel(0),
+							  contentView,
+							  this};
+
+	connect(interval_presenter, &IntervalContentPresenter::submitCommand,
+			this,				&IntervalPresenter::submitCommand);
+	connect(interval_presenter, &IntervalContentPresenter::elementSelected,
+			this,				&IntervalPresenter::elementSelected);
 
 	m_contentPresenters.push_back(interval_presenter);
-
-	connect(this,	SIGNAL(submitCommand(iscore::SerializableCommand*)),
-			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-
-	connect(this,	SIGNAL(elementSelected(QObject*)),
-			parent, SIGNAL(elementSelected(QObject*)));
 
 	connect(m_view, &IntervalView::intervalPressed,
 			this,	&IntervalPresenter::on_intervalPressed);
 
-    connect(m_view, &IntervalView::intervalReleased,
-            [&] (QPointF p)
-    {
-        emit intervalReleased(id(), p.y());
-    });
+	connect(m_view, &IntervalView::intervalReleased,
+			[&] (QPointF p)
+	{
+		emit intervalReleased(id(), p.y());
+	});
 
 	connect(m_view, &IntervalView::addScenarioProcessClicked,
 			[&] ()
-		{
-			auto path = ObjectPath::pathFromObject("BaseIntervalModel", m_model);
-			auto cmd = new AddProcessToIntervalCommand(std::move(path), "Scenario");
-			emit submitCommand(cmd);
-		});
+	{
+		auto path = ObjectPath::pathFromObject("BaseIntervalModel", m_model);
+		auto cmd = new AddProcessToIntervalCommand(std::move(path), "Scenario");
+		emit submitCommand(cmd);
+	});
 }
 
 IntervalPresenter::~IntervalPresenter()
@@ -65,17 +66,17 @@ IntervalPresenter::~IntervalPresenter()
 
 int IntervalPresenter::id() const
 {
-    return m_model->id();
+	return m_model->id();
 }
 
 IntervalView *IntervalPresenter::view()
 {
-    return m_view;
+	return m_view;
 }
 
 IntervalModel *IntervalPresenter::model()
 {
-    return m_model;
+	return m_model;
 }
 
 void IntervalPresenter::on_intervalPressed()

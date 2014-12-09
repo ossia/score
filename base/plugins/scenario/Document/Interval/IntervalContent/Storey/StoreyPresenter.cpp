@@ -27,16 +27,10 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 		on_processViewModelCreated_impl(proc_vm);
 	}
 
-	connect(this, SIGNAL(submitCommand(iscore::SerializableCommand*)),
-			parent, SIGNAL(submitCommand(iscore::SerializableCommand*)));
-
-	connect(this, SIGNAL(elementSelected(QObject*)),
-			parent, SIGNAL(elementSelected(QObject*)));
-
-	connect(m_model, SIGNAL(processViewModelCreated(int)),
-			this,	SLOT(on_processViewModelCreated(int)));
-	connect(m_model, SIGNAL(processViewModelDeleted(int)),
-			this,	SLOT(on_processViewModelDeleted(int)));
+	connect(m_model, &StoreyModel::processViewModelCreated,
+			this,	 &StoreyPresenter::on_processViewModelCreated);
+	connect(m_model, &StoreyModel::processViewModelDeleted,
+			this,	 &StoreyPresenter::on_processViewModelDeleted);
 }
 
 StoreyPresenter::~StoreyPresenter()
@@ -72,5 +66,11 @@ void StoreyPresenter::on_processViewModelCreated_impl(iscore::ProcessViewModelIn
 
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
 	auto presenter = factory->makePresenter(proc_vm, proc_view, this);
+
+	connect(presenter,	&iscore::ProcessPresenterInterface::submitCommand,
+			this,		&StoreyPresenter::submitCommand);
+	connect(presenter,	&iscore::ProcessPresenterInterface::elementSelected,
+			this,		&StoreyPresenter::elementSelected);
+
 	m_processes.push_back(presenter);
 }
