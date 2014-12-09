@@ -42,6 +42,7 @@ IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
 	IdentifiedObject{parent, "IntervalContentModel", -1}
 {
+	// @todo maybe do an operator >> for identified object ?
 	s >> *this;
 }
 
@@ -84,7 +85,7 @@ void IntervalContentModel::changeStoreyOrder(int storeyId, int position)
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
-PositionedStoreyModel* IntervalContentModel::storey(int storeyId)
+PositionedStoreyModel* IntervalContentModel::storey(int storeyId) const
 {
 	return findById(m_storeys, storeyId);
 }

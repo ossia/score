@@ -42,8 +42,8 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 	return s;
 }
 
-IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{nullptr, "IntervalModel", -1} // Id has to be set afterwards
+
+QDataStream& operator >>(QDataStream& s, IntervalModel& interval)
 {
 	// Metadata
 	int id;
@@ -51,12 +51,10 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	QString comment;
 	QColor color;
 	s >> id >> name >> comment >> color;
-	this->setId(id);
-	this->setName(name);
-	this->setComment(comment);
-	this->setColor(color);
-
-	this->setParent(parent);
+	interval.setId(id);
+	interval.setName(name);
+	interval.setComment(comment);
+	interval.setColor(color);
 
 	// Processes
 	int process_size;
@@ -65,7 +63,7 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	{
 		QString name;
 		s >> name;
-		createProcess(name, s);
+		interval.createProcess(name, s);
 	}
 
 	// Contents
@@ -73,12 +71,20 @@ IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
 	s >> content_models_size;
 	for(int i = 0; i < content_models_size; i++)
 	{
-		createContentModel(s);
+		interval.createContentModel(s);
 	}
 
 	// Events
-	s >> m_startEvent;
-	s >> m_endEvent;
+	s >> interval.m_startEvent;
+	s >> interval.m_endEvent;
+
+	return s;
+}
+
+IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
+	IdentifiedObject{parent, "IntervalModel", -1} // Id has to be set afterwards
+{
+	s >> *this;
 }
 
 
@@ -102,6 +108,7 @@ void IntervalModel::setHeight(int height)
 {
 	m_height = height;
 }
+
 IntervalModel::IntervalModel(int id,
 							 QObject* parent):
 	IdentifiedObject{parent, "IntervalModel", id},

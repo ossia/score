@@ -29,6 +29,7 @@ class StoreyModel : public IdentifiedObject
 
 	public:
 		friend QDataStream& operator << (QDataStream& , const StoreyModel& );
+		friend QDataStream& operator >> (QDataStream& , StoreyModel& );
 
 		StoreyModel(QDataStream& s, IntervalContentModel* parent);
 		StoreyModel(int id, IntervalContentModel* parent);
@@ -48,18 +49,18 @@ class StoreyModel : public IdentifiedObject
 		void selectForEdition(int processViewId);
 
 		const std::vector<iscore::ProcessViewModelInterface*>&
-		processViewModels()
+		processViewModels() const
 		{
 			return m_processViewModels;
 		}
 
-		iscore::ProcessViewModelInterface* processViewModel(int processViewModelId);
+		iscore::ProcessViewModelInterface* processViewModel(int processViewModelId) const;
 
 		/**
 		 * @brief parentInterval
 		 * @return the interval this storey is part of.
 		 */
-		IntervalModel* parentInterval();
+		IntervalModel* parentInterval() const;
 
 		int height() const
 		{

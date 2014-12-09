@@ -22,14 +22,13 @@ QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 	return s;
 }
 
-StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
-	IdentifiedObject{nullptr, "StoreyModel", -1}
+
+QDataStream& operator >> (QDataStream& s, StoreyModel& storey )
 {
 	int id, editedProcessId;
 	s >> id;
 	s >> editedProcessId;
-	this->setId(id);
-	this->setParent(parent);
+	storey.setId(id);
 
 	int pvm_size;
 	s >> pvm_size;
@@ -37,11 +36,18 @@ StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
 	{
 		int sharedprocess_id;
 		s >> sharedprocess_id;
-		createProcessViewModel(s, sharedprocess_id);
+		storey.createProcessViewModel(s, sharedprocess_id);
 	}
 
+	storey.selectForEdition(editedProcessId);
 
-	this->selectForEdition(editedProcessId);
+	return s;
+}
+
+StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
+	IdentifiedObject{parent, "StoreyModel", -1}
+{
+	s >> *this;
 }
 
 StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
@@ -90,7 +96,7 @@ void StoreyModel::selectForEdition(int processViewId)
 	}
 }
 
-iscore::ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId)
+iscore::ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
 }
@@ -110,7 +116,7 @@ void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 }
 
 #include "Interval/IntervalModel.hpp"
-IntervalModel* StoreyModel::parentInterval()
+IntervalModel* StoreyModel::parentInterval() const
 {
 	return static_cast<IntervalModel*>(parent()->parent()); // hello granpa
 	// Is there a better way to do this ? Without breaking encapsulation ?

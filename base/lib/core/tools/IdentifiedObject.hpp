@@ -5,6 +5,7 @@
 class IdentifiedObject : public NamedObject
 {
 	public:
+		// @todo argument that takes a QDataStream&;
 		template<typename... Args>
 		IdentifiedObject(QObject* parent,
 						  QString name,
@@ -53,7 +54,7 @@ typename Container::value_type findById(const Container& c, int id)
 }
 
 template <typename Vector>
-int getNextId(Vector& v)
+int getNextId(const Vector& v)
 {
 	if(v.size() == 0)
 	{

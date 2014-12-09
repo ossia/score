@@ -19,6 +19,7 @@ class EventModel : public IdentifiedObject
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
 		int m_x{0};
 		friend QDataStream& operator << (QDataStream&, const EventModel&);
+		friend QDataStream& operator >> (QDataStream&, EventModel&);
 
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
