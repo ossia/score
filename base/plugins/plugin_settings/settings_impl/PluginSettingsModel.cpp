@@ -43,10 +43,6 @@ PluginSettingsModel::PluginSettingsModel():
 			this,		&PluginSettingsModel::on_itemChanged);
 }
 
-void PluginSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
-{
-	m_presenter = static_cast<PluginSettingsPresenter*>(presenter);
-}
 
 void PluginSettingsModel::setFirstTimeSettings()
 {
@@ -58,5 +54,5 @@ void PluginSettingsModel::on_itemChanged(QStandardItem* it)
 	auto name = it->text();
 	qDebug() << name << it->checkState();
 
-	presenter()->setBlacklistCommand(new BlacklistCommand(it->text(), it->checkState()));
+	emit blacklistCommand(new BlacklistCommand(it->text(), it->checkState()));
 }

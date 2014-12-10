@@ -26,6 +26,6 @@ class PermissionView : public PermissionBase
 		}
 
 	private:
-		bool _listens;
-		bool _writes;
+		bool _listens{};
+		bool _writes{};
 };

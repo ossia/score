@@ -83,16 +83,16 @@ class InspectorWidgetBase : public QWidget
 		}
 
 	private:
-		QVBoxLayout* _scrollAreaLayout;
-		QLabel* _objectType;
-		QLineEdit* _objectName;
-		QPushButton* _colorButton;
-		QPixmap* _colorButtonPixmap;
-		QScrollArea* _scrollArea;
-		QTextEdit* _comments;
+		QVBoxLayout* _scrollAreaLayout{};
+		QLabel* _objectType{};
+		QLineEdit* _objectName{};
+		QPushButton* _colorButton{};
+		QPixmap* _colorButtonPixmap{};
+		QScrollArea* _scrollArea{};
+		QTextEdit* _comments{};
 
-		std::vector<QWidget*>* _sections;
-		QColor _currentColor = Qt::gray;
+		std::vector<QWidget*>* _sections{}; // @todo why a pointer on a vector ?
+		QColor _currentColor{Qt::gray};
 
-		QObject* _inspectedObject;
+		QObject* _inspectedObject{};
 };

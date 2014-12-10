@@ -64,7 +64,7 @@ private:
 	QDialogButtonBox *buttonBox = nullptr;
 
 	QTcpSocket *tcpSocket = nullptr;
-	quint16 blockSize;
+	quint16 blockSize{};
 	BonjourServiceBrowser *bonjourBrowser = nullptr;
 	BonjourServiceResolver *bonjourResolver = nullptr;
 	QTreeWidget *treeWidget = nullptr;

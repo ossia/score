@@ -6,7 +6,7 @@ ReorderWidget::ReorderWidget (QWidget* parent) :
 {
 }
 
-ReorderWidget::ReorderWidget (std::vector<QWidget*>* widgets, QWidget* parent) :
+ReorderWidget::ReorderWidget (std::vector<QWidget*> widgets, QWidget* parent) :
 	QWidget (parent)
 {
 

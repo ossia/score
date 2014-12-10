@@ -127,7 +127,7 @@ class ZeroConfClient: public QObject
 
 	private:
 		QTcpSocket *tcpSocket = nullptr;
-		quint16 blockSize;
+		quint16 blockSize{};
 		BonjourServiceBrowser *bonjourBrowser = nullptr;
 		BonjourServiceResolver *bonjourResolver = nullptr;
 

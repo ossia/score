@@ -10,7 +10,6 @@ namespace iscore
 			using QObject::QObject;
 			virtual ~SettingsDelegateModelInterface() = default;
 
-			virtual void setPresenter(SettingsDelegatePresenterInterface* presenter) = 0;
 			virtual void setFirstTimeSettings() = 0;
 	};
 }

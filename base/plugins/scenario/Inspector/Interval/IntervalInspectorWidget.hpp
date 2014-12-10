@@ -1,7 +1,7 @@
 #pragma once
 
 #include <interface/inspector/InspectorWidgetBase.hpp>
-#include "objectinterval.hpp"
+
 class IntervalModel;
 
 class QFormLayout;

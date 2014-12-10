@@ -36,6 +36,6 @@ namespace iscore
 
 		private:
 			std::set<PanelViewInterface*> m_panelsViews;
-			Presenter* m_presenter;
+			Presenter* m_presenter{}; //@todo remove.
 	};
 }

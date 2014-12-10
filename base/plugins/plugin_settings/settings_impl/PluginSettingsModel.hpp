@@ -8,7 +8,7 @@ namespace iscore
 {
 	class SettingsDelegatePresenterInterface;
 }
-
+class BlacklistCommand;
 class PluginSettingsPresenter;
 class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
 {
@@ -17,14 +17,13 @@ class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
 		PluginSettingsModel();
 		QStandardItemModel* model() { return m_plugins; }
 
-		virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) override;
 		virtual void setFirstTimeSettings() override;
-		PluginSettingsPresenter* presenter() { return m_presenter; }
 
+	signals:
+		void blacklistCommand(BlacklistCommand*);
 	public slots:
 		void on_itemChanged(QStandardItem*);
 
 	private:
 		QStandardItemModel* m_plugins{};
-		PluginSettingsPresenter* m_presenter;
 };

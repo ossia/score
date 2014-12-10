@@ -19,7 +19,7 @@ SettingsDelegatePresenterInterface* NetworkSettings::makePresenter(SettingsPrese
 													   SettingsDelegateViewInterface* v)
 {
 	auto pres = new NetworkSettingsPresenter(p, m, v);
-	m->setPresenter(pres);
+
 	v->setPresenter(pres);
 
 	pres->load();
