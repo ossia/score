@@ -5,9 +5,9 @@
 using namespace iscore;
 
 ProcessList::ProcessList(NamedObject* parent):
-	NamedObject{parent, "ProcessList"}
+	NamedObject{"ProcessList", parent}
 {
-	
+
 }
 
 QStringList ProcessList::getProcessesName() const

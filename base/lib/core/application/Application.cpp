@@ -10,7 +10,7 @@ using namespace iscore;
 
 
 Application::Application(int& argc, char** argv):
-	 NamedObject{nullptr, "Application"}
+	 NamedObject{"Application", nullptr}
 {
 	// Application
 	// Crashes if put in member initialization list... :(

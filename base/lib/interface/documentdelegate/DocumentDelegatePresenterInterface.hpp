@@ -17,7 +17,7 @@ namespace iscore
 								   QString object_name,
 								   DocumentDelegateModelInterface* model,
 								   DocumentDelegateViewInterface* view):
-				NamedObject{parent_presenter, object_name},
+				NamedObject{object_name, parent_presenter},
 				m_model{model},
 				m_view{view},
 				m_parentPresenter{parent_presenter}

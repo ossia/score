@@ -9,12 +9,17 @@ QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& storey)
 	return s;
 }
 
-PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, IntervalContentModel* parent):
-	StoreyModel{s, parent}
+QDataStream& operator >> (QDataStream& s, PositionedStoreyModel& storey)
 {
 	int pos;
 	s >> pos;
-	setPosition(pos);
+	storey.setPosition(pos);
+}
+
+PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, IntervalContentModel* parent):
+	StoreyModel{s, parent}
+{
+	s >> *this;
 }
 
 PositionedStoreyModel::PositionedStoreyModel(int position, int id, IntervalContentModel* parent):

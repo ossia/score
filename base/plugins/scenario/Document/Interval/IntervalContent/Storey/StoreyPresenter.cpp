@@ -16,7 +16,7 @@
 StoreyPresenter::StoreyPresenter(StoreyModel* model,
 								 StoreyView* view,
 								 QObject* parent):
-	NamedObject{parent, "StoreyPresenter"},
+	NamedObject{"StoreyPresenter", parent},
 	m_model{model},
 	m_view{view}
 {

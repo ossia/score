@@ -27,7 +27,7 @@
 ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 												   iscore::ProcessViewInterface* view,
 												   QObject* parent):
-	iscore::ProcessPresenterInterface{parent, "ScenarioProcessPresenter"},
+	iscore::ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
 	m_viewModel{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {

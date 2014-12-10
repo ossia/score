@@ -3,7 +3,7 @@
 #include <Commands/Scenario/CreateEventAfterEventCommand.hpp>
 
 ScenarioControl::ScenarioControl(QObject* parent):
-	PluginControlInterface{parent, "ScenarioControl"}
+	PluginControlInterface{"ScenarioControl", parent}
 {
 
 }

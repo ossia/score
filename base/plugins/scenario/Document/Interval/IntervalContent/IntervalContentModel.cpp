@@ -5,8 +5,6 @@
 #include <QDebug>
 QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 {
-	s << c.id();
-
 	s << (int)c.m_storeys.size();
 	for(auto& storey : c.m_storeys)
 	{
@@ -18,10 +16,6 @@ QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 
 QDataStream& operator >> (QDataStream& s, IntervalContentModel& c)
 {
-	int id;
-	s >> id;
-	c.setId(id);
-
 	int storeys_size;
 	s >> storeys_size;
 	for(; storeys_size --> 0 ;)
@@ -34,15 +28,14 @@ QDataStream& operator >> (QDataStream& s, IntervalContentModel& c)
 
 
 IntervalContentModel::IntervalContentModel(int id, IntervalModel* parent):
-	IdentifiedObject{parent, "IntervalContentModel", id}
+	IdentifiedObject{id, "IntervalContentModel", parent}
 {
 
 }
 
 IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent):
-	IdentifiedObject{parent, "IntervalContentModel", -1}
+	IdentifiedObject{s, "IntervalContentModel", parent}
 {
-	// @todo maybe do an operator >> for identified object ?
 	s >> *this;
 }
 

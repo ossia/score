@@ -7,7 +7,7 @@
 EventPresenter::EventPresenter(EventModel* model,
 							   EventView* view,
 							   QObject* parent):
-	NamedObject{parent, "EventPresenter"},
+	NamedObject{"EventPresenter", parent},
 	m_model{model},
 	m_view{view}
 {

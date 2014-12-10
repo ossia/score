@@ -17,25 +17,17 @@ namespace {
 }
 
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+DeviceExplorerMainWindow::DeviceExplorerMainWindow(QWidget *parent)
+	: QMainWindow(parent)
 {
-
-  QCoreApplication::setOrganizationName("i-score");
-  QCoreApplication::setOrganizationDomain("i-score.org");
-  QCoreApplication::setApplicationName("DeviceExplorer");
-    
-
-
-  
   m_model = new DeviceExplorerModel(this);
 
   //_proxyModel
 
   m_treeWidget = new DeviceExplorerWidget(this);
   m_treeWidget->setModel(m_model); //_proxyModel
-  
-  
+
+
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addWidget(m_treeWidget);
 
@@ -49,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void
-MainWindow::closeEvent(QCloseEvent *event)
+DeviceExplorerMainWindow::closeEvent(QCloseEvent *event)
 {
   QSettings settings;
   settings.setValue(GeometrySetting, saveGeometry());
@@ -57,16 +49,16 @@ MainWindow::closeEvent(QCloseEvent *event)
 }
 
 void
-MainWindow::load(const QString &filename)
+DeviceExplorerMainWindow::load(const QString &filename)
 {
   assert(m_model);
 
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  
+
   bool loadOk = m_treeWidget->loadModel(filename);
   if (! loadOk) {
-    qDebug()<<"Error: unable to load file: "<<filename<<"\n";
-    exit(10);
+	qDebug()<<"Error: unable to load file: "<<filename<<"\n";
+	exit(10);
   }
 
   QApplication::restoreOverrideCursor();

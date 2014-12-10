@@ -7,10 +7,10 @@
 
 #include <tools/utilsCPP11.hpp>
 #include <QDebug>
+
 QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 {
-	s << storey.id()
-	  << storey.m_editedProcessId;
+	s << storey.m_editedProcessId;
 
 	s << (int) storey.m_processViewModels.size();
 	for(auto& pvm : storey.m_processViewModels)
@@ -23,12 +23,10 @@ QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 }
 
 
-QDataStream& operator >> (QDataStream& s, StoreyModel& storey )
+QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
 {
-	int id, editedProcessId;
-	s >> id;
+	int editedProcessId;
 	s >> editedProcessId;
-	storey.setId(id);
 
 	int pvm_size;
 	s >> pvm_size;
@@ -45,13 +43,13 @@ QDataStream& operator >> (QDataStream& s, StoreyModel& storey )
 }
 
 StoreyModel::StoreyModel(QDataStream& s, IntervalContentModel* parent):
-	IdentifiedObject{parent, "StoreyModel", -1}
+	IdentifiedObject{s, "StoreyModel", parent}
 {
 	s >> *this;
 }
 
 StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
-	IdentifiedObject{parent, "StoreyModel", id}
+	IdentifiedObject{id, "StoreyModel", parent}
 {
 
 }
@@ -118,7 +116,7 @@ void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 #include "Interval/IntervalModel.hpp"
 IntervalModel* StoreyModel::parentInterval() const
 {
-	return static_cast<IntervalModel*>(parent()->parent()); // hello granpa
-	// Is there a better way to do this ? Without breaking encapsulation ?
+	return static_cast<IntervalModel*>(parent()->parent());
+	// TODO Is there a better way to do this ? Without breaking encapsulation ?
 	// And without generating another ton of code from intervalmodel to storeymodel ?
 }

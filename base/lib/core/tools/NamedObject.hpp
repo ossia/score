@@ -13,7 +13,7 @@ class NamedType : public QType
 {
 	public:
 		template<typename... Args>
-		NamedType(QType* parent, QString name, Args&&... args):
+		NamedType(QString name, QObject* parent, Args&&... args):
 			QType{std::forward<Args>(args)...}
 		{
 			QType::setObjectName(name);

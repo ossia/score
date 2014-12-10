@@ -10,11 +10,11 @@
 #include <tools/utilsCPP11.hpp>
 #include <API/Headers/Editor/TimeBox.h>
 #include <QDebug>
+
 QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 {
 	// Metadata
-	s	<< i.id()
-		<< i.name()
+	s	<< i.name()
 		<< i.comment()
 		<< i.color();
 
@@ -46,12 +46,10 @@ QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 QDataStream& operator >>(QDataStream& s, IntervalModel& interval)
 {
 	// Metadata
-	int id;
 	QString name;
 	QString comment;
 	QColor color;
-	s >> id >> name >> comment >> color;
-	interval.setId(id);
+	s >> name >> comment >> color;
 	interval.setName(name);
 	interval.setComment(comment);
 	interval.setColor(color);
@@ -82,7 +80,7 @@ QDataStream& operator >>(QDataStream& s, IntervalModel& interval)
 }
 
 IntervalModel::IntervalModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{parent, "IntervalModel", -1} // Id has to be set afterwards
+	IdentifiedObject{s, "IntervalModel", parent} // Id has to be set afterwards
 {
 	s >> *this;
 }
@@ -111,7 +109,7 @@ void IntervalModel::setHeight(int height)
 
 IntervalModel::IntervalModel(int id,
 							 QObject* parent):
-	IdentifiedObject{parent, "IntervalModel", id},
+	IdentifiedObject{id, "IntervalModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
 	createContentModel();

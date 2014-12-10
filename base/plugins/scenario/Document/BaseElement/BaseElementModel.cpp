@@ -2,7 +2,7 @@
 #include "Interval/IntervalModel.hpp"
 
 BaseElementModel::BaseElementModel(QObject* parent):
-	iscore::DocumentDelegateModelInterface{parent, "BaseElementModel"},
+	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
 	m_baseInterval{new IntervalModel{0, this}}
 {
 	m_baseInterval->m_width = 1000;

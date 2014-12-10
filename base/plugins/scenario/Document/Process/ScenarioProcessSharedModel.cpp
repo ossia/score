@@ -7,8 +7,63 @@
 #include <QDebug>
 #include "ScenarioProcessViewModel.hpp"
 
+
+QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
+{
+	s << (int) scenario.m_intervals.size();
+	for(const auto& interval : scenario.m_intervals)
+	{
+		s << *interval;
+	}
+
+	s << (int) scenario.m_events.size();
+	for(const auto& event : scenario.m_events)
+	{
+		s << *event;
+	}
+
+	return s;
+}
+
+QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
+{
+	// Intervals
+	int interval_count;
+	s >> interval_count;
+	for(; interval_count --> 0;)
+	{
+		IntervalModel* interval = new IntervalModel{s, &scenario};
+		scenario.m_intervals.push_back(interval);
+		emit scenario.intervalCreated(interval->id());
+	}
+
+	// Events
+	int event_count;
+	s >> event_count;
+	for(; event_count --> 0;)
+	{
+		EventModel* evmodel = new EventModel(s, &scenario);
+		scenario.m_events.push_back(evmodel);
+
+		emit scenario.eventCreated(evmodel->id());
+	}
+
+	// Recreate the API
+	for(IntervalModel* interval : scenario.m_intervals)
+	{
+		auto sev = scenario.event(interval->startEvent());
+		auto eev = scenario.event(interval->endEvent());
+
+		scenario.m_scenario->addTimeBox(*interval->apiObject(),
+										*sev->apiObject(),
+										*eev->apiObject());
+	}
+
+	return s;
+}
+
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
-	iscore::ProcessSharedModelInterface{parent, "ScenarioProcessSharedModel", id},
+	iscore::ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario}
 {
 	m_events.push_back(new EventModel{getNextId(m_events), this});
@@ -18,11 +73,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 													   QObject* parent):
-	iscore::ProcessSharedModelInterface{nullptr, "ScenarioProcessSharedModel", -1}
+	iscore::ProcessSharedModelInterface{s, "ScenarioProcessSharedModel", parent}
 {
-	s >> static_cast<iscore::ProcessSharedModelInterface&>(*this);
-
-	this->setParent(parent);
+	s >> *this;
 }
 
 iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
@@ -51,54 +104,6 @@ iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDat
 	return new ScenarioProcessViewModel(s, parent);
 }
 
-void ScenarioProcessSharedModel::serialize(QDataStream& s) const
-{
-	s << (int) m_intervals.size();
-	for(auto& interval : m_intervals)
-	{
-		s << *interval;
-	}
-
-	s << (int) m_events.size();
-	for(auto& event : m_events)
-	{
-		s << *event;
-	}
-}
-
-void ScenarioProcessSharedModel::deserialize(QDataStream& s)
-{
-	// Intervals
-	int interval_count;
-	s >> interval_count;
-	for(int i = 0; i < interval_count; i++)
-	{
-		IntervalModel* interval = new IntervalModel(s, this);
-		m_intervals.push_back(interval);
-		emit intervalCreated(interval->id());
-	}
-
-	// Events
-	int event_count;
-	s >> event_count;
-	for(int i = 0; i < event_count; i++)
-	{
-		EventModel* evmodel = new EventModel(s, this);
-		m_events.push_back(evmodel);
-
-		emit eventCreated(evmodel->id());
-	}
-
-	for(IntervalModel* interval : m_intervals)
-	{
-		auto sev = event(interval->startEvent());
-		auto eev = event(interval->endEvent());
-
-		m_scenario->addTimeBox(*interval->apiObject(),
-							   *sev->apiObject(),
-							   *eev->apiObject());
-	}
-}
 
 //////// Creation ////////
 int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, int endEventId)
