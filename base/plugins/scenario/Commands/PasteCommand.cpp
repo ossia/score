@@ -1,4 +1,5 @@
 #include "PasteCommand.hpp"
+
 using namespace iscore;
 
 

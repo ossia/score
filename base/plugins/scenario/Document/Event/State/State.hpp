@@ -6,7 +6,8 @@ class State : public NamedObject
 		Q_OBJECT
 
 	public:
-		State(QObject* parent): NamedObject{parent, "State"}
+		State(QObject* parent):
+			NamedObject{"State", parent}
 		{
 
 		}

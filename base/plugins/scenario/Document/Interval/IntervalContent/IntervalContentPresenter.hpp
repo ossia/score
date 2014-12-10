@@ -1,13 +1,16 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+
 class StoreyPresenter;
 class IntervalContentModel;
 class IntervalContentView;
 class StoreyModel;
+
 namespace iscore
 {
 	class SerializableCommand;
 }
+
 class IntervalContentPresenter : public NamedObject
 {
 	Q_OBJECT

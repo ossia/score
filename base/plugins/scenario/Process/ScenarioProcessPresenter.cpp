@@ -1,33 +1,31 @@
 #include "ScenarioProcessPresenter.hpp"
-#include "ScenarioProcessSharedModel.hpp"
-#include "ScenarioProcessViewModel.hpp"
-#include "ScenarioProcessView.hpp"
 
-#include "Interval/IntervalView.hpp"
-#include "Interval/IntervalPresenter.hpp"
-#include "Interval/IntervalModel.hpp"
-#include "Interval/IntervalContent/IntervalContentView.hpp"
-#include "Interval/IntervalContent/IntervalContentPresenter.hpp"
-
-#include "Event/EventModel.hpp"
-#include "Event/EventPresenter.hpp"
-#include "Event/EventView.hpp"
-
+#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioProcessViewModel.hpp"
+#include "Process/ScenarioProcessView.hpp"
+#include "Document/Interval/IntervalView.hpp"
+#include "Document/Interval/IntervalPresenter.hpp"
+#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentView.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentPresenter.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventPresenter.hpp"
+#include "Document/Event/EventView.hpp"
 #include "Commands/Scenario/CreateEventCommand.hpp"
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 #include "Commands/Scenario/MoveEventCommand.hpp"
 #include "Commands/Scenario/MoveIntervalCommand.hpp"
 
-#include <QDebug>
+#include <tools/utilsCPP11.hpp>
 
+#include <QDebug>
 #include <QRectF>
 
-#include <tools/utilsCPP11.hpp>
 
 ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
 												   iscore::ProcessViewInterface* view,
 												   QObject* parent):
-	iscore::ProcessPresenterInterface{parent, "ScenarioProcessPresenter"},
+	iscore::ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
 	m_viewModel{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {

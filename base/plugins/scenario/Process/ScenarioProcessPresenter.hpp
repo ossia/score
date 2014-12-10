@@ -1,11 +1,13 @@
 #pragma once
 #include <interface/process/ProcessPresenterInterface.hpp>
+
 namespace iscore
 {
 	class ProcessViewModelInterface;
 	class ProcessViewInterface;
 	class SerializableCommand;
 }
+
 class IntervalPresenter;
 class EventPresenter;
 class ScenarioProcessViewModel;

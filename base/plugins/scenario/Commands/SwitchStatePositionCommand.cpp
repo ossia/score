@@ -1,4 +1,5 @@
 #include "SwitchStatePositionCommand.hpp"
+
 using namespace iscore;
 
 

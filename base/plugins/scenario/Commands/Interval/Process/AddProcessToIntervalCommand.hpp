@@ -1,6 +1,7 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
+
 #include <QString>
 
 

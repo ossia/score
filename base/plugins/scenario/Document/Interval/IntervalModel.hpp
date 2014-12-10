@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+
 #include <QColor>
 #include <vector>
 
@@ -15,6 +16,7 @@ namespace iscore
 class IntervalContentModel;
 class EventModel;
 class TimeBox;
+
 /**
  * @brief The IntervalModel class
  *

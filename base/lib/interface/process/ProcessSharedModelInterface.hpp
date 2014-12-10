@@ -31,36 +31,5 @@ namespace iscore
 			virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
 															 QObject* parent) = 0;
 
-			virtual void serialize(QDataStream&) const = 0;
-			virtual void deserialize(QDataStream&) = 0;
-
 	};
-}
-
-
-#include <QDebug>
-
-inline QDataStream& operator <<(QDataStream& s, const iscore::ProcessSharedModelInterface& p)
-{
-	qDebug(Q_FUNC_INFO);
-	s << p.id();
-	s << p.objectName();
-
-	qDebug() << p.id() << p.objectName();
-	p.serialize(s);
-	return s;
-}
-
-inline QDataStream& operator >>(QDataStream& s, iscore::ProcessSharedModelInterface& p)
-{
-	qDebug(Q_FUNC_INFO);
-	int id;
-	QString name;
-	s >> id >> name;
-	p.setId(id);
-	p.setObjectName(name);
-
-	qDebug() << id << name;
-	p.deserialize(s);
-	return s;
 }

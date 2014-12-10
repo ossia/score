@@ -8,7 +8,7 @@ find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Document")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
@@ -23,15 +23,18 @@ file(GLOB_RECURSE CONTROL_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Control/*.hpp")
 file(GLOB_RECURSE CONTROL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Control/*.cpp")
 file(GLOB_RECURSE INSPECTOR_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
 file(GLOB_RECURSE INSPECTOR_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.cpp")
+file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.hpp")
+file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.cpp")
 set(PLUGIN_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.cpp")
-	
+
 add_library(scenario_process
 			${DOCUMENT_HDRS} ${DOCUMENT_SRCS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${CONTROL_HDRS} ${CONTROL_SRCS}
 			${INSPECTOR_HDRS} ${INSPECTOR_SRCS}
+			${PROCESS_HDRS} ${PROCESS_SRCS}
 			${PLUGIN_FILES})
 
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock)
@@ -39,4 +42,4 @@ if(APPLE)
 	 SET_TARGET_PROPERTIES(scenario_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

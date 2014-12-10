@@ -1,8 +1,7 @@
 #include <QtTest/QtTest>
-#include <core/NamedObject>
 #include <Document/Interval/IntervalModel.hpp>
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
-#include <Document/Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioProcessSharedModel.hpp>
 #include <core/processes/ProcessList.hpp>
 
 #include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
@@ -20,8 +19,8 @@ class AddProcessToIntervalCommandTest: public QObject
 	private slots:
 		void CreateCommandTest()
 		{
-			NamedObject *obj = new NamedObject(qApp, "obj");
-			ProcessList* plist = new ProcessList(obj);
+			NamedObject *obj = new NamedObject{"obj", qApp};
+			ProcessList* plist = new ProcessList{obj};
 			plist->addProcess(new ScenarioProcessFactory);
 
 			IntervalModel* int_model  = new IntervalModel{0, qApp};
@@ -29,10 +28,8 @@ class AddProcessToIntervalCommandTest: public QObject
 
 			AddProcessToIntervalCommand cmd(
 			{
-				"IntervalModel",
-				{
-					{"IntervalModel", 0}
-				}
+				{"IntervalModel", {}},
+				{"IntervalModel", 0}
 			}, "Scenario");
 			cmd.redo();
 			cmd.undo();
@@ -45,7 +42,7 @@ class AddProcessToIntervalCommandTest: public QObject
 
 		void DeleteCommandTest()
 		{
-			NamedObject *obj = new NamedObject(qApp, "obj");
+			NamedObject *obj = new NamedObject("obj", qApp);
 			ProcessList plist(obj);
 			plist.addProcess(new ScenarioProcessFactory);
 
@@ -54,33 +51,27 @@ class AddProcessToIntervalCommandTest: public QObject
 
 			AddProcessToIntervalCommand cmd(
 			{
-				"IntervalModel",
-				{
-					{"IntervalModel", 0}
-				}
+				{"IntervalModel", {}},
+				{"IntervalModel", 0}
 			}, "Scenario");
 			cmd.redo();
 
 			auto scen_model = static_cast<ScenarioProcessSharedModel*>(int_model2->process(0));
-            scen_model->createIntervalAndBothEvents(34, 55, 10);
+			scen_model->createIntervalAndBothEvents(34, 55, 10);
 			AddProcessToIntervalCommand cmd2(
 			{
-				"IntervalModel",
-				{
-					{"IntervalModel", 0},
-					{"ScenarioProcessSharedModel", 0},
-					{"IntervalModel", 0}
-				}
+				{"IntervalModel", {}},
+				{"IntervalModel", 0},
+				{"ScenarioProcessSharedModel", 0},
+				{"IntervalModel", 0}
 			}, "Scenario");
 			cmd2.redo();
 
 
 			DeleteProcessFromIntervalCommand cmd3(
 			{
-				"IntervalModel",
-				{
-					{"IntervalModel", 0}
-				}
+				{"IntervalModel", {}},
+				{"IntervalModel", 0}
 			}, "ScenarioProcessSharedModel", 0);
 
 

@@ -14,7 +14,7 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(View* parent):
 
 QWidget* DeviceExplorerPanelView::getWidget()
 {
-	auto ptr = new MainWindow;
+	auto ptr = new DeviceExplorerMainWindow;
 
 	return ptr;
 }
@@ -39,7 +39,7 @@ iscore::PanelModelInterface*DeviceExplorerPanelFactory::makeModel(iscore::Model*
 }
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(Model* parent):
-	iscore::PanelModelInterface{parent, "DeviceExplorerPanelModel"}
+	iscore::PanelModelInterface{"DeviceExplorerPanelModel", parent}
 {
 }
 

@@ -1,8 +1,11 @@
 #include "IntervalContentView.hpp"
+
+#include <tools/NamedObject.hpp>
+
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QDebug>
-#include <tools/NamedObject.hpp>
+
 IntervalContentView::IntervalContentView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {

@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+
 #include <vector>
 
 class IntervalModel;

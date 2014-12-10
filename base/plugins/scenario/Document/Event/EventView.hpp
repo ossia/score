@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <QGraphicsObject>
 #include <QMouseEvent>
 
 class EventView : public QGraphicsObject

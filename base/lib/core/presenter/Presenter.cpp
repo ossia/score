@@ -20,7 +20,7 @@
 using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
-	NamedObject{arg_parent, "Presenter"},
+	NamedObject{"Presenter", arg_parent},
 	m_model{model},
 	m_view{view},
 	#ifdef __APPLE__
@@ -28,7 +28,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	#else
 	m_menubar{view->menuBar(), this},
 	#endif
-	m_document{new Document{this, view}}
+	m_document{new Document{view, this}}
 {
 	m_view->setPresenter(this);
 	setupMenus();

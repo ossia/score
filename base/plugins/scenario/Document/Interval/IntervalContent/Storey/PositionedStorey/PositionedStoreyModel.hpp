@@ -1,4 +1,5 @@
-#include "Interval/IntervalContent/Storey/StoreyModel.hpp"
+#pragma once
+#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
 
 class IntervalContentModel;
 class PositionedStoreyModel : public StoreyModel
@@ -9,8 +10,10 @@ class PositionedStoreyModel : public StoreyModel
 				   WRITE setPosition
 				   NOTIFY positionChanged)
 
-	public:
 		friend QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& c);
+		friend QDataStream& operator >> (QDataStream& s, PositionedStoreyModel& c);
+
+	public:
 		PositionedStoreyModel(QDataStream& s, IntervalContentModel* parent);
 		PositionedStoreyModel(int position, int id, IntervalContentModel* parent);
 

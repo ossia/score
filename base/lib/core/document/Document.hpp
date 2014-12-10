@@ -18,7 +18,7 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-			Document(QObject* parent, QWidget* parentview);
+			Document(QWidget* parentview, QObject* parent);
 			DocumentPresenter* presenter() { return m_presenter; }
 			DocumentView* view() { return m_view; }
 

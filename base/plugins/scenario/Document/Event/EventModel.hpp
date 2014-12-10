@@ -9,17 +9,19 @@ class State;
 class IntervalModel;
 class EventModel : public IdentifiedObject
 {
-	Q_OBJECT
+		Q_OBJECT
 
 		Q_PROPERTY(double heightPercentage
 				   READ heightPercentage
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
+
+		friend QDataStream& operator << (QDataStream&, const EventModel&);
+		friend QDataStream& operator >> (QDataStream&, EventModel&);
+
 	public:
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
 		int m_x{0};
-		friend QDataStream& operator << (QDataStream&, const EventModel&);
-		friend QDataStream& operator >> (QDataStream&, EventModel&);
 
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);

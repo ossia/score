@@ -4,18 +4,32 @@
 
 class IdentifiedObject : public NamedObject
 {
+		friend QDataStream& operator << (QDataStream& s, const IdentifiedObject& obj)
+		{
+			s << obj.m_id;
+			return s;
+		}
+
+		friend QDataStream& operator >> (QDataStream& s, IdentifiedObject& obj)
+		{
+			s >> obj.m_id;
+			return s;
+		}
+
 	public:
-		// @todo argument that takes a QDataStream&;
 		template<typename... Args>
-		IdentifiedObject(QObject* parent,
-						  QString name,
-						  SettableIdentifier id,
-						  Args&&... args):
-			NamedObject{parent,
-						 name,
-						 std::forward<Args>(args)...},
+		IdentifiedObject(SettableIdentifier id,
+						 Args&&... args):
+			NamedObject{std::forward<Args>(args)...},
 			m_id{id}
 		{
+		}
+		template<typename... Args>
+		IdentifiedObject(QDataStream& s,
+						 Args&&... args):
+			NamedObject{std::forward<Args>(args)...}
+		{
+			s >> *this;
 		}
 
 		const SettableIdentifier& id() const

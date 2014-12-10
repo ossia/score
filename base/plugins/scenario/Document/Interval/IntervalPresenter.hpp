@@ -1,16 +1,18 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <vector>
 
+#include <vector>
 
 class IntervalModel;
 class IntervalView;
 class IntervalContentPresenter;
+
 namespace iscore
 {
 	class SerializableCommand;
 	class ProcessPresenterInterface;
 }
+
 /**
  * @brief The IntervalPresenter class
  *
@@ -28,13 +30,13 @@ class IntervalPresenter : public NamedObject
 		virtual ~IntervalPresenter();
 
 		int id() const;
-        IntervalView* view();
-        IntervalModel* model();
+		IntervalView* view();
+		IntervalModel* model();
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
-        void intervalReleased(int id, int heightPos);
+		void intervalReleased(int id, int heightPos);
 
 	public slots:
 		void on_intervalPressed();
@@ -45,7 +47,7 @@ class IntervalPresenter : public NamedObject
 		IntervalModel* m_model{};
 		IntervalView* m_view{};
 
-        long m_millisecPerPixel{1};
+		long m_millisecPerPixel{1};
 
 };
 

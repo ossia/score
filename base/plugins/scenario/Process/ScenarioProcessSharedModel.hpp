@@ -7,6 +7,7 @@ namespace OSSIA
 }
 class IntervalModel;
 class EventModel;
+
 /**
  * @brief The ScenarioProcessSharedModel class
  *
@@ -17,6 +18,8 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 {
 	Q_OBJECT
 
+		friend QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario);
+		friend QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario);
 	public:
 		ScenarioProcessSharedModel(int id, QObject* parent);
 		ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
@@ -28,9 +31,6 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		{
 			return "Scenario";
 		}
-
-		virtual void serialize(QDataStream&) const override;
-		virtual void deserialize(QDataStream&) override;
 
 		// Creation of objects.
 
@@ -61,9 +61,9 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime,
 																   int duration, double heightPos);
 
-        void moveEventAndInterval(int eventId, int time, double heightPosition);
-        void moveEventAndInterval(int eventId, double heightPosition);
-        void moveInterval(int intervalId, double heightPosition);
+		void moveEventAndInterval(int eventId, int time, double heightPosition);
+		void moveEventAndInterval(int eventId, double heightPosition);
+		void moveInterval(int intervalId, double heightPosition);
 
 
 		void undo_createIntervalBetweenEvents(int intervalId);
@@ -74,7 +74,7 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 
 
 		IntervalModel* interval(int intervalId);
-        EventModel* event(int eventId);
+		EventModel* event(int eventId);
 
 		// For the presenter :
 		const std::vector<IntervalModel*> intervals() const
@@ -87,8 +87,8 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		void intervalCreated(int intervalId);
 		void eventDeleted(int eventId);
 		void intervalDeleted(int intervalId);
-        void eventMoved(int eventId);
-        void intervalMoved(int intervalId);
+		void eventMoved(int eventId);
+		void intervalMoved(int intervalId);
 
 	private:
 		OSSIA::Scenario* m_scenario;

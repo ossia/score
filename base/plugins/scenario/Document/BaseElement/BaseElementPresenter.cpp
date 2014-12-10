@@ -1,10 +1,11 @@
 #include "BaseElementPresenter.hpp"
-#include <Document/Interval/IntervalPresenter.hpp>
-#include <Document/Interval/IntervalView.hpp>
-#include <Document/BaseElement/BaseElementModel.hpp>
-#include <Document/BaseElement/BaseElementView.hpp>
-#include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
-#include <Commands/Scenario/CreateEventCommand.hpp>
+
+#include "Document/Interval/IntervalPresenter.hpp"
+#include "Document/Interval/IntervalView.hpp"
+#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementView.hpp"
+#include "Commands/Interval/Process/AddProcessToIntervalCommand.hpp"
+#include "Commands/Scenario/CreateEventCommand.hpp"
 
 #include <QTimer>
 using namespace iscore;

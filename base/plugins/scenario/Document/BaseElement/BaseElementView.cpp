@@ -1,9 +1,11 @@
 #include "BaseElementView.hpp"
+
+#include "Document/Interval/IntervalView.hpp"
+
 #include <QLabel>
 #include <QGridLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include "Interval/IntervalView.hpp"
 
 class GrapicsProxyObject : public QGraphicsObject
 {

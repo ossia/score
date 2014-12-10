@@ -1,7 +1,8 @@
 #include "ScenarioProcessFactory.hpp"
-#include "ScenarioProcessSharedModel.hpp"
-#include "ScenarioProcessView.hpp"
-#include "ScenarioProcessPresenter.hpp"
+
+#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioProcessView.hpp"
+#include "Process/ScenarioProcessPresenter.hpp"
 
 QString ScenarioProcessFactory::name() const
 {

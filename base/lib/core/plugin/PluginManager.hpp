@@ -33,10 +33,10 @@ namespace iscore
 			Q_OBJECT
 			friend class Application;
 		public:
-			PluginManager(QObject* parent): 
-				NamedObject{parent, "PluginManager"},
+			PluginManager(QObject* parent):
+				NamedObject{"PluginManager", parent},
 				m_processList{this}
-			{ 
+			{
 			}
 
 			~PluginManager()
@@ -50,12 +50,12 @@ namespace iscore
 			}
 
 			void reloadPlugins();
-			
+
 			QStringList pluginsOnSystem() const
 			{
 				return m_pluginsOnSystem;
 			}
-			
+
 			const InspectorList& inspectorFactoriesList() const
 			{
 				return m_inspectorList;

@@ -1,4 +1,5 @@
 #include "IntervalView.hpp"
+
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -6,6 +7,7 @@
 #include <QWidget>
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
+
 IntervalView::IntervalView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {

@@ -20,7 +20,7 @@ namespace iscore
 	{
 			Q_OBJECT
 		public:
-			DocumentPresenter(QObject* parent, DocumentModel*, DocumentView*);
+			DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
 			CommandQueue* commandQueue() { return m_commandQueue.get(); }
 
 			void newDocument();

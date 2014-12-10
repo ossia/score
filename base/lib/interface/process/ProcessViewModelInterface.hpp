@@ -12,7 +12,7 @@ namespace iscore
 	{
 		public:
 			ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, int sharedProcessId):
-				IdentifiedObject{parent, name, viewModelId},
+				IdentifiedObject{viewModelId, name, parent},
 				m_sharedProcessId{sharedProcessId}
 			{
 

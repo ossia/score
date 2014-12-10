@@ -1,9 +1,10 @@
 #include "ScenarioControl.hpp"
-#include <Commands/Scenario/CreateEventCommand.hpp>
-#include <Commands/Scenario/CreateEventAfterEventCommand.hpp>
+
+#include "Commands/Scenario/CreateEventCommand.hpp"
+#include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 
 ScenarioControl::ScenarioControl(QObject* parent):
-	PluginControlInterface{parent, "ScenarioControl"}
+	PluginControlInterface{"ScenarioControl", parent}
 {
 
 }

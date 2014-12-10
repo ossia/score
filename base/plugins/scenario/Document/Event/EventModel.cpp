@@ -1,14 +1,40 @@
 #include "EventModel.hpp"
+
+#include "Document/Event/State/State.hpp"
+
 #include <API/Headers/Editor/TimeNode.h>
+
 #include <QVector>
 
-#include "State/State.hpp"
+
+QDataStream& operator << (QDataStream& s, const EventModel& ev)
+{
+	s << ev.m_previousIntervals
+	  << ev.m_nextIntervals
+	  << ev.m_heightPercentage;
+
+	// TODO s << ev.m_timeNode->save();
+	return s;
+}
+
+QDataStream& operator >> (QDataStream& s, EventModel& ev)
+{
+	s >> ev.m_previousIntervals
+	  >> ev.m_nextIntervals
+	  >> ev.m_heightPercentage;
+
+	ev.m_timeNode = new OSSIA::TimeNode;
+	// TODO load the timenode
+
+	return s;
+}
+
 
 // TODO possibilité temporaire pour tester ce que l'on veut faire :
 // FAire une copie du scénario, appliquer la commande dessus, et si elle throw pas sur la copie, l'appliquer pour de vrai.
 
 EventModel::EventModel(int id, QObject* parent):
-	IdentifiedObject{parent, "EventModel", id},
+	IdentifiedObject{id, "EventModel", parent},
 	m_timeNode{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the intervals are correctly created.
@@ -21,31 +47,9 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 	m_heightPercentage = yPos;
 }
 
-QDataStream& operator << (QDataStream& s, const EventModel& ev)
-{
-	s << ev.id()
-	  << ev.m_previousIntervals
-	  << ev.m_nextIntervals
-	  << ev.m_heightPercentage;
-
-	// TODO s << ev.m_timeNode->save();
-	return s;
-}
-
-QDataStream& operator >> (QDataStream& s, EventModel& ev)
-{
-	int id;
-	s >> id >> ev.m_previousIntervals >> ev.m_nextIntervals >> ev.m_heightPercentage;
-	ev.setId(id);
-
-	ev.m_timeNode = new OSSIA::TimeNode;
-	// TODO load the timenode
-
-	return s;
-}
 
 EventModel::EventModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{parent, "EventModel", -1}
+	IdentifiedObject{s, "EventModel", parent}
 {
 	s >> *this;
 }

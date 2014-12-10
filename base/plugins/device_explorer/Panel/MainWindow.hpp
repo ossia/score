@@ -5,12 +5,12 @@
 class DeviceExplorerModel;
 class DeviceExplorerWidget;
 
-class MainWindow : public QMainWindow
+class DeviceExplorerMainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent=0);
+  explicit DeviceExplorerMainWindow(QWidget *parent=0);
 
 protected:
   //void closeEvent(QCloseEvent *event);

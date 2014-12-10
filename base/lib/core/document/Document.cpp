@@ -12,11 +12,11 @@
 #include <QLayout>
 
 using namespace iscore;
-Document::Document(QObject* parent, QWidget* parentview):
-	NamedObject{parent, "Document"},
+Document::Document(QWidget* parentview, QObject* parent):
+	NamedObject{"Document", parent},
 	m_model{new DocumentModel{this}},
 	m_view{new DocumentView{parentview}},
-	m_presenter{new DocumentPresenter(this, m_model, m_view)}
+	m_presenter{new DocumentPresenter(m_model, m_view, this)}
 {
 	connect(m_presenter, &DocumentPresenter::on_elementSelected,
 			this,		 &Document::on_elementSelected);

@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+
 #include <vector>
 
 class IntervalContentModel;
@@ -7,25 +8,17 @@ class IntervalModel;
 
 namespace iscore
 {
-	// Possibilité : mettre ça plutôt dans Scenario et travailler avec des ScenarioProcessSharedModel ? Bof pour autres plug-ins...
 	class ProcessViewModelInterface;
 }
 
-/////////////////// !!!
-/// NOTE :
-/// Pour undo-redo, dans les commandes,
-/// on doit mettre l'id de tous les modèles parents
-/// récursivement (sinon ça peut pas marcher).
-///
-/// Aussi penser au cas ou quelqu'un quitte
-/// puis relance et rejoint la session réseau:
-/// les ids doivent rester les mêmes
-/////////////////// !!!
 class StoreyModel : public IdentifiedObject
 {
 	Q_OBJECT
 
-		Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
+		Q_PROPERTY(int height
+				   READ height
+				   WRITE setHeight
+				   NOTIFY heightChanged)
 
 	public:
 		friend QDataStream& operator << (QDataStream& , const StoreyModel& );

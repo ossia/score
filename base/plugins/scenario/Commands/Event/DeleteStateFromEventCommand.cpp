@@ -1,4 +1,5 @@
 #include "DeleteStateFromEventCommand.hpp"
+
 using namespace iscore;
 
 
