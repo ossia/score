@@ -1,6 +1,8 @@
 #include "AddStateToEventCommand.hpp"
-#include <Document/Event/EventModel.hpp>
-#include <Document/Event/State/State.hpp>
+
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/State/State.hpp"
+
 #include <QDebug>
 
 using namespace iscore;

@@ -1,15 +1,17 @@
 #include "IntervalModel.hpp"
-#include <interface/process/ProcessSharedModelInterface.hpp>
-#include "IntervalContent/IntervalContentModel.hpp"
-#include <Document/Event/EventModel.hpp>
 
-#include <QApplication>
+#include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
+#include "Document/Event/EventModel.hpp"
+
 #include <core/processes/ProcessList.hpp>
-#include <interface/process/ProcessFactoryInterface.hpp>
-
 #include <tools/utilsCPP11.hpp>
+#include <interface/process/ProcessFactoryInterface.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
+
 #include <API/Headers/Editor/TimeBox.h>
+
 #include <QDebug>
+#include <QApplication>
 
 QDataStream& operator <<(QDataStream& s, const IntervalModel& i)
 {

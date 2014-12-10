@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+
 class QGraphicsScene;
 class QGraphicsView;
 class IntervalView;

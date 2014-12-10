@@ -1,8 +1,9 @@
 #include <QtTest/QtTest>
-#include <core/NamedObject>
 #include <Document/Interval/IntervalModel.hpp>
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
-#include <Document/Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioProcessSharedModel.hpp>
+
+#include <core/tools/ObjectPath.hpp>
 
 using namespace iscore;
 
@@ -57,47 +58,43 @@ class IntervalModelTests: public QObject
 			i0.setObjectName("OriginalInterval");
 			auto s0 = new ScenarioProcessSharedModel{0, &i0};
 
-            s0->createIntervalAndBothEvents(1, 34, 10);
-            s0->createIntervalAndBothEvents(42, 46, 10);
+			s0->createIntervalAndBothEvents(1, 34, 10);
+			s0->createIntervalAndBothEvents(42, 46, 10);
 
 			auto i1 = s0->interval(0);
 			new ScenarioProcessSharedModel{0, i1};
 			auto s2 = new ScenarioProcessSharedModel{1, i1};
 
-			ObjectPath p{"OriginalInterval",
-						 {
+			ObjectPath p{
+							{"OriginalInterval", {}},
 							{"ScenarioProcessSharedModel", 0},
 							{"IntervalModel", 0},
 							{"ScenarioProcessSharedModel", 1}
-						 }
-						};
+						 };
 			QCOMPARE(p.find(), s2);
 
-			ObjectPath p2{"OriginalInterval",
-						 {
+			ObjectPath p2{
+							{"OriginalInterval", {}},
 							{"ScenarioProcessSharedModel", 0},
 							{"IntervalModel", 0},
 							{"ScenarioProcessSharedModel", 7}
-						 }
-						};
+						 };
 			QCOMPARE(p2.find(), static_cast<QObject*>(nullptr));
 
-			ObjectPath p3{"OriginalInterval",
-						 {
+			ObjectPath p3{
+							{"OriginalInterval", {}},
 							{"ScenarioProcessSharedModel", 0},
 							{"IntervalModel0xBADBAD", 0},
 							{"ScenarioProcessSharedModel", 1}
-						 }
 						};
 			QCOMPARE(p3.find(), static_cast<QObject*>(nullptr));
 
-			ObjectPath p4{"OriginalInterval",
-						 {
+			ObjectPath p4{
+							{"OriginalInterval", {}},
 							{"ScenarioProcessSharedModel", 0},
 							{"IntervalModel", 0},
 							{"ScenarioProcessSharedModel", 1},
 							{"ScenarioProcessSharedModel", 1}
-						 }
 						};
 			QCOMPARE(p4.find(), static_cast<QObject*>(nullptr));
 		}

@@ -1,6 +1,8 @@
 #include "EventPresenter.hpp"
-#include "EventModel.hpp"
-#include "EventView.hpp"
+
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventView.hpp"
+
 #include <QPointF>
 #include <QGraphicsScene>
 

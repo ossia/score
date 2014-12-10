@@ -1,4 +1,5 @@
 #include "PositionedStoreyModel.hpp"
+
 #include <QDebug>
 
 QDataStream& operator << (QDataStream& s, const PositionedStoreyModel& storey)
@@ -14,6 +15,8 @@ QDataStream& operator >> (QDataStream& s, PositionedStoreyModel& storey)
 	int pos;
 	s >> pos;
 	storey.setPosition(pos);
+
+	return s;
 }
 
 PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, IntervalContentModel* parent):

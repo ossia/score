@@ -1,22 +1,21 @@
 #include "EventInspectorWidget.hpp"
+
+#include "Document/Event/EventModel.hpp"
+
+#include "Document/Event/State/State.hpp"
+#include "Commands/Event/AddStateToEventCommand.hpp"
+
 #include <interface/inspector/InspectorSectionWidget.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
-//#include <QSpinBox>
 #include <QLayout>
 #include <QFormLayout>
 #include <QWidget>
-//#include <QToolButton>
 #include <QPushButton>
-//#include <QDebug>
 #include <QScrollArea>
 
-#include <Event/EventModel.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
-
-#include <Event/State/State.hpp>
-#include <Commands/Event/AddStateToEventCommand.hpp>
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
 	InspectorWidgetBase{nullptr},

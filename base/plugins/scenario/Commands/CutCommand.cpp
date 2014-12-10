@@ -1,4 +1,5 @@
 #include "CutCommand.hpp"
+
 using namespace iscore;
 
 

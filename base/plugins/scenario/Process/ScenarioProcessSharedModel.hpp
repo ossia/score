@@ -7,6 +7,7 @@ namespace OSSIA
 }
 class IntervalModel;
 class EventModel;
+
 /**
  * @brief The ScenarioProcessSharedModel class
  *

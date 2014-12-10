@@ -1,11 +1,13 @@
 #include "IntervalPresenter.hpp"
-#include "IntervalModel.hpp"
-#include "IntervalView.hpp"
-#include "IntervalContent/IntervalContentPresenter.hpp"
-#include "IntervalContent/IntervalContentView.hpp"
+
+#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Interval/IntervalView.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentPresenter.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentView.hpp"
 #include "Commands/Interval/Process/AddProcessToIntervalCommand.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
+
 #include <QDebug>
 #include <QGraphicsScene>
 

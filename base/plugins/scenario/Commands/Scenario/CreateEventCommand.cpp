@@ -1,9 +1,12 @@
 #include "CreateEventCommand.hpp"
-#include <Document/Process/ScenarioProcessSharedModel.hpp>
 
-#include <QApplication>
+#include "Process/ScenarioProcessSharedModel.hpp"
+
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
+
+#include <QApplication>
+#include <QDebug>
 using namespace iscore;
 
 // TODO maybe the to-be-added event id should be created here ?
@@ -20,13 +23,12 @@ CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, floa
 						"CreateEventCommand",
 						QObject::tr("Event creation")},
 	m_path(std::move(scenarioPath)),
-    m_time{time},
-    m_heightPosition{heightPosition}
+	m_time{time},
+	m_heightPosition{heightPosition}
 {
 
 }
 
-#include <QDebug>
 void CreateEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
@@ -42,7 +44,7 @@ void CreateEventCommand::redo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-        auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time, m_heightPosition);
+		auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time, m_heightPosition);
 		m_intervalId = std::get<0>(ids);
 	}
 }
@@ -59,10 +61,10 @@ bool CreateEventCommand::mergeWith(const QUndoCommand* other)
 
 void CreateEventCommand::serializeImpl(QDataStream& s)
 {
-    s << m_path << m_time << m_heightPosition;
+	s << m_path << m_time << m_heightPosition;
 }
 
 void CreateEventCommand::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_time >> m_heightPosition;
+	s >> m_path >> m_time >> m_heightPosition;
 }

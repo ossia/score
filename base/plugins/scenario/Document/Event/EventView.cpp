@@ -1,4 +1,5 @@
 #include "EventView.hpp"
+
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QDebug>

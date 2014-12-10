@@ -1,18 +1,17 @@
 #include "IntervalInspectorWidget.hpp"
-#include <interface/inspector/InspectorSectionWidget.hpp>
 
-//#include <QLabel>
+#include "Document/Interval/IntervalModel.hpp"
+
+#include <interface/inspector/InspectorSectionWidget.hpp>
+#include <interface/process/ProcessSharedModelInterface.hpp>
+
 #include <QLineEdit>
-//#include <QSpinBox>
 #include <QLayout>
 #include <QFormLayout>
 #include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-//#include <QDebug>
-//#include <QScrollArea>
-#include <Interval/IntervalModel.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
+
 
 IntervalInspectorWidget::IntervalInspectorWidget (IntervalModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)

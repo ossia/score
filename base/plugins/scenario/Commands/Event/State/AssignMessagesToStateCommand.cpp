@@ -1,4 +1,5 @@
 #include "AssignMessagesToStateCommand.hpp"
+
 using namespace iscore;
 
 

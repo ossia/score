@@ -1,7 +1,8 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QPointF>
 #include <tools/ObjectPath.hpp>
+
+#include <QPointF>
 
 class CreateEventCommand : public iscore::SerializableCommand
 {

@@ -1,7 +1,8 @@
 #include "ScenarioDocument.hpp"
-#include "BaseElementModel.hpp"
-#include "BaseElementPresenter.hpp"
-#include "BaseElementView.hpp"
+
+#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/BaseElement/BaseElementView.hpp"
 
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>

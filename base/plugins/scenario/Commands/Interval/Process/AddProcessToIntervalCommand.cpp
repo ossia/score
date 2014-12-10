@@ -1,8 +1,10 @@
 #include "AddProcessToIntervalCommand.hpp"
-#include <Document/Interval/IntervalModel.hpp>
-#include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
-#include <Document/Interval/IntervalContent/Storey/StoreyModel.hpp>
-#include <Document/Interval/IntervalContent/Storey/PositionedStorey/PositionedStoreyModel.hpp>
+
+#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
+#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
+#include "Document/Interval/IntervalContent/Storey/PositionedStorey/PositionedStoreyModel.hpp"
+
 #include <QDebug>
 using namespace iscore;
 

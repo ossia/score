@@ -1,15 +1,18 @@
 #include "StoreyPresenter.hpp"
-#include "StoreyModel.hpp"
-#include "StoreyView.hpp"
+
+#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
+#include "Document/Interval/IntervalContent/Storey/StoreyView.hpp"
+#include "Document/Interval/IntervalModel.hpp"
+
 #include <core/processes/ProcessList.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 #include <interface/process/ProcessViewModelInterface.hpp>
 #include <interface/process/ProcessPresenterInterface.hpp>
 #include <interface/process/ProcessFactoryInterface.hpp>
-#include <Interval/IntervalModel.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
-#include <QGraphicsScene>
 #include <tools/utilsCPP11.hpp>
+
+#include <QGraphicsScene>
 
 // @todo vérifier en créant un nouvel élément
 // qu'il n'existe pas déjà dans un tableau.

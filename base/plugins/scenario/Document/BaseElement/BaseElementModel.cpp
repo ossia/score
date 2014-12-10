@@ -1,5 +1,6 @@
 #include "BaseElementModel.hpp"
-#include "Interval/IntervalModel.hpp"
+
+#include "Document/Interval/IntervalModel.hpp"
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},

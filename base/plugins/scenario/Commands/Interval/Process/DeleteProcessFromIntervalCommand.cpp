@@ -1,7 +1,11 @@
 #include "DeleteProcessFromIntervalCommand.hpp"
-#include <Document/Interval/IntervalModel.hpp>
+
+#include "Document/Interval/IntervalModel.hpp"
+
 #include <interface/process/ProcessSharedModelInterface.hpp>
+
 #include <QDebug>
+
 using namespace iscore;
 
 

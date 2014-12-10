@@ -1,11 +1,13 @@
 #include "StoreyModel.hpp"
-#include "Interval/IntervalContent/IntervalContentModel.hpp"
+
+#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
+
 #include <core/processes/ProcessList.hpp>
 #include <interface/process/ProcessSharedModelInterface.hpp>
 #include <interface/process/ProcessViewModelInterface.hpp>
-#include <Interval/IntervalModel.hpp>
-
 #include <tools/utilsCPP11.hpp>
+
 #include <QDebug>
 
 QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
@@ -113,7 +115,6 @@ void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 	}
 }
 
-#include "Interval/IntervalModel.hpp"
 IntervalModel* StoreyModel::parentInterval() const
 {
 	return static_cast<IntervalModel*>(parent()->parent());

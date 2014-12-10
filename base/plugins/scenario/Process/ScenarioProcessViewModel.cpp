@@ -1,8 +1,8 @@
 #include "ScenarioProcessViewModel.hpp"
 
-#include <Interval/IntervalContent/Storey/StoreyModel.hpp>
-#include <Interval/IntervalModel.hpp>
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
+#include "Document/Interval/IntervalModel.hpp"
+#include "Process/ScenarioProcessSharedModel.hpp"
 
 ScenarioProcessViewModel::ScenarioProcessViewModel(int viewModelId, int sharedProcessId, QObject* parent):
 	iscore::ProcessViewModelInterface(parent, "ScenarioProcessViewModel", viewModelId, sharedProcessId)

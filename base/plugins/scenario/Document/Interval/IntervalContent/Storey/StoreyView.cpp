@@ -1,15 +1,16 @@
 #include "StoreyView.hpp"
+
+#include <tools/NamedObject.hpp>
+
 #include <QGraphicsScene>
 #include <QPainter>
 
-#include <tools/NamedObject.hpp>
 StoreyView::StoreyView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
 
 	this->setZValue(parent->zValue() + 1);
-	//parentItem()->scene()->addItem(this);
 }
 
 QRectF StoreyView::boundingRect() const

@@ -1,14 +1,15 @@
 #include "IntervalContentPresenter.hpp"
-#include "IntervalContentModel.hpp"
-#include "IntervalContentView.hpp"
 
-#include "Storey/StoreyPresenter.hpp"
-#include "Storey/StoreyView.hpp"
-#include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
+#include "Document/Interval/IntervalContent/IntervalContentView.hpp"
+#include "Document/Interval/IntervalContent/Storey/StoreyPresenter.hpp"
+#include "Document/Interval/IntervalContent/Storey/StoreyView.hpp"
+#include "Document/Interval/IntervalContent/Storey/PositionedStorey/PositionedStoreyModel.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <QGraphicsScene>
 #include <tools/utilsCPP11.hpp>
+
+#include <QGraphicsScene>
 
 IntervalContentPresenter::IntervalContentPresenter(IntervalContentModel* model,
 												   IntervalContentView* view,

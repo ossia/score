@@ -1,7 +1,9 @@
 #pragma once
-#include <tools/NamedObject.hpp>
-#include <QMap>
 #include <interface/process/ProcessViewModelInterface.hpp>
+#include <tools/NamedObject.hpp>
+
+#include <QMap>
+
 class ScenarioProcessSharedModel;
 class IntervalContentModel;
 class IntervalModel;

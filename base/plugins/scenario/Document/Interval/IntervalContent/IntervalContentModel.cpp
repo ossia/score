@@ -1,8 +1,12 @@
 #include "IntervalContentModel.hpp"
-#include "Interval/IntervalModel.hpp"
+
+#include "Document/Interval/IntervalModel.hpp"
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
+
 #include <tools/utilsCPP11.hpp>
+
 #include <QDebug>
+
 QDataStream& operator << (QDataStream& s, const IntervalContentModel& c)
 {
 	s << (int)c.m_storeys.size();

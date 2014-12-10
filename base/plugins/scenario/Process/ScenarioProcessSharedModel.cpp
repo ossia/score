@@ -1,12 +1,13 @@
 #include "ScenarioProcessSharedModel.hpp"
-#include <Document/Event/EventModel.hpp>
-#include <Document/Interval/IntervalModel.hpp>
+
+#include "Process/ScenarioProcessViewModel.hpp"
+
+#include "Document/Event/EventModel.hpp"
+#include "Document/Interval/IntervalModel.hpp"
 
 #include <API/Headers/Editor/Scenario.h>
 
 #include <QDebug>
-#include "ScenarioProcessViewModel.hpp"
-
 
 QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
 {

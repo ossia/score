@@ -1,4 +1,5 @@
-#include "Interval/IntervalContent/Storey/StoreyModel.hpp"
+#pragma once
+#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
 
 class IntervalContentModel;
 class PositionedStoreyModel : public StoreyModel

@@ -1,8 +1,10 @@
 #include "EventModel.hpp"
-#include <API/Headers/Editor/TimeNode.h>
-#include <QVector>
 
-#include "State/State.hpp"
+#include "Document/Event/State/State.hpp"
+
+#include <API/Headers/Editor/TimeNode.h>
+
+#include <QVector>
 
 
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
