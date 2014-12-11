@@ -11,6 +11,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventPresenter.hpp"
 #include "Document/Event/EventView.hpp"
+#include "Document/Event/EventData.hpp"
 #include "Commands/Scenario/CreateEventCommand.hpp"
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 #include "Commands/Scenario/MoveEventCommand.hpp"
@@ -162,13 +163,14 @@ void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int dista
 	submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::moveEventAndInterval(int id, int distance, double heightPos)
+void ScenarioProcessPresenter::moveEventAndInterval(EventData data)
 {
+    data.relativeY = (data.y - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height();
 	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 															   m_viewModel->model()),
-									id,
-									distance,
-									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+                                    data.id,
+                                    data.x,
+                                    data.relativeY);
 	submitCommand(cmd);
 }
 

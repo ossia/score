@@ -1,8 +1,11 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include "Document/Event/EventData.hpp"
+
 
 class EventModel;
 class EventView;
+
 class EventPresenter : public NamedObject
 {
 	Q_OBJECT
@@ -18,9 +21,13 @@ class EventPresenter : public NamedObject
 	signals:
 		void eventSelected(int id);
 		void eventReleasedWithControl(int id, int x, int y);
-		void eventReleased(int id, int x, int y);
+//		void eventReleased(int id, int x, int y);
+        void eventReleased(EventData d);
 
 		void elementSelected(QObject*);
+
+    public slots:
+        void on_eventReleased(QPointF);
 
 	private:
 		EventModel* m_model{};

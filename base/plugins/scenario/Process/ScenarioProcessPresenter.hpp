@@ -14,7 +14,7 @@ class ScenarioProcessViewModel;
 class ScenarioProcessView;
 class EventModel;
 class IntervalModel;
-
+struct EventData;
 class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 {
 	Q_OBJECT
@@ -54,7 +54,7 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
 		void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
-		void moveEventAndInterval(int id, int distance, double heightPos);
+        void moveEventAndInterval(EventData data);
 		void moveIntervalOnVertical(int id, double heightPos);
 
 	private:
