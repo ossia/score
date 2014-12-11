@@ -8,7 +8,7 @@
 #include <QDebug>
 
 ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):
-	iscore::ProcessViewInterface{parent}
+	ProcessViewInterface{parent}
 {
 	this->setParentItem(parent);
 	this->setFlags(ItemClipsChildrenToShape);

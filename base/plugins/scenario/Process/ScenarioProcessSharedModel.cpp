@@ -64,7 +64,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 }
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
-	iscore::ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
+	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario}
 {
 	m_events.push_back(new EventModel{getNextId(m_events), this});
@@ -74,14 +74,14 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 													   QObject* parent):
-	iscore::ProcessSharedModelInterface{s, "ScenarioProcessSharedModel", parent}
+	ProcessSharedModelInterface{s, "ScenarioProcessSharedModel", parent}
 {
 	s >> *this;
 }
 
-iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
-																			 int processId,
-																			 QObject* parent)
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
+																	 int processId,
+																	 QObject* parent)
 {
 	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
@@ -100,7 +100,7 @@ iscore::ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int
 	return scen;
 }
 
-iscore::ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)
+ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)
 {
 	return new ScenarioProcessViewModel(s, parent);
 }

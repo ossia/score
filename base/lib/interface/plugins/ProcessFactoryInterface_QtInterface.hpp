@@ -2,6 +2,7 @@
 #include <QStringList>
 #include <interface/process/ProcessFactoryInterface.hpp>
 
+// TODO useless now. Superceded by Factory families.
 // Note : here we don't use camel case for the "process_" part because it is more of a namespacing required
 // by the fact that if a plugin implements for instance a process and a panel,
 // Qt requires the creation of the class which inherits both the process interface and the panel interface
@@ -15,7 +16,7 @@ namespace iscore
 			// List the Processes offered by the plugin.
 
 			virtual QStringList process_list() const = 0;
-			virtual iscore::ProcessFactoryInterface* process_make(QString name) = 0;
+			virtual ProcessFactoryInterface* process_make(QString name) = 0;
 	};
 }
 

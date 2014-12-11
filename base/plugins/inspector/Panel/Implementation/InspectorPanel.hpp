@@ -16,6 +16,7 @@ namespace Ui
  *  It creates and displays the view for each inspected element.
  */
 
+
 class InspectorPanel : public QWidget
 {
 		Q_OBJECT
@@ -34,7 +35,6 @@ class InspectorPanel : public QWidget
 		void newItemInspected (QObject*);
 
 	private:
-
 		QVBoxLayout* m_layout;
 		InspectorWidgetBase* m_itemInspected{};
 };

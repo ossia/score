@@ -5,6 +5,7 @@
 #include <core/processes/ProcessList.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
+// todo these includes are unneeded
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
 #include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
@@ -12,17 +13,17 @@
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
-
+#include <interface/customfactory/CustomFactoryInterface.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
 namespace iscore
 {
-
+	using FactoryFamilyList = QVector<FactoryFamily>;
 	using CommandList = std::vector<PluginControlInterface*>;
 	using PanelList = std::vector<PanelFactoryInterface*>;
 	using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
 	using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
-	using InspectorList = std::vector<InspectorWidgetFactoryInterface*>;
+//	using InspectorList = std::vector<InspectorWidgetFactoryInterface*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
 	/**
@@ -34,8 +35,7 @@ namespace iscore
 			friend class Application;
 		public:
 			PluginManager(QObject* parent):
-				NamedObject{"PluginManager", parent},
-				m_processList{this}
+				NamedObject{"PluginManager", parent}
 			{
 			}
 
@@ -56,16 +56,12 @@ namespace iscore
 				return m_pluginsOnSystem;
 			}
 
-			const InspectorList& inspectorFactoriesList() const
-			{
-				return m_inspectorList;
-			}
-
 		private:
 			// We need a list for all the plug-ins present on the system even if we do not load them.
 			// Else we can't blacklist / unblacklist plug-ins.
 			QStringList m_pluginsOnSystem;
 
+			void loadFactories(QObject* plugin);
 			void dispatch(QObject* plugin);
 			void clearPlugins();
 
@@ -74,12 +70,14 @@ namespace iscore
 			// Here, the plug-ins that are effectively loaded.
 			QMap<QString, QObject*> m_availablePlugins;
 
+			FactoryFamilyList m_customFactories;
+
 			AutoconnectList m_autoconnections; // TODO try unordered_set
-			ProcessList  m_processList;
+//			ProcessList  m_processList;
 			CommandList  m_commandList;
 			PanelList    m_panelList;
 			DocumentPanelList m_documentPanelList;
 			SettingsList m_settingsList;
-			InspectorList m_inspectorList;
+//			InspectorList m_inspectorList;
 	};
 }

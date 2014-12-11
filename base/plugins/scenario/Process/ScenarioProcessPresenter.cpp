@@ -22,10 +22,10 @@
 #include <QRectF>
 
 
-ScenarioProcessPresenter::ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
-												   iscore::ProcessViewInterface* view,
+ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* model,
+												   ProcessViewInterface* view,
 												   QObject* parent):
-	iscore::ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
+	ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
 	m_viewModel{static_cast<ScenarioProcessViewModel*>(model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {

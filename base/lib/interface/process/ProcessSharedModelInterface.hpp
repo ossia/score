@@ -1,8 +1,8 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 class QDataStream;
-namespace iscore
-{
+//namespace iscore
+//{
 	class ProcessViewModelInterface;
 
 	/**
@@ -32,4 +32,4 @@ namespace iscore
 															 QObject* parent) = 0;
 
 	};
-}
+//}

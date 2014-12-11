@@ -2,8 +2,6 @@
 #include <interface/process/ProcessFactoryInterface.hpp>
 #include <algorithm>
 
-using namespace iscore;
-
 ProcessList::ProcessList(NamedObject* parent):
 	NamedObject{"ProcessList", parent}
 {
@@ -29,8 +27,9 @@ ProcessFactoryInterface* ProcessList::getProcess(QString name)
 	return it != m_processes.end()? *it : nullptr;
 }
 
-void ProcessList::addProcess(ProcessFactoryInterface* p)
+void ProcessList::addProcess(iscore::FactoryInterface* arg)
 {
+	auto p = static_cast<ProcessFactoryInterface*>(arg);
 	auto it = std::find_if(m_processes.begin(),
 						   m_processes.end(),
 						   [&p] (ProcessFactoryInterface* inner_p)
@@ -46,6 +45,6 @@ void ProcessList::addProcess(ProcessFactoryInterface* p)
 ProcessFactoryInterface* ProcessList::getFactory(QString processName)
 {
 	return qApp
-			->findChild<iscore::ProcessList*>("ProcessList")
+			->findChild<ProcessList*>("ProcessList")
 			->getProcess(processName);
 }

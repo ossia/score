@@ -1,6 +1,11 @@
 project(iscore)
 cmake_minimum_required(VERSION 3.0)
 
+
+# Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
+# keep in mind that you have to call CMake with :
+# $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
+
 # Settings
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

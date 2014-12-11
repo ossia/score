@@ -1,8 +1,8 @@
 #pragma once
 #include <QGraphicsObject>
 
-namespace iscore
-{
+//namespace iscore
+//{
 	class ProcessViewInterface : public QGraphicsObject
 	{
 		public:
@@ -12,4 +12,4 @@ namespace iscore
 	/* class ProcessSmallView { };
 	class ProcessStandardView { };
 	class ProcessFullView { }; */
-}
+//}

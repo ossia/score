@@ -8,10 +8,8 @@ namespace OSSIA
 {
 	class TimeBox;
 }
-namespace iscore
-{
-	class ProcessSharedModelInterface;
-}
+
+class ProcessSharedModelInterface;
 
 class IntervalContentModel;
 class EventModel;
@@ -60,7 +58,7 @@ class IntervalModel : public IdentifiedObject
 		void setEndEvent(int eventId); // Use ScenarioKey
 
 		IntervalContentModel* contentModel(int contentId);
-		iscore::ProcessSharedModelInterface* process(int processId);
+		ProcessSharedModelInterface* process(int processId);
 
 		QString name() const;
 		QString comment() const;
@@ -73,7 +71,7 @@ class IntervalModel : public IdentifiedObject
 		// For the presenter :
 		const std::vector<IntervalContentModel*>& contentModels() const
 		{ return m_contentModels; }
-		const std::vector<iscore::ProcessSharedModelInterface*>& processes() const
+		const std::vector<ProcessSharedModelInterface*>& processes() const
 		{ return m_processes; }
 
 		double heightPercentage() const;
@@ -104,13 +102,13 @@ public slots:
 		void heightPercentageChanged(double arg);
 
 	private:
-		int createProcess_impl(iscore::ProcessSharedModelInterface*);
+		int createProcess_impl(ProcessSharedModelInterface*);
 		void createContentModel_impl(IntervalContentModel*);
 
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 
 		std::vector<IntervalContentModel*> m_contentModels; // No content -> Phantom ?
-		std::vector<iscore::ProcessSharedModelInterface*> m_processes;
+		std::vector<ProcessSharedModelInterface*> m_processes;
 
 		QString m_name{"Interval."};
 		QString m_comment;

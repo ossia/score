@@ -8,9 +8,9 @@ class IntervalModel;
 
 namespace iscore
 {
-	class ProcessViewModelInterface;
 }
 
+class ProcessViewModelInterface;
 class StoreyModel : public IdentifiedObject
 {
 	Q_OBJECT
@@ -41,13 +41,13 @@ class StoreyModel : public IdentifiedObject
 		 */
 		void selectForEdition(int processViewId);
 
-		const std::vector<iscore::ProcessViewModelInterface*>&
+		const std::vector<ProcessViewModelInterface*>&
 		processViewModels() const
 		{
 			return m_processViewModels;
 		}
 
-		iscore::ProcessViewModelInterface* processViewModel(int processViewModelId) const;
+		ProcessViewModelInterface* processViewModel(int processViewModelId) const;
 
 		/**
 		 * @brief parentInterval
@@ -82,7 +82,7 @@ class StoreyModel : public IdentifiedObject
 	private:
 
 		int m_editedProcessId{};
-		std::vector<iscore::ProcessViewModelInterface*> m_processViewModels;
+		std::vector<ProcessViewModelInterface*> m_processViewModels;
 
 		int m_height{500};
 };

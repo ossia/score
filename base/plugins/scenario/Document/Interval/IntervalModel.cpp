@@ -126,17 +126,17 @@ IntervalModel::IntervalModel(int id, double yPos, QObject *parent):
 //// Complex commands
 int IntervalModel::createProcess(QString processName)
 {
-	auto model = iscore::ProcessList::getFactory(processName)->makeModel(getNextId(m_processes), this);
+	auto model = ProcessList::getFactory(processName)->makeModel(getNextId(m_processes), this);
 	return createProcess_impl(model);
 }
 
 int IntervalModel::createProcess(QString processName, QDataStream& data)
 {
-	auto model = iscore::ProcessList::getFactory(processName)->makeModel(data, this);
+	auto model = ProcessList::getFactory(processName)->makeModel(data, this);
 	return createProcess_impl(model);
 }
 
-int IntervalModel::createProcess_impl(iscore::ProcessSharedModelInterface* model)
+int IntervalModel::createProcess_impl(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
 	emit processCreated(model->processName(), model->id());
@@ -212,7 +212,7 @@ IntervalContentModel*IntervalModel::contentModel(int contentId)
 	return findById(m_contentModels, contentId);
 }
 
-iscore::ProcessSharedModelInterface* IntervalModel::process(int processId)
+ProcessSharedModelInterface* IntervalModel::process(int processId)
 {
 	return findById(m_processes, processId);
 }

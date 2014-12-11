@@ -10,8 +10,8 @@ class IntervalContentPresenter;
 namespace iscore
 {
 	class SerializableCommand;
-	class ProcessPresenterInterface;
 }
+class ProcessPresenterInterface;
 
 /**
  * @brief The IntervalPresenter class

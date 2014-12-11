@@ -1,7 +1,7 @@
 #pragma once
 #include <interface/process/ProcessViewInterface.hpp>
 
-class ScenarioProcessView : public iscore::ProcessViewInterface
+class ScenarioProcessView : public ProcessViewInterface
 {
 	Q_OBJECT
 

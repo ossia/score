@@ -5,9 +5,6 @@ project(iscore_core)
 set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 
 # Packages
-# Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
-# keep in mind that you have to call CMake with :
-# $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 
@@ -19,6 +16,8 @@ include_directories("${CMAKE_SOURCE_DIR}")
 set(HEADER_FILES
 ### interface ###
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/autoconnect/Autoconnect.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/customfactory/CustomFactoryInterface.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
@@ -61,6 +60,9 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/Autoconnect_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/CustomFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/FactoryFamily_QtInterface.hpp
+
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp

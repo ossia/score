@@ -8,7 +8,7 @@ class ScenarioProcessSharedModel;
 class IntervalContentModel;
 class IntervalModel;
 
-class ScenarioProcessViewModel : public iscore::ProcessViewModelInterface
+class ScenarioProcessViewModel : public ProcessViewModelInterface
 {
 	Q_OBJECT
 

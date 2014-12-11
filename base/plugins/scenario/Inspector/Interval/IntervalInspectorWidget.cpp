@@ -124,7 +124,7 @@ void IntervalInspectorWidget::updateDisplayedValues (IntervalModel* interval)
 		_startForm->addRow ("/first/message", new QLineEdit);
 		_endForm->addRow ("/Last/message", new QLineEdit );
 
-		for(iscore::ProcessSharedModelInterface* process : interval->processes())
+		for(ProcessSharedModelInterface* process : interval->processes())
 		{
 			if(process->processName() == "Automation")
 			{

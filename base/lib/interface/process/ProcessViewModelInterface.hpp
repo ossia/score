@@ -1,8 +1,8 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 
-namespace iscore
-{
+//namespace iscore
+//{
 	/**
 	 * @brief The ProcessViewModelInterface class
 	 *
@@ -32,10 +32,10 @@ namespace iscore
 			int m_sharedProcessId{};
 	};
 
-}
+//}
 
 
-inline QDataStream& operator <<(QDataStream& s, const iscore::ProcessViewModelInterface& p)
+inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface& p)
 {
 	qDebug(Q_FUNC_INFO);
 	s << p.id()
@@ -46,7 +46,7 @@ inline QDataStream& operator <<(QDataStream& s, const iscore::ProcessViewModelIn
 	return s;
 }
 
-inline QDataStream& operator >>(QDataStream& s, iscore::ProcessViewModelInterface& p)
+inline QDataStream& operator >>(QDataStream& s, ProcessViewModelInterface& p)
 {
 	qDebug(Q_FUNC_INFO);
 	int id;

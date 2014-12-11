@@ -4,7 +4,8 @@
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 
 ScenarioControl::ScenarioControl(QObject* parent):
-	PluginControlInterface{"ScenarioControl", parent}
+	PluginControlInterface{"ScenarioControl", parent},
+	m_processList{new ProcessList{this}}
 {
 
 }

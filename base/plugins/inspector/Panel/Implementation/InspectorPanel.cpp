@@ -8,7 +8,7 @@
 #include <interface/inspector/InspectorSectionWidget.hpp>
 
 #include <core/plugin/PluginManager.hpp>
-
+#include "InspectorControl.hpp"
 InspectorPanel::InspectorPanel (QWidget* parent) :
 	QWidget {parent},
 	m_layout{new QVBoxLayout{this}}
@@ -26,7 +26,10 @@ InspectorPanel::~InspectorPanel()
 void InspectorPanel::newItemInspected (QObject* object)
 {
 	delete m_itemInspected;
-	auto pmgr = qApp->findChild<iscore::PluginManager*>("PluginManager");
+	auto pmgr = qApp->findChild<InspectorControl*>("InspectorControl");
+
+	// TODO do like Scenario.
+	/*
 	auto factories = pmgr->inspectorFactoriesList();
 
 	for(auto factory : factories)
@@ -40,7 +43,7 @@ void InspectorPanel::newItemInspected (QObject* object)
 
 			return;
 		}
-	}
+	}*/
 
 	// When no factory is found.
 	m_itemInspected = new InspectorWidgetBase(object);

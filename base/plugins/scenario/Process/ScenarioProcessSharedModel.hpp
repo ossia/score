@@ -14,7 +14,7 @@ class EventModel;
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
+class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 {
 	Q_OBJECT
 
@@ -24,8 +24,8 @@ class ScenarioProcessSharedModel : public iscore::ProcessSharedModelInterface
 		ScenarioProcessSharedModel(int id, QObject* parent);
 		ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
 		virtual ~ScenarioProcessSharedModel() = default;
-		virtual iscore::ProcessViewModelInterface* makeViewModel(int viewModelId, int processId, QObject* parent) override;
-		virtual iscore::ProcessViewModelInterface* makeViewModel(QDataStream&, QObject* parent) override;
+		virtual ProcessViewModelInterface* makeViewModel(int viewModelId, int processId, QObject* parent) override;
+		virtual ProcessViewModelInterface* makeViewModel(QDataStream&, QObject* parent) override;
 
 		virtual QString processName() const override
 		{

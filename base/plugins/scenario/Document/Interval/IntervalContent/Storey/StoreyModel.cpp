@@ -96,7 +96,7 @@ void StoreyModel::selectForEdition(int processViewId)
 	}
 }
 
-iscore::ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId) const
+ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
 }

@@ -2,25 +2,27 @@
 #include <QObject>
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
-#include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
 
+#include <interface/plugins/FactoryFamily_QtInterface.hpp>
+#include <interface/plugins/CustomFactoryInterface_QtInterface.hpp>
+
+class ScenarioControl;
 class ScenarioPlugin :
 		public QObject,
 		public iscore::Autoconnect_QtInterface,
 		public iscore::PluginControlInterface_QtInterface,
 		public iscore::DocumentDelegateFactoryInterface_QtInterface,
-		public iscore::InspectorWidgetFactoryInterface_QtInterface,
-		public iscore::ProcessFactoryInterface_QtInterface
+		public iscore::FactoryFamily_QtInterface,
+		public iscore::FactoryInterface_QtInterface
 {
 		Q_OBJECT
 		Q_PLUGIN_METADATA(IID DocumentDelegateFactoryInterface_QtInterface_iid)
 		Q_INTERFACES(iscore::Autoconnect_QtInterface
 					 iscore::PluginControlInterface_QtInterface
 					 iscore::DocumentDelegateFactoryInterface_QtInterface
-					 iscore::InspectorWidgetFactoryInterface_QtInterface
-					 iscore::ProcessFactoryInterface_QtInterface)
+					 iscore::FactoryFamily_QtInterface
+					 iscore::FactoryInterface_QtInterface)
 
 	public:
 		ScenarioPlugin();
@@ -33,15 +35,18 @@ class ScenarioPlugin :
 		virtual QStringList document_list() const override;
 		virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
 
-		// Process interface
-		virtual QStringList process_list() const override;
-		virtual iscore::ProcessFactoryInterface* process_make(QString name) override;
-
 		// Plugin control interface
 		virtual QStringList control_list() const override;
 		virtual iscore::PluginControlInterface* control_make(QString) override;
-		
-		// Inspector interface
-		virtual QStringList inspectorFactory_list() const override;
-		virtual iscore::InspectorWidgetFactoryInterface* inspectorFactory_make(QString);
+
+		// Offre la factory de Process
+		virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+
+		// Crée les objets correspondant aux factories passées en argument.
+		// ex. si QString = Process, renvoie un vecteur avec ScenarioProcessFactory.
+		virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
+
+	private:
+		ScenarioControl* m_control;
+
 };

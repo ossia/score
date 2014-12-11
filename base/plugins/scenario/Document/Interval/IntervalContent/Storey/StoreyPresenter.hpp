@@ -6,9 +6,9 @@ class StoreyView;
 namespace iscore
 {
 	class SerializableCommand;
-	class ProcessPresenterInterface;
-	class ProcessViewModelInterface;
 }
+class ProcessPresenterInterface;
+class ProcessViewModelInterface;
 class StoreyPresenter : public NamedObject
 {
 	Q_OBJECT
@@ -30,10 +30,10 @@ class StoreyPresenter : public NamedObject
 		void on_processViewModelDeleted(int processId);
 
 	private:
-		void on_processViewModelCreated_impl(iscore::ProcessViewModelInterface*);
+		void on_processViewModelCreated_impl(ProcessViewModelInterface*);
 
 		StoreyModel* m_model;
 		StoreyView* m_view;
-		std::vector<iscore::ProcessPresenterInterface*> m_processes;
+		std::vector<ProcessPresenterInterface*> m_processes;
 };
 

@@ -25,7 +25,7 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 {
 	m_view->m_height = m_model->height();
 
-	for(iscore::ProcessViewModelInterface* proc_vm : m_model->processViewModels())
+	for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
 	{
 		on_processViewModelCreated_impl(proc_vm);
 	}
@@ -59,20 +59,21 @@ void StoreyPresenter::on_processViewModelDeleted(int processId)
 	m_view->update();
 }
 
-void StoreyPresenter::on_processViewModelCreated_impl(iscore::ProcessViewModelInterface* proc_vm)
+void StoreyPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
 	auto procname = m_model
 						->parentInterval()
 						->process(proc_vm->sharedProcessId())->processName();
 
-	auto factory = iscore::ProcessList::getFactory(procname);
+	// TODO
+	auto factory = ProcessList::getFactory(procname);
 
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
 	auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
-	connect(presenter,	&iscore::ProcessPresenterInterface::submitCommand,
+	connect(presenter,	&ProcessPresenterInterface::submitCommand,
 			this,		&StoreyPresenter::submitCommand);
-	connect(presenter,	&iscore::ProcessPresenterInterface::elementSelected,
+	connect(presenter,	&ProcessPresenterInterface::elementSelected,
 			this,		&StoreyPresenter::elementSelected);
 
 	m_processes.push_back(presenter);

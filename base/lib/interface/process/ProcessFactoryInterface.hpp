@@ -2,9 +2,10 @@
 #include <QStringList>
 #include <QObject>
 #include <QByteArray>
+#include <interface/customfactory/CustomFactoryInterface.hpp>
 
-namespace iscore
-{
+//namespace iscore
+//{
 	class ProcessViewModelInterface;
 	class ProcessSharedModelInterface;
 	class ProcessViewInterface;
@@ -15,7 +16,7 @@ namespace iscore
 	 *
 	 * Interface to make processes, like Scenario, Automation...
 	 */
-	class ProcessFactoryInterface
+	class ProcessFactoryInterface : public iscore::FactoryInterface
 	{
 		public:
 			virtual ~ProcessFactoryInterface() = default;
@@ -34,4 +35,4 @@ namespace iscore
 			virtual ProcessSharedModelInterface* makeModel(int id, QObject* parent)  = 0;
 			virtual ProcessSharedModelInterface* makeModel(QDataStream& data, QObject* parent)  = 0;
 	};
-}
+//}

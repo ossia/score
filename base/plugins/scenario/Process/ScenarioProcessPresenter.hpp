@@ -3,10 +3,10 @@
 
 namespace iscore
 {
-	class ProcessViewModelInterface;
-	class ProcessViewInterface;
 	class SerializableCommand;
 }
+class ProcessViewModelInterface;
+class ProcessViewInterface;
 
 class IntervalPresenter;
 class EventPresenter;
@@ -15,7 +15,7 @@ class ScenarioProcessView;
 class EventModel;
 class IntervalModel;
 
-class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
+class ScenarioProcessPresenter : public ProcessPresenterInterface
 {
 	Q_OBJECT
 
@@ -25,8 +25,8 @@ class ScenarioProcessPresenter : public iscore::ProcessPresenterInterface
 				   NOTIFY currentlySelectedEventChanged)
 
 	public:
-		ScenarioProcessPresenter(iscore::ProcessViewModelInterface* model,
-								 iscore::ProcessViewInterface* view,
+		ScenarioProcessPresenter(ProcessViewModelInterface* model,
+								 ProcessViewInterface* view,
 								 QObject* parent);
 		virtual ~ScenarioProcessPresenter() = default;
 

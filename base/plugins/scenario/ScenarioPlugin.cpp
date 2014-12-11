@@ -3,12 +3,17 @@
 #include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioProcessFactory.hpp>
 
+#include <Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Inspector/Event/EventInspectorFactory.hpp>
+
 ScenarioPlugin::ScenarioPlugin():
 	QObject{},
 	iscore::Autoconnect_QtInterface{},
 	iscore::PluginControlInterface_QtInterface{},
 	iscore::DocumentDelegateFactoryInterface_QtInterface{},
-	iscore::ProcessFactoryInterface_QtInterface{}
+	iscore::FactoryFamily_QtInterface{},
+	iscore::FactoryInterface_QtInterface{},
+	m_control{new ScenarioControl{nullptr}}
 {
 	setObjectName("ScenarioPluginRework");
 }
@@ -44,21 +49,6 @@ iscore::DocumentDelegateFactoryInterface* ScenarioPlugin::document_make(QString 
 	return nullptr;
 }
 
-QStringList ScenarioPlugin::process_list() const
-{
-	return {"Scenario"};
-}
-
-iscore::ProcessFactoryInterface* ScenarioPlugin::process_make(QString name)
-{
-	if(name == "Scenario")
-	{
-		return new ScenarioProcessFactory;
-	}
-
-	return nullptr;
-}
-
 QStringList ScenarioPlugin::control_list() const
 {
 	return {"Scenario control"};
@@ -68,32 +58,36 @@ iscore::PluginControlInterface*ScenarioPlugin::control_make(QString name)
 {
 	if(name == "Scenario control")
 	{
-		return new ScenarioControl{nullptr};
+		return m_control;
 	}
 
 	return nullptr;
 }
 
-QStringList ScenarioPlugin::inspectorFactory_list() const
+QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
 {
-	return {"IntervalInspectorFactory", "EventInspectorFactory"};
+	// Todo : put these strings somewhere in an interface file.
+	return {{"Process",
+			 std::bind(&ProcessList::addProcess,
+					   m_control->processList(),
+					   std::placeholders::_1)}};
 }
 
-#include <Inspector/Interval/IntervalInspectorFactory.hpp>
-#include <Inspector/Event/EventInspectorFactory.hpp>
-iscore::InspectorWidgetFactoryInterface*ScenarioPlugin::inspectorFactory_make(QString str)
+QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factoryName)
 {
-	if(str == "IntervalInspectorFactory")
+	// todo is it possible to to a better type-checking here ? :(
+	if(factoryName == "Process")
 	{
-		return new IntervalInspectorFactory;
-	}
-	else if(str == "EventInspectorFactory")
-	{
-		return new EventInspectorFactory;
+		return {new ScenarioProcessFactory};
 	}
 
-	return nullptr;
+	if(factoryName == "Inspector")
+	{
+		return {new IntervalInspectorFactory,
+				new EventInspectorFactory};
+	}
+
+	return {};
 }
-
 
 
