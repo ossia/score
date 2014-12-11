@@ -71,7 +71,12 @@ double EventModel::heightPercentage() const
 
 int EventModel::date() const
 {
-	return m_x;
+    return m_x;
+}
+
+void EventModel::setDate(int date)
+{
+    m_x = date;
 }
 
 const std::vector<State*>&EventModel::states() const

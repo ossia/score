@@ -41,6 +41,7 @@ class EventModel : public IdentifiedObject
 
 		double heightPercentage() const;
 		int date() const;
+        void setDate(int date);
 
 	public slots:
 		void setHeightPercentage(double arg);
