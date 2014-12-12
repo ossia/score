@@ -2,8 +2,9 @@
 #include "Panel/InspectorPanelFactory.hpp"
 using namespace iscore;
 
-#include <interface/inspector/InspectorWidgetFactoryInterface.hpp>
+#include "InspectorInterface/InspectorWidgetFactoryInterface.hpp"
 #include <InspectorControl.hpp>
+
 InspectorPlugin::InspectorPlugin() :
 	QObject {},
 	iscore::Autoconnect_QtInterface {},

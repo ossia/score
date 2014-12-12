@@ -3,10 +3,10 @@
 #include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include <core/processes/ProcessList.hpp>
+#include "Control/ProcessList.hpp"
 #include <tools/utilsCPP11.hpp>
-#include <interface/process/ProcessFactoryInterface.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
+#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <API/Headers/Editor/TimeBox.h>
 

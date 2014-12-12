@@ -1,9 +1,9 @@
 #include "IntervalInspectorWidget.hpp"
 
 #include "Document/Interval/IntervalModel.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include <interface/inspector/InspectorSectionWidget.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
+#include <InspectorInterface/InspectorSectionWidget.hpp>
 
 #include <QLineEdit>
 #include <QLayout>

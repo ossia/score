@@ -2,7 +2,7 @@
 #include <Document/Interval/IntervalModel.hpp>
 #include <Document/Interval/IntervalContent/IntervalContentModel.hpp>
 #include <Process/ScenarioProcessSharedModel.hpp>
-#include <core/processes/ProcessList.hpp>
+#include "Control/ProcessList.hpp"
 
 #include <Commands/Interval/Process/AddProcessToIntervalCommand.hpp>
 #include <Commands/Interval/Process/DeleteProcessFromIntervalCommand.hpp>

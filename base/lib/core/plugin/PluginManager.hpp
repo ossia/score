@@ -2,7 +2,6 @@
 #include <QPluginLoader>
 #include <QMap>
 
-#include <core/processes/ProcessList.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
 // todo these includes are unneeded

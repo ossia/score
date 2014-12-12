@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/process/ProcessFactoryInterface.hpp>
+#include "ProcessInterface/ProcessFactoryInterface.hpp"
 
 class ScenarioProcessFactory : public ProcessFactoryInterface
 {

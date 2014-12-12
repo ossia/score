@@ -2,7 +2,7 @@
 
 #include "Document/Interval/IntervalModel.hpp"
 
-#include <interface/process/ProcessSharedModelInterface.hpp>
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <QDebug>
 

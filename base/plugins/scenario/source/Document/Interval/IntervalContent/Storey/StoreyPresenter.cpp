@@ -4,12 +4,12 @@
 #include "Document/Interval/IntervalContent/Storey/StoreyView.hpp"
 #include "Document/Interval/IntervalModel.hpp"
 
-#include <core/processes/ProcessList.hpp>
+#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessPresenterInterface.hpp"
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <interface/process/ProcessViewModelInterface.hpp>
-#include <interface/process/ProcessPresenterInterface.hpp>
-#include <interface/process/ProcessFactoryInterface.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
 #include <tools/utilsCPP11.hpp>
 
 #include <QGraphicsScene>

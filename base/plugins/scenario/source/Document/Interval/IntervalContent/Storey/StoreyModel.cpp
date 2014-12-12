@@ -3,9 +3,9 @@
 #include "Document/Interval/IntervalModel.hpp"
 #include "Document/Interval/IntervalContent/IntervalContentModel.hpp"
 
-#include <core/processes/ProcessList.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
-#include <interface/process/ProcessViewModelInterface.hpp>
+#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include <tools/utilsCPP11.hpp>
 
 #include <QDebug>

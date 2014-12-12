@@ -5,8 +5,7 @@
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEventCommand.hpp"
 
-#include <interface/inspector/InspectorSectionWidget.hpp>
-#include <interface/process/ProcessSharedModelInterface.hpp>
+#include <InspectorInterface/InspectorSectionWidget.hpp>
 
 #include <QLabel>
 #include <QLineEdit>

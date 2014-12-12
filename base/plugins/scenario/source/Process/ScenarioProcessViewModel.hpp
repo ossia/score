@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/process/ProcessViewModelInterface.hpp>
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include <tools/NamedObject.hpp>
 
 #include <QMap>

@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/process/ProcessViewInterface.hpp>
+#include "ProcessInterface/ProcessViewInterface.hpp"
 
 class ScenarioProcessView : public ProcessViewInterface
 {

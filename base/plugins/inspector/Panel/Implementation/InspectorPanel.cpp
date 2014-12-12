@@ -4,8 +4,8 @@
 #include <QLayout>
 #include <QDebug>
 #include <QScrollArea>
-#include <interface/inspector/InspectorWidgetBase.hpp>
-#include <interface/inspector/InspectorSectionWidget.hpp>
+#include "InspectorInterface/InspectorWidgetBase.hpp"
+#include "InspectorInterface/InspectorSectionWidget.hpp"
 
 #include <core/plugin/PluginManager.hpp>
 #include "InspectorControl.hpp"

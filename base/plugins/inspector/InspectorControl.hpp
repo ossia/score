@@ -1,6 +1,6 @@
 #pragma once
 #include <interface/plugincontrol/PluginControlInterface.hpp>
-#include <interface/inspector/InspectorWidgetFactoryInterface.hpp>
+#include "InspectorInterface/InspectorWidgetFactoryInterface.hpp"
 
 
 class InspectorControl : public iscore::PluginControlInterface

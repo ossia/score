@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/process/ProcessPresenterInterface.hpp>
+#include "ProcessInterface/ProcessPresenterInterface.hpp"
 
 namespace iscore
 {

@@ -21,10 +21,6 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorWidgetFactoryInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorWidgetBase.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorSectionWidget.hpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/PluginControlInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.hpp
 
@@ -38,12 +34,6 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegatePresenterInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateViewInterface.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessFactoryInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessSharedModelInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewModelInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessPresenterInterface.hpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateModelInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp
@@ -56,10 +46,8 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PluginControlInterface_QtInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/Autoconnect_QtInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/CustomFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/FactoryFamily_QtInterface.hpp
 
@@ -76,8 +64,6 @@ set(HEADER_FILES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.hpp
 
@@ -109,13 +95,9 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorWidgetBase.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/inspector/InspectorSectionWidget.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentPresenter.cpp

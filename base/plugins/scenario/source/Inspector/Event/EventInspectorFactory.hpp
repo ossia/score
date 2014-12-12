@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <interface/inspector/InspectorWidgetFactoryInterface.hpp>
+#include <InspectorInterface/InspectorWidgetFactoryInterface.hpp>
 
 
 class EventInspectorFactory : public InspectorWidgetFactoryInterface
