@@ -28,7 +28,7 @@ class StoreyModel : public IdentifiedObject
 		StoreyModel(int id, IntervalContentModel* parent);
 		virtual ~StoreyModel() = default;
 
-		int createProcessViewModel(int sharedProcessId);
+		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
 		int createProcessViewModel(QDataStream& s,int sharedProcessId);
 		void deleteProcessViewModel(int processViewModelId);
 

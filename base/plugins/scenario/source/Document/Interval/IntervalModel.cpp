@@ -114,7 +114,8 @@ IntervalModel::IntervalModel(int id,
 	IdentifiedObject{id, "IntervalModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
-	createContentModel();
+	auto first_id = getNextId();
+	createContentModel(first_id);
 }
 
 IntervalModel::IntervalModel(int id, double yPos, QObject *parent):
@@ -124,9 +125,9 @@ IntervalModel::IntervalModel(int id, double yPos, QObject *parent):
 }
 
 //// Complex commands
-int IntervalModel::createProcess(QString processName)
+int IntervalModel::createProcess(QString processName, int processId)
 {
-	auto model = ProcessList::getFactory(processName)->makeModel(getNextId(m_processes), this);
+	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
 	return createProcess_impl(model);
 }
 
@@ -153,9 +154,9 @@ void IntervalModel::deleteProcess(int processId)
 }
 
 
-void IntervalModel::createContentModel()
+void IntervalModel::createContentModel(int contentModelId)
 {
-	auto content = new IntervalContentModel{getNextId(m_contentModels), this};
+	auto content = new IntervalContentModel{contentModelId, this};
 	createContentModel_impl(content);
 }
 

@@ -61,6 +61,7 @@ QObject* ObjectPath::find() const
 			auto elt = findById(childs, currentObjIdentifier.id());
 			if(!elt)
 			{
+				// TODO throw instead?
 				return nullptr;
 			}
 

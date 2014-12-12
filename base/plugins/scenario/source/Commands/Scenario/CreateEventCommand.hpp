@@ -8,9 +8,10 @@ struct EventModelData;
 
 class CreateEventCommand : public iscore::SerializableCommand
 {
+		friend class CreateEventAfterEventCommandTest;
 	public:
 		CreateEventCommand();
-        CreateEventCommand(ObjectPath&& scenarioPath, int time, double heightPosition);
+		CreateEventCommand(ObjectPath&& scenarioPath, int time, double heightPosition);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -23,7 +24,9 @@ class CreateEventCommand : public iscore::SerializableCommand
 	private:
 		ObjectPath m_path;
 
-		int m_intervalId{};
+		int m_createdIntervalId{};
+		int m_createdEventId{};
+
 		int m_time{};
-        double m_heightPosition{};
+		double m_heightPosition{};
 };

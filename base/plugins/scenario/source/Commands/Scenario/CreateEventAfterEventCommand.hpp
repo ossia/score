@@ -6,6 +6,7 @@ struct EventData;
 
 class CreateEventAfterEventCommand : public iscore::SerializableCommand
 {
+		friend class CreateEventAfterEventCommandTest;
 	public:
 		CreateEventAfterEventCommand();
         CreateEventAfterEventCommand(ObjectPath&& scenarioPath, EventData data);
@@ -21,7 +22,8 @@ class CreateEventAfterEventCommand : public iscore::SerializableCommand
 	private:
 		ObjectPath m_path;
 
-		int m_intervalId{};
+		int m_createdIntervalId{};
+		int m_createdEventId{};
 
 		int m_firstEventId{};
 		int m_time{};

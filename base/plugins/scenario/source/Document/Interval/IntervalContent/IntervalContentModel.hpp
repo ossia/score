@@ -17,7 +17,7 @@ class IntervalContentModel : public IdentifiedObject
 
 		virtual ~IntervalContentModel() = default;
 
-		int createStorey();
+		int createStorey(int newStoreyId);
 		int createStorey(QDataStream& s);
 		void deleteStorey(int storeyId);
 		void changeStoreyOrder(int storeyId, int position);

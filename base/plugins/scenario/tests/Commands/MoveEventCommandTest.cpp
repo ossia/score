@@ -11,16 +11,16 @@ using namespace iscore;
 
 class MoveEventCommandTest: public QObject
 {
-        Q_OBJECT
-    public:
+		Q_OBJECT
+	public:
 
-    private slots:
+	private slots:
 
         void MoveCommandTest()
         {
             ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
             EventData data{};
-            data.id = 0;
+            data.id = scenar->startEvent()->id();
             data.x = 10;
             data.relativeY = 0.1;
 
@@ -29,23 +29,23 @@ class MoveEventCommandTest: public QObject
                 {"ScenarioProcessSharedModel", {}},
             }, data );
 
-            qDebug("\n============= Before");
-            cmd.redo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.1);
+			qDebug("\n============= Before");
+			cmd.redo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
 
-            qDebug("\n\n============= Undo");
-            cmd.undo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.5);
+			qDebug("\n\n============= Undo");
+			cmd.undo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.5);
 
-            qDebug("\n\n============= Redo");
-            cmd.redo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.1);
+			qDebug("\n\n============= Redo");
+			cmd.redo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
 
 
-            // Delete them else they stay in qApp !
+			// Delete them else they stay in qApp !
 
-            delete scenar;
-        }
+			delete scenar;
+		}
 };
 
 QTEST_MAIN(MoveEventCommandTest)

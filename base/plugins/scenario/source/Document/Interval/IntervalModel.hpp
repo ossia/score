@@ -43,11 +43,11 @@ class IntervalModel : public IdentifiedObject
 		IntervalModel(QDataStream&, QObject* parent);
 		virtual ~IntervalModel() = default;
 
-		int createProcess(QString processName);
+		int createProcess(QString processName, int processId);
 		int createProcess(QString processName, QDataStream& data);
 		void deleteProcess(int processId);
 
-		void createContentModel();
+		void createContentModel(int contentModelId);
 		void createContentModel(QDataStream& s);
 		void deleteContentModel(int viewId);
 		void duplicateContentModel(int viewId);
