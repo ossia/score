@@ -128,7 +128,7 @@ void ScenarioProcessPresenter::on_intervalMoved(int intervalId)
 
 
 void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
-{
+{   // @todo maybe better to create event on mouserelease ?
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																m_viewModel->model()),
 									 point.x(),
@@ -138,10 +138,12 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 
 void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 {
-	//createIntervalAndEventFromEvent();
+    EventData data{};
+    data.id = m_events.back()->id();
+    data.x = point.x() - m_events.back()->model()->date();
+    data.y = point.y();
 
-
-	//submitCommand(cmd);
+    createIntervalAndEventFromEvent(data);
 }
 
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)

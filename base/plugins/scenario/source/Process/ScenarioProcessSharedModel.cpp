@@ -194,12 +194,6 @@ void ScenarioProcessSharedModel::moveEventAndInterval(int eventId, int time, dou
 	emit eventMoved(eventId);
 }
 
-void ScenarioProcessSharedModel::moveEventAndInterval(int eventId, double heightPosition)
-{
-	event(eventId)->setHeightPercentage(heightPosition);
-	emit eventMoved(eventId);
-}
-
 void ScenarioProcessSharedModel::moveInterval(int intervalId, double heightPosition)
 {
 	interval(intervalId)->setHeightPercentage(heightPosition);

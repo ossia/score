@@ -10,6 +10,8 @@
 
 using namespace iscore;
 
+// @todo : maybe should we use deplacement value and not absolute ending point.
+
 MoveIntervalCommand::MoveIntervalCommand(ObjectPath &&scenarioPath, int intervalId, int endEvent, double heightPosition):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",
@@ -28,7 +30,6 @@ void MoveIntervalCommand::undo()
 	if(scenar != nullptr)
 	{
 		m_heightPosition = scenar->interval(m_intervalId)->heightPercentage();
-		scenar->moveEventAndInterval(m_endEventId, m_oldHeightPosition);
 		scenar->moveInterval(m_intervalId, m_oldHeightPosition);
 	}
 }
@@ -39,8 +40,7 @@ void MoveIntervalCommand::redo()
 	if(scenar != nullptr)
 	{
 		m_oldHeightPosition = scenar->interval(m_intervalId)->heightPercentage();
-		scenar->moveInterval(m_intervalId, m_heightPosition);
-		scenar->moveEventAndInterval(m_endEventId, m_heightPosition);
+        scenar->moveInterval(m_intervalId, m_heightPosition);
 	}
 }
 

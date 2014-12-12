@@ -62,7 +62,6 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 																   int duration, double heightPos);
 
 		void moveEventAndInterval(int eventId, int time, double heightPosition);
-		void moveEventAndInterval(int eventId, double heightPosition);
 		void moveInterval(int intervalId, double heightPosition);
 
 
