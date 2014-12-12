@@ -107,6 +107,12 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 		if(ev->id() == eventId ) {
 			ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
 									rect.y() + rect.height() * ev->model()->heightPercentage()});
+            int y{0};
+            if (!ev->model()->previousIntervals().isEmpty())
+            {
+                y = m_intervals.at(ev->model()->previousIntervals().at(0))->model()->heightPercentage();
+            }
+            ev->view()->setLinesExtremity(QPointF(ev->model()->date(), y), QPointF(ev->model()->date(), y));
 		}
 	}
 	m_view->update();
@@ -139,11 +145,11 @@ void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
 void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 {
     EventData data{};
-    data.id = m_events.back()->id();
+    data.eventClickedId = m_events.back()->id();
     data.x = point.x() - m_events.back()->model()->date();
     data.y = point.y();
-
-    createIntervalAndEventFromEvent(data);
+    if (point.x() - m_events.back()->model()->date() > 20 ) // @todo use a const to do that !
+        createIntervalAndEventFromEvent(data);
 }
 
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
@@ -173,7 +179,7 @@ void ScenarioProcessPresenter::moveEventAndInterval(EventData data)
 	submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double heightPos)
+void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double verticalMove)
 {
 	int endEventId{};
 	for(auto inter : m_intervals) {
@@ -186,7 +192,7 @@ void ScenarioProcessPresenter::moveIntervalOnVertical(int id, double heightPos)
 															   m_viewModel->model()),
 									id,
 									endEventId,
-									(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+                                    verticalMove/m_view->boundingRect().height());
 
 	submitCommand(cmd);
 }
@@ -203,8 +209,16 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 											  event_view,
 											  this};
 
-	event_view->setTopLeft({rect.x() + event_model->m_x,
+    event_view->setTopLeft({rect.x() + event_model->date(),
 							rect.y() + rect.height() * event_model->heightPercentage()});
+
+    double y{0};
+    if (!event_presenter->model()->previousIntervals().isEmpty())
+    {
+        y = m_intervals.at(event_presenter->model()->previousIntervals().at(0))->model()->heightPercentage();
+    }
+
+    event_view->setLinesExtremity(QPointF(event_model->date(), y), QPointF(event_model->date(), y));
 
 	m_events.push_back(event_presenter);
 

@@ -39,7 +39,7 @@ class IntervalPresenter : public NamedObject
 		void intervalReleased(int id, int heightPos);
 
 	public slots:
-		void on_intervalPressed();
+        void on_intervalPressed(QPointF);
 
 	private:
 		std::vector<IntervalContentPresenter*> m_contentPresenters; // No content -> Phantom ?
@@ -49,5 +49,6 @@ class IntervalPresenter : public NamedObject
 
 		long m_millisecPerPixel{1};
 
+        QPointF clickedPoint{-1,-1};
 };
 

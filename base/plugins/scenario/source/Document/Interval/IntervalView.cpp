@@ -50,7 +50,7 @@ void IntervalView::setTopLeft(QPointF p)
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-	emit intervalPressed();
+    emit intervalPressed(m->pos());
 }
 
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)

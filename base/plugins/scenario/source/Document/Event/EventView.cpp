@@ -29,6 +29,11 @@ void EventView::paint(QPainter* painter,
 	painter->setBrush(QBrush(QColor(80, 140, 50)));
 	painter->setPen(QPen(QBrush(QColor(130, 220, 80)), 3, Qt::DashLine));
 	painter->drawEllipse(m_rect.center(), 15, 15);
+
+    painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
+//    painter->drawLine(m_firstLine);
+//    painter->drawLine(m_secondLine);
+
 }
 
 void EventView::setTopLeft(QPointF p)
@@ -36,7 +41,13 @@ void EventView::setTopLeft(QPointF p)
 	m_rect = {p.x() - m_rect.width() / 2,
 			  p.y() - m_rect.height() / 2,
 			  m_rect.width(),
-			  m_rect.height()};
+              m_rect.height()};
+}
+
+void EventView::setLinesExtremity(QPointF firstLine, QPointF secondLine)
+{
+    m_firstLine.setPoints(m_rect.center(), firstLine);
+    m_secondLine.setPoints(m_rect.center(), secondLine);
 }
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)

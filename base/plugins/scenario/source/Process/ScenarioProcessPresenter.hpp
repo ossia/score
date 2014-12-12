@@ -56,7 +56,7 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void setCurrentlySelectedEvent(int arg);
         void createIntervalAndEventFromEvent(EventData data);
         void moveEventAndInterval(EventData data);
-		void moveIntervalOnVertical(int id, double heightPos);
+        void moveIntervalOnVertical(int id, double verticalMove);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

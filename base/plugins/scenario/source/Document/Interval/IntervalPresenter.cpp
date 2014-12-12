@@ -1,5 +1,6 @@
 #include "IntervalPresenter.hpp"
 
+#include "Document/Event/EventModel.hpp"
 #include "Document/Interval/IntervalModel.hpp"
 #include "Document/Interval/IntervalView.hpp"
 #include "Document/Interval/IntervalContent/IntervalContentPresenter.hpp"
@@ -47,7 +48,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	connect(m_view, &IntervalView::intervalReleased,
 			[&] (QPointF p)
 	{
-		emit intervalReleased(id(), p.y());
+        emit intervalReleased(id(), p.y() - clickedPoint.y());
 	});
 
 	connect(m_view, &IntervalView::addScenarioProcessClicked,
@@ -81,7 +82,8 @@ IntervalModel *IntervalPresenter::model()
 	return m_model;
 }
 
-void IntervalPresenter::on_intervalPressed()
+void IntervalPresenter::on_intervalPressed(QPointF click)
 {
+    clickedPoint = click;
 	emit elementSelected(m_model);
 }

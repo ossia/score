@@ -20,9 +20,11 @@ class IntervalView : public QGraphicsObject
 		void setTopLeft(QPointF p);
 
 		QRectF m_rect;
+        QLineF firstLine;
+        QLineF secondLine;
 
 	signals:
-		void intervalPressed();
+        void intervalPressed(QPointF);
 		void intervalReleased(QPointF);
 		void addScenarioProcessClicked();
 

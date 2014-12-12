@@ -18,7 +18,7 @@ MoveEventCommand::MoveEventCommand(ObjectPath &&scenarioPath, EventData data):
                         "MoveEventCommand",
                         QObject::tr("Event move")},
     m_scenarioPath(std::move(scenarioPath)),
-    m_eventId{data.id},
+    m_eventId{data.eventClickedId},
     m_time{data.x},
     m_heightPosition{data.relativeY}
 {

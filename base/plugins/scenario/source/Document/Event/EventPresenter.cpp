@@ -53,7 +53,7 @@ EventModel *EventPresenter::model() const
 void EventPresenter::on_eventReleased(QPointF p)
 {
     EventData d{};
-    d.id = id();
+    d.eventClickedId = id();
     d.x = p.x();
     d.y = p.y();
     emit eventReleased(d);
@@ -62,7 +62,7 @@ void EventPresenter::on_eventReleased(QPointF p)
 void EventPresenter::on_eventReleasedWithControl(QPointF p)
 {
     EventData d{};
-    d.id = id();
+    d.eventClickedId = id();
     d.x = p.x();
     d.y = p.y();
     emit eventReleasedWithControl(d);
