@@ -14,9 +14,9 @@ endFunction()
 
 # Commands
 addIScoreQtTest(addprocesstointerval_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToIntervalCommandTest.cpp")
-#addIScoreQtTest(createeventafterevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/CreateEventAfterEventCommandTest.cpp")
-#addIScoreQtTest(moveevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/MoveEventCommandTest.cpp")
-#addIScoreQtTest(moveinterval_command_test "${CMAKE_CURRENT_SOURCE_DIR}/MoveIntervalCommandTest.cpp")
+addIScoreQtTest(createeventafterevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventCommandTest.cpp")
+addIScoreQtTest(moveevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventCommandTest.cpp")
+addIScoreQtTest(moveinterval_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveIntervalCommandTest.cpp")
 
 # Intervals
 addIScoreQtTest(interval_test "${CMAKE_CURRENT_SOURCE_DIR}/Interval/IntervalModelTests.cpp")
