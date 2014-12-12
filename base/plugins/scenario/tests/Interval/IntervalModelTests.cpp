@@ -5,7 +5,6 @@
 
 #include <core/tools/ObjectPath.hpp>
 
-using namespace iscore;
 
 
 class IntervalModelTests: public QObject

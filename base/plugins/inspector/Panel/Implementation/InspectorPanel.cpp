@@ -4,11 +4,11 @@
 #include <QLayout>
 #include <QDebug>
 #include <QScrollArea>
-#include <interface/inspector/InspectorWidgetBase.hpp>
-#include <interface/inspector/InspectorSectionWidget.hpp>
+#include "InspectorInterface/InspectorWidgetBase.hpp"
+#include "InspectorInterface/InspectorSectionWidget.hpp"
 
 #include <core/plugin/PluginManager.hpp>
-
+#include "InspectorControl.hpp"
 InspectorPanel::InspectorPanel (QWidget* parent) :
 	QWidget {parent},
 	m_layout{new QVBoxLayout{this}}
@@ -26,8 +26,11 @@ InspectorPanel::~InspectorPanel()
 void InspectorPanel::newItemInspected (QObject* object)
 {
 	delete m_itemInspected;
-	auto pmgr = qApp->findChild<iscore::PluginManager*>("PluginManager");
-	auto factories = pmgr->inspectorFactoriesList();
+	auto pmgr = qApp->findChild<InspectorControl*>("InspectorControl");
+
+	// TODO do like Scenario.
+
+	auto factories = pmgr->factories();
 
 	for(auto factory : factories)
 	{

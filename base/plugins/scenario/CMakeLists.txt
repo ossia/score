@@ -8,36 +8,18 @@ find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
 
 # Files & main target
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../API/Headers")
 
 
-file(GLOB_RECURSE DOCUMENT_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Document/*.hpp")
-file(GLOB_RECURSE DOCUMENT_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Document/*.cpp")
-file(GLOB_RECURSE COMMANDS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp")
-file(GLOB_RECURSE COMMANDS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.cpp")
-file(GLOB_RECURSE CONTROL_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Control/*.hpp")
-file(GLOB_RECURSE CONTROL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Control/*.cpp")
-file(GLOB_RECURSE INSPECTOR_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
-file(GLOB_RECURSE INSPECTOR_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.cpp")
-file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.hpp")
-file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.cpp")
-set(PLUGIN_FILES
-	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/ScenarioPlugin.cpp")
+file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
+file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
-add_library(scenario_process
-			${DOCUMENT_HDRS} ${DOCUMENT_SRCS}
-			${COMMANDS_HDRS} ${COMMANDS_SRCS}
-			${CONTROL_HDRS} ${CONTROL_SRCS}
-			${INSPECTOR_HDRS} ${INSPECTOR_SRCS}
-			${PROCESS_HDRS} ${PROCESS_SRCS}
-			${PLUGIN_FILES})
-
-target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock)
+add_library(scenario_process ${SRCS} ${HDRS})
+target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock inspector_plugin)
 if(APPLE)
 	 SET_TARGET_PROPERTIES(scenario_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
