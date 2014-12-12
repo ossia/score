@@ -1,7 +1,7 @@
 #include "ScenarioProcessViewModel.hpp"
 
-#include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
-#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Constraint/ConstraintContent/Storey/StoreyModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 
 ScenarioProcessViewModel::ScenarioProcessViewModel(int viewModelId, int sharedProcessId, QObject* parent):
@@ -20,21 +20,21 @@ ScenarioProcessViewModel::ScenarioProcessViewModel(QDataStream& s, QObject* pare
 
 ScenarioProcessSharedModel* ScenarioProcessViewModel::model()
 {
-	auto parent_interval = parentInterval();
-	if(parent_interval)
+	auto parent_constraint = parentConstraint();
+	if(parent_constraint)
 	{
-		return static_cast<ScenarioProcessSharedModel*>(parent_interval->process(sharedProcessId()));
+		return static_cast<ScenarioProcessSharedModel*>(parent_constraint->process(sharedProcessId()));
 	}
 
 	return nullptr;
 }
 
-IntervalModel* ScenarioProcessViewModel::parentInterval() const
+ConstraintModel* ScenarioProcessViewModel::parentConstraint() const
 {
 	auto storey = dynamic_cast<StoreyModel*>(parent());
 	if(storey)
 	{
-		return storey->parentInterval();
+		return storey->parentConstraint();
 	}
 
 	return nullptr;

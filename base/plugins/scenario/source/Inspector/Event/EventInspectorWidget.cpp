@@ -87,7 +87,7 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 void EventInspectorWidget::on_addAddressClicked()
 {
 	auto txt = m_addressLineEdit->text();
-	auto cmd = new AddStateToEventCommand(ObjectPath::pathFromObject("BaseIntervalModel", m_eventModel),
+	auto cmd = new AddStateToEventCommand(ObjectPath::pathFromObject("BaseConstraintModel", m_eventModel),
 										  txt);
 
 	emit submitCommand(cmd);

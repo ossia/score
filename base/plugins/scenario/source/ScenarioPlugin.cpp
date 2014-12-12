@@ -3,7 +3,7 @@
 #include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioProcessFactory.hpp>
 
-#include <Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
 
 ScenarioPlugin::ScenarioPlugin():
@@ -83,7 +83,7 @@ QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factor
 
 	if(factoryName == "Inspector")
 	{
-		return {new IntervalInspectorFactory,
+		return {new ConstraintInspectorFactory,
 				new EventInspectorFactory};
 	}
 

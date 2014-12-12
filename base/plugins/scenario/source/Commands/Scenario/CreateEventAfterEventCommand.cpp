@@ -2,7 +2,7 @@
 
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventData.hpp"
 
 #include <core/application/Application.hpp>
@@ -33,7 +33,7 @@ CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath &&scenario
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	m_createdEventId = getNextId(scenar->events());
-	m_createdIntervalId = getNextId(scenar->intervals());
+	m_createdConstraintId = getNextId(scenar->constraints());
 }
 
 void CreateEventAfterEventCommand::undo()
@@ -41,7 +41,7 @@ void CreateEventAfterEventCommand::undo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-		scenar->undo_createIntervalAndEndEventFromEvent(m_createdIntervalId);
+		scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
 	}
 }
 
@@ -50,10 +50,10 @@ void CreateEventAfterEventCommand::redo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-		scenar->createIntervalAndEndEventFromEvent(m_firstEventId,
+		scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
 												   m_time,
 												   m_heightPosition,
-												   m_createdIntervalId,
+												   m_createdConstraintId,
 												   m_createdEventId);
 	}
 }

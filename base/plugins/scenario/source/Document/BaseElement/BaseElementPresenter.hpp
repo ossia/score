@@ -4,12 +4,12 @@
 
 class BaseElementModel;
 class BaseElementView;
-class IntervalPresenter;
+class ConstraintPresenter;
 /**
  * @brief The BaseElementPresenter class
  *
  * A bit special because we connect it to the presenter of the content model
- * inside the interval model of the base element model.
+ * inside the constraint model of the base element model.
  */
 class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 {
@@ -24,7 +24,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 	private:
 		BaseElementModel* model();
 		BaseElementView* view();
-		IntervalPresenter* m_baseIntervalPresenter;
+		ConstraintPresenter* m_baseConstraintPresenter;
 
 };
 

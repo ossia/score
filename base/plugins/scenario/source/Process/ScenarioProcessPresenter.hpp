@@ -8,12 +8,12 @@ namespace iscore
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 
-class IntervalPresenter;
+class ConstraintPresenter;
 class EventPresenter;
 class ScenarioProcessViewModel;
 class ScenarioProcessView;
 class EventModel;
-class IntervalModel;
+class ConstraintModel;
 struct EventData;
 
 class ScenarioProcessPresenter : public ProcessPresenterInterface
@@ -44,9 +44,9 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_eventDeleted(int eventId);
 		void on_eventMoved(int eventId);
 
-		void on_intervalCreated(int intervalId);
-		void on_intervalDeleted(int intervalId);
-		void on_intervalMoved(int intervalId);
+		void on_constraintCreated(int constraintId);
+		void on_constraintDeleted(int constraintId);
+		void on_constraintMoved(int constraintId);
 
 		// View -> Command
 		void on_scenarioPressed(QPointF);
@@ -54,19 +54,19 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
-        void createIntervalAndEventFromEvent(EventData data);
-        void moveEventAndInterval(EventData data);
-        void moveIntervalOnVertical(int id, double verticalMove);
+        void createConstraintAndEventFromEvent(EventData data);
+        void moveEventAndConstraint(EventData data);
+        void moveConstraintOnVertical(int id, double verticalMove);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
-		void on_intervalCreated_impl(IntervalModel* interval_model);
+		void on_constraintCreated_impl(ConstraintModel* constraint_model);
 
 
 		ScenarioProcessViewModel* m_viewModel;
 		ScenarioProcessView* m_view;
 
-		std::vector<IntervalPresenter*> m_intervals;
+		std::vector<ConstraintPresenter*> m_constraints;
 		std::vector<EventPresenter*> m_events;
 
 		int m_currentlySelectedEvent{};

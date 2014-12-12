@@ -32,7 +32,7 @@ void MoveEventCommand::undo()
 	{
 		m_time = scenar->event(m_eventId)->date();
 		m_heightPosition = scenar->event(m_eventId)->heightPercentage();
-		scenar->moveEventAndInterval(m_eventId, m_oldTime, m_oldHeightPosition);
+		scenar->moveEventAndConstraint(m_eventId, m_oldTime, m_oldHeightPosition);
 	}
 }
 
@@ -43,7 +43,7 @@ void MoveEventCommand::redo()
 	{
 		m_oldTime = scenar->event(m_eventId)->date();
 		m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
-		scenar->moveEventAndInterval(m_eventId, m_time, m_heightPosition);
+		scenar->moveEventAndConstraint(m_eventId, m_time, m_heightPosition);
 	}
 }
 

@@ -4,7 +4,7 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
-#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 
 #include <API/Headers/Editor/Scenario.h>
 
@@ -12,10 +12,10 @@
 
 QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
 {
-	s << (int) scenario.m_intervals.size();
-	for(const auto& interval : scenario.m_intervals)
+	s << (int) scenario.m_constraints.size();
+	for(const auto& constraint : scenario.m_constraints)
 	{
-		s << *interval;
+		s << *constraint;
 	}
 
 	s << (int) scenario.m_events.size();
@@ -29,14 +29,14 @@ QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scena
 
 QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 {
-	// Intervals
-	int interval_count;
-	s >> interval_count;
-	for(; interval_count --> 0;)
+	// Constraints
+	int constraint_count;
+	s >> constraint_count;
+	for(; constraint_count --> 0;)
 	{
-		IntervalModel* interval = new IntervalModel{s, &scenario};
-		scenario.m_intervals.push_back(interval);
-		emit scenario.intervalCreated(interval->id());
+		ConstraintModel* constraint = new ConstraintModel{s, &scenario};
+		scenario.m_constraints.push_back(constraint);
+		emit scenario.constraintCreated(constraint->id());
 	}
 
 	// Events
@@ -51,12 +51,12 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 	}
 
 	// Recreate the API
-	for(IntervalModel* interval : scenario.m_intervals)
+	for(ConstraintModel* constraint : scenario.m_constraints)
 	{
-		auto sev = scenario.event(interval->startEvent());
-		auto eev = scenario.event(interval->endEvent());
+		auto sev = scenario.event(constraint->startEvent());
+		auto eev = scenario.event(constraint->endEvent());
 
-		scenario.m_scenario->addTimeBox(*interval->apiObject(),
+		scenario.m_scenario->addTimeBox(*constraint->apiObject(),
 										*sev->apiObject(),
 										*eev->apiObject());
 	}
@@ -90,14 +90,14 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 			scen, &ScenarioProcessViewModel::eventCreated);
 	connect(this, &ScenarioProcessSharedModel::eventDeleted,
 			scen, &ScenarioProcessViewModel::eventDeleted);
-	connect(this, &ScenarioProcessSharedModel::intervalCreated,
-			scen, &ScenarioProcessViewModel::intervalCreated);
-	connect(this, &ScenarioProcessSharedModel::intervalDeleted,
-			scen, &ScenarioProcessViewModel::intervalDeleted);
+	connect(this, &ScenarioProcessSharedModel::constraintCreated,
+			scen, &ScenarioProcessViewModel::constraintCreated);
+	connect(this, &ScenarioProcessSharedModel::constraintDeleted,
+			scen, &ScenarioProcessViewModel::constraintDeleted);
 	connect(this, &ScenarioProcessSharedModel::eventMoved,
 			scen, &ScenarioProcessViewModel::eventMoved);
-	connect(this, &ScenarioProcessSharedModel::intervalMoved,
-			scen, &ScenarioProcessViewModel::intervalMoved);
+	connect(this, &ScenarioProcessSharedModel::constraintMoved,
+			scen, &ScenarioProcessViewModel::constraintMoved);
 
 	return scen;
 }
@@ -109,11 +109,11 @@ ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream&
 
 
 //////// Creation ////////
-int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, int endEventId, int newIntervalModelId)
+int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new IntervalModel{newIntervalModelId, this};
+	auto inter = new ConstraintModel{newConstraintModelId, this};
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -129,21 +129,21 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 	inter->setEndEvent(eev->id());
 
 	// From now on everything must be in a valid state.
-	m_intervals.push_back(inter);
+	m_constraints.push_back(inter);
 
-	emit intervalCreated(inter->id());
+	emit constraintCreated(inter->id());
 
 	return inter->id();
 }
 
 std::tuple<int, int>
-ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
-															   int interval_duration,
+ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventId,
+															   int constraint_duration,
 															   double heightPos,
-															   int newIntervalId,
+															   int newConstraintId,
 															   int newEventId)
 {
-	auto inter = new IntervalModel{newIntervalId, this->event(startEventId)->heightPercentage(), this};
+	auto inter = new ConstraintModel{newConstraintId, this->event(startEventId)->heightPercentage(), this};
 	auto event = new EventModel{newEventId, this->event(startEventId)->heightPercentage(), this};
 
 
@@ -154,7 +154,7 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 
 	// TEMPORARY :
 	inter->m_x = this->event(startEventId)->m_x;
-	inter->m_width = interval_duration;
+	inter->m_width = constraint_duration;
 	event->m_x = inter->m_x + inter->m_width;
 //	event->m_y = inter->heightPercentage() * 75;
 
@@ -174,109 +174,109 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
-	m_intervals.push_back(inter);
+	m_constraints.push_back(inter);
 
 	emit eventCreated(event->id());
-	emit intervalCreated(inter->id());
+	emit constraintCreated(inter->id());
 
 	return std::make_tuple(inter->id(), event->id());
 }
 
 
-std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur, double heightPos,
-																					   int createdFirstIntervalId,
+std::tuple<int, int, int, int> ScenarioProcessSharedModel::createConstraintAndBothEvents(int start, int dur, double heightPos,
+																					   int createdFirstConstraintId,
 																					   int createdFirstEventId,
-																					   int createdSecondIntervalId,
+																					   int createdSecondConstraintId,
 																					   int createdSecondEventId)
 {
-	auto t1 = createIntervalAndEndEventFromStartEvent(start,
+	auto t1 = createConstraintAndEndEventFromStartEvent(start,
 													  heightPos,
-													  createdFirstIntervalId,
+													  createdFirstConstraintId,
 													  createdFirstEventId);
 
-	auto t2 = createIntervalAndEndEventFromEvent(createdFirstEventId,
+	auto t2 = createConstraintAndEndEventFromEvent(createdFirstEventId,
 												 dur,
 												 heightPos,
-												 createdSecondIntervalId,
+												 createdSecondConstraintId,
 												 createdSecondEventId);
 
 	return std::tuple_cat(t1, t2);
 }
 
-void ScenarioProcessSharedModel::moveEventAndInterval(int eventId, int time, double heightPosition)
+void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
 	event(eventId)->setHeightPercentage(heightPosition);
 	emit eventMoved(eventId);
 }
 
-void ScenarioProcessSharedModel::moveInterval(int intervalId, double heightPosition)
+void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
 {
-	interval(intervalId)->setHeightPercentage(heightPosition);
-	emit intervalMoved(intervalId);
+	constraint(constraintId)->setHeightPercentage(heightPosition);
+	emit constraintMoved(constraintId);
 }
 
-std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime,
+std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFromStartEvent(int endTime,
 																						 double heightPos,
-																						 int newIntervalId,
+																						 int newConstraintId,
 																						 int newEventId)
 {
-	return createIntervalAndEndEventFromEvent(startEvent()->id(),
+	return createConstraintAndEndEventFromEvent(startEvent()->id(),
 											  endTime,
 											  heightPos,
-											  newIntervalId,
+											  newConstraintId,
 											  newEventId);
 }
 
 ///////// DELETION //////////
 #include <tools/utilsCPP11.hpp>
-void ScenarioProcessSharedModel::undo_createIntervalBetweenEvents(int intervalId)
+void ScenarioProcessSharedModel::undo_createConstraintBetweenEvents(int constraintId)
 {
-	emit intervalDeleted(intervalId);
-	removeById(m_intervals, intervalId);
+	emit constraintDeleted(constraintId);
+	removeById(m_constraints, constraintId);
 }
 
-void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromEvent(int intervalId)
+void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int constraintId)
 {
 	// End event suppression
 	{
 		qDebug() << "suppressing event";
-		auto end_event_id = this->interval(intervalId)->endEvent();
+		auto end_event_id = this->constraint(constraintId)->endEvent();
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
 	}
 
-	// Interval suppression
+	// Constraint suppression
 	{
-		qDebug() << "suppressing interval";
-		emit intervalDeleted(intervalId);
-		removeById(m_intervals, intervalId);
+		qDebug() << "suppressing constraint";
+		emit constraintDeleted(constraintId);
+		removeById(m_constraints, constraintId);
 	}
 }
 
-void ScenarioProcessSharedModel::undo_createIntervalAndEndEventFromStartEvent(int intervalId)
+void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromStartEvent(int constraintId)
 {
-	undo_createIntervalAndEndEventFromEvent(intervalId);
+	undo_createConstraintAndEndEventFromEvent(constraintId);
 }
 
-void ScenarioProcessSharedModel::undo_createIntervalAndBothEvents(int intervalId)
+void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constraintId)
 {
 	// End event suppression
 	{
-		auto end_event_id = this->interval(intervalId)->endEvent();
+		auto end_event_id = this->constraint(constraintId)->endEvent();
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
 	}
 
-	// Get the mid event id before deletion of the interval
-	auto mid_event_id = this->interval(intervalId)->startEvent();
+	// Get the mid event id before deletion of the constraint
+	auto mid_event_id = this->constraint(constraintId)->startEvent();
 	auto mid_event = event(mid_event_id);
-	auto start_interval_id = mid_event->previousIntervals().front();
-	auto start_interval = interval(start_interval_id);
+	auto start_constraint_id = mid_event->previousConstraints().front();
+	auto start_constraint = constraint(start_constraint_id);
 
-	// Interval suppression
+	// Constraint suppression
 	{
-		emit intervalDeleted(intervalId);
-		removeById(m_intervals, intervalId);
+		emit constraintDeleted(constraintId);
+		removeById(m_constraints, constraintId);
 	}
 
 	// Mid event suppression
@@ -285,10 +285,10 @@ void ScenarioProcessSharedModel::undo_createIntervalAndBothEvents(int intervalId
 		removeById(m_events, mid_event->id());
 	}
 
-	// First interval suppression
+	// First constraint suppression
 	{
-		emit intervalDeleted(start_interval->id());
-		removeById(m_intervals, start_interval->id());
+		emit constraintDeleted(start_constraint->id());
+		removeById(m_constraints, start_constraint->id());
 	}
 }
 
@@ -298,9 +298,9 @@ void ScenarioProcessSharedModel::undo_createIntervalAndBothEvents(int intervalId
 
 
 /////////////////////////////
-IntervalModel* ScenarioProcessSharedModel::interval(int intervalId)
+ConstraintModel* ScenarioProcessSharedModel::constraint(int constraintId)
 {
-	return findById(m_intervals, intervalId);
+	return findById(m_constraints, constraintId);
 }
 
 EventModel* ScenarioProcessSharedModel::event(int eventId)

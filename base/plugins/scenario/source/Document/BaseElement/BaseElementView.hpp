@@ -4,7 +4,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
-class IntervalView;
+class ConstraintView;
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
 	Q_OBJECT
@@ -15,14 +15,14 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
 		virtual QWidget*getWidget();
 
-		IntervalView* intervalView()
-		{ return m_interval; }
+		ConstraintView* constraintView()
+		{ return m_constraint; }
 
 	private:
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
 		QGraphicsObject* m_baseObject{};
-		IntervalView* m_interval{};
+		ConstraintView* m_constraint{};
 
 };
 

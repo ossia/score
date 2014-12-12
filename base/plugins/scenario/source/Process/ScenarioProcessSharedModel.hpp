@@ -5,7 +5,7 @@ namespace OSSIA
 {
 	class Scenario;
 }
-class IntervalModel;
+class ConstraintModel;
 class EventModel;
 
 /**
@@ -34,79 +34,79 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		// Creation of objects.
 
-		// Creates an interval between two pre-existing events
-		int createIntervalBetweenEvents(int startEventId, int endEventId, int newIntervalModelId);
+		// Creates an constraint between two pre-existing events
+		int createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
 
 		/**
-		 * @brief createIntervalAndEndEventFromEvent Base building block of a scenario.
-		 * @param startEventId Identifier of the start event of the new interval
-		 * @param duration duration of the new interval
-		 * @return A pair : <new interval id, new event id>
+		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
+		 * @param startEventId Identifier of the start event of the new constraint
+		 * @param duration duration of the new constraint
+		 * @return A pair : <new constraint id, new event id>
 		 *
-		 * Given a starting event and a duration, creates an interval and an event where
-		 * the interval is linked to both events.
+		 * Given a starting event and a duration, creates an constraint and an event where
+		 * the constraint is linked to both events.
 		 */
-		std::tuple<int, int> createIntervalAndEndEventFromEvent(int startEventId,
+		std::tuple<int, int> createConstraintAndEndEventFromEvent(int startEventId,
 																int duration,
 																double heightPos,
-																int newIntervalId,
+																int newConstraintId,
 																int newEventId);
 
-		// Creates an interval between the start event of the scenario and this one
-		// and an event at the end of this interval
-		std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time,
+		// Creates an constraint between the start event of the scenario and this one
+		// and an event at the end of this constraint
+		std::tuple<int, int> createConstraintAndEndEventFromStartEvent(int time,
 																	 double heightPos,
-																	 int newIntervalId,
+																	 int newConstraintId,
 																	 int newEventId);
 
 		// Creates :
-		/// - An interval from the start event of the scenario to an event at startTime
+		/// - An constraint from the start event of the scenario to an event at startTime
 		/// - The event at startTime
-		/// - An interval going from the event at startTime to the event at startTime + duration
+		/// - An constraint going from the event at startTime to the event at startTime + duration
 		/// - The event at startTime + duration
-		std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime,
+		std::tuple<int, int, int, int> createConstraintAndBothEvents(int startTime,
 																   int duration,
 																   double heightPos,
-																   int createdFirstIntervalId,  // todo maybe put in a tuple.
+																   int createdFirstConstraintId,  // todo maybe put in a tuple.
 																   int createdFirstEventId,
-																   int createdSecondIntervalId,
+																   int createdSecondConstraintId,
 																   int createdSecondEventId);
 
-		void moveEventAndInterval(int eventId, int time, double heightPosition);
-		void moveInterval(int intervalId, double heightPosition);
+		void moveEventAndConstraint(int eventId, int time, double heightPosition);
+		void moveConstraint(int constraintId, double heightPosition);
 
 
-		void undo_createIntervalBetweenEvents(int intervalId);
-		void undo_createIntervalAndEndEventFromEvent(int intervalId);
-		void undo_createIntervalAndEndEventFromStartEvent(int intervalId);
-		void undo_createIntervalAndBothEvents(int intervalId);
+		void undo_createConstraintBetweenEvents(int constraintId);
+		void undo_createConstraintAndEndEventFromEvent(int constraintId);
+		void undo_createConstraintAndEndEventFromStartEvent(int constraintId);
+		void undo_createConstraintAndBothEvents(int constraintId);
 
 
 
-		IntervalModel* interval(int intervalId);
+		ConstraintModel* constraint(int constraintId);
 		EventModel* event(int eventId);
 
 		EventModel* startEvent();
 		EventModel* endEvent();
 
 		// For the presenter :
-		const std::vector<IntervalModel*> intervals() const
-		{ return m_intervals; }
+		const std::vector<ConstraintModel*> constraints() const
+		{ return m_constraints; }
 		const std::vector<EventModel*> events() const
 		{ return m_events; }
 
 	signals:
 		void eventCreated(int eventId);
-		void intervalCreated(int intervalId);
+		void constraintCreated(int constraintId);
 		void eventDeleted(int eventId);
-		void intervalDeleted(int intervalId);
+		void constraintDeleted(int constraintId);
 		void eventMoved(int eventId);
-		void intervalMoved(int intervalId);
+		void constraintMoved(int constraintId);
 
 	private:
 		OSSIA::Scenario* m_scenario;
 
-		std::vector<IntervalModel*> m_intervals;
+		std::vector<ConstraintModel*> m_constraints;
 		std::vector<EventModel*> m_events;
 
 		int m_startEventId{};

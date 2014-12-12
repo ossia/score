@@ -6,7 +6,7 @@ namespace OSSIA
 	class TimeNode;
 }
 class State;
-class IntervalModel;
+class ConstraintModel;
 
 class EventModel : public IdentifiedObject
 {
@@ -29,8 +29,8 @@ class EventModel : public IdentifiedObject
 		EventModel(QDataStream& s, QObject* parent);
 		virtual ~EventModel() = default;
 
-		const QVector<int>& previousIntervals() const;
-		const QVector<int>& nextIntervals() const;
+		const QVector<int>& previousConstraints() const;
+		const QVector<int>& nextConstraints() const;
 
 		const std::vector<State*>& states() const;
 		void addMessage(QString s);
@@ -54,8 +54,8 @@ class EventModel : public IdentifiedObject
 	private:
 		OSSIA::TimeNode* m_timeNode{};
 
-		QVector<int> m_previousIntervals;
-		QVector<int> m_nextIntervals;
+		QVector<int> m_previousConstraints;
+		QVector<int> m_nextConstraints;
 
 		double m_heightPercentage{0.5};
 

@@ -1,13 +1,13 @@
 #include "BaseElementModel.hpp"
 
-#include "Document/Interval/IntervalModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseInterval{new IntervalModel{0, this}}
+	m_baseConstraint{new ConstraintModel{0, this}}
 {
-	m_baseInterval->m_width = 1000;
-	m_baseInterval->m_height = 1000;
-	m_baseInterval->setObjectName("BaseIntervalModel");
+	m_baseConstraint->m_width = 1000;
+	m_baseConstraint->m_height = 1000;
+	m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 

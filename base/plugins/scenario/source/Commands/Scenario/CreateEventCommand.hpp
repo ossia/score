@@ -24,7 +24,7 @@ class CreateEventCommand : public iscore::SerializableCommand
 	private:
 		ObjectPath m_path;
 
-		int m_createdIntervalId{};
+		int m_createdConstraintId{};
 		int m_createdEventId{};
 
 		int m_time{};

@@ -1,10 +1,10 @@
 #include "BaseElementPresenter.hpp"
 
-#include "Document/Interval/IntervalPresenter.hpp"
-#include "Document/Interval/IntervalView.hpp"
+#include "Document/Constraint/ConstraintPresenter.hpp"
+#include "Document/Constraint/ConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
-#include "Commands/Interval/Process/AddProcessToIntervalCommand.hpp"
+#include "Commands/Constraint/Process/AddProcessToConstraintCommand.hpp"
 #include "Commands/Scenario/CreateEventCommand.hpp"
 
 #include <QTimer>
@@ -14,23 +14,23 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
 										   DocumentDelegateViewInterface* view):
 	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
-	m_baseIntervalPresenter{}
+	m_baseConstraintPresenter{}
 {
-	auto cmd = new AddProcessToIntervalCommand(
+	auto cmd = new AddProcessToConstraintCommand(
 		{
-			{"BaseIntervalModel", {}}
+			{"BaseConstraintModel", {}}
 		},
 		"Scenario");
 	cmd->redo();
 
-	m_baseIntervalPresenter = new IntervalPresenter{this->model()->intervalModel(),
-													this->view()->intervalView(),
+	m_baseConstraintPresenter = new ConstraintPresenter{this->model()->constraintModel(),
+													this->view()->constraintView(),
 													this};
 
-	connect(m_baseIntervalPresenter,	&IntervalPresenter::submitCommand,
+	connect(m_baseConstraintPresenter,	&ConstraintPresenter::submitCommand,
 			this,						&BaseElementPresenter::submitCommand);
 
-	connect(m_baseIntervalPresenter, &IntervalPresenter::elementSelected,
+	connect(m_baseConstraintPresenter, &ConstraintPresenter::elementSelected,
 			this,					 &BaseElementPresenter::elementSelected);
 }
 

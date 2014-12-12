@@ -9,8 +9,8 @@
 
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
-	s << ev.m_previousIntervals
-	  << ev.m_nextIntervals
+	s << ev.m_previousConstraints
+	  << ev.m_nextConstraints
 	  << ev.m_heightPercentage;
 
 	// TODO s << ev.m_timeNode->save();
@@ -19,8 +19,8 @@ QDataStream& operator << (QDataStream& s, const EventModel& ev)
 
 QDataStream& operator >> (QDataStream& s, EventModel& ev)
 {
-	s >> ev.m_previousIntervals
-	  >> ev.m_nextIntervals
+	s >> ev.m_previousConstraints
+	  >> ev.m_nextConstraints
 	  >> ev.m_heightPercentage;
 
 	ev.m_timeNode = new OSSIA::TimeNode;
@@ -37,7 +37,7 @@ EventModel::EventModel(int id, QObject* parent):
 	IdentifiedObject{id, "EventModel", parent},
 	m_timeNode{new OSSIA::TimeNode}
 {
-	// TODO : connect to the timenode handlers so that the links to the intervals are correctly created.
+	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
 	m_states.push_back(new FakeState{this});
 }
 
@@ -54,14 +54,14 @@ EventModel::EventModel(QDataStream& s, QObject* parent):
     s >> *this;
 }
 
-const QVector<int>&EventModel::previousIntervals() const
+const QVector<int>&EventModel::previousConstraints() const
 {
-	return m_previousIntervals;
+	return m_previousConstraints;
 }
 
-const QVector<int>&EventModel::nextIntervals() const
+const QVector<int>&EventModel::nextConstraints() const
 {
-	return m_nextIntervals;
+	return m_nextConstraints;
 }
 
 double EventModel::heightPercentage() const

@@ -13,12 +13,12 @@ function(addIScoreQtTest TESTNAME TESTSRCS)
 endFunction()
 
 # Commands
-addIScoreQtTest(addprocesstointerval_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToIntervalCommandTest.cpp")
+addIScoreQtTest(addprocesstoconstraint_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintCommandTest.cpp")
 addIScoreQtTest(createeventafterevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventCommandTest.cpp")
 addIScoreQtTest(moveevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventCommandTest.cpp")
-addIScoreQtTest(moveinterval_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveIntervalCommandTest.cpp")
+addIScoreQtTest(moveconstraint_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintCommandTest.cpp")
 
-# Intervals
-addIScoreQtTest(interval_test "${CMAKE_CURRENT_SOURCE_DIR}/Interval/IntervalModelTests.cpp")
+# Constraints
+addIScoreQtTest(constraint_test "${CMAKE_CURRENT_SOURCE_DIR}/Constraint/ConstraintModelTests.cpp")
 
 include(CTest)

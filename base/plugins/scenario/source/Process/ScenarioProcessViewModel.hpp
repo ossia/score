@@ -5,8 +5,8 @@
 #include <QMap>
 
 class ScenarioProcessSharedModel;
-class IntervalContentModel;
-class IntervalModel;
+class ConstraintContentModel;
+class ConstraintModel;
 
 class ScenarioProcessViewModel : public ProcessViewModelInterface
 {
@@ -21,20 +21,20 @@ class ScenarioProcessViewModel : public ProcessViewModelInterface
 		virtual void deserialize(QDataStream&) override { }
 
 		ScenarioProcessSharedModel* model();
-		IntervalContentModel* intervals();
+		ConstraintContentModel* constraints();
 
 	signals: // Transmitted from ScenarioProcessSharedModel. They might become slots.
 		void eventCreated(int eventId);
-		void intervalCreated(int intervalId);
+		void constraintCreated(int constraintId);
 		void eventDeleted(int eventId);
-		void intervalDeleted(int intervalId);
+		void constraintDeleted(int constraintId);
 		void eventMoved(int eventId);
-		void intervalMoved(int intervalId);
+		void constraintMoved(int constraintId);
 
 
 	private:
-		IntervalModel* parentInterval() const;
+		ConstraintModel* parentConstraint() const;
 
-		QMap<int, int> m_contentMapping; // Map between intervals and intervals contents.
+		QMap<int, int> m_contentMapping; // Map between constraints and constraints contents.
 };
 

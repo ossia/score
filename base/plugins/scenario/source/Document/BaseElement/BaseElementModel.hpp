@@ -2,12 +2,12 @@
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 
 class BaseElementPresenter;
-class IntervalModel;
+class ConstraintModel;
 
 /**
  * @brief The BaseElementModel class
  *
- * L'élément de base pour i-score est un intervalle,
+ * L'élément de base pour i-score est un constraintle,
  * qui ne contient qu'un seul Content. (le faire hériter pour cela ? )
  */
 
@@ -19,12 +19,12 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 		BaseElementModel(QObject* parent);
 		virtual ~BaseElementModel() = default;
 
-		IntervalModel* intervalModel()
+		ConstraintModel* constraintModel()
 		{
-			return m_baseInterval;
+			return m_baseConstraint;
 		}
 
 	private:
-		IntervalModel* m_baseInterval{};
+		ConstraintModel* m_baseConstraint{};
 };
 
