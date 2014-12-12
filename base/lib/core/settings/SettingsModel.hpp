@@ -19,16 +19,13 @@ namespace iscore
 
 			void addSettingsModel(SettingsDelegateModelInterface* model)
 			{
-				model->setParent(this); // TODO careful with double-deletion.
+				model->setParent(this);
 				m_pluginModels.insert(model);
 			}
 
 		protected:
 			virtual void childEvent(QChildEvent* ev) override
-			{/*
-				if(ev->type() == QEvent::ChildAdded)
-					qDebug() << "SettingsModel: Child added";
-				*/
+			{
 				QCoreApplication::sendEvent(parent(), ev);
 			}
 

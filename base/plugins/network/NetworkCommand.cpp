@@ -15,7 +15,7 @@
 #include <QAction>
 using namespace iscore;
 NetworkCommand::NetworkCommand():
-	PluginControlInterface{nullptr, "NetworkCommand"}
+	PluginControlInterface{"NetworkCommand", nullptr}
 {
 }
 

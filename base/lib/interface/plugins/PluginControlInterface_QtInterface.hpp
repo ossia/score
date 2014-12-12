@@ -1,4 +1,5 @@
 #pragma once
+// @todo unnecessary
 #include <interface/plugincontrol/PluginControlInterface.hpp>
 
 namespace iscore

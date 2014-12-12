@@ -20,6 +20,9 @@ PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
 	auto ps_view  = static_cast<PluginSettingsView*>(view);
 
 	ps_view->view()->setModel(ps_model->model());
+
+	connect(ps_model,	&PluginSettingsModel::blacklistCommand,
+			this,		&PluginSettingsPresenter::setBlacklistCommand);
 }
 
 void PluginSettingsPresenter::on_accept()

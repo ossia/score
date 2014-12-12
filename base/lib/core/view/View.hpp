@@ -28,14 +28,14 @@ namespace iscore
 		signals:
 			/**
 			 * @brief insertActionIntoMenubar
-			 * 
-			 * A quick signal to add an action. TODO why not call MenuBar directly ?
+			 *
+			 * A quick signal to add an action.
 			 * Especially considering that we already know the presenter.
 			 */
-			void insertActionIntoMenubar(Action);
+			void insertActionIntoMenubar(PositionedMenuAction);
 
 		private:
 			std::set<PanelViewInterface*> m_panelsViews;
-			Presenter* m_presenter;
+			Presenter* m_presenter{}; //@todo remove.
 	};
 }

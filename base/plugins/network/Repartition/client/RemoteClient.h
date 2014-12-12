@@ -55,7 +55,7 @@ class RemoteClient : public Client, public RemoteSender
 		}
 
 	private:
-		int _delayInMs; // ns ? µs?
-		int _pingStamp;
+		int _delayInMs{}; // ns ? µs?
+		int _pingStamp{};
 };
 

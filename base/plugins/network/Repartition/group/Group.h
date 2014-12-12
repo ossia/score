@@ -72,7 +72,7 @@ class Group: public hasName, public hasId
 
 	private:
 		std::vector<std::reference_wrapper<const DistributedProcess> > _processes;
-		bool _isMuted;
+		bool _isMuted{false};
 		// Couleur ?
 };
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <QWidget>
+#include <QDockWidget>
 
 namespace iscore
 {
@@ -10,7 +10,8 @@ namespace iscore
 		public:
 			using QObject::QObject;
 			virtual ~PanelViewInterface() = default;
-			virtual void setPresenter(PanelPresenterInterface* presenter) = 0;
-			virtual QWidget* getWidget() = 0; 
+			virtual QWidget* getWidget() = 0;
+
+			virtual Qt::DockWidgetArea defaultDock() const = 0;
 	};
 }

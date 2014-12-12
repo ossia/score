@@ -1,16 +1,14 @@
 #pragma once
-#include <QObject>
+#include <tools/NamedObject.hpp>
 
 namespace iscore
 {
 	class PanelPresenterInterface;
-	class PanelModelInterface : public QObject
+	class PanelModelInterface : public NamedObject
 	{
 			Q_OBJECT
 		public:
-			using QObject::QObject;
+			using NamedObject::NamedObject;
 			virtual ~PanelModelInterface() = default;
-			
-			virtual void setPresenter(PanelPresenterInterface* presenter) = 0;
 	};
 }
