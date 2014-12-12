@@ -20,14 +20,14 @@ class EventPresenter : public NamedObject
 
 	signals:
 		void eventSelected(int id);
-		void eventReleasedWithControl(int id, int x, int y);
-//		void eventReleased(int id, int x, int y);
+        void eventReleasedWithControl(EventData d);
         void eventReleased(EventData d);
 
 		void elementSelected(QObject*);
 
     public slots:
         void on_eventReleased(QPointF);
+        void on_eventReleasedWithControl(QPointF);
 
 	private:
 		EventModel* m_model{};

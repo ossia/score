@@ -2,10 +2,12 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+struct EventData;
+
 class MoveEventCommand : public iscore::SerializableCommand
 {
 	public:
-		MoveEventCommand(ObjectPath &&scenarioPath, int eventId, int time, double heightPosition);
+        MoveEventCommand(ObjectPath &&scenarioPath, EventData data);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;

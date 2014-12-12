@@ -4,6 +4,7 @@
 #include <Commands/Scenario/CreateEventCommand.hpp>
 
 #include <Document/Event/EventModel.hpp>
+#include <Document/Event/EventData.hpp>
 
 #include <Process/ScenarioProcessSharedModel.hpp>
 
@@ -21,10 +22,15 @@ class CreateEventAfterEventCommandTest: public QObject
 		void CreateCommandTest()
 		{
 			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			EventData data{};
+			// data.id = 0; unused here
+			data.x = 10;
+			data.relativeY = 0.5;
+
 			CreateEventCommand cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, 100, 0.5 );
+			}, data.x, data.relativeY);
 
 			cmd.redo();
 			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent
@@ -46,10 +52,15 @@ class CreateEventAfterEventCommandTest: public QObject
 		void CreateAfterCommandTest()
 		{
 			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			EventData data{};
+			data.id = scenar->startEvent()->id();
+			data.x = 10;
+			data.relativeY = 0.5;
+
 			CreateEventAfterEventCommand cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, scenar->startEvent()->id(), 100, 0.5 );
+			}, data);
 
 			cmd.redo();
 			QCOMPARE((int)scenar->events().size(), 2);
@@ -67,7 +78,6 @@ class CreateEventAfterEventCommandTest: public QObject
 
 			delete scenar;
 		}
-
 };
 
 QTEST_MAIN(CreateEventAfterEventCommandTest)

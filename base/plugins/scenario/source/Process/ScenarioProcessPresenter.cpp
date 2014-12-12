@@ -152,13 +152,12 @@ void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 	}
 }
 
-void ScenarioProcessPresenter::createIntervalAndEventFromEvent(int id, int distance, double heightPos)
+void ScenarioProcessPresenter::createIntervalAndEventFromEvent(EventData data)
 {
+    data.relativeY = (data.y - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height();
 	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 																		   m_viewModel->model()),
-												id,
-												distance,
-												(heightPos - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height());
+                                                data);
 
 	submitCommand(cmd);
 }
@@ -168,9 +167,7 @@ void ScenarioProcessPresenter::moveEventAndInterval(EventData data)
     data.relativeY = (data.y - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height();
 	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseIntervalModel",
 															   m_viewModel->model()),
-                                    data.id,
-                                    data.x,
-                                    data.relativeY);
+                                    data);
 	submitCommand(cmd);
 }
 

@@ -30,7 +30,7 @@ IntervalPresenter::IntervalPresenter(IntervalModel* model,
 	// Cas par défaut
 	auto interval_presenter =
 			new IntervalContentPresenter{
-							  model->contentModel(0),
+							  model->contentModels().front(),
 							  contentView,
 							  this};
 
