@@ -7,6 +7,7 @@ namespace OSSIA
 }
 class State;
 class IntervalModel;
+
 class EventModel : public IdentifiedObject
 {
 		Q_OBJECT
@@ -21,7 +22,7 @@ class EventModel : public IdentifiedObject
 
 	public:
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-		int m_x{0};
+		int m_x{0};       
 
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
@@ -41,6 +42,7 @@ class EventModel : public IdentifiedObject
 
 		double heightPercentage() const;
 		int date() const;
+        void setDate(int date);
 
 	public slots:
 		void setHeightPercentage(double arg);

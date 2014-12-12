@@ -51,7 +51,7 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 EventModel::EventModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, "EventModel", parent}
 {
-	s >> *this;
+    s >> *this;
 }
 
 const QVector<int>&EventModel::previousIntervals() const
@@ -71,7 +71,12 @@ double EventModel::heightPercentage() const
 
 int EventModel::date() const
 {
-	return m_x;
+    return m_x;
+}
+
+void EventModel::setDate(int date)
+{
+    m_x = date;
 }
 
 const std::vector<State*>&EventModel::states() const

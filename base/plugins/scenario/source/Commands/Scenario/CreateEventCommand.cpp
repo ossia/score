@@ -1,6 +1,7 @@
 #include "CreateEventCommand.hpp"
 
 #include "Process/ScenarioProcessSharedModel.hpp"
+#include "Document/Event/EventModel.hpp"
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -18,7 +19,7 @@ CreateEventCommand::CreateEventCommand():
 
 }
 
-CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, float heightPosition):
+CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, double heightPosition):
 	SerializableCommand{"ScenarioControl",
 						"CreateEventCommand",
 						QObject::tr("Event creation")},

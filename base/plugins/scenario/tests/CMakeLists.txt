@@ -10,9 +10,7 @@ function(addIScoreQtTest TESTNAME TESTSRCS)
 	add_executable(${TESTNAME} ${TESTSRCS})
 	target_link_libraries(${TESTNAME} Qt5::Core Qt5::Test scenario_process)
 	add_test(${TESTNAME}_target ${TESTNAME})
-	#add_cppcheck(${TESTNAME})
 endFunction()
-
 
 add_subdirectory(Interval)
 add_subdirectory(Commands)

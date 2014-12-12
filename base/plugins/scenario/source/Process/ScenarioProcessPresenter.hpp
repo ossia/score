@@ -14,6 +14,7 @@ class ScenarioProcessViewModel;
 class ScenarioProcessView;
 class EventModel;
 class IntervalModel;
+struct EventData;
 
 class ScenarioProcessPresenter : public ProcessPresenterInterface
 {
@@ -54,7 +55,7 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
 		void createIntervalAndEventFromEvent(int id, int distance, double heightPos);
-		void moveEventAndInterval(int id, int distance, double heightPos);
+        void moveEventAndInterval(EventData data);
 		void moveIntervalOnVertical(int id, double heightPos);
 
 	private:

@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 3.0)
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 
 # Settings
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
