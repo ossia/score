@@ -24,6 +24,9 @@ class InspectorControl : public iscore::PluginControlInterface
 		{
 		}
 
+		const QVector<InspectorWidgetFactoryInterface*>& factories() const
+		{ return m_factories; }
+
 	public slots:
 		void on_newInspectorWidgetFactory(iscore::FactoryInterface *e)
 		{

@@ -29,8 +29,8 @@ void InspectorPanel::newItemInspected (QObject* object)
 	auto pmgr = qApp->findChild<InspectorControl*>("InspectorControl");
 
 	// TODO do like Scenario.
-	/*
-	auto factories = pmgr->inspectorFactoriesList();
+
+	auto factories = pmgr->factories();
 
 	for(auto factory : factories)
 	{
@@ -43,7 +43,7 @@ void InspectorPanel::newItemInspected (QObject* object)
 
 			return;
 		}
-	}*/
+	}
 
 	// When no factory is found.
 	m_itemInspected = new InspectorWidgetBase(object);
