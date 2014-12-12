@@ -15,10 +15,12 @@
 
 #include <functional>
 
+#include <QKeySequence>
+
 using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
-	QNamedObject{arg_parent, "Presenter"},
+	NamedObject{"Presenter", arg_parent},
 	m_model{model},
 	m_view{view},
 	#ifdef __APPLE__
@@ -26,13 +28,16 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	#else
 	m_menubar{view->menuBar(), this},
 	#endif
-	m_document{new Document{this, view}}
+	m_document{new Document{view, this}}
 {
 	m_view->setPresenter(this);
 	setupMenus();
 
 	connect(m_view,		&View::insertActionIntoMenubar,
 			&m_menubar, &MenubarManager::insertActionIntoMenubar);
+
+	connect(m_document, &Document::on_elementSelected,
+			this,		&Presenter::on_elementSelected);
 }
 
 // TODO is this the place ?
@@ -52,15 +57,12 @@ void Presenter::setupCommand(PluginControlInterface* cmd)
 // TODO is this the place ?
 void Presenter::addPanel(PanelFactoryInterface* p)
 {
-	auto model = p->makeModel();
-	auto view = p->makeView();
+	auto model = p->makeModel(m_model);
+	auto view = p->makeView(m_view);
 	auto pres = p->makePresenter(this, model, view);
 
 	connect(pres, &PanelPresenterInterface::submitCommand,
 			this, &Presenter::applyCommand, Qt::QueuedConnection);
-
-	view->setPresenter(pres);
-	model->setPresenter(pres);
 
 	m_view->addPanel(view);
 	m_model->addPanel(model);
@@ -79,7 +81,6 @@ void Presenter::newDocument()
 
 void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 {
-	qDebug(Q_FUNC_INFO);
 	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
 }
 
@@ -92,6 +93,11 @@ void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteA
 			emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
 		}
 	}
+}
+
+void Presenter::on_elementSelected(QObject* elt)
+{
+	emit elementSelected(elt);
 }
 
 #include <QMessageBox>
@@ -134,12 +140,14 @@ void Presenter::setupMenus()
 	////// Edit //////
 	// Undo / redo
 	auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
+	undoAct->setShortcut(QKeySequence::Undo);
 	connect(undoAct,								 &QAction::triggered,
 			m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   undoAct);
 
 	auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
+	redoAct->setShortcut(QKeySequence::Redo);
 	connect(redoAct,								 &QAction::triggered,
 			m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,

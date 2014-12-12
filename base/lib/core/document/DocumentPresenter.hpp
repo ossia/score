@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 #include <core/presenter/command/CommandQueue.hpp>
 
@@ -16,16 +16,19 @@ namespace iscore
 	 * Its main use is to manage the command queue, since we use the Command pattern,
 	 * by taking the commands from the document view and applying them on the document model.
 	 */
-	class DocumentPresenter : public QNamedObject
+	class DocumentPresenter : public NamedObject
 	{
 			Q_OBJECT
 		public:
-			DocumentPresenter(QObject* parent, DocumentModel*, DocumentView*);
+			DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
 			CommandQueue* commandQueue() { return m_commandQueue.get(); }
 
 			void newDocument();
 			void reset();
-			void setPresenter(DocumentDelegatePresenterInterface* pres);
+			void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
+
+		signals:
+			void on_elementSelected(QObject* element);
 
 		private slots:
 			void applyCommand(SerializableCommand*);

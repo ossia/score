@@ -6,6 +6,8 @@ namespace iscore
 	class DocumentDelegatePresenterInterface;
 	class DocumentDelegateModelInterface;
 	class DocumentPresenter;
+	class DocumentModel;
+	class DocumentView;
 
 	/**
 	 * @brief The DocumentDelegateFactoryInterface class
@@ -15,11 +17,11 @@ namespace iscore
 	class DocumentDelegateFactoryInterface
 	{
 		public:
-			virtual DocumentDelegateViewInterface* makeView() = 0;
+			virtual DocumentDelegateViewInterface* makeView(DocumentView* parent) = 0;
 			virtual DocumentDelegatePresenterInterface* makePresenter(DocumentPresenter* parent_presenter,
 														  DocumentDelegateModelInterface* model,
 														  DocumentDelegateViewInterface* view) = 0;
-			virtual DocumentDelegateModelInterface* makeModel() = 0;
+			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
 	};
 
 }

@@ -3,16 +3,20 @@
 
 namespace iscore
 {
+	class DocumentDelegateViewInterface;
+
 	/**
 	 * @brief The DocumentView class is the central view of i-score.
 	 *
-	 * It displays the @c{PanelView} of a @c{BasePanel}.
+	 * It displays a @c{DocumentDelegateViewInterface}.
 	 */
-	// TODO prévoir une vue tabbée ou on puisse voir plusieurs documents ?
-	// Comment gérer les liens d'un plug-in à un document ? (ex. réseau ?)
-    class DocumentView : public QWidget
+	class DocumentView : public QWidget
 	{
 		public:
 			DocumentView(QWidget* parent);
+			void setViewDelegate(DocumentDelegateViewInterface*);
+
+		private:
+			DocumentDelegateViewInterface* m_view{};
 	};
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 #include <vector>
 #include <memory>
@@ -16,43 +16,39 @@ namespace iscore
 
 	/**
 	 * @brief Application
-	 * 
-	 * This class is the main object in i-score. It is the 
+	 *
+	 * This class is the main object in i-score. It is the
 	 * parent of every other object created.
 	 * It does instantiate the rest of the software (MVP, settings, plugins).
 	 */
-	class Application : public QNamedObject
+	class Application : public NamedObject
 	{
 			Q_OBJECT
 			friend class ChildEventFilter;
 		public:
 			Application(int& argc, char** argv);
+			Application(const Application &) = delete;
+			Application &operator=(const Application &) = delete;
 			~Application();
 
 			int exec() { return m_app->exec(); }
 			View* view() { return m_view; }
 			Settings* settings() { return m_settings.get(); }
-			
 
 		public slots:
 			/**
 			 * @brief addAutoconnection
-			 * 
+			 *
 			 * Allows to add a connection at runtime.
-			 * When called with a new connection, the effect 
-			 * will be retroactive : if previous objects can been 
+			 * When called with a new connection, the effect
+			 * will be retroactive : if previous objects can been
 			 * linked by the new connection, they will be.
 			 */
 			void addAutoconnection(Autoconnect);
 
-        private:
-
-            Application(const Application &);
-            Application &operator=(const Application &);
-
-
+		private:
 			void loadPluginData();
-			
+
 			void doConnections();
 			void doConnections(QObject*);
 

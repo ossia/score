@@ -1,5 +1,5 @@
 #pragma once
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 namespace iscore
 {
@@ -14,11 +14,11 @@ namespace iscore
 	 * It is similar to the opened file in Word for instance, this is the
 	 * data on which i-score operates, further defined by the plugins.
 	 */
-	class Document : public QNamedObject
+	class Document : public NamedObject
 	{
 			Q_OBJECT
 		public:
-			Document(QObject* parent, QWidget* parentview);
+			Document(QWidget* parentview, QObject* parent);
 			DocumentPresenter* presenter() { return m_presenter; }
 			DocumentView* view() { return m_view; }
 
@@ -33,6 +33,8 @@ namespace iscore
 			 * This signal is emitted before a new document is created.
 			 */
 			void newDocument_start(); // TODO Faire end si nécessaire
+
+			void on_elementSelected(QObject*);
 
 		private:
 			DocumentModel* m_model;

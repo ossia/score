@@ -5,12 +5,8 @@ project(iscore_core)
 set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 
 # Packages
-# Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
-# keep in mind that you have to call CMake with :
-# $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 find_package(Qt5Core 5.3 REQUIRED)
 find_package(Qt5Widgets 5.3 REQUIRED)
-find_package(Qt5OpenGL 5.3 REQUIRED)
 
 # Files & main target
 include_directories(.)
@@ -20,6 +16,8 @@ include_directories("${CMAKE_SOURCE_DIR}")
 set(HEADER_FILES
 ### interface ###
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/autoconnect/Autoconnect.hpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/customfactory/CustomFactoryInterface.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/library/LibraryElement.hpp
 
@@ -36,12 +34,6 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegatePresenterInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/documentdelegate/DocumentDelegateViewInterface.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessFactoryInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessSharedModelInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewModelInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessViewInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/process/ProcessPresenterInterface.hpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegateModelInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp
@@ -54,19 +46,24 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PanelFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/PluginControlInterface_QtInterface.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/ProcessFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/Autoconnect_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/CustomFactoryInterface_QtInterface.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugins/FactoryFamily_QtInterface.hpp
+
 
 ### core ###
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/core/QNamedObject
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/NamedObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/IdentifiedObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/SettableIdentifier.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectIdentifier.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/utilsCPP11.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/ChildEventFilter.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.hpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.hpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/model/Model.hpp
 
@@ -95,12 +92,12 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/core/tools/ObjectPath.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/interface/plugincontrol/MenuInterface.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/core/processes/ProcessList.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentPresenter.cpp
@@ -123,7 +120,7 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp
 )
 
-add_library(iscore_lib SHARED ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets Qt5::OpenGL)
+add_library(iscore_lib ${SOURCE_FILES} ${HEADER_FILES})
+target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)
 
 install(TARGETS iscore_lib DESTINATION ${CMAKE_BINARY_DIR})

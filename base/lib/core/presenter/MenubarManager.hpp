@@ -16,8 +16,6 @@ namespace iscore
 	 *
 	 * These are mainly convenience methods to add elements in a non-anarchic way
 	 * to the menu bar, using the information in \c{MenuInterface}.
-	 *
-	 * @todo{Test on OS X}
 	 */
 	class MenubarManager : public QObject
 	{
@@ -70,7 +68,7 @@ namespace iscore
 		signals:
 
 		public slots:
-			void insertActionIntoMenubar(Action);
+			void insertActionIntoMenubar(PositionedMenuAction);
 
 		private:
 			QMenuBar* m_menuBar{};

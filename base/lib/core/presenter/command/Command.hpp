@@ -18,20 +18,11 @@ namespace iscore
 	 */
 	class Command : public QUndoCommand
 	{
-			enum class Origin { Local, Remote };
 		public:
-			Command(QString parname, QString cmdname, QString text, Origin orig):
+			Command(QString parname, QString cmdname, QString text):
 				QUndoCommand{text},
 				m_name{cmdname},
-				m_parentName{parname},
-				m_origin{orig}
-			{
-			}
-
-			Command(QString parname,
-					QString cmdname,
-					QString text):
-				Command(parname, cmdname, text, Origin::Local)
+				m_parentName{parname}
 			{
 			}
 
@@ -50,7 +41,6 @@ namespace iscore
 		private:
 			const QString m_name;
 			const QString m_parentName;
-			const Origin m_origin;
 
 			//TODO check if this is UTC
 			std::chrono::milliseconds m_timestamp

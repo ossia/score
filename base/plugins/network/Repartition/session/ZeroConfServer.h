@@ -9,7 +9,7 @@ class ZeroconfServer : public QObject
 {
 		Q_OBJECT
 
-		quint16 _receiverPort;
+		quint16 _receiverPort{}; //@todo default port ?
 	public:
 		void setPort(int receiverPort)
 		{

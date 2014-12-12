@@ -1,7 +1,8 @@
 # directories
 Trash
 Doxygen/html
-
+bin
+libs
 #files
 .DS_Store
 *.user

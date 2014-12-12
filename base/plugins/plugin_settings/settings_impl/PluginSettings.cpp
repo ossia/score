@@ -19,7 +19,7 @@ SettingsDelegatePresenterInterface* PluginSettings::makePresenter(SettingsPresen
 													   SettingsDelegateViewInterface* v)
 {
 	auto pres = new PluginSettingsPresenter(p, m, v);
-	m->setPresenter(pres);
+
 	v->setPresenter(pres);
 
 	pres->load();

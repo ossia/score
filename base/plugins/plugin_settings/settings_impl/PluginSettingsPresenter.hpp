@@ -29,6 +29,7 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
 
 	public slots:
 		void setBlacklistCommand(BlacklistCommand* cmd);
+
 	private:
 
 		// S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".

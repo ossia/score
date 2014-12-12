@@ -4,7 +4,7 @@
 #include <set>
 #include <core/document/Document.hpp>
 
-#include <QNamedObject>
+#include <tools/NamedObject.hpp>
 
 namespace iscore
 {
@@ -23,7 +23,7 @@ namespace iscore
 	 * It is also able to instantiate a Command from serialized Undo/Redo data.
 	 * (this should go in the DocumentPresenter maybe ?)
 	 */
-	class Presenter : public QNamedObject
+	class Presenter : public NamedObject
 	{
 			Q_OBJECT
 		public:
@@ -41,6 +41,8 @@ namespace iscore
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
 			 */
 			void instantiatedCommand(iscore::SerializableCommand*);
+			
+			void elementSelected(QObject* elt);
 
 		public slots:
 			/**
@@ -64,6 +66,14 @@ namespace iscore
 			void instantiateUndoCommand(QString parent_name,
 										QString name,
 										QByteArray data);
+			
+			/**
+			 * @brief on_elementSelected Called when an object is selected, either on the document, or on a panel.
+			 * @param elt
+			 * 
+			 * @todo Do for panel (now is only for document)
+			 */
+			void on_elementSelected(QObject* elt);
 
 		private:
 			void setupMenus();

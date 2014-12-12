@@ -4,26 +4,20 @@
 #include <QDebug>
 namespace iscore
 {
-	/*
-	 * auto-connect : faire à chaque fois qu'on fait un make_qqch sur un truc issu d'un plug-in (ou qu'on reçoit un childEvent?).
-	 * Pour que ça marche on utilise la notion parent - children des QObject, qui permettent
-	 * facilement de faire une recherche récursive.
-	 */
-	// CF : http://www.qtforum.org/article/515/connecting-signals-and-slots-by-name-at-runtime.html
-	
 	/**
 	 * @brief The Autoconnect class
 	 *
 	 * Allows for auto-connection of two objects, either by name or by inheritance relationship.
+	 * Is done at runtime ( http://www.qtforum.org/article/515/connecting-signals-and-slots-by-name-at-runtime.html ), by Application::doConnections
 	 */
 	class Autoconnect
 	{
 		public:
 			enum class ObjectRepresentationType { QObjectName, Inheritance };
-			struct ObjectRepresentation
+			struct HalfOfConnection
 			{
-					ObjectRepresentation(const ObjectRepresentation&) = default;
-					ObjectRepresentation& operator=(const ObjectRepresentation&) = default;
+					HalfOfConnection(const HalfOfConnection&) = default;
+					HalfOfConnection& operator=(const HalfOfConnection&) = default;
 					ObjectRepresentationType type;
 					const char* name;
 					const char* method;
@@ -32,10 +26,10 @@ namespace iscore
 			Autoconnect(const Autoconnect&) = default;
 			Autoconnect& operator=(const Autoconnect&) = default;
 
-			ObjectRepresentation source;
-			ObjectRepresentation target;
+			HalfOfConnection source;
+			HalfOfConnection target;
 
-			QList<QObject*> getMatchingChildren(const ObjectRepresentation& obj_repr,
+			QList<QObject*> getMatchingChildren(const HalfOfConnection& obj_repr,
 												const QObject* obj) const
 			{
 				QList<QObject*> children;
@@ -62,55 +56,36 @@ namespace iscore
 				return children;
 			}
 
-			QList<QObject*> getMatchingChildrenForSource() const
-			{
-				return QList<QObject*>{};
-			}
-			
-			// TODO put variadic templates in here to have infinite appending on the QList.
-			template<typename Arg>  // static assert that Arg has a pointer somewhere ?
+			// Cannot call without arguments.
+			QList<QObject*> getMatchingChildrenForSource() const = delete;
+			QList<QObject*> getMatchingChildrenForTarget() const = delete;
+
+			template<typename Arg>
 			QList<QObject*> getMatchingChildrenForSource(Arg&& obj) const
 			{
 				return getMatchingChildren(source, obj);
 			}
-			
+
 			template<typename Arg, typename... ObjectType>
 			QList<QObject*> getMatchingChildrenForSource(Arg obj, ObjectType&&... further_objs) const
 			{
-				return getMatchingChildrenForSource(obj) + 
+				return getMatchingChildrenForSource(obj) +
 					   getMatchingChildrenForSource(std::forward<ObjectType>(further_objs)...);
 			}
-			
-			template<typename Arg>  // static assert that Arg has a pointer somewhere ?
+
+			template<typename Arg>
 			QList<QObject*> getMatchingChildrenForTarget(Arg&& obj) const
 			{
 				return getMatchingChildren(target, obj);
 			}
-			
+
 			template<typename Arg, typename... ObjectType>
 			QList<QObject*> getMatchingChildrenForTarget(Arg obj, ObjectType&&... further_objs) const
 			{
-				return getMatchingChildrenForTarget(obj) + 
+				return getMatchingChildrenForTarget(obj) +
 					   getMatchingChildrenForTarget(std::forward<ObjectType>(further_objs)...);
 			}
-			
-			QList<QObject*> getMatchingChildrenForTarget() const
-			{
-				return QList<QObject*>{};
-			}
-			
-			
-			/// OK
-/*
-			QList<QObject*> getMatchingChildrenForSource(const QObject* obj) const
-			{
-				return std::move(getMatchingChildren(source, obj));
-			}
-*/
-			/*
-			QList<QObject*> getMatchingChildrenForTarget(const QObject* obj) const
-			{
-				return std::move(getMatchingChildren(target, obj));
-			}*/
+
+
 	};
 }

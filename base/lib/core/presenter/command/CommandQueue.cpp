@@ -3,9 +3,11 @@
 #include <QDebug>
 using namespace iscore;
 
-CommandQueue::CommandQueue()
+CommandQueue::CommandQueue(QObject* parent):
+	QUndoStack{nullptr}
 {
 	this->setObjectName("CommandQueue");
+	this->setParent(parent);
 }
 
 void CommandQueue::push(SerializableCommand* cmd)
