@@ -2,6 +2,7 @@
 
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Document/Interval/IntervalModel.hpp"
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -27,7 +28,10 @@ CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, doub
 	m_time{time},
 	m_heightPosition{heightPosition}
 {
+	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
+	m_createdIntervalId = getNextId(scenar->intervals());
+	m_createdEventId = getNextId(scenar->events());
 }
 
 void CreateEventCommand::undo()
@@ -35,8 +39,7 @@ void CreateEventCommand::undo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-		scenar->undo_createIntervalAndEndEventFromStartEvent(m_intervalId);
-		m_intervalId = -1;
+		scenar->undo_createIntervalAndEndEventFromStartEvent(m_createdIntervalId);
 	}
 }
 
@@ -45,8 +48,10 @@ void CreateEventCommand::redo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 	if(scenar != nullptr)
 	{
-		auto ids = scenar->createIntervalAndEndEventFromStartEvent(m_time, m_heightPosition);
-		m_intervalId = std::get<0>(ids);
+		scenar->createIntervalAndEndEventFromStartEvent(m_time,
+														m_heightPosition,
+														m_createdIntervalId,
+														m_createdEventId);
 	}
 }
 

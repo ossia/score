@@ -56,11 +56,11 @@ StoreyModel::StoreyModel(int id, IntervalContentModel* parent):
 
 }
 
-int StoreyModel::createProcessViewModel(int sharedProcessId)
+int StoreyModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
 {
 	// Search the corresponding process in the parent interval.
 	auto process = parentInterval()->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(getNextId(m_processViewModels), sharedProcessId, this);
+	auto viewmodel = process->makeViewModel(newProcessViewModelId, sharedProcessId, this);
 
 	m_processViewModels.push_back(viewmodel);
 

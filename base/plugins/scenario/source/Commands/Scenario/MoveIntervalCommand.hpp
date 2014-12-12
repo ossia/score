@@ -5,6 +5,7 @@
 class MoveIntervalCommand : public iscore::SerializableCommand
 {
 	public:
+		// TODO le endEvent est-il nécessaire ?
 		MoveIntervalCommand(ObjectPath &&scenarioPath, int intervalId, int endEvent, double heightPosition);
 		virtual void undo() override;
 		virtual void redo() override;

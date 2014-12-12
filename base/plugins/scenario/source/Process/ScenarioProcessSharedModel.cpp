@@ -65,9 +65,10 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
-	m_scenario{new OSSIA::Scenario}
+	m_scenario{new OSSIA::Scenario},
+	m_startEventId{getNextId()}
 {
-	m_events.push_back(new EventModel{getNextId(m_events), this});
+	m_events.push_back(new EventModel{m_startEventId, this});
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 	//m_events.push_back(new EventModel(1, this));
 }
@@ -107,11 +108,11 @@ ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream&
 
 
 //////// Creation ////////
-int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, int endEventId)
+int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, int endEventId, int newIntervalModelId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new IntervalModel{getNextId(m_intervals), this};
+	auto inter = new IntervalModel{newIntervalModelId, this};
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -137,10 +138,12 @@ int ScenarioProcessSharedModel::createIntervalBetweenEvents(int startEventId, in
 std::tuple<int, int>
 ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 															   int interval_duration,
-															   double heightPos)
+															   double heightPos,
+															   int newIntervalId,
+															   int newEventId)
 {
-	auto event = new EventModel{getNextId(m_events), this->event(startEventId)->heightPercentage(), this};
-	auto inter = new IntervalModel{getNextId(m_intervals), this->event(startEventId)->heightPercentage(), this};
+	auto inter = new IntervalModel{newIntervalId, this->event(startEventId)->heightPercentage(), this};
+	auto event = new EventModel{newEventId, this->event(startEventId)->heightPercentage(), this};
 
 
 	if (startEventId == startEvent()->id()) {
@@ -179,10 +182,22 @@ ScenarioProcessSharedModel::createIntervalAndEndEventFromEvent(int startEventId,
 }
 
 
-std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur, double heightPos)
+std::tuple<int, int, int, int> ScenarioProcessSharedModel::createIntervalAndBothEvents(int start, int dur, double heightPos,
+																					   int createdFirstIntervalId,
+																					   int createdFirstEventId,
+																					   int createdSecondIntervalId,
+																					   int createdSecondEventId)
 {
-	auto t1 = createIntervalAndEndEventFromStartEvent(start, heightPos);
-	auto t2 = createIntervalAndEndEventFromEvent(std::get<1>(t1), dur, heightPos);
+	auto t1 = createIntervalAndEndEventFromStartEvent(start,
+													  heightPos,
+													  createdFirstIntervalId,
+													  createdFirstEventId);
+
+	auto t2 = createIntervalAndEndEventFromEvent(createdFirstEventId,
+												 dur,
+												 heightPos,
+												 createdSecondIntervalId,
+												 createdSecondEventId);
 
 	return std::tuple_cat(t1, t2);
 }
@@ -205,9 +220,16 @@ void ScenarioProcessSharedModel::moveInterval(int intervalId, double heightPosit
 	emit intervalMoved(intervalId);
 }
 
-std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime, double heightPos)
+std::tuple<int, int> ScenarioProcessSharedModel::createIntervalAndEndEventFromStartEvent(int endTime,
+																						 double heightPos,
+																						 int newIntervalId,
+																						 int newEventId)
 {
-	return createIntervalAndEndEventFromEvent(startEvent()->id(), endTime, heightPos);
+	return createIntervalAndEndEventFromEvent(startEvent()->id(),
+											  endTime,
+											  heightPos,
+											  newIntervalId,
+											  newEventId);
 }
 
 ///////// DELETION //////////
@@ -289,4 +311,14 @@ IntervalModel* ScenarioProcessSharedModel::interval(int intervalId)
 EventModel* ScenarioProcessSharedModel::event(int eventId)
 {
 	return findById(m_events, eventId);
+}
+
+EventModel* ScenarioProcessSharedModel::startEvent()
+{
+	return event(m_startEventId);
+}
+
+EventModel* ScenarioProcessSharedModel::endEvent()
+{
+	return event(m_endEventId);
 }

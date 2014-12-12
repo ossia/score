@@ -5,10 +5,12 @@
 #include "Document/Interval/IntervalContent/Storey/StoreyModel.hpp"
 #include "Document/Interval/IntervalContent/Storey/PositionedStorey/PositionedStoreyModel.hpp"
 
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+
 #include <QDebug>
 using namespace iscore;
 
-
+// TODO switch between content models.
 AddProcessToIntervalCommand::AddProcessToIntervalCommand(ObjectPath&& intervalPath, QString process):
 	SerializableCommand{"ScenarioControl",
 						"AddProcessToIntervalCommand",
@@ -16,21 +18,22 @@ AddProcessToIntervalCommand::AddProcessToIntervalCommand(ObjectPath&& intervalPa
 	m_path(std::move(intervalPath)),
 	m_processName{process}
 {
-
+	auto interval = static_cast<IntervalModel*>(m_path.find());
+	m_createdProcessId = getNextId(interval->processes());
+	m_contentModelId = interval->contentModels().front()->id(); // TODO pass as arg of the command.
+	m_createdStoreyId = getNextId(interval->contentModel(m_contentModelId)->storeys());
+	m_createdProcessViewModelId = getNextId(); // Storey does not exist yet so we can safely do this.
 }
 
 void AddProcessToIntervalCommand::undo()
 {
 	auto interval = static_cast<IntervalModel*>(m_path.find());
-	auto contentModel = interval->contentModel(0);
+	auto contentModel = interval->contentModel(m_contentModelId);
 	auto storey = contentModel->storey(m_createdStoreyId);
 	storey->deleteProcessViewModel(m_createdProcessViewModelId);
 	contentModel->deleteStorey(storey->id());
 
 	interval->deleteProcess(m_createdProcessId);
-	m_createdProcessId = -1;
-	m_createdStoreyId = -1;
-	m_createdProcessViewModelId = -1;
 }
 
 void AddProcessToIntervalCommand::redo()
@@ -38,15 +41,15 @@ void AddProcessToIntervalCommand::redo()
 	auto interval = static_cast<IntervalModel*>(m_path.find());
 
 	// Create process model
-	m_createdProcessId = interval->createProcess(m_processName);
-	auto contentModel = interval->contentModel(0);
+	interval->createProcess(m_processName, m_createdProcessId);
+	auto contentModel = interval->contentModel(m_contentModelId);
 
 	// Create storey
-	m_createdStoreyId = contentModel->createStorey();
+	contentModel->createStorey(m_createdStoreyId);
 	auto storey = contentModel->storey(m_createdStoreyId);
 
 	// Create process view model in the storey
-	m_createdProcessViewModelId = storey->createProcessViewModel(m_createdProcessId);
+	storey->createProcessViewModel(m_createdProcessId, m_createdProcessViewModelId);
 }
 
 int AddProcessToIntervalCommand::id() const

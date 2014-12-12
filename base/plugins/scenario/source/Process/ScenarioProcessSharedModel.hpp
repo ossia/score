@@ -35,7 +35,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// Creation of objects.
 
 		// Creates an interval between two pre-existing events
-		int createIntervalBetweenEvents(int startEventId, int endEventId);
+		int createIntervalBetweenEvents(int startEventId, int endEventId, int newIntervalModelId);
 
 		/**
 		 * @brief createIntervalAndEndEventFromEvent Base building block of a scenario.
@@ -47,11 +47,17 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * the interval is linked to both events.
 		 */
 		std::tuple<int, int> createIntervalAndEndEventFromEvent(int startEventId,
-																int duration, double heightPos);
+																int duration,
+																double heightPos,
+																int newIntervalId,
+																int newEventId);
 
 		// Creates an interval between the start event of the scenario and this one
 		// and an event at the end of this interval
-		std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time, double heightPos);
+		std::tuple<int, int> createIntervalAndEndEventFromStartEvent(int time,
+																	 double heightPos,
+																	 int newIntervalId,
+																	 int newEventId);
 
 		// Creates :
 		/// - An interval from the start event of the scenario to an event at startTime
@@ -59,7 +65,12 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		/// - An interval going from the event at startTime to the event at startTime + duration
 		/// - The event at startTime + duration
 		std::tuple<int, int, int, int> createIntervalAndBothEvents(int startTime,
-																   int duration, double heightPos);
+																   int duration,
+																   double heightPos,
+																   int createdFirstIntervalId,  // todo maybe put in a tuple.
+																   int createdFirstEventId,
+																   int createdSecondIntervalId,
+																   int createdSecondEventId);
 
 		void moveEventAndInterval(int eventId, int time, double heightPosition);
 		void moveEventAndInterval(int eventId, double heightPosition);
@@ -75,6 +86,9 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		IntervalModel* interval(int intervalId);
 		EventModel* event(int eventId);
+
+		EventModel* startEvent();
+		EventModel* endEvent();
 
 		// For the presenter :
 		const std::vector<IntervalModel*> intervals() const
@@ -96,8 +110,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		std::vector<IntervalModel*> m_intervals;
 		std::vector<EventModel*> m_events;
 
-		EventModel* startEvent() { return m_events[0]; }
-		EventModel* endEvent() { return m_events[1]; }
-
+		int m_startEventId{};
+		int m_endEventId{};
 };
 

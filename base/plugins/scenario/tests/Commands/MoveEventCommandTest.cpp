@@ -10,37 +10,37 @@ using namespace iscore;
 
 class MoveEventCommandTest: public QObject
 {
-        Q_OBJECT
-    public:
+		Q_OBJECT
+	public:
 
-    private slots:
+	private slots:
 
-        void MoveCommandTest()
-        {
-            ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+		void MoveCommandTest()
+		{
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
 
-            MoveEventCommand cmd(
-            {
-                {"ScenarioProcessSharedModel", {}},
-            }, 0, 10, 0.1 );
+			MoveEventCommand cmd(
+			{
+				{"ScenarioProcessSharedModel", {}},
+			}, scenar->startEvent()->id(), 10, 0.1 );
 
-            qDebug("\n============= Before");
-            cmd.redo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.1);
+			qDebug("\n============= Before");
+			cmd.redo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
 
-            qDebug("\n\n============= Undo");
-            cmd.undo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.5);
+			qDebug("\n\n============= Undo");
+			cmd.undo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.5);
 
-            qDebug("\n\n============= Redo");
-            cmd.redo();
-            QCOMPARE(scenar->event(0)->heightPercentage(), 0.1);
+			qDebug("\n\n============= Redo");
+			cmd.redo();
+			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
 
 
-            // Delete them else they stay in qApp !
+			// Delete them else they stay in qApp !
 
-            delete scenar;
-        }
+			delete scenar;
+		}
 };
 
 QTEST_MAIN(MoveEventCommandTest)

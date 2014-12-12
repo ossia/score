@@ -43,11 +43,11 @@ IntervalContentModel::IntervalContentModel(QDataStream& s, IntervalModel* parent
 	s >> *this;
 }
 
-int IntervalContentModel::createStorey()
+int IntervalContentModel::createStorey(int newStoreyId)
 {
 	return createStorey_impl(
 				new PositionedStoreyModel{(int) m_storeys.size(),
-										  getNextId(m_storeys),
+										  newStoreyId,
 										  this});
 
 }

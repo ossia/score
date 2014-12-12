@@ -13,74 +13,60 @@ using namespace iscore;
 
 class CreateEventAfterEventCommandTest: public QObject
 {
-        Q_OBJECT
-    public:
+		Q_OBJECT
+	public:
 
-    private slots:
+	private slots:
 
-        void CreateCommandTest()
-        {
-            ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
-            CreateEventCommand cmd(
-            {
-                {"ScenarioProcessSharedModel", {}},
-            }, 100, 0.5 );
-            int s{0};
+		void CreateCommandTest()
+		{
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			CreateEventCommand cmd(
+			{
+				{"ScenarioProcessSharedModel", {}},
+			}, 100, 0.5 );
 
-            qDebug("\n\n============= CreateEventCommand");
-            qDebug("\n============= Before");
-            cmd.redo();
-            s = scenar->events().size();
-            QCOMPARE(s, 2);
-            QCOMPARE(scenar->event(1)->heightPercentage(), 0.5);
+			cmd.redo();
+			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent
+			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-            qDebug("\n\n============= Undo");
-            cmd.undo();
-            QCOMPARE(scenar->event(1), static_cast<EventModel*>(nullptr));
-            qDebug("\n\n============= Redo");
-            cmd.redo();
+			cmd.undo();
+			QCOMPARE((int)scenar->events().size(), 1); // TODO 2 if endEvent
+			cmd.redo();
 
-            s = scenar->events().size();
-            QCOMPARE(s, 2);
-            QCOMPARE(scenar->event(1)->heightPercentage(), 0.5);
+			QCOMPARE((int)scenar->events().size(), 2);
+			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 
-            // Delete them else they stay in qApp !
+			// Delete them else they stay in qApp !
 
-            delete scenar;
-        }
+			delete scenar;
+		}
 
-        void CreateAfterCommandTest()
-        {
-            ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
-            CreateEventAfterEventCommand cmd(
-            {
-                {"ScenarioProcessSharedModel", {}},
-            }, 0, 100, 0.5 );
-            int s{0};
+		void CreateAfterCommandTest()
+		{
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			CreateEventAfterEventCommand cmd(
+			{
+				{"ScenarioProcessSharedModel", {}},
+			}, scenar->startEvent()->id(), 100, 0.5 );
 
-            qDebug("\n\n============= CreateEventAfterEventCommand");
-            qDebug("\n============= Before");
-            cmd.redo();
-            s = scenar->events().size();
-            QCOMPARE(s, 2);
-            QCOMPARE(scenar->event(1)->heightPercentage(), 0.5);
+			cmd.redo();
+			QCOMPARE((int)scenar->events().size(), 2);
+			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-            qDebug("\n\n============= Undo");
-            cmd.undo();
-            QCOMPARE(scenar->event(1), static_cast<EventModel*>(nullptr));
-            qDebug("\n\n============= Redo");
-            cmd.redo();
+			cmd.undo();
+			QCOMPARE(scenar->event(cmd.m_createdEventId), static_cast<EventModel*>(nullptr));
+			cmd.redo();
 
-            s = scenar->events().size();
-            QCOMPARE(s, 2);
-            QCOMPARE(scenar->event(1)->heightPercentage(), 0.5);
+			QCOMPARE((int)scenar->events().size(), 2);
+			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 
-            // Delete them else they stay in qApp !
+			// Delete them else they stay in qApp !
 
-            delete scenar;
-        }
+			delete scenar;
+		}
 
 };
 

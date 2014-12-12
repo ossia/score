@@ -67,22 +67,39 @@ typename Container::value_type findById(const Container& c, int id)
 	return nullptr;
 }
 
+
+inline int32_t getNextId()
+{
+	using namespace std;
+	static random_device rd;
+	static mt19937 gen(rd());
+	static uniform_int_distribution<int32_t>
+			dist(numeric_limits<int32_t>::min(),
+				 numeric_limits<int32_t>::max());
+
+	return dist(gen);
+}
+
+// TODO replace by a function that does random generation and checks
+// if it exists in the vector
 template <typename Vector>
 int getNextId(const Vector& v)
 {
-	if(v.size() == 0)
-	{
-		return 0;
-	}
+	using namespace std;
+	vector<int> ids(v.size()); // Map reduce
+	transform(begin(v),
+			  end(v),
+			  begin(ids),
+			  [] (typename Vector::value_type elt) { return elt->id(); });
 
-	std::vector<int> ids(v.size()); // Map reduce
-	std::transform(std::begin(v),
-				   std::end(v),
-				   std::begin(ids),
-				   [] (typename Vector::value_type elt) { return elt->id(); });
+	int id{};
+	do {
+		id = getNextId();
+	} while(find(begin(ids),
+				 end(ids),
+				 id) != end(ids));
 
-	return *(std::max_element(std::begin(ids),
-							  std::end(ids))) + 1;
+	return id;
 }
 
 template <typename Vector>

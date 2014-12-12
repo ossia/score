@@ -31,4 +31,5 @@ class AddProcessToIntervalCommand : public iscore::SerializableCommand
 		int m_createdProcessId{-1};
 		int m_createdStoreyId{-1};
 		int m_createdProcessViewModelId{-1};
+		int m_contentModelId{};
 };
