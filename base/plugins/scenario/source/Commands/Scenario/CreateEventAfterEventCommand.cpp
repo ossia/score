@@ -1,6 +1,7 @@
 #include "CreateEventAfterEventCommand.hpp"
 
 #include "Process/ScenarioProcessSharedModel.hpp"
+#include "Document/Event/EventData.hpp"
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -18,17 +19,14 @@ CreateEventAfterEventCommand::CreateEventAfterEventCommand():
 {
 }
 
-CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath&& scenarioPath,
-														   int firstEventId,
-														   int time,
-														   double heightPos):
-	SerializableCommand{"ScenarioControl",
-						"CreateEventAfterEventCommand",
-						QObject::tr("Event creation")},
-	m_path(std::move(scenarioPath)),
-	m_firstEventId{firstEventId},
-	m_time{time},
-	m_heightPosition{heightPos}
+CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath &&scenarioPath, EventData data):
+    SerializableCommand{"ScenarioControl",
+                        "CreateEventAfterEventCommand",
+                        QObject::tr("Event creation")},
+    m_path(std::move(scenarioPath)),
+    m_firstEventId{data.id},
+    m_time{data.x},
+    m_heightPosition{data.relativeY}
 {
 
 }

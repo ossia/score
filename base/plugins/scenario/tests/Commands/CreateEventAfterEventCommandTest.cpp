@@ -4,6 +4,7 @@
 #include <Commands/Scenario/CreateEventCommand.hpp>
 
 #include <Document/Event/EventModel.hpp>
+#include <Document/Event/EventData.hpp>
 
 #include <Process/ScenarioProcessSharedModel.hpp>
 
@@ -53,10 +54,15 @@ class CreateEventAfterEventCommandTest: public QObject
         void CreateAfterCommandTest()
         {
             ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+            EventData data{};
+            data.id = 0;
+            data.x = 10;
+            data.relativeY = 0.5;
+
             CreateEventAfterEventCommand cmd(
             {
                 {"ScenarioProcessSharedModel", {}},
-            }, 0, 100, 0.5 );
+            }, data );
             int s{0};
 
             qDebug("\n\n============= CreateEventAfterEventCommand");

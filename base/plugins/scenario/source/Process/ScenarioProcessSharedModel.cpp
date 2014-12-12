@@ -3,6 +3,7 @@
 #include "Process/ScenarioProcessViewModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventData.hpp"
 #include "Document/Interval/IntervalModel.hpp"
 
 #include <API/Headers/Editor/Scenario.h>

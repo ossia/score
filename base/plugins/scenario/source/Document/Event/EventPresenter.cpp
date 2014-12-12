@@ -21,16 +21,11 @@ EventPresenter::EventPresenter(EventModel* model,
 		emit elementSelected(m_model);
 	});
 	connect(m_view, &EventView::eventReleasedWithControl,
-			[&] (QPointF p)
-	{
-		emit eventReleasedWithControl(id(), p.x(), p.y());
-	});
+            this, &EventPresenter::on_eventReleasedWithControl);
+
 	connect(m_view, &EventView::eventReleased,
             this, &EventPresenter::on_eventReleased);
-/*            [&] (QPointF p)
-	{
-		emit eventReleased(id(), p.x(), p.y());
-    }); */
+
 }
 
 EventPresenter::~EventPresenter()
@@ -57,9 +52,18 @@ EventModel *EventPresenter::model() const
 
 void EventPresenter::on_eventReleased(QPointF p)
 {
-    EventData d{}; // = new EventData;
+    EventData d{};
     d.id = id();
     d.x = p.x();
     d.y = p.y();
     emit eventReleased(d);
+}
+
+void EventPresenter::on_eventReleasedWithControl(QPointF p)
+{
+    EventData d{};
+    d.id = id();
+    d.x = p.x();
+    d.y = p.y();
+    emit eventReleasedWithControl(d);
 }

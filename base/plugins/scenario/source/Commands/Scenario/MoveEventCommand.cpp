@@ -2,6 +2,7 @@
 
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventData.hpp"
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -12,14 +13,14 @@
 using namespace iscore;
 
 
-MoveEventCommand::MoveEventCommand(ObjectPath&& scenarioPath, int eventId, int time, double heightPosition):
-	SerializableCommand{"ScenarioControl",
-						"MoveEventCommand",
-						QObject::tr("Event move")},
-	m_scenarioPath(std::move(scenarioPath)),
-	m_eventId{eventId},
-	m_time{time},
-	m_heightPosition{heightPosition}
+MoveEventCommand::MoveEventCommand(ObjectPath &&scenarioPath, EventData data):
+    SerializableCommand{"ScenarioControl",
+                        "MoveEventCommand",
+                        QObject::tr("Event move")},
+    m_scenarioPath(std::move(scenarioPath)),
+    m_eventId{data.id},
+    m_time{data.x},
+    m_heightPosition{data.relativeY}
 {
 
 }

@@ -3,6 +3,7 @@
 #include <Commands/Scenario/MoveEventCommand.hpp>
 
 #include <Document/Event/EventModel.hpp>
+#include <Document/Event/EventData.hpp>
 
 #include <Process/ScenarioProcessSharedModel.hpp>
 
@@ -18,11 +19,15 @@ class MoveEventCommandTest: public QObject
         void MoveCommandTest()
         {
             ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+            EventData data{};
+            data.id = 0;
+            data.x = 10;
+            data.relativeY = 0.1;
 
             MoveEventCommand cmd(
             {
                 {"ScenarioProcessSharedModel", {}},
-            }, 0, 10, 0.1 );
+            }, data );
 
             qDebug("\n============= Before");
             cmd.redo();
