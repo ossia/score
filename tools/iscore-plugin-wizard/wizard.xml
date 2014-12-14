@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of Qt Creator.
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+****************************************************************************/
+
+Custom class wizard example configuration file. -->
+<wizard version="1" kind="project" id="A.i-scorePlugin" category="B.CustomProjects">
+    <description>Creates an i-score plug-in.</description>
+    <displayname>i-score plug-in</displayname>;
+    <displaycategory>Custom Projects</displaycategory>
+    <files>
+        <file source="plugin.cpp" target="%ClassName%.cpp" openeditor="true"/>
+        <file source="plugin.h" target="%ClassName%.hpp" openeditor="true"/>
+        <file source="plugin.cmake" target="CMakeLists.txt" openeditor="true"/>
+    </files>
+    <!-- Create parameter wizard page -->
+    <fieldpagetitle>Plug-in parameters</fieldpagetitle>
+    <fields>
+        <field name="ClassName">
+            <fieldcontrol class="QLineEdit" validator="^[a-zA-Z0-9_]+$" defaulttext="MyIScorePlugin" placeholdertext="Enter a class name"/>
+            <fielddescription>Plug-in name:</fielddescription>
+        </field>
+        <field name="AUTOCONNECT">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>AutoConnect interface</fielddescription>
+        </field>
+        <field name="FACTORYFAMILY">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>FactoryFamily interface</fielddescription>
+        </field>
+        <field name="FACTORYINTERFACE">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>FactoryInterface interface</fielddescription>
+        </field>
+        <field name="DOCUMENTDELEGATE">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>DocumentDelegate interface</fielddescription>
+        </field>
+        <field name="PANEL">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>Panel interface</fielddescription>
+        </field>
+        <field name="PLUGINCONTROL">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>PluginControl interface</fielddescription>
+        </field>
+        <field name="SETTINGSDELEGATE">
+		    <fieldcontrol class="QCheckBox" defaultvalue="true"/>
+            <fielddescription>SettingsDelegate interface</fielddescription>
+        </field>
+    </fields>
+    
+</wizard>
