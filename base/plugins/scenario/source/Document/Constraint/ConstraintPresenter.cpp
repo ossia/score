@@ -27,8 +27,6 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 		on_boxCreated_impl(box);
 	}
 
-	on_askUpdate();
-
 	connect(m_model, &ConstraintModel::boxCreated,
 			this,	 &ConstraintPresenter::on_boxCreated);
 
@@ -123,4 +121,6 @@ void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 			this,		   &ConstraintPresenter::on_askUpdate);
 
 	m_contentPresenters.push_back(box_presenter);
+
+	on_askUpdate();
 }

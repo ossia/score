@@ -38,7 +38,7 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 
 	signals:
 		void currentlySelectedEventChanged(int arg);
-        void linesExtremityScaled(int, int);
+		void linesExtremityScaled(int, int);
 
 	public slots:
 		// Model -> view
@@ -54,11 +54,13 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_scenarioPressed(QPointF);
 		void on_scenarioReleased(QPointF);
 
+		void on_askUpdate();
+
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
-        void createConstraintAndEventFromEvent(EventData data);
-        void moveEventAndConstraint(EventData data);
-        void moveConstraint(ConstraintData data);
+		void createConstraintAndEventFromEvent(EventData data);
+		void moveEventAndConstraint(EventData data);
+		void moveConstraint(ConstraintData data);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

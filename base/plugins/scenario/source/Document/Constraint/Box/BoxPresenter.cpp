@@ -69,6 +69,8 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 
 	connect(storeyPres, &StoreyPresenter::askUpdate,
 			this,		&BoxPresenter::on_askUpdate);
+
+	on_askUpdate();
 }
 
 void BoxPresenter::on_storeyDeleted(int storeyId)
