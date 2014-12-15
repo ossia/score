@@ -25,6 +25,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 		"Scenario");
 	cmd->redo();
 
+	on_askUpdate();
+
 	connect(m_baseConstraintPresenter,	&ConstraintPresenter::submitCommand,
 			this,						&BaseElementPresenter::submitCommand);
 

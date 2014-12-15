@@ -23,6 +23,8 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 		on_storeyCreated_impl(storeyModel);
 	}
 
+	on_askUpdate();
+
 	connect(m_model,	&BoxModel::storeyCreated,
 			this,		&BoxPresenter::on_storeyCreated);
 	connect(m_model,	&BoxModel::storeyDeleted,

@@ -27,6 +27,8 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 		on_boxCreated_impl(box);
 	}
 
+	on_askUpdate();
+
 	connect(m_model, &ConstraintModel::boxCreated,
 			this,	 &ConstraintPresenter::on_boxCreated);
 
@@ -92,7 +94,11 @@ void ConstraintPresenter::on_boxCreated(int boxId)
 
 void ConstraintPresenter::on_askUpdate()
 {
-	m_view->m_rect.setHeight(m_contentPresenters.front()->height() + 60);
+	int contentPresenterVerticalSize = 0;
+	if(m_contentPresenters.size() > 0)
+		contentPresenterVerticalSize = m_contentPresenters.front()->height();
+
+	m_view->m_rect.setHeight(contentPresenterVerticalSize + 60);
 
 	emit askUpdate();
 	m_view->update();
