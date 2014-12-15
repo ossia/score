@@ -1,7 +1,7 @@
 #include "StoreyPresenter.hpp"
 
-#include "Document/Constraint/ConstraintContent/Storey/StoreyModel.hpp"
-#include "Document/Constraint/ConstraintContent/Storey/StoreyView.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyView.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include "Control/ProcessList.hpp"

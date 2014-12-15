@@ -1,11 +1,11 @@
 #include <QtTest/QtTest>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
-#include <Document/Constraint/ConstraintContent/ConstraintContentModel.hpp>
+#include <Document/Constraint/Box/BoxModel.hpp>
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 #include <core/tools/ObjectPath.hpp>
-#include <Document/Constraint/ConstraintContent/Storey/PositionedStorey/PositionedStoreyModel.hpp>
+#include <Document/Constraint/Box/Storey/PositionedStorey/PositionedStoreyModel.hpp>
 
 
 class ConstraintModelTests: public QObject
@@ -21,9 +21,9 @@ class ConstraintModelTests: public QObject
 		void CreateStoreyTest()
 		{
 			ConstraintModel model{0, this};
-			auto content_id = getNextId(model.contentModels());
-			model.createContentModel(content_id);
-			auto content = model.contentModel(content_id);
+			auto content_id = getNextId(model.boxes());
+			model.createBox(content_id);
+			auto content = model.box(content_id);
 			QVERIFY(content != nullptr);
 
 			auto storey_id = getNextId(content->storeys());
@@ -37,27 +37,27 @@ class ConstraintModelTests: public QObject
 			/////
 			{
 				ConstraintModel model{0, this};
-				auto content_id = getNextId(model.contentModels());
-				model.createContentModel(content_id);
-				auto content = model.contentModel(content_id);
+				auto content_id = getNextId(model.boxes());
+				model.createBox(content_id);
+				auto content = model.box(content_id);
 
 				auto storey_id = getNextId(content->storeys());
 				content->createStorey(storey_id);
 				content->deleteStorey(storey_id);
-				model.deleteContentModel(content_id);
+				model.deleteBox(content_id);
 			}
 
 			//////
 			{
 				ConstraintModel model{0, this};
-				auto content_id = getNextId(model.contentModels());
-				model.createContentModel(content_id);
-				auto content = model.contentModel(content_id);
+				auto content_id = getNextId(model.boxes());
+				model.createBox(content_id);
+				auto content = model.box(content_id);
 
 				content->createStorey(getNextId(content->storeys()));
 				content->createStorey(getNextId(content->storeys()));
 				content->createStorey(getNextId(content->storeys()));
-				model.deleteContentModel(content_id);
+				model.deleteBox(content_id);
 			}
 		}
 

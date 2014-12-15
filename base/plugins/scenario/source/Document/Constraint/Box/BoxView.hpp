@@ -1,13 +1,13 @@
 #pragma once
 #include <QGraphicsObject>
 
-class ConstraintContentView : public QGraphicsObject
+class BoxView : public QGraphicsObject
 {
 	Q_OBJECT
 
 	public:
-		ConstraintContentView(QGraphicsObject* parent);
-		virtual ~ConstraintContentView() = default;
+		BoxView(QGraphicsObject* parent);
+		virtual ~BoxView() = default;
 
 
 		virtual QRectF boundingRect() const override;

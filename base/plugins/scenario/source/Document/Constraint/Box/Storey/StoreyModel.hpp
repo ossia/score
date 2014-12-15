@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class ConstraintContentModel;
+class BoxModel;
 class ConstraintModel;
 
 namespace iscore
@@ -24,8 +24,8 @@ class StoreyModel : public IdentifiedObject
 		friend QDataStream& operator << (QDataStream& , const StoreyModel& );
 		friend QDataStream& operator >> (QDataStream& , StoreyModel& );
 
-		StoreyModel(QDataStream& s, ConstraintContentModel* parent);
-		StoreyModel(int id, ConstraintContentModel* parent);
+		StoreyModel(QDataStream& s, BoxModel* parent);
+		StoreyModel(int id, BoxModel* parent);
 		virtual ~StoreyModel() = default;
 
 		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);

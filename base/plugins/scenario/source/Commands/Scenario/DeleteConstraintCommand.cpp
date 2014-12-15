@@ -23,7 +23,6 @@ void EmptyConstraintBox::undo()
 void EmptyConstraintBox::redo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	// Faire une classe Box qui contient les Process; supprimer Box.
 
 }
 

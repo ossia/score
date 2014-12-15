@@ -1,9 +1,9 @@
 #include "AddProcessToConstraintCommand.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ConstraintContent/ConstraintContentModel.hpp"
-#include "Document/Constraint/ConstraintContent/Storey/StoreyModel.hpp"
-#include "Document/Constraint/ConstraintContent/Storey/PositionedStorey/PositionedStoreyModel.hpp"
+#include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Storey/PositionedStorey/PositionedStoreyModel.hpp"
 
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 

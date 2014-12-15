@@ -1,6 +1,6 @@
 #include "ScenarioProcessViewModel.hpp"
 
-#include "Document/Constraint/ConstraintContent/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 

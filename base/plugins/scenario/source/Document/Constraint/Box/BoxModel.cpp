@@ -1,4 +1,4 @@
-#include "ConstraintContentModel.hpp"
+#include "BoxModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
@@ -7,7 +7,7 @@
 
 #include <QDebug>
 
-QDataStream& operator << (QDataStream& s, const ConstraintContentModel& c)
+QDataStream& operator << (QDataStream& s, const BoxModel& c)
 {
 	s << (int)c.m_storeys.size();
 	for(auto& storey : c.m_storeys)
@@ -18,7 +18,7 @@ QDataStream& operator << (QDataStream& s, const ConstraintContentModel& c)
 	return s;
 }
 
-QDataStream& operator >> (QDataStream& s, ConstraintContentModel& c)
+QDataStream& operator >> (QDataStream& s, BoxModel& c)
 {
 	int storeys_size;
 	s >> storeys_size;
@@ -31,19 +31,19 @@ QDataStream& operator >> (QDataStream& s, ConstraintContentModel& c)
 }
 
 
-ConstraintContentModel::ConstraintContentModel(int id, ConstraintModel* parent):
-	IdentifiedObject{id, "ConstraintContentModel", parent}
+BoxModel::BoxModel(int id, ConstraintModel* parent):
+	IdentifiedObject{id, "BoxModel", parent}
 {
 
 }
 
-ConstraintContentModel::ConstraintContentModel(QDataStream& s, ConstraintModel* parent):
-	IdentifiedObject{s, "ConstraintContentModel", parent}
+BoxModel::BoxModel(QDataStream& s, ConstraintModel* parent):
+	IdentifiedObject{s, "BoxModel", parent}
 {
 	s >> *this;
 }
 
-int ConstraintContentModel::createStorey(int newStoreyId)
+int BoxModel::createStorey(int newStoreyId)
 {
 	return createStorey_impl(
 				new PositionedStoreyModel{(int) m_storeys.size(),
@@ -52,16 +52,16 @@ int ConstraintContentModel::createStorey(int newStoreyId)
 
 }
 
-int ConstraintContentModel::createStorey(QDataStream& s)
+int BoxModel::createStorey(QDataStream& s)
 {
 	return createStorey_impl(
 				new PositionedStoreyModel{s,
 										  this});
 }
 
-int ConstraintContentModel::createStorey_impl(PositionedStoreyModel* storey)
+int BoxModel::createStorey_impl(PositionedStoreyModel* storey)
 {
-	connect(this,	&ConstraintContentModel::on_deleteSharedProcessModel,
+	connect(this,	&BoxModel::on_deleteSharedProcessModel,
 			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
 	m_storeys.push_back(storey);
 
@@ -70,24 +70,24 @@ int ConstraintContentModel::createStorey_impl(PositionedStoreyModel* storey)
 }
 
 
-void ConstraintContentModel::deleteStorey(int storeyId)
+void BoxModel::deleteStorey(int storeyId)
 {
 	emit storeyDeleted(storeyId);
 
 	removeById(m_storeys, storeyId);
 }
 
-void ConstraintContentModel::changeStoreyOrder(int storeyId, int position)
+void BoxModel::changeStoreyOrder(int storeyId, int position)
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
-PositionedStoreyModel* ConstraintContentModel::storey(int storeyId) const
+PositionedStoreyModel* BoxModel::storey(int storeyId) const
 {
 	return findById(m_storeys, storeyId);
 }
 
-void ConstraintContentModel::duplicateStorey()
+void BoxModel::duplicateStorey()
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }

@@ -1,7 +1,7 @@
 #include "StoreyModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ConstraintContent/ConstraintContentModel.hpp"
+#include "Document/Constraint/Box/BoxModel.hpp"
 
 #include "Control/ProcessList.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -44,13 +44,13 @@ QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
 	return s;
 }
 
-StoreyModel::StoreyModel(QDataStream& s, ConstraintContentModel* parent):
+StoreyModel::StoreyModel(QDataStream& s, BoxModel* parent):
 	IdentifiedObject{s, "StoreyModel", parent}
 {
 	s >> *this;
 }
 
-StoreyModel::StoreyModel(int id, ConstraintContentModel* parent):
+StoreyModel::StoreyModel(int id, BoxModel* parent):
 	IdentifiedObject{id, "StoreyModel", parent}
 {
 

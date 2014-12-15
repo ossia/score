@@ -19,13 +19,13 @@ QDataStream& operator >> (QDataStream& s, PositionedStoreyModel& storey)
 	return s;
 }
 
-PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, ConstraintContentModel* parent):
+PositionedStoreyModel::PositionedStoreyModel(QDataStream& s, BoxModel* parent):
 	StoreyModel{s, parent}
 {
 	s >> *this;
 }
 
-PositionedStoreyModel::PositionedStoreyModel(int position, int id, ConstraintContentModel* parent):
+PositionedStoreyModel::PositionedStoreyModel(int position, int id, BoxModel* parent):
 	StoreyModel{id, parent},
 	m_position{position}
 {

@@ -3,8 +3,8 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintView.hpp"
-#include "Document/Constraint/ConstraintContent/ConstraintContentPresenter.hpp"
-#include "Document/Constraint/ConstraintContent/ConstraintContentView.hpp"
+#include "Document/Constraint/Box/BoxPresenter.hpp"
+#include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/Process/AddProcessToConstraintCommand.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
@@ -26,18 +26,18 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
 	// TODO mettre ça dans la doc des classes
 
-	auto contentView = new ConstraintContentView{view};
+	auto contentView = new BoxView{view};
 
 	// Cas par défaut
 	auto constraint_presenter =
-			new ConstraintContentPresenter{
-							  model->contentModels().front(),
+			new BoxPresenter{
+							  model->boxes().front(),
 							  contentView,
 							  this};
 
-	connect(constraint_presenter, &ConstraintContentPresenter::submitCommand,
+	connect(constraint_presenter, &BoxPresenter::submitCommand,
 			this,				&ConstraintPresenter::submitCommand);
-	connect(constraint_presenter, &ConstraintContentPresenter::elementSelected,
+	connect(constraint_presenter, &BoxPresenter::elementSelected,
 			this,				&ConstraintPresenter::elementSelected);
 
 	m_contentPresenters.push_back(constraint_presenter);

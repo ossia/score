@@ -1,7 +1,7 @@
 #pragma once
-#include "Document/Constraint/ConstraintContent/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
 
-class ConstraintContentModel;
+class BoxModel;
 class PositionedStoreyModel : public StoreyModel
 {
 		Q_OBJECT
@@ -14,8 +14,8 @@ class PositionedStoreyModel : public StoreyModel
 		friend QDataStream& operator >> (QDataStream& s, PositionedStoreyModel& c);
 
 	public:
-		PositionedStoreyModel(QDataStream& s, ConstraintContentModel* parent);
-		PositionedStoreyModel(int position, int id, ConstraintContentModel* parent);
+		PositionedStoreyModel(QDataStream& s, BoxModel* parent);
+		PositionedStoreyModel(int position, int id, BoxModel* parent);
 
 		int position() const
 		{

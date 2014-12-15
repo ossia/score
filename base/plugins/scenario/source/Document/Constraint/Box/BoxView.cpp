@@ -1,4 +1,4 @@
-#include "ConstraintContentView.hpp"
+#include "BoxView.hpp"
 
 #include <tools/NamedObject.hpp>
 
@@ -6,7 +6,7 @@
 #include <QGraphicsScene>
 #include <QDebug>
 
-ConstraintContentView::ConstraintContentView(QGraphicsObject* parent):
+BoxView::BoxView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
@@ -15,7 +15,7 @@ ConstraintContentView::ConstraintContentView(QGraphicsObject* parent):
 	//parentItem()->scene()->addItem(this);
 }
 
-QRectF ConstraintContentView::boundingRect() const
+QRectF BoxView::boundingRect() const
 {
 	return {parentItem()->boundingRect().x() + DEMO_PIXEL_SPACING_TEST,
 			parentItem()->boundingRect().y() + 50 + DEMO_PIXEL_SPACING_TEST,
@@ -23,7 +23,7 @@ QRectF ConstraintContentView::boundingRect() const
 			parentItem()->boundingRect().height() - 50 - 2 * DEMO_PIXEL_SPACING_TEST};
 }
 
-void ConstraintContentView::paint(QPainter* painter,
+void BoxView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {

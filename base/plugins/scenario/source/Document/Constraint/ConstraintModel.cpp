@@ -1,6 +1,6 @@
 #include "ConstraintModel.hpp"
 
-#include "Document/Constraint/ConstraintContent/ConstraintContentModel.hpp"
+#include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include "Control/ProcessList.hpp"
@@ -29,8 +29,8 @@ QDataStream& operator <<(QDataStream& s, const ConstraintModel& i)
 	}
 
 	// Contents
-	s	<<  (int) i.m_contentModels.size();
-	for(auto& content : i.m_contentModels)
+	s	<<  (int) i.m_boxes.size();
+	for(auto& content : i.m_boxes)
 	{
 		s << *content;
 	}
@@ -71,7 +71,7 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 	s >> content_models_size;
 	for(int i = 0; i < content_models_size; i++)
 	{
-		constraint.createContentModel(s);
+		constraint.createBox(s);
 	}
 
 	// Events
@@ -115,7 +115,7 @@ ConstraintModel::ConstraintModel(int id,
 	m_timeBox{new OSSIA::TimeBox}
 {
 	auto first_id = getNextId();
-	createContentModel(first_id);
+	createBox(first_id);
 }
 
 ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
@@ -154,36 +154,36 @@ void ConstraintModel::deleteProcess(int processId)
 }
 
 
-void ConstraintModel::createContentModel(int contentModelId)
+void ConstraintModel::createBox(int boxId)
 {
-	auto content = new ConstraintContentModel{contentModelId, this};
+	auto content = new BoxModel{boxId, this};
 	createContentModel_impl(content);
 }
 
-void ConstraintModel::createContentModel(QDataStream& s)
+void ConstraintModel::createBox(QDataStream& s)
 {
-	auto content = new ConstraintContentModel{s, this};
+	auto content = new BoxModel{s, this};
 	createContentModel_impl(content);
 }
 
-void ConstraintModel::createContentModel_impl(ConstraintContentModel* content)
+void ConstraintModel::createContentModel_impl(BoxModel* content)
 {
 	connect(this,	 &ConstraintModel::processDeleted,
-			content, &ConstraintContentModel::on_deleteSharedProcessModel);
+			content, &BoxModel::on_deleteSharedProcessModel);
 
-	m_contentModels.push_back(content);
+	m_boxes.push_back(content);
 	emit viewCreated(content->id());
 }
 
 
-void ConstraintModel::deleteContentModel(int viewId)
+void ConstraintModel::deleteBox(int viewId)
 {
 	emit viewDeleted(viewId);
-	removeById(m_contentModels,
+	removeById(m_boxes,
 			   viewId);
 }
 
-void ConstraintModel::duplicateContentModel(int viewId)
+void ConstraintModel::duplicateBox(int viewId)
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
@@ -208,9 +208,9 @@ void ConstraintModel::setEndEvent(int e)
 	m_endEvent = e;
 }
 
-ConstraintContentModel*ConstraintModel::contentModel(int contentId)
+BoxModel*ConstraintModel::box(int contentId)
 {
-	return findById(m_contentModels, contentId);
+	return findById(m_boxes, contentId);
 }
 
 ProcessSharedModelInterface* ConstraintModel::process(int processId)

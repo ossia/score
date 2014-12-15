@@ -5,7 +5,7 @@
 
 class ConstraintModel;
 class ConstraintView;
-class ConstraintContentPresenter;
+class BoxPresenter;
 
 namespace iscore
 {
@@ -42,7 +42,7 @@ class ConstraintPresenter : public NamedObject
         void on_constraintPressed(QPointF);
 
 	private:
-		std::vector<ConstraintContentPresenter*> m_contentPresenters; // No content -> Phantom ?
+		std::vector<BoxPresenter*> m_contentPresenters; // No content -> Phantom ?
 		// Process presenters are in the storey presenters.
 		ConstraintModel* m_model{};
 		ConstraintView* m_view{};

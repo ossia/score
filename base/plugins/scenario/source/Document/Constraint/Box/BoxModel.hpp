@@ -6,16 +6,16 @@
 class ConstraintModel;
 class PositionedStoreyModel;
 
-class ConstraintContentModel : public IdentifiedObject
+class BoxModel : public IdentifiedObject
 {
 	Q_OBJECT
 
 	public:
-		friend QDataStream& operator << (QDataStream&, const ConstraintContentModel&);
-		ConstraintContentModel(int id, ConstraintModel* parent);
-		ConstraintContentModel(QDataStream&, ConstraintModel* parent);
+		friend QDataStream& operator << (QDataStream&, const BoxModel&);
+		BoxModel(int id, ConstraintModel* parent);
+		BoxModel(QDataStream&, ConstraintModel* parent);
 
-		virtual ~ConstraintContentModel() = default;
+		virtual ~BoxModel() = default;
 
 		int createStorey(int newStoreyId);
 		int createStorey(QDataStream& s);

@@ -5,7 +5,7 @@
 #include <QMap>
 
 class ScenarioProcessSharedModel;
-class ConstraintContentModel;
+class BoxModel;
 class ConstraintModel;
 
 class ScenarioProcessViewModel : public ProcessViewModelInterface
@@ -21,7 +21,7 @@ class ScenarioProcessViewModel : public ProcessViewModelInterface
 		virtual void deserialize(QDataStream&) override { }
 
 		ScenarioProcessSharedModel* model();
-		ConstraintContentModel* constraints();
+		BoxModel* constraints();
 
 	signals: // Transmitted from ScenarioProcessSharedModel. They might become slots.
 		void eventCreated(int eventId);

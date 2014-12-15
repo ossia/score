@@ -2,8 +2,8 @@
 #include <tools/NamedObject.hpp>
 
 class StoreyPresenter;
-class ConstraintContentModel;
-class ConstraintContentView;
+class BoxModel;
+class BoxView;
 class StoreyModel;
 
 namespace iscore
@@ -11,15 +11,15 @@ namespace iscore
 	class SerializableCommand;
 }
 
-class ConstraintContentPresenter : public NamedObject
+class BoxPresenter : public NamedObject
 {
 	Q_OBJECT
 
 	public:
-		ConstraintContentPresenter(ConstraintContentModel* model,
-								 ConstraintContentView* view,
+		BoxPresenter(BoxModel* model,
+								 BoxView* view,
 								 QObject* parent);
-		virtual ~ConstraintContentPresenter();
+		virtual ~BoxPresenter();
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
@@ -32,8 +32,8 @@ class ConstraintContentPresenter : public NamedObject
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);
 
-		ConstraintContentModel* m_model;
-		ConstraintContentView* m_view;
+		BoxModel* m_model;
+		BoxView* m_view;
 		std::vector<StoreyPresenter*> m_storeys;
 };
 

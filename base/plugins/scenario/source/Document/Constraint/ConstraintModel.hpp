@@ -11,14 +11,14 @@ namespace OSSIA
 
 class ProcessSharedModelInterface;
 
-class ConstraintContentModel;
+class BoxModel;
 class EventModel;
 class TimeBox;
 
 /**
  * @brief The ConstraintModel class
  *
- * Contains at least 1 ConstraintContentModel (else nothing can be displayed)
+ * Contains at least 1 BoxModel (else nothing can be displayed)
  */
 class ConstraintModel : public IdentifiedObject
 {
@@ -47,17 +47,17 @@ class ConstraintModel : public IdentifiedObject
 		int createProcess(QString processName, QDataStream& data);
 		void deleteProcess(int processId);
 
-		void createContentModel(int contentModelId);
-		void createContentModel(QDataStream& s);
-		void deleteContentModel(int viewId);
-		void duplicateContentModel(int viewId);
+		void createBox(int boxId);
+		void createBox(QDataStream& s);
+		void deleteBox(int viewId);
+		void duplicateBox(int viewId);
 
 		int startEvent();
 		int endEvent();
 		void setStartEvent(int eventId); // Use ScenarioKey
 		void setEndEvent(int eventId); // Use ScenarioKey
 
-		ConstraintContentModel* contentModel(int contentId);
+		BoxModel* box(int contentId);
 		ProcessSharedModelInterface* process(int processId);
 
 		QString name() const;
@@ -69,8 +69,8 @@ class ConstraintModel : public IdentifiedObject
 		{ return m_timeBox;}
 
 		// For the presenter :
-		const std::vector<ConstraintContentModel*>& contentModels() const
-		{ return m_contentModels; }
+		const std::vector<BoxModel*>& boxes() const
+		{ return m_boxes; }
 		const std::vector<ProcessSharedModelInterface*>& processes() const
 		{ return m_processes; }
 
@@ -103,11 +103,11 @@ public slots:
 
 	private:
 		int createProcess_impl(ProcessSharedModelInterface*);
-		void createContentModel_impl(ConstraintContentModel*);
+		void createContentModel_impl(BoxModel*);
 
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 
-		std::vector<ConstraintContentModel*> m_contentModels; // No content -> Phantom ?
+		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
 		std::vector<ProcessSharedModelInterface*> m_processes;
 
 		QString m_name{"Constraint."};

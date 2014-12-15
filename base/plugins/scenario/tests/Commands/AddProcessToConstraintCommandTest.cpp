@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
-#include <Document/Constraint/ConstraintContent/ConstraintContentModel.hpp>
+#include <Document/Constraint/Box/BoxModel.hpp>
 #include <Process/ScenarioProcessSharedModel.hpp>
 #include "Control/ProcessList.hpp"
 
