@@ -106,6 +106,6 @@ class %ClassName%:
 @endif
 		
 @if "%SETTINGSDELEGATE%" == "true"
-		virtual iscore::SettingsDelegateFactoryInterface* settings_make() override
+                virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
 @endif
 };
