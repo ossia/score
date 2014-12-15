@@ -44,7 +44,7 @@ class ConstraintModel : public IdentifiedObject
 		virtual ~ConstraintModel() = default;
 
 		int createProcess(QString processName, int processId);
-		int createProcess(QString processName, QDataStream& data);
+		int createProcess(QDataStream& data);
 		void deleteProcess(int processId);
 
 		void createBox(int boxId);
@@ -93,8 +93,8 @@ public slots:
 		void processCreated(QString processName, int processId);
 		void processDeleted(int processId);
 
-		void viewCreated(int viewId);
-		void viewDeleted(int viewId);
+		void boxCreated(int viewId);
+		void boxDeleted(int viewId);
 
 		void nameChanged(QString arg);
 		void commentChanged(QString arg);

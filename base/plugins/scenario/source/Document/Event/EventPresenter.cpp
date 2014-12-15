@@ -21,25 +21,25 @@ EventPresenter::EventPresenter(EventModel* model,
 		emit elementSelected(m_model);
 	});
 	connect(m_view, &EventView::eventReleasedWithControl,
-            this, &EventPresenter::on_eventReleasedWithControl);
+			this, &EventPresenter::on_eventReleasedWithControl);
 
 	connect(m_view, &EventView::eventReleased,
-            this, &EventPresenter::on_eventReleased);
+			this, &EventPresenter::on_eventReleased);
 
-    connect(m_model, &EventModel::verticalExtremityChanged,
-            this, &EventPresenter::linesExtremityChange);
+	connect(m_model, &EventModel::verticalExtremityChanged,
+			this, &EventPresenter::linesExtremityChange);
 
  /*           [&] (double top, double bottom)
-            {
-                emit linesExtremityChange(top, bottom);
-            }); */
+			{
+				emit linesExtremityChange(top, bottom);
+			}); */
 }
 
 EventPresenter::~EventPresenter()
 {
-//	auto sc = m_view->scene();
-//	if(sc) sc->removeItem(m_view);
-//	m_view->deleteLater();
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
+	m_view->deleteLater();
 }
 
 int EventPresenter::id() const
@@ -54,23 +54,23 @@ EventView *EventPresenter::view() const
 
 EventModel *EventPresenter::model() const
 {
-    return m_model;
+	return m_model;
 }
 
 void EventPresenter::on_eventReleased(QPointF p)
 {
-    EventData d{};
-    d.eventClickedId = id();
-    d.x = p.x();
-    d.y = p.y();
-    emit eventReleased(d);
+	EventData d{};
+	d.eventClickedId = id();
+	d.x = p.x();
+	d.y = p.y();
+	emit eventReleased(d);
 }
 
 void EventPresenter::on_eventReleasedWithControl(QPointF p)
 {
-    EventData d{};
-    d.eventClickedId = id();
-    d.x = p.x();
-    d.y = p.y();
-    emit eventReleasedWithControl(d);
+	EventData d{};
+	d.eventClickedId = id();
+	d.x = p.x();
+	d.y = p.y();
+	emit eventReleasedWithControl(d);
 }

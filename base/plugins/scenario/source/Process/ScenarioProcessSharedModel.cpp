@@ -12,6 +12,10 @@
 
 QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
 {
+	// Note : this is deserialized in ConstraintModel::createProcess. How to prevent
+	// this "breakage" of encapsulation ?
+	s << scenario.processName();
+
 	s << (int) scenario.m_constraints.size();
 	for(const auto& constraint : scenario.m_constraints)
 	{
@@ -67,7 +71,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario},
-	m_startEventId{getNextId()}
+	m_startEventId{getNextId()} //TODO THIS WILL CAUSE MASSIVE GRIEF IN CASE OF UNDO REDO
 {
 	m_events.push_back(new EventModel{m_startEventId, this});
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
@@ -128,8 +132,8 @@ int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, 
 	inter->setStartEvent(sev->id());
 	inter->setEndEvent(eev->id());
 
-    sev->addNextConstraint(newConstraintModelId);
-    eev->addPreviousConstraint(newConstraintModelId);
+	sev->addNextConstraint(newConstraintModelId);
+	eev->addPreviousConstraint(newConstraintModelId);
 
 	// From now on everything must be in a valid state.
 
@@ -160,8 +164,8 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	event->m_x = inter->m_x + inter->m_width;
 //	event->m_y = inter->heightPercentage() * 75;
 
-    event->addPreviousConstraint(newConstraintId);
-    this->event(startEventId)->addNextConstraint(newConstraintId);
+	event->addPreviousConstraint(newConstraintId);
+	this->event(startEventId)->addNextConstraint(newConstraintId);
 
 //    event->setVerticalExtremity(inter->heightPercentage());
 //    qDebug() << "create constraint " << inter->heightPercentage() ;
@@ -224,18 +228,18 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
-    event(eventId)->setHeightPercentage(heightPosition);
+	event(eventId)->setHeightPercentage(heightPosition);
 //    event(eventId)->setVerticalExtremity(heightPosition);
-    emit eventMoved(eventId);
+	emit eventMoved(eventId);
 }
 
 void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
 {
-    constraint(constraintId)->setHeightPercentage(heightPosition);
-    auto eev = event(constraint(constraintId)->endEvent());
-    eev->setVerticalExtremity(heightPosition);
+	constraint(constraintId)->setHeightPercentage(heightPosition);
+	auto eev = event(constraint(constraintId)->endEvent());
+	eev->setVerticalExtremity(heightPosition);
 
-    emit constraintMoved(constraintId);
+	emit constraintMoved(constraintId);
 }
 
 ///////// DELETION //////////

@@ -56,14 +56,14 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 	constraint.setComment(comment);
 	constraint.setColor(color);
 
+
+	///// TODO Box should be just this part.
 	// Processes
 	int process_size;
 	s >> process_size;
 	for(int i = 0; i < process_size; i++)
 	{
-		QString name;
-		s >> name;
-		constraint.createProcess(name, s);
+		constraint.createProcess(s);
 	}
 
 	// Contents
@@ -114,8 +114,6 @@ ConstraintModel::ConstraintModel(int id,
 	IdentifiedObject{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
-	auto first_id = getNextId();
-	createBox(first_id);
 }
 
 ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
@@ -131,8 +129,10 @@ int ConstraintModel::createProcess(QString processName, int processId)
 	return createProcess_impl(model);
 }
 
-int ConstraintModel::createProcess(QString processName, QDataStream& data)
+int ConstraintModel::createProcess(QDataStream& data)
 {
+	QString processName;
+	data >> processName;
 	auto model = ProcessList::getFactory(processName)->makeModel(data, this);
 	return createProcess_impl(model);
 }
@@ -172,13 +172,13 @@ void ConstraintModel::createContentModel_impl(BoxModel* content)
 			content, &BoxModel::on_deleteSharedProcessModel);
 
 	m_boxes.push_back(content);
-	emit viewCreated(content->id());
+	emit boxCreated(content->id());
 }
 
 
 void ConstraintModel::deleteBox(int viewId)
 {
-	emit viewDeleted(viewId);
+	emit boxDeleted(viewId);
 	removeById(m_boxes,
 			   viewId);
 }

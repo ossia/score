@@ -31,6 +31,7 @@ CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, doub
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	m_createdConstraintId = getNextId(scenar->constraints());
+	m_createdBoxId = getNextId();
 	m_createdEventId = getNextId(scenar->events());
 }
 
@@ -49,6 +50,8 @@ void CreateEventCommand::redo()
 													  m_heightPosition,
 													  m_createdConstraintId,
 													  m_createdEventId);
+
+	scenar->constraint(m_createdConstraintId)->createBox(m_createdBoxId);
 }
 
 int CreateEventCommand::id() const

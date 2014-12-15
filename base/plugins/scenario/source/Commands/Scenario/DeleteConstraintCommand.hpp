@@ -24,5 +24,6 @@ class EmptyConstraintBox : public iscore::SerializableCommand
 	private:
 		ObjectPath m_path;
 
-		QByteArray m_serializedProcessData;
+		QVector<QByteArray> m_serializedBoxes;
+		QVector<QByteArray> m_serializedProcesses;
 };

@@ -4,6 +4,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 
+#include <core/tools/utilsCPP11.hpp>
 using namespace iscore;
 
 
@@ -22,20 +23,15 @@ DeleteEventCommand::DeleteEventCommand(ObjectPath&& eventPath):
 		s << *event;
 	}
 
-
-	for(const auto& constraint_id : event->previousConstraints())
+	std::vector<ConstraintModel*> v(event->previousConstraints().size());
+	int i{-1};
+	for(int constraint_id : event->previousConstraints())
 	{
-		auto constraint = event->parentScenario()->constraint(constraint_id);
-
-		QByteArray arr;
-
-		QDataStream s(&arr, QIODevice::Append);
-		s.setVersion(QDataStream::Qt_5_3);
-		s << *constraint;
-
-		// TODO : see if it's worth it to use a std::vector and emplace instead.
-		m_serializedConstraints.push_back(arr);
+		v[++i] = event->parentScenario()->constraint(constraint_id);
 	}
+
+	serializeVectorOfPointers(v,
+							  m_serializedConstraints);
 }
 
 void DeleteEventCommand::undo()

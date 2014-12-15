@@ -31,9 +31,9 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 
 BoxPresenter::~BoxPresenter()
 {
-//	auto sc = m_view->scene();
-//	if(sc) sc->removeItem(m_view);
-//	m_view->deleteLater();
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
+	m_view->deleteLater();
 }
 
 void BoxPresenter::on_storeyCreated(int storeyId)

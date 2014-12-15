@@ -6,6 +6,7 @@
 class ConstraintModel;
 class ConstraintView;
 class BoxPresenter;
+class BoxModel;
 
 namespace iscore
 {
@@ -39,9 +40,12 @@ class ConstraintPresenter : public NamedObject
 		void constraintReleased(int id, int heightPos);
 
 	public slots:
-        void on_constraintPressed(QPointF);
+		void on_constraintPressed(QPointF);
+		void on_boxCreated(int boxId);
 
 	private:
+		void on_boxCreated_impl(BoxModel*);
+
 		std::vector<BoxPresenter*> m_contentPresenters; // No content -> Phantom ?
 		// Process presenters are in the storey presenters.
 		ConstraintModel* m_model{};
@@ -49,6 +53,6 @@ class ConstraintPresenter : public NamedObject
 
 		long m_millisecPerPixel{1};
 
-        QPointF clickedPoint{-1,-1};
+		QPointF clickedPoint{-1,-1};
 };
 

@@ -10,6 +10,7 @@
  *
  * For now this command creates a new storey in the current constraintcontentmodel with a new processviewmodel inside
  */
+// TODO Rename in AddProcessToBox.
 class AddProcessToConstraintCommand : public iscore::SerializableCommand
 {
 	public:
@@ -28,8 +29,8 @@ class AddProcessToConstraintCommand : public iscore::SerializableCommand
 		ObjectPath m_path;
 		QString m_processName;
 
-		int m_createdProcessId{-1};
-		int m_createdStoreyId{-1};
-		int m_createdProcessViewModelId{-1};
+		int m_createdProcessId{};
+		int m_createdStoreyId{};
+		int m_createdProcessViewModelId{};
 		int m_contentModelId{};
 };

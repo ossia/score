@@ -19,7 +19,6 @@ DeleteProcessFromConstraintCommand::DeleteProcessFromConstraintCommand(ObjectPat
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	auto process = constraint->process(m_processId);
 
-	m_serializedProcessData.clear();
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::Append);
 		s.setVersion(QDataStream::Qt_5_3);
@@ -33,7 +32,7 @@ void DeleteProcessFromConstraintCommand::undo()
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
-		constraint->createProcess(m_processName, s);
+		constraint->createProcess(s);
 	}
 }
 
