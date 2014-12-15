@@ -40,11 +40,15 @@ class ConstraintPresenter : public NamedObject
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
-        void constraintReleased(ConstraintData);
+		void constraintReleased(ConstraintData);
+
+		void askUpdate();
 
 	public slots:
 		void on_constraintPressed(QPointF);
 		void on_boxCreated(int boxId);
+
+		void on_askUpdate();
 
 	private:
 		void on_boxCreated_impl(BoxModel*);

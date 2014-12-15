@@ -14,9 +14,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateViewInterface* view):
 	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
 	m_baseConstraintPresenter{new ConstraintPresenter{
-								this->model()->constraintModel(),
-								this->view()->constraintView(),
-								this}}
+							  this->model()->constraintModel(),
+							  this->view()->constraintView(),
+							  this}}
 {
 	auto cmd = new AddProcessToConstraintCommand(
 		{
@@ -30,10 +30,18 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
 	connect(m_baseConstraintPresenter,	&ConstraintPresenter::elementSelected,
 			this,						&BaseElementPresenter::elementSelected);
+
+	connect(m_baseConstraintPresenter,	&ConstraintPresenter::askUpdate,
+			this,						&BaseElementPresenter::on_askUpdate);
 }
 
-void BaseElementPresenter::onReset()
+void BaseElementPresenter::on_reset()
 {
+}
+
+void BaseElementPresenter::on_askUpdate()
+{
+	view()->update();
 }
 
 BaseElementModel* BaseElementPresenter::model()

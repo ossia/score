@@ -18,13 +18,14 @@ class ConstraintView : public QGraphicsObject
 						   QWidget *widget) override;
 
 		void setTopLeft(QPointF p);
+		void setHeight(int height);
 
 		QRectF m_rect;
-        QLineF firstLine;
-        QLineF secondLine;
+		QLineF firstLine;
+		QLineF secondLine;
 
 	signals:
-        void constraintPressed(QPointF);
+		void constraintPressed(QPointF);
 		void constraintReleased(QPointF);
 		void addScenarioProcessClicked();
 

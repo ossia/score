@@ -21,6 +21,8 @@ class StoreyPresenter : public NamedObject
 
 		int id() const;
 
+		int height() const;
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
@@ -28,12 +30,17 @@ class StoreyPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
+		// From Model
 		void on_processViewModelCreated(int processId);
 		void on_processViewModelDeleted(int processId);
+		void on_heightChanged(int height);
 
+		// From View
 		void on_bottomHandleSelected();
 		void on_bottomHandleChanged(int newHeight);
 		void on_bottomHandleReleased();
+
+
 
 	private:
 		void on_processViewModelCreated_impl(ProcessViewModelInterface*);

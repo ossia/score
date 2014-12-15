@@ -48,12 +48,17 @@ void ConstraintView::setTopLeft(QPointF p)
 	m_button->setPos(m_rect.x() + 30, m_rect.y());
 }
 
+void ConstraintView::setHeight(int height)
+{
+	m_rect = {m_rect.x(), m_rect.y(), m_rect.width(), height};
+}
+
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-    emit constraintPressed(m->pos());
+	emit constraintPressed(m->pos());
 }
 
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
-    emit constraintReleased(m->pos());
+	emit constraintReleased(m->pos());
 }

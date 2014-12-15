@@ -36,6 +36,16 @@ BoxPresenter::~BoxPresenter()
 	m_view->deleteLater();
 }
 
+int BoxPresenter::height() const
+{
+	int totalHeight = 25;
+	for(auto& storey : m_storeys)
+	{
+		totalHeight += storey->height();
+	}
+	return totalHeight;
+}
+
 void BoxPresenter::on_storeyCreated(int storeyId)
 {
 	on_storeyCreated_impl(m_model->storey(storeyId));
@@ -56,7 +66,7 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 			this,		&BoxPresenter::elementSelected);
 
 	connect(storeyPres, &StoreyPresenter::askUpdate,
-			this,		&BoxPresenter::update);
+			this,		&BoxPresenter::on_askUpdate);
 }
 
 void BoxPresenter::on_storeyDeleted(int storeyId)
@@ -65,7 +75,10 @@ void BoxPresenter::on_storeyDeleted(int storeyId)
 	m_view->update();
 }
 
-void BoxPresenter::update()
+void BoxPresenter::on_askUpdate()
 {
+	m_view->setHeight(height());
+
+	emit askUpdate();
 	m_view->update();
 }

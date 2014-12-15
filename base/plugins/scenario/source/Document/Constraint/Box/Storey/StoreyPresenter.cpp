@@ -36,6 +36,8 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 			this,	 &StoreyPresenter::on_processViewModelCreated);
 	connect(m_model, &StoreyModel::processViewModelDeleted,
 			this,	 &StoreyPresenter::on_processViewModelDeleted);
+	connect(m_model, &StoreyModel::heightChanged,
+			this,	 &StoreyPresenter::on_heightChanged);
 
 	connect(m_view, &StoreyView::bottomHandleChanged,
 			this,	&StoreyPresenter::on_bottomHandleChanged);
@@ -57,6 +59,11 @@ int StoreyPresenter::id() const
 	return m_model->id();
 }
 
+int StoreyPresenter::height() const
+{
+	return m_view->m_height;
+}
+
 void StoreyPresenter::on_processViewModelCreated(int processId)
 {
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
@@ -66,6 +73,12 @@ void StoreyPresenter::on_processViewModelDeleted(int processId)
 {
 	removeFromVectorWithId(m_processes, processId);
 	m_view->update();
+}
+
+void StoreyPresenter::on_heightChanged(int height)
+{
+	m_view->m_height = height;
+	emit askUpdate();
 }
 
 void StoreyPresenter::on_bottomHandleSelected()
@@ -79,6 +92,7 @@ void StoreyPresenter::on_bottomHandleChanged(int newHeight)
 	m_currentResizingValue = m_view->m_height;
 
 	emit askUpdate();
+	m_view->update();
 }
 
 void StoreyPresenter::on_bottomHandleReleased()

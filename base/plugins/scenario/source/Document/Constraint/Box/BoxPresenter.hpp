@@ -21,15 +21,19 @@ class BoxPresenter : public NamedObject
 								 QObject* parent);
 		virtual ~BoxPresenter();
 
+		int height() const;
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
+
+		void askUpdate();
 
 	public slots:
 		void on_storeyCreated(int storeyId);
 		void on_storeyDeleted(int storeyId);
 
-		void update();
+		void on_askUpdate();
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);
 

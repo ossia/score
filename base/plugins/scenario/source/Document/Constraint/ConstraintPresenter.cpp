@@ -40,12 +40,12 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 	connect(m_view, &ConstraintView::constraintReleased,
 			[&] (QPointF p)
 	{
-        ConstraintData data{};
-        data.id = id();
-        data.y = p.y() - clickedPoint.y();
-        data.x = p.x() - clickedPoint.x();
-        emit constraintReleased(data);
-        qDebug() << "presenter " << p.x() << clickedPoint.x();
+		ConstraintData data{};
+		data.id = id();
+		data.y = p.y() - clickedPoint.y();
+		data.x = p.x() - clickedPoint.x();
+		emit constraintReleased(data);
+		qDebug() << "presenter " << p.x() << clickedPoint.x();
 	});
 
 	connect(m_view, &ConstraintView::addScenarioProcessClicked,
@@ -90,6 +90,14 @@ void ConstraintPresenter::on_boxCreated(int boxId)
 	on_boxCreated_impl(m_model->box(boxId));
 }
 
+void ConstraintPresenter::on_askUpdate()
+{
+	m_view->m_rect.setHeight(m_contentPresenters.front()->height() + 60);
+
+	emit askUpdate();
+	m_view->update();
+}
+
 void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 {
 	auto contentView = new BoxView{m_view};
@@ -104,6 +112,9 @@ void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 			this,		   &ConstraintPresenter::submitCommand);
 	connect(box_presenter, &BoxPresenter::elementSelected,
 			this,		   &ConstraintPresenter::elementSelected);
+
+	connect(box_presenter, &BoxPresenter::askUpdate,
+			this,		   &ConstraintPresenter::on_askUpdate);
 
 	m_contentPresenters.push_back(box_presenter);
 }

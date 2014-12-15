@@ -12,6 +12,8 @@ ResizeDeckVerticallyCommand::ResizeDeckVerticallyCommand(ObjectPath&& deckPath, 
 {
 	auto deck = static_cast<StoreyModel*>(m_path.find());
 	m_originalSize = deck->height();
+
+	qDebug()<<Q_FUNC_INFO << m_originalSize << m_newSize;
 }
 
 void ResizeDeckVerticallyCommand::undo()

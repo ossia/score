@@ -34,8 +34,7 @@ void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void StoreyView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-	qDebug() << m_height << event->pos() << event->buttonDownPos(Qt::LeftButton);
-	emit bottomHandleChanged(event->pos().y() - 20);
+	emit bottomHandleChanged(event->pos().y() - boundingRect().y());
 }
 
 void StoreyView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)

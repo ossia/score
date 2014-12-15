@@ -18,6 +18,8 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 		ConstraintView* constraintView()
 		{ return m_constraint; }
 
+		void update();
+
 	private:
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};

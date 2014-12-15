@@ -15,7 +15,11 @@ class BoxView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
+		void setHeight(int height)
+		{
+			m_height = height;
+		}
 
 	private:
-
+		int m_height{};
 };

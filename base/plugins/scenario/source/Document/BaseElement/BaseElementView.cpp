@@ -44,3 +44,8 @@ QWidget* BaseElementView::getWidget()
 {
 	return m_view;
 }
+
+void BaseElementView::update()
+{
+	m_scene->update();
+}
