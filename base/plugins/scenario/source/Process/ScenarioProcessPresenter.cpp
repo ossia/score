@@ -62,9 +62,7 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* mo
 	connect(m_viewModel, &ScenarioProcessViewModel::eventMoved,
 			this,		 &ScenarioProcessPresenter::on_eventMoved);
 	connect(m_viewModel, &ScenarioProcessViewModel::constraintMoved,
-			this,		 &ScenarioProcessPresenter::on_constraintMoved);
-
-
+            this,		 &ScenarioProcessPresenter::on_constraintMoved);
 }
 
 int ScenarioProcessPresenter::id() const
@@ -107,12 +105,6 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 		if(ev->id() == eventId ) {
 			ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
 									rect.y() + rect.height() * ev->model()->heightPercentage()});
-            int y{0};
-            if (!ev->model()->previousConstraints().isEmpty())
-            {
-                y = m_constraints.at(ev->model()->previousConstraints().at(0))->model()->heightPercentage();
-            }
-            ev->view()->setLinesExtremity(QPointF(ev->model()->date(), y), QPointF(ev->model()->date(), y));
 		}
 	}
 	m_view->update();
@@ -208,17 +200,8 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 	auto event_presenter = new EventPresenter{event_model,
 											  event_view,
 											  this};
-
     event_view->setTopLeft({rect.x() + event_model->date(),
 							rect.y() + rect.height() * event_model->heightPercentage()});
-
-    double y{0};
-    if (!event_presenter->model()->previousConstraints().isEmpty())
-    {
-        y = m_constraints.at(event_presenter->model()->previousConstraints().at(0))->model()->heightPercentage();
-    }
-
-    event_view->setLinesExtremity(QPointF(event_model->date(), y), QPointF(event_model->date(), y));
 
 	m_events.push_back(event_presenter);
 
@@ -230,6 +213,11 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 			this,			 &ScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &ScenarioProcessPresenter::elementSelected);
+
+    connect(event_presenter, &EventPresenter::linesExtremityChange,
+            [event_view, this] (double top, double bottom) {
+                event_view->setLinesExtremity(top * m_view->boundingRect().height(), bottom * m_view->boundingRect().height());
+            });
 }
 
 void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constraint_model)
@@ -246,7 +234,7 @@ void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constr
 
 	m_constraints.push_back(constraint_presenter);
 
-	connect(constraint_presenter, &ConstraintPresenter::constraintReleased,
+    connect(constraint_presenter, &ConstraintPresenter::constraintReleased,
 			this,				&ScenarioProcessPresenter::moveConstraintOnVertical);
 	connect(constraint_presenter,	&ConstraintPresenter::submitCommand,
 			this,				&ScenarioProcessPresenter::submitCommand);

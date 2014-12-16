@@ -61,7 +61,37 @@ const QVector<int>&EventModel::previousConstraints() const
 
 const QVector<int>&EventModel::nextConstraints() const
 {
-	return m_nextConstraints;
+    return m_nextConstraints;
+}
+
+void EventModel::addNextConstraint(int constraint)
+{
+    m_nextConstraints.push_back(constraint);
+}
+
+void EventModel::addPreviousConstraint(int constraint)
+{
+    m_previousConstraints.push_back(constraint);
+}
+
+bool EventModel::removeNextConstraint(int constraintToDelete)
+{
+    if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
+    {
+        m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
+        return true;
+    }
+    return false;
+}
+
+bool EventModel::removePreviousConstraint(int constraintToDelete)
+{
+    if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
+    {
+        m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
+        return true;
+    }
+    return false;
 }
 
 double EventModel::heightPercentage() const
@@ -77,6 +107,22 @@ int EventModel::date() const
 void EventModel::setDate(int date)
 {
     m_x = date;
+}
+
+void EventModel::setVerticalExtremity(double newPosition)
+{
+    /*
+    if(newPosition < m_topY)
+    {
+        m_topY = newPosition;
+    }
+    else
+    {
+        m_bottomY = newPosition;
+    }
+*/
+    m_topY = newPosition;
+    emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
 const std::vector<State*>&EventModel::states() const

@@ -19,9 +19,10 @@ class EventPresenter : public NamedObject
         EventModel* model() const;
 
 	signals:
-		void eventSelected(int id);
-        void eventReleasedWithControl(EventData d);
-        void eventReleased(EventData d);
+        void eventSelected(int);
+        void eventReleasedWithControl(EventData);
+        void eventReleased(EventData);
+        void linesExtremityChange(double, double);
 
 		void elementSelected(QObject*);
 
