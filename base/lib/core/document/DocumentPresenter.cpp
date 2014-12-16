@@ -1,6 +1,7 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <core/tools/utilsCPP11.hpp>
+#include <core/document/DocumentView.hpp>
 
 
 
@@ -8,7 +9,8 @@ using namespace iscore;
 
 DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject* parent):
 	NamedObject{"DocumentPresenter", parent},
-	m_commandQueue{std::make_unique<CommandQueue>(this)}
+	m_commandQueue{std::make_unique<CommandQueue>(this)},
+	m_view{v}
 {
 }
 
@@ -24,6 +26,7 @@ void DocumentPresenter::applyCommand(SerializableCommand* cmd)
 void DocumentPresenter::reset()
 {
 	m_commandQueue->clear();
+	m_view->reset();
 }
 
 void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)

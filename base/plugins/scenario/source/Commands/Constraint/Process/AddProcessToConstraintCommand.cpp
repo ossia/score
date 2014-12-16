@@ -7,7 +7,6 @@
 
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include <QDebug>
 using namespace iscore;
 
 // TODO switch between content models.

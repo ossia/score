@@ -107,9 +107,11 @@ void Presenter::setupMenus()
 	auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
 
 	////// File //////
-	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-										FileMenuElement::New,
-										std::bind(&Presenter::newDocument, this));
+	auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+													   FileMenuElement::New,
+													   std::bind(&Presenter::newDocument, this));
+
+	newAct->setShortcut(QKeySequence::New);
 
 	// ----------
 	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,

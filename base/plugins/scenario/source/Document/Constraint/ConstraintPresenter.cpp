@@ -62,9 +62,9 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 
 ConstraintPresenter::~ConstraintPresenter()
 {
-	auto sc = m_view->scene();
-	if(sc) sc->removeItem(m_view);
-	m_view->deleteLater();
+	//auto sc = m_view->scene();
+	//if(sc) sc->removeItem(m_view);
+	//m_view->deleteLater();
 }
 
 int ConstraintPresenter::id() const

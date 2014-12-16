@@ -36,5 +36,7 @@ namespace iscore
 		private:
 			std::unique_ptr<CommandQueue> m_commandQueue;
 			DocumentDelegatePresenterInterface* m_presenter{};
+
+			DocumentView* m_view{};
 	};
 }

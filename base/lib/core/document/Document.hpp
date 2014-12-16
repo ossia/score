@@ -37,8 +37,10 @@ namespace iscore
 			void on_elementSelected(QObject*);
 
 		private:
-			DocumentModel* m_model;
-			DocumentView* m_view;
-			DocumentPresenter* m_presenter;
+			DocumentModel* m_model{};
+			DocumentView* m_view{};
+			DocumentPresenter* m_presenter{};
+
+			DocumentDelegateFactoryInterface* m_currentDocumentType{};
 	};
 }

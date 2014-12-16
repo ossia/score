@@ -30,9 +30,9 @@ EventPresenter::EventPresenter(EventModel* model,
 
 EventPresenter::~EventPresenter()
 {
-	auto sc = m_view->scene();
-	if(sc) sc->removeItem(m_view);
-	m_view->deleteLater();
+//	auto sc = m_view->scene();
+//	if(sc) sc->removeItem(m_view);
+//	m_view->deleteLater();
 }
 
 int EventPresenter::id() const

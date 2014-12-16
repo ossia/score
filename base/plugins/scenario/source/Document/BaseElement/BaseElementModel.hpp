@@ -24,6 +24,11 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_baseConstraint;
 		}
 
+		virtual void reset() override;
+
+	signals:
+		void sigReset();
+
 	private:
 		ConstraintModel* m_baseConstraint{};
 };

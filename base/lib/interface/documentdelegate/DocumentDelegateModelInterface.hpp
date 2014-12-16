@@ -10,5 +10,7 @@ namespace iscore
 		public:
 			using NamedObject::NamedObject;
 			virtual ~DocumentDelegateModelInterface() = default;
+
+			virtual void reset() = 0;
 	};
 }

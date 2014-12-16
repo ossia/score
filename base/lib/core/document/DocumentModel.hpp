@@ -13,7 +13,7 @@ namespace iscore
 	{
 		public:
 			using QObject::QObject;
-			void reset(){}
+			void reset();
 			void setModelDelegate(DocumentDelegateModelInterface* m);
 
 		private:

@@ -61,8 +61,7 @@ QObject* ObjectPath::find() const
 			auto elt = findById(childs, currentObjIdentifier.id());
 			if(!elt)
 			{
-				// TODO throw instead?
-				return nullptr;
+				throw std::runtime_error("ObjectPath::find  Error! Child not found");
 			}
 
 			obj = elt;
@@ -73,7 +72,7 @@ QObject* ObjectPath::find() const
 													  Qt::FindDirectChildrenOnly);
 			if(!child)
 			{
-				return nullptr;
+				throw std::runtime_error("ObjectPath::find  Error! Child not found");
 			}
 
 			obj = child;

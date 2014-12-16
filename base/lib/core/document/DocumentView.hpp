@@ -16,6 +16,8 @@ namespace iscore
 			DocumentView(QWidget* parent);
 			void setViewDelegate(DocumentDelegateViewInterface*);
 
+			void reset();
+
 		private:
 			DocumentDelegateViewInterface* m_view{};
 	};

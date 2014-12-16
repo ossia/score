@@ -26,26 +26,31 @@ void Document::newDocument()
 {
 	reset();
 
+	// Model setup
+	auto model = m_currentDocumentType->makeModel(m_model);
+	m_model->setModelDelegate(model);
+
+	// View setup
+	auto view = m_currentDocumentType->makeView(m_view);
+	m_view->setViewDelegate(view);
+
+	// Presenter setup
+	auto pres = m_currentDocumentType->makePresenter(m_presenter, model, view);
+	m_presenter->setPresenterDelegate(pres);
+
+
+
 	emit newDocument_start();
 }
 
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
 {
-	// Model setup
-	auto model = p->makeModel(m_model);
-	m_model->setModelDelegate(model);
-
-	// View setup
-	auto view = p->makeView(m_view);
-	m_view->setViewDelegate(view);
-
-	// Presenter setup
-	auto pres = p->makePresenter(m_presenter, model, view);
-	m_presenter->setPresenterDelegate(pres);
+	m_currentDocumentType = p;
 }
+
 
 void Document::reset()
 {
-	m_presenter->reset();
 	m_model->reset();
+	m_presenter->reset();
 }

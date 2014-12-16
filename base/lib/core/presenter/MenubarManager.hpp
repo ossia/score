@@ -27,14 +27,15 @@ namespace iscore
 			void insertActionIntoToplevelMenu(ToplevelMenuElement, QAction* act);
 
 			template<typename MenuElement, typename Functor>
-			void addActionIntoToplevelMenu(ToplevelMenuElement tl,
-										   MenuElement elt,
-										   Functor f,
-										   typename std::enable_if< std::is_enum<MenuElement>::value >::type* = 0)
+			QAction* addActionIntoToplevelMenu(ToplevelMenuElement tl,
+											   MenuElement elt,
+											   Functor f,
+											   typename std::enable_if< std::is_enum<MenuElement>::value >::type* = 0)
 			{
 				QAction* act = new QAction{MenuInterface::name(elt), this};
 				connect(act, &QAction::triggered, f);
 				insertActionIntoToplevelMenu(tl, act);
+				return act;
 			}
 
 			template<typename MenuElement>
