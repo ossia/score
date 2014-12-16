@@ -122,7 +122,14 @@ void EventModel::setVerticalExtremity(double newPosition)
     }
 */
     m_topY = newPosition;
-    emit verticalExtremityChanged(m_topY, m_bottomY);
+	emit verticalExtremityChanged(m_topY, m_bottomY);
+}
+
+// Maybe remove the need for this by passing to the scenario instead ?
+#include "Process/ScenarioProcessSharedModel.hpp"
+ScenarioProcessSharedModel* EventModel::parentScenario() const
+{
+	return dynamic_cast<ScenarioProcessSharedModel*>(parent());
 }
 
 const std::vector<State*>&EventModel::states() const

@@ -5,7 +5,7 @@
 class DeleteProcessFromConstraintCommand : public iscore::SerializableCommand
 {
 	public:
-		DeleteProcessFromConstraintCommand(ObjectPath&& constraintPath, QString processName, int processId);
+		DeleteProcessFromConstraintCommand(ObjectPath&& constraintPath, int processId);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -20,5 +20,5 @@ class DeleteProcessFromConstraintCommand : public iscore::SerializableCommand
 		QString m_processName;
 		int m_processId;
 
-		QByteArray m_serializedProcessData;
+		QByteArray m_serializedProcessData; // Should be done in the constructor
 };

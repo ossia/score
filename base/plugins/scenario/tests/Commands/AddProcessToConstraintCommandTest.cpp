@@ -83,7 +83,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0}
-			}, "ScenarioProcessSharedModel", s0->id());
+			}, s0->id());
 
 			cmd3.redo();
 			QVERIFY(int_model2->processes().size() == 0);

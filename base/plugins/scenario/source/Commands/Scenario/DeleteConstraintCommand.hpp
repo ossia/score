@@ -1,9 +1,17 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 
-class DeleteConstraintCommand : public iscore::SerializableCommand
+#include <core/tools/ObjectPath.hpp>
+
+/**
+ * @brief The EmptyBoxFromConstraint class
+ *
+ * Remove all the process in the box of a constraint
+ */
+class EmptyConstraintBox : public iscore::SerializableCommand
 {
 	public:
+		EmptyConstraintBox(ObjectPath&& constraintPath);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -12,4 +20,9 @@ class DeleteConstraintCommand : public iscore::SerializableCommand
 	protected:
 		virtual void serializeImpl(QDataStream&) override;
 		virtual void deserializeImpl(QDataStream&) override;
+
+	private:
+		ObjectPath m_path;
+
+		QByteArray m_serializedProcessData;
 };

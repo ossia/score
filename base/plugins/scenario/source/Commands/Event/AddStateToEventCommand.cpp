@@ -29,19 +29,15 @@ AddStateToEventCommand::AddStateToEventCommand(ObjectPath&& eventPath, QString m
 void AddStateToEventCommand::undo()
 {
 	auto event = static_cast<EventModel*>(m_path.find());
-	if(event != nullptr)
-	{
-		event->removeMessage(m_message);
-	}
+
+	event->removeMessage(m_message);
 }
 
 void AddStateToEventCommand::redo()
 {
 	auto event = static_cast<EventModel*>(m_path.find());
-	if(event != nullptr)
-	{
-		event->addMessage(m_message);
-	}
+
+	event->addMessage(m_message);
 }
 
 int AddStateToEventCommand::id() const
@@ -54,6 +50,8 @@ bool AddStateToEventCommand::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
+
+// TODO
 void AddStateToEventCommand::serializeImpl(QDataStream&)
 {
 }

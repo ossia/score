@@ -1,29 +1,48 @@
 #include "DeleteConstraintCommand.hpp"
+
+#include "Document/Constraint/ConstraintModel.hpp"
+
+
 using namespace iscore;
 
 
-void DeleteConstraintCommand::undo()
+EmptyConstraintBox::EmptyConstraintBox(ObjectPath&& constraintPath):
+	iscore::SerializableCommand{"ScenarioControl",
+								"EmptyConstraintBox",
+								QObject::tr("Clear a box")},
+	m_path{std::move(constraintPath)}
+{
+
+	// Sérializer la Box de la contrainte.
+}
+
+void EmptyConstraintBox::undo()
 {
 }
 
-void DeleteConstraintCommand::redo()
+void EmptyConstraintBox::redo()
 {
+	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	// Faire une classe Box qui contient les Process; supprimer Box.
+
 }
 
-int DeleteConstraintCommand::id() const
+int EmptyConstraintBox::id() const
 {
 	return 1;
 }
 
-bool DeleteConstraintCommand::mergeWith(const QUndoCommand* other)
+bool EmptyConstraintBox::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void DeleteConstraintCommand::serializeImpl(QDataStream&)
+
+// TODO
+void EmptyConstraintBox::serializeImpl(QDataStream&)
 {
 }
 
-void DeleteConstraintCommand::deserializeImpl(QDataStream&)
+void EmptyConstraintBox::deserializeImpl(QDataStream&)
 {
 }

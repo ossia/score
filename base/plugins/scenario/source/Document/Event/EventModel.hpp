@@ -7,6 +7,7 @@ namespace OSSIA
 }
 class State;
 class ConstraintModel;
+class ScenarioProcessSharedModel;
 
 class EventModel : public IdentifiedObject
 {
@@ -50,6 +51,8 @@ class EventModel : public IdentifiedObject
 		int date() const;
         void setDate(int date);
         void setVerticalExtremity(double);
+
+		ScenarioProcessSharedModel* parentScenario() const;
 
 	public slots:
 		void setHeightPercentage(double arg);

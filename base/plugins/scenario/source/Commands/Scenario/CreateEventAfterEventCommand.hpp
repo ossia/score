@@ -4,6 +4,12 @@
 
 struct EventData;
 
+/**
+ * @brief The CreateEventAfterEventCommand class
+ *
+ * This Command creates a constraint and another event in a scenario,
+ * starting from an event selected by the user.
+ */
 class CreateEventAfterEventCommand : public iscore::SerializableCommand
 {
 		friend class CreateEventAfterEventCommandTest;

@@ -39,23 +39,20 @@ CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath &&scenario
 void CreateEventAfterEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
-	if(scenar != nullptr)
-	{
-		scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
-	}
+
+	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
+
 }
 
 void CreateEventAfterEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
-	if(scenar != nullptr)
-	{
-		scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
-												   m_time,
-												   m_heightPosition,
-												   m_createdConstraintId,
-												   m_createdEventId);
-	}
+
+	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
+												 m_time,
+												 m_heightPosition,
+												 m_createdConstraintId,
+												 m_createdEventId);
 }
 
 int CreateEventAfterEventCommand::id() const

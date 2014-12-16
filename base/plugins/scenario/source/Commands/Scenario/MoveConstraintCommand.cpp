@@ -27,20 +27,16 @@ MoveConstraintCommand::MoveConstraintCommand(ObjectPath &&scenarioPath, int cons
 void MoveConstraintCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-	if(scenar != nullptr)
-	{
-        scenar->moveConstraint(m_constraintId, m_oldHeightPosition);
-	}
+
+	scenar->moveConstraint(m_constraintId, m_oldHeightPosition);
 }
 
 void MoveConstraintCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-	if(scenar != nullptr)
-	{
-		m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
-        scenar->moveConstraint(m_constraintId, m_oldHeightPosition + m_deltaHeight);
-	}
+
+	m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
+	scenar->moveConstraint(m_constraintId, m_oldHeightPosition + m_deltaHeight);
 }
 
 int MoveConstraintCommand::id() const

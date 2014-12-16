@@ -6,6 +6,12 @@
 
 struct EventModelData;
 
+/**
+ * @brief The CreateEventCommand class
+ *
+ * This command creates an Event, which is linked to the first event in the
+ * scenario.
+ */
 class CreateEventCommand : public iscore::SerializableCommand
 {
 		friend class CreateEventAfterEventCommandTest;

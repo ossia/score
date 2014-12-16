@@ -28,23 +28,19 @@ MoveEventCommand::MoveEventCommand(ObjectPath &&scenarioPath, EventData data):
 void MoveEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-	if(scenar != nullptr)
-	{
-		m_time = scenar->event(m_eventId)->date();
-		m_heightPosition = scenar->event(m_eventId)->heightPercentage();
-		scenar->moveEventAndConstraint(m_eventId, m_oldTime, m_oldHeightPosition);
-	}
+
+	m_time = scenar->event(m_eventId)->date();
+	m_heightPosition = scenar->event(m_eventId)->heightPercentage();
+	scenar->moveEventAndConstraint(m_eventId, m_oldTime, m_oldHeightPosition);
 }
 
 void MoveEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-	if(scenar != nullptr)
-	{
-		m_oldTime = scenar->event(m_eventId)->date();
-		m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
-		scenar->moveEventAndConstraint(m_eventId, m_time, m_heightPosition);
-	}
+
+	m_oldTime = scenar->event(m_eventId)->date();
+	m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
+	scenar->moveEventAndConstraint(m_eventId, m_time, m_heightPosition);
 }
 
 int MoveEventCommand::id() const
