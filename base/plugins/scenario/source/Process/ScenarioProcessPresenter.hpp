@@ -37,6 +37,7 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 
 	signals:
 		void currentlySelectedEventChanged(int arg);
+        void linesExtremityScaled(int, int);
 
 	public slots:
 		// Model -> view
@@ -71,4 +72,3 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 
 		int m_currentlySelectedEvent{};
 };
-

@@ -32,6 +32,12 @@ class EventModel : public IdentifiedObject
 		const QVector<int>& previousConstraints() const;
 		const QVector<int>& nextConstraints() const;
 
+        void addNextConstraint(int);
+        void addPreviousConstraint(int);
+
+        bool removeNextConstraint(int);
+        bool removePreviousConstraint(int);
+
 		const std::vector<State*>& states() const;
 		void addMessage(QString s);
 		void removeMessage(QString s);
@@ -43,6 +49,7 @@ class EventModel : public IdentifiedObject
 		double heightPercentage() const;
 		int date() const;
         void setDate(int date);
+        void setVerticalExtremity(double);
 
 	public slots:
 		void setHeightPercentage(double arg);
@@ -50,6 +57,7 @@ class EventModel : public IdentifiedObject
 	signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
+        void verticalExtremityChanged(double, double);
 
 	private:
 		OSSIA::TimeNode* m_timeNode{};
@@ -57,7 +65,10 @@ class EventModel : public IdentifiedObject
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;
 
-		double m_heightPercentage{0.5};
+		double m_heightPercentage{0.5};       
+
+        double m_topY{0.5};
+        double m_bottomY{0.5};
 
 		std::vector<State*> m_states;
 };

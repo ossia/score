@@ -128,8 +128,10 @@ int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, 
 	inter->setStartEvent(sev->id());
 	inter->setEndEvent(eev->id());
 
+    sev->addNextConstraint(newConstraintModelId);
+    eev->addPreviousConstraint(newConstraintModelId);
+
 	// From now on everything must be in a valid state.
-	m_constraints.push_back(inter);
 
 	emit constraintCreated(inter->id());
 
@@ -158,6 +160,11 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	event->m_x = inter->m_x + inter->m_width;
 //	event->m_y = inter->heightPercentage() * 75;
 
+    event->addPreviousConstraint(newConstraintId);
+    this->event(startEventId)->addNextConstraint(newConstraintId);
+
+//    event->setVerticalExtremity(inter->heightPercentage());
+//    qDebug() << "create constraint " << inter->heightPercentage() ;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
@@ -203,18 +210,6 @@ std::tuple<int, int, int, int> ScenarioProcessSharedModel::createConstraintAndBo
 	return std::tuple_cat(t1, t2);
 }
 
-void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
-{
-	event(eventId)->setHeightPercentage(heightPosition);
-	emit eventMoved(eventId);
-}
-
-void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
-{
-	constraint(constraintId)->setHeightPercentage(heightPosition);
-	emit constraintMoved(constraintId);
-}
-
 std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFromStartEvent(int endTime,
 																						 double heightPos,
 																						 int newConstraintId,
@@ -225,6 +220,22 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 											  heightPos,
 											  newConstraintId,
 											  newEventId);
+}
+
+void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
+{
+    event(eventId)->setHeightPercentage(heightPosition);
+//    event(eventId)->setVerticalExtremity(heightPosition);
+    emit eventMoved(eventId);
+}
+
+void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
+{
+    constraint(constraintId)->setHeightPercentage(heightPosition);
+    auto eev = event(constraint(constraintId)->endEvent());
+    eev->setVerticalExtremity(heightPosition);
+
+    emit constraintMoved(constraintId);
 }
 
 ///////// DELETION //////////

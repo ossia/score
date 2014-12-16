@@ -39,7 +39,6 @@ void MoveConstraintCommand::redo()
 	if(scenar != nullptr)
 	{
 		m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
-//        m_heightPosition = m_oldHeightPosition + m_deltaHeight;
         scenar->moveConstraint(m_constraintId, m_oldHeightPosition + m_deltaHeight);
 	}
 }
