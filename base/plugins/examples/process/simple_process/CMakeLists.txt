@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(simple_process)
 
 # Packages
-find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5Core 5.2 REQUIRED)
+find_package(Qt5Widgets 5.2 REQUIRED)
 
 # Files & main target
 include_directories(.)

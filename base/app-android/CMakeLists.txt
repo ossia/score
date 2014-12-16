@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.0)
  
 project(iscore_app_android)
 
-find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5Core 5.2 REQUIRED)
+find_package(Qt5Widgets 5.2 REQUIRED)
  
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/base/app-android/libs/${ARM_TARGET}/)
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)

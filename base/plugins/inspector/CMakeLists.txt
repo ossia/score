@@ -5,8 +5,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5Core 5.2 REQUIRED)
+find_package(Qt5Widgets 5.2 REQUIRED)
 
 # Files & main target
 include_directories("${ISCORE_INTERFACE_FOLDER}")
