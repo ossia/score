@@ -115,15 +115,13 @@ void EventModel::setDate(int date)
 void EventModel::setVerticalExtremity(int consId, double newPosition)
 {
     m_constraintsYPos[consId] = newPosition;
-    setVerticalLink();
+    updateVerticalLink();
 }
 
-void EventModel::setVerticalLink()
+void EventModel::updateVerticalLink()
 {
-
     m_topY = m_heightPercentage;
     m_bottomY = m_heightPercentage;
-    qDebug() << "extremities before " << m_topY << m_bottomY;
 
     for (auto pos : m_constraintsYPos)
     {
@@ -136,8 +134,6 @@ void EventModel::setVerticalLink()
             m_bottomY = pos;
         }
     }
-    qDebug() << "extremities after " << m_topY << m_bottomY;
-    qDebug() << m_constraintsYPos.size();
     emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
@@ -182,7 +178,6 @@ void EventModel::setHeightPercentage(double arg)
 {
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
-        qDebug() << "heightprc " << m_heightPercentage;
 		emit heightPercentageChanged(arg);
 	}
 }

@@ -51,7 +51,7 @@ class EventModel : public IdentifiedObject
 		int date() const;
         void setDate(int date);
         void setVerticalExtremity(int, double);
-        void setVerticalLink();
+        void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 

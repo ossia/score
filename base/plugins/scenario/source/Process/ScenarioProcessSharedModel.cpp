@@ -240,7 +240,6 @@ void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightP
 	emit constraintMoved(constraintId);
     eev->setVerticalExtremity(constraintId, heightPosition);
     sev->setVerticalExtremity(constraintId, heightPosition);
-    qDebug() << "start ev " << constraint(constraintId)->startEvent() << "\n";
 }
 
 ///////// DELETION //////////
@@ -257,8 +256,12 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	{
 		qDebug() << "suppressing event";
 		auto end_event_id = this->constraint(constraintId)->endEvent();
+
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
+
+        auto start_event = event(constraint(constraintId)->startEvent());
+        start_event->removeNextConstraint(constraintId);
 	}
 
 	// Constraint suppression
@@ -303,8 +306,10 @@ void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constrai
 
 	// First constraint suppression
 	{
-		emit constraintDeleted(start_constraint->id());
-		removeById(m_constraints, start_constraint->id());
+        auto first_event = event(constraint(start_constraint_id)->startEvent());
+        emit constraintDeleted(start_constraint->id());
+        first_event->removeNextConstraint(start_constraint_id);
+		removeById(m_constraints, start_constraint->id());        
 	}
 }
 
