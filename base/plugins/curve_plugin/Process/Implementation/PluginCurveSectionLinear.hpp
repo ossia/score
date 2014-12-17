@@ -32,8 +32,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #define PLUGINCURVESECTIONLINEAR_HPP
 
 #include <QGraphicsItem>
-#include "plugincurvepoint.hpp"
-#include "plugincurvesection.hpp"
+#include "PluginCurvePoint.hpp"
+#include "PluginCurveSection.hpp"
 
 class PluginCurveSectionLinear : public PluginCurveSection
 {

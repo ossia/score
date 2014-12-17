@@ -28,9 +28,9 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "plugincurvesectionlinear.hpp"
-#include "plugincurvepoint.hpp"
-#include "plugincurveview.hpp"
+#include "PluginCurveSectionLinear.hpp"
+#include "PluginCurvePoint.hpp"
+#include "../PluginCurveView.hpp"
 #include <QGraphicsItem>
 #include <QPainter>
 #include <QLineF>

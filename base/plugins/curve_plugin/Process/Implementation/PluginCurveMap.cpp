@@ -1,4 +1,4 @@
-#include "plugincurvemap.hpp"
+#include "PluginCurveMap.hpp"
 #include <iostream>
 
 PluginCurveMap::PluginCurveMap (QRectF scaleRect, QRectF paintRect) :

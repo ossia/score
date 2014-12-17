@@ -2,7 +2,7 @@
 #include <interface/customfactory/CustomFactoryInterface.hpp>
 
 #include <ProcessInterface/ProcessViewInterface.hpp>
-#include "plugincurve/include/plugincurve.hpp"
+#include "Process/PluginCurveFactory.hpp"
 
 
 CurvePlugin::CurvePlugin() :

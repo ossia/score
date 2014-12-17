@@ -28,11 +28,14 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "../include/plugincurveview.hpp"
-#include "../include/plugincurvegrid.hpp"
-#include "../include/plugincurvepresenter.hpp"
-#include "../include/plugincurvemap.hpp"
-#include "../include/plugincurvezoomer.hpp"
+
+#include "PluginCurvePresenter.hpp"
+#include "PluginCurveView.hpp"
+
+#include "Implementation/PluginCurveMap.hpp"
+#include "Implementation/PluginCurveGrid.hpp"
+#include "Implementation/PluginCurveZoomer.hpp"
+
 #include <QPainter>
 #include <QRectF>
 #include <QGraphicsScene>

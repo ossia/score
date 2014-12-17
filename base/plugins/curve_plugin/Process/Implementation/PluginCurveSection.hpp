@@ -2,9 +2,9 @@
 #define PLUGINCURVESECTION_HPP
 
 #include <QGraphicsItem>
-#include "plugincurvepoint.hpp"
-#include "plugincurvesection.hpp"
-#include "plugincurveview.hpp"
+#include "PluginCurvePoint.hpp"
+#include "PluginCurveSection.hpp"
+#include "../PluginCurveView.hpp"
 
 class PluginCurveSection : public QGraphicsObject
 {

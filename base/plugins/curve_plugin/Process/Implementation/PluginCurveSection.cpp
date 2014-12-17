@@ -1,6 +1,6 @@
-#include "plugincurvesection.hpp"
-#include "plugincurvepoint.hpp"
-#include "plugincurveview.hpp"
+#include "PluginCurveSection.hpp"
+#include "PluginCurvePoint.hpp"
+#include "../PluginCurveView.hpp"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QPainter>

@@ -1,5 +1,5 @@
-#include "plugincurvemenusection.hpp"
-#include "plugincurvesection.hpp"
+#include "PluginCurveMenuSection.hpp"
+#include "PluginCurveSection.hpp"
 
 const QString PluginCurveMenuSection::DELETE = "Delete";
 

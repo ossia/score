@@ -11,9 +11,8 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/plugincurve")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/plugincurve/include")
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 

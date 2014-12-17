@@ -54,7 +54,7 @@ QStringList ScenarioPlugin::control_list() const
 	return {"Scenario control"};
 }
 
-iscore::PluginControlInterface*ScenarioPlugin::control_make(QString name)
+iscore::PluginControlInterface* ScenarioPlugin::control_make(QString name)
 {
 	if(name == "Scenario control")
 	{

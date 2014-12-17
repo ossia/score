@@ -1,6 +1,5 @@
-#include "../include/plugincurvemenupoint.h"
-#include "../include/plugincurvepoint.hpp"
-
+#include "PluginCurveMenuPoint.hpp"
+#include "PluginCurvePoint.hpp"
 
 PluginCurveMenuPoint::PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent) :
 	QMenu (parent)

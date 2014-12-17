@@ -1,5 +1,5 @@
 #include <QPainter>
-#include "plugincurvezoomer.hpp"
+#include "PluginCurveZoomer.hpp"
 
 PluginCurveZoomer::PluginCurveZoomer (QGraphicsObject* parent) :
 	QGraphicsObject (parent)

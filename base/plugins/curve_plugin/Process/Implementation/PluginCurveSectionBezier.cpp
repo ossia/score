@@ -28,32 +28,11 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "../include/plugincurve.hpp"
-#include <QGraphicsItem>
-#include "../include/plugincurveview.hpp"
-#include "../include/plugincurvemodel.hpp"
-#include "../include/plugincurvepresenter.hpp"
+#include <QGraphicsObject>
+#include "PluginCurveSectionBezier.hpp"
 
-ProcessSharedModelInterface* PluginCurveFactory::makeModel(int id, QObject* parent)
+
+PluginCurveSectionBezier::PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest) :
+	PluginCurveSection (parent, source, dest)
 {
-	return new PluginCurveModel{id, parent};
-}
-
-ProcessSharedModelInterface*PluginCurveFactory::makeModel(QDataStream&, QObject*)
-{
-	return nullptr; // TODO
-}
-
-
-ProcessViewInterface* PluginCurveFactory::makeView(QString view, QObject* parent)
-{
-	return new PluginCurveView{static_cast<QGraphicsObject*>(parent)};
-}
-
-
-ProcessPresenterInterface* PluginCurveFactory::makePresenter(ProcessViewModelInterface* viewModel,
-															 ProcessViewInterface* view,
-															 QObject* parent)
-{
-	return new PluginCurvePresenter{viewModel, view, parent};
 }

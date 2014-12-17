@@ -1,7 +1,8 @@
-#include "plugincurvepoint.hpp"
-#include "plugincurvesection.hpp"
-#include "plugincurveview.hpp"
-#include "plugincurvepresenter.hpp"
+#include "PluginCurvePoint.hpp"
+#include "PluginCurveSection.hpp"
+
+#include "../PluginCurveModel.hpp"
+#include "../PluginCurvePresenter.hpp"
 #include <QPainter>
 #include <QRectF>
 #include <QGraphicsObject>

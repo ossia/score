@@ -28,10 +28,9 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "../include/plugincurvemodel.hpp"
-#include "plugincurvepoint.hpp"
-#include "plugincurvesection.hpp"
-#include "plugincurvemodel.hpp"
+#include "PluginCurveModel.hpp"
+#include "Implementation/PluginCurvePoint.hpp"
+#include "Implementation/PluginCurveSection.hpp"
 
 
 PluginCurveModel::PluginCurveModel (int id, QObject* parentObject) :

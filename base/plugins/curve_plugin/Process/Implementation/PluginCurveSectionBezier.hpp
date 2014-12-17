@@ -28,11 +28,15 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include <QGraphicsObject>
-#include "plugincurvesectionbezier.hpp"
+#ifndef PLUGINCURVESECTIONBEZIER_HPP
+#define PLUGINCURVESECTIONBEZIER_HPP
 
-
-PluginCurveSectionBezier::PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest) :
-	PluginCurveSection (parent, source, dest)
+#include "PluginCurveSection.hpp"
+class PluginCurveSectionBezier : public PluginCurveSection
 {
-}
+		Q_OBJECT
+	public:
+		PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest);
+};
+
+#endif // PLUGINCURVESECTIONBEZIER_HPP

@@ -28,18 +28,19 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "../include/plugincurve.hpp"
-#include "../include/plugincurvepresenter.hpp"
-#include "../include/plugincurveview.hpp"
-#include "../include/plugincurvemodel.hpp"
-#include "../include/plugincurvesection.hpp"
-#include "../include/plugincurvesectionlinear.hpp"
-#include "../include/plugincurvepoint.hpp"
-#include "../include/plugincurvemap.hpp"
-#include "../include/plugincurvegrid.hpp"
-#include "../include/plugincurvemenupoint.h"
-#include "../include/plugincurvemenusection.hpp"
-#include "../include/plugincurvezoomer.hpp"
+#include "PluginCurvePresenter.hpp"
+#include "PluginCurveModel.hpp"
+#include "PluginCurveView.hpp"
+
+#include "Implementation/PluginCurveSection.hpp"
+#include "Implementation/PluginCurveSectionLinear.hpp"
+#include "Implementation/PluginCurvePoint.hpp"
+#include "Implementation/PluginCurveMap.hpp"
+#include "Implementation/PluginCurveGrid.hpp"
+#include "Implementation/PluginCurveMenuPoint.hpp"
+#include "Implementation/PluginCurveMenuSection.hpp"
+#include "Implementation/PluginCurveZoomer.hpp"
+
 #include <QGraphicsSceneEvent>
 #include <QGraphicsView>
 #include <QGraphicsScene>

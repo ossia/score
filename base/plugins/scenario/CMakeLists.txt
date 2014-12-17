@@ -24,6 +24,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.cpp")
 
+### TODO Do the same for inspector.
 add_library(process_interface ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_link_libraries(process_interface Qt5::Core Qt5::Widgets iscore_lib)
 
