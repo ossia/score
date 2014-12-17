@@ -50,7 +50,8 @@ class EventModel : public IdentifiedObject
 		double heightPercentage() const;
 		int date() const;
         void setDate(int date);
-        void setVerticalExtremity(double);
+        void setVerticalExtremity(int, double);
+        void setVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
@@ -67,6 +68,7 @@ class EventModel : public IdentifiedObject
 
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;
+        QMap<int, double> m_constraintsYPos;
 
 		double m_heightPercentage{0.5};       
 

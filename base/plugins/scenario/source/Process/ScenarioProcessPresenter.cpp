@@ -105,6 +105,7 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 		if(ev->id() == eventId ) {
 			ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
 									rect.y() + rect.height() * ev->model()->heightPercentage()});
+            ev->model()->setVerticalLink();
 		}
 	}
 	m_view->update();

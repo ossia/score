@@ -32,10 +32,11 @@ void EventView::paint(QPainter* painter,
 
     painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
 
-    m_firstLine.setP1(m_rect.center());
+//    m_firstLine.setP1(m_rect.center());
+
     painter->drawLine(m_firstLine);
 
-//    painter->drawLine(m_secondLine);
+    painter->drawLine(m_secondLine);
 
 }
 
@@ -53,7 +54,7 @@ void EventView::setLinesExtremity(int topPoint, int bottomPoint)
     m_firstLine.setP2(QPointF(m_rect.center().x(), topPoint + 80)); // @todo where does the 80 come from ??
 
     m_secondLine.setP1(m_rect.center());
-    m_secondLine.setP2(QPointF(m_rect.center().x(), bottomPoint ));
+    m_secondLine.setP2(QPointF(m_rect.center().x(), bottomPoint + 80));
 }
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)

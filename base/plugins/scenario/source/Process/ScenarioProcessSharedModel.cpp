@@ -164,12 +164,6 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	event->m_x = inter->m_x + inter->m_width;
 //	event->m_y = inter->heightPercentage() * 75;
 
-	event->addPreviousConstraint(newConstraintId);
-	this->event(startEventId)->addNextConstraint(newConstraintId);
-
-//    event->setVerticalExtremity(inter->heightPercentage());
-//    qDebug() << "create constraint " << inter->heightPercentage() ;
-
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
 	auto ossia_tb = inter->apiObject();
@@ -180,7 +174,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
-	inter->setStartEvent(startEvent()->id());
+    inter->setStartEvent(startEventId);
 	inter->setEndEvent(event->id());
 
 	// From now on everything must be in a valid state.
@@ -189,6 +183,12 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 
 	emit eventCreated(event->id());
 	emit constraintCreated(inter->id());
+
+    // link constraint with event
+    event->addPreviousConstraint(newConstraintId);
+    this->event(startEventId)->addNextConstraint(newConstraintId);
+    event->setVerticalExtremity(inter->id(), inter->heightPercentage());
+    this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
 
 	return std::make_tuple(inter->id(), event->id());
 }
@@ -229,17 +229,18 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
 	event(eventId)->setHeightPercentage(heightPosition);
-//    event(eventId)->setVerticalExtremity(heightPosition);
-	emit eventMoved(eventId);
+    emit eventMoved(eventId);
 }
 
 void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
 {
-	constraint(constraintId)->setHeightPercentage(heightPosition);
-	auto eev = event(constraint(constraintId)->endEvent());
-	eev->setVerticalExtremity(heightPosition);
-
+    constraint(constraintId)->setHeightPercentage(heightPosition);
+    auto eev = event(constraint(constraintId)->endEvent());
+    auto sev = event(constraint(constraintId)->startEvent());
 	emit constraintMoved(constraintId);
+    eev->setVerticalExtremity(constraintId, heightPosition);
+    sev->setVerticalExtremity(constraintId, heightPosition);
+    qDebug() << "start ev " << constraint(constraintId)->startEvent() << "\n";
 }
 
 ///////// DELETION //////////
