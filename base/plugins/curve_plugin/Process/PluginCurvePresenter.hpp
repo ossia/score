@@ -43,22 +43,6 @@ knowledge of the CeCILL license and that you accept its terms.
 class PluginCurveFactory;
 class PluginCurveGrid;
 
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
-class PluginCurveViewModel : public ProcessViewModelInterface
-{
-	public:
-		PluginCurveModel* model() { return nullptr; }
-
-		// ProcessViewModelInterface interface
-	public:
-		virtual void serialize(QDataStream&) const
-		{
-		}
-		virtual void deserialize(QDataStream&)
-		{
-		}
-};
-
 enum EditionMode
 {
 	LinearSelectionMode, // Select all item betwin 2 positions

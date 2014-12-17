@@ -109,6 +109,7 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)
 {
 	return new ScenarioProcessViewModel(s, parent);
+	// TODO do the connections here too.
 }
 
 

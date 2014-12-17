@@ -44,7 +44,7 @@
 
 
 PluginCurveView::PluginCurveView (QGraphicsObject* parent)
-	: ProcessViewInterface ()
+	: ProcessViewInterface (parent)
 {
 	_pZoomer = new PluginCurveZoomer (this);
 	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);

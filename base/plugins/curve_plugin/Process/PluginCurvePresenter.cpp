@@ -31,6 +31,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurvePresenter.hpp"
 #include "PluginCurveModel.hpp"
 #include "PluginCurveView.hpp"
+#include "PluginCurveViewModel.hpp"
 
 #include "Implementation/PluginCurveSection.hpp"
 #include "Implementation/PluginCurveSectionLinear.hpp"
@@ -94,6 +95,8 @@ PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel
 	connect (_pView, SIGNAL (keyReleased (QKeyEvent*) ), this, SLOT (keyRelease (QKeyEvent*) ) );
 	connect (_pView, SIGNAL (wheelTurned (QGraphicsSceneWheelEvent*) ), this, SLOT (wheelTurned (QGraphicsSceneWheelEvent*) ) );
 	connect (_pView, SIGNAL (viewSceneChanged (QGraphicsScene*) ), this, SLOT (viewSceneChanged (QGraphicsScene*) ) );
+
+	/*
 	// Presenter --> PluginCurve
 	connect (this, SIGNAL (notifyPointCreated (QPointF) ), parent, SIGNAL (notifyPointCreated (QPointF) ) );
 	connect (this, SIGNAL (notifyPointDeleted (QPointF) ), parent, SIGNAL (notifyPointDeleted (QPointF) ) );
@@ -102,7 +105,7 @@ PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel
 	connect (this, SIGNAL (notifySectionChanged (QPointF, QPointF, qreal) ), parent, SIGNAL (notifySectionChanged (QPointF, QPointF, qreal) ) );
 	connect (this, SIGNAL (notifySectionDeleted (QPointF, QPointF) ), parent, SIGNAL (notifySectionDeleted (QPointF, QPointF) ) );
 	connect (this, SIGNAL (notifySectionMoved (QPointF, QPointF, QPointF, QPointF) ), parent, SIGNAL (notifySectionMoved (QPointF, QPointF, QPointF, QPointF) ) );
-
+	*/
 }
 
 PluginCurvePresenter::~PluginCurvePresenter()

@@ -11,6 +11,7 @@
 	class ProcessViewModelInterface: public IdentifiedObject
 	{
 		public:
+			// We should save the path instead of the shared process id.. Or directly a pointer.
 			ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, int sharedProcessId):
 				IdentifiedObject{viewModelId, name, parent},
 				m_sharedProcessId{sharedProcessId}

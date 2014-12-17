@@ -96,16 +96,10 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 		virtual ProcessViewModelInterface* makeViewModel (int viewModelId,
 				int sharedProcessId,
-				QObject* parent)
-		{
-			return nullptr;
-		}
+				QObject* parent);
 
 		virtual ProcessViewModelInterface* makeViewModel (QDataStream& s,
-				QObject* parent)
-		{
-			return nullptr;
-		}
+				QObject* parent);
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

@@ -15,7 +15,6 @@ ScenarioProcessViewModel::ScenarioProcessViewModel(QDataStream& s, QObject* pare
 	s >> static_cast<ProcessViewModelInterface&>(*this);
 
 	this->setParent(parent);
-
 }
 
 ScenarioProcessSharedModel* ScenarioProcessViewModel::model()
@@ -29,6 +28,7 @@ ScenarioProcessSharedModel* ScenarioProcessViewModel::model()
 	return nullptr;
 }
 
+// This breaks encapsulation :'(
 ConstraintModel* ScenarioProcessViewModel::parentConstraint() const
 {
 	auto storey = dynamic_cast<StoreyModel*>(parent());
