@@ -15,6 +15,7 @@ class ScenarioProcessView;
 class EventModel;
 class ConstraintModel;
 struct EventData;
+struct ConstraintData;
 
 class ScenarioProcessPresenter : public ProcessPresenterInterface
 {
@@ -57,7 +58,7 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void setCurrentlySelectedEvent(int arg);
         void createConstraintAndEventFromEvent(EventData data);
         void moveEventAndConstraint(EventData data);
-        void moveConstraintOnVertical(int id, double verticalMove);
+        void moveConstraint(ConstraintData data);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

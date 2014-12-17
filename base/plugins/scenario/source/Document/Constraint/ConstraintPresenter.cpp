@@ -40,7 +40,12 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 	connect(m_view, &ConstraintView::constraintReleased,
 			[&] (QPointF p)
 	{
-		emit constraintReleased(id(), p.y() - clickedPoint.y());
+        ConstraintData data{};
+        data.id = id();
+        data.y = p.y() - clickedPoint.y();
+        data.x = p.x() - clickedPoint.x();
+        emit constraintReleased(data);
+        qDebug() << "presenter " << p.x() << clickedPoint.x();
 	});
 
 	connect(m_view, &ConstraintView::addScenarioProcessClicked,

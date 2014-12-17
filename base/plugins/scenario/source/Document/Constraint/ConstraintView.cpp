@@ -55,5 +55,5 @@ void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
-	emit constraintReleased(QPointF( (m->pos().x() - m_rect.left()), m->pos().y() ) );
+    emit constraintReleased(m->pos());
 }

@@ -3,10 +3,13 @@
 
 #include <vector>
 
+#include "Document/Constraint/ConstraintData.hpp"
+
 class ConstraintModel;
 class ConstraintView;
 class BoxPresenter;
 class BoxModel;
+
 
 namespace iscore
 {
@@ -37,7 +40,7 @@ class ConstraintPresenter : public NamedObject
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
-		void constraintReleased(int id, int heightPos);
+        void constraintReleased(ConstraintData);
 
 	public slots:
 		void on_constraintPressed(QPointF);
