@@ -47,7 +47,7 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 			[&] ()
 	{
 		auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
-		auto cmd = new AddProcessToConstraintCommand(std::move(path), "Scenario");
+		auto cmd = new AddProcessToConstraintCommand(std::move(path), "CurvePlugin");
 		emit submitCommand(cmd);
 	});
 }

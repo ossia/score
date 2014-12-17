@@ -35,3 +35,7 @@ endif()
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/device_explorer")
 	add_subdirectory(device_explorer)
 endif()
+
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/curve_plugin")
+        add_subdirectory(curve_plugin)
+endif()
