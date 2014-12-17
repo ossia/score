@@ -11,10 +11,10 @@
  * For now this command creates a new storey in the current constraintcontentmodel with a new processviewmodel inside
  */
 // TODO Rename in AddProcessToBox.
-class AddProcessToConstraintCommand : public iscore::SerializableCommand
+class ResizeDeckVerticallyCommand : public iscore::SerializableCommand
 {
 	public:
-		AddProcessToConstraintCommand(ObjectPath&& constraintPath, QString process);
+		ResizeDeckVerticallyCommand(ObjectPath&& deckPath, int newSize);
 
 		virtual void undo() override;
 		virtual void redo() override;
@@ -27,10 +27,7 @@ class AddProcessToConstraintCommand : public iscore::SerializableCommand
 
 	private:
 		ObjectPath m_path;
-		QString m_processName;
 
-		int m_createdProcessId{};
-		int m_createdStoreyId{};
-		int m_createdProcessViewModelId{};
-		int m_contentModelId{};
+		int m_originalSize{};
+		int m_newSize{};
 };

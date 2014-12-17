@@ -3,6 +3,7 @@
 #include <tools/NamedObject.hpp>
 
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 StoreyView::StoreyView(QGraphicsObject* parent):
@@ -24,4 +25,20 @@ QRectF StoreyView::boundingRect() const
 void StoreyView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->drawRect(boundingRect());
+}
+
+void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+	emit bottomHandleSelected();
+}
+
+void StoreyView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+	qDebug() << m_height << event->pos() << event->buttonDownPos(Qt::LeftButton);
+	emit bottomHandleChanged(event->pos().y() - 20);
+}
+
+void StoreyView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+	emit bottomHandleReleased();
 }

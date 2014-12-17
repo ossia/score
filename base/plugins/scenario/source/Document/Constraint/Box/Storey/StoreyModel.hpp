@@ -84,6 +84,6 @@ class StoreyModel : public IdentifiedObject
 		int m_editedProcessId{};
 		std::vector<ProcessViewModelInterface*> m_processViewModels;
 
-		int m_height{500};
+		int m_height{200};
 };
 

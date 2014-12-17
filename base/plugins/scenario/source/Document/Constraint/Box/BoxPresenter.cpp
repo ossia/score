@@ -54,10 +54,18 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 			this,		&BoxPresenter::submitCommand);
 	connect(storeyPres, &StoreyPresenter::elementSelected,
 			this,		&BoxPresenter::elementSelected);
+
+	connect(storeyPres, &StoreyPresenter::askUpdate,
+			this,		&BoxPresenter::update);
 }
 
 void BoxPresenter::on_storeyDeleted(int storeyId)
 {
 	removeFromVectorWithId(m_storeys, storeyId);
+	m_view->update();
+}
+
+void BoxPresenter::update()
+{
 	m_view->update();
 }

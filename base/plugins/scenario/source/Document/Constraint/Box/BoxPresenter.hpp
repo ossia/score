@@ -29,6 +29,7 @@ class BoxPresenter : public NamedObject
 		void on_storeyCreated(int storeyId);
 		void on_storeyDeleted(int storeyId);
 
+		void update();
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);
 

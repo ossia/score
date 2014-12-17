@@ -128,7 +128,7 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 
 
 void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
-{   // @todo maybe better to create event on mouserelease ?
+{   // @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
 																m_viewModel->model()),
 									 point.x(),

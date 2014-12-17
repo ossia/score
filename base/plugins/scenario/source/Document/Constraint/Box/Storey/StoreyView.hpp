@@ -16,7 +16,14 @@ class StoreyView : public QGraphicsObject
 
 		int m_height{};
 
-	private:
+	signals:
+		void bottomHandleSelected();
+		void bottomHandleChanged(int newHeight);
+		void bottomHandleReleased();
 
+	protected:
+		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
 };
 

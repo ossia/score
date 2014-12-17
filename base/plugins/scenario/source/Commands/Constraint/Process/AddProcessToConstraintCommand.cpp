@@ -20,7 +20,7 @@ AddProcessToConstraintCommand::AddProcessToConstraintCommand(ObjectPath&& constr
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	m_createdProcessId = getNextId(constraint->processes());
 	m_contentModelId = constraint->boxes().front()->id(); // TODO pass as arg of the command.
-	qDebug() << "CTOR" << m_contentModelId;
+
 	m_createdStoreyId = getNextId(constraint->box(m_contentModelId)->storeys());
 	m_createdProcessViewModelId = getNextId(); // Storey does not exist yet so we can safely do this.
 }
@@ -29,9 +29,6 @@ void AddProcessToConstraintCommand::undo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	auto contentModel = constraint->box(m_contentModelId);
-
-	qDebug("UNDO");
-	for(auto& box : constraint->boxes()) qDebug() << box->id();
 
 	auto storey = contentModel->storey(m_createdStoreyId);
 	storey->deleteProcessViewModel(m_createdProcessViewModelId);
@@ -43,9 +40,6 @@ void AddProcessToConstraintCommand::undo()
 void AddProcessToConstraintCommand::redo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-
-	qDebug("REDO");
-	for(auto& box : constraint->boxes()) qDebug() << box->id();
 
 	// Create process model
 	constraint->createProcess(m_processName, m_createdProcessId);

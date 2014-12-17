@@ -34,6 +34,7 @@ CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath &&scenario
 
 	m_createdEventId = getNextId(scenar->events());
 	m_createdConstraintId = getNextId(scenar->constraints());
+	m_createdBoxId = getNextId();
 }
 
 void CreateEventAfterEventCommand::undo()
@@ -53,6 +54,8 @@ void CreateEventAfterEventCommand::redo()
 												 m_heightPosition,
 												 m_createdConstraintId,
 												 m_createdEventId);
+
+	scenar->constraint(m_createdConstraintId)->createBox(m_createdBoxId);
 }
 
 int CreateEventAfterEventCommand::id() const
