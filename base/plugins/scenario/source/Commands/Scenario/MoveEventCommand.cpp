@@ -19,8 +19,8 @@ MoveEventCommand::MoveEventCommand(ObjectPath &&scenarioPath, EventData data):
                         QObject::tr("Event move")},
     m_scenarioPath(std::move(scenarioPath)),
     m_eventId{data.eventClickedId},
-    m_time{data.x},
-    m_heightPosition{data.relativeY}
+    m_heightPosition{data.relativeY},
+    m_deltaX{data.x}
 {
 
 }
@@ -29,18 +29,16 @@ void MoveEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
 
-	m_time = scenar->event(m_eventId)->date();
 	m_heightPosition = scenar->event(m_eventId)->heightPercentage();
-	scenar->moveEventAndConstraint(m_eventId, m_oldTime, m_oldHeightPosition);
+    scenar->moveEventAndConstraint(m_eventId, - m_deltaX, m_oldHeightPosition);
 }
 
 void MoveEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-
-	m_oldTime = scenar->event(m_eventId)->date();
 	m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
-	scenar->moveEventAndConstraint(m_eventId, m_time, m_heightPosition);
+
+    scenar->moveEventAndConstraint(m_eventId, m_deltaX, m_heightPosition);
 }
 
 int MoveEventCommand::id() const
@@ -55,10 +53,10 @@ bool MoveEventCommand::mergeWith(const QUndoCommand* other)
 
 void MoveEventCommand::serializeImpl(QDataStream& s)
 {
-	s << m_scenarioPath << m_eventId << m_time << m_heightPosition;
+    s << m_scenarioPath << m_eventId << m_heightPosition << m_deltaX;
 }
 
 void MoveEventCommand::deserializeImpl(QDataStream& s)
 {
-	s >> m_scenarioPath >> m_eventId >> m_time >> m_heightPosition;
+    s >> m_scenarioPath >> m_eventId >> m_heightPosition >> m_deltaX;
 }

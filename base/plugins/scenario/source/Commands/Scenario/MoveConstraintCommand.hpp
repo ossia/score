@@ -21,7 +21,7 @@ class MoveConstraintCommand : public iscore::SerializableCommand
 		int m_constraintId{};
 		int m_endEventId{};
 
-//		double m_heightPosition{};
         double m_deltaHeight{};
 		double m_oldHeightPosition{};
+
 };

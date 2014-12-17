@@ -30,10 +30,6 @@ class ConstraintModel : public IdentifiedObject
 
 	public:
 
-		// ___ TEMPORARY ___
-		int m_width{200};
-		int m_height{200};
-		int m_x{};
 
 		friend QDataStream& operator << (QDataStream&, const ConstraintModel&);
 		friend QDataStream& operator >> (QDataStream&, ConstraintModel&);
@@ -76,6 +72,8 @@ class ConstraintModel : public IdentifiedObject
 
 		double heightPercentage() const;
 		int startDate() const;
+        void setStartDate(int start);
+        void translate(int deltaTime);
 
 		int width() const;
 		void setWidth(int width);
@@ -117,4 +115,10 @@ public slots:
 
 		int m_startEvent{};
 		int m_endEvent{};
+
+        // ___ TEMPORARY ___
+        int m_width{200};
+        int m_height{200};
+        int m_x{};
+
 };
