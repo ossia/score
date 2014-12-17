@@ -112,6 +112,11 @@ void EventModel::setDate(int date)
     m_x = date;
 }
 
+void EventModel::translate(int deltaTime)
+{
+    m_x += deltaTime;
+}
+
 void EventModel::setVerticalExtremity(int consId, double newPosition)
 {
     m_constraintsYPos[consId] = newPosition;

@@ -7,8 +7,8 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
 	m_baseConstraint{new ConstraintModel{0, this}}
 {
-	m_baseConstraint->m_width = 1000;
-	m_baseConstraint->m_height = 1000;
+    m_baseConstraint->setWidth(1000);
+    m_baseConstraint->setHeight(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 
 	m_baseConstraint->createBox(0);

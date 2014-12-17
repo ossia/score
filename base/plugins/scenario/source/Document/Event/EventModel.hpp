@@ -22,8 +22,6 @@ class EventModel : public IdentifiedObject
 		friend QDataStream& operator >> (QDataStream&, EventModel&);
 
 	public:
-		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-		int m_x{0};       
 
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
@@ -50,6 +48,7 @@ class EventModel : public IdentifiedObject
 		double heightPercentage() const;
 		int date() const;
         void setDate(int date);
+        void translate(int deltaTime);
         void setVerticalExtremity(int, double);
         void updateVerticalLink();
 
@@ -76,5 +75,9 @@ class EventModel : public IdentifiedObject
         double m_bottomY{0.5};
 
 		std::vector<State*> m_states;
+
+        /// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
+        int m_x{0};
+
 };
 

@@ -159,9 +159,9 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	}
 
 	// TEMPORARY :
-	inter->m_x = this->event(startEventId)->m_x;
-	inter->m_width = constraint_duration;
-	event->m_x = inter->m_x + inter->m_width;
+    inter->setStartDate(this->event(startEventId)->date());
+    inter->setWidth(constraint_duration);
+    event->setDate(inter->startDate() + inter->width());
 //	event->m_y = inter->heightPercentage() * 75;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
@@ -228,8 +228,19 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
-	event(eventId)->setHeightPercentage(heightPosition);
+    auto ev = event(eventId);
+    ev->setHeightPercentage(heightPosition);
+    ev->translate(time);
+
+    // resize previous constraint
+    auto prev_constraint =constraint(event(eventId)->previousConstraints().at(0));
+    prev_constraint->setWidth(prev_constraint->width() + time);
+
     emit eventMoved(eventId);
+    emit constraintMoved(prev_constraint->id());
+
+    QVector<int> already_moved_events;
+    moveNextElements(eventId, time, already_moved_events);
 }
 
 void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
@@ -240,6 +251,27 @@ void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightP
 	emit constraintMoved(constraintId);
     eev->setVerticalExtremity(constraintId, heightPosition);
     sev->setVerticalExtremity(constraintId, heightPosition);
+}
+
+void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent)
+{
+
+    auto cur_event = event(firstEventMovedId);
+    // boucle
+    for (auto cons : cur_event->nextConstraints())
+    {
+        auto evId = constraint(cons)->endEvent();
+        if (movedEvent.indexOf(evId) == -1)
+        {
+            event(evId)->translate(deltaTime);
+            movedEvent.push_back(evId);
+            constraint(cons)->translate(deltaTime);
+            emit eventMoved(evId);
+            emit constraintMoved(cons);
+            moveNextElements(evId, deltaTime, movedEvent);
+        }
+    }
+
 }
 
 ///////// DELETION //////////

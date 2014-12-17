@@ -21,9 +21,8 @@ class MoveEventCommand : public iscore::SerializableCommand
 		ObjectPath m_scenarioPath;
 		int m_eventId{};
 
-		int m_time{};
 		double m_heightPosition{};
-
-		int m_oldTime{};
 		double m_oldHeightPosition{};
+
+        int m_deltaX{};
 };

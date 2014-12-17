@@ -243,7 +243,17 @@ double ConstraintModel::heightPercentage() const
 
 int ConstraintModel::startDate() const
 {
-	return m_x;
+    return m_x;
+}
+
+void ConstraintModel::setStartDate(int start)
+{
+    m_x = start;
+}
+
+void ConstraintModel::translate(int deltaTime)
+{
+    m_x += deltaTime;
 }
 
 void ConstraintModel::setName(QString arg)

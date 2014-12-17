@@ -103,7 +103,7 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 
 	for(auto ev : m_events) {
 		if(ev->id() == eventId ) {
-			ev->view()->setTopLeft({rect.x() + ev->model()->m_x,
+            ev->view()->setTopLeft({rect.x() + ev->model()->date(),
 									rect.y() + rect.height() * ev->model()->heightPercentage()});
             ev->model()->updateVerticalLink();
 		}
@@ -120,6 +120,7 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 		if(inter->id() == constraintId ) {
 			inter->view()->setTopLeft({rect.x() + inter->model()->startDate(),
 									rect.y() + rect.height() * inter->model()->heightPercentage()});
+            inter->view()->m_rect.setWidth(inter->model()->width());
 		}
 	}
 	m_view->update();
@@ -230,7 +231,7 @@ void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constr
 													constraint_view,
 													this};
 
-	constraint_view->setTopLeft({rect.x() + constraint_model->m_x,
+    constraint_view->setTopLeft({rect.x() + constraint_model->startDate(),
 							   rect.y() + rect.height() * constraint_model->heightPercentage()});
 
 	m_constraints.push_back(constraint_presenter);
