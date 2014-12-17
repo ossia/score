@@ -33,107 +33,135 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "plugincurvemodel.hpp"
 
 
-PluginCurveModel::PluginCurveModel(QObject *parentObject, QGraphicsObject *parentItem) :
-  QObject(parentObject), _pParent(parentItem)
+PluginCurveModel::PluginCurveModel (QObject* parentObject, QGraphicsObject* parentItem) :
+	QObject (parentObject), _pParent (parentItem)
 {
-  _state = true; // Active when created
+	_state = true; // Active when created
 }
 
-QList<PluginCurvePoint *> PluginCurveModel::points()
+QList<PluginCurvePoint*> PluginCurveModel::points()
 {
-  return _points;
+	return _points;
 }
 
 QRectF PluginCurveModel::limitRect()
 {
-  return _limitRect;
+	return _limitRect;
 }
 
-int PluginCurveModel::pointIndexOf(PluginCurvePoint *point)
+int PluginCurveModel::pointIndexOf (PluginCurvePoint* point)
 {
-  return _points.indexOf(point);
+	return _points.indexOf (point);
 }
 
-PluginCurvePoint *PluginCurveModel::pointAt(int index)
+PluginCurvePoint* PluginCurveModel::pointAt (int index)
 {
-  return _points.at(index);
+	return _points.at (index);
 }
 
 int PluginCurveModel::pointSize()
 {
-  return _points.size();
+	return _points.size();
 }
 
 template<typename T1, typename T2>
-bool compare(const T1 &value1,const T2 &value2, bool (*(comparisonFunc)(const T1&,const T2&)))
+bool compare (const T1& value1, const T2& value2, bool (* (comparisonFunc) (const T1&, const T2&) ) )
 {
-  if (comparisonFunc == nullptr)
-    return (value1 >= value2);
-  else
-    return ((*comparisonFunc)(value1,value2));
+	if (comparisonFunc == nullptr)
+	{
+		return (value1 >= value2);
+	}
+	else
+	{
+		return ( (*comparisonFunc) (value1, value2) );
+	}
 }
 
 // Return where value must be inserted for keep the list sorted.
-template<typename T1,typename T2>
-int dichotomousSearch (QList<T1 *> list, T2 value, int first, int last, bool (*supFunc(const T1&,const T2&)) = nullptr, bool (*infFunc(const T1&,const T2&)) = nullptr)
+template<typename T1, typename T2>
+int dichotomousSearch (QList<T1*> list, T2 value, int first, int last, bool (*supFunc (const T1&, const T2&) ) = nullptr, bool (*infFunc (const T1&, const T2&) ) = nullptr)
 {
-  if (list.size()==0)
-    return -1;
-  if ((supFunc == nullptr && *list.at(first) >= value ) ||
-      (supFunc != nullptr && supFunc(*list.at(first),value)) )
+	if (list.size() == 0)
+	{
+		return -1;
+	}
+
+	if ( (supFunc == nullptr && *list.at (first) >= value ) ||
+	        (supFunc != nullptr && supFunc (*list.at (first), value) ) )
 //  if (*list.at(first) >= value )
-    return -1;
-  if (last-first<=1)
-    {
-      if ((infFunc == nullptr && *list.at(last) <= value ) ||
-          (infFunc != nullptr && infFunc(*list.at(last),value)) )
+	{
+		return -1;
+	}
+
+	if (last - first <= 1)
+	{
+		if ( (infFunc == nullptr && *list.at (last) <= value ) ||
+		        (infFunc != nullptr && infFunc (*list.at (last), value) ) )
 //      if ( *(list.at(last)) <= value )
-        {
-          return last;
-        }
-      else
-        {
-          return first;
-        }
-    }
-  int mid = (first+last)/2;
-  if ((supFunc == nullptr && *list.at(mid) >= value ) ||
-      (supFunc != nullptr && supFunc(*list.at(mid),value)) )
+		{
+			return last;
+		}
+		else
+		{
+			return first;
+		}
+	}
+
+	int mid = (first + last) / 2;
+
+	if ( (supFunc == nullptr && *list.at (mid) >= value ) ||
+	        (supFunc != nullptr && supFunc (*list.at (mid), value) ) )
 //  if (*list.at(mid)>=value)
-    {
-      return (dichotomousSearch(list,value,first,mid-1,supFunc,infFunc));
-    }
-  else
-    {
-      return (dichotomousSearch(list,value,mid,last,supFunc,infFunc));
-    }
+	{
+		return (dichotomousSearch (list, value, first, mid - 1, supFunc, infFunc) );
+	}
+	else
+	{
+		return (dichotomousSearch (list, value, mid, last, supFunc, infFunc) );
+	}
 }
 
-int PluginCurveModel::pointSearchIndex(QPointF point)
+int PluginCurveModel::pointSearchIndex (QPointF point)
 {
-  return dichotomousSearch(_points,point,0,_points.size()-1);
+	return dichotomousSearch (_points, point, 0, _points.size() - 1);
 }
 
-PluginCurvePoint *PluginCurveModel::previousPoint(PluginCurvePoint *point)
+PluginCurvePoint* PluginCurveModel::previousPoint (PluginCurvePoint* point)
 {
-  if (point == nullptr)
-    return nullptr;
-  PluginCurveSection *leftSection = point->leftSection();
-  if (leftSection != nullptr)
-    return leftSection->sourcePoint();
-  else
-    return nullptr;
+	if (point == nullptr)
+	{
+		return nullptr;
+	}
+
+	PluginCurveSection* leftSection = point->leftSection();
+
+	if (leftSection != nullptr)
+	{
+		return leftSection->sourcePoint();
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
-PluginCurvePoint *PluginCurveModel::nextPoint(PluginCurvePoint *point)
+PluginCurvePoint* PluginCurveModel::nextPoint (PluginCurvePoint* point)
 {
-  if (point == nullptr)
-    return nullptr;
-  PluginCurveSection *rightSection = point->rightSection();
-  if (rightSection != nullptr)
-    return rightSection->destPoint();
-  else
-    return nullptr;
+	if (point == nullptr)
+	{
+		return nullptr;
+	}
+
+	PluginCurveSection* rightSection = point->rightSection();
+
+	if (rightSection != nullptr)
+	{
+		return rightSection->destPoint();
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 //bool PluginCurveModel::enoughSpaceBefore(PluginCurvePoint *point)
@@ -154,43 +182,53 @@ PluginCurvePoint *PluginCurveModel::nextPoint(PluginCurvePoint *point)
 //    return (limitRect().x() + limitRect().width() - point->x() >= PluginCurvePresenter::POINTMINDIST);
 //}
 
-void PluginCurveModel::setState(bool b)
+void PluginCurveModel::setState (bool b)
 {
-  if (b != _state)
-  {
-    _state = b;
-  }
+	if (b != _state)
+	{
+		_state = b;
+	}
 }
 
-void PluginCurveModel::pointRemoveOne(PluginCurvePoint *point)
+void PluginCurveModel::pointRemoveOne (PluginCurvePoint* point)
 {
-  if (point != nullptr)
-    _points.removeOne(point);
+	if (point != nullptr)
+	{
+		_points.removeOne (point);
+	}
 }
 
-void PluginCurveModel::pointSwap(int index1, int index2)
+void PluginCurveModel::pointSwap (int index1, int index2)
 {
-  _points.swap(index1,index2);
+	_points.swap (index1, index2);
 }
 
-void PluginCurveModel::pointInsert(int index,PluginCurvePoint *point)
+void PluginCurveModel::pointInsert (int index, PluginCurvePoint* point)
 {
-  if (point != nullptr)
-    _points.insert(index,point);
+	if (point != nullptr)
+	{
+		_points.insert (index, point);
+	}
 }
 
-void PluginCurveModel::sectionAppend(PluginCurveSection *section)
+void PluginCurveModel::sectionAppend (PluginCurveSection* section)
 {
-  if (section == NULL)
-    return;
-  _sections.append(section);
+	if (section == NULL)
+	{
+		return;
+	}
+
+	_sections.append (section);
 }
 
-void PluginCurveModel::sectionRemoveOne(PluginCurveSection *section)
+void PluginCurveModel::sectionRemoveOne (PluginCurveSection* section)
 {
-  if (section == NULL)
-    return;
-  _sections.removeOne(section);
+	if (section == NULL)
+	{
+		return;
+	}
+
+	_sections.removeOne (section);
 }
 
 

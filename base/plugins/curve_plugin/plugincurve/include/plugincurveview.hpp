@@ -52,52 +52,52 @@ class PluginCurveZoomer;
 
 class PluginCurveView : public QGraphicsObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
 // PluginCurveview = window, _pOrthoBasis = scene.
 
-private:
+	private:
 //  QGraphicsObject *_pParent; // Pointer to the parent storey
 //  PluginCurvePresenter *_pPresenter; // Pointer to the presenter
-  QGraphicsRectItem *_pSelectionRectangle; // Selection Rectangle
-  PluginCurveZoomer *_pZoomer; // Contains all the others graphics element. Zoom effet will be applied on it.
-public:
-  PluginCurveView(QGraphicsObject *parent);
-  ~PluginCurveView();
-  QGraphicsRectItem *selectionRectangle();
-  PluginCurveZoomer *zoomer();
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  QRectF boundingRect() const;
+		QGraphicsRectItem* _pSelectionRectangle; // Selection Rectangle
+		PluginCurveZoomer* _pZoomer; // Contains all the others graphics element. Zoom effet will be applied on it.
+	public:
+		PluginCurveView (QGraphicsObject* parent);
+		~PluginCurveView();
+		QGraphicsRectItem* selectionRectangle();
+		PluginCurveZoomer* zoomer();
+		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+		QRectF boundingRect() const;
 
-signals:
-  void doubleClicked(QGraphicsSceneMouseEvent *);
-  void mousePressed(QGraphicsSceneMouseEvent *);
-  void mouseMoved(QGraphicsSceneMouseEvent *);
-  void mouseReleased(QGraphicsSceneMouseEvent *);
-  void keyPressed(QKeyEvent *);
-  void keyReleased(QKeyEvent *);
-  void wheelTurned(QGraphicsSceneWheelEvent *);
-  void viewSceneChanged(QGraphicsScene *);
+	signals:
+		void doubleClicked (QGraphicsSceneMouseEvent*);
+		void mousePressed (QGraphicsSceneMouseEvent*);
+		void mouseMoved (QGraphicsSceneMouseEvent*);
+		void mouseReleased (QGraphicsSceneMouseEvent*);
+		void keyPressed (QKeyEvent*);
+		void keyReleased (QKeyEvent*);
+		void wheelTurned (QGraphicsSceneWheelEvent*);
+		void viewSceneChanged (QGraphicsScene*);
 
-protected:
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-  void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void mouseMoveEvent(QGraphicsSceneMouseEvent *moveEvent);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent *releaseEvent);
-  void keyPressEvent(QKeyEvent *keyEvent);
-  void keyReleaseEvent(QKeyEvent *keyEvent);
-  void wheelEvent(QGraphicsSceneWheelEvent *event);
-  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+	protected:
+		void mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event);
+		void mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent);
+		void mouseMoveEvent (QGraphicsSceneMouseEvent* moveEvent);
+		void mouseReleaseEvent (QGraphicsSceneMouseEvent* releaseEvent);
+		void keyPressEvent (QKeyEvent* keyEvent);
+		void keyReleaseEvent (QKeyEvent* keyEvent);
+		void wheelEvent (QGraphicsSceneWheelEvent* event);
+		QVariant itemChange (GraphicsItemChange change, const QVariant& value);
 
-public slots:
-  // Shows selection rectangle
-  void startDrawSelectionRectangle(QPoint originSelectionRectangle);
-  // Changes selection rectangle size
-  void drawSelectionrectangle(QPoint originSelectionRectangle, QPoint destinationSelectionRectangle);
-  // Hides selection rectangle
-  void selectItems();
-  // Changes cursor
-  void changeCursor(QCursor cursor);
+	public slots:
+		// Shows selection rectangle
+		void startDrawSelectionRectangle (QPoint originSelectionRectangle);
+		// Changes selection rectangle size
+		void drawSelectionrectangle (QPoint originSelectionRectangle, QPoint destinationSelectionRectangle);
+		// Hides selection rectangle
+		void selectItems();
+		// Changes cursor
+		void changeCursor (QCursor cursor);
 
 };
 

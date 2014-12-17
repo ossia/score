@@ -14,7 +14,7 @@ class SmallCurve : public ProcessViewInterface
 		{
 			return {40, 40, 400, 400};
 		}
-		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+		virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 		{
 		}
 };
@@ -22,7 +22,7 @@ class pres : public ProcessPresenterInterface
 {
 		// ProcessPresenterInterface interface
 	public:
-		pres(): ProcessPresenterInterface("CurvePresenter", nullptr) { }
+		pres() : ProcessPresenterInterface ("CurvePresenter", nullptr) { }
 		virtual int id() const
 		{
 			return 42;
@@ -33,8 +33,8 @@ class mod : public ProcessSharedModelInterface
 {
 		// ProcessSharedModelInterface interface
 	public:
-		mod(int id):
-			ProcessSharedModelInterface(id, "CurveModel", nullptr)
+		mod (int id) :
+			ProcessSharedModelInterface (id, "CurveModel", nullptr)
 		{
 
 		}
@@ -44,15 +44,15 @@ class mod : public ProcessSharedModelInterface
 			return "CurvePlugin";
 		}
 
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
-														 int sharedProcessId,
-														 QObject* parent)
+		virtual ProcessViewModelInterface* makeViewModel (int viewModelId,
+		        int sharedProcessId,
+		        QObject* parent)
 		{
 			return nullptr;
 		}
 
-		virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
-														 QObject* parent)
+		virtual ProcessViewModelInterface* makeViewModel (QDataStream& s,
+		        QObject* parent)
 		{
 			return nullptr;
 		}
@@ -63,7 +63,7 @@ class CurveProcessFactory: public ProcessFactoryInterface
 	public:
 		CurveProcessFactory()
 		{
-			curve = new PluginCurve(obj);
+			curve = new PluginCurve (obj);
 		}
 
 		virtual QString name() const
@@ -75,22 +75,22 @@ class CurveProcessFactory: public ProcessFactoryInterface
 			return {};
 		}
 
-		virtual ProcessSharedModelInterface* makeModel(int id, QObject *parent)
+		virtual ProcessSharedModelInterface* makeModel (int id, QObject* parent)
 		{
-			return new mod(id);
+			return new mod (id);
 		}
 
-		virtual ProcessSharedModelInterface* makeModel(QDataStream&, QObject*)
+		virtual ProcessSharedModelInterface* makeModel (QDataStream&, QObject*)
 		{
 			return nullptr;
 		}
 
-		virtual ProcessViewInterface*makeView(QString view, QObject* parent)
+		virtual ProcessViewInterface* makeView (QString view, QObject* parent)
 		{
 
 			return obj;
 		}
-		virtual ProcessPresenterInterface*makePresenter(ProcessViewModelInterface*, ProcessViewInterface*, QObject* parent)
+		virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*, ProcessViewInterface*, QObject* parent)
 		{
 			return new pres;
 		}
@@ -113,9 +113,9 @@ QList<iscore::Autoconnect> CurvePlugin::autoconnect_list() const
 }
 
 
-QVector<iscore::FactoryInterface*> CurvePlugin::factories_make(QString factoryName)
+QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryName)
 {
-	if(factoryName == "Process")
+	if (factoryName == "Process")
 	{
 		return {new CurveProcessFactory};
 	}
@@ -137,7 +137,7 @@ QStringList CurvePlugin::control_list() const
 	return {};
 }
 
-iscore::PluginControlInterface* CurvePlugin::control_make(QString name)
+iscore::PluginControlInterface* CurvePlugin::control_make (QString name)
 {
 	return nullptr;
 }

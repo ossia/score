@@ -39,58 +39,58 @@ class PluginCurvePresenter;
 
 class PluginCurve : public QObject
 {
-  Q_OBJECT
+		Q_OBJECT
 
-    /*!
-    *  This class is the interface of the curve plugin.
-    *  It emits signals after user's interactions with the elements of the plugin. @n
-    *
-    *  @brief Grid
-    *  @author Simon Touchard, Myriam Desainte-Catherine
-    *  @date 2014
-    */
+		/*!
+		*  This class is the interface of the curve plugin.
+		*  It emits signals after user's interactions with the elements of the plugin. @n
+		*
+		*  @brief Grid
+		*  @author Simon Touchard, Myriam Desainte-Catherine
+		*  @date 2014
+		*/
 
 // Attributes
-private:
-  PluginCurveModel *_pModel; /*!< Curve plugin model.*/
-  PluginCurvePresenter *_pPresenter; /*!< Curve plugin presenter. */
-  PluginCurveView *_pView; /*!< Curve plugin view. */
+	private:
+		PluginCurveModel* _pModel; /*!< Curve plugin model.*/
+		PluginCurvePresenter* _pPresenter; /*!< Curve plugin presenter. */
+		PluginCurveView* _pView; /*!< Curve plugin view. */
 
 // Signals and slots
-signals :
-  // Signals for the plugin users (va dans le présenteur)
-  void notifyPointCreated(QPointF value); /*!< Notifies the user that a point has been created. */
-  void notifyPointDeleted(QPointF value); /*!< Notifies the user that a point has been deleted. */
-  void notifyPointMoved(QPointF oldVal, QPointF newVal); /*!< Notifies the user that a point has been moved.*/
-  void notifySectionCreated(QPointF source, QPointF dest, qreal coef); /*!< Notifies the user that a section has been created. */
-  void notifySectionChanged(QPointF source, QPointF dest, qreal coef); /*!< Notifies the user that a section has been changed. */
-  void notifySectionDeleted(QPointF source, QPointF dest); /*!< Notifies the user that a section has been deleted. */
-  void notifySectionMoved(QPointF oldSource, QPointF oldDest, QPointF newSource, QPointF newDest);
+	signals :
+		// Signals for the plugin users (va dans le présenteur)
+		void notifyPointCreated (QPointF value); /*!< Notifies the user that a point has been created. */
+		void notifyPointDeleted (QPointF value); /*!< Notifies the user that a point has been deleted. */
+		void notifyPointMoved (QPointF oldVal, QPointF newVal); /*!< Notifies the user that a point has been moved.*/
+		void notifySectionCreated (QPointF source, QPointF dest, qreal coef); /*!< Notifies the user that a section has been created. */
+		void notifySectionChanged (QPointF source, QPointF dest, qreal coef); /*!< Notifies the user that a section has been changed. */
+		void notifySectionDeleted (QPointF source, QPointF dest); /*!< Notifies the user that a section has been deleted. */
+		void notifySectionMoved (QPointF oldSource, QPointF oldDest, QPointF newSource, QPointF newDest);
 
-public slots :
+	public slots :
 
 // Methods
-public:
-  //! Construct a PluginCurve.
-  /*!
-  \param parent Parent item. Should be large enough.
-  */
-  PluginCurve(QGraphicsObject *parent);
-  ~PluginCurve();
-  /*! Activates area selection mode. Deactivates the others modes. If area selection mode is activated, nothing is done. */
-  void setAreaSelectionMode();
-  /*! Hides the grid if b is false. Show the grid if b is true. */
-  void setGridVisible(bool b = true);
-  /*! Activates linear selection mode. Deactivates the others modes. If linear selection mode is activated, nothing is done. */
-  void setLinearSelectionMode();
-  /*! Activates (b is true) or deactivates (b is false) grid magnetism. */
-  void setMagnetism(bool b = true);
-  /*! Activates pen mode. Deactivates the others modes. If pen mode is already activated, nothing is done.*/
-  void setPenMode();
-  /*! Allows (b is true) or forbids (b is false) points to cross others points. */
-  void setPointCanCross(bool b = true);
-  /*! Returns the view. */
-  QGraphicsObject *view();
+	public:
+		//! Construct a PluginCurve.
+		/*!
+		\param parent Parent item. Should be large enough.
+		*/
+		PluginCurve (QGraphicsObject* parent);
+		~PluginCurve();
+		/*! Activates area selection mode. Deactivates the others modes. If area selection mode is activated, nothing is done. */
+		void setAreaSelectionMode();
+		/*! Hides the grid if b is false. Show the grid if b is true. */
+		void setGridVisible (bool b = true);
+		/*! Activates linear selection mode. Deactivates the others modes. If linear selection mode is activated, nothing is done. */
+		void setLinearSelectionMode();
+		/*! Activates (b is true) or deactivates (b is false) grid magnetism. */
+		void setMagnetism (bool b = true);
+		/*! Activates pen mode. Deactivates the others modes. If pen mode is already activated, nothing is done.*/
+		void setPenMode();
+		/*! Allows (b is true) or forbids (b is false) points to cross others points. */
+		void setPointCanCross (bool b = true);
+		/*! Returns the view. */
+		QGraphicsObject* view();
 //  /*! Create point*/
 //  void createPoint(QPointF pos);
 };

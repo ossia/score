@@ -34,62 +34,62 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "plugincurvemodel.hpp"
 #include "plugincurvepresenter.hpp"
 
-PluginCurve::PluginCurve(QGraphicsObject *parent) :
-  QObject(parent)
+PluginCurve::PluginCurve (QGraphicsObject* parent) :
+	QObject (parent)
 {
-  //_pStorey = storey;
-  _pModel = new PluginCurveModel(this,parent);
-  _pView = new PluginCurveView(parent);
-  _pPresenter = new PluginCurvePresenter(this,_pModel,_pView);
-  // Creates the last and first points
+	//_pStorey = storey;
+	_pModel = new PluginCurveModel (this, parent);
+	_pView = new PluginCurveView (parent);
+	_pPresenter = new PluginCurvePresenter (this, _pModel, _pView);
+	// Creates the last and first points
 //  _pPresenter->addPoint(_pPresenter->_limitRect.bottomLeft(),Vertical,false);
 //  _pPresenter->addPoint(_pPresenter->_limitRect.topRight(),Vertical,false);
-  // edition mode
-  // setEditionMode(mainWindow()->editionMode());
-  _pPresenter->setEditionMode(AreaSelectionMode); ///@todo Put this line in the presenter ?
+	// edition mode
+	// setEditionMode(mainWindow()->editionMode());
+	_pPresenter->setEditionMode (AreaSelectionMode); ///@todo Put this line in the presenter ?
 }
 
 PluginCurve::~PluginCurve()
 {
-  delete _pPresenter;
-  delete _pView;
-  delete _pModel;
-  _pModel = NULL;
-  _pView = NULL;
-  _pPresenter = NULL;
+	delete _pPresenter;
+	delete _pView;
+	delete _pModel;
+	_pModel = NULL;
+	_pView = NULL;
+	_pPresenter = NULL;
 }
 
 void PluginCurve::setAreaSelectionMode()
 {
-    _pPresenter->setEditionMode(AreaSelectionMode);
+	_pPresenter->setEditionMode (AreaSelectionMode);
 }
 
-void PluginCurve::setGridVisible(bool b)
+void PluginCurve::setGridVisible (bool b)
 {
-    _pPresenter->setGridVisible(b);
+	_pPresenter->setGridVisible (b);
 }
 
 void PluginCurve::setLinearSelectionMode()
 {
-    _pPresenter->setEditionMode(LinearSelectionMode);
+	_pPresenter->setEditionMode (LinearSelectionMode);
 }
 
-void PluginCurve::setMagnetism(bool b)
+void PluginCurve::setMagnetism (bool b)
 {
-    _pPresenter->setMagnetism(b);
+	_pPresenter->setMagnetism (b);
 }
 
 void PluginCurve::setPenMode()
 {
-    _pPresenter->setEditionMode(PenMode);
+	_pPresenter->setEditionMode (PenMode);
 }
 
-void PluginCurve::setPointCanCross(bool b)
+void PluginCurve::setPointCanCross (bool b)
 {
-    _pPresenter->setPointCanCross(b);
+	_pPresenter->setPointCanCross (b);
 }
 
-QGraphicsObject *PluginCurve::view()
+QGraphicsObject* PluginCurve::view()
 {
-  return _pView;
+	return _pView;
 }
