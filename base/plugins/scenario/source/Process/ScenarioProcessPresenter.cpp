@@ -4,6 +4,7 @@
 #include "Process/ScenarioProcessViewModel.hpp"
 #include "Process/ScenarioProcessView.hpp"
 #include "Document/Constraint/ConstraintView.hpp"
+#include "Document/Constraint/ConstraintData.hpp"
 #include "Document/Constraint/ConstraintPresenter.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
@@ -173,20 +174,12 @@ void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 	submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::moveConstraintOnVertical(int id, double verticalMove)
+void ScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
-	int endEventId{};
-	for(auto inter : m_constraints) {
-		if(inter->id() == id ) {
-			endEventId = inter->model()->endEvent();
-		}
-	}
-
+    data.relativeY = data.y / m_view->boundingRect().height();
 	auto cmd = new MoveConstraintCommand(ObjectPath::pathFromObject("BaseConstraintModel",
 															   m_viewModel->model()),
-									id,
-									endEventId,
-                                    verticalMove/m_view->boundingRect().height());
+                                    data);
 
 	submitCommand(cmd);
 }
@@ -237,7 +230,7 @@ void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constr
 	m_constraints.push_back(constraint_presenter);
 
     connect(constraint_presenter, &ConstraintPresenter::constraintReleased,
-			this,				&ScenarioProcessPresenter::moveConstraintOnVertical);
+            this,				&ScenarioProcessPresenter::moveConstraint);
 	connect(constraint_presenter,	&ConstraintPresenter::submitCommand,
 			this,				&ScenarioProcessPresenter::submitCommand);
 	connect(constraint_presenter,	&ConstraintPresenter::elementSelected,

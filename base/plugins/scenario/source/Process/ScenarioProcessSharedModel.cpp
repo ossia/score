@@ -229,50 +229,58 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
-    auto ev = event(eventId);
-    ev->setHeightPercentage(heightPosition);
-    ev->translate(time);
 
     // resize previous constraint
-    auto prev_constraint =constraint(event(eventId)->previousConstraints().at(0));
-    prev_constraint->setWidth(prev_constraint->width() + time);
+    if (! event(eventId)->previousConstraints().isEmpty() )
+    {
+        auto ev = event(eventId);
+        ev->setHeightPercentage(heightPosition);
+        ev->translate(time);
 
-    emit eventMoved(eventId);
-    emit constraintMoved(prev_constraint->id());
+        auto prev_constraint = constraint(event(eventId)->previousConstraints().at(0));
+        prev_constraint->setWidth(prev_constraint->width() + time);
+        emit constraintMoved(prev_constraint->id());
+        emit eventMoved(eventId);
 
-    QVector<int> already_moved_events;
-    moveNextElements(eventId, time, already_moved_events);
+        QVector<int> already_moved_events;
+        moveNextElements(eventId, time, already_moved_events);
+    }
 }
 
-void ScenarioProcessSharedModel::moveConstraint(int constraintId, double heightPosition)
+void ScenarioProcessSharedModel::moveConstraint(int constraintId, int deltaX, double heightPosition)
 {
     constraint(constraintId)->setHeightPercentage(heightPosition);
+    emit constraintMoved(constraintId);
+
+    // redraw constraint-event link
     auto eev = event(constraint(constraintId)->endEvent());
     auto sev = event(constraint(constraintId)->startEvent());
-	emit constraintMoved(constraintId);
     eev->setVerticalExtremity(constraintId, heightPosition);
     sev->setVerticalExtremity(constraintId, heightPosition);
+
+    moveEventAndConstraint(sev->id(), deltaX, sev->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent)
 {
-
     auto cur_event = event(firstEventMovedId);
-    // boucle
-    for (auto cons : cur_event->nextConstraints())
+
+    if (! cur_event->previousConstraints().isEmpty())
     {
-        auto evId = constraint(cons)->endEvent();
-        if (movedEvent.indexOf(evId) == -1)
+        for (auto cons : cur_event->nextConstraints())
         {
-            event(evId)->translate(deltaTime);
-            movedEvent.push_back(evId);
-            constraint(cons)->translate(deltaTime);
-            emit eventMoved(evId);
-            emit constraintMoved(cons);
-            moveNextElements(evId, deltaTime, movedEvent);
+            auto evId = constraint(cons)->endEvent();
+            if (movedEvent.indexOf(evId) == -1)
+            {
+                event(evId)->translate(deltaTime);
+                movedEvent.push_back(evId);
+                constraint(cons)->translate(deltaTime);
+                emit eventMoved(evId);
+                emit constraintMoved(cons);
+                moveNextElements(evId, deltaTime, movedEvent);
+            }
         }
     }
-
 }
 
 ///////// DELETION //////////

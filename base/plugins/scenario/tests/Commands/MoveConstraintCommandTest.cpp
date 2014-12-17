@@ -3,6 +3,7 @@
 #include <Commands/Scenario/MoveConstraintCommand.hpp>
 
 #include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Constraint/ConstraintData.hpp>
 #include <Document/Event/EventModel.hpp>
 
 #include <Process/ScenarioProcessSharedModel.hpp>
@@ -23,11 +24,13 @@ class MoveConstraintCommandTest: public QObject
 			auto int_0_id = getNextId(scenar->constraints());
 			auto ev_0_id = getNextId(scenar->events());
 			scenar->createConstraintAndEndEventFromStartEvent(10, 0.5, int_0_id, ev_0_id);
-
+            ConstraintData data{};
+            data.id = int_0_id;
+            data.relativeY = 0.1;
 			MoveConstraintCommand cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, int_0_id, ev_0_id, 0.1 );
+            }, data );
 
 			qDebug("\n\n============= Before");
 			cmd.redo();

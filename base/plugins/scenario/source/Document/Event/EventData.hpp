@@ -2,8 +2,8 @@
 
 struct EventData
 {
-    int eventClickedId{-1};
-    int x{-1};
-    int y{-1};
-    double relativeY{-1.0};
+    int eventClickedId{0};  // id of the clicked event
+    int x{0};  // use for : position of the mouse realeased point in event coordinate
+    int y{0};  // idem
+    double relativeY{0.0}; // y scaled with current scenario
 };

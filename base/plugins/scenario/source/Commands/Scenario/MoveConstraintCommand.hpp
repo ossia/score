@@ -2,11 +2,13 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+struct ConstraintData;
+
 class MoveConstraintCommand : public iscore::SerializableCommand
 {
 	public:
 		// TODO le endEvent est-il nécessaire ?
-        MoveConstraintCommand(ObjectPath &&scenarioPath, int constraintId, int endEvent, double deltaHeight);
+        MoveConstraintCommand(ObjectPath &&scenarioPath, ConstraintData d);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -19,9 +21,9 @@ class MoveConstraintCommand : public iscore::SerializableCommand
 	private:
 		ObjectPath m_scenarioPath;
 		int m_constraintId{};
-		int m_endEventId{};
 
         double m_deltaHeight{};
-		double m_oldHeightPosition{};
+        int m_deltaX{};
 
+		double m_oldHeightPosition{};
 };

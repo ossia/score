@@ -73,7 +73,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 																   int createdSecondEventId);
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
-		void moveConstraint(int constraintId, double heightPosition);
+        void moveConstraint(int constraintId, int deltaX, double heightPosition);
         void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
 
 
