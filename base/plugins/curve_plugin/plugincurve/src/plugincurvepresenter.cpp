@@ -28,18 +28,18 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "plugincurve.hpp"
-#include "plugincurvepresenter.hpp"
-#include "plugincurveview.hpp"
-#include "plugincurvemodel.hpp"
-#include "plugincurvesection.hpp"
-#include "plugincurvesectionlinear.hpp"
-#include "plugincurvepoint.hpp"
-#include "plugincurvemap.hpp"
-#include "plugincurvegrid.hpp"
-#include "plugincurvemenupoint.h"
-#include "plugincurvemenusection.hpp"
-#include "plugincurvezoomer.hpp"
+#include "../include/plugincurve.hpp"
+#include "../include/plugincurvepresenter.hpp"
+#include "../include/plugincurveview.hpp"
+#include "../include/plugincurvemodel.hpp"
+#include "../include/plugincurvesection.hpp"
+#include "../include/plugincurvesectionlinear.hpp"
+#include "../include/plugincurvepoint.hpp"
+#include "../include/plugincurvemap.hpp"
+#include "../include/plugincurvegrid.hpp"
+#include "../include/plugincurvemenupoint.h"
+#include "../include/plugincurvemenusection.hpp"
+#include "../include/plugincurvezoomer.hpp"
 #include <QGraphicsSceneEvent>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -48,8 +48,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QTransform>
 #include <iostream>
 
-PluginCurvePresenter::PluginCurvePresenter (PluginCurve* parent, PluginCurveModel* model, PluginCurveView* view) :
-	QObject (parent), _pModel (model), _pView (view)
+PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel,
+											ProcessViewInterface* view,
+											QObject* parent):
+	ProcessPresenterInterface ("PluginCurvePresenter", parent),
+	_pModel (static_cast<PluginCurveViewModel*>(viewModel)->model()),
+	_pView (static_cast<PluginCurveView*>(view))
 {
 	// ** Initialisation **
 	qreal minXValue = 0.01;
@@ -895,12 +899,12 @@ void PluginCurvePresenter::pointRightClicked (PluginCurvePoint* point)
 
 	if (selectedItem)
 	{
-		if (selectedItem->text() == PluginCurveMenuPoint::DELETE)
+		if (selectedItem->text() == MENUPOINT_DELETE_TEXT)
 		{
 			removePoint (point);
 		}
 
-		if (selectedItem->text() == PluginCurveMenuPoint::FIX_HORIZONTAL)
+		if (selectedItem->text() == MENUPOINT_FIX_HORIZONTAL_TEXT)
 		{
 			if (!selectedItem->isChecked() )
 			{

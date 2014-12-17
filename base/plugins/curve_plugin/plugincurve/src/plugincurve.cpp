@@ -28,68 +28,32 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include <plugincurve.hpp>
+#include "../include/plugincurve.hpp"
 #include <QGraphicsItem>
-#include "plugincurveview.hpp"
-#include "plugincurvemodel.hpp"
-#include "plugincurvepresenter.hpp"
+#include "../include/plugincurveview.hpp"
+#include "../include/plugincurvemodel.hpp"
+#include "../include/plugincurvepresenter.hpp"
 
-PluginCurve::PluginCurve (QGraphicsObject* parent) :
-	QObject (parent)
+ProcessSharedModelInterface* PluginCurveFactory::makeModel(int id, QObject* parent)
 {
-	//_pStorey = storey;
-	_pModel = new PluginCurveModel (this, parent);
-	_pView = new PluginCurveView (parent);
-	_pPresenter = new PluginCurvePresenter (this, _pModel, _pView);
-	// Creates the last and first points
-//  _pPresenter->addPoint(_pPresenter->_limitRect.bottomLeft(),Vertical,false);
-//  _pPresenter->addPoint(_pPresenter->_limitRect.topRight(),Vertical,false);
-	// edition mode
-	// setEditionMode(mainWindow()->editionMode());
-	_pPresenter->setEditionMode (AreaSelectionMode); ///@todo Put this line in the presenter ?
+	return new PluginCurveModel{id, parent};
 }
 
-PluginCurve::~PluginCurve()
+ProcessSharedModelInterface*PluginCurveFactory::makeModel(QDataStream&, QObject*)
 {
-	delete _pPresenter;
-	delete _pView;
-	delete _pModel;
-	_pModel = NULL;
-	_pView = NULL;
-	_pPresenter = NULL;
+	return nullptr; // TODO
 }
 
-void PluginCurve::setAreaSelectionMode()
+
+ProcessViewInterface* PluginCurveFactory::makeView(QString view, QObject* parent)
 {
-	_pPresenter->setEditionMode (AreaSelectionMode);
+	return new PluginCurveView{static_cast<QGraphicsObject*>(parent)};
 }
 
-void PluginCurve::setGridVisible (bool b)
-{
-	_pPresenter->setGridVisible (b);
-}
 
-void PluginCurve::setLinearSelectionMode()
+ProcessPresenterInterface* PluginCurveFactory::makePresenter(ProcessViewModelInterface* viewModel,
+															 ProcessViewInterface* view,
+															 QObject* parent)
 {
-	_pPresenter->setEditionMode (LinearSelectionMode);
-}
-
-void PluginCurve::setMagnetism (bool b)
-{
-	_pPresenter->setMagnetism (b);
-}
-
-void PluginCurve::setPenMode()
-{
-	_pPresenter->setEditionMode (PenMode);
-}
-
-void PluginCurve::setPointCanCross (bool b)
-{
-	_pPresenter->setPointCanCross (b);
-}
-
-QGraphicsObject* PluginCurve::view()
-{
-	return _pView;
+	return new PluginCurvePresenter{viewModel, view, parent};
 }

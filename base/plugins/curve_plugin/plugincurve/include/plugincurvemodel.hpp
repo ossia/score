@@ -34,7 +34,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsObject>
 #include <QRectF>
 
-#include <source/ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessSharedModelInterface.hpp>
 
 class PluginCurvePoint;
 class PluginCurveSection;
@@ -44,7 +44,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 		Q_OBJECT
 	private:
 		bool _state; // Active or Inactive
-		QGraphicsObject* _pParent; // Storey for get bounding rect, width and height
+		// QGraphicsObject* _pParent; // Storey for get bounding rect, width and height
 		QList<PluginCurvePoint*> _points;  // Sort list of user's points
 		QList<PluginCurveSection*> _sections;  // List of sections (not sort)
 		const QRectF _limitRect;//=QRectF(0 + PluginCurvePoint::SHAPERADIUS,
@@ -54,7 +54,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 	public:
 		// Constructor
-		PluginCurveModel (QObject* parentObject, QGraphicsObject* parentItem);
+		PluginCurveModel (int id, QObject* parentObject);
 		// Returns the list of points
 		QList<PluginCurvePoint*> points();
 		// Returns the points area
@@ -86,6 +86,26 @@ class PluginCurveModel : public ProcessSharedModelInterface
 		void sectionAppend (PluginCurveSection* section);
 		// Remove a section from the list
 		void sectionRemoveOne (PluginCurveSection* section);
+
+		// ProcessSharedModelInterface interface
+	public:
+		virtual QString processName() const
+		{
+			return "CurvePlugin";
+		}
+
+		virtual ProcessViewModelInterface* makeViewModel (int viewModelId,
+				int sharedProcessId,
+				QObject* parent)
+		{
+			return nullptr;
+		}
+
+		virtual ProcessViewModelInterface* makeViewModel (QDataStream& s,
+				QObject* parent)
+		{
+			return nullptr;
+		}
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

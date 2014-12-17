@@ -2,7 +2,7 @@
 #include <QStringList>
 #include <QObject>
 #include <QByteArray>
-#include <interface/customfactory/CustomFactoryInterface.hpp>
+#include <customfactory/CustomFactoryInterface.hpp>
 
 //namespace iscore
 //{
@@ -24,7 +24,7 @@
 			// The process name
 			virtual QString name() const = 0;
 
-			virtual QStringList availableViews() = 0; // Bof. Plutôt dans le ViewModelInterface...
+			virtual QStringList availableViews() = 0; // to remove
 			virtual ProcessViewInterface* makeView(QString view, QObject* parent) = 0;
 			virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
 															 ProcessViewInterface*,

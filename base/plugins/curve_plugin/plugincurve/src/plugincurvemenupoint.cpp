@@ -1,8 +1,5 @@
-#include "plugincurvemenupoint.h"
-#include "plugincurvepoint.hpp"
-
-const QString PluginCurveMenuPoint::DELETE = "Delete";
-const QString PluginCurveMenuPoint::FIX_HORIZONTAL = "Fix Horizontaly";
+#include "../include/plugincurvemenupoint.h"
+#include "../include/plugincurvepoint.hpp"
 
 
 PluginCurveMenuPoint::PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent) :

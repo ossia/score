@@ -28,11 +28,11 @@
   knowledge of the CeCILL license and that you accept its terms.
 */
 
-#include "plugincurveview.hpp"
-#include "plugincurvegrid.hpp"
-#include "plugincurvepresenter.hpp"
-#include "plugincurvemap.hpp"
-#include "plugincurvezoomer.hpp"
+#include "../include/plugincurveview.hpp"
+#include "../include/plugincurvegrid.hpp"
+#include "../include/plugincurvepresenter.hpp"
+#include "../include/plugincurvemap.hpp"
+#include "../include/plugincurvezoomer.hpp"
 #include <QPainter>
 #include <QRectF>
 #include <QGraphicsScene>
@@ -41,7 +41,7 @@
 
 
 PluginCurveView::PluginCurveView (QGraphicsObject* parent)
-	: QGraphicsObject (parent)
+	: ProcessViewInterface ()
 {
 	_pZoomer = new PluginCurveZoomer (this);
 	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);

@@ -35,6 +35,8 @@
 #include <QGraphicsRectItem>
 #include <QCursor>
 
+#include <ProcessInterface/ProcessViewInterface.hpp>
+
 class QGraphicsItem;
 class PluginCurvePresenter;
 class PluginCurveGrid;
@@ -50,7 +52,7 @@ class PluginCurveZoomer;
 *  @date 2014
 */
 
-class PluginCurveView : public QGraphicsObject
+class PluginCurveView : public ProcessViewInterface
 {
 		Q_OBJECT
 

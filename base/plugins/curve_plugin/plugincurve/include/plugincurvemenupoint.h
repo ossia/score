@@ -2,20 +2,19 @@
 #define PLUGINCURVEMENUPOINT_H
 
 #include <QMenu>
-
+#include <QObject>
 class PluginCurvePoint;
+#define MENUPOINT_DELETE_TEXT QObject::tr("Delete")
+#define MENUPOINT_FIX_HORIZONTAL_TEXT QObject::tr("Fix Horizontaly")
 
 class PluginCurveMenuPoint : public QMenu
 {
-		Q_OBJECT
 	public:
-		static const QString DELETE;
-		static const QString FIX_HORIZONTAL;
+                const QString DELETE{MENUPOINT_DELETE_TEXT};
+                const QString FIX_HORIZONTAL{MENUPOINT_FIX_HORIZONTAL_TEXT};
+
 		PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent = 0);
-
-	signals:
-
-	public slots:
+                virtual ~PluginCurveMenuPoint() = default;
 
 };
 

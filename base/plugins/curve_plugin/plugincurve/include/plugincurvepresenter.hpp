@@ -31,15 +31,33 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef PLUGINCURVEPRESENTER_HPP
 #define PLUGINCURVEPRESENTER_HPP
 
+#include <ProcessInterface/ProcessPresenterInterface.hpp>
 #include <QGraphicsItem>
 #include <QCursor>
+
 #include "plugincurvemodel.hpp"
 #include "plugincurveview.hpp"
 #include "plugincurvepoint.hpp"
 #include "plugincurvesection.hpp"
 #include "plugincurvemap.hpp"
-class PluginCurve;
+class PluginCurveFactory;
 class PluginCurveGrid;
+
+#include <ProcessInterface/ProcessViewModelInterface.hpp>
+class PluginCurveViewModel : public ProcessViewModelInterface
+{
+	public:
+		PluginCurveModel* model() { return nullptr; }
+
+		// ProcessViewModelInterface interface
+	public:
+		virtual void serialize(QDataStream&) const
+		{
+		}
+		virtual void deserialize(QDataStream&)
+		{
+		}
+};
 
 enum EditionMode
 {
@@ -51,13 +69,13 @@ enum EditionMode
 	InactivMode
 };
 
-class PluginCurvePresenter : public QObject
+class PluginCurvePresenter : public ProcessPresenterInterface
 {
 		Q_OBJECT
 		//Attributs
 	public:
-		static const int POINTMINDIST = 1; // Minimal Distance on x axis between 2 points.
-		static const int MAGNETDIST = 4; // Distance of magnetism attraction.
+		const int POINTMINDIST = 1; // Minimal Distance on x axis between 2 points.
+		const int MAGNETDIST = 4; // Distance of magnetism attraction.
 	private:
 // //----> SUPPRIMER
 		QGraphicsTextItem* _pText;
@@ -98,7 +116,7 @@ class PluginCurvePresenter : public QObject
 		// Update the limit rect. Used after scaling.
 		void updateLimitRect();
 	public:
-		PluginCurvePresenter (PluginCurve* parent, PluginCurveModel* model, PluginCurveView* view);
+		PluginCurvePresenter (ProcessViewModelInterface* model, ProcessViewInterface* view, QObject* parent);
 		~PluginCurvePresenter();
 		// Add a curve and updates source and dest points
 		PluginCurveSection* addSection (PluginCurvePoint* source, PluginCurvePoint* dest);
@@ -158,6 +176,13 @@ class PluginCurvePresenter : public QObject
 // PluginCurveSection -->
 		void sectionRightClicked (PluginCurveSection* section, QPointF scenePos);
 
+
+		// ProcessPresenterInterface interface
+	public:
+		virtual int id() const
+		{
+			return 42;
+		}
 };
 
 #endif // PLUGINCURVEPRESENTER_HPP

@@ -28,13 +28,15 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
+#include "../include/plugincurvemodel.hpp"
 #include "plugincurvepoint.hpp"
 #include "plugincurvesection.hpp"
 #include "plugincurvemodel.hpp"
 
 
-PluginCurveModel::PluginCurveModel (QObject* parentObject, QGraphicsObject* parentItem) :
-	QObject (parentObject), _pParent (parentItem)
+PluginCurveModel::PluginCurveModel (int id, QObject* parentObject) :
+	ProcessSharedModelInterface{id, "PluginCurveModel", parentObject}//,
+//	_pParent (parentItem)
 {
 	_state = true; // Active when created
 }
