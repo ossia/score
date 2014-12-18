@@ -26,6 +26,9 @@ void DocumentPresenter::applyCommand(SerializableCommand* cmd)
 void DocumentPresenter::reset()
 {
 	m_commandQueue->clear();
+
+	if(m_presenter) m_presenter->deleteLater();
+
 	m_view->reset();
 }
 
