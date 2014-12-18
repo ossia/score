@@ -20,15 +20,14 @@ class EventView : public QGraphicsObject
 
 		QRectF m_rect{0, 0, 30, 30};
 
-        QLineF m_firstLine{0, 0, 0, 0};
-        QLineF m_secondLine{0, 0, 0, 0 };
+		QLineF m_firstLine{0, 0, 0, 0};
+		QLineF m_secondLine{0, 0, 0, 0 };
 
 public slots:
-        void setLinesExtremity(int topPoint, int bottomPoint);
+		void setLinesExtremity(int topPoint, int bottomPoint);
 
 	signals:
 		void eventPressed();
-		void eventPressedWithControl();
 		void eventReleasedWithControl(QPointF);
 		void eventReleased(QPointF);
 

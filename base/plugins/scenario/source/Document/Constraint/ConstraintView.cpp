@@ -12,6 +12,7 @@ ConstraintView::ConstraintView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
+	this->setFlag(ItemIsSelectable);
 
 	this->setZValue(parent->zValue() + 1);
 
@@ -28,11 +29,16 @@ ConstraintView::ConstraintView(QGraphicsObject* parent):
 
 QRectF ConstraintView::boundingRect() const
 {
-	return {0, 0, m_width, m_height};
+	return {0, 0, qreal(m_width), qreal(m_height)};
 }
 
 void ConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+	if(isSelected())
+	{
+		painter->setPen(Qt::blue);
+	}
+
 	auto rect = boundingRect();
 	painter->drawRect(rect);
 	painter->drawRect(rect.x(),
@@ -47,27 +53,21 @@ void ConstraintView::setWidth(int width)
 	prepareGeometryChange();
 	m_width = width;
 }
-/*
-void ConstraintView::setTopLeft(QPointF p)
-{
-	m_rect = {p.x(), p.y(), m_rect.width(), m_rect.height()};
 
-	m_button->setPos(m_rect.x() + 30, m_rect.y());
-}
-*/
 void ConstraintView::setHeight(int height)
 {
 	prepareGeometryChange();
 	m_height = height;
-	//m_rect = {m_rect.x(), m_rect.y(), m_rect.width(), height};
 }
 
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
+	QGraphicsObject::mousePressEvent(m);
 	emit constraintPressed(m->pos());
 }
 
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
+	QGraphicsObject::mouseReleaseEvent(m);
 	emit constraintReleased(m->pos());
 }

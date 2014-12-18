@@ -6,6 +6,7 @@
 #include <QGridLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGraphicsItem>
 
 class GrapicsProxyObject : public QGraphicsObject
 {
@@ -37,6 +38,7 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	m_scene->addItem(m_baseObject);
 	m_constraint = new ConstraintView{m_baseObject};
+	m_constraint->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
 }
 
