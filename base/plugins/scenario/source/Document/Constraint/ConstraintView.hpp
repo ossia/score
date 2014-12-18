@@ -17,10 +17,11 @@ class ConstraintView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
-		void setTopLeft(QPointF p);
+		//void setTopLeft(QPointF p);
+		void setWidth(int width);
 		void setHeight(int height);
 
-		QRectF m_rect;
+		//QRectF m_rect;
 		QLineF firstLine;
 		QLineF secondLine;
 
@@ -35,5 +36,7 @@ class ConstraintView : public QGraphicsObject
 
 	private:
 		QGraphicsProxyWidget* m_button{};
+		int m_width{};
+		int m_height{};
 };
 

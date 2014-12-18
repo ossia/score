@@ -22,6 +22,13 @@ class StoreyPresenter : public NamedObject
 		int id() const;
 		int height() const; // Return the height of the view
 
+		// Position in the Box : 1st, second...
+		int position() const;
+
+		// Vertical position in pixels in the scene
+		void setVerticalPosition(int pos);
+
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);

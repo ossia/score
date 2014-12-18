@@ -8,6 +8,7 @@
 #include "Control/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewInterface.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
@@ -64,6 +65,21 @@ int StoreyPresenter::height() const
 	return m_view->height();
 }
 
+int StoreyPresenter::position() const
+{
+	return m_model->position();
+}
+
+void StoreyPresenter::setVerticalPosition(int pos)
+{
+	auto view_pos = m_view->pos();
+	if(view_pos.y() != pos)
+	{
+		m_view->setPos(view_pos.x(), pos);
+		m_view->update();
+	}
+}
+
 void StoreyPresenter::on_processViewModelCreated(int processId)
 {
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
@@ -109,6 +125,7 @@ void StoreyPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface*
 	auto factory = ProcessList::getFactory(procname);
 
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
+	proc_view->setPos(5, 5);
 	auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
 	connect(presenter,	&ProcessPresenterInterface::submitCommand,

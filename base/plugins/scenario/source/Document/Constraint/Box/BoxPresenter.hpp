@@ -42,6 +42,6 @@ class BoxPresenter : public NamedObject
 
 		BoxModel* m_model;
 		BoxView* m_view;
-		std::vector<StoreyPresenter*> m_storeys;
+		std::vector<StoreyPresenter*> m_decks;
 };
 

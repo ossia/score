@@ -41,7 +41,7 @@ BoxPresenter::~BoxPresenter()
 int BoxPresenter::height() const
 {
 	int totalHeight = 25; // No storey -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
-	for(auto& storey : m_storeys)
+	for(auto& storey : m_decks)
 	{
 		totalHeight += storey->height();
 	}
@@ -56,10 +56,11 @@ void BoxPresenter::on_storeyCreated(int storeyId)
 void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 {
 	auto storeyView = new StoreyView{m_view};
+	storeyView->setPos(5, 5);
 	auto storeyPres = new StoreyPresenter{storeyModel,
 					  storeyView,
 					  this};
-	m_storeys.push_back(storeyPres);
+	m_decks.push_back(storeyPres);
 
 
 	connect(storeyPres, &StoreyPresenter::submitCommand,
@@ -75,17 +76,28 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 
 void BoxPresenter::updateShape()
 {
+	using namespace std;
 	m_view->setHeight(height());
-	for(StoreyPresenter* storey : m_storeys)
+
+	// 1. Make an array with the Decks stored by their positions
+	vector<StoreyPresenter*> sortedDecks(m_decks.size());
+	for(StoreyPresenter* deck : m_decks)
 	{
-		// set the vertical position of each in the box.
-		//storey
+		sortedDecks[deck->position()] = deck;
+	}
+
+	// 2. Set their position in order.
+	int currentDeckY = 20;
+	for(auto& deck : sortedDecks)
+	{
+		deck->setVerticalPosition(currentDeckY);
+		currentDeckY += deck->height() + 5;
 	}
 }
 
 void BoxPresenter::on_storeyDeleted(int storeyId)
 {
-	removeFromVectorWithId(m_storeys, storeyId);
+	removeFromVectorWithId(m_decks, storeyId);
 	emit askUpdate();
 }
 

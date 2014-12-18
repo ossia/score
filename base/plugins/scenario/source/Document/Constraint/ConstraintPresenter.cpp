@@ -19,8 +19,8 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 	m_model{model},
 	m_view{view}
 {
-	view->m_rect.setWidth(model->width()/m_millisecPerPixel);
-	view->m_rect.setHeight(model->height());
+	view->setWidth(model->width()/m_millisecPerPixel);
+	view->setHeight(model->height());
 
 	for(auto& box : m_model->boxes())
 	{
@@ -96,7 +96,7 @@ void ConstraintPresenter::on_askUpdate()
 	if(m_contentPresenters.size() > 0)
 		contentPresenterVerticalSize = m_contentPresenters.front()->height();
 
-	m_view->m_rect.setHeight(contentPresenterVerticalSize + 60);
+	m_view->setHeight(contentPresenterVerticalSize + 60);
 
 	emit askUpdate();
 	m_view->update();
@@ -105,6 +105,7 @@ void ConstraintPresenter::on_askUpdate()
 void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 {
 	auto contentView = new BoxView{m_view};
+	contentView->setPos(5, 50);
 
 	// Cas par défaut
 	auto box_presenter =

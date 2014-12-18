@@ -28,29 +28,38 @@ ConstraintView::ConstraintView(QGraphicsObject* parent):
 
 QRectF ConstraintView::boundingRect() const
 {
-	return m_rect;
+	return {0, 0, m_width, m_height};
 }
 
 void ConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	painter->drawRect(m_rect);
-	painter->drawRect(m_rect.x(),
-					  m_rect.y(),
-					  m_rect.width(),
+	auto rect = boundingRect();
+	painter->drawRect(rect);
+	painter->drawRect(rect.x(),
+					  rect.y(),
+					  rect.width(),
 					  15);
-	painter->drawText(m_rect, "Constraint");
+	painter->drawText(rect, "Constraint");
 }
 
+void ConstraintView::setWidth(int width)
+{
+	prepareGeometryChange();
+	m_width = width;
+}
+/*
 void ConstraintView::setTopLeft(QPointF p)
 {
 	m_rect = {p.x(), p.y(), m_rect.width(), m_rect.height()};
 
 	m_button->setPos(m_rect.x() + 30, m_rect.y());
 }
-
+*/
 void ConstraintView::setHeight(int height)
 {
-	m_rect = {m_rect.x(), m_rect.y(), m_rect.width(), height};
+	prepareGeometryChange();
+	m_height = height;
+	//m_rect = {m_rect.x(), m_rect.y(), m_rect.width(), height};
 }
 
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)

@@ -114,14 +114,13 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 
 void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 {
-
 	auto rect = m_view->boundingRect();
 
 	for(auto inter : m_constraints) {
 		if(inter->id() == constraintId ) {
-			inter->view()->setTopLeft({rect.x() + inter->model()->startDate(),
-									rect.y() + rect.height() * inter->model()->heightPercentage()});
-			inter->view()->m_rect.setWidth(inter->model()->width());
+			inter->view()->setPos({rect.x() + inter->model()->startDate(),
+								   rect.y() + rect.height() * inter->model()->heightPercentage()});
+			inter->view()->setWidth(inter->model()->width());
 		}
 	}
 	m_view->update();
@@ -229,8 +228,8 @@ void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constr
 													constraint_view,
 													this};
 
-	constraint_view->setTopLeft({rect.x() + constraint_model->startDate(),
-							   rect.y() + rect.height() * constraint_model->heightPercentage()});
+	constraint_view->setPos({rect.x() + constraint_model->startDate(),
+							 rect.y() + rect.height() * constraint_model->heightPercentage()});
 
 	m_constraints.push_back(constraint_presenter);
 

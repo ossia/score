@@ -16,8 +16,7 @@ StoreyView::StoreyView(QGraphicsObject* parent):
 
 QRectF StoreyView::boundingRect() const
 {
-	return {parentItem()->boundingRect().x() + DEMO_PIXEL_SPACING_TEST,
-			parentItem()->boundingRect().y() + 20,
+	return {0, 0,
 			parentItem()->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST,
 			qreal(m_height)};
 }

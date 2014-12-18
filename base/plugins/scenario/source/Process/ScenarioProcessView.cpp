@@ -21,8 +21,7 @@ ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):
 QRectF ScenarioProcessView::boundingRect() const
 {
 	auto pr = parentItem()->boundingRect();
-	return {pr.x() + DEMO_PIXEL_SPACING_TEST,
-			pr.y() + DEMO_PIXEL_SPACING_TEST,
+	return {0, 0,
 			pr.width()  - 2 * DEMO_PIXEL_SPACING_TEST,
 			pr.height() - 2 * DEMO_PIXEL_SPACING_TEST};
 }

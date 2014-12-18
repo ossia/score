@@ -16,10 +16,10 @@ BoxView::BoxView(QGraphicsObject* parent):
 
 QRectF BoxView::boundingRect() const
 {
-	return {parentItem()->boundingRect().x() + DEMO_PIXEL_SPACING_TEST,
-			parentItem()->boundingRect().y() + 50 + DEMO_PIXEL_SPACING_TEST,
+	return {0,
+			0,
 			parentItem()->boundingRect().width()  - 2 * DEMO_PIXEL_SPACING_TEST,
-			m_height};
+			qreal(m_height)};
 }
 
 void BoxView::paint(QPainter* painter,

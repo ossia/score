@@ -14,7 +14,6 @@ class StoreyView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
-
 		void setHeight(int height);
 		int height() const;
 
