@@ -47,7 +47,6 @@ class PluginCurveFactory : public ProcessFactoryInterface
 	public:
 		virtual QString name() const
 		{
-			qDebug() << Q_FUNC_INFO;
 			return "CurvePlugin";
 		}
 

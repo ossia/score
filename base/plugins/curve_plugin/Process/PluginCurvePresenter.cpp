@@ -467,9 +467,9 @@ bool PluginCurvePresenter::enoughSpaceAfter (PluginCurvePoint* point)
 void PluginCurvePresenter::updateLimitRect()
 {
 	_limitRect = QRectF (0 + PluginCurvePoint::SHAPERADIUS,
-	                     0 + PluginCurvePoint::SHAPERADIUS,
-	                     _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
-	                     _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
+						 0 + PluginCurvePoint::SHAPERADIUS,
+						 _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
+						 _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
 }
 
 PluginCurveSection* PluginCurvePresenter::addSection (PluginCurvePoint* source, PluginCurvePoint* dest)
@@ -526,8 +526,8 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
 
 	// No point added if not enough space
 	if ( (previousPoint != nullptr && !enoughSpaceAfter (previousPoint) ) || // if there is a previous point and not enough space
-	        (nextPoint != nullptr && !enoughSpaceBefore (nextPoint) ) || //  or if there is a next point and not enough space
-	        (_limitRect.width() < 0) ) // or there is no points and no space at all
+			(nextPoint != nullptr && !enoughSpaceBefore (nextPoint) ) || //  or if there is a next point and not enough space
+			(_limitRect.width() < 0) ) // or there is no points and no space at all
 	{
 		return nullptr;
 	}
@@ -867,9 +867,9 @@ void PluginCurvePresenter::viewSceneChanged (QGraphicsScene* scene)
 {
 	Q_UNUSED (scene);
 	_limitRect = QRectF (0 + PluginCurvePoint::SHAPERADIUS,
-	                     0 + PluginCurvePoint::SHAPERADIUS,
-	                     _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
-	                     _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
+						 0 + PluginCurvePoint::SHAPERADIUS,
+						 _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
+						 _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
 	_pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect), false); // No scale rect change
 }
 

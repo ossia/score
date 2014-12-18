@@ -9,12 +9,10 @@ CurvePlugin::CurvePlugin() :
 	QObject{}
 {
 	setObjectName("CurvePlugin");
-	qDebug(Q_FUNC_INFO);
 }
 
 QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryName)
 {
-	qDebug() << "yeah";
 	if (factoryName == "Process")
 	{
 		return {new PluginCurveFactory};

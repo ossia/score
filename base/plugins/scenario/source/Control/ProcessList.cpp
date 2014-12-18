@@ -19,7 +19,6 @@ QStringList ProcessList::getProcessesName() const
 
 ProcessFactoryInterface* ProcessList::getProcess(QString name)
 {
-	qDebug() << QVector<ProcessFactoryInterface*>::fromStdVector(m_processes);
 	auto it = std::find_if(m_processes.begin(),
 						   m_processes.end(),
 						   [&name] (ProcessFactoryInterface* p)

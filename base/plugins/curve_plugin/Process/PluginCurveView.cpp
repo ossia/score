@@ -53,6 +53,8 @@ PluginCurveView::PluginCurveView (QGraphicsObject* parent)
 	setFlag (ItemIsFocusable); // For board entries
 	setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
 	setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
+
+	this->setZValue(parent->zValue() + 1);
 }
 
 PluginCurveView::~PluginCurveView()
@@ -75,7 +77,9 @@ void PluginCurveView::paint (QPainter* painter, const QStyleOptionGraphicsItem* 
 {
 	Q_UNUSED (option)
 	Q_UNUSED (widget)
-	Q_UNUSED (painter)
+
+	painter->drawText(boundingRect(), "Curve");
+	painter->drawRect(boundingRect());
 
 }
 
@@ -95,7 +99,10 @@ QRectF PluginCurveView::boundingRect() const
 	}
 	else
 	{
-		return mapFromParent (parentItem()->boundingRect() ).boundingRect();
+		auto p_rect = parentItem()->boundingRect();
+		QRectF rect = { p_rect.x() + 5, p_rect.y() + 5,
+						p_rect.width() - 10, p_rect.height() - 10};
+		return mapFromParent ( rect ).boundingRect();
 	}
 }
 
@@ -106,6 +113,7 @@ void PluginCurveView::mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurveView::mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
+	qDebug() << "Here";
 	emit (mousePressed (mouseEvent) );
 }
 

@@ -29,6 +29,7 @@ void StoreyView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 
 void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+	qDebug(Q_FUNC_INFO);
 	emit bottomHandleSelected();
 }
 
