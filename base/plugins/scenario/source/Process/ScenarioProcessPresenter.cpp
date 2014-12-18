@@ -101,14 +101,12 @@ void ScenarioProcessPresenter::on_constraintDeleted(int constraintId)
 void ScenarioProcessPresenter::on_eventMoved(int eventId)
 {
 	auto rect = m_view->boundingRect();
+	auto ev = findById(m_events, eventId);
 
-	for(auto ev : m_events) {
-		if(ev->id() == eventId ) {
-			ev->view()->setTopLeft({rect.x() + ev->model()->date(),
-									rect.y() + rect.height() * ev->model()->heightPercentage()});
-			ev->model()->updateVerticalLink();
-		}
-	}
+	ev->view()->setPos({qreal(ev->model()->date()),
+						rect.height() * ev->model()->heightPercentage()});
+	ev->model()->updateVerticalLink();
+
 	m_view->update();
 }
 
@@ -118,8 +116,9 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 
 	for(auto inter : m_constraints) {
 		if(inter->id() == constraintId ) {
-			inter->view()->setPos({rect.x() + inter->model()->startDate(),
-								   rect.y() + rect.height() * inter->model()->heightPercentage()});
+			inter->view()->setPos({inter->model()->startDate(),
+								   rect.height() * inter->model()->heightPercentage()});
+
 			inter->view()->setWidth(inter->model()->width());
 		}
 	}
@@ -161,7 +160,9 @@ void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 
 void ScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
 {
-	data.relativeY = (data.y - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height();
+	data.x = data.x - m_viewModel->model()->event(data.eventClickedId)->date();
+	data.relativeY = data.y / m_view->boundingRect().height();
+
 	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
 																		   m_viewModel->model()),
 												data);
@@ -171,7 +172,8 @@ void ScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
 
 void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 {
-	data.relativeY = (data.y - m_view->boundingRect().topLeft().y())/m_view->boundingRect().height();
+	data.relativeY = data.y / m_view->boundingRect().height();
+
 	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
 															   m_viewModel->model()),
 									data);
@@ -181,6 +183,7 @@ void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 void ScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
 	data.relativeY = data.y / m_view->boundingRect().height();
+
 	auto cmd = new MoveConstraintCommand(ObjectPath::pathFromObject("BaseConstraintModel",
 															   m_viewModel->model()),
 									data);
@@ -199,8 +202,8 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 	auto event_presenter = new EventPresenter{event_model,
 											  event_view,
 											  this};
-	event_view->setTopLeft({rect.x() + event_model->date(),
-							rect.y() + rect.height() * event_model->heightPercentage()});
+	event_view->setPos({rect.x() + event_model->date(),
+						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
 

@@ -31,11 +31,11 @@ class EventModel : public IdentifiedObject
 		const QVector<int>& previousConstraints() const;
 		const QVector<int>& nextConstraints() const;
 
-        void addNextConstraint(int);
-        void addPreviousConstraint(int);
+		void addNextConstraint(int);
+		void addPreviousConstraint(int);
 
-        bool removeNextConstraint(int);
-        bool removePreviousConstraint(int);
+		bool removeNextConstraint(int);
+		bool removePreviousConstraint(int);
 
 		const std::vector<State*>& states() const;
 		void addMessage(QString s);
@@ -47,10 +47,10 @@ class EventModel : public IdentifiedObject
 
 		double heightPercentage() const;
 		int date() const;
-        void setDate(int date);
-        void translate(int deltaTime);
-        void setVerticalExtremity(int, double);
-        void updateVerticalLink();
+		void setDate(int date);
+		void translate(int deltaTime);
+		void setVerticalExtremity(int, double);
+		void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
@@ -60,24 +60,24 @@ class EventModel : public IdentifiedObject
 	signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
-        void verticalExtremityChanged(double, double);
+		void verticalExtremityChanged(double, double);
 
 	private:
 		OSSIA::TimeNode* m_timeNode{};
 
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;
-        QMap<int, double> m_constraintsYPos;
+		QMap<int, double> m_constraintsYPos;
 
-		double m_heightPercentage{0.5};       
+		double m_heightPercentage{0.5};
 
-        double m_topY{0.5};
-        double m_bottomY{0.5};
+		double m_topY{0.5};
+		double m_bottomY{0.5};
 
 		std::vector<State*> m_states;
 
-        /// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-        int m_x{0};
+		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
+		int m_x{0};
 
 };
 

@@ -15,15 +15,10 @@ class EventView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem* option,
 						   QWidget* widget);
 
-		virtual void setTopLeft(QPointF p);
+		QLineF m_firstLine{-15, -15, 0, 0};
+		QLineF m_secondLine{-15, -15, 0, 0};
 
-
-		QRectF m_rect{0, 0, 30, 30};
-
-		QLineF m_firstLine{0, 0, 0, 0};
-		QLineF m_secondLine{0, 0, 0, 0 };
-
-public slots:
+	public slots:
 		void setLinesExtremity(int topPoint, int bottomPoint);
 
 	signals:
@@ -36,5 +31,7 @@ public slots:
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
 
+	private:
+		QPointF m_clickedPoint{};
 };
 

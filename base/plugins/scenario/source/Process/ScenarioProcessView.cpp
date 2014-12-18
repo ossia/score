@@ -36,8 +36,8 @@ void ScenarioProcessView::paint(QPainter* painter, const QStyleOptionGraphicsIte
 
 void ScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-	if(event->modifiers() == Qt::ControlModifier)  {
-		qDebug() << "Scenario: mouse press while ctrl key pressed";
+	if(event->modifiers() == Qt::ControlModifier)
+	{
 		emit scenarioPressed(event->pos());
 	}
 }
@@ -48,8 +48,8 @@ void ScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void ScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-	if(event->modifiers() == Qt::ControlModifier) {
-		qDebug() << "Scenario: mouse release while ctrl key pressed";
+	if(event->modifiers() == Qt::ControlModifier)
+	{
 		emit scenarioReleased(event->pos());
 	}
 }

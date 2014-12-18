@@ -227,13 +227,15 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 											  newEventId);
 }
 
-void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
+void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)
 {
-
 	// resize previous constraint
 	if (! event(eventId)->previousConstraints().isEmpty() )
 	{
 		auto ev = event(eventId);
+
+		int time = absolute_time - ev->date();
+
 		ev->setHeightPercentage(heightPosition);
 		ev->translate(time);
 
@@ -247,7 +249,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, d
 	}
 }
 
-void ScenarioProcessSharedModel::moveConstraint(int constraintId, int deltaX, double heightPosition)
+void ScenarioProcessSharedModel::moveConstraint(int constraintId, int absolute_time, double heightPosition)
 {
 	constraint(constraintId)->setHeightPercentage(heightPosition);
 	emit constraintMoved(constraintId);
@@ -258,7 +260,7 @@ void ScenarioProcessSharedModel::moveConstraint(int constraintId, int deltaX, do
 	eev->setVerticalExtremity(constraintId, heightPosition);
 	sev->setVerticalExtremity(constraintId, heightPosition);
 
-	moveEventAndConstraint(sev->id(), deltaX, sev->heightPercentage());
+	moveEventAndConstraint(sev->id(), absolute_time, sev->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent)
@@ -295,7 +297,6 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 {
 	// End event suppression
 	{
-		qDebug() << "suppressing event";
 		auto end_event_id = this->constraint(constraintId)->endEvent();
 
 		emit eventDeleted(end_event_id);
@@ -307,7 +308,6 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 
 	// Constraint suppression
 	{
-		qDebug() << "suppressing constraint";
 		emit constraintDeleted(constraintId);
 		removeById(m_constraints, constraintId);
 	}

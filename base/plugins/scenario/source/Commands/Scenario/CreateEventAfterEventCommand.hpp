@@ -15,8 +15,8 @@ class CreateEventAfterEventCommand : public iscore::SerializableCommand
 		friend class CreateEventAfterEventCommandTest;
 	public:
 		CreateEventAfterEventCommand();
-        CreateEventAfterEventCommand(ObjectPath&& scenarioPath, EventData data);
-        virtual void undo() override;
+		CreateEventAfterEventCommand(ObjectPath&& scenarioPath, EventData data);
+		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
 		virtual bool mergeWith(const QUndoCommand* other) override;

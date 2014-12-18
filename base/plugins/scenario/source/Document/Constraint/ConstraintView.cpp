@@ -63,11 +63,14 @@ void ConstraintView::setHeight(int height)
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
 	QGraphicsObject::mousePressEvent(m);
-	emit constraintPressed(m->pos());
+
+	m_clickedPoint = m->pos();
+	emit constraintPressed(pos() + m->pos());
 }
 
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
-	emit constraintReleased(m->pos());
+
+	emit constraintReleased(pos() + m->pos() - m_clickedPoint);
 }

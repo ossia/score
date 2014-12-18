@@ -33,10 +33,6 @@ void BlacklistCommand::redo()
 			newList.push_back(key);
 		}
 	}
-
-	qDebug() << currentList;
-	qDebug() << newList;
-
 	s.setValue("PluginSettings/Blacklist", newList);
 }
 

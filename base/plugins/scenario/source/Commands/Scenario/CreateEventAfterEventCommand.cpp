@@ -22,13 +22,13 @@ CreateEventAfterEventCommand::CreateEventAfterEventCommand():
 }
 
 CreateEventAfterEventCommand::CreateEventAfterEventCommand(ObjectPath &&scenarioPath, EventData data):
-    SerializableCommand{"ScenarioControl",
-                        "CreateEventAfterEventCommand",
-                        QObject::tr("Event creation")},
-    m_path(std::move(scenarioPath)),
-    m_firstEventId{data.eventClickedId},
-    m_time{data.x},
-    m_heightPosition{data.relativeY}
+	SerializableCommand{"ScenarioControl",
+						"CreateEventAfterEventCommand",
+						QObject::tr("Event creation")},
+	m_path(std::move(scenarioPath)),
+	m_firstEventId{data.eventClickedId},
+	m_time{data.x},
+	m_heightPosition{data.relativeY}
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
@@ -42,7 +42,6 @@ void CreateEventAfterEventCommand::undo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
-
 }
 
 void CreateEventAfterEventCommand::redo()

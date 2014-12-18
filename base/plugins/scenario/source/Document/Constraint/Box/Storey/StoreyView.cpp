@@ -39,7 +39,6 @@ int StoreyView::height() const
 
 void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-	qDebug(Q_FUNC_INFO);
 	emit bottomHandleSelected();
 }
 

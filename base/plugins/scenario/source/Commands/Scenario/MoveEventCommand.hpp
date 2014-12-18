@@ -7,7 +7,7 @@ struct EventData;
 class MoveEventCommand : public iscore::SerializableCommand
 {
 	public:
-        MoveEventCommand(ObjectPath &&scenarioPath, EventData data);
+		MoveEventCommand(ObjectPath &&scenarioPath, EventData data);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -21,8 +21,8 @@ class MoveEventCommand : public iscore::SerializableCommand
 		ObjectPath m_scenarioPath;
 		int m_eventId{};
 
-		double m_heightPosition{};
 		double m_oldHeightPosition{};
-
-        int m_deltaX{};
+		double m_newHeightPosition{};
+		int m_oldX{};
+		int m_newX{};
 };

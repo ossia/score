@@ -38,5 +38,7 @@ class ConstraintView : public QGraphicsObject
 		QGraphicsProxyWidget* m_button{};
 		int m_width{};
 		int m_height{};
+
+		QPointF m_clickedPoint{};
 };
 

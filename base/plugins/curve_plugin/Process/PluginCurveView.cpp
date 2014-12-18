@@ -113,7 +113,6 @@ void PluginCurveView::mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurveView::mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
-	qDebug() << "Here";
 	emit (mousePressed (mouseEvent) );
 }
 

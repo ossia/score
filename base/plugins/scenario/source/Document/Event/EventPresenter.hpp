@@ -15,20 +15,20 @@ class EventPresenter : public NamedObject
 		virtual ~EventPresenter();
 
 		int id() const;
-        EventView* view() const;
-        EventModel* model() const;
+		EventView* view() const;
+		EventModel* model() const;
 
 	signals:
-        void eventSelected(int);
-        void eventReleasedWithControl(EventData);
-        void eventReleased(EventData);
-        void linesExtremityChange(double, double);
+		void eventSelected(int);
+		void eventReleasedWithControl(EventData);
+		void eventReleased(EventData);
+		void linesExtremityChange(double, double);
 
 		void elementSelected(QObject*);
 
-    public slots:
-        void on_eventReleased(QPointF);
-        void on_eventReleasedWithControl(QPointF);
+	public slots:
+		void on_eventReleased(QPointF);
+		void on_eventReleasedWithControl(QPointF);
 
 	private:
 		EventModel* m_model{};

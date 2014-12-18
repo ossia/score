@@ -14,31 +14,32 @@ using namespace iscore;
 
 
 MoveEventCommand::MoveEventCommand(ObjectPath &&scenarioPath, EventData data):
-    SerializableCommand{"ScenarioControl",
-                        "MoveEventCommand",
-                        QObject::tr("Event move")},
-    m_scenarioPath(std::move(scenarioPath)),
-    m_eventId{data.eventClickedId},
-    m_heightPosition{data.relativeY},
-    m_deltaX{data.x}
+	SerializableCommand{"ScenarioControl",
+						"MoveEventCommand",
+						QObject::tr("Event move")},
+	m_scenarioPath(std::move(scenarioPath)),
+	m_eventId{data.eventClickedId},
+	m_newHeightPosition{data.relativeY},
+	m_newX{data.x}
 {
-
+	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
+	auto ev = scenar->event(m_eventId);
+	m_oldHeightPosition = ev->heightPercentage();
+	m_oldX = ev->date();
 }
 
 void MoveEventCommand::undo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
 
-	m_heightPosition = scenar->event(m_eventId)->heightPercentage();
-    scenar->moveEventAndConstraint(m_eventId, - m_deltaX, m_oldHeightPosition);
+	scenar->moveEventAndConstraint(m_eventId, m_oldX, m_oldHeightPosition);
 }
 
 void MoveEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
-	m_oldHeightPosition = scenar->event(m_eventId)->heightPercentage();
 
-    scenar->moveEventAndConstraint(m_eventId, m_deltaX, m_heightPosition);
+	scenar->moveEventAndConstraint(m_eventId, m_newX, m_newHeightPosition);
 }
 
 int MoveEventCommand::id() const
@@ -53,10 +54,12 @@ bool MoveEventCommand::mergeWith(const QUndoCommand* other)
 
 void MoveEventCommand::serializeImpl(QDataStream& s)
 {
-    s << m_scenarioPath << m_eventId << m_heightPosition << m_deltaX;
+	s << m_scenarioPath << m_eventId
+	  << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;
 }
 
 void MoveEventCommand::deserializeImpl(QDataStream& s)
 {
-    s >> m_scenarioPath >> m_eventId >> m_heightPosition >> m_deltaX;
+	s >> m_scenarioPath >> m_eventId
+	  >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
 }

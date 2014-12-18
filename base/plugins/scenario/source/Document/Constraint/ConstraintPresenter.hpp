@@ -59,7 +59,5 @@ class ConstraintPresenter : public NamedObject
 		ConstraintView* m_view{};
 
 		long m_millisecPerPixel{1};
-
-		QPointF clickedPoint{-1,-1};
 };
 
