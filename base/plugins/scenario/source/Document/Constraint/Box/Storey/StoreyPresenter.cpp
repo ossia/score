@@ -25,7 +25,7 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 	m_model{model},
 	m_view{view}
 {
-	m_view->m_height = m_model->height();
+	m_view->setHeight(m_model->height());
 
 	for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
 	{
@@ -61,7 +61,7 @@ int StoreyPresenter::id() const
 
 int StoreyPresenter::height() const
 {
-	return m_view->m_height;
+	return m_view->height();
 }
 
 void StoreyPresenter::on_processViewModelCreated(int processId)
@@ -77,7 +77,7 @@ void StoreyPresenter::on_processViewModelDeleted(int processId)
 
 void StoreyPresenter::on_heightChanged(int height)
 {
-	m_view->m_height = height;
+	m_view->setHeight(height);
 	emit askUpdate();
 }
 
@@ -88,18 +88,14 @@ void StoreyPresenter::on_bottomHandleSelected()
 
 void StoreyPresenter::on_bottomHandleChanged(int newHeight)
 {
-	m_view->m_height = newHeight;
-	m_currentResizingValue = m_view->m_height;
-
-	emit askUpdate();
-	m_view->update();
+	on_heightChanged(newHeight);
 }
 
 void StoreyPresenter::on_bottomHandleReleased()
 {
 	auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
 
-	auto cmd = new ResizeDeckVerticallyCommand(std::move(path), m_currentResizingValue);
+	auto cmd = new ResizeDeckVerticallyCommand(std::move(path), m_view->height());
 	emit submitCommand(cmd);
 }
 
@@ -107,9 +103,9 @@ void StoreyPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface*
 {
 	auto procname = m_model
 						->parentConstraint()
-						->process(proc_vm->sharedProcessId())->processName();
+						->process(proc_vm->sharedProcessId())
+						->processName();
 
-	// TODO
 	auto factory = ProcessList::getFactory(procname);
 
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);

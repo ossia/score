@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/Storey/StoreyPresenter.hpp"
 #include "Document/Constraint/Box/Storey/StoreyView.hpp"
-#include "Document/Constraint/Box/Storey/PositionedStorey/PositionedStoreyModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
@@ -40,7 +40,7 @@ BoxPresenter::~BoxPresenter()
 
 int BoxPresenter::height() const
 {
-	int totalHeight = 25;
+	int totalHeight = 25; // No storey -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 	for(auto& storey : m_storeys)
 	{
 		totalHeight += storey->height();
@@ -73,16 +73,24 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 	on_askUpdate();
 }
 
+void BoxPresenter::updateShape()
+{
+	m_view->setHeight(height());
+	for(StoreyPresenter* storey : m_storeys)
+	{
+		// set the vertical position of each in the box.
+		//storey
+	}
+}
+
 void BoxPresenter::on_storeyDeleted(int storeyId)
 {
 	removeFromVectorWithId(m_storeys, storeyId);
-	m_view->update();
+	emit askUpdate();
 }
 
 void BoxPresenter::on_askUpdate()
 {
-	m_view->setHeight(height());
-
+	updateShape();
 	emit askUpdate();
-	m_view->update();
 }

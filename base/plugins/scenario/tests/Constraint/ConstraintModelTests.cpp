@@ -5,7 +5,7 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 #include <core/tools/ObjectPath.hpp>
-#include <Document/Constraint/Box/Storey/PositionedStorey/PositionedStoreyModel.hpp>
+#include <Document/Constraint/Box/Storey/StoreyModel.hpp>
 
 
 class ConstraintModelTests: public QObject

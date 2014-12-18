@@ -20,8 +20,7 @@ class StoreyPresenter : public NamedObject
 		virtual ~StoreyPresenter();
 
 		int id() const;
-
-		int height() const;
+		int height() const; // Return the height of the view
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);

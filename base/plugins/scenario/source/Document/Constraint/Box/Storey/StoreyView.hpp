@@ -14,7 +14,9 @@ class StoreyView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
-		int m_height{};
+
+		void setHeight(int height);
+		int height() const;
 
 	signals:
 		void bottomHandleSelected();
@@ -25,5 +27,8 @@ class StoreyView : public QGraphicsObject
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
 		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+
+	private:
+		int m_height{};
 };
 

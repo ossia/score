@@ -15,6 +15,9 @@ namespace iscore
 	 *
 	 * Maybe the NetworkPlugin should replace the Command by a TimestampedCommand instead ?
 	 * What if other plug-ins also want to add functionality ?
+	 *
+	 * Note: for mergeWith put two timestamps, one for the initial command (5 sec) and one for each
+	 * new command merged.
 	 */
 	class Command : public QUndoCommand
 	{

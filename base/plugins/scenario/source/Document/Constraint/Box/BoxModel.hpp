@@ -4,7 +4,7 @@
 #include <vector>
 
 class ConstraintModel;
-class PositionedStoreyModel;
+class StoreyModel;
 
 class BoxModel : public IdentifiedObject
 {
@@ -22,12 +22,12 @@ class BoxModel : public IdentifiedObject
 		void deleteStorey(int storeyId);
 		void changeStoreyOrder(int storeyId, int position);
 
-		PositionedStoreyModel* storey(int storeyId) const;
+		StoreyModel* storey(int storeyId) const;
 
 		// Devrait peut-être aller dans une Command à la place ?
 		void duplicateStorey();
 
-		const std::vector<PositionedStoreyModel*>& storeys() const
+		const std::vector<StoreyModel*>& storeys() const
 		{ return m_storeys; }
 
 	signals:
@@ -38,7 +38,7 @@ class BoxModel : public IdentifiedObject
 		void on_deleteSharedProcessModel(int processId);
 
 	private:
-		int createStorey_impl(PositionedStoreyModel* m);
-		std::vector<PositionedStoreyModel*> m_storeys;
+		int createStorey_impl(StoreyModel* m);
+		std::vector<StoreyModel*> m_storeys;
 };
 

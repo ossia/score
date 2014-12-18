@@ -37,6 +37,9 @@ class BoxPresenter : public NamedObject
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);
 
+		// Updates the shape of the view
+		void updateShape();
+
 		BoxModel* m_model;
 		BoxView* m_view;
 		std::vector<StoreyPresenter*> m_storeys;

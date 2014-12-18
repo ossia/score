@@ -1,7 +1,7 @@
 #include "BoxModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Storey/PositionedStorey/PositionedStoreyModel.hpp"
+#include "Storey/StoreyModel.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -46,23 +46,23 @@ BoxModel::BoxModel(QDataStream& s, ConstraintModel* parent):
 int BoxModel::createStorey(int newStoreyId)
 {
 	return createStorey_impl(
-				new PositionedStoreyModel{(int) m_storeys.size(),
-										  newStoreyId,
-										  this});
+				new StoreyModel{(int) m_storeys.size(),
+								newStoreyId,
+								this});
 
 }
 
 int BoxModel::createStorey(QDataStream& s)
 {
 	return createStorey_impl(
-				new PositionedStoreyModel{s,
-										  this});
+				new StoreyModel{s,
+								this});
 }
 
-int BoxModel::createStorey_impl(PositionedStoreyModel* storey)
+int BoxModel::createStorey_impl(StoreyModel* storey)
 {
 	connect(this,	&BoxModel::on_deleteSharedProcessModel,
-			storey, &PositionedStoreyModel::on_deleteSharedProcessModel);
+			storey, &StoreyModel::on_deleteSharedProcessModel);
 	m_storeys.push_back(storey);
 
 	emit storeyCreated(storey->id());
@@ -82,7 +82,7 @@ void BoxModel::changeStoreyOrder(int storeyId, int position)
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
-PositionedStoreyModel* BoxModel::storey(int storeyId) const
+StoreyModel* BoxModel::storey(int storeyId) const
 {
 	return findById(m_storeys, storeyId);
 }

@@ -27,6 +27,17 @@ void StoreyView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	painter->drawRect(boundingRect());
 }
 
+void StoreyView::setHeight(int height)
+{
+	prepareGeometryChange();
+	m_height = height;
+}
+
+int StoreyView::height() const
+{
+	return m_height;
+}
+
 void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 	qDebug(Q_FUNC_INFO);
@@ -42,3 +53,4 @@ void StoreyView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
 	emit bottomHandleReleased();
 }
+

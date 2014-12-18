@@ -21,6 +21,9 @@ QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 		s << *pvm;
 	}
 
+	s << storey.height()
+	  << storey.position();
+
 	return s;
 }
 
@@ -39,6 +42,13 @@ QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
 		storey.createProcessViewModel(s, sharedprocess_id);
 	}
 
+	int height;
+	int position;
+	s >> height
+	  >> position;
+	storey.setHeight(height);
+	storey.setPosition(position);
+
 	storey.selectForEdition(editedProcessId);
 
 	return s;
@@ -50,8 +60,9 @@ StoreyModel::StoreyModel(QDataStream& s, BoxModel* parent):
 	s >> *this;
 }
 
-StoreyModel::StoreyModel(int id, BoxModel* parent):
-	IdentifiedObject{id, "StoreyModel", parent}
+StoreyModel::StoreyModel(int position, int id, BoxModel* parent):
+	IdentifiedObject{id, "StoreyModel", parent},
+	m_position{position}
 {
 
 }
@@ -96,6 +107,11 @@ void StoreyModel::selectForEdition(int processViewId)
 	}
 }
 
+const std::vector<ProcessViewModelInterface*>&StoreyModel::processViewModels() const
+{
+	return m_processViewModels;
+}
+
 ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
@@ -115,9 +131,36 @@ void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 	}
 }
 
+void StoreyModel::setHeight(int arg)
+{
+	if (m_height != arg) {
+		m_height = arg;
+		emit heightChanged(arg);
+	}
+}
+
+void StoreyModel::setPosition(int arg)
+{
+	if (m_position == arg)
+		return;
+
+	m_position = arg;
+	emit positionChanged(arg);
+}
+
 ConstraintModel* StoreyModel::parentConstraint() const
 {
 	return static_cast<ConstraintModel*>(parent()->parent());
 	// TODO Is there a better way to do this ? Without breaking encapsulation ?
 	// And without generating another ton of code from constraintmodel to storeymodel ?
+}
+
+int StoreyModel::height() const
+{
+	return m_height;
+}
+
+int StoreyModel::position() const
+{
+	return m_position;
 }

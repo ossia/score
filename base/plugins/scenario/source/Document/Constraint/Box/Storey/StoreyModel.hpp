@@ -25,7 +25,7 @@ class StoreyModel : public IdentifiedObject
 		friend QDataStream& operator >> (QDataStream& , StoreyModel& );
 
 		StoreyModel(QDataStream& s, BoxModel* parent);
-		StoreyModel(int id, BoxModel* parent);
+		StoreyModel(int position, int id, BoxModel* parent);
 		virtual ~StoreyModel() = default;
 
 		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
@@ -41,12 +41,7 @@ class StoreyModel : public IdentifiedObject
 		 */
 		void selectForEdition(int processViewId);
 
-		const std::vector<ProcessViewModelInterface*>&
-		processViewModels() const
-		{
-			return m_processViewModels;
-		}
-
+		const std::vector<ProcessViewModelInterface*>& processViewModels() const;
 		ProcessViewModelInterface* processViewModel(int processViewModelId) const;
 
 		/**
@@ -55,35 +50,29 @@ class StoreyModel : public IdentifiedObject
 		 */
 		ConstraintModel* parentConstraint() const;
 
-		int height() const
-		{
-			return m_height;
-		}
+		int height() const;
+		int position() const;
 
 	signals:
 		void processViewModelCreated(int processViewModelId);
 		void processViewModelDeleted(int processViewModelId);
-
 		void processViewModelSelected(int processViewModelId);
 
 		void heightChanged(int arg);
+		void positionChanged(int arg);
+
 
 	public slots:
 		void on_deleteSharedProcessModel(int sharedProcessId);
 
-		void setHeight(int arg)
-		{
-			if (m_height != arg) {
-				m_height = arg;
-				emit heightChanged(arg);
-			}
-		}
+		void setHeight(int arg);
+		void setPosition(int arg);
 
 	private:
-
 		int m_editedProcessId{};
 		std::vector<ProcessViewModelInterface*> m_processViewModels;
 
 		int m_height{200};
+		int m_position{};
 };
 
