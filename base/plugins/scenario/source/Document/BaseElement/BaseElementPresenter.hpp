@@ -25,6 +25,11 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		void on_reset();
 		void on_askUpdate();
 
+		void selectAll();
+		void deselectAll();
+
+		void deleteSelection();
+
 	private:
 		BaseElementModel* model();
 		BaseElementView* view();

@@ -20,6 +20,8 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
 		void update();
 
+		QGraphicsScene* scene()
+		{ return m_scene; }
 	private:
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};

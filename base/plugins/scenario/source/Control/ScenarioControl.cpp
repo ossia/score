@@ -3,6 +3,9 @@
 #include "Commands/Scenario/CreateEventCommand.hpp"
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
 
+#include <interface/plugincontrol/MenuInterface.hpp>
+#include <core/presenter/MenubarManager.hpp>
+#include <QAction>
 ScenarioControl::ScenarioControl(QObject* parent):
 	PluginControlInterface{"ScenarioControl", parent},
 	m_processList{new ProcessList{this}}
@@ -10,8 +13,25 @@ ScenarioControl::ScenarioControl(QObject* parent):
 
 }
 
-void ScenarioControl::populateMenus(iscore::MenubarManager*)
+void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
+	using namespace iscore;
+	QAction* selectAll = new QAction{tr("Select all"), this};
+	connect(selectAll,	&QAction::triggered,
+			this,		&ScenarioControl::selectAll);
+
+	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
+									   ViewMenuElement::Windows,
+									   selectAll);
+
+
+	QAction* deselectAll = new QAction{tr("Deselect all"), this};
+	connect(deselectAll,	&QAction::triggered,
+			this,			&ScenarioControl::deselectAll);
+
+	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
+									   ViewMenuElement::Windows,
+									   deselectAll);
 }
 
 void ScenarioControl::populateToolbars()
@@ -25,6 +45,7 @@ void ScenarioControl::setPresenter(iscore::Presenter*)
 iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString name, QByteArray data)
 {
 	// TODO call serialize() in Command(QByteArray&) constructor.
+	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
 	if(name == "CreateEventCommand")
 	{
@@ -43,4 +64,18 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	cmd->deserialize(data);
 	return cmd;
 
+}
+
+#include <QApplication>
+#include "Document/BaseElement/BaseElementPresenter.hpp"
+void ScenarioControl::selectAll()
+{
+	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
+	pres->selectAll();
+}
+
+void ScenarioControl::deselectAll()
+{
+	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
+	pres->deselectAll();
 }

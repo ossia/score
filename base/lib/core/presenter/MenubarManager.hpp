@@ -5,6 +5,7 @@
 #include <map>
 #include <core/presenter/Action.hpp>
 #include <interface/plugincontrol/MenuInterface.hpp>
+#include <QDebug>
 
 class QMenuBar;
 class QMenu;
@@ -49,7 +50,9 @@ namespace iscore
 										actions.begin(),
 										actions.end(),
 										[&before] (QAction* act)
-										{ return act->objectName() == MenuInterface::name(before); });
+								{ qDebug() << act->objectName();
+									return act->objectName() == MenuInterface::name(before);
+								});
 
 				if(beforeact_it != actions.end())
 					m_menusMap[tl]->insertAction(*beforeact_it, act);
@@ -64,6 +67,14 @@ namespace iscore
 				sep_act->setSeparator(true);
 				insertActionIntoToplevelMenu(tl,
 											 sep_act);
+			}
+
+			template<typename MenuElement>
+			void addMenuIntoToplevelMenu(ToplevelMenuElement tl,
+										 MenuElement menu)
+			{
+				auto act = m_menusMap[tl]->addMenu(MenuInterface::name(menu))->menuAction();
+				act->setObjectName(MenuInterface::name(menu));
 			}
 
 		signals:

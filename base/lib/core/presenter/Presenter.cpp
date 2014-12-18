@@ -155,6 +155,10 @@ void Presenter::setupMenus()
 	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 										   redoAct);
 
+	////// View //////
+	m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
+									  ViewMenuElement::Windows);
+
 	////// Settings //////
 	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
 										SettingsMenuElement::Settings,

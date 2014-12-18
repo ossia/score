@@ -7,6 +7,7 @@
 #include "Commands/Constraint/Process/AddProcessToConstraintCommand.hpp"
 #include "Commands/Scenario/CreateEventCommand.hpp"
 
+#include <QGraphicsScene>
 using namespace iscore;
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
@@ -44,6 +45,33 @@ void BaseElementPresenter::on_reset()
 void BaseElementPresenter::on_askUpdate()
 {
 	view()->update();
+}
+
+void BaseElementPresenter::selectAll()
+{
+	for(auto item : view()->scene()->items())
+	{
+		item->setSelected(true);
+	}
+}
+
+void BaseElementPresenter::deselectAll()
+{
+	for(auto item : view()->scene()->items())
+	{
+		item->setSelected(false);
+	}
+}
+
+void BaseElementPresenter::deleteSelection()
+{
+	// 1. List all the things to be deleted.
+
+	// 2. Remove the children of things contained in other things from the list
+
+	// 3. Create a Delete command for each.
+
+	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
 }
 
 BaseElementModel* BaseElementPresenter::model()
