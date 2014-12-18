@@ -71,7 +71,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario},
-	m_startEventId{getNextId()} //TODO THIS WILL CAUSE MASSIVE GRIEF IN CASE OF UNDO REDO
+	m_startEventId{0} // Always
 {
 	m_events.push_back(new EventModel{m_startEventId, this});
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
@@ -160,9 +160,9 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	}
 
 	// TEMPORARY :
-    inter->setStartDate(this->event(startEventId)->date());
-    inter->setWidth(constraint_duration);
-    event->setDate(inter->startDate() + inter->width());
+	inter->setStartDate(this->event(startEventId)->date());
+	inter->setWidth(constraint_duration);
+	event->setDate(inter->startDate() + inter->width());
 //	event->m_y = inter->heightPercentage() * 75;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
@@ -175,7 +175,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
-    inter->setStartEvent(startEventId);
+	inter->setStartEvent(startEventId);
 	inter->setEndEvent(event->id());
 
 	// From now on everything must be in a valid state.
@@ -185,11 +185,11 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	emit eventCreated(event->id());
 	emit constraintCreated(inter->id());
 
-    // link constraint with event
-    event->addPreviousConstraint(newConstraintId);
-    this->event(startEventId)->addNextConstraint(newConstraintId);
-    event->setVerticalExtremity(inter->id(), inter->heightPercentage());
-    this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
+	// link constraint with event
+	event->addPreviousConstraint(newConstraintId);
+	this->event(startEventId)->addNextConstraint(newConstraintId);
+	event->setVerticalExtremity(inter->id(), inter->heightPercentage());
+	this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
 
 	return std::make_tuple(inter->id(), event->id());
 }
@@ -230,57 +230,57 @@ std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFrom
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int time, double heightPosition)
 {
 
-    // resize previous constraint
-    if (! event(eventId)->previousConstraints().isEmpty() )
-    {
-        auto ev = event(eventId);
-        ev->setHeightPercentage(heightPosition);
-        ev->translate(time);
+	// resize previous constraint
+	if (! event(eventId)->previousConstraints().isEmpty() )
+	{
+		auto ev = event(eventId);
+		ev->setHeightPercentage(heightPosition);
+		ev->translate(time);
 
-        auto prev_constraint = constraint(event(eventId)->previousConstraints().at(0));
-        prev_constraint->setWidth(prev_constraint->width() + time);
-        emit constraintMoved(prev_constraint->id());
-        emit eventMoved(eventId);
+		auto prev_constraint = constraint(event(eventId)->previousConstraints().at(0));
+		prev_constraint->setWidth(prev_constraint->width() + time);
+		emit constraintMoved(prev_constraint->id());
+		emit eventMoved(eventId);
 
-        QVector<int> already_moved_events;
-        moveNextElements(eventId, time, already_moved_events);
-    }
+		QVector<int> already_moved_events;
+		moveNextElements(eventId, time, already_moved_events);
+	}
 }
 
 void ScenarioProcessSharedModel::moveConstraint(int constraintId, int deltaX, double heightPosition)
 {
-    constraint(constraintId)->setHeightPercentage(heightPosition);
-    emit constraintMoved(constraintId);
+	constraint(constraintId)->setHeightPercentage(heightPosition);
+	emit constraintMoved(constraintId);
 
-    // redraw constraint-event link
-    auto eev = event(constraint(constraintId)->endEvent());
-    auto sev = event(constraint(constraintId)->startEvent());
-    eev->setVerticalExtremity(constraintId, heightPosition);
-    sev->setVerticalExtremity(constraintId, heightPosition);
+	// redraw constraint-event link
+	auto eev = event(constraint(constraintId)->endEvent());
+	auto sev = event(constraint(constraintId)->startEvent());
+	eev->setVerticalExtremity(constraintId, heightPosition);
+	sev->setVerticalExtremity(constraintId, heightPosition);
 
-    moveEventAndConstraint(sev->id(), deltaX, sev->heightPercentage());
+	moveEventAndConstraint(sev->id(), deltaX, sev->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent)
 {
-    auto cur_event = event(firstEventMovedId);
+	auto cur_event = event(firstEventMovedId);
 
-    if (! cur_event->previousConstraints().isEmpty())
-    {
-        for (auto cons : cur_event->nextConstraints())
-        {
-            auto evId = constraint(cons)->endEvent();
-            if (movedEvent.indexOf(evId) == -1)
-            {
-                event(evId)->translate(deltaTime);
-                movedEvent.push_back(evId);
-                constraint(cons)->translate(deltaTime);
-                emit eventMoved(evId);
-                emit constraintMoved(cons);
-                moveNextElements(evId, deltaTime, movedEvent);
-            }
-        }
-    }
+	if (! cur_event->previousConstraints().isEmpty())
+	{
+		for (auto cons : cur_event->nextConstraints())
+		{
+			auto evId = constraint(cons)->endEvent();
+			if (movedEvent.indexOf(evId) == -1)
+			{
+				event(evId)->translate(deltaTime);
+				movedEvent.push_back(evId);
+				constraint(cons)->translate(deltaTime);
+				emit eventMoved(evId);
+				emit constraintMoved(cons);
+				moveNextElements(evId, deltaTime, movedEvent);
+			}
+		}
+	}
 }
 
 ///////// DELETION //////////
@@ -301,8 +301,8 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 		emit eventDeleted(end_event_id);
 		removeById(m_events, end_event_id);
 
-        auto start_event = event(constraint(constraintId)->startEvent());
-        start_event->removeNextConstraint(constraintId);
+		auto start_event = event(constraint(constraintId)->startEvent());
+		start_event->removeNextConstraint(constraintId);
 	}
 
 	// Constraint suppression
@@ -347,10 +347,10 @@ void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constrai
 
 	// First constraint suppression
 	{
-        auto first_event = event(constraint(start_constraint_id)->startEvent());
-        emit constraintDeleted(start_constraint->id());
-        first_event->removeNextConstraint(start_constraint_id);
-		removeById(m_constraints, start_constraint->id());        
+		auto first_event = event(constraint(start_constraint_id)->startEvent());
+		emit constraintDeleted(start_constraint->id());
+		first_event->removeNextConstraint(start_constraint_id);
+		removeById(m_constraints, start_constraint->id());
 	}
 }
 

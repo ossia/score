@@ -74,6 +74,12 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 	on_askUpdate();
 }
 
+void BoxPresenter::on_storeyDeleted(int storeyId)
+{
+	removeFromVectorWithId(m_decks, storeyId);
+	on_askUpdate();
+}
+
 void BoxPresenter::updateShape()
 {
 	using namespace std;
@@ -93,12 +99,6 @@ void BoxPresenter::updateShape()
 		deck->setVerticalPosition(currentDeckY);
 		currentDeckY += deck->height() + 5;
 	}
-}
-
-void BoxPresenter::on_storeyDeleted(int storeyId)
-{
-	removeFromVectorWithId(m_decks, storeyId);
-	emit askUpdate();
 }
 
 void BoxPresenter::on_askUpdate()
