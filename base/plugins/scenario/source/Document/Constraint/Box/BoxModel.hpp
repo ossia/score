@@ -32,8 +32,8 @@ class BoxModel : public IdentifiedObject
 		{ return m_storeys; }
 
 	signals:
-		void storeyCreated(int id);
-		void storeyDeleted(int id);
+		void deckCreated(int id);
+		void deckRemoved(int id);
 		void storeyOrderChanged(int storeyId);
 
 		void on_deleteSharedProcessModel(int processId);

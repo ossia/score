@@ -2,6 +2,7 @@
 
 #include "Widgets/AddProcessWidget.hpp"
 #include "Widgets/AddBoxWidget.hpp"
+#include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -23,6 +24,20 @@
 #include <QPushButton>
 #include <QApplication>
 
+using namespace Scenario::Command;
+
+
+class Separator : public QFrame
+{
+	public:
+		Separator(QWidget* parent):
+			QFrame{parent}
+		{
+			setFrameShape(QFrame::HLine);
+			setLineWidth(2);
+		}
+};
+
 ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
@@ -33,16 +48,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 	m_processSection->setObjectName("Processes");
 
 	m_properties.push_back(m_processSection);
-	m_properties.push_back(new SharedProcessWidget{this});
+	m_properties.push_back(new AddSharedProcessWidget{this});
 
 	// Separator
-	QFrame* sep = new QFrame{this};
-	sep->setFrameShape(QFrame::HLine);
-	sep->setLineWidth(2);
-	m_properties.push_back(sep);
+	m_properties.push_back(new Separator{this});
 
 	// Boxes
-	m_boxSection = new InspectorSectionWidget{"Boxes", this};
+	m_boxSection = new InspectorSectionWidget{"Boxes", this};  // TODO Make a custom widget.
 	m_boxSection->setObjectName("Boxes");
 
 	m_boxWidget = new BoxWidget{this};
@@ -109,12 +121,8 @@ void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constrai
 
 		for(BoxModel* box: constraint->boxes())
 		{
-			displayBox(box);
+			setupBox(box);
 		}
-
-		// Deck
-
-		// ProcessViews
 	}
 	else
 	{
@@ -130,24 +138,15 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 												   m_currentConstraint),
 						processName);
 	emit submitCommand(cmd);
-
-	updateDisplayedValues(m_currentConstraint);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
-	auto cmd = new Scenario::Command::AddBoxToConstraint(
+	auto cmd = new AddBoxToConstraint(
 						ObjectPath::pathFromObject(
 							"BaseConstraintModel",
 							m_currentConstraint));
 	emit submitCommand(cmd);
-
-	updateDisplayedValues(m_currentConstraint);
-}
-
-void ConstraintInspectorWidget::createDeck(int box)
-{
-
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
@@ -159,48 +158,40 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
 	m_processSection->addContent (newProc);
 }
 
-void ConstraintInspectorWidget::displayBox(BoxModel* box)
+void ConstraintInspectorWidget::setupBox(BoxModel* box)
 {
-	InspectorSectionWidget* newBox = new InspectorSectionWidget{QString{"Box.%1"}.arg(box->id())};
+	// Display the widget
+	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg(box->id()),
+														  box,
+														  this};
+
+	connect(newBox, &BoxInspectorSection::submitCommand,
+			this,	&ConstraintInspectorWidget::submitCommand);
+
 	m_boxesSectionWidgets.push_back(newBox);
 	m_boxSection->addContent(newBox);
-
-	for(auto& deck : box->decks())
-	{
-		displayDeck(deck);
-	}
 }
 
-void ConstraintInspectorWidget::displayDeck(StoreyModel* deck)
-{
-	InspectorSectionWidget* newDeck = new InspectorSectionWidget{QString{"Deck.%1"}.arg(deck->id())};
-	m_decksSectionWidgets.push_back(newDeck);
-	m_deckSection->addContent(newDeck);
 
-//	for(auto& deck : box->decks())
-//	{
-//		displayDeck(deck);
-//	}
-}
-
+// TODO optimize if necessary
 void ConstraintInspectorWidget::on_processCreated(QString processName, int processId)
 {
-	updateDisplayedValues(m_currentConstraint);
+	reloadDisplayedValues();
 }
 
 void ConstraintInspectorWidget::on_processRemoved(int processId)
 {
-	updateDisplayedValues(m_currentConstraint);
+	reloadDisplayedValues();
 }
+
 
 void ConstraintInspectorWidget::on_boxCreated(int viewId)
 {
-	m_boxWidget->updateComboBox();
-	updateDisplayedValues(m_currentConstraint);
+	reloadDisplayedValues();
 }
 
 void ConstraintInspectorWidget::on_boxRemoved(int viewId)
 {
-	m_boxWidget->updateComboBox();
-	updateDisplayedValues(m_currentConstraint);
+	reloadDisplayedValues();
 }
+

@@ -98,6 +98,11 @@ void InspectorSectionWidget::expand()
 	}
 }
 
+void InspectorSectionWidget::clear()
+{
+	// TODO
+}
+
 void InspectorSectionWidget::renameSection (QString newName)
 {
 	_sectionTitle->setText (newName);

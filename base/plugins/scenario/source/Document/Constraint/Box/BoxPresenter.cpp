@@ -26,9 +26,9 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 
 	on_askUpdate();
 
-	connect(m_model,	&BoxModel::storeyCreated,
+	connect(m_model,	&BoxModel::deckCreated,
 			this,		&BoxPresenter::on_storeyCreated);
-	connect(m_model,	&BoxModel::storeyDeleted,
+	connect(m_model,	&BoxModel::deckRemoved,
 			this,		&BoxPresenter::on_storeyRemoved);
 }
 
@@ -44,7 +44,7 @@ int BoxPresenter::height() const
 	int totalHeight = 25; // No storey -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 	for(auto& storey : m_decks)
 	{
-		totalHeight += storey->height();
+		totalHeight += storey->height() + 5;
 	}
 	return totalHeight;
 }

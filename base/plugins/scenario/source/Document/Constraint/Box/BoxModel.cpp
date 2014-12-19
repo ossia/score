@@ -73,7 +73,7 @@ int BoxModel::createStorey_impl(StoreyModel* storey)
 			this,	&BoxModel::on_storeyBecomesEmpty);
 	m_storeys.push_back(storey);
 
-	emit storeyCreated(storey->id());
+	emit deckCreated(storey->id());
 	return storey->id();
 }
 
@@ -91,7 +91,7 @@ void BoxModel::removeDeck(int storeyId)
 	}
 
 	// Delete
-	emit storeyDeleted(storeyId);
+	emit deckRemoved(storeyId);
 	removeById(m_storeys, storeyId);
 
 	if(m_storeys.empty())

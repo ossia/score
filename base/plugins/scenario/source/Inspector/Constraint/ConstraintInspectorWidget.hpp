@@ -8,6 +8,7 @@ class StoreyModel;
 class ProcessSharedModelInterface;
 
 class BoxWidget;
+class BoxInspectorSection;
 class QFormLayout;
 
 /*!
@@ -25,34 +26,28 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		{ return m_currentConstraint; }
 
 	public slots:
-		void updateDisplayedValues (ConstraintModel* obj);
+		void reloadDisplayedValues()
+		{ updateDisplayedValues(m_currentConstraint); }
+		void updateDisplayedValues(ConstraintModel* obj);
 
 		// These methods ask for creation
 		void createProcess(QString processName);
 		void createBox();
-		void createDeck(int box);
 
 		// Interface of Constraint
 		void on_processCreated(QString processName, int processId);
 		void on_processRemoved(int processId);
 
-		void on_boxCreated(int viewId);
-		void on_boxRemoved(int viewId);
-
-		// Interface of Box
-
-		// Interface of Deck
+		void on_boxCreated(int boxId);
+		void on_boxRemoved(int boxId);
 
 		// Abstract interface of SharedProcessModel
 
 		// Abstract interface of ProcessViewModel
 
-
-
 		// These methods are used to display created things
 		void displaySharedProcess(ProcessSharedModelInterface*);
-		void displayBox(BoxModel*);
-		void displayDeck(StoreyModel*);
+		void setupBox(BoxModel*);
 
 	private:
 		ConstraintModel* m_currentConstraint{};
@@ -63,11 +58,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
 		InspectorSectionWidget* m_boxSection{};
 		BoxWidget* m_boxWidget{};
-		std::vector<InspectorSectionWidget*> m_boxesSectionWidgets;
-
-		InspectorSectionWidget* m_deckSection{};
-		//DeckWidget* m_deckWidget{};
-		std::vector<InspectorSectionWidget*> m_decksSectionWidgets;
+		std::vector<BoxInspectorSection*> m_boxesSectionWidgets;
 
 		std::vector<QWidget*> m_properties;
 

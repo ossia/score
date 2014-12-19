@@ -10,7 +10,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
-SharedProcessWidget::SharedProcessWidget(ConstraintInspectorWidget* parent):
+AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent):
 	QWidget{parent}
 {
 	QHBoxLayout* addAutomLayout = new QHBoxLayout;

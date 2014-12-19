@@ -7,6 +7,10 @@ class QToolButton;
 class QPushButton;
 class QScrollArea;
 
+namespace iscore
+{
+	class SerializableCommand;
+}
 /** @brief InspectorSectionWidget is widget that can fold or unfold his content.
  *
  * A header with a name is always displayed.
@@ -22,6 +26,7 @@ class InspectorSectionWidget : public QWidget
 		~InspectorSectionWidget();
 
 	signals:
+		void submitCommand(iscore::SerializableCommand*);
 
 	public slots:
 
@@ -30,21 +35,23 @@ class InspectorSectionWidget : public QWidget
 
 		// Manage section
 
+		// Removes all the content.
+		void clear();
+
 		//! change the name in the header
 		void renameSection (QString newName);
+
 		//! add the widget newWidget in the main layout
 		void addContent (QWidget* newWidget);
+
 		//! insert newWidget at the index rank in the main layout
 		void insertInSection (int index, QWidget* newWidget);
 
 		void nameEditEnable();
 		void nameEditDisable();
 
-//    void setHeight();
-
 	private:
 		QWidget* _container = nullptr;
-		//  QScrollArea* _container = nullptr;
 		QVBoxLayout* _containerLayout = nullptr; /*!< main layout */
 
 		QLineEdit* _sectionTitle = nullptr; /*!< header label \todo editable ? */
