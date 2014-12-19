@@ -84,13 +84,15 @@ void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
 }
 
-void Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
+iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
 {
+	// TODO : put parent_name & name in data and start to deserialize it here.
 	for(auto& ccmd : m_customCommands)
 	{
 		if(ccmd->objectName() == parent_name)
 		{
-			emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
+			// emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
+			return ccmd->instantiateUndoCommand(name, data);
 		}
 	}
 }

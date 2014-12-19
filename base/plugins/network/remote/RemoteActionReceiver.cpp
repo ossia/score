@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
 
 RemoteActionReceiver::RemoteActionReceiver(Session* s)
@@ -47,7 +48,12 @@ void RemoteActionReceiver::handle__edit_command(osc::ReceivedMessageArgumentStre
 	args >> sessionId >> clientId >> par_name >> cmd_name >> blob;
 	if(sessionId != session()->getId()) return;
 
-	emit receivedCommand(QString{par_name},
-						 QString{cmd_name},
-						 QByteArray{static_cast<const char*>(blob.data), blob.size});
+	////// TODO : Refactor //////
+	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
+
+	auto cmd = presenter->instantiateUndoCommand(QString{par_name},
+												 QString{cmd_name},
+												 QByteArray{static_cast<const char*>(blob.data), blob.size});
+	applyCommand(cmd);
+	/////////////////////////////
 }

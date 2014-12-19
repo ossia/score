@@ -11,8 +11,19 @@ QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
 	s << ev.m_previousConstraints
 	  << ev.m_nextConstraints
-      << ev.m_heightPercentage
-      << ev.m_constraintsYPos;
+	  << ev.m_heightPercentage
+	  << ev.m_constraintsYPos
+	  << ev.m_bottomY
+	  << ev.m_topY;
+
+	s << ev.m_x; // should be in OSSIA API
+
+	s << int(ev.m_states.size());
+	for(auto& state : ev.m_states)
+	{
+		s << *state;
+	}
+
 	// TODO s << ev.m_timeNode->save();
 	return s;
 }
@@ -21,8 +32,20 @@ QDataStream& operator >> (QDataStream& s, EventModel& ev)
 {
 	s >> ev.m_previousConstraints
 	  >> ev.m_nextConstraints
-      >> ev.m_heightPercentage
-      >> ev.m_constraintsYPos;
+	  >> ev.m_heightPercentage
+	  >> ev.m_constraintsYPos
+	  >> ev.m_bottomY
+	  >> ev.m_topY;
+
+	s >> ev.m_x; // should be in OSSIA API
+
+	int numStates{};
+	s >> numStates;
+	for(; numStates --> 0;)
+	{
+		ev.createState(s);
+	}
+
 
 	ev.m_timeNode = new OSSIA::TimeNode;
 	// TODO load the timenode
@@ -39,7 +62,6 @@ EventModel::EventModel(int id, QObject* parent):
 	m_timeNode{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
-	m_states.push_back(new FakeState{this});
 }
 
 EventModel::EventModel(int id, double yPos, QObject *parent):
@@ -52,7 +74,7 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 EventModel::EventModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, "EventModel", parent}
 {
-    s >> *this;
+	s >> *this;
 }
 
 const QVector<int>&EventModel::previousConstraints() const
@@ -62,39 +84,39 @@ const QVector<int>&EventModel::previousConstraints() const
 
 const QVector<int>&EventModel::nextConstraints() const
 {
-    return m_nextConstraints;
+	return m_nextConstraints;
 }
 
 void EventModel::addNextConstraint(int constraint)
 {
-    m_nextConstraints.push_back(constraint);
+	m_nextConstraints.push_back(constraint);
 }
 
 void EventModel::addPreviousConstraint(int constraint)
 {
-    m_previousConstraints.push_back(constraint);
+	m_previousConstraints.push_back(constraint);
 }
 
 bool EventModel::removeNextConstraint(int constraintToDelete)
 {
-    if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
-    {
-        m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
-        m_constraintsYPos.remove(constraintToDelete);
-        return true;
-    }
-    return false;
+	if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
+	{
+		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
+		m_constraintsYPos.remove(constraintToDelete);
+		return true;
+	}
+	return false;
 }
 
 bool EventModel::removePreviousConstraint(int constraintToDelete)
 {
-    if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
-    {
-        m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-        m_constraintsYPos.remove(constraintToDelete);
-        return true;
-    }
-    return false;
+	if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
+	{
+		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
+		m_constraintsYPos.remove(constraintToDelete);
+		return true;
+	}
+	return false;
 }
 
 double EventModel::heightPercentage() const
@@ -104,42 +126,42 @@ double EventModel::heightPercentage() const
 
 int EventModel::date() const
 {
-    return m_x;
+	return m_x;
 }
 
 void EventModel::setDate(int date)
 {
-    m_x = date;
+	m_x = date;
 }
 
 void EventModel::translate(int deltaTime)
 {
-    m_x += deltaTime;
+	m_x += deltaTime;
 }
 
 void EventModel::setVerticalExtremity(int consId, double newPosition)
 {
-    m_constraintsYPos[consId] = newPosition;
-    updateVerticalLink();
+	m_constraintsYPos[consId] = newPosition;
+	updateVerticalLink();
 }
 
 void EventModel::updateVerticalLink()
 {
-    m_topY = m_heightPercentage;
-    m_bottomY = m_heightPercentage;
+	m_topY = m_heightPercentage;
+	m_bottomY = m_heightPercentage;
 
-    for (auto pos : m_constraintsYPos)
-    {
-        if (pos < m_topY)
-        {
-            m_topY = pos;
-        }
-        else if (pos > m_bottomY)
-        {
-            m_bottomY = pos;
-        }
-    }
-    emit verticalExtremityChanged(m_topY, m_bottomY);
+	for (auto pos : m_constraintsYPos)
+	{
+		if (pos < m_topY)
+		{
+			m_topY = pos;
+		}
+		else if (pos > m_bottomY)
+		{
+			m_bottomY = pos;
+		}
+	}
+	emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
 // Maybe remove the need for this by passing to the scenario instead ?
@@ -154,28 +176,22 @@ const std::vector<State*>&EventModel::states() const
 	return m_states;
 }
 
-void EventModel::addMessage(QString s)
+void EventModel::addState(State* state)
 {
-	FakeState* state = new FakeState{this};
-	state->addMessage(s);
-
 	m_states.push_back(state);
-
 	emit messagesChanged();
 }
 
-void EventModel::removeMessage(QString s)
+void EventModel::removeState(int stateId)
 {
-	auto state_it = std::find_if(std::begin(m_states),
-								 std::end(m_states),
-								 [&] (State* state) { return state->messages()[0] == s; });
+	removeById(m_states, stateId);
+	emit messagesChanged();
+}
 
-	if(state_it != std::end(m_states))
-	{
-		delete *state_it;
-		m_states.erase(state_it);
-	}
-
+void EventModel::createState(QDataStream& s)
+{
+	FakeState* state = new FakeState{s, this};
+	m_states.push_back(state);
 	emit messagesChanged();
 }
 

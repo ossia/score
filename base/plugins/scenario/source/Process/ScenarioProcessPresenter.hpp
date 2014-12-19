@@ -30,10 +30,11 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		ScenarioProcessPresenter(ProcessViewModelInterface* model,
 								 ProcessViewInterface* view,
 								 QObject* parent);
-		virtual ~ScenarioProcessPresenter() = default;
+		virtual ~ScenarioProcessPresenter();
 
 
-		virtual int id() const;
+		virtual int viewModelId() const;
+		virtual int modelId() const;
 		int currentlySelectedEvent() const;
 
 	signals:
@@ -50,11 +51,16 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_constraintDeleted(int constraintId);
 		void on_constraintMoved(int constraintId);
 
-		// View -> Command
-		void on_scenarioPressed(QPointF);
+		// View -> Presenter
+		void on_deletePressed();
+
+		void on_scenarioPressed();
+		void on_scenarioPressedWithControl(QPointF);
 		void on_scenarioReleased(QPointF);
 
 		void on_askUpdate();
+
+		void deleteSelection();
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);

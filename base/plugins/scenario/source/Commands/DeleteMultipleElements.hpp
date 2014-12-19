@@ -1,12 +1,13 @@
 #pragma once
-#include <core/presenter/command/SerializableCommand.hpp>
-#include <tools/ObjectPath.hpp>
 
-class AddStateToEventCommand : public iscore::SerializableCommand
+#include <core/presenter/command/SerializableCommand.hpp>
+#include <QVector>
+
+// TODO generalize this into a Command Group
+class DeleteMultipleElementsCommand : public iscore::SerializableCommand
 {
 	public:
-		AddStateToEventCommand();
-		AddStateToEventCommand(ObjectPath&& eventPath, QString message);
+		DeleteMultipleElementsCommand(QVector<SerializableCommand*> elementsToDelete);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;
@@ -17,8 +18,8 @@ class AddStateToEventCommand : public iscore::SerializableCommand
 		virtual void deserializeImpl(QDataStream&) override;
 
 	private:
-		ObjectPath m_path;
-		QString m_message;
-
-		int m_stateId{};
+		QVector<QPair<
+					QPair<QString, QString>, // Meta-data
+					QByteArray>>
+			m_serializedCommands;
 };

@@ -30,12 +30,12 @@ ScenarioProcessFactory::makePresenter(ProcessViewModelInterface* pvm,
 	return new ScenarioProcessPresenter(pvm, view, parent);
 }
 
-ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(int id, QObject* parent)
+ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(int id, QObject* parent)
 {
 	return new ScenarioProcessSharedModel(id, parent);
 }
 
-ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(QDataStream& data, QObject* parent)
+ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(QDataStream& data, QObject* parent)
 {
 	return new ScenarioProcessSharedModel(data, parent);
 }

@@ -53,7 +53,7 @@ class StoreyPresenter : public NamedObject
 
 		StoreyModel* m_model;
 		StoreyView* m_view;
-		std::vector<ProcessPresenterInterface*> m_processes;
+		QVector<ProcessPresenterInterface*> m_processes;
 
 		// Maybe move this out of the state of the presenter ?
 		int m_currentResizingValue{}; // Used when the storeyView is being resized.

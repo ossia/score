@@ -8,10 +8,11 @@
  *
  * Remove all the process in the box of a constraint
  */
-class EmptyConstraintBox : public iscore::SerializableCommand
+class EmptyConstraintBoxCommand : public iscore::SerializableCommand
 {
 	public:
-		EmptyConstraintBox(ObjectPath&& constraintPath);
+		EmptyConstraintBoxCommand();
+		EmptyConstraintBoxCommand(ObjectPath&& constraintPath);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;

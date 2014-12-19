@@ -39,7 +39,7 @@ void DeleteProcessFromConstraintCommand::undo()
 void DeleteProcessFromConstraintCommand::redo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	constraint->deleteProcess(m_processId);
+	constraint->removeProcess(m_processId);
 }
 
 int DeleteProcessFromConstraintCommand::id() const

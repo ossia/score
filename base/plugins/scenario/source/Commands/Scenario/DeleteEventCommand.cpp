@@ -1,22 +1,38 @@
 #include "DeleteEventCommand.hpp"
 
 #include "Document/Event/EventModel.hpp"
+#include "Document/Event/State/State.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 using namespace iscore;
 
-
-DeleteEventCommand::DeleteEventCommand(ObjectPath&& eventPath):
+EmptyEventCommand::EmptyEventCommand():
 	iscore::SerializableCommand{"ScenarioControl",
-								"DeleteEventCommand",
+								"EmptyEventCommand",
+								QObject::tr("Remove event and pre-constraints")}
+{
+
+}
+
+
+EmptyEventCommand::EmptyEventCommand(ObjectPath&& eventPath):
+	iscore::SerializableCommand{"ScenarioControl",
+								"EmptyEventCommand",
 								QObject::tr("Remove event and pre-constraints")},
 	m_path{std::move(eventPath)}
 {
 
 	auto event = static_cast<EventModel*>(m_path.find());
 
+	serializeVectorOfPointers(event->states(),
+							  m_serializedStates);
+
+
+
+
+	/* Uncomment for the full deletion mechanism (but it's not what it should do)
 	{
 		QDataStream s(&m_serializedEvent, QIODevice::Append);
 		s.setVersion(QDataStream::Qt_5_3);
@@ -32,30 +48,46 @@ DeleteEventCommand::DeleteEventCommand(ObjectPath&& eventPath):
 
 	serializeVectorOfPointers(v,
 							  m_serializedConstraints);
+	*/
 }
 
-void DeleteEventCommand::undo()
+void EmptyEventCommand::undo()
 {
+	auto event = static_cast<EventModel*>(m_path.find());
+	for(auto& serializedState : m_serializedStates)
+	{
+		QDataStream s(&serializedState, QIODevice::ReadOnly);
+		event->createState(s);
+	}
+
 }
 
-void DeleteEventCommand::redo()
+void EmptyEventCommand::redo()
 {
+	auto event = static_cast<EventModel*>(m_path.find());
+	for(auto& state : event->states())
+	{
+		event->removeState(state->id());
+	}
+
 }
 
-int DeleteEventCommand::id() const
+int EmptyEventCommand::id() const
 {
 	return 1;
 }
 
-bool DeleteEventCommand::mergeWith(const QUndoCommand* other)
+bool EmptyEventCommand::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void DeleteEventCommand::serializeImpl(QDataStream&)
+void EmptyEventCommand::serializeImpl(QDataStream& s)
 {
+	s << m_path << m_serializedStates;
 }
 
-void DeleteEventCommand::deserializeImpl(QDataStream&)
+void EmptyEventCommand::deserializeImpl(QDataStream& s)
 {
+	s >> m_path >> m_serializedStates;
 }

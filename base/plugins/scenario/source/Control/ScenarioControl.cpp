@@ -2,6 +2,8 @@
 
 #include "Commands/Scenario/CreateEventCommand.hpp"
 #include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
+#include "Commands/Scenario/DeleteConstraintCommand.hpp"
+#include "Commands/Scenario/DeleteEventCommand.hpp"
 
 #include <interface/plugincontrol/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
@@ -48,13 +50,13 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
 	if(name == "CreateEventCommand")
-	{
-		cmd = new CreateEventCommand;
-	}
+	{ cmd = new CreateEventCommand;}
 	else if(name == "CreateEventAfterEventCommand")
-	{
-		cmd = new CreateEventAfterEventCommand;
-	}
+	{cmd = new CreateEventAfterEventCommand;}
+	else if(name == "EmptyConstraintBoxCommand")
+	{cmd = new EmptyConstraintBoxCommand;}
+	else if(name == "EmptyEventCommand")
+	{cmd = new EmptyEventCommand;}
 	else
 	{
 		qDebug() << Q_FUNC_INFO << "Warning : command received, but it could not be read.";

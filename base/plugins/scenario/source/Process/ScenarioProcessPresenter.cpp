@@ -22,7 +22,8 @@
 
 #include <QDebug>
 #include <QRectF>
-
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 
 ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* model,
 												   ProcessViewInterface* view,
@@ -47,8 +48,12 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* mo
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
+	connect(m_view, &ScenarioProcessView::deletePressed,
+			this,	&ScenarioProcessPresenter::on_deletePressed);
 	connect(m_view, &ScenarioProcessView::scenarioPressed,
 			this,	&ScenarioProcessPresenter::on_scenarioPressed);
+	connect(m_view, &ScenarioProcessView::scenarioPressedWithControl,
+			this,	&ScenarioProcessPresenter::on_scenarioPressedWithControl);
 	connect(m_view, &ScenarioProcessView::scenarioReleased,
 			this,	&ScenarioProcessPresenter::on_scenarioReleased);
 
@@ -66,7 +71,19 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* mo
 			this,		 &ScenarioProcessPresenter::on_constraintMoved);
 }
 
-int ScenarioProcessPresenter::id() const
+ScenarioProcessPresenter::~ScenarioProcessPresenter()
+{
+	auto sc = m_view->scene();
+	if(sc) sc->removeItem(m_view);
+	m_view->deleteLater();
+}
+
+int ScenarioProcessPresenter::viewModelId() const
+{
+	return m_viewModel->id();
+}
+
+int ScenarioProcessPresenter::modelId() const
 {
 	return m_viewModel->model()->id();
 }
@@ -125,11 +142,29 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 	m_view->update();
 }
 
+void ScenarioProcessPresenter::on_deletePressed()
+{
+	deleteSelection();
+}
 
-void ScenarioProcessPresenter::on_scenarioPressed(QPointF point)
-{   // @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
+void ScenarioProcessPresenter::on_scenarioPressed()
+{
+	for(auto& event : m_events)
+	{
+		event->deselect();
+	}
+	for(auto& constraint : m_constraints)
+	{
+		constraint->deselect();
+	}
+}
+
+
+void ScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
+{
+	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
-																m_viewModel->model()),
+																 m_viewModel->model()),
 									 point.x(),
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
 	this->submitCommand(cmd);
@@ -150,9 +185,55 @@ void ScenarioProcessPresenter::on_askUpdate()
 	m_view->update();
 }
 
+template<typename InputVector, typename OutputVector>
+void copyIfSelected(const InputVector& in, OutputVector& out)
+{
+	std::copy_if(begin(in),
+				 end(in),
+				 back_inserter(out),
+				 [] (typename InputVector::value_type c) { return c->isSelected(); });
+}
+
+#include "Commands/Scenario/DeleteConstraintCommand.hpp"
+#include "Commands/Scenario/DeleteEventCommand.hpp"
+#include "Commands/DeleteMultipleElements.hpp"
+void ScenarioProcessPresenter::deleteSelection()
+{
+	// 1. Select items
+	std::vector<ConstraintPresenter*> constraintsToRemove;
+	std::vector<EventPresenter*> eventsToRemove;
+
+	copyIfSelected(m_constraints, constraintsToRemove);
+	copyIfSelected(m_events, eventsToRemove);
+
+	QVector<iscore::SerializableCommand*> commands;
+
+	// 3. Create a Delete command for each. For now : only emptying.
+	for(auto& constraint : m_constraints)
+	{
+		commands.push_back(
+					new EmptyConstraintBoxCommand(
+						ObjectPath::pathFromObject("BaseConstraintModel",
+												   constraint->model())));
+	}
+
+	for(auto& event : m_events)
+	{
+		commands.push_back(
+					new EmptyEventCommand(
+						ObjectPath::pathFromObject("BaseConstraintModel",
+												   event->model())));
+	}
+
+	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
+	auto cmd = new DeleteMultipleElementsCommand(std::move(commands));
+	emit submitCommand(cmd);
+}
+
 void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 {
-	if (m_currentlySelectedEvent != arg) {
+	if (m_currentlySelectedEvent != arg)
+	{
 		m_currentlySelectedEvent = arg;
 		emit currentlySelectedEventChanged(arg);
 	}
@@ -217,8 +298,10 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 			this,			 &ScenarioProcessPresenter::elementSelected);
 
 	connect(event_presenter, &EventPresenter::linesExtremityChange,
-			[event_view, this] (double top, double bottom) {
-				event_view->setLinesExtremity(top * m_view->boundingRect().height(), bottom * m_view->boundingRect().height());
+			[event_view, this] (double top, double bottom)
+			{
+				event_view->setLinesExtremity(top * m_view->boundingRect().height(),
+											  bottom * m_view->boundingRect().height());
 			});
 }
 

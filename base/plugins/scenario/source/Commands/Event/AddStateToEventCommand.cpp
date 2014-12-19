@@ -23,21 +23,24 @@ AddStateToEventCommand::AddStateToEventCommand(ObjectPath&& eventPath, QString m
 	m_path(std::move(eventPath)),
 	m_message(message)
 {
-
+	auto event = static_cast<EventModel*>(m_path.find());
+	m_stateId = getNextId(event->states());
 }
 
 void AddStateToEventCommand::undo()
 {
 	auto event = static_cast<EventModel*>(m_path.find());
 
-	event->removeMessage(m_message);
+	event->removeState(m_stateId);
 }
 
 void AddStateToEventCommand::redo()
 {
 	auto event = static_cast<EventModel*>(m_path.find());
+	FakeState* state = new FakeState{m_stateId, event};
+	state->addMessage(m_message);
 
-	event->addMessage(m_message);
+	event->addState(state);
 }
 
 int AddStateToEventCommand::id() const

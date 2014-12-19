@@ -44,7 +44,7 @@ class ConstraintModelTests: public QObject
 				auto storey_id = getNextId(content->storeys());
 				content->createStorey(storey_id);
 				content->deleteStorey(storey_id);
-				model.deleteBox(content_id);
+				model.removeBox(content_id);
 			}
 
 			//////
@@ -57,7 +57,7 @@ class ConstraintModelTests: public QObject
 				content->createStorey(getNextId(content->storeys()));
 				content->createStorey(getNextId(content->storeys()));
 				content->createStorey(getNextId(content->storeys()));
-				model.deleteBox(content_id);
+				model.removeBox(content_id);
 			}
 		}
 

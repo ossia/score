@@ -33,7 +33,7 @@ void AddProcessToConstraintCommand::undo()
 	storey->deleteProcessViewModel(m_createdProcessViewModelId);
 	contentModel->deleteStorey(storey->id());
 
-	constraint->deleteProcess(m_createdProcessId);
+	constraint->removeProcess(m_createdProcessId);
 }
 
 void AddProcessToConstraintCommand::redo()

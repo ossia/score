@@ -15,7 +15,6 @@ class RemoteActionReceiver : public QObject
 		RemoteActionReceiver(Session*);
 
 	signals:
-		void receivedCommand(QString, QString, QByteArray);
 		void undo();
 		void redo();
 

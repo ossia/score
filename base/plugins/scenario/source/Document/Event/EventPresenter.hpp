@@ -18,6 +18,9 @@ class EventPresenter : public NamedObject
 		EventView* view() const;
 		EventModel* model() const;
 
+		bool isSelected() const;
+		void deselect();
+
 	signals:
 		void eventSelected(int);
 		void eventReleasedWithControl(EventData);

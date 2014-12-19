@@ -37,6 +37,9 @@ class ConstraintPresenter : public NamedObject
 		ConstraintView* view();
 		ConstraintModel* model();
 
+		bool isSelected() const;
+		void deselect();
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
@@ -47,13 +50,14 @@ class ConstraintPresenter : public NamedObject
 	public slots:
 		void on_constraintPressed(QPointF);
 		void on_boxCreated(int boxId);
+		void on_boxRemoved(int boxId);
 
 		void on_askUpdate();
 
 	private:
 		void on_boxCreated_impl(BoxModel*);
 
-		std::vector<BoxPresenter*> m_contentPresenters; // No content -> Phantom ?
+		std::vector<BoxPresenter*> m_boxes; // No content -> Phantom ?
 		// Process presenters are in the storey presenters.
 		ConstraintModel* m_model{};
 		ConstraintView* m_view{};

@@ -57,6 +57,16 @@ EventModel *EventPresenter::model() const
 	return m_model;
 }
 
+bool EventPresenter::isSelected() const
+{
+	return m_view->isSelected();
+}
+
+void EventPresenter::deselect()
+{
+	m_view->setSelected(false);
+}
+
 void EventPresenter::on_eventReleased(QPointF p)
 {
 	EventData d{};

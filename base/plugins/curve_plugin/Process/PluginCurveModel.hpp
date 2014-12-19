@@ -100,6 +100,17 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 		virtual ProcessViewModelInterface* makeViewModel (QDataStream& s,
 				QObject* parent);
+
+		// ProcessSharedModelInterface interface
+	protected:
+		virtual void serializeImpl(QDataStream&) const
+		{
+			qDebug() << "TODO. Will crash";
+		}
+		virtual void deserializeImpl(QDataStream&)
+		{
+			qDebug() << "TODO. Will crash";
+		}
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

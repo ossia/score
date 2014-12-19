@@ -17,6 +17,3 @@ RemoteActionReceiverClient::RemoteActionReceiverClient(QObject* parent, ClientSe
 										 &RemoteActionReceiverClient::handle__edit_command,
 										 this);
 }
-
-
-

@@ -11,7 +11,6 @@
 #include <QDebug>
 using namespace iscore;
 
-// TODO maybe the to-be-added event id should be created here ?
 CreateEventCommand::CreateEventCommand():
 	SerializableCommand{"ScenarioControl",
 						"CreateEventCommand",

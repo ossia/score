@@ -29,6 +29,8 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 
 	connect(m_model, &ConstraintModel::boxCreated,
 			this,	 &ConstraintPresenter::on_boxCreated);
+	connect(m_model, &ConstraintModel::boxRemoved,
+			this,	 &ConstraintPresenter::on_boxRemoved);
 
 	// Le contentView est child de ConstraintView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
@@ -51,7 +53,7 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 			[&] ()
 	{
 		auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
-		auto cmd = new AddProcessToConstraintCommand(std::move(path), "CurvePlugin");
+		auto cmd = new AddProcessToConstraintCommand(std::move(path), "Scenario");
 		emit submitCommand(cmd);
 	});
 }
@@ -78,6 +80,16 @@ ConstraintModel *ConstraintPresenter::model()
 	return m_model;
 }
 
+bool ConstraintPresenter::isSelected() const
+{
+	return m_view->isSelected();
+}
+
+void ConstraintPresenter::deselect()
+{
+	m_view->setSelected(false);
+}
+
 void ConstraintPresenter::on_constraintPressed(QPointF click)
 {
 	emit elementSelected(m_model);
@@ -88,11 +100,17 @@ void ConstraintPresenter::on_boxCreated(int boxId)
 	on_boxCreated_impl(m_model->box(boxId));
 }
 
+void ConstraintPresenter::on_boxRemoved(int boxId)
+{
+	removeFromVectorWithId(m_boxes, boxId);
+	on_askUpdate();
+}
+
 void ConstraintPresenter::on_askUpdate()
 {
 	int contentPresenterVerticalSize = 0;
-	if(m_contentPresenters.size() > 0)
-		contentPresenterVerticalSize = m_contentPresenters.front()->height();
+	if(m_boxes.size() > 0)
+		contentPresenterVerticalSize = m_boxes.front()->height();
 
 	m_view->setHeight(contentPresenterVerticalSize + 60);
 
@@ -102,6 +120,7 @@ void ConstraintPresenter::on_askUpdate()
 
 void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 {
+	qDebug() << Q_FUNC_INFO;
 	auto contentView = new BoxView{m_view};
 	contentView->setPos(5, 50);
 
@@ -119,7 +138,7 @@ void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 	connect(box_presenter, &BoxPresenter::askUpdate,
 			this,		   &ConstraintPresenter::on_askUpdate);
 
-	m_contentPresenters.push_back(box_presenter);
+	m_boxes.push_back(box_presenter);
 
 	on_askUpdate();
 }

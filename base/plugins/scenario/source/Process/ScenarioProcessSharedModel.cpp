@@ -12,16 +12,14 @@
 
 QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
 {
-	// Note : this is deserialized in ConstraintModel::createProcess. How to prevent
-	// this "breakage" of encapsulation ?
-	s << scenario.processName();
-
+	// Constraints
 	s << (int) scenario.m_constraints.size();
 	for(const auto& constraint : scenario.m_constraints)
 	{
 		s << *constraint;
 	}
 
+	// Events
 	s << (int) scenario.m_events.size();
 	for(const auto& event : scenario.m_events)
 	{
@@ -55,7 +53,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 	}
 
 	// Recreate the API
-	for(ConstraintModel* constraint : scenario.m_constraints)
+	/*for(ConstraintModel* constraint : scenario.m_constraints)
 	{
 		auto sev = scenario.event(constraint->startEvent());
 		auto eev = scenario.event(constraint->endEvent());
@@ -63,7 +61,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 		scenario.m_scenario->addTimeBox(*constraint->apiObject(),
 										*sev->apiObject(),
 										*eev->apiObject());
-	}
+	}*/
 
 	return s;
 }
@@ -378,4 +376,14 @@ EventModel* ScenarioProcessSharedModel::startEvent()
 EventModel* ScenarioProcessSharedModel::endEvent()
 {
 	return event(m_endEventId);
+}
+
+void ScenarioProcessSharedModel::serializeImpl(QDataStream& s) const
+{
+	s << *this;
+}
+
+void ScenarioProcessSharedModel::deserializeImpl(QDataStream& s)
+{
+	s >> *this;
 }

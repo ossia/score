@@ -36,12 +36,25 @@ namespace iscore
 			void addPanel(PanelFactoryInterface*);
 			void setDocumentPanel(DocumentDelegateFactoryInterface*);
 
+
+			/**
+			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
+			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
+			 * @param name The name of the command to generate.
+			 * @param data The data of the command.
+			 */
+			iscore::SerializableCommand*
+				instantiateUndoCommand(QString parent_name,
+									   QString name,
+									   QByteArray data);
+
+
 		signals:
 			/**
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
 			 */
-			void instantiatedCommand(iscore::SerializableCommand*);
-			
+			//void instantiatedCommand(iscore::SerializableCommand*);
+
 			void elementSelected(QObject* elt);
 
 		public slots:
@@ -58,19 +71,9 @@ namespace iscore
 			void applyCommand(iscore::SerializableCommand*);
 
 			/**
-			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
-			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
-			 * @param name The name of the command to generate.
-			 * @param data The data of the command.
-			 */
-			void instantiateUndoCommand(QString parent_name,
-										QString name,
-										QByteArray data);
-			
-			/**
 			 * @brief on_elementSelected Called when an object is selected, either on the document, or on a panel.
 			 * @param elt
-			 * 
+			 *
 			 * @todo Do for panel (now is only for document)
 			 */
 			void on_elementSelected(QObject* elt);

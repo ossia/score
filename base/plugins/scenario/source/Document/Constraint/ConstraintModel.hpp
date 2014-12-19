@@ -41,11 +41,15 @@ class ConstraintModel : public IdentifiedObject
 
 		int createProcess(QString processName, int processId);
 		int createProcess(QDataStream& data);
-		void deleteProcess(int processId);
+
+		// Changes processes()!
+		void removeProcess(int processId);
 
 		void createBox(int boxId);
 		void createBox(QDataStream& s);
-		void deleteBox(int viewId);
+
+		// Changes boxes()!
+		void removeBox(int viewId);
 		void duplicateBox(int viewId);
 
 		int startEvent();
@@ -81,18 +85,20 @@ class ConstraintModel : public IdentifiedObject
 		int height() const;
 		void setHeight(int height);
 
-public slots:
+	public slots:
 		void setName(QString arg);
 		void setComment(QString arg);
 		void setColor(QColor arg);
 		void setHeightPercentage(double arg);
 
+		void on_boxBecomesEmpty(int id);
+
 	signals:
 		void processCreated(QString processName, int processId);
-		void processDeleted(int processId);
+		void processRemoved(int processId);
 
 		void boxCreated(int viewId);
-		void boxDeleted(int viewId);
+		void boxRemoved(int viewId);
 
 		void nameChanged(QString arg);
 		void commentChanged(QString arg);

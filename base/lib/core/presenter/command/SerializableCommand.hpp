@@ -5,15 +5,15 @@ namespace iscore
 {
 	/**
 	 * @brief The SerializableCommand class
-	 * 
+	 *
 	 * Adds serialization & deserialization capabilities to Command.
-	 * 
+	 *
 	 */
 	class SerializableCommand : public Command
 	{
 		public:
 			using Command::Command;
-			
+
 			QByteArray serialize();
 			void deserialize(QByteArray&);
 

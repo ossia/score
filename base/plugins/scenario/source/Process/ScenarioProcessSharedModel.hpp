@@ -73,8 +73,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 																   int createdSecondEventId);
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
-        void moveConstraint(int constraintId, int deltaX, double heightPosition);
-        void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
+		void moveConstraint(int constraintId, int deltaX, double heightPosition);
+		void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
 
 
 		void undo_createConstraintBetweenEvents(int constraintId);
@@ -103,6 +103,10 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void constraintDeleted(int constraintId);
 		void eventMoved(int eventId);
 		void constraintMoved(int constraintId);
+
+	protected:
+		virtual void serializeImpl(QDataStream&) const override;
+		virtual void deserializeImpl(QDataStream&) override;
 
 	private:
 		OSSIA::Scenario* m_scenario;

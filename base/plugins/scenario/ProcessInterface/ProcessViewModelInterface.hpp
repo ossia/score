@@ -33,15 +33,13 @@
 			int m_sharedProcessId{};
 	};
 
-//}
-
-
 inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface& p)
 {
 	qDebug(Q_FUNC_INFO);
-	s << p.id()
+	s << static_cast<const IdentifiedObject&>(p)
 	  << p.objectName()
 	  << p.sharedProcessId();
+
 
 	p.serialize(s);
 	return s;
@@ -50,13 +48,12 @@ inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface&
 inline QDataStream& operator >>(QDataStream& s, ProcessViewModelInterface& p)
 {
 	qDebug(Q_FUNC_INFO);
-	int id;
 	QString name;
 	int sharedProcessId;
-	s >> id
+	s >> static_cast<IdentifiedObject&>(p)
 	  >> name
 	  >> sharedProcessId;
-	p.setId(id);
+
 	p.setObjectName(name);
 	p.setSharedProcessId(sharedProcessId);
 

@@ -22,7 +22,6 @@ class EventModel : public IdentifiedObject
 		friend QDataStream& operator >> (QDataStream&, EventModel&);
 
 	public:
-
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
 		EventModel(QDataStream& s, QObject* parent);
@@ -38,16 +37,15 @@ class EventModel : public IdentifiedObject
 		bool removePreviousConstraint(int);
 
 		const std::vector<State*>& states() const;
-		void addMessage(QString s);
-		void removeMessage(QString s);
-
+		void addState(State* s);
+		void removeState(int stateId);
+		void createState(QDataStream& s);
 
 		OSSIA::TimeNode* apiObject()
 		{ return m_timeNode;}
 
 		double heightPercentage() const;
 		int date() const;
-		void setDate(int date);
 		void translate(int deltaTime);
 		void setVerticalExtremity(int, double);
 		void updateVerticalLink();
@@ -56,6 +54,7 @@ class EventModel : public IdentifiedObject
 
 	public slots:
 		void setHeightPercentage(double arg);
+		void setDate(int date);
 
 	signals:
 		void heightPercentageChanged(double arg);
@@ -63,6 +62,7 @@ class EventModel : public IdentifiedObject
 		void verticalExtremityChanged(double, double);
 
 	private:
+
 		OSSIA::TimeNode* m_timeNode{};
 
 		QVector<int> m_previousConstraints;

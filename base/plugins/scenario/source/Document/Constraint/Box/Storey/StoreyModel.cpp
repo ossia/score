@@ -12,6 +12,9 @@
 
 QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 {
+	qDebug(Q_FUNC_INFO);
+	s << static_cast<const IdentifiedObject&>(storey);
+
 	s << storey.m_editedProcessId;
 
 	s << (int) storey.m_processViewModels.size();
@@ -30,6 +33,7 @@ QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
 
 QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
 {
+	qDebug() << Q_FUNC_INFO;
 	int editedProcessId;
 	s >> editedProcessId;
 
@@ -81,6 +85,7 @@ int StoreyModel::createProcessViewModel(int sharedProcessId, int newProcessViewM
 
 int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 {
+	qDebug() << Q_FUNC_INFO;
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(s, this);
@@ -96,6 +101,11 @@ void StoreyModel::deleteProcessViewModel(int processViewId)
 	emit processViewModelDeleted(processViewId);
 
 	removeById(m_processViewModels, processViewId);
+
+	if(m_processViewModels.empty())
+	{
+		emit storeyBecomesEmpty(id());
+	}
 }
 
 void StoreyModel::selectForEdition(int processViewId)

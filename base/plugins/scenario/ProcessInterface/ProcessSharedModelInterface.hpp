@@ -12,6 +12,15 @@ class QDataStream;
 	 */
 	class ProcessSharedModelInterface: public IdentifiedObject
 	{
+			friend QDataStream& operator <<(QDataStream& s, const ProcessSharedModelInterface& proc)
+			{
+				s << proc.processName();
+				s << static_cast<const IdentifiedObject&>(proc);
+
+				proc.serializeImpl(s);
+				return s;
+			}
+
 		public:
 			using IdentifiedObject::IdentifiedObject;
 
@@ -30,6 +39,10 @@ class QDataStream;
 															 QObject* parent) = 0;
 			virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
 															 QObject* parent) = 0;
+
+		protected:
+			virtual void serializeImpl(QDataStream&) const = 0;
+			virtual void deserializeImpl(QDataStream&) = 0;
 
 	};
 //}

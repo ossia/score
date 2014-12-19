@@ -82,13 +82,22 @@ void StoreyPresenter::setVerticalPosition(int pos)
 
 void StoreyPresenter::on_processViewModelCreated(int processId)
 {
+	qDebug(Q_FUNC_INFO);
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
 }
 
 void StoreyPresenter::on_processViewModelDeleted(int processId)
 {
-	removeFromVectorWithId(m_processes, processId);
-	m_view->update();
+	vec_erase_remove_if(m_processes,
+						[&processId] (ProcessPresenterInterface* pres)
+						{
+							bool to_delete = pres->viewModelId() == processId;
+							if(to_delete) delete pres;
+							return to_delete;
+						} );
+
+
+	emit askUpdate();
 }
 
 void StoreyPresenter::on_heightChanged(int height)

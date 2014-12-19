@@ -65,13 +65,6 @@ void BaseElementPresenter::deselectAll()
 
 void BaseElementPresenter::deleteSelection()
 {
-	// 1. List all the things to be deleted.
-
-	// 2. Remove the children of things contained in other things from the list
-
-	// 3. Create a Delete command for each.
-
-	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
 }
 
 BaseElementModel* BaseElementPresenter::model()

@@ -18,6 +18,7 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	m_model{model},
 	m_view{view}
 {
+	qDebug() << Q_FUNC_INFO << m_model->storeys().size();
 	for(auto& storeyModel : m_model->storeys())
 	{
 		on_storeyCreated_impl(storeyModel);
@@ -28,7 +29,7 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	connect(m_model,	&BoxModel::storeyCreated,
 			this,		&BoxPresenter::on_storeyCreated);
 	connect(m_model,	&BoxModel::storeyDeleted,
-			this,		&BoxPresenter::on_storeyDeleted);
+			this,		&BoxPresenter::on_storeyRemoved);
 }
 
 BoxPresenter::~BoxPresenter()
@@ -48,6 +49,12 @@ int BoxPresenter::height() const
 	return totalHeight;
 }
 
+int BoxPresenter::id() const
+{
+	// TODO dangerous : what happens if the model gets removed before ?
+	return m_model->id();
+}
+
 void BoxPresenter::on_storeyCreated(int storeyId)
 {
 	on_storeyCreated_impl(m_model->storey(storeyId));
@@ -55,6 +62,7 @@ void BoxPresenter::on_storeyCreated(int storeyId)
 
 void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 {
+	qDebug() << Q_FUNC_INFO;
 	auto storeyView = new StoreyView{m_view};
 	storeyView->setPos(5, 5);
 	auto storeyPres = new StoreyPresenter{storeyModel,
@@ -74,7 +82,7 @@ void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
 	on_askUpdate();
 }
 
-void BoxPresenter::on_storeyDeleted(int storeyId)
+void BoxPresenter::on_storeyRemoved(int storeyId)
 {
 	removeFromVectorWithId(m_decks, storeyId);
 	on_askUpdate();

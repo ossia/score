@@ -25,6 +25,8 @@ class AddProcessToConstraintCommandTest: public QObject
 			plist->addProcess(new ScenarioProcessFactory);
 
 			ConstraintModel* int_model  = new ConstraintModel{0, qApp};
+
+			int_model->createBox(646);
 			AddProcessToConstraintCommand cmd(
 			{
 				{"ConstraintModel", {}}
@@ -45,7 +47,9 @@ class AddProcessToConstraintCommandTest: public QObject
 			plist.addProcess(new ScenarioProcessFactory);
 
 			ConstraintModel* int_model  = new ConstraintModel{0, qApp};
+			int_model->createBox(646);
 			ConstraintModel* int_model2 = new ConstraintModel{0, int_model};
+			int_model2->createBox(646);
 
 			QVERIFY(int_model2->processes().size() == 0);
 			AddProcessToConstraintCommand cmd(
@@ -63,6 +67,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			auto ev_0_id = getNextId(s0->events());
 			auto ev_1_id = getNextId(s0->events());
 			s0->createConstraintAndBothEvents(34, 55, 10, int_0_id, ev_0_id, int_1_id, ev_1_id);
+			s0->constraint(int_0_id)->createBox(746);
 			QVERIFY(s0->constraints().size() == 2);
 			QVERIFY(s0->events().size() == 3); // TODO 4 if endEvent
 

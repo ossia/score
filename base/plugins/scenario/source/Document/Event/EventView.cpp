@@ -31,6 +31,10 @@ void EventView::paint(QPainter* painter,
 	{
 		painter->setPen(Qt::blue);
 	}
+	else if(parentItem()->isSelected())
+	{
+		painter->setPen(Qt::cyan);
+	}
 
 	painter->drawRect(boundingRect());
 

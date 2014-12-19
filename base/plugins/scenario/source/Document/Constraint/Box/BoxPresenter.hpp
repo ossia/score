@@ -17,11 +17,12 @@ class BoxPresenter : public NamedObject
 
 	public:
 		BoxPresenter(BoxModel* model,
-								 BoxView* view,
-								 QObject* parent);
+					 BoxView* view,
+					 QObject* parent);
 		virtual ~BoxPresenter();
 
 		int height() const;
+		int id() const;
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
@@ -31,9 +32,10 @@ class BoxPresenter : public NamedObject
 
 	public slots:
 		void on_storeyCreated(int storeyId);
-		void on_storeyDeleted(int storeyId);
+		void on_storeyRemoved(int storeyId);
 
 		void on_askUpdate();
+
 	private:
 		void on_storeyCreated_impl(StoreyModel* m);
 

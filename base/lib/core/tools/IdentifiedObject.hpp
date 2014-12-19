@@ -51,6 +51,7 @@ class IdentifiedObject : public NamedObject
 ///Functions that operate on collections of identified objects.
 ///
 ////////////////////////////////////////////////
+#include <typeinfo>
 template<typename Container>
 typename Container::value_type findById(const Container& c, int id)
 {
@@ -64,7 +65,7 @@ typename Container::value_type findById(const Container& c, int id)
 	if(it != std::end(c))
 		return *it;
 
-	return nullptr;
+	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
 }
 
 
@@ -102,6 +103,7 @@ int getNextId(const Vector& v)
 	return id;
 }
 
+#include "utilsCPP11.hpp"
 template <typename Vector>
 void removeById(Vector& c, int id)
 {

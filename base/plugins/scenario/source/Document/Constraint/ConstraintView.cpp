@@ -38,6 +38,10 @@ void ConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	{
 		painter->setPen(Qt::blue);
 	}
+	else if(parentItem()->isSelected())
+	{
+		painter->setPen(Qt::cyan);
+	}
 
 	auto rect = boundingRect();
 	painter->drawRect(rect);

@@ -12,6 +12,7 @@ class BoxModel : public IdentifiedObject
 
 	public:
 		friend QDataStream& operator << (QDataStream&, const BoxModel&);
+		friend QDataStream& operator >> (QDataStream& s, BoxModel& c);
 		BoxModel(int id, ConstraintModel* parent);
 		BoxModel(QDataStream&, ConstraintModel* parent);
 
@@ -36,6 +37,11 @@ class BoxModel : public IdentifiedObject
 		void storeyOrderChanged(int storeyId);
 
 		void on_deleteSharedProcessModel(int processId);
+
+		void boxBecomesEmpty(int id);
+
+	private slots:
+		void on_storeyBecomesEmpty(int id);
 
 	private:
 		int createStorey_impl(StoreyModel* m);
