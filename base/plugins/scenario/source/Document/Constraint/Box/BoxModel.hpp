@@ -28,7 +28,7 @@ class BoxModel : public IdentifiedObject
 		// Devrait peut-être aller dans une Command à la place ?
 		void duplicateStorey();
 
-		const std::vector<StoreyModel*>& storeys() const
+		const std::vector<StoreyModel*>& decks() const
 		{ return m_storeys; }
 
 	signals:

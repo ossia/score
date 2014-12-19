@@ -26,7 +26,7 @@ class InspectorSectionWidget : public QWidget
 	public slots:
 
 		// Display tool
-		void expend();
+		void expand();
 
 		// Manage section
 

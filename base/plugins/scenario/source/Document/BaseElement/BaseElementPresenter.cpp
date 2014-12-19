@@ -42,7 +42,7 @@ void testInit(ConstraintModel* m)
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()}
 		}))->redo();
-	auto deckId = box->storeys().front()->id();
+	auto deckId = box->decks().front()->id();
 
 	(new AddProcessViewToDeck(
 		{

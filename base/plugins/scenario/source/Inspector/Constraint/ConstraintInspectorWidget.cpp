@@ -5,6 +5,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -59,11 +60,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constraint)
 {
 	// Cleanup the widgets
-	for(auto& process : m_processesSectionWidgets)
-	{
-		delete process;
-	}
+	for(auto& process : m_processesSectionWidgets) { delete process; }
 	m_processesSectionWidgets.clear();
+
+	for(auto& box : m_boxesSectionWidgets) { delete box; }
+	m_boxesSectionWidgets.clear();
 
 	// Cleanup the connections
 	for(auto& connection : m_connections)
@@ -163,11 +164,23 @@ void ConstraintInspectorWidget::displayBox(BoxModel* box)
 	InspectorSectionWidget* newBox = new InspectorSectionWidget{QString{"Box.%1"}.arg(box->id())};
 	m_boxesSectionWidgets.push_back(newBox);
 	m_boxSection->addContent(newBox);
+
+	for(auto& deck : box->decks())
+	{
+		displayDeck(deck);
+	}
 }
 
-void ConstraintInspectorWidget::displayDeck(StoreyModel*)
+void ConstraintInspectorWidget::displayDeck(StoreyModel* deck)
 {
+	InspectorSectionWidget* newDeck = new InspectorSectionWidget{QString{"Deck.%1"}.arg(deck->id())};
+	m_decksSectionWidgets.push_back(newDeck);
+	m_deckSection->addContent(newDeck);
 
+//	for(auto& deck : box->decks())
+//	{
+//		displayDeck(deck);
+//	}
 }
 
 void ConstraintInspectorWidget::on_processCreated(QString processName, int processId)

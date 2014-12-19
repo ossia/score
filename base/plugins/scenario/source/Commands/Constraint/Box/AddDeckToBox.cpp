@@ -13,7 +13,7 @@ AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath):
 	m_path{boxPath}
 {
 	auto box = static_cast<BoxModel*>(m_path.find());
-	m_createdDeckId = getNextId(box->storeys());
+	m_createdDeckId = getNextId(box->decks());
 }
 
 void AddDeckToBox::undo()

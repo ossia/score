@@ -18,8 +18,8 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	m_model{model},
 	m_view{view}
 {
-	qDebug() << Q_FUNC_INFO << m_model->storeys().size();
-	for(auto& storeyModel : m_model->storeys())
+	qDebug() << Q_FUNC_INFO << m_model->decks().size();
+	for(auto& storeyModel : m_model->decks())
 	{
 		on_storeyCreated_impl(storeyModel);
 	}

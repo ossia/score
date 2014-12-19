@@ -65,6 +65,10 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		BoxWidget* m_boxWidget{};
 		std::vector<InspectorSectionWidget*> m_boxesSectionWidgets;
 
+		InspectorSectionWidget* m_deckSection{};
+		//DeckWidget* m_deckWidget{};
+		std::vector<InspectorSectionWidget*> m_decksSectionWidgets;
+
 		std::vector<QWidget*> m_properties;
 
 };

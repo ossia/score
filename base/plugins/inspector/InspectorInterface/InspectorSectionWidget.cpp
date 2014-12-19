@@ -56,7 +56,7 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 	globalLayout->addWidget (_container);
 	globalLayout->setMargin (5);
 
-	connect (_btn, SIGNAL (released() ), this, SLOT (expend() ) );
+	connect (_btn, SIGNAL (released() ), this, SLOT (expand() ) );
 	//connect (_buttonTitle, SIGNAL (clicked() ), this, SLOT (nameEditEnable() ) );
 	connect (_sectionTitle, SIGNAL (editingFinished() ), this, SLOT (nameEditDisable() ) );
 
@@ -83,7 +83,7 @@ InspectorSectionWidget::~InspectorSectionWidget()
 
 }
 
-void InspectorSectionWidget::expend()
+void InspectorSectionWidget::expand()
 {
 	_isUnfolded = !_isUnfolded;
 	_container->setVisible (_isUnfolded);
