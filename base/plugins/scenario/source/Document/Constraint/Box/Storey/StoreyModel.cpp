@@ -71,6 +71,7 @@ StoreyModel::StoreyModel(int position, int id, BoxModel* parent):
 
 }
 
+// TODO refactor this like in the presenter classes with _impl.
 int StoreyModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
@@ -98,14 +99,8 @@ int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 
 void StoreyModel::deleteProcessViewModel(int processViewId)
 {
-	emit processViewModelRemoved(processViewId);
-
 	removeById(m_processViewModels, processViewId);
-
-	if(m_processViewModels.empty())
-	{
-		emit storeyBecomesEmpty(id());
-	}
+	emit processViewModelRemoved(processViewId);
 }
 
 void StoreyModel::selectForEdition(int processViewId)

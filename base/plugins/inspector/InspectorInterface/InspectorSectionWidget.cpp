@@ -114,6 +114,12 @@ void InspectorSectionWidget::addContent (QWidget* newWidget)
 	_containerLayout->insertWidget (_containerLayout->count() - 1, newWidget);
 }
 
+void InspectorSectionWidget::removeContent(QWidget* toRemove)
+{
+	_containerLayout->removeWidget(toRemove);
+	delete toRemove;
+}
+
 void InspectorSectionWidget::insertInSection (int index, QWidget* newWidget)
 {
 	_containerLayout->insertWidget (index, newWidget);

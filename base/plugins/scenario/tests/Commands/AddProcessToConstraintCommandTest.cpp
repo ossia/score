@@ -84,7 +84,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			auto last_constraint = s0->constraints().front();
 			QVERIFY(last_constraint->processes().size() == 1);
 
-			DeleteProcessFromConstraintCommand cmd3(
+			RemoveProcessFromConstraintCommand cmd3(
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0}

@@ -72,10 +72,16 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constraint)
 {
 	// Cleanup the widgets
-	for(auto& process : m_processesSectionWidgets) { delete process; }
+	for(auto& process : m_processesSectionWidgets)
+	{
+		m_processSection->removeContent(process);
+	}
 	m_processesSectionWidgets.clear();
 
-	for(auto& box : m_boxesSectionWidgets) { delete box; }
+	for(auto& box : m_boxesSectionWidgets)
+	{
+		m_boxSection->removeContent(box);
+	}
 	m_boxesSectionWidgets.clear();
 
 	// Cleanup the connections
@@ -168,7 +174,7 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
 	connect(newBox, &BoxInspectorSection::submitCommand,
 			this,	&ConstraintInspectorWidget::submitCommand);
 
-	m_boxesSectionWidgets.push_back(newBox);
+	m_boxesSectionWidgets[box->id()] = newBox;
 	m_boxSection->addContent(newBox);
 }
 
@@ -185,13 +191,18 @@ void ConstraintInspectorWidget::on_processRemoved(int processId)
 }
 
 
-void ConstraintInspectorWidget::on_boxCreated(int viewId)
+void ConstraintInspectorWidget::on_boxCreated(int boxId)
 {
-	reloadDisplayedValues();
+	setupBox(m_currentConstraint->box(boxId));
+	m_boxWidget->updateComboBox();
 }
 
-void ConstraintInspectorWidget::on_boxRemoved(int viewId)
+void ConstraintInspectorWidget::on_boxRemoved(int boxId)
 {
-	reloadDisplayedValues();
+	auto ptr = m_boxesSectionWidgets[boxId];
+	m_boxesSectionWidgets.remove(boxId);
+
+	ptr->deleteLater();
+	m_boxWidget->updateComboBox();
 }
 

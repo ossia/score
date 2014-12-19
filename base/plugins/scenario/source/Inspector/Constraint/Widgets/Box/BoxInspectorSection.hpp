@@ -1,6 +1,6 @@
 #pragma once
 #include <InspectorInterface/InspectorSectionWidget.hpp>
-
+#include <QMap>
 class BoxModel;
 class StoreyModel;
 class AddDeckWidget;
@@ -13,7 +13,7 @@ class BoxInspectorSection : public InspectorSectionWidget
 	public:
 		BoxInspectorSection(QString name, BoxModel* model, ConstraintInspectorWidget* parent);
 
-		void displayDeck(StoreyModel*);
+		void addDeckInspectorSection(StoreyModel*);
 		void createDeck();
 
 	public slots:
@@ -25,5 +25,7 @@ class BoxInspectorSection : public InspectorSectionWidget
 
 		InspectorSectionWidget* m_deckSection{};
 		AddDeckWidget* m_deckWidget{};
+
+		QMap<int, DeckInspectorSection*> m_decksSectionWidgets;
 		//std::vector<DeckInspectorSection*> m_decksSectionWidgets;
 };

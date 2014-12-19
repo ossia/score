@@ -56,16 +56,19 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
 		}
 
 		// 4. Present a dialog with the availble id's
-		bool ok = false;
-		auto process_name = QInputDialog::getItem(this,
-												  QObject::tr("Choose a process id"),
-												  QObject::tr("Choose a process id"),
-												  available_models,
-												  0,
-												  false,
-												  &ok);
+		if(available_models.size() > 0)
+		{
+			bool ok = false;
+			auto process_name = QInputDialog::getItem(this,
+													  QObject::tr("Choose a process id"),
+													  QObject::tr("Choose a process id"),
+													  available_models,
+													  0,
+													  false,
+													  &ok);
 
-		if(ok)
-			parentDeck->createProcessViewModel(process_name.toInt());
+			if(ok)
+				parentDeck->createProcessViewModel(process_name.toInt());
+		}
 	} );
 }

@@ -69,8 +69,6 @@ int BoxModel::createStorey_impl(StoreyModel* storey)
 {
 	connect(this,	&BoxModel::on_deleteSharedProcessModel,
 			storey, &StoreyModel::on_deleteSharedProcessModel);
-	connect(storey, &StoreyModel::storeyBecomesEmpty,
-			this,	&BoxModel::on_storeyBecomesEmpty);
 	m_storeys.push_back(storey);
 
 	emit deckCreated(storey->id());
@@ -91,13 +89,9 @@ void BoxModel::removeDeck(int storeyId)
 	}
 
 	// Delete
-	emit deckRemoved(storeyId);
 	removeById(m_storeys, storeyId);
 
-	if(m_storeys.empty())
-	{
-		emit boxBecomesEmpty(id());
-	}
+	emit deckRemoved(storeyId);
 }
 
 void BoxModel::changeStoreyOrder(int storeyId, int position)
@@ -114,10 +108,3 @@ void BoxModel::duplicateStorey()
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
-
-void BoxModel::on_storeyBecomesEmpty(int id)
-{
-	removeDeck(id);
-}
-
-

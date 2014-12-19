@@ -1,6 +1,7 @@
 #pragma once
 
 #include <InspectorInterface/InspectorWidgetBase.hpp>
+#include <QMap>
 
 class ConstraintModel;
 class BoxModel;
@@ -58,7 +59,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
 		InspectorSectionWidget* m_boxSection{};
 		BoxWidget* m_boxWidget{};
-		std::vector<BoxInspectorSection*> m_boxesSectionWidgets;
+		QMap<int, BoxInspectorSection*> m_boxesSectionWidgets;
 
 		std::vector<QWidget*> m_properties;
 

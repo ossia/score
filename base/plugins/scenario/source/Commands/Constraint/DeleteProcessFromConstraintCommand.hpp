@@ -2,10 +2,10 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
-class DeleteProcessFromConstraintCommand : public iscore::SerializableCommand
+class RemoveProcessFromConstraintCommand : public iscore::SerializableCommand
 {
 	public:
-		DeleteProcessFromConstraintCommand(ObjectPath&& constraintPath, int processId);
+		RemoveProcessFromConstraintCommand(ObjectPath&& constraintPath, int processId);
 		virtual void undo() override;
 		virtual void redo() override;
 		virtual int id() const override;

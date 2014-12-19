@@ -38,11 +38,6 @@ class BoxModel : public IdentifiedObject
 
 		void on_deleteSharedProcessModel(int processId);
 
-		void boxBecomesEmpty(int id);
-
-	private slots:
-		void on_storeyBecomesEmpty(int id);
-
 	private:
 		int createStorey_impl(StoreyModel* m);
 		std::vector<StoreyModel*> m_storeys;

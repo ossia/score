@@ -91,8 +91,6 @@ class ConstraintModel : public IdentifiedObject
 		void setColor(QColor arg);
 		void setHeightPercentage(double arg);
 
-		void on_boxBecomesEmpty(int id);
-
 	signals:
 		void processCreated(QString processName, int processId);
 		void processRemoved(int processId);

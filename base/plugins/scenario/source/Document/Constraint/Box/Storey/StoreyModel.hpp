@@ -61,8 +61,6 @@ class StoreyModel : public IdentifiedObject
 		void heightChanged(int arg);
 		void positionChanged(int arg);
 
-		void storeyBecomesEmpty(int id);
-
 	public slots:
 		void on_deleteSharedProcessModel(int sharedProcessId);
 

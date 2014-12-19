@@ -44,6 +44,9 @@ class InspectorSectionWidget : public QWidget
 		//! add the widget newWidget in the main layout
 		void addContent (QWidget* newWidget);
 
+		//! removes the widget from the main layout
+		void removeContent(QWidget* toRemove);
+
 		//! insert newWidget at the index rank in the main layout
 		void insertInSection (int index, QWidget* newWidget);
 

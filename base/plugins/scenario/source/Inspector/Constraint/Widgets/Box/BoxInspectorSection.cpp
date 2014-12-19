@@ -32,7 +32,7 @@ BoxInspectorSection::BoxInspectorSection(QString name,
 
 	for(auto& deck : m_model->decks())
 	{
-		displayDeck(deck);
+		addDeckInspectorSection(deck);
 	}
 
 	m_deckWidget = new AddDeckWidget{this};
@@ -49,7 +49,7 @@ void BoxInspectorSection::createDeck()
 	emit submitCommand(cmd);
 }
 
-void BoxInspectorSection::displayDeck(StoreyModel* deck)
+void BoxInspectorSection::addDeckInspectorSection(StoreyModel* deck)
 {
 	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg(deck->id()),
 															 deck,
@@ -58,6 +58,8 @@ void BoxInspectorSection::displayDeck(StoreyModel* deck)
 	connect(newDeck, &DeckInspectorSection::submitCommand,
 			this,	 &BoxInspectorSection::submitCommand);
 	m_deckSection->addContent(newDeck);
+
+	m_decksSectionWidgets[deck->id()] = newDeck;
 }
 
 
@@ -66,10 +68,13 @@ void BoxInspectorSection::on_deckCreated(int deckId)
 	// TODO display them in the order of their position.
 	// TODO issue : the box should grow of 10 more pixels for each deck.
 	// TODO issue : display a single box
-	displayDeck(m_model->deck(deckId));
+	addDeckInspectorSection(m_model->deck(deckId));
 }
 
 void BoxInspectorSection::on_deckRemoved(int deckId)
 {
-	// TODO
+	auto ptr = m_decksSectionWidgets[deckId];
+	m_decksSectionWidgets.remove(deckId);
+
+	ptr->deleteLater();
 }

@@ -148,9 +148,10 @@ int ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)
 
 void ConstraintModel::removeProcess(int processId)
 {
-	emit processRemoved(processId);
 	removeById(m_processes,
 			   processId);
+
+	emit processRemoved(processId);
 }
 
 
@@ -171,8 +172,6 @@ void ConstraintModel::createContentModel_impl(BoxModel* box)
 {
 	connect(this,	&ConstraintModel::processRemoved,
 			box,	&BoxModel::on_deleteSharedProcessModel);
-	connect(box,	&BoxModel::boxBecomesEmpty,
-			this,	&ConstraintModel::on_boxBecomesEmpty);
 
 	m_boxes.push_back(box);
 	emit boxCreated(box->id());
@@ -181,9 +180,10 @@ void ConstraintModel::createContentModel_impl(BoxModel* box)
 
 void ConstraintModel::removeBox(int viewId)
 {
-	emit boxRemoved(viewId);
 	removeById(m_boxes,
 			   viewId);
+
+	emit boxRemoved(viewId);
 }
 
 void ConstraintModel::duplicateBox(int viewId)
@@ -292,9 +292,4 @@ void ConstraintModel::setHeightPercentage(double arg)
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
 	}
-}
-
-void ConstraintModel::on_boxBecomesEmpty(int id)
-{
-	removeBox(id);
 }
