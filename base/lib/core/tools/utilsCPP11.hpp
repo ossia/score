@@ -31,7 +31,7 @@ void serializeVectorOfPointers(const InputVector& in, OutputVector& out)
 	{
 		QByteArray arr;
 
-		QDataStream s(&arr, QIODevice::Append);
+		QDataStream s(&arr, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 		s << *elt;
 

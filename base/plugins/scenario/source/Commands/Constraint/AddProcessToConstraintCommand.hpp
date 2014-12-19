@@ -30,7 +30,9 @@ class AddProcessToConstraintCommand : public iscore::SerializableCommand
 		QString m_processName;
 
 		int m_createdProcessId{};
+/*
 		int m_createdStoreyId{};
 		int m_createdProcessViewModelId{};
 		int m_contentModelId{};
+*/
 };

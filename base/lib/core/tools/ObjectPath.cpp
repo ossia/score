@@ -41,6 +41,7 @@ ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* origin_objec
 	return std::move(v);
 }
 
+// TODO put a template here and a static_cast at the end.
 QObject* ObjectPath::find() const
 {
 	auto parent_name = m_objectIdentifiers.at(0).childName();

@@ -34,7 +34,7 @@ EmptyEventCommand::EmptyEventCommand(ObjectPath&& eventPath):
 
 	/* Uncomment for the full deletion mechanism (but it's not what it should do)
 	{
-		QDataStream s(&m_serializedEvent, QIODevice::Append);
+		QDataStream s(&m_serializedEvent, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 		s << *event;
 	}

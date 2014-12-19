@@ -11,7 +11,7 @@ using namespace iscore;
 
 DeleteProcessFromConstraintCommand::DeleteProcessFromConstraintCommand(ObjectPath&& constraintPath, int processId):
 	SerializableCommand{"ScenarioControl",
-						"DeleteProcessCommand",
+						"DeleteProcessFromConstraintCommand",
 						"Delete process"},
 	m_path{std::move(constraintPath)},
 	m_processId{processId}
@@ -20,10 +20,11 @@ DeleteProcessFromConstraintCommand::DeleteProcessFromConstraintCommand(ObjectPat
 	auto process = constraint->process(m_processId);
 
 	{
-		QDataStream s(&m_serializedProcessData, QIODevice::Append);
+		QDataStream s(&m_serializedProcessData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 		s << *process;
 	}
+
 	m_processName = process->processName();
 }
 
@@ -52,12 +53,12 @@ bool DeleteProcessFromConstraintCommand::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-
-// TODO
-void DeleteProcessFromConstraintCommand::serializeImpl(QDataStream&)
+void DeleteProcessFromConstraintCommand::serializeImpl(QDataStream& s)
 {
+	s << m_path << m_processName << m_processId << m_serializedProcessData;
 }
 
-void DeleteProcessFromConstraintCommand::deserializeImpl(QDataStream&)
+void DeleteProcessFromConstraintCommand::deserializeImpl(QDataStream& s)
 {
+	s >> m_path >> m_processName >> m_processId >> m_serializedProcessData;
 }

@@ -18,21 +18,22 @@ AddProcessToConstraintCommand::AddProcessToConstraintCommand(ObjectPath&& constr
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	m_createdProcessId = getNextId(constraint->processes());
-	m_contentModelId = constraint->boxes().front()->id(); // TODO pass as arg of the command.
+/*	m_contentModelId = constraint->boxes().front()->id(); // TODO pass as arg of the command.
 
 	m_createdStoreyId = getNextId(constraint->box(m_contentModelId)->storeys());
 	m_createdProcessViewModelId = getNextId(); // Storey does not exist yet so we can safely do this.
+*/
 }
 
 void AddProcessToConstraintCommand::undo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	auto contentModel = constraint->box(m_contentModelId);
+/*	auto contentModel = constraint->box(m_contentModelId);
 
 	auto storey = contentModel->storey(m_createdStoreyId);
 	storey->deleteProcessViewModel(m_createdProcessViewModelId);
 	contentModel->deleteStorey(storey->id());
-
+*/
 	constraint->removeProcess(m_createdProcessId);
 }
 
@@ -42,7 +43,7 @@ void AddProcessToConstraintCommand::redo()
 
 	// Create process model
 	constraint->createProcess(m_processName, m_createdProcessId);
-	auto contentModel = constraint->box(m_contentModelId);
+/*	auto contentModel = constraint->box(m_contentModelId);
 
 	// Create storey
 	contentModel->createStorey(m_createdStoreyId);
@@ -50,6 +51,7 @@ void AddProcessToConstraintCommand::redo()
 
 	// Create process view model in the storey
 	storey->createProcessViewModel(m_createdProcessId, m_createdProcessViewModelId);
+*/
 }
 
 int AddProcessToConstraintCommand::id() const
@@ -62,11 +64,13 @@ bool AddProcessToConstraintCommand::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-// TODO
-void AddProcessToConstraintCommand::serializeImpl(QDataStream&)
+// TODO idea: maybe put the data in a tuple so that it can be serialized automagically ?
+void AddProcessToConstraintCommand::serializeImpl(QDataStream& s)
 {
+	s << m_path << m_processName << m_createdProcessId;
 }
 
-void AddProcessToConstraintCommand::deserializeImpl(QDataStream&)
+void AddProcessToConstraintCommand::deserializeImpl(QDataStream& s)
 {
+	s >> m_path >> m_processName >> m_createdProcessId;
 }

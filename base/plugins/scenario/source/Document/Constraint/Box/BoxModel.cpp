@@ -29,7 +29,7 @@ QDataStream& operator >> (QDataStream& s, BoxModel& c)
 	for(; storeys_size --> 0 ;)
 	{
 		qDebug() << "Creating storey";
-		c.createStorey(s);
+		c.createDeck(s);
 	}
 
 	return s;
@@ -49,7 +49,7 @@ BoxModel::BoxModel(QDataStream& s, ConstraintModel* parent):
 	s >> *this;
 }
 
-int BoxModel::createStorey(int newStoreyId)
+int BoxModel::createDeck(int newStoreyId)
 {
 	return createStorey_impl(
 				new StoreyModel{(int) m_storeys.size(),
@@ -58,7 +58,7 @@ int BoxModel::createStorey(int newStoreyId)
 
 }
 
-int BoxModel::createStorey(QDataStream& s)
+int BoxModel::createDeck(QDataStream& s)
 {
 	return createStorey_impl(
 				new StoreyModel{s,
@@ -78,9 +78,9 @@ int BoxModel::createStorey_impl(StoreyModel* storey)
 }
 
 
-void BoxModel::deleteStorey(int storeyId)
+void BoxModel::removeDeck(int storeyId)
 {
-	auto deletedStorey = storey(storeyId);
+	auto deletedStorey = deck(storeyId);
 
 	// Make the remaining storeys decrease their position.
 	for(StoreyModel* storey : m_storeys)
@@ -105,7 +105,7 @@ void BoxModel::changeStoreyOrder(int storeyId, int position)
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
-StoreyModel* BoxModel::storey(int storeyId) const
+StoreyModel* BoxModel::deck(int storeyId) const
 {
 	return findById(m_storeys, storeyId);
 }
@@ -117,7 +117,7 @@ void BoxModel::duplicateStorey()
 
 void BoxModel::on_storeyBecomesEmpty(int id)
 {
-	deleteStorey(id);
+	removeDeck(id);
 }
 
 

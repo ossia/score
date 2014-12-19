@@ -14,11 +14,11 @@ endFunction()
 
 # Commands
 addIScoreQtTest(addprocesstoconstraint_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintCommandTest.cpp")
-addIScoreQtTest(createeventafterevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventCommandTest.cpp")
-addIScoreQtTest(moveevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventCommandTest.cpp")
-addIScoreQtTest(moveconstraint_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintCommandTest.cpp")
+#addIScoreQtTest(createeventafterevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventCommandTest.cpp")
+#addIScoreQtTest(moveevent_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventCommandTest.cpp")
+#addIScoreQtTest(moveconstraint_command_test "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintCommandTest.cpp")
 
-# Constraints
-addIScoreQtTest(constraint_test "${CMAKE_CURRENT_SOURCE_DIR}/Constraint/ConstraintModelTests.cpp")
+## Constraints
+#addIScoreQtTest(constraint_test "${CMAKE_CURRENT_SOURCE_DIR}/Constraint/ConstraintModelTests.cpp")
 
 include(CTest)

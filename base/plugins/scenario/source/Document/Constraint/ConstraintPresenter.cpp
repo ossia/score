@@ -5,7 +5,7 @@
 #include "Document/Constraint/ConstraintView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
-#include "Commands/Constraint/Process/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 

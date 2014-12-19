@@ -5,8 +5,8 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 #include "Control/ProcessList.hpp"
 
-#include <Commands/Constraint/Process/AddProcessToConstraintCommand.hpp>
-#include <Commands/Constraint/Process/DeleteProcessFromConstraintCommand.hpp>
+#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/DeleteProcessFromConstraintCommand.hpp"
 #include <Process/ScenarioProcessFactory.hpp>
 using namespace iscore;
 

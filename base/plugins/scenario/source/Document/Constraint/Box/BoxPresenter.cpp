@@ -57,7 +57,7 @@ int BoxPresenter::id() const
 
 void BoxPresenter::on_storeyCreated(int storeyId)
 {
-	on_storeyCreated_impl(m_model->storey(storeyId));
+	on_storeyCreated_impl(m_model->deck(storeyId));
 }
 
 void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)

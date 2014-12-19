@@ -31,7 +31,7 @@ EmptyConstraintBoxCommand::EmptyConstraintBoxCommand(ObjectPath&& constraintPath
 	{
 		QByteArray arr;
 
-		QDataStream s(&arr, QIODevice::Append);
+		QDataStream s(&arr, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
 		s << *process;

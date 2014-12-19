@@ -53,8 +53,6 @@ void CreateEventAfterEventCommand::redo()
 												 m_heightPosition,
 												 m_createdConstraintId,
 												 m_createdEventId);
-
-	scenar->constraint(m_createdConstraintId)->createBox(m_createdBoxId);
 }
 
 int CreateEventAfterEventCommand::id() const

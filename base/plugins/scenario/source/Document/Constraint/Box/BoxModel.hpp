@@ -18,12 +18,12 @@ class BoxModel : public IdentifiedObject
 
 		virtual ~BoxModel() = default;
 
-		int createStorey(int newStoreyId);
-		int createStorey(QDataStream& s);
-		void deleteStorey(int storeyId);
+		int createDeck(int newStoreyId);
+		int createDeck(QDataStream& s);
+		void removeDeck(int storeyId);
 		void changeStoreyOrder(int storeyId, int position);
 
-		StoreyModel* storey(int storeyId) const;
+		StoreyModel* deck(int storeyId) const;
 
 		// Devrait peut-être aller dans une Command à la place ?
 		void duplicateStorey();

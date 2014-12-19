@@ -4,11 +4,53 @@
 #include "Document/Constraint/ConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
-#include "Commands/Constraint/Process/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddBoxToConstraint.hpp"
+#include "Commands/Constraint/Box/AddDeckToBox.hpp"
+#include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
+
 #include "Commands/Scenario/CreateEventCommand.hpp"
 
 #include <QGraphicsScene>
 using namespace iscore;
+using namespace Scenario;
+
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
+void testInit(ConstraintModel* m)
+{
+	using namespace Scenario::Command;
+
+	(new AddProcessToConstraintCommand(
+		{
+			{"BaseConstraintModel", {}}
+		},
+		"Scenario"))->redo();
+	auto scenarioId = m->processes().front()->id();
+
+	(new AddBoxToConstraint(
+		ObjectPath{
+			{"BaseConstraintModel", {}}
+		}))->redo();
+	auto box = m->boxes().front();
+
+	(new AddDeckToBox(
+		ObjectPath{
+			{"BaseConstraintModel", {}},
+			{"BoxModel", box->id()}
+		}))->redo();
+	auto deckId = box->storeys().front()->id();
+
+	(new AddProcessViewToDeck(
+		{
+			{"BaseConstraintModel", {}},
+			{"BoxModel", box->id()},
+			{"StoreyModel", deckId}
+		}, scenarioId))->redo();
+}
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
@@ -19,13 +61,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 							  this->view()->constraintView(),
 							  this}}
 {
-	auto cmd = new AddProcessToConstraintCommand(
-		{
-			{"BaseConstraintModel", {}}
-		},
-		"Scenario");
-	cmd->redo();
 
+	testInit(this->model()->constraintModel());
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&ConstraintPresenter::submitCommand,
