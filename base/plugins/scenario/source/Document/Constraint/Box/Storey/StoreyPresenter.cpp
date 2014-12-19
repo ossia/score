@@ -35,7 +35,7 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 
 	connect(m_model, &StoreyModel::processViewModelCreated,
 			this,	 &StoreyPresenter::on_processViewModelCreated);
-	connect(m_model, &StoreyModel::processViewModelDeleted,
+	connect(m_model, &StoreyModel::processViewModelRemoved,
 			this,	 &StoreyPresenter::on_processViewModelDeleted);
 	connect(m_model, &StoreyModel::heightChanged,
 			this,	 &StoreyPresenter::on_heightChanged);

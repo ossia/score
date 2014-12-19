@@ -1,6 +1,7 @@
 #include "BoxInspectorSection.hpp"
 
 #include "AddDeckWidget.hpp"
+#include "Deck/DeckInspectorSection.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 
@@ -39,12 +40,6 @@ BoxInspectorSection::BoxInspectorSection(QString name,
 	addContent(m_deckWidget);
 }
 
-void BoxInspectorSection::setModel(BoxModel* m)
-{
-	m_model = m;
-}
-
-
 void BoxInspectorSection::createDeck()
 {
 	auto cmd = new AddDeckToBox(
@@ -56,7 +51,12 @@ void BoxInspectorSection::createDeck()
 
 void BoxInspectorSection::displayDeck(StoreyModel* deck)
 {
-	InspectorSectionWidget* newDeck = new InspectorSectionWidget{QString{"Deck.%1"}.arg(deck->id())};
+	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg(deck->id()),
+															 deck,
+															 this};
+
+	connect(newDeck, &DeckInspectorSection::submitCommand,
+			this,	 &BoxInspectorSection::submitCommand);
 	m_deckSection->addContent(newDeck);
 }
 
@@ -67,22 +67,9 @@ void BoxInspectorSection::on_deckCreated(int deckId)
 	// TODO issue : the box should grow of 10 more pixels for each deck.
 	// TODO issue : display a single box
 	displayDeck(m_model->deck(deckId));
-
-
-	/*
-	qDebug() << "This:" << (void*) this;
-	if(parentWidget())
-	{
-		qDebug() << parentWidget() << qobject_cast<ConstraintInspectorWidget*>(parentWidget());
-		qobject_cast<ConstraintInspectorWidget*>(parentWidget())->reloadDisplayedValues();
-	}*/
 }
 
 void BoxInspectorSection::on_deckRemoved(int deckId)
 {
-	/*
-	if(parentWidget())
-	{
-		qobject_cast<ConstraintInspectorWidget*>(parentWidget())->reloadDisplayedValues();
-	}*/
+	// TODO
 }

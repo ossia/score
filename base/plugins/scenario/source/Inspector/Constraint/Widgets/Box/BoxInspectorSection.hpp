@@ -13,8 +13,6 @@ class BoxInspectorSection : public InspectorSectionWidget
 	public:
 		BoxInspectorSection(QString name, BoxModel* model, ConstraintInspectorWidget* parent);
 
-		void setModel(BoxModel*);
-
 		void displayDeck(StoreyModel*);
 		void createDeck();
 
@@ -27,5 +25,5 @@ class BoxInspectorSection : public InspectorSectionWidget
 
 		InspectorSectionWidget* m_deckSection{};
 		AddDeckWidget* m_deckWidget{};
-		std::vector<DeckInspectorSection*> m_decksSectionWidgets;
+		//std::vector<DeckInspectorSection*> m_decksSectionWidgets;
 };

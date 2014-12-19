@@ -98,7 +98,7 @@ int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 
 void StoreyModel::deleteProcessViewModel(int processViewId)
 {
-	emit processViewModelDeleted(processViewId);
+	emit processViewModelRemoved(processViewId);
 
 	removeById(m_processViewModels, processViewId);
 

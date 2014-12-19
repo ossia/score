@@ -55,7 +55,7 @@ class StoreyModel : public IdentifiedObject
 
 	signals:
 		void processViewModelCreated(int processViewModelId);
-		void processViewModelDeleted(int processViewModelId);
+		void processViewModelRemoved(int processViewModelId);
 		void processViewModelSelected(int processViewModelId);
 
 		void heightChanged(int arg);
