@@ -28,14 +28,12 @@ class ConstraintView : public QGraphicsObject
 	signals:
 		void constraintPressed(QPointF);
 		void constraintReleased(QPointF);
-		void addScenarioProcessClicked();
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
 	private:
-		QGraphicsProxyWidget* m_button{};
 		int m_width{};
 		int m_height{};
 

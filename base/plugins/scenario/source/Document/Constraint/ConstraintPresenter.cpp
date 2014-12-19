@@ -48,14 +48,6 @@ ConstraintPresenter::ConstraintPresenter(ConstraintModel* model,
 		data.x = p.x();
 		emit constraintReleased(data);
 	});
-
-	connect(m_view, &ConstraintView::addScenarioProcessClicked,
-			[&] ()
-	{
-		auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
-		auto cmd = new AddProcessToConstraintCommand(std::move(path), "Scenario");
-		emit submitCommand(cmd);
-	});
 }
 
 ConstraintPresenter::~ConstraintPresenter()

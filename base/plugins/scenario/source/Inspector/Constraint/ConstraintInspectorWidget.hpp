@@ -3,6 +3,7 @@
 #include <InspectorInterface/InspectorWidgetBase.hpp>
 
 class ConstraintModel;
+class ProcessSharedModelInterface;
 
 class QFormLayout;
 
@@ -16,8 +17,6 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 	public:
 		explicit ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent = 0);
 
-	signals:
-
 	public slots:
 		/*!
 		 * \brief addAutomation Add an automation
@@ -26,7 +25,11 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void updateDisplayedValues (ConstraintModel* obj);
 		void reorderAutomations();
 
+		void createProcess(QString processName);
+		void displayProcess(ProcessSharedModelInterface*);
+
 	private:
+		ConstraintModel* m_currentConstraint{};
 
 		QFormLayout* _startForm;
 		QFormLayout* _endForm;

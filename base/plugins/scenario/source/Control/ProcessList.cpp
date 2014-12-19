@@ -8,13 +8,13 @@ ProcessList::ProcessList(NamedObject* parent):
 
 }
 
-QStringList ProcessList::getProcessesName() const
+QStringList ProcessList::getProcessesName_impl() const
 {
 	QStringList lst;
 	for(auto& elt : m_processes)
 		lst.append(elt->name());
 
-	return lst;
+	return std::move(lst);
 }
 
 ProcessFactoryInterface* ProcessList::getProcess(QString name)
@@ -47,4 +47,12 @@ ProcessFactoryInterface* ProcessList::getFactory(QString processName)
 	return qApp
 			->findChild<ProcessList*>("ProcessList")
 			->getProcess(processName);
+}
+
+
+QStringList ProcessList::getProcessesName()
+{
+	return std::move(qApp
+			->findChild<ProcessList*>("ProcessList")
+			->getProcessesName_impl());
 }

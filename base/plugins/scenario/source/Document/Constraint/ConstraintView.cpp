@@ -15,16 +15,6 @@ ConstraintView::ConstraintView(QGraphicsObject* parent):
 	this->setFlag(ItemIsSelectable);
 
 	this->setZValue(parent->zValue() + 1);
-
-	m_button = new QGraphicsProxyWidget(this);
-	auto pb = new QPushButton("Add scenario");
-	connect(pb,	&QPushButton::clicked,
-			[&] ()
-		{
-			emit addScenarioProcessClicked();
-		});
-
-	m_button->setWidget(pb);
 }
 
 QRectF ConstraintView::boundingRect() const

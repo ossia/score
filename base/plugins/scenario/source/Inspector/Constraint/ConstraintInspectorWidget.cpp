@@ -1,9 +1,14 @@
 #include "ConstraintInspectorWidget.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+
+#include <source/Control/ProcessList.hpp> // Bad include. Put this in ProcessInterface
+
+#include <tools/ObjectPath.hpp>
 
 #include <QLineEdit>
 #include <QLayout>
@@ -11,14 +16,15 @@
 #include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-
+#include <QtWidgets/QInputDialog>
+#include <QApplication>
 
 ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
 
-// Add Automation Section
+	// Add Automation Section
 	QWidget* addAutomWidget = new QWidget;
 	QHBoxLayout* addAutomLayout = new QHBoxLayout;
 	QPushButton* addAutom = new QPushButton ("Add Automation");
@@ -30,40 +36,46 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 	addAutomButton->setText ("+");
 	addAutomButton->setObjectName ("addAutom");
 
-	/*   // reorderButton
-	   QToolButton *reorderButton = new QToolButton;
-	   reorderButton->setText("*");
-	   reorderButton->setObjectName("reorderButton");
-	*/
 	addAutomLayout->addWidget (addAutomButton);
 	addAutomLayout->addWidget (addAutom);
-//    addAutomLayout->addWidget(reorderButton);
 	addAutomWidget->setLayout (addAutomLayout);
 
-	connect (addAutomButton, SIGNAL (released() ), this, SLOT (addAutomation() ) );
-	connect (addAutom, SIGNAL (released() ), this, SLOT (addAutomation() ) );
-//    connect(reorderButton, SIGNAL(released()), this, SLOT(reorderAutomations()));
+	connect (addAutomButton, &QPushButton::pressed,
+			 [=] ()
+	{
+		bool ok = false;
+		auto process_list = ProcessList::getProcessesName();
+		auto process_name = QInputDialog::getItem(this,
+												  tr("Choose a process"),
+												  tr("Choose a process"),
+												  process_list,
+												  0,
+												  false,
+												  &ok);
 
+		if(ok)
+			createProcess(process_name);
+	} );
+	connect (addAutom, SIGNAL (released() ), this, SLOT (addAutomation() ) );
 
 	// line
 	QFrame* line = new QFrame();
 	line->setFrameShape (QFrame::HLine);
 	line->setLineWidth (2);
 
-// Start state
+	// Start state
 	QWidget* startWidget = new QWidget;
 	_startForm = new QFormLayout (startWidget);
 
-// End State
+	// End State
 	QWidget* endWidget = new QWidget;
 	_endForm = new QFormLayout (endWidget);
 
 
 	// Sections
-
 	InspectorSectionWidget* automSection = new InspectorSectionWidget (this);
-	automSection->renameSection ("Automations");
-	automSection->setObjectName ("Automations");
+	automSection->renameSection ("Processes");
+	automSection->setObjectName ("Processes");
 
 
 	InspectorSectionWidget* startSection = new InspectorSectionWidget (this);
@@ -111,34 +123,70 @@ void ConstraintInspectorWidget::addAutomation (QString address)
 
 void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constraint)
 {
+	// TODO clear everything.
 	// DEMO
 	if (constraint != nullptr)
 	{
+		m_currentConstraint = constraint;
 		setName (constraint->name() );
 		setColor (constraint->color() );
 		setComments (constraint->comment() );
 		setInspectedObject (constraint);
-		changeLabelType ("TimeBox");
+		changeLabelType ("Constraint");
+		/*
 		_startForm->addRow ("/first/message", new QLineEdit);
 		_endForm->addRow ("/Last/message", new QLineEdit );
-
+		*/
 		for(ProcessSharedModelInterface* process : constraint->processes())
 		{
-			if(process->processName() == "Automation")
-			{
-				addAutomation("/test/lol");
-				// Todo : caster en AutomationProcessModel et l'afficher, qui n'existe pas encore ^_^.
-			}
-
+			displayProcess(process);
 			if (!_automations.empty() )
 			{
-				static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
+				static_cast<InspectorSectionWidget*> (_automations.back())->nameEditDisable();
 			}
 		}
+	}
+	else
+	{
+		m_currentConstraint = nullptr;
 	}
 }
 
 void ConstraintInspectorWidget::reorderAutomations()
 {
-//	new ReorderWidget (_automations);
+	//	new ReorderWidget (_automations);
+}
+
+void ConstraintInspectorWidget::createProcess(QString processName)
+{
+	qDebug() << "Adding process" << processName;
+
+	auto cmd = new AddProcessToConstraintCommand(
+						ObjectPath::pathFromObject("BaseConstraintModel",
+												   m_currentConstraint),
+						processName);
+	emit submitCommand(cmd);
+
+	updateDisplayedValues(m_currentConstraint);
+
+}
+
+void ConstraintInspectorWidget::displayProcess(ProcessSharedModelInterface* process)
+{
+	InspectorSectionWidget* proc = findChild<InspectorSectionWidget*> ("Processes");
+
+	if (proc != nullptr)
+	{
+		InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
+
+		// the last automation created is by default in edit name mode
+		if (!_automations.empty() )
+		{
+			static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
+		}
+
+		_automations.push_back (newProc);
+		proc->addContent (newProc);
+		//newAutomation->nameEditEnable();
+	}
 }
