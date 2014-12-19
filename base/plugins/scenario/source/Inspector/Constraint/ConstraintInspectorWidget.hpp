@@ -3,13 +3,17 @@
 #include <InspectorInterface/InspectorWidgetBase.hpp>
 
 class ConstraintModel;
+class BoxModel;
+class StoreyModel;
 class ProcessSharedModelInterface;
 
+class BoxWidget;
 class QFormLayout;
 
 /*!
  * \brief The ConstraintInspectorWidget class
- *      Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timebox) element.
+ *
+ * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timebox) element.
  */
 class ConstraintInspectorWidget : public InspectorWidgetBase
 {
@@ -17,24 +21,50 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 	public:
 		explicit ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent = 0);
 
-	public slots:
-		/*!
-		 * \brief addAutomation Add an automation
-		 */
-		void addAutomation (QString address = "automation");
-		void updateDisplayedValues (ConstraintModel* obj);
-		void reorderAutomations();
+		ConstraintModel* model() const
+		{ return m_currentConstraint; }
 
+	public slots:
+		void updateDisplayedValues (ConstraintModel* obj);
+
+		// These methods ask for creation
 		void createProcess(QString processName);
-		void displayProcess(ProcessSharedModelInterface*);
+		void createBox();
+		void createDeck(int box);
+
+		// Interface of Constraint
+		void on_processCreated(QString processName, int processId);
+		void on_processRemoved(int processId);
+
+		void on_boxCreated(int viewId);
+		void on_boxRemoved(int viewId);
+
+		// Interface of Box
+
+		// Interface of Deck
+
+		// Abstract interface of SharedProcessModel
+
+		// Abstract interface of ProcessViewModel
+
+
+
+		// These methods are used to display created things
+		void displaySharedProcess(ProcessSharedModelInterface*);
+		void displayBox(BoxModel*);
+		void displayDeck(StoreyModel*);
 
 	private:
 		ConstraintModel* m_currentConstraint{};
+		QVector<QMetaObject::Connection> m_connections;
 
-		QFormLayout* _startForm;
-		QFormLayout* _endForm;
+		InspectorSectionWidget* m_processSection{};
+		std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
 
-		std::vector<QWidget*> _properties;
-		std::vector<QWidget*> _automations;
+		InspectorSectionWidget* m_boxSection{};
+		BoxWidget* m_boxWidget{};
+		std::vector<InspectorSectionWidget*> m_boxesSectionWidgets;
+
+		std::vector<QWidget*> m_properties;
 
 };

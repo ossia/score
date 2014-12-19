@@ -1,22 +1,25 @@
 #include "ConstraintInspectorWidget.hpp"
 
+#include "Widgets/AddProcessWidget.hpp"
+#include "Widgets/AddBoxWidget.hpp"
+
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Box/BoxModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 
-#include <source/Control/ProcessList.hpp> // Bad include. Put this in ProcessInterface
-
 #include <tools/ObjectPath.hpp>
 
+#include <QFrame>
 #include <QLineEdit>
 #include <QLayout>
 #include <QFormLayout>
 #include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-#include <QtWidgets/QInputDialog>
 #include <QApplication>
 
 ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent) :
@@ -24,143 +27,103 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 {
 	setObjectName ("Constraint");
 
-	// Add Automation Section
-	QWidget* addAutomWidget = new QWidget;
-	QHBoxLayout* addAutomLayout = new QHBoxLayout;
-	QPushButton* addAutom = new QPushButton ("Add Automation");
-	addAutom->setStyleSheet (QString ("text-align : left;") );
-	addAutom->setFlat (true);
+	// Processes
+	m_processSection = new InspectorSectionWidget ("Processes", this);
+	m_processSection->setObjectName("Processes");
 
-	// addAutom button
-	QToolButton* addAutomButton = new QToolButton;
-	addAutomButton->setText ("+");
-	addAutomButton->setObjectName ("addAutom");
+	m_properties.push_back(m_processSection);
+	m_properties.push_back(new SharedProcessWidget{this});
 
-	addAutomLayout->addWidget (addAutomButton);
-	addAutomLayout->addWidget (addAutom);
-	addAutomWidget->setLayout (addAutomLayout);
+	// Separator
+	QFrame* sep = new QFrame{this};
+	sep->setFrameShape(QFrame::HLine);
+	sep->setLineWidth(2);
+	m_properties.push_back(sep);
 
-	connect (addAutomButton, &QPushButton::pressed,
-			 [=] ()
-	{
-		bool ok = false;
-		auto process_list = ProcessList::getProcessesName();
-		auto process_name = QInputDialog::getItem(this,
-												  tr("Choose a process"),
-												  tr("Choose a process"),
-												  process_list,
-												  0,
-												  false,
-												  &ok);
+	// Boxes
+	m_boxSection = new InspectorSectionWidget{"Boxes", this};
+	m_boxSection->setObjectName("Boxes");
 
-		if(ok)
-			createProcess(process_name);
-	} );
-	connect (addAutom, SIGNAL (released() ), this, SLOT (addAutomation() ) );
+	m_boxWidget = new BoxWidget{this};
 
-	// line
-	QFrame* line = new QFrame();
-	line->setFrameShape (QFrame::HLine);
-	line->setLineWidth (2);
+	m_properties.push_back(m_boxSection);
+	m_properties.push_back(m_boxWidget);
 
-	// Start state
-	QWidget* startWidget = new QWidget;
-	_startForm = new QFormLayout (startWidget);
+	// Display data
+	updateSectionsView (areaLayout(), m_properties);
+	areaLayout()->addStretch(1);
 
-	// End State
-	QWidget* endWidget = new QWidget;
-	_endForm = new QFormLayout (endWidget);
-
-
-	// Sections
-	InspectorSectionWidget* automSection = new InspectorSectionWidget (this);
-	automSection->renameSection ("Processes");
-	automSection->setObjectName ("Processes");
-
-
-	InspectorSectionWidget* startSection = new InspectorSectionWidget (this);
-	startSection->renameSection ("Start");
-	startSection->addContent (startWidget);
-	startSection->setObjectName ("Start");
-
-	InspectorSectionWidget* endSection = new InspectorSectionWidget (this);
-	endSection->renameSection ("End");
-	endSection->addContent (endWidget);
-	endSection->setObjectName ("End");
-
-	_properties.push_back (automSection);
-	_properties.push_back (addAutomWidget);
-	_properties.push_back (line);
-	_properties.push_back (startSection);
-	_properties.push_back (endSection);
-
-	updateSectionsView (areaLayout(), _properties);
-	areaLayout()->addStretch();
-
-	// display data
-	updateDisplayedValues (object);
-}
-
-void ConstraintInspectorWidget::addAutomation (QString address)
-{
-	InspectorSectionWidget* autom = findChild<InspectorSectionWidget*> ("Automations");
-
-	if (autom != nullptr)
-	{
-		InspectorSectionWidget* newAutomation = new InspectorSectionWidget (address);
-
-		// the last automation created is by default in edit name mode
-		if (!_automations.empty() )
-		{
-			static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
-		}
-
-		_automations.push_back (newAutomation);
-		autom->addContent (newAutomation);
-		newAutomation->nameEditEnable();
-	}
+	updateDisplayedValues(object);
 }
 
 void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constraint)
 {
-	// TODO clear everything.
-	// DEMO
+	// Cleanup the widgets
+	for(auto& process : m_processesSectionWidgets)
+	{
+		delete process;
+	}
+	m_processesSectionWidgets.clear();
+
+	// Cleanup the connections
+	for(auto& connection : m_connections)
+		QObject::disconnect(connection);
+	m_connections.clear();
+
+
 	if (constraint != nullptr)
 	{
 		m_currentConstraint = constraint;
+
+		// Constraint settings
 		setName (constraint->name() );
 		setColor (constraint->color() );
 		setComments (constraint->comment() );
 		setInspectedObject (constraint);
 		changeLabelType ("Constraint");
-		/*
-		_startForm->addRow ("/first/message", new QLineEdit);
-		_endForm->addRow ("/Last/message", new QLineEdit );
-		*/
+
+		// Constraint interface
+		m_connections.push_back(
+					connect(m_currentConstraint, &ConstraintModel::processCreated,
+							this,				 &ConstraintInspectorWidget::on_processCreated));
+		m_connections.push_back(
+					connect(m_currentConstraint, &ConstraintModel::processRemoved,
+							this,				 &ConstraintInspectorWidget::on_processRemoved));
+		m_connections.push_back(
+					connect(m_currentConstraint, &ConstraintModel::boxCreated,
+							this,				 &ConstraintInspectorWidget::on_boxCreated));
+		m_connections.push_back(
+					connect(m_currentConstraint, &ConstraintModel::boxRemoved,
+							this,				 &ConstraintInspectorWidget::on_boxRemoved));
+
+		// Processes
 		for(ProcessSharedModelInterface* process : constraint->processes())
 		{
-			displayProcess(process);
-			if (!_automations.empty() )
-			{
-				static_cast<InspectorSectionWidget*> (_automations.back())->nameEditDisable();
-			}
+			displaySharedProcess(process);
 		}
+
+		// Box
+		m_boxWidget->setModel(m_currentConstraint);
+		m_boxWidget->updateComboBox();
+
+		for(BoxModel* box: constraint->boxes())
+		{
+			displayBox(box);
+		}
+
+		// Deck
+
+		// ProcessViews
 	}
 	else
 	{
 		m_currentConstraint = nullptr;
+		m_boxWidget->setModel(nullptr);
 	}
-}
-
-void ConstraintInspectorWidget::reorderAutomations()
-{
-	//	new ReorderWidget (_automations);
 }
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
-	qDebug() << "Adding process" << processName;
-
 	auto cmd = new AddProcessToConstraintCommand(
 						ObjectPath::pathFromObject("BaseConstraintModel",
 												   m_currentConstraint),
@@ -168,25 +131,63 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 	emit submitCommand(cmd);
 
 	updateDisplayedValues(m_currentConstraint);
+}
+
+void ConstraintInspectorWidget::createBox()
+{
+	auto cmd = new Scenario::Command::AddBoxToConstraint(
+						ObjectPath::pathFromObject(
+							"BaseConstraintModel",
+							m_currentConstraint));
+	emit submitCommand(cmd);
+
+	updateDisplayedValues(m_currentConstraint);
+}
+
+void ConstraintInspectorWidget::createDeck(int box)
+{
 
 }
 
-void ConstraintInspectorWidget::displayProcess(ProcessSharedModelInterface* process)
+void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
-	InspectorSectionWidget* proc = findChild<InspectorSectionWidget*> ("Processes");
+	// TODO specialize by using custom widgets provided by the processes.
+	// Also handle the case where a process does not.
+	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
+	m_processesSectionWidgets.push_back (newProc);
+	m_processSection->addContent (newProc);
+}
 
-	if (proc != nullptr)
-	{
-		InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
+void ConstraintInspectorWidget::displayBox(BoxModel* box)
+{
+	InspectorSectionWidget* newBox = new InspectorSectionWidget{QString{"Box.%1"}.arg(box->id())};
+	m_boxesSectionWidgets.push_back(newBox);
+	m_boxSection->addContent(newBox);
+}
 
-		// the last automation created is by default in edit name mode
-		if (!_automations.empty() )
-		{
-			static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
-		}
+void ConstraintInspectorWidget::displayDeck(StoreyModel*)
+{
 
-		_automations.push_back (newProc);
-		proc->addContent (newProc);
-		//newAutomation->nameEditEnable();
-	}
+}
+
+void ConstraintInspectorWidget::on_processCreated(QString processName, int processId)
+{
+	updateDisplayedValues(m_currentConstraint);
+}
+
+void ConstraintInspectorWidget::on_processRemoved(int processId)
+{
+	updateDisplayedValues(m_currentConstraint);
+}
+
+void ConstraintInspectorWidget::on_boxCreated(int viewId)
+{
+	m_boxWidget->updateComboBox();
+	updateDisplayedValues(m_currentConstraint);
+}
+
+void ConstraintInspectorWidget::on_boxRemoved(int viewId)
+{
+	m_boxWidget->updateComboBox();
+	updateDisplayedValues(m_currentConstraint);
 }

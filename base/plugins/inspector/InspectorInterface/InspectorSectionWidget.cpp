@@ -34,15 +34,15 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 
 	// CONTENT
 	/*    _container = new QScrollArea;
-	    QWidget *areaContent = new QWidget;
+		QWidget *areaContent = new QWidget;
 
-	    _container->setMinimumSize(150,50);
-	    _container->setWidgetResizable(true);
-	    _containerLayout = new QVBoxLayout;
-	    _containerLayout->setMargin(0);
-	    _containerLayout->addStretch();
-	    areaContent->setLayout(_containerLayout);
-	    _container->setWidget(areaContent);
+		_container->setMinimumSize(150,50);
+		_container->setWidgetResizable(true);
+		_containerLayout = new QVBoxLayout;
+		_containerLayout->setMargin(0);
+		_containerLayout->addStretch();
+		areaContent->setLayout(_containerLayout);
+		_container->setWidget(areaContent);
 	*/
 	_container = new QWidget;
 	_containerLayout = new QVBoxLayout;
@@ -57,14 +57,14 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 	globalLayout->setMargin (5);
 
 	connect (_btn, SIGNAL (released() ), this, SLOT (expend() ) );
-	connect (_buttonTitle, SIGNAL (clicked() ), this, SLOT (nameEditEnable() ) );
+	//connect (_buttonTitle, SIGNAL (clicked() ), this, SLOT (nameEditEnable() ) );
 	connect (_sectionTitle, SIGNAL (editingFinished() ), this, SLOT (nameEditDisable() ) );
 
 
 	// INIT
 	_isUnfolded = true;
 	_btn->setArrowType (Qt::DownArrow);
-//   expend();
+	//   expend();
 
 	setLayout (globalLayout);
 
