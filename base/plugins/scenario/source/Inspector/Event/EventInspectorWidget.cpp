@@ -40,7 +40,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	m_properties.push_back(addressesWidget);
 	m_properties.push_back(addAddressWidget);
 
-	updateSectionsView (areaLayout(), &m_properties);
+	updateSectionsView (areaLayout(), m_properties);
 	areaLayout()->addStretch();
 
 	// display data

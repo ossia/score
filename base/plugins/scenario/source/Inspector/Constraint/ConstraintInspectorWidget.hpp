@@ -31,7 +31,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		QFormLayout* _startForm;
 		QFormLayout* _endForm;
 
-		std::vector<QWidget*>* _properties;
-		std::vector<QWidget*>* _automations;
+		std::vector<QWidget*> _properties;
+		std::vector<QWidget*> _automations;
 
 };

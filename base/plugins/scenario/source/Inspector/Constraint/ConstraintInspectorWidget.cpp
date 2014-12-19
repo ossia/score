@@ -17,8 +17,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 	InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
-	_properties = new std::vector<QWidget*>;
-	_automations = new std::vector<QWidget*>;
 
 // Add Automation Section
 	QWidget* addAutomWidget = new QWidget;
@@ -78,11 +76,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 	endSection->addContent (endWidget);
 	endSection->setObjectName ("End");
 
-	_properties->push_back (automSection);
-	_properties->push_back (addAutomWidget);
-	_properties->push_back (line);
-	_properties->push_back (startSection);
-	_properties->push_back (endSection);
+	_properties.push_back (automSection);
+	_properties.push_back (addAutomWidget);
+	_properties.push_back (line);
+	_properties.push_back (startSection);
+	_properties.push_back (endSection);
 
 	updateSectionsView (areaLayout(), _properties);
 	areaLayout()->addStretch();
@@ -100,12 +98,12 @@ void ConstraintInspectorWidget::addAutomation (QString address)
 		InspectorSectionWidget* newAutomation = new InspectorSectionWidget (address);
 
 		// the last automation created is by default in edit name mode
-		if (!_automations->empty() )
+		if (!_automations.empty() )
 		{
-			static_cast<InspectorSectionWidget*> (_automations->back() )->nameEditDisable();
+			static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
 		}
 
-		_automations->push_back (newAutomation);
+		_automations.push_back (newAutomation);
 		autom->addContent (newAutomation);
 		newAutomation->nameEditEnable();
 	}
@@ -132,9 +130,9 @@ void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constrai
 				// Todo : caster en AutomationProcessModel et l'afficher, qui n'existe pas encore ^_^.
 			}
 
-			if (!_automations->empty() )
+			if (!_automations.empty() )
 			{
-				static_cast<InspectorSectionWidget*> (_automations->back() )->nameEditDisable();
+				static_cast<InspectorSectionWidget*> (_automations.back() )->nameEditDisable();
 			}
 		}
 	}

@@ -17,8 +17,6 @@ static const int COLOR_ICON_SIZE = 21;
 InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent) :
 	QWidget (parent), _inspectedObject {inspectedObj}
 {
-	_sections = new std::vector<QWidget*>;
-
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->setMargin (5);
 	setLayout (layout);
@@ -61,10 +59,10 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	InspectorSectionWidget* comments = new InspectorSectionWidget ("Comments");
 	comments->addContent (_comments);
 
-	_sections->push_back (_objectType);
-	_sections->push_back (nameLine);
-	_sections->push_back (scrollArea);
-	_sections->push_back (comments);
+	_sections.push_back (_objectType);
+	_sections.push_back (nameLine);
+	_sections.push_back (scrollArea);
+	_sections.push_back (comments);
 
 	updateSectionsView (layout, _sections);
 
@@ -122,14 +120,14 @@ void InspectorWidgetBase::removeSection (QString sectionName)
 
 }
 
-void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>* contents)
+void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>& contents)
 {
 	while (! layout->isEmpty() )
 	{
 		delete layout->itemAt (0)->widget();
 	}
 
-	for (auto& section : *contents)
+	for (auto& section : contents)
 	{
 		layout->addWidget (section);
 	}

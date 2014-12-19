@@ -64,7 +64,7 @@ class InspectorWidgetBase : public QWidget
 		void insertSection (int index, QString name, QWidget* content = 0);
 
 		void removeSection (QString sectionName); //todo
-		void updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>* contents);
+		void updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>& contents);
 
 		// Manage Values
 
@@ -91,7 +91,7 @@ class InspectorWidgetBase : public QWidget
 		QScrollArea* _scrollArea{};
 		QTextEdit* _comments{};
 
-		std::vector<QWidget*>* _sections{}; // @todo why a pointer on a vector ?
+		std::vector<QWidget*> _sections{}; // @todo why a pointer on a vector ?
 		QColor _currentColor{Qt::gray};
 
 		QObject* _inspectedObject{};
