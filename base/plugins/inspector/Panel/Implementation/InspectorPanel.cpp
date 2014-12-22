@@ -41,10 +41,19 @@ void InspectorPanel::newItemInspected (QObject* object)
 			// Note : private method QLayout::addItem takes ownership
 			m_layout->addWidget(m_itemInspected);
 
+			connect(object, &QObject::destroyed,
+					this,	&InspectorPanel::on_itemRemoved);
+
 			return;
 		}
 	}
 
 	// When no factory is found.
 	m_itemInspected = new InspectorWidgetBase(object);
+}
+
+void InspectorPanel::on_itemRemoved()
+{
+	delete m_itemInspected;
+	m_itemInspected = new InspectorWidgetBase{};
 }

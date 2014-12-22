@@ -18,7 +18,6 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	m_model{model},
 	m_view{view}
 {
-	qDebug() << Q_FUNC_INFO << m_model->decks().size();
 	for(auto& deckModel : m_model->decks())
 	{
 		on_deckCreated_impl(deckModel);
@@ -62,7 +61,6 @@ void BoxPresenter::on_deckCreated(int deckId)
 
 void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 {
-	qDebug() << Q_FUNC_INFO;
 	auto deckView = new DeckView{m_view};
 	deckView->setPos(5, 5);
 	auto deckPres = new DeckPresenter{deckModel,

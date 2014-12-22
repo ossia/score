@@ -12,7 +12,6 @@
 
 QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 {
-	qDebug(Q_FUNC_INFO);
 	s << static_cast<const IdentifiedObject&>(deck);
 
 	s << deck.m_editedProcessId;
@@ -33,7 +32,6 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 
 QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 {
-	qDebug() << Q_FUNC_INFO;
 	int editedProcessId;
 	s >> editedProcessId;
 
@@ -86,7 +84,6 @@ int DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewMod
 
 int DeckModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 {
-	qDebug() << Q_FUNC_INFO;
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(s, this);

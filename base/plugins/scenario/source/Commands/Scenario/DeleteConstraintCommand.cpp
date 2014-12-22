@@ -42,7 +42,6 @@ EmptyConstraintBoxCommand::EmptyConstraintBoxCommand(ObjectPath&& constraintPath
 
 void EmptyConstraintBoxCommand::undo()
 {
-	qDebug(Q_FUNC_INFO);
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 
 	for(auto& serializedProcess : m_serializedProcesses)

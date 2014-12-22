@@ -12,7 +12,6 @@ ScenarioProcessViewModel::ScenarioProcessViewModel(int viewModelId, int sharedPr
 ScenarioProcessViewModel::ScenarioProcessViewModel(QDataStream& s, QObject* parent):
 	ProcessViewModelInterface(nullptr, "ScenarioProcessViewModel", -1, -1) // TODO pourquoi ne pas utiliser QDataStream dans le ctor parent ?
 {
-	qDebug() << Q_FUNC_INFO;
 	s >> static_cast<ProcessViewModelInterface&>(*this);
 
 	this->setParent(parent);

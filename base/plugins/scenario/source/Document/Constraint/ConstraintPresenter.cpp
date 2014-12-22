@@ -112,7 +112,6 @@ void ConstraintPresenter::on_askUpdate()
 
 void ConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
 {
-	qDebug() << Q_FUNC_INFO;
 	auto contentView = new BoxView{m_view};
 	contentView->setPos(5, 50);
 

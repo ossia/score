@@ -50,7 +50,7 @@ namespace iscore
 										actions.begin(),
 										actions.end(),
 										[&before] (QAction* act)
-								{ qDebug() << act->objectName();
+								{
 									return act->objectName() == MenuInterface::name(before);
 								});
 

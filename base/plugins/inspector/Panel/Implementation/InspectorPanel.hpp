@@ -33,6 +33,7 @@ class InspectorPanel : public QWidget
 		 * \param object The selected objet.
 		 */
 		void newItemInspected (QObject*);
+		void on_itemRemoved();
 
 	private:
 		QVBoxLayout* m_layout;

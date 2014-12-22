@@ -82,7 +82,6 @@ void DeckPresenter::setVerticalPosition(int pos)
 
 void DeckPresenter::on_processViewModelCreated(int processId)
 {
-	qDebug(Q_FUNC_INFO);
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
 }
 

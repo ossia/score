@@ -9,8 +9,6 @@
 
 QDataStream& operator << (QDataStream& s, const BoxModel& c)
 {
-	qDebug() << Q_FUNC_INFO << c.m_decks.size();
-
 	s << static_cast<const IdentifiedObject&>(c);
 	s << (int)c.m_decks.size();
 	for(auto& deck : c.m_decks)
@@ -25,10 +23,9 @@ QDataStream& operator >> (QDataStream& s, BoxModel& c)
 {
 	int decks_size;
 	s >> decks_size;
-	qDebug() << Q_FUNC_INFO << decks_size;
+
 	for(; decks_size --> 0 ;)
 	{
-		qDebug() << "Creating deck";
 		c.createDeck(s);
 	}
 
@@ -45,7 +42,6 @@ BoxModel::BoxModel(int id, QObject* parent):
 BoxModel::BoxModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, "BoxModel", parent}
 {
-	qDebug(Q_FUNC_INFO);
 	s >> *this;
 }
 
@@ -78,13 +74,13 @@ int BoxModel::createDeck_impl(DeckModel* deck)
 
 void BoxModel::removeDeck(int deckId)
 {
-	auto deletedDeck = deck(deckId);
+	auto removedDeck = deck(deckId);
 
 	// Make the remaining decks decrease their position.
 	for(DeckModel* deck : m_decks)
 	{
 		auto pos = deck->position();
-		if(pos > deletedDeck->position())
+		if(pos > removedDeck->position())
 			deck->setPosition(pos - 1);
 	}
 

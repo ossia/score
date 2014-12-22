@@ -163,7 +163,6 @@ void ConstraintModel::createBox(int boxId)
 
 void ConstraintModel::createBox(QDataStream& s)
 {
-	qDebug(Q_FUNC_INFO);
 	auto box = new BoxModel{s, this};
 	createContentModel_impl(box);
 }

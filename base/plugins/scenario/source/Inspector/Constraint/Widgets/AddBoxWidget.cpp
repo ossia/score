@@ -42,12 +42,10 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent):
 
 void BoxWidget::updateComboBox()
 {
-	qDebug(Q_FUNC_INFO);
 	m_boxList->clear();
 	if(m_model)
 	{
 		auto boxesPtrs = m_model->boxes();
-		qDebug() << boxesPtrs.size();
 		for(auto box : boxesPtrs)
 		{
 			m_boxList->addItem(QString::number(box->id()));
