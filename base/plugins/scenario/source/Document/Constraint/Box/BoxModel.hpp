@@ -4,7 +4,7 @@
 #include <vector>
 
 class ConstraintModel;
-class StoreyModel;
+class DeckModel;
 
 class BoxModel : public IdentifiedObject
 {
@@ -18,28 +18,28 @@ class BoxModel : public IdentifiedObject
 
 		virtual ~BoxModel() = default;
 
-		int createDeck(int newStoreyId);
+		int createDeck(int newDeckId);
 		int createDeck(QDataStream& s);
-		void removeDeck(int storeyId);
-		void changeStoreyOrder(int storeyId, int position);
+		void removeDeck(int deckId);
+		void changeDeckOrder(int deckId, int position);
 
-		StoreyModel* deck(int storeyId) const;
+		DeckModel* deck(int deckId) const;
 
 		// Devrait peut-être aller dans une Command à la place ?
-		void duplicateStorey();
+		void duplicateDeck();
 
-		const std::vector<StoreyModel*>& decks() const
-		{ return m_storeys; }
+		const std::vector<DeckModel*>& decks() const
+		{ return m_decks; }
 
 	signals:
 		void deckCreated(int id);
 		void deckRemoved(int id);
-		void storeyOrderChanged(int storeyId);
+		void deckOrderChanged(int deckId);
 
 		void on_deleteSharedProcessModel(int processId);
 
 	private:
-		int createStorey_impl(StoreyModel* m);
-		std::vector<StoreyModel*> m_storeys;
+		int createDeck_impl(DeckModel* m);
+		std::vector<DeckModel*> m_decks;
 };
 

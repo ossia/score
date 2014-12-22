@@ -2,7 +2,7 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include <QMap>
 class BoxModel;
-class StoreyModel;
+class DeckModel;
 class AddDeckWidget;
 class ConstraintInspectorWidget;
 class DeckInspectorSection;
@@ -13,7 +13,7 @@ class BoxInspectorSection : public InspectorSectionWidget
 	public:
 		BoxInspectorSection(QString name, BoxModel* model, ConstraintInspectorWidget* parent);
 
-		void addDeckInspectorSection(StoreyModel*);
+		void addDeckInspectorSection(DeckModel*);
 		void createDeck();
 
 	public slots:

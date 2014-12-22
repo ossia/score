@@ -1,7 +1,7 @@
 #include "BoxModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Storey/StoreyModel.hpp"
+#include "Deck/DeckModel.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -9,13 +9,13 @@
 
 QDataStream& operator << (QDataStream& s, const BoxModel& c)
 {
-	qDebug() << Q_FUNC_INFO << c.m_storeys.size();
+	qDebug() << Q_FUNC_INFO << c.m_decks.size();
 
 	s << static_cast<const IdentifiedObject&>(c);
-	s << (int)c.m_storeys.size();
-	for(auto& storey : c.m_storeys)
+	s << (int)c.m_decks.size();
+	for(auto& deck : c.m_decks)
 	{
-		s << *storey;
+		s << *deck;
 	}
 
 	return s;
@@ -23,12 +23,12 @@ QDataStream& operator << (QDataStream& s, const BoxModel& c)
 
 QDataStream& operator >> (QDataStream& s, BoxModel& c)
 {
-	int storeys_size;
-	s >> storeys_size;
-	qDebug() << Q_FUNC_INFO << storeys_size;
-	for(; storeys_size --> 0 ;)
+	int decks_size;
+	s >> decks_size;
+	qDebug() << Q_FUNC_INFO << decks_size;
+	for(; decks_size --> 0 ;)
 	{
-		qDebug() << "Creating storey";
+		qDebug() << "Creating deck";
 		c.createDeck(s);
 	}
 
@@ -49,62 +49,62 @@ BoxModel::BoxModel(QDataStream& s, ConstraintModel* parent):
 	s >> *this;
 }
 
-int BoxModel::createDeck(int newStoreyId)
+int BoxModel::createDeck(int newDeckId)
 {
-	return createStorey_impl(
-				new StoreyModel{(int) m_storeys.size(),
-								newStoreyId,
+	return createDeck_impl(
+				new DeckModel{(int) m_decks.size(),
+								newDeckId,
 								this});
 
 }
 
 int BoxModel::createDeck(QDataStream& s)
 {
-	return createStorey_impl(
-				new StoreyModel{s,
+	return createDeck_impl(
+				new DeckModel{s,
 								this});
 }
 
-int BoxModel::createStorey_impl(StoreyModel* storey)
+int BoxModel::createDeck_impl(DeckModel* deck)
 {
 	connect(this,	&BoxModel::on_deleteSharedProcessModel,
-			storey, &StoreyModel::on_deleteSharedProcessModel);
-	m_storeys.push_back(storey);
+			deck, &DeckModel::on_deleteSharedProcessModel);
+	m_decks.push_back(deck);
 
-	emit deckCreated(storey->id());
-	return storey->id();
+	emit deckCreated(deck->id());
+	return deck->id();
 }
 
 
-void BoxModel::removeDeck(int storeyId)
+void BoxModel::removeDeck(int deckId)
 {
-	auto deletedStorey = deck(storeyId);
+	auto deletedDeck = deck(deckId);
 
-	// Make the remaining storeys decrease their position.
-	for(StoreyModel* storey : m_storeys)
+	// Make the remaining decks decrease their position.
+	for(DeckModel* deck : m_decks)
 	{
-		auto pos = storey->position();
-		if(pos > deletedStorey->position())
-			storey->setPosition(pos - 1);
+		auto pos = deck->position();
+		if(pos > deletedDeck->position())
+			deck->setPosition(pos - 1);
 	}
 
 	// Delete
-	removeById(m_storeys, storeyId);
+	removeById(m_decks, deckId);
 
-	emit deckRemoved(storeyId);
+	emit deckRemoved(deckId);
 }
 
-void BoxModel::changeStoreyOrder(int storeyId, int position)
+void BoxModel::changeDeckOrder(int deckId, int position)
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }
 
-StoreyModel* BoxModel::deck(int storeyId) const
+DeckModel* BoxModel::deck(int deckId) const
 {
-	return findById(m_storeys, storeyId);
+	return findById(m_decks, deckId);
 }
 
-void BoxModel::duplicateStorey()
+void BoxModel::duplicateDeck()
 {
 	qDebug() << Q_FUNC_INFO << "TODO";
 }

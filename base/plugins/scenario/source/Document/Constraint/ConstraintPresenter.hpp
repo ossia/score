@@ -58,7 +58,7 @@ class ConstraintPresenter : public NamedObject
 		void on_boxCreated_impl(BoxModel*);
 
 		std::vector<BoxPresenter*> m_boxes; // No content -> Phantom ?
-		// Process presenters are in the storey presenters.
+		// Process presenters are in the deck presenters.
 		ConstraintModel* m_model{};
 		ConstraintView* m_view{};
 

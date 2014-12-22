@@ -2,7 +2,7 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 
 class BoxModel;
-class StoreyModel;
+class DeckModel;
 class ConstraintInspectorWidget;
 class ProcessViewModelInterface;
 class AddProcessViewModelWidget;
@@ -13,13 +13,13 @@ class DeckInspectorSection : public InspectorSectionWidget
 {
 	public:
 		DeckInspectorSection(QString name,
-							 StoreyModel* deck,
+							 DeckModel* deck,
 							 BoxInspectorSection* parentBox);
 
 		void displayProcessViewModel(ProcessViewModelInterface*);
 		void createProcessViewModel(int sharedProcessId);
 
-		StoreyModel* model() const
+		DeckModel* model() const
 		{ return m_model; }
 
 	public slots:
@@ -27,7 +27,7 @@ class DeckInspectorSection : public InspectorSectionWidget
 		void on_processViewModelRemoved(int id);
 
 	private:
-		StoreyModel* m_model{};
+		DeckModel* m_model{};
 
 		InspectorSectionWidget* m_pvmSection{};
 		AddProcessViewModelWidget* m_addPvmWidget{};

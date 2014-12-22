@@ -11,7 +11,7 @@ namespace iscore
 }
 
 class ProcessViewModelInterface;
-class StoreyModel : public IdentifiedObject
+class DeckModel : public IdentifiedObject
 {
 	Q_OBJECT
 
@@ -21,12 +21,12 @@ class StoreyModel : public IdentifiedObject
 				   NOTIFY heightChanged)
 
 	public:
-		friend QDataStream& operator << (QDataStream& , const StoreyModel& );
-		friend QDataStream& operator >> (QDataStream& , StoreyModel& );
+		friend QDataStream& operator << (QDataStream& , const DeckModel& );
+		friend QDataStream& operator >> (QDataStream& , DeckModel& );
 
-		StoreyModel(QDataStream& s, BoxModel* parent);
-		StoreyModel(int position, int id, BoxModel* parent);
-		virtual ~StoreyModel() = default;
+		DeckModel(QDataStream& s, BoxModel* parent);
+		DeckModel(int position, int id, BoxModel* parent);
+		virtual ~DeckModel() = default;
 
 		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
 		int createProcessViewModel(QDataStream& s,int sharedProcessId);
@@ -46,7 +46,7 @@ class StoreyModel : public IdentifiedObject
 
 		/**
 		 * @brief parentConstraint
-		 * @return the constraint this storey is part of.
+		 * @return the constraint this deck is part of.
 		 */
 		ConstraintModel* parentConstraint() const;
 

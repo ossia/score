@@ -1,7 +1,7 @@
-#include "StoreyPresenter.hpp"
+#include "DeckPresenter.hpp"
 
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyView.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVerticallyCommand.hpp"
 
@@ -19,10 +19,10 @@
 
 // @todo vérifier en créant un nouvel élément
 // qu'il n'existe pas déjà dans un tableau.
-StoreyPresenter::StoreyPresenter(StoreyModel* model,
-								 StoreyView* view,
+DeckPresenter::DeckPresenter(DeckModel* model,
+								 DeckView* view,
 								 QObject* parent):
-	NamedObject{"StoreyPresenter", parent},
+	NamedObject{"DeckPresenter", parent},
 	m_model{model},
 	m_view{view}
 {
@@ -33,44 +33,44 @@ StoreyPresenter::StoreyPresenter(StoreyModel* model,
 		on_processViewModelCreated_impl(proc_vm);
 	}
 
-	connect(m_model, &StoreyModel::processViewModelCreated,
-			this,	 &StoreyPresenter::on_processViewModelCreated);
-	connect(m_model, &StoreyModel::processViewModelRemoved,
-			this,	 &StoreyPresenter::on_processViewModelDeleted);
-	connect(m_model, &StoreyModel::heightChanged,
-			this,	 &StoreyPresenter::on_heightChanged);
+	connect(m_model, &DeckModel::processViewModelCreated,
+			this,	 &DeckPresenter::on_processViewModelCreated);
+	connect(m_model, &DeckModel::processViewModelRemoved,
+			this,	 &DeckPresenter::on_processViewModelDeleted);
+	connect(m_model, &DeckModel::heightChanged,
+			this,	 &DeckPresenter::on_heightChanged);
 
-	connect(m_view, &StoreyView::bottomHandleChanged,
-			this,	&StoreyPresenter::on_bottomHandleChanged);
-	connect(m_view, &StoreyView::bottomHandleReleased,
-			this,	&StoreyPresenter::on_bottomHandleReleased);
-	connect(m_view, &StoreyView::bottomHandleSelected,
-			this,	&StoreyPresenter::on_bottomHandleSelected);
+	connect(m_view, &DeckView::bottomHandleChanged,
+			this,	&DeckPresenter::on_bottomHandleChanged);
+	connect(m_view, &DeckView::bottomHandleReleased,
+			this,	&DeckPresenter::on_bottomHandleReleased);
+	connect(m_view, &DeckView::bottomHandleSelected,
+			this,	&DeckPresenter::on_bottomHandleSelected);
 }
 
-StoreyPresenter::~StoreyPresenter()
+DeckPresenter::~DeckPresenter()
 {
 	auto sc = m_view->scene();
 	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
 }
 
-int StoreyPresenter::id() const
+int DeckPresenter::id() const
 {
 	return m_model->id();
 }
 
-int StoreyPresenter::height() const
+int DeckPresenter::height() const
 {
 	return m_view->height();
 }
 
-int StoreyPresenter::position() const
+int DeckPresenter::position() const
 {
 	return m_model->position();
 }
 
-void StoreyPresenter::setVerticalPosition(int pos)
+void DeckPresenter::setVerticalPosition(int pos)
 {
 	auto view_pos = m_view->pos();
 	if(view_pos.y() != pos)
@@ -80,13 +80,13 @@ void StoreyPresenter::setVerticalPosition(int pos)
 	}
 }
 
-void StoreyPresenter::on_processViewModelCreated(int processId)
+void DeckPresenter::on_processViewModelCreated(int processId)
 {
 	qDebug(Q_FUNC_INFO);
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
 }
 
-void StoreyPresenter::on_processViewModelDeleted(int processId)
+void DeckPresenter::on_processViewModelDeleted(int processId)
 {
 	vec_erase_remove_if(m_processes,
 						[&processId] (ProcessPresenterInterface* pres)
@@ -100,23 +100,23 @@ void StoreyPresenter::on_processViewModelDeleted(int processId)
 	emit askUpdate();
 }
 
-void StoreyPresenter::on_heightChanged(int height)
+void DeckPresenter::on_heightChanged(int height)
 {
 	m_view->setHeight(height);
 	emit askUpdate();
 }
 
-void StoreyPresenter::on_bottomHandleSelected()
+void DeckPresenter::on_bottomHandleSelected()
 {
 
 }
 
-void StoreyPresenter::on_bottomHandleChanged(int newHeight)
+void DeckPresenter::on_bottomHandleChanged(int newHeight)
 {
 	on_heightChanged(newHeight);
 }
 
-void StoreyPresenter::on_bottomHandleReleased()
+void DeckPresenter::on_bottomHandleReleased()
 {
 	auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
 
@@ -124,7 +124,7 @@ void StoreyPresenter::on_bottomHandleReleased()
 	emit submitCommand(cmd);
 }
 
-void StoreyPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
+void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
 	auto procname = m_model
 						->parentConstraint()
@@ -138,9 +138,9 @@ void StoreyPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface*
 	auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
 	connect(presenter,	&ProcessPresenterInterface::submitCommand,
-			this,		&StoreyPresenter::submitCommand);
+			this,		&DeckPresenter::submitCommand);
 	connect(presenter,	&ProcessPresenterInterface::elementSelected,
-			this,		&StoreyPresenter::elementSelected);
+			this,		&DeckPresenter::elementSelected);
 
 	m_processes.push_back(presenter);
 }

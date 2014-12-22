@@ -2,7 +2,7 @@
 
 #include "DeckInspectorSection.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
@@ -34,11 +34,11 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
 	{
 		QStringList available_models;
 
-		// TODO put this part in StoreyModel if it is required elsewhere.
+		// TODO put this part in DeckModel if it is required elsewhere.
 		// 1. List the processes in the model.
 		auto shared_process_list = parentDeck->model()->parentConstraint()->processes();
 
-		// 2. List the processes that already have a view in this storey
+		// 2. List the processes that already have a view in this deck
 		auto already_displayed_processes = parentDeck->model()->processViewModels();
 
 		// 3. Compute the difference

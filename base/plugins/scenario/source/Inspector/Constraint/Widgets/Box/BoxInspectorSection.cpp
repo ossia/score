@@ -7,7 +7,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 
@@ -49,7 +49,7 @@ void BoxInspectorSection::createDeck()
 	emit submitCommand(cmd);
 }
 
-void BoxInspectorSection::addDeckInspectorSection(StoreyModel* deck)
+void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 {
 	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg(deck->id()),
 															 deck,

@@ -1,4 +1,4 @@
-#include "StoreyView.hpp"
+#include "DeckView.hpp"
 
 #include <tools/NamedObject.hpp>
 
@@ -6,7 +6,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-StoreyView::StoreyView(QGraphicsObject* parent):
+DeckView::DeckView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
@@ -14,40 +14,40 @@ StoreyView::StoreyView(QGraphicsObject* parent):
 	this->setZValue(parent->zValue() + 1);
 }
 
-QRectF StoreyView::boundingRect() const
+QRectF DeckView::boundingRect() const
 {
 	return {0, 0,
 			parentItem()->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST,
 			qreal(m_height)};
 }
 
-void StoreyView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->drawRect(boundingRect());
 }
 
-void StoreyView::setHeight(int height)
+void DeckView::setHeight(int height)
 {
 	prepareGeometryChange();
 	m_height = height;
 }
 
-int StoreyView::height() const
+int DeckView::height() const
 {
 	return m_height;
 }
 
-void StoreyView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void DeckView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 	emit bottomHandleSelected();
 }
 
-void StoreyView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void DeckView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
 	emit bottomHandleChanged(event->pos().y() - boundingRect().y());
 }
 
-void StoreyView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void DeckView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
 	emit bottomHandleReleased();
 }

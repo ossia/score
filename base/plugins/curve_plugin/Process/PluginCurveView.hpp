@@ -59,7 +59,7 @@ class PluginCurveView : public ProcessViewInterface
 // PluginCurveview = window, _pOrthoBasis = scene.
 
 	private:
-//  QGraphicsObject *_pParent; // Pointer to the parent storey
+//  QGraphicsObject *_pParent; // Pointer to the parent deck
 //  PluginCurvePresenter *_pPresenter; // Pointer to the presenter
 		QGraphicsRectItem* _pSelectionRectangle; // Selection Rectangle
 		PluginCurveZoomer* _pZoomer; // Contains all the others graphics element. Zoom effet will be applied on it.

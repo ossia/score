@@ -1,7 +1,7 @@
 #include "AddDeckToBox.hpp"
 
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

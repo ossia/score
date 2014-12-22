@@ -1,13 +1,13 @@
 #pragma once
 #include <QGraphicsObject>
 
-class StoreyView : public QGraphicsObject
+class DeckView : public QGraphicsObject
 {
 	Q_OBJECT
 
 	public:
-		StoreyView(QGraphicsObject* parent);
-		virtual ~StoreyView() = default;
+		DeckView(QGraphicsObject* parent);
+		virtual ~DeckView() = default;
 
 		virtual QRectF boundingRect() const override;
 		virtual void paint(QPainter *painter,

@@ -44,7 +44,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 		Q_OBJECT
 	private:
 		bool _state; // Active or Inactive
-		// QGraphicsObject* _pParent; // Storey for get bounding rect, width and height
+		// QGraphicsObject* _pParent; // Deck for get bounding rect, width and height
 		QList<PluginCurvePoint*> _points;  // Sort list of user's points
 		QList<PluginCurveSection*> _sections;  // List of sections (not sort)
 		const QRectF _limitRect;//=QRectF(0 + PluginCurvePoint::SHAPERADIUS,

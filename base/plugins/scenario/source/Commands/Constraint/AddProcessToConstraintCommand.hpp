@@ -8,7 +8,7 @@
 /**
  * @brief The AddProcessToConstraintCommand class
  *
- * For now this command creates a new storey in the current constraintcontentmodel with a new processviewmodel inside
+ * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
  */
 // TODO Rename in AddProcessToBox.
 class AddProcessToConstraintCommand : public iscore::SerializableCommand
@@ -31,7 +31,7 @@ class AddProcessToConstraintCommand : public iscore::SerializableCommand
 
 		int m_createdProcessId{};
 /*
-		int m_createdStoreyId{};
+		int m_createdDeckId{};
 		int m_createdProcessViewModelId{};
 		int m_contentModelId{};
 */

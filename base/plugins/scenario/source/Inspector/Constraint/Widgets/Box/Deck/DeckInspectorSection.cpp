@@ -6,7 +6,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
 
@@ -15,7 +15,7 @@
 using namespace Scenario::Command;
 
 DeckInspectorSection::DeckInspectorSection(QString name,
-										   StoreyModel* deck,
+										   DeckModel* deck,
 										   BoxInspectorSection* parentBox):
 	InspectorSectionWidget{name, parentBox},
 	m_model{deck}
@@ -23,10 +23,10 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 	m_pvmSection = new InspectorSectionWidget{"Process View Models", this};  // TODO Make a custom widget.
 	m_pvmSection->setObjectName("ProcessViewModels");
 
-	connect(m_model,	&StoreyModel::processViewModelCreated,
+	connect(m_model,	&DeckModel::processViewModelCreated,
 			this,		&DeckInspectorSection::on_processViewModelCreated);
 
-	connect(m_model,	&StoreyModel::processViewModelRemoved,
+	connect(m_model,	&DeckModel::processViewModelRemoved,
 			this,		&DeckInspectorSection::on_processViewModelRemoved);
 
 	for(auto& pvm : m_model->processViewModels())

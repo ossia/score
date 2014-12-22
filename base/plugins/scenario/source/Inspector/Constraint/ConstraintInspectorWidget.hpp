@@ -5,7 +5,7 @@
 
 class ConstraintModel;
 class BoxModel;
-class StoreyModel;
+class DeckModel;
 class ProcessSharedModelInterface;
 
 class BoxWidget;

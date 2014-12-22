@@ -1,6 +1,6 @@
 #include "ScenarioProcessViewModel.hpp"
 
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 
@@ -32,10 +32,10 @@ ScenarioProcessSharedModel* ScenarioProcessViewModel::model()
 // This breaks encapsulation :'(
 ConstraintModel* ScenarioProcessViewModel::parentConstraint() const
 {
-	auto storey = dynamic_cast<StoreyModel*>(parent());
-	if(storey)
+	auto deck = dynamic_cast<DeckModel*>(parent());
+	if(deck)
 	{
-		return storey->parentConstraint();
+		return deck->parentConstraint();
 	}
 
 	return nullptr;

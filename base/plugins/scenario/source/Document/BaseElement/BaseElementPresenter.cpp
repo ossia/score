@@ -17,7 +17,7 @@ using namespace Scenario;
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 void testInit(ConstraintModel* m)
@@ -48,7 +48,7 @@ void testInit(ConstraintModel* m)
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
-			{"StoreyModel", deckId}
+			{"DeckModel", deckId}
 		}, scenarioId))->redo();
 }
 

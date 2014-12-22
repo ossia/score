@@ -1,6 +1,6 @@
 #include "RemoveProcessViewFromDeck.hpp"
 
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
@@ -15,7 +15,7 @@ RemoveProcessViewFromDeck::RemoveProcessViewFromDeck(ObjectPath&& boxPath,
 	m_path{boxPath},
 	m_processViewId{processViewId}
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	auto pvm = deck->processViewModel(m_processViewId);
 	{
 		QDataStream s(&m_serializedProcessViewData, QIODevice::WriteOnly);
@@ -29,7 +29,7 @@ RemoveProcessViewFromDeck::RemoveProcessViewFromDeck(ObjectPath&& boxPath,
 
 void RemoveProcessViewFromDeck::undo()
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessViewData, QIODevice::ReadOnly);
 		deck->createProcessViewModel(s, m_sharedModelId);
@@ -38,7 +38,7 @@ void RemoveProcessViewFromDeck::undo()
 
 void RemoveProcessViewFromDeck::redo()
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->deleteProcessViewModel(m_processViewId);
 }
 

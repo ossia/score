@@ -5,7 +5,7 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 #include <core/tools/ObjectPath.hpp>
-#include <Document/Constraint/Box/Storey/StoreyModel.hpp>
+#include <Document/Constraint/Box/Deck/DeckModel.hpp>
 
 
 class ConstraintModelTests: public QObject
@@ -18,7 +18,7 @@ class ConstraintModelTests: public QObject
 
 	private slots:
 
-		void CreateStoreyTest()
+		void CreateDeckTest()
 		{
 			ConstraintModel model{0, this};
 			auto content_id = getNextId(model.boxes());
@@ -26,13 +26,13 @@ class ConstraintModelTests: public QObject
 			auto content = model.box(content_id);
 			QVERIFY(content != nullptr);
 
-			auto storey_id = getNextId(content->storeys());
-			content->createStorey(storey_id);
-			auto storey = content->storey(storey_id);
-			QVERIFY(storey != nullptr);
+			auto deck_id = getNextId(content->decks());
+			content->createDeck(deck_id);
+			auto deck = content->deck(deck_id);
+			QVERIFY(deck != nullptr);
 		}
 
-		void DeleteStoreyTest()
+		void DeleteDeckTest()
 		{
 			/////
 			{
@@ -41,9 +41,9 @@ class ConstraintModelTests: public QObject
 				model.createBox(content_id);
 				auto content = model.box(content_id);
 
-				auto storey_id = getNextId(content->storeys());
-				content->createStorey(storey_id);
-				content->deleteStorey(storey_id);
+				auto deck_id = getNextId(content->decks());
+				content->createDeck(deck_id);
+				content->deleteDeck(deck_id);
 				model.removeBox(content_id);
 			}
 
@@ -54,9 +54,9 @@ class ConstraintModelTests: public QObject
 				model.createBox(content_id);
 				auto content = model.box(content_id);
 
-				content->createStorey(getNextId(content->storeys()));
-				content->createStorey(getNextId(content->storeys()));
-				content->createStorey(getNextId(content->storeys()));
+				content->createDeck(getNextId(content->decks()));
+				content->createDeck(getNextId(content->decks()));
+				content->createDeck(getNextId(content->decks()));
 				model.removeBox(content_id);
 			}
 		}

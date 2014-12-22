@@ -8,7 +8,7 @@
 /**
  * @brief The AddProcessToConstraintCommand class
  *
- * For now this command creates a new storey in the current constraintcontentmodel with a new processviewmodel inside
+ * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
  */
 // TODO Rename in AddProcessToBox.
 class ResizeDeckVerticallyCommand : public iscore::SerializableCommand

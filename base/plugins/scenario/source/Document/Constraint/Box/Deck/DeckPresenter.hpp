@@ -1,23 +1,23 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 
-class StoreyModel;
-class StoreyView;
+class DeckModel;
+class DeckView;
 namespace iscore
 {
 	class SerializableCommand;
 }
 class ProcessPresenterInterface;
 class ProcessViewModelInterface;
-class StoreyPresenter : public NamedObject
+class DeckPresenter : public NamedObject
 {
 	Q_OBJECT
 
 	public:
-		StoreyPresenter(StoreyModel* model,
-						StoreyView* view,
+		DeckPresenter(DeckModel* model,
+						DeckView* view,
 						QObject* parent);
-		virtual ~StoreyPresenter();
+		virtual ~DeckPresenter();
 
 		int id() const;
 		int height() const; // Return the height of the view
@@ -51,11 +51,11 @@ class StoreyPresenter : public NamedObject
 	private:
 		void on_processViewModelCreated_impl(ProcessViewModelInterface*);
 
-		StoreyModel* m_model;
-		StoreyView* m_view;
+		DeckModel* m_model;
+		DeckView* m_view;
 		QVector<ProcessPresenterInterface*> m_processes;
 
 		// Maybe move this out of the state of the presenter ?
-		int m_currentResizingValue{}; // Used when the storeyView is being resized.
+		int m_currentResizingValue{}; // Used when the deckView is being resized.
 };
 

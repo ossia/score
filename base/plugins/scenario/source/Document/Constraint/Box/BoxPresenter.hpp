@@ -1,10 +1,10 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 
-class StoreyPresenter;
+class DeckPresenter;
 class BoxModel;
 class BoxView;
-class StoreyModel;
+class DeckModel;
 
 namespace iscore
 {
@@ -31,19 +31,19 @@ class BoxPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
-		void on_storeyCreated(int storeyId);
-		void on_storeyRemoved(int storeyId);
+		void on_deckCreated(int deckId);
+		void on_deckRemoved(int deckId);
 
 		void on_askUpdate();
 
 	private:
-		void on_storeyCreated_impl(StoreyModel* m);
+		void on_deckCreated_impl(DeckModel* m);
 
 		// Updates the shape of the view
 		void updateShape();
 
 		BoxModel* m_model;
 		BoxView* m_view;
-		std::vector<StoreyPresenter*> m_decks;
+		std::vector<DeckPresenter*> m_decks;
 };
 

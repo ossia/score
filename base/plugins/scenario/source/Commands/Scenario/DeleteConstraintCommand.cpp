@@ -62,7 +62,7 @@ void EmptyConstraintBoxCommand::redo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 
-	// Deleting all the processes is enough : since the storeys become empty,
+	// Deleting all the processes is enough : since the decks become empty,
 	// they get deleted, and since the boxes become empty, they get deleted too.
 
 	// We make a copy because the elements get erased of the original vector.

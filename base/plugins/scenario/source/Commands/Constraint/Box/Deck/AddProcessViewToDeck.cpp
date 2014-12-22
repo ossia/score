@@ -1,6 +1,6 @@
 #include "AddProcessViewToDeck.hpp"
 
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
@@ -15,19 +15,19 @@ AddProcessViewToDeck::AddProcessViewToDeck(ObjectPath&& deckPath,
 	m_path{deckPath},
 	m_sharedModelId{sharedModelId}
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	m_createdProcessViewId = getNextId(deck->processViewModels());
 }
 
 void AddProcessViewToDeck::undo()
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->deleteProcessViewModel(m_createdProcessViewId);
 }
 
 void AddProcessViewToDeck::redo()
 {
-	auto deck = static_cast<StoreyModel*>(m_path.find());
+	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->createProcessViewModel(m_sharedModelId,
 								 m_createdProcessViewId);
 }

@@ -1,4 +1,4 @@
-#include "StoreyModel.hpp"
+#include "DeckModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -10,28 +10,28 @@
 
 #include <QDebug>
 
-QDataStream& operator << (QDataStream& s, const StoreyModel& storey)
+QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 {
 	qDebug(Q_FUNC_INFO);
-	s << static_cast<const IdentifiedObject&>(storey);
+	s << static_cast<const IdentifiedObject&>(deck);
 
-	s << storey.m_editedProcessId;
+	s << deck.m_editedProcessId;
 
-	s << (int) storey.m_processViewModels.size();
-	for(auto& pvm : storey.m_processViewModels)
+	s << (int) deck.m_processViewModels.size();
+	for(auto& pvm : deck.m_processViewModels)
 	{
 		s << pvm->sharedProcessId();
 		s << *pvm;
 	}
 
-	s << storey.height()
-	  << storey.position();
+	s << deck.height()
+	  << deck.position();
 
 	return s;
 }
 
 
-QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
+QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 {
 	qDebug() << Q_FUNC_INFO;
 	int editedProcessId;
@@ -43,36 +43,36 @@ QDataStream& operator >> (QDataStream& s, StoreyModel& storey)
 	{
 		int sharedprocess_id;
 		s >> sharedprocess_id;
-		storey.createProcessViewModel(s, sharedprocess_id);
+		deck.createProcessViewModel(s, sharedprocess_id);
 	}
 
 	int height;
 	int position;
 	s >> height
 	  >> position;
-	storey.setHeight(height);
-	storey.setPosition(position);
+	deck.setHeight(height);
+	deck.setPosition(position);
 
-	storey.selectForEdition(editedProcessId);
+	deck.selectForEdition(editedProcessId);
 
 	return s;
 }
 
-StoreyModel::StoreyModel(QDataStream& s, BoxModel* parent):
-	IdentifiedObject{s, "StoreyModel", parent}
+DeckModel::DeckModel(QDataStream& s, BoxModel* parent):
+	IdentifiedObject{s, "DeckModel", parent}
 {
 	s >> *this;
 }
 
-StoreyModel::StoreyModel(int position, int id, BoxModel* parent):
-	IdentifiedObject{id, "StoreyModel", parent},
+DeckModel::DeckModel(int position, int id, BoxModel* parent):
+	IdentifiedObject{id, "DeckModel", parent},
 	m_position{position}
 {
 
 }
 
 // TODO refactor this like in the presenter classes with _impl.
-int StoreyModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
+int DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
@@ -84,7 +84,7 @@ int StoreyModel::createProcessViewModel(int sharedProcessId, int newProcessViewM
 	return viewmodel->id();
 }
 
-int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
+int DeckModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 {
 	qDebug() << Q_FUNC_INFO;
 	// Search the corresponding process in the parent constraint.
@@ -97,13 +97,13 @@ int StoreyModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
 	return viewmodel->id();
 }
 
-void StoreyModel::deleteProcessViewModel(int processViewId)
+void DeckModel::deleteProcessViewModel(int processViewId)
 {
 	removeById(m_processViewModels, processViewId);
 	emit processViewModelRemoved(processViewId);
 }
 
-void StoreyModel::selectForEdition(int processViewId)
+void DeckModel::selectForEdition(int processViewId)
 {
 	if(processViewId != m_editedProcessId)
 	{
@@ -112,17 +112,17 @@ void StoreyModel::selectForEdition(int processViewId)
 	}
 }
 
-const std::vector<ProcessViewModelInterface*>&StoreyModel::processViewModels() const
+const std::vector<ProcessViewModelInterface*>&DeckModel::processViewModels() const
 {
 	return m_processViewModels;
 }
 
-ProcessViewModelInterface*StoreyModel::processViewModel(int processViewModelId) const
+ProcessViewModelInterface*DeckModel::processViewModel(int processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
 }
 
-void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
+void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 {
 	// We HAVE to do a copy here because deleteProcessViewModel use the erase-remove idiom.
 	auto viewmodels = m_processViewModels;
@@ -136,7 +136,7 @@ void StoreyModel::on_deleteSharedProcessModel(int sharedProcessId)
 	}
 }
 
-void StoreyModel::setHeight(int arg)
+void DeckModel::setHeight(int arg)
 {
 	if (m_height != arg) {
 		m_height = arg;
@@ -144,7 +144,7 @@ void StoreyModel::setHeight(int arg)
 	}
 }
 
-void StoreyModel::setPosition(int arg)
+void DeckModel::setPosition(int arg)
 {
 	if (m_position == arg)
 		return;
@@ -153,19 +153,19 @@ void StoreyModel::setPosition(int arg)
 	emit positionChanged(arg);
 }
 
-ConstraintModel* StoreyModel::parentConstraint() const
+ConstraintModel* DeckModel::parentConstraint() const
 {
 	return static_cast<ConstraintModel*>(parent()->parent());
 	// TODO Is there a better way to do this ? Without breaking encapsulation ?
-	// And without generating another ton of code from constraintmodel to storeymodel ?
+	// And without generating another ton of code from constraintmodel to deckmodel ?
 }
 
-int StoreyModel::height() const
+int DeckModel::height() const
 {
 	return m_height;
 }
 
-int StoreyModel::position() const
+int DeckModel::position() const
 {
 	return m_position;
 }

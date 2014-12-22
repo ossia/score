@@ -2,9 +2,9 @@
 
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
-#include "Document/Constraint/Box/Storey/StoreyPresenter.hpp"
-#include "Document/Constraint/Box/Storey/StoreyView.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
+#include "Document/Constraint/Box/Deck/DeckView.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
@@ -19,17 +19,17 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	m_view{view}
 {
 	qDebug() << Q_FUNC_INFO << m_model->decks().size();
-	for(auto& storeyModel : m_model->decks())
+	for(auto& deckModel : m_model->decks())
 	{
-		on_storeyCreated_impl(storeyModel);
+		on_deckCreated_impl(deckModel);
 	}
 
 	on_askUpdate();
 
 	connect(m_model,	&BoxModel::deckCreated,
-			this,		&BoxPresenter::on_storeyCreated);
+			this,		&BoxPresenter::on_deckCreated);
 	connect(m_model,	&BoxModel::deckRemoved,
-			this,		&BoxPresenter::on_storeyRemoved);
+			this,		&BoxPresenter::on_deckRemoved);
 }
 
 BoxPresenter::~BoxPresenter()
@@ -41,10 +41,10 @@ BoxPresenter::~BoxPresenter()
 
 int BoxPresenter::height() const
 {
-	int totalHeight = 25; // No storey -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
-	for(auto& storey : m_decks)
+	int totalHeight = 25; // No deck -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
+	for(auto& deck : m_decks)
 	{
-		totalHeight += storey->height() + 5;
+		totalHeight += deck->height() + 5;
 	}
 	return totalHeight;
 }
@@ -55,36 +55,36 @@ int BoxPresenter::id() const
 	return m_model->id();
 }
 
-void BoxPresenter::on_storeyCreated(int storeyId)
+void BoxPresenter::on_deckCreated(int deckId)
 {
-	on_storeyCreated_impl(m_model->deck(storeyId));
+	on_deckCreated_impl(m_model->deck(deckId));
 }
 
-void BoxPresenter::on_storeyCreated_impl(StoreyModel* storeyModel)
+void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 {
 	qDebug() << Q_FUNC_INFO;
-	auto storeyView = new StoreyView{m_view};
-	storeyView->setPos(5, 5);
-	auto storeyPres = new StoreyPresenter{storeyModel,
-					  storeyView,
+	auto deckView = new DeckView{m_view};
+	deckView->setPos(5, 5);
+	auto deckPres = new DeckPresenter{deckModel,
+					  deckView,
 					  this};
-	m_decks.push_back(storeyPres);
+	m_decks.push_back(deckPres);
 
 
-	connect(storeyPres, &StoreyPresenter::submitCommand,
+	connect(deckPres, &DeckPresenter::submitCommand,
 			this,		&BoxPresenter::submitCommand);
-	connect(storeyPres, &StoreyPresenter::elementSelected,
+	connect(deckPres, &DeckPresenter::elementSelected,
 			this,		&BoxPresenter::elementSelected);
 
-	connect(storeyPres, &StoreyPresenter::askUpdate,
+	connect(deckPres, &DeckPresenter::askUpdate,
 			this,		&BoxPresenter::on_askUpdate);
 
 	on_askUpdate();
 }
 
-void BoxPresenter::on_storeyRemoved(int storeyId)
+void BoxPresenter::on_deckRemoved(int deckId)
 {
-	removeFromVectorWithId(m_decks, storeyId);
+	removeFromVectorWithId(m_decks, deckId);
 	on_askUpdate();
 }
 
@@ -94,8 +94,8 @@ void BoxPresenter::updateShape()
 	m_view->setHeight(height());
 
 	// 1. Make an array with the Decks stored by their positions
-	vector<StoreyPresenter*> sortedDecks(m_decks.size());
-	for(StoreyPresenter* deck : m_decks)
+	vector<DeckPresenter*> sortedDecks(m_decks.size());
+	for(DeckPresenter* deck : m_decks)
 	{
 		sortedDecks[deck->position()] = deck;
 	}

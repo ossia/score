@@ -6,7 +6,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Storey/StoreyModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
