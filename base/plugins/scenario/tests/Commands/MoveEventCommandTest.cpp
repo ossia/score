@@ -1,6 +1,7 @@
 #include <QtTest/QtTest>
 
 #include <Commands/Scenario/MoveEventCommand.hpp>
+#include <Commands/Scenario/CreateEventCommand.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
@@ -16,31 +17,42 @@ class MoveEventCommandTest: public QObject
 
 	private slots:
 
-        void MoveCommandTest()
-        {
-            ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
-            EventData data{};
-            data.eventClickedId = scenar->startEvent()->id();
-            data.x = 10;
-            data.relativeY = 0.1;
+		void MoveCommandTest()
+		{
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			// 1. Create a new event (the first one cannot move since it does not have
+			// predecessors ?)
 
-            MoveEventCommand cmd(
-            {
-                {"ScenarioProcessSharedModel", {}},
-            }, data );
 
-			qDebug("\n============= Before");
+			CreateEventCommand create_ev_cmd(
+				{{"ScenarioProcessSharedModel", {}}},
+				10,
+				0.5);
+
+			create_ev_cmd.redo();
+			auto eventid = create_ev_cmd.m_createdEventId;
+
+
+			EventData data{};
+			data.eventClickedId = eventid;
+			data.x = 10;
+			data.relativeY = 0.1;
+
+			MoveEventCommand cmd(
+			{
+				{"ScenarioProcessSharedModel", {}},
+			}, data );
+
 			cmd.redo();
-			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
+			QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
-			qDebug("\n\n============= Undo");
 			cmd.undo();
-			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.5);
+			QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.5);
 
-			qDebug("\n\n============= Redo");
 			cmd.redo();
-			QCOMPARE(scenar->startEvent()->heightPercentage(), 0.1);
+			QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
+			// TODO test an horizontal displacement.
 
 			// Delete them else they stay in qApp !
 

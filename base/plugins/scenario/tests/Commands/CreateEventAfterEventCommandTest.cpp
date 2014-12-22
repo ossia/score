@@ -67,7 +67,14 @@ class CreateEventAfterEventCommandTest: public QObject
 			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 			cmd.undo();
-			QCOMPARE(scenar->event(cmd.m_createdEventId), static_cast<EventModel*>(nullptr));
+			QCOMPARE((int)scenar->events().size(), 1);
+			try
+			{
+				scenar->event(cmd.m_createdEventId);
+				QFAIL("Event call did not throw!");
+			}
+			catch(...) { }
+
 			cmd.redo();
 
 			QCOMPARE((int)scenar->events().size(), 2);

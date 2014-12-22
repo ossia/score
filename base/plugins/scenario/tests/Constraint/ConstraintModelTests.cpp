@@ -43,7 +43,7 @@ class ConstraintModelTests: public QObject
 
 				auto deck_id = getNextId(content->decks());
 				content->createDeck(deck_id);
-				content->deleteDeck(deck_id);
+				content->removeDeck(deck_id);
 				model.removeBox(content_id);
 			}
 
@@ -97,7 +97,12 @@ class ConstraintModelTests: public QObject
 							{"ConstraintModel", int_0_id},
 							{"ScenarioProcessSharedModel", 7}
 						 };
-			QCOMPARE(p2.find(), static_cast<QObject*>(nullptr));
+			try
+			{
+				p2.find();
+				QFAIL("Exception not thrown");
+			}
+			catch(...) { }
 
 			ObjectPath p3{
 							{"OriginalConstraint", {}},
@@ -105,7 +110,12 @@ class ConstraintModelTests: public QObject
 							{"ConstraintModel0xBADBAD", int_0_id},
 							{"ScenarioProcessSharedModel", 1}
 						};
-			QCOMPARE(p3.find(), static_cast<QObject*>(nullptr));
+			try
+			{
+				p3.find();
+				QFAIL("Exception not thrown");
+			}
+			catch(...) { }
 
 			ObjectPath p4{
 							{"OriginalConstraint", {}},
@@ -114,7 +124,12 @@ class ConstraintModelTests: public QObject
 							{"ScenarioProcessSharedModel", 1},
 							{"ScenarioProcessSharedModel", 1}
 						};
-			QCOMPARE(p4.find(), static_cast<QObject*>(nullptr));
+			try
+			{
+				p4.find();
+				QFAIL("Exception not thrown");
+			}
+			catch(...) { }
 		}
 
 };

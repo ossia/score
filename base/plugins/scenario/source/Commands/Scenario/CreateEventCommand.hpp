@@ -15,6 +15,7 @@ struct EventModelData;
 class CreateEventCommand : public iscore::SerializableCommand
 {
 		friend class CreateEventAfterEventCommandTest;
+		friend class MoveEventCommandTest;
 	public:
 		CreateEventCommand();
 		CreateEventCommand(ObjectPath&& scenarioPath, int time, double heightPosition);
