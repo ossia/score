@@ -25,21 +25,21 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 
-ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* model,
+ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
 	ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
-	m_viewModel{static_cast<ScenarioProcessViewModel*>(model)},
+	m_viewModel{static_cast<ScenarioProcessViewModel*>(process_view_model)},
 	m_view{static_cast<ScenarioProcessView*>(view)}
 {
 	/////// Setup of existing data
 	// For each constraint & event, display' em
-	for(auto constraint_model : m_viewModel->model()->constraints())
+	for(auto constraint_model : static_cast<ScenarioProcessSharedModel*>(m_viewModel->sharedProcessModel())->constraints())
 	{
 		on_constraintCreated_impl(constraint_model);
 	}
 
-	for(auto event_model : m_viewModel->model()->events())
+	for(auto event_model : model(m_viewModel)->events())
 	{
 		on_eventCreated_impl(event_model);
 	}
@@ -85,7 +85,7 @@ int ScenarioProcessPresenter::viewModelId() const
 
 int ScenarioProcessPresenter::modelId() const
 {
-	return m_viewModel->model()->id();
+	return m_viewModel->sharedProcessModel()->id();
 }
 
 int ScenarioProcessPresenter::currentlySelectedEvent() const
@@ -95,12 +95,12 @@ int ScenarioProcessPresenter::currentlySelectedEvent() const
 
 void ScenarioProcessPresenter::on_eventCreated(int eventId)
 {
-	on_eventCreated_impl(m_viewModel->model()->event(eventId));
+	on_eventCreated_impl(model(m_viewModel)->event(eventId));
 }
 
 void ScenarioProcessPresenter::on_constraintCreated(int constraintId)
 {
-	on_constraintCreated_impl(m_viewModel->model()->constraint(constraintId));
+	on_constraintCreated_impl(model(m_viewModel)->constraint(constraintId));
 }
 
 void ScenarioProcessPresenter::on_eventDeleted(int eventId)
@@ -164,7 +164,7 @@ void ScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
 {
 	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
-																 m_viewModel->model()),
+																 m_viewModel->sharedProcessModel()),
 									 point.x(),
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
 	this->submitCommand(cmd);
@@ -241,11 +241,11 @@ void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 
 void ScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
 {
-	data.x = data.x - m_viewModel->model()->event(data.eventClickedId)->date();
+	data.x = data.x - model(m_viewModel)->event(data.eventClickedId)->date();
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
-																		   m_viewModel->model()),
+																		   m_viewModel->sharedProcessModel()),
 												data);
 
 	submitCommand(cmd);
@@ -256,7 +256,7 @@ void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
-															   m_viewModel->model()),
+															   m_viewModel->sharedProcessModel()),
 									data);
 	submitCommand(cmd);
 }
@@ -266,7 +266,7 @@ void ScenarioProcessPresenter::moveConstraint(ConstraintData data)
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new MoveConstraintCommand(ObjectPath::pathFromObject("BaseConstraintModel",
-															   m_viewModel->model()),
+																	m_viewModel->sharedProcessModel()),
 									data);
 
 	submitCommand(cmd);

@@ -35,7 +35,6 @@ class QDataStream;
 
 			virtual ~ProcessSharedModelInterface() = default;
 			virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
-															 int sharedProcessId,
 															 QObject* parent) = 0;
 			virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
 															 QObject* parent) = 0;

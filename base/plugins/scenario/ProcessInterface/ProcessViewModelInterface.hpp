@@ -1,45 +1,39 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 
-//namespace iscore
-//{
-	/**
-	 * @brief The ProcessViewModelInterface class
-	 *
-	 * Interface to implement to make a process view model.
-	 */
-	class ProcessViewModelInterface: public IdentifiedObject
-	{
-		public:
-			// We should save the path instead of the shared process id.. Or directly a pointer.
-			ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, int sharedProcessId):
-				IdentifiedObject{viewModelId, name, parent},
-				m_sharedProcessId{sharedProcessId}
-			{
+class ProcessSharedModelInterface;
 
-			}
+/**
+ * @brief The ProcessViewModelInterface class
+ *
+ * Interface to implement to make a process view model.
+ */
+class ProcessViewModelInterface: public IdentifiedObject
+{
+	public:
+		ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, ProcessSharedModelInterface* sharedProcess):
+			IdentifiedObject{viewModelId, name, parent},
+			m_sharedProcessModel{sharedProcess}
+		{
 
-			virtual ~ProcessViewModelInterface() = default;
+		}
 
-			int sharedProcessId() const
-			{ return m_sharedProcessId; }
-			void setSharedProcessId(int id)
-			{ m_sharedProcessId = id; }
+		virtual ~ProcessViewModelInterface() = default;
 
-			virtual void serialize(QDataStream&) const = 0;
-			virtual void deserialize(QDataStream&) = 0;
+		ProcessSharedModelInterface* sharedProcessModel() const
+		{ return m_sharedProcessModel; }
 
-		private:
-			int m_sharedProcessId{};
-	};
+		virtual void serialize(QDataStream&) const = 0;
+		virtual void deserialize(QDataStream&) = 0;
+
+	private:
+		ProcessSharedModelInterface* m_sharedProcessModel{};
+};
 
 inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface& p)
 {
-	qDebug(Q_FUNC_INFO);
 	s << static_cast<const IdentifiedObject&>(p)
-	  << p.objectName()
-	  << p.sharedProcessId();
-
+	  << p.objectName();
 
 	p.serialize(s);
 	return s;
@@ -47,17 +41,26 @@ inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface&
 
 inline QDataStream& operator >>(QDataStream& s, ProcessViewModelInterface& p)
 {
-	qDebug(Q_FUNC_INFO);
 	QString name;
-	int sharedProcessId;
 	s >> static_cast<IdentifiedObject&>(p)
-	  >> name
-	  >> sharedProcessId;
+	  >> name;
 
 	p.setObjectName(name);
-	p.setSharedProcessId(sharedProcessId);
 
 	p.deserialize(s);
 	return s;
 }
 
+
+
+template<typename T>
+/**
+ * @brief model Returns the casted version of a shared model given a view model.
+ * @param viewModel A view model which has a directive "using model_type = MySharedModelType;" in its class body
+ *
+ * @return a pointer of the correct type.
+ */
+typename T::model_type* model(T* viewModel)
+{
+	return static_cast<typename T::model_type*>(viewModel->sharedProcessModel());
+}

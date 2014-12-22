@@ -19,7 +19,7 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 	s << (int) deck.m_processViewModels.size();
 	for(auto& pvm : deck.m_processViewModels)
 	{
-		s << pvm->sharedProcessId();
+		s << pvm->sharedProcessModel()->id();
 		s << *pvm;
 	}
 
@@ -74,7 +74,7 @@ int DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewMod
 {
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(newProcessViewModelId, sharedProcessId, this);
+	auto viewmodel = process->makeViewModel(newProcessViewModelId, this);
 
 	m_processViewModels.push_back(viewmodel);
 
@@ -126,7 +126,7 @@ void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 
 	for(auto process_vm : viewmodels)
 	{
-		if(process_vm->sharedProcessId() == sharedProcessId)
+		if(process_vm->sharedProcessModel()->id() == sharedProcessId)
 		{
 			deleteProcessViewModel(process_vm->id());
 		}
@@ -165,4 +165,18 @@ int DeckModel::height() const
 int DeckModel::position() const
 {
 	return m_position;
+}
+
+
+
+
+ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm)
+{
+	auto deck = dynamic_cast<DeckModel*>(pvm->parent());
+	if(deck)
+	{
+		return deck->parentConstraint();
+	}
+
+	return nullptr;
 }

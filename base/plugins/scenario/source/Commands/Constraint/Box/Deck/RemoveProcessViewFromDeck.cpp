@@ -24,7 +24,7 @@ RemoveProcessViewFromDeck::RemoveProcessViewFromDeck(ObjectPath&& boxPath,
 		s << *pvm;
 	}
 
-	m_sharedModelId = pvm->sharedProcessId();
+	m_sharedModelId = pvm->sharedProcessModel()->id();
 }
 
 void RemoveProcessViewFromDeck::undo()

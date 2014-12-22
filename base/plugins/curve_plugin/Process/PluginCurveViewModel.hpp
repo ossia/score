@@ -5,22 +5,18 @@ class PluginCurveModel;
 class PluginCurveViewModel : public ProcessViewModelInterface
 {
 	public:
-		// Pointer : VERY BAD for serialization / deserialization.
 		PluginCurveViewModel(int id,
-							 int processId,
 							 PluginCurveModel* model,
 							 QObject* parent);
-		PluginCurveModel* model();
 
 		// ProcessViewModelInterface interface
 	public:
 		virtual void serialize(QDataStream&) const
 		{
+			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 		}
 		virtual void deserialize(QDataStream&)
 		{
+			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 		}
-
-	private:
-		PluginCurveModel* m_model{};
 };

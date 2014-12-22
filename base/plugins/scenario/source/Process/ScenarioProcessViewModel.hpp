@@ -13,15 +13,14 @@ class ScenarioProcessViewModel : public ProcessViewModelInterface
 	Q_OBJECT
 
 	public:
-		ScenarioProcessViewModel(int id, int processId, QObject* parent);
-		ScenarioProcessViewModel(QDataStream& s, QObject* parent);
+		using model_type = ScenarioProcessSharedModel;
+
+		ScenarioProcessViewModel(int id, ScenarioProcessSharedModel* model, QObject* parent);
+		ScenarioProcessViewModel(QDataStream& s, ScenarioProcessSharedModel* model, QObject* parent);
 		virtual ~ScenarioProcessViewModel() = default;
 
 		virtual void serialize(QDataStream&) const override { }
 		virtual void deserialize(QDataStream&) override { }
-
-		ScenarioProcessSharedModel* model();
-		BoxModel* constraints();
 
 	signals: // Transmitted from ScenarioProcessSharedModel. They might become slots.
 		void eventCreated(int eventId);
@@ -33,8 +32,6 @@ class ScenarioProcessViewModel : public ProcessViewModelInterface
 
 
 	private:
-		ConstraintModel* parentConstraint() const;
-
 		QMap<int, int> m_contentMapping; // Map between constraints and constraints contents.
 };
 

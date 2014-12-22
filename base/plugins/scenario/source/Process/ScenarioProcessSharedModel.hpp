@@ -24,7 +24,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		ScenarioProcessSharedModel(int id, QObject* parent);
 		ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
 		virtual ~ScenarioProcessSharedModel() = default;
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId, int processId, QObject* parent) override;
+		virtual ProcessViewModelInterface* makeViewModel(int viewModelId, QObject* parent) override;
 		virtual ProcessViewModelInterface* makeViewModel(QDataStream&, QObject* parent) override;
 
 		virtual QString processName() const override
@@ -91,6 +91,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		EventModel* endEvent();
 
 		// For the presenter :
+		// TODO pass them by copy instead. It will be less painful.
 		const std::vector<ConstraintModel*> constraints() const
 		{ return m_constraints; }
 		const std::vector<EventModel*> events() const

@@ -75,3 +75,10 @@ class DeckModel : public IdentifiedObject
 		int m_position{};
 };
 
+/**
+ * @brief parentConstraint Utility function to get the parent constraint of a process view model
+ * @param pvm Process view model pointer
+ *
+ * @return A pointer to the parent constraint if there is one, or nullptr.
+ */
+ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm);

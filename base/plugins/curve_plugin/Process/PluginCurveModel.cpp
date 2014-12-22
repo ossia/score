@@ -90,7 +90,7 @@ int dichotomousSearch (QList<T1*> list, T2 value, int first, int last, bool (*su
 	}
 
 	if ( (supFunc == nullptr && *list.at (first) >= value ) ||
-	        (supFunc != nullptr && supFunc (*list.at (first), value) ) )
+			(supFunc != nullptr && supFunc (*list.at (first), value) ) )
 //  if (*list.at(first) >= value )
 	{
 		return -1;
@@ -99,7 +99,7 @@ int dichotomousSearch (QList<T1*> list, T2 value, int first, int last, bool (*su
 	if (last - first <= 1)
 	{
 		if ( (infFunc == nullptr && *list.at (last) <= value ) ||
-		        (infFunc != nullptr && infFunc (*list.at (last), value) ) )
+				(infFunc != nullptr && infFunc (*list.at (last), value) ) )
 //      if ( *(list.at(last)) <= value )
 		{
 			return last;
@@ -113,7 +113,7 @@ int dichotomousSearch (QList<T1*> list, T2 value, int first, int last, bool (*su
 	int mid = (first + last) / 2;
 
 	if ( (supFunc == nullptr && *list.at (mid) >= value ) ||
-	        (supFunc != nullptr && supFunc (*list.at (mid), value) ) )
+			(supFunc != nullptr && supFunc (*list.at (mid), value) ) )
 //  if (*list.at(mid)>=value)
 	{
 		return (dichotomousSearch (list, value, first, mid - 1, supFunc, infFunc) );
@@ -235,11 +235,9 @@ void PluginCurveModel::sectionRemoveOne (PluginCurveSection* section)
 }
 
 ProcessViewModelInterface* PluginCurveModel::makeViewModel(int viewModelId,
-														   int sharedProcessId,
 														   QObject* parent)
 {
 	return new PluginCurveViewModel{viewModelId,
-									sharedProcessId,
 									this,
 									parent};
 }
@@ -247,6 +245,7 @@ ProcessViewModelInterface* PluginCurveModel::makeViewModel(int viewModelId,
 ProcessViewModelInterface* PluginCurveModel::makeViewModel(QDataStream& s,
 														   QObject* parent)
 {
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 	return nullptr;
 }
 

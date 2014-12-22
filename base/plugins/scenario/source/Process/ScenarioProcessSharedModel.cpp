@@ -84,10 +84,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 }
 
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
-																	 int processId,
 																	 QObject* parent)
 {
-	auto scen = new ScenarioProcessViewModel(viewModelId, processId, parent);
+	auto scen = new ScenarioProcessViewModel(viewModelId, this, parent);
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
 			scen, &ScenarioProcessViewModel::eventCreated);
 	connect(this, &ScenarioProcessSharedModel::eventDeleted,
@@ -104,9 +103,10 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 	return scen;
 }
 
-ProcessViewModelInterface*ScenarioProcessSharedModel::makeViewModel(QDataStream& s, QObject* parent)
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(QDataStream& s,
+																	 QObject* parent)
 {
-	return new ScenarioProcessViewModel(s, parent);
+	return new ScenarioProcessViewModel(s, this, parent);
 	// TODO do the connections here too.
 }
 

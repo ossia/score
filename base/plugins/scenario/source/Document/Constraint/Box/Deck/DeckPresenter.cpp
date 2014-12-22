@@ -125,10 +125,7 @@ void DeckPresenter::on_bottomHandleReleased()
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
-	auto procname = m_model
-						->parentConstraint()
-						->process(proc_vm->sharedProcessId())
-						->processName();
+	auto procname = proc_vm->sharedProcessModel()->processName();
 
 	auto factory = ProcessList::getFactory(procname);
 

@@ -54,7 +54,7 @@ PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel
 											ProcessViewInterface* view,
 											QObject* parent):
 	ProcessPresenterInterface ("PluginCurvePresenter", parent),
-	_pModel (static_cast<PluginCurveViewModel*>(viewModel)->model()),
+	_pModel (static_cast<PluginCurveModel*>(static_cast<PluginCurveViewModel*>(viewModel)->sharedProcessModel())),
 	_pView (static_cast<PluginCurveView*>(view))
 {
 	// ** Initialisation **
