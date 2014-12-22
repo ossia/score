@@ -68,10 +68,12 @@ class ConstraintModel : public IdentifiedObject
 		OSSIA::TimeBox* apiObject()
 		{ return m_timeBox;}
 
-		// For the presenter :
-		const std::vector<BoxModel*>& boxes() const
+		// Copies are done because there might be a loop
+		// that might change the vector, and invalidate the
+		// iterators, leading to a crash quite difficult to debug.
+		std::vector<BoxModel*> boxes() const
 		{ return m_boxes; }
-		const std::vector<ProcessSharedModelInterface*>& processes() const
+		std::vector<ProcessSharedModelInterface*> processes() const
 		{ return m_processes; }
 
 		double heightPercentage() const;

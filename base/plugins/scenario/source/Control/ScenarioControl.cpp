@@ -46,6 +46,7 @@ void ScenarioControl::setPresenter(iscore::Presenter*)
 
 iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString name, QByteArray data)
 {
+	using namespace Scenario::Command;
 	// TODO call serialize() in Command(QByteArray&) constructor.
 	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
@@ -53,13 +54,13 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	{ cmd = new CreateEventCommand;}
 	else if(name == "CreateEventAfterEventCommand")
 	{cmd = new CreateEventAfterEventCommand;}
-	else if(name == "EmptyConstraintBoxCommand")
-	{cmd = new EmptyConstraintBoxCommand;}
+	else if(name == "ClearConstraint")
+	{cmd = new ClearConstraint;}
 	else if(name == "EmptyEventCommand")
 	{cmd = new EmptyEventCommand;}
 	else
 	{
-		qDebug() << Q_FUNC_INFO << "Warning : command received, but it could not be read.";
+		qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
 		return nullptr;
 	}
 

@@ -29,7 +29,7 @@ class DeckModel : public IdentifiedObject
 		virtual ~DeckModel() = default;
 
 		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
-		int createProcessViewModel(QDataStream& s,int sharedProcessId);
+		int createProcessViewModel(QDataStream& s, int sharedProcessId);
 		void deleteProcessViewModel(int processViewModelId);
 
 		/**

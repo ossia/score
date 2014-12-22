@@ -63,7 +63,7 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* pr
 			this,		 &ScenarioProcessPresenter::on_eventDeleted);
 	connect(m_viewModel, &ScenarioProcessViewModel::constraintCreated,
 			this,		 &ScenarioProcessPresenter::on_constraintCreated);
-	connect(m_viewModel, &ScenarioProcessViewModel::constraintDeleted,
+	connect(m_viewModel, &ScenarioProcessViewModel::constraintRemoved,
 			this,		 &ScenarioProcessPresenter::on_constraintDeleted);
 	connect(m_viewModel, &ScenarioProcessViewModel::eventMoved,
 			this,		 &ScenarioProcessPresenter::on_eventMoved);
@@ -199,6 +199,7 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 #include "Commands/DeleteMultipleElements.hpp"
 void ScenarioProcessPresenter::deleteSelection()
 {
+	using namespace Scenario::Command;
 	// 1. Select items
 	std::vector<ConstraintPresenter*> constraintsToRemove;
 	std::vector<EventPresenter*> eventsToRemove;
@@ -212,7 +213,7 @@ void ScenarioProcessPresenter::deleteSelection()
 	for(auto& constraint : m_constraints)
 	{
 		commands.push_back(
-					new EmptyConstraintBoxCommand(
+					new ClearConstraint(
 						ObjectPath::pathFromObject("BaseConstraintModel",
 												   constraint->model())));
 	}

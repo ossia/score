@@ -15,7 +15,7 @@ ScenarioPlugin::ScenarioPlugin():
 	iscore::FactoryInterface_QtInterface{},
 	m_control{new ScenarioControl{nullptr}}
 {
-	setObjectName("ScenarioPluginRework");
+	setObjectName("ScenarioPlugin");
 }
 
 

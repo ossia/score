@@ -13,34 +13,40 @@
 #include <QDebug>
 #include <QApplication>
 
-QDataStream& operator <<(QDataStream& s, const ConstraintModel& i)
+QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
 {
 	// Metadata
-	s	<< i.name()
-		<< i.comment()
-		<< i.color();
+	s	<< constraint.name()
+		<< constraint.comment()
+		<< constraint.color()
+		<< constraint.heightPercentage();
 
 	// Processes
-	s	<< (int) i.m_processes.size();
-	for(auto& process : i.m_processes)
+	s	<< (int) constraint.m_processes.size();
+	for(auto& process : constraint.m_processes)
 	{
 		s << process->processName();
 		s << *process;
 	}
 
-	// Contents
-	s	<<  (int) i.m_boxes.size();
-	for(auto& content : i.m_boxes)
+	// Boxes
+	s	<<  (int) constraint.m_boxes.size();
+	for(auto& content : constraint.m_boxes)
 	{
 		s << *content;
 	}
 
 	// Events
-	s	<< i.m_startEvent;
-	s	<< i.m_endEvent;
+	s	<< constraint.m_startEvent;
+	s	<< constraint.m_endEvent;
 
 	// API Object
 	// s << i.apiObject()->save();
+	// Things that should be queried from the API :
+	s << constraint.m_width
+	  << constraint.m_height
+	  << constraint.m_x;
+
 	return s;
 }
 
@@ -51,13 +57,13 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 	QString name;
 	QString comment;
 	QColor color;
-	s >> name >> comment >> color;
+	double heightPercentage;
+	s >> name >> comment >> color >> heightPercentage;
 	constraint.setName(name);
 	constraint.setComment(comment);
 	constraint.setColor(color);
+	constraint.setHeightPercentage(heightPercentage);
 
-
-	///// TODO Box should be just this part.
 	// Processes
 	int process_size;
 	s >> process_size;
@@ -66,7 +72,7 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 		constraint.createProcess(s);
 	}
 
-	// Contents
+	// Boxes
 	int content_models_size;
 	s >> content_models_size;
 	for(int i = 0; i < content_models_size; i++)
@@ -77,6 +83,11 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 	// Events
 	s >> constraint.m_startEvent;
 	s >> constraint.m_endEvent;
+
+	// Things that should be queried from the API :
+	s >> constraint.m_width
+	  >> constraint.m_height
+	  >> constraint.m_x;
 
 	return s;
 }

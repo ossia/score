@@ -37,6 +37,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// Creates an constraint between two pre-existing events
 		int createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
 
+
+		// TODO update the docs and remove the tuples and returns..
 		/**
 		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
 		 * @param startEventId Identifier of the start event of the new constraint
@@ -101,7 +103,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void eventCreated(int eventId);
 		void constraintCreated(int constraintId);
 		void eventDeleted(int eventId);
-		void constraintDeleted(int constraintId);
+		void constraintRemoved(int constraintId);
 		void eventMoved(int eventId);
 		void constraintMoved(int constraintId);
 

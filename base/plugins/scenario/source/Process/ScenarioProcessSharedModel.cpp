@@ -87,14 +87,21 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 																	 QObject* parent)
 {
 	auto scen = new ScenarioProcessViewModel(viewModelId, this, parent);
+	addViewModel(scen);
+
+
+	connect(scen, &ScenarioProcessViewModel::destroyed,
+			this, &ScenarioProcessSharedModel::removeViewModel);
+
+	connect(this, &ScenarioProcessSharedModel::constraintCreated,
+			scen, &ScenarioProcessViewModel::on_constraintCreated);
+	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
+			scen, &ScenarioProcessViewModel::on_constraintRemoved);
+
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
 			scen, &ScenarioProcessViewModel::eventCreated);
 	connect(this, &ScenarioProcessSharedModel::eventDeleted,
 			scen, &ScenarioProcessViewModel::eventDeleted);
-	connect(this, &ScenarioProcessSharedModel::constraintCreated,
-			scen, &ScenarioProcessViewModel::constraintCreated);
-	connect(this, &ScenarioProcessSharedModel::constraintDeleted,
-			scen, &ScenarioProcessViewModel::constraintDeleted);
 	connect(this, &ScenarioProcessSharedModel::eventMoved,
 			scen, &ScenarioProcessViewModel::eventMoved);
 	connect(this, &ScenarioProcessSharedModel::constraintMoved,
@@ -287,7 +294,7 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 #include <tools/utilsCPP11.hpp>
 void ScenarioProcessSharedModel::undo_createConstraintBetweenEvents(int constraintId)
 {
-	emit constraintDeleted(constraintId);
+	emit constraintRemoved(constraintId);
 	removeById(m_constraints, constraintId);
 }
 
@@ -306,7 +313,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 
 	// Constraint suppression
 	{
-		emit constraintDeleted(constraintId);
+		emit constraintRemoved(constraintId);
 		removeById(m_constraints, constraintId);
 	}
 }
@@ -333,7 +340,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constrai
 
 	// Constraint suppression
 	{
-		emit constraintDeleted(constraintId);
+		emit constraintRemoved(constraintId);
 		removeById(m_constraints, constraintId);
 	}
 
@@ -346,7 +353,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constrai
 	// First constraint suppression
 	{
 		auto first_event = event(constraint(start_constraint_id)->startEvent());
-		emit constraintDeleted(start_constraint->id());
+		emit constraintRemoved(start_constraint->id());
 		first_event->removeNextConstraint(start_constraint_id);
 		removeById(m_constraints, start_constraint->id());
 	}

@@ -19,13 +19,12 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 	s << (int) deck.m_processViewModels.size();
 	for(auto& pvm : deck.m_processViewModels)
 	{
-		s << pvm->sharedProcessModel()->id();
+		s << pvm->sharedProcessModel()->id(); // TODO put this in the qdatastream ctor of pvm interface
 		s << *pvm;
 	}
 
 	s << deck.height()
 	  << deck.position();
-
 	return s;
 }
 
@@ -39,7 +38,7 @@ QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 	s >> pvm_size;
 	for(int i = 0; i < pvm_size; i++)
 	{
-		int sharedprocess_id;
+		SettableIdentifier sharedprocess_id;
 		s >> sharedprocess_id;
 		deck.createProcessViewModel(s, sharedprocess_id);
 	}
@@ -66,7 +65,6 @@ DeckModel::DeckModel(int position, int id, BoxModel* parent):
 	IdentifiedObject{id, "DeckModel", parent},
 	m_position{position}
 {
-
 }
 
 // TODO refactor this like in the presenter classes with _impl.

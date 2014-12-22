@@ -38,3 +38,16 @@ void serializeVectorOfPointers(const InputVector& in, OutputVector& out)
 		out.push_back(arr);
 	}
 }
+
+
+#include <tuple>
+inline QDataStream& operator<<(QDataStream& s, const std::tuple<int,int,int>& tuple)
+{
+	s << std::get<0>(tuple) << std::get<1>(tuple) << std::get<2>(tuple);
+	return s;
+}
+inline QDataStream& operator>>(QDataStream& s, std::tuple<int,int,int>& tuple)
+{
+	s >> std::get<0>(tuple) >> std::get<1>(tuple) >> std::get<2>(tuple);
+	return s;
+}
