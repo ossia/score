@@ -2,6 +2,8 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class AddDeckToBoxTest;
+class AddProcessViewToDeckTest;
 namespace Scenario
 {
 	namespace Command
@@ -13,6 +15,8 @@ namespace Scenario
 		 */
 		class AddDeckToBox : public iscore::SerializableCommand
 		{
+				friend class ::AddDeckToBoxTest;
+				friend class ::AddProcessViewToDeckTest;
 			public:
 				AddDeckToBox(ObjectPath&& boxPath);
 

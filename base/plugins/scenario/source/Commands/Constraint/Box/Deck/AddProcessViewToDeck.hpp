@@ -2,6 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class AddProcessViewToDeckTest;
 namespace Scenario
 {
 	namespace Command
@@ -10,9 +11,11 @@ namespace Scenario
 		 * @brief The AddProcessViewToDeck class
 		 *
 		 * Adds a process view to a deck.
+		 * @todo rename in addprocessviewmodel
 		 */
 		class AddProcessViewToDeck : public iscore::SerializableCommand
 		{
+				friend class AddProcessViewToDeckTest;
 			public:
 				AddProcessViewToDeck(ObjectPath&& deckPath, int sharedModelId);
 

@@ -2,6 +2,8 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class AddBoxToConstraintTest;
+class AddProcessViewToDeckTest;
 namespace Scenario
 {
 	namespace Command
@@ -13,6 +15,8 @@ namespace Scenario
 		 */
 		class AddBoxToConstraint : public iscore::SerializableCommand
 		{
+				friend class ::AddProcessViewToDeckTest;
+				friend class ::AddBoxToConstraintTest;
 			public:
 				AddBoxToConstraint(ObjectPath&& constraintPath);
 

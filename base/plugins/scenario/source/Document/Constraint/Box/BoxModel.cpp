@@ -36,13 +36,13 @@ QDataStream& operator >> (QDataStream& s, BoxModel& c)
 }
 
 
-BoxModel::BoxModel(int id, ConstraintModel* parent):
+BoxModel::BoxModel(int id, QObject* parent):
 	IdentifiedObject{id, "BoxModel", parent}
 {
 
 }
 
-BoxModel::BoxModel(QDataStream& s, ConstraintModel* parent):
+BoxModel::BoxModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, "BoxModel", parent}
 {
 	qDebug(Q_FUNC_INFO);

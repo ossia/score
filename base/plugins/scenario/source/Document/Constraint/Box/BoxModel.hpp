@@ -13,8 +13,8 @@ class BoxModel : public IdentifiedObject
 	public:
 		friend QDataStream& operator << (QDataStream&, const BoxModel&);
 		friend QDataStream& operator >> (QDataStream& s, BoxModel& c);
-		BoxModel(int id, ConstraintModel* parent);
-		BoxModel(QDataStream&, ConstraintModel* parent);
+		BoxModel(int id, QObject* parent);
+		BoxModel(QDataStream&, QObject* parent);
 
 		virtual ~BoxModel() = default;
 

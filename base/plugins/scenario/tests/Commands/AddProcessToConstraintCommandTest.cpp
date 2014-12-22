@@ -26,7 +26,7 @@ class AddProcessToConstraintCommandTest: public QObject
 
 			ConstraintModel* int_model  = new ConstraintModel{0, qApp};
 
-			int_model->createBox(646);
+			int_model->createBox(646); // TODO use command instead.
 			AddProcessToConstraintCommand cmd(
 			{
 				{"ConstraintModel", {}}

@@ -5,14 +5,17 @@
 #include <QString>
 
 
+
+class AddProcessViewToDeckTest;
+
 /**
  * @brief The AddProcessToConstraintCommand class
  *
  * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
  */
-// TODO Rename in AddProcessToBox.
 class AddProcessToConstraintCommand : public iscore::SerializableCommand
 {
+		friend class ::AddProcessViewToDeckTest;
 	public:
 		AddProcessToConstraintCommand(ObjectPath&& constraintPath, QString process);
 
