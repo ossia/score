@@ -8,16 +8,17 @@ class ScenarioProcessSharedModel;
 class BoxModel;
 class ConstraintModel;
 
-class ScenarioProcessViewModel : public ProcessViewModelInterface
+
+class TemporalScenarioProcessViewModel : public ProcessViewModelInterface
 {
 	Q_OBJECT
 
 	public:
 		using model_type = ScenarioProcessSharedModel;
 
-		ScenarioProcessViewModel(int id, ScenarioProcessSharedModel* model, QObject* parent);
-		ScenarioProcessViewModel(QDataStream& s, ScenarioProcessSharedModel* model, QObject* parent);
-		virtual ~ScenarioProcessViewModel() = default;
+		TemporalScenarioProcessViewModel(int id, ScenarioProcessSharedModel* model, QObject* parent);
+		TemporalScenarioProcessViewModel(QDataStream& s, ScenarioProcessSharedModel* model, QObject* parent);
+		virtual ~TemporalScenarioProcessViewModel() = default;
 
 		virtual void serialize(QDataStream&) const override;
 		virtual void deserialize(QDataStream&) override;

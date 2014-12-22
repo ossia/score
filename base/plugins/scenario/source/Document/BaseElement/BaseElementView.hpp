@@ -4,7 +4,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
-class ConstraintView;
+class TemporalConstraintView;
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
 	Q_OBJECT
@@ -15,7 +15,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
 		virtual QWidget*getWidget();
 
-		ConstraintView* constraintView()
+		TemporalConstraintView* constraintView()
 		{ return m_constraint; }
 
 		void update();
@@ -26,7 +26,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
 		QGraphicsObject* m_baseObject{};
-		ConstraintView* m_constraint{};
+		TemporalConstraintView* m_constraint{};
 
 };
 

@@ -33,6 +33,8 @@ class ProcessSharedModelInterface: public IdentifiedObject
 		virtual QString processName() const = 0; // Needed for serialization.
 
 		virtual ~ProcessSharedModelInterface() = default;
+
+		// TODO pass the name of the view model to be created (e.g. temporal / logical...).
 		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
 														 QObject* parent) = 0;
 		virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,

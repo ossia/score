@@ -6,7 +6,7 @@
 #include "Document/Constraint/ConstraintData.hpp"
 
 class ConstraintModel;
-class ConstraintView;
+class TemporalConstraintView;
 class BoxPresenter;
 class BoxModel;
 
@@ -18,23 +18,23 @@ namespace iscore
 class ProcessPresenterInterface;
 
 /**
- * @brief The ConstraintPresenter class
+ * @brief The TemporalConstraintPresenter class
  *
  * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
  * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
  */
-class ConstraintPresenter : public NamedObject
+class TemporalConstraintPresenter : public NamedObject
 {
 	Q_OBJECT
 
 	public:
-		ConstraintPresenter(ConstraintModel* model,
-						  ConstraintView* view,
+		TemporalConstraintPresenter(ConstraintModel* model,
+						  TemporalConstraintView* view,
 						  QObject* parent);
-		virtual ~ConstraintPresenter();
+		virtual ~TemporalConstraintPresenter();
 
 		int id() const;
-		ConstraintView* view();
+		TemporalConstraintView* view();
 		ConstraintModel* model();
 
 		bool isSelected() const;
@@ -60,7 +60,7 @@ class ConstraintPresenter : public NamedObject
 		std::vector<BoxPresenter*> m_boxes; // No content -> Phantom ?
 		// Process presenters are in the deck presenters.
 		ConstraintModel* m_model{};
-		ConstraintView* m_view{};
+		TemporalConstraintView* m_view{};
 
 		long m_millisecPerPixel{1};
 };

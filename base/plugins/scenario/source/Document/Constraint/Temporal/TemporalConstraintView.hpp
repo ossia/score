@@ -3,14 +3,14 @@
 #include <QGraphicsProxyWidget>
 #include <QPointF>
 
-class ConstraintView : public QGraphicsObject
+class TemporalConstraintView : public QGraphicsObject
 {
 	Q_OBJECT
 
 	public:
-		ConstraintView(QGraphicsObject* parent);
+		TemporalConstraintView(QGraphicsObject* parent);
 
-		virtual ~ConstraintView() = default;
+		virtual ~TemporalConstraintView() = default;
 
 		virtual QRectF boundingRect() const override;
 		virtual void paint(QPainter *painter,

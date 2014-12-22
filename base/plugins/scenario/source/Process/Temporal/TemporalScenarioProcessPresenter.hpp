@@ -8,16 +8,16 @@ namespace iscore
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 
-class ConstraintPresenter;
+class TemporalConstraintPresenter;
 class EventPresenter;
-class ScenarioProcessViewModel;
-class ScenarioProcessView;
+class TemporalScenarioProcessViewModel;
+class TemporalScenarioProcessView;
 class EventModel;
 class ConstraintModel;
 struct EventData;
 struct ConstraintData;
 
-class ScenarioProcessPresenter : public ProcessPresenterInterface
+class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 {
 	Q_OBJECT
 
@@ -27,10 +27,10 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 				   NOTIFY currentlySelectedEventChanged)
 
 	public:
-		ScenarioProcessPresenter(ProcessViewModelInterface* model,
+		TemporalScenarioProcessPresenter(ProcessViewModelInterface* model,
 								 ProcessViewInterface* view,
 								 QObject* parent);
-		virtual ~ScenarioProcessPresenter();
+		virtual ~TemporalScenarioProcessPresenter();
 
 
 		virtual int viewModelId() const;
@@ -73,10 +73,10 @@ class ScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_constraintCreated_impl(ConstraintModel* constraint_model);
 
 
-		ScenarioProcessViewModel* m_viewModel;
-		ScenarioProcessView* m_view;
+		TemporalScenarioProcessViewModel* m_viewModel;
+		TemporalScenarioProcessView* m_view;
 
-		std::vector<ConstraintPresenter*> m_constraints;
+		std::vector<TemporalConstraintPresenter*> m_constraints;
 		std::vector<EventPresenter*> m_events;
 
 		int m_currentlySelectedEvent{};

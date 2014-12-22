@@ -1,4 +1,4 @@
-#include "ConstraintView.hpp"
+#include "TemporalConstraintView.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -8,7 +8,7 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-ConstraintView::ConstraintView(QGraphicsObject* parent):
+TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent):
 	QGraphicsObject{parent}
 {
 	this->setParentItem(parent);
@@ -17,12 +17,12 @@ ConstraintView::ConstraintView(QGraphicsObject* parent):
 	this->setZValue(parent->zValue() + 1);
 }
 
-QRectF ConstraintView::boundingRect() const
+QRectF TemporalConstraintView::boundingRect() const
 {
 	return {0, 0, qreal(m_width), qreal(m_height)};
 }
 
-void ConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	if(isSelected())
 	{
@@ -42,19 +42,19 @@ void ConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	painter->drawText(rect, "Constraint");
 }
 
-void ConstraintView::setWidth(int width)
+void TemporalConstraintView::setWidth(int width)
 {
 	prepareGeometryChange();
 	m_width = width;
 }
 
-void ConstraintView::setHeight(int height)
+void TemporalConstraintView::setHeight(int height)
 {
 	prepareGeometryChange();
 	m_height = height;
 }
 
-void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
+void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
 	QGraphicsObject::mousePressEvent(m);
 
@@ -62,7 +62,7 @@ void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 	emit constraintPressed(pos() + m->pos());
 }
 
-void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
+void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
 

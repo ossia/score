@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
-#include "Process/ScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 using namespace iscore;
@@ -58,7 +58,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
 		{
-			auto pvm = static_cast<ScenarioProcessViewModel*>(pvm_uncasted);
+			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
 			auto deckModel = static_cast<DeckModel*>(pvm->parent());
 			auto boxModel = static_cast<BoxModel*>(deckModel->parent());
 
@@ -92,7 +92,7 @@ void ClearConstraint::undo()
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
 		{
-			auto pvm = static_cast<ScenarioProcessViewModel*>(pvm_uncasted);
+			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
 			auto deckModel = static_cast<DeckModel*>(pvm->parent());
 			auto boxModel = static_cast<BoxModel*>(deckModel->parent());
 			std::tuple<int,int,int> tpl{boxModel->id(),
@@ -125,7 +125,7 @@ void ClearConstraint::redo()
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
 		{
-			auto pvm = static_cast<ScenarioProcessViewModel*>(pvm_uncasted);
+			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
 			pvm->boxDisplayedForConstraint(constraint->id()) = {false, {}};
 		}
 	}

@@ -1,6 +1,6 @@
 #include "ScenarioProcessSharedModel.hpp"
 
-#include "Process/ScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
@@ -86,26 +86,26 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
 {
-	auto scen = new ScenarioProcessViewModel(viewModelId, this, parent);
+	auto scen = new TemporalScenarioProcessViewModel(viewModelId, this, parent);
 	addViewModel(scen);
 
 
-	connect(scen, &ScenarioProcessViewModel::destroyed,
+	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
 			this, &ScenarioProcessSharedModel::removeViewModel);
 
 	connect(this, &ScenarioProcessSharedModel::constraintCreated,
-			scen, &ScenarioProcessViewModel::on_constraintCreated);
+			scen, &TemporalScenarioProcessViewModel::on_constraintCreated);
 	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
-			scen, &ScenarioProcessViewModel::on_constraintRemoved);
+			scen, &TemporalScenarioProcessViewModel::on_constraintRemoved);
 
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
-			scen, &ScenarioProcessViewModel::eventCreated);
+			scen, &TemporalScenarioProcessViewModel::eventCreated);
 	connect(this, &ScenarioProcessSharedModel::eventDeleted,
-			scen, &ScenarioProcessViewModel::eventDeleted);
+			scen, &TemporalScenarioProcessViewModel::eventDeleted);
 	connect(this, &ScenarioProcessSharedModel::eventMoved,
-			scen, &ScenarioProcessViewModel::eventMoved);
+			scen, &TemporalScenarioProcessViewModel::eventMoved);
 	connect(this, &ScenarioProcessSharedModel::constraintMoved,
-			scen, &ScenarioProcessViewModel::constraintMoved);
+			scen, &TemporalScenarioProcessViewModel::constraintMoved);
 
 	return scen;
 }
@@ -113,7 +113,7 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(QDataStream& s,
 																	 QObject* parent)
 {
-	return new ScenarioProcessViewModel(s, this, parent);
+	return new TemporalScenarioProcessViewModel(s, this, parent);
 	// TODO do the connections here too.
 }
 

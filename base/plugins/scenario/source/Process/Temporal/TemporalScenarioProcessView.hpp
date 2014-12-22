@@ -1,14 +1,14 @@
 #pragma once
 #include "ProcessInterface/ProcessViewInterface.hpp"
 
-class ScenarioProcessView : public ProcessViewInterface
+class TemporalScenarioProcessView : public ProcessViewInterface
 {
 	Q_OBJECT
 
 	public:
-		ScenarioProcessView(QGraphicsObject* parent);
+		TemporalScenarioProcessView(QGraphicsObject* parent);
 
-		virtual ~ScenarioProcessView() = default;
+		virtual ~TemporalScenarioProcessView() = default;
 
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

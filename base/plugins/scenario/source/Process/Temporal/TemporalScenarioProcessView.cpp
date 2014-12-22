@@ -1,4 +1,4 @@
-#include "ScenarioProcessView.hpp"
+#include "TemporalScenarioProcessView.hpp"
 
 #include <tools/NamedObject.hpp>
 
@@ -8,7 +8,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 
-ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):
+TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent):
 	ProcessViewInterface{parent}
 {
 	this->setParentItem(parent);
@@ -19,7 +19,7 @@ ScenarioProcessView::ScenarioProcessView(QGraphicsObject* parent):
 }
 
 
-QRectF ScenarioProcessView::boundingRect() const
+QRectF TemporalScenarioProcessView::boundingRect() const
 {
 	auto pr = parentItem()->boundingRect();
 	return {0, 0,
@@ -28,7 +28,7 @@ QRectF ScenarioProcessView::boundingRect() const
 }
 
 
-void ScenarioProcessView::paint(QPainter* painter,
+void TemporalScenarioProcessView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {
@@ -43,7 +43,7 @@ void ScenarioProcessView::paint(QPainter* painter,
 }
 
 
-void ScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 	QGraphicsObject::mousePressEvent(event);
 
@@ -57,12 +57,12 @@ void ScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	}
 }
 
-void ScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
 	QGraphicsObject::mouseMoveEvent(event);
 }
 
-void ScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
 	QGraphicsObject::mouseReleaseEvent(event);
 	if(event->modifiers() == Qt::ControlModifier)
@@ -71,7 +71,7 @@ void ScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 	}
 }
 
-void ScenarioProcessView::keyPressEvent(QKeyEvent* event)
+void TemporalScenarioProcessView::keyPressEvent(QKeyEvent* event)
 {
 	if(event->key() == Qt::Key_Delete)
 	{

@@ -24,8 +24,9 @@
 			// The process name
 			virtual QString name() const = 0;
 
-			virtual QStringList availableViews() = 0; // to remove
+			virtual QStringList availableViews() = 0;
 			virtual ProcessViewInterface* makeView(QString view, QObject* parent) = 0;
+			// TODO Make it take a view name, too (cf. logical / temporal).
 			virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
 															 ProcessViewInterface*,
 															 QObject* parent) = 0;

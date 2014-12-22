@@ -1,11 +1,11 @@
-#include "ScenarioProcessPresenter.hpp"
+#include "TemporalScenarioProcessPresenter.hpp"
 
 #include "Process/ScenarioProcessSharedModel.hpp"
-#include "Process/ScenarioProcessViewModel.hpp"
-#include "Process/ScenarioProcessView.hpp"
-#include "Document/Constraint/ConstraintView.hpp"
+#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioProcessView.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
-#include "Document/Constraint/ConstraintPresenter.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
@@ -25,12 +25,12 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 
-ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* process_view_model,
+TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
-	ProcessPresenterInterface{"ScenarioProcessPresenter", parent},
-	m_viewModel{static_cast<ScenarioProcessViewModel*>(process_view_model)},
-	m_view{static_cast<ScenarioProcessView*>(view)}
+	ProcessPresenterInterface{"TemporalScenarioProcessPresenter", parent},
+	m_viewModel{static_cast<TemporalScenarioProcessViewModel*>(process_view_model)},
+	m_view{static_cast<TemporalScenarioProcessView*>(view)}
 {
 	/////// Setup of existing data
 	// For each constraint & event, display' em
@@ -48,74 +48,74 @@ ScenarioProcessPresenter::ScenarioProcessPresenter(ProcessViewModelInterface* pr
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
-	connect(m_view, &ScenarioProcessView::deletePressed,
-			this,	&ScenarioProcessPresenter::on_deletePressed);
-	connect(m_view, &ScenarioProcessView::scenarioPressed,
-			this,	&ScenarioProcessPresenter::on_scenarioPressed);
-	connect(m_view, &ScenarioProcessView::scenarioPressedWithControl,
-			this,	&ScenarioProcessPresenter::on_scenarioPressedWithControl);
-	connect(m_view, &ScenarioProcessView::scenarioReleased,
-			this,	&ScenarioProcessPresenter::on_scenarioReleased);
+	connect(m_view, &TemporalScenarioProcessView::deletePressed,
+			this,	&TemporalScenarioProcessPresenter::on_deletePressed);
+	connect(m_view, &TemporalScenarioProcessView::scenarioPressed,
+			this,	&TemporalScenarioProcessPresenter::on_scenarioPressed);
+	connect(m_view, &TemporalScenarioProcessView::scenarioPressedWithControl,
+			this,	&TemporalScenarioProcessPresenter::on_scenarioPressedWithControl);
+	connect(m_view, &TemporalScenarioProcessView::scenarioReleased,
+			this,	&TemporalScenarioProcessPresenter::on_scenarioReleased);
 
-	connect(m_viewModel, &ScenarioProcessViewModel::eventCreated,
-			this,		 &ScenarioProcessPresenter::on_eventCreated);
-	connect(m_viewModel, &ScenarioProcessViewModel::eventDeleted,
-			this,		 &ScenarioProcessPresenter::on_eventDeleted);
-	connect(m_viewModel, &ScenarioProcessViewModel::constraintCreated,
-			this,		 &ScenarioProcessPresenter::on_constraintCreated);
-	connect(m_viewModel, &ScenarioProcessViewModel::constraintRemoved,
-			this,		 &ScenarioProcessPresenter::on_constraintDeleted);
-	connect(m_viewModel, &ScenarioProcessViewModel::eventMoved,
-			this,		 &ScenarioProcessPresenter::on_eventMoved);
-	connect(m_viewModel, &ScenarioProcessViewModel::constraintMoved,
-			this,		 &ScenarioProcessPresenter::on_constraintMoved);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventCreated,
+			this,		 &TemporalScenarioProcessPresenter::on_eventCreated);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventDeleted,
+			this,		 &TemporalScenarioProcessPresenter::on_eventDeleted);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintCreated,
+			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintRemoved,
+			this,		 &TemporalScenarioProcessPresenter::on_constraintDeleted);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
+			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintMoved,
+			this,		 &TemporalScenarioProcessPresenter::on_constraintMoved);
 }
 
-ScenarioProcessPresenter::~ScenarioProcessPresenter()
+TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
 {
 	auto sc = m_view->scene();
 	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
 }
 
-int ScenarioProcessPresenter::viewModelId() const
+int TemporalScenarioProcessPresenter::viewModelId() const
 {
 	return m_viewModel->id();
 }
 
-int ScenarioProcessPresenter::modelId() const
+int TemporalScenarioProcessPresenter::modelId() const
 {
 	return m_viewModel->sharedProcessModel()->id();
 }
 
-int ScenarioProcessPresenter::currentlySelectedEvent() const
+int TemporalScenarioProcessPresenter::currentlySelectedEvent() const
 {
 	return m_currentlySelectedEvent;
 }
 
-void ScenarioProcessPresenter::on_eventCreated(int eventId)
+void TemporalScenarioProcessPresenter::on_eventCreated(int eventId)
 {
 	on_eventCreated_impl(model(m_viewModel)->event(eventId));
 }
 
-void ScenarioProcessPresenter::on_constraintCreated(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintCreated(int constraintId)
 {
 	on_constraintCreated_impl(model(m_viewModel)->constraint(constraintId));
 }
 
-void ScenarioProcessPresenter::on_eventDeleted(int eventId)
+void TemporalScenarioProcessPresenter::on_eventDeleted(int eventId)
 {
 	removeFromVectorWithId(m_events, eventId);
 	m_view->update();
 }
 
-void ScenarioProcessPresenter::on_constraintDeleted(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintDeleted(int constraintId)
 {
 	removeFromVectorWithId(m_constraints, constraintId);
 	m_view->update();
 }
 
-void ScenarioProcessPresenter::on_eventMoved(int eventId)
+void TemporalScenarioProcessPresenter::on_eventMoved(int eventId)
 {
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
@@ -127,7 +127,7 @@ void ScenarioProcessPresenter::on_eventMoved(int eventId)
 	m_view->update();
 }
 
-void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
 {
 	auto rect = m_view->boundingRect();
 
@@ -142,12 +142,12 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 	m_view->update();
 }
 
-void ScenarioProcessPresenter::on_deletePressed()
+void TemporalScenarioProcessPresenter::on_deletePressed()
 {
 	deleteSelection();
 }
 
-void ScenarioProcessPresenter::on_scenarioPressed()
+void TemporalScenarioProcessPresenter::on_scenarioPressed()
 {
 	for(auto& event : m_events)
 	{
@@ -160,7 +160,7 @@ void ScenarioProcessPresenter::on_scenarioPressed()
 }
 
 
-void ScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
+void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
 {
 	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
 	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -170,7 +170,7 @@ void ScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
 	this->submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
+void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 {
 	EventData data{};
 	data.eventClickedId = m_events.back()->id();
@@ -180,7 +180,7 @@ void ScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 		createConstraintAndEventFromEvent(data);
 }
 
-void ScenarioProcessPresenter::on_askUpdate()
+void TemporalScenarioProcessPresenter::on_askUpdate()
 {
 	m_view->update();
 }
@@ -197,11 +197,11 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 #include "Commands/Scenario/DeleteConstraintCommand.hpp"
 #include "Commands/Scenario/DeleteEventCommand.hpp"
 #include "Commands/DeleteMultipleElements.hpp"
-void ScenarioProcessPresenter::deleteSelection()
+void TemporalScenarioProcessPresenter::deleteSelection()
 {
 	using namespace Scenario::Command;
 	// 1. Select items
-	std::vector<ConstraintPresenter*> constraintsToRemove;
+	std::vector<TemporalConstraintPresenter*> constraintsToRemove;
 	std::vector<EventPresenter*> eventsToRemove;
 
 	copyIfSelected(m_constraints, constraintsToRemove);
@@ -231,7 +231,7 @@ void ScenarioProcessPresenter::deleteSelection()
 	emit submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
+void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 {
 	if (m_currentlySelectedEvent != arg)
 	{
@@ -240,7 +240,7 @@ void ScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 	}
 }
 
-void ScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
+void TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
 {
 	data.x = data.x - model(m_viewModel)->event(data.eventClickedId)->date();
 	data.relativeY = data.y / m_view->boundingRect().height();
@@ -252,7 +252,7 @@ void ScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
 	submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
+void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 {
 	data.relativeY = data.y / m_view->boundingRect().height();
 
@@ -262,7 +262,7 @@ void ScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 	submitCommand(cmd);
 }
 
-void ScenarioProcessPresenter::moveConstraint(ConstraintData data)
+void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
 	data.relativeY = data.y / m_view->boundingRect().height();
 
@@ -276,7 +276,7 @@ void ScenarioProcessPresenter::moveConstraint(ConstraintData data)
 
 
 
-void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
+void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
 	auto rect = m_view->boundingRect();
 
@@ -290,13 +290,13 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 	m_events.push_back(event_presenter);
 
 	connect(event_presenter, &EventPresenter::eventSelected,
-			this,			 &ScenarioProcessPresenter::setCurrentlySelectedEvent);
+			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &ScenarioProcessPresenter::createConstraintAndEventFromEvent);
+			this,			 &TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent);
 	connect(event_presenter, &EventPresenter::eventReleased,
-			this,			 &ScenarioProcessPresenter::moveEventAndConstraint);
+			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
-			this,			 &ScenarioProcessPresenter::elementSelected);
+			this,			 &TemporalScenarioProcessPresenter::elementSelected);
 
 	connect(event_presenter, &EventPresenter::linesExtremityChange,
 			[event_view, this] (double top, double bottom)
@@ -306,12 +306,12 @@ void ScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 			});
 }
 
-void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constraint_model)
+void TemporalScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constraint_model)
 {
 	auto rect = m_view->boundingRect();
 
-	auto constraint_view = new ConstraintView{m_view};
-	auto constraint_presenter = new ConstraintPresenter{constraint_model,
+	auto constraint_view = new TemporalConstraintView{m_view};
+	auto constraint_presenter = new TemporalConstraintPresenter{constraint_model,
 													constraint_view,
 													this};
 
@@ -320,14 +320,14 @@ void ScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constr
 
 	m_constraints.push_back(constraint_presenter);
 
-	connect(constraint_presenter,	&ConstraintPresenter::constraintReleased,
-			this,					&ScenarioProcessPresenter::moveConstraint);
-	connect(constraint_presenter,	&ConstraintPresenter::submitCommand,
-			this,					&ScenarioProcessPresenter::submitCommand);
-	connect(constraint_presenter,	&ConstraintPresenter::elementSelected,
-			this,					&ScenarioProcessPresenter::elementSelected);
+	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
+			this,					&TemporalScenarioProcessPresenter::moveConstraint);
+	connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
+			this,					&TemporalScenarioProcessPresenter::submitCommand);
+	connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
+			this,					&TemporalScenarioProcessPresenter::elementSelected);
 
 
-	connect(constraint_presenter,	&ConstraintPresenter::askUpdate,
-			this,					&ScenarioProcessPresenter::on_askUpdate);
+	connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
+			this,					&TemporalScenarioProcessPresenter::on_askUpdate);
 }

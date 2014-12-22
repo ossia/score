@@ -1,7 +1,7 @@
 #include "BaseElementPresenter.hpp"
 
-#include "Document/Constraint/ConstraintPresenter.hpp"
-#include "Document/Constraint/ConstraintView.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
@@ -56,7 +56,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
 										   DocumentDelegateViewInterface* view):
 	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
-	m_baseConstraintPresenter{new ConstraintPresenter{
+	m_baseConstraintPresenter{new TemporalConstraintPresenter{
 							  this->model()->constraintModel(),
 							  this->view()->constraintView(),
 							  this}}
@@ -65,13 +65,13 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	testInit(this->model()->constraintModel());
 	on_askUpdate();
 
-	connect(m_baseConstraintPresenter,	&ConstraintPresenter::submitCommand,
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
 			this,						&BaseElementPresenter::submitCommand);
 
-	connect(m_baseConstraintPresenter,	&ConstraintPresenter::elementSelected,
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::elementSelected,
 			this,						&BaseElementPresenter::elementSelected);
 
-	connect(m_baseConstraintPresenter,	&ConstraintPresenter::askUpdate,
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
 }
 
