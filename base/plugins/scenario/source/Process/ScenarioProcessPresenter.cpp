@@ -133,7 +133,7 @@ void ScenarioProcessPresenter::on_constraintMoved(int constraintId)
 
 	for(auto inter : m_constraints) {
 		if(inter->id() == constraintId ) {
-			inter->view()->setPos({inter->model()->startDate(),
+			inter->view()->setPos({qreal(inter->model()->startDate()),
 								   rect.height() * inter->model()->heightPercentage()});
 
 			inter->view()->setWidth(inter->model()->width());

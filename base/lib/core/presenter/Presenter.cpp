@@ -95,6 +95,9 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_na
 			return ccmd->instantiateUndoCommand(name, data);
 		}
 	}
+
+	qDebug("ALERT: Command could not be instantiated.");
+	return nullptr;
 }
 
 void Presenter::on_elementSelected(QObject* elt)
