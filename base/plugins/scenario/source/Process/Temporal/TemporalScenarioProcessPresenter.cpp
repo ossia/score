@@ -36,9 +36,9 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 {
 	/////// Setup of existing data
 	// For each constraint & event, display' em
-	for(auto constraint_model : static_cast<ScenarioProcessSharedModel*>(m_viewModel->sharedProcessModel())->constraints())
+	for(auto constraint_view_model : constraintsViewModels(m_viewModel))
 	{
-		on_constraintCreated_impl(constraint_model);
+		on_constraintCreated_impl(constraint_view_model);
 	}
 
 	for(auto event_model : model(m_viewModel)->events())
@@ -63,9 +63,9 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 			this,		 &TemporalScenarioProcessPresenter::on_eventCreated);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventDeleted,
 			this,		 &TemporalScenarioProcessPresenter::on_eventDeleted);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintCreated,
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintRemoved,
+	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelRemoved,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintDeleted);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
 			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
@@ -100,9 +100,9 @@ void TemporalScenarioProcessPresenter::on_eventCreated(int eventId)
 	on_eventCreated_impl(model(m_viewModel)->event(eventId));
 }
 
-void TemporalScenarioProcessPresenter::on_constraintCreated(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintCreated(int constraintViewModelId)
 {
-	on_constraintCreated_impl(model(m_viewModel)->constraint(constraintId));
+	on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
 }
 
 void TemporalScenarioProcessPresenter::on_eventDeleted(int eventId)

@@ -41,7 +41,7 @@ class ProcessSharedModelInterface: public IdentifiedObject
 														 QObject* parent) = 0;
 
 		// Do a copy.
-		QVector<QObject*> viewModels()
+		QVector<ProcessViewModelInterface*> viewModels()
 		{
 			return m_viewModels;
 		}
@@ -50,12 +50,12 @@ class ProcessSharedModelInterface: public IdentifiedObject
 		virtual void serializeImpl(QDataStream&) const = 0;
 		virtual void deserializeImpl(QDataStream&) = 0;
 
-		void addViewModel(QObject* m)
+		void addViewModel(ProcessViewModelInterface* m)
 		{
 			m_viewModels.push_back(m);
 		}
 
-		void removeViewModel(QObject* m)
+		void removeViewModel(ProcessViewModelInterface* m)
 		{
 			m_viewModels.remove(m_viewModels.indexOf(m));
 		}
@@ -63,6 +63,14 @@ class ProcessSharedModelInterface: public IdentifiedObject
 	private:
 		// Ownership ? The parent is the Deck. Always.
 		// A process view is never displayed alone, it is always in a view, which is in a box.
-		QVector<QObject*> m_viewModels;
+		QVector<ProcessViewModelInterface*> m_viewModels;
 };
 
+template<typename T>
+QVector<typename T::view_model_type*> viewModels(T* processViewModel)
+{
+	QVector<typename T::view_model_type*> v;
+	for(auto& elt : processViewModel->viewModels())
+		v.push_back(static_cast<typename T::view_model_type*>(elt));
+	return std::move(v);
+}

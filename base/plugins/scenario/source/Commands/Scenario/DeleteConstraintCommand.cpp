@@ -53,7 +53,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	// This, of course, cannot be done for the Base constraint,
 	// since it is not in any scenarioviewmodel.
 	// Instead, you have to create a New Document.
-
+/*
 	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
@@ -70,6 +70,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 			] = pvm->boxDisplayedForConstraint(constraint->id());
 		}
 	}
+	*/
 }
 
 void ClearConstraint::undo()
@@ -88,6 +89,7 @@ void ClearConstraint::undo()
 		constraint->createBox(s);
 	}
 
+	/*
 	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
@@ -104,7 +106,7 @@ void ClearConstraint::undo()
 				pvm->boxDisplayedForConstraint(constraint->id()) = m_scenarioViewModelsBoxMappings[tpl];
 			}
 		}
-	}
+	}*/
 }
 
 void ClearConstraint::redo()
@@ -121,6 +123,7 @@ void ClearConstraint::redo()
 		constraint->removeBox(box->id());
 	}
 
+	/*
 	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
 	{
 		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
@@ -128,7 +131,7 @@ void ClearConstraint::redo()
 			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
 			pvm->boxDisplayedForConstraint(constraint->id()) = {false, {}};
 		}
-	}
+	}*/
 }
 
 int ClearConstraint::id() const

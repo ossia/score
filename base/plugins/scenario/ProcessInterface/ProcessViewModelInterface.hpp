@@ -53,14 +53,36 @@ inline QDataStream& operator >>(QDataStream& s, ProcessViewModelInterface& p)
 
 
 
-template<typename T>
 /**
  * @brief model Returns the casted version of a shared model given a view model.
  * @param viewModel A view model which has a directive "using model_type = MySharedModelType;" in its class body
  *
  * @return a pointer of the correct type.
  */
+template<typename T>
 typename T::model_type* model(T* viewModel)
 {
 	return static_cast<typename T::model_type*>(viewModel->sharedProcessModel());
 }
+
+
+
+/**
+ * @brief identifierOfViewModelFromSharedModel
+ * @param pvm A process view model
+ *
+ * @return A tuple which contains the required identifiers to get from a shared model to a given view model
+ *  * The box identifier
+ *  * The deck identifier
+ *  * The view model identifier
+ */
+inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessViewModelInterface* pvm)
+{
+	auto deckModel = static_cast<IdentifiedObject*>(pvm->parent());
+	auto boxModel = static_cast<IdentifiedObject*>(deckModel->parent());
+	return std::tuple<int,int,int>{
+				boxModel->id(),
+				deckModel->id(),
+				pvm->id()};
+}
+

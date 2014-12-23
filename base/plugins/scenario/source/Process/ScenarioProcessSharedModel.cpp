@@ -91,7 +91,7 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 
 
 	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
-			this, &ScenarioProcessSharedModel::removeViewModel);
+			[this] (QObject* obj) { this->removeViewModel(static_cast<ProcessViewModelInterface*>(obj)); });
 
 	connect(this, &ScenarioProcessSharedModel::constraintCreated,
 			scen, &TemporalScenarioProcessViewModel::on_constraintCreated);

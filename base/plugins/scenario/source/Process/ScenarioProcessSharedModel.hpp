@@ -7,6 +7,7 @@ namespace OSSIA
 }
 class ConstraintModel;
 class EventModel;
+class AbstractScenarioProcessViewModel;
 
 /**
  * @brief The ScenarioProcessSharedModel class
@@ -21,6 +22,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		friend QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario);
 		friend QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario);
 	public:
+		using view_model_type = AbstractScenarioProcessViewModel;
+
 		ScenarioProcessSharedModel(int id, QObject* parent);
 		ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
 		virtual ~ScenarioProcessSharedModel() = default;
@@ -120,4 +123,3 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		int m_startEventId{};
 		int m_endEventId{};
 };
-

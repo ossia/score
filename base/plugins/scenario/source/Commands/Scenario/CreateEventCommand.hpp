@@ -3,6 +3,8 @@
 #include <tools/ObjectPath.hpp>
 
 #include <QPointF>
+#include <QMap>
+#include <tuple>
 
 struct EventModelData;
 
@@ -34,6 +36,8 @@ class CreateEventCommand : public iscore::SerializableCommand
 		int m_createdConstraintId{};
 		int m_createdBoxId{};
 		int m_createdEventId{};
+		// Map between the scenario view model ID and the constraint view model
+		QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
 
 		int m_time{};
 		double m_heightPosition{};

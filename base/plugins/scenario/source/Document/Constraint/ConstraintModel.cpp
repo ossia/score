@@ -105,6 +105,8 @@ ConstraintViewModelInterface* ConstraintModel::makeViewModel(QString name, int v
 	{
 		return new TemporalConstraintViewModel(viewModelId, this, parent);
 	}
+
+	return nullptr;
 }
 
 
