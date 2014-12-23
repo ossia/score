@@ -4,6 +4,6 @@
 PluginCurveViewModel::PluginCurveViewModel(int id,
 										   PluginCurveModel* model,
 										   QObject* parent):
-	ProcessViewModelInterface{parent, "PluginCurveViewModel", id, model}
+	ProcessViewModelInterface{id, "PluginCurveViewModel", model, parent}
 {
 }

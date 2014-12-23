@@ -7,3 +7,9 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(int id, ConstraintModel
 {
 
 }
+
+TemporalConstraintViewModel::TemporalConstraintViewModel(QDataStream& s, ConstraintModel* model, QObject* parent):
+	ConstraintViewModelInterface{s, "TemporalConstraintViewModel", model, parent}
+{
+
+}

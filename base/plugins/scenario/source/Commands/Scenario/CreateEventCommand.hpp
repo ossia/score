@@ -34,7 +34,6 @@ class CreateEventCommand : public iscore::SerializableCommand
 		ObjectPath m_path;
 
 		int m_createdConstraintId{};
-		int m_createdBoxId{};
 		int m_createdEventId{};
 		// Map between the scenario view model ID and the constraint view model
 		QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;

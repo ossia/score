@@ -32,7 +32,6 @@ CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, doub
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	m_createdConstraintId = getNextId(scenar->constraints());
-	m_createdBoxId = getNextId();
 	m_createdEventId = getNextId(scenar->events());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,
@@ -68,8 +67,12 @@ void CreateEventCommand::redo()
 		auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
 		if(m_createdConstraintViewModelIDs.contains(cvm_id))
 		{
-			viewModel->createConstraintViewModel(m_createdConstraintId,
-												 m_createdConstraintViewModelIDs[cvm_id]);
+			viewModel->makeConstraintViewModel(m_createdConstraintId,
+											   m_createdConstraintViewModelIDs[cvm_id]);
+		}
+		else
+		{
+			throw std::runtime_error("CreateEvent : missing identifier.");
 		}
 	}
 
@@ -90,7 +93,6 @@ void CreateEventCommand::serializeImpl(QDataStream& s)
 {
 	s << m_path
 	  << m_createdConstraintId
-	  << m_createdBoxId
 	  << m_createdEventId
 	  << m_createdConstraintViewModelIDs
 	  << m_time
@@ -101,7 +103,6 @@ void CreateEventCommand::deserializeImpl(QDataStream& s)
 {
 	s >> m_path
 	  >> m_createdConstraintId
-	  >> m_createdBoxId
 	  >> m_createdEventId
 	  >> m_createdConstraintViewModelIDs
 	  >> m_time

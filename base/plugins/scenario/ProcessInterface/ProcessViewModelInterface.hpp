@@ -10,47 +10,48 @@ class ProcessSharedModelInterface;
  */
 class ProcessViewModelInterface: public IdentifiedObject
 {
+
 	public:
-		ProcessViewModelInterface(QObject* parent, QString name, int viewModelId, ProcessSharedModelInterface* sharedProcess):
-			IdentifiedObject{viewModelId, name, parent},
-			m_sharedProcessModel{sharedProcess}
-		{
-
-		}
-
 		virtual ~ProcessViewModelInterface() = default;
 
 		ProcessSharedModelInterface* sharedProcessModel() const
 		{ return m_sharedProcessModel; }
 
 		virtual void serialize(QDataStream&) const = 0;
-		virtual void deserialize(QDataStream&) = 0;
+
+	protected:
+		ProcessViewModelInterface(int viewModelId,
+								  QString name,
+								  ProcessSharedModelInterface* sharedProcess,
+								  QObject* parent):
+			IdentifiedObject{viewModelId, name, parent},
+			m_sharedProcessModel{sharedProcess}
+		{
+
+		}
+
+		ProcessViewModelInterface(QDataStream& s,
+								  QString name,
+								  ProcessSharedModelInterface* sharedProcess,
+								  QObject* parent):
+			IdentifiedObject{s, name, parent},
+			m_sharedProcessModel{sharedProcess}
+		{
+			// In derived classes's constructors, do s >> *this;
+		}
 
 	private:
 		ProcessSharedModelInterface* m_sharedProcessModel{};
 };
 
-inline QDataStream& operator <<(QDataStream& s, const ProcessViewModelInterface& p)
+inline QDataStream& operator <<(QDataStream& s,
+								const ProcessViewModelInterface& p)
 {
-	s << static_cast<const IdentifiedObject&>(p)
-	  << p.objectName();
+	s << static_cast<const IdentifiedObject&>(p);
 
 	p.serialize(s);
 	return s;
 }
-
-inline QDataStream& operator >>(QDataStream& s, ProcessViewModelInterface& p)
-{
-	QString name;
-	s >> static_cast<IdentifiedObject&>(p)
-	  >> name;
-
-	p.setObjectName(name);
-
-	p.deserialize(s);
-	return s;
-}
-
 
 
 /**

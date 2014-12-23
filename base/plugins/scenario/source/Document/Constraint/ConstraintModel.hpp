@@ -41,12 +41,11 @@ class ConstraintModel : public IdentifiedObject
 		ConstraintModel(QDataStream&, QObject* parent);
 		virtual ~ConstraintModel() = default;
 
-		// Factory
-		// TODO same with datastream
-		template<typename ViewModelType>
-		ViewModelType* makeViewModel(int viewModelId, QObject* parent)
+		// Factories for the view models.
+		template<typename ViewModelType, typename Arg> // Arg might be an id or a datastream
+		ViewModelType* makeViewModel(Arg&& arg, QObject* parent)
 		{
-			auto viewmodel =  new ViewModelType(viewModelId, this, parent);
+			auto viewmodel =  new ViewModelType{arg, this, parent};
 			makeViewModel_impl(viewmodel);
 			return viewmodel;
 		}

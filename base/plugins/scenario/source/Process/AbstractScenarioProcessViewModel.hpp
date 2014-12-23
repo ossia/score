@@ -2,13 +2,15 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 class ConstraintViewModelInterface;
+// TODO Serialize this.
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 {
 		Q_OBJECT
 	public:
-		using ProcessViewModelInterface::ProcessViewModelInterface;
 
-		virtual void createConstraintViewModel(int constraintModelId, int constraintViewModelId) = 0;
+		virtual void makeConstraintViewModel(int constraintModelId,
+											 int constraintViewModelId) = 0;
+
 		void removeConstraintViewModel(int constraintViewModelId);
 
 		// Access to elements
@@ -29,13 +31,39 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		virtual void on_constraintRemoved(int constraintId) = 0;
 
 	protected:
+		AbstractScenarioProcessViewModel(int viewModelId,
+										 QString name,
+										 ProcessSharedModelInterface* sharedProcess,
+										 QObject* parent):
+			ProcessViewModelInterface{viewModelId,
+									  name,
+									  sharedProcess,
+									  parent}
+		{
+		}
+
+		AbstractScenarioProcessViewModel(QDataStream& s,
+										 QString name,
+										 ProcessSharedModelInterface* sharedProcess,
+										 QObject* parent):
+			ProcessViewModelInterface{s,
+									  name,
+									  sharedProcess,
+									  parent}
+		{
+			// In derived classes's constructors, do s >> *this; (This one has nothing to save)
+			// They have to reconstruct the m_constraints vector with the right view model classes.
+		}
+
+		virtual void makeConstraintViewModel(QDataStream& s) = 0;
+
 		QVector<ConstraintViewModelInterface*> m_constraints;
 };
 
 
 // TODO put this in a pattern (and also do for constraintvminterface, event, etc...)
 template<typename T>
-QVector<typename T::constraint_view_model_type*> constraintsViewModels(T* scenarioViewModel)
+QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T* scenarioViewModel)
 {
 	QVector<typename T::constraint_view_model_type*> v;
 	for(auto& elt : scenarioViewModel->constraints())
@@ -44,7 +72,18 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(T* scenar
 }
 
 template<typename T>
-typename T::constraint_view_model_type* constraintViewModel(T* scenarioViewModel, int cvm_id)
+typename T::constraint_view_model_type* constraintViewModel(const T* scenarioViewModel, int cvm_id)
 {
 	return static_cast<typename T::constraint_view_model_type*>(scenarioViewModel->constraint(cvm_id));
+}
+
+
+
+template<typename T>
+QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& scenarioViewModel)
+{
+	QVector<typename T::constraint_view_model_type*> v;
+	for(auto& elt : scenarioViewModel.constraints())
+		v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
+	return std::move(v);
 }

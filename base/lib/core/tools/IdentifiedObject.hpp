@@ -2,6 +2,7 @@
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 
+// This should maybe be a mixin ?
 class IdentifiedObject : public NamedObject
 {
 		friend QDataStream& operator << (QDataStream& s, const IdentifiedObject& obj)
@@ -37,7 +38,7 @@ class IdentifiedObject : public NamedObject
 			return m_id;
 		}
 
-		void setId(SettableIdentifier id)
+		void setId(SettableIdentifier&& id)
 		{
 			m_id = id;
 		}

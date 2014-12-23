@@ -7,7 +7,24 @@ class ConstraintModel;
 class TemporalConstraintViewModel : public ConstraintViewModelInterface
 {
 		Q_OBJECT
+		friend class ConstraintModel;
 	public:
+
+
+	protected:
+		virtual void serialize(QDataStream& s) const
+		{
+			s << m_boxIsPresent
+			  << m_idOfDisplayedBox;
+		}
+		virtual void deserialize(QDataStream& s)
+		{
+			s >> m_boxIsPresent
+			  >> m_idOfDisplayedBox;
+		}
+
+	private:
+		// Can only be constructed from ConstraintModel::makeViewModel
 		/**
 		 * @brief TemporalConstraintViewModel
 		 * @param id identifier
@@ -17,9 +34,12 @@ class TemporalConstraintViewModel : public ConstraintViewModelInterface
 		TemporalConstraintViewModel(int id,
 									ConstraintModel* model,
 									QObject* parent);
+		TemporalConstraintViewModel(QDataStream& s,
+									ConstraintModel* model,
+									QObject* parent);
 
 
-	private:
 		bool m_boxIsPresent{};
 		int m_idOfDisplayedBox{};
+
 };
