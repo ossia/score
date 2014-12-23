@@ -32,9 +32,12 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		{ updateDisplayedValues(m_currentConstraint); }
 		void updateDisplayedValues(TemporalConstraintViewModel* obj);
 
-		// These methods ask for creation
+		// These methods ask for creation and the signals originate from other parts of the inspector
 		void createProcess(QString processName);
 		void createBox();
+
+		void activeBoxChanged(QString box);
+
 
 		// Interface of Constraint
 		void on_processCreated(QString processName, int processId);
@@ -42,6 +45,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
 		void on_boxCreated(int boxId);
 		void on_boxRemoved(int boxId);
+
 
 		// Abstract interface of SharedProcessModel
 

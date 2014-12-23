@@ -30,6 +30,10 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent):
 
 	// Current box chooser
 	m_boxList = new QComboBox{this};
+	connect(m_boxList, &QComboBox::currentTextChanged,
+			[=] (const QString& s) {
+		parent->activeBoxChanged(s);
+	});
 
 	// Layout setup
 	lay->addWidget(addButton, 0, 0);

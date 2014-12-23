@@ -10,6 +10,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
+#include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
@@ -160,6 +161,18 @@ void ConstraintInspectorWidget::createBox()
 							"BaseConstraintModel",
 							model()));
 	emit submitCommand(cmd);
+}
+
+void ConstraintInspectorWidget::activeBoxChanged(QString box)
+{
+	bool ok{};
+	int id = box.toInt(&ok);
+
+	if(ok)
+	{
+		auto cmd = new ShowBoxInViewModel(viewModel(), id);
+		emit submitCommand(cmd);
+	}
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
