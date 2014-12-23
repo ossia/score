@@ -2,6 +2,7 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
@@ -12,25 +13,26 @@
 #include <QDebug>
 #include <QGraphicsScene>
 
-TemporalConstraintPresenter::TemporalConstraintPresenter(ConstraintModel* model,
-										 TemporalConstraintView* view,
-										 QObject* parent):
+TemporalConstraintPresenter::TemporalConstraintPresenter(
+		TemporalConstraintViewModel* model,
+		TemporalConstraintView* view,
+		QObject* parent):
 	NamedObject{"TemporalConstraintPresenter", parent},
-	m_model{model},
+	m_viewModel{model},
 	m_view{view}
 {
-	view->setWidth(model->width()/m_millisecPerPixel);
-	view->setHeight(model->height());
+	view->setWidth(m_viewModel->model()->width()/m_millisecPerPixel);
+	view->setHeight(m_viewModel->model()->height());
 
-	for(auto& box : m_model->boxes())
+	for(auto& box : m_viewModel->model()->boxes())
 	{
 		on_boxCreated_impl(box);
 	}
 
-	connect(m_model, &ConstraintModel::boxCreated,
-			this,	 &TemporalConstraintPresenter::on_boxCreated);
-	connect(m_model, &ConstraintModel::boxRemoved,
-			this,	 &TemporalConstraintPresenter::on_boxRemoved);
+	connect(m_viewModel, &TemporalConstraintViewModel::boxCreated,
+			this,		 &TemporalConstraintPresenter::on_boxCreated);
+	connect(m_viewModel, &TemporalConstraintViewModel::boxRemoved,
+			this,		 &TemporalConstraintPresenter::on_boxRemoved);
 
 	// Le contentView est child de TemporalConstraintView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
@@ -43,7 +45,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(ConstraintModel* model,
 			[&] (QPointF p)
 	{
 		ConstraintData data{};
-		data.id = id();
+		data.id = viewModelId();
 		data.y = p.y();
 		data.x = p.x();
 		emit constraintReleased(data);
@@ -57,9 +59,9 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 	m_view->deleteLater();
 }
 
-int TemporalConstraintPresenter::id() const
+int TemporalConstraintPresenter::viewModelId() const
 {
-	return m_model->id();
+	return m_viewModel->id();
 }
 
 TemporalConstraintView *TemporalConstraintPresenter::view()
@@ -67,9 +69,9 @@ TemporalConstraintView *TemporalConstraintPresenter::view()
 	return m_view;
 }
 
-ConstraintModel *TemporalConstraintPresenter::model()
+TemporalConstraintViewModel *TemporalConstraintPresenter::viewModel()
 {
-	return m_model;
+	return m_viewModel;
 }
 
 bool TemporalConstraintPresenter::isSelected() const
@@ -84,12 +86,12 @@ void TemporalConstraintPresenter::deselect()
 
 void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 {
-	emit elementSelected(m_model);
+	emit elementSelected(m_viewModel);
 }
 
 void TemporalConstraintPresenter::on_boxCreated(int boxId)
 {
-	on_boxCreated_impl(m_model->box(boxId));
+	on_boxCreated_impl(m_viewModel->model()->box(boxId));
 }
 
 void TemporalConstraintPresenter::on_boxRemoved(int boxId)

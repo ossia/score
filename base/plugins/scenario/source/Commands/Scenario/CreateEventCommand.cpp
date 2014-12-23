@@ -29,7 +29,7 @@ CreateEventCommand::CreateEventCommand(ObjectPath&& scenarioPath, int time, doub
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
-	m_createdConstraintId = getNextId(scenar->constraints());
+	m_createdConstraintId = getNextId(scenar->constraints()); // TODO faire un tableau à la palce
 	m_createdBoxId = getNextId();
 	m_createdEventId = getNextId(scenar->events());
 }

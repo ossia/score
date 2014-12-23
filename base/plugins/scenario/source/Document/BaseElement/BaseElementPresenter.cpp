@@ -1,5 +1,6 @@
 #include "BaseElementPresenter.hpp"
 
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
@@ -62,7 +63,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 							  this}}
 {
 
-	testInit(this->model()->constraintModel());
+	testInit(this->model()->constraintModel()->model());
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,

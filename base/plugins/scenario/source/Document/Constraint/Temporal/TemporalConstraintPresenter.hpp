@@ -5,7 +5,7 @@
 
 #include "Document/Constraint/ConstraintData.hpp"
 
-class ConstraintModel;
+class TemporalConstraintViewModel;
 class TemporalConstraintView;
 class BoxPresenter;
 class BoxModel;
@@ -28,14 +28,14 @@ class TemporalConstraintPresenter : public NamedObject
 	Q_OBJECT
 
 	public:
-		TemporalConstraintPresenter(ConstraintModel* model,
+		TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
 						  TemporalConstraintView* view,
 						  QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
-		int id() const;
+		int viewModelId() const;
 		TemporalConstraintView* view();
-		ConstraintModel* model();
+		TemporalConstraintViewModel* viewModel();
 
 		bool isSelected() const;
 		void deselect();
@@ -59,7 +59,7 @@ class TemporalConstraintPresenter : public NamedObject
 
 		std::vector<BoxPresenter*> m_boxes; // No content -> Phantom ?
 		// Process presenters are in the deck presenters.
-		ConstraintModel* m_model{};
+		TemporalConstraintViewModel* m_viewModel{};
 		TemporalConstraintView* m_view{};
 
 		long m_millisecPerPixel{1};

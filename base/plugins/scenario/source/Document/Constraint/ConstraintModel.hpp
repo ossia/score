@@ -10,6 +10,7 @@ namespace OSSIA
 }
 
 class ProcessSharedModelInterface;
+class ConstraintViewModelInterface;
 
 class BoxModel;
 class EventModel;
@@ -20,6 +21,7 @@ class TimeBox;
  *
  * Contains at least 1 BoxModel (else nothing can be displayed)
  */
+// TODO put some of this stuff in the corresponding view models.
 class ConstraintModel : public IdentifiedObject
 {
 	Q_OBJECT
@@ -39,16 +41,16 @@ class ConstraintModel : public IdentifiedObject
 		ConstraintModel(QDataStream&, QObject* parent);
 		virtual ~ConstraintModel() = default;
 
+		// Factory
+		ConstraintViewModelInterface* makeViewModel(QString name, int viewModelId, QObject* parent);
+
+		// Sub-element creation
 		int createProcess(QString processName, int processId);
 		int createProcess(QDataStream& data);
-
-		// Changes processes()!
 		void removeProcess(int processId);
 
 		void createBox(int boxId);
 		void createBox(QDataStream& s);
-
-		// Changes boxes()!
 		void removeBox(int viewId);
 		void duplicateBox(int viewId);
 
@@ -97,8 +99,8 @@ class ConstraintModel : public IdentifiedObject
 		void processCreated(QString processName, int processId);
 		void processRemoved(int processId);
 
-		void boxCreated(int viewId);
-		void boxRemoved(int viewId);
+		void boxCreated(int boxId);
+		void boxRemoved(int boxId);
 
 		void nameChanged(QString arg);
 		void commentChanged(QString arg);

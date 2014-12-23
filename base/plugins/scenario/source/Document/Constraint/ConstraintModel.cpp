@@ -1,5 +1,6 @@
 #include "ConstraintModel.hpp"
 
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
@@ -96,6 +97,14 @@ ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, "ConstraintModel", parent} // Id has to be set afterwards
 {
 	s >> *this;
+}
+
+ConstraintViewModelInterface* ConstraintModel::makeViewModel(QString name, int viewModelId, QObject* parent)
+{
+	if(name == "Temporal")
+	{
+		return new TemporalConstraintViewModel(viewModelId, this, parent);
+	}
 }
 
 

@@ -4,8 +4,10 @@
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessView.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
-#include "Document/Constraint/ConstraintData.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/ConstraintData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
@@ -111,7 +113,14 @@ void TemporalScenarioProcessPresenter::on_eventDeleted(int eventId)
 
 void TemporalScenarioProcessPresenter::on_constraintDeleted(int constraintId)
 {
-	removeFromVectorWithId(m_constraints, constraintId);
+	vec_erase_remove_if(m_constraints,
+						[&constraintId] (TemporalConstraintPresenter* pres)
+						{
+							bool to_delete = pres->viewModel()->model()->id() == constraintId;
+							if(to_delete) delete pres;
+							return to_delete;
+						} );
+
 	m_view->update();
 }
 
@@ -131,12 +140,15 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
 {
 	auto rect = m_view->boundingRect();
 
-	for(auto inter : m_constraints) {
-		if(inter->id() == constraintId ) {
-			inter->view()->setPos({qreal(inter->model()->startDate()),
-								   rect.height() * inter->model()->heightPercentage()});
+	for(TemporalConstraintPresenter* cstr_pres : m_constraints)
+	{
+		ConstraintModel* cstr_model{cstr_pres->viewModel()->model()};
+		if(cstr_model->id() == constraintId )
+		{
+			cstr_pres->view()->setPos({qreal(cstr_model->startDate()),
+									   rect.height() * cstr_model->heightPercentage()});
 
-			inter->view()->setWidth(inter->model()->width());
+			cstr_pres->view()->setWidth(cstr_model->width());
 		}
 	}
 	m_view->update();
@@ -215,7 +227,7 @@ void TemporalScenarioProcessPresenter::deleteSelection()
 		commands.push_back(
 					new ClearConstraint(
 						ObjectPath::pathFromObject("BaseConstraintModel",
-												   constraint->model())));
+												   constraint->viewModel()->model())));
 	}
 
 	for(auto& event : m_events)
@@ -306,17 +318,18 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 			});
 }
 
-void TemporalScenarioProcessPresenter::on_constraintCreated_impl(ConstraintModel* constraint_model)
+void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
 {
 	auto rect = m_view->boundingRect();
 
 	auto constraint_view = new TemporalConstraintView{m_view};
-	auto constraint_presenter = new TemporalConstraintPresenter{constraint_model,
+	auto constraint_presenter = new TemporalConstraintPresenter{
+													constraint_view_model,
 													constraint_view,
 													this};
 
-	constraint_view->setPos({rect.x() + constraint_model->startDate(),
-							 rect.y() + rect.height() * constraint_model->heightPercentage()});
+	constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate(),
+							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 
 	m_constraints.push_back(constraint_presenter);
 

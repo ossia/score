@@ -8,6 +8,7 @@ namespace iscore
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 
+class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 class EventPresenter;
 class TemporalScenarioProcessViewModel;
@@ -70,7 +71,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
-		void on_constraintCreated_impl(ConstraintModel* constraint_model);
+		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
 
 
 		TemporalScenarioProcessViewModel* m_viewModel;

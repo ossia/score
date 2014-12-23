@@ -7,6 +7,7 @@
 class ScenarioProcessSharedModel;
 class BoxModel;
 class ConstraintModel;
+class TemporalConstraintViewModel;
 
 
 class TemporalScenarioProcessViewModel : public ProcessViewModelInterface
@@ -38,6 +39,11 @@ class TemporalScenarioProcessViewModel : public ProcessViewModelInterface
 		void on_constraintRemoved(int constraintId);
 
 	private:
+		QVector<TemporalConstraintViewModel*> m_constraints;
+
+
+
+		// TO REMOVE.
 		// Map between constraints and constraints contents.
 		// If the QPair bool is false, there is no box displayed, and the int content is undefined.
 		// Else, the int is the id of the box to be displayed in this view model.

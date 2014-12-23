@@ -1,11 +1,12 @@
 #pragma once
+#include "Document/Constraint/ConstraintViewModelInterface.hpp"
 
-#include <core/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 // TODO might be different in temporal vs logical view. Same for Event.
-class TemporalConstraintViewModel : public IdentifiedObject
+class TemporalConstraintViewModel : public ConstraintViewModelInterface
 {
+		Q_OBJECT
 	public:
 		/**
 		 * @brief TemporalConstraintViewModel
@@ -13,12 +14,12 @@ class TemporalConstraintViewModel : public IdentifiedObject
 		 * @param model Pointer to the corresponding model object
 		 * @param parent Parent object (most certainly ScenarioProcessViewModel)
 		 */
-		TemporalConstraintViewModel(int id, ConstraintModel* model, QObject* parent);
+		TemporalConstraintViewModel(int id,
+									ConstraintModel* model,
+									QObject* parent);
+
 
 	private:
-		ConstraintModel* m_model{}; // A view model cannot exist without a model
-
-
 		bool m_boxIsPresent{};
 		int m_idOfDisplayedBox{};
 };
