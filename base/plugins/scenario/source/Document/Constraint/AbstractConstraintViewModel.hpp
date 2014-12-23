@@ -7,26 +7,29 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		Q_OBJECT
 
 		friend QDataStream& operator <<(QDataStream& s,
-										const AbstractConstraintViewModel& p)
-		{
-			// It will be deserialized by the constructor.
-			s << static_cast<const IdentifiedObject&>(p);
-			s << p.m_boxIsPresent
-			  << p.m_idOfDisplayedBox;
-
-			p.serialize(s);
-			return s;
-		}
+										const AbstractConstraintViewModel& p);
 
 		friend QDataStream& operator >>(QDataStream& s,
-										AbstractConstraintViewModel& p)
-		{
-			s >> p.m_boxIsPresent
-			  >> p.m_idOfDisplayedBox;
+										AbstractConstraintViewModel& p);
 
-			return s;
-		}
 	public:
+		ConstraintModel* model() const
+		{ return m_model; }
+
+		bool isBoxShown() const;
+		int shownBox() const;
+
+		void hideBox();
+		void showBox(int boxId);
+
+	signals:
+		void boxCreated(int boxId);
+		void boxRemoved(int boxId);
+		void boxHidden();
+		void boxShown(int boxId);
+
+	protected:
+		virtual void serialize(QDataStream&) const = 0;
 		AbstractConstraintViewModel(int id,
 									QString name,
 									ConstraintModel* model,
@@ -45,21 +48,11 @@ class AbstractConstraintViewModel : public IdentifiedObject
 			s >> *this;
 		}
 
-		ConstraintModel* model() const
-		{ return m_model; }
-
-	signals:
-		void boxCreated(int boxId);
-		void boxRemoved(int boxId);
-
-	protected:
-		virtual void serialize(QDataStream&) const = 0;
-
 	private:
 		// A view model cannot be constructed without a model
 		// hence we are safe with a pointer
 		ConstraintModel* m_model{};
 
-		bool m_boxIsPresent{};
-		int m_idOfDisplayedBox{};
+		bool m_boxIsShown{};
+		int m_idOfShownBox{};
 };
