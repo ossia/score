@@ -80,7 +80,7 @@ class ConstraintModelTests: public QObject
 			s0->createConstraintAndBothEvents(42, 46, 10, int_2_id, ev_2_id, int_3_id, ev_3_id);
 
 			auto i1 = s0->constraint(int_0_id);
-			auto s1 = new ScenarioProcessSharedModel{0, i1};
+			auto s1 = new ScenarioProcessSharedModel{0, i1}; (void) s1;
 			auto s2 = new ScenarioProcessSharedModel{1, i1};
 
 			ObjectPath p{

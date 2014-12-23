@@ -47,6 +47,7 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent):
 void BoxWidget::updateComboBox()
 {
 	m_boxList->clear();
+	m_boxList->addItem(hiddenText);
 	if(m_model)
 	{
 		auto boxesPtrs = m_model->boxes();

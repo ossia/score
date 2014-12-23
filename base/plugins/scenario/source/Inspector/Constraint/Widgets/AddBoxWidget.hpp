@@ -14,6 +14,8 @@ class BoxWidget : public QWidget
 		void updateComboBox();
 		void setModel(ConstraintModel*);
 
+		const QString hiddenText{tr("Hide")};
+
 	private:
 		QComboBox* m_boxList;
 		ConstraintModel* m_model;

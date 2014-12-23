@@ -11,6 +11,7 @@
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
+#include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
@@ -165,13 +166,25 @@ void ConstraintInspectorWidget::createBox()
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box)
 {
-	bool ok{};
-	int id = box.toInt(&ok);
-
-	if(ok)
+	// TODO mettre à jour l'inspecteur si la box affichée change (i.e. via une commande réseau).
+	if(box == m_boxWidget->hiddenText)
 	{
-		auto cmd = new ShowBoxInViewModel(viewModel(), id);
-		emit submitCommand(cmd);
+		if(viewModel()->isBoxShown())
+		{
+			auto cmd = new HideBoxInViewModel(viewModel());
+			emit submitCommand(cmd);
+		}
+	}
+	else
+	{
+		bool ok{};
+		int id = box.toInt(&ok);
+
+		if(ok)
+		{
+			auto cmd = new ShowBoxInViewModel(viewModel(), id);
+			emit submitCommand(cmd);
+		}
 	}
 }
 
