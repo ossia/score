@@ -9,6 +9,7 @@
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
+#include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
 #include "Commands/Scenario/CreateEventCommand.hpp"
 
@@ -21,22 +22,25 @@ using namespace Scenario;
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-void testInit(ConstraintModel* m)
+void testInit(TemporalConstraintViewModel* viewmodel)
 {
 	using namespace Scenario::Command;
+	auto constraint_model = viewmodel->model();
 
 	(new AddProcessToConstraintCommand(
 		{
 			{"BaseConstraintModel", {}}
 		},
 		"Scenario"))->redo();
-	auto scenarioId = m->processes().front()->id();
+	auto scenarioId = constraint_model->processes().front()->id();
 
 	(new AddBoxToConstraint(
 		ObjectPath{
 			{"BaseConstraintModel", {}}
 		}))->redo();
-	auto box = m->boxes().front();
+	auto box = constraint_model->boxes().front();
+
+	(new ShowBoxInViewModel(viewmodel, box->id()))->redo();
 
 	(new AddDeckToBox(
 		ObjectPath{
@@ -63,7 +67,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 							  this}}
 {
 
-	testInit(this->model()->constraintViewModel()->model());
+	testInit(this->model()->constraintViewModel());
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,

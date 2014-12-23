@@ -33,20 +33,11 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		AbstractConstraintViewModel(int id,
 									QString name,
 									ConstraintModel* model,
-									QObject* parent):
-			IdentifiedObject{id, name, parent},
-			m_model{model}
-		{
-		}
+									QObject* parent);
 
 		AbstractConstraintViewModel(QDataStream& s,
 									ConstraintModel* model,
-									QObject* parent):
-			IdentifiedObject{s, parent},
-			m_model{model}
-		{
-			s >> *this;
-		}
+									QObject* parent);
 
 	private:
 		// A view model cannot be constructed without a model

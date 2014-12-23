@@ -33,7 +33,6 @@ class TemporalConstraintPresenter : public NamedObject
 						  QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
-		int viewModelId() const;
 		TemporalConstraintView* view();
 		TemporalConstraintViewModel* viewModel();
 
@@ -49,15 +48,17 @@ class TemporalConstraintPresenter : public NamedObject
 
 	public slots:
 		void on_constraintPressed(QPointF);
-		void on_boxCreated(int boxId);
-		void on_boxRemoved(int boxId);
+		void on_boxShown(int boxId);
+		void on_boxHidden();
+		void on_boxRemoved();
 
-		void on_askUpdate();
+		void updateView();
 
 	private:
-		void on_boxCreated_impl(BoxModel*);
+		void createBoxPresenter(BoxModel*);
+		void clearBoxPresenter();
 
-		std::vector<BoxPresenter*> m_boxes;
+		BoxPresenter* m_box{};
 		// Process presenters are in the deck presenters.
 		TemporalConstraintViewModel* m_viewModel{};
 		TemporalConstraintView* m_view{};

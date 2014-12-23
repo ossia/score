@@ -21,15 +21,17 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
-	view->setWidth(m_viewModel->model()->width()/m_millisecPerPixel);
+	view->setWidth(m_viewModel->model()->width() / m_millisecPerPixel);
 
-	for(auto& box : m_viewModel->model()->boxes())
+	if(m_viewModel->isBoxShown())
 	{
-		on_boxCreated_impl(box);
+		on_boxShown(m_viewModel->shownBox());
 	}
 
-	connect(m_viewModel, &TemporalConstraintViewModel::boxCreated,
-			this,		 &TemporalConstraintPresenter::on_boxCreated);
+	connect(m_viewModel, &TemporalConstraintViewModel::boxShown,
+			this,		 &TemporalConstraintPresenter::on_boxShown);
+	connect(m_viewModel, &TemporalConstraintViewModel::boxHidden,
+			this,		 &TemporalConstraintPresenter::on_boxHidden);
 	connect(m_viewModel, &TemporalConstraintViewModel::boxRemoved,
 			this,		 &TemporalConstraintPresenter::on_boxRemoved);
 
@@ -50,7 +52,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		emit constraintReleased(data);
 	});
 
-	on_askUpdate();
+	updateView();
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
@@ -58,11 +60,6 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 	auto sc = m_view->scene();
 	if(sc) sc->removeItem(m_view);
 	m_view->deleteLater();
-}
-
-int TemporalConstraintPresenter::viewModelId() const
-{
-	return m_viewModel->id();
 }
 
 TemporalConstraintView *TemporalConstraintPresenter::view()
@@ -90,50 +87,65 @@ void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 	emit elementSelected(m_viewModel);
 }
 
-void TemporalConstraintPresenter::on_boxCreated(int boxId)
+void TemporalConstraintPresenter::on_boxShown(int boxId)
 {
-	on_boxCreated_impl(m_viewModel->model()->box(boxId));
-	on_askUpdate();
+	clearBoxPresenter();
+	createBoxPresenter(m_viewModel->model()->box(boxId));
+
+	updateView();
 }
 
-void TemporalConstraintPresenter::on_boxRemoved(int boxId)
+void TemporalConstraintPresenter::on_boxHidden()
 {
-	removeFromVectorWithId(m_boxes, boxId);
-	on_askUpdate();
+	clearBoxPresenter();
+
+	updateView();
 }
 
-void TemporalConstraintPresenter::on_askUpdate()
+void TemporalConstraintPresenter::on_boxRemoved()
 {
-	int contentPresenterVerticalSize = 0;
-	if(m_boxes.size() > 0)
-		contentPresenterVerticalSize = m_boxes.front()->height();
+	clearBoxPresenter();
 
-	m_view->setHeight(contentPresenterVerticalSize + 60);
+	updateView();
+}
+
+void TemporalConstraintPresenter::clearBoxPresenter()
+{
+	m_box->deleteLater();
+	m_box = nullptr;
+}
+
+void TemporalConstraintPresenter::updateView()
+{
+	if(m_viewModel->isBoxShown())
+	{
+		m_view->setHeight(m_box->height() + 60);
+	}
+	else
+	{
+		// faire vue appropriée plus tard
+		m_view->setHeight(25);
+	}
 
 	emit askUpdate();
 	m_view->update();
 }
 
-void TemporalConstraintPresenter::on_boxCreated_impl(BoxModel* boxModel)
+void TemporalConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 {
 	auto contentView = new BoxView{m_view};
 	contentView->setPos(5, 50);
 
 	// Cas par défaut
-	auto box_presenter =
-			new BoxPresenter{boxModel,
+	m_box = new BoxPresenter{boxModel,
 							 contentView,
 							 this};
 
-	connect(box_presenter, &BoxPresenter::submitCommand,
-			this,		   &TemporalConstraintPresenter::submitCommand);
-	connect(box_presenter, &BoxPresenter::elementSelected,
-			this,		   &TemporalConstraintPresenter::elementSelected);
+	connect(m_box, &BoxPresenter::submitCommand,
+			this,  &TemporalConstraintPresenter::submitCommand);
+	connect(m_box, &BoxPresenter::elementSelected,
+			this,  &TemporalConstraintPresenter::elementSelected);
 
-	connect(box_presenter, &BoxPresenter::askUpdate,
-			this,		   &TemporalConstraintPresenter::on_askUpdate);
-
-	m_boxes.push_back(box_presenter);
-
-	on_askUpdate();
+	connect(m_box, &BoxPresenter::askUpdate,
+			this,  &TemporalConstraintPresenter::updateView);
 }
