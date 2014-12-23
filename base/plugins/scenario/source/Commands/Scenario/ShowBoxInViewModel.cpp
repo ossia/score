@@ -8,7 +8,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint,
 									   int boxId):
 	SerializableCommand{"ScenarioControl",
 						"CreateEventCommand",
-						QObject::tr("Event creation")},
+						QObject::tr("Show box in constraint view")},
 	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseConstraintModel",
 														 constraint)},
 	m_boxId{boxId}

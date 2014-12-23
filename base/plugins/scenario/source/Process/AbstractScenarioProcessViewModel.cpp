@@ -14,6 +14,8 @@ QVector<AbstractConstraintViewModel*> AbstractScenarioProcessViewModel::constrai
 
 void AbstractScenarioProcessViewModel::removeConstraintViewModel(int constraintViewModelId)
 {
-	removeById(m_constraints, constraintViewModelId);
+	// We have to emit before, because on removal, some other stuff might use the now-removed model id to do the comparison in vec_erase_remove_if
 	emit constraintViewModelRemoved(constraintViewModelId);
+	removeById(m_constraints, constraintViewModelId);
+
 }

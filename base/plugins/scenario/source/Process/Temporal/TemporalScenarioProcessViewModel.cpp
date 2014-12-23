@@ -66,6 +66,7 @@ void TemporalScenarioProcessViewModel::serialize(QDataStream& s) const
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
 															   int constraintViewModelId)
 {
+	qDebug() << constraintViewModelId << "created.";
 	auto constraint_model = model(this)->constraint(constraintModelId);
 	auto constraint_view_model =
 			constraint_model->makeViewModel<constraint_view_model_type>(
@@ -94,7 +95,13 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
 	emit constraintViewModelCreated(constraint_view_model->id());
 }
 
-void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintViewModelId)
-{
-	removeConstraintViewModel(constraintViewModelId);
+void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintSharedModelId)
+{	for(auto& constraint_view_model : constraintsViewModels(*this))
+	{
+		if(constraint_view_model->model()->id() == constraintSharedModelId)
+		{
+			removeConstraintViewModel(constraint_view_model->id());
+			return;
+		}
+	}
 }

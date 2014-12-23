@@ -66,7 +66,7 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelRemoved,
-			this,		 &TemporalScenarioProcessPresenter::on_constraintDeleted);
+			this,		 &TemporalScenarioProcessPresenter::on_constraintViewModelRemoved);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
 			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintMoved,
@@ -111,12 +111,12 @@ void TemporalScenarioProcessPresenter::on_eventDeleted(int eventId)
 	m_view->update();
 }
 
-void TemporalScenarioProcessPresenter::on_constraintDeleted(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(int constraintViewModelId)
 {
 	vec_erase_remove_if(m_constraints,
-						[&constraintId] (TemporalConstraintPresenter* pres)
+						[&constraintViewModelId] (TemporalConstraintPresenter* pres)
 						{
-							bool to_delete = pres->viewModel()->model()->id() == constraintId;
+							bool to_delete = pres->viewModel()->id() == constraintViewModelId;
 							if(to_delete) delete pres;
 							return to_delete;
 						} );

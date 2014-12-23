@@ -49,7 +49,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_eventMoved(int eventId);
 
 		void on_constraintCreated(int constraintId);
-		void on_constraintDeleted(int constraintId);
+		void on_constraintViewModelRemoved(int constraintId);
 		void on_constraintMoved(int constraintId);
 
 		// View -> Presenter
