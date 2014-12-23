@@ -52,7 +52,6 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(QDataStream& 
 																   ScenarioProcessSharedModel* model,
 																   QObject* parent):
 	AbstractScenarioProcessViewModel{s,
-									 "TemporalScenarioProcessViewModel",
 									 model,
 									 parent}
 {

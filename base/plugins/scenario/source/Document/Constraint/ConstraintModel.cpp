@@ -94,7 +94,7 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 }
 
 ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, "ConstraintModel", parent} // Id has to be set afterwards
+	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }

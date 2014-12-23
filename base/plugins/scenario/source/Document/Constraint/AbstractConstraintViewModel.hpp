@@ -37,10 +37,9 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		}
 
 		AbstractConstraintViewModel(QDataStream& s,
-									QString name,
 									ConstraintModel* model,
 									QObject* parent):
-			IdentifiedObject{s, name, parent},
+			IdentifiedObject{s, parent},
 			m_model{model}
 		{
 			s >> *this;

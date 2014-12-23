@@ -40,7 +40,7 @@ BoxModel::BoxModel(int id, QObject* parent):
 }
 
 BoxModel::BoxModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, "BoxModel", parent}
+	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }

@@ -72,7 +72,7 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 
 
 EventModel::EventModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, "EventModel", parent}
+	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }

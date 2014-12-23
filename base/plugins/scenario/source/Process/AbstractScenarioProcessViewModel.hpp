@@ -43,11 +43,9 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		}
 
 		AbstractScenarioProcessViewModel(QDataStream& s,
-										 QString name,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):
 			ProcessViewModelInterface{s,
-									  name,
 									  sharedProcess,
 									  parent}
 		{

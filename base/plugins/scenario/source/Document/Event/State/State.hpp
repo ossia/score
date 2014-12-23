@@ -32,7 +32,7 @@ class State : public IdentifiedObject
 
 		}
 		State(QDataStream& s, QObject* parent):
-			IdentifiedObject{s, "State", parent}
+			IdentifiedObject{s, parent}
 		{
 
 		}

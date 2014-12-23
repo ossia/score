@@ -30,7 +30,6 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(QDataStream& s,
 														 ConstraintModel* model,
 														 QObject* parent):
 	AbstractConstraintViewModel{s,
-								 "TemporalConstraintViewModel",
 								 model,
 								 parent}
 {

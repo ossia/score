@@ -31,10 +31,9 @@ class ProcessViewModelInterface: public IdentifiedObject
 		}
 
 		ProcessViewModelInterface(QDataStream& s,
-								  QString name,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObject{s, name, parent},
+			IdentifiedObject{s, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
 			// In derived classes's constructors, do s >> *this; (there is nothing to do here)

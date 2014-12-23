@@ -78,7 +78,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 													   QObject* parent):
-	ProcessSharedModelInterface{s, "ScenarioProcessSharedModel", parent}
+	ProcessSharedModelInterface{s, parent}
 {
 	s >> *this;
 }

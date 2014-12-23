@@ -11,12 +11,36 @@
 template<typename QType>
 class NamedType : public QType
 {
+		friend QDataStream& operator << (QDataStream& s, const NamedType<QType>& obj)
+		{
+			s << obj.objectName();
+
+			return s;
+		}
+
+		friend QDataStream& operator >> (QDataStream& s, NamedType<QType>& obj)
+		{
+			QString objectName;
+			s >> objectName;
+			obj.setObjectName(objectName);
+
+			return s;
+		}
+
 	public:
 		template<typename... Args>
 		NamedType(QString name, QObject* parent, Args&&... args):
 			QType{std::forward<Args>(args)...}
 		{
 			QType::setObjectName(name);
+			QType::setParent(parent);
+		}
+
+		template<typename... Args>
+		NamedType(QDataStream& s, QObject* parent, Args&&... args):
+			QType{std::forward<Args>(args)...}
+		{
+			s >> *this;
 			QType::setParent(parent);
 		}
 };

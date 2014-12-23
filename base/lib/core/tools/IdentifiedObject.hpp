@@ -7,6 +7,7 @@ class IdentifiedObject : public NamedObject
 {
 		friend QDataStream& operator << (QDataStream& s, const IdentifiedObject& obj)
 		{
+			s << static_cast<const NamedObject&>(obj);
 			s << obj.m_id;
 			return s;
 		}
@@ -25,10 +26,11 @@ class IdentifiedObject : public NamedObject
 			m_id{id}
 		{
 		}
+
 		template<typename... Args>
 		IdentifiedObject(QDataStream& s,
 						 Args&&... args):
-			NamedObject{std::forward<Args>(args)...}
+			NamedObject{s, std::forward<Args>(args)...}
 		{
 			s >> *this;
 		}

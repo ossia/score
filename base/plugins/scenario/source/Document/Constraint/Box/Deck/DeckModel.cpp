@@ -56,7 +56,7 @@ QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 }
 
 DeckModel::DeckModel(QDataStream& s, BoxModel* parent):
-	IdentifiedObject{s, "DeckModel", parent}
+	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }
