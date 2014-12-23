@@ -115,8 +115,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void constraintMoved(int constraintId);
 
 	protected:
-		virtual void serializeImpl(QDataStream&) const override;
-		virtual void deserializeImpl(QDataStream&) override;
+		virtual void serialize(QDataStream&) const override;
+		virtual void deserialize(QDataStream&) override;
 
 	private:
 		OSSIA::Scenario* m_scenario;

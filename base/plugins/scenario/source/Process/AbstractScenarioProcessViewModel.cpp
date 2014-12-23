@@ -1,12 +1,12 @@
 #include "AbstractScenarioProcessViewModel.hpp"
-#include "Document/Constraint/ConstraintViewModelInterface.hpp"
+#include "Document/Constraint/AbstractConstraintViewModel.hpp"
 
-ConstraintViewModelInterface* AbstractScenarioProcessViewModel::constraint(int constraintViewModelid) const
+AbstractConstraintViewModel* AbstractScenarioProcessViewModel::constraint(int constraintViewModelid) const
 {
 	return findById(m_constraints, constraintViewModelid);
 }
 
-QVector<ConstraintViewModelInterface*> AbstractScenarioProcessViewModel::constraints() const
+QVector<AbstractConstraintViewModel*> AbstractScenarioProcessViewModel::constraints() const
 {
 	return m_constraints;
 }

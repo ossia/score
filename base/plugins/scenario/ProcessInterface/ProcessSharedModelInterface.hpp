@@ -11,12 +11,12 @@ class ProcessViewModelInterface;
 	 */
 class ProcessSharedModelInterface: public IdentifiedObject
 {
-		friend QDataStream& operator <<(QDataStream& s, const ProcessSharedModelInterface& proc)
+		friend QDataStream& operator <<(QDataStream& s,
+										const ProcessSharedModelInterface& proc)
 		{
-			s << proc.processName();
 			s << static_cast<const IdentifiedObject&>(proc);
 
-			proc.serializeImpl(s);
+			proc.serialize(s);
 			return s;
 		}
 
@@ -34,7 +34,8 @@ class ProcessSharedModelInterface: public IdentifiedObject
 
 		virtual ~ProcessSharedModelInterface() = default;
 
-		// TODO pass the name of the view model to be created (e.g. temporal / logical...).
+		// TODO pass the name of the view model to be created
+		// (e.g. temporal / logical...).
 		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
 														 QObject* parent) = 0;
 		virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
@@ -47,8 +48,8 @@ class ProcessSharedModelInterface: public IdentifiedObject
 		}
 
 	protected:
-		virtual void serializeImpl(QDataStream&) const = 0;
-		virtual void deserializeImpl(QDataStream&) = 0;
+		virtual void serialize(QDataStream&) const = 0;
+		virtual void deserialize(QDataStream&) = 0;
 
 		void addViewModel(ProcessViewModelInterface* m)
 		{

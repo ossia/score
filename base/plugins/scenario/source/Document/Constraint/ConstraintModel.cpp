@@ -99,12 +99,12 @@ ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	s >> *this;
 }
 
-void ConstraintModel::makeViewModel_impl(ConstraintViewModelInterface* viewmodel)
+void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel)
 {
 	connect(this,		&ConstraintModel::boxCreated,
-			viewmodel,	&ConstraintViewModelInterface::boxCreated);
+			viewmodel,	&AbstractConstraintViewModel::boxCreated);
 	connect(this,		&ConstraintModel::boxRemoved,
-			viewmodel,	&ConstraintViewModelInterface::boxRemoved);
+			viewmodel,	&AbstractConstraintViewModel::boxRemoved);
 }
 
 

@@ -1,27 +1,18 @@
 #pragma once
-#include "Document/Constraint/ConstraintViewModelInterface.hpp"
+#include "Document/Constraint/AbstractConstraintViewModel.hpp"
 
 
 class ConstraintModel;
 // TODO might be different in temporal vs logical view. Same for Event.
-class TemporalConstraintViewModel : public ConstraintViewModelInterface
+class TemporalConstraintViewModel : public AbstractConstraintViewModel
 {
 		Q_OBJECT
 		friend class ConstraintModel;
-	public:
-
+		friend QDataStream& operator <<(QDataStream& s, const TemporalConstraintViewModel& vm);
+		friend QDataStream& operator >>(QDataStream& s, TemporalConstraintViewModel& vm);
 
 	protected:
-		virtual void serialize(QDataStream& s) const
-		{
-			s << m_boxIsPresent
-			  << m_idOfDisplayedBox;
-		}
-		virtual void deserialize(QDataStream& s)
-		{
-			s >> m_boxIsPresent
-			  >> m_idOfDisplayedBox;
-		}
+		virtual void serialize(QDataStream& s) const override;
 
 	private:
 		// Can only be constructed from ConstraintModel::makeViewModel
@@ -37,9 +28,4 @@ class TemporalConstraintViewModel : public ConstraintViewModelInterface
 		TemporalConstraintViewModel(QDataStream& s,
 									ConstraintModel* model,
 									QObject* parent);
-
-
-		bool m_boxIsPresent{};
-		int m_idOfDisplayedBox{};
-
 };

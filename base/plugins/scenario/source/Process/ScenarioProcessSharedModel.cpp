@@ -390,12 +390,12 @@ EventModel* ScenarioProcessSharedModel::endEvent()
 	return event(m_endEventId);
 }
 
-void ScenarioProcessSharedModel::serializeImpl(QDataStream& s) const
+void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 {
 	s << *this;
 }
 
-void ScenarioProcessSharedModel::deserializeImpl(QDataStream& s)
+void ScenarioProcessSharedModel::deserialize(QDataStream& s)
 {
 	s >> *this;
 }

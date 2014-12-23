@@ -37,7 +37,7 @@ class ProcessViewModelInterface: public IdentifiedObject
 			IdentifiedObject{s, name, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
-			// In derived classes's constructors, do s >> *this;
+			// In derived classes's constructors, do s >> *this; (there is nothing to do here)
 		}
 
 	private:

@@ -10,7 +10,7 @@ namespace OSSIA
 }
 
 class ProcessSharedModelInterface;
-class ConstraintViewModelInterface;
+class AbstractConstraintViewModel;
 
 class BoxModel;
 class EventModel;
@@ -50,7 +50,7 @@ class ConstraintModel : public IdentifiedObject
 			return viewmodel;
 		}
 
-		void makeViewModel_impl(ConstraintViewModelInterface* viewmodel);
+		void makeViewModel_impl(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
 		int createProcess(QString processName, int processId);

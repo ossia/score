@@ -102,11 +102,11 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 		// ProcessSharedModelInterface interface
 	protected:
-		virtual void serializeImpl(QDataStream&) const
+		virtual void serialize(QDataStream&) const
 		{
 			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 		}
-		virtual void deserializeImpl(QDataStream&)
+		virtual void deserialize(QDataStream&)
 		{
 			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 		}

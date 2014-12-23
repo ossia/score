@@ -1,7 +1,7 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
-class ConstraintViewModelInterface;
+class AbstractConstraintViewModel;
 // TODO Serialize this.
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 {
@@ -14,8 +14,8 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void removeConstraintViewModel(int constraintViewModelId);
 
 		// Access to elements
-		ConstraintViewModelInterface* constraint(int constraintViewModelid) const;
-		QVector<ConstraintViewModelInterface*> constraints() const;
+		AbstractConstraintViewModel* constraint(int constraintViewModelid) const;
+		QVector<AbstractConstraintViewModel*> constraints() const;
 
 	signals:
 		void constraintViewModelCreated(int constraintViewModelid);
@@ -57,7 +57,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 
 		virtual void makeConstraintViewModel(QDataStream& s) = 0;
 
-		QVector<ConstraintViewModelInterface*> m_constraints;
+		QVector<AbstractConstraintViewModel*> m_constraints;
 };
 
 
