@@ -57,7 +57,8 @@ class ProcessSharedModelInterface: public IdentifiedObject
 
 		void removeViewModel(ProcessViewModelInterface* m)
 		{
-			m_viewModels.remove(m_viewModels.indexOf(m));
+			if(m_viewModels.contains(m))
+				m_viewModels.remove(m_viewModels.indexOf(m));
 		}
 
 	private:

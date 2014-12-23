@@ -17,6 +17,6 @@ class ConstraintInspectorFactory : public InspectorWidgetFactoryInterface
 
 		virtual QString correspondingObjectName() const override
 		{
-			return "ConstraintModel";
+			return "TemporalConstraintViewModel";
 		}
 };

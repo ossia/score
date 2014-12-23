@@ -4,6 +4,7 @@
 #include <QMap>
 
 class ConstraintModel;
+class TemporalConstraintViewModel;
 class BoxModel;
 class DeckModel;
 class ProcessSharedModelInterface;
@@ -21,15 +22,15 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 {
 		Q_OBJECT
 	public:
-		explicit ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent = 0);
+		explicit ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent = 0);
 
-		ConstraintModel* model() const
-		{ return m_currentConstraint; }
+		TemporalConstraintViewModel* viewModel() const;
+		ConstraintModel* model() const;
 
 	public slots:
 		void reloadDisplayedValues()
 		{ updateDisplayedValues(m_currentConstraint); }
-		void updateDisplayedValues(ConstraintModel* obj);
+		void updateDisplayedValues(TemporalConstraintViewModel* obj);
 
 		// These methods ask for creation
 		void createProcess(QString processName);
@@ -51,7 +52,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void setupBox(BoxModel*);
 
 	private:
-		ConstraintModel* m_currentConstraint{};
+		TemporalConstraintViewModel* m_currentConstraint{};
 		QVector<QMetaObject::Connection> m_connections;
 
 		InspectorSectionWidget* m_processSection{};

@@ -5,6 +5,7 @@
 #include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
@@ -38,7 +39,7 @@ class Separator : public QFrame
 		}
 };
 
-ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, QWidget* parent) :
+ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
@@ -69,7 +70,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (ConstraintModel* object, Q
 	updateDisplayedValues(object);
 }
 
-void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constraint)
+TemporalConstraintViewModel*ConstraintInspectorWidget::viewModel() const
+{ return m_currentConstraint; }
+
+ConstraintModel* ConstraintInspectorWidget::model() const
+{ return m_currentConstraint? m_currentConstraint->model() : nullptr; }
+
+void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewModel* constraint)
 {
 	// Cleanup the widgets
 	for(auto& process : m_processesSectionWidgets)
@@ -95,37 +102,37 @@ void ConstraintInspectorWidget::updateDisplayedValues (ConstraintModel* constrai
 		m_currentConstraint = constraint;
 
 		// Constraint settings
-		setName (constraint->name() );
-		setColor (constraint->color() );
-		setComments (constraint->comment() );
-		setInspectedObject (constraint);
+		setName (model()->name() );
+		setColor (model()->color() );
+		setComments (model()->comment() );
+		setInspectedObject (m_currentConstraint);
 		changeLabelType ("Constraint");
 
 		// Constraint interface
 		m_connections.push_back(
-					connect(m_currentConstraint, &ConstraintModel::processCreated,
-							this,				 &ConstraintInspectorWidget::on_processCreated));
+					connect(model(),	&ConstraintModel::processCreated,
+							this,							&ConstraintInspectorWidget::on_processCreated));
 		m_connections.push_back(
-					connect(m_currentConstraint, &ConstraintModel::processRemoved,
-							this,				 &ConstraintInspectorWidget::on_processRemoved));
+					connect(model(),	&ConstraintModel::processRemoved,
+							this,							&ConstraintInspectorWidget::on_processRemoved));
 		m_connections.push_back(
-					connect(m_currentConstraint, &ConstraintModel::boxCreated,
-							this,				 &ConstraintInspectorWidget::on_boxCreated));
+					connect(model(),	&ConstraintModel::boxCreated,
+							this,							&ConstraintInspectorWidget::on_boxCreated));
 		m_connections.push_back(
-					connect(m_currentConstraint, &ConstraintModel::boxRemoved,
-							this,				 &ConstraintInspectorWidget::on_boxRemoved));
+					connect(model(),	&ConstraintModel::boxRemoved,
+							this,							&ConstraintInspectorWidget::on_boxRemoved));
 
 		// Processes
-		for(ProcessSharedModelInterface* process : constraint->processes())
+		for(ProcessSharedModelInterface* process : model()->processes())
 		{
 			displaySharedProcess(process);
 		}
 
 		// Box
-		m_boxWidget->setModel(m_currentConstraint);
+		m_boxWidget->setModel(model());
 		m_boxWidget->updateComboBox();
 
-		for(BoxModel* box: constraint->boxes())
+		for(BoxModel* box: model()->boxes())
 		{
 			setupBox(box);
 		}
@@ -141,7 +148,7 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 {
 	auto cmd = new AddProcessToConstraintCommand(
 						ObjectPath::pathFromObject("BaseConstraintModel",
-												   m_currentConstraint),
+												   model()),
 						processName);
 	emit submitCommand(cmd);
 }
@@ -151,7 +158,7 @@ void ConstraintInspectorWidget::createBox()
 	auto cmd = new AddBoxToConstraint(
 						ObjectPath::pathFromObject(
 							"BaseConstraintModel",
-							m_currentConstraint));
+							model()));
 	emit submitCommand(cmd);
 }
 
@@ -193,7 +200,7 @@ void ConstraintInspectorWidget::on_processRemoved(int processId)
 
 void ConstraintInspectorWidget::on_boxCreated(int boxId)
 {
-	setupBox(m_currentConstraint->box(boxId));
+	setupBox(model()->box(boxId));
 	m_boxWidget->updateComboBox();
 }
 

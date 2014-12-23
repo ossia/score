@@ -45,7 +45,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 			[&] (QPointF p)
 	{
 		ConstraintData data{};
-		data.id = viewModelId();
+		data.id = viewModel()->model()->id();
 		data.y = p.y();
 		data.x = p.x();
 		emit constraintReleased(data);
