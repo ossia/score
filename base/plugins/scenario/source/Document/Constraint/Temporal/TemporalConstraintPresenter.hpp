@@ -57,7 +57,7 @@ class TemporalConstraintPresenter : public NamedObject
 	private:
 		void on_boxCreated_impl(BoxModel*);
 
-		std::vector<BoxPresenter*> m_boxes; // No content -> Phantom ?
+		std::vector<BoxPresenter*> m_boxes;
 		// Process presenters are in the deck presenters.
 		TemporalConstraintViewModel* m_viewModel{};
 		TemporalConstraintView* m_view{};

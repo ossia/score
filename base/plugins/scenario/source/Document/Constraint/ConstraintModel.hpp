@@ -42,7 +42,16 @@ class ConstraintModel : public IdentifiedObject
 		virtual ~ConstraintModel() = default;
 
 		// Factory
-		ConstraintViewModelInterface* makeViewModel(QString name, int viewModelId, QObject* parent);
+		// TODO same with datastream
+		template<typename ViewModelType>
+		ViewModelType* makeViewModel(int viewModelId, QObject* parent)
+		{
+			auto viewmodel =  new ViewModelType(viewModelId, this, parent);
+			makeViewModel_impl(viewmodel);
+			return viewmodel;
+		}
+
+		void makeViewModel_impl(ConstraintViewModelInterface* viewmodel);
 
 		// Sub-element creation
 		int createProcess(QString processName, int processId);
@@ -108,8 +117,9 @@ class ConstraintModel : public IdentifiedObject
 		void heightPercentageChanged(double arg);
 
 	private:
+		// TODO maybe put this in public, and let the command call ProcessList and pass a pointer to createProcess (which becomes addProcess)
 		int createProcess_impl(ProcessSharedModelInterface*);
-		void createContentModel_impl(BoxModel*);
+		void createBox_impl(BoxModel*);
 
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 

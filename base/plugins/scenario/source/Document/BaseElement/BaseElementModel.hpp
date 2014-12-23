@@ -20,7 +20,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 		BaseElementModel(QObject* parent);
 		virtual ~BaseElementModel() = default;
 
-		TemporalConstraintViewModel* constraintModel()
+		TemporalConstraintViewModel* constraintViewModel()
 		{
 			return m_viewModel;
 		}

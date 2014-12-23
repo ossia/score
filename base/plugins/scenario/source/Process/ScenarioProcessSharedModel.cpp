@@ -86,35 +86,40 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
 {
+	//TODO use a template here.
 	auto scen = new TemporalScenarioProcessViewModel(viewModelId, this, parent);
-	addViewModel(scen);
-
-
-	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
-			[this] (QObject* obj) { this->removeViewModel(static_cast<ProcessViewModelInterface*>(obj)); });
-
-	connect(this, &ScenarioProcessSharedModel::constraintCreated,
-			scen, &TemporalScenarioProcessViewModel::on_constraintCreated);
-	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
-			scen, &TemporalScenarioProcessViewModel::on_constraintRemoved);
-
-	connect(this, &ScenarioProcessSharedModel::eventCreated,
-			scen, &TemporalScenarioProcessViewModel::eventCreated);
-	connect(this, &ScenarioProcessSharedModel::eventDeleted,
-			scen, &TemporalScenarioProcessViewModel::eventDeleted);
-	connect(this, &ScenarioProcessSharedModel::eventMoved,
-			scen, &TemporalScenarioProcessViewModel::eventMoved);
-	connect(this, &ScenarioProcessSharedModel::constraintMoved,
-			scen, &TemporalScenarioProcessViewModel::constraintMoved);
-
+	makeViewModel_impl(scen);
 	return scen;
 }
 
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(QDataStream& s,
 																	 QObject* parent)
 {
-	return new TemporalScenarioProcessViewModel(s, this, parent);
-	// TODO do the connections here too.
+	auto scen = new TemporalScenarioProcessViewModel(s, this, parent);
+	makeViewModel_impl(scen);
+	return scen;
+}
+
+void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::view_model_type* scen)
+{
+	addViewModel(scen);
+
+	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
+			[this] (QObject* obj) { this->removeViewModel(static_cast<ProcessViewModelInterface*>(obj)); });
+
+/*	connect(this, &ScenarioProcessSharedModel::constraintCreated,
+			scen, &view_model_type::on_constraintCreated);
+*/	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
+			scen, &view_model_type::on_constraintRemoved);
+
+	connect(this, &ScenarioProcessSharedModel::eventCreated,
+			scen, &view_model_type::eventCreated);
+	connect(this, &ScenarioProcessSharedModel::eventDeleted,
+			scen, &view_model_type::eventDeleted);
+	connect(this, &ScenarioProcessSharedModel::eventMoved,
+			scen, &view_model_type::eventMoved);
+	connect(this, &ScenarioProcessSharedModel::constraintMoved,
+			scen, &view_model_type::constraintMoved);
 }
 
 

@@ -58,12 +58,12 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateViewInterface* view):
 	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
 	m_baseConstraintPresenter{new TemporalConstraintPresenter{
-							  this->model()->constraintModel(),
+							  this->model()->constraintViewModel(),
 							  this->view()->constraintView(),
 							  this}}
 {
 
-	testInit(this->model()->constraintModel()->model());
+	testInit(this->model()->constraintViewModel()->model());
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,

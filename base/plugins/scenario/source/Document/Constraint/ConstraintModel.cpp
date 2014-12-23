@@ -99,15 +99,15 @@ ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	s >> *this;
 }
 
-ConstraintViewModelInterface* ConstraintModel::makeViewModel(QString name, int viewModelId, QObject* parent)
+void ConstraintModel::makeViewModel_impl(ConstraintViewModelInterface* viewmodel)
 {
-	if(name == "Temporal")
-	{
-		return new TemporalConstraintViewModel(viewModelId, this, parent);
-	}
-
-	return nullptr;
+	connect(this,		&ConstraintModel::boxCreated,
+			viewmodel,	&ConstraintViewModelInterface::boxCreated);
+	connect(this,		&ConstraintModel::boxRemoved,
+			viewmodel,	&ConstraintViewModelInterface::boxRemoved);
 }
+
+
 
 
 
@@ -132,7 +132,7 @@ void ConstraintModel::setHeight(int height)
 }
 
 ConstraintModel::ConstraintModel(int id,
-							 QObject* parent):
+								 QObject* parent):
 	IdentifiedObject{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
@@ -180,16 +180,16 @@ void ConstraintModel::removeProcess(int processId)
 void ConstraintModel::createBox(int boxId)
 {
 	auto box = new BoxModel{boxId, this};
-	createContentModel_impl(box);
+	createBox_impl(box);
 }
 
 void ConstraintModel::createBox(QDataStream& s)
 {
 	auto box = new BoxModel{s, this};
-	createContentModel_impl(box);
+	createBox_impl(box);
 }
 
-void ConstraintModel::createContentModel_impl(BoxModel* box)
+void ConstraintModel::createBox_impl(BoxModel* box)
 {
 	connect(this,	&ConstraintModel::processRemoved,
 			box,	&BoxModel::on_deleteSharedProcessModel);

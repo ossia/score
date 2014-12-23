@@ -19,43 +19,27 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(QDataStream& 
 
 void TemporalScenarioProcessViewModel::serialize(QDataStream& s) const
 {
-//	s << m_constraintToBox;
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
 void TemporalScenarioProcessViewModel::deserialize(QDataStream& s)
 {
-	//	s >> m_constraintToBox;
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
 void TemporalScenarioProcessViewModel::createConstraintViewModel(int constraintModelId, int constraintViewModelId)
 {
 	auto constraint_model = model(this)->constraint(constraintModelId);
-	auto constraint_view_model = constraint_model->makeViewModel("Temporal", constraintViewModelId, this);
-	m_constraints.push_back(static_cast<constraint_type*>(constraint_view_model));
+	auto constraint_view_model = constraint_model->makeViewModel<
+								 TemporalScenarioProcessViewModel::constraint_view_model_type>(
+									 constraintViewModelId,
+									 this);
+	m_constraints.push_back(constraint_view_model);
 
 	emit constraintViewModelCreated(constraintViewModelId);
 }
 
-/*
-QPair<bool, int>& TemporalScenarioProcessViewModel::boxDisplayedForConstraint(int constraintId)
+void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintViewModelId)
 {
-	if(m_constraintToBox.contains(constraintId))
-		return m_constraintToBox[constraintId];
-
-	throw std::runtime_error("Constraint not found in TemporalScenarioProcessViewModel map.");
-}*/
-
-// If the constraint had a box ? (case undo - redo)
-void TemporalScenarioProcessViewModel::on_constraintCreated(int constraintId)
-{/*
-	m_constraints.push_back(model(this)->constraint(constraintId)->makeViewModel("Temporal")
-//	m_constraintToBox[constraintId] = {false, {}};
-	emit constraintCreated(constraintId);*/
-}
-
-void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintId)
-{
-	/*
-	m_constraintToBox.remove(constraintId);
-	emit constraintRemoved(constraintId);*/
+	removeConstraintViewModel(constraintViewModelId);
 }

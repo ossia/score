@@ -27,6 +27,7 @@
 			virtual QStringList availableViews() = 0;
 			virtual ProcessViewInterface* makeView(QString view, QObject* parent) = 0;
 			// TODO Make it take a view name, too (cf. logical / temporal).
+			// Or make it be created by the ViewModel, and the View be created by the presenter.
 			virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
 															 ProcessViewInterface*,
 															 QObject* parent) = 0;

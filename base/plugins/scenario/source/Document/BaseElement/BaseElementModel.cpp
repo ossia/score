@@ -7,7 +7,7 @@
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
 	m_baseConstraint{new ConstraintModel{0, this}},
-	m_viewModel{static_cast<TemporalConstraintViewModel*>(m_baseConstraint->makeViewModel("Temporal", 0, this))}
+	m_viewModel{m_baseConstraint->makeViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
 {
 	m_baseConstraint->setWidth(1000);
 	m_baseConstraint->setHeight(1000);

@@ -19,6 +19,15 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void constraintViewModelCreated(int constraintViewModelid);
 		void constraintViewModelRemoved(int constraintViewModelid);
 
+		// TODO transform in order to refer to view models instead
+		void eventCreated(int eventId);
+		void eventDeleted(int eventId);
+		void eventMoved(int eventId);
+		void constraintMoved(int constraintId);
+
+	public slots:
+		virtual void on_constraintRemoved(int constraintId) = 0;
+
 	protected:
 		QVector<ConstraintViewModelInterface*> m_constraints;
 };
@@ -26,16 +35,16 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 
 // TODO put this in a pattern (and also do for constraintvminterface, event, etc...)
 template<typename T>
-QVector<typename T::constraint_type*> constraintsViewModels(T* scenarioViewModel)
+QVector<typename T::constraint_view_model_type*> constraintsViewModels(T* scenarioViewModel)
 {
-	QVector<typename T::constraint_type*> v;
+	QVector<typename T::constraint_view_model_type*> v;
 	for(auto& elt : scenarioViewModel->constraints())
-		v.push_back(static_cast<typename T::constraint_type*>(elt));
+		v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
 	return std::move(v);
 }
 
 template<typename T>
-typename T::constraint_type* constraintViewModel(T* scenarioViewModel, int cvm_id)
+typename T::constraint_view_model_type* constraintViewModel(T* scenarioViewModel, int cvm_id)
 {
-	return static_cast<typename T::constraint_type*>(scenarioViewModel->constraint(cvm_id));
+	return static_cast<typename T::constraint_view_model_type*>(scenarioViewModel->constraint(cvm_id));
 }

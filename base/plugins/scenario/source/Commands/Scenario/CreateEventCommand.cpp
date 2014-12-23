@@ -48,24 +48,32 @@ void CreateEventCommand::undo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	scenar->undo_createConstraintAndEndEventFromStartEvent(m_createdConstraintId);
+
+	// The view models will be removed, since they have no meaning without a ConstraintModel
 }
 
 void CreateEventCommand::redo()
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
+	// Creation of the constraint and event model
 	scenar->createConstraintAndEndEventFromStartEvent(m_time,
 													  m_heightPosition,
 													  m_createdConstraintId,
 													  m_createdEventId);
 
-
-	for(auto& viewModel : scenar->viewModels())
+	// Creation of all the constraint view models
+	for(auto& viewModel : viewModels(scenar))
 	{
-		// TODO make a ViewModelInterface
-		auto svm = static_cast<TemporalScenarioProcessViewModel*>(viewModel);
-		m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel(svm)] = getNextId(svm->constraints());
+		auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+		if(m_createdConstraintViewModelIDs.contains(cvm_id))
+		{
+			viewModel->createConstraintViewModel(m_createdConstraintId,
+												 m_createdConstraintViewModelIDs[cvm_id]);
+		}
 	}
+
+	// TODO Creation of all the event view models
 }
 
 int CreateEventCommand::id() const
@@ -80,10 +88,22 @@ bool CreateEventCommand::mergeWith(const QUndoCommand* other)
 
 void CreateEventCommand::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_time << m_heightPosition;
+	s << m_path
+	  << m_createdConstraintId
+	  << m_createdBoxId
+	  << m_createdEventId
+	  << m_createdConstraintViewModelIDs
+	  << m_time
+	  << m_heightPosition;
 }
 
 void CreateEventCommand::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_time >> m_heightPosition;
+	s >> m_path
+	  >> m_createdConstraintId
+	  >> m_createdBoxId
+	  >> m_createdEventId
+	  >> m_createdConstraintViewModelIDs
+	  >> m_time
+	  >> m_heightPosition;
 }
