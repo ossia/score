@@ -10,7 +10,6 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	m_viewModel{m_baseConstraint->makeViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
 {
 	m_baseConstraint->setWidth(1000);
-	m_baseConstraint->setHeight(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 

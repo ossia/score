@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-
+#include "Document/Constraint/ConstraintModelMetadata.hpp"
 #include <QColor>
 #include <vector>
 
@@ -18,19 +18,19 @@ class TimeBox;
 
 /**
  * @brief The ConstraintModel class
- *
- * Contains at least 1 BoxModel (else nothing can be displayed)
  */
 // TODO put some of this stuff in the corresponding view models.
 class ConstraintModel : public IdentifiedObject
 {
 	Q_OBJECT
-		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-		Q_PROPERTY(QString comment READ comment WRITE setComment NOTIFY commentChanged)
-		Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
-		Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+
+		Q_PROPERTY(double heightPercentage
+				   READ heightPercentage
+				   WRITE setHeightPercentage
+				   NOTIFY heightPercentageChanged)
 
 	public:
+		ConstraintModelMetadata metadata;
 
 
 		friend QDataStream& operator << (QDataStream&, const ConstraintModel&);
@@ -70,9 +70,6 @@ class ConstraintModel : public IdentifiedObject
 		BoxModel* box(int contentId);
 		ProcessSharedModelInterface* process(int processId);
 
-		QString name() const;
-		QString comment() const;
-		QColor color() const;
 
 
 		OSSIA::TimeBox* apiObject()
@@ -86,7 +83,6 @@ class ConstraintModel : public IdentifiedObject
 		std::vector<ProcessSharedModelInterface*> processes() const
 		{ return m_processes; }
 
-		double heightPercentage() const;
 		int startDate() const;
 		void setStartDate(int start);
 		void translate(int deltaTime);
@@ -94,14 +90,7 @@ class ConstraintModel : public IdentifiedObject
 		int width() const;
 		void setWidth(int width);
 
-		int height() const;
-		void setHeight(int height);
-
-	public slots:
-		void setName(QString arg);
-		void setComment(QString arg);
-		void setColor(QColor arg);
-		void setHeightPercentage(double arg);
+		double heightPercentage() const;
 
 	signals:
 		void processCreated(QString processName, int processId);
@@ -110,10 +99,10 @@ class ConstraintModel : public IdentifiedObject
 		void boxCreated(int boxId);
 		void boxRemoved(int boxId);
 
-		void nameChanged(QString arg);
-		void commentChanged(QString arg);
-		void colorChanged(QColor arg);
 		void heightPercentageChanged(double arg);
+
+	public slots:
+		void setHeightPercentage(double arg);
 
 	private:
 		// TODO maybe put this in public, and let the command call ProcessList and pass a pointer to createProcess (which becomes addProcess)
@@ -125,17 +114,13 @@ class ConstraintModel : public IdentifiedObject
 		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
 		std::vector<ProcessSharedModelInterface*> m_processes;
 
-		QString m_name{"Constraint."};
-		QString m_comment;
-		QColor m_color; // Maybe in ContentModel ?
-		double m_heightPercentage{0.5}; // Relative y position of the top-left corner. Should maybe be in Scenario ?
-
 		int m_startEvent{};
 		int m_endEvent{};
 
 		// ___ TEMPORARY ___
 		int m_width{200};
-		int m_height{200};
 		int m_x{};
+
+		double m_heightPercentage{0.5};
 
 };

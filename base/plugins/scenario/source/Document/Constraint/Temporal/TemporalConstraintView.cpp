@@ -50,6 +50,7 @@ void TemporalConstraintView::setWidth(int width)
 
 void TemporalConstraintView::setHeight(int height)
 {
+	qDebug() << "height set:" << height;
 	prepareGeometryChange();
 	m_height = height;
 }

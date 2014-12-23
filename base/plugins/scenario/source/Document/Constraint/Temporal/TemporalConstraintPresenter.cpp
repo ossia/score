@@ -22,7 +22,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	m_view{view}
 {
 	view->setWidth(m_viewModel->model()->width()/m_millisecPerPixel);
-	view->setHeight(m_viewModel->model()->height());
 
 	for(auto& box : m_viewModel->model()->boxes())
 	{
@@ -50,6 +49,8 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		data.x = p.x();
 		emit constraintReleased(data);
 	});
+
+	on_askUpdate();
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
@@ -92,6 +93,7 @@ void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 void TemporalConstraintPresenter::on_boxCreated(int boxId)
 {
 	on_boxCreated_impl(m_viewModel->model()->box(boxId));
+	on_askUpdate();
 }
 
 void TemporalConstraintPresenter::on_boxRemoved(int boxId)

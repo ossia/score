@@ -155,19 +155,16 @@ int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, 
 
 std::tuple<int, int>
 ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventId,
-															   int constraint_duration,
-															   double heightPos,
-															   int newConstraintId,
-															   int newEventId)
+																 int constraint_duration,
+																 double heightPos,
+																 int newConstraintId,
+																 int newEventId)
 {
 	auto inter = new ConstraintModel{newConstraintId, this->event(startEventId)->heightPercentage(), this};
 	auto event = new EventModel{newEventId, this->event(startEventId)->heightPercentage(), this};
 
-
-	if (startEventId == startEvent()->id()) {
-		event->setHeightPercentage(heightPos);
-		inter->setHeightPercentage(heightPos);
-	}
+	event->setHeightPercentage(heightPos);
+	inter->setHeightPercentage(heightPos);
 
 	// TEMPORARY :
 	inter->setStartDate(this->event(startEventId)->date());

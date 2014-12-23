@@ -102,9 +102,9 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 		m_currentConstraint = constraint;
 
 		// Constraint settings
-		setName (model()->name() );
-		setColor (model()->color() );
-		setComments (model()->comment() );
+		setName (model()->metadata.name() );
+		setColor (model()->metadata.color() );
+		setComments (model()->metadata.comment() );
 		setInspectedObject (m_currentConstraint);
 		changeLabelType ("Constraint");
 

@@ -17,9 +17,7 @@
 QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
 {
 	// Metadata
-	s	<< constraint.name()
-		<< constraint.comment()
-		<< constraint.color()
+	s	<< constraint.metadata
 		<< constraint.heightPercentage();
 
 	// Processes
@@ -45,7 +43,6 @@ QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
 	s << constraint.m_width
-	  << constraint.m_height
 	  << constraint.m_x;
 
 	return s;
@@ -54,15 +51,9 @@ QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
 
 QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 {
-	// Metadata
-	QString name;
-	QString comment;
-	QColor color;
 	double heightPercentage;
-	s >> name >> comment >> color >> heightPercentage;
-	constraint.setName(name);
-	constraint.setComment(comment);
-	constraint.setColor(color);
+	s >> constraint.metadata >> heightPercentage;
+
 	constraint.setHeightPercentage(heightPercentage);
 
 	// Processes
@@ -87,7 +78,6 @@ QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
 
 	// Things that should be queried from the API :
 	s >> constraint.m_width
-	  >> constraint.m_height
 	  >> constraint.m_x;
 
 	return s;
@@ -121,25 +111,16 @@ void ConstraintModel::setWidth(int width)
 	m_width = width;
 }
 
-int ConstraintModel::height() const
-{
-	return m_height;
-}
-
-void ConstraintModel::setHeight(int height)
-{
-	m_height = height;
-}
-
 ConstraintModel::ConstraintModel(int id,
 								 QObject* parent):
 	IdentifiedObject{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
+	metadata.setName(QString("Constraint.%1").arg(this->id()));
 }
 
 ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
-	ConstraintModel(id, parent)
+	ConstraintModel{id, parent}
 {
 	setHeightPercentage(yPos);
 }
@@ -244,26 +225,6 @@ ProcessSharedModelInterface* ConstraintModel::process(int processId)
 
 
 
-//// Simple properties
-QString ConstraintModel::name() const
-{
-	return m_name + QString::number(id());
-}
-
-QString ConstraintModel::comment() const
-{
-	return m_comment;
-}
-
-QColor ConstraintModel::color() const
-{
-	return m_color;
-}
-
-double ConstraintModel::heightPercentage() const
-{
-	return m_heightPercentage;
-}
 
 int ConstraintModel::startDate() const
 {
@@ -280,32 +241,13 @@ void ConstraintModel::translate(int deltaTime)
 	m_x += deltaTime;
 }
 
-void ConstraintModel::setName(QString arg)
-{
-	if (m_name == arg)
-		return;
 
-	m_name = arg;
-	emit nameChanged(arg);
+double ConstraintModel::heightPercentage() const
+{
+	return m_heightPercentage;
 }
 
-void ConstraintModel::setComment(QString arg)
-{
-	if (m_comment == arg)
-		return;
 
-	m_comment = arg;
-	emit commentChanged(arg);
-}
-
-void ConstraintModel::setColor(QColor arg)
-{
-	if (m_color == arg)
-		return;
-
-	m_color = arg;
-	emit colorChanged(arg);
-}
 
 void ConstraintModel::setHeightPercentage(double arg)
 {
