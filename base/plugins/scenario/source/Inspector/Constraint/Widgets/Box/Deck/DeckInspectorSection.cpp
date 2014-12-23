@@ -41,7 +41,7 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 
 void DeckInspectorSection::createProcessViewModel(int sharedProcessModelId)
 {
-	auto cmd = new AddProcessViewToDeck(
+	auto cmd = new AddProcessViewModelToDeck(
 						ObjectPath::pathFromObject(
 							"BaseConstraintModel",
 							m_model),

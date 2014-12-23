@@ -3,7 +3,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <QVector>
 
-// TODO generalize this into a Command Group
+// TODO generalize this into a generic GroupCommand (maybe it already exists in qt?)
 class DeleteMultipleElementsCommand : public iscore::SerializableCommand
 {
 	public:

@@ -19,7 +19,7 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 	s << (int) deck.m_processViewModels.size();
 	for(auto& pvm : deck.m_processViewModels)
 	{
-		s << pvm->sharedProcessModel()->id(); // TODO put this in the qdatastream ctor of pvm interface
+		s << pvm->sharedProcessModel()->id();
 		s << *pvm;
 	}
 
@@ -39,7 +39,7 @@ QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 	for(int i = 0; i < pvm_size; i++)
 	{
 		SettableIdentifier sharedprocess_id;
-		s >> sharedprocess_id;
+		s >> sharedprocess_id; // TODO read it in createProcessViewModel instead
 		deck.createProcessViewModel(s, sharedprocess_id);
 	}
 

@@ -6,11 +6,10 @@
 
 
 /**
- * @brief The AddProcessToConstraintCommand class
+ * @brief The ResizeDeckVerticallyCommand class
  *
- * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
+ * Changes a deck's vertical size
  */
-// TODO Rename in AddProcessToBox.
 class ResizeDeckVerticallyCommand : public iscore::SerializableCommand
 {
 	public:

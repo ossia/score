@@ -59,8 +59,7 @@ class ConstraintModel : public IdentifiedObject
 
 		void createBox(int boxId);
 		void createBox(QDataStream& s);
-		void removeBox(int viewId);
-		void duplicateBox(int viewId);
+		void removeBox(int boxId);
 
 		int startEvent();
 		int endEvent();

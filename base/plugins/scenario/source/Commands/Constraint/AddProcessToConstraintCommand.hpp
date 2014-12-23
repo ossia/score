@@ -6,7 +6,7 @@
 
 
 
-class AddProcessViewToDeckTest;
+class AddProcessViewModelToDeckTest;
 
 /**
  * @brief The AddProcessToConstraintCommand class
@@ -15,7 +15,7 @@ class AddProcessViewToDeckTest;
  */
 class AddProcessToConstraintCommand : public iscore::SerializableCommand
 {
-		friend class ::AddProcessViewToDeckTest;
+		friend class ::AddProcessViewModelToDeckTest;
 	public:
 		AddProcessToConstraintCommand(ObjectPath&& constraintPath, QString process);
 
@@ -33,9 +33,4 @@ class AddProcessToConstraintCommand : public iscore::SerializableCommand
 		QString m_processName;
 
 		int m_createdProcessId{};
-/*
-		int m_createdDeckId{};
-		int m_createdProcessViewModelId{};
-		int m_contentModelId{};
-*/
 };

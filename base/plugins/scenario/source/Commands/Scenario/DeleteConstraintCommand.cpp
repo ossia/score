@@ -44,33 +44,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 		m_serializedProcesses.push_back(arr);
 	}
 
-	// Save the mappings in the scenario view models
-	// in which this constraint is displayed
-	// For each SVM corresponding to the shared model this constraint is in,
-	// save a tuple {box_id, deck_id, pvm_id},
-	// and the associated box id for the current constraint.
-
-	// This, of course, cannot be done for the Base constraint,
-	// since it is not in any scenarioviewmodel.
-	// Instead, you have to create a New Document.
-/*
-	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
-	{
-		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
-		{
-			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
-			auto deckModel = static_cast<DeckModel*>(pvm->parent());
-			auto boxModel = static_cast<BoxModel*>(deckModel->parent());
-
-			m_scenarioViewModelsBoxMappings[
-				std::tuple<int,int,int>{
-					boxModel->id(),
-					deckModel->id(),
-					pvm->id()}
-			] = pvm->boxDisplayedForConstraint(constraint->id());
-		}
-	}
-	*/
+	// TODO save the mapping in the parent scenario view models.
 }
 
 void ClearConstraint::undo()
@@ -88,25 +62,6 @@ void ClearConstraint::undo()
 		QDataStream s(&serializedBox, QIODevice::ReadOnly);
 		constraint->createBox(s);
 	}
-
-	/*
-	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
-	{
-		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
-		{
-			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
-			auto deckModel = static_cast<DeckModel*>(pvm->parent());
-			auto boxModel = static_cast<BoxModel*>(deckModel->parent());
-			std::tuple<int,int,int> tpl{boxModel->id(),
-										deckModel->id(),
-										pvm->id()};
-
-			if(m_scenarioViewModelsBoxMappings.contains(tpl))
-			{
-				pvm->boxDisplayedForConstraint(constraint->id()) = m_scenarioViewModelsBoxMappings[tpl];
-			}
-		}
-	}*/
 }
 
 void ClearConstraint::redo()
@@ -122,16 +77,6 @@ void ClearConstraint::redo()
 	{
 		constraint->removeBox(box->id());
 	}
-
-	/*
-	if(auto scenarioSharedModel = dynamic_cast<ScenarioProcessSharedModel*>(constraint->parent()))
-	{
-		for(QObject* pvm_uncasted : scenarioSharedModel->viewModels())
-		{
-			auto pvm = static_cast<TemporalScenarioProcessViewModel*>(pvm_uncasted);
-			pvm->boxDisplayedForConstraint(constraint->id()) = {false, {}};
-		}
-	}*/
 }
 
 int ClearConstraint::id() const
@@ -144,8 +89,6 @@ bool ClearConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-
-// TODO
 void ClearConstraint::serializeImpl(QDataStream& s)
 {
 	s << m_path << m_serializedBoxes << m_serializedProcesses << m_scenarioViewModelsBoxMappings;

@@ -49,7 +49,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 		}))->redo();
 	auto deckId = box->decks().front()->id();
 
-	(new AddProcessViewToDeck(
+	(new AddProcessViewModelToDeck(
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},

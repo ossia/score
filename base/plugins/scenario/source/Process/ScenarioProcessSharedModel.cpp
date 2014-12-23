@@ -107,9 +107,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
 			[this] (QObject* obj) { this->removeViewModel(static_cast<ProcessViewModelInterface*>(obj)); });
 
-/*	connect(this, &ScenarioProcessSharedModel::constraintCreated,
-			scen, &view_model_type::on_constraintCreated);
-*/	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
+	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
 			scen, &view_model_type::on_constraintRemoved);
 
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
@@ -124,7 +122,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 
 
 //////// Creation ////////
-int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId)
+void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
@@ -149,11 +147,9 @@ int ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, 
 	// From now on everything must be in a valid state.
 
 	emit constraintCreated(inter->id());
-
-	return inter->id();
 }
 
-std::tuple<int, int>
+void
 ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventId,
 																 int constraint_duration,
 																 double heightPos,
@@ -170,7 +166,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	inter->setStartDate(this->event(startEventId)->date());
 	inter->setWidth(constraint_duration);
 	event->setDate(inter->startDate() + inter->width());
-//	event->m_y = inter->heightPercentage() * 75;
+	//	event->m_y = inter->heightPercentage() * 75;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
@@ -197,41 +193,37 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	this->event(startEventId)->addNextConstraint(newConstraintId);
 	event->setVerticalExtremity(inter->id(), inter->heightPercentage());
 	this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
-
-	return std::make_tuple(inter->id(), event->id());
 }
 
-
-std::tuple<int, int, int, int> ScenarioProcessSharedModel::createConstraintAndBothEvents(int start, int dur, double heightPos,
-																					   int createdFirstConstraintId,
-																					   int createdFirstEventId,
-																					   int createdSecondConstraintId,
-																					   int createdSecondEventId)
+void
+ScenarioProcessSharedModel::createConstraintAndBothEvents(int start, int dur, double heightPos,
+														  int createdFirstConstraintId,
+														  int createdFirstEventId,
+														  int createdSecondConstraintId,
+														  int createdSecondEventId)
 {
-	auto t1 = createConstraintAndEndEventFromStartEvent(start,
-													  heightPos,
-													  createdFirstConstraintId,
-													  createdFirstEventId);
-
-	auto t2 = createConstraintAndEndEventFromEvent(createdFirstEventId,
-												 dur,
-												 heightPos,
-												 createdSecondConstraintId,
-												 createdSecondEventId);
-
-	return std::tuple_cat(t1, t2);
-}
-
-std::tuple<int, int> ScenarioProcessSharedModel::createConstraintAndEndEventFromStartEvent(int endTime,
-																						 double heightPos,
-																						 int newConstraintId,
-																						 int newEventId)
-{
-	return createConstraintAndEndEventFromEvent(startEvent()->id(),
-											  endTime,
+	createConstraintAndEndEventFromStartEvent(start,
 											  heightPos,
-											  newConstraintId,
-											  newEventId);
+											  createdFirstConstraintId,
+											  createdFirstEventId);
+
+	createConstraintAndEndEventFromEvent(createdFirstEventId,
+										 dur,
+										 heightPos,
+										 createdSecondConstraintId,
+										 createdSecondEventId);
+}
+
+void ScenarioProcessSharedModel::createConstraintAndEndEventFromStartEvent(int endTime,
+																		   double heightPos,
+																		   int newConstraintId,
+																		   int newEventId)
+{
+	createConstraintAndEndEventFromEvent(startEvent()->id(),
+										 endTime,
+										 heightPos,
+										 newConstraintId,
+										 newEventId);
 }
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)

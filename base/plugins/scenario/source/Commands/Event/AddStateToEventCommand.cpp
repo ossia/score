@@ -53,12 +53,12 @@ bool AddStateToEventCommand::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-
-// TODO
 void AddStateToEventCommand::serializeImpl(QDataStream&)
 {
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
 void AddStateToEventCommand::deserializeImpl(QDataStream&)
 {
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }

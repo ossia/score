@@ -47,7 +47,7 @@ void ScenarioControl::setPresenter(iscore::Presenter*)
 iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString name, QByteArray data)
 {
 	using namespace Scenario::Command;
-	// TODO call serialize() in Command(QByteArray&) constructor.
+
 	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
 	if(name == "CreateEventCommand")

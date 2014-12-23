@@ -41,21 +41,17 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		// Creation of objects.
 
+		// TODO clean-up to keep only createConstraintAndEndEventFromEvent. Put the others in Commands.
 		// Creates an constraint between two pre-existing events
-		int createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
+		void createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
 
-
-		// TODO update the docs and remove the tuples and returns..
 		/**
 		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
-		 * @param startEventId Identifier of the start event of the new constraint
-		 * @param duration duration of the new constraint
-		 * @return A pair : <new constraint id, new event id>
 		 *
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-		std::tuple<int, int> createConstraintAndEndEventFromEvent(int startEventId,
+		void createConstraintAndEndEventFromEvent(int startEventId,
 																int duration,
 																double heightPos,
 																int newConstraintId,
@@ -63,7 +59,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		// Creates an constraint between the start event of the scenario and this one
 		// and an event at the end of this constraint
-		std::tuple<int, int> createConstraintAndEndEventFromStartEvent(int time,
+		void createConstraintAndEndEventFromStartEvent(int time,
 																	 double heightPos,
 																	 int newConstraintId,
 																	 int newEventId);
@@ -73,7 +69,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		/// - The event at startTime
 		/// - An constraint going from the event at startTime to the event at startTime + duration
 		/// - The event at startTime + duration
-		std::tuple<int, int, int, int> createConstraintAndBothEvents(int startTime,
+		void  createConstraintAndBothEvents(int startTime,
 																   int duration,
 																   double heightPos,
 																   int createdFirstConstraintId,  // todo maybe put in a tuple.

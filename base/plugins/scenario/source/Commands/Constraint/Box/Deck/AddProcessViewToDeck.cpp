@@ -7,7 +7,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddProcessViewToDeck::AddProcessViewToDeck(ObjectPath&& deckPath,
+AddProcessViewModelToDeck::AddProcessViewModelToDeck(ObjectPath&& deckPath,
 										   int sharedModelId):
 	SerializableCommand{"ScenarioControl",
 						"AddProcessViewToDeck",
@@ -19,35 +19,35 @@ AddProcessViewToDeck::AddProcessViewToDeck(ObjectPath&& deckPath,
 	m_createdProcessViewId = getNextId(deck->processViewModels());
 }
 
-void AddProcessViewToDeck::undo()
+void AddProcessViewModelToDeck::undo()
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->deleteProcessViewModel(m_createdProcessViewId);
 }
 
-void AddProcessViewToDeck::redo()
+void AddProcessViewModelToDeck::redo()
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->createProcessViewModel(m_sharedModelId,
 								 m_createdProcessViewId);
 }
 
-int AddProcessViewToDeck::id() const
+int AddProcessViewModelToDeck::id() const
 {
 	return 1;
 }
 
-bool AddProcessViewToDeck::mergeWith(const QUndoCommand* other)
+bool AddProcessViewModelToDeck::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void AddProcessViewToDeck::serializeImpl(QDataStream& s)
+void AddProcessViewModelToDeck::serializeImpl(QDataStream& s)
 {
 	s << m_path << m_sharedModelId << m_createdProcessViewId;
 }
 
-void AddProcessViewToDeck::deserializeImpl(QDataStream& s)
+void AddProcessViewModelToDeck::deserializeImpl(QDataStream& s)
 {
 	s >> m_path >> m_sharedModelId >> m_createdProcessViewId;
 }

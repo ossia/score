@@ -16,7 +16,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class AddProcessViewToDeckTest: public QObject
+class AddProcessViewModelToDeckTest: public QObject
 {
 		Q_OBJECT
 
@@ -50,7 +50,7 @@ class AddProcessViewToDeckTest: public QObject
 			auto deckId = cmd_deck.m_createdDeckId;
 			cmd_deck.redo();
 
-			AddProcessViewToDeck cmd_pvm(
+			AddProcessViewModelToDeck cmd_pvm(
 			{{"ConstraintModel", {}},
 			 {"BoxModel", boxId},
 			 {"DeckModel", deckId}}, procId);
@@ -62,6 +62,6 @@ class AddProcessViewToDeckTest: public QObject
 
 };
 
-QTEST_MAIN(AddProcessViewToDeckTest)
+QTEST_MAIN(AddProcessViewModelToDeckTest)
 #include "AddProcessViewToDeckTest.moc"
 

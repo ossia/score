@@ -3,7 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 class AddBoxToConstraintTest;
-class AddProcessViewToDeckTest;
+class AddProcessViewModelToDeckTest;
 namespace Scenario
 {
 	namespace Command
@@ -15,7 +15,7 @@ namespace Scenario
 		 */
 		class AddBoxToConstraint : public iscore::SerializableCommand
 		{
-				friend class ::AddProcessViewToDeckTest;
+				friend class ::AddProcessViewModelToDeckTest;
 				friend class ::AddBoxToConstraintTest;
 			public:
 				AddBoxToConstraint(ObjectPath&& constraintPath);

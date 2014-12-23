@@ -188,11 +188,6 @@ void ConstraintModel::removeBox(int viewId)
 	emit boxRemoved(viewId);
 }
 
-void ConstraintModel::duplicateBox(int viewId)
-{
-	qDebug() << Q_FUNC_INFO << "TODO";
-}
-
 int ConstraintModel::startEvent()
 {
 	return m_startEvent;

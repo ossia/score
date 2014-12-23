@@ -92,7 +92,7 @@ void BoxModel::removeDeck(int deckId)
 
 void BoxModel::changeDeckOrder(int deckId, int position)
 {
-	qDebug() << Q_FUNC_INFO << "TODO";
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
 DeckModel* BoxModel::deck(int deckId) const
@@ -102,5 +102,5 @@ DeckModel* BoxModel::deck(int deckId) const
 
 void BoxModel::duplicateDeck()
 {
-	qDebug() << Q_FUNC_INFO << "TODO";
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }

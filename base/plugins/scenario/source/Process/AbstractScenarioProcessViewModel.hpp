@@ -2,7 +2,6 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 class AbstractConstraintViewModel;
-// TODO Serialize this.
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 {
 		Q_OBJECT

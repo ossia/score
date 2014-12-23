@@ -6,9 +6,7 @@
 namespace iscore{
 	class FactoryInterface;
 }
-//namespace iscore
-//{
-// TODO : put in Scenario.
+
 class ProcessFactoryInterface;
 /**
  * @brief The ProcessList class
@@ -31,4 +29,3 @@ class ProcessList : public NamedObject
 		QStringList getProcessesName_impl() const;
 		std::vector<ProcessFactoryInterface*> m_processes;
 };
-//}
