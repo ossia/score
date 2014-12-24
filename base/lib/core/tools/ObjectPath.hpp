@@ -46,6 +46,7 @@ class ObjectPath
 
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
+		ObjectPath& operator=(ObjectPath&&) = default;
 
 		/**
 		 * @brief pathFromObject Factory method for ObjectPath

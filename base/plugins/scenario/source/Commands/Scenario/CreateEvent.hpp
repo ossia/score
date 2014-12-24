@@ -1,10 +1,9 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
+#include "Commands/Scenario/CreateEventAfterEvent.hpp"
 #include <tools/ObjectPath.hpp>
 
 #include <QPointF>
-#include <QMap>
-#include <tuple>
 
 struct EventModelData;
 
@@ -27,8 +26,10 @@ namespace Scenario
 				friend class ::CreateEventTest;
 				friend class ::MoveEventTest;
 				friend class ::HideBoxInViewModelTest;
+
 			public:
 				CreateEvent();
+				~CreateEvent();
 				CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition);
 				virtual void undo() override;
 				virtual void redo() override;
@@ -40,15 +41,7 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_path;
-
-				int m_createdConstraintId{};
-				int m_createdEventId{};
-				// Map between the scenario view model ID and the constraint view model
-				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
-
-				int m_time{};
-				double m_heightPosition{};
+				CreateEventAfterEvent* m_cmd{};
 		};
 	}
 }

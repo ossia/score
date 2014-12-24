@@ -31,7 +31,7 @@ class MoveEventTest: public QObject
 				0.5);
 
 			create_ev_cmd.redo();
-			auto eventid = create_ev_cmd.m_createdEventId;
+			auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
 
 
 			EventData data{};

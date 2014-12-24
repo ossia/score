@@ -1,9 +1,14 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
+#include <QMap>
+#include <tuple>
 
 struct EventData;
 class CreateEventAfterEventTest;
+class CreateEventTest;
+class HideBoxInViewModelTest;
+class MoveEventTest;
 
 namespace Scenario
 {
@@ -18,9 +23,15 @@ namespace Scenario
 		class CreateEventAfterEvent : public iscore::SerializableCommand
 		{
 				friend class ::CreateEventAfterEventTest;
+				friend class ::CreateEventTest;
+				friend class ::MoveEventTest;
+				friend class ::HideBoxInViewModelTest;
+
 			public:
 				CreateEventAfterEvent();
 				CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data);
+				CreateEventAfterEvent& operator=(CreateEventAfterEvent&&) = default;
+
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;
@@ -40,6 +51,8 @@ namespace Scenario
 				int m_firstEventId{};
 				int m_time{};
 				double m_heightPosition{};
+
+				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
 		};
 	}
 }

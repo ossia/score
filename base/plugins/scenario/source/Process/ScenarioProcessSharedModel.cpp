@@ -156,21 +156,25 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 																 int newConstraintId,
 																 int newEventId)
 {
-	auto inter = new ConstraintModel{newConstraintId, this->event(startEventId)->heightPercentage(), this};
-	auto event = new EventModel{newEventId, this->event(startEventId)->heightPercentage(), this};
+	auto constraint = new ConstraintModel{newConstraintId,
+					  this->event(startEventId)->heightPercentage(),
+					  this};
+	auto event = new EventModel{newEventId,
+				 this->event(startEventId)->heightPercentage(),
+				 this};
 
 	event->setHeightPercentage(heightPos);
-	inter->setHeightPercentage(heightPos);
+	constraint->setHeightPercentage(heightPos);
 
 	// TEMPORARY :
-	inter->setStartDate(this->event(startEventId)->date());
-	inter->setWidth(constraint_duration);
-	event->setDate(inter->startDate() + inter->width());
+	constraint->setStartDate(this->event(startEventId)->date());
+	constraint->setWidth(constraint_duration);
+	event->setDate(constraint->startDate() + constraint->width());
 	//	event->m_y = inter->heightPercentage() * 75;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
-	auto ossia_tb = inter->apiObject();
+	auto ossia_tb = constraint->apiObject();
 
 	m_scenario->addTimeBox(*ossia_tb,
 						   *ossia_tn0,
@@ -178,21 +182,21 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
-	inter->setStartEvent(startEventId);
-	inter->setEndEvent(event->id());
+	constraint->setStartEvent(startEventId);
+	constraint->setEndEvent(event->id());
 
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
-	m_constraints.push_back(inter);
+	m_constraints.push_back(constraint);
 
 	emit eventCreated(event->id());
-	emit constraintCreated(inter->id());
+	emit constraintCreated(constraint->id());
 
 	// link constraint with event
 	event->addPreviousConstraint(newConstraintId);
 	this->event(startEventId)->addNextConstraint(newConstraintId);
-	event->setVerticalExtremity(inter->id(), inter->heightPercentage());
-	this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
+	event->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
+	this->event(startEventId)->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
 }
 
 

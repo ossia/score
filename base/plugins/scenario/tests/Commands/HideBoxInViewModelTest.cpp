@@ -98,14 +98,14 @@ class HideBoxInViewModelTest: public QObject
 
 			// Check that the constraint view model is properly instantiated
 			AbstractConstraintViewModel* constraint_viewmodel = scenario_viewmodel->constraints().front();
-			QCOMPARE(constraint_viewmodel->model(), scenario->constraint(cmd_event->m_createdConstraintId));
+			QCOMPARE(constraint_viewmodel->model(), scenario->constraint(cmd_event->m_cmd->m_createdConstraintId));
 			QCOMPARE(constraint_viewmodel->isBoxShown(), false); // No box can be shown since there isn't any in this constraint
 
 			auto cmd_box2 = new AddBoxToConstraint(
 						ObjectPath{
 									{"ConstraintModel", {}},
 									{"ScenarioProcessSharedModel", scenarioId},
-									{"ConstraintModel", cmd_event->m_createdConstraintId}
+									{"ConstraintModel", cmd_event->m_cmd->m_createdConstraintId}
 								  });
 			stack.push(cmd_box2);
 
