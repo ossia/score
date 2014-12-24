@@ -195,36 +195,6 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	this->event(startEventId)->setVerticalExtremity(inter->id(), inter->heightPercentage());
 }
 
-void
-ScenarioProcessSharedModel::createConstraintAndBothEvents(int start, int dur, double heightPos,
-														  int createdFirstConstraintId,
-														  int createdFirstEventId,
-														  int createdSecondConstraintId,
-														  int createdSecondEventId)
-{
-	createConstraintAndEndEventFromStartEvent(start,
-											  heightPos,
-											  createdFirstConstraintId,
-											  createdFirstEventId);
-
-	createConstraintAndEndEventFromEvent(createdFirstEventId,
-										 dur,
-										 heightPos,
-										 createdSecondConstraintId,
-										 createdSecondEventId);
-}
-
-void ScenarioProcessSharedModel::createConstraintAndEndEventFromStartEvent(int endTime,
-																		   double heightPos,
-																		   int newConstraintId,
-																		   int newEventId)
-{
-	createConstraintAndEndEventFromEvent(startEvent()->id(),
-										 endTime,
-										 heightPos,
-										 newConstraintId,
-										 newEventId);
-}
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)
 {

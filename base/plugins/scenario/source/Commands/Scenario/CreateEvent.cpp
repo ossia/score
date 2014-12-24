@@ -52,10 +52,11 @@ void CreateEvent::redo()
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
 
 	// Creation of the constraint and event model
-	scenar->createConstraintAndEndEventFromStartEvent(m_time,
-													  m_heightPosition,
-													  m_createdConstraintId,
-													  m_createdEventId);
+	scenar->createConstraintAndEndEventFromEvent(scenar->startEvent()->id(),
+												 m_time,
+												 m_heightPosition,
+												 m_createdConstraintId,
+												 m_createdEventId);
 
 	// Creation of all the constraint view models
 	for(auto& viewModel : viewModels(scenar))

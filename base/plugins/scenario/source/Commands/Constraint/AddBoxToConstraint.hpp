@@ -4,7 +4,7 @@
 
 class AddBoxToConstraintTest;
 class AddProcessViewModelToDeckTest;
-
+class HideBoxInViewModelTest;
 namespace Scenario
 {
 	namespace Command
@@ -18,6 +18,7 @@ namespace Scenario
 		{
 				friend class ::AddProcessViewModelToDeckTest;
 				friend class ::AddBoxToConstraintTest;
+				friend class ::HideBoxInViewModelTest;
 			public:
 				AddBoxToConstraint(ObjectPath&& constraintPath);
 

@@ -17,7 +17,7 @@ class AbstractScenarioProcessViewModel;
  */
 class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 {
-	Q_OBJECT
+		Q_OBJECT
 
 		friend QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario);
 		friend QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario);
@@ -52,30 +52,10 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * the constraint is linked to both events.
 		 */
 		void createConstraintAndEndEventFromEvent(int startEventId,
-																int duration,
-																double heightPos,
-																int newConstraintId,
-																int newEventId);
-
-		// Creates an constraint between the start event of the scenario and this one
-		// and an event at the end of this constraint
-		void createConstraintAndEndEventFromStartEvent(int time,
-																	 double heightPos,
-																	 int newConstraintId,
-																	 int newEventId);
-
-		// Creates :
-		/// - An constraint from the start event of the scenario to an event at startTime
-		/// - The event at startTime
-		/// - An constraint going from the event at startTime to the event at startTime + duration
-		/// - The event at startTime + duration
-		void  createConstraintAndBothEvents(int startTime,
-																   int duration,
-																   double heightPos,
-																   int createdFirstConstraintId,  // todo maybe put in a tuple.
-																   int createdFirstEventId,
-																   int createdSecondConstraintId,
-																   int createdSecondEventId);
+												  int duration,
+												  double heightPos,
+												  int newConstraintId,
+												  int newEventId);
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);

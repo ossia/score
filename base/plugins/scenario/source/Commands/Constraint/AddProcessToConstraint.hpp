@@ -5,7 +5,7 @@
 #include <QString>
 
 class AddProcessViewModelToDeckTest;
-
+class HideBoxInViewModelTest;
 namespace Scenario
 {
 	namespace Command
@@ -18,6 +18,7 @@ namespace Scenario
 		class AddProcessToConstraint : public iscore::SerializableCommand
 		{
 				friend class ::AddProcessViewModelToDeckTest;
+				friend class ::HideBoxInViewModelTest;
 			public:
 				AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 

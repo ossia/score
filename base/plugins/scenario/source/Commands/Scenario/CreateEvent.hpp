@@ -9,6 +9,7 @@
 struct EventModelData;
 
 class CreateEventTest;
+class HideBoxInViewModelTest;
 class MoveEventTest;
 
 namespace Scenario
@@ -25,6 +26,7 @@ namespace Scenario
 		{
 				friend class ::CreateEventTest;
 				friend class ::MoveEventTest;
+				friend class ::HideBoxInViewModelTest;
 			public:
 				CreateEvent();
 				CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition);

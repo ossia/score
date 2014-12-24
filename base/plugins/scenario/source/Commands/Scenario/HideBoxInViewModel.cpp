@@ -6,19 +6,23 @@ using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
 HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path):
-	m_constraintViewModelPath{std::move{path}}
+	SerializableCommand{"ScenarioControl",
+						"HideBoxInViewModel",
+						QObject::tr("Hide box in constraint view")},
+	m_constraintViewModelPath{std::move(path)}
 {
-
+	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	m_constraintPreviousId = constraint_vm->shownBox();
 }
 
-HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint):
+HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_vm):
 	SerializableCommand{"ScenarioControl",
 						"HideBoxInViewModel",
 						QObject::tr("Hide box in constraint view")},
 	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseConstraintModel",
-														 constraint)}
+														 constraint_vm)}
 {
-	m_constraintPreviousId = constraint->shownBox();
+	m_constraintPreviousId = constraint_vm->shownBox();
 }
 
 void HideBoxInViewModel::undo()

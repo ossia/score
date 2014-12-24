@@ -4,7 +4,7 @@
 
 class AddDeckToBoxTest;
 class AddProcessViewModelToDeckTest;
-
+class HideBoxInViewModelTest;
 namespace Scenario
 {
 	namespace Command
@@ -18,6 +18,7 @@ namespace Scenario
 		{
 				friend class ::AddDeckToBoxTest;
 				friend class ::AddProcessViewModelToDeckTest;
+				friend class ::HideBoxInViewModelTest;
 			public:
 				AddDeckToBox(ObjectPath&& boxPath);
 

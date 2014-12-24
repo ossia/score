@@ -5,37 +5,50 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
-ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint,
+ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
+									   int boxId):
+	SerializableCommand{"ScenarioControl",
+						"ShowBoxInViewModel",
+						QObject::tr("Show box in constraint view")},
+	m_constraintViewModelPath{std::move(constraint_path)},
+	m_boxId{boxId}
+{
+	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	m_constraintPreviousState = constraint_vm->isBoxShown();
+	m_constraintPreviousId = constraint_vm->shownBox();
+}
+
+ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_vm,
 									   int boxId):
 	SerializableCommand{"ScenarioControl",
 						"ShowBoxInViewModel",
 						QObject::tr("Show box in constraint view")},
 	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseConstraintModel",
-														 constraint)},
+														 constraint_vm)},
 	m_boxId{boxId}
 {
 
-	m_constraintPreviousState = constraint->isBoxShown();
-	m_constraintPreviousId = constraint->shownBox();
+	m_constraintPreviousState = constraint_vm->isBoxShown();
+	m_constraintPreviousId = constraint_vm->shownBox();
 }
 
 void ShowBoxInViewModel::undo()
 {
-	auto vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
 	if(m_constraintPreviousState)
 	{
-		vm->showBox(m_constraintPreviousId);
+		constraint_vm->showBox(m_constraintPreviousId);
 	}
 	else
 	{
-		vm->hideBox();
+		constraint_vm->hideBox();
 	}
 }
 
 void ShowBoxInViewModel::redo()
 {
-	auto vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
-	vm->showBox(m_boxId);
+	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	constraint_vm->showBox(m_boxId);
 }
 
 int ShowBoxInViewModel::id() const

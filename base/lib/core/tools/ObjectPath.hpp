@@ -32,6 +32,8 @@ class ObjectPath
 
 	public:
 		ObjectPath() = default;
+		QString toString() const;
+
 		ObjectPath(QVector<ObjectIdentifier>&& vec):
 			m_objectIdentifiers{std::move(vec)}
 		{
@@ -53,6 +55,9 @@ class ObjectPath
 		 * @return An object path allowing to find again "obj" in the software object hierarchy (that can be serialized to text, and does not use pointers).
 		 */
 		static ObjectPath pathFromObject(QString origin, QObject* obj);
+
+		static ObjectPath pathBetweenObjects(const QObject* const parent_obj, QObject* target_object);
+		static ObjectPath pathFromObject(QObject* origin_object);
 
 		/**
 		 * @brief find the object described by the ObjectPath

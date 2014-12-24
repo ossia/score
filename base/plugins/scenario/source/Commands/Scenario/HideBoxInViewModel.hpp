@@ -41,7 +41,7 @@ namespace Scenario
 			private:
 				ObjectPath m_constraintViewModelPath;
 
-				bool m_constraintPreviousId{};
+				int m_constraintPreviousId{};
 		};
 	}
 }

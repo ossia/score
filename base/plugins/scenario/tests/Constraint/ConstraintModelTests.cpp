@@ -68,16 +68,12 @@ class ConstraintModelTests: public QObject
 			auto s0 = new ScenarioProcessSharedModel{0, &i0};
 
 			auto int_0_id = getNextId(s0->constraints());
-			auto int_1_id = getNextId(s0->constraints());
 			auto ev_0_id = getNextId(s0->events());
-			auto ev_1_id = getNextId(s0->events());
-			s0->createConstraintAndBothEvents(1, 34, 10, int_0_id, ev_0_id, int_1_id, ev_1_id);
+			s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 34, 10, int_0_id, ev_0_id);
 
 			auto int_2_id = getNextId(s0->constraints());
-			auto int_3_id = getNextId(s0->constraints());
 			auto ev_2_id = getNextId(s0->events());
-			auto ev_3_id = getNextId(s0->events());
-			s0->createConstraintAndBothEvents(42, 46, 10, int_2_id, ev_2_id, int_3_id, ev_3_id);
+			s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 46, 10, int_2_id, ev_2_id);
 
 			auto i1 = s0->constraint(int_0_id);
 			auto s1 = new ScenarioProcessSharedModel{0, i1}; (void) s1;

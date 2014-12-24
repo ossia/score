@@ -2,12 +2,11 @@
 #include <core/tools/IdentifiedObject.hpp>
 #include <core/tools/ObjectPath.hpp>
 
-ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* origin_object)
+ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, QObject* target_object)
 {
 	QVector<ObjectIdentifier> v;
-	QObject* parent_obj = qApp->findChild<QObject*>(parent_name);
 
-	auto current_obj = origin_object;
+	auto current_obj = target_object;
 	auto add_parent_to_vector = [&v] (QObject* ptr)
 	{
 		if(auto id_obj = dynamic_cast<IdentifiedObject*>(ptr))
@@ -41,10 +40,40 @@ ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* origin_objec
 	return std::move(v);
 }
 
+QString ObjectPath::toString() const
+{
+	QString s;
+	for(auto& obj : m_objectIdentifiers)
+	{
+		s += obj.objectName();
+		if(obj.id().set())
+		{
+			s += ".";
+			s += QString::number(obj.id());
+		}
+		s += "/";
+	}
+
+	return s;
+}
+
+ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* target_object)
+{
+	QObject* parent_obj = qApp->findChild<QObject*>(parent_name);
+	return ObjectPath::pathBetweenObjects(parent_obj, target_object);
+}
+
+ObjectPath ObjectPath::pathFromObject(QObject* origin_object)
+{
+	auto path = ObjectPath::pathBetweenObjects(qApp, origin_object);
+	path.m_objectIdentifiers.removeFirst();
+	return path;
+}
+
 // TODO put a template here and a static_cast at the end.
 QObject* ObjectPath::find() const
 {
-	auto parent_name = m_objectIdentifiers.at(0).childName();
+	auto parent_name = m_objectIdentifiers.at(0).objectName();
 	std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
 	std::copy(std::begin(m_objectIdentifiers) + 1,
 			  std::end(m_objectIdentifiers),
@@ -56,7 +85,7 @@ QObject* ObjectPath::find() const
 	{
 		if(currentObjIdentifier.id().set())
 		{
-			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.childName(),
+			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.objectName(),
 																Qt::FindDirectChildrenOnly);
 
 			auto elt = findById(childs, currentObjIdentifier.id());
@@ -69,7 +98,7 @@ QObject* ObjectPath::find() const
 		}
 		else
 		{
-			auto child = obj->findChild<NamedObject*>(currentObjIdentifier.childName(),
+			auto child = obj->findChild<NamedObject*>(currentObjIdentifier.objectName(),
 													  Qt::FindDirectChildrenOnly);
 			if(!child)
 			{

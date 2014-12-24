@@ -18,6 +18,8 @@ namespace Scenario
 		class ShowBoxInViewModel : public iscore::SerializableCommand
 		{
 			public:
+				ShowBoxInViewModel(ObjectPath&& constraint_path,
+								   int boxId);
 				ShowBoxInViewModel(AbstractConstraintViewModel* constraint,
 								   int boxId);
 
