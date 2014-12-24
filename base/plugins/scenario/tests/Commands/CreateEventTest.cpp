@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/CreateEventAfterEvent.hpp>
+#include <Commands/Scenario/CreateEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
@@ -11,38 +11,32 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-class CreateEventAfterEventTest: public QObject
+class CreateEventTest: public QObject
 {
 		Q_OBJECT
 	public:
 
 	private slots:
+
 		void CreateTest()
 		{
 			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
 			EventData data{};
-			data.eventClickedId = scenar->startEvent()->id();
+			// data.id = 0; unused here
 			data.x = 10;
 			data.relativeY = 0.5;
 
-			CreateEventAfterEvent cmd(
+			CreateEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data);
+			}, data.x, data.relativeY);
 
 			cmd.redo();
-			QCOMPARE((int)scenar->events().size(), 2);
+			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent
 			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 			cmd.undo();
-			QCOMPARE((int)scenar->events().size(), 1);
-			try
-			{
-				scenar->event(cmd.m_createdEventId);
-				QFAIL("Event call did not throw!");
-			}
-			catch(...) { }
-
+			QCOMPARE((int)scenar->events().size(), 1); // TODO 2 if endEvent
 			cmd.redo();
 
 			QCOMPARE((int)scenar->events().size(), 2);
@@ -55,7 +49,7 @@ class CreateEventAfterEventTest: public QObject
 		}
 };
 
-QTEST_MAIN(CreateEventAfterEventTest)
-#include "CreateEventAfterEventTest.moc"
+QTEST_MAIN(CreateEventTest)
+#include "CreateEventTest.moc"
 
 

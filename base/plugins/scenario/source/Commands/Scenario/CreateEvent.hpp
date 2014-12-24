@@ -8,7 +8,7 @@
 
 struct EventModelData;
 
-class CreateEventAfterEventTest;
+class CreateEventTest;
 class MoveEventTest;
 
 namespace Scenario
@@ -23,7 +23,7 @@ namespace Scenario
  */
 		class CreateEvent : public iscore::SerializableCommand
 		{
-				friend class ::CreateEventAfterEventTest;
+				friend class ::CreateEventTest;
 				friend class ::MoveEventTest;
 			public:
 				CreateEvent();

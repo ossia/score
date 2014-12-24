@@ -13,6 +13,8 @@
 #include <Process/ScenarioProcessFactory.hpp>
 #include "Control/ProcessList.hpp"
 
+#include <QUndoStack>
+
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -23,6 +25,7 @@ class AddProcessViewModelToDeckTest: public QObject
 	private slots:
 		void CreateViewModelTest()
 		{
+			QUndoStack stack;
 			// Maybe do a fake process list, with a fake process for unit tests.
 			NamedObject *obj = new NamedObject{"obj", qApp};
 			ProcessList* plist = new ProcessList{obj};
@@ -31,30 +34,36 @@ class AddProcessViewModelToDeckTest: public QObject
 			// Setup
 			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
 
-			AddProcessToConstraint cmd_proc(
+			auto cmd_proc = new AddProcessToConstraint (
 			{
 				{"ConstraintModel", {}}
 			}, "Scenario");
-			cmd_proc.redo();
-			auto procId = cmd_proc.m_createdProcessId;
+			stack.push(cmd_proc);
+			auto procId = cmd_proc->m_createdProcessId;
 
-			AddBoxToConstraint cmd_box(
+			auto cmd_box = new AddBoxToConstraint(
 			ObjectPath{ {"ConstraintModel", {}} });
-			cmd_box.redo();
-			auto boxId = cmd_box.m_createdBoxId;
+			stack.push(cmd_box);
+			auto boxId = cmd_box->m_createdBoxId;
 
-			AddDeckToBox cmd_deck(
+			auto cmd_deck = new AddDeckToBox(
 			ObjectPath{
 				{"ConstraintModel", {}},
 				{"BoxModel", boxId}});
-			auto deckId = cmd_deck.m_createdDeckId;
-			cmd_deck.redo();
+			auto deckId = cmd_deck->m_createdDeckId;
+			stack.push(cmd_deck);
 
-			AddProcessViewModelToDeck cmd_pvm(
+			auto cmd_pvm = new AddProcessViewModelToDeck(
 			{{"ConstraintModel", {}},
 			 {"BoxModel", boxId},
 			 {"DeckModel", deckId}}, procId);
-			cmd_pvm.redo();
+			stack.push(cmd_pvm);
+
+			for(int i = 4; i --> 0;)
+			{
+				while(stack.canUndo()) stack.undo();
+				while(stack.canRedo()) stack.redo();
+			}
 
 			delete constraint;
 		}

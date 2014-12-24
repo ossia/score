@@ -18,6 +18,15 @@ namespace Scenario
 		class HideBoxInViewModel : public iscore::SerializableCommand
 		{
 			public:
+				HideBoxInViewModel(ObjectPath&& path);
+
+				/**
+				 * @brief HideBoxInViewModel
+				 * @param constraint A pointer to a valid constraint view model.
+				 *
+				 * Note : this will search it and make a path from an object named "BaseConstraintModel"
+				 * Hence this constructor has to be used in a Scenario.
+				 */
 				HideBoxInViewModel(AbstractConstraintViewModel* constraint);
 
 				virtual void undo() override;

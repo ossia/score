@@ -24,11 +24,29 @@ addIScoreQtTest(AddProcessViewModelToDeckTest
 
 addIScoreQtTest(CreateEventAfterEventTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventTest.cpp")
+addIScoreQtTest(CreateEventTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventTest.cpp")
 
-addIScoreQtTest(MoveEventCommandTest
+addIScoreQtTest(HideBoxInViewModelTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/HideBoxInViewModelTest.cpp")
+addIScoreQtTest(ShowBoxInViewModelTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/ShowBoxInViewModelTest.cpp")
+
+addIScoreQtTest(MoveEventTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventTest.cpp")
-addIScoreQtTest(MoveConstraintCommandTest
+addIScoreQtTest(MoveConstraintTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintTest.cpp")
+
+addIScoreQtTest(RemoveBoxFromConstraintTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveBoxFromConstraintTest.cpp")
+addIScoreQtTest(RemoveDeckFromBoxTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveDeckFromBoxTest.cpp")
+addIScoreQtTest(RemoveProcessFromConstraintTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromConstraintTest.cpp")
+addIScoreQtTest(RemoveProcessViewFromDeckTest # TODO Rename in RemoveProcessViewModel
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessViewFromDeckTest.cpp")
+addIScoreQtTest(ResizeDeckVerticallyTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeDeckVerticallyTest.cpp")
 
 ## Constraints
 addIScoreQtTest(ConstraintModelTest

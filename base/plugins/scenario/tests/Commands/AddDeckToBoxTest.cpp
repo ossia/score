@@ -35,8 +35,6 @@ class AddDeckToBoxTest: public QObject
 			// Delete them else they stay in qApp !
 			delete box;
 		}
-
-
 };
 
 QTEST_MAIN(AddDeckToBoxTest)

@@ -5,6 +5,12 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
+HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path):
+	m_constraintViewModelPath{std::move{path}}
+{
+
+}
+
 HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint):
 	SerializableCommand{"ScenarioControl",
 						"HideBoxInViewModel",
