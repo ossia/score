@@ -50,9 +50,12 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 
 DeckPresenter::~DeckPresenter()
 {
-	auto sc = m_view->scene();
-	if(sc) sc->removeItem(m_view);
-	m_view->deleteLater();
+	if(m_view)
+	{
+		auto sc = m_view->scene();
+		if(sc) sc->removeItem(m_view);
+		m_view->deleteLater();
+	}
 }
 
 int DeckPresenter::id() const

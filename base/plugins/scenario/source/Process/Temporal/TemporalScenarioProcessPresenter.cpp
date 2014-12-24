@@ -75,9 +75,12 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 
 TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
 {
-	auto sc = m_view->scene();
-	if(sc) sc->removeItem(m_view);
-	m_view->deleteLater();
+	if(m_view)
+	{
+		auto sc = m_view->scene();
+		if(sc) sc->removeItem(m_view);
+		m_view->deleteLater();
+	}
 }
 
 int TemporalScenarioProcessPresenter::viewModelId() const

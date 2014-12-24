@@ -235,7 +235,10 @@ void ConstraintInspectorWidget::on_boxRemoved(int boxId)
 	auto ptr = m_boxesSectionWidgets[boxId];
 	m_boxesSectionWidgets.remove(boxId);
 
-	ptr->deleteLater();
+	if(ptr)
+	{
+		ptr->deleteLater();
+	}
 	m_boxWidget->updateComboBox();
 }
 

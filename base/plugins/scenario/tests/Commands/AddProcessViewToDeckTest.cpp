@@ -58,8 +58,6 @@ class AddProcessViewModelToDeckTest: public QObject
 
 			delete constraint;
 		}
-
-
 };
 
 QTEST_MAIN(AddProcessViewModelToDeckTest)

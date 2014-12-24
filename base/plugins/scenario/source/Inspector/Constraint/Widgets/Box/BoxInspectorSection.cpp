@@ -76,5 +76,8 @@ void BoxInspectorSection::on_deckRemoved(int deckId)
 	auto ptr = m_decksSectionWidgets[deckId];
 	m_decksSectionWidgets.remove(deckId);
 
-	ptr->deleteLater();
+	if(ptr)
+	{
+		ptr->deleteLater();
+	}
 }

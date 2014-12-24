@@ -57,9 +57,12 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
 {
-	auto sc = m_view->scene();
-	if(sc) sc->removeItem(m_view);
-	m_view->deleteLater();
+	if(m_view)
+	{
+		auto sc = m_view->scene();
+		if(sc) sc->removeItem(m_view);
+		m_view->deleteLater();
+	}
 }
 
 TemporalConstraintView *TemporalConstraintPresenter::view()
@@ -111,8 +114,11 @@ void TemporalConstraintPresenter::on_boxRemoved()
 
 void TemporalConstraintPresenter::clearBoxPresenter()
 {
-	m_box->deleteLater();
-	m_box = nullptr;
+	if(m_box)
+	{
+		m_box->deleteLater();
+		m_box = nullptr;
+	}
 }
 
 void TemporalConstraintPresenter::updateView()
