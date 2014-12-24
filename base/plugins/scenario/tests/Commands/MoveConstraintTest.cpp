@@ -11,7 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class MoveConstraintCommandTest: public QObject
+class MoveConstraintTest: public QObject
 {
 		Q_OBJECT
 	public:
@@ -50,8 +50,8 @@ class MoveConstraintCommandTest: public QObject
 		}
 };
 
-QTEST_MAIN(MoveConstraintCommandTest)
-#include "MoveConstraintCommandTest.moc"
+QTEST_MAIN(MoveConstraintTest)
+#include "MoveConstraintTest.moc"
 
 
 

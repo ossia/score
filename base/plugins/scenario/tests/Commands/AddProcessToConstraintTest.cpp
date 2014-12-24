@@ -13,7 +13,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-class AddProcessToConstraintCommandTest: public QObject
+class AddProcessToConstraintTest: public QObject
 {
 		Q_OBJECT
 	public:
@@ -101,6 +101,6 @@ class AddProcessToConstraintCommandTest: public QObject
 
 };
 
-QTEST_MAIN(AddProcessToConstraintCommandTest)
-#include "AddProcessToConstraintCommandTest.moc"
+QTEST_MAIN(AddProcessToConstraintTest)
+#include "AddProcessToConstraintTest.moc"
 

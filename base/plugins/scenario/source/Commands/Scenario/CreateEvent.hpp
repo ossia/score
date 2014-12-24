@@ -9,7 +9,7 @@
 struct EventModelData;
 
 class CreateEventAfterEventTest;
-class MoveEventCommandTest;
+class MoveEventTest;
 
 namespace Scenario
 {
@@ -24,7 +24,7 @@ namespace Scenario
 		class CreateEvent : public iscore::SerializableCommand
 		{
 				friend class ::CreateEventAfterEventTest;
-				friend class ::MoveEventCommandTest;
+				friend class ::MoveEventTest;
 			public:
 				CreateEvent();
 				CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition);

@@ -88,6 +88,6 @@ class CreateEventAfterEventTest: public QObject
 };
 
 QTEST_MAIN(CreateEventAfterEventTest)
-#include "CreateEventAfterEventCommandTest.moc"
+#include "CreateEventAfterEventTest.moc"
 
 

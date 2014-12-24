@@ -11,7 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class MoveEventCommandTest: public QObject
+class MoveEventTest: public QObject
 {
 		Q_OBJECT
 	public:
@@ -61,8 +61,8 @@ class MoveEventCommandTest: public QObject
 		}
 };
 
-QTEST_MAIN(MoveEventCommandTest)
-#include "MoveEventCommandTest.moc"
+QTEST_MAIN(MoveEventTest)
+#include "MoveEventTest.moc"
 
 
 

@@ -13,22 +13,22 @@ function(addIScoreQtTest TESTNAME TESTSRCS)
 endFunction()
 
 # Commands
-addIScoreQtTest(AddProcessToConstraintCommandTest
-				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintCommandTest.cpp")
+addIScoreQtTest(AddProcessToConstraintTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintTest.cpp")
 addIScoreQtTest(AddBoxToConstraintTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddBoxToConstraintTest.cpp")
 addIScoreQtTest(AddDeckToBoxTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddDeckToBoxTest.cpp")
-addIScoreQtTest(AddViewModelToDeckTest
-				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewToDeckTest.cpp")
+addIScoreQtTest(AddProcessViewModelToDeckTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToDeckTest.cpp")
 
-addIScoreQtTest(CreateEventAfterEventCommandTest
-				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventCommandTest.cpp")
+addIScoreQtTest(CreateEventAfterEventTest
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateEventAfterEventTest.cpp")
 
 addIScoreQtTest(MoveEventCommandTest
-				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventCommandTest.cpp")
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventTest.cpp")
 addIScoreQtTest(MoveConstraintCommandTest
-				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintCommandTest.cpp")
+				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintTest.cpp")
 
 ## Constraints
 addIScoreQtTest(ConstraintModelTest

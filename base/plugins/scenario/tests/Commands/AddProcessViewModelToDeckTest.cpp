@@ -61,5 +61,5 @@ class AddProcessViewModelToDeckTest: public QObject
 };
 
 QTEST_MAIN(AddProcessViewModelToDeckTest)
-#include "AddProcessViewToDeckTest.moc"
+#include "AddProcessViewModelToDeckTest.moc"
 
