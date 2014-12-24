@@ -22,7 +22,7 @@ RemoveProcessFromConstraintCommand::RemoveProcessFromConstraintCommand(ObjectPat
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
-		s << process->processName();
+		s << process->processName(); // We have to serialize it.
 		s << *process;
 	}
 

@@ -53,8 +53,13 @@ class ConstraintModel : public IdentifiedObject
 		void makeViewModel_impl(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
-		int createProcess(QString processName, int processId);
-		int createProcess(QDataStream& data);
+		void createProcess(QString processName, int processId);
+
+		/**
+		 * @brief createProcess Create a process from a data stream
+		 * @param data a data stream containing the name of a process, as given by ProcessSharedModelInterface::processName followed by the data of the process obtained by calling  QDataStream::operator<< on the ProcessSharedModelInterface.
+		 */
+		void createProcess(QDataStream& s);
 		void removeProcess(int processId);
 
 		void createBox(int boxId);
@@ -105,7 +110,7 @@ class ConstraintModel : public IdentifiedObject
 
 	private:
 		// TODO maybe put this in public, and let the command call ProcessList and pass a pointer to createProcess (which becomes addProcess)
-		int createProcess_impl(ProcessSharedModelInterface*);
+		void createProcess_impl(ProcessSharedModelInterface*);
 		void createBox_impl(BoxModel*);
 
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration

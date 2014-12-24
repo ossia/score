@@ -126,26 +126,24 @@ ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
 }
 
 //// Complex commands
-int ConstraintModel::createProcess(QString processName, int processId)
+void ConstraintModel::createProcess(QString processName, int processId)
 {
 	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
-	return createProcess_impl(model);
+	createProcess_impl(model);
 }
 
-int ConstraintModel::createProcess(QDataStream& data)
+void ConstraintModel::createProcess(QDataStream& data)
 {
 	QString processName;
 	data >> processName;
 	auto model = ProcessList::getFactory(processName)->makeModel(data, this);
-	return createProcess_impl(model);
+	createProcess_impl(model);
 }
 
-int ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)
+void ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
 	emit processCreated(model->processName(), model->id());
-
-	return model->id();
 }
 
 
