@@ -7,7 +7,7 @@
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
-#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include <Process/ScenarioProcessFactory.hpp>
@@ -31,7 +31,7 @@ class AddProcessViewModelToDeckTest: public QObject
 			// Setup
 			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
 
-			AddProcessToConstraintCommand cmd_proc(
+			AddProcessToConstraint cmd_proc(
 			{
 				{"ConstraintModel", {}}
 			}, "Scenario");

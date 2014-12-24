@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 class AddProcessViewModelToDeckTest;
+
 namespace Scenario
 {
 	namespace Command

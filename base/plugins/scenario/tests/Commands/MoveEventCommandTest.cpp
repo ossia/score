@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/MoveEventCommand.hpp>
-#include <Commands/Scenario/CreateEventCommand.hpp>
+#include <Commands/Scenario/MoveEvent.hpp>
+#include <Commands/Scenario/CreateEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
@@ -9,6 +9,7 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 using namespace iscore;
+using namespace Scenario::Command;
 
 class MoveEventCommandTest: public QObject
 {
@@ -24,7 +25,7 @@ class MoveEventCommandTest: public QObject
 			// predecessors ?)
 
 
-			CreateEventCommand create_ev_cmd(
+			CreateEvent create_ev_cmd(
 				{{"ScenarioProcessSharedModel", {}}},
 				10,
 				0.5);
@@ -38,7 +39,7 @@ class MoveEventCommandTest: public QObject
 			data.x = 10;
 			data.relativeY = 0.1;
 
-			MoveEventCommand cmd(
+			MoveEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
 			}, data );

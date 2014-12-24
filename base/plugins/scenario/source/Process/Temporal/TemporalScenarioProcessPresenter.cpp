@@ -15,10 +15,13 @@
 #include "Document/Event/EventPresenter.hpp"
 #include "Document/Event/EventView.hpp"
 #include "Document/Event/EventData.hpp"
-#include "Commands/Scenario/CreateEventCommand.hpp"
-#include "Commands/Scenario/CreateEventAfterEventCommand.hpp"
-#include "Commands/Scenario/MoveEventCommand.hpp"
-#include "Commands/Scenario/MoveConstraintCommand.hpp"
+#include "Commands/Scenario/CreateEvent.hpp"
+#include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/MoveEvent.hpp"
+#include "Commands/Scenario/MoveConstraint.hpp"
+#include "Commands/Scenario/ClearConstraint.hpp"
+#include "Commands/Scenario/ClearEvent.hpp"
+#include "Commands/RemoveMultipleElements.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -27,6 +30,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 
+using namespace Scenario;
 TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
@@ -178,7 +182,7 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
 {
 	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
-	auto cmd = new CreateEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseConstraintModel",
 																 m_viewModel->sharedProcessModel()),
 									 point.x(),
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
@@ -209,9 +213,6 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 				 [] (typename InputVector::value_type c) { return c->isSelected(); });
 }
 
-#include "Commands/Scenario/DeleteConstraintCommand.hpp"
-#include "Commands/Scenario/DeleteEventCommand.hpp"
-#include "Commands/DeleteMultipleElements.hpp"
 void TemporalScenarioProcessPresenter::deleteSelection()
 {
 	using namespace Scenario::Command;
@@ -236,13 +237,13 @@ void TemporalScenarioProcessPresenter::deleteSelection()
 	for(auto& event : m_events)
 	{
 		commands.push_back(
-					new EmptyEventCommand(
+					new ClearEvent(
 						ObjectPath::pathFromObject("BaseConstraintModel",
 												   event->model())));
 	}
 
 	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
-	auto cmd = new DeleteMultipleElementsCommand(std::move(commands));
+	auto cmd = new RemoveMultipleElementsCommand(std::move(commands));
 	emit submitCommand(cmd);
 }
 
@@ -260,7 +261,7 @@ void TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent(EventDa
 	data.x = data.x - model(m_viewModel)->event(data.eventClickedId)->date();
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new CreateEventAfterEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
 																		   m_viewModel->sharedProcessModel()),
 												data);
 
@@ -271,7 +272,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 {
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new MoveEventCommand(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseConstraintModel",
 															   m_viewModel->sharedProcessModel()),
 									data);
 	submitCommand(cmd);
@@ -281,7 +282,7 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new MoveConstraintCommand(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
 																	m_viewModel->sharedProcessModel()),
 									data);
 

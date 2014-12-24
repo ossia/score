@@ -5,11 +5,12 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 #include "Control/ProcessList.hpp"
 
-#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
-#include "Commands/Constraint/DeleteProcessFromConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
 #include <Process/ScenarioProcessFactory.hpp>
-using namespace iscore;
 
+using namespace iscore;
+using namespace Scenario::Command;
 
 
 class AddProcessToConstraintCommandTest: public QObject
@@ -27,7 +28,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			ConstraintModel* int_model  = new ConstraintModel{0, qApp};
 
 			int_model->createBox(646); // TODO use command instead.
-			AddProcessToConstraintCommand cmd(
+			AddProcessToConstraint cmd(
 			{
 				{"ConstraintModel", {}}
 			}, "Scenario");
@@ -52,7 +53,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			int_model2->createBox(646);
 
 			QVERIFY(int_model2->processes().size() == 0);
-			AddProcessToConstraintCommand cmd(
+			AddProcessToConstraint cmd(
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0}
@@ -71,7 +72,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			QVERIFY(s0->constraints().size() == 2);
 			QVERIFY(s0->events().size() == 3); // TODO 4 if endEvent
 
-			AddProcessToConstraintCommand cmd2(
+			AddProcessToConstraint cmd2(
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0},
@@ -84,7 +85,7 @@ class AddProcessToConstraintCommandTest: public QObject
 			auto last_constraint = s0->constraints().front();
 			QVERIFY(last_constraint->processes().size() == 1);
 
-			RemoveProcessFromConstraintCommand cmd3(
+			RemoveProcessFromConstraint cmd3(
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0}

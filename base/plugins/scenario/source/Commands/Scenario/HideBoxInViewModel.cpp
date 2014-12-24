@@ -3,6 +3,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
 HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint):
 	SerializableCommand{"ScenarioControl",

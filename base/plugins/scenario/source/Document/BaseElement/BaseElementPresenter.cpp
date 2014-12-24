@@ -5,13 +5,13 @@
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
-#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
-#include "Commands/Scenario/CreateEventCommand.hpp"
+#include "Commands/Scenario/CreateEvent.hpp"
 
 #include <QGraphicsScene>
 using namespace iscore;
@@ -27,7 +27,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	using namespace Scenario::Command;
 	auto constraint_model = viewmodel->model();
 
-	(new AddProcessToConstraintCommand(
+	(new AddProcessToConstraint(
 		{
 			{"BaseConstraintModel", {}}
 		},

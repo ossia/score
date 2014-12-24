@@ -4,6 +4,7 @@
 
 class AddBoxToConstraintTest;
 class AddProcessViewModelToDeckTest;
+
 namespace Scenario
 {
 	namespace Command

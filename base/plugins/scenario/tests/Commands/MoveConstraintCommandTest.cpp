@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/MoveConstraintCommand.hpp>
+#include <Commands/Scenario/MoveConstraint.hpp>
 
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/ConstraintData.hpp>
@@ -9,6 +9,7 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 using namespace iscore;
+using namespace Scenario::Command;
 
 class MoveConstraintCommandTest: public QObject
 {
@@ -28,7 +29,7 @@ class MoveConstraintCommandTest: public QObject
 			ConstraintData data{};
 			data.id = int_0_id;
 			data.relativeY = 0.1;
-			MoveConstraintCommand cmd(
+			MoveConstraint cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
 			}, data );

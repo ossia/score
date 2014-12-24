@@ -2,7 +2,8 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
-class AddDeckToBoxTest;
+#include <QString>
+
 class AddProcessViewModelToDeckTest;
 
 namespace Scenario
@@ -10,16 +11,15 @@ namespace Scenario
 	namespace Command
 	{
 		/**
-		 * @brief The AddDeckToBox class
-		 *
-		 * Adds an empty deck to a constraint.
-		 */
-		class AddDeckToBox : public iscore::SerializableCommand
+ * @brief The AddProcessToConstraintCommand class
+ *
+ * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
+ */
+		class AddProcessToConstraint : public iscore::SerializableCommand
 		{
-				friend class ::AddDeckToBoxTest;
 				friend class ::AddProcessViewModelToDeckTest;
 			public:
-				AddDeckToBox(ObjectPath&& boxPath);
+				AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -32,8 +32,9 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
+				QString m_processName;
 
-				int m_createdDeckId{};
+				int m_createdProcessId{};
 		};
 	}
 }

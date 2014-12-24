@@ -8,7 +8,7 @@
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
@@ -148,10 +148,10 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
-	auto cmd = new AddProcessToConstraintCommand(
+	auto cmd = new AddProcessToConstraint{
 						ObjectPath::pathFromObject("BaseConstraintModel",
 												   model()),
-						processName);
+						processName};
 	emit submitCommand(cmd);
 }
 

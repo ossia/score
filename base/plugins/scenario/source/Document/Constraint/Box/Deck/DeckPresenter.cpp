@@ -3,7 +3,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Commands/Constraint/Box/Deck/ResizeDeckVerticallyCommand.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 
 #include "Control/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
@@ -17,6 +17,7 @@
 
 #include <QGraphicsScene>
 
+using namespace Scenario;
 // @todo vérifier en créant un nouvel élément
 // qu'il n'existe pas déjà dans un tableau.
 DeckPresenter::DeckPresenter(DeckModel* model,
@@ -122,7 +123,7 @@ void DeckPresenter::on_bottomHandleReleased()
 {
 	auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
 
-	auto cmd = new ResizeDeckVerticallyCommand(std::move(path), m_view->height());
+	auto cmd = new Command::ResizeDeckVertically{std::move(path), m_view->height()};
 	emit submitCommand(cmd);
 }
 

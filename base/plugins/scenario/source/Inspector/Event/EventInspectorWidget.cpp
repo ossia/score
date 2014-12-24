@@ -3,7 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 
 #include "Document/Event/State/State.hpp"
-#include "Commands/Event/AddStateToEventCommand.hpp"
+#include "Commands/Event/AddStateToEvent.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 
@@ -15,6 +15,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 
+using namespace Scenario;
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
 	InspectorWidgetBase{nullptr},
@@ -87,8 +88,10 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 void EventInspectorWidget::on_addAddressClicked()
 {
 	auto txt = m_addressLineEdit->text();
-	auto cmd = new AddStateToEventCommand(ObjectPath::pathFromObject("BaseConstraintModel", m_eventModel),
-										  txt);
+	auto cmd = new Command::AddStateToEvent{
+					ObjectPath::pathFromObject("BaseConstraintModel",
+											   m_eventModel),
+					txt};
 
 	emit submitCommand(cmd);
 }

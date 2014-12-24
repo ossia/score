@@ -2,24 +2,22 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
-class AddDeckToBoxTest;
-class AddProcessViewModelToDeckTest;
+#include <QString>
 
 namespace Scenario
 {
 	namespace Command
 	{
 		/**
-		 * @brief The AddDeckToBox class
+		 * @brief The ResizeDeckVerticallyCommand class
 		 *
-		 * Adds an empty deck to a constraint.
+		 * Changes a deck's vertical size
 		 */
-		class AddDeckToBox : public iscore::SerializableCommand
+		class ResizeDeckVertically : public iscore::SerializableCommand
 		{
-				friend class ::AddDeckToBoxTest;
-				friend class ::AddProcessViewModelToDeckTest;
 			public:
-				AddDeckToBox(ObjectPath&& boxPath);
+				ResizeDeckVertically(ObjectPath&& deckPath,
+											int newSize);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -33,7 +31,8 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdDeckId{};
+				int m_originalSize{};
+				int m_newSize{};
 		};
 	}
 }

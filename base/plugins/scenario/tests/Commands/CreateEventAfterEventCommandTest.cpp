@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/CreateEventAfterEventCommand.hpp>
-#include <Commands/Scenario/CreateEventCommand.hpp>
+#include <Commands/Scenario/CreateEventAfterEvent.hpp>
+#include <Commands/Scenario/CreateEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
@@ -9,10 +9,10 @@
 #include <Process/ScenarioProcessSharedModel.hpp>
 
 using namespace iscore;
+using namespace Scenario::Command;
 
 
-
-class CreateEventAfterEventCommandTest: public QObject
+class CreateEventAfterEventTest: public QObject
 {
 		Q_OBJECT
 	public:
@@ -27,7 +27,7 @@ class CreateEventAfterEventCommandTest: public QObject
 			data.x = 10;
 			data.relativeY = 0.5;
 
-			CreateEventCommand cmd(
+			CreateEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
 			}, data.x, data.relativeY);
@@ -57,7 +57,7 @@ class CreateEventAfterEventCommandTest: public QObject
 			data.x = 10;
 			data.relativeY = 0.5;
 
-			CreateEventAfterEventCommand cmd(
+			CreateEventAfterEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
 			}, data);
@@ -87,7 +87,7 @@ class CreateEventAfterEventCommandTest: public QObject
 		}
 };
 
-QTEST_MAIN(CreateEventAfterEventCommandTest)
+QTEST_MAIN(CreateEventAfterEventTest)
 #include "CreateEventAfterEventCommandTest.moc"
 
 

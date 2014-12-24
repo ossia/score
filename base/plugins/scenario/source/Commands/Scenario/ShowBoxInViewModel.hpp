@@ -4,6 +4,7 @@
 
 class AbstractConstraintViewModel;
 class ConstraintModel;
+
 namespace Scenario
 {
 	namespace Command

@@ -6,7 +6,7 @@
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
-#include "Commands/Constraint/AddProcessToConstraintCommand.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 
