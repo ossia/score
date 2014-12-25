@@ -7,10 +7,7 @@
 
 struct EventModelData;
 
-class CreateEventTest;
-class HideBoxInViewModelTest;
-class MoveEventTest;
-
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -23,10 +20,7 @@ namespace Scenario
  */
 		class CreateEvent : public iscore::SerializableCommand
 		{
-				friend class ::CreateEventTest;
-				friend class ::MoveEventTest;
-				friend class ::HideBoxInViewModelTest;
-
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				CreateEvent();
 				~CreateEvent();

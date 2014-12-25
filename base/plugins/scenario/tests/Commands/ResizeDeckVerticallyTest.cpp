@@ -12,6 +12,7 @@ class ResizeDeckVerticallyTest: public QObject
 	private slots:
 		void test()
 		{
+			QFAIL("TODO");
 		}
 };
 

@@ -12,6 +12,7 @@ class RemoveBoxFromConstraintTest: public QObject
 	private slots:
 		void test()
 		{
+			QFAIL("TODO");
 		}
 };
 

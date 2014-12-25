@@ -5,6 +5,7 @@
 class AbstractConstraintViewModel;
 class ConstraintModel;
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -17,6 +18,7 @@ namespace Scenario
 		 */
 		class HideBoxInViewModel : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				HideBoxInViewModel(ObjectPath&& path);
 

@@ -12,6 +12,7 @@ class RemoveDeckFromBoxTest: public QObject
 	private slots:
 		void test()
 		{
+			QFAIL("TODO");
 		}
 };
 

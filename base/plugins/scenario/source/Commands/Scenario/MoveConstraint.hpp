@@ -4,12 +4,14 @@
 
 struct ConstraintData;
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
 	{
 		class MoveConstraint : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				// TODO le endEvent est-il nécessaire ?
 				MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d);

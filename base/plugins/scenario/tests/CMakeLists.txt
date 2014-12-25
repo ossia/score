@@ -12,6 +12,12 @@ function(addIScoreQtTest TESTNAME TESTSRCS)
 	add_test(${TESTNAME}_target ${TESTNAME})
 endFunction()
 
+add_custom_target(ScenarioTestHeaders
+									SOURCES
+										"${CMAKE_CURRENT_SOURCE_DIR}/helpers/FriendDeclaration.hpp"
+										"${CMAKE_CURRENT_SOURCE_DIR}/helpers/ForwardDeclaration.hpp"
+)
+
 # Commands
 addIScoreQtTest(AddProcessToConstraintTest
 				"${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintTest.cpp")

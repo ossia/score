@@ -5,6 +5,7 @@
 class AbstractConstraintViewModel;
 class ConstraintModel;
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command

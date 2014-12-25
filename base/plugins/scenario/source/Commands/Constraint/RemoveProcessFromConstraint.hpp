@@ -2,12 +2,14 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
 	{
 		class RemoveProcessFromConstraint : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId);
 				virtual void undo() override;

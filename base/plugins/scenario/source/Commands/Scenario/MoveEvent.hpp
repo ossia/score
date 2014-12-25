@@ -4,12 +4,14 @@
 
 struct EventData;
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
 	{
 		class MoveEvent : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				MoveEvent(ObjectPath &&scenarioPath, EventData data);
 				virtual void undo() override;

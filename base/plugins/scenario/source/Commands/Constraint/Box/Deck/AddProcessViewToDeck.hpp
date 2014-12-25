@@ -2,8 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
-class AddProcessViewModelToDeckTest;
-
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -15,7 +14,7 @@ namespace Scenario
 		 */
 		class AddProcessViewModelToDeck : public iscore::SerializableCommand
 		{
-				friend class AddProcessViewModelToDeckTest;
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				AddProcessViewModelToDeck(ObjectPath&& deckPath, int sharedModelId);
 

@@ -2,9 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
-class AddBoxToConstraintTest;
-class AddProcessViewModelToDeckTest;
-class HideBoxInViewModelTest;
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -16,9 +14,8 @@ namespace Scenario
 		 */
 		class AddBoxToConstraint : public iscore::SerializableCommand
 		{
-				friend class ::AddProcessViewModelToDeckTest;
-				friend class ::AddBoxToConstraintTest;
-				friend class ::HideBoxInViewModelTest;
+#include <tests/helpers/FriendDeclaration.hpp>
+
 			public:
 				AddBoxToConstraint(ObjectPath&& constraintPath);
 

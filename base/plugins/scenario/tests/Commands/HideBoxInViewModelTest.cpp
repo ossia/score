@@ -14,13 +14,10 @@
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
-#include "Commands/Scenario/HideBoxInViewModel.hpp"
 
 #include "Process/ScenarioProcessFactory.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
-
-
 
 #include "Control/ProcessList.hpp"
 

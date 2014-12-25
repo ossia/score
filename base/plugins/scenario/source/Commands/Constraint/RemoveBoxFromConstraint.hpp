@@ -2,6 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+#include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -13,6 +14,7 @@ namespace Scenario
 		 */
 		class RemoveBoxFromConstraint : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				RemoveBoxFromConstraint(ObjectPath&& constraintPath, int boxId);
 
