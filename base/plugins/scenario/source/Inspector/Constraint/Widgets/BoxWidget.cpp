@@ -1,4 +1,4 @@
-#include "AddBoxWidget.hpp"
+#include "BoxWidget.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 

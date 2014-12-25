@@ -1,4 +1,4 @@
-#include "AddProcessWidget.hpp"
+#include "AddSharedProcessWidget.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 

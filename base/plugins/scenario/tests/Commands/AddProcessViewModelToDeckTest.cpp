@@ -6,7 +6,7 @@
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 
-#include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
+#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"

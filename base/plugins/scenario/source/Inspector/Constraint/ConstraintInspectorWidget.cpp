@@ -1,7 +1,7 @@
 #include "ConstraintInspectorWidget.hpp"
 
-#include "Widgets/AddProcessWidget.hpp"
-#include "Widgets/AddBoxWidget.hpp"
+#include "Widgets/AddSharedProcessWidget.hpp"
+#include "Widgets/BoxWidget.hpp"
 #include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"

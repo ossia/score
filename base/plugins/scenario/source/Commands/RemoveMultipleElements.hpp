@@ -8,10 +8,10 @@ namespace Scenario
 	namespace Command
 	{
 		// TODO generalize this into a generic GroupCommand (maybe it already exists in qt?)
-		class RemoveMultipleElementsCommand : public iscore::SerializableCommand
+		class RemoveMultipleElements : public iscore::SerializableCommand
 		{
 			public:
-				RemoveMultipleElementsCommand(QVector<SerializableCommand*> elementsToDelete);
+				RemoveMultipleElements(QVector<SerializableCommand*> elementsToDelete);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;

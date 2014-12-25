@@ -8,7 +8,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
-#include "Commands/Constraint/Box/Deck/AddProcessViewToDeck.hpp"
+#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 
 #include <QtWidgets/QVBoxLayout>
 

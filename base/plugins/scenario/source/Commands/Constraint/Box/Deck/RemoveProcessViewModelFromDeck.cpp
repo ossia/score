@@ -1,4 +1,4 @@
-#include "RemoveProcessViewFromDeck.hpp"
+#include "RemoveProcessViewModelFromDeck.hpp"
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -7,7 +7,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessViewFromDeck::RemoveProcessViewFromDeck(ObjectPath&& boxPath,
+RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& boxPath,
 													 int processViewId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessViewFromDeck",
@@ -27,7 +27,7 @@ RemoveProcessViewFromDeck::RemoveProcessViewFromDeck(ObjectPath&& boxPath,
 	m_sharedModelId = pvm->sharedProcessModel()->id();
 }
 
-void RemoveProcessViewFromDeck::undo()
+void RemoveProcessViewModelFromDeck::undo()
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
 	{
@@ -36,28 +36,28 @@ void RemoveProcessViewFromDeck::undo()
 	}
 }
 
-void RemoveProcessViewFromDeck::redo()
+void RemoveProcessViewModelFromDeck::redo()
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
 	deck->deleteProcessViewModel(m_processViewId);
 }
 
-int RemoveProcessViewFromDeck::id() const
+int RemoveProcessViewModelFromDeck::id() const
 {
 	return 1;
 }
 
-bool RemoveProcessViewFromDeck::mergeWith(const QUndoCommand* other)
+bool RemoveProcessViewModelFromDeck::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void RemoveProcessViewFromDeck::serializeImpl(QDataStream& s)
+void RemoveProcessViewModelFromDeck::serializeImpl(QDataStream& s)
 {
 	s << m_path << m_processViewId << m_serializedProcessViewData;
 }
 
-void RemoveProcessViewFromDeck::deserializeImpl(QDataStream& s)
+void RemoveProcessViewModelFromDeck::deserializeImpl(QDataStream& s)
 {
 	s >> m_path >> m_processViewId >> m_serializedProcessViewData;
 }

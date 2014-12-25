@@ -1,10 +1,10 @@
 #include <QtTest/QtTest>
-#include "Commands/Constraint/Box/Deck/RemoveProcessViewFromDeck.hpp"
+#include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-class RemoveProcessViewFromDeckTest: public QObject
+class RemoveProcessViewModelFromDeckTest: public QObject
 {
 		Q_OBJECT
 	public:
@@ -16,7 +16,7 @@ class RemoveProcessViewFromDeckTest: public QObject
 		}
 };
 
-QTEST_MAIN(RemoveProcessViewFromDeckTest)
+QTEST_MAIN(RemoveProcessViewModelFromDeckTest)
 #include "RemoveProcessViewFromDeckTest.moc"
 
 

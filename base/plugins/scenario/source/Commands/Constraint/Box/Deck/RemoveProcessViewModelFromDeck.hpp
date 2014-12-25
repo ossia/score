@@ -11,10 +11,10 @@ namespace Scenario
 		 *
 		 * Removes a process view from a deck.
 		 */
-		class RemoveProcessViewFromDeck : public iscore::SerializableCommand
+		class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
 		{
 			public:
-				RemoveProcessViewFromDeck(ObjectPath&& deckPath, int processViewId);
+				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, int processViewId);
 
 				virtual void undo() override;
 				virtual void redo() override;

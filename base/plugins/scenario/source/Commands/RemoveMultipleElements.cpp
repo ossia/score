@@ -6,7 +6,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveMultipleElementsCommand::RemoveMultipleElementsCommand(
+RemoveMultipleElements::RemoveMultipleElements(
 		QVector<iscore::SerializableCommand*> deletionCommands):
 	iscore::SerializableCommand{"ScenarioControl",
 								"DeleteMultipleElementsCommand",
@@ -18,7 +18,7 @@ RemoveMultipleElementsCommand::RemoveMultipleElementsCommand(
 	}
 }
 
-void RemoveMultipleElementsCommand::undo()
+void RemoveMultipleElements::undo()
 {
 	for(auto& cmd_pack : m_serializedCommands)
 	{
@@ -32,7 +32,7 @@ void RemoveMultipleElementsCommand::undo()
 	}
 }
 
-void RemoveMultipleElementsCommand::redo()
+void RemoveMultipleElements::redo()
 {
 	for(auto& cmd_pack : m_serializedCommands)
 	{
@@ -46,22 +46,22 @@ void RemoveMultipleElementsCommand::redo()
 	}
 }
 
-int RemoveMultipleElementsCommand::id() const
+int RemoveMultipleElements::id() const
 {
 	return 1;
 }
 
-bool RemoveMultipleElementsCommand::mergeWith(const QUndoCommand* other)
+bool RemoveMultipleElements::mergeWith(const QUndoCommand* other)
 {
 	return false;
 }
 
-void RemoveMultipleElementsCommand::serializeImpl(QDataStream& s)
+void RemoveMultipleElements::serializeImpl(QDataStream& s)
 {
 	s << m_serializedCommands;
 }
 
-void RemoveMultipleElementsCommand::deserializeImpl(QDataStream& s)
+void RemoveMultipleElements::deserializeImpl(QDataStream& s)
 {
 	s >> m_serializedCommands;
 }
