@@ -28,8 +28,10 @@ class DeckModel : public IdentifiedObject
 		DeckModel(int position, int id, BoxModel* parent);
 		virtual ~DeckModel() = default;
 
-		int createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
-		int createProcessViewModel(QDataStream& s, int sharedProcessId);
+		void createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
+
+		static void saveProcessViewModel(QDataStream& s, ProcessViewModelInterface*);
+		void createProcessViewModel(QDataStream& s);
 		void deleteProcessViewModel(int processViewModelId);
 
 		/**

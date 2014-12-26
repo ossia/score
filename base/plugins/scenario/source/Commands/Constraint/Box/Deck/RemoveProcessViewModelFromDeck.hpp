@@ -28,7 +28,6 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 				int m_processViewId{};
-				int m_sharedModelId{};
 
 				QByteArray m_serializedProcessViewData;
 		};

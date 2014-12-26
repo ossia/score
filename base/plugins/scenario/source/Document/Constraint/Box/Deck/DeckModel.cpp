@@ -19,8 +19,7 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 	s << (int) deck.m_processViewModels.size();
 	for(auto& pvm : deck.m_processViewModels)
 	{
-		s << pvm->sharedProcessModel()->id();
-		s << *pvm;
+		DeckModel::saveProcessViewModel(s, pvm);
 	}
 
 	s << deck.height()
@@ -38,9 +37,7 @@ QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 	s >> pvm_size;
 	for(int i = 0; i < pvm_size; i++)
 	{
-		SettableIdentifier sharedprocess_id;
-		s >> sharedprocess_id; // TODO read it in createProcessViewModel instead
-		deck.createProcessViewModel(s, sharedprocess_id);
+		deck.createProcessViewModel(s);
 	}
 
 	int height;
@@ -68,7 +65,7 @@ DeckModel::DeckModel(int position, int id, BoxModel* parent):
 }
 
 // TODO refactor this like in the presenter classes with _impl.
-int DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
+void DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
@@ -77,19 +74,25 @@ int DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewMod
 	m_processViewModels.push_back(viewmodel);
 
 	emit processViewModelCreated(viewmodel->id());
-	return viewmodel->id();
 }
 
-int DeckModel::createProcessViewModel(QDataStream& s, int sharedProcessId)
+void DeckModel::saveProcessViewModel(QDataStream& s, ProcessViewModelInterface* pvm)
+{
+	s << pvm->sharedProcessModel()->id();
+	s << *pvm;
+}
+
+void DeckModel::createProcessViewModel(QDataStream& s)
 {
 	// Search the corresponding process in the parent constraint.
+	SettableIdentifier sharedProcessId;
+	s >> sharedProcessId;
 	auto process = parentConstraint()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(s, this);
 
 	m_processViewModels.push_back(viewmodel);
 
 	emit processViewModelCreated(viewmodel->id());
-	return viewmodel->id();
 }
 
 void DeckModel::deleteProcessViewModel(int processViewId)

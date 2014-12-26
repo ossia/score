@@ -24,8 +24,7 @@ QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
 	s	<< (int) constraint.m_processes.size();
 	for(auto& process : constraint.m_processes)
 	{
-		s << process->processName();
-		s << *process;
+		ConstraintModel::saveProcess(s, process);
 	}
 
 	// Boxes
@@ -138,6 +137,12 @@ void ConstraintModel::createProcess(QDataStream& data)
 	data >> processName;
 	auto model = ProcessList::getFactory(processName)->makeModel(data, this);
 	createProcess_impl(model);
+}
+
+void ConstraintModel::saveProcess(QDataStream& s, ProcessSharedModelInterface* process)
+{
+	s << process->processName();
+	s << *process;
 }
 
 void ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)

@@ -6,3 +6,5 @@ friend class ::ShowBoxInViewModelTest;
 friend class ::CreateEventTest;
 friend class ::MoveEventTest;
 friend class ::CreateEventAfterEventTest;
+friend class ::RemoveBoxFromConstraintTest;
+friend class ::RemoveDeckFromBoxTest;

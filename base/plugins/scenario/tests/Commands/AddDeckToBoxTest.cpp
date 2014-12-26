@@ -19,18 +19,27 @@ class AddDeckToBoxTest: public QObject
 			QCOMPARE((int)box->decks().size(), 0);
 			AddDeckToBox cmd(
 			ObjectPath{ {"BoxModel", {}} });
-			auto id = cmd.m_createdDeckId;
+			auto deckId = cmd.m_createdDeckId;
 
 			cmd.redo();
 			QCOMPARE((int)box->decks().size(), 1);
-			QCOMPARE(box->deck(id)->parent(), box);
+			QCOMPARE(box->deck(deckId)->parent(), box);
 
 			cmd.undo();
 			QCOMPARE((int)box->decks().size(), 0);
 
 			cmd.redo();
 			QCOMPARE((int)box->decks().size(), 1);
-			QCOMPARE(box->deck(id)->parent(), box);
+			QCOMPARE(box->deck(deckId)->parent(), box);
+
+			try
+			{
+				box->deck(deckId);
+			}
+			catch(std::runtime_error& e)
+			{
+				QFAIL(e.what());
+			}
 
 			// Delete them else they stay in qApp !
 			delete box;

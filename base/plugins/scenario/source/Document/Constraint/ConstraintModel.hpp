@@ -58,9 +58,13 @@ class ConstraintModel : public IdentifiedObject
 		/**
 		 * @brief createProcess Create a process from a data stream
 		 * @param data a data stream containing the name of a process, as given by ProcessSharedModelInterface::processName followed by the data of the process obtained by calling  QDataStream::operator<< on the ProcessSharedModelInterface.
+		 * The method saveProcess does this as a convenience.
 		 */
 		void createProcess(QDataStream& s);
+		static void saveProcess(QDataStream& s, ProcessSharedModelInterface* p);
+
 		void removeProcess(int processId);
+
 
 		void createBox(int boxId);
 		void createBox(QDataStream& s);

@@ -6,3 +6,5 @@ class ShowBoxInViewModelTest;
 class CreateEventTest;
 class MoveEventTest;
 class CreateEventAfterEventTest;
+class RemoveBoxFromConstraintTest;
+class RemoveDeckFromBoxTest;

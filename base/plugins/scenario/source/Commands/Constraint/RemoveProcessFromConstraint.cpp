@@ -22,11 +22,9 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
-		s << process->processName(); // We have to serialize it.
-		s << *process;
-	}
 
-	m_processName = process->processName();
+		ConstraintModel::saveProcess(s, process);
+	}
 }
 
 void RemoveProcessFromConstraint::undo()
@@ -56,10 +54,10 @@ bool RemoveProcessFromConstraint::mergeWith(const QUndoCommand* other)
 
 void RemoveProcessFromConstraint::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_processName << m_processId << m_serializedProcessData;
+	s << m_path << m_processId << m_serializedProcessData;
 }
 
 void RemoveProcessFromConstraint::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_processName >> m_processId >> m_serializedProcessData;
+	s >> m_path >> m_processId >> m_serializedProcessData;
 }

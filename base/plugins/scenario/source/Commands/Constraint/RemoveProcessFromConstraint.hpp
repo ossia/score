@@ -23,7 +23,6 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				QString m_processName;
 				int m_processId;
 
 				QByteArray m_serializedProcessData; // Should be done in the constructor
