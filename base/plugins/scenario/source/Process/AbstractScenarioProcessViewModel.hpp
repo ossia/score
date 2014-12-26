@@ -65,7 +65,7 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T* 
 	QVector<typename T::constraint_view_model_type*> v;
 	for(auto& elt : scenarioViewModel->constraints())
 		v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
-	return std::move(v);
+	return v;
 }
 
 template<typename T>
@@ -82,5 +82,5 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& 
 	QVector<typename T::constraint_view_model_type*> v;
 	for(auto& elt : scenarioViewModel.constraints())
 		v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
-	return std::move(v);
+	return v;
 }

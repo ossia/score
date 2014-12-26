@@ -18,7 +18,7 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",
 						QObject::tr("Constraint move")},
-	m_scenarioPath(std::move(scenarioPath)),
+	m_scenarioPath{std::move(scenarioPath)},
 	m_constraintId{d.id},
 	m_newHeightPosition{d.relativeY},
 	m_newX{d.x}

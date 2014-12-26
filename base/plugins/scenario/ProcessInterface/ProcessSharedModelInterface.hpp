@@ -74,5 +74,5 @@ QVector<typename T::view_model_type*> viewModels(T* processViewModel)
 	QVector<typename T::view_model_type*> v;
 	for(auto& elt : processViewModel->viewModels())
 		v.push_back(static_cast<typename T::view_model_type*>(elt));
-	return std::move(v);
+	return v;
 }

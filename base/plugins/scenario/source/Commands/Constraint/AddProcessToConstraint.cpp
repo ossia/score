@@ -13,7 +13,7 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
 	SerializableCommand{"ScenarioControl",
 						"AddProcessToConstraintCommand",
 						"Add process"},
-	m_path(std::move(constraintPath)),
+	m_path{std::move(constraintPath)},
 	m_processName{process}
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());

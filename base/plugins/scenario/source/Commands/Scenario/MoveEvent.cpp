@@ -16,7 +16,7 @@ MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",
 						QObject::tr("Event move")},
-	m_scenarioPath(std::move(scenarioPath)),
+	m_scenarioPath{std::move(scenarioPath)},
 	m_eventId{data.eventClickedId},
 	m_newHeightPosition{data.relativeY},
 	m_newX{data.x}

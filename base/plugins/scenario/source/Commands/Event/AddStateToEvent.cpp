@@ -20,7 +20,7 @@ AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, QString message):
 	SerializableCommand{"ScenarioControl",
 						"AddStateToEventCommand",
 						QObject::tr("State and message creation")},
-	m_path(std::move(eventPath)),
+	m_path{std::move(eventPath)},
 	m_message(message)
 {
 	auto event = static_cast<EventModel*>(m_path.find());
