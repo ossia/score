@@ -23,8 +23,7 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		void showBox(int boxId);
 
 	signals:
-		void boxCreated(int boxId);
-		void boxRemoved(int boxId);
+		void boxRemoved();
 		void boxHidden();
 		void boxShown(int boxId);
 
