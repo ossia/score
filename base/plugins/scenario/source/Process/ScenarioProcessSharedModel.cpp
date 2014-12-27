@@ -20,15 +20,6 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	//m_events.push_back(new EventModel(1, this));
 }
 
-/*
-ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
-													   QObject* parent):
-	ProcessSharedModelInterface{s, parent}
-{
-	s >> *this;
-}
-*/
-
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
 {
@@ -38,12 +29,23 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 	return scen;
 }
 
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(QDataStream& s,
+
+#include <interface/serialization/DataStreamVisitor.hpp>
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(SerializationIdentifier identifier,
+																	 void* data,
 																	 QObject* parent)
 {
-	auto scen = new TemporalScenarioProcessViewModel(s, this, parent);
-	makeViewModel_impl(scen);
-	return scen;
+	if(identifier == DataStream::type())
+	{
+		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<DataStream>*>(data),
+														 this,
+														 parent);
+		makeViewModel_impl(scen);
+		return scen;
+	}
+
+	throw std::runtime_error("ScenarioProcessViewModels only supports DataStream serialization");
+
 }
 
 void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::view_model_type* scen)
@@ -144,17 +146,6 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	event->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
 	this->event(startEventId)->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
 }
-
-void ScenarioProcessSharedModel::createConstraint(QDataStream&)
-{
-
-}
-
-void ScenarioProcessSharedModel::createEvent(QDataStream&)
-{
-
-}
-
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)
 {
@@ -262,11 +253,6 @@ EventModel* ScenarioProcessSharedModel::startEvent() const
 EventModel* ScenarioProcessSharedModel::endEvent() const
 {
 	return event(m_endEventId);
-}
-
-void ScenarioProcessSharedModel::serialize(QDataStream& s) const
-{
-// TO REMOVE	s << *this;
 }
 
 void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,

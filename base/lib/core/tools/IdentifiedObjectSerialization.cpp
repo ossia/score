@@ -5,9 +5,9 @@
 
 
 template<>
-void Visitor<Reader<DataStream>>::visit<IdentifiedObject>(IdentifiedObject& obj)
+void Visitor<Reader<DataStream>>::visit(const IdentifiedObject& obj)
 {
-	visit(static_cast<NamedObject&>(obj));
+	visit(static_cast<const NamedObject&>(obj));
 
 	m_stream << obj.id();
 }

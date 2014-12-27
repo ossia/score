@@ -18,12 +18,11 @@ class EventModel : public IdentifiedObject
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
-//		friend Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev);
+		friend void Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev);
 
 	public:
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
-		//EventModel(QDataStream& s, QObject* parent);
 
 
 		template<typename Impl>
@@ -47,7 +46,6 @@ class EventModel : public IdentifiedObject
 		const std::vector<State*>& states() const;
 		void addState(State* s);
 		void removeState(int stateId);
-		void createState(QDataStream& s);
 
 		OSSIA::TimeNode* apiObject()
 		{ return m_timeNode;}

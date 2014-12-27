@@ -4,6 +4,6 @@
 class ScenarioProcessSharedModel;
 
 template<>
-void Visitor<Reader<DataStream>>::visit<const ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
+void Visitor<Reader<DataStream>>::visit(const ScenarioProcessSharedModel&);
 template<>
-void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+void Visitor<Writer<DataStream>>::visit(ScenarioProcessSharedModel&);

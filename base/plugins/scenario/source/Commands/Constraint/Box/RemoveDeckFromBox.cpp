@@ -18,7 +18,9 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 		QDataStream s(&m_serializedDeckData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
-		s << *box->deck(deckId);
+		int __warn;
+		// TODO
+		//s << *box->deck(deckId);
 	}
 }
 
@@ -27,7 +29,9 @@ void RemoveDeckFromBox::undo()
 	auto box = static_cast<BoxModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedDeckData, QIODevice::ReadOnly);
-		box->createDeck(s);
+
+		int __warn;
+//		box->createDeck(s);
 	}
 }
 

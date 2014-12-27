@@ -36,9 +36,7 @@ class ConstraintModel : public IdentifiedObject
 
 		ConstraintModel(int id, QObject* parent);
 		ConstraintModel(int id, double yPos, QObject* parent);
-//		ConstraintModel(QDataStream&, QObject* parent);
 
-		// How to put this somewhere else ?
 		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject{vis, parent}
@@ -49,10 +47,19 @@ class ConstraintModel : public IdentifiedObject
 		virtual ~ConstraintModel() = default;
 
 		// Factories for the view models.
-		template<typename ViewModelType, typename Arg> // Arg might be an id or a datastream
-		ViewModelType* makeViewModel(Arg&& arg, QObject* parent)
+		template<typename ViewModelType> // Arg might be an id or a datastream [
+		ViewModelType* makeConstraintViewModel(int id, QObject* parent)
 		{
-			auto viewmodel =  new ViewModelType{arg, this, parent};
+			auto viewmodel =  new ViewModelType{id, this, parent};
+			makeViewModel_impl(viewmodel);
+			return viewmodel;
+		}
+
+		template<typename ViewModelType, typename Impl> // Arg might be an id or a datastream [
+		ViewModelType* makeConstraintViewModel(Deserializer<Impl>& deserializer,
+									 QObject* parent)
+		{
+			auto viewmodel =  new ViewModelType{deserializer, this, parent};
 			makeViewModel_impl(viewmodel);
 			return viewmodel;
 		}
@@ -64,34 +71,10 @@ class ConstraintModel : public IdentifiedObject
 		void addProcess(ProcessSharedModelInterface*);
 		void removeProcess(int processId);
 
-		/**
-		 * @brief createProcess Create a process from a data stream
-		 * @param data a data stream containing the name of a process, as given by ProcessSharedModelInterface::processName followed by the data of the process obtained by calling  QDataStream::operator<< on the ProcessSharedModelInterface.
-		 * The method saveProcess does this as a convenience.
-		 */
-
-		/*
-		void createProcess(QDataStream& s)
-		{
-			QString processName;
-			data >> processName;
-			auto model = ProcessList::getFactory(processName)->makeModel(data, this);
-			createProcess_impl(model);
-		}
-
-		static void saveProcess(QDataStream& s, ProcessSharedModelInterface* process)
-		{
-			s << process->processName();
-			s << *process;
-		}
-		*/
-
-
 		void createBox(int boxId);
-		void createBox(QDataStream& s);
+		//void createBox(QDataStream& s); // TO REMOVE
 		void addBox(BoxModel*);
 		void removeBox(int boxId);
-
 
 
 		int startEvent() const;
@@ -99,10 +82,9 @@ class ConstraintModel : public IdentifiedObject
 		void setStartEvent(int eventId); // Use ScenarioKey
 		void setEndEvent(int eventId); // Use ScenarioKey
 
+
 		BoxModel* box(int contentId) const;
 		ProcessSharedModelInterface* process(int processId) const;
-
-
 
 		OSSIA::TimeBox* apiObject()
 		{ return m_timeBox;}
@@ -137,13 +119,6 @@ class ConstraintModel : public IdentifiedObject
 		void setHeightPercentage(double arg);
 
 	private:
-		// To be used only by the "load" constructor.
-		ConstraintModel(QObject* parent):
-			IdentifiedObject{{}, "ConstraintModel", parent}
-		{
-
-		}
-
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 
 		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?

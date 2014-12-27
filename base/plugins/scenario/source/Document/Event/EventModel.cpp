@@ -145,13 +145,6 @@ void EventModel::removeState(int stateId)
 	emit messagesChanged();
 }
 
-void EventModel::createState(QDataStream& s)
-{
-	FakeState* state = new FakeState{s, this};
-	m_states.push_back(state);
-	emit messagesChanged();
-}
-
 void EventModel::setHeightPercentage(double arg)
 {
 	if (m_heightPercentage != arg) {

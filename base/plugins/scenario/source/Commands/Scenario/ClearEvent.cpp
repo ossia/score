@@ -28,8 +28,10 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath):
 
 	auto event = static_cast<EventModel*>(m_path.find());
 
-	serializeVectorOfPointers(event->states(),
-							  m_serializedStates);
+	int __warn__;
+	//TODO
+//	serializeVectorOfPointers(event->states(),
+//							  m_serializedStates);
 
 
 
@@ -58,8 +60,8 @@ void ClearEvent::undo()
 	auto event = static_cast<EventModel*>(m_path.find());
 	for(auto& serializedState : m_serializedStates)
 	{
-		QDataStream s(&serializedState, QIODevice::ReadOnly);
-		event->createState(s);
+//		QDataStream s(&serializedState, QIODevice::ReadOnly);
+//		event->createState(s);
 	}
 
 }

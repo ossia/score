@@ -1,10 +1,14 @@
 #include "EventModelSerialization.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Document/Event/State/State.hpp"
+#include "Document/Event/State/StateSerialization.hpp"
 
-template<> void Visitor<Reader<DataStream>>::visit<EventModel>(EventModel& ev)
+#include <API/Headers/Editor/TimeNode.h>
+
+
+template<> void Visitor<Reader<DataStream>>::visit(const EventModel& ev)
 {
-	/* TODO
-	m_stream << static_cast<const IdentifiedObject&>(ev);
+	visit(static_cast<const IdentifiedObject&>(ev));
 
 	m_stream << ev.previousConstraints()
 			 << ev.nextConstraints()
@@ -17,19 +21,16 @@ template<> void Visitor<Reader<DataStream>>::visit<EventModel>(EventModel& ev)
 
 	auto states = ev.states();
 	m_stream << int(states.size());
-	for(auto& state : states)
+	for(const State* state : states)
 	{
-		m_stream << *state;
+		visit(*state);
 	}
-	m_stream << ev;
-	*/
+
+	// TODO save OSSIA::TimeNode
 }
 
-template<> void Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev)
+template<> void Visitor<Writer<DataStream>>::visit(EventModel& ev)
 {
-	/* TODO
-	int m_stream;
-
 	QVector<int> prevCstr, nextCstr;
 	QMap<int, double> cstrYPos;
 	double heightPercentage, bottomY, topY;
@@ -46,7 +47,7 @@ template<> void Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev)
 	ev.setPreviousConstraints(std::move(prevCstr));
 	ev.setNextConstraints(std::move(nextCstr));
 	ev.setHeightPercentage(heightPercentage);
-	ev.setConstraintsYPos(cstrYPos);
+	ev.setConstraintsYPos(std::move(cstrYPos));
 	ev.setBottomY(bottomY);
 	ev.setTopY(topY);
 	ev.setDate(date);
@@ -56,10 +57,10 @@ template<> void Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev)
 	m_stream >> numStates;
 	for(; numStates --> 0;)
 	{
-		ev.createState(m_stream);
+		FakeState* state = new FakeState{*this, &ev};
+		ev.addState(state);
 	}
 
 	ev.setOSSIATimeNode(new OSSIA::TimeNode);
 	// TODO load the timenode
-	*/
 }

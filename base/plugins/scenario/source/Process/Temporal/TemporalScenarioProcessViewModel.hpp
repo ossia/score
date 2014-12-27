@@ -23,12 +23,20 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 		TemporalScenarioProcessViewModel(int id,
 										 ScenarioProcessSharedModel* model,
 										 QObject* parent);
-		TemporalScenarioProcessViewModel(QDataStream& s,
+
+		template<typename Impl>
+		TemporalScenarioProcessViewModel(Deserializer<Impl>& vis,
 										 ScenarioProcessSharedModel* model,
-										 QObject* parent);
+										 QObject* parent):
+			AbstractScenarioProcessViewModel{vis, model, parent}
+		{
+			vis.visit(*this);
+		}
+
 		virtual ~TemporalScenarioProcessViewModel() = default;
 
-		virtual void serialize(QDataStream&) const override;
+		virtual void serialize(SerializationIdentifier identifier,
+							   void* data) const override;
 
 		virtual void makeConstraintViewModel(int constraintModelId,
 											 int constraintViewModelId) override;
@@ -37,5 +45,5 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 		virtual void on_constraintRemoved(int constraintId) override;
 
 	protected:
-		virtual void makeConstraintViewModel(QDataStream& s) override;
+		// TODO virtual void makeConstraintViewModel(QDataStream& s) override;
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include <interface/serialization/DataStreamVisitor.hpp>
 
 class AbstractConstraintViewModel;
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
@@ -41,6 +42,18 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		{
 		}
 
+		template<typename Impl>
+		AbstractScenarioProcessViewModel(Deserializer<Impl>& vis,
+										 ProcessSharedModelInterface* sharedProcess,
+										 QObject* parent):
+			ProcessViewModelInterface{vis,
+									  sharedProcess,
+									  parent}
+		{
+			// No data to save (the constraints vector will be rebuilt by the subclass accordingly.
+		}
+
+		/* TODO
 		AbstractScenarioProcessViewModel(QDataStream& s,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):
@@ -50,9 +63,9 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		{
 			// In derived classes's constructors, do s >> *this; (This one has nothing to save)
 			// They have to reconstruct the m_constraints vector with the right view model classes.
-		}
+		}*/
 
-		virtual void makeConstraintViewModel(QDataStream& s) = 0;
+		// TODO virtual void makeConstraintViewModel(QDataStream& s) = 0;
 
 		QVector<AbstractConstraintViewModel*> m_constraints;
 };

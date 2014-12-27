@@ -17,7 +17,8 @@ class ProcessViewModelInterface: public IdentifiedObject
 		ProcessSharedModelInterface* sharedProcessModel() const
 		{ return m_sharedProcessModel; }
 
-		virtual void serialize(QDataStream&) const = 0;
+		virtual void serialize(SerializationIdentifier identifier,
+							   void* data) const = 0;
 
 	protected:
 		ProcessViewModelInterface(int viewModelId,
@@ -30,29 +31,19 @@ class ProcessViewModelInterface: public IdentifiedObject
 
 		}
 
-		ProcessViewModelInterface(QDataStream& s,
+		template<typename Impl>
+		ProcessViewModelInterface(Deserializer<Impl>& vis,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObject{s, parent},
+			IdentifiedObject{vis, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
-			// In derived classes's constructors, do s >> *this; (there is nothing to do here)
+			// Nothing else to load
 		}
 
 	private:
 		ProcessSharedModelInterface* m_sharedProcessModel{};
 };
-
-inline QDataStream& operator <<(QDataStream& s,
-								const ProcessViewModelInterface& p)
-{
-	/* TODO
-	s << static_cast<const IdentifiedObject&>(p);
-
-	p.serialize(s);
-	return s;
-	*/
-}
 
 
 /**

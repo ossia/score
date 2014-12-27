@@ -21,7 +21,9 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& boxP
 		QDataStream s(&m_serializedProcessViewData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
-		DeckModel::saveProcessViewModel(s, pvm);
+		int __warn;
+		//TODO
+//		DeckModel::saveProcessViewModel(s, pvm);
 	}
 }
 
@@ -30,7 +32,10 @@ void RemoveProcessViewModelFromDeck::undo()
 	auto deck = static_cast<DeckModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessViewData, QIODevice::ReadOnly);
-		deck->createProcessViewModel(s);
+
+		int __warn;
+		//TODO
+		//deck->createProcessViewModel(s);
 	}
 }
 

@@ -21,17 +21,23 @@ class DeckModel : public IdentifiedObject
 				   NOTIFY heightChanged)
 
 	public:
-		friend QDataStream& operator << (QDataStream& , const DeckModel& );
-		friend QDataStream& operator >> (QDataStream& , DeckModel& );
-
-		DeckModel(QDataStream& s, BoxModel* parent);
 		DeckModel(int position, int id, BoxModel* parent);
+
+		template<typename Impl>
+		DeckModel(Deserializer<Impl>& vis, QObject* parent):
+			IdentifiedObject{vis, parent}
+		{
+			vis.visit(*this);
+		}
+
 		virtual ~DeckModel() = default;
 
 		void createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
 
-		static void saveProcessViewModel(QDataStream& s, ProcessViewModelInterface*);
-		void createProcessViewModel(QDataStream& s);
+		//static void saveProcessViewModel(QDataStream& s, ProcessViewModelInterface*);
+		//void createProcessViewModel(QDataStream& s);
+
+		void addProcessViewModel(ProcessViewModelInterface*);
 		void deleteProcessViewModel(int processViewModelId);
 
 		/**
@@ -54,6 +60,8 @@ class DeckModel : public IdentifiedObject
 
 		int height() const;
 		int position() const;
+		int editedProcessViewModel() const
+		{ return m_editedProcessViewModelId; }
 
 	signals:
 		void processViewModelCreated(int processViewModelId);
@@ -70,7 +78,7 @@ class DeckModel : public IdentifiedObject
 		void setPosition(int arg);
 
 	private:
-		int m_editedProcessId{};
+		int m_editedProcessViewModelId{};
 		std::vector<ProcessViewModelInterface*> m_processViewModels;
 
 		int m_height{200};

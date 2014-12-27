@@ -7,18 +7,18 @@
 #include "ScenarioProcessSharedModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::visit<const ScenarioProcessSharedModel>(const ScenarioProcessSharedModel& scenario)
+void Visitor<Reader<DataStream>>::visit(const ScenarioProcessSharedModel& scenario)
 {
 	// Constraints
 	m_stream << (int) scenario.m_constraints.size();
-	for(const auto& constraint : scenario.m_constraints)
+	for(const ConstraintModel* constraint : scenario.m_constraints)
 	{
 		visit(*constraint);
 	}
 
 	// Events
 	m_stream << (int) scenario.m_events.size();
-	for(const auto& event : scenario.m_events)
+	for(const EventModel* event : scenario.m_events)
 	{
 		visit(*event);
 	}

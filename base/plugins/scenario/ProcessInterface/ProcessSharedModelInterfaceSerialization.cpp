@@ -1,6 +1,7 @@
 #include "ProcessSharedModelInterfaceSerialization.hpp"
 #include "Control/ProcessList.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessSharedModelInterface.hpp"
 #include "core/tools/IdentifiedObjectSerialization.hpp"
 
 ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserializer,
@@ -19,12 +20,12 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 
 
 template<>
-void Visitor<Reader<DataStream>>::visit<ProcessSharedModelInterface>(ProcessSharedModelInterface& process)
+void Visitor<Reader<DataStream>>::visit(const ProcessSharedModelInterface& process)
 {
 	// To allow recration using createProcess
 	m_stream << process.processName();
 
-	visit(static_cast<IdentifiedObject&>(process));
+	visit(static_cast<const IdentifiedObject&>(process));
 
 	// ProcessSharedModelInterface doesn't have any particular data to save
 

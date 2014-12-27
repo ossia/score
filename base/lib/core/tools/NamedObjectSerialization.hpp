@@ -7,6 +7,6 @@ class NamedType;
 using NamedObject = NamedType<QObject>;
 
 template<>
-void Visitor<Reader<DataStream>>::visit<NamedObject>(NamedObject&);
+void Visitor<Reader<DataStream>>::visit(const NamedObject&);
 template<>
-void Visitor<Writer<DataStream>>::visit<NamedObject>(NamedObject&);
+void Visitor<Writer<DataStream>>::visit(NamedObject&);

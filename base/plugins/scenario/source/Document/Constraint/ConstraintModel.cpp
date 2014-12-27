@@ -15,22 +15,11 @@
 #include <QApplication>
 
 
-/*
-ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, parent}
-{
-	s >> *this;
-}
-*/
 void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const
 {
 	connect(this,		&ConstraintModel::boxRemoved,
 			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
 }
-
-
-
-
 
 int ConstraintModel::width() const
 {
@@ -91,11 +80,13 @@ void ConstraintModel::createBox(int boxId)
 	addBox(box);
 }
 
+/*
 void ConstraintModel::createBox(QDataStream& s)
 {
 	auto box = new BoxModel{s, this};
 	addBox(box);
 }
+*/
 
 void ConstraintModel::addBox(BoxModel* box)
 {

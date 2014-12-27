@@ -31,9 +31,9 @@ QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 
-template<> void Visitor<Reader<DataStream>>::visit<ConstraintModel>(ConstraintModel& constraint)
+template<> void Visitor<Reader<DataStream>>::visit(const ConstraintModel& constraint)
 {
-	visit(static_cast<IdentifiedObject&>(constraint));
+	visit(static_cast<const IdentifiedObject&>(constraint));
 
 	// Metadata
 	m_stream	<< constraint.metadata
@@ -42,17 +42,17 @@ template<> void Visitor<Reader<DataStream>>::visit<ConstraintModel>(ConstraintMo
 	// Processes
 	auto processes = constraint.processes();
 	m_stream	<< (int) processes.size();
-	for(auto& process : processes)
+	for(const ProcessSharedModelInterface* process : processes)
 	{
-		// TODO		ConstraintModel::saveProcess(s, process);
+		visit(*process);
 	}
 
 	// Boxes
 	auto boxes = constraint.boxes();
 	m_stream	<<  (int) boxes.size();
-	for(auto& box : boxes)
+	for(const BoxModel* box : boxes)
 	{
-		m_stream << *box;
+		visit(*box);
 	}
 
 	// Events
@@ -66,7 +66,7 @@ template<> void Visitor<Reader<DataStream>>::visit<ConstraintModel>(ConstraintMo
 			 << constraint.startDate();
 }
 
-template<> void Visitor<Writer<DataStream>>::visit<ConstraintModel>(ConstraintModel& constraint)
+template<> void Visitor<Writer<DataStream>>::visit(ConstraintModel& constraint)
 {
 	double heightPercentage;
 	m_stream >> constraint.metadata >> heightPercentage;
@@ -78,7 +78,7 @@ template<> void Visitor<Writer<DataStream>>::visit<ConstraintModel>(ConstraintMo
 	m_stream >> process_size;
 	for(int i = 0; i < process_size; i++)
 	{
-		// TODO		constraint.createProcess(s);
+		constraint.addProcess(createProcess(*this, &constraint));
 	}
 
 	// Boxes
@@ -86,7 +86,8 @@ template<> void Visitor<Writer<DataStream>>::visit<ConstraintModel>(ConstraintMo
 	m_stream >> content_models_size;
 	for(int i = 0; i < content_models_size; i++)
 	{
-		constraint.createBox(m_stream);
+		BoxModel* box = new BoxModel(*this, &constraint);
+		constraint.addBox(box);
 	}
 
 	// Events
@@ -106,7 +107,7 @@ template<> void Visitor<Writer<DataStream>>::visit<ConstraintModel>(ConstraintMo
 
 void test()
 {
-	ConstraintModel m{0, nullptr};
+	const ConstraintModel m{0, nullptr};
 
 	QByteArray arr;
 	Serializer<DataStream> v2(&arr);

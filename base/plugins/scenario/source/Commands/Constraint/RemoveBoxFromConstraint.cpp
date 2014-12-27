@@ -18,7 +18,8 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, in
 		QDataStream s(&m_serializedBoxData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
-		s << *constraint->box(boxId);
+		int __warning__;
+//		s << *constraint->box(boxId);
 	}
 }
 
@@ -27,7 +28,11 @@ void RemoveBoxFromConstraint::undo()
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedBoxData, QIODevice::ReadOnly);
-		constraint->createBox(s);
+
+
+		int __warn;
+		// TODO
+		//constraint->createBox(s);
 	}
 }
 

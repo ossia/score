@@ -5,39 +5,6 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
-QDataStream& operator <<(QDataStream& s, const TemporalScenarioProcessViewModel& pvm)
-{
-	// Note : this function must not be called directly :
-	// it has to be called from serialize()
-	// which is in turn called from ProcessViewModelInterface's operator <<
-	// in order to save the SettableIdentifier, and parent classes's data.
-
-	// Save all the constraint view models.
-	// They are casted, so the correct serialization operator is called.
-	auto vec = constraintsViewModels(pvm);
-
-	s << (int) vec.size();
-	for(auto cstraint : vec)
-	{
-		s << cstraint->model()->id(); // Is deserialized in makeConstraintViewModel
-		s << cstraint;
-	}
-
-	return s;
-}
-QDataStream& operator >>(QDataStream& s, TemporalScenarioProcessViewModel& pvm)
-{
-	int count;
-	s >> count;
-
-	for(; count --> 0;)
-	{
-		pvm.makeConstraintViewModel(s);
-	}
-
-	return s;
-}
-
 TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModelId,
 																   ScenarioProcessSharedModel* model,
 																   QObject* parent):
@@ -48,6 +15,17 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModel
 {
 }
 
+void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identifier, void* data) const
+{
+	// TODO how to abstract this since it will always be the same ?
+	if(identifier == DataStream::type())
+	{
+		static_cast<Serializer<DataStream>*>(data)->visit(*this);
+	}
+
+	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
+}
+/*
 TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(QDataStream& s,
 																   ScenarioProcessSharedModel* model,
 																   QObject* parent):
@@ -62,12 +40,15 @@ void TemporalScenarioProcessViewModel::serialize(QDataStream& s) const
 {
 	s << *this;
 }
-
+*/
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
 															   int constraintViewModelId)
 {
 	qDebug() << constraintViewModelId << "created.";
 	auto constraint_model = model(this)->constraint(constraintModelId);
+
+	int __warn;
+	/* TODO
 	auto constraint_view_model =
 			constraint_model->makeViewModel<constraint_view_model_type>(
 									 constraintViewModelId,
@@ -75,8 +56,9 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintMod
 	m_constraints.push_back(constraint_view_model);
 
 	emit constraintViewModelCreated(constraintViewModelId);
+	*/
 }
-
+/*
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
 {
 	// Deserialize the required identifier
@@ -93,7 +75,9 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
 	m_constraints.push_back(constraint_view_model);
 
 	emit constraintViewModelCreated(constraint_view_model->id());
+
 }
+*/
 
 void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintSharedModelId)
 {	for(auto& constraint_view_model : constraintsViewModels(*this))

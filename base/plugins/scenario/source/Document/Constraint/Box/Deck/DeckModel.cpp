@@ -10,60 +10,6 @@
 
 #include <QDebug>
 
-QDataStream& operator << (QDataStream& s, const DeckModel& deck)
-{
-	// TODO
-	/*
-	s << static_cast<const IdentifiedObject&>(deck);
-
-	s << deck.m_editedProcessId;
-
-	s << (int) deck.m_processViewModels.size();
-	for(auto& pvm : deck.m_processViewModels)
-	{
-		DeckModel::saveProcessViewModel(s, pvm);
-	}
-
-	s << deck.height()
-	  << deck.position();
-	return s;
-	*/
-}
-
-
-QDataStream& operator >> (QDataStream& s, DeckModel& deck)
-{
-	// TODO
-	/*
-	int editedProcessId;
-	s >> editedProcessId;
-
-	int pvm_size;
-	s >> pvm_size;
-	for(int i = 0; i < pvm_size; i++)
-	{
-		deck.createProcessViewModel(s);
-	}
-
-	int height;
-	int position;
-	s >> height
-	  >> position;
-	deck.setHeight(height);
-	deck.setPosition(position);
-
-	deck.selectForEdition(editedProcessId);
-
-	return s;
-	*/
-}
-
-DeckModel::DeckModel(QDataStream& s, BoxModel* parent):
-	IdentifiedObject{s, parent}
-{
-	s >> *this;
-}
-
 DeckModel::DeckModel(int position, int id, BoxModel* parent):
 	IdentifiedObject{id, "DeckModel", parent},
 	m_position{position}
@@ -77,11 +23,10 @@ void DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewMo
 	auto process = parentConstraint()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(newProcessViewModelId, this);
 
-	m_processViewModels.push_back(viewmodel);
-
-	emit processViewModelCreated(viewmodel->id());
+	addProcessViewModel(viewmodel);
 }
 
+/*
 void DeckModel::saveProcessViewModel(QDataStream& s, ProcessViewModelInterface* pvm)
 {
 	s << pvm->sharedProcessModel()->id();
@@ -95,7 +40,12 @@ void DeckModel::createProcessViewModel(QDataStream& s)
 	s >> sharedProcessId;
 	auto process = parentConstraint()->process(sharedProcessId);
 	auto viewmodel = process->makeViewModel(s, this);
+	addProcessViewModel(viewmodel);
+}
+*/
 
+void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
+{
 	m_processViewModels.push_back(viewmodel);
 
 	emit processViewModelCreated(viewmodel->id());
@@ -103,15 +53,16 @@ void DeckModel::createProcessViewModel(QDataStream& s)
 
 void DeckModel::deleteProcessViewModel(int processViewId)
 {
+	// TODO use pattern to send signal between removal and deletion
 	removeById(m_processViewModels, processViewId);
 	emit processViewModelRemoved(processViewId);
 }
 
 void DeckModel::selectForEdition(int processViewId)
 {
-	if(processViewId != m_editedProcessId)
+	if(processViewId != m_editedProcessViewModelId)
 	{
-		m_editedProcessId = processViewId;
+		m_editedProcessViewModelId = processViewId;
 		emit processViewModelSelected(processViewId);
 	}
 }

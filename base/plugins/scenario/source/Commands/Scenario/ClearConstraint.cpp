@@ -28,8 +28,11 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 
 	// Save the boxes
-	serializeVectorOfPointers(constraint->boxes(),
-							  m_serializedBoxes);
+
+	int __warn;
+	// TODO
+//	serializeVectorOfPointers(constraint->boxes(),
+//							  m_serializedBoxes);
 
 	// Save the processes
 	for(const auto& process : constraint->processes())
@@ -63,7 +66,8 @@ void ClearConstraint::undo()
 	for(auto& serializedBox : m_serializedBoxes)
 	{
 		QDataStream s(&serializedBox, QIODevice::ReadOnly);
-		constraint->createBox(s);
+		int __warn;
+		// TODO		constraint->createBox(s);
 	}
 }
 

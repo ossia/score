@@ -7,69 +7,30 @@
 
 #include <QDebug>
 
-QDataStream& operator << (QDataStream& s, const BoxModel& c)
-{
-	// TODO
-	/*
-	s << static_cast<const IdentifiedObject&>(c);
-	s << (int)c.m_decks.size();
-	for(auto& deck : c.m_decks)
-	{
-		s << *deck;
-	}
-
-	return s;
-	*/
-}
-
-QDataStream& operator >> (QDataStream& s, BoxModel& c)
-{
-	// TODO
-	/*
-	int decks_size;
-	s >> decks_size;
-
-	for(; decks_size --> 0 ;)
-	{
-		c.createDeck(s);
-	}
-
-	return s;
-	*/
-}
-
-
 BoxModel::BoxModel(int id, QObject* parent):
 	IdentifiedObject{id, "BoxModel", parent}
 {
 
 }
-
+/*
 BoxModel::BoxModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }
-
+*/
 int BoxModel::createDeck(int newDeckId)
 {
-	return createDeck_impl(
+	return addDeck(
 				new DeckModel{(int) m_decks.size(),
 								newDeckId,
 								this});
 
 }
 
-int BoxModel::createDeck(QDataStream& s)
+int BoxModel::addDeck(DeckModel* deck)
 {
-	return createDeck_impl(
-				new DeckModel{s,
-								this});
-}
-
-int BoxModel::createDeck_impl(DeckModel* deck)
-{
-	connect(this,	&BoxModel::on_deleteSharedProcessModel,
+	connect(this, &BoxModel::on_deleteSharedProcessModel,
 			deck, &DeckModel::on_deleteSharedProcessModel);
 	m_decks.push_back(deck);
 

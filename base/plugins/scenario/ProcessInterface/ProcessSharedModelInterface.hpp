@@ -31,7 +31,10 @@ class ProcessSharedModelInterface: public IdentifiedObject
 		// (e.g. temporal / logical...).
 		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
 														 QObject* parent) = 0;
-		virtual ProcessViewModelInterface* makeViewModel(QDataStream& s,
+
+
+		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
+														 void* data,
 														 QObject* parent) = 0;
 
 		// Do a copy.
@@ -41,18 +44,6 @@ class ProcessSharedModelInterface: public IdentifiedObject
 		}
 
 		// protected:
-		/**
-		 * @brief serialize
-		 *
-		 * We need to make a virtual function call in order to have the subclass serialize itself.
-		 * An implementation of ProcessSharedModelInterface::serialize should only save
-		 * data relative to the subclass.
-		 *
-		 * To save and load processes you have to use
-		 * createProcess and saveProcess in ProcessViewModelInterfaceSerialization
-		 */
-		virtual void serialize(QDataStream&) const = 0;
-
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const = 0;
 

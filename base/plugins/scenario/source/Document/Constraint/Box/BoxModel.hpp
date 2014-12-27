@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <interface/serialization/VisitorInterface.hpp>
 
 #include <vector>
 
@@ -11,15 +12,19 @@ class BoxModel : public IdentifiedObject
 	Q_OBJECT
 
 	public:
-		friend QDataStream& operator << (QDataStream&, const BoxModel&);
-		friend QDataStream& operator >> (QDataStream& s, BoxModel& c);
 		BoxModel(int id, QObject* parent);
-		BoxModel(QDataStream&, QObject* parent);
+		template<typename Impl>
+		BoxModel(Deserializer<Impl>& vis, QObject* parent):
+			IdentifiedObject{vis, parent}
+		{
+			vis.visit(*this);
+		}
 
 		virtual ~BoxModel() = default;
 
 		int createDeck(int newDeckId);
-		int createDeck(QDataStream& s);
+		int addDeck(DeckModel* m);
+
 		void removeDeck(int deckId);
 		void changeDeckOrder(int deckId, int position);
 
@@ -39,7 +44,6 @@ class BoxModel : public IdentifiedObject
 		void on_deleteSharedProcessModel(int processId);
 
 	private:
-		int createDeck_impl(DeckModel* m);
 		std::vector<DeckModel*> m_decks;
 };
 

@@ -27,7 +27,6 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		using view_model_type = AbstractScenarioProcessViewModel;
 
 		ScenarioProcessSharedModel(int id, QObject* parent);
-		//ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
 
 		template<typename Impl>
 		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
@@ -40,8 +39,12 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		virtual ~ScenarioProcessSharedModel() = default;
 
 
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId, QObject* parent) override;
-		virtual ProcessViewModelInterface* makeViewModel(QDataStream&, QObject* parent) override;
+		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
+														 QObject* parent) override;
+
+		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
+														 void* data,
+														 QObject* parent) override;
 
 		void makeViewModel_impl(view_model_type*);
 
@@ -66,8 +69,9 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  int newEventId);
 
 		// Re-creation. Note : only using these methods might let the Scenario in an incoherent state.
-		void createConstraint(QDataStream&);
-		void createEvent(QDataStream&);
+		// To use in deserialization only (maybe put it there ?).
+		//void createConstraint(QDataStream&);
+		//void createEvent(QDataStream&);
 		void addConstraint(ConstraintModel* constraint);
 		void addEvent(EventModel* event);
 
@@ -103,7 +107,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void constraintMoved(int constraintId);
 
 	protected:
-		virtual void serialize(QDataStream&) const override;
+		//virtual void serialize(QDataStream&) const override;
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;
 

@@ -6,35 +6,17 @@ class State : public IdentifiedObject
 {
 		Q_OBJECT
 
-		friend QDataStream& operator<<(QDataStream& s, const State& state)
-		{
-			s << state.messages();
-
-			return s;
-		}
-
-		friend QDataStream& operator>>(QDataStream& s, State& state)
-		{
-			QStringList messages;
-			s >> messages;
-			for(auto& message : messages)
-			{
-				state.addMessage(message);
-			}
-
-			return s;
-		}
-
 	public:
 		State(int id, QObject* parent):
 			IdentifiedObject{id, "State", parent}
 		{
-
 		}
-		State(QDataStream& s, QObject* parent):
-			IdentifiedObject{s, parent}
-		{
 
+		template<typename Impl>
+		State(Deserializer<Impl>& vis, QObject* parent):
+			IdentifiedObject{vis, parent}
+		{
+			vis.visit(*this);
 		}
 
 		virtual ~State() = default;
@@ -48,10 +30,12 @@ class FakeState : public State
 
 	public:
 		using State::State;
-		FakeState(QDataStream& s, QObject* parent):
-			State{s, parent}
+
+		template<typename Impl>
+		FakeState(Deserializer<Impl>& vis, QObject* parent):
+			State{vis, parent}
 		{
-			s >> *this;
+			// The parent already does everything required
 		}
 
 		virtual QStringList messages() const override
