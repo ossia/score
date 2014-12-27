@@ -46,6 +46,3 @@ class ConstraintModelMetadata : public QObject
 		QString m_comment;
 		QColor m_color;
 };
-
-QDataStream& operator<<(QDataStream&, const ConstraintModelMetadata&);
-QDataStream& operator>>(QDataStream&, ConstraintModelMetadata&);

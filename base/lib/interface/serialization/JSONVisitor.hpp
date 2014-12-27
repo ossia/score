@@ -2,9 +2,15 @@
 #include "interface/serialization/VisitorInterface.hpp"
 #include <QJsonObject>
 
-class JSONReader {};
+class JSON
+{
+	public:
+		static SerializationIdentifier type()
+		{ return 1; }
+};
+
 template<>
-class Visitor<JSONReader>
+class Visitor<Reader<JSON>>
 {
 	public:
 		template<typename T>
@@ -13,9 +19,8 @@ class Visitor<JSONReader>
 		QJsonObject obj;
 };
 
-class JSONWriter {};
 template<>
-class Visitor<JSONWriter>
+class Visitor<Writer<JSON>>
 {
 	public:
 		template<typename T>

@@ -2,21 +2,12 @@
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 
+// TEMPORARY
+#include "IdentifiedObjectSerialization.hpp"
+
 // This should maybe be a mixin ?
 class IdentifiedObject : public NamedObject
 {
-		friend QDataStream& operator << (QDataStream& s, const IdentifiedObject& obj)
-		{
-			s << static_cast<const NamedObject&>(obj);
-			s << obj.m_id;
-			return s;
-		}
-
-		friend QDataStream& operator >> (QDataStream& s, IdentifiedObject& obj)
-		{
-			s >> obj.m_id;
-			return s;
-		}
 
 	public:
 		template<typename... Args>
@@ -32,7 +23,14 @@ class IdentifiedObject : public NamedObject
 						 Args&&... args):
 			NamedObject{s, std::forward<Args>(args)...}
 		{
-			s >> *this;
+// TO REMOVE			s >> *this;
+		}
+
+		template<typename ReaderImpl,typename... Args>
+		IdentifiedObject(Deserializer<ReaderImpl>& v, Args&&... args):
+			NamedObject{v, std::forward<Args>(args)...}
+		{
+			v.visit(*this);
 		}
 
 		const SettableIdentifier& id() const

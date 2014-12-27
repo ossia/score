@@ -1,24 +1,5 @@
 #include "ConstraintModelMetadata.hpp"
 
-QDataStream& operator<<(QDataStream& s, const ConstraintModelMetadata& m)
-{
-	s << m.name() << m.comment() << m.color();
-
-	return s;
-}
-
-QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
-{
-	QString name, comment;
-	QColor color;
-	s >> name >> comment >> color;
-
-	m.setName(name);
-	m.setComment(comment);
-	m.setColor(color);
-
-	return s;
-}
 
 //// Simple properties
 QString ConstraintModelMetadata::name() const

@@ -1,5 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ScenarioProcessSharedModelSerialization.hpp"
 
 namespace OSSIA
 {
@@ -19,13 +20,23 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 {
 		Q_OBJECT
 
-		friend QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario);
-		friend QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario);
+		friend void Visitor<Reader<DataStream>>::visit<const ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
+		friend void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+
 	public:
 		using view_model_type = AbstractScenarioProcessViewModel;
 
 		ScenarioProcessSharedModel(int id, QObject* parent);
-		ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
+		//ScenarioProcessSharedModel(QDataStream& data, QObject* parent);
+
+		template<typename Impl>
+		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
+			ProcessSharedModelInterface{vis, parent}
+		{
+			vis.visit(*this);
+		}
+
+
 		virtual ~ScenarioProcessSharedModel() = default;
 
 
@@ -57,6 +68,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// Re-creation. Note : only using these methods might let the Scenario in an incoherent state.
 		void createConstraint(QDataStream&);
 		void createEvent(QDataStream&);
+		void addConstraint(ConstraintModel* constraint);
+		void addEvent(EventModel* event);
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);
@@ -91,7 +104,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 	protected:
 		virtual void serialize(QDataStream&) const override;
-		virtual void deserialize(QDataStream&) override;
+		virtual void serialize(SerializationIdentifier identifier,
+							   void* data) const override;
 
 	private:
 		OSSIA::Scenario* m_scenario;

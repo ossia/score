@@ -7,53 +7,6 @@
 #include <QVector>
 
 
-QDataStream& operator << (QDataStream& s, const EventModel& ev)
-{
-	s << static_cast<const IdentifiedObject&>(ev);
-
-	s << ev.m_previousConstraints
-	  << ev.m_nextConstraints
-	  << ev.m_heightPercentage
-	  << ev.m_constraintsYPos
-	  << ev.m_bottomY
-	  << ev.m_topY;
-
-	s << ev.m_x; // should be in OSSIA API
-
-	s << int(ev.m_states.size());
-	for(auto& state : ev.m_states)
-	{
-		s << *state;
-	}
-
-	// TODO s << ev.m_timeNode->save();
-	return s;
-}
-
-QDataStream& operator >> (QDataStream& s, EventModel& ev)
-{
-	s >> ev.m_previousConstraints
-	  >> ev.m_nextConstraints
-	  >> ev.m_heightPercentage
-	  >> ev.m_constraintsYPos
-	  >> ev.m_bottomY
-	  >> ev.m_topY;
-
-	s >> ev.m_x; // should be in OSSIA API
-
-	int numStates{};
-	s >> numStates;
-	for(; numStates --> 0;)
-	{
-		ev.createState(s);
-	}
-
-
-	ev.m_timeNode = new OSSIA::TimeNode;
-	// TODO load the timenode
-
-	return s;
-}
 
 
 // TODO possibilité temporaire pour tester ce que l'on veut faire :
@@ -73,11 +26,13 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 }
 
 
-EventModel::EventModel(QDataStream& s, QObject* parent):
+/*
+ EventModel::EventModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }
+*/
 
 const QVector<int>&EventModel::previousConstraints() const
 {
@@ -128,17 +83,17 @@ double EventModel::heightPercentage() const
 
 int EventModel::date() const
 {
-	return m_x;
+	return m_date;
 }
 
 void EventModel::setDate(int date)
 {
-	m_x = date;
+	m_date = date;
 }
 
 void EventModel::translate(int deltaTime)
 {
-	m_x += deltaTime;
+	m_date += deltaTime;
 }
 
 void EventModel::setVerticalExtremity(int consId, double newPosition)

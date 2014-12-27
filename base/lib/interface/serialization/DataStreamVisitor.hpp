@@ -1,14 +1,20 @@
 #pragma once
 #include <QDataStream>
 #include "interface/serialization/VisitorInterface.hpp"
-class DataStreamReader {};
-class DataStreamWriter {};
 
-template<>
-class Visitor<DataStreamReader>
+class DataStream
 {
 	public:
-		Visitor<DataStreamReader>(QByteArray* array):
+		static SerializationIdentifier type()
+		{ return 2; }
+};
+
+
+template<>
+class Visitor<Reader<DataStream>>
+{
+	public:
+		Visitor<Reader<DataStream>>(QByteArray* array):
 			m_stream{array, QIODevice::ReadOnly}
 		{
 			m_stream.setVersion(QDataStream::Qt_5_3);
@@ -17,15 +23,14 @@ class Visitor<DataStreamReader>
 		template<typename T>
 		void visit(T&);
 
-	private:
 		QDataStream m_stream;
 };
 
 template<>
-class Visitor<DataStreamWriter>
+class Visitor<Writer<DataStream>>
 {
 	public:
-		Visitor<DataStreamWriter>(QByteArray* array):
+		Visitor<Writer<DataStream>>(QByteArray* array):
 			m_stream{array, QIODevice::WriteOnly}
 		{
 			m_stream.setVersion(QDataStream::Qt_5_3);
@@ -34,6 +39,5 @@ class Visitor<DataStreamWriter>
 		template<typename T>
 		void visit(T&);
 
-	private:
 		QDataStream m_stream;
 };

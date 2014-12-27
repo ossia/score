@@ -9,6 +9,8 @@
 
 QDataStream& operator << (QDataStream& s, const BoxModel& c)
 {
+	// TODO
+	/*
 	s << static_cast<const IdentifiedObject&>(c);
 	s << (int)c.m_decks.size();
 	for(auto& deck : c.m_decks)
@@ -17,10 +19,13 @@ QDataStream& operator << (QDataStream& s, const BoxModel& c)
 	}
 
 	return s;
+	*/
 }
 
 QDataStream& operator >> (QDataStream& s, BoxModel& c)
 {
+	// TODO
+	/*
 	int decks_size;
 	s >> decks_size;
 
@@ -30,6 +35,7 @@ QDataStream& operator >> (QDataStream& s, BoxModel& c)
 	}
 
 	return s;
+	*/
 }
 
 

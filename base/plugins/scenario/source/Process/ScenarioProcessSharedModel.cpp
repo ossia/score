@@ -10,65 +10,6 @@
 
 #include <QDebug>
 
-QDataStream& operator <<(QDataStream& s, const ScenarioProcessSharedModel& scenario)
-{
-	// Constraints
-	s << (int) scenario.m_constraints.size();
-	for(const auto& constraint : scenario.m_constraints)
-	{
-		s << *constraint;
-	}
-
-	// Events
-	s << (int) scenario.m_events.size();
-	for(const auto& event : scenario.m_events)
-	{
-		s << *event;
-	}
-
-	return s;
-}
-
-QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
-{
-	// Constraints
-	int constraint_count;
-	s >> constraint_count;
-	qDebug() << constraint_count;
-	for(; constraint_count --> 0;)
-	{
-		qDebug() << constraint_count;
-		ConstraintModel* constraint = new ConstraintModel{s, &scenario};
-		scenario.m_constraints.push_back(constraint);
-		emit scenario.constraintCreated(constraint->id());
-	}
-
-	// Events
-	int event_count;
-	s >> event_count;
-	qDebug() << event_count;
-	for(; event_count --> 0;)
-	{
-		EventModel* evmodel = new EventModel(s, &scenario);
-		scenario.m_events.push_back(evmodel);
-
-		emit scenario.eventCreated(evmodel->id());
-	}
-
-	// Recreate the API
-	/*for(ConstraintModel* constraint : scenario.m_constraints)
-	{
-		auto sev = scenario.event(constraint->startEvent());
-		auto eev = scenario.event(constraint->endEvent());
-
-		scenario.m_scenario->addTimeBox(*constraint->apiObject(),
-										*sev->apiObject(),
-										*eev->apiObject());
-	}*/
-
-	return s;
-}
-
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario},
@@ -79,12 +20,14 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	//m_events.push_back(new EventModel(1, this));
 }
 
+/*
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(QDataStream& s,
 													   QObject* parent):
 	ProcessSharedModelInterface{s, parent}
 {
 	s >> *this;
 }
+*/
 
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
@@ -323,10 +266,29 @@ EventModel* ScenarioProcessSharedModel::endEvent() const
 
 void ScenarioProcessSharedModel::serialize(QDataStream& s) const
 {
-	s << *this;
+// TO REMOVE	s << *this;
 }
 
-void ScenarioProcessSharedModel::deserialize(QDataStream& s)
+void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
+										   void* data) const
 {
-	s >> *this;
+	if(identifier == DataStream::type())
+	{
+		static_cast<Serializer<DataStream>*>(data)->visit(*this);
+	}
+
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
+}
+
+
+void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
+{
+	m_constraints.push_back(constraint);
+	emit constraintCreated(constraint->id());
+}
+
+void ScenarioProcessSharedModel::addEvent(EventModel* event)
+{
+	m_events.push_back(event);
+	emit eventCreated(event->id());
 }

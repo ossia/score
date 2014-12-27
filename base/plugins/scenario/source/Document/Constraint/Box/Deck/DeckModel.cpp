@@ -12,6 +12,8 @@
 
 QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 {
+	// TODO
+	/*
 	s << static_cast<const IdentifiedObject&>(deck);
 
 	s << deck.m_editedProcessId;
@@ -25,11 +27,14 @@ QDataStream& operator << (QDataStream& s, const DeckModel& deck)
 	s << deck.height()
 	  << deck.position();
 	return s;
+	*/
 }
 
 
 QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 {
+	// TODO
+	/*
 	int editedProcessId;
 	s >> editedProcessId;
 
@@ -50,6 +55,7 @@ QDataStream& operator >> (QDataStream& s, DeckModel& deck)
 	deck.selectForEdition(editedProcessId);
 
 	return s;
+	*/
 }
 
 DeckModel::DeckModel(QDataStream& s, BoxModel* parent):

@@ -46,10 +46,12 @@ class ProcessViewModelInterface: public IdentifiedObject
 inline QDataStream& operator <<(QDataStream& s,
 								const ProcessViewModelInterface& p)
 {
+	/* TODO
 	s << static_cast<const IdentifiedObject&>(p);
 
 	p.serialize(s);
 	return s;
+	*/
 }
 
 

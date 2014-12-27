@@ -35,7 +35,16 @@ ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(int id, QObject* 
 	return new ScenarioProcessSharedModel(id, parent);
 }
 
-ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(QDataStream& data, QObject* parent)
+#include <interface/serialization/DataStreamVisitor.hpp>
+
+ProcessSharedModelInterface*ScenarioProcessFactory::makeModel(SerializationIdentifier identifier,
+															  void* data,
+															  QObject* parent)
 {
-	return new ScenarioProcessSharedModel(data, parent);
+	if(identifier == DataStream::type())
+	{
+		return new ScenarioProcessSharedModel{*static_cast<Deserializer<DataStream>*>(data), parent};
+	}
+
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
 }

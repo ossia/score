@@ -23,7 +23,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 		QDataStream s(&m_serializedProcessData, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
-		ConstraintModel::saveProcess(s, process);
+		// TODO ConstraintModel::saveProcess(s, process);
 	}
 }
 
@@ -32,7 +32,7 @@ void RemoveProcessFromConstraint::undo()
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 	{
 		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
-		constraint->createProcess(s);
+		// TODO constraint->createProcess(s);
 	}
 }
 

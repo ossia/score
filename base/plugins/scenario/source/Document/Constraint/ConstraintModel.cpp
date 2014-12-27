@@ -15,13 +15,13 @@
 #include <QApplication>
 
 
-
+/*
 ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, parent}
 {
 	s >> *this;
 }
-
+*/
 void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const
 {
 	connect(this,		&ConstraintModel::boxRemoved,
@@ -60,24 +60,12 @@ ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
 void ConstraintModel::createProcess(QString processName, int processId)
 {
 	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
-	createProcess_impl(model);
+	addProcess(model);
 }
 
-void ConstraintModel::createProcess(QDataStream& data)
-{
-	QString processName;
-	data >> processName;
-	auto model = ProcessList::getFactory(processName)->makeModel(data, this);
-	createProcess_impl(model);
-}
 
-void ConstraintModel::saveProcess(QDataStream& s, ProcessSharedModelInterface* process)
-{
-	s << process->processName();
-	s << *process;
-}
 
-void ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)
+void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
 	emit processCreated(model->processName(), model->id());
@@ -100,16 +88,16 @@ void ConstraintModel::removeProcess(int processId)
 void ConstraintModel::createBox(int boxId)
 {
 	auto box = new BoxModel{boxId, this};
-	createBox_impl(box);
+	addBox(box);
 }
 
 void ConstraintModel::createBox(QDataStream& s)
 {
 	auto box = new BoxModel{s, this};
-	createBox_impl(box);
+	addBox(box);
 }
 
-void ConstraintModel::createBox_impl(BoxModel* box)
+void ConstraintModel::addBox(BoxModel* box)
 {
 	connect(this,	&ConstraintModel::processRemoved,
 			box,	&BoxModel::on_deleteSharedProcessModel);

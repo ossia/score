@@ -34,7 +34,8 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	// Save the processes
 	for(const auto& process : constraint->processes())
 	{
-		QByteArray arr;
+		// TODO
+/*		QByteArray arr;
 
 		QDataStream s(&arr, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
@@ -43,6 +44,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 		s << *process;
 
 		m_serializedProcesses.push_back(arr);
+		*/
 	}
 
 	// TODO save the mapping in the parent scenario view models.
@@ -55,7 +57,7 @@ void ClearConstraint::undo()
 	for(auto& serializedProcess : m_serializedProcesses)
 	{
 		QDataStream s(&serializedProcess, QIODevice::ReadOnly);
-		constraint->createProcess(s);
+// TODO		constraint->createProcess(s);
 	}
 
 	for(auto& serializedBox : m_serializedBoxes)

@@ -3,6 +3,9 @@
 #include <QWidget>
 #include <QGraphicsObject>
 #include <QDebug>
+#include "interface/serialization/VisitorInterface.hpp"
+#include "interface/serialization/JSONVisitor.hpp"
+#include "interface/serialization/DataStreamVisitor.hpp"
 
 ////////////////////////////////////////////////
 // This file contains utility algorithms & classes that can be used
@@ -11,22 +14,6 @@
 template<typename QType>
 class NamedType : public QType
 {
-		friend QDataStream& operator << (QDataStream& s, const NamedType<QType>& obj)
-		{
-			s << obj.objectName();
-
-			return s;
-		}
-
-		friend QDataStream& operator >> (QDataStream& s, NamedType<QType>& obj)
-		{
-			QString objectName;
-			s >> objectName;
-			obj.setObjectName(objectName);
-
-			return s;
-		}
-
 	public:
 		template<typename... Args>
 		NamedType(QString name, QObject* parent, Args&&... args):
@@ -36,15 +23,23 @@ class NamedType : public QType
 			QType::setParent(parent);
 		}
 
+		// TO REMOVE
 		template<typename... Args>
 		NamedType(QDataStream& s, QObject* parent, Args&&... args):
 			QType{std::forward<Args>(args)...}
 		{
-			s >> *this;
+			//s >> *this;
+			QType::setParent(parent);
+		}
+
+		template<typename ReaderImpl,typename... Args>
+		NamedType(Deserializer<ReaderImpl>& v, QObject* parent, Args&&... args):
+			QType{std::forward<Args>(args)...}
+		{
+			v.visit(*this);
 			QType::setParent(parent);
 		}
 };
-
 
 
 using NamedObject = NamedType<QObject>;
