@@ -32,13 +32,16 @@ class ConstraintModel : public IdentifiedObject
 	public:
 		ConstraintModelMetadata metadata;
 
-
-		friend QDataStream& operator << (QDataStream&, const ConstraintModel&);
-		friend QDataStream& operator >> (QDataStream&, ConstraintModel&);
-
 		ConstraintModel(int id, QObject* parent);
 		ConstraintModel(int id, double yPos, QObject* parent);
 		ConstraintModel(QDataStream&, QObject* parent);
+/*
+		template<typename VisitorImpl>
+		static ConstraintModel load(const VisitorImpl& vis)
+		{
+			ConstraintModel
+		}
+*/
 		virtual ~ConstraintModel() = default;
 
 		// Factories for the view models.
@@ -50,7 +53,7 @@ class ConstraintModel : public IdentifiedObject
 			return viewmodel;
 		}
 
-		void makeViewModel_impl(AbstractConstraintViewModel* viewmodel);
+		void makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const;
 
 		// Sub-element creation
 		void createProcess(QString processName, int processId);
@@ -70,13 +73,13 @@ class ConstraintModel : public IdentifiedObject
 		void createBox(QDataStream& s);
 		void removeBox(int boxId);
 
-		int startEvent();
-		int endEvent();
+		int startEvent() const;
+		int endEvent() const;
 		void setStartEvent(int eventId); // Use ScenarioKey
 		void setEndEvent(int eventId); // Use ScenarioKey
 
-		BoxModel* box(int contentId);
-		ProcessSharedModelInterface* process(int processId);
+		BoxModel* box(int contentId) const;
+		ProcessSharedModelInterface* process(int processId) const;
 
 
 
@@ -132,3 +135,4 @@ class ConstraintModel : public IdentifiedObject
 		double m_heightPercentage{0.5};
 
 };
+

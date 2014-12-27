@@ -39,6 +39,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 		QDataStream s(&arr, QIODevice::WriteOnly);
 		s.setVersion(QDataStream::Qt_5_3);
 
+		s << process->processName();
 		s << *process;
 
 		m_serializedProcesses.push_back(arr);

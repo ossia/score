@@ -113,16 +113,16 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 		// Constraint interface
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::processCreated,
-							this,							&ConstraintInspectorWidget::on_processCreated));
+							this,		&ConstraintInspectorWidget::on_processCreated));
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::processRemoved,
-							this,							&ConstraintInspectorWidget::on_processRemoved));
+							this,		&ConstraintInspectorWidget::on_processRemoved));
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::boxCreated,
-							this,							&ConstraintInspectorWidget::on_boxCreated));
+							this,		&ConstraintInspectorWidget::on_boxCreated));
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::boxRemoved,
-							this,							&ConstraintInspectorWidget::on_boxRemoved));
+							this,		&ConstraintInspectorWidget::on_boxRemoved));
 
 		// Processes
 		for(ProcessSharedModelInterface* process : model()->processes())
@@ -220,6 +220,7 @@ void ConstraintInspectorWidget::on_processCreated(QString processName, int proce
 
 void ConstraintInspectorWidget::on_processRemoved(int processId)
 {
+	qDebug(Q_FUNC_INFO);
 	reloadDisplayedValues();
 }
 

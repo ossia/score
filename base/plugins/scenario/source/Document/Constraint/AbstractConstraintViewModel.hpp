@@ -28,6 +28,9 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		void boxHidden();
 		void boxShown(int boxId);
 
+	public slots:
+		virtual void on_boxRemoved(int boxId) = 0;
+
 	protected:
 		virtual void serialize(QDataStream&) const = 0;
 		AbstractConstraintViewModel(int id,

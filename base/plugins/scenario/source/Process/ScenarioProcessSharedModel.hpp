@@ -39,9 +39,6 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 			return "Scenario";
 		}
 
-		// Creation of objects.
-
-		// TODO clean-up to keep only createConstraintAndEndEventFromEvent. Put the others in Commands.
 		// Creates an constraint between two pre-existing events
 		void createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
 
@@ -57,23 +54,25 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  int newConstraintId,
 												  int newEventId);
 
+		// Re-creation. Note : only using these methods might let the Scenario in an incoherent state.
+		void createConstraint(QDataStream&);
+		void createEvent(QDataStream&);
+
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);
 		void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
 
-
 		void undo_createConstraintBetweenEvents(int constraintId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
-		void undo_createConstraintAndEndEventFromStartEvent(int constraintId);
-		void undo_createConstraintAndBothEvents(int constraintId);
 
 
 
-		ConstraintModel* constraint(int constraintId);
-		EventModel* event(int eventId);
+		// Accessors
+		ConstraintModel* constraint(int constraintId) const;
+		EventModel* event(int eventId) const;
 
-		EventModel* startEvent();
-		EventModel* endEvent();
+		EventModel* startEvent() const;
+		EventModel* endEvent() const;
 
 		// For the presenter :
 		// TODO pass them by copy instead. It will be less painful.

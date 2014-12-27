@@ -16,7 +16,7 @@ QDataStream& operator >>(QDataStream& s,
 						 AbstractConstraintViewModel& p)
 {
 	s >> p.m_boxIsShown
-			>> p.m_idOfShownBox;
+	  >> p.m_idOfShownBox;
 
 	return s;
 }

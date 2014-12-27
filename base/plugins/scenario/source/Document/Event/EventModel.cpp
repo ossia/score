@@ -9,6 +9,8 @@
 
 QDataStream& operator << (QDataStream& s, const EventModel& ev)
 {
+	s << static_cast<const IdentifiedObject&>(ev);
+
 	s << ev.m_previousConstraints
 	  << ev.m_nextConstraints
 	  << ev.m_heightPercentage

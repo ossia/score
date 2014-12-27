@@ -10,6 +10,12 @@ QDataStream& operator >>(QDataStream& s, TemporalConstraintViewModel& vm)
 	return s;
 }
 
+void TemporalConstraintViewModel::on_boxRemoved(int boxId)
+{
+	hideBox();
+	emit boxRemoved(boxId);
+}
+
 void TemporalConstraintViewModel::serialize(QDataStream& s) const
 {
 	s << *this;

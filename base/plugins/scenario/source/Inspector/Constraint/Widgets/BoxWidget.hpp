@@ -16,7 +16,12 @@ class BoxWidget : public QWidget
 
 		const QString hiddenText{tr("Hide")};
 
+	public slots:
+		void on_comboBoxActivated(QString);
+
 	private:
-		QComboBox* m_boxList;
-		ConstraintModel* m_model;
+		QComboBox* m_boxList{};
+		ConstraintModel* m_model{};
+		ConstraintInspectorWidget* m_parent{};
+
 };

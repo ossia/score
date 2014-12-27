@@ -14,7 +14,8 @@
 
 BoxWidget::BoxWidget(ConstraintInspectorWidget* parent):
 	QWidget{parent},
-	m_model{parent->model()}
+	m_model{parent->model()},
+	m_parent{parent}
 {
 	QGridLayout* lay = new QGridLayout{this};
 	lay->setContentsMargins(0, 0, 0 ,0);
@@ -30,10 +31,9 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent):
 
 	// Current box chooser
 	m_boxList = new QComboBox{this};
-	connect(m_boxList, &QComboBox::currentTextChanged,
-			[=] (const QString& s) {
-		parent->activeBoxChanged(s);
-	});
+	connect(m_boxList, SIGNAL(activated(QString)),
+			this, SLOT(on_comboBoxActivated(QString)));
+
 
 	// Layout setup
 	lay->addWidget(addButton, 0, 0);
@@ -61,4 +61,9 @@ void BoxWidget::updateComboBox()
 void BoxWidget::setModel(ConstraintModel* m)
 {
 	m_model = m;
+}
+
+void BoxWidget::on_comboBoxActivated(QString s)
+{
+	m_parent->activeBoxChanged(s);
 }

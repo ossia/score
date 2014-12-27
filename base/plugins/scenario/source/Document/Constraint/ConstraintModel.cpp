@@ -14,73 +14,7 @@
 #include <QDebug>
 #include <QApplication>
 
-QDataStream& operator <<(QDataStream& s, const ConstraintModel& constraint)
-{
-	// Metadata
-	s	<< constraint.metadata
-		<< constraint.heightPercentage();
 
-	// Processes
-	s	<< (int) constraint.m_processes.size();
-	for(auto& process : constraint.m_processes)
-	{
-		ConstraintModel::saveProcess(s, process);
-	}
-
-	// Boxes
-	s	<<  (int) constraint.m_boxes.size();
-	for(auto& content : constraint.m_boxes)
-	{
-		s << *content;
-	}
-
-	// Events
-	s	<< constraint.m_startEvent;
-	s	<< constraint.m_endEvent;
-
-	// API Object
-	// s << i.apiObject()->save();
-	// Things that should be queried from the API :
-	s << constraint.m_width
-	  << constraint.m_x;
-
-	return s;
-}
-
-
-QDataStream& operator >>(QDataStream& s, ConstraintModel& constraint)
-{
-	double heightPercentage;
-	s >> constraint.metadata >> heightPercentage;
-
-	constraint.setHeightPercentage(heightPercentage);
-
-	// Processes
-	int process_size;
-	s >> process_size;
-	for(int i = 0; i < process_size; i++)
-	{
-		constraint.createProcess(s);
-	}
-
-	// Boxes
-	int content_models_size;
-	s >> content_models_size;
-	for(int i = 0; i < content_models_size; i++)
-	{
-		constraint.createBox(s);
-	}
-
-	// Events
-	s >> constraint.m_startEvent;
-	s >> constraint.m_endEvent;
-
-	// Things that should be queried from the API :
-	s >> constraint.m_width
-	  >> constraint.m_x;
-
-	return s;
-}
 
 ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	IdentifiedObject{s, parent}
@@ -88,12 +22,12 @@ ConstraintModel::ConstraintModel(QDataStream& s, QObject* parent):
 	s >> *this;
 }
 
-void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel)
+void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const
 {
 	connect(this,		&ConstraintModel::boxCreated,
 			viewmodel,	&AbstractConstraintViewModel::boxCreated);
 	connect(this,		&ConstraintModel::boxRemoved,
-			viewmodel,	&AbstractConstraintViewModel::boxRemoved);
+			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
 }
 
 
@@ -152,12 +86,16 @@ void ConstraintModel::createProcess_impl(ProcessSharedModelInterface* model)
 }
 
 
+// TODO use this pattern everywhere to prevent problems.
 void ConstraintModel::removeProcess(int processId)
 {
-	removeById(m_processes,
-			   processId);
+	auto proc = process(processId);
+	vec_erase_remove_if(m_processes,
+						[&processId] (ProcessSharedModelInterface* model)
+						{ return model->id() == processId; });
 
 	emit processRemoved(processId);
+	delete proc;
 }
 
 
@@ -191,12 +129,12 @@ void ConstraintModel::removeBox(int viewId)
 	emit boxRemoved(viewId);
 }
 
-int ConstraintModel::startEvent()
+int ConstraintModel::startEvent() const
 {
 	return m_startEvent;
 }
 
-int ConstraintModel::endEvent()
+int ConstraintModel::endEvent() const
 {
 	return m_endEvent;
 }
@@ -211,12 +149,12 @@ void ConstraintModel::setEndEvent(int e)
 	m_endEvent = e;
 }
 
-BoxModel*ConstraintModel::box(int contentId)
+BoxModel*ConstraintModel::box(int contentId) const
 {
 	return findById(m_boxes, contentId);
 }
 
-ProcessSharedModelInterface* ConstraintModel::process(int processId)
+ProcessSharedModelInterface* ConstraintModel::process(int processId) const
 {
 	return findById(m_processes, processId);
 }

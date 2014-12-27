@@ -34,8 +34,10 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 	// Constraints
 	int constraint_count;
 	s >> constraint_count;
+	qDebug() << constraint_count;
 	for(; constraint_count --> 0;)
 	{
+		qDebug() << constraint_count;
 		ConstraintModel* constraint = new ConstraintModel{s, &scenario};
 		scenario.m_constraints.push_back(constraint);
 		emit scenario.constraintCreated(constraint->id());
@@ -44,6 +46,7 @@ QDataStream& operator >>(QDataStream& s, ScenarioProcessSharedModel& scenario)
 	// Events
 	int event_count;
 	s >> event_count;
+	qDebug() << event_count;
 	for(; event_count --> 0;)
 	{
 		EventModel* evmodel = new EventModel(s, &scenario);
@@ -199,6 +202,16 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	this->event(startEventId)->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
 }
 
+void ScenarioProcessSharedModel::createConstraint(QDataStream&)
+{
+
+}
+
+void ScenarioProcessSharedModel::createEvent(QDataStream&)
+{
+
+}
+
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)
 {
@@ -286,69 +299,24 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	}
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromStartEvent(int constraintId)
-{
-	undo_createConstraintAndEndEventFromEvent(constraintId);
-}
-
-void ScenarioProcessSharedModel::undo_createConstraintAndBothEvents(int constraintId)
-{
-	// End event suppression
-	{
-		auto end_event_id = this->constraint(constraintId)->endEvent();
-		emit eventDeleted(end_event_id);
-		removeById(m_events, end_event_id);
-	}
-
-	// Get the mid event id before deletion of the constraint
-	auto mid_event_id = this->constraint(constraintId)->startEvent();
-	auto mid_event = event(mid_event_id);
-	auto start_constraint_id = mid_event->previousConstraints().front();
-	auto start_constraint = constraint(start_constraint_id);
-
-	// Constraint suppression
-	{
-		emit constraintRemoved(constraintId);
-		removeById(m_constraints, constraintId);
-	}
-
-	// Mid event suppression
-	{
-		emit eventDeleted(mid_event->id());
-		removeById(m_events, mid_event->id());
-	}
-
-	// First constraint suppression
-	{
-		auto first_event = event(constraint(start_constraint_id)->startEvent());
-		emit constraintRemoved(start_constraint->id());
-		first_event->removeNextConstraint(start_constraint_id);
-		removeById(m_constraints, start_constraint->id());
-	}
-}
-
-
-
-
-
 
 /////////////////////////////
-ConstraintModel* ScenarioProcessSharedModel::constraint(int constraintId)
+ConstraintModel* ScenarioProcessSharedModel::constraint(int constraintId) const
 {
 	return findById(m_constraints, constraintId);
 }
 
-EventModel* ScenarioProcessSharedModel::event(int eventId)
+EventModel* ScenarioProcessSharedModel::event(int eventId) const
 {
 	return findById(m_events, eventId);
 }
 
-EventModel* ScenarioProcessSharedModel::startEvent()
+EventModel* ScenarioProcessSharedModel::startEvent() const
 {
 	return event(m_startEventId);
 }
 
-EventModel* ScenarioProcessSharedModel::endEvent()
+EventModel* ScenarioProcessSharedModel::endEvent() const
 {
 	return event(m_endEventId);
 }

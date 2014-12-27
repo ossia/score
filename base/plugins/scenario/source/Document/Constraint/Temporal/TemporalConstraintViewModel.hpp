@@ -11,6 +11,9 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		friend QDataStream& operator <<(QDataStream& s, const TemporalConstraintViewModel& vm);
 		friend QDataStream& operator >>(QDataStream& s, TemporalConstraintViewModel& vm);
 
+	public slots:
+		virtual void on_boxRemoved(int boxId) override;
+
 	protected:
 		virtual void serialize(QDataStream& s) const override;
 
