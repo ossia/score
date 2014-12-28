@@ -6,12 +6,6 @@ class AbstractConstraintViewModel : public IdentifiedObject
 {
 		Q_OBJECT
 
-		friend QDataStream& operator <<(QDataStream& s,
-										const AbstractConstraintViewModel& p);
-
-		friend QDataStream& operator >>(QDataStream& s,
-										AbstractConstraintViewModel& p);
-
 	public:
 		ConstraintModel* model() const
 		{ return m_model; }
@@ -31,15 +25,19 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		virtual void on_boxRemoved(int boxId) = 0;
 
 	protected:
-		virtual void serialize(QDataStream&) const = 0;
 		AbstractConstraintViewModel(int id,
 									QString name,
 									ConstraintModel* model,
 									QObject* parent);
 
-		AbstractConstraintViewModel(QDataStream& s,
+		template<typename Impl>
+		AbstractConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
-									QObject* parent);
+									QObject* parent):
+			IdentifiedObject{vis, parent}
+		{
+			vis.visit(*this);
+		}
 
 	private:
 		// A view model cannot be constructed without a model

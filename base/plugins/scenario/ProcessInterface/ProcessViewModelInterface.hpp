@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include "serialization/VisitorInterface.hpp"
 
 class ProcessSharedModelInterface;
 
@@ -10,17 +11,18 @@ class ProcessSharedModelInterface;
  */
 class ProcessViewModelInterface: public IdentifiedObject
 {
-
 	public:
 		virtual ~ProcessViewModelInterface() = default;
 
 		ProcessSharedModelInterface* sharedProcessModel() const
 		{ return m_sharedProcessModel; }
 
+		// protected:
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const = 0;
 
 	protected:
+
 		ProcessViewModelInterface(int viewModelId,
 								  QString name,
 								  ProcessSharedModelInterface* sharedProcess,

@@ -1,15 +1,5 @@
 #include "TemporalConstraintViewModel.hpp"
 
-QDataStream& operator <<(QDataStream& s, const TemporalConstraintViewModel& vm)
-{
-	return s;
-}
-
-QDataStream& operator >>(QDataStream& s, TemporalConstraintViewModel& vm)
-{
-	return s;
-}
-
 void TemporalConstraintViewModel::on_boxRemoved(int boxId)
 {
 	if(shownBox() == boxId)
@@ -19,10 +9,11 @@ void TemporalConstraintViewModel::on_boxRemoved(int boxId)
 	}
 }
 
+/*
 void TemporalConstraintViewModel::serialize(QDataStream& s) const
 {
 	s << *this;
-}
+}*/
 
 TemporalConstraintViewModel::TemporalConstraintViewModel(int id,
 														 ConstraintModel* model,
@@ -35,6 +26,7 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(int id,
 
 }
 
+/*
 TemporalConstraintViewModel::TemporalConstraintViewModel(QDataStream& s,
 														 ConstraintModel* model,
 														 QObject* parent):
@@ -44,3 +36,4 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(QDataStream& s,
 {
 	s >> *this;
 }
+*/

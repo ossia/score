@@ -15,7 +15,7 @@
 #include <QApplication>
 
 
-void ConstraintModel::makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const
+void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel) const
 {
 	connect(this,		&ConstraintModel::boxRemoved,
 			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
@@ -79,14 +79,6 @@ void ConstraintModel::createBox(int boxId)
 	auto box = new BoxModel{boxId, this};
 	addBox(box);
 }
-
-/*
-void ConstraintModel::createBox(QDataStream& s)
-{
-	auto box = new BoxModel{s, this};
-	addBox(box);
-}
-*/
 
 void ConstraintModel::addBox(BoxModel* box)
 {

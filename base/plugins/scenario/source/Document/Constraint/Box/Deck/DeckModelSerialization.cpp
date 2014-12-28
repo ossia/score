@@ -37,7 +37,7 @@ template<> void Visitor<Writer<DataStream>>::visit(DeckModel& deck)
 	int height;
 	int position;
 	m_stream >> height
-			>> position;
+			 >> position;
 	deck.setHeight(height);
 	deck.setPosition(position);
 

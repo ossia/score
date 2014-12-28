@@ -1,31 +1,5 @@
 #include "AbstractConstraintViewModel.hpp"
 
-QDataStream& operator <<(QDataStream& s,
-						 const AbstractConstraintViewModel& p)
-{
-	// It will be deserialized by the constructor.
-/* TODO
- * 	s << static_cast<const IdentifiedObject&>(p);
-	s << p.m_boxIsShown
-	  << p.m_idOfShownBox;
-
-	p.serialize(s);
-	return s;
-
-	*/
-}
-
-QDataStream& operator >>(QDataStream& s,
-						 AbstractConstraintViewModel& p)
-{
-	/* TODO
-	s >> p.m_boxIsShown
-	  >> p.m_idOfShownBox;
-	return s;
-
-	*/
-}
-
 bool AbstractConstraintViewModel::isBoxShown() const
 {
 	return m_boxIsShown;
@@ -57,13 +31,4 @@ AbstractConstraintViewModel::AbstractConstraintViewModel(int id,
 	IdentifiedObject{id, name, parent},
 	m_model{model}
 {
-}
-
-AbstractConstraintViewModel::AbstractConstraintViewModel(QDataStream& s,
-														 ConstraintModel* model,
-														 QObject* parent):
-	IdentifiedObject{s, parent},
-	m_model{model}
-{
-	s >> *this;
 }

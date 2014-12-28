@@ -11,6 +11,7 @@ void Visitor<Reader<DataStream>>::visit(const TemporalScenarioProcessViewModel& 
 	m_stream << (int) constraints.size();
 	for(const TemporalScenarioProcessViewModel::constraint_view_model_type* constraint : constraints)
 	{
+		visit(*constraint);
 		// TODO
 		//m_stream << constraint->model()->id();
 		//m_stream << constraint;
@@ -29,18 +30,4 @@ void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel&)
 		// TODO
 		//pvm.makeConstraintViewModel(s);
 	}
-}
-
-QDataStream& operator >>(QDataStream& s, TemporalScenarioProcessViewModel& pvm)
-{
-	/*
-	int count;
-	s >> count;
-
-	for(; count --> 0;)
-	{
-		pvm.makeConstraintViewModel(s);
-	}
-
-	return s;*/
 }

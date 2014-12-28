@@ -7,18 +7,9 @@ class ConstraintModel;
 class TemporalConstraintViewModel : public AbstractConstraintViewModel
 {
 		Q_OBJECT
-		friend class ConstraintModel;
-		friend QDataStream& operator <<(QDataStream& s, const TemporalConstraintViewModel& vm);
-		friend QDataStream& operator >>(QDataStream& s, TemporalConstraintViewModel& vm);
 
-	public slots:
-		virtual void on_boxRemoved(int boxId) override;
+	public:
 
-	protected:
-		virtual void serialize(QDataStream& s) const override;
-
-	private:
-		// Can only be constructed from ConstraintModel::makeViewModel
 		/**
 		 * @brief TemporalConstraintViewModel
 		 * @param id identifier
@@ -28,7 +19,19 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		TemporalConstraintViewModel(int id,
 									ConstraintModel* model,
 									QObject* parent);
-		TemporalConstraintViewModel(QDataStream& s,
+
+
+		template<typename Impl>
+		TemporalConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
-									QObject* parent);
+									QObject* parent):
+			AbstractConstraintViewModel{vis, model, parent}
+		{
+			// Nothing to add, no vis.visit(*this);
+		}
+
+
+	public slots:
+		virtual void on_boxRemoved(int boxId) override;
+
 };

@@ -41,6 +41,8 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 		virtual void makeConstraintViewModel(int constraintModelId,
 											 int constraintViewModelId) override;
 
+		void addConstraintViewModel(constraint_view_model_type* abs);
+
 	public slots:
 		virtual void on_constraintRemoved(int constraintId) override;
 

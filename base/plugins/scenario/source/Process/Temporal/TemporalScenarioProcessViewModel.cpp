@@ -47,16 +47,20 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintMod
 	qDebug() << constraintViewModelId << "created.";
 	auto constraint_model = model(this)->constraint(constraintModelId);
 
-	int __warn;
-	/* TODO
+
 	auto constraint_view_model =
-			constraint_model->makeViewModel<constraint_view_model_type>(
+			constraint_model->makeConstraintViewModel<constraint_view_model_type>(
 									 constraintViewModelId,
 									 this);
+
+	addConstraintViewModel(constraint_view_model);
+}
+
+void TemporalScenarioProcessViewModel::addConstraintViewModel(constraint_view_model_type* constraint_view_model)
+{
 	m_constraints.push_back(constraint_view_model);
 
-	emit constraintViewModelCreated(constraintViewModelId);
-	*/
+	emit constraintViewModelCreated(constraint_view_model->id());
 }
 /*
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
@@ -72,10 +76,7 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
 									 s,
 									 this);
 
-	m_constraints.push_back(constraint_view_model);
-
-	emit constraintViewModelCreated(constraint_view_model->id());
-
+	addConstraintViewModel(constraint_view_model);
 }
 */
 

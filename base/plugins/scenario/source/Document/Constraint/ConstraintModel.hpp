@@ -24,7 +24,7 @@ class TimeBox;
 // TODO put some of this stuff in the corresponding view models.
 class ConstraintModel : public IdentifiedObject
 {
-	Q_OBJECT
+		Q_OBJECT
 
 		Q_PROPERTY(double heightPercentage
 				   READ heightPercentage
@@ -51,20 +51,22 @@ class ConstraintModel : public IdentifiedObject
 		ViewModelType* makeConstraintViewModel(int id, QObject* parent)
 		{
 			auto viewmodel =  new ViewModelType{id, this, parent};
-			makeViewModel_impl(viewmodel);
+			setupConstraintViewModel(viewmodel);
 			return viewmodel;
 		}
 
+		/*
 		template<typename ViewModelType, typename Impl> // Arg might be an id or a datastream [
 		ViewModelType* makeConstraintViewModel(Deserializer<Impl>& deserializer,
-									 QObject* parent)
+											   QObject* parent)
 		{
 			auto viewmodel =  new ViewModelType{deserializer, this, parent};
-			makeViewModel_impl(viewmodel);
+			setupConstraintViewModel(viewmodel);
 			return viewmodel;
 		}
+		*/
 
-		void makeViewModel_impl(AbstractConstraintViewModel* viewmodel) const;
+		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel) const;
 
 		// Sub-element creation
 		void createProcess(QString processName, int processId);
