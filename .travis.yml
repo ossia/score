@@ -15,5 +15,6 @@ script:
     - source /opt/qt53/bin/qt53-env.sh
     - cmake-3.0.2-Linux-x86_64/bin/cmake .
     - make
-    - LD_LIBRARY_PATH=/opt/qt53/lib make ExperimentalTest
+    - base/plugins/scenario/tests/CreateEventTest
+#    - LD_LIBRARY_PATH=/opt/qt53/lib make ExperimentalTest
 
