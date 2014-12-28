@@ -1,6 +1,5 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <QDataStream>
 
 class State : public IdentifiedObject
 {

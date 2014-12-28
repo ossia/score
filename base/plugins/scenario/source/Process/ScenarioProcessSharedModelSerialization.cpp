@@ -32,10 +32,8 @@ void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProc
 	// Constraints
 	int constraint_count;
 	m_stream >> constraint_count;
-	qDebug() << constraint_count;
 	for(; constraint_count --> 0;)
 	{
-		qDebug() << constraint_count;
 		ConstraintModel* constraint = new ConstraintModel{*this, &scenario};
 		scenario.addConstraint(constraint);
 	}
@@ -43,7 +41,6 @@ void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProc
 	// Events
 	int event_count;
 	m_stream >> event_count;
-	qDebug() << event_count;
 	for(; event_count --> 0;)
 	{
 		EventModel* evmodel = new EventModel(*this, &scenario);

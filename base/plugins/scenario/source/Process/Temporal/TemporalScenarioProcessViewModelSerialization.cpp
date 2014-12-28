@@ -10,10 +10,9 @@ void Visitor<Reader<DataStream>>::visit(const TemporalScenarioProcessViewModel& 
 	auto constraints = constraintsViewModels(pvm);
 
 	m_stream << (int) constraints.size();
-	for(const TemporalScenarioProcessViewModel::constraint_view_model_type* constraint : constraints)
+	for(auto constraint : constraints)
 	{
 		visit(*constraint);
-
 	}
 }
 

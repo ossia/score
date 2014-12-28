@@ -104,17 +104,3 @@ template<> void Visitor<Writer<DataStream>>::visit(ConstraintModel& constraint)
 	constraint.setWidth(width);
 	constraint.setStartDate(startDate);
 }
-
-void test()
-{
-	const ConstraintModel m{0, nullptr};
-
-	QByteArray arr;
-	Serializer<DataStream> v2(&arr);
-	v2.visit(m);
-
-
-	Deserializer<DataStream> v3(&arr);
-	ConstraintModel cstr{v3, nullptr};
-	qDebug() << cstr.id();
-}

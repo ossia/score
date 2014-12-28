@@ -15,8 +15,6 @@ void Visitor<Reader<DataStream>>::visit(const IdentifiedObject& obj)
 template<>
 void Visitor<Writer<DataStream>>::visit<IdentifiedObject>(IdentifiedObject& obj)
 {
-	visit(static_cast<NamedObject&>(obj));
-
 	SettableIdentifier id;
 	m_stream >> id;
 	obj.setId(std::move(id));

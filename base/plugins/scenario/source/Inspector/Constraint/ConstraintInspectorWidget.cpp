@@ -220,7 +220,6 @@ void ConstraintInspectorWidget::on_processCreated(QString processName, int proce
 
 void ConstraintInspectorWidget::on_processRemoved(int processId)
 {
-	qDebug(Q_FUNC_INFO);
 	reloadDisplayedValues();
 }
 

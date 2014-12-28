@@ -4,8 +4,6 @@
 #include <QGraphicsObject>
 #include <QDebug>
 #include "interface/serialization/VisitorInterface.hpp"
-#include "interface/serialization/JSONVisitor.hpp"
-#include "interface/serialization/DataStreamVisitor.hpp"
 
 ////////////////////////////////////////////////
 // This file contains utility algorithms & classes that can be used
@@ -20,15 +18,6 @@ class NamedType : public QType
 			QType{std::forward<Args>(args)...}
 		{
 			QType::setObjectName(name);
-			QType::setParent(parent);
-		}
-
-		// TO REMOVE
-		template<typename... Args>
-		NamedType(QDataStream& s, QObject* parent, Args&&... args):
-			QType{std::forward<Args>(args)...}
-		{
-			//s >> *this;
 			QType::setParent(parent);
 		}
 

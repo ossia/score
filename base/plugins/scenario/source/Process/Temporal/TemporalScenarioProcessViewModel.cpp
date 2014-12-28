@@ -21,6 +21,7 @@ void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identif
 	if(identifier == DataStream::type())
 	{
 		static_cast<Serializer<DataStream>*>(data)->visit(*this);
+		return;
 	}
 
 	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
@@ -29,7 +30,6 @@ void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identif
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
 															   int constraintViewModelId)
 {
-	qDebug() << constraintViewModelId << "created.";
 	auto constraint_model = model(this)->constraint(constraintModelId);
 
 

@@ -41,7 +41,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 		QByteArray arr;
 		Serializer<DataStream> s{&arr};
 		s.visit(*process);
-		m_serializedBoxes.push_back(arr);
+		m_serializedProcesses.push_back(arr);
 	}
 
 	// TODO save the mapping in the parent scenario view models.

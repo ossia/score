@@ -16,7 +16,8 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		AbstractConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
 									QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObject{vis, parent},
+			m_model{model}
 		{
 			vis.visit(*this);
 		}

@@ -2,6 +2,7 @@
 
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "interface/serialization/DataStreamVisitor.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

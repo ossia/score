@@ -15,7 +15,7 @@ class Visitor<Reader<DataStream>>
 {
 	public:
 		Visitor<Reader<DataStream>>(QByteArray* array):
-			m_stream{array, QIODevice::ReadOnly}
+			m_stream{array, QIODevice::WriteOnly}
 		{
 			m_stream.setVersion(QDataStream::Qt_5_3);
 		}
@@ -31,7 +31,7 @@ class Visitor<Writer<DataStream>>
 {
 	public:
 		Visitor<Writer<DataStream>>(QByteArray* array):
-			m_stream{array, QIODevice::WriteOnly}
+			m_stream{array, QIODevice::ReadOnly}
 		{
 			m_stream.setVersion(QDataStream::Qt_5_3);
 		}

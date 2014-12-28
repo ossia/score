@@ -33,10 +33,6 @@ class DeckModel : public IdentifiedObject
 		virtual ~DeckModel() = default;
 
 		void createProcessViewModel(int sharedProcessId, int newProcessViewModelId);
-
-		//static void saveProcessViewModel(QDataStream& s, ProcessViewModelInterface*);
-		//void createProcessViewModel(QDataStream& s);
-
 		void addProcessViewModel(ProcessViewModelInterface*);
 		void deleteProcessViewModel(int processViewModelId);
 

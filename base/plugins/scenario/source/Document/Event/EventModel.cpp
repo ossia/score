@@ -25,15 +25,6 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 	m_heightPercentage = yPos;
 }
 
-
-/*
- EventModel::EventModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, parent}
-{
-	s >> *this;
-}
-*/
-
 const QVector<int>&EventModel::previousConstraints() const
 {
 	return m_previousConstraints;

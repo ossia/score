@@ -74,10 +74,8 @@ class ConstraintModel : public IdentifiedObject
 		void removeProcess(int processId);
 
 		void createBox(int boxId);
-		//void createBox(QDataStream& s); // TO REMOVE
 		void addBox(BoxModel*);
 		void removeBox(int boxId);
-
 
 		int startEvent() const;
 		int endEvent() const;

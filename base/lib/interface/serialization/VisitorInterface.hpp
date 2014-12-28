@@ -4,8 +4,8 @@ template<typename VisitorType>
 class Visitor
 {
 	public:
-		template<typename T>
-		void visit(T&);
+		//template<typename T>
+		//void visit(T&);
 };
 
 template<typename T>

@@ -2,9 +2,6 @@
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 
-// TEMPORARY
-#include "IdentifiedObjectSerialization.hpp"
-
 // This should maybe be a mixin ?
 class IdentifiedObject : public NamedObject
 {
@@ -16,14 +13,6 @@ class IdentifiedObject : public NamedObject
 			NamedObject{std::forward<Args>(args)...},
 			m_id{id}
 		{
-		}
-
-		template<typename... Args>
-		IdentifiedObject(QDataStream& s,
-						 Args&&... args):
-			NamedObject{s, std::forward<Args>(args)...}
-		{
-// TO REMOVE			s >> *this;
 		}
 
 		template<typename ReaderImpl,typename... Args>
