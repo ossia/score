@@ -34,9 +34,13 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 
 void DeckModel::deleteProcessViewModel(int processViewId)
 {
-	// TODO use pattern to send signal between removal and deletion
-	removeById(m_processViewModels, processViewId);
+	auto pvm = processViewModel(processViewId);
+	vec_erase_remove_if(m_processViewModels,
+						[&processViewId] (ProcessViewModelInterface* model)
+						{ return model->id() == processViewId; });
+
 	emit processViewModelRemoved(processViewId);
+	delete pvm;
 }
 
 void DeckModel::selectForEdition(int processViewId)

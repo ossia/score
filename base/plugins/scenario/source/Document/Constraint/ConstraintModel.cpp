@@ -61,8 +61,6 @@ void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 						(SettableIdentifier::identifier_type) model->id());
 }
 
-
-// TODO use this pattern everywhere to prevent problems.
 void ConstraintModel::removeProcess(int processId)
 {
 	auto proc = process(processId);
@@ -91,12 +89,15 @@ void ConstraintModel::addBox(BoxModel* box)
 }
 
 
-void ConstraintModel::removeBox(int viewId)
+void ConstraintModel::removeBox(int boxId)
 {
-	removeById(m_boxes,
-			   viewId);
+	auto b = box(boxId);
+	vec_erase_remove_if(m_boxes,
+						[&boxId] (BoxModel* model)
+						{ return model->id() == boxId; });
 
-	emit boxRemoved(viewId);
+	emit boxRemoved(boxId);
+	delete b;
 }
 
 int ConstraintModel::startEvent() const

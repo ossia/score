@@ -46,9 +46,12 @@ void BoxModel::removeDeck(int deckId)
 	}
 
 	// Delete
-	removeById(m_decks, deckId);
+	vec_erase_remove_if(m_decks,
+						[&deckId] (DeckModel* model)
+						{ return model->id() == deckId; });
 
 	emit deckRemoved(deckId);
+	delete removedDeck;
 }
 
 void BoxModel::changeDeckOrder(int deckId, int position)

@@ -79,7 +79,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);
 		void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
 
-		void undo_createConstraintBetweenEvents(int constraintId);
+		void removeConstraint(int constraintId);
+		void removeEvent(int eventId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
 
 
@@ -100,7 +101,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 	signals:
 		void eventCreated(int eventId);
 		void constraintCreated(int constraintId);
-		void eventDeleted(int eventId);
+		void eventRemoved(int eventId);
 		void constraintRemoved(int constraintId);
 		void eventMoved(int eventId);
 		void constraintMoved(int constraintId);

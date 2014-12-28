@@ -60,7 +60,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 
 	connect(this, &ScenarioProcessSharedModel::eventCreated,
 			scen, &view_model_type::eventCreated);
-	connect(this, &ScenarioProcessSharedModel::eventDeleted,
+	connect(this, &ScenarioProcessSharedModel::eventRemoved,
 			scen, &view_model_type::eventDeleted);
 	connect(this, &ScenarioProcessSharedModel::eventMoved,
 			scen, &view_model_type::eventMoved);
@@ -211,10 +211,26 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 
 ///////// DELETION //////////
 #include <tools/utilsCPP11.hpp>
-void ScenarioProcessSharedModel::undo_createConstraintBetweenEvents(int constraintId)
+void ScenarioProcessSharedModel::removeConstraint(int constraintId)
 {
+	auto cstr = constraint(constraintId);
+	vec_erase_remove_if(m_constraints,
+						[&constraintId] (ConstraintModel* model)
+						{ return model->id() == constraintId; });
+
 	emit constraintRemoved(constraintId);
-	removeById(m_constraints, constraintId);
+	delete cstr;
+}
+
+void ScenarioProcessSharedModel::removeEvent(int eventId)
+{
+	auto ev = event(eventId);
+	vec_erase_remove_if(m_events,
+						[&eventId] (EventModel* model)
+						{ return model->id() == eventId; });
+
+	emit eventRemoved(eventId);
+	delete ev;
 }
 
 void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int constraintId)
@@ -223,7 +239,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	{
 		auto end_event_id = this->constraint(constraintId)->endEvent();
 
-		emit eventDeleted(end_event_id);
+		emit eventRemoved(end_event_id);
 		removeById(m_events, end_event_id);
 
 		auto start_event = event(constraint(constraintId)->startEvent());
@@ -231,10 +247,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	}
 
 	// Constraint suppression
-	{
-		emit constraintRemoved(constraintId);
-		removeById(m_constraints, constraintId);
-	}
+	removeConstraint(constraintId);
 }
 
 
