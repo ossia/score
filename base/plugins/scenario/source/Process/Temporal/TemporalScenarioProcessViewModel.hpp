@@ -41,11 +41,9 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 		virtual void makeConstraintViewModel(int constraintModelId,
 											 int constraintViewModelId) override;
 
-		void addConstraintViewModel(constraint_view_model_type* abs);
+		void addConstraintViewModel(constraint_view_model_type* constraint_view_model);
 
 	public slots:
 		virtual void on_constraintRemoved(int constraintId) override;
 
-	protected:
-		// TODO virtual void makeConstraintViewModel(QDataStream& s) override;
 };

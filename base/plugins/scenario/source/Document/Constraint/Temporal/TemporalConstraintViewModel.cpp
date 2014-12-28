@@ -9,12 +9,6 @@ void TemporalConstraintViewModel::on_boxRemoved(int boxId)
 	}
 }
 
-/*
-void TemporalConstraintViewModel::serialize(QDataStream& s) const
-{
-	s << *this;
-}*/
-
 TemporalConstraintViewModel::TemporalConstraintViewModel(int id,
 														 ConstraintModel* model,
 														 QObject* parent):
@@ -25,15 +19,3 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(int id,
 {
 
 }
-
-/*
-TemporalConstraintViewModel::TemporalConstraintViewModel(QDataStream& s,
-														 ConstraintModel* model,
-														 QObject* parent):
-	AbstractConstraintViewModel{s,
-								 model,
-								 parent}
-{
-	s >> *this;
-}
-*/

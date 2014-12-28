@@ -1,5 +1,6 @@
 #include "TemporalScenarioProcessViewModelSerialization.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
+#include "Document/Constraint/AbstractConstraintViewModelSerialization.hpp"
 #include "TemporalScenarioProcessViewModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
@@ -12,20 +13,20 @@ void Visitor<Reader<DataStream>>::visit(const TemporalScenarioProcessViewModel& 
 	for(const TemporalScenarioProcessViewModel::constraint_view_model_type* constraint : constraints)
 	{
 		visit(*constraint);
-		// TODO
-		//m_stream << constraint->model()->id();
-		//m_stream << constraint;
+
 	}
 }
 
 template<>
-void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel&)
+void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel& pvm)
 {
 	int count;
 	m_stream >> count;
 
 	for(; count --> 0;)
 	{
+		auto cstr = createConstraintViewModel(*this, &pvm);
+		pvm.addConstraintViewModel(cstr);
 		int __warn;
 		// TODO
 		//pvm.makeConstraintViewModel(s);

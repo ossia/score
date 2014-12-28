@@ -25,22 +25,7 @@ void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identif
 
 	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
 }
-/*
-TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(QDataStream& s,
-																   ScenarioProcessSharedModel* model,
-																   QObject* parent):
-	AbstractScenarioProcessViewModel{s,
-									 model,
-									 parent}
-{
-	s >> *this;
-}
 
-void TemporalScenarioProcessViewModel::serialize(QDataStream& s) const
-{
-	s << *this;
-}
-*/
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
 															   int constraintViewModelId)
 {
@@ -62,23 +47,6 @@ void TemporalScenarioProcessViewModel::addConstraintViewModel(constraint_view_mo
 
 	emit constraintViewModelCreated(constraint_view_model->id());
 }
-/*
-void TemporalScenarioProcessViewModel::makeConstraintViewModel(QDataStream& s)
-{
-	// Deserialize the required identifier
-	SettableIdentifier constraint_model_id;
-	s >> constraint_model_id;
-	auto constraint_model = model(this)->constraint(constraint_model_id);
-
-	// Make it
-	auto constraint_view_model =
-			constraint_model->makeViewModel<constraint_view_model_type>(
-									 s,
-									 this);
-
-	addConstraintViewModel(constraint_view_model);
-}
-*/
 
 void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintSharedModelId)
 {	for(auto& constraint_view_model : constraintsViewModels(*this))
