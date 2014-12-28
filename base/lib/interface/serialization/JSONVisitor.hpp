@@ -14,7 +14,7 @@ class Visitor<Reader<JSON>>
 {
 	public:
 		template<typename T>
-		void visit(T&);
+		void visit(const T&);
 
 		QJsonObject obj;
 };

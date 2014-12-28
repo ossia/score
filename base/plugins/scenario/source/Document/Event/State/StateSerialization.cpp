@@ -1,16 +1,16 @@
-#include "StateSerialization.hpp"
+#include <interface/serialization/DataStreamVisitor.hpp>
 #include "State.hpp"
 
 template<>
-void Visitor<Reader<DataStream> >::visit(const State& state)
+void Visitor<Reader<DataStream> >::readFrom(const State& state)
 {
-	visit(static_cast<const IdentifiedObject&>(state));
+	readFrom(static_cast<const IdentifiedObject&>(state));
 
 	m_stream << state.messages();
 }
 
 template<>
-void Visitor<Writer<DataStream> >::visit(State& state)
+void Visitor<Writer<DataStream> >::writeTo(State& state)
 {
 	QStringList messages;
 	m_stream >> messages;

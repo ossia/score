@@ -5,6 +5,3 @@ class ConstraintModel;
 ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
 												  ConstraintModel* constraint,
 												  QObject* parent);
-
-template<>
-void Visitor<Reader<DataStream>>::visit(const ProcessViewModelInterface&);

@@ -1,20 +1,20 @@
-#include "BoxModelSerialization.hpp"
+#include <interface/serialization/DataStreamVisitor.hpp>
 #include "BoxModel.hpp"
 #include "Deck/DeckModel.hpp"
 
-template<> void Visitor<Reader<DataStream>>::visit(const BoxModel& box)
+template<> void Visitor<Reader<DataStream>>::readFrom(const BoxModel& box)
 {
-	visit(static_cast<const IdentifiedObject&>(box));
+	readFrom(static_cast<const IdentifiedObject&>(box));
 
 	auto decks = box.decks();
 	m_stream << (int)decks.size();
 	for(const DeckModel* deck : decks)
 	{
-		visit(*deck);
+		readFrom(*deck);
 	}
 }
 
-template<> void Visitor<Writer<DataStream>>::visit(BoxModel& box)
+template<> void Visitor<Writer<DataStream>>::writeTo(BoxModel& box)
 {
 	int decks_size;
 	m_stream >> decks_size;

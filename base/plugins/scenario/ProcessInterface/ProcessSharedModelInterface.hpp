@@ -33,6 +33,7 @@ class ProcessSharedModelInterface: public IdentifiedObject
 														 QObject* parent) = 0;
 
 
+		// To be called by createProcessViewModel only.
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
 														 void* data,
 														 QObject* parent) = 0;

@@ -20,12 +20,12 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const ProcessSharedModelInterface& process)
+void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& process)
 {
 	// To allow recration using createProcess
 	m_stream << process.processName();
 
-	visit(static_cast<const IdentifiedObject&>(process));
+	readFrom(static_cast<const IdentifiedObject&>(process));
 
 	// ProcessSharedModelInterface doesn't have any particular data to save
 

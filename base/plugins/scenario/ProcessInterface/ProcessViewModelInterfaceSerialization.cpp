@@ -21,13 +21,13 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
 
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& processViewModel)
 {
 	// To allow recration using createProcessViewModel.
 	// This supposes that the process is stored inside a Constraint.
 	m_stream << processViewModel.sharedProcessModel()->id();
 
-	visit(static_cast<const IdentifiedObject&>(processViewModel));
+	readFrom(static_cast<const IdentifiedObject&>(processViewModel));
 
 	// ProcessViewModelInterface doesn't have any particular data to save
 

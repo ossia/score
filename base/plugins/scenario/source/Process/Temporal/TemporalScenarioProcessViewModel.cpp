@@ -20,7 +20,7 @@ void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identif
 	// TODO how to abstract this since it will always be the same ?
 	if(identifier == DataStream::type())
 	{
-		static_cast<Serializer<DataStream>*>(data)->visit(*this);
+		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
 		return;
 	}
 

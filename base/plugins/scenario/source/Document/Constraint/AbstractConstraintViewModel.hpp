@@ -19,7 +19,7 @@ class AbstractConstraintViewModel : public IdentifiedObject
 			IdentifiedObject{vis, parent},
 			m_model{model}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 

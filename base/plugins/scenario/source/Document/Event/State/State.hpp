@@ -15,7 +15,7 @@ class State : public IdentifiedObject
 		State(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject{vis, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 		virtual ~State() = default;

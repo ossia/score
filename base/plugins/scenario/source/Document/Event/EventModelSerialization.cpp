@@ -1,4 +1,4 @@
-#include "EventModelSerialization.hpp"
+#include <interface/serialization/DataStreamVisitor.hpp>
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/State/State.hpp"
 #include "Document/Event/State/StateSerialization.hpp"
@@ -6,9 +6,9 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 
-template<> void Visitor<Reader<DataStream>>::visit(const EventModel& ev)
+template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
-	visit(static_cast<const IdentifiedObject&>(ev));
+	readFrom(static_cast<const IdentifiedObject&>(ev));
 
 	m_stream << ev.previousConstraints()
 			 << ev.nextConstraints()
@@ -21,15 +21,15 @@ template<> void Visitor<Reader<DataStream>>::visit(const EventModel& ev)
 
 	auto states = ev.states();
 	m_stream << int(states.size());
-	for(const State* state : states)
+	for(auto state : states)
 	{
-		visit(*state);
+		readFrom(*state);
 	}
 
 	// TODO save OSSIA::TimeNode
 }
 
-template<> void Visitor<Writer<DataStream>>::visit(EventModel& ev)
+template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
 	QVector<int> prevCstr, nextCstr;
 	QMap<int, double> cstrYPos;

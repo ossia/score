@@ -260,7 +260,7 @@ void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
 {
 	if(identifier == DataStream::type())
 	{
-		static_cast<Serializer<DataStream>*>(data)->visit(*this);
+		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
 		return;
 	}
 

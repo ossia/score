@@ -17,7 +17,7 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 	auto box = static_cast<BoxModel*>(m_path.find());
 	Serializer<DataStream> s{&m_serializedDeckData};
 
-	s.visit(*box->deck(deckId));
+	s.readFrom(*box->deck(deckId));
 }
 
 void RemoveDeckFromBox::undo()

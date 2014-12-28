@@ -3,9 +3,9 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
 
-template<> void Visitor<Reader<DataStream>>::visit(const DeckModel& deck)
+template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 {
-	visit(static_cast<const IdentifiedObject&>(deck));
+	readFrom(static_cast<const IdentifiedObject&>(deck));
 
 	m_stream << deck.editedProcessViewModel();
 
@@ -13,14 +13,14 @@ template<> void Visitor<Reader<DataStream>>::visit(const DeckModel& deck)
 	m_stream << (int) pvms.size();
 	for(const ProcessViewModelInterface* pvm : pvms)
 	{
-		visit(*pvm);
+		readFrom(*pvm);
 	}
 
 	m_stream << deck.height()
 			 << deck.position();
 }
 
-template<> void Visitor<Writer<DataStream>>::visit(DeckModel& deck)
+template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 {
 	int editedProcessId;
 	m_stream >> editedProcessId;

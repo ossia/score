@@ -7,14 +7,14 @@
 #include "ScenarioProcessSharedModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const ScenarioProcessSharedModel& scenario)
+void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& scenario)
 {
 	// Constraints
 	auto constraints = scenario.constraints();
 	m_stream << (int) constraints.size();
 	for(const ConstraintModel* constraint : constraints)
 	{
-		visit(*constraint);
+		readFrom(*constraint);
 	}
 
 	// Events
@@ -22,12 +22,12 @@ void Visitor<Reader<DataStream>>::visit(const ScenarioProcessSharedModel& scenar
 	m_stream << (int) events.size();
 	for(const EventModel* event : events)
 	{
-		visit(*event);
+		readFrom(*event);
 	}
 }
 
 template<>
-void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProcessSharedModel& scenario)
+void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 {
 	// Constraints
 	int constraint_count;

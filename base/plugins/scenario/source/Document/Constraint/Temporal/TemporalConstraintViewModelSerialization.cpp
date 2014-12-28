@@ -5,7 +5,7 @@
 #include "Document/Constraint/AbstractConstraintViewModelSerialization.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const TemporalConstraintViewModel& constraint)
+void Visitor<Reader<DataStream>>::readFrom(const TemporalConstraintViewModel& constraint)
 {
-	visit(static_cast<const AbstractConstraintViewModel&>(constraint));
+	readFrom(static_cast<const AbstractConstraintViewModel&>(constraint));
 }

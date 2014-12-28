@@ -5,19 +5,19 @@
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const TemporalScenarioProcessViewModel& pvm)
+void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewModel& pvm)
 {
 	auto constraints = constraintsViewModels(pvm);
 
 	m_stream << (int) constraints.size();
 	for(auto constraint : constraints)
 	{
-		visit(*constraint);
+		readFrom(*constraint);
 	}
 }
 
 template<>
-void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel& pvm)
+void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 {
 	int count;
 	m_stream >> count;

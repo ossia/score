@@ -1,19 +1,18 @@
-#include "IdentifiedObjectSerialization.hpp"
-
+#include "interface/serialization/DataStreamVisitor.hpp"
 #include "NamedObjectSerialization.hpp"
 #include "IdentifiedObject.hpp"
 
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const IdentifiedObject& obj)
+void Visitor<Reader<DataStream>>::readFrom(const IdentifiedObject& obj)
 {
-	visit(static_cast<const NamedObject&>(obj));
+	readFrom(static_cast<const NamedObject&>(obj));
 
 	m_stream << obj.id();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::visit<IdentifiedObject>(IdentifiedObject& obj)
+void Visitor<Writer<DataStream>>::writeTo(IdentifiedObject& obj)
 {
 	SettableIdentifier id;
 	m_stream >> id;

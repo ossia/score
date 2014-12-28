@@ -25,7 +25,7 @@ class NamedType : public QType
 		NamedType(Deserializer<ReaderImpl>& v, QObject* parent, Args&&... args):
 			QType{std::forward<Args>(args)...}
 		{
-			v.visit(*this);
+			v.writeTo(*this);
 			QType::setParent(parent);
 		}
 };

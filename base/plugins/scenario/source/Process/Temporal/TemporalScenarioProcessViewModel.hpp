@@ -30,7 +30,7 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 										 QObject* parent):
 			AbstractScenarioProcessViewModel{vis, model, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 		virtual ~TemporalScenarioProcessViewModel() = default;

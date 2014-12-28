@@ -41,7 +41,7 @@ class ConstraintModel : public IdentifiedObject
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject{vis, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 		virtual ~ConstraintModel() = default;

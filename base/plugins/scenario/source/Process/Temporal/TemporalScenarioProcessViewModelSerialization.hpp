@@ -5,6 +5,6 @@
 class TemporalScenarioProcessViewModel;
 
 template<>
-void Visitor<Reader<DataStream>>::visit(const TemporalScenarioProcessViewModel&);
+void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewModel&);
 template<>
-void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel&);
+void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel&);

@@ -32,7 +32,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	{
 		QByteArray arr;
 		Serializer<DataStream> s{&arr};
-		s.visit(*box);
+		s.readFrom(*box);
 		m_serializedBoxes.push_back(arr);
 	}
 
@@ -40,7 +40,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 	{
 		QByteArray arr;
 		Serializer<DataStream> s{&arr};
-		s.visit(*process);
+		s.readFrom(*process);
 		m_serializedProcesses.push_back(arr);
 	}
 

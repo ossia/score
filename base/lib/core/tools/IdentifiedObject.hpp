@@ -19,7 +19,7 @@ class IdentifiedObject : public NamedObject
 		IdentifiedObject(Deserializer<ReaderImpl>& v, Args&&... args):
 			NamedObject{v, std::forward<Args>(args)...}
 		{
-			v.visit(*this);
+			v.writeTo(*this);
 		}
 
 		const SettableIdentifier& id() const

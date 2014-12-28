@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include "EventModelSerialization.hpp"
+#include <interface/serialization/DataStreamVisitor.hpp>
 namespace OSSIA
 {
 	class TimeNode;
@@ -18,7 +18,7 @@ class EventModel : public IdentifiedObject
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
-		friend void Visitor<Writer<DataStream>>::visit<EventModel>(EventModel& ev);
+		friend void Visitor<Writer<DataStream>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
 		EventModel(int id, QObject* parent);
@@ -29,7 +29,7 @@ class EventModel : public IdentifiedObject
 		EventModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject{vis, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 		virtual ~EventModel() = default;

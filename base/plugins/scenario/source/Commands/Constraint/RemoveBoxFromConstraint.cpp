@@ -18,7 +18,7 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, in
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 
 	Serializer<DataStream> s{&m_serializedBoxData};
-	s.visit(*constraint->box(boxId));
+	s.readFrom(*constraint->box(boxId));
 }
 
 void RemoveBoxFromConstraint::undo()

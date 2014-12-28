@@ -31,9 +31,9 @@ QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 
-template<> void Visitor<Reader<DataStream>>::visit(const ConstraintModel& constraint)
+template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
 {
-	visit(static_cast<const IdentifiedObject&>(constraint));
+	readFrom(static_cast<const IdentifiedObject&>(constraint));
 
 	// Metadata
 	m_stream	<< constraint.metadata
@@ -44,7 +44,7 @@ template<> void Visitor<Reader<DataStream>>::visit(const ConstraintModel& constr
 	m_stream	<< (int) processes.size();
 	for(const ProcessSharedModelInterface* process : processes)
 	{
-		visit(*process);
+		readFrom(*process);
 	}
 
 	// Boxes
@@ -52,7 +52,7 @@ template<> void Visitor<Reader<DataStream>>::visit(const ConstraintModel& constr
 	m_stream	<<  (int) boxes.size();
 	for(const BoxModel* box : boxes)
 	{
-		visit(*box);
+		readFrom(*box);
 	}
 
 	// Events
@@ -66,7 +66,7 @@ template<> void Visitor<Reader<DataStream>>::visit(const ConstraintModel& constr
 			 << constraint.startDate();
 }
 
-template<> void Visitor<Writer<DataStream>>::visit(ConstraintModel& constraint)
+template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
 {
 	double heightPercentage;
 	m_stream >> constraint.metadata >> heightPercentage;

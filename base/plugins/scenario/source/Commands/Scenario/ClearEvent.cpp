@@ -31,7 +31,7 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath):
 	{
 		QByteArray arr;
 		Serializer<DataStream> s{&arr};
-		s.visit(*state);
+		s.readFrom(*state);
 		m_serializedStates.push_back(arr);
 	}
 }

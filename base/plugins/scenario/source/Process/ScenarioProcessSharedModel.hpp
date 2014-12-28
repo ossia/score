@@ -20,8 +20,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 {
 		Q_OBJECT
 
-		friend void Visitor<Reader<DataStream>>::visit<const ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
-		friend void Visitor<Writer<DataStream>>::visit<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
+		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
 
 	public:
 		using view_model_type = AbstractScenarioProcessViewModel;
@@ -32,7 +32,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
 			ProcessSharedModelInterface{vis, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 

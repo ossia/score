@@ -28,6 +28,3 @@ typename ScenarioViewModelType::constraint_view_model_type*
 
 	return viewmodel;
 }
-
-template<>
-void Visitor<Reader<DataStream>>::visit(const AbstractConstraintViewModel&);

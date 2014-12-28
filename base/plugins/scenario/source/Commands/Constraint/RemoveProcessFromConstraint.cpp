@@ -21,7 +21,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 
 	Serializer<DataStream> s{&m_serializedProcessData};
 
-	s.visit(static_cast<const ProcessSharedModelInterface&>(*constraint->process(m_processId)));
+	s.readFrom(*constraint->process(m_processId));
 }
 
 void RemoveProcessFromConstraint::undo()

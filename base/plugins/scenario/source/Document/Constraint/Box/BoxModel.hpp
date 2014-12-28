@@ -17,7 +17,7 @@ class BoxModel : public IdentifiedObject
 		BoxModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject{vis, parent}
 		{
-			vis.visit(*this);
+			vis.writeTo(*this);
 		}
 
 		virtual ~BoxModel() = default;
