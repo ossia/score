@@ -53,7 +53,7 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processVie
 	// ProcessViewModelInterface doesn't have any particular data to save
 
 	// Save the subclass
-	processViewModel.serialize(DataStream::type(),
+	processViewModel.serialize(JSON::type(),
 							   static_cast<void*>(this));
 }
 
@@ -66,7 +66,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<JSON>& deserializ
 	fromJsonObject(deserializer.m_obj["SharedProcessId"].toObject(), sharedProcessId);
 
 	auto process = constraint->process((SettableIdentifier::identifier_type) sharedProcessId);
-	auto viewmodel = process->makeViewModel(DataStream::type(),
+	auto viewmodel = process->makeViewModel(JSON::type(),
 											static_cast<void*>(&deserializer),
 											parent);
 

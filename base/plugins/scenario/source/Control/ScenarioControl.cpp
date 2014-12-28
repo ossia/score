@@ -8,6 +8,14 @@
 #include <interface/plugincontrol/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QAction>
+#include <QJsonDocument>
+
+#include <QApplication>
+
+#include <QFileDialog>
+
+#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
 ScenarioControl::ScenarioControl(QObject* parent):
 	PluginControlInterface{"ScenarioControl", parent},
 	m_processList{new ProcessList{this}}
@@ -18,6 +26,27 @@ ScenarioControl::ScenarioControl(QObject* parent):
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
 	using namespace iscore;
+	// Load & save
+	menu->addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+									FileMenuElement::Save,
+									[] ()
+	{
+		auto model = qApp->findChild<BaseElementModel*>("BaseElementModel");
+		QJsonDocument doc;
+
+		Serializer<JSON> s;
+		s.readFrom(*model->constraintModel());
+
+		doc.setObject(s.m_obj);
+		auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
+
+		qDebug() << QString(doc.toJson());
+		QFile f(savename);
+		f.open(QIODevice::WriteOnly);
+		f.write(doc.toJson());
+	});
+
+	// View
 	QAction* selectAll = new QAction{tr("Select all"), this};
 	connect(selectAll,	&QAction::triggered,
 			this,		&ScenarioControl::selectAll);
@@ -69,8 +98,6 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 
 }
 
-#include <QApplication>
-#include "Document/BaseElement/BaseElementPresenter.hpp"
 void ScenarioControl::selectAll()
 {
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");

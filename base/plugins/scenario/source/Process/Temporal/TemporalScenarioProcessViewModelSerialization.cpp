@@ -56,3 +56,22 @@ void Visitor<Writer<JSON>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 		pvm.addConstraintViewModel(cstrvm);
 	}
 }
+
+
+
+void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identifier, void* data) const
+{
+	// TODO how to abstract this since it will always be the same ?
+	if(identifier == DataStream::type())
+	{
+		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
+		return;
+	}
+	else if(identifier == JSON::type())
+	{
+		static_cast<Serializer<JSON>*>(data)->readFrom(*this);
+		return;
+	}
+
+	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
+}

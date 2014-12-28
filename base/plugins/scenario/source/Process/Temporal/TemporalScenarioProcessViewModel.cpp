@@ -15,17 +15,7 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModel
 {
 }
 
-void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identifier, void* data) const
-{
-	// TODO how to abstract this since it will always be the same ?
-	if(identifier == DataStream::type())
-	{
-		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
-		return;
-	}
 
-	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
-}
 
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
 															   int constraintViewModelId)

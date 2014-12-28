@@ -48,7 +48,7 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
 	// ProcessSharedModelInterface doesn't have any particular data to save
 
 	// Save the subclass
-	process.serialize(DataStream::type(),
+	process.serialize(JSON::type(),
 					  static_cast<void*>(this));
 }
 
@@ -57,7 +57,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<JSON>& deserializer,
 										   QObject* parent)
 {
 	auto model = ProcessList::getFactory(deserializer.m_obj["ProcessName"].toString())
-					->makeModel(DataStream::type(),
+					->makeModel(JSON::type(),
 								static_cast<void*>(&deserializer),
 								parent);
 

@@ -259,17 +259,6 @@ EventModel* ScenarioProcessSharedModel::endEvent() const
 	return event(m_endEventId);
 }
 
-void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
-										   void* data) const
-{
-	if(identifier == DataStream::type())
-	{
-		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
-		return;
-	}
-
-	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
-}
 
 
 void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)

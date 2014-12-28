@@ -113,3 +113,40 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
 	}*/
 }
 
+
+
+void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
+										   void* data) const
+{
+	if(identifier == DataStream::type())
+	{
+		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
+		return;
+	}
+	else if(identifier == JSON::type())
+	{
+		static_cast<Serializer<JSON>*>(data)->readFrom(*this);
+		return;
+	}
+
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
+}
+
+#include "ScenarioProcessFactory.hpp"
+ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(SerializationIdentifier identifier,
+															  void* data,
+															  QObject* parent)
+{
+	if(identifier == DataStream::type())
+	{
+		return new ScenarioProcessSharedModel{*static_cast<Deserializer<DataStream>*>(data), parent};
+	}
+	else if(identifier == JSON::type())
+	{
+		return new ScenarioProcessSharedModel{*static_cast<Deserializer<JSON>*>(data), parent};
+	}
+
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
+}
+
+
