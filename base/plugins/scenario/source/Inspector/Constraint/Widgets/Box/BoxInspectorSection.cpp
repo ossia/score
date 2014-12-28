@@ -67,7 +67,6 @@ void BoxInspectorSection::on_deckCreated(int deckId)
 {
 	// TODO display them in the order of their position.
 	// TODO issue : the box should grow of 10 more pixels for each deck.
-	// TODO issue : display a single box
 	addDeckInspectorSection(m_model->deck(deckId));
 }
 

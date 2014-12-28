@@ -18,7 +18,10 @@ typename ScenarioViewModelType::constraint_view_model_type*
 	auto constraint = model(svm)->constraint(constraint_model_id);
 
 	// Make it
-	auto viewmodel =  new typename ScenarioViewModelType::constraint_view_model_type{deserializer, constraint, svm};
+	auto viewmodel =  new typename ScenarioViewModelType
+						::constraint_view_model_type{deserializer,
+													 constraint,
+													 svm};
 
 	// Make the required connections with the parent constraint
 	constraint->setupConstraintViewModel(viewmodel);
@@ -28,7 +31,3 @@ typename ScenarioViewModelType::constraint_view_model_type*
 
 template<>
 void Visitor<Reader<DataStream>>::visit(const AbstractConstraintViewModel&);
-
-
-//template<>
-//void Visitor<Writer<DataStream>>::visit(AbstractConstraintViewModel&);

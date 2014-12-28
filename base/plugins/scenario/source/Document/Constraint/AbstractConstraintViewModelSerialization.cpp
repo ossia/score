@@ -1,7 +1,6 @@
 #include "AbstractConstraintViewModelSerialization.hpp"
 #include "AbstractConstraintViewModel.hpp"
 
-
 template<>
 void Visitor<Reader<DataStream>>::visit(const AbstractConstraintViewModel& cvm)
 {
@@ -26,33 +25,12 @@ void Visitor<Writer<DataStream>>::visit(AbstractConstraintViewModel& cvm)
 	m_stream >> shown;
 	m_stream >> shown_id;
 
-	int __warn;
-	// TODO
-	// cvm.m_boxIsShown = shown;
-	// cvm.m_idOfShownBox = shown_id;
-}
-
-QDataStream& operator <<(QDataStream& s,
-						 const AbstractConstraintViewModel& p)
-{
-	/*
-	// It will be deserialized by the constructor.
-	s << static_cast<const IdentifiedObject&>(p);
-	s << p.m_boxIsShown
-	  << p.m_idOfShownBox;
-
-	p.serialize(s);
-	return s;
-	*/
-}
-
-QDataStream& operator >>(QDataStream& s,
-						 AbstractConstraintViewModel& p)
-{
-	/* TODO
-	s >> p.m_boxIsShown
-	  >> p.m_idOfShownBox;
-	return s;
-
-	*/
+	if(shown)
+	{
+		cvm.showBox(shown_id);
+	}
+	else
+	{
+		cvm.hideBox();
+	}
 }

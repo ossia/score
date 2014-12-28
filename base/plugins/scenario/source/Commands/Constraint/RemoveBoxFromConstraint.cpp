@@ -3,6 +3,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 
+#include "serialization/DataStreamVisitor.hpp"
+
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -14,26 +16,16 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, in
 	m_boxId{boxId}
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedBoxData, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
 
-		int __warning__;
-//		s << *constraint->box(boxId);
-	}
+	Serializer<DataStream> s{&m_serializedBoxData};
+	s.visit(*constraint->box(boxId));
 }
 
 void RemoveBoxFromConstraint::undo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedBoxData, QIODevice::ReadOnly);
-
-
-		int __warn;
-		// TODO
-		//constraint->createBox(s);
-	}
+	Deserializer<DataStream> s{&m_serializedBoxData};
+	constraint->addBox(new BoxModel{s, constraint});
 }
 
 void RemoveBoxFromConstraint::redo()

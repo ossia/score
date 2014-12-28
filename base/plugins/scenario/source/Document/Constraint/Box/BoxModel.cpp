@@ -12,13 +12,7 @@ BoxModel::BoxModel(int id, QObject* parent):
 {
 
 }
-/*
-BoxModel::BoxModel(QDataStream& s, QObject* parent):
-	IdentifiedObject{s, parent}
-{
-	s >> *this;
-}
-*/
+
 int BoxModel::createDeck(int newDeckId)
 {
 	return addDeck(
@@ -65,9 +59,4 @@ void BoxModel::changeDeckOrder(int deckId, int position)
 DeckModel* BoxModel::deck(int deckId) const
 {
 	return findById(m_decks, deckId);
-}
-
-void BoxModel::duplicateDeck()
-{
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }

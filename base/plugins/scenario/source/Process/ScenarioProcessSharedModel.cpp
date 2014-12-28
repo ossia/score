@@ -23,7 +23,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
 {
-	//TODO use a template here.
+	//TODO additional view model types.
 	auto scen = new TemporalScenarioProcessViewModel(viewModelId, this, parent);
 	makeViewModel_impl(scen);
 	return scen;

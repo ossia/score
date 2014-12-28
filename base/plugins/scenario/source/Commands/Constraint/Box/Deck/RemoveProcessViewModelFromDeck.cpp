@@ -3,6 +3,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -16,27 +17,19 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& boxP
 	m_processViewId{processViewId}
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
-	auto pvm = deck->processViewModel(m_processViewId);
-	{
-		QDataStream s(&m_serializedProcessViewData, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
 
-		int __warn;
-		//TODO
-//		DeckModel::saveProcessViewModel(s, pvm);
-	}
+	Serializer<DataStream> s{&m_serializedProcessViewData};
+	s.visit(static_cast<const ProcessViewModelInterface&>(*deck->processViewModel(m_processViewId)));
 }
 
 void RemoveProcessViewModelFromDeck::undo()
 {
 	auto deck = static_cast<DeckModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedProcessViewData, QIODevice::ReadOnly);
-
-		int __warn;
-		//TODO
-		//deck->createProcessViewModel(s);
-	}
+	Deserializer<DataStream> s{&m_serializedProcessViewData};
+	auto pvm = createProcessViewModel(s,
+									  deck->parentConstraint(),
+									  deck);
+	deck->addProcessViewModel(pvm);
 }
 
 void RemoveProcessViewModelFromDeck::redo()

@@ -10,15 +10,17 @@ template<>
 void Visitor<Reader<DataStream>>::visit(const ScenarioProcessSharedModel& scenario)
 {
 	// Constraints
-	m_stream << (int) scenario.m_constraints.size();
-	for(const ConstraintModel* constraint : scenario.m_constraints)
+	auto constraints = scenario.constraints();
+	m_stream << (int) constraints.size();
+	for(const ConstraintModel* constraint : constraints)
 	{
 		visit(*constraint);
 	}
 
 	// Events
-	m_stream << (int) scenario.m_events.size();
-	for(const EventModel* event : scenario.m_events)
+	auto events = scenario.events();
+	m_stream << (int) events.size();
+	for(const EventModel* event : events)
 	{
 		visit(*event);
 	}

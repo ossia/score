@@ -27,32 +27,13 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath):
 {
 
 	auto event = static_cast<EventModel*>(m_path.find());
-
-	int __warn__;
-	//TODO
-//	serializeVectorOfPointers(event->states(),
-//							  m_serializedStates);
-
-
-
-
-	/* Uncomment for the full deletion mechanism (but it's not what it should do)
+	for(const State* state: event->states())
 	{
-		QDataStream s(&m_serializedEvent, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
-		s << *event;
+		QByteArray arr;
+		Serializer<DataStream> s{&arr};
+		s.visit(*state);
+		m_serializedStates.push_back(arr);
 	}
-
-	std::vector<ConstraintModel*> v(event->previousConstraints().size());
-	int i{-1};
-	for(int constraint_id : event->previousConstraints())
-	{
-		v[++i] = event->parentScenario()->constraint(constraint_id);
-	}
-
-	serializeVectorOfPointers(v,
-							  m_serializedConstraints);
-	*/
 }
 
 void ClearEvent::undo()
@@ -60,10 +41,9 @@ void ClearEvent::undo()
 	auto event = static_cast<EventModel*>(m_path.find());
 	for(auto& serializedState : m_serializedStates)
 	{
-//		QDataStream s(&serializedState, QIODevice::ReadOnly);
-//		event->createState(s);
+		Deserializer<DataStream> s{&serializedState};
+		event->addState(new FakeState{s, event});
 	}
-
 }
 
 void ClearEvent::redo()

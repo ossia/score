@@ -16,7 +16,6 @@ DeckModel::DeckModel(int position, int id, BoxModel* parent):
 {
 }
 
-// TODO refactor this like in the presenter classes with _impl.
 void DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
@@ -25,24 +24,6 @@ void DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewMo
 
 	addProcessViewModel(viewmodel);
 }
-
-/*
-void DeckModel::saveProcessViewModel(QDataStream& s, ProcessViewModelInterface* pvm)
-{
-	s << pvm->sharedProcessModel()->id();
-	s << *pvm;
-}
-
-void DeckModel::createProcessViewModel(QDataStream& s)
-{
-	// Search the corresponding process in the parent constraint.
-	SettableIdentifier sharedProcessId;
-	s >> sharedProcessId;
-	auto process = parentConstraint()->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(s, this);
-	addProcessViewModel(viewmodel);
-}
-*/
 
 void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 {
@@ -72,22 +53,24 @@ const std::vector<ProcessViewModelInterface*>&DeckModel::processViewModels() con
 	return m_processViewModels;
 }
 
-ProcessViewModelInterface*DeckModel::processViewModel(int processViewModelId) const
+ProcessViewModelInterface* DeckModel::processViewModel(int processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
 }
 
 void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 {
+	using namespace std;
 	// We HAVE to do a copy here because deleteProcessViewModel use the erase-remove idiom.
 	auto viewmodels = m_processViewModels;
+	auto it = find_if(begin(m_processViewModels),
+					  end(m_processViewModels),
+					  [&sharedProcessId] (const ProcessViewModelInterface* pvm)
+						{ return pvm->sharedProcessModel()->id() == sharedProcessId; });
 
-	for(auto process_vm : viewmodels)
+	if(it != end(m_processViewModels))
 	{
-		if(process_vm->sharedProcessModel()->id() == sharedProcessId)
-		{
-			deleteProcessViewModel(process_vm->id());
-		}
+		deleteProcessViewModel((*it)->id());
 	}
 }
 
@@ -124,9 +107,6 @@ int DeckModel::position() const
 {
 	return m_position;
 }
-
-
-
 
 ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm)
 {

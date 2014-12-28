@@ -3,6 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessSharedModelInterfaceSerialization.hpp"
 
 #include <QDebug>
 
@@ -17,23 +18,17 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 	m_processId{processId}
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	auto process = constraint->process(m_processId);
 
-	{
-		QDataStream s(&m_serializedProcessData, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
+	Serializer<DataStream> s{&m_serializedProcessData};
 
-		// TODO ConstraintModel::saveProcess(s, process);
-	}
+	s.visit(static_cast<const ProcessSharedModelInterface&>(*constraint->process(m_processId)));
 }
 
 void RemoveProcessFromConstraint::undo()
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedProcessData, QIODevice::ReadOnly);
-		// TODO constraint->createProcess(s);
-	}
+	Deserializer<DataStream> s{&m_serializedProcessData};
+	constraint->addProcess(createProcess(s, constraint));
 }
 
 void RemoveProcessFromConstraint::redo()

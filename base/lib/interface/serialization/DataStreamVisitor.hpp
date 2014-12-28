@@ -21,7 +21,7 @@ class Visitor<Reader<DataStream>>
 		}
 
 		template<typename T>
-		void visit(T&);
+		void visit(const T&);
 
 		QDataStream m_stream;
 };

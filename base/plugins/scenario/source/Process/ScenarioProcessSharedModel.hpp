@@ -92,10 +92,9 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		EventModel* endEvent() const;
 
 		// For the presenter :
-		// TODO pass them by copy instead. It will be less painful.
-		const std::vector<ConstraintModel*> constraints() const
+		std::vector<ConstraintModel*> constraints() const
 		{ return m_constraints; }
-		const std::vector<EventModel*> events() const
+		std::vector<EventModel*> events() const
 		{ return m_events; }
 
 	signals:

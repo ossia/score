@@ -5,6 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "ProcessInterface/ProcessSharedModelInterfaceSerialization.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 
@@ -27,27 +28,20 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 {
 	auto constraint = static_cast<ConstraintModel*>(m_path.find());
 
-	// Save the boxes
-
-	int __warn;
-	// TODO
-//	serializeVectorOfPointers(constraint->boxes(),
-//							  m_serializedBoxes);
-
-	// Save the processes
-	for(const auto& process : constraint->processes())
+	for(const BoxModel* box : constraint->boxes())
 	{
-		// TODO
-/*		QByteArray arr;
+		QByteArray arr;
+		Serializer<DataStream> s{&arr};
+		s.visit(*box);
+		m_serializedBoxes.push_back(arr);
+	}
 
-		QDataStream s(&arr, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
-
-		s << process->processName();
-		s << *process;
-
-		m_serializedProcesses.push_back(arr);
-		*/
+	for(const ProcessSharedModelInterface* process : constraint->processes())
+	{
+		QByteArray arr;
+		Serializer<DataStream> s{&arr};
+		s.visit(*process);
+		m_serializedBoxes.push_back(arr);
 	}
 
 	// TODO save the mapping in the parent scenario view models.
@@ -59,16 +53,17 @@ void ClearConstraint::undo()
 
 	for(auto& serializedProcess : m_serializedProcesses)
 	{
-		QDataStream s(&serializedProcess, QIODevice::ReadOnly);
-// TODO		constraint->createProcess(s);
+		Deserializer<DataStream> s{&serializedProcess};
+		constraint->addProcess(createProcess(s, constraint));
 	}
 
 	for(auto& serializedBox : m_serializedBoxes)
 	{
-		QDataStream s(&serializedBox, QIODevice::ReadOnly);
-		int __warn;
-		// TODO		constraint->createBox(s);
+		Deserializer<DataStream> s{&serializedBox};
+		constraint->addBox(new BoxModel{s, constraint});
 	}
+
+
 }
 
 void ClearConstraint::redo()

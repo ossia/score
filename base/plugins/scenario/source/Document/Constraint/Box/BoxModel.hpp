@@ -30,9 +30,6 @@ class BoxModel : public IdentifiedObject
 
 		DeckModel* deck(int deckId) const;
 
-		// Devrait peut-être aller dans une Command à la place ?
-		void duplicateDeck();
-
 		const std::vector<DeckModel*>& decks() const
 		{ return m_decks; }
 

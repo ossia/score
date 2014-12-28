@@ -27,8 +27,5 @@ void Visitor<Writer<DataStream>>::visit(TemporalScenarioProcessViewModel& pvm)
 	{
 		auto cstr = createConstraintViewModel(*this, &pvm);
 		pvm.addConstraintViewModel(cstr);
-		int __warn;
-		// TODO
-		//pvm.makeConstraintViewModel(s);
 	}
 }

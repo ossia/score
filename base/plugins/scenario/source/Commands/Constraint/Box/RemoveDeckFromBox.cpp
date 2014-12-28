@@ -14,25 +14,16 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 	m_deckId{deckId}
 {
 	auto box = static_cast<BoxModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedDeckData, QIODevice::WriteOnly);
-		s.setVersion(QDataStream::Qt_5_3);
+	Serializer<DataStream> s{&m_serializedDeckData};
 
-		int __warn;
-		// TODO
-		//s << *box->deck(deckId);
-	}
+	s.visit(*box->deck(deckId));
 }
 
 void RemoveDeckFromBox::undo()
 {
 	auto box = static_cast<BoxModel*>(m_path.find());
-	{
-		QDataStream s(&m_serializedDeckData, QIODevice::ReadOnly);
-
-		int __warn;
-//		box->createDeck(s);
-	}
+	Deserializer<DataStream> s{&m_serializedDeckData};
+	box->addDeck(new DeckModel{s, box});
 }
 
 void RemoveDeckFromBox::redo()
