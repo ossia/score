@@ -1,4 +1,5 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 #include "State.hpp"
 
 template<>
@@ -18,5 +19,22 @@ void Visitor<Writer<DataStream> >::writeTo(State& state)
 	for(auto& message : messages)
 	{
 		state.addMessage(message);
+	}
+}
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const State& state)
+{
+	readFrom(static_cast<const IdentifiedObject&>(state));
+
+	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(State& state)
+{
+	for(auto& message : m_obj["Messages"].toArray().toVariantList())
+	{
+		state.addMessage(message.toString());
 	}
 }

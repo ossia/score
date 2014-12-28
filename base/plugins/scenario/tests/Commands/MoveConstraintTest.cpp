@@ -24,7 +24,7 @@ class MoveConstraintTest: public QObject
 
 			auto int_0_id = getNextId(scenar->constraints());
 			auto ev_0_id = getNextId(scenar->events());
-			scenar->createConstraintAndEndEventFromEvent(scenar->startEvent()->id(), 10, 0.5, int_0_id, ev_0_id);
+			scenar->createConstraintAndEndEventFromEvent((SettableIdentifier::identifier_type)scenar->startEvent()->id(), 10, 0.5, int_0_id, ev_0_id);
 
 			ConstraintData data{};
 			data.id = int_0_id;

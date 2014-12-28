@@ -51,7 +51,7 @@ void BoxInspectorSection::createDeck()
 
 void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 {
-	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg(deck->id()),
+	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg((SettableIdentifier::identifier_type)deck->id()),
 															 deck,
 															 this};
 
@@ -59,7 +59,7 @@ void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 			this,	 &BoxInspectorSection::submitCommand);
 	m_deckSection->addContent(newDeck);
 
-	m_decksSectionWidgets[deck->id()] = newDeck;
+	m_decksSectionWidgets[(SettableIdentifier::identifier_type)deck->id()] = newDeck;
 }
 
 

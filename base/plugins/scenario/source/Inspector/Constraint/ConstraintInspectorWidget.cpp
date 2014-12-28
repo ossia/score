@@ -200,14 +200,14 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
 void ConstraintInspectorWidget::setupBox(BoxModel* box)
 {
 	// Display the widget
-	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg(box->id()),
+	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg((SettableIdentifier::identifier_type)box->id()),
 														  box,
 														  this};
 
 	connect(newBox, &BoxInspectorSection::submitCommand,
 			this,	&ConstraintInspectorWidget::submitCommand);
 
-	m_boxesSectionWidgets[box->id()] = newBox;
+	m_boxesSectionWidgets[(SettableIdentifier::identifier_type)box->id()] = newBox;
 	m_boxSection->addContent(newBox);
 }
 

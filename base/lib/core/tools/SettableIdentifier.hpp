@@ -1,23 +1,28 @@
 #pragma once
 #include <QDataStream>
+#include "interface/serialization/DataStreamVisitor.hpp"
+#include "interface/serialization/JSONVisitor.hpp"
 
 class NoIdentifier {};
 class SettableIdentifier
 {
-		friend QDataStream& operator <<(QDataStream& s, const SettableIdentifier& obj)
-		{
-			s << obj.m_id << obj.m_set;
-			return s;
-		}
-
-		friend QDataStream& operator >>(QDataStream& s, SettableIdentifier& obj)
-		{
-			s >> obj.m_id >> obj.m_set;
-			return s;
-		}
+		friend Serializer<DataStream>;
+		friend Serializer<JSON>;
+		friend Deserializer<DataStream>;
+		friend Deserializer<JSON>;
 
 	public:
 		using identifier_type = int;
+
+		friend bool operator==(const SettableIdentifier& lhs, const SettableIdentifier& rhs)
+		{
+			return (lhs.m_set && rhs.m_set && (lhs.m_id == rhs.m_id)) || (!lhs.m_set && !rhs.m_set);
+		}
+		friend bool operator==(const SettableIdentifier& lhs, identifier_type& id)
+		{
+			return (lhs.m_set && (lhs.m_id == id));
+		}
+
 
 		SettableIdentifier() = default;
 		SettableIdentifier(NoIdentifier) { }
@@ -29,7 +34,7 @@ class SettableIdentifier
 		bool set() const
 		{ return m_set; }
 
-		operator identifier_type() const
+		explicit operator identifier_type() const
 		{ return m_id; }
 
 	private:

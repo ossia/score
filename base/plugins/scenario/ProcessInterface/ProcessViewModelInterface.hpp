@@ -76,8 +76,8 @@ inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessVie
 	auto deckModel = static_cast<IdentifiedObject*>(pvm->parent());
 	auto boxModel = static_cast<IdentifiedObject*>(deckModel->parent());
 	return std::tuple<int,int,int>{
-				boxModel->id(),
-				deckModel->id(),
-				pvm->id()};
+				(SettableIdentifier::identifier_type) boxModel->id(),
+				(SettableIdentifier::identifier_type) deckModel->id(),
+				(SettableIdentifier::identifier_type) pvm->id()};
 }
 

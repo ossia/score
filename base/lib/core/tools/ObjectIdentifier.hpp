@@ -15,18 +15,15 @@
  */
 class ObjectIdentifier
 {
-		friend QDataStream& operator <<(QDataStream& s, const ObjectIdentifier& obj)
-		{
-			s << obj.m_objectName << obj.m_id;
-			return s;
-		}
+		friend Serializer<DataStream>;
+		friend Serializer<JSON>;
+		friend Deserializer<DataStream>;
+		friend Deserializer<JSON>;
 
-		friend QDataStream& operator >>(QDataStream& s, ObjectIdentifier& obj)
+		friend bool operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
 		{
-			s >> obj.m_objectName >> obj.m_id;
-			return s;
+			return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
 		}
-
 	public:
 		ObjectIdentifier() = default;
 		ObjectIdentifier(const char* name):

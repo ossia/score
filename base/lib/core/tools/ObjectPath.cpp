@@ -49,7 +49,7 @@ QString ObjectPath::toString() const
 		if(obj.id().set())
 		{
 			s += ".";
-			s += QString::number(obj.id());
+			s += QString::number((SettableIdentifier::identifier_type)obj.id());
 		}
 		s += "/";
 	}
@@ -88,7 +88,7 @@ QObject* ObjectPath::find() const
 			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.objectName(),
 																Qt::FindDirectChildrenOnly);
 
-			auto elt = findById(childs, currentObjIdentifier.id());
+			auto elt = findById(childs, (SettableIdentifier::identifier_type)currentObjIdentifier.id());
 			if(!elt)
 			{
 				throw std::runtime_error("ObjectPath::find  Error! Child not found");

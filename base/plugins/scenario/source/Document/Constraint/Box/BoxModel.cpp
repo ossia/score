@@ -28,8 +28,8 @@ int BoxModel::addDeck(DeckModel* deck)
 			deck, &DeckModel::on_deleteSharedProcessModel);
 	m_decks.push_back(deck);
 
-	emit deckCreated(deck->id());
-	return deck->id();
+	emit deckCreated((SettableIdentifier::identifier_type) deck->id());
+	return (SettableIdentifier::identifier_type) deck->id();
 }
 
 

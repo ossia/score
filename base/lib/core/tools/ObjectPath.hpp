@@ -17,17 +17,14 @@
 */
 class ObjectPath
 {
-		friend QDataStream& operator <<(QDataStream& s, const ObjectPath& path)
-		{
-			s << path.m_objectIdentifiers;
-			return s;
-		}
+		friend Serializer<DataStream>;
+		friend Serializer<JSON>;
+		friend Deserializer<DataStream>;
+		friend Deserializer<JSON>;
 
-		friend QDataStream& operator >>(QDataStream& s, ObjectPath& path)
+		friend bool operator==(const ObjectPath& lhs, const ObjectPath& rhs)
 		{
-			// @todo what happens if the vector is not empty ??
-			s >> path.m_objectIdentifiers;
-			return s;
+			return lhs.m_objectIdentifiers == rhs.m_objectIdentifiers;
 		}
 
 	public:

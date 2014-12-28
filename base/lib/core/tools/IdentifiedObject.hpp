@@ -81,7 +81,7 @@ int getNextId(const Vector& v)
 	transform(begin(v),
 			  end(v),
 			  begin(ids),
-			  [] (typename Vector::value_type elt) { return elt->id(); });
+			  [] (typename Vector::value_type elt) { return (SettableIdentifier::identifier_type)elt->id(); });
 
 	int id{};
 	do {

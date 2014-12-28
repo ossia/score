@@ -89,12 +89,12 @@ TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
 
 int TemporalScenarioProcessPresenter::viewModelId() const
 {
-	return m_viewModel->id();
+	return (SettableIdentifier::identifier_type) m_viewModel->id();
 }
 
 int TemporalScenarioProcessPresenter::modelId() const
 {
-	return m_viewModel->sharedProcessModel()->id();
+	return (SettableIdentifier::identifier_type) m_viewModel->sharedProcessModel()->id();
 }
 
 int TemporalScenarioProcessPresenter::currentlySelectedEvent() const

@@ -36,7 +36,7 @@ ConstraintModel::ConstraintModel(int id,
 	IdentifiedObject{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox}
 {
-	metadata.setName(QString("Constraint.%1").arg(this->id()));
+	metadata.setName(QString("Constraint.%1").arg((SettableIdentifier::identifier_type) this->id()));
 }
 
 ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
@@ -57,7 +57,8 @@ void ConstraintModel::createProcess(QString processName, int processId)
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
-	emit processCreated(model->processName(), model->id());
+	emit processCreated(model->processName(),
+						(SettableIdentifier::identifier_type) model->id());
 }
 
 
@@ -86,7 +87,7 @@ void ConstraintModel::addBox(BoxModel* box)
 			box,	&BoxModel::on_deleteSharedProcessModel);
 
 	m_boxes.push_back(box);
-	emit boxCreated(box->id());
+	emit boxCreated((SettableIdentifier::identifier_type) box->id());
 }
 
 

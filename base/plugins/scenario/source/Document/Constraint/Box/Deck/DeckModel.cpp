@@ -29,7 +29,7 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 {
 	m_processViewModels.push_back(viewmodel);
 
-	emit processViewModelCreated(viewmodel->id());
+	emit processViewModelCreated((SettableIdentifier::identifier_type) viewmodel->id());
 }
 
 void DeckModel::deleteProcessViewModel(int processViewId)
@@ -70,7 +70,7 @@ void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 
 	if(it != end(m_processViewModels))
 	{
-		deleteProcessViewModel((*it)->id());
+		deleteProcessViewModel((SettableIdentifier::identifier_type) (*it)->id());
 	}
 }
 

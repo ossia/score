@@ -15,7 +15,7 @@ typename ScenarioViewModelType::constraint_view_model_type*
 	// Deserialize the required identifier
 	SettableIdentifier constraint_model_id;
 	deserializer.m_stream >> constraint_model_id;
-	auto constraint = model(svm)->constraint(constraint_model_id);
+	auto constraint = model(svm)->constraint((SettableIdentifier::identifier_type) constraint_model_id);
 
 	// Make it
 	auto viewmodel =  new typename ScenarioViewModelType

@@ -45,7 +45,7 @@ void TemporalScenarioProcessViewModel::addConstraintViewModel(constraint_view_mo
 {
 	m_constraints.push_back(constraint_view_model);
 
-	emit constraintViewModelCreated(constraint_view_model->id());
+	emit constraintViewModelCreated((SettableIdentifier::identifier_type)constraint_view_model->id());
 }
 
 void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintSharedModelId)
@@ -53,7 +53,7 @@ void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintShared
 	{
 		if(constraint_view_model->model()->id() == constraintSharedModelId)
 		{
-			removeConstraintViewModel(constraint_view_model->id());
+			removeConstraintViewModel((SettableIdentifier::identifier_type)constraint_view_model->id());
 			return;
 		}
 	}

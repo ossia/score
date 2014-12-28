@@ -21,7 +21,7 @@ class CreateEventAfterEventTest: public QObject
 		{
 			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
 			EventData data{};
-			data.eventClickedId = scenar->startEvent()->id();
+			data.eventClickedId = (SettableIdentifier::identifier_type)scenar->startEvent()->id();
 			data.x = 10;
 			data.relativeY = 0.5;
 

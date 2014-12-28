@@ -40,7 +40,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 		}))->redo();
 	auto box = constraint_model->boxes().front();
 
-	(new ShowBoxInViewModel(viewmodel, box->id()))->redo();
+	(new ShowBoxInViewModel(viewmodel, (SettableIdentifier::identifier_type)box->id()))->redo();
 
 	(new AddDeckToBox(
 		ObjectPath{
@@ -54,7 +54,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, scenarioId))->redo();
+		}, (SettableIdentifier::identifier_type)scenarioId))->redo();
 }
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,

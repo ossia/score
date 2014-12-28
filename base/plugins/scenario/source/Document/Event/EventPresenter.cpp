@@ -47,7 +47,7 @@ EventPresenter::~EventPresenter()
 
 int EventPresenter::id() const
 {
-	return m_model->id();
+	return (SettableIdentifier::identifier_type)m_model->id();
 }
 
 EventView *EventPresenter::view() const

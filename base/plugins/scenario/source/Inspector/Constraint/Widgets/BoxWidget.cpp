@@ -53,7 +53,7 @@ void BoxWidget::updateComboBox()
 		auto boxesPtrs = m_model->boxes();
 		for(auto box : boxesPtrs)
 		{
-			m_boxList->addItem(QString::number(box->id()));
+			m_boxList->addItem(QString::number((SettableIdentifier::identifier_type) box->id()));
 		}
 	}
 }

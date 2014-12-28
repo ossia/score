@@ -72,12 +72,12 @@ void ClearConstraint::redo()
 
 	for(auto& process : constraint->processes())
 	{
-		constraint->removeProcess(process->id());
+		constraint->removeProcess((SettableIdentifier::identifier_type)process->id());
 	}
 
 	for(auto& box : constraint->boxes())
 	{
-		constraint->removeBox(box->id());
+		constraint->removeBox((SettableIdentifier::identifier_type)box->id());
 	}
 }
 

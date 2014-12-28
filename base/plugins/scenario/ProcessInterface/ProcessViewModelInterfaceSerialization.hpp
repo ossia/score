@@ -1,7 +1,10 @@
 #pragma once
-#include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/VisitorInterface.hpp>
+class QObject;
 class ProcessViewModelInterface;
 class ConstraintModel;
-ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
+
+template<typename T>
+ProcessViewModelInterface* createProcessViewModel(Deserializer<T>& deserializer,
 												  ConstraintModel* constraint,
 												  QObject* parent);

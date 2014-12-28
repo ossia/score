@@ -41,3 +41,25 @@ class Visitor<Writer<DataStream>>
 
 		QDataStream m_stream;
 };
+
+template<typename T>
+QDataStream& operator<<(QDataStream& stream, const T& obj)
+{
+	QByteArray ar;
+	Visitor<Reader<DataStream>> reader(&ar);
+	reader.readFrom(obj);
+
+	stream << ar;
+	return stream;
+}
+
+template<typename T>
+QDataStream& operator>>(QDataStream& stream, T& obj)
+{
+	QByteArray ar;
+	stream >> ar;
+	Visitor<Writer<DataStream>> writer(&ar);
+	writer.writeTo(obj);
+
+	return stream;
+}

@@ -42,7 +42,7 @@ class RemoveProcessFromConstraintTest: public QObject
 
 			auto int_0_id = getNextId(s0->constraints());
 			auto ev_0_id = getNextId(s0->events());
-			s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 55, 10, int_0_id, ev_0_id);
+			s0->createConstraintAndEndEventFromEvent((SettableIdentifier::identifier_type)s0->startEvent()->id(), 55, 10, int_0_id, ev_0_id);
 			s0->constraint(int_0_id)->createBox(746);
 			QCOMPARE((int)s0->constraints().size(), 1);
 			QCOMPARE((int)s0->events().size(), 2); // TODO 3 if endEvent
@@ -64,7 +64,7 @@ class RemoveProcessFromConstraintTest: public QObject
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0}
-			}, s0->id());
+			}, (SettableIdentifier::identifier_type)s0->id());
 
 			cmd3.redo();
 			QVERIFY(int_model2->processes().size() == 0);

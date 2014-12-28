@@ -1,18 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 
-return()
-
-#project(iscore_tests)
+project(iscore_tests)
 #include (CTest)
 #include(CppcheckTargets)
-#find_package(Qt5Core)
-#find_package(Qt5Test)
-#find_package(Qt5Widgets)
+find_package(Qt5Core)
+find_package(Qt5Test)
+find_package(Qt5Widgets)
 
-#include_directories("${CMAKE_SOURCE_DIR}/base")
-
-#add_executable(iscore_test1 main.cpp)
-
+add_executable(SerializationTest SerializationTest.cpp)
+target_link_libraries(SerializationTest iscore_lib Qt5::Core Qt5::Test)
+add_test(SerializationTest SerializationTest)
 #set (TEST2_HDRS  "${CMAKE_SOURCE_DIR}/base/lib/presenter/command/Command.hpp"
 #				 "${CMAKE_SOURCE_DIR}/base/lib/presenter/command/CommandQueue.hpp")
 #set (TEST2_SRCS "test_command.cpp"

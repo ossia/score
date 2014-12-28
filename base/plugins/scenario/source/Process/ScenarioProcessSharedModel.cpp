@@ -86,15 +86,15 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId,
 
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
-	inter->setStartEvent(sev->id());
-	inter->setEndEvent(eev->id());
+	inter->setStartEvent((SettableIdentifier::identifier_type) sev->id());
+	inter->setEndEvent((SettableIdentifier::identifier_type) eev->id());
 
 	sev->addNextConstraint(newConstraintModelId);
 	eev->addPreviousConstraint(newConstraintModelId);
 
 	// From now on everything must be in a valid state.
 
-	emit constraintCreated(inter->id());
+	emit constraintCreated((SettableIdentifier::identifier_type) inter->id());
 }
 
 void
@@ -131,20 +131,22 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
 	constraint->setStartEvent(startEventId);
-	constraint->setEndEvent(event->id());
+	constraint->setEndEvent((SettableIdentifier::identifier_type) event->id());
 
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
 	m_constraints.push_back(constraint);
 
-	emit eventCreated(event->id());
-	emit constraintCreated(constraint->id());
+	emit eventCreated((SettableIdentifier::identifier_type) event->id());
+	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
 
 	// link constraint with event
 	event->addPreviousConstraint(newConstraintId);
 	this->event(startEventId)->addNextConstraint(newConstraintId);
-	event->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
-	this->event(startEventId)->setVerticalExtremity(constraint->id(), constraint->heightPercentage());
+	event->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+								constraint->heightPercentage());
+	this->event(startEventId)->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+													constraint->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)
@@ -161,7 +163,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolut
 
 		auto prev_constraint = constraint(event(eventId)->previousConstraints().at(0));
 		prev_constraint->setWidth(prev_constraint->width() + time);
-		emit constraintMoved(prev_constraint->id());
+		emit constraintMoved((SettableIdentifier::identifier_type) prev_constraint->id());
 		emit eventMoved(eventId);
 
 		QVector<int> already_moved_events;
@@ -180,7 +182,9 @@ void ScenarioProcessSharedModel::moveConstraint(int constraintId, int absolute_t
 	eev->setVerticalExtremity(constraintId, heightPosition);
 	sev->setVerticalExtremity(constraintId, heightPosition);
 
-	moveEventAndConstraint(sev->id(), absolute_time, sev->heightPercentage());
+	moveEventAndConstraint((SettableIdentifier::identifier_type) sev->id(),
+						   absolute_time,
+						   sev->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent)
@@ -271,11 +275,11 @@ void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
 void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
 {
 	m_constraints.push_back(constraint);
-	emit constraintCreated(constraint->id());
+	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
 }
 
 void ScenarioProcessSharedModel::addEvent(EventModel* event)
 {
 	m_events.push_back(event);
-	emit eventCreated(event->id());
+	emit eventCreated((SettableIdentifier::identifier_type) event->id());
 }
