@@ -15,6 +15,6 @@ script:
     - source /opt/qt53/bin/qt53-env.sh
     - cmake-3.0.2-Linux-x86_64/bin/cmake .
     - make
-    - LD_LIBRARY_PATH=/usr/local/lib64 base/plugins/scenario/tests/CreateEventTest
-#    - LD_LIBRARY_PATH=/opt/qt53/lib make ExperimentalTest
+# Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
+#    - LD_LIBRARY_PATH=/usr/local/lib64 make ExperimentalTest
 
