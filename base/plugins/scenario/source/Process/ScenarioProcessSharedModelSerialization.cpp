@@ -12,7 +12,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 	// Constraints
 	auto constraints = scenario.constraints();
 	m_stream << (int) constraints.size();
-	for(const ConstraintModel* constraint : constraints)
+	for(auto constraint : constraints)
 	{
 		readFrom(*constraint);
 	}
@@ -20,7 +20,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 	// Events
 	auto events = scenario.events();
 	m_stream << (int) events.size();
-	for(const EventModel* event : events)
+	for(auto event : events)
 	{
 		readFrom(*event);
 	}
@@ -34,7 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 	m_stream >> constraint_count;
 	for(; constraint_count --> 0;)
 	{
-		ConstraintModel* constraint = new ConstraintModel{*this, &scenario};
+		auto constraint = new ConstraintModel{*this, &scenario};
 		scenario.addConstraint(constraint);
 	}
 
@@ -43,7 +43,61 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 	m_stream >> event_count;
 	for(; event_count --> 0;)
 	{
-		EventModel* evmodel = new EventModel(*this, &scenario);
+		auto evmodel = new EventModel{*this, &scenario};
+		scenario.addEvent(evmodel);
+	}
+
+	// Recreate the API
+	/*for(ConstraintModel* constraint : scenario.m_constraints)
+	{
+		auto sev = scenario.event(constraint->startEvent());
+		auto eev = scenario.event(constraint->endEvent());
+
+		scenario.m_scenario->addTimeBox(*constraint->apiObject(),
+										*sev->apiObject(),
+										*eev->apiObject());
+	}*/
+}
+
+
+
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
+{
+	QJsonArray constraints_array;
+	for(auto constraint : scenario.constraints())
+	{
+		constraints_array.push_back(toJsonObject(*constraint));
+	}
+	m_obj["Constraints"] = constraints_array;
+
+	QJsonArray events_array;
+	for(auto event : scenario.events())
+	{
+		events_array.push_back(toJsonObject(*event));
+	}
+	m_obj["Events"] = events_array;
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
+{
+	QJsonArray constraints_array = m_obj["Constraints"].toArray();
+	for(auto json_vref : constraints_array)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		auto constraint = new ConstraintModel{deserializer,
+											  &scenario};
+		scenario.addConstraint(constraint);
+	}
+
+	QJsonArray events_array = m_obj["Events"].toArray();
+	for(auto json_vref : events_array)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		auto evmodel = new EventModel{deserializer,
+									  &scenario};
 		scenario.addEvent(evmodel);
 	}
 

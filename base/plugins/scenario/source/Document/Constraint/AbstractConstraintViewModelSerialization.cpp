@@ -4,7 +4,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cvm)
 {
-	//Ajouter l'id de la contrainte pour pouvoir le retrouver
+	// Add the constraint id since we need it for construction
 	m_stream << cvm.model()->id();
 
 	// We happily do not require a way to save the derived type, since it is known
@@ -28,6 +28,31 @@ void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 	if(shown)
 	{
 		cvm.showBox(shown_id);
+	}
+	else
+	{
+		cvm.hideBox();
+	}
+}
+
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const AbstractConstraintViewModel& cvm)
+{
+	m_obj["ConstraintId"] = toJsonObject(cvm.model()->id());
+
+	readFrom(static_cast<const IdentifiedObject&>(cvm));
+
+	m_obj["IsBoxShown"] = cvm.isBoxShown();
+	m_obj["ShownBoxId"] = cvm.shownBox();
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(AbstractConstraintViewModel& cvm)
+{
+	if(m_obj["IsBoxShown"].toBool())
+	{
+		cvm.showBox(m_obj["ShownBoxId"].toInt());
 	}
 	else
 	{

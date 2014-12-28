@@ -42,7 +42,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 	// Processes
 	auto processes = constraint.processes();
 	m_stream	<< (int) processes.size();
-	for(const ProcessSharedModelInterface* process : processes)
+	for(auto process : processes)
 	{
 		readFrom(*process);
 	}
@@ -50,7 +50,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 	// Boxes
 	auto boxes = constraint.boxes();
 	m_stream	<<  (int) boxes.size();
-	for(const BoxModel* box : boxes)
+	for(auto box : boxes)
 	{
 		readFrom(*box);
 	}
@@ -74,20 +74,19 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	constraint.setHeightPercentage(heightPercentage);
 
 	// Processes
-	int process_size;
-	m_stream >> process_size;
-	for(int i = 0; i < process_size; i++)
+	int process_count;
+	m_stream >> process_count;
+	for(; process_count --> 0;)
 	{
 		constraint.addProcess(createProcess(*this, &constraint));
 	}
 
 	// Boxes
-	int content_models_size;
-	m_stream >> content_models_size;
-	for(int i = 0; i < content_models_size; i++)
+	int box_count;
+	m_stream >> box_count;
+	for(; box_count --> 0;)
 	{
-		BoxModel* box = new BoxModel(*this, &constraint);
-		constraint.addBox(box);
+		constraint.addBox(new BoxModel(*this, &constraint));
 	}
 
 	// Events
@@ -103,4 +102,65 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 			 >> startDate;
 	constraint.setWidth(width);
 	constraint.setStartDate(startDate);
+}
+
+
+
+
+
+template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
+{
+	readFrom(static_cast<const IdentifiedObject&>(constraint));
+	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
+	m_obj["HeightPercentage"] = constraint.heightPercentage();
+	m_obj["StartEvent"] = constraint.startEvent();
+	m_obj["EndEvent"] = constraint.endEvent();
+
+	// Processes
+	QJsonArray process_array;
+	for(auto process : constraint.processes())
+	{
+		process_array.push_back(toJsonObject(*process));
+	}
+	m_obj["Processes"] = process_array;
+
+	// Boxes
+	QJsonArray box_array;
+	for(auto box : constraint.boxes())
+	{
+		box_array.push_back(toJsonObject(*box));
+	}
+	m_obj["Boxes"] = box_array;
+
+	// API Object
+	// s << i.apiObject()->save();
+	// Things that should be queried from the API :
+	m_obj["Width"] = constraint.width();
+	m_obj["StartDate"] = constraint.startDate();
+}
+
+template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
+{
+	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
+	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
+	constraint.setStartEvent(m_obj["StartEvent"].toInt());
+	constraint.setEndEvent(m_obj["EndEvent"].toInt());
+
+	QJsonArray process_array = m_obj["Processes"].toArray();
+	for(auto json_vref : process_array)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		constraint.addProcess(createProcess(deserializer, &constraint));
+	}
+
+	QJsonArray box_array = m_obj["Boxes"].toArray();
+	for(auto json_vref : box_array)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		constraint.addBox(new BoxModel(deserializer, &constraint));
+	}
+
+	// Things that should be queried from the API :
+	constraint.setWidth(m_obj["Width"].toInt());
+	constraint.setStartDate(m_obj["StartDate"].toInt());
 }

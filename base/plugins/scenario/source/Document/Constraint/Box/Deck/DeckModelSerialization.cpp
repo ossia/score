@@ -2,6 +2,7 @@
 #include "DeckModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
+#include <interface/serialization/JSONVisitor.hpp>
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 {
@@ -11,7 +12,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 
 	auto pvms = deck.processViewModels();
 	m_stream << (int) pvms.size();
-	for(const ProcessViewModelInterface* pvm : pvms)
+	for(auto pvm : pvms)
 	{
 		readFrom(*pvm);
 	}
@@ -27,9 +28,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 
 	int pvm_size;
 	m_stream >> pvm_size;
+
+	auto cstr = deck.parentConstraint();
 	for(int i = 0; i < pvm_size; i++)
 	{
-		auto cstr = deck.parentConstraint();
 		auto pvm = createProcessViewModel(*this, cstr, &deck);
 		deck.addProcessViewModel(pvm);
 	}
@@ -42,4 +44,44 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 	deck.setPosition(position);
 
 	deck.selectForEdition(editedProcessId);
+}
+
+
+
+
+
+template<> void Visitor<Reader<JSON>>::readFrom(const DeckModel& deck)
+{
+	readFrom(static_cast<const IdentifiedObject&>(deck));
+
+	m_obj["EditedProcess"] = deck.editedProcessViewModel();
+	m_obj["Height"] = deck.height();
+	m_obj["Position"] = deck.position();
+
+	QJsonArray arr;
+	for(auto pvm : deck.processViewModels())
+	{
+		arr.push_back(toJsonObject(*pvm));
+	}
+
+	m_obj["ProcessViewModels"] = arr;
+}
+
+template<> void Visitor<Writer<JSON>>::writeTo(DeckModel& deck)
+{
+	QJsonArray arr = m_obj["ProcessViewModels"].toArray();
+
+	auto cstr = deck.parentConstraint();
+	for(auto json_vref : arr)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		auto pvm = createProcessViewModel(deserializer,
+										  cstr,
+										  &deck);
+		deck.addProcessViewModel(pvm);
+	}
+
+	deck.setHeight(m_obj["Height"].toInt());
+	deck.setPosition(m_obj["Position"].toInt());
+	deck.selectForEdition(m_obj["EditedProcess"].toInt());
 }

@@ -46,6 +46,7 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		// hence we are safe with a pointer
 		ConstraintModel* m_model{};
 
+		// TODO use settable identifier instead
 		bool m_boxIsShown{};
 		int m_idOfShownBox{};
 };

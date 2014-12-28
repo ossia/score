@@ -27,6 +27,24 @@ class ConstraintModelMetadata : public QObject
 				   NOTIFY colorChanged)
 
 	public:
+		ConstraintModelMetadata() = default;
+		ConstraintModelMetadata(const ConstraintModelMetadata& other):
+			QObject{}
+		{
+			setName(other.name());
+			setComment(other.comment());
+			setColor(other.color());
+		}
+
+		ConstraintModelMetadata& operator=(const ConstraintModelMetadata& other)
+		{
+			setName(other.name());
+			setComment(other.comment());
+			setColor(other.color());
+
+			return *this;
+		}
+
 		QString name() const;
 		QString comment() const;
 		QColor color() const;
@@ -46,3 +64,5 @@ class ConstraintModelMetadata : public QObject
 		QString m_comment;
 		QColor m_color;
 };
+
+Q_DECLARE_METATYPE(ConstraintModelMetadata)

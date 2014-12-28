@@ -19,6 +19,7 @@ class EventModel : public IdentifiedObject
 				   NOTIFY heightPercentageChanged)
 
 		friend void Visitor<Writer<DataStream>>::writeTo<EventModel>(EventModel& ev);
+		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
 		EventModel(int id, QObject* parent);

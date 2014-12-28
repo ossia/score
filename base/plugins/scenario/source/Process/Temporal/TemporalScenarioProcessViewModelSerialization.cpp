@@ -28,3 +28,31 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 		pvm.addConstraintViewModel(cstr);
 	}
 }
+
+
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioProcessViewModel& pvm)
+{
+	QJsonArray arr;
+	for(auto cstrvm : constraintsViewModels(pvm))
+	{
+		arr.push_back(toJsonObject(*cstrvm));
+	}
+
+	m_obj["Constraints"] = arr;
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(TemporalScenarioProcessViewModel& pvm)
+{
+	QJsonArray arr = m_obj["Constraints"].toArray();
+
+	for(auto json_vref : arr)
+	{
+		Deserializer<JSON> deserializer{json_vref.toObject()};
+		auto cstrvm = createConstraintViewModel(deserializer,
+												&pvm);
+		pvm.addConstraintViewModel(cstrvm);
+	}
+}
