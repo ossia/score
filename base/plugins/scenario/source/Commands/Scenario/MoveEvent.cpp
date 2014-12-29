@@ -14,14 +14,14 @@ using namespace Scenario::Command;
 
 MoveEvent::MoveEvent():
 	SerializableCommand{"ScenarioControl",
-						"MoveEventCommand",
+						"MoveEvent",
 						QObject::tr("Event move")}
 {
 }
 
 MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 	SerializableCommand{"ScenarioControl",
-						"MoveEventCommand",
+						"MoveEvent",
 						QObject::tr("Event move")},
 	m_path{std::move(scenarioPath)},
 	m_eventId{data.eventClickedId},

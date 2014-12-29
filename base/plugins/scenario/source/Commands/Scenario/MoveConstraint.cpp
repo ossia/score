@@ -16,14 +16,14 @@ using namespace Scenario::Command;
 
 MoveConstraint::MoveConstraint():
 	SerializableCommand{"ScenarioControl",
-						"MoveEventCommand",
+						"MoveConstraint",
 						QObject::tr("Constraint move")}
 {
 }
 
 MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	SerializableCommand{"ScenarioControl",
-						"MoveEventCommand",
+						"MoveConstraint",
 						QObject::tr("Constraint move")},
 	m_path{std::move(scenarioPath)},
 	m_constraintId{d.id},

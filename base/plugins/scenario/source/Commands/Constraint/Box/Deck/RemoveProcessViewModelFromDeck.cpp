@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
 	SerializableCommand{"ScenarioControl",
-						"RemoveProcessViewFromDeck",
+						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")}
 {
 }
@@ -19,7 +19,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										ObjectPath&& boxPath,
 										int processViewId):
 	SerializableCommand{"ScenarioControl",
-						"RemoveProcessViewFromDeck",
+						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")},
 	m_path{boxPath},
 	m_processViewId{processViewId}

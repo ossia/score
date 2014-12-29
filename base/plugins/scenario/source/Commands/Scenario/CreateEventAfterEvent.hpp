@@ -38,7 +38,6 @@ namespace Scenario
 				ObjectPath m_path;
 
 				int m_createdConstraintId{};
-				int m_createdBoxId{};
 				int m_createdEventId{};
 
 				int m_firstEventId{};

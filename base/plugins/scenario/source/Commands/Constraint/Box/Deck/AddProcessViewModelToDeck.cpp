@@ -9,7 +9,7 @@ using namespace Scenario::Command;
 
 AddProcessViewModelToDeck::AddProcessViewModelToDeck():
 	SerializableCommand{"ScenarioControl",
-						"AddProcessViewToDeck",
+						"AddProcessViewModelToDeck",
 						QObject::tr("Add process view")}
 {
 }
@@ -18,7 +18,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
 										ObjectPath&& deckPath,
 										int sharedModelId):
 	SerializableCommand{"ScenarioControl",
-						"AddProcessViewToDeck",
+						"AddProcessViewModelToDeck",
 						QObject::tr("Add process view")},
 	m_path{deckPath},
 	m_sharedModelId{sharedModelId}

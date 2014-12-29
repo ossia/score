@@ -12,7 +12,7 @@ using namespace Scenario::Command;
 
 ClearEvent::ClearEvent():
 	SerializableCommand{"ScenarioControl",
-						"EmptyEventCommand",
+						"ClearEvent",
 						QObject::tr("Remove event and pre-constraints")}
 {
 }
@@ -20,7 +20,7 @@ ClearEvent::ClearEvent():
 
 ClearEvent::ClearEvent(ObjectPath&& eventPath):
 	SerializableCommand{"ScenarioControl",
-						"EmptyEventCommand",
+						"ClearEvent",
 						QObject::tr("Remove event and pre-constraints")},
 	m_path{std::move(eventPath)}
 {

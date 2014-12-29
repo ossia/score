@@ -8,16 +8,16 @@ using namespace Scenario::Command;
 
 RemoveMultipleElements::RemoveMultipleElements():
 	SerializableCommand{"ScenarioControl",
-								"DeleteMultipleElementsCommand",
-								QObject::tr("Group deletion")}
+						"RemoveMultipleElements",
+						QObject::tr("Group deletion")}
 {
 }
 
 RemoveMultipleElements::RemoveMultipleElements(
 		QVector<SerializableCommand*> deletionCommands):
 	SerializableCommand{"ScenarioControl",
-								"DeleteMultipleElementsCommand",
-								QObject::tr("Group deletion")}
+						"RemoveMultipleElements",
+						QObject::tr("Group deletion")}
 {
 	for(auto& cmd : deletionCommands)
 	{

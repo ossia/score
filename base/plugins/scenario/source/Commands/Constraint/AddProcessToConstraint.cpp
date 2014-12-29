@@ -11,14 +11,14 @@ using namespace Scenario::Command;
 
 AddProcessToConstraint::AddProcessToConstraint():
 	SerializableCommand{"ScenarioControl",
-						"AddProcessToConstraintCommand",
+						"AddProcessToConstraint",
 						QObject::tr("Add process")}
 {
 }
 
 AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process):
 	SerializableCommand{"ScenarioControl",
-						"AddProcessToConstraintCommand",
+						"AddProcessToConstraint",
 						QObject::tr("Add process")},
 	m_path{std::move(constraintPath)},
 	m_processName{process}

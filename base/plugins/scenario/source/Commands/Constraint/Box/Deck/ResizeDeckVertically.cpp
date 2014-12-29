@@ -7,7 +7,7 @@ using namespace Scenario::Command;
 
 ResizeDeckVertically::ResizeDeckVertically():
 	SerializableCommand{"ScenarioControl",
-						"ResizeDeckVerticallyCommand",
+						"ResizeDeckVertically",
 						QObject::tr("Resize Deck")}
 {
 }
@@ -15,7 +15,7 @@ ResizeDeckVertically::ResizeDeckVertically():
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
 										   int newSize):
 	SerializableCommand{"ScenarioControl",
-						"ResizeDeckVerticallyCommand",
+						"ResizeDeckVertically",
 						QObject::tr("Resize Deck")},
 	m_path{deckPath},
 	m_newSize{newSize}

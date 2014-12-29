@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 AddStateToEvent::AddStateToEvent():
 	SerializableCommand{"ScenarioControl",
-						"AddStateToEventCommand",
+						"AddStateToEvent",
 						QObject::tr("State and message creation")}
 {
 
@@ -18,7 +18,7 @@ AddStateToEvent::AddStateToEvent():
 
 AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, QString message):
 	SerializableCommand{"ScenarioControl",
-						"AddStateToEventCommand",
+						"AddStateToEvent",
 						QObject::tr("State and message creation")},
 	m_path{std::move(eventPath)},
 	m_message(message)
