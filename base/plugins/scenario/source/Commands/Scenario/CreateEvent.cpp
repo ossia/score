@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 CreateEvent::CreateEvent():
 	SerializableCommand{"ScenarioControl",
-						"CreateEventCommand",
+						"CreateEvent",
 						QObject::tr("Event creation")},
 	m_cmd{new CreateEventAfterEvent}
 {
@@ -24,7 +24,7 @@ CreateEvent::~CreateEvent()
 
 CreateEvent::CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition):
 	SerializableCommand{"ScenarioControl",
-						"CreateEventCommand",
+						"CreateEvent",
 						QObject::tr("Event creation")}
 {
 	auto scenar = static_cast<ScenarioProcessSharedModel*>(scenarioPath.find());

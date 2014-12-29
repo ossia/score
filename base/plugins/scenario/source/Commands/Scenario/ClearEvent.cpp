@@ -11,11 +11,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearEvent::ClearEvent():
-	iscore::SerializableCommand{"ScenarioControl",
-								"EmptyEventCommand",
-								QObject::tr("Remove event and pre-constraints")}
+	ClearEvent{{}}
 {
-
 }
 
 

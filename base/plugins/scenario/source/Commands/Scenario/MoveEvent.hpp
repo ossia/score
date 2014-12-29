@@ -13,6 +13,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				MoveEvent();
 				MoveEvent(ObjectPath &&scenarioPath, EventData data);
 				virtual void undo() override;
 				virtual void redo() override;

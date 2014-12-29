@@ -11,6 +11,7 @@ namespace Scenario
 		class RemoveMultipleElements : public iscore::SerializableCommand
 		{
 			public:
+				RemoveMultipleElements();
 				RemoveMultipleElements(QVector<SerializableCommand*> elementsToDelete);
 				virtual void undo() override;
 				virtual void redo() override;

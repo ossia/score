@@ -8,6 +8,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveBoxFromConstraint::RemoveBoxFromConstraint():
+	RemoveBoxFromConstraint{{}, {}}
+{
+}
+
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, int boxId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveBoxFromConstraint",

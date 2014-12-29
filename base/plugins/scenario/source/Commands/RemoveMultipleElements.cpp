@@ -6,6 +6,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveMultipleElements::RemoveMultipleElements():
+	RemoveMultipleElements{{}}
+{
+}
+
 RemoveMultipleElements::RemoveMultipleElements(
 		QVector<iscore::SerializableCommand*> deletionCommands):
 	iscore::SerializableCommand{"ScenarioControl",

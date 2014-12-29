@@ -14,6 +14,11 @@ using namespace Scenario::Command;
 
 // @todo : maybe should we use deplacement value and not absolute ending point.
 
+MoveConstraint::MoveConstraint():
+	MoveConstraint{{}, {}}
+{
+}
+
 MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",

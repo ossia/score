@@ -8,8 +8,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& boxPath,
-													 int processViewId):
+RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
+	RemoveProcessViewModelFromDeck{{}, {}}
+{
+}
+
+RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
+										ObjectPath&& boxPath,
+										int processViewId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessViewFromDeck",
 						"Remove process view"},

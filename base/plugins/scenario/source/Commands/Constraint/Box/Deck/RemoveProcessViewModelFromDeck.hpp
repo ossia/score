@@ -14,6 +14,7 @@ namespace Scenario
 		class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
 		{
 			public:
+				RemoveProcessViewModelFromDeck();
 				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, int processViewId);
 
 				virtual void undo() override;

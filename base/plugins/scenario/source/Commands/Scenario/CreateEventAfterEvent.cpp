@@ -12,15 +12,13 @@ using namespace Scenario::Command;
 
 
 CreateEventAfterEvent::CreateEventAfterEvent():
-	SerializableCommand{"ScenarioControl",
-						"CreateEventAfterEventCommand",
-						QObject::tr("Event creation")}
+	CreateEventAfterEvent{{}, {}}
 {
 }
 
 CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventData data):
 	SerializableCommand{"ScenarioControl",
-						"CreateEventAfterEventCommand",
+						"CreateEventAfterEvent",
 						QObject::tr("Event creation")},
 	m_path{std::move(scenarioPath)},
 	m_firstEventId{data.eventClickedId},

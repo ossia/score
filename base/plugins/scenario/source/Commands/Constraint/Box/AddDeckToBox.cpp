@@ -6,6 +6,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+AddDeckToBox::AddDeckToBox():
+	AddDeckToBox{{}}
+{
+}
+
 AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath):
 	SerializableCommand{"ScenarioControl",
 						"AddDeckToBox",

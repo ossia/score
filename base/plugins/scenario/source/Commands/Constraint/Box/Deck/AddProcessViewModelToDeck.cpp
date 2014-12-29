@@ -7,8 +7,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddProcessViewModelToDeck::AddProcessViewModelToDeck(ObjectPath&& deckPath,
-										   int sharedModelId):
+AddProcessViewModelToDeck::AddProcessViewModelToDeck():
+	AddProcessViewModelToDeck{{}, {}}
+{
+}
+
+AddProcessViewModelToDeck::AddProcessViewModelToDeck(
+										ObjectPath&& deckPath,
+										int sharedModelId):
 	SerializableCommand{"ScenarioControl",
 						"AddProcessViewToDeck",
 						"Add process view"},

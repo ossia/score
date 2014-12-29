@@ -9,6 +9,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+AddProcessToConstraint::AddProcessToConstraint():
+	AddProcessToConstraint{{}, {}}
+{
+}
+
 AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process):
 	SerializableCommand{"ScenarioControl",
 						"AddProcessToConstraintCommand",

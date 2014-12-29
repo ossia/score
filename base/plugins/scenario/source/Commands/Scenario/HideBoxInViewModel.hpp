@@ -20,6 +20,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				HideBoxInViewModel();
 				HideBoxInViewModel(ObjectPath&& path);
 
 				/**

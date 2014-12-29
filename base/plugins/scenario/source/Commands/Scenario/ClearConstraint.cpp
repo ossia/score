@@ -13,9 +13,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearConstraint::ClearConstraint():
-	iscore::SerializableCommand{"ScenarioControl",
-								"ClearConstraint",
-								QObject::tr("Clear a box")}
+	ClearConstraint{{}}
 {
 
 }

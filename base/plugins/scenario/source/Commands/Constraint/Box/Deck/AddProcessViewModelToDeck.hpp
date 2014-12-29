@@ -16,6 +16,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				AddProcessViewModelToDeck();
 				AddProcessViewModelToDeck(ObjectPath&& deckPath, int sharedModelId);
 
 				virtual void undo() override;

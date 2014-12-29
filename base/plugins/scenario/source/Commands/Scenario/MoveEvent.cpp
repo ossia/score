@@ -12,6 +12,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+MoveEvent::MoveEvent():
+	MoveEvent{{}, {}}
+{
+}
+
 MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",

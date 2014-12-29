@@ -7,6 +7,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveDeckFromBox::RemoveDeckFromBox():
+	RemoveDeckFromBox{{}, {}}
+{
+}
+
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveDeckFromBox",

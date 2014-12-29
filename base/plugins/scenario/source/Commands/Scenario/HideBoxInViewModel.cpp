@@ -5,6 +5,11 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
+HideBoxInViewModel::HideBoxInViewModel():
+	HideBoxInViewModel{{}}
+{
+}
+
 HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path):
 	SerializableCommand{"ScenarioControl",
 						"HideBoxInViewModel",

@@ -6,6 +6,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+AddBoxToConstraint::AddBoxToConstraint():
+	AddBoxToConstraint{{}}
+{
+}
+
 AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath):
 	SerializableCommand{"ScenarioControl",
 						"AddBoxToConstraint",

@@ -5,8 +5,13 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+ResizeDeckVertically::ResizeDeckVertically():
+	ResizeDeckVertically{{}, {}}
+{
+}
+
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
-														 int newSize):
+										   int newSize):
 	iscore::SerializableCommand{"ScenarioControl",
 								"ResizeDeckVerticallyCommand",
 								"Resize Deck"},

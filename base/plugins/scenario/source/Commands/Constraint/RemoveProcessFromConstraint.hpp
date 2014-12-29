@@ -11,6 +11,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				RemoveProcessFromConstraint();
 				RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId);
 				virtual void undo() override;
 				virtual void redo() override;

@@ -10,6 +10,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveProcessFromConstraint::RemoveProcessFromConstraint():
+	RemoveProcessFromConstraint{{}, {}}
+{
+}
+
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId):
 	SerializableCommand{"ScenarioControl",
 						"DeleteProcessFromConstraintCommand",

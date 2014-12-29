@@ -17,6 +17,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 
 			public:
+				AddBoxToConstraint();
 				AddBoxToConstraint(ObjectPath&& constraintPath);
 
 				virtual void undo() override;

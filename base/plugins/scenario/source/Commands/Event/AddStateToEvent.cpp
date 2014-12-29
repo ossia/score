@@ -9,9 +9,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddStateToEvent::AddStateToEvent():
-	SerializableCommand{"ScenarioControl",
-						"AddStateToEventCommand",
-						QObject::tr("State and message creation")}
+	AddStateToEvent{{}, {}}
 {
 
 }
@@ -53,12 +51,12 @@ bool AddStateToEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddStateToEvent::serializeImpl(QDataStream&)
+void AddStateToEvent::serializeImpl(QDataStream& s)
 {
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+	s << m_path << m_message << m_stateId;
 }
 
-void AddStateToEvent::deserializeImpl(QDataStream&)
+void AddStateToEvent::deserializeImpl(QDataStream& s)
 {
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+	s >> m_path >> m_message >> m_stateId;
 }

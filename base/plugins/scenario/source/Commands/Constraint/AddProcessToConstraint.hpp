@@ -18,6 +18,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				AddProcessToConstraint();
 				AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 
 				virtual void undo() override;

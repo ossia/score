@@ -16,6 +16,7 @@ namespace Scenario
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
+				AddDeckToBox();
 				AddDeckToBox(ObjectPath&& boxPath);
 
 				virtual void undo() override;

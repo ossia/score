@@ -1,9 +1,24 @@
 #include "ScenarioControl.hpp"
 
-#include "Commands/Scenario/CreateEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
+#include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
+#include "Commands/Constraint/Box/AddDeckToBox.hpp"
+#include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
+#include "Commands/Constraint/AddBoxToConstraint.hpp"
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
+#include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
+#include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
+#include "Commands/Scenario/CreateEvent.hpp"
+#include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/HideBoxInViewModel.hpp"
+#include "Commands/Scenario/MoveEvent.hpp"
+#include "Commands/Scenario/MoveConstraint.hpp"
+#include "Commands/Scenario/ShowBoxInViewModel.hpp"
+#include "Commands/RemoveMultipleElements.hpp"
 
 #include <interface/plugincontrol/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
@@ -79,14 +94,26 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 
 	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
-	if(name == "CreateEventCommand")
-	{ cmd = new CreateEvent;}
-	else if(name == "CreateEventAfterEventCommand")
-	{cmd = new CreateEventAfterEvent;}
-	else if(name == "ClearConstraint")
-	{cmd = new ClearConstraint;}
-	else if(name == "EmptyEventCommand")
-	{cmd = new ClearEvent;}
+		 if(name == "AddProcessViewModelToDeck")		{ cmd = new AddProcessViewModelToDeck;}
+	else if(name == "RemoveProcessViewModelFromDeck")	{ cmd = new RemoveProcessViewModelFromDeck;}
+	else if(name == "ResizeDeckVertically")				{ cmd = new ResizeDeckVertically;}
+	else if(name == "AddDeckToBox")						{ cmd = new AddDeckToBox;}
+	else if(name == "RemoveDeckFromBox")					{ cmd = new RemoveDeckFromBox;}
+	else if(name == "AddBoxToConstraint")				{ cmd = new AddBoxToConstraint;}
+	else if(name == "AddProcessToConstraint")			{ cmd = new AddProcessToConstraint;}
+	else if(name == "RemoveBoxFromConstraint")			{ cmd = new RemoveBoxFromConstraint;}
+	else if(name == "RemoveProcessFromConstraint")		{ cmd = new RemoveProcessFromConstraint;}
+	else if(name == "AddStateToEvent")					{ cmd = new AddStateToEvent;}
+	else if(name == "ClearConstraint")					{ cmd = new ClearConstraint;}
+	else if(name == "ClearEvent")						{ cmd = new ClearEvent;}
+	else if(name == "CreateEvent")						{ cmd = new CreateEvent;}
+	else if(name == "CreateEventAfterEvent")			{ cmd = new CreateEventAfterEvent;}
+	else if(name == "HideBoxInViewModel")				{ cmd = new HideBoxInViewModel;}
+	else if(name == "MoveConstraint")					{ cmd = new MoveConstraint;}
+	else if(name == "MoveEvent")						{ cmd = new MoveEvent;}
+	else if(name == "ShowBoxInViewModel")				{ cmd = new ShowBoxInViewModel;}
+	else if(name == "RemoveMultipleElements")			{ cmd = new RemoveMultipleElements;}
+
 	else
 	{
 		qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";

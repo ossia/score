@@ -14,6 +14,7 @@ namespace Scenario
 		class RemoveDeckFromBox : public iscore::SerializableCommand
 		{
 			public:
+				RemoveDeckFromBox();
 				RemoveDeckFromBox(ObjectPath&& boxPath, int deckId);
 
 				virtual void undo() override;

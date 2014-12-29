@@ -5,6 +5,11 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
+ShowBoxInViewModel::ShowBoxInViewModel():
+	ShowBoxInViewModel{ObjectPath{}, {}}
+{
+}
+
 ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
 									   int boxId):
 	SerializableCommand{"ScenarioControl",
