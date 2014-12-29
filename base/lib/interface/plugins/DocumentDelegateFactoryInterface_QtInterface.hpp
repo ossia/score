@@ -1,9 +1,9 @@
 #pragma once
-#include <QString>
-#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <QObject>
 
 namespace iscore
 {
+	class DocumentDelegateFactoryInterface;
 	class DocumentDelegateFactoryInterface_QtInterface
 	{
 		public:

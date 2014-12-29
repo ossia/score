@@ -1,5 +1,6 @@
 #pragma once
-
+#include <QObject>
+// @todo rename this file
 namespace iscore
 {
 	class FactoryInterface;

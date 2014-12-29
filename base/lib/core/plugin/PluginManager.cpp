@@ -1,8 +1,14 @@
 #include <core/plugin/PluginManager.hpp>
 
-#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
+
+#include <interface/plugins/Autoconnect_QtInterface.hpp>
 #include <interface/plugins/CustomFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/FactoryFamily_QtInterface.hpp>
+#include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>

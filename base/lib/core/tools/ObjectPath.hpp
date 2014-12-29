@@ -50,7 +50,8 @@ class ObjectPath
 		 * @param origin Name of the object from which the search is to be started.
 		 * @param obj Pointer of the object to find.
 		 *
-		 * @return An object path allowing to find again "obj" in the software object hierarchy (that can be serialized to text, and does not use pointers).
+		 * @return An object path allowing to find again "obj" in the software object hierarchy
+		 * (that can be serialized to text, and does not use pointers).
 		 */
 		static ObjectPath pathFromObject(QString origin, QObject* obj);
 
@@ -62,7 +63,8 @@ class ObjectPath
 		 * @return A pointer to the object, or nullptr if it is not found
 		 *
 		 * This search starts from qApp.
-		 * @todo (maybe) a way to specify custom ways of finding an object (for instance if obj->blurb() == Ding::someDing)
+		 * @todo (maybe) a way to specify custom ways of finding an object
+		 * (for instance if obj->blurb() == Ding::someDing)
 		 * @todo search starting from another object, for more performance.
 		 */
 		template<typename T>

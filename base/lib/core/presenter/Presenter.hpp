@@ -71,10 +71,9 @@ namespace iscore
 			void applyCommand(iscore::SerializableCommand*);
 
 			/**
-			 * @brief on_elementSelected Called when an object is selected, either on the document, or on a panel.
+			 * @brief on_elementSelected Called when an object is selected on the Document.
 			 * @param elt
 			 *
-			 * @todo Do for panel (now is only for document)
 			 */
 			void on_elementSelected(QObject* elt);
 

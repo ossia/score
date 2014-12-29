@@ -2,7 +2,6 @@
 #include <QObject>
 #include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
 
 class DeviceExplorerPlugin :
@@ -27,7 +26,7 @@ class DeviceExplorerPlugin :
 		// Plugin control interface
 //		virtual QStringList control_list() const override;
 //		virtual iscore::PluginControlInterface* control_make(QString) override;
-		
+
 		// Panel interface
 		virtual QStringList panel_list() const override;
 		virtual iscore::PanelFactoryInterface* panel_make(QString name) override;

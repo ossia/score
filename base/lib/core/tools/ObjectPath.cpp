@@ -87,7 +87,8 @@ QObject* ObjectPath::find_impl() const
 			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.objectName(),
 																Qt::FindDirectChildrenOnly);
 
-			auto elt = findById(childs, (SettableIdentifier::identifier_type)currentObjIdentifier.id());
+			auto elt = findById(childs,
+								(SettableIdentifier::identifier_type)currentObjIdentifier.id());
 			if(!elt)
 			{
 				throw std::runtime_error("ObjectPath::find  Error! Child not found");
