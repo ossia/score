@@ -34,14 +34,9 @@ void RemoteActionReceiverMaster::handle__edit_command(osc::ReceivedMessageArgume
 	args >> sessionId >> clientId >> par_name >> cmd_name >> blob;
 	if(sessionId != m_session->getId()) return;
 
-	////// TODO : Refactor //////
-	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-
-	auto cmd = presenter->instantiateUndoCommand(QString{par_name},
-												 QString{cmd_name},
-												 QByteArray{static_cast<const char*>(blob.data), blob.size});
-	applyCommand(cmd);
-	/////////////////////////////
+	emit commandReceived(QString{par_name},
+						 QString{cmd_name},
+						 QByteArray{static_cast<const char*>(blob.data), blob.size});
 
 	for(auto& client : m_session->clients())
 	{

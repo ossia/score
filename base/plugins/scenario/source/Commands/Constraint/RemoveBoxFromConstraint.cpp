@@ -9,14 +9,16 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveBoxFromConstraint::RemoveBoxFromConstraint():
-	RemoveBoxFromConstraint{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"RemoveBoxFromConstraint",
+						QObject::tr("Remove box")}
 {
 }
 
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, int boxId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveBoxFromConstraint",
-						"Remove box"},
+						QObject::tr("Remove box")},
 	m_path{constraintPath},
 	m_boxId{boxId}
 {

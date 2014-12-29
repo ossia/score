@@ -9,7 +9,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
-	RemoveProcessViewModelFromDeck{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"RemoveProcessViewFromDeck",
+						QObject::tr("Remove process view")}
 {
 }
 
@@ -18,7 +20,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										int processViewId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessViewFromDeck",
-						"Remove process view"},
+						QObject::tr("Remove process view")},
 	m_path{boxPath},
 	m_processViewId{processViewId}
 {

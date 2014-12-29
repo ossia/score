@@ -27,4 +27,5 @@ template<>
 void Visitor<Writer<JSON>>::writeTo(NamedObject& namedObject)
 {
 	namedObject.setObjectName(m_obj["ObjectName"].toString());
+
 }

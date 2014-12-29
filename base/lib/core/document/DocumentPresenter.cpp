@@ -27,7 +27,11 @@ void DocumentPresenter::reset()
 {
 	m_commandQueue->clear();
 
-	if(m_presenter) m_presenter->deleteLater();
+	if(m_presenter)
+	{
+		m_presenter->deleteLater();
+		m_presenter = nullptr;
+	}
 
 	m_view->reset();
 }

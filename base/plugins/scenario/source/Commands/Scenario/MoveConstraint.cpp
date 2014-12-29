@@ -15,7 +15,9 @@ using namespace Scenario::Command;
 // @todo : maybe should we use deplacement value and not absolute ending point.
 
 MoveConstraint::MoveConstraint():
-	MoveConstraint{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"MoveEventCommand",
+						QObject::tr("Constraint move")}
 {
 }
 

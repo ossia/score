@@ -13,7 +13,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 MoveEvent::MoveEvent():
-	MoveEvent{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"MoveEventCommand",
+						QObject::tr("Event move")}
 {
 }
 

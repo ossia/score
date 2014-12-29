@@ -13,13 +13,15 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearConstraint::ClearConstraint():
-	ClearConstraint{{}}
+	SerializableCommand{"ScenarioControl",
+								"ClearConstraint",
+								QObject::tr("Clear a box")}
 {
 
 }
 
 ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
-	iscore::SerializableCommand{"ScenarioControl",
+	SerializableCommand{"ScenarioControl",
 								"ClearConstraint",
 								QObject::tr("Clear a box")},
 	m_path{std::move(constraintPath)}

@@ -21,6 +21,7 @@ void Visitor<Writer<DataStream>>::writeTo(IdentifiedObject& obj)
 template<>
 void Visitor<Reader<JSON>>::readFrom(const IdentifiedObject& obj)
 {
+	readFrom(static_cast<const NamedObject&>(obj));
 	m_obj["IdentifierSet"] = obj.id().set();
 	m_obj["Identifier"] = (int) obj.id();
 }

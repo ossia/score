@@ -12,7 +12,9 @@ using namespace Scenario::Command;
 
 
 CreateEventAfterEvent::CreateEventAfterEvent():
-	CreateEventAfterEvent{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"CreateEventAfterEvent",
+						QObject::tr("Event creation")}
 {
 }
 

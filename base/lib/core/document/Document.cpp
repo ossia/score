@@ -27,20 +27,8 @@ void Document::newDocument()
 	reset();
 
 	// Model setup
-	auto model = m_currentDocumentType->makeModel(m_model);
-	m_model->setModelDelegate(model);
-
-	// View setup
-	auto view = m_currentDocumentType->makeView(m_view);
-	m_view->setViewDelegate(view);
-
-	// Presenter setup
-	auto pres = m_currentDocumentType->makePresenter(m_presenter, model, view);
-	m_presenter->setPresenterDelegate(pres);
-
-
-
-	emit newDocument_start();
+	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model));
+	setupDocument();
 }
 
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
@@ -53,4 +41,31 @@ void Document::reset()
 {
 	m_model->reset();
 	m_presenter->reset();
+}
+
+void Document::load(QByteArray data)
+{
+	reset();
+
+	// Model setup
+	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
+	setupDocument();
+}
+
+QByteArray Document::save()
+{
+	return m_model->modelDelegate()->save();
+}
+
+void Document::setupDocument()
+{
+	// View setup
+	auto view = m_currentDocumentType->makeView(m_view);
+	m_view->setViewDelegate(view);
+
+	// Presenter setup
+	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
+	m_presenter->setPresenterDelegate(pres);
+
+	emit newDocument_start();
 }

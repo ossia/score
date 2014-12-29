@@ -1,4 +1,5 @@
 #pragma once
+class QByteArray;
 
 namespace iscore
 {
@@ -21,7 +22,9 @@ namespace iscore
 			virtual DocumentDelegatePresenterInterface* makePresenter(DocumentPresenter* parent_presenter,
 														  DocumentDelegateModelInterface* model,
 														  DocumentDelegateViewInterface* view) = 0;
+
 			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
+			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent, const QByteArray& data) = 0;
 	};
 
 }

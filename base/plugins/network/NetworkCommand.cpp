@@ -42,6 +42,7 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 //////////////////////////////////
 void NetworkCommand::setupMasterSession()
 {
+	qDebug() << Q_FUNC_INFO << QThread::currentThread();
 	QSettings s;
 	m_networkSession.reset();
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", s.value(SETTINGS_MASTERPORT).toInt());
@@ -51,6 +52,8 @@ void NetworkCommand::setupMasterSession()
 	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
 	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early (only QObject is created)
+	connect(m_receiver.get(), &RemoteActionReceiver::commandReceived,
+			this,			  &NetworkCommand::on_commandReceived, Qt::QueuedConnection);
 }
 
 void NetworkCommand::setupClientSession(ConnectionData d)
@@ -91,4 +94,23 @@ void NetworkCommand::createZeroconfSelectionDialog()
 void NetworkCommand::commandPush(SerializableCommand* cmd)
 {
 	m_emitter->sendCommand(cmd);
+}
+
+
+#include <QApplication>
+#include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/presenter/command/CommandQueue.hpp>
+void NetworkCommand::on_commandReceived(QString par_name,
+										QString cmd_name,
+										QByteArray data)
+{
+	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
+
+	auto cmd = presenter->instantiateUndoCommand(par_name,
+												 cmd_name,
+												 data);
+
+	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
+	queue->push(cmd);
 }

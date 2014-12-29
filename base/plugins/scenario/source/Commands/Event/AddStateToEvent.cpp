@@ -9,7 +9,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddStateToEvent::AddStateToEvent():
-	AddStateToEvent{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"AddStateToEventCommand",
+						QObject::tr("State and message creation")}
 {
 
 }

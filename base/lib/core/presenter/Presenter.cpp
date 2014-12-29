@@ -105,11 +105,13 @@ void Presenter::on_elementSelected(QObject* elt)
 	emit elementSelected(elt);
 }
 
+#include <QFile>
+#include <QFileDialog>
 #include <QMessageBox>
 void Presenter::setupMenus()
 {
 	//TODO
-	auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
+	//auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
 
 	////// File //////
 	auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -124,13 +126,37 @@ void Presenter::setupMenus()
 
 	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
 										FileMenuElement::Load,
-										notyet);
+										[this] ()
+	{
+		auto loadname = QFileDialog::getOpenFileName(nullptr, tr("Open"));
+		if(!loadname.isEmpty())
+		{
+			QFile f{loadname};
+			if(f.open(QIODevice::ReadOnly))
+			{
+				m_document->load(f.readAll());
+			}
+		}
+	});
+
+	// Load & save
 	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
 										FileMenuElement::Save,
-										notyet);
-	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-										FileMenuElement::SaveAs,
-										notyet);
+										[this] ()
+	{
+		auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
+
+		if(!savename.isEmpty())
+		{
+			QFile f(savename);
+			f.open(QIODevice::WriteOnly);
+			f.write(m_document->save());
+		}
+	});
+
+//	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+//										FileMenuElement::SaveAs,
+//										notyet);
 
 	// ----------
 	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,

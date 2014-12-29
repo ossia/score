@@ -11,15 +11,17 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearEvent::ClearEvent():
-	ClearEvent{{}}
+	SerializableCommand{"ScenarioControl",
+						"EmptyEventCommand",
+						QObject::tr("Remove event and pre-constraints")}
 {
 }
 
 
 ClearEvent::ClearEvent(ObjectPath&& eventPath):
-	iscore::SerializableCommand{"ScenarioControl",
-								"EmptyEventCommand",
-								QObject::tr("Remove event and pre-constraints")},
+	SerializableCommand{"ScenarioControl",
+						"EmptyEventCommand",
+						QObject::tr("Remove event and pre-constraints")},
 	m_path{std::move(eventPath)}
 {
 

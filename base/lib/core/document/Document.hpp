@@ -26,6 +26,9 @@ namespace iscore
 			void setDocumentPanel(DocumentDelegateFactoryInterface* p);
 			void reset();
 
+			void load(QByteArray data);
+			QByteArray save();
+
 		signals:
 			/**
 			 * @brief newDocument_start
@@ -37,6 +40,7 @@ namespace iscore
 			void on_elementSelected(QObject*);
 
 		private:
+			void setupDocument();
 			DocumentModel* m_model{};
 			DocumentView* m_view{};
 			DocumentPresenter* m_presenter{};

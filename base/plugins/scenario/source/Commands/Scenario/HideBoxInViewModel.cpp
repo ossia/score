@@ -6,7 +6,9 @@ using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
 HideBoxInViewModel::HideBoxInViewModel():
-	HideBoxInViewModel{{}}
+	SerializableCommand{"ScenarioControl",
+						"HideBoxInViewModel",
+						QObject::tr("Hide box in constraint view")}
 {
 }
 

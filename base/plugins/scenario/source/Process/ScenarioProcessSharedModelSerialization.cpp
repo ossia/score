@@ -4,6 +4,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModelSerialization.hpp"
 #include "Document/Constraint/ConstraintModelSerialization.hpp"
+#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "ScenarioProcessSharedModel.hpp"
 
 template<>
@@ -129,7 +130,7 @@ void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
 		return;
 	}
 
-	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream & JSON serialization");
 }
 
 #include "ScenarioProcessFactory.hpp"
@@ -146,7 +147,29 @@ ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(SerializationIden
 		return new ScenarioProcessSharedModel{*static_cast<Deserializer<JSON>*>(data), parent};
 	}
 
-	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream serialization");
+	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream & JSON serialization");
 }
 
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(SerializationIdentifier identifier,
+																	 void* data,
+																	 QObject* parent)
+{
+	if(identifier == DataStream::type())
+	{
+		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<DataStream>*>(data),
+														 this,
+														 parent);
+		makeViewModel_impl(scen);
+		return scen;
+	}
+	else if(identifier == JSON::type())
+	{
+		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<JSON>*>(data),
+														 this,
+														 parent);
+		makeViewModel_impl(scen);
+		return scen;
+	}
 
+	throw std::runtime_error("ScenarioProcessViewModels only supports DataStream & JSON serialization");
+}

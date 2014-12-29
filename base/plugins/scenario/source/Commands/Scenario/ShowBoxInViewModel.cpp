@@ -6,7 +6,9 @@ using namespace Scenario::Command;
 
 // TODO ScenarioCommand which inherits from SerializableCommand and has ScenarioControl set
 ShowBoxInViewModel::ShowBoxInViewModel():
-	ShowBoxInViewModel{ObjectPath{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"ShowBoxInViewModel",
+						QObject::tr("Show box in constraint view")}
 {
 }
 

@@ -8,14 +8,16 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveDeckFromBox::RemoveDeckFromBox():
-	RemoveDeckFromBox{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"RemoveDeckFromBox",
+						QObject::tr("Remove deck")}
 {
 }
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveDeckFromBox",
-						"Remove deck"},
+						QObject::tr("Remove deck")},
 	m_path{boxPath},
 	m_deckId{deckId}
 {

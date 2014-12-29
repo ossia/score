@@ -11,6 +11,6 @@ namespace iscore
 			using NamedObject::NamedObject;
 			virtual ~DocumentDelegateModelInterface() = default;
 
-			virtual void reset() = 0;
+			virtual QByteArray save() = 0;
 	};
 }

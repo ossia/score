@@ -22,39 +22,31 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
 		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+		friend class ScenarioProcessFactory;
 
 	public:
 		using view_model_type = AbstractScenarioProcessViewModel;
 
 		ScenarioProcessSharedModel(int id, QObject* parent);
 
-		template<typename Impl>
-		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
-			ProcessSharedModelInterface{vis, parent}
-		{
-			vis.writeTo(*this);
-		}
-
-
 		virtual ~ScenarioProcessSharedModel() = default;
-
-
 		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
 														 QObject* parent) override;
-
-		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-														 void* data,
-														 QObject* parent) override;
-
-		void makeViewModel_impl(view_model_type*);
 
 		virtual QString processName() const override
 		{
 			return "Scenario";
 		}
 
-		// Creates an constraint between two pre-existing events
-		void createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId);
+		// High-level operations (maintaining consistency)
+		/**
+		 * @brief createConstraintBetweenEvents
+		 *
+		 * Creates a new constraint between two existing events
+		 */
+		void createConstraintBetweenEvents(int startEventId,
+										   int endEventId,
+										   int newConstraintModelId);
 
 		/**
 		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
@@ -68,21 +60,19 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  int newConstraintId,
 												  int newEventId);
 
-		// Re-creation. Note : only using these methods might let the Scenario in an incoherent state.
-		// To use in deserialization only (maybe put it there ?).
-		//void createConstraint(QDataStream&);
-		//void createEvent(QDataStream&);
-		void addConstraint(ConstraintModel* constraint);
-		void addEvent(EventModel* event);
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);
 		void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
 
+
+		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
+		void addConstraint(ConstraintModel* constraint);
+		void addEvent(EventModel* event);
+
 		void removeConstraint(int constraintId);
 		void removeEvent(int eventId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
-
 
 
 		// Accessors
@@ -92,7 +82,10 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		EventModel* startEvent() const;
 		EventModel* endEvent() const;
 
-		// For the presenter :
+		// Here, a copy is returned because it might be possible
+		// to call a method on the scenario (e.g. removeConstraint) that changes the vector
+		// while iterating, which would invalidate the iterators
+		// and lead to undefined behaviour
 		std::vector<ConstraintModel*> constraints() const
 		{ return m_constraints; }
 		std::vector<EventModel*> events() const
@@ -107,11 +100,23 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void constraintMoved(int constraintId);
 
 	protected:
-		//virtual void serialize(QDataStream&) const override;
+		template<typename Impl>
+		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
+			ProcessSharedModelInterface{vis, parent}
+		{
+			vis.writeTo(*this);
+		}
+
+		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
+														 void* data,
+														 QObject* parent) override;
+
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;
 
 	private:
+		void makeViewModel_impl(view_model_type*);
+
 		OSSIA::Scenario* m_scenario;
 
 		std::vector<ConstraintModel*> m_constraints;

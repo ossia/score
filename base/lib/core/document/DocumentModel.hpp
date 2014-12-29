@@ -15,6 +15,8 @@ namespace iscore
 			using QObject::QObject;
 			void reset();
 			void setModelDelegate(DocumentDelegateModelInterface* m);
+			DocumentDelegateModelInterface* modelDelegate() const
+			{ return m_model; }
 
 		private:
 			DocumentDelegateModelInterface* m_model{};

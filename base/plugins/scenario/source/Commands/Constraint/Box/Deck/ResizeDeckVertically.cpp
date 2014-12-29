@@ -6,15 +6,17 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ResizeDeckVertically::ResizeDeckVertically():
-	ResizeDeckVertically{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"ResizeDeckVerticallyCommand",
+						QObject::tr("Resize Deck")}
 {
 }
 
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
 										   int newSize):
-	iscore::SerializableCommand{"ScenarioControl",
-								"ResizeDeckVerticallyCommand",
-								"Resize Deck"},
+	SerializableCommand{"ScenarioControl",
+						"ResizeDeckVerticallyCommand",
+						QObject::tr("Resize Deck")},
 	m_path{deckPath},
 	m_newSize{newSize}
 {

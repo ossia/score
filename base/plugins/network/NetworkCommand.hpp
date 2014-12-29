@@ -30,6 +30,8 @@ class NetworkCommand : public iscore::PluginControlInterface
 
 		void commandPush(iscore::SerializableCommand*);
 
+		void on_commandReceived(QString, QString, QByteArray);
+
 	private:
 		iscore::Presenter* m_presenter{};
 		std::unique_ptr<Session> m_networkSession;

@@ -17,6 +17,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 	Q_OBJECT
 
 	public:
+		BaseElementModel(QByteArray data, QObject* parent);
 		BaseElementModel(QObject* parent);
 		virtual ~BaseElementModel() = default;
 
@@ -30,10 +31,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_viewModel;
 		}
 
-		virtual void reset() override;
-
-	signals:
-		void sigReset();
+		virtual QByteArray save() override;
 
 	private:
 		ConstraintModel* m_baseConstraint{};

@@ -11,14 +11,16 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint():
-	RemoveProcessFromConstraint{{}, {}}
+	SerializableCommand{"ScenarioControl",
+						"DeleteProcessFromConstraintCommand",
+						QObject::tr("Delete process")}
 {
 }
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId):
 	SerializableCommand{"ScenarioControl",
 						"DeleteProcessFromConstraintCommand",
-						"Delete process"},
+						QObject::tr("Delete process")},
 	m_path{std::move(constraintPath)},
 	m_processId{processId}
 {

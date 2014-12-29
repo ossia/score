@@ -30,24 +30,6 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewMod
 }
 
 
-#include <interface/serialization/DataStreamVisitor.hpp>
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(SerializationIdentifier identifier,
-																	 void* data,
-																	 QObject* parent)
-{
-	if(identifier == DataStream::type())
-	{
-		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<DataStream>*>(data),
-														 this,
-														 parent);
-		makeViewModel_impl(scen);
-		return scen;
-	}
-
-	throw std::runtime_error("ScenarioProcessViewModels only supports DataStream serialization");
-
-}
-
 void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::view_model_type* scen)
 {
 	addViewModel(scen);

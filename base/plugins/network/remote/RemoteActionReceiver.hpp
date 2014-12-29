@@ -18,8 +18,7 @@ class RemoteActionReceiver : public QObject
 		void undo();
 		void redo();
 
-	public slots:
-		void applyCommand(iscore::SerializableCommand*);
+		void commandReceived(QString, QString, QByteArray);
 
 	protected:
 		virtual void handle__edit_command(osc::ReceivedMessageArgumentStream);

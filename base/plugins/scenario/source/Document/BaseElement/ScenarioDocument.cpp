@@ -26,3 +26,8 @@ ScenarioDocument::makeModel(iscore::DocumentModel* parent)
 {
 	return new BaseElementModel{parent};
 }
+
+iscore::DocumentDelegateModelInterface*ScenarioDocument::makeModel(iscore::DocumentModel* parent, const QByteArray& data)
+{
+	return new BaseElementModel{data, parent};
+}

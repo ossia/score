@@ -5,57 +5,10 @@
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/Box/AddDeckToBox.hpp"
-#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
-#include "Commands/Scenario/ShowBoxInViewModel.hpp"
-
-#include "Commands/Scenario/CreateEvent.hpp"
 
 #include <QGraphicsScene>
 using namespace iscore;
-using namespace Scenario;
 
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
-void testInit(TemporalConstraintViewModel* viewmodel)
-{
-	using namespace Scenario::Command;
-	auto constraint_model = viewmodel->model();
-
-	(new AddProcessToConstraint(
-		{
-			{"BaseConstraintModel", {}}
-		},
-		"Scenario"))->redo();
-	auto scenarioId = constraint_model->processes().front()->id();
-
-	(new AddBoxToConstraint(
-		ObjectPath{
-			{"BaseConstraintModel", {}}
-		}))->redo();
-	auto box = constraint_model->boxes().front();
-
-	(new ShowBoxInViewModel(viewmodel, (SettableIdentifier::identifier_type)box->id()))->redo();
-
-	(new AddDeckToBox(
-		ObjectPath{
-			{"BaseConstraintModel", {}},
-			{"BoxModel", box->id()}
-		}))->redo();
-	auto deckId = box->decks().front()->id();
-
-	(new AddProcessViewModelToDeck(
-		{
-			{"BaseConstraintModel", {}},
-			{"BoxModel", box->id()},
-			{"DeckModel", deckId}
-		}, (SettableIdentifier::identifier_type)scenarioId))->redo();
-}
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
@@ -66,8 +19,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 							  this->view()->constraintView(),
 							  this}}
 {
-
-	testInit(this->model()->constraintViewModel());
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
