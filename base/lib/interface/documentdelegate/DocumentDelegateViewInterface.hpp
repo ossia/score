@@ -10,7 +10,6 @@ namespace iscore
 			using QObject::QObject;
 			virtual ~DocumentDelegateViewInterface() = default;
 
-			// TODO what if QGraphicsObject / QML ?
 			virtual QWidget* getWidget() = 0;
 	};
 }

@@ -2,7 +2,7 @@
 
 
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
-#include <interface/plugins/CustomFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/FactoryInterface_QtInterface.hpp>
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/FactoryFamily_QtInterface.hpp>
 #include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
