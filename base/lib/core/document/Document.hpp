@@ -26,7 +26,6 @@ namespace iscore
 			void setDocumentPanel(DocumentDelegateFactoryInterface* p);
 			void reset();
 
-			void load(QByteArray data);
 			QByteArray save();
 
 		signals:
@@ -38,6 +37,9 @@ namespace iscore
 			void newDocument_start();
 
 			void on_elementSelected(QObject*);
+
+		public slots:
+			void load(QByteArray data);
 
 		private:
 			void setupDocument();

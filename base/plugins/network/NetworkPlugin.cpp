@@ -26,21 +26,22 @@ QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
 	return {
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Document",		SIGNAL(newDocument_start())},
 			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand", SLOT(setupMasterSession())}},
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand",	SIGNAL(loadFromNetwork(QByteArray))},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Document",		SLOT(load(QByteArray))}},
 
 			// Emission
-			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",	SIGNAL(push_start(iscore::SerializableCommand*))},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand", SLOT(commandPush(iscore::SerializableCommand*))}},
+			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			SIGNAL(push_start(iscore::SerializableCommand*))},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand",			SLOT(commandPush(iscore::SerializableCommand*))}},
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			SIGNAL(onUndo())},
 			 {iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionEmitter",	SLOT(undo())}},
 			{{iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			SIGNAL(onRedo())},
 			 {iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionEmitter",	SLOT(redo())}},
 
-
 			// Reception
-			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(undo())},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			  SLOT(undo())}},
-			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver", SIGNAL(redo())},
-			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			  SLOT(redo())}},
+			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver",	SIGNAL(undo())},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			SLOT(undo())}},
+			{{iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver",	SIGNAL(redo())},
+			 {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "CommandQueue",			SLOT(redo())}},
 		   };
 }
 

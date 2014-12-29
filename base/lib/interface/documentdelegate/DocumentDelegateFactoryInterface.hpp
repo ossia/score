@@ -24,7 +24,7 @@ namespace iscore
 														  DocumentDelegateViewInterface* view) = 0;
 
 			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
-			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent, const QByteArray& data) = 0;
+			virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent, QByteArray data) = 0;
 	};
 
 }

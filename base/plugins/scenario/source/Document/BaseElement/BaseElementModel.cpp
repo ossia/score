@@ -59,9 +59,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent}
 {
-	QJsonDocument doc = QJsonDocument::fromJson(data);
-
-	Deserializer<JSON> deserializer{doc.object()};
+	Deserializer<DataStream> deserializer{&data};
 	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	m_viewModel = m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint);
@@ -83,10 +81,12 @@ BaseElementModel::BaseElementModel(QObject* parent):
 
 QByteArray BaseElementModel::save()
 {
-	Serializer<JSON> s;
+	QByteArray arr;
+	Serializer<DataStream> s{&arr};
 	s.readFrom(*constraintModel());
 
-	QJsonDocument doc;
-	doc.setObject(s.m_obj);
-	return doc.toJson();
+	return arr;
+	//QJsonDocument doc;
+	//doc.setObject(s.m_obj);
+	//return doc.toJson();
 }

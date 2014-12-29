@@ -29,6 +29,8 @@ void Document::newDocument()
 	// Model setup
 	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model));
 	setupDocument();
+
+	emit newDocument_start();
 }
 
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
@@ -67,5 +69,5 @@ void Document::setupDocument()
 	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
 	m_presenter->setPresenterDelegate(pres);
 
-	emit newDocument_start();
+
 }

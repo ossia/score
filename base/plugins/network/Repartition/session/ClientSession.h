@@ -54,6 +54,11 @@ class ClientSession : public Session
 			return *_localClient;
 		}
 
+		RemoteMaster& getRemoteMaster()
+		{
+			return *_remoteMaster;
+		}
+
 		virtual void sendCommand(const char* parentName,
 								 const char* name,
 								 const char * data, int len) override
