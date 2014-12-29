@@ -51,6 +51,8 @@ void Document::load(QByteArray data)
 
 	// Model setup
 	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
+
+	// TODO call newDocument_start if loaded from this computer, not if serialized from network.
 	setupDocument();
 }
 
