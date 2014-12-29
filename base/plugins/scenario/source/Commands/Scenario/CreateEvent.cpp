@@ -27,7 +27,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosit
 						"CreateEvent",
 						QObject::tr("Event creation")}
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(scenarioPath.find());
+	auto scenar = scenarioPath.find<ScenarioProcessSharedModel>();
 
 	EventData d;
 	d.eventClickedId = (SettableIdentifier::identifier_type) scenar->startEvent()->id();

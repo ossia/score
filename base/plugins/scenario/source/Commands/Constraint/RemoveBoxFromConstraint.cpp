@@ -22,7 +22,7 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, in
 	m_path{constraintPath},
 	m_boxId{boxId}
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	Serializer<DataStream> s{&m_serializedBoxData};
 	s.readFrom(*constraint->box(boxId));
@@ -30,14 +30,14 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, in
 
 void RemoveBoxFromConstraint::undo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	Deserializer<DataStream> s{&m_serializedBoxData};
 	constraint->addBox(new BoxModel{s, constraint});
 }
 
 void RemoveBoxFromConstraint::redo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	constraint->removeBox(m_boxId);
 }
 

@@ -26,7 +26,7 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_scenarioPath;
+				ObjectPath m_path;
 				int m_constraintId{};
 
 				double m_oldHeightPosition{};

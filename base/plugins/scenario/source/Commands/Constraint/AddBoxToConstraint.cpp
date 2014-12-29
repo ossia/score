@@ -19,19 +19,19 @@ AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath):
 						QObject::tr("Add empty box")},
 	m_path{constraintPath}
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	m_createdBoxId = getNextId(constraint->boxes());
 }
 
 void AddBoxToConstraint::undo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	constraint->removeBox(m_createdBoxId);
 }
 
 void AddBoxToConstraint::redo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	constraint->createBox(m_createdBoxId);
 }
 

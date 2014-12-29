@@ -25,12 +25,12 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	SerializableCommand{"ScenarioControl",
 						"MoveEventCommand",
 						QObject::tr("Constraint move")},
-	m_scenarioPath{std::move(scenarioPath)},
+	m_path{std::move(scenarioPath)},
 	m_constraintId{d.id},
 	m_newHeightPosition{d.relativeY},
 	m_newX{d.x}
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 	auto cst = scenar->constraint(m_constraintId);
 	m_oldHeightPosition = cst->heightPercentage();
 	m_oldX = cst->startDate();
@@ -38,14 +38,14 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 
 void MoveConstraint::undo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	scenar->moveConstraint(m_constraintId, m_oldX, m_oldHeightPosition);
 }
 
 void MoveConstraint::redo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_scenarioPath.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
 
@@ -64,12 +64,12 @@ bool MoveConstraint::mergeWith(const QUndoCommand* other)
 
 void MoveConstraint::serializeImpl(QDataStream& s)
 {
-	s << m_scenarioPath << m_constraintId
+	s << m_path << m_constraintId
 	  << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;
 }
 
 void MoveConstraint::deserializeImpl(QDataStream& s)
 {
-	s >> m_scenarioPath >> m_constraintId
+	s >> m_path >> m_constraintId
 	  >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
 }

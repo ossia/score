@@ -26,7 +26,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 								QObject::tr("Clear a box")},
 	m_path{std::move(constraintPath)}
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	for(const BoxModel* box : constraint->boxes())
 	{
@@ -49,7 +49,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 
 void ClearConstraint::undo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	for(auto& serializedProcess : m_serializedProcesses)
 	{
@@ -68,7 +68,7 @@ void ClearConstraint::undo()
 
 void ClearConstraint::redo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	for(auto& process : constraint->processes())
 	{

@@ -19,7 +19,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
 	m_constraintViewModelPath{std::move(constraint_path)},
 	m_boxId{boxId}
 {
-	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	m_constraintPreviousState = constraint_vm->isBoxShown();
 	m_constraintPreviousId = constraint_vm->shownBox();
 }
@@ -40,7 +40,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 
 void ShowBoxInViewModel::undo()
 {
-	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	if(m_constraintPreviousState)
 	{
 		constraint_vm->showBox(m_constraintPreviousId);
@@ -53,7 +53,7 @@ void ShowBoxInViewModel::undo()
 
 void ShowBoxInViewModel::redo()
 {
-	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	constraint_vm->showBox(m_boxId);
 }
 

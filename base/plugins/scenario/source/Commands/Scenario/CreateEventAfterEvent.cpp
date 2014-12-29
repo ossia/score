@@ -27,7 +27,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 	m_time{data.x},
 	m_heightPosition{data.relativeY}
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	m_createdEventId = getNextId(scenar->events());
 	m_createdConstraintId = getNextId(scenar->constraints());
@@ -44,14 +44,14 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
 void CreateEventAfterEvent::undo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
 }
 
 void CreateEventAfterEvent::redo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
 												 m_time,

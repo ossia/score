@@ -65,9 +65,14 @@ class ObjectPath
 		 * @todo (maybe) a way to specify custom ways of finding an object (for instance if obj->blurb() == Ding::someDing)
 		 * @todo search starting from another object, for more performance.
 		 */
-		QObject* find() const;
+		template<typename T>
+		T* find() const
+		{
+			return static_cast<T*>(find_impl());
+		}
 
 	private:
+		QObject* find_impl() const;
 		QVector<ObjectIdentifier> m_objectIdentifiers;
 };
 

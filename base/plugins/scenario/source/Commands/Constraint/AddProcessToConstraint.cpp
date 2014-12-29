@@ -23,19 +23,19 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
 	m_path{std::move(constraintPath)},
 	m_processName{process}
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	m_createdProcessId = getNextId(constraint->processes());
 }
 
 void AddProcessToConstraint::undo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	constraint->removeProcess(m_createdProcessId);
 }
 
 void AddProcessToConstraint::redo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	// Create process model
 	constraint->createProcess(m_processName, m_createdProcessId);

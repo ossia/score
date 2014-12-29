@@ -25,7 +25,7 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath):
 	m_path{std::move(eventPath)}
 {
 
-	auto event = static_cast<EventModel*>(m_path.find());
+	auto event = m_path.find<EventModel>();
 	for(const State* state: event->states())
 	{
 		QByteArray arr;
@@ -37,7 +37,7 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath):
 
 void ClearEvent::undo()
 {
-	auto event = static_cast<EventModel*>(m_path.find());
+	auto event = m_path.find<EventModel>();
 	for(auto& serializedState : m_serializedStates)
 	{
 		Deserializer<DataStream> s{&serializedState};
@@ -47,7 +47,7 @@ void ClearEvent::undo()
 
 void ClearEvent::redo()
 {
-	auto event = static_cast<EventModel*>(m_path.find());
+	auto event = m_path.find<EventModel>();
 	for(auto& state : event->states())
 	{
 		event->removeState((SettableIdentifier::identifier_type)state->id());
