@@ -1,9 +1,8 @@
 #pragma once
-#include <interface/customfactory/CustomFactoryInterface.hpp>
 
 namespace iscore
 {
-
+	class FactoryInterface;
 	// Reimplement in plug-in if the plug-in offers an IMPLEMENTATION of an abstract type offered in another plug-in.
 	// Example : the Scenario plug-in provides inspector widget factories implementations for Interval and event
 	class FactoryInterface_QtInterface

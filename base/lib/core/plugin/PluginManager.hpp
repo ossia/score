@@ -12,7 +12,7 @@
 #include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
-#include <interface/customfactory/CustomFactoryInterface.hpp>
+#include <interface/customfactory/FactoryFamily.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
 namespace iscore
