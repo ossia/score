@@ -20,7 +20,7 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 	InspectorSectionWidget{name, parentBox},
 	m_model{deck}
 {
-	m_pvmSection = new InspectorSectionWidget{"Process View Models", this};  // TODO Make a custom widget.
+	m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
 	m_pvmSection->setObjectName("ProcessViewModels");
 
 	connect(m_model,	&DeckModel::processViewModelCreated,

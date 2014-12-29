@@ -12,6 +12,5 @@ InspectorWidgetBase* ConstraintInspectorFactory::makeWidget (QObject* sourceElem
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget (QList<QObject*> sourceElements)
 {
-	// @todo make a tabbed view when there is a list.
 	return new ConstraintInspectorWidget (static_cast<TemporalConstraintViewModel*> (sourceElements.at (0) ) );
 }

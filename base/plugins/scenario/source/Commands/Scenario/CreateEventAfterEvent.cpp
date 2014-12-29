@@ -74,7 +74,7 @@ void CreateEventAfterEvent::redo()
 		}
 	}
 
-	// TODO Creation of all the event view models
+	// @todo Creation of all the event view models
 }
 
 int CreateEventAfterEvent::id() const

@@ -37,13 +37,9 @@ void View::addPanel(PanelViewInterface* v)
 	this->addDockWidget(v->defaultDock(), dial);
 }
 
-// @todo do this elsewhere... The View must not know the presenter.
-void View::setPresenter(Presenter* pres)
+void View::setCentralView(DocumentView* doc)
 {
-	m_presenter = pres;
-
-	auto view = m_presenter->document()->view();
-	view->setParent(this);
-	this->setCentralWidget(view);
+	doc->setParent(this);
+	this->setCentralWidget(doc);
 }
 

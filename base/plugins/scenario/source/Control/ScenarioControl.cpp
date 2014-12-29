@@ -71,7 +71,6 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 {
 	using namespace Scenario::Command;
 
-	// TODO Continue adding commands here. Maybe use a map ?
 	iscore::SerializableCommand* cmd{};
 		 if(name == "AddProcessViewModelToDeck")		{ cmd = new AddProcessViewModelToDeck;}
 	else if(name == "RemoveProcessViewModelFromDeck")	{ cmd = new RemoveProcessViewModelFromDeck;}

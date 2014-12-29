@@ -7,11 +7,6 @@
 #include <QVector>
 
 
-
-
-// TODO possibilité temporaire pour tester ce que l'on veut faire :
-// FAire une copie du scénario, appliquer la commande dessus, et si elle throw pas sur la copie, l'appliquer pour de vrai.
-
 EventModel::EventModel(int id, QObject* parent):
 	IdentifiedObject{id, "EventModel", parent},
 	m_timeNode{new OSSIA::TimeNode}

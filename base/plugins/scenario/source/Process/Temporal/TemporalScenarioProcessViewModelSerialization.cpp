@@ -61,7 +61,6 @@ void Visitor<Writer<JSON>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 
 void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identifier, void* data) const
 {
-	// TODO how to abstract this since it will always be the same ?
 	if(identifier == DataStream::type())
 	{
 		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);

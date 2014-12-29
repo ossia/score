@@ -57,7 +57,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	m_properties.push_back(new Separator{this});
 
 	// Boxes
-	m_boxSection = new InspectorSectionWidget{"Boxes", this};  // TODO Make a custom widget.
+	m_boxSection = new InspectorSectionWidget{"Boxes", this};
 	m_boxSection->setObjectName("Boxes");
 
 	m_boxWidget = new BoxWidget{this};
@@ -190,8 +190,6 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
-	// TODO specialize by using custom widgets provided by the processes.
-	// Also handle the case where a process does not.
 	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
 	m_processesSectionWidgets.push_back (newProc);
 	m_processSection->addContent (newProc);
@@ -212,7 +210,6 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
 }
 
 
-// TODO optimize if necessary
 void ConstraintInspectorWidget::on_processCreated(QString processName, int processId)
 {
 	reloadDisplayedValues();

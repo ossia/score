@@ -53,7 +53,6 @@ int BoxPresenter::height() const
 
 int BoxPresenter::id() const
 {
-	// TODO dangerous : what happens if the model gets removed before ?
 	return (SettableIdentifier::identifier_type) m_model->id();
 }
 

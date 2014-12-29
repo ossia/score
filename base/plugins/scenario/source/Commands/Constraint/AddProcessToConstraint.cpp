@@ -51,7 +51,6 @@ bool AddProcessToConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-// TODO idea: maybe put the data in a tuple so that it can be serialized automagically ?
 void AddProcessToConstraint::serializeImpl(QDataStream& s)
 {
 	s << m_path << m_processName << m_createdProcessId;

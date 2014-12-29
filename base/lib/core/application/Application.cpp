@@ -32,7 +32,6 @@ Application::Application(int& argc, char** argv):
 
 	m_view = new View(qobject_cast<QObject*>(this));
 	m_presenter = new Presenter(m_model, m_view, this);
-	m_view->setPresenter(m_presenter);
 
 	// Plugins
 	m_pluginManager.reloadPlugins();
@@ -60,7 +59,6 @@ void Application::loadPluginData()
 	for(auto& pnl : m_pluginManager.m_panelList)
 		m_presenter->addPanel(pnl);
 
-	// TODO permettre le choix en ajoutant chaque type de document dans "Nouveau ->" ?
 	if(!m_pluginManager.m_documentPanelList.empty())
 		m_presenter->setDocumentPanel(m_pluginManager.m_documentPanelList.front());
 }

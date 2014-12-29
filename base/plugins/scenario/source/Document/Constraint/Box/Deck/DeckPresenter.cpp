@@ -18,8 +18,7 @@
 #include <QGraphicsScene>
 
 using namespace Scenario;
-// @todo vérifier en créant un nouvel élément
-// qu'il n'existe pas déjà dans un tableau.
+
 DeckPresenter::DeckPresenter(DeckModel* model,
 								 DeckView* view,
 								 QObject* parent):

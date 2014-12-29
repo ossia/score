@@ -30,7 +30,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	#endif
 	m_document{new Document{view, this}}
 {
-	m_view->setPresenter(this);
+	m_view->setCentralView(m_document->view());
 	setupMenus();
 
 	connect(m_view,		&View::insertActionIntoMenubar,
@@ -40,7 +40,6 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 			this,		&Presenter::on_elementSelected);
 }
 
-// TODO is this the place ?
 void Presenter::setupCommand(PluginControlInterface* cmd)
 {
 	cmd->setParent(this); // Ownership transfer
@@ -54,7 +53,6 @@ void Presenter::setupCommand(PluginControlInterface* cmd)
 	m_customCommands.push_back(cmd);
 }
 
-// TODO is this the place ?
 void Presenter::addPanel(PanelFactoryInterface* p)
 {
 	auto model = p->makeModel(m_model);
@@ -86,17 +84,15 @@ void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
 {
-	// TODO : put parent_name & name in data and start to deserialize it here.
 	for(auto& ccmd : m_customCommands)
 	{
 		if(ccmd->objectName() == parent_name)
 		{
-			// emit instantiatedCommand(ccmd->instantiateUndoCommand(name, data));
 			return ccmd->instantiateUndoCommand(name, data);
 		}
 	}
 
-	qDebug("ALERT: Command could not be instantiated.");
+	qDebug() << "ALERT: Command" << parent_name << " :: " << name << "could not be instantiated.";
 	return nullptr;
 }
 
@@ -110,9 +106,6 @@ void Presenter::on_elementSelected(QObject* elt)
 #include <QMessageBox>
 void Presenter::setupMenus()
 {
-	//TODO
-	//auto notyet = [] { QMessageBox::information(nullptr, "Not yet", "Not yet");};
-
 	////// File //////
 	auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
 													   FileMenuElement::New,

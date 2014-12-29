@@ -44,7 +44,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath):
 		m_serializedProcesses.push_back(arr);
 	}
 
-	// TODO save the mapping in the parent scenario view models.
+	// @todo save the mapping in the parent scenario view models.
 }
 
 void ClearConstraint::undo()

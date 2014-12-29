@@ -66,7 +66,6 @@ iscore::PluginControlInterface* ScenarioPlugin::control_make(QString name)
 
 QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
 {
-	// Todo : put these strings somewhere in an interface file.
 	return {{"Process",
 			 std::bind(&ProcessList::addProcess,
 					   m_control->processList(),
@@ -75,7 +74,6 @@ QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
 
 QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factoryName)
 {
-	// todo is it possible to to a better type-checking here ? :(
 	if(factoryName == "Process")
 	{
 		return {new ScenarioProcessFactory};
@@ -89,5 +87,3 @@ QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factor
 
 	return {};
 }
-
-

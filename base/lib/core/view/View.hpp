@@ -8,7 +8,7 @@
 namespace iscore
 {
 	class PanelViewInterface;
-	class Presenter;
+	class DocumentView;
 	/**
 	 * @brief The View class
 	 *
@@ -21,9 +21,7 @@ namespace iscore
 			View(QObject* parent);
 
 			void addPanel(PanelViewInterface*);
-			void setPresenter(Presenter*);
-
-		public slots:
+			void setCentralView(iscore::DocumentView*);
 
 		signals:
 			/**
@@ -36,6 +34,5 @@ namespace iscore
 
 		private:
 			std::set<PanelViewInterface*> m_panelsViews;
-			Presenter* m_presenter{}; //@todo remove.
 	};
 }

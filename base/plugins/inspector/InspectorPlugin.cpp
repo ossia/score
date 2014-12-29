@@ -70,7 +70,7 @@ PluginControlInterface* InspectorPlugin::control_make(QString s)
 {
 	if(s == "InspectorControl")
 	{
-		return m_inspectorControl; // TODO what happens on deletion ?
+		return m_inspectorControl;
 	}
 
 	return nullptr;
