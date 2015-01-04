@@ -8,11 +8,11 @@
     $ mkdir -p build_folder
     $ cd build_folder
     $ cmake path/to/i-score/repo
-    $ make install
+    $ make
     
 ### And run : 
 
-    $ ./iscore_core
+    $ ./iscore_app
 
 # DOCUMENTATION
 
