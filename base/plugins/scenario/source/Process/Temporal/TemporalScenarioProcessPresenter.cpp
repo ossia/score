@@ -193,7 +193,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
 {
 	EventData data{};
 	data.eventClickedId = m_events.back()->id();
-	data.x = point.x() - m_events.back()->model()->date();
+    data.x = point.x();
 	data.y = point.y();
 	if (point.x() - m_events.back()->model()->date() > 20 ) // @todo use a const to do that !
 		createConstraintAndEventFromEvent(data);

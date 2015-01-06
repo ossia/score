@@ -32,7 +32,7 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_view{new QGraphicsView{m_scene}},
 	m_baseObject{new GrapicsProxyObject{}}
 {
-	m_scene->setSceneRect(0, 0, 500, 200);
+//	m_scene->setSceneRect(0, 0, 500, 200);
 	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);

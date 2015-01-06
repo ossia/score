@@ -26,6 +26,9 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 		virtual void keyPressEvent(QKeyEvent* event) override;
+
+    private:
+        QPointF m_clickedPoint{};
 };
 
 

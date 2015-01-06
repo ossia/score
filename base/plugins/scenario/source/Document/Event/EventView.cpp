@@ -54,10 +54,10 @@ void EventView::paint(QPainter* painter,
 void EventView::setLinesExtremity(int topPoint, int bottomPoint)
 {
 	m_firstLine.setP1(boundingRect().center());
-	m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint + 80)); // @todo where does the 80 come from ??
+    m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint)); // @todo where does the 80 come from ??
 
 	m_secondLine.setP1(boundingRect().center());
-	m_secondLine.setP2(QPointF(boundingRect().center().x(), bottomPoint + 80));
+    m_secondLine.setP2(QPointF(boundingRect().center().x(), bottomPoint));
 }
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
