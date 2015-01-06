@@ -85,15 +85,17 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 																 int newConstraintId,
 																 int newEventId)
 {
+    auto startEvent = this->event(startEventId);
+
 	auto constraint = new ConstraintModel{newConstraintId,
 					  this->event(startEventId)->heightPercentage(),
 					  this};
 	auto event = new EventModel{newEventId,
-				 this->event(startEventId)->heightPercentage(),
-				 this};
+                 startEvent->heightPercentage(),
+				 this};    
 
 	event->setHeightPercentage(heightPos);
-	constraint->setHeightPercentage(heightPos);
+    constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
 
 	// TEMPORARY :
 	constraint->setStartDate(this->event(startEventId)->date());

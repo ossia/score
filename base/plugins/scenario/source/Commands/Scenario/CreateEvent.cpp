@@ -31,7 +31,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosit
 
 	EventData d;
 	d.eventClickedId = (SettableIdentifier::identifier_type) scenar->startEvent()->id();
-	d.x = time;
+	d.dDate = time;
 	d.relativeY = heightPosition;
 
 	m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), d};

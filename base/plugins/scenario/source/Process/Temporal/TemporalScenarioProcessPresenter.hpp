@@ -37,6 +37,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		virtual int viewModelId() const;
 		virtual int modelId() const;
 		int currentlySelectedEvent() const;
+        long millisecPerPixel() const;
 
 	signals:
 		void currentlySelectedEventChanged(int arg);
@@ -81,4 +82,5 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		std::vector<EventPresenter*> m_events;
 
 		int m_currentlySelectedEvent{};
+        long m_millisecPerPixel{2};
 };

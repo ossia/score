@@ -26,7 +26,7 @@ MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 	m_path{std::move(scenarioPath)},
 	m_eventId{data.eventClickedId},
 	m_newHeightPosition{data.relativeY},
-	m_newX{data.x}
+	m_newX{data.dDate}
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 	auto ev = scenar->event(m_eventId);

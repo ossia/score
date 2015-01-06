@@ -62,7 +62,5 @@ class TemporalConstraintPresenter : public NamedObject
 		// Process presenters are in the deck presenters.
 		TemporalConstraintViewModel* m_viewModel{};
 		TemporalConstraintView* m_view{};
-
-		long m_millisecPerPixel{1};
 };
 

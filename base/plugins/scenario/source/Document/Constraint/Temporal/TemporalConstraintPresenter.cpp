@@ -21,7 +21,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
-	view->setWidth(m_viewModel->model()->width() / m_millisecPerPixel);
+    view->setWidth(m_viewModel->model()->width());
 
 	if(m_viewModel->isBoxShown())
 	{
@@ -52,7 +52,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		emit constraintReleased(data);
 	});
 
-	updateView();
+    updateView();
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
