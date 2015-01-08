@@ -17,6 +17,7 @@
 #include "Document/Event/EventData.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/CreateConstraint.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
@@ -197,7 +198,7 @@ void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF poi
 																 m_viewModel->sharedProcessModel()),
                                      point.x() * m_millisecPerPixel,
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
-	this->submitCommand(cmd);
+    this->submitCommand(cmd);
 }
 
 void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
@@ -209,8 +210,18 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
         data.x = point.x();
         data.dDate = point.x() * m_millisecPerPixel;
         data.y = point.y();
-        createConstraintAndEventFromEvent(data);
+        createConstraint(data);
     }
+}
+
+void TemporalScenarioProcessPresenter::on_hoverEnterInEvent(int eventId)
+{
+    m_pointedEvent = eventId;
+}
+
+void TemporalScenarioProcessPresenter::on_hoverLeaveEvent()
+{
+    m_pointedEvent = 0;
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -270,16 +281,39 @@ void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 	}
 }
 
-void TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
+void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 {
     data.dDate = data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date();
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
-																		   m_viewModel->sharedProcessModel()),
-												data);
+    EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
+    int endEvent{0};
 
-	submitCommand(cmd);
+//    qDebug() << this->m_view->scene()->items(QRectF(data.scenePos.x(), data.scenePos.y(), 10, 10));
+    //*
+    if (it)
+    {
+        for (auto& ev : m_events)
+        {
+            if(ev->view() == it)
+            {
+                endEvent = ev->id();
+                auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
+                                                                                    m_viewModel->sharedProcessModel()),
+                                                         data.eventClickedId,
+                                                         endEvent);
+                submitCommand(cmd);
+                break;
+            }
+        }
+    }
+    else //*/
+    {
+        auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+                                                                               m_viewModel->sharedProcessModel()),
+                                                    data);
+        submitCommand(cmd);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -298,6 +332,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
+    // @todo : use relative t and not absolute, so we can move constraint on vertical axis without unfortunately change t position.
     data.dDate = data.x * m_millisecPerPixel;
 	data.relativeY = data.y / m_view->boundingRect().height();
 
@@ -327,11 +362,16 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent);
+            this,			 &TemporalScenarioProcessPresenter::createConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
 			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioProcessPresenter::elementSelected);
+    connect(event_presenter, &EventPresenter::hoverEnterInEvent,
+            this,			 &TemporalScenarioProcessPresenter::on_hoverEnterInEvent);
+    connect(event_presenter, &EventPresenter::hoverLeaveEvent,
+            this,			 &TemporalScenarioProcessPresenter::on_hoverLeaveEvent);
+
 
 	connect(event_presenter, &EventPresenter::linesExtremityChange,
 			[event_view, this] (double top, double bottom)

@@ -69,13 +69,15 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId,
 	// Else...
 	inter->setStartEvent((SettableIdentifier::identifier_type) sev->id());
 	inter->setEndEvent((SettableIdentifier::identifier_type) eev->id());
+    inter->setStartDate(sev->date());
+    inter->setWidth(eev->date() - sev->date());
 
 	sev->addNextConstraint(newConstraintModelId);
 	eev->addPreviousConstraint(newConstraintModelId);
 
 	// From now on everything must be in a valid state.
-
-	emit constraintCreated((SettableIdentifier::identifier_type) inter->id());
+    addConstraint(inter);
+    emit constraintCreated((SettableIdentifier::identifier_type) inter->id());
 }
 
 void
@@ -230,7 +232,12 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	}
 
 	// Constraint suppression
-	removeConstraint(constraintId);
+    removeConstraint(constraintId);
+}
+
+void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(int constraintId)
+{
+    removeConstraint(constraintId);
 }
 
 

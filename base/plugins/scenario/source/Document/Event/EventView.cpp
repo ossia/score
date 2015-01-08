@@ -14,6 +14,7 @@ EventView::EventView(QGraphicsObject* parent):
 	this->setZValue(parent->zValue() + 2);
 
 	this->setFlag(ItemIsSelectable);
+    this->setAcceptHoverEvents(true);
 }
 
 QRectF EventView::boundingRect() const
@@ -74,7 +75,7 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 
 	if(m->modifiers() == Qt::ControlModifier)
 	{
-		emit eventReleasedWithControl(posInScenario);
+        emit eventReleasedWithControl(posInScenario, mapToScene(m->pos()));
 	}
 	else
 	{
@@ -85,4 +86,14 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 {
 
+}
+
+void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *m)
+{
+    emit hoverEnter();
+}
+
+void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *m)
+{
+    emit hoverLeave();
 }

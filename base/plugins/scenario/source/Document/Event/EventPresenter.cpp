@@ -26,13 +26,14 @@ EventPresenter::EventPresenter(EventModel* model,
 	connect(m_view, &EventView::eventReleased,
 			this, &EventPresenter::on_eventReleased);
 
+    connect(m_view, &EventView::hoverEnter,
+            this, &EventPresenter::on_hoverEnter);
+
+    connect(m_view, &EventView::hoverLeave,
+            this, &EventPresenter::hoverLeaveEvent);
+
 	connect(m_model, &EventModel::verticalExtremityChanged,
 			this, &EventPresenter::linesExtremityChange);
-
- /*           [&] (double top, double bottom)
-			{
-				emit linesExtremityChange(top, bottom);
-			}); */
 }
 
 EventPresenter::~EventPresenter()
@@ -79,11 +80,17 @@ void EventPresenter::on_eventReleased(QPointF p)
 	emit eventReleased(d);
 }
 
-void EventPresenter::on_eventReleasedWithControl(QPointF p)
+void EventPresenter::on_eventReleasedWithControl(QPointF p, QPointF pInScene)
 {
 	EventData d{};
 	d.eventClickedId = id();
 	d.x = p.x();
 	d.y = p.y();
-	emit eventReleasedWithControl(d);
+    d.scenePos = pInScene;
+    emit eventReleasedWithControl(d);
+}
+
+void EventPresenter::on_hoverEnter()
+{
+    emit hoverEnterInEvent(id());
 }

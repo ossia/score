@@ -26,12 +26,15 @@ class EventPresenter : public NamedObject
 		void eventReleasedWithControl(EventData);
 		void eventReleased(EventData);
 		void linesExtremityChange(double, double);
+        void hoverEnterInEvent(int);
+        void hoverLeaveEvent();
 
 		void elementSelected(QObject*);
 
 	public slots:
 		void on_eventReleased(QPointF);
-		void on_eventReleasedWithControl(QPointF);
+        void on_eventReleasedWithControl(QPointF, QPointF);
+        void on_hoverEnter();
 
 	private:
 		EventModel* m_model{};

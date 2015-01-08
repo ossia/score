@@ -73,6 +73,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void removeConstraint(int constraintId);
 		void removeEvent(int eventId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
+        void undo_createConstraintBetweenEvent(int constraintId);
 
 
 		// Accessors

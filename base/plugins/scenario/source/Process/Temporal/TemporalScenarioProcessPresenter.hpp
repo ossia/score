@@ -59,6 +59,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_scenarioPressed();
 		void on_scenarioPressedWithControl(QPointF);
 		void on_scenarioReleased(QPointF);
+        void on_hoverEnterInEvent(int);
+        void on_hoverLeaveEvent();
 
 		void on_askUpdate();
 
@@ -66,7 +68,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 	private slots:
 		void setCurrentlySelectedEvent(int arg);
-		void createConstraintAndEventFromEvent(EventData data);
+        void createConstraint(EventData data);
 		void moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);
 
@@ -82,5 +84,6 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		std::vector<EventPresenter*> m_events;
 
 		int m_currentlySelectedEvent{};
-        long m_millisecPerPixel{2};
+        int m_pointedEvent{0};
+        long m_millisecPerPixel{1};
 };
