@@ -87,13 +87,3 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 {
 
 }
-
-void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *m)
-{
-    emit hoverEnter();
-}
-
-void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *m)
-{
-    emit hoverLeave();
-}

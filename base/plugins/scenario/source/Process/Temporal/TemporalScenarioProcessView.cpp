@@ -67,7 +67,7 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
 	QGraphicsObject::mouseReleaseEvent(event);
 	if(event->modifiers() == Qt::ControlModifier)
 	{
-		emit scenarioReleased(event->pos());
+        emit scenarioReleased(event->pos(), mapToScene(event->pos()));
 	}
 }
 

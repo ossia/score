@@ -16,7 +16,7 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 	signals:
 		void scenarioPressed();
 		void scenarioPressedWithControl(QPointF);
-		void scenarioReleased(QPointF);
+        void scenarioReleased(QPointF, QPointF);
 
 		void deletePressed();
 

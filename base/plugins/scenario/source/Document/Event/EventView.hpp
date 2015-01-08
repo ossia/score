@@ -25,15 +25,11 @@ class EventView : public QGraphicsObject
 		void eventPressed();
         void eventReleasedWithControl(QPointF, QPointF);
 		void eventReleased(QPointF);
-        void hoverEnter();
-        void hoverLeave();
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *m) override;
-        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* m) override;
 
 	private:
 		QPointF m_clickedPoint{};

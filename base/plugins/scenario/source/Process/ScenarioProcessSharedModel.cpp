@@ -51,7 +51,9 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 
 
 //////// Creation ////////
-void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId, int endEventId, int newConstraintModelId)
+void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId,
+                                                               int endEventId,
+                                                               int newConstraintModelId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
@@ -97,13 +99,19 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 				 this};    
 
 	event->setHeightPercentage(heightPos);
-    constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
+    if (startEventId == m_startEventId)
+    {
+        constraint->setHeightPercentage(heightPos);
+    }
+    else
+    {
+        constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
+    }
 
 	// TEMPORARY :
 	constraint->setStartDate(this->event(startEventId)->date());
 	constraint->setWidth(constraint_duration);
 	event->setDate(constraint->startDate() + constraint->width());
-	//	event->m_y = inter->heightPercentage() * 75;
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
@@ -122,16 +130,16 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 	m_events.push_back(event);
 	m_constraints.push_back(constraint);
 
-	emit eventCreated((SettableIdentifier::identifier_type) event->id());
-	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
+    emit eventCreated((SettableIdentifier::identifier_type) event->id());
+    emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
 
-	// link constraint with event
-	event->addPreviousConstraint(newConstraintId);
-	this->event(startEventId)->addNextConstraint(newConstraintId);
-	event->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
-								constraint->heightPercentage());
-	this->event(startEventId)->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
-													constraint->heightPercentage());
+    // link constraint with event
+    event->addPreviousConstraint(newConstraintId);
+    this->event(startEventId)->addNextConstraint(newConstraintId);
+    event->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+                                constraint->heightPercentage());
+    this->event(startEventId)->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+                                                    constraint->heightPercentage());
 }
 
 void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolute_time, double heightPosition)

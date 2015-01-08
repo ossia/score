@@ -200,7 +200,7 @@ void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF poi
     this->submitCommand(cmd);
 }
 
-void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
+void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
     if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) > 20 ) // @todo use a const to do that !
     {
@@ -209,18 +209,9 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
         data.x = point.x();
         data.dDate = point.x() * m_millisecPerPixel;
         data.y = point.y();
+        data.scenePos = scenePoint;
         createConstraint(data);
     }
-}
-
-void TemporalScenarioProcessPresenter::on_hoverEnterInEvent(int eventId)
-{
-    m_pointedEvent = eventId;
-}
-
-void TemporalScenarioProcessPresenter::on_hoverLeaveEvent()
-{
-    m_pointedEvent = 0;
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -364,10 +355,6 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioProcessPresenter::elementSelected);
-    connect(event_presenter, &EventPresenter::hoverEnterInEvent,
-            this,			 &TemporalScenarioProcessPresenter::on_hoverEnterInEvent);
-    connect(event_presenter, &EventPresenter::hoverLeaveEvent,
-            this,			 &TemporalScenarioProcessPresenter::on_hoverLeaveEvent);
 
 
 	connect(event_presenter, &EventPresenter::linesExtremityChange,

@@ -55,7 +55,8 @@ class EventModel : public IdentifiedObject
 		int date() const;
 
 		void translate(int deltaTime);
-		void setVerticalExtremity(int, double);
+
+        void setVerticalExtremity(int, double);
         void eventMovedVertically(double);
         void updateVerticalLink();
 
