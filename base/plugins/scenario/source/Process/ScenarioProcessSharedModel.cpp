@@ -146,9 +146,13 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolut
 		ev->setHeightPercentage(heightPosition);
 		ev->translate(time);
 
-		auto prev_constraint = constraint(event(eventId)->previousConstraints().at(0));
-		prev_constraint->setWidth(prev_constraint->width() + time);
-		emit constraintMoved((SettableIdentifier::identifier_type) prev_constraint->id());
+        for (auto& prevConstraintId : event(eventId)->previousConstraints())
+        {
+            auto prevConstraint = constraint(prevConstraintId);
+            prevConstraint->setWidth(prevConstraint->width() + time);
+            emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
+        }
+
 		emit eventMoved(eventId);
 
 		QVector<int> already_moved_events;
@@ -188,6 +192,15 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 				constraint(cons)->translate(deltaTime);
 				emit eventMoved(evId);
 				emit constraintMoved(cons);
+
+                for (auto& prevConstraintId : event(evId)->previousConstraints())
+                {
+                    auto prevConstraint = constraint(prevConstraintId);
+                    prevConstraint->setWidth(event(evId)->date() - prevConstraint->startDate());
+                    emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
+                }
+
+
 				moveNextElements(evId, deltaTime, movedEvent);
 			}
 		}
