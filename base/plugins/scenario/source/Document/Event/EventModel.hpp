@@ -53,13 +53,15 @@ class EventModel : public IdentifiedObject
 
 		double heightPercentage() const;
 		int date() const;
+
 		void translate(int deltaTime);
 		void setVerticalExtremity(int, double);
-		void updateVerticalLink();
+        void eventMovedVertically(double);
+        void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
-		// Should maybe be in the Scenario instead ?
+        // Should maybe be in the Scenario instead ?
 		QMap<int, double> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const

@@ -46,6 +46,7 @@ bool EventModel::removeNextConstraint(int constraintToDelete)
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
 		m_constraintsYPos.remove(constraintToDelete);
+        updateVerticalLink();
 		return true;
 	}
 	return false;
@@ -57,6 +58,7 @@ bool EventModel::removePreviousConstraint(int constraintToDelete)
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
 		m_constraintsYPos.remove(constraintToDelete);
+        updateVerticalLink();
 		return true;
 	}
 	return false;
@@ -84,17 +86,17 @@ void EventModel::translate(int deltaTime)
 
 void EventModel::setVerticalExtremity(int consId, double newPosition)
 {
-	m_constraintsYPos[consId] = newPosition;
-	updateVerticalLink();
+    m_constraintsYPos[consId] = newPosition;
+    updateVerticalLink();
 }
 
 void EventModel::updateVerticalLink()
 {
-	m_topY = m_heightPercentage;
-	m_bottomY = m_heightPercentage;
-
+    m_topY = 0.0;
+    m_bottomY = 0.0;
 	for (auto pos : m_constraintsYPos)
 	{
+        pos -= m_heightPercentage;
 		if (pos < m_topY)
 		{
 			m_topY = pos;
@@ -103,7 +105,7 @@ void EventModel::updateVerticalLink()
 		{
 			m_bottomY = pos;
 		}
-	}
+    }
 	emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
@@ -134,7 +136,8 @@ void EventModel::removeState(int stateId)
 void EventModel::setHeightPercentage(double arg)
 {
 	if (m_heightPercentage != arg) {
-		m_heightPercentage = arg;
+        m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
+        updateVerticalLink();
 	}
 }

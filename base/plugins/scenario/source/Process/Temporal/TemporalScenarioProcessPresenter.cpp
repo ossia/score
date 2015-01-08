@@ -147,7 +147,6 @@ void TemporalScenarioProcessPresenter::on_eventMoved(int eventId)
 
     ev->view()->setPos({qreal(ev->model()->date() / m_millisecPerPixel),
 						rect.height() * ev->model()->heightPercentage()});
-	ev->model()->updateVerticalLink();
 
 	m_view->update();
 }
@@ -289,8 +288,6 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
     EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
     int endEvent{0};
 
-//    qDebug() << this->m_view->scene()->items(QRectF(data.scenePos.x(), data.scenePos.y(), 10, 10));
-    //*
     if (it)
     {
         for (auto& ev : m_events)
@@ -307,7 +304,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
             }
         }
     }
-    else //*/
+    else
     {
         auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
                                                                                m_viewModel->sharedProcessModel()),

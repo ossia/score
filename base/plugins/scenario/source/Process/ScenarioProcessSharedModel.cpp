@@ -185,6 +185,7 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 		for (auto cons : cur_event->nextConstraints())
 		{
 			auto evId = constraint(cons)->endEvent();
+            // if event not already moved
 			if (movedEvent.indexOf(evId) == -1)
 			{
 				event(evId)->translate(deltaTime);
@@ -193,13 +194,13 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 				emit eventMoved(evId);
 				emit constraintMoved(cons);
 
+                // adjust previous constraint width
                 for (auto& prevConstraintId : event(evId)->previousConstraints())
                 {
                     auto prevConstraint = constraint(prevConstraintId);
                     prevConstraint->setWidth(event(evId)->date() - prevConstraint->startDate());
                     emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
                 }
-
 
 				moveNextElements(evId, deltaTime, movedEvent);
 			}
@@ -250,6 +251,12 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 
 void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(int constraintId)
 {
+    auto end_event = event(this->constraint(constraintId)->endEvent());
+    end_event->removePreviousConstraint(constraintId);
+
+    auto start_event = event(this->constraint(constraintId)->startEvent());
+    start_event->removeNextConstraint(constraintId);
+
     removeConstraint(constraintId);
 }
 
