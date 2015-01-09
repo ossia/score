@@ -54,8 +54,7 @@ void EventView::paint(QPainter* painter,
 
 void EventView::setLinesExtremity(int topPoint, int bottomPoint)
 {
-	m_firstLine.setP1(boundingRect().center());
-    m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint)); // @todo where does the 80 come from ??
+	m_firstLine.setP1(boundingRect().center());    m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint));
 
 	m_secondLine.setP1(boundingRect().center());
     m_secondLine.setP2(QPointF(boundingRect().center().x(), bottomPoint));
@@ -77,9 +76,17 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 	{
         emit eventReleasedWithControl(posInScenario, mapToScene(m->pos()));
 	}
-	else
-	{
-		emit eventReleased(posInScenario);
+    else
+    {   // @todo : aimantation à revoir.
+        if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
+        {
+            posInScenario.setX(pos().x());
+        }
+        if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
+        {
+            posInScenario.setY(pos().y());
+        }
+        emit eventReleased(posInScenario);
 	}
 }
 
