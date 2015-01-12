@@ -2,7 +2,6 @@
 #include <tools/NamedObject.hpp>
 #include "Document/Event/EventData.hpp"
 
-
 class EventModel;
 class EventView;
 

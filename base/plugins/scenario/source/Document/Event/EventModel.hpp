@@ -92,10 +92,10 @@ class EventModel : public IdentifiedObject
 		void setConstraintsYPos(QMap<int, double>&& map)
 		{ m_constraintsYPos = std::move(map); }
 
-		void setTopY(double val)
-		{ m_topY = val; }
-		void setBottomY(double val)
-		{ m_bottomY = val; }
+        void setTopY(double val);
+
+        void setBottomY(double val);
+
 
 		void setOSSIATimeNode(OSSIA::TimeNode* timeNode)
 		{ m_timeNode = timeNode; }
