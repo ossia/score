@@ -8,6 +8,7 @@ namespace OSSIA
 }
 class ConstraintModel;
 class EventModel;
+class TimeNodeModel;
 class AbstractScenarioProcessViewModel;
 
 /**
@@ -122,6 +123,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		std::vector<ConstraintModel*> m_constraints;
 		std::vector<EventModel*> m_events;
+        std::vector<TimeNodeModel*> m_timeNodes;
 
 		int m_startEventId{};
 		int m_endEventId{};

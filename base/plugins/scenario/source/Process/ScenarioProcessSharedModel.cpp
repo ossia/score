@@ -5,6 +5,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
 
 #include <API/Headers/Editor/Scenario.h>
 

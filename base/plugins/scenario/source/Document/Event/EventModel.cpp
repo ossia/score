@@ -76,7 +76,25 @@ int EventModel::date() const
 
 void EventModel::setDate(int date)
 {
-	m_date = date;
+    m_date = date;
+}
+
+void EventModel::setTopY(double val)
+{
+    if(val < 0)
+    {
+        val = 0;
+    }
+    m_topY = val;
+}
+
+void EventModel::setBottomY(double val)
+{
+    if (val > 1)
+    {
+        val = 1.0;
+    }
+    m_bottomY = val;
 }
 
 void EventModel::translate(int deltaTime)
