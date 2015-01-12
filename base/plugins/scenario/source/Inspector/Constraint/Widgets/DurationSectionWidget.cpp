@@ -49,12 +49,12 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->addWidget(new QLabel{tr("Max duration")}, 2, 0);
 	lay->addWidget(maxSpin, 2, 1);
 
-	connect(minSpin, SIGNAL(valueChanged(int)),
-			parent, SLOT(minDurationSpinboxChanged(int)));
-	connect(maxSpin, SIGNAL(valueChanged(int)),
-			parent, SLOT(maxDurationSpinboxChanged(int)));
-	connect(checkbox, SIGNAL(toggled(bool)),
-			parent, SLOT(rigidCheckboxToggled(bool)));
+	connect(minSpin,	SIGNAL(valueChanged(int)),
+			parent,		SLOT(minDurationSpinboxChanged(int)));
+	connect(maxSpin,	SIGNAL(valueChanged(int)),
+			parent,		SLOT(maxDurationSpinboxChanged(int)));
+	connect(checkbox,	&QCheckBox::toggled,
+			parent,		&ConstraintInspectorWidget::rigidCheckboxToggled);
 
 	addContent(widg);
 }

@@ -2,6 +2,7 @@
 #include <QGraphicsObject>
 #include <QGraphicsProxyWidget>
 #include <QPointF>
+#include <QPen>
 
 class TemporalConstraintViewModel;
 
@@ -42,5 +43,8 @@ class TemporalConstraintView : public QGraphicsObject
 		QPointF m_clickedPoint{};
 
 		TemporalConstraintViewModel* m_viewModel{};
+
+		static const QPen m_solidPen;
+		static const QPen m_dashPen;
 };
 
