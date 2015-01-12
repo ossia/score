@@ -15,8 +15,8 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
 		virtual QWidget*getWidget();
 
-		TemporalConstraintView* constraintView()
-		{ return m_constraint; }
+		QGraphicsObject* baseObject()
+		{ return m_baseObject; }
 
 		void update();
 

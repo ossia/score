@@ -71,7 +71,6 @@ void CreateEventAfterEvent::redo()
 			throw std::runtime_error("CreateEvent : missing identifier.");
 		}
 	}
-
 	// @todo Creation of all the event view models
 }
 

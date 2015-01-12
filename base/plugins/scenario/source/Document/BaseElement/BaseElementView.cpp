@@ -37,8 +37,6 @@ BaseElementView::BaseElementView(QObject* parent):
 
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	m_scene->addItem(m_baseObject);
-	m_constraint = new TemporalConstraintView{m_baseObject};
-	m_constraint->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
 }
 

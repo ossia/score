@@ -3,12 +3,14 @@
 #include <QGraphicsProxyWidget>
 #include <QPointF>
 
+class TemporalConstraintViewModel;
+
 class TemporalConstraintView : public QGraphicsObject
 {
 	Q_OBJECT
 
 	public:
-		TemporalConstraintView(QGraphicsObject* parent);
+		TemporalConstraintView(TemporalConstraintViewModel* viewModel, QGraphicsObject* parent);
 
 		virtual ~TemporalConstraintView() = default;
 
@@ -38,5 +40,7 @@ class TemporalConstraintView : public QGraphicsObject
 		int m_height{};
 
 		QPointF m_clickedPoint{};
+
+		TemporalConstraintViewModel* m_viewModel{};
 };
 

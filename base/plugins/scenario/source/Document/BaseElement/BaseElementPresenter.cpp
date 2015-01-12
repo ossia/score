@@ -13,12 +13,19 @@ using namespace iscore;
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* model,
 										   DocumentDelegateViewInterface* view):
-	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view},
-	m_baseConstraintPresenter{new TemporalConstraintPresenter{
-							  this->model()->constraintViewModel(),
-							  this->view()->constraintView(),
-							  this}}
+	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view}
 {
+
+	auto cstrView = new TemporalConstraintView{this->model()->constraintViewModel(),
+											   this->view()->baseObject()};
+	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
+
+	m_baseConstraintPresenter = new TemporalConstraintPresenter
+									{
+										this->model()->constraintViewModel(),
+										cstrView,
+										this
+									};
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,

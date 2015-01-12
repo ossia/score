@@ -37,6 +37,9 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void createBox();
 
 		void activeBoxChanged(QString box);
+		void minDurationSpinboxChanged(int val);
+		void maxDurationSpinboxChanged(int val);
+		void rigidCheckboxToggled(bool b);
 
 
 		// Interface of Constraint
@@ -46,11 +49,6 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void on_boxCreated(int boxId);
 		void on_boxRemoved(int boxId);
 
-
-		// Abstract interface of SharedProcessModel
-
-		// Abstract interface of ProcessViewModel
-
 		// These methods are used to display created things
 		void displaySharedProcess(ProcessSharedModelInterface*);
 		void setupBox(BoxModel*);
@@ -58,6 +56,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 	private:
 		TemporalConstraintViewModel* m_currentConstraint{};
 		QVector<QMetaObject::Connection> m_connections;
+
+		InspectorSectionWidget* m_durationSection{};
 
 		InspectorSectionWidget* m_processSection{};
 		std::vector<InspectorSectionWidget*> m_processesSectionWidgets;

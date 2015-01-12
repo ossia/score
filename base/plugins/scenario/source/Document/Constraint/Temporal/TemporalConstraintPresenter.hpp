@@ -29,8 +29,8 @@ class TemporalConstraintPresenter : public NamedObject
 
 	public:
 		TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
-						  TemporalConstraintView* view,
-						  QObject* parent);
+									TemporalConstraintView* view,
+									QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
 		TemporalConstraintView* view();
@@ -52,7 +52,11 @@ class TemporalConstraintPresenter : public NamedObject
 		void on_boxHidden();
 		void on_boxRemoved();
 
+		void on_minDurationChanged(int);
+		void on_maxDurationChanged(int);
+
 		void updateView();
+
 
 	private:
 		void createBoxPresenter(BoxModel*);
