@@ -2,6 +2,12 @@
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 using namespace iscore;
 
+DocumentModel::DocumentModel(QObject* parent):
+	NamedObject{"DocumentModel", parent}
+{
+
+}
+
 void DocumentModel::reset()
 {
 	setModelDelegate(nullptr);

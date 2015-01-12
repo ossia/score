@@ -50,3 +50,8 @@ class ObjectIdentifier
 		QString m_objectName;
 		SettableIdentifier m_id;
 };
+
+Q_DECLARE_METATYPE(ObjectIdentifier)
+
+typedef QVector<ObjectIdentifier> ObjectIdentifierVector;
+

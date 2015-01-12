@@ -4,6 +4,10 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
+#include "Commands/Constraint/SetMinDuration.hpp"
+#include "Commands/Constraint/SetMaxDuration.hpp"
+#include "Commands/Constraint/SetRigidity.hpp"
+
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -12,7 +16,8 @@
 
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	InspectorSectionWidget{"Durations", parent},
-	m_model{parent->model()}
+	m_model{parent->model()},
+	m_parent{parent}
 {
 	QWidget* widg{new QWidget{this}};
 	QGridLayout* lay = new QGridLayout{widg};
@@ -50,11 +55,74 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->addWidget(maxSpin, 2, 1);
 
 	connect(minSpin,	SIGNAL(valueChanged(int)),
-			parent,		SLOT(minDurationSpinboxChanged(int)));
+			this,		SLOT(minDurationSpinboxChanged(int)));
+	connect(minSpin,	&QSpinBox::editingFinished,
+			[&] ()
+	{
+		emit m_parent->validateOngoingCommand();
+		m_minSpinboxEditing = false;
+	});
 	connect(maxSpin,	SIGNAL(valueChanged(int)),
-			parent,		SLOT(maxDurationSpinboxChanged(int)));
+			this,		SLOT(maxDurationSpinboxChanged(int)));
+	connect(maxSpin,	&QSpinBox::editingFinished,
+			[&] ()
+	{
+		emit m_parent->validateOngoingCommand();
+		m_maxSpinboxEditing = false;
+	});
 	connect(checkbox,	&QCheckBox::toggled,
-			parent,		&ConstraintInspectorWidget::rigidCheckboxToggled);
+			this,		&DurationSectionWidget::rigidCheckboxToggled);
 
 	addContent(widg);
+}
+
+using namespace Scenario::Command;
+
+void DurationSectionWidget::minDurationSpinboxChanged(int val)
+{
+	auto cmd = new SetMinDuration(
+				ObjectPath::pathFromObject(
+					"BaseConstraintModel",
+					m_model),
+				val);
+	if(!m_minSpinboxEditing)
+	{
+		m_minSpinboxEditing = true;
+
+		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
+	}
+	else
+	{
+		emit m_parent->continueOngoingCommand(cmd);
+	}
+}
+
+void DurationSectionWidget::maxDurationSpinboxChanged(int val)
+{
+	auto cmd = new SetMaxDuration(
+				ObjectPath::pathFromObject(
+					"BaseConstraintModel",
+					m_model),
+				val);
+	if(!m_maxSpinboxEditing)
+	{
+		m_maxSpinboxEditing = true;
+
+		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
+	}
+	else
+	{
+		emit m_parent->continueOngoingCommand(cmd);
+	}
+}
+
+void DurationSectionWidget::rigidCheckboxToggled(bool b)
+{
+	auto cmd = new SetRigidity(
+				   ObjectPath::pathFromObject(
+					   "BaseConstraintModel",
+					   m_model),
+				   b);
+
+	emit m_parent->submitCommand(cmd);
 }

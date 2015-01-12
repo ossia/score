@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <core/tools/ObjectPath.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;
@@ -33,6 +34,10 @@ class InspectorWidgetBase : public QWidget
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
+		void initiateOngoingCommand(iscore::SerializableCommand* cmd, QObject* objectToLock);
+		void continueOngoingCommand(iscore::SerializableCommand*);
+		void undoOngoingCommand();
+		void validateOngoingCommand();
 
 	public slots:
 

@@ -37,10 +37,6 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void createBox();
 
 		void activeBoxChanged(QString box);
-		void minDurationSpinboxChanged(int val);
-		void maxDurationSpinboxChanged(int val);
-		void rigidCheckboxToggled(bool b);
-
 
 		// Interface of Constraint
 		void on_processCreated(QString processName, int processId);

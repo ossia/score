@@ -23,6 +23,46 @@ void DocumentPresenter::applyCommand(SerializableCommand* cmd)
 	m_commandQueue->pushAndEmit(cmd);
 }
 
+void DocumentPresenter::initiateOngoingCommand(SerializableCommand* cmd, QObject* objectToLock)
+{
+	m_lockedObject = ObjectPath::pathFromObject(objectToLock);
+	emit lock(m_lockedObject);
+	m_ongoingCommand = cmd;
+	m_ongoingCommand->redo();
+}
+
+void DocumentPresenter::continueOngoingCommand(SerializableCommand* cmd)
+{
+	cmd->redo();
+	m_ongoingCommand->mergeWith(cmd);
+	delete cmd;
+}
+
+void DocumentPresenter::undoOngoingCommand()
+{
+	if(m_ongoingCommand)
+	{
+		emit unlock(m_lockedObject);
+		m_lockedObject = ObjectPath();
+		m_ongoingCommand->undo();
+		delete m_ongoingCommand;
+		m_ongoingCommand = nullptr;
+	}
+}
+
+void DocumentPresenter::validateOngoingCommand()
+{
+	if(m_ongoingCommand)
+	{
+		m_ongoingCommand->undo();
+		m_commandQueue->push(m_ongoingCommand);
+		m_ongoingCommand = nullptr;
+
+		emit unlock(m_lockedObject);
+		m_lockedObject = ObjectPath();
+	}
+}
+
 void DocumentPresenter::reset()
 {
 	m_commandQueue->clear();
@@ -47,3 +87,4 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
 	connect(m_presenter, &DocumentDelegatePresenterInterface::elementSelected,
 			this,		 &DocumentPresenter::on_elementSelected, Qt::QueuedConnection);
 }
+

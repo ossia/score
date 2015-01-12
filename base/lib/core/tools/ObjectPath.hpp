@@ -44,6 +44,7 @@ class ObjectPath
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
 		ObjectPath& operator=(ObjectPath&&) = default;
+		ObjectPath& operator=(const ObjectPath&) = default;
 
 		/**
 		 * @brief pathFromObject Factory method for ObjectPath
@@ -75,6 +76,7 @@ class ObjectPath
 
 	private:
 		QObject* find_impl() const;
-		QVector<ObjectIdentifier> m_objectIdentifiers;
+		ObjectIdentifierVector m_objectIdentifiers;
 };
 
+Q_DECLARE_METATYPE(ObjectPath)

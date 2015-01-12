@@ -5,6 +5,7 @@
 #include <core/view/View.hpp>
 #include <core/application/ChildEventFilter.hpp>
 #include <core/tools/utilsCPP11.hpp>
+#include <core/tools/ObjectIdentifier.hpp>
 using namespace iscore;
 
 
@@ -23,6 +24,8 @@ Application::Application(int& argc, char** argv):
 	QCoreApplication::setOrganizationName("OSSIA");
 	QCoreApplication::setOrganizationDomain("i-score.com");
 	QCoreApplication::setApplicationName("i-score");
+
+	qRegisterMetaType<ObjectIdentifierVector>("ObjectIdentifierVector");
 
 	// Settings
 	m_settings = std::make_unique<Settings>(this);

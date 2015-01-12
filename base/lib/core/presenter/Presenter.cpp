@@ -191,3 +191,12 @@ void Presenter::setupMenus()
 }
 
 
+void Presenter::on_lock(ObjectPath)
+{
+	// TODO
+}
+
+void Presenter::on_unlock(ObjectPath)
+{
+	// TODO
+}

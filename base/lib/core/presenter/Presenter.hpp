@@ -5,6 +5,7 @@
 #include <core/document/Document.hpp>
 
 #include <tools/NamedObject.hpp>
+#include <tools/ObjectPath.hpp>
 
 namespace iscore
 {
@@ -76,6 +77,9 @@ namespace iscore
 			 *
 			 */
 			void on_elementSelected(QObject* elt);
+
+			void on_lock(ObjectPath);
+			void on_unlock(ObjectPath);
 
 		private:
 			void setupMenus();

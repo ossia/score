@@ -11,9 +11,6 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/SetMinDuration.hpp"
-#include "Commands/Constraint/SetMaxDuration.hpp"
-#include "Commands/Constraint/SetRigidity.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -197,39 +194,6 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 			emit submitCommand(cmd);
 		}
 	}
-}
-
-void ConstraintInspectorWidget::minDurationSpinboxChanged(int val)
-{
-	auto cmd = new SetMinDuration(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   model()),
-				   val);
-
-	emit submitCommand(cmd);
-}
-
-void ConstraintInspectorWidget::maxDurationSpinboxChanged(int val)
-{
-	auto cmd = new SetMaxDuration(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   model()),
-				   val);
-
-	emit submitCommand(cmd);
-}
-
-void ConstraintInspectorWidget::rigidCheckboxToggled(bool b)
-{
-	auto cmd = new SetRigidity(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   model()),
-				   b);
-
-	emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)

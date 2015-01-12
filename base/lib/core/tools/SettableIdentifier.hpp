@@ -41,3 +41,5 @@ class SettableIdentifier
 		identifier_type m_id{};
 		bool m_set{false};
 };
+
+Q_DECLARE_METATYPE(SettableIdentifier)
