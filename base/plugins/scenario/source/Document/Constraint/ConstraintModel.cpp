@@ -29,10 +29,6 @@ int ConstraintModel::defaultDuration() const
 void ConstraintModel::setDefaultDuration(int width)
 {
 	m_defaultDuration = width;
-
-	// TEMPORARY
-	setMinDuration(m_defaultDuration - 130);
-	setMaxDuration(m_defaultDuration + 130);
 }
 
 ConstraintModel::ConstraintModel(int id,
