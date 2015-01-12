@@ -72,7 +72,7 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId,
 	inter->setStartEvent((SettableIdentifier::identifier_type) sev->id());
 	inter->setEndEvent((SettableIdentifier::identifier_type) eev->id());
     inter->setStartDate(sev->date());
-    inter->setWidth(eev->date() - sev->date());
+    inter->setDefaultDuration(eev->date() - sev->date());
 
 	sev->addNextConstraint(newConstraintModelId);
 	eev->addPreviousConstraint(newConstraintModelId);
@@ -110,8 +110,8 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 
 	// TEMPORARY :
 	constraint->setStartDate(this->event(startEventId)->date());
-	constraint->setWidth(constraint_duration);
-	event->setDate(constraint->startDate() + constraint->width());
+	constraint->setDefaultDuration(constraint_duration);
+	event->setDate(constraint->startDate() + constraint->defaultDuration());
 
 	auto ossia_tn0 = this->event(startEventId)->apiObject();
 	auto ossia_tn1 = event->apiObject();
@@ -157,7 +157,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolut
         for (auto& prevConstraintId : event(eventId)->previousConstraints())
         {
             auto prevConstraint = constraint(prevConstraintId);
-            prevConstraint->setWidth(prevConstraint->width() + time);
+            prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
             emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
         }
 
@@ -206,7 +206,7 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
                 for (auto& prevConstraintId : event(evId)->previousConstraints())
                 {
                     auto prevConstraint = constraint(prevConstraintId);
-                    prevConstraint->setWidth(event(evId)->date() - prevConstraint->startDate());
+                    prevConstraint->setDefaultDuration(event(evId)->date() - prevConstraint->startDate());
                     emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
                 }
 

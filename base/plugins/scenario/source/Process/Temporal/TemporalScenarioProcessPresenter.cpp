@@ -163,7 +163,7 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
             cstr_pres->view()->setPos({qreal(cstr_model->startDate()) / m_millisecPerPixel,
 									   rect.height() * cstr_model->heightPercentage()});
 
-            cstr_pres->view()->setWidth(cstr_model->width() / m_millisecPerPixel);
+            cstr_pres->view()->setWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
 		}
 	}
 	m_view->update();
@@ -375,7 +375,7 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 													constraint_view,
 													this};
 
-    constraint_view->setWidth(constraint_view_model->model()->width() / m_millisecPerPixel);
+    constraint_view->setWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
     constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
 							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 

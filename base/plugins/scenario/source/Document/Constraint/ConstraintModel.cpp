@@ -21,14 +21,14 @@ void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* view
 			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
 }
 
-int ConstraintModel::width() const
+int ConstraintModel::defaultDuration() const
 {
-	return m_width;
+	return m_defaultDuration;
 }
 
-void ConstraintModel::setWidth(int width)
+void ConstraintModel::setDefaultDuration(int width)
 {
-	m_width = width;
+	m_defaultDuration = width;
 }
 
 ConstraintModel::ConstraintModel(int id,
@@ -154,6 +154,16 @@ double ConstraintModel::heightPercentage() const
 	return m_heightPercentage;
 }
 
+int ConstraintModel::minDuration() const
+{
+	return m_minDuration;
+}
+
+int ConstraintModel::maxDuration() const
+{
+	return m_maxDuration;
+}
+
 
 
 void ConstraintModel::setHeightPercentage(double arg)
@@ -161,5 +171,21 @@ void ConstraintModel::setHeightPercentage(double arg)
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
+	}
+}
+
+void ConstraintModel::setMinDuration(int arg)
+{
+	if (m_minDuration != arg) {
+		m_minDuration = arg;
+		emit minDurationChanged(arg);
+	}
+}
+
+void ConstraintModel::setMaxDuration(int arg)
+{
+	if (m_maxDuration != arg) {
+		m_maxDuration = arg;
+		emit maxDurationChanged(arg);
 	}
 }

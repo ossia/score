@@ -21,7 +21,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
-    view->setWidth(m_viewModel->model()->width());
+    view->setWidth(m_viewModel->model()->defaultDuration());
 
 	if(m_viewModel->isBoxShown())
 	{

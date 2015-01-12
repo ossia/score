@@ -31,6 +31,16 @@ class ConstraintModel : public IdentifiedObject
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
+		// These dates are relative to the beginning of the constraint.
+		Q_PROPERTY(int minDuration
+				   READ minDuration
+				   WRITE setMinDuration
+				   NOTIFY minDurationChanged)
+		Q_PROPERTY(int maxDuration
+				   READ maxDuration
+				   WRITE setMaxDuration
+				   NOTIFY maxDurationChanged)
+
 	public:
 		ConstraintModelMetadata metadata;
 
@@ -101,10 +111,11 @@ class ConstraintModel : public IdentifiedObject
 		void setStartDate(int start);
 		void translate(int deltaTime);
 
-		int width() const;
-		void setWidth(int width);
-
 		double heightPercentage() const;
+
+		int defaultDuration() const;
+		int minDuration() const;
+		int maxDuration() const;
 
 	signals:
 		void processCreated(QString processName, int processId);
@@ -115,8 +126,15 @@ class ConstraintModel : public IdentifiedObject
 
 		void heightPercentageChanged(double arg);
 
+		void minDurationChanged(int arg);
+		void maxDurationChanged(int arg);
+
 	public slots:
 		void setHeightPercentage(double arg);
+
+		void setDefaultDuration(int defaultDuration);
+		void setMinDuration(int arg);
+		void setMaxDuration(int arg);
 
 	private:
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
@@ -128,8 +146,11 @@ class ConstraintModel : public IdentifiedObject
 		int m_endEvent{};
 
 		// ___ TEMPORARY ___
-		int m_width{200};
-		int m_x{};
+		int m_defaultDuration{200};
+		int m_minDuration{m_defaultDuration};
+		int m_maxDuration{m_defaultDuration};
+
+		int m_x{}; // origin
 
 		double m_heightPercentage{0.5};
 

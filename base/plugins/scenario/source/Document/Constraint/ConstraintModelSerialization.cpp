@@ -62,7 +62,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_stream << constraint.width()
+	m_stream << constraint.defaultDuration()
 			 << constraint.startDate();
 }
 
@@ -100,7 +100,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	int width{}, startDate{};
 	m_stream >> width
 			 >> startDate;
-	constraint.setWidth(width);
+	constraint.setDefaultDuration(width);
 	constraint.setStartDate(startDate);
 }
 
@@ -135,7 +135,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_obj["Width"] = constraint.width();
+	m_obj["Width"] = constraint.defaultDuration();
 	m_obj["StartDate"] = constraint.startDate();
 }
 
@@ -161,6 +161,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 	}
 
 	// Things that should be queried from the API :
-	constraint.setWidth(m_obj["Width"].toInt());
+	constraint.setDefaultDuration(m_obj["Width"].toInt());
 	constraint.setStartDate(m_obj["StartDate"].toInt());
 }
