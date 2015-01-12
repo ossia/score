@@ -63,7 +63,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
 	m_stream << constraint.defaultDuration()
-			 << constraint.startDate();
+			 << constraint.startDate()
+			 << constraint.minDuration()
+			 << constraint.maxDuration();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
@@ -97,11 +99,15 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	constraint.setEndEvent(endId);
 
 	// Things that should be queried from the API :
-	int width{}, startDate{};
+	int width{}, startDate{}, minDur{}, maxDur{};
 	m_stream >> width
-			 >> startDate;
+			 >> startDate
+			 >> minDur
+			 >> maxDur;
 	constraint.setDefaultDuration(width);
 	constraint.setStartDate(startDate);
+	constraint.setMinDuration(minDur);
+	constraint.setMaxDuration(maxDur);
 }
 
 
@@ -137,6 +143,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	// Things that should be queried from the API :
 	m_obj["Width"] = constraint.defaultDuration();
 	m_obj["StartDate"] = constraint.startDate();
+	m_obj["MinDuration"] = constraint.minDuration();
+	m_obj["MaxDuration"] = constraint.maxDuration();
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
@@ -163,4 +171,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 	// Things that should be queried from the API :
 	constraint.setDefaultDuration(m_obj["Width"].toInt());
 	constraint.setStartDate(m_obj["StartDate"].toInt());
+	constraint.setMinDuration(m_obj["MinDuration"].toInt());
+	constraint.setMaxDuration(m_obj["MaxDuration"].toInt());
 }
