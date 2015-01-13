@@ -24,6 +24,7 @@ class EventModel : public IdentifiedObject
 	public:
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
+		~EventModel();
 
 
 		template<typename Impl>
@@ -32,8 +33,6 @@ class EventModel : public IdentifiedObject
 		{
 			vis.writeTo(*this);
 		}
-
-		virtual ~EventModel() = default;
 
 		const QVector<int>& previousConstraints() const;
 		const QVector<int>& nextConstraints() const;

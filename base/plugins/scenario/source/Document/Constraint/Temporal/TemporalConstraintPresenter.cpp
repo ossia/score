@@ -65,7 +65,7 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 	if(m_view)
 	{
 		auto sc = m_view->scene();
-		if(sc) sc->removeItem(m_view);
+		if(sc && sc->items().contains(m_view)) sc->removeItem(m_view);
 		m_view->deleteLater();
 	}
 }

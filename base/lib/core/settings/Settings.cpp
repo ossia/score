@@ -15,6 +15,11 @@ Settings::Settings(QObject* parent):
 {
 }
 
+Settings::~Settings()
+{
+	delete m_settingsView;
+}
+
 void Settings::setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin)
 {
 	auto model = plugin->makeModel();

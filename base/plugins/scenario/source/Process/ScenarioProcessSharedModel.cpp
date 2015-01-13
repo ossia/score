@@ -21,6 +21,11 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	//m_events.push_back(new EventModel(1, this));
 }
 
+ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
+{
+	delete m_scenario;
+}
+
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
 																	 QObject* parent)
 {
@@ -35,7 +40,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 	addViewModel(scen);
 
 	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
-			[this] (QObject* obj) { this->removeViewModel(static_cast<ProcessViewModelInterface*>(obj)); });
+			this, &ScenarioProcessSharedModel::on_viewModelDestroyed);
 
 	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
 			scen, &view_model_type::on_constraintRemoved);
@@ -320,6 +325,11 @@ EventModel* ScenarioProcessSharedModel::startEvent() const
 EventModel* ScenarioProcessSharedModel::endEvent() const
 {
 	return event(m_endEventId);
+}
+
+void ScenarioProcessSharedModel::on_viewModelDestroyed(QObject* obj)
+{
+	removeViewModel(static_cast<ProcessViewModelInterface*>(obj));
 }
 
 

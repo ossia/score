@@ -54,7 +54,14 @@ void InspectorPanel::newItemInspected (QObject* object)
 
 void InspectorPanel::on_itemRemoved()
 {
-    //delete m_itemInspected;
+	if(m_itemInspected)
+	{
+		m_layout->removeWidget(m_itemInspected);
+		m_itemInspected->deleteLater();
+	}
+
 	if(qApp)
+	{
 		m_itemInspected = new InspectorWidgetBase{};
+	}
 }

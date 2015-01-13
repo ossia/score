@@ -20,6 +20,11 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 	m_heightPercentage = yPos;
 }
 
+EventModel::~EventModel()
+{
+	delete m_timeNode;
+}
+
 const QVector<int>&EventModel::previousConstraints() const
 {
 	return m_previousConstraints;

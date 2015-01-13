@@ -15,6 +15,7 @@ namespace iscore
 	class SettingsDelegateFactoryInterface
 	{
 		public:
+			virtual ~SettingsDelegateFactoryInterface() = default;
 			virtual SettingsDelegateViewInterface* makeView() = 0;
 			virtual SettingsDelegatePresenterInterface* makePresenter(SettingsPresenter*,
 																	  SettingsDelegateModelInterface* m,

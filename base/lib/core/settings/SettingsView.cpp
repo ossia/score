@@ -33,6 +33,7 @@ SettingsView::SettingsView(QWidget* parent):
 
 void SettingsView::addSettingsView(SettingsDelegateViewInterface* view)
 {
+	view->setParent(this);
 	QListWidgetItem* it = new QListWidgetItem{view->getPresenter()->settingsIcon(),
 											  view->getPresenter()->settingsName(),
 											  m_settingsList};

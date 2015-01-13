@@ -53,7 +53,7 @@ namespace iscore
 			void doConnections(QObject*);
 
 			// Base stuff.
-			std::unique_ptr<QApplication> m_app;
+			QApplication* m_app;
 			std::unique_ptr<Settings> m_settings; // Global settings
 
 			// MVP

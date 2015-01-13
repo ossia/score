@@ -37,7 +37,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintViewModel* view
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-	return {0, -15, qreal(m_width), qreal(m_height)};
+	return {0, -18, qreal(m_viewModel->model()->maxDuration()) + 3, qreal(m_height) + 3};
 }
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)

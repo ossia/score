@@ -52,6 +52,11 @@ ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
 	setHeightPercentage(yPos);
 }
 
+ConstraintModel::~ConstraintModel()
+{
+	delete m_timeBox;
+}
+
 //// Complex commands
 void ConstraintModel::createProcess(QString processName, int processId)
 {

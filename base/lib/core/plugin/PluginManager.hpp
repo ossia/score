@@ -64,11 +64,13 @@ namespace iscore
 			// Here, the plug-ins that are effectively loaded.
 			QMap<QString, QObject*> m_availablePlugins;
 
-			FactoryFamilyList m_customFactories;
+			FactoryFamilyList m_customFamilies;
 			AutoconnectList m_autoconnections;
 			CommandList  m_commandList;
 			PanelList    m_panelList;
 			DocumentPanelList m_documentPanelList;
 			SettingsList m_settingsList;
+
+			QVector<QVector<FactoryInterface*>> m_factoriesInterfaces;
 	};
 }

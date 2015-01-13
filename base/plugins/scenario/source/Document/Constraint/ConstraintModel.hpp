@@ -46,6 +46,7 @@ class ConstraintModel : public IdentifiedObject
 
 		ConstraintModel(int id, QObject* parent);
 		ConstraintModel(int id, double yPos, QObject* parent);
+		~ConstraintModel();
 
 		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
@@ -53,8 +54,6 @@ class ConstraintModel : public IdentifiedObject
 		{
 			vis.writeTo(*this);
 		}
-
-		virtual ~ConstraintModel() = default;
 
 		// Factories for the view models.
 		template<typename ViewModelType> // Arg might be an id or a datastream [

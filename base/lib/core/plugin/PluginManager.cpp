@@ -9,6 +9,11 @@
 #include <interface/plugins/PluginControlInterface_QtInterface.hpp>
 #include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
+#include <interface/customfactory/FactoryInterface.hpp>
+#include <interface/panel/PanelFactoryInterface.hpp>
+#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
@@ -74,6 +79,37 @@ void PluginManager::clearPlugins()
 		if(elt) elt->deleteLater();
 
 	m_availablePlugins.clear();
+
+	for(auto& elt : m_settingsList)
+	{
+		delete elt;
+	}
+
+	for(auto& elt : m_panelList)
+	{
+		delete elt;
+	}
+
+	for(auto& elt : m_documentPanelList)
+	{
+		delete elt;
+	}
+
+	for(auto& vec : m_factoriesInterfaces)
+	{
+		for(auto& elt : vec)
+		{
+			delete elt;
+		}
+	}
+
+	m_customFamilies.clear();
+	m_autoconnections.clear();
+	m_commandList.clear();
+	m_panelList.clear();
+	m_documentPanelList.clear();
+	m_settingsList.clear();
+	m_factoriesInterfaces.clear();
 }
 
 QStringList PluginManager::pluginsBlacklist()
@@ -88,7 +124,7 @@ void PluginManager::loadFactories(QObject* plugin)
 	auto facfam_interface = qobject_cast<FactoryFamily_QtInterface*>(plugin);
 	if(facfam_interface)
 	{
-		m_customFactories += facfam_interface->factoryFamilies_make();
+		m_customFamilies += facfam_interface->factoryFamilies_make();
 	}
 }
 
@@ -140,11 +176,14 @@ void PluginManager::dispatch(QObject* plugin)
 
 	if(factories_plugin)
 	{
-		for(FactoryFamily& factory_family : m_customFactories)
+		for(FactoryFamily& factory_family : m_customFamilies)
 		{
 			auto new_factories = factories_plugin->factories_make(factory_family.name);
 			for(auto new_factory : new_factories)
+			{
 				factory_family.onInstantiation(new_factory);
+			}
+			m_factoriesInterfaces.push_back(new_factories);
 		}
 	}
 }

@@ -26,34 +26,40 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	using namespace Scenario::Command;
 	auto constraint_model = viewmodel->model();
 
-	(new AddProcessToConstraint(
+	AddProcessToConstraint cmd1{
 		{
 			{"BaseConstraintModel", {}}
 		},
-		"Scenario"))->redo();
+		"Scenario"};
+	cmd1.redo();
 	auto scenarioId = constraint_model->processes().front()->id();
 
-	(new AddBoxToConstraint(
+	AddBoxToConstraint cmd2{
 		ObjectPath{
 			{"BaseConstraintModel", {}}
-		}))->redo();
+		}};
+	cmd2.redo();
 	auto box = constraint_model->boxes().front();
 
-	(new ShowBoxInViewModel(viewmodel, (SettableIdentifier::identifier_type)box->id()))->redo();
+	ShowBoxInViewModel cmd3{viewmodel,
+							(SettableIdentifier::identifier_type)box->id()};
+	cmd3.redo();
 
-	(new AddDeckToBox(
+	AddDeckToBox cmd4{
 		ObjectPath{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()}
-		}))->redo();
+		}};
+	cmd4.redo();
 	auto deckId = box->decks().front()->id();
 
-	(new AddProcessViewModelToDeck(
+	AddProcessViewModelToDeck cmd5{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, (SettableIdentifier::identifier_type)scenarioId))->redo();
+		}, (SettableIdentifier::identifier_type)scenarioId};
+	cmd5.redo();
 }
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):

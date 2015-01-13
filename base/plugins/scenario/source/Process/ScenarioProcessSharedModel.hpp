@@ -30,7 +30,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		ScenarioProcessSharedModel(int id, QObject* parent);
 
-		virtual ~ScenarioProcessSharedModel() = default;
+		virtual ~ScenarioProcessSharedModel();
 		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
 														 QObject* parent) override;
 
@@ -115,6 +115,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		{ emit locked(); }
 		void unlock()
 		{ emit unlocked(); }
+
+		void on_viewModelDestroyed(QObject*);
 
 	protected:
 		template<typename Impl>
