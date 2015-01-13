@@ -3,7 +3,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 namespace OSSIA
 {
-	class TimeNode;
+    class TimeNode;
 }
 class State;
 class ConstraintModel;
@@ -43,12 +43,15 @@ class EventModel : public IdentifiedObject
 		bool removeNextConstraint(int);
 		bool removePreviousConstraint(int);
 
+        void changeTimeNode(int);
+        int timeNode() const;
+
 		const std::vector<State*>& states() const;
 		void addState(State* s);
 		void removeState(int stateId);
 
-		OSSIA::TimeNode* apiObject()
-		{ return m_timeNode;}
+        OSSIA::TimeNode* apiObject()
+        { return m_timeEvent;}
 
 		double heightPercentage() const;
 		int date() const;
@@ -96,11 +99,13 @@ class EventModel : public IdentifiedObject
         void setBottomY(double val);
 
 
-		void setOSSIATimeNode(OSSIA::TimeNode* timeNode)
-		{ m_timeNode = timeNode; }
+        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
+        { m_timeEvent = timeEvent; }
 
 
-		OSSIA::TimeNode* m_timeNode{};
+        OSSIA::TimeNode* m_timeEvent{};
+
+        int m_timeNode{};
 
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;

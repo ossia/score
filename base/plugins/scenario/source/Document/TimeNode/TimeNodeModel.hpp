@@ -20,6 +20,10 @@ class TimeNodeModel : public IdentifiedObject
 
         void setTop(double);
         void setBottom(double);
+        void setDate(int);
+
+        double y() const;
+        void setY(double y);
 
     signals:
 
@@ -27,6 +31,7 @@ class TimeNodeModel : public IdentifiedObject
 
     private:
         int m_date{0};
+        double m_y{0.0};
 
         QVector<int> m_events;
 
