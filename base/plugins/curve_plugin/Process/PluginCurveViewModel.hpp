@@ -9,14 +9,6 @@ class PluginCurveViewModel : public ProcessViewModelInterface
 							 PluginCurveModel* model,
 							 QObject* parent);
 
-		// ProcessViewModelInterface interface
 	public:
-		virtual void serialize(QDataStream&) const
-		{
-			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
-		}
-		virtual void deserialize(QDataStream&)
-		{
-			qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
-		}
+		virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 };

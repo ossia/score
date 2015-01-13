@@ -1,6 +1,8 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
+#include <tools/utilsCPP11.hpp>
+#include <typeinfo>
 
 // This should maybe be a mixin ?
 class IdentifiedObject : public NamedObject
@@ -41,7 +43,6 @@ class IdentifiedObject : public NamedObject
 ///Functions that operate on collections of identified objects.
 ///
 ////////////////////////////////////////////////
-#include <typeinfo>
 template<typename Container>
 typename Container::value_type findById(const Container& c, int id)
 {
@@ -71,8 +72,6 @@ inline int32_t getNextId()
 	return dist(gen);
 }
 
-// TODO replace by a function that does random generation and checks
-// if it exists in the vector
 template <typename Vector>
 int getNextId(const Vector& v)
 {
@@ -93,7 +92,6 @@ int getNextId(const Vector& v)
 	return id;
 }
 
-#include "utilsCPP11.hpp"
 template <typename Vector>
 void removeById(Vector& c, int id)
 {

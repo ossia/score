@@ -2,6 +2,7 @@
 #include <core/presenter/Presenter.hpp>
 
 #include <Repartition/session/MasterSession.h>
+#include <Repartition/client/RemoteClient.h>
 #include <Repartition/session/ClientSessionBuilder.h>
 
 #include "remote/RemoteActionEmitterMaster.hpp"
@@ -38,20 +39,50 @@ void NetworkCommand::setPresenter(iscore::Presenter* pres)
 	m_presenter = pres;
 }
 
+void NetworkCommand::handle__document_ask(osc::ReceivedMessageArgumentStream args)
+{
+	osc::int32 sessionId, clientId;
+	args >> sessionId >> clientId;
+
+	if(sessionId != m_networkSession->getId()) return;
+
+	auto dump = qApp->findChild<Document*>("Document")->save();
+
+	osc::Blob blob{dump.constData(), dump.size()};
+	m_networkSession->client(clientId).send("/document/receive", sessionId, blob);
+}
+
+void NetworkCommand::handle__document_receive(osc::ReceivedMessageArgumentStream args)
+{
+	osc::int32 sessionId;
+	osc::Blob blob;
+	args >> sessionId >> blob;
+
+	if(sessionId != m_networkSession->getId()) return;
+
+	QByteArray arr{(const char*)blob.data, blob.size};
+
+	emit loadFromNetwork(arr);
+}
+
 
 //////////////////////////////////
 void NetworkCommand::setupMasterSession()
 {
-	qDebug() << Q_FUNC_INFO << QThread::currentThread();
 	QSettings s;
 	m_networkSession.reset();
 	m_networkSession = std::make_unique<MasterSession>("Session Maitre", s.value(SETTINGS_MASTERPORT).toInt());
 
 	auto session = static_cast<MasterSession*>(m_networkSession.get());
+	session->getLocalMaster().receiver().addHandler("/document/ask",
+										   &NetworkCommand::handle__document_ask,
+										   this);
+
 	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
 	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverMaster>(this, session);
 	m_receiver->setParent(this); // Else it does not work because childEvent is sent too early (only QObject is created)
+
 	connect(m_receiver.get(), &RemoteActionReceiver::commandReceived,
 			this,			  &NetworkCommand::on_commandReceived, Qt::QueuedConnection);
 }
@@ -72,6 +103,13 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 	m_networkSession = builder.getBuiltSession();
 
 	auto session = static_cast<ClientSession*>(m_networkSession.get());
+	session->getLocalClient().receiver().addHandler("/document/receive",
+										 &NetworkCommand::handle__document_receive,
+										 this);
+	session->getRemoteMaster().send("/document/ask",
+									session->getId(),
+									session->getLocalClient().getId());
+
 	m_emitter = std::make_unique<RemoteActionEmitter>(m_networkSession.get());
 	m_emitter->setParent(this);
 	m_receiver = std::make_unique<RemoteActionReceiverClient>(this, session);

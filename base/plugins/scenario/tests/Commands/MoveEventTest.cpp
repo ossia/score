@@ -36,7 +36,7 @@ class MoveEventTest: public QObject
 
 			EventData data{};
 			data.eventClickedId = eventid;
-			data.x = 10;
+			data.dDate = 10;
 			data.relativeY = 0.1;
 
 			MoveEvent cmd(

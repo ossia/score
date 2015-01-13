@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <core/tools/ObjectPath.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;
@@ -33,6 +34,10 @@ class InspectorWidgetBase : public QWidget
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
+		void initiateOngoingCommand(iscore::SerializableCommand* cmd, QObject* objectToLock);
+		void continueOngoingCommand(iscore::SerializableCommand*);
+		void undoOngoingCommand();
+		void validateOngoingCommand();
 
 	public slots:
 
@@ -87,7 +92,7 @@ class InspectorWidgetBase : public QWidget
 		QLabel* _objectType{};
 		QLineEdit* _objectName{};
 		QPushButton* _colorButton{};
-		QPixmap* _colorButtonPixmap{};
+		QPixmap _colorButtonPixmap{4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};
 		QScrollArea* _scrollArea{};
 		QTextEdit* _comments{};
 
@@ -95,4 +100,6 @@ class InspectorWidgetBase : public QWidget
 		QColor _currentColor{Qt::gray};
 
 		QObject* _inspectedObject{};
+
+		static const int m_colorIconSize{21};
 };

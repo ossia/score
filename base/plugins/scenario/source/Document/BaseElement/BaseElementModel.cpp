@@ -26,42 +26,46 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	using namespace Scenario::Command;
 	auto constraint_model = viewmodel->model();
 
-	(new AddProcessToConstraint(
+	AddProcessToConstraint cmd1{
 		{
 			{"BaseConstraintModel", {}}
 		},
-		"Scenario"))->redo();
+		"Scenario"};
+	cmd1.redo();
 	auto scenarioId = constraint_model->processes().front()->id();
 
-	(new AddBoxToConstraint(
+	AddBoxToConstraint cmd2{
 		ObjectPath{
 			{"BaseConstraintModel", {}}
-		}))->redo();
+		}};
+	cmd2.redo();
 	auto box = constraint_model->boxes().front();
 
-	(new ShowBoxInViewModel(viewmodel, (SettableIdentifier::identifier_type)box->id()))->redo();
+	ShowBoxInViewModel cmd3{viewmodel,
+							(SettableIdentifier::identifier_type)box->id()};
+	cmd3.redo();
 
-	(new AddDeckToBox(
+	AddDeckToBox cmd4{
 		ObjectPath{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()}
-		}))->redo();
+		}};
+	cmd4.redo();
 	auto deckId = box->decks().front()->id();
 
-	(new AddProcessViewModelToDeck(
+	AddProcessViewModelToDeck cmd5{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, (SettableIdentifier::identifier_type)scenarioId))->redo();
+		}, (SettableIdentifier::identifier_type)scenarioId};
+	cmd5.redo();
 }
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent}
 {
-	QJsonDocument doc = QJsonDocument::fromJson(data);
-
-	Deserializer<JSON> deserializer{doc.object()};
+	Deserializer<DataStream> deserializer{&data};
 	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	m_viewModel = m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint);
@@ -76,17 +80,39 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	m_baseConstraint{new ConstraintModel{0, this}},
 	m_viewModel{m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
 {
-	m_baseConstraint->setWidth(1000);
+	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_viewModel);
+
+	setDisplayedConstraint(m_baseConstraint);
 }
 
 QByteArray BaseElementModel::save()
 {
-	Serializer<JSON> s;
+	QByteArray arr;
+	Serializer<DataStream> s{&arr};
 	s.readFrom(*constraintModel());
 
-	QJsonDocument doc;
-	doc.setObject(s.m_obj);
-	return doc.toJson();
+	return arr;
+	//QJsonDocument doc;
+	//doc.setObject(s.m_obj);
+	//return doc.toJson();
+}
+
+void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
+{
+	if(c && c != m_displayedConstraint)
+	{
+		m_displayedConstraint = c;
+		emit displayedConstraintChanged();
+	}
+}
+
+void BaseElementModel::setDisplayedObject(ObjectPath path)
+{
+	qDebug() << path.vec().last().objectName();
+	if(path.vec().last().objectName() == "ConstraintModel" || path.vec().last().objectName() == "BaseConstraintModel")
+	{
+		setDisplayedConstraint(path.find<ConstraintModel>());
+	}
 }

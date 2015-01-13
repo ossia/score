@@ -9,6 +9,9 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
+#include "Commands/Constraint/SetMinDuration.hpp"
+#include "Commands/Constraint/SetMaxDuration.hpp"
+#include "Commands/Constraint/SetRigidity.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
@@ -76,7 +79,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "RemoveProcessViewModelFromDeck")	{ cmd = new RemoveProcessViewModelFromDeck;}
 	else if(name == "ResizeDeckVertically")				{ cmd = new ResizeDeckVertically;}
 	else if(name == "AddDeckToBox")						{ cmd = new AddDeckToBox;}
-	else if(name == "RemoveDeckFromBox")					{ cmd = new RemoveDeckFromBox;}
+	else if(name == "RemoveDeckFromBox")				{ cmd = new RemoveDeckFromBox;}
 	else if(name == "AddBoxToConstraint")				{ cmd = new AddBoxToConstraint;}
 	else if(name == "AddProcessToConstraint")			{ cmd = new AddProcessToConstraint;}
 	else if(name == "RemoveBoxFromConstraint")			{ cmd = new RemoveBoxFromConstraint;}
@@ -91,6 +94,9 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "MoveEvent")						{ cmd = new MoveEvent;}
 	else if(name == "ShowBoxInViewModel")				{ cmd = new ShowBoxInViewModel;}
 	else if(name == "RemoveMultipleElements")			{ cmd = new RemoveMultipleElements;}
+	else if(name == "SetMinDuration")					{ cmd = new SetMinDuration;}
+	else if(name == "SetMaxDuration")					{ cmd = new SetMaxDuration;}
+	else if(name == "SetRigidity")						{ cmd = new SetRigidity;}
 
 	else
 	{

@@ -2,13 +2,16 @@
 #include <QGraphicsObject>
 #include <QGraphicsProxyWidget>
 #include <QPointF>
+#include <QPen>
+
+class TemporalConstraintViewModel;
 
 class TemporalConstraintView : public QGraphicsObject
 {
 	Q_OBJECT
 
 	public:
-		TemporalConstraintView(QGraphicsObject* parent);
+		TemporalConstraintView(TemporalConstraintViewModel* viewModel, QGraphicsObject* parent);
 
 		virtual ~TemporalConstraintView() = default;
 
@@ -38,5 +41,20 @@ class TemporalConstraintView : public QGraphicsObject
 		int m_height{};
 
 		QPointF m_clickedPoint{};
+
+		TemporalConstraintViewModel* m_viewModel{};
+
+		QPen m_solidPen{
+			QBrush{Qt::black},
+			4,
+			Qt::SolidLine,
+			Qt::RoundCap,
+			Qt::RoundJoin};
+		QPen m_dashPen{
+			QBrush{Qt::black},
+			4,
+			Qt::DashLine,
+			Qt::RoundCap,
+			Qt::RoundJoin};
 };
 

@@ -19,19 +19,19 @@ AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath):
 						QObject::tr("Add empty deck")},
 	m_path{boxPath}
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	m_createdDeckId = getNextId(box->decks());
 }
 
 void AddDeckToBox::undo()
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	box->removeDeck(m_createdDeckId);
 }
 
 void AddDeckToBox::redo()
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	box->createDeck(m_createdDeckId);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <tools/ObjectPath.hpp>
 
 class BaseElementPresenter;
 class TemporalConstraintViewModel;
@@ -26,6 +27,11 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_baseConstraint;
 		}
 
+		ConstraintModel* displayedConstraint() const
+		{
+			return m_displayedConstraint;
+		}
+
 		TemporalConstraintViewModel* constraintViewModel() const
 		{
 			return m_viewModel;
@@ -33,8 +39,17 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
 		virtual QByteArray save() override;
 
+	signals:
+		void displayedConstraintChanged();
+
+	public slots:
+		void setDisplayedConstraint(ConstraintModel* );
+		void setDisplayedObject(ObjectPath);
+
 	private:
 		ConstraintModel* m_baseConstraint{};
 		TemporalConstraintViewModel* m_viewModel{};
+
+		ConstraintModel* m_displayedConstraint{};
 };
 

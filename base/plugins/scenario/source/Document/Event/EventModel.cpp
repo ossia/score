@@ -9,7 +9,7 @@
 
 EventModel::EventModel(int id, QObject* parent):
 	IdentifiedObject{id, "EventModel", parent},
-	m_timeNode{new OSSIA::TimeNode}
+    m_timeEvent{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
 }
@@ -18,6 +18,11 @@ EventModel::EventModel(int id, double yPos, QObject *parent):
 	EventModel(id,parent)
 {
 	m_heightPercentage = yPos;
+}
+
+EventModel::~EventModel()
+{
+	delete m_timeEvent;
 }
 
 const QVector<int>&EventModel::previousConstraints() const
@@ -46,6 +51,7 @@ bool EventModel::removeNextConstraint(int constraintToDelete)
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
 		m_constraintsYPos.remove(constraintToDelete);
+        updateVerticalLink();
 		return true;
 	}
 	return false;
@@ -57,9 +63,20 @@ bool EventModel::removePreviousConstraint(int constraintToDelete)
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
 		m_constraintsYPos.remove(constraintToDelete);
+        updateVerticalLink();
 		return true;
 	}
-	return false;
+    return false;
+}
+
+void EventModel::changeTimeNode(int newTimeNodeId)
+{
+    m_timeNode = newTimeNodeId;
+}
+
+int EventModel::timeNode() const
+{
+    return m_timeNode;
 }
 
 double EventModel::heightPercentage() const
@@ -74,7 +91,25 @@ int EventModel::date() const
 
 void EventModel::setDate(int date)
 {
-	m_date = date;
+    m_date = date;
+}
+
+void EventModel::setTopY(double val)
+{
+    if(val < 0)
+    {
+        val = 0;
+    }
+    m_topY = val;
+}
+
+void EventModel::setBottomY(double val)
+{
+    if (val > 1)
+    {
+        val = 1.0;
+    }
+    m_bottomY = val;
 }
 
 void EventModel::translate(int deltaTime)
@@ -84,17 +119,17 @@ void EventModel::translate(int deltaTime)
 
 void EventModel::setVerticalExtremity(int consId, double newPosition)
 {
-	m_constraintsYPos[consId] = newPosition;
-	updateVerticalLink();
+    m_constraintsYPos[consId] = newPosition;
+    updateVerticalLink();
 }
 
 void EventModel::updateVerticalLink()
 {
-	m_topY = m_heightPercentage;
-	m_bottomY = m_heightPercentage;
-
+    m_topY = 0.0;
+    m_bottomY = 0.0;
 	for (auto pos : m_constraintsYPos)
 	{
+        pos -= m_heightPercentage;
 		if (pos < m_topY)
 		{
 			m_topY = pos;
@@ -103,7 +138,7 @@ void EventModel::updateVerticalLink()
 		{
 			m_bottomY = pos;
 		}
-	}
+    }
 	emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
@@ -134,7 +169,8 @@ void EventModel::removeState(int stateId)
 void EventModel::setHeightPercentage(double arg)
 {
 	if (m_heightPercentage != arg) {
-		m_heightPercentage = arg;
+        m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
+        updateVerticalLink();
 	}
 }

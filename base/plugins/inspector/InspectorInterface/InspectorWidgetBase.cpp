@@ -12,8 +12,6 @@
 #include <QDebug>
 #include <QColorDialog>
 
-static const int COLOR_ICON_SIZE = 21;
-
 InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent) :
 	QWidget (parent), _inspectedObject {inspectedObj}
 {
@@ -36,11 +34,10 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 
 	// color
 	_colorButton = new QPushButton;
-	_colorButton->setMaximumSize (QSize (1.5 * COLOR_ICON_SIZE, 1.5 * COLOR_ICON_SIZE) );
-	_colorButton->setIconSize (QSize (COLOR_ICON_SIZE, COLOR_ICON_SIZE) );
-	_colorButtonPixmap = new QPixmap (4 * COLOR_ICON_SIZE / 3, 4 * COLOR_ICON_SIZE / 3);
+	_colorButton->setMaximumSize (QSize (1.5 * m_colorIconSize, 1.5 * m_colorIconSize) );
+	_colorButton->setIconSize (QSize (m_colorIconSize, m_colorIconSize) );
 	setColor (Qt::gray);
-	_colorButton->setIcon (QIcon (*_colorButtonPixmap) );
+	_colorButton->setIcon (QIcon (_colorButtonPixmap) );
 
 	nameLayout->addWidget (_colorButton);
 	nameLayout->addStretch(1);
@@ -156,8 +153,8 @@ void InspectorWidgetBase::setComments (QString newComments)
 
 void InspectorWidgetBase::setColor (QColor newColor)
 {
-	_colorButtonPixmap->fill (newColor);
-	_colorButton->setIcon (QIcon (*_colorButtonPixmap) );
+	_colorButtonPixmap.fill (newColor);
+	_colorButton->setIcon (QIcon (_colorButtonPixmap) );
 	_currentColor = newColor;
 }
 

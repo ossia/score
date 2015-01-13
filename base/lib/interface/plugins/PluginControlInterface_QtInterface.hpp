@@ -1,14 +1,12 @@
 #pragma once
-// @todo unnecessary
-#include <interface/plugincontrol/PluginControlInterface.hpp>
+#include <QObject>
 
 namespace iscore
 {
-	// Commands to add to the menu bars.
+	class PluginControlInterface;
 	class PluginControlInterface_QtInterface
 	{
 		public:
-
 			virtual ~PluginControlInterface_QtInterface() = default;
 
 			virtual QStringList control_list() const = 0;

@@ -22,6 +22,12 @@ class NetworkCommand : public iscore::PluginControlInterface
 		virtual void populateToolbars() override;
 		virtual void setPresenter(iscore::Presenter*) override;
 
+		// @todo PUT SOMEWHERE ELSE
+		void handle__document_ask(osc::ReceivedMessageArgumentStream);
+		void handle__document_receive(osc::ReceivedMessageArgumentStream);
+	signals:
+		void loadFromNetwork(QByteArray);
+
 	public slots:
 		void setupMasterSession();
 		void setupClientSession(ConnectionData d);

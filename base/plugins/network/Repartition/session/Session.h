@@ -55,6 +55,8 @@ class Session : public hasName, public hasId
 								 const char * data, int len) = 0;
 		virtual void sendUndoCommand() = 0;
 		virtual void sendRedoCommand() = 0;
+		virtual void sendLock(QByteArray arr) = 0;
+		virtual void sendUnlock(QByteArray arr) = 0;
 
 		template<typename... K>
 		Group& group(K&&... args)

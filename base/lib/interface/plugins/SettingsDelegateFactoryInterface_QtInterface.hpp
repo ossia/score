@@ -1,11 +1,10 @@
 #pragma once
-#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <QObject>
 
 namespace iscore
 {
+	class SettingsDelegateFactoryInterface;
 	// A plug-in can also offer global settings for everything it provides.
-	// How to make the elements react to the settings ?
 	class SettingsDelegateFactoryInterface_QtInterface
 	{
 		public:

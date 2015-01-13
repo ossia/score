@@ -23,7 +23,7 @@ class EventView : public QGraphicsObject
 
 	signals:
 		void eventPressed();
-		void eventReleasedWithControl(QPointF);
+        void eventReleasedWithControl(QPointF, QPointF);
 		void eventReleased(QPointF);
 
 	protected:

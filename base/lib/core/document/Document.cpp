@@ -16,7 +16,7 @@ Document::Document(QWidget* parentview, QObject* parent):
 	NamedObject{"Document", parent},
 	m_model{new DocumentModel{this}},
 	m_view{new DocumentView{parentview}},
-	m_presenter{new DocumentPresenter(m_model, m_view, this)}
+	m_presenter{new DocumentPresenter{m_model, m_view, this}}
 {
 	connect(m_presenter, &DocumentPresenter::on_elementSelected,
 			this,		 &Document::on_elementSelected);
@@ -29,6 +29,8 @@ void Document::newDocument()
 	// Model setup
 	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model));
 	setupDocument();
+
+	emit newDocument_start();
 }
 
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
@@ -49,6 +51,8 @@ void Document::load(QByteArray data)
 
 	// Model setup
 	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
+
+	// TODO call newDocument_start if loaded from this computer, not if serialized from network.
 	setupDocument();
 }
 
@@ -67,5 +71,5 @@ void Document::setupDocument()
 	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
 	m_presenter->setPresenterDelegate(pres);
 
-	emit newDocument_start();
+
 }

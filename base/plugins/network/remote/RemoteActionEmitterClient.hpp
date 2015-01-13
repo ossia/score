@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "RemoteActionEmitter.hpp"
 
@@ -14,3 +15,4 @@ class RemoteActionEmitterClient : public RemoteActionEmitter
 	private:
 		ClientSession* m_session;
 };
+*/

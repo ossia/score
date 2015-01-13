@@ -1,3 +1,4 @@
+/*
 #include "RemoteActionEmitterMaster.hpp"
 #include <Repartition/session/MasterSession.h>
 #include <core/presenter/command/SerializableCommand.hpp>
@@ -18,3 +19,4 @@ void RemoteActionEmitterMaster::sendCommand(iscore::SerializableCommand* cmd)
 						   data.length());
 
 }
+*/

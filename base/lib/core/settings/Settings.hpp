@@ -28,6 +28,7 @@ namespace iscore
 	{
 		public:
 			Settings(QObject* parent);
+			~Settings();
 
 			void setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin);
 			SettingsView*  view()  { return m_settingsView;  }

@@ -5,7 +5,7 @@
 #include <interface/plugins/Autoconnect_QtInterface.hpp>
 
 #include <interface/plugins/FactoryFamily_QtInterface.hpp>
-#include <interface/plugins/CustomFactoryInterface_QtInterface.hpp>
+#include <interface/plugins/FactoryInterface_QtInterface.hpp>
 
 class ScenarioControl;
 class ScenarioPlugin :

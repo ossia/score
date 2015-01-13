@@ -39,9 +39,9 @@ class OscReceiver
 		}
 
 		template<typename T, class C>
-		void addHandler(const std::string &s, T&& theMember, C&& theClass)
+		void addHandler(const std::string &s, T&& theMember, C&& theObject)
 		{
-			_impl.addHandler(s, std::bind(theMember, theClass, std::placeholders::_1));
+			_impl.addHandler(s, std::bind(theMember, theObject, std::placeholders::_1));
 		}
 
 		void addHandler(const std::string &s, const	message_handler h)

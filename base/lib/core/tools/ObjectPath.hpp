@@ -22,6 +22,16 @@ class ObjectPath
 		friend Deserializer<DataStream>;
 		friend Deserializer<JSON>;
 
+		friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
+		{
+			return path.m_objectIdentifiers.begin();
+		}
+
+		friend ObjectIdentifierVector::iterator end(ObjectPath& path)
+		{
+			return path.m_objectIdentifiers.end();
+		}
+
 		friend bool operator==(const ObjectPath& lhs, const ObjectPath& rhs)
 		{
 			return lhs.m_objectIdentifiers == rhs.m_objectIdentifiers;
@@ -44,13 +54,15 @@ class ObjectPath
 		ObjectPath(const ObjectPath& obj) = default;
 		ObjectPath(ObjectPath&&) = default;
 		ObjectPath& operator=(ObjectPath&&) = default;
+		ObjectPath& operator=(const ObjectPath&) = default;
 
 		/**
 		 * @brief pathFromObject Factory method for ObjectPath
 		 * @param origin Name of the object from which the search is to be started.
 		 * @param obj Pointer of the object to find.
 		 *
-		 * @return An object path allowing to find again "obj" in the software object hierarchy (that can be serialized to text, and does not use pointers).
+		 * @return An object path allowing to find again "obj" in the software object hierarchy
+		 * (that can be serialized to text, and does not use pointers).
 		 */
 		static ObjectPath pathFromObject(QString origin, QObject* obj);
 
@@ -62,12 +74,21 @@ class ObjectPath
 		 * @return A pointer to the object, or nullptr if it is not found
 		 *
 		 * This search starts from qApp.
-		 * @todo (maybe) a way to specify custom ways of finding an object (for instance if obj->blurb() == Ding::someDing)
+		 * @todo (maybe) a way to specify custom ways of finding an object
+		 * (for instance if obj->blurb() == Ding::someDing)
 		 * @todo search starting from another object, for more performance.
 		 */
-		QObject* find() const;
+		template<typename T>
+		T* find() const
+		{
+			return static_cast<T*>(find_impl());
+		}
 
+		const ObjectIdentifierVector& vec()
+		{ return m_objectIdentifiers; }
 	private:
-		QVector<ObjectIdentifier> m_objectIdentifiers;
+		QObject* find_impl() const;
+		ObjectIdentifierVector m_objectIdentifiers;
 };
 
+Q_DECLARE_METATYPE(ObjectPath)

@@ -3,6 +3,7 @@
 #include <tools/NamedObject.hpp>
 
 #include <core/presenter/command/CommandQueue.hpp>
+#include <core/tools/ObjectPath.hpp>
 
 namespace iscore
 {
@@ -29,14 +30,26 @@ namespace iscore
 
 		signals:
 			void on_elementSelected(QObject* element);
+			void lock(QByteArray);
+			void unlock(QByteArray);
 
 		private slots:
-			void applyCommand(SerializableCommand*);
+			void applyCommand(iscore::SerializableCommand*);
+
+			void initiateOngoingCommand(iscore::SerializableCommand*, QObject* objectToLock);
+			void continueOngoingCommand(iscore::SerializableCommand*);
+			void undoOngoingCommand();
+			void validateOngoingCommand();
 
 		private:
-			std::unique_ptr<CommandQueue> m_commandQueue;
-			DocumentDelegatePresenterInterface* m_presenter{};
+			void lock_impl();
+			void unlock_impl();
 
+			std::unique_ptr<CommandQueue> m_commandQueue;
+			SerializableCommand* m_ongoingCommand{};
+			ObjectPath m_lockedObject;
+
+			DocumentDelegatePresenterInterface* m_presenter{};
 			DocumentView* m_view{};
 	};
 }

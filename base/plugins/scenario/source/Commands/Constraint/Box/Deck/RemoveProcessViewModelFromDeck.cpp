@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
 	SerializableCommand{"ScenarioControl",
-						"RemoveProcessViewFromDeck",
+						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")}
 {
 }
@@ -19,12 +19,12 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										ObjectPath&& boxPath,
 										int processViewId):
 	SerializableCommand{"ScenarioControl",
-						"RemoveProcessViewFromDeck",
+						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")},
 	m_path{boxPath},
 	m_processViewId{processViewId}
 {
-	auto deck = static_cast<DeckModel*>(m_path.find());
+	auto deck = m_path.find<DeckModel>();
 
 	Serializer<DataStream> s{&m_serializedProcessViewData};
 	s.readFrom(*deck->processViewModel(m_processViewId));
@@ -32,7 +32,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 
 void RemoveProcessViewModelFromDeck::undo()
 {
-	auto deck = static_cast<DeckModel*>(m_path.find());
+	auto deck = m_path.find<DeckModel>();
 	Deserializer<DataStream> s{&m_serializedProcessViewData};
 	auto pvm = createProcessViewModel(s,
 									  deck->parentConstraint(),
@@ -42,7 +42,7 @@ void RemoveProcessViewModelFromDeck::undo()
 
 void RemoveProcessViewModelFromDeck::redo()
 {
-	auto deck = static_cast<DeckModel*>(m_path.find());
+	auto deck = m_path.find<DeckModel>();
 	deck->deleteProcessViewModel(m_processViewId);
 }
 

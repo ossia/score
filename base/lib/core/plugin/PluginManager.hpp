@@ -1,28 +1,23 @@
 #pragma once
+#include <tools/NamedObject.hpp>
 #include <QPluginLoader>
 #include <QMap>
 
-#include <interface/autoconnect/Autoconnect.hpp>
-
-// todo these includes are unneeded
-#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <interface/plugins/Autoconnect_QtInterface.hpp>
-#include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/ProcessFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/InspectorWidgetFactoryInterface_QtInterface.hpp>
 #include <interface/customfactory/FactoryFamily.hpp>
 #include <interface/autoconnect/Autoconnect.hpp>
 
 namespace iscore
 {
+	class PluginControlInterface;
+	class PanelFactoryInterface;
+	class DocumentDelegateFactoryInterface;
+	class SettingsDelegateFactoryInterface;
+
 	using FactoryFamilyList = QVector<FactoryFamily>;
 	using CommandList = std::vector<PluginControlInterface*>;
 	using PanelList = std::vector<PanelFactoryInterface*>;
 	using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
 	using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
-//	using InspectorList = std::vector<InspectorWidgetFactoryInterface*>;
 	using AutoconnectList = std::vector<Autoconnect>;
 
 	/**
@@ -69,14 +64,13 @@ namespace iscore
 			// Here, the plug-ins that are effectively loaded.
 			QMap<QString, QObject*> m_availablePlugins;
 
-			FactoryFamilyList m_customFactories;
-
-			AutoconnectList m_autoconnections; // TODO try unordered_set
-//			ProcessList  m_processList;
+			FactoryFamilyList m_customFamilies;
+			AutoconnectList m_autoconnections;
 			CommandList  m_commandList;
 			PanelList    m_panelList;
 			DocumentPanelList m_documentPanelList;
 			SettingsList m_settingsList;
-//			InspectorList m_inspectorList;
+
+			QVector<QVector<FactoryInterface*>> m_factoriesInterfaces;
 	};
 }

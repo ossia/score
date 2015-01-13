@@ -30,6 +30,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/oscpack")
 
+set(SRC_Serialization
+${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkSerialization.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkSerialization.cpp
+)
 set(HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers/bonjourserviceresolver.h
 ${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers/bonjourservicebrowser.h
@@ -96,15 +100,15 @@ set(SOURCE_FILES
 
 )
 
-add_library(networkplugin ${HEADER_FILES} ${SOURCE_FILES}  ${HEADERS})
+add_library(networkplugin ${HEADER_FILES} ${SOURCE_FILES} ${SRC_Serialization} ${HEADERS})
 
 target_link_libraries(networkplugin
-								  iscore_lib
-								  Qt5::Core
-								  Qt5::Widgets
-								  Qt5::Network
-								  pthread
-								  oscpack)
+									iscore_lib
+									Qt5::Core
+									Qt5::Widgets
+									Qt5::Network
+									pthread
+									oscpack)
 
 if(NOT APPLE)
 	target_link_libraries(networkplugin dns_sd)

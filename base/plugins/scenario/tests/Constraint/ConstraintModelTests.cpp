@@ -85,7 +85,7 @@ class ConstraintModelTests: public QObject
 							{"ConstraintModel", int_0_id},
 							{"ScenarioProcessSharedModel", 1}
 						 };
-			QCOMPARE(p.find(), s2);
+			QCOMPARE(p.find<QObject>(), s2);
 
 			ObjectPath p2{
 							{"OriginalConstraint", {}},
@@ -95,7 +95,7 @@ class ConstraintModelTests: public QObject
 						 };
 			try
 			{
-				p2.find();
+				p2.find<QObject>();
 				QFAIL("Exception not thrown");
 			}
 			catch(...) { }
@@ -108,7 +108,7 @@ class ConstraintModelTests: public QObject
 						};
 			try
 			{
-				p3.find();
+				p3.find<QObject>();
 				QFAIL("Exception not thrown");
 			}
 			catch(...) { }
@@ -122,7 +122,7 @@ class ConstraintModelTests: public QObject
 						};
 			try
 			{
-				p4.find();
+				p4.find<QObject>();
 				QFAIL("Exception not thrown");
 			}
 			catch(...) { }

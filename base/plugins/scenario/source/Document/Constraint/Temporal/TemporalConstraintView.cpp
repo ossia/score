@@ -1,5 +1,8 @@
 #include "TemporalConstraintView.hpp"
 
+#include "TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -8,8 +11,10 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent):
-	QGraphicsObject{parent}
+// TODO don't use model here, in case it is removed.
+TemporalConstraintView::TemporalConstraintView(TemporalConstraintViewModel* viewModel, QGraphicsObject* parent):
+	QGraphicsObject{parent},
+	m_viewModel{viewModel}
 {
 	this->setParentItem(parent);
 	this->setFlag(ItemIsSelectable);
@@ -19,27 +24,67 @@ TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent):
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-	return {0, 0, qreal(m_width), qreal(m_height)};
+	return {0, -18, qreal(m_viewModel->model()->maxDuration()) + 3, qreal(m_height) + 3};
 }
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+	QColor c = Qt::black;
+
 	if(isSelected())
 	{
-		painter->setPen(Qt::blue);
+		c = Qt::blue;
 	}
 	else if(parentItem()->isSelected())
 	{
-		painter->setPen(Qt::cyan);
+		c = Qt::cyan;
 	}
 
-	auto rect = boundingRect();
-	painter->drawRect(rect);
-	painter->drawRect(rect.x(),
-					  rect.y(),
-					  rect.width(),
-					  15);
-	painter->drawText(rect, "Constraint");
+	m_solidPen.setColor(c);
+	m_dashPen.setColor(c);
+
+	auto model = m_viewModel->model();
+	if(model->minDuration() == model->maxDuration())
+	{
+		painter->setPen(m_solidPen);
+		painter->drawLine(0,
+						  0,
+						  model->defaultDuration(),
+						  0);
+	}
+	else
+	{
+		// Firs the line going from 0 to the min
+		painter->setPen(m_solidPen);
+		painter->drawLine(0,
+						  0,
+						  model->minDuration(),
+						  0);
+
+		// The little hat
+		painter->drawLine(model->minDuration(),
+						  -5,
+						  model->minDuration(),
+						  -15);
+		painter->drawLine(model->minDuration(),
+						  -15,
+						  model->maxDuration(),
+						  -15);
+		painter->drawLine(model->maxDuration(),
+						  -5,
+						  model->maxDuration(),
+						  -15);
+
+		// Finally the dashed line
+		painter->setPen(m_dashPen);
+		painter->drawLine(model->minDuration(),
+						  0,
+						  model->maxDuration(),
+						  0);
+	}
+	// TODO max -> +inf
+
+
 }
 
 void TemporalConstraintView::setWidth(int width)
@@ -66,5 +111,15 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
 
-	emit constraintReleased(pos() + m->pos() - m_clickedPoint);
+	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+
+	if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
+	{
+		posInScenario.setX(pos().x());
+	}
+	if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
+	{
+		posInScenario.setY(pos().y());
+	}
+	emit constraintReleased(posInScenario);
 }

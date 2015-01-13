@@ -26,7 +26,6 @@ namespace iscore
 			void setDocumentPanel(DocumentDelegateFactoryInterface* p);
 			void reset();
 
-			void load(QByteArray data);
 			QByteArray save();
 
 		signals:
@@ -35,9 +34,12 @@ namespace iscore
 			 *
 			 * This signal is emitted before a new document is created.
 			 */
-			void newDocument_start(); // TODO Faire end si nécessaire
+			void newDocument_start();
 
 			void on_elementSelected(QObject*);
+
+		public slots:
+			void load(QByteArray data);
 
 		private:
 			void setupDocument();

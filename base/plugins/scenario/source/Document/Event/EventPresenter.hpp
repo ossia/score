@@ -2,7 +2,6 @@
 #include <tools/NamedObject.hpp>
 #include "Document/Event/EventData.hpp"
 
-
 class EventModel;
 class EventView;
 
@@ -27,11 +26,12 @@ class EventPresenter : public NamedObject
 		void eventReleased(EventData);
 		void linesExtremityChange(double, double);
 
+
 		void elementSelected(QObject*);
 
 	public slots:
 		void on_eventReleased(QPointF);
-		void on_eventReleasedWithControl(QPointF);
+        void on_eventReleasedWithControl(QPointF, QPointF);
 
 	private:
 		EventModel* m_model{};

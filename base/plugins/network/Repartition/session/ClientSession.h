@@ -54,6 +54,11 @@ class ClientSession : public Session
 			return *_localClient;
 		}
 
+		RemoteMaster& getRemoteMaster()
+		{
+			return *_remoteMaster;
+		}
+
 		virtual void sendCommand(const char* parentName,
 								 const char* name,
 								 const char * data, int len) override
@@ -78,6 +83,24 @@ class ClientSession : public Session
 			_remoteMaster->send("/edit/redo",
 								getId(),
 								_localClient->getId());
+		}
+
+		virtual void sendLock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			_remoteMaster->send("/edit/lock",
+								getId(),
+								_localClient->getId(),
+								b);
+		}
+
+		virtual void sendUnlock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			_remoteMaster->send("/edit/unlock",
+								getId(),
+								_localClient->getId(),
+								b);
 		}
 
 

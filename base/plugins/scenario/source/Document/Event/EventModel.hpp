@@ -3,7 +3,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 namespace OSSIA
 {
-	class TimeNode;
+    class TimeNode;
 }
 class State;
 class ConstraintModel;
@@ -24,6 +24,7 @@ class EventModel : public IdentifiedObject
 	public:
 		EventModel(int id, QObject* parent);
 		EventModel(int id, double yPos, QObject *parent);
+		~EventModel();
 
 
 		template<typename Impl>
@@ -32,8 +33,6 @@ class EventModel : public IdentifiedObject
 		{
 			vis.writeTo(*this);
 		}
-
-		virtual ~EventModel() = default;
 
 		const QVector<int>& previousConstraints() const;
 		const QVector<int>& nextConstraints() const;
@@ -44,22 +43,28 @@ class EventModel : public IdentifiedObject
 		bool removeNextConstraint(int);
 		bool removePreviousConstraint(int);
 
+        void changeTimeNode(int);
+        int timeNode() const;
+
 		const std::vector<State*>& states() const;
 		void addState(State* s);
 		void removeState(int stateId);
 
-		OSSIA::TimeNode* apiObject()
-		{ return m_timeNode;}
+        OSSIA::TimeNode* apiObject()
+        { return m_timeEvent;}
 
 		double heightPercentage() const;
 		int date() const;
+
 		void translate(int deltaTime);
-		void setVerticalExtremity(int, double);
-		void updateVerticalLink();
+
+        void setVerticalExtremity(int, double);
+        void eventMovedVertically(double);
+        void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
-		// Should maybe be in the Scenario instead ?
+        // Should maybe be in the Scenario instead ?
 		QMap<int, double> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const
@@ -89,16 +94,18 @@ class EventModel : public IdentifiedObject
 		void setConstraintsYPos(QMap<int, double>&& map)
 		{ m_constraintsYPos = std::move(map); }
 
-		void setTopY(double val)
-		{ m_topY = val; }
-		void setBottomY(double val)
-		{ m_bottomY = val; }
+        void setTopY(double val);
 
-		void setOSSIATimeNode(OSSIA::TimeNode* timeNode)
-		{ m_timeNode = timeNode; }
+        void setBottomY(double val);
 
 
-		OSSIA::TimeNode* m_timeNode{};
+        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
+        { m_timeEvent = timeEvent; }
+
+
+        OSSIA::TimeNode* m_timeEvent{};
+
+        int m_timeNode{};
 
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;

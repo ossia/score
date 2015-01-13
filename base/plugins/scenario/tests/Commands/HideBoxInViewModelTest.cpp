@@ -80,13 +80,13 @@ class HideBoxInViewModelTest: public QObject
 			// Creation of an even and a constraint inside the scenario
 			EventData data{};
 			// data.id = 0; unused here
-			data.x = 10;
+			data.dDate = 10;
 			data.relativeY = 0.5;
 
 			auto cmd_event = new CreateEvent(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data.x, data.relativeY);
+			}, data.dDate, data.relativeY);
 			stack.push(cmd_event);
 
 			// This will create a view model for this constraint

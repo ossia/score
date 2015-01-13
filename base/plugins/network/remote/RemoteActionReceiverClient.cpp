@@ -13,6 +13,13 @@ RemoteActionReceiverClient::RemoteActionReceiverClient(QObject* parent, ClientSe
 										 &RemoteActionReceiverClient::handle__edit_redo,
 										 this);
 
+	s->getClient().receiver().addHandler("/edit/lock",
+										 &RemoteActionReceiverClient::handle__edit_lock,
+										 this);
+	s->getClient().receiver().addHandler("/edit/unlock",
+										 &RemoteActionReceiverClient::handle__edit_unlock,
+										 this);
+
 	s->getClient().receiver().addHandler("/edit/command",
 										 &RemoteActionReceiverClient::handle__edit_command,
 										 this);

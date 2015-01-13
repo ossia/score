@@ -23,13 +23,13 @@ class CreateEventTest: public QObject
 			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
 			EventData data{};
 			// data.id = 0; unused here
-			data.x = 10;
+			data.dDate = 10;
 			data.relativeY = 0.5;
 
 			CreateEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data.x, data.relativeY);
+			}, data.dDate, data.relativeY);
 
 			cmd.redo();
 			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent

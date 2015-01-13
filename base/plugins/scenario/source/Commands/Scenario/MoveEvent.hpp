@@ -25,7 +25,7 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_scenarioPath;
+				ObjectPath m_path;
 				int m_eventId{};
 
 				double m_oldHeightPosition{};

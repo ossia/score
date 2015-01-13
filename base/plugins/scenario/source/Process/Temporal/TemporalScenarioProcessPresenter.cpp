@@ -1,6 +1,6 @@
 #include "TemporalScenarioProcessPresenter.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "source/Process/ScenarioProcessSharedModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessView.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
@@ -15,8 +15,12 @@
 #include "Document/Event/EventPresenter.hpp"
 #include "Document/Event/EventView.hpp"
 #include "Document/Event/EventData.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/TimeNodeView.hpp"
+#include "Document/TimeNode/TimeNodePresenter.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/CreateConstraint.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
@@ -67,14 +71,25 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 			this,		 &TemporalScenarioProcessPresenter::on_eventCreated);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventDeleted,
 			this,		 &TemporalScenarioProcessPresenter::on_eventDeleted);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
+
+    connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeCreated,
+            this,        &TemporalScenarioProcessPresenter::on_timeNodeCreated);
+
+    connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelRemoved,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintViewModelRemoved);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
+
+    connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
 			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintMoved,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintMoved);
+
+	connect(model(m_viewModel), &ScenarioProcessSharedModel::locked,
+			[&] () { m_view->lock(); });
+	connect(model(m_viewModel), &ScenarioProcessSharedModel::unlocked,
+			[&] () { m_view->unlock(); });
+
 }
 
 TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
@@ -102,9 +117,19 @@ int TemporalScenarioProcessPresenter::currentlySelectedEvent() const
 	return m_currentlySelectedEvent;
 }
 
+long TemporalScenarioProcessPresenter::millisecPerPixel() const
+{
+	return m_millisecPerPixel;
+}
+
 void TemporalScenarioProcessPresenter::on_eventCreated(int eventId)
 {
 	on_eventCreated_impl(model(m_viewModel)->event(eventId));
+}
+
+void TemporalScenarioProcessPresenter::on_timeNodeCreated(int timeNodeId)
+{
+    on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated(int constraintViewModelId)
@@ -131,17 +156,24 @@ void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(int constra
 	m_view->update();
 }
 
+/////////////////////////////////////////////////////////////////////
+// MOVING ELEMENTS
+
 void TemporalScenarioProcessPresenter::on_eventMoved(int eventId)
 {
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
 
-	ev->view()->setPos({qreal(ev->model()->date()),
+	ev->view()->setPos({qreal(ev->model()->date() / m_millisecPerPixel),
 						rect.height() * ev->model()->heightPercentage()});
-	ev->model()->updateVerticalLink();
 
-	m_view->update();
+    // @todo change when multiple event on a same timeNode
+    auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
+    timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
+                              rect.height() * timeNode->model()->y()});
+    m_view->update();
 }
+
 
 void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
 {
@@ -152,14 +184,17 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
 		ConstraintModel* cstr_model{cstr_pres->viewModel()->model()};
 		if(cstr_model->id() == constraintId )
 		{
-			cstr_pres->view()->setPos({qreal(cstr_model->startDate()),
+			cstr_pres->view()->setPos({qreal(cstr_model->startDate()) / m_millisecPerPixel,
 									   rect.height() * cstr_model->heightPercentage()});
 
-			cstr_pres->view()->setWidth(cstr_model->width());
+			cstr_pres->view()->setWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
 		}
 	}
 	m_view->update();
 }
+
+/////////////////////////////////////////////////////////////////////
+// USER INTERACTIONS
 
 void TemporalScenarioProcessPresenter::on_deletePressed()
 {
@@ -184,19 +219,23 @@ void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF poi
 	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
 	auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseConstraintModel",
 																 m_viewModel->sharedProcessModel()),
-									 point.x(),
+									 point.x() * m_millisecPerPixel,
 									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
 	this->submitCommand(cmd);
 }
 
-void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point)
+void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
-	EventData data{};
-	data.eventClickedId = m_events.back()->id();
-	data.x = point.x() - m_events.back()->model()->date();
-	data.y = point.y();
-	if (point.x() - m_events.back()->model()->date() > 20 ) // @todo use a const to do that !
-		createConstraintAndEventFromEvent(data);
+	if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) > 20 ) // @todo use a const to do that !
+	{
+		EventData data{};
+		data.eventClickedId = m_events.back()->id();
+		data.x = point.x();
+		data.dDate = point.x() * m_millisecPerPixel;
+		data.y = point.y();
+		data.scenePos = scenePoint;
+		createConstraint(data);
+	}
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -256,20 +295,45 @@ void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(int arg)
 	}
 }
 
-void TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent(EventData data)
+void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 {
-	data.x = data.x - model(m_viewModel)->event(data.eventClickedId)->date();
+	data.dDate = data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date();
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
-																		   m_viewModel->sharedProcessModel()),
-												data);
+	EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
+	int endEvent{0};
 
-	submitCommand(cmd);
+	if (it)
+	{
+		for (auto& ev : m_events)
+		{
+			if(ev->view() == it)
+			{
+				endEvent = ev->id();
+				auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
+																					m_viewModel->sharedProcessModel()),
+														 data.eventClickedId,
+														 endEvent);
+				submitCommand(cmd);
+				break;
+			}
+		}
+	}
+	else
+	{
+		auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+																			   m_viewModel->sharedProcessModel()),
+													data);
+		submitCommand(cmd);
+	}
 }
+
+/////////////////////////////////////////////////////////////////////
+// MOVING ELEMENTS COMMANDS
 
 void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 {
+	data.dDate = data.x * m_millisecPerPixel;
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -280,6 +344,8 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
+	// @todo : use relative t and not absolute, so we can move constraint on vertical axis without unfortunately change t position.
+	data.dDate = data.x * m_millisecPerPixel;
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -289,8 +355,8 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 	submitCommand(cmd);
 }
 
-
-
+/////////////////////////////////////////////////////////////////////
+// ELEMENTS CREATED
 
 void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
@@ -300,7 +366,7 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 	auto event_presenter = new EventPresenter{event_model,
 											  event_view,
 											  this};
-	event_view->setPos({rect.x() + event_model->date(),
+	event_view->setPos({rect.x() + event_model->date() / m_millisecPerPixel,
 						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
@@ -308,11 +374,12 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &TemporalScenarioProcessPresenter::createConstraintAndEventFromEvent);
+			this,			 &TemporalScenarioProcessPresenter::createConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
 			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioProcessPresenter::elementSelected);
+
 
 	connect(event_presenter, &EventPresenter::linesExtremityChange,
 			[event_view, this] (double top, double bottom)
@@ -322,17 +389,36 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 			});
 }
 
+void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
+{
+    auto rect = m_view->boundingRect();
+
+    auto timeNode_view = new TimeNodeView{m_view};
+    auto timeNode_presenter = new TimeNodePresenter{timeNode_model,
+                                                    timeNode_view,
+                                                    this};
+
+    timeNode_view->setPos({(qreal) (timeNode_model->date() / m_millisecPerPixel),
+                           timeNode_model->y() * rect.height()});
+
+    timeNode_view->setExtremities(-30, 30);
+
+    m_timeNodes.push_back(timeNode_presenter);
+}
+
+
 void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
 {
 	auto rect = m_view->boundingRect();
 
-	auto constraint_view = new TemporalConstraintView{m_view};
+	auto constraint_view = new TemporalConstraintView{constraint_view_model, m_view};
 	auto constraint_presenter = new TemporalConstraintPresenter{
 													constraint_view_model,
 													constraint_view,
 													this};
 
-	constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate(),
+	constraint_view->setWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
+	constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
 							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 
 	m_constraints.push_back(constraint_presenter);
@@ -346,5 +432,5 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 
 
 	connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
-			this,					&TemporalScenarioProcessPresenter::on_askUpdate);
+            this,					&TemporalScenarioProcessPresenter::on_askUpdate);
 }

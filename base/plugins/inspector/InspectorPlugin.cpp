@@ -32,6 +32,25 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 		  "InspectorWidgetBase", SIGNAL(submitCommand(iscore::SerializableCommand*))},
 		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
 		  "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))}},
+
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
+		  "InspectorWidgetBase", SIGNAL(initiateOngoingCommand(iscore::SerializableCommand*, QObject*))},
+		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "DocumentPresenter", SLOT(initiateOngoingCommand(iscore::SerializableCommand*, QObject*))}},
+
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
+		  "InspectorWidgetBase", SIGNAL(continueOngoingCommand(iscore::SerializableCommand*))},
+		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "DocumentPresenter", SLOT(continueOngoingCommand(iscore::SerializableCommand*))}},
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
+		  "InspectorWidgetBase", SIGNAL(undoOngoingCommand())},
+		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "DocumentPresenter", SLOT(undoOngoingCommand())}},
+		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
+		  "InspectorWidgetBase", SIGNAL(validateOngoingCommand())},
+		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+		  "DocumentPresenter", SLOT(validateOngoingCommand())}},
+
 	};
 }
 

@@ -21,7 +21,7 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 	m_path{boxPath},
 	m_deckId{deckId}
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	Serializer<DataStream> s{&m_serializedDeckData};
 
 	s.readFrom(*box->deck(deckId));
@@ -29,14 +29,14 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
 
 void RemoveDeckFromBox::undo()
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	Deserializer<DataStream> s{&m_serializedDeckData};
 	box->addDeck(new DeckModel{s, box});
 }
 
 void RemoveDeckFromBox::redo()
 {
-	auto box = static_cast<BoxModel*>(m_path.find());
+	auto box = m_path.find<BoxModel>();
 	box->removeDeck(m_deckId);
 }
 

@@ -40,6 +40,12 @@ void TemporalScenarioProcessView::paint(QPainter* painter,
 	}
 
 	painter->drawRect(boundingRect());
+
+	if(m_lock)
+	{
+		painter->setBrush({Qt::red, Qt::DiagCrossPattern});
+		painter->drawRect(boundingRect());
+	}
 }
 
 
@@ -67,7 +73,7 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
 	QGraphicsObject::mouseReleaseEvent(event);
 	if(event->modifiers() == Qt::ControlModifier)
 	{
-		emit scenarioReleased(event->pos());
+        emit scenarioReleased(event->pos(), mapToScene(event->pos()));
 	}
 }
 

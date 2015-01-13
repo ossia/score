@@ -70,8 +70,7 @@ ObjectPath ObjectPath::pathFromObject(QObject* origin_object)
 	return path;
 }
 
-// TODO put a template here and a static_cast at the end.
-QObject* ObjectPath::find() const
+QObject* ObjectPath::find_impl() const
 {
 	auto parent_name = m_objectIdentifiers.at(0).objectName();
 	std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
@@ -88,7 +87,8 @@ QObject* ObjectPath::find() const
 			auto childs = obj->findChildren<IdentifiedObject*>(currentObjIdentifier.objectName(),
 																Qt::FindDirectChildrenOnly);
 
-			auto elt = findById(childs, (SettableIdentifier::identifier_type)currentObjIdentifier.id());
+			auto elt = findById(childs,
+								(SettableIdentifier::identifier_type)currentObjIdentifier.id());
 			if(!elt)
 			{
 				throw std::runtime_error("ObjectPath::find  Error! Child not found");

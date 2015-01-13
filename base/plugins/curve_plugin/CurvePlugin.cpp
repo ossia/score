@@ -1,5 +1,4 @@
 #include "CurvePlugin.hpp"
-#include <interface/customfactory/CustomFactoryInterface.hpp>
 
 #include <ProcessInterface/ProcessViewInterface.hpp>
 #include "Process/PluginCurveFactory.hpp"

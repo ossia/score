@@ -12,19 +12,19 @@ using namespace Scenario::Command;
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint():
 	SerializableCommand{"ScenarioControl",
-						"DeleteProcessFromConstraintCommand",
+						"RemoveProcessFromConstraint",
 						QObject::tr("Delete process")}
 {
 }
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId):
 	SerializableCommand{"ScenarioControl",
-						"DeleteProcessFromConstraintCommand",
+						"RemoveProcessFromConstraint",
 						QObject::tr("Delete process")},
 	m_path{std::move(constraintPath)},
 	m_processId{processId}
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 
 	Serializer<DataStream> s{&m_serializedProcessData};
 
@@ -33,14 +33,14 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 
 void RemoveProcessFromConstraint::undo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	Deserializer<DataStream> s{&m_serializedProcessData};
 	constraint->addProcess(createProcess(s, constraint));
 }
 
 void RemoveProcessFromConstraint::redo()
 {
-	auto constraint = static_cast<ConstraintModel*>(m_path.find());
+	auto constraint = m_path.find<ConstraintModel>();
 	constraint->removeProcess(m_processId);
 }
 

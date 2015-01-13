@@ -17,7 +17,7 @@ HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path):
 						QObject::tr("Hide box in constraint view")},
 	m_constraintViewModelPath{std::move(path)}
 {
-	auto constraint_vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	m_constraintPreviousId = constraint_vm->shownBox();
 }
 
@@ -33,13 +33,13 @@ HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_v
 
 void HideBoxInViewModel::undo()
 {
-	auto vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	vm->showBox(m_constraintPreviousId);
 }
 
 void HideBoxInViewModel::redo()
 {
-	auto vm = static_cast<AbstractConstraintViewModel*>(m_constraintViewModelPath.find());
+	auto vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 	vm->hideBox();
 }
 

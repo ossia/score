@@ -2,6 +2,7 @@
 
 #include "Widgets/AddSharedProcessWidget.hpp"
 #include "Widgets/BoxWidget.hpp"
+#include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -41,10 +42,27 @@ class Separator : public QFrame
 		}
 };
 
+#include "Document/BaseElement/BaseElementModel.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
+	m_currentConstraint = object;
+
+	QPushButton* setAsDisplayedConstraint = new QPushButton{"Full view", this};
+	connect(setAsDisplayedConstraint, &QPushButton::clicked,
+			[this] ()
+	{
+		auto base = qApp->findChild<BaseElementModel*>("BaseElementModel");
+		base->setDisplayedConstraint(this->model());
+	});
+	m_properties.push_back(setAsDisplayedConstraint);
+
+	m_durationSection = new DurationSectionWidget{this};
+	m_properties.push_back(m_durationSection);
+
+	// Separator
+	m_properties.push_back(new Separator{this});
 
 	// Processes
 	m_processSection = new InspectorSectionWidget ("Processes", this);
@@ -149,18 +167,18 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
 	auto cmd = new AddProcessToConstraint{
-						ObjectPath::pathFromObject("BaseConstraintModel",
-												   model()),
-						processName};
+			   ObjectPath::pathFromObject("BaseConstraintModel",
+										  model()),
+			   processName};
 	emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
 	auto cmd = new AddBoxToConstraint(
-						ObjectPath::pathFromObject(
-							"BaseConstraintModel",
-							model()));
+				   ObjectPath::pathFromObject(
+					   "BaseConstraintModel",
+					   model()));
 	emit submitCommand(cmd);
 }
 
@@ -199,8 +217,8 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
 {
 	// Display the widget
 	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg((SettableIdentifier::identifier_type)box->id()),
-														  box,
-														  this};
+								  box,
+								  this};
 
 	connect(newBox, &BoxInspectorSection::submitCommand,
 			this,	&ConstraintInspectorWidget::submitCommand);

@@ -4,6 +4,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventData.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
@@ -24,15 +25,14 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 						QObject::tr("Event creation")},
 	m_path{std::move(scenarioPath)},
 	m_firstEventId{data.eventClickedId},
-	m_time{data.x},
+	m_time{data.dDate},
 	m_heightPosition{data.relativeY}
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	m_createdEventId = getNextId(scenar->events());
 	m_createdConstraintId = getNextId(scenar->constraints());
-	m_createdBoxId = getNextId();
-
+	m_createdTimeNodeId = getNextId(scenar->timeNodes());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,
 	// we have to generate ConstraintViewModels, too
@@ -44,20 +44,21 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
 void CreateEventAfterEvent::undo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
 }
 
 void CreateEventAfterEvent::redo()
 {
-	auto scenar = static_cast<ScenarioProcessSharedModel*>(m_path.find());
+	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
 												 m_time,
 												 m_heightPosition,
 												 m_createdConstraintId,
-												 m_createdEventId);
+												 m_createdEventId,
+												 m_createdTimeNodeId);
 
 	// Creation of all the constraint view models
 	for(auto& viewModel : viewModels(scenar))
@@ -73,7 +74,6 @@ void CreateEventAfterEvent::redo()
 			throw std::runtime_error("CreateEvent : missing identifier.");
 		}
 	}
-
 	// @todo Creation of all the event view models
 }
 
@@ -89,10 +89,22 @@ bool CreateEventAfterEvent::mergeWith(const QUndoCommand* other)
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_firstEventId << m_time;
+	s << m_path
+	  << m_firstEventId
+	  << m_time
+	  << m_heightPosition
+	  << m_createdEventId
+	  << m_createdConstraintId
+	  << m_createdConstraintViewModelIDs;
 }
 
 void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_firstEventId >> m_time;
+	s >> m_path
+	  >> m_firstEventId
+	  >> m_time
+	  >> m_heightPosition
+	  >> m_createdEventId
+	  >> m_createdConstraintId
+	  >> m_createdConstraintViewModelIDs;
 }

@@ -5,6 +5,7 @@
 #include <core/view/View.hpp>
 #include <core/application/ChildEventFilter.hpp>
 #include <core/tools/utilsCPP11.hpp>
+#include <core/tools/ObjectIdentifier.hpp>
 using namespace iscore;
 
 
@@ -14,8 +15,8 @@ Application::Application(int& argc, char** argv):
 {
 	// Application
 	// Crashes if put in member initialization list... :(
-	m_app = std::make_unique<QApplication>(argc, argv);
-	this->setParent(m_app.get());
+	m_app = new QApplication(argc, argv);
+	this->setParent(m_app);
 	this->setObjectName("Application");
 
 	m_app->installEventFilter(new ChildEventFilter(this));
@@ -23,6 +24,8 @@ Application::Application(int& argc, char** argv):
 	QCoreApplication::setOrganizationName("OSSIA");
 	QCoreApplication::setOrganizationDomain("i-score.com");
 	QCoreApplication::setApplicationName("i-score");
+
+	qRegisterMetaType<ObjectIdentifierVector>("ObjectIdentifierVector");
 
 	// Settings
 	m_settings = std::make_unique<Settings>(this);
@@ -46,6 +49,8 @@ Application::Application(int& argc, char** argv):
 Application::~Application()
 {
 	this->setParent(nullptr);
+
+	m_app->deleteLater();
 }
 
 void Application::loadPluginData()

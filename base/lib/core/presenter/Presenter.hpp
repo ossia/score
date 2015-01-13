@@ -5,6 +5,7 @@
 #include <core/document/Document.hpp>
 
 #include <tools/NamedObject.hpp>
+#include <tools/ObjectPath.hpp>
 
 namespace iscore
 {
@@ -49,6 +50,7 @@ namespace iscore
 									   QByteArray data);
 
 
+
 		signals:
 			/**
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
@@ -71,13 +73,15 @@ namespace iscore
 			void applyCommand(iscore::SerializableCommand*);
 
 			/**
-			 * @brief on_elementSelected Called when an object is selected, either on the document, or on a panel.
+			 * @brief on_elementSelected Called when an object is selected on the Document.
 			 * @param elt
 			 *
-			 * @todo Do for panel (now is only for document)
 			 */
 			void on_elementSelected(QObject* elt);
 
+
+			void on_lock(QByteArray);
+			void on_unlock(QByteArray);
 		private:
 			void setupMenus();
 

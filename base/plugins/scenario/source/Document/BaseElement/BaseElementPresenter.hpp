@@ -30,10 +30,12 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
 		void deleteSelection();
 
+		void on_displayedConstraintChanged();
+
 	private:
 		BaseElementModel* model();
 		BaseElementView* view();
-		TemporalConstraintPresenter* m_baseConstraintPresenter;
+		TemporalConstraintPresenter* m_baseConstraintPresenter{};
 
 };
 

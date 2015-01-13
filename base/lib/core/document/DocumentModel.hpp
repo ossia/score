@@ -1,5 +1,5 @@
 #pragma once
-#include <QObject>
+#include <tools/NamedObject.hpp>
 
 namespace iscore
 {
@@ -9,10 +9,10 @@ namespace iscore
 	 *
 	 * Drawbridge between the application and a model given by a plugin.
 	 */
-	class DocumentModel : public QObject
+	class DocumentModel : public NamedObject
 	{
 		public:
-			using QObject::QObject;
+			DocumentModel(QObject* parent);
 			void reset();
 			void setModelDelegate(DocumentDelegateModelInterface* m);
 			DocumentDelegateModelInterface* modelDelegate() const

@@ -74,6 +74,30 @@ class MasterSession : public Session
 			}
 		}
 
+		virtual void sendLock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			for(RemoteClient& rclt : clients())
+			{
+				rclt.send("/edit/lock",
+						   getId(),
+						   _localMaster->getId(),
+						   b);
+			}
+		}
+
+		virtual void sendUnlock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			for(RemoteClient& rclt : clients())
+			{
+				rclt.send("/edit/unlock",
+						   getId(),
+						   _localMaster->getId(),
+						   b);
+			}
+		}
+
 		virtual LocalClient& getClient() override
 		{
 			return *_localMaster;
