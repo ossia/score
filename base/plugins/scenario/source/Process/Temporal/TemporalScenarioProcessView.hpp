@@ -13,12 +13,19 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+
 	signals:
 		void scenarioPressed();
 		void scenarioPressedWithControl(QPointF);
         void scenarioReleased(QPointF, QPointF);
 
 		void deletePressed();
+
+	public slots:
+		void lock()
+		{ m_lock = true; update(); }
+		void unlock()
+		{ m_lock = false; update(); }
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -29,6 +36,8 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 
     private:
         QPointF m_clickedPoint{};
+
+		bool m_lock{};
 };
 
 

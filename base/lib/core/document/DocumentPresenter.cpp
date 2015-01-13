@@ -23,10 +23,28 @@ void DocumentPresenter::applyCommand(SerializableCommand* cmd)
 	m_commandQueue->pushAndEmit(cmd);
 }
 
+void DocumentPresenter::lock_impl()
+{
+	QByteArray arr;
+	Serializer<DataStream> ser{&arr};
+	ser.readFrom(m_lockedObject);
+	emit lock(arr);
+}
+
+void DocumentPresenter::unlock_impl()
+{
+	QByteArray arr;
+	Serializer<DataStream> ser{&arr};
+	ser.readFrom(m_lockedObject);
+	emit unlock(arr);
+	m_lockedObject = ObjectPath();
+}
+
 void DocumentPresenter::initiateOngoingCommand(SerializableCommand* cmd, QObject* objectToLock)
 {
 	m_lockedObject = ObjectPath::pathFromObject(objectToLock);
-	emit lock(m_lockedObject);
+	lock_impl();
+
 	m_ongoingCommand = cmd;
 	m_ongoingCommand->redo();
 }
@@ -42,8 +60,7 @@ void DocumentPresenter::undoOngoingCommand()
 {
 	if(m_ongoingCommand)
 	{
-		emit unlock(m_lockedObject);
-		m_lockedObject = ObjectPath();
+		unlock_impl();
 		m_ongoingCommand->undo();
 		delete m_ongoingCommand;
 		m_ongoingCommand = nullptr;
@@ -54,12 +71,10 @@ void DocumentPresenter::validateOngoingCommand()
 {
 	if(m_ongoingCommand)
 	{
+		unlock_impl();
 		m_ongoingCommand->undo();
-		m_commandQueue->push(m_ongoingCommand);
+		m_commandQueue->pushAndEmit(m_ongoingCommand);
 		m_ongoingCommand = nullptr;
-
-		emit unlock(m_lockedObject);
-		m_lockedObject = ObjectPath();
 	}
 }
 

@@ -141,7 +141,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_obj["Width"] = constraint.defaultDuration();
+    m_obj["DefaultDuration"] = constraint.defaultDuration(); // TODO should be in the view model
 	m_obj["StartDate"] = constraint.startDate();
 	m_obj["MinDuration"] = constraint.minDuration();
 	m_obj["MaxDuration"] = constraint.maxDuration();
@@ -169,7 +169,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 	}
 
 	// Things that should be queried from the API :
-	constraint.setDefaultDuration(m_obj["Width"].toInt());
+    constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());
 	constraint.setStartDate(m_obj["StartDate"].toInt());
 	constraint.setMinDuration(m_obj["MinDuration"].toInt());
 	constraint.setMaxDuration(m_obj["MaxDuration"].toInt());

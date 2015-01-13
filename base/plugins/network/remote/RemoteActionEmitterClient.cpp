@@ -1,3 +1,4 @@
+/*
 #include "RemoteActionEmitterClient.hpp"
 #include <Repartition/session/ClientSession.h>
 #include <core/presenter/command/Command.hpp>
@@ -26,3 +27,4 @@ void RemoteActionEmitterClient::redo()
 {
 
 }
+*/

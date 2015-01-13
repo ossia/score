@@ -27,3 +27,13 @@ void RemoteActionEmitter::redo()
 {
 	m_session->sendRedoCommand();
 }
+
+void RemoteActionEmitter::on_lock(QByteArray arr)
+{
+	m_session->sendLock(arr);
+}
+
+void RemoteActionEmitter::on_unlock(QByteArray arr)
+{
+	m_session->sendUnlock(arr);
+}

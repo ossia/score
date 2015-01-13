@@ -101,6 +101,15 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void eventMoved(int eventId);
 		void constraintMoved(int constraintId);
 
+		void locked();
+		void unlocked();
+
+	public slots:
+		void lock()
+		{ emit locked(); }
+		void unlock()
+		{ emit unlocked(); }
+
 	protected:
 		template<typename Impl>
 		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):

@@ -154,6 +154,5 @@ class ConstraintModel : public IdentifiedObject
 		int m_x{}; // origin
 
 		double m_heightPercentage{0.5};
-
 };
 

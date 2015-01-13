@@ -1,6 +1,6 @@
 #include "TemporalScenarioProcessPresenter.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "source/Process/ScenarioProcessSharedModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessView.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
@@ -76,6 +76,12 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintMoved,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintMoved);
+
+	connect(model(m_viewModel), &ScenarioProcessSharedModel::locked,
+			[&] () { m_view->lock(); });
+	connect(model(m_viewModel), &ScenarioProcessSharedModel::unlocked,
+			[&] () { m_view->unlock(); });
+
 }
 
 TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()

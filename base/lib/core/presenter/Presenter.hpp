@@ -50,6 +50,7 @@ namespace iscore
 									   QByteArray data);
 
 
+
 		signals:
 			/**
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
@@ -78,9 +79,9 @@ namespace iscore
 			 */
 			void on_elementSelected(QObject* elt);
 
-			void on_lock(ObjectPath);
-			void on_unlock(ObjectPath);
 
+			void on_lock(QByteArray);
+			void on_unlock(QByteArray);
 		private:
 			void setupMenus();
 

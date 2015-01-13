@@ -10,8 +10,12 @@ class RemoteActionReceiverMaster : public RemoteActionReceiver
 	public:
 		RemoteActionReceiverMaster(QObject* parent, MasterSession*);
 
-	protected:
+protected:
 		virtual void handle__edit_command(osc::ReceivedMessageArgumentStream args) override;
+
+		virtual void handle__edit_lock(osc::ReceivedMessageArgumentStream args) override;
+		virtual void handle__edit_unlock(osc::ReceivedMessageArgumentStream args) override;
+
 		virtual void handle__edit_undo(osc::ReceivedMessageArgumentStream) override;
 		virtual void handle__edit_redo(osc::ReceivedMessageArgumentStream) override;
 		virtual Session* session() override

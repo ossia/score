@@ -85,6 +85,24 @@ class ClientSession : public Session
 								_localClient->getId());
 		}
 
+		virtual void sendLock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			_remoteMaster->send("/edit/lock",
+								getId(),
+								_localClient->getId(),
+								b);
+		}
+
+		virtual void sendUnlock(QByteArray arr) override
+		{
+			osc::Blob b{arr.constData(), arr.size()};
+			_remoteMaster->send("/edit/unlock",
+								getId(),
+								_localClient->getId(),
+								b);
+		}
+
 
 		void changePermission(Client& client,
 							  Group& group,

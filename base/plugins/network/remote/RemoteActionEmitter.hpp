@@ -17,11 +17,14 @@ class RemoteActionEmitter : public QObject
 	public:
 		using QObject::QObject;
 		RemoteActionEmitter(Session* session);
-		virtual void sendCommand(iscore::SerializableCommand*);
+		void sendCommand(iscore::SerializableCommand*);
 
 	public slots:
-		virtual void undo();
-		virtual void redo();
+		void undo();
+		void redo();
+
+		void on_lock(QByteArray);
+		void on_unlock(QByteArray);
 
 	private:
 		Session* m_session;

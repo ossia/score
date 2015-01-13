@@ -30,8 +30,8 @@ namespace iscore
 
 		signals:
 			void on_elementSelected(QObject* element);
-			void lock(ObjectPath&);
-			void unlock(ObjectPath&);
+			void lock(QByteArray);
+			void unlock(QByteArray);
 
 		private slots:
 			void applyCommand(iscore::SerializableCommand*);
@@ -42,6 +42,9 @@ namespace iscore
 			void validateOngoingCommand();
 
 		private:
+			void lock_impl();
+			void unlock_impl();
+
 			std::unique_ptr<CommandQueue> m_commandQueue;
 			SerializableCommand* m_ongoingCommand{};
 			ObjectPath m_lockedObject;

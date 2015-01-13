@@ -191,12 +191,24 @@ void Presenter::setupMenus()
 }
 
 
-void Presenter::on_lock(ObjectPath)
+void Presenter::on_lock(QByteArray arr)
 {
-	// TODO
+	ObjectPath objectToLock;
+
+	Deserializer<DataStream> s{&arr};
+	s.writeTo(objectToLock);
+
+	auto obj = objectToLock.find<QObject>();
+	QMetaObject::invokeMethod(obj, "lock");
 }
 
-void Presenter::on_unlock(ObjectPath)
+void Presenter::on_unlock(QByteArray arr)
 {
-	// TODO
+	ObjectPath objectToUnlock;
+
+	Deserializer<DataStream> s{&arr};
+	s.writeTo(objectToUnlock);
+
+	auto obj = objectToUnlock.find<QObject>();
+	QMetaObject::invokeMethod(obj, "unlock");
 }
