@@ -44,7 +44,17 @@ class TemporalConstraintView : public QGraphicsObject
 
 		TemporalConstraintViewModel* m_viewModel{};
 
-		static const QPen m_solidPen;
-		static const QPen m_dashPen;
+		QPen m_solidPen{
+			QBrush{Qt::black},
+			4,
+			Qt::SolidLine,
+			Qt::RoundCap,
+			Qt::RoundJoin};
+		QPen m_dashPen{
+			QBrush{Qt::black},
+			4,
+			Qt::DashLine,
+			Qt::RoundCap,
+			Qt::RoundJoin};
 };
 

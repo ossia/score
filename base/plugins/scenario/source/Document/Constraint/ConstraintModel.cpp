@@ -15,28 +15,8 @@
 #include <QApplication>
 
 
-void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel) const
-{
-	connect(this,		&ConstraintModel::boxRemoved,
-			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
-}
 
-int ConstraintModel::defaultDuration() const
-{
-	return m_defaultDuration;
-}
 
-void ConstraintModel::setDefaultDuration(int width)
-{
-    if (m_defaultDuration != width)
-    {
-        setMinDuration(minDuration() + (width - defaultDuration()));
-        setMaxDuration(maxDuration() + (width - defaultDuration()));
-
-        m_defaultDuration = width;
-        emit defaultDurationChanged(width);
-    }
-}
 
 ConstraintModel::ConstraintModel(int id,
 								 QObject* parent):
@@ -55,6 +35,25 @@ ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
 ConstraintModel::~ConstraintModel()
 {
 	delete m_timeBox;
+}
+
+
+void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel)
+{
+	connect(this,		&ConstraintModel::boxRemoved,
+			viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
+
+	connect(viewmodel, &QObject::destroyed,
+			this,	   &ConstraintModel::on_destroyedViewModel);
+
+	m_constraintViewModels.push_back(viewmodel);
+}
+
+void ConstraintModel::on_destroyedViewModel(QObject* obj)
+{
+	int index = m_constraintViewModels.indexOf(static_cast<AbstractConstraintViewModel*>(obj));
+	if(index != -1)
+		m_constraintViewModels.remove(index);
 }
 
 //// Complex commands
@@ -160,6 +159,7 @@ void ConstraintModel::translate(int deltaTime)
 	m_x += deltaTime;
 }
 
+// Simple getters and setters
 
 double ConstraintModel::heightPercentage() const
 {
@@ -176,7 +176,22 @@ int ConstraintModel::maxDuration() const
 	return m_maxDuration;
 }
 
+int ConstraintModel::defaultDuration() const
+{
+	return m_defaultDuration;
+}
 
+void ConstraintModel::setDefaultDuration(int width)
+{
+	if (m_defaultDuration != width)
+	{
+		setMinDuration(minDuration() + (width - defaultDuration()));
+		setMaxDuration(maxDuration() + (width - defaultDuration()));
+
+		m_defaultDuration = width;
+		emit defaultDurationChanged(width);
+	}
+}
 
 void ConstraintModel::setHeightPercentage(double arg)
 {
@@ -201,3 +216,4 @@ void ConstraintModel::setMaxDuration(int arg)
 		emit maxDurationChanged(arg);
 	}
 }
+

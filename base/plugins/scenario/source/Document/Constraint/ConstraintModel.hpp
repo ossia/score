@@ -75,7 +75,7 @@ class ConstraintModel : public IdentifiedObject
 		}
 		*/
 
-		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel) const;
+		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
 		void createProcess(QString processName, int processId);
@@ -106,6 +106,9 @@ class ConstraintModel : public IdentifiedObject
 		std::vector<ProcessSharedModelInterface*> processes() const
 		{ return m_processes; }
 
+		const QVector<AbstractConstraintViewModel*>& viewModels() const
+		{ return m_constraintViewModels; }
+
 		int startDate() const;
 		void setStartDate(int start);
 		void translate(int deltaTime);
@@ -125,7 +128,7 @@ class ConstraintModel : public IdentifiedObject
 
 		void heightPercentageChanged(double arg);
 
-        void defaultDurationChanged(int arg);
+		void defaultDurationChanged(int arg);
 		void minDurationChanged(int arg);
 		void maxDurationChanged(int arg);
 
@@ -136,11 +139,17 @@ class ConstraintModel : public IdentifiedObject
 		void setMinDuration(int arg);
 		void setMaxDuration(int arg);
 
+	private slots:
+		void on_destroyedViewModel(QObject*);
+
 	private:
 		OSSIA::TimeBox* m_timeBox{}; // Manages the duration
 
 		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
 		std::vector<ProcessSharedModelInterface*> m_processes;
+
+		// The constraint view models that show this constraint
+		QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
 		int m_startEvent{};
 		int m_endEvent{};

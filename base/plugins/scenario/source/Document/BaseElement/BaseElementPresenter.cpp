@@ -6,36 +6,23 @@
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 
+// TODO put this somewhere else
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Process/ScenarioProcessSharedModel.hpp"
+
 #include <QGraphicsScene>
 using namespace iscore;
 
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
-										   DocumentDelegateModelInterface* model,
+										   DocumentDelegateModelInterface* delegate_model,
 										   DocumentDelegateViewInterface* view):
-	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", model, view}
+	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", delegate_model, view}
 {
+	connect(model(), &BaseElementModel::displayedConstraintChanged,
+			this,	 &BaseElementPresenter::on_displayedConstraintChanged);
 
-	auto cstrView = new TemporalConstraintView{this->model()->constraintViewModel(),
-											   this->view()->baseObject()};
-	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
-
-	m_baseConstraintPresenter = new TemporalConstraintPresenter
-									{
-										this->model()->constraintViewModel(),
-										cstrView,
-										this
-									};
-	on_askUpdate();
-
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
-			this,						&BaseElementPresenter::submitCommand);
-
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::elementSelected,
-			this,						&BaseElementPresenter::elementSelected);
-
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
-			this,						&BaseElementPresenter::on_askUpdate);
+	on_displayedConstraintChanged();
 }
 
 void BaseElementPresenter::on_reset()
@@ -65,6 +52,50 @@ void BaseElementPresenter::deselectAll()
 
 void BaseElementPresenter::deleteSelection()
 {
+}
+
+void BaseElementPresenter::on_displayedConstraintChanged()
+{
+	TemporalConstraintViewModel* constraintViewModel{};
+	if(model()->constraintModel() == model()->displayedConstraint())
+	{
+		constraintViewModel = model()->constraintViewModel();
+	}
+	else
+	{
+		auto viewmodels = model()->displayedConstraint()->viewModels();
+
+		for(auto& viewmodel : viewmodels)
+		{
+			if((constraintViewModel = dynamic_cast<TemporalConstraintViewModel*>(viewmodel)))
+				break;
+		}
+
+		if(!constraintViewModel)
+			qFatal("Error : cannot display a constraint without view model");
+	}
+
+	auto cstrView = new TemporalConstraintView{constraintViewModel,
+											   this->view()->baseObject()};
+	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
+
+	delete m_baseConstraintPresenter;
+	m_baseConstraintPresenter = new TemporalConstraintPresenter
+									{
+										constraintViewModel,
+										cstrView,
+										this
+									};
+	on_askUpdate();
+
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
+			this,						&BaseElementPresenter::submitCommand);
+
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::elementSelected,
+			this,						&BaseElementPresenter::elementSelected);
+
+	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
+			this,						&BaseElementPresenter::on_askUpdate);
 }
 
 BaseElementModel* BaseElementPresenter::model()

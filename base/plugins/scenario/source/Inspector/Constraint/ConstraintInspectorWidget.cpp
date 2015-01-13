@@ -42,11 +42,21 @@ class Separator : public QFrame
 		}
 };
 
+#include "Document/BaseElement/BaseElementModel.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
 	m_currentConstraint = object;
+
+	QPushButton* setAsDisplayedConstraint = new QPushButton{"Full view", this};
+	connect(setAsDisplayedConstraint, &QPushButton::clicked,
+			[this] ()
+	{
+		auto base = qApp->findChild<BaseElementModel*>("BaseElementModel");
+		base->setDisplayedConstraint(this->model());
+	});
+	m_properties.push_back(setAsDisplayedConstraint);
 
 	m_durationSection = new DurationSectionWidget{this};
 	m_properties.push_back(m_durationSection);

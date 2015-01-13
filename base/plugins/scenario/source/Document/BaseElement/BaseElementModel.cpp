@@ -80,9 +80,11 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	m_baseConstraint{new ConstraintModel{0, this}},
 	m_viewModel{m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
 {
-    m_baseConstraint->setDefaultDuration(1000);
-    m_baseConstraint->setObjectName("BaseConstraintModel");
+	m_baseConstraint->setDefaultDuration(1000);
+	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_viewModel);
+
+	setDisplayedConstraint(m_baseConstraint);
 }
 
 QByteArray BaseElementModel::save()
@@ -95,4 +97,13 @@ QByteArray BaseElementModel::save()
 	//QJsonDocument doc;
 	//doc.setObject(s.m_obj);
 	//return doc.toJson();
+}
+
+void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
+{
+	if(c && c != m_displayedConstraint)
+	{
+		m_displayedConstraint = c;
+		emit displayedConstraintChanged();
+	}
 }

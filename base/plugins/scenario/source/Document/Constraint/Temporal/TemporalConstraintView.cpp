@@ -11,19 +11,6 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-const QPen TemporalConstraintView::m_solidPen = QPen{
-													QBrush{Qt::black},
-													4,
-													Qt::SolidLine,
-													Qt::RoundCap,
-													Qt::RoundJoin};
-
-const QPen TemporalConstraintView::m_dashPen = QPen{
-												   QBrush{Qt::black},
-												   4,
-												   Qt::DashLine,
-												   Qt::RoundCap,
-												   Qt::RoundJoin};
 // TODO don't use model here, in case it is removed.
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintViewModel* viewModel, QGraphicsObject* parent):
 	QGraphicsObject{parent},
@@ -42,14 +29,19 @@ QRectF TemporalConstraintView::boundingRect() const
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+	QColor c = Qt::black;
+
 	if(isSelected())
 	{
-		painter->setPen(Qt::blue);
+		c = Qt::blue;
 	}
 	else if(parentItem()->isSelected())
 	{
-		painter->setPen(Qt::cyan);
+		c = Qt::cyan;
 	}
+
+	m_solidPen.setColor(c);
+	m_dashPen.setColor(c);
 
 	auto model = m_viewModel->model();
 	if(model->minDuration() == model->maxDuration())

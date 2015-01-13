@@ -32,7 +32,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
 	m_createdEventId = getNextId(scenar->events());
 	m_createdConstraintId = getNextId(scenar->constraints());
-    m_createdTimeNodeId = getNextId(scenar->timeNodes());
+	m_createdTimeNodeId = getNextId(scenar->timeNodes());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,
 	// we have to generate ConstraintViewModels, too
@@ -57,8 +57,8 @@ void CreateEventAfterEvent::redo()
 												 m_time,
 												 m_heightPosition,
 												 m_createdConstraintId,
-                                                 m_createdEventId,
-                                                 m_createdTimeNodeId);
+												 m_createdEventId,
+												 m_createdTimeNodeId);
 
 	// Creation of all the constraint view models
 	for(auto& viewModel : viewModels(scenar))
