@@ -126,6 +126,7 @@ class ConstraintModel : public IdentifiedObject
 
 		void heightPercentageChanged(double arg);
 
+        void defaultDurationChanged(int arg);
 		void minDurationChanged(int arg);
 		void maxDurationChanged(int arg);
 
