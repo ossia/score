@@ -5,6 +5,7 @@
 class QGraphicsScene;
 class QGraphicsView;
 class TemporalConstraintView;
+class AddressBar;
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
 	Q_OBJECT
@@ -22,11 +23,15 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
 		QGraphicsScene* scene()
 		{ return m_scene; }
+
+		AddressBar* addressBar()
+		{ return m_addressBar; }
+
 	private:
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
 		QGraphicsObject* m_baseObject{};
 		TemporalConstraintView* m_constraint{};
-
+		AddressBar* m_addressBar{};
 };
 

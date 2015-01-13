@@ -22,6 +22,16 @@ class ObjectPath
 		friend Deserializer<DataStream>;
 		friend Deserializer<JSON>;
 
+		friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
+		{
+			return path.m_objectIdentifiers.begin();
+		}
+
+		friend ObjectIdentifierVector::iterator end(ObjectPath& path)
+		{
+			return path.m_objectIdentifiers.end();
+		}
+
 		friend bool operator==(const ObjectPath& lhs, const ObjectPath& rhs)
 		{
 			return lhs.m_objectIdentifiers == rhs.m_objectIdentifiers;
@@ -74,6 +84,8 @@ class ObjectPath
 			return static_cast<T*>(find_impl());
 		}
 
+		const ObjectIdentifierVector& vec()
+		{ return m_objectIdentifiers; }
 	private:
 		QObject* find_impl() const;
 		ObjectIdentifierVector m_objectIdentifiers;

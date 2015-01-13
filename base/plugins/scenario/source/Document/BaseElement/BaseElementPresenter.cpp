@@ -5,6 +5,7 @@
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
+#include "Document/BaseElement/Widgets/AddressBar.hpp"
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -16,11 +17,22 @@ using namespace iscore;
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* delegate_model,
-										   DocumentDelegateViewInterface* view):
-	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", delegate_model, view}
+										   DocumentDelegateViewInterface* delegate_view):
+	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", delegate_model, delegate_view}
 {
+	connect(view()->addressBar(), &AddressBar::objectSelected,
+			model(),			  &BaseElementModel::setDisplayedObject);
+
 	connect(model(), &BaseElementModel::displayedConstraintChanged,
 			this,	 &BaseElementPresenter::on_displayedConstraintChanged);
+
+	connect(model(), &BaseElementModel::displayedConstraintChanged,
+			[this] ()
+	{
+		view()
+			->addressBar()
+			->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
+	});
 
 	on_displayedConstraintChanged();
 }

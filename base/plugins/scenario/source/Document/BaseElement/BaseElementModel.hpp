@@ -1,5 +1,6 @@
 #pragma once
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <tools/ObjectPath.hpp>
 
 class BaseElementPresenter;
 class TemporalConstraintViewModel;
@@ -43,6 +44,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
 	public slots:
 		void setDisplayedConstraint(ConstraintModel* );
+		void setDisplayedObject(ObjectPath);
 
 	private:
 		ConstraintModel* m_baseConstraint{};

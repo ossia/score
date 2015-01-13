@@ -7,7 +7,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsItem>
-
+#include "Widgets/AddressBar.hpp"
 class GrapicsProxyObject : public QGraphicsObject
 {
 	public:
@@ -30,14 +30,24 @@ BaseElementView::BaseElementView(QObject* parent):
 	iscore::DocumentDelegateViewInterface{parent},
 	m_scene{new QGraphicsScene{this}},
 	m_view{new QGraphicsView{m_scene}},
-	m_baseObject{new GrapicsProxyObject{}}
+	m_baseObject{new GrapicsProxyObject{}},
+	m_addressBar{new AddressBar{nullptr}}
 {
-//	m_scene->setSceneRect(0, 0, 500, 200);
+	// Configuration
 	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	m_scene->addItem(m_baseObject);
 
+	// Address bar
+	// TODO set length = length of the view.
+	auto addressBarGraphicsWidget = new QGraphicsProxyWidget;
+	addressBarGraphicsWidget->setWidget(m_addressBar);
+
+	// Positions
+	addressBarGraphicsWidget->setPos(0, 0);
+	m_baseObject->setPos(0, 50);
+
+	m_scene->addItem(addressBarGraphicsWidget);
+	m_scene->addItem(m_baseObject);
 }
 
 QWidget* BaseElementView::getWidget()
