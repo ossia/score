@@ -55,12 +55,18 @@ class PluginCurveFactory : public ProcessFactoryInterface
 			return {"Curve"};
 		}
 
-		virtual ProcessSharedModelInterface* makeModel (int id, QObject* parent);
+		virtual ProcessSharedModelInterface* makeModel (int id,
+														QObject* parent) override;
 
-		virtual ProcessSharedModelInterface* makeModel (QDataStream&, QObject*);
+		virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,
+													   void* data,
+													   QObject* parent) override;
 
-		virtual ProcessViewInterface* makeView (QString view, QObject* parent);
-		virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*, ProcessViewInterface*, QObject* parent);
+		virtual ProcessViewInterface* makeView (QString view,
+												QObject* parent) override;
+		virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*,
+														  ProcessViewInterface*,
+														  QObject* parent) override;
 };
 
 #endif // PLUGINCURVE_HPP

@@ -40,9 +40,10 @@ ProcessSharedModelInterface* PluginCurveFactory::makeModel(int id, QObject* pare
 	return new PluginCurveModel{id, parent};
 }
 
-ProcessSharedModelInterface*PluginCurveFactory::makeModel(QDataStream&, QObject*)
+ProcessSharedModelInterface*PluginCurveFactory::makeModel(SerializationIdentifier identifier, void* data, QObject* parent)
 {
-	return nullptr; // TODO
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+	return nullptr;
 }
 
 

@@ -7,3 +7,8 @@ PluginCurveViewModel::PluginCurveViewModel(int id,
 	ProcessViewModelInterface{id, "PluginCurveViewModel", model, parent}
 {
 }
+
+void PluginCurveViewModel::serialize(SerializationIdentifier identifier, void* data) const
+{
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+}

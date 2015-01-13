@@ -242,12 +242,15 @@ ProcessViewModelInterface* PluginCurveModel::makeViewModel(int viewModelId,
 									parent};
 }
 
-ProcessViewModelInterface* PluginCurveModel::makeViewModel(QDataStream& s,
-														   QObject* parent)
+ProcessViewModelInterface*PluginCurveModel::makeViewModel(SerializationIdentifier identifier,
+														  void* data,
+														  QObject* parent)
 {
 	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 	return nullptr;
 }
 
-
-
+void PluginCurveModel::serialize(SerializationIdentifier identifier, void* data) const
+{
+	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+}
