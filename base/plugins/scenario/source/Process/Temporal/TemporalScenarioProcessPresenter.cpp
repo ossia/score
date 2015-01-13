@@ -167,6 +167,10 @@ void TemporalScenarioProcessPresenter::on_eventMoved(int eventId)
 	ev->view()->setPos({qreal(ev->model()->date() / m_millisecPerPixel),
 						rect.height() * ev->model()->heightPercentage()});
 
+    // @todo change when multiple event on a same timeNode
+    auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
+    timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
+                              rect.height() * timeNode->model()->y()});
     m_view->update();
 }
 
@@ -395,10 +399,9 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
                                                     this};
 
     timeNode_view->setPos({(qreal) (timeNode_model->date() / m_millisecPerPixel),
-                           0});
+                           timeNode_model->y() * rect.height()});
 
-    timeNode_view->setExtremities((int) (timeNode_model->top()  * rect.height()),
-                                  (int) (timeNode_model->bottom() * rect.height()) );
+    timeNode_view->setExtremities(-30, 30);
 
     m_timeNodes.push_back(timeNode_presenter);
 }

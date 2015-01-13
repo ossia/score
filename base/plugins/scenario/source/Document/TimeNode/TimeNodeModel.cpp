@@ -57,3 +57,18 @@ void TimeNodeModel::setBottom(double bottom)
     m_bottomY = bottom;
 }
 
+void TimeNodeModel::setDate(int date)
+{
+    m_date = date;
+}
+double TimeNodeModel::y() const
+{
+    return m_y;
+}
+
+void TimeNodeModel::setY(double y)
+{
+    m_y = y;
+}
+
+

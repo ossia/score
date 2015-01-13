@@ -9,7 +9,7 @@
 
 EventModel::EventModel(int id, QObject* parent):
 	IdentifiedObject{id, "EventModel", parent},
-	m_timeNode{new OSSIA::TimeNode}
+    m_timeEvent{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
 }
@@ -61,7 +61,17 @@ bool EventModel::removePreviousConstraint(int constraintToDelete)
         updateVerticalLink();
 		return true;
 	}
-	return false;
+    return false;
+}
+
+void EventModel::changeTimeNode(int newTimeNodeId)
+{
+    m_timeNode = newTimeNodeId;
+}
+
+int EventModel::timeNode() const
+{
+    return m_timeNode;
 }
 
 double EventModel::heightPercentage() const

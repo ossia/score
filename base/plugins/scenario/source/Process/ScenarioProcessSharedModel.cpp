@@ -135,8 +135,9 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
                     event->date(),
                     this};
     timeNode->addEvent(newEventId);
-    timeNode->setTop(event->heightPercentage() - 0.1);
-    timeNode->setBottom(event->heightPercentage() + 0.1);
+    timeNode->setY(event->heightPercentage());
+
+    event->changeTimeNode(newTimeNodeId);
 
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
@@ -167,6 +168,10 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolut
 
 		ev->setHeightPercentage(heightPosition);
 		ev->translate(time);
+
+        auto tn = timeNode(ev->timeNode());
+        tn->setDate(tn->date() + time);
+        tn->setY(heightPosition);
 
         for (auto& prevConstraintId : event(eventId)->previousConstraints())
         {
