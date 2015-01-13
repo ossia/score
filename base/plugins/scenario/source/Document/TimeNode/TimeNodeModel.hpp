@@ -2,8 +2,6 @@
 #include <tools/IdentifiedObject.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 
-#include <QObject>
-
 class TimeNodeModel : public IdentifiedObject
 {
     Q_OBJECT
@@ -14,7 +12,14 @@ class TimeNodeModel : public IdentifiedObject
         ~TimeNodeModel();
 
         void addEvent(int);
-        void removeEvent(int);
+        bool removeEvent(int);
+
+        double top() const;
+        double bottom() const;
+        int date() const;
+
+        void setTop(double);
+        void setBottom(double);
 
     signals:
 

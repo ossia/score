@@ -14,6 +14,8 @@ class EventPresenter;
 class TemporalScenarioProcessViewModel;
 class TemporalScenarioProcessView;
 class EventModel;
+class TimeNodeModel;
+class TimeNodePresenter;
 class ConstraintModel;
 struct EventData;
 struct ConstraintData;
@@ -49,6 +51,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_eventDeleted(int eventId);
 		void on_eventMoved(int eventId);
 
+        void on_timeNodeCreated(int timeNodeId);
+
 		void on_constraintCreated(int constraintId);
 		void on_constraintViewModelRemoved(int constraintId);
 		void on_constraintMoved(int constraintId);
@@ -73,6 +77,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
+        void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
 
 		TemporalScenarioProcessViewModel* m_viewModel;
@@ -80,6 +85,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		std::vector<TemporalConstraintPresenter*> m_constraints;
 		std::vector<EventPresenter*> m_events;
+        std::vector<TimeNodePresenter*> m_timeNodes;
 
 		int m_currentlySelectedEvent{};
         int m_pointedEvent{0};

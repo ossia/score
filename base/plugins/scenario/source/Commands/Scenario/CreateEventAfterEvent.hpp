@@ -39,6 +39,7 @@ namespace Scenario
 
 				int m_createdConstraintId{};
 				int m_createdEventId{};
+                int m_createdTimeNodeId{};
 
 				int m_firstEventId{};
 				int m_time{};
