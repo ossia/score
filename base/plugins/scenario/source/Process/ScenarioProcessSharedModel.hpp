@@ -6,9 +6,9 @@ namespace OSSIA
 {
 	class Scenario;
 }
+class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
-class TimeNodeModel;
 class AbstractScenarioProcessViewModel;
 
 /**
@@ -55,11 +55,12 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-		void createConstraintAndEndEventFromEvent(int startEventId,
-												  int duration,
-												  double heightPos,
-												  int newConstraintId,
-												  int newEventId);
+        void createConstraintAndEndEventFromEvent(int startEventId,
+                                                  int duration,
+                                                  double heightPos,
+                                                  int newConstraintId,
+                                                  int newEventId,
+                                                  int newTimeNodeId);
 
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);
@@ -73,6 +74,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		void removeConstraint(int constraintId);
 		void removeEvent(int eventId);
+        void removeEventFromTimeNode(int eventId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
         void undo_createConstraintBetweenEvent(int constraintId);
 
@@ -80,6 +82,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// Accessors
 		ConstraintModel* constraint(int constraintId) const;
 		EventModel* event(int eventId) const;
+        TimeNodeModel* timeNode(int timeNodeId) const;
 
 		EventModel* startEvent() const;
 		EventModel* endEvent() const;
@@ -92,10 +95,13 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		{ return m_constraints; }
 		std::vector<EventModel*> events() const
 		{ return m_events; }
+        std::vector<TimeNodeModel*> timeNodes() const
+        { return m_timeNodes; }
 
 	signals:
 		void eventCreated(int eventId);
 		void constraintCreated(int constraintId);
+        void timeNodeCreated(int timeNodeId);
 		void eventRemoved(int eventId);
 		void constraintRemoved(int constraintId);
 		void eventMoved(int eventId);

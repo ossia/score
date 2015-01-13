@@ -27,6 +27,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void eventCreated(int eventId);
 		void eventDeleted(int eventId);
 		void eventMoved(int eventId);
+        void timeNodeCreated(int timeNodeId);
 		void constraintMoved(int constraintId);
 
 	public slots:
