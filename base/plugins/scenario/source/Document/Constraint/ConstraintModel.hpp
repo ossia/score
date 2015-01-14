@@ -13,6 +13,7 @@ namespace OSSIA
 
 class ProcessSharedModelInterface;
 class AbstractConstraintViewModel;
+class TemporalConstraintViewModel;
 
 class BoxModel;
 class EventModel;
@@ -148,8 +149,13 @@ class ConstraintModel : public IdentifiedObject
 		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
 		std::vector<ProcessSharedModelInterface*> m_processes;
 
-		// The constraint view models that show this constraint
+		// The small view constraint view models that show this constraint
+		// The constraint does not have ownership of these: their parent (in the Qt sense) are
+		// the scenario view models
 		QVector<AbstractConstraintViewModel*> m_constraintViewModels;
+
+		// Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
+		TemporalConstraintViewModel* m_fullViewModel{};
 
 		int m_startEvent{};
 		int m_endEvent{};
