@@ -38,6 +38,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 		}
 
 		virtual QByteArray save() override;
+		virtual QJsonObject toJson() override;
 
 	signals:
 		void displayedConstraintChanged();

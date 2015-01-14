@@ -94,9 +94,14 @@ QByteArray BaseElementModel::save()
 	s.readFrom(*constraintModel());
 
 	return arr;
-	//QJsonDocument doc;
-	//doc.setObject(s.m_obj);
-	//return doc.toJson();
+}
+
+QJsonObject BaseElementModel::toJson()
+{
+	Serializer<JSON> s;
+	s.readFrom(*constraintModel());
+
+	return s.m_obj;
 }
 
 void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
