@@ -5,8 +5,7 @@ AddressBar::AddressBar(QWidget* parent):
 	QWidget{parent},
 	m_layout{new QHBoxLayout{this}}
 {
-	setLayout(m_layout);
-	setTargetObject(ObjectPath{{"Blurb", 25}, {"Shplorp", 34}});
+    setLayout(m_layout);
 }
 
 

@@ -26,14 +26,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	connect(model(), &BaseElementModel::displayedConstraintChanged,
 			this,	 &BaseElementPresenter::on_displayedConstraintChanged);
 
-	connect(model(), &BaseElementModel::displayedConstraintChanged,
-			[this] ()
-	{
-		view()
-			->addressBar()
-			->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
-	});
-
 	on_displayedConstraintChanged();
 }
 
@@ -108,6 +100,11 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
+
+    // Update the address bar
+    view()
+        ->addressBar()
+        ->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
 }
 
 BaseElementModel* BaseElementPresenter::model()
