@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 #include <tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"

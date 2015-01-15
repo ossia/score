@@ -2,7 +2,7 @@
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 
-#include "Control/ProcessList.hpp" // TODO Bad include. Put this in ProcessInterface
+#include "ProcessInterface/ProcessList.hpp"
 
 
 #include <QtWidgets/QHBoxLayout>

@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "ProcessInterface/ProcessSharedModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 
 

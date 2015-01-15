@@ -1,7 +1,7 @@
 #include "DeckModelSerialization.hpp"
 #include "DeckModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 #include <interface/serialization/JSONVisitor.hpp>
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)

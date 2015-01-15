@@ -1,8 +1,8 @@
 #include "ProcessSharedModelInterfaceSerialization.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 
-#include "Control/ProcessList.hpp"
-#include "ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessList.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 
 template<>

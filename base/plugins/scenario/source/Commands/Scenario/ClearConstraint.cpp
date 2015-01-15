@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 

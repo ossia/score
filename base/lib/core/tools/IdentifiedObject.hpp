@@ -3,6 +3,7 @@
 #include <tools/SettableIdentifier.hpp>
 #include <tools/utilsCPP11.hpp>
 #include <typeinfo>
+#include <random>
 
 // This should maybe be a mixin ?
 class IdentifiedObject : public NamedObject
@@ -63,7 +64,7 @@ typename Container::value_type findById(const Container& c, int id)
 inline int32_t getNextId()
 {
 	using namespace std;
-	static random_device rd;
+    static random_device rd;
 	static mt19937 gen(rd());
 	static uniform_int_distribution<int32_t>
 			dist(numeric_limits<int32_t>::min(),

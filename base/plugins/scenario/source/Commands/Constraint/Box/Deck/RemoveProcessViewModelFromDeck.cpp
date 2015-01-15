@@ -3,7 +3,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -34,8 +34,9 @@ void RemoveProcessViewModelFromDeck::undo()
 {
 	auto deck = m_path.find<DeckModel>();
 	Deserializer<DataStream> s{&m_serializedProcessViewData};
+
 	auto pvm = createProcessViewModel(s,
-									  deck->parentConstraint(),
+                                      deck->parentConstraint(),
 									  deck);
 	deck->addProcessViewModel(pvm);
 }

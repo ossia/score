@@ -1,6 +1,6 @@
 #include "ProcessViewModelInterfaceSerialization.hpp"
-#include "ProcessSharedModelInterface.hpp"
-#include "ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include <interface/serialization/DataStreamVisitor.hpp>
@@ -24,13 +24,13 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
 
 template<>
 ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
-												  ConstraintModel* constraint,
+                                                  ConstraintModel* constraint,
 												  QObject* parent)
 {
 	SettableIdentifier sharedProcessId;
 	deserializer.m_stream >> sharedProcessId;
 
-	auto process = constraint->process((SettableIdentifier::identifier_type) sharedProcessId);
+    auto process = constraint->process((SettableIdentifier::identifier_type) sharedProcessId);
 	auto viewmodel = process->makeViewModel(DataStream::type(),
 											static_cast<void*>(&deserializer),
 											parent);
