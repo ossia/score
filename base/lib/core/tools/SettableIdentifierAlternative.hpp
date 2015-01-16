@@ -61,3 +61,5 @@ public:
 private:
     optional_tagged_int32_id<T> m_id;
 };
+
+// Usage exemple : class MyType_base { }; using MyType = id_mixin<MyType_base>;

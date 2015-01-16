@@ -133,7 +133,10 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;
 
-	private:
+        // To prevent warnings in Clang
+        virtual bool event(QEvent* e) override
+        { return QObject::event(e); }
+    private:
 		void makeViewModel_impl(view_model_type*);
 
 		OSSIA::Scenario* m_scenario;
