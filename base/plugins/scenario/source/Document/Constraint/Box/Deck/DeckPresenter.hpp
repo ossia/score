@@ -39,6 +39,7 @@ class DeckPresenter : public NamedObject
 		// From Model
 		void on_processViewModelCreated(int processId);
 		void on_processViewModelDeleted(int processId);
+		void on_processViewModelSelected(int processId);
 		void on_heightChanged(int height);
 
 		// From View

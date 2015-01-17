@@ -38,6 +38,10 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		virtual int viewModelId() const;
 		virtual int modelId() const;
+
+		virtual void putToFront() override;
+		virtual void putBack() override;
+
 		int currentlySelectedEvent() const;
         long millisecPerPixel() const;
 

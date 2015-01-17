@@ -217,6 +217,16 @@ void PluginCurvePresenter::adjustPoint (PluginCurvePoint* point, QPointF& newPos
 	adjustPointMinDist (point, newPos);
 }
 
+void PluginCurvePresenter::putToFront()
+{
+	_pView->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+}
+
+void PluginCurvePresenter::putBack()
+{
+	_pView->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+}
+
 void PluginCurvePresenter::adjustPointMagnetism (QPointF& newPos)
 {
 	// NewPos : Zommer Coordinate

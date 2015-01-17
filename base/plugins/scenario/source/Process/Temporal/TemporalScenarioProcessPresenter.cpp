@@ -1,8 +1,8 @@
 #include "TemporalScenarioProcessPresenter.hpp"
 
 #include "source/Process/ScenarioProcessSharedModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessView.hpp"
+#include "source/Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "source/Process/Temporal/TemporalScenarioProcessView.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
@@ -110,6 +110,18 @@ int TemporalScenarioProcessPresenter::viewModelId() const
 int TemporalScenarioProcessPresenter::modelId() const
 {
 	return (SettableIdentifier::identifier_type) m_viewModel->sharedProcessModel()->id();
+}
+
+void TemporalScenarioProcessPresenter::putToFront()
+{
+	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+	m_view->setOpacity(1);
+}
+
+void TemporalScenarioProcessPresenter::putBack()
+{
+	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+	m_view->setOpacity(0.1);
 }
 
 int TemporalScenarioProcessPresenter::currentlySelectedEvent() const

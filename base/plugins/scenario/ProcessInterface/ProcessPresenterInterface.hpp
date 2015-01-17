@@ -12,6 +12,9 @@ class ProcessPresenterInterface : public NamedObject
 		using NamedObject::NamedObject;
 		virtual ~ProcessPresenterInterface() = default;
 
+		virtual void putToFront() = 0;
+		virtual void putBack() = 0;
+
 		virtual int viewModelId() const = 0;
 		virtual int modelId() const = 0;
 

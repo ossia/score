@@ -121,6 +121,8 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 		/* Adjusts the point position. */
 		void adjustPoint (PluginCurvePoint* point, QPointF& newPos);
 
+		virtual void putToFront() override;
+		virtual void putBack() override;
 	signals:
 // --> Model
 		void stateChanged (bool b);
@@ -163,12 +165,12 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 
 		// ProcessPresenterInterface interface
 	public:
-		virtual int viewModelId() const
+		virtual int viewModelId() const override
 		{
 			qDebug() << "TODO: " << Q_FUNC_INFO;
 			return 36;
 		}
-		virtual int modelId() const
+		virtual int modelId() const override
 		{
 			qDebug() << "TODO: " << Q_FUNC_INFO;
 			return 42;

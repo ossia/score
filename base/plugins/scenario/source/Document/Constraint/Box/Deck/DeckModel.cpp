@@ -40,6 +40,9 @@ void DeckModel::deleteProcessViewModel(int processViewId)
 						{ return model->id() == processViewId; });
 
 	emit processViewModelRemoved(processViewId);
+
+	m_editedProcessViewModelId = 0; // Todo use boost::optional
+
 	delete pvm;
 }
 
