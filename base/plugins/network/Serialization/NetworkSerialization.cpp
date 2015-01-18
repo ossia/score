@@ -1,5 +1,14 @@
 #include "NetworkSerialization.hpp"
 
+/*
+ *
+ * Côté serveur :
+ * On a un NetworkSerializationServer
+ *
+ * Côté client :
+ * On ask une connection.
+ *
+ */
 NetworkSerializationSocket::NetworkSerializationSocket(QString ip, int port, QObject *parent) :
 	QObject(parent)
 {
