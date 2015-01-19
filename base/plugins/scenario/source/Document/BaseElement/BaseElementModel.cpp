@@ -1,7 +1,7 @@
 #include "BaseElementModel.hpp"
 
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "source/Document/Constraint/ConstraintModel.hpp"
+#include "source/Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include <QJsonDocument>
 #include <interface/serialization/JSONVisitor.hpp>
 
@@ -68,23 +68,25 @@ BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	Deserializer<DataStream> deserializer{&data};
 	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-	m_viewModel = m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint);
 
-
-	(new Command::ShowBoxInViewModel(m_viewModel,
+	(new Command::ShowBoxInViewModel(m_baseConstraint->fullView(),
 									 (SettableIdentifier::identifier_type)m_baseConstraint->boxes().front()->id()))->redo();
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseConstraint{new ConstraintModel{0, this}},
-	m_viewModel{m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
+	m_baseConstraint{new ConstraintModel{0, 0, 0, this}}
 {
 	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-	testInit(m_viewModel);
+	testInit(m_baseConstraint->fullView());
 
 	setDisplayedConstraint(m_baseConstraint);
+}
+
+TemporalConstraintViewModel *BaseElementModel::constraintViewModel() const
+{
+	return m_baseConstraint->fullView();
 }
 
 QByteArray BaseElementModel::save()

@@ -1,12 +1,12 @@
 #include "CreateEventAfterEvent.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
-#include "Document/Event/EventModel.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Event/EventData.hpp"
-#include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "source/Process/ScenarioProcessSharedModel.hpp"
+#include "source/Document/Event/EventModel.hpp"
+#include "source/Document/Constraint/ConstraintModel.hpp"
+#include "source/Document/Event/EventData.hpp"
+#include "source/Document/TimeNode/TimeNodeModel.hpp"
+#include "source/Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "source/Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -40,6 +40,9 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 	{
 		m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel(viewModel)] = getNextId(viewModel->constraints());
 	}
+
+	// Finally, the id of the full view
+	m_createdConstraintFullViewId = getNextId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
 void CreateEventAfterEvent::undo()
@@ -57,6 +60,7 @@ void CreateEventAfterEvent::redo()
 												 m_time,
 												 m_heightPosition,
 												 m_createdConstraintId,
+												 m_createdConstraintFullViewId,
 												 m_createdEventId,
 												 m_createdTimeNodeId);
 
@@ -74,6 +78,7 @@ void CreateEventAfterEvent::redo()
 			throw std::runtime_error("CreateEvent : missing identifier.");
 		}
 	}
+
 	// @todo Creation of all the event view models
 }
 
@@ -95,7 +100,8 @@ void CreateEventAfterEvent::serializeImpl(QDataStream& s)
 	  << m_heightPosition
 	  << m_createdEventId
 	  << m_createdConstraintId
-	  << m_createdConstraintViewModelIDs;
+	  << m_createdConstraintViewModelIDs
+	  << m_createdConstraintFullViewId;
 }
 
 void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
@@ -106,5 +112,6 @@ void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
 	  >> m_heightPosition
 	  >> m_createdEventId
 	  >> m_createdConstraintId
-	  >> m_createdConstraintViewModelIDs;
+	  >> m_createdConstraintViewModelIDs
+	  >> m_createdConstraintFullViewId;
 }

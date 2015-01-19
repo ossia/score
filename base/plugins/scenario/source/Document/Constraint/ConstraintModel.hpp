@@ -45,8 +45,8 @@ class ConstraintModel : public IdentifiedObject
 	public:
 		ConstraintModelMetadata metadata;
 
-		ConstraintModel(int id, QObject* parent);
-		ConstraintModel(int id, double yPos, QObject* parent);
+		ConstraintModel(int id, int fullViewId, QObject* parent);
+		ConstraintModel(int id, int fullViewId, double yPos, QObject* parent);
 		~ConstraintModel();
 
 		template<typename Impl>
@@ -119,6 +119,9 @@ class ConstraintModel : public IdentifiedObject
 		int defaultDuration() const;
 		int minDuration() const;
 		int maxDuration() const;
+
+		TemporalConstraintViewModel* fullView()
+		{ return m_fullViewModel; }
 
 	signals:
 		void processCreated(QString processName, int processId);

@@ -83,6 +83,12 @@ int getNextId(const Vector& v)
 			  begin(ids),
 			  [] (typename Vector::value_type elt) { return (SettableIdentifier::identifier_type)elt->id(); });
 
+	return getNextId(ids);
+}
+
+template<>
+inline int getNextId(const std::vector<int>& ids)
+{
 	int id{};
 	do {
 		id = getNextId();

@@ -19,15 +19,20 @@
 
 
 ConstraintModel::ConstraintModel(int id,
+								 int fullViewId,
 								 QObject* parent):
 	IdentifiedObject{id, "ConstraintModel", parent},
-	m_timeBox{new OSSIA::TimeBox}
+	m_timeBox{new OSSIA::TimeBox},
+	m_fullViewModel{
+		new TemporalConstraintViewModel{fullViewId, this, this}
+		}
 {
+	setupConstraintViewModel(m_fullViewModel);
 	metadata.setName(QString("Constraint.%1").arg((SettableIdentifier::identifier_type) this->id()));
 }
 
-ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
-	ConstraintModel{id, parent}
+ConstraintModel::ConstraintModel(int id, int fullViewId, double yPos, QObject *parent):
+	ConstraintModel{id, fullViewId, parent}
 {
 	setHeightPercentage(yPos);
 }

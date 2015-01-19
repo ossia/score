@@ -46,6 +46,7 @@ namespace Scenario
 				double m_heightPosition{};
 
 				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
+				int m_createdConstraintFullViewId{};
 		};
 	}
 }

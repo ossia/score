@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMap>
-#include "Process/AbstractScenarioProcessViewModel.hpp"
+#include "source/Process/AbstractScenarioProcessViewModel.hpp"
 class ScenarioProcessSharedModel;
 class BoxModel;
 class TemporalConstraintViewModel;

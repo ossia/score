@@ -32,10 +32,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_displayedConstraint;
 		}
 
-		TemporalConstraintViewModel* constraintViewModel() const
-		{
-			return m_viewModel;
-		}
+		TemporalConstraintViewModel* constraintViewModel() const;
 
 		virtual QByteArray save() override;
 		virtual QJsonObject toJson() override;
@@ -49,7 +46,6 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
 	private:
 		ConstraintModel* m_baseConstraint{};
-		TemporalConstraintViewModel* m_viewModel{};
 
 		ConstraintModel* m_displayedConstraint{};
 };

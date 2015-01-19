@@ -47,7 +47,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 */
 		void createConstraintBetweenEvents(int startEventId,
 										   int endEventId,
-										   int newConstraintModelId);
+										   int newConstraintModelId,
+										   int newConstraintFullViewId);
 
 		/**
 		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
@@ -55,12 +56,13 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-        void createConstraintAndEndEventFromEvent(int startEventId,
-                                                  int duration,
-                                                  double heightPos,
-                                                  int newConstraintId,
-                                                  int newEventId,
-                                                  int newTimeNodeId);
+		void createConstraintAndEndEventFromEvent(int startEventId,
+												  int duration,
+												  double heightPos,
+												  int newConstraintId,
+												  int newConstraintFullViewId,
+												  int newEventId,
+												  int newTimeNodeId);
 
 
 		void moveEventAndConstraint(int eventId, int time, double heightPosition);

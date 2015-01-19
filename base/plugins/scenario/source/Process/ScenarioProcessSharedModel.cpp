@@ -61,11 +61,14 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 //////// Creation ////////
 void ScenarioProcessSharedModel::createConstraintBetweenEvents(int startEventId,
                                                                int endEventId,
-                                                               int newConstraintModelId)
+															   int newConstraintModelId,
+															   int newConstraintFullViewId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new ConstraintModel{newConstraintModelId, this};
+	auto inter = new ConstraintModel{newConstraintModelId,
+									 newConstraintFullViewId,
+									 this};
 
 	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
@@ -95,12 +98,14 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(int startEventI
 																 int constraint_duration,
 																 double heightPos,
 																 int newConstraintId,
+																 int newConstraintFullViewId,
                                                                  int newEventId,
                                                                  int newTimeNodeId)
 {
     auto startEvent = this->event(startEventId);
 
 	auto constraint = new ConstraintModel{newConstraintId,
+					  newConstraintFullViewId,
 					  this->event(startEventId)->heightPercentage(),
 					  this};
 	auto event = new EventModel{newEventId,

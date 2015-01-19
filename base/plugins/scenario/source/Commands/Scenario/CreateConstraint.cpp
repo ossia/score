@@ -49,8 +49,9 @@ void CreateConstraint::redo()
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
     scenar->createConstraintBetweenEvents(m_startEventId,
-                                         m_endEventId,
-                                         m_createdConstraintId);
+										  m_endEventId,
+										  m_createdConstraintId,
+										  m_createdConstraintFullViewId);
 
 	// Creation of all the constraint view models
 	for(auto& viewModel : viewModels(scenar))
@@ -86,7 +87,8 @@ void CreateConstraint::serializeImpl(QDataStream& s)
       << m_startEventId
       << m_endEventId
 	  << m_createdConstraintId
-	  << m_createdConstraintViewModelIDs;
+	  << m_createdConstraintViewModelIDs
+	  << m_createdConstraintFullViewId;
 }
 
 void CreateConstraint::deserializeImpl(QDataStream& s)
@@ -95,5 +97,6 @@ void CreateConstraint::deserializeImpl(QDataStream& s)
       >> m_startEventId
       >> m_endEventId
 	  >> m_createdConstraintId
-	  >> m_createdConstraintViewModelIDs;
+	  >> m_createdConstraintViewModelIDs
+	  >> m_createdConstraintFullViewId;
 }

@@ -42,6 +42,7 @@ namespace Scenario
                 int m_endEventId{};
 
 				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
+				int m_createdConstraintFullViewId{};
 		};
 	}
 }
