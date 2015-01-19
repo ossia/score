@@ -47,19 +47,8 @@ void EventView::paint(QPainter* painter,
 
 	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
 
-	// Lines
-	//painter->drawLine(m_firstLine);
-	//painter->drawLine(m_secondLine);
-
 }
 
-void EventView::setLinesExtremity(int topPoint, int bottomPoint)
-{
-	m_firstLine.setP1(boundingRect().center());    m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint));
-
-	m_secondLine.setP1(boundingRect().center());
-    m_secondLine.setP2(QPointF(boundingRect().center().x(), bottomPoint));
-}
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {

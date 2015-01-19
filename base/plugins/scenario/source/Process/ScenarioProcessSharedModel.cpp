@@ -175,7 +175,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(int eventId, int absolut
 		ev->translate(time);
 
         auto tn = timeNode(ev->timeNode());
-        tn->setDate(tn->date() + time);
+        tn->setDate(ev->date());
         tn->setY(heightPosition);
 
         for (auto& prevConstraintId : event(eventId)->previousConstraints())
@@ -223,7 +223,12 @@ void ScenarioProcessSharedModel::moveNextElements(int firstEventMovedId, int del
 				event(evId)->translate(deltaTime);
 				movedEvent.push_back(evId);
 				constraint(cons)->translate(deltaTime);
-				emit eventMoved(evId);
+
+                // move timeNode
+                auto tn = timeNode(event(evId)->timeNode());
+                tn->setDate(event(evId)->date());
+
+                emit eventMoved(evId);
 				emit constraintMoved(cons);
 
                 // adjust previous constraint width

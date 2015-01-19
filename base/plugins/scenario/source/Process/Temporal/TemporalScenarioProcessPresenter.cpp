@@ -393,12 +393,13 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 			this,			 &TemporalScenarioProcessPresenter::elementSelected);
 
 
-	connect(event_presenter, &EventPresenter::linesExtremityChange,
-			[event_view, this] (double top, double bottom)
+//	connect(event_presenter, &EventPresenter::linesExtremityChange,
+
+    /*[event_view, this] (double top, double bottom)
 			{
 				event_view->setLinesExtremity(top * m_view->boundingRect().height(),
 											  bottom * m_view->boundingRect().height());
-			});
+            }); */
 }
 
 void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)

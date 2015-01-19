@@ -15,11 +15,8 @@ class EventView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem* option,
 						   QWidget* widget);
 
-		QLineF m_firstLine{-15, -15, 0, 0};
-		QLineF m_secondLine{-15, -15, 0, 0};
 
 	public slots:
-		void setLinesExtremity(int topPoint, int bottomPoint);
 
 	signals:
 		void eventPressed();
