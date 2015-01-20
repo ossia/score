@@ -45,7 +45,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 	for(; event_count --> 0;)
 	{
 		// TODO id
-		auto evmodel = new IdentifiedEventModel{id_type<EventModel>{}, *this, &scenario};
+		auto evmodel = new IdentifiedEventModel{*this, &scenario};
 		scenario.addEvent(evmodel);
 	}
 
@@ -99,8 +99,7 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
 	{
 		Deserializer<JSON> deserializer{json_vref.toObject()};
 		// TODO id
-		auto evmodel = new IdentifiedEventModel{id_type<EventModel>{},
-												deserializer,
+		auto evmodel = new IdentifiedEventModel{deserializer,
 												&scenario};
 		scenario.addEvent(evmodel);
 	}

@@ -1,32 +1,36 @@
 #pragma once
 #include <boost/optional.hpp>
+#include <interface/serialization/VisitorInterface.hpp>
 
 template<typename tag, typename value_type>
 class id
 {
-public:
+	public:
 
-	explicit id() = default;
-	explicit id(value_type val) : m_id{val} { }
+		explicit id() = default;
+		explicit id(value_type val) : m_id{val} { }
 
-	friend bool operator==(const id& lhs, const id& rhs)
-	{
-		return lhs.m_id == rhs.m_id;
-	}
+		friend bool operator==(const id& lhs, const id& rhs)
+		{
+			return lhs.m_id == rhs.m_id;
+		}
 
-	friend bool operator!=(const id& lhs, const id& rhs)
-	{
-		return lhs.m_id != rhs.m_id;
-	}
+		friend bool operator!=(const id& lhs, const id& rhs)
+		{
+			return lhs.m_id != rhs.m_id;
+		}
 
-	explicit operator value_type() const
-	{ return m_id; }
+		explicit operator value_type() const
+		{ return m_id; }
 
-	value_type val() const
-	{ return m_id; }
+		value_type val() const
+		{ return m_id; }
 
-private:
-	value_type m_id{};
+		void setVal(value_type val)
+		{ m_id = val; }
+
+	private:
+		value_type m_id{};
 };
 
 template<typename tag, typename impl>
@@ -41,31 +45,43 @@ using id_type = optional_tagged_int32_id<tag>;
 template<typename T>
 class id_mixin : public T
 {
-public:
-	using id_type = optional_tagged_int32_id<T>;
-/*	template <typename... Args>
+	public:
+		using id_type = optional_tagged_int32_id<T>;
+		/*	template <typename... Args>
 	explicit id_mixin(Args&&... args):
 		T{std::forward<Args>(args)...}
 	{
 
 	}
 */
-	template <typename... Args>
-	explicit id_mixin(optional_tagged_int32_id<T> id,
-					  Args&&... args):
-		T{std::forward<Args>(args)...},
-		m_id{id}
-	{
+		template <typename... Args>
+		explicit id_mixin(optional_tagged_int32_id<T> id,
+						  Args&&... args):
+			T{std::forward<Args>(args)...},
+			m_id{id}
+		{
 
-	}
+		}
 
-	optional_tagged_int32_id<T> id() const
-	{
-		return m_id;
-	}
+		template<typename Impl, typename... Args>
+		explicit id_mixin(Deserializer<Impl>& vis, Args&&... args):
+			T{vis, std::forward<Args>(args)...}
+		{
+			vis.writeTo(*this);
+		}
 
-private:
-	optional_tagged_int32_id<T> m_id;
+		optional_tagged_int32_id<T> id() const
+		{
+			return m_id;
+		}
+
+		void setId(optional_tagged_int32_id<T> id)
+		{
+			m_id = id;
+		}
+
+	private:
+		optional_tagged_int32_id<T> m_id;
 };
 
 // Usage exemple : class MyType_base { }; using MyType = id_mixin<MyType_base>;

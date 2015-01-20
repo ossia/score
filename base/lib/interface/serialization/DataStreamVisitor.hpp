@@ -1,6 +1,7 @@
 #pragma once
 #include <QDataStream>
 #include "interface/serialization/VisitorInterface.hpp"
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class DataStream
 {
@@ -21,7 +22,25 @@ class Visitor<Reader<DataStream>>
 		}
 
 		template<typename T>
+		void readFrom(const id_type<T>& obj)
+		{
+			m_stream << obj.val().is_initialized();
+			if(obj.val().is_initialized())
+				m_stream << *obj.val();
+		}
+
+		template<typename T>
+		void readFrom(const id_mixin<T>& obj)
+		{
+			// We save the data before the id, because of the
+			// way id_mixin is constructed.
+			readFrom(static_cast<const T&>(obj));
+			readFrom(obj.id());
+		}
+
+		template<typename T>
 		void readFrom(const T&);
+
 
 		QDataStream m_stream;
 };
@@ -34,6 +53,29 @@ class Visitor<Writer<DataStream>>
 			m_stream{array, QIODevice::ReadOnly}
 		{
 			m_stream.setVersion(QDataStream::Qt_5_3);
+		}
+
+		template<typename T>
+		void writeTo(id_type<T>& obj)
+		{
+			bool init{};
+			int32_t val{};
+			m_stream >> init;
+			if(init)
+				m_stream >> val;
+
+			obj.setVal(boost::optional<int32_t>{init, val});
+		}
+
+		template<typename T>
+		void writeTo(id_mixin<T>& obj)
+		{
+			// id_mixin's constructor passes the visitor to
+			// the ctor of its base class. Hence we
+			// don't deserialize it here.
+			id_type<T> id;
+			writeTo(id);
+			obj.setId(id);
 		}
 
 		template<typename T>
