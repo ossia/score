@@ -1,15 +1,16 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 namespace OSSIA
 {
-    class TimeNode;
+	class TimeNode;
 }
 class State;
 class ConstraintModel;
 class ScenarioProcessSharedModel;
 
-class EventModel : public IdentifiedObject
+class EventModel : public NamedObject
 {
 		Q_OBJECT
 
@@ -22,14 +23,14 @@ class EventModel : public IdentifiedObject
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
-		EventModel(int id, QObject* parent);
-		EventModel(int id, double yPos, QObject *parent);
+		EventModel(QObject* parent);
+		EventModel(double yPos, QObject *parent);
 		~EventModel();
 
 
 		template<typename Impl>
 		EventModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			NamedObject{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
@@ -43,28 +44,28 @@ class EventModel : public IdentifiedObject
 		bool removeNextConstraint(int);
 		bool removePreviousConstraint(int);
 
-        void changeTimeNode(int);
-        int timeNode() const;
+		void changeTimeNode(int);
+		int timeNode() const;
 
 		const std::vector<State*>& states() const;
 		void addState(State* s);
 		void removeState(int stateId);
 
-        OSSIA::TimeNode* apiObject()
-        { return m_timeEvent;}
+		OSSIA::TimeNode* apiObject()
+		{ return m_timeEvent;}
 
 		double heightPercentage() const;
 		int date() const;
 
 		void translate(int deltaTime);
 
-        void setVerticalExtremity(int, double);
-        void eventMovedVertically(double);
-        void updateVerticalLink();
+		void setVerticalExtremity(int, double);
+		void eventMovedVertically(double);
+		void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
-        // Should maybe be in the Scenario instead ?
+		// Should maybe be in the Scenario instead ?
 		QMap<int, double> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const
@@ -94,18 +95,18 @@ class EventModel : public IdentifiedObject
 		void setConstraintsYPos(QMap<int, double>&& map)
 		{ m_constraintsYPos = std::move(map); }
 
-        void setTopY(double val);
+		void setTopY(double val);
 
-        void setBottomY(double val);
-
-
-        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
-        { m_timeEvent = timeEvent; }
+		void setBottomY(double val);
 
 
-        OSSIA::TimeNode* m_timeEvent{};
+		void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
+		{ m_timeEvent = timeEvent; }
 
-        int m_timeNode{};
+
+		OSSIA::TimeNode* m_timeEvent{};
+
+		int m_timeNode{};
 
 		QVector<int> m_previousConstraints;
 		QVector<int> m_nextConstraints;
@@ -123,3 +124,4 @@ class EventModel : public IdentifiedObject
 
 };
 
+using IdentifiedEventModel = id_mixin<EventModel>;

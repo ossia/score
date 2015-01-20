@@ -1,10 +1,12 @@
 #pragma once
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
 
 struct EventData;
+class EventModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -38,10 +40,10 @@ namespace Scenario
 				ObjectPath m_path;
 
 				int m_createdConstraintId{};
-				int m_createdEventId{};
-                int m_createdTimeNodeId{};
+				id_type<EventModel> m_createdEventId{};
+				int m_createdTimeNodeId{};
 
-				int m_firstEventId{};
+				id_type<EventModel> m_firstEventId{};
 				int m_time{};
 				double m_heightPosition{};
 

@@ -30,7 +30,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosit
 	auto scenar = scenarioPath.find<ScenarioProcessSharedModel>();
 
 	EventData d;
-	d.eventClickedId = (SettableIdentifier::identifier_type) scenar->startEvent()->id();
+	d.eventClickedId = scenar->startEvent()->id();
 	d.dDate = time;
 	d.relativeY = heightPosition;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include "Document/Constraint/ConstraintModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
 
@@ -87,10 +88,10 @@ class ConstraintModel : public IdentifiedObject
 		void addBox(BoxModel*);
 		void removeBox(int boxId);
 
-		int startEvent() const;
-		int endEvent() const;
-		void setStartEvent(int eventId); // Use ScenarioKey
-		void setEndEvent(int eventId); // Use ScenarioKey
+		id_type<EventModel> startEvent() const;
+		id_type<EventModel> endEvent() const;
+		void setStartEvent(id_type<EventModel> eventId); // Use ScenarioKey
+		void setEndEvent(id_type<EventModel> eventId); // Use ScenarioKey
 
 
 		BoxModel* box(int contentId) const;
@@ -160,8 +161,8 @@ class ConstraintModel : public IdentifiedObject
 		// Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
 		TemporalConstraintViewModel* m_fullViewModel{};
 
-		int m_startEvent{};
-		int m_endEvent{};
+		id_type<EventModel> m_startEvent{};
+		id_type<EventModel> m_endEvent{};
 
 		// ___ TEMPORARY ___
 		int m_defaultDuration{200};
@@ -173,3 +174,5 @@ class ConstraintModel : public IdentifiedObject
 		double m_heightPercentage{0.5};
 };
 
+
+using IdentifiedConstraintModel = id_mixin<ConstraintModel>;

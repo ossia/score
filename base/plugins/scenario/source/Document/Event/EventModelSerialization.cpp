@@ -6,9 +6,11 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 
+
+
 template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
-	readFrom(static_cast<const IdentifiedObject&>(ev));
+	readFrom(static_cast<const NamedObject&>(ev));
 
 	m_stream << ev.previousConstraints()
 			 << ev.nextConstraints()
@@ -70,7 +72,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 
 template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 {
-	readFrom(static_cast<const IdentifiedObject&>(ev));
+	readFrom(static_cast<const NamedObject&>(ev));
 
 	m_obj["PreviousConstraints"] = toJsonArray(ev.previousConstraints());
 	m_obj["NextConstraints"] = toJsonArray(ev.nextConstraints());
@@ -115,4 +117,43 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 	}
 
 	ev.setOSSIATimeNode(new OSSIA::TimeNode);
+}
+
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const id_type<EventModel>& obj)
+{
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(id_type<EventModel>& obj)
+{
+}
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const IdentifiedEventModel& obj)
+{
+	//m_stream << obj.m_id.val();
+	readFrom(static_cast<const EventModel&>(obj));
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(IdentifiedEventModel& obj)
+{
+	//m_stream >> obj.m_id;
+	writeTo(static_cast<const EventModel&>(obj));
+}
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const IdentifiedEventModel& obj)
+{
+	//m_obj["IdentifierSet"] = obj.m_set;
+	//m_obj["Identifier"] = obj.m_id;
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(IdentifiedEventModel& obj)
+{
+	//obj.m_set = m_obj["IdentifierSet"].toBool();
+	//obj.m_id = m_obj["Identifier"].toInt();
 }

@@ -44,8 +44,8 @@ class IdentifiedObject : public NamedObject
 ///Functions that operate on collections of identified objects.
 ///
 ////////////////////////////////////////////////
-template<typename Container>
-typename Container::value_type findById(const Container& c, int id)
+template<typename Container, typename id_T>
+typename Container::value_type findById(const Container& c, id_T id)
 {
 	auto it = std::find_if(std::begin(c),
 						   std::end(c),
@@ -57,14 +57,14 @@ typename Container::value_type findById(const Container& c, int id)
 	if(it != std::end(c))
 		return *it;
 
-	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
+	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(/*id*/0).arg(typeid(c).name()).toLatin1().constData());
 }
 
 
 inline int32_t getNextId()
 {
 	using namespace std;
-    static random_device rd;
+	static random_device rd;
 	static mt19937 gen(rd());
 	static uniform_int_distribution<int32_t>
 			dist(numeric_limits<int32_t>::min(),
@@ -86,6 +86,21 @@ int getNextId(const Vector& v)
 	return getNextId(ids);
 }
 
+template<typename T>
+typename T::id_type getStrongId(const std::vector<T*>& v)
+{
+	using namespace std;
+	vector<int> ids(v.size()); // Map reduce
+
+	transform(begin(v),
+			  end(v),
+			  begin(ids),
+			  [] (typename std::vector<T*>::value_type elt) { return *(elt->id().val()); });
+
+	return typename T::id_type{getNextId(ids)};
+}
+
+
 template<>
 inline int getNextId(const std::vector<int>& ids)
 {
@@ -99,8 +114,8 @@ inline int getNextId(const std::vector<int>& ids)
 	return id;
 }
 
-template <typename Vector>
-void removeById(Vector& c, int id)
+template <typename Vector, typename id_T>
+void removeById(Vector& c, id_T id)
 {
 	vec_erase_remove_if(c,
 						[&id] (typename Vector::value_type model)
@@ -127,3 +142,23 @@ void removeFromVectorWithId(std::vector<hasId*>& v, int id)
 		v.erase(it);
 	}
 }
+
+
+template<typename hasId, typename id_T>
+void removeFromVectorWithId(std::vector<hasId*>& v,
+							id_T id)
+{
+	auto it = std::find_if(std::begin(v),
+						   std::end(v),
+						   [id] (hasId const * elt)
+				{
+					return elt->id() == id;
+				});
+
+	if(it != std::end(v))
+	{
+		delete *it;
+		v.erase(it);
+	}
+}
+

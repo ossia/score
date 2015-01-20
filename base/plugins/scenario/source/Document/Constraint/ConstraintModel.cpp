@@ -116,22 +116,22 @@ void ConstraintModel::removeBox(int boxId)
 	delete b;
 }
 
-int ConstraintModel::startEvent() const
+id_type<EventModel> ConstraintModel::startEvent() const
 {
 	return m_startEvent;
 }
 
-int ConstraintModel::endEvent() const
+id_type<EventModel> ConstraintModel::endEvent() const
 {
 	return m_endEvent;
 }
 
-void ConstraintModel::setStartEvent(int e)
+void ConstraintModel::setStartEvent(id_type<EventModel> e)
 {
 	m_startEvent = e;
 }
 
-void ConstraintModel::setEndEvent(int e)
+void ConstraintModel::setEndEvent(id_type<EventModel> e)
 {
 	m_endEvent = e;
 }

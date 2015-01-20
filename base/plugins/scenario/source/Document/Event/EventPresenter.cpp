@@ -6,7 +6,7 @@
 #include <QPointF>
 #include <QGraphicsScene>
 
-EventPresenter::EventPresenter(EventModel* model,
+EventPresenter::EventPresenter(IdentifiedEventModel* model,
 							   EventView* view,
 							   QObject* parent):
 	NamedObject{"EventPresenter", parent},
@@ -40,9 +40,9 @@ EventPresenter::~EventPresenter()
 	}
 }
 
-int EventPresenter::id() const
+id_type<EventModel> EventPresenter::id() const
 {
-	return (SettableIdentifier::identifier_type)m_model->id();
+	return m_model->id();
 }
 
 EventView *EventPresenter::view() const
@@ -50,7 +50,7 @@ EventView *EventPresenter::view() const
 	return m_view;
 }
 
-EventModel *EventPresenter::model() const
+IdentifiedEventModel* EventPresenter::model() const
 {
 	return m_model;
 }
@@ -80,6 +80,6 @@ void EventPresenter::on_eventReleasedWithControl(QPointF p, QPointF pInScene)
 	d.eventClickedId = id();
 	d.x = p.x();
 	d.y = p.y();
-    d.scenePos = pInScene;
-    emit eventReleasedWithControl(d);
+	d.scenePos = pInScene;
+	emit eventReleasedWithControl(d);
 }

@@ -92,7 +92,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	}
 
 	// Events
-	int startId{}, endId{};
+	id_type<EventModel> startId{}, endId{};
 	m_stream >> startId;
 	m_stream >> endId;
 	constraint.setStartEvent(startId);
@@ -119,8 +119,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	readFrom(static_cast<const IdentifiedObject&>(constraint));
 	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
 	m_obj["HeightPercentage"] = constraint.heightPercentage();
-	m_obj["StartEvent"] = constraint.startEvent();
-	m_obj["EndEvent"] = constraint.endEvent();
+	m_obj["StartEvent"] = *constraint.startEvent().val();
+	m_obj["EndEvent"] = *constraint.endEvent().val();
 
 	// Processes
 	QJsonArray process_array;
@@ -141,7 +141,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-    m_obj["DefaultDuration"] = constraint.defaultDuration(); // TODO should be in the view model
+	m_obj["DefaultDuration"] = constraint.defaultDuration(); // TODO should be in the view model
 	m_obj["StartDate"] = constraint.startDate();
 	m_obj["MinDuration"] = constraint.minDuration();
 	m_obj["MaxDuration"] = constraint.maxDuration();
@@ -151,8 +151,8 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
 	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
 	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-	constraint.setStartEvent(m_obj["StartEvent"].toInt());
-	constraint.setEndEvent(m_obj["EndEvent"].toInt());
+	constraint.setStartEvent(id_type<EventModel>(m_obj["StartEvent"].toInt()));
+	constraint.setEndEvent(id_type<EventModel>(m_obj["EndEvent"].toInt()));
 
 	QJsonArray process_array = m_obj["Processes"].toArray();
 	for(auto json_vref : process_array)
@@ -169,7 +169,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 	}
 
 	// Things that should be queried from the API :
-    constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());
+	constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());
 	constraint.setStartDate(m_obj["StartDate"].toInt());
 	constraint.setMinDuration(m_obj["MinDuration"].toInt());
 	constraint.setMaxDuration(m_obj["MaxDuration"].toInt());

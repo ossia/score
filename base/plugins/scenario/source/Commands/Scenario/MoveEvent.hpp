@@ -1,8 +1,10 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <tools/ObjectPath.hpp>
 
 struct EventData;
+class EventModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -26,7 +28,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_eventId{};
+				id_type<EventModel> m_eventId{};
 
 				double m_oldHeightPosition{};
 				double m_newHeightPosition{};

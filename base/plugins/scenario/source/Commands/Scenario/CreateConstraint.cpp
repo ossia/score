@@ -18,13 +18,13 @@ CreateConstraint::CreateConstraint():
 {
 }
 
-CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, int startEvent, int endEvent):
+CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent):
 	SerializableCommand{"ScenarioControl",
 						"CreateEventAfterEvent",
 						QObject::tr("Event creation")},
 	m_path{std::move(scenarioPath)},
-    m_startEventId{startEvent},
-    m_endEventId{endEvent}
+	m_startEventId{startEvent},
+	m_endEventId{endEvent}
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 	m_createdConstraintId = getNextId(scenar->constraints());
@@ -41,14 +41,14 @@ void CreateConstraint::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-    scenar->undo_createConstraintBetweenEvent(m_createdConstraintId);
+	scenar->undo_createConstraintBetweenEvent(m_createdConstraintId);
 }
 
 void CreateConstraint::redo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-    scenar->createConstraintBetweenEvents(m_startEventId,
+	scenar->createConstraintBetweenEvents(m_startEventId,
 										  m_endEventId,
 										  m_createdConstraintId,
 										  m_createdConstraintFullViewId);
@@ -84,8 +84,8 @@ bool CreateConstraint::mergeWith(const QUndoCommand* other)
 void CreateConstraint::serializeImpl(QDataStream& s)
 {
 	s << m_path
-      << m_startEventId
-      << m_endEventId
+	  << m_startEventId
+	  << m_endEventId
 	  << m_createdConstraintId
 	  << m_createdConstraintViewModelIDs
 	  << m_createdConstraintFullViewId;
@@ -94,8 +94,8 @@ void CreateConstraint::serializeImpl(QDataStream& s)
 void CreateConstraint::deserializeImpl(QDataStream& s)
 {
 	s >> m_path
-      >> m_startEventId
-      >> m_endEventId
+	  >> m_startEventId
+	  >> m_endEventId
 	  >> m_createdConstraintId
 	  >> m_createdConstraintViewModelIDs
 	  >> m_createdConstraintFullViewId;

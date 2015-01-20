@@ -1,8 +1,11 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 class ScenarioProcessSharedModel;
 class AbstractConstraintViewModel;
+
+class EventModel;
 
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 {
@@ -24,10 +27,10 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void constraintViewModelRemoved(int constraintViewModelid);
 
 		// TODO transform in order to refer to view models instead
-		void eventCreated(int eventId);
-		void eventDeleted(int eventId);
-		void eventMoved(int eventId);
-        void timeNodeCreated(int timeNodeId);
+		void eventCreated(id_type<EventModel> eventId);
+		void eventDeleted(id_type<EventModel> eventId);
+		void eventMoved(id_type<EventModel> eventId);
+		void timeNodeCreated(int timeNodeId);
 		void constraintMoved(int constraintId);
 
 	public slots:

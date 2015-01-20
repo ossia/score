@@ -1,6 +1,7 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ScenarioProcessSharedModelSerialization.hpp"
+#include <tools/SettableIdentifierAlternative.hpp>
 
 namespace OSSIA
 {
@@ -9,6 +10,7 @@ namespace OSSIA
 class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
+using IdentifiedEventModel = id_mixin<EventModel>;
 class AbstractScenarioProcessViewModel;
 
 /**
@@ -45,8 +47,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 *
 		 * Creates a new constraint between two existing events
 		 */
-		void createConstraintBetweenEvents(int startEventId,
-										   int endEventId,
+		void createConstraintBetweenEvents(id_type<EventModel> startEventId,
+										   id_type<EventModel> endEventId,
 										   int newConstraintModelId,
 										   int newConstraintFullViewId);
 
@@ -56,38 +58,38 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-		void createConstraintAndEndEventFromEvent(int startEventId,
+		void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
 												  int duration,
 												  double heightPos,
 												  int newConstraintId,
 												  int newConstraintFullViewId,
-												  int newEventId,
+												  id_type<EventModel> newEventId,
 												  int newTimeNodeId);
 
 
-		void moveEventAndConstraint(int eventId, int time, double heightPosition);
+		void moveEventAndConstraint(id_type<EventModel> eventId, int time, double heightPosition);
 		void moveConstraint(int constraintId, int deltaX, double heightPosition);
-		void moveNextElements(int firstEventMovedId, int deltaTime, QVector<int> &movedEvent);
+		void moveNextElements(id_type<EventModel> firstEventMovedId, int deltaTime, QVector<id_type<EventModel> >& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
 		void addConstraint(ConstraintModel* constraint);
-		void addEvent(EventModel* event);
+		void addEvent(IdentifiedEventModel* event);
 
 		void removeConstraint(int constraintId);
-		void removeEvent(int eventId);
-        void removeEventFromTimeNode(int eventId);
+		void removeEvent(id_type<EventModel> eventId);
+		void removeEventFromTimeNode(id_type<EventModel> eventId);
 		void undo_createConstraintAndEndEventFromEvent(int constraintId);
-        void undo_createConstraintBetweenEvent(int constraintId);
+		void undo_createConstraintBetweenEvent(int constraintId);
 
 
 		// Accessors
 		ConstraintModel* constraint(int constraintId) const;
-		EventModel* event(int eventId) const;
-        TimeNodeModel* timeNode(int timeNodeId) const;
+		IdentifiedEventModel* event(id_type<EventModel> eventId) const;
+		TimeNodeModel* timeNode(int timeNodeId) const;
 
-		EventModel* startEvent() const;
-		EventModel* endEvent() const;
+		IdentifiedEventModel* startEvent() const;
+		IdentifiedEventModel* endEvent() const;
 
 		// Here, a copy is returned because it might be possible
 		// to call a method on the scenario (e.g. removeConstraint) that changes the vector
@@ -95,18 +97,17 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// and lead to undefined behaviour
 		std::vector<ConstraintModel*> constraints() const
 		{ return m_constraints; }
-		std::vector<EventModel*> events() const
-		{ return m_events; }
-        std::vector<TimeNodeModel*> timeNodes() const
-        { return m_timeNodes; }
+		std::vector<IdentifiedEventModel*> events() const;
+		std::vector<TimeNodeModel*> timeNodes() const
+		{ return m_timeNodes; }
 
 	signals:
-		void eventCreated(int eventId);
+		void eventCreated(id_type<EventModel> eventId);
 		void constraintCreated(int constraintId);
-        void timeNodeCreated(int timeNodeId);
-		void eventRemoved(int eventId);
+		void timeNodeCreated(int timeNodeId);
+		void eventRemoved(id_type<EventModel> eventId);
 		void constraintRemoved(int constraintId);
-		void eventMoved(int eventId);
+		void eventMoved(id_type<EventModel> eventId);
 		void constraintMoved(int constraintId);
 
 		void locked();
@@ -135,18 +136,18 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;
 
-        // To prevent warnings in Clang
-        virtual bool event(QEvent* e) override
-        { return QObject::event(e); }
-    private:
+		// To prevent warnings in Clang
+		virtual bool event(QEvent* e) override
+		{ return QObject::event(e); }
+	private:
 		void makeViewModel_impl(view_model_type*);
 
 		OSSIA::Scenario* m_scenario;
 
 		std::vector<ConstraintModel*> m_constraints;
-		std::vector<EventModel*> m_events;
-        std::vector<TimeNodeModel*> m_timeNodes;
+		std::vector<IdentifiedEventModel*> m_events;
+		std::vector<TimeNodeModel*> m_timeNodes;
 
-		int m_startEventId{};
-		int m_endEventId{};
+		id_type<EventModel> m_startEventId{};
+		id_type<EventModel> m_endEventId{};
 };
