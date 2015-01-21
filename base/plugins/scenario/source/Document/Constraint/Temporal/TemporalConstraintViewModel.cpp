@@ -1,6 +1,6 @@
 #include "TemporalConstraintViewModel.hpp"
 
-void TemporalConstraintViewModel::on_boxRemoved(::id_type<BoxModel> boxId)
+void TemporalConstraintViewModel::on_boxRemoved(id_type<BoxModel> boxId)
 {
 	if(shownBox() == boxId)
 	{
@@ -9,7 +9,7 @@ void TemporalConstraintViewModel::on_boxRemoved(::id_type<BoxModel> boxId)
 	}
 }
 
-TemporalConstraintViewModel::TemporalConstraintViewModel(id_type id,
+TemporalConstraintViewModel::TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 														 ConstraintModel* model,
 														 QObject* parent):
 	AbstractConstraintViewModel{id,

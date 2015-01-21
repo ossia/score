@@ -23,7 +23,7 @@ void AbstractConstraintViewModel::showBox(::id_type<BoxModel> boxId)
 	emit boxShown(m_shownBox);
 }
 
-AbstractConstraintViewModel::AbstractConstraintViewModel(id_type id,
+AbstractConstraintViewModel::AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 														 QString name,
 														 ConstraintModel* model,
 														 QObject* parent):

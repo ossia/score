@@ -8,9 +8,7 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		Q_OBJECT
 
 	public:
-		using id_type = ::id_type<AbstractConstraintViewModel>;
-
-		AbstractConstraintViewModel(id_type id,
+		AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 									QString name,
 									ConstraintModel* model,
 									QObject* parent);
@@ -30,18 +28,18 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		{ return m_model; }
 
 		bool isBoxShown() const;
-		::id_type<BoxModel> shownBox() const;
+		id_type<BoxModel> shownBox() const;
 
 		void hideBox();
-		void showBox(::id_type<BoxModel> boxId);
+		void showBox(id_type<BoxModel> boxId);
 
 	signals:
 		void boxRemoved();
 		void boxHidden();
-		void boxShown(::id_type<BoxModel> boxId);
+		void boxShown(id_type<BoxModel> boxId);
 
 	public slots:
-		virtual void on_boxRemoved(::id_type<BoxModel> boxId) = 0;
+		virtual void on_boxRemoved(id_type<BoxModel> boxId) = 0;
 
 
 	private:
@@ -50,5 +48,5 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		ConstraintModel* m_model{};
 
 		// TODO use settable identifier instead
-		::id_type<BoxModel> m_shownBox{};
+		id_type<BoxModel> m_shownBox{};
 };
