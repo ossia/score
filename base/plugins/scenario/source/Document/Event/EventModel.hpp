@@ -52,7 +52,7 @@ class EventModel : public IdentifiedObjectAlternative<EventModel>
 
 		const std::vector<State*>& states() const;
 		void addState(State* s);
-		void removeState(int stateId);
+		void removeState(id_type<State> stateId);
 
 		OSSIA::TimeNode* apiObject()
 		{ return m_timeEvent;}

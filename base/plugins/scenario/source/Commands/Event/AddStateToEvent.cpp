@@ -24,7 +24,7 @@ AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, QString message):
 	m_message(message)
 {
 	auto event = m_path.find<EventModel>();
-	m_stateId = getNextId(event->states());
+	m_stateId = getStrongId(event->states());
 }
 
 void AddStateToEvent::undo()

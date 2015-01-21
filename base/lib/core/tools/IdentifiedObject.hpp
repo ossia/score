@@ -6,6 +6,7 @@
 #include <random>
 
 // This should maybe be a mixin ?
+/*
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
 	public:
@@ -40,7 +41,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 	private:
 		SettableIdentifier m_id{};
 };
-
+*/
 ////////////////////////////////////////////////
 ///
 ///Functions that operate on collections of identified objects.

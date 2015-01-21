@@ -9,8 +9,8 @@ ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, QObje
 	auto current_obj = target_object;
 	auto add_parent_to_vector = [&v] (QObject* ptr)
 	{
-		if(auto id_obj = dynamic_cast<IdentifiedObject*>(ptr))
-			v.push_back({id_obj->objectName(), id_obj->id()});
+		if(auto id_obj = dynamic_cast<IdentifiedObjectAbstract*>(ptr))
+			v.push_back({id_obj->objectName(), id_obj->id_val()});
 		else
 			v.push_back({ptr->objectName(), {}});
 	};

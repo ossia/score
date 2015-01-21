@@ -161,7 +161,7 @@ void EventModel::addState(State* state)
 	emit messagesChanged();
 }
 
-void EventModel::removeState(int stateId)
+void EventModel::removeState(id_type<State> stateId)
 {
 	removeById(m_states, stateId);
 	emit messagesChanged();

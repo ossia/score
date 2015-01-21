@@ -166,6 +166,7 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
+	qDebug() << Q_FUNC_INFO << model()->id().val().get();
 	auto cmd = new AddProcessToConstraint{
 			   ObjectPath::pathFromObject("BaseConstraintModel",
 										  model()),
