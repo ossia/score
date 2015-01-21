@@ -4,13 +4,13 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 
 class EventModel;
-class TimeNodeModel : public IdentifiedObject
+class TimeNodeModel : public IdentifiedObjectAlternative<TimeNodeModel>
 {
 	Q_OBJECT
 
 	public:
-		TimeNodeModel(int id, QObject* parent);
-		TimeNodeModel(int id, int date, QObject *parent);
+		TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
+		TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent);
 		~TimeNodeModel();
 
 		void addEvent(id_type<EventModel>);

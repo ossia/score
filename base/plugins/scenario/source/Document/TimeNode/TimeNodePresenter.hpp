@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 #include <QObject>
 
@@ -13,9 +14,9 @@ class TimeNodePresenter :  public NamedObject
 		explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject *parent);
 		~TimeNodePresenter();
 
-	int id() const;
+	id_type<TimeNodeModel> id() const;
 	int32_t id_val() const
-	{ return id(); }
+	{ return *id().val(); }
 
 	TimeNodeModel* model();
 	TimeNodeView* view();

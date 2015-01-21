@@ -100,7 +100,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 																 id_type<ConstraintModel> newConstraintId,
 																 id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 																 id_type<EventModel> newEventId,
-																 int newTimeNodeId)
+																 id_type<TimeNodeModel> newTimeNodeId)
 {
 	auto startEvent = this->event(startEventId);
 
@@ -156,7 +156,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 
 	emit eventCreated(event->id());
 	emit constraintCreated(constraint->id());
-	emit timeNodeCreated((SettableIdentifier::identifier_type) timeNode->id());
+	emit timeNodeCreated(timeNode->id());
 
 	// link constraint with event
 	event->addPreviousConstraint(newConstraintId);
@@ -334,7 +334,7 @@ EventModel* ScenarioProcessSharedModel::event(id_type<EventModel> eventId) const
 	return findById(m_events, eventId);
 }
 
-TimeNodeModel *ScenarioProcessSharedModel::timeNode(int timeNodeId) const
+TimeNodeModel *ScenarioProcessSharedModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
 {
 	return findById(m_timeNodes, timeNodeId);
 }

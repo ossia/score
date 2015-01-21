@@ -10,6 +10,7 @@ namespace OSSIA
 }
 class State;
 class ConstraintModel;
+class TimeNodeModel;
 class ScenarioProcessSharedModel;
 
 class EventModel : public IdentifiedObjectAlternative<EventModel>
@@ -46,8 +47,8 @@ class EventModel : public IdentifiedObjectAlternative<EventModel>
 		bool removeNextConstraint(id_type<ConstraintModel>);
 		bool removePreviousConstraint(id_type<ConstraintModel>);
 
-		void changeTimeNode(int);
-		int timeNode() const;
+		void changeTimeNode(id_type<TimeNodeModel>);
+		id_type<TimeNodeModel> timeNode() const;
 
 		const std::vector<State*>& states() const;
 		void addState(State* s);
@@ -112,7 +113,7 @@ class EventModel : public IdentifiedObjectAlternative<EventModel>
 
 		OSSIA::TimeNode* m_timeEvent{};
 
-		int m_timeNode{};
+		id_type<TimeNodeModel> m_timeNode{};
 
 		QVector<id_type<ConstraintModel>> m_previousConstraints;
 		QVector<id_type<ConstraintModel>> m_nextConstraints;

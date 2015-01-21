@@ -23,9 +23,9 @@ TimeNodePresenter::~TimeNodePresenter()
 	} */
 }
 
-int TimeNodePresenter::id() const
+id_type<TimeNodeModel> TimeNodePresenter::id() const
 {
-	return (SettableIdentifier::identifier_type)m_model->id();
+	return m_model->id();
 }
 
 TimeNodeModel *TimeNodePresenter::model()

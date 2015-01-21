@@ -9,6 +9,7 @@ struct EventData;
 class EventModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
+class TimeNodeModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -43,7 +44,7 @@ namespace Scenario
 
 				id_type<ConstraintModel> m_createdConstraintId{};
 				id_type<EventModel> m_createdEventId{};
-				int m_createdTimeNodeId{};
+				id_type<TimeNodeModel> m_createdTimeNodeId{};
 
 				id_type<EventModel> m_firstEventId{};
 				int m_time{};

@@ -1,13 +1,13 @@
 #include "TimeNodeModel.hpp"
 
-TimeNodeModel::TimeNodeModel(int id, QObject *parent):
-	IdentifiedObject{id, "TimeNodeModel", parent}
+TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, QObject *parent):
+	IdentifiedObjectAlternative<TimeNodeModel>{id, "TimeNodeModel", parent}
 {
 
 }
 
-TimeNodeModel::TimeNodeModel(int id, int date, QObject *parent):
-	TimeNodeModel(id, parent)
+TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent):
+	TimeNodeModel{id, parent}
 {
 	m_date = date;
 }

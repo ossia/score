@@ -143,7 +143,7 @@ void TemporalScenarioProcessPresenter::on_eventCreated(id_type<EventModel> event
 	on_eventCreated_impl(model(m_viewModel)->event(eventId));
 }
 
-void TemporalScenarioProcessPresenter::on_timeNodeCreated(int timeNodeId)
+void TemporalScenarioProcessPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
 	on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }

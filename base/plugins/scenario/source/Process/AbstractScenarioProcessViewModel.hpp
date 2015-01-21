@@ -5,6 +5,7 @@
 class ScenarioProcessSharedModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
+class TimeNodeModel;
 
 class EventModel;
 
@@ -31,7 +32,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void eventCreated(id_type<EventModel> eventId);
 		void eventDeleted(id_type<EventModel> eventId);
 		void eventMoved(id_type<EventModel> eventId);
-		void timeNodeCreated(int timeNodeId);
+		void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
 		void constraintMoved(id_type<ConstraintModel> constraintId);
 
 	public slots:

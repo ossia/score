@@ -70,12 +70,12 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
 	return false;
 }
 
-void EventModel::changeTimeNode(int newTimeNodeId)
+void EventModel::changeTimeNode(id_type<TimeNodeModel> newTimeNodeId)
 {
 	m_timeNode = newTimeNodeId;
 }
 
-int EventModel::timeNode() const
+id_type<TimeNodeModel> EventModel::timeNode() const
 {
 	return m_timeNode;
 }

@@ -64,7 +64,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  id_type<ConstraintModel> newConstraintId,
 												  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 												  id_type<EventModel> newEventId,
-												  int newTimeNodeId);
+												  id_type<TimeNodeModel> newTimeNodeId);
 
 
 		void moveEventAndConstraint(id_type<EventModel> eventId,
@@ -75,7 +75,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 							double heightPosition);
 		void moveNextElements(id_type<EventModel> firstEventMovedId,
 							  int deltaTime,
-							  QVector<id_type<EventModel> >& movedEvent);
+							  QVector<id_type<EventModel>>& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
@@ -92,7 +92,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// Accessors
 		ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;
 		EventModel* event(id_type<EventModel> eventId) const;
-		TimeNodeModel* timeNode(int timeNodeId) const;
+		TimeNodeModel* timeNode(id_type<TimeNodeModel> timeNodeId) const;
 
 		EventModel* startEvent() const;
 		EventModel* endEvent() const;
@@ -110,7 +110,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 	signals:
 		void eventCreated(id_type<EventModel> eventId);
 		void constraintCreated(id_type<ConstraintModel> constraintId);
-		void timeNodeCreated(int timeNodeId);
+		void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
 		void eventRemoved(id_type<EventModel> eventId);
 		void constraintRemoved(id_type<ConstraintModel> constraintId);
 		void eventMoved(id_type<EventModel> eventId);
