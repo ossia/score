@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include "Document/Event/EventData.hpp"
 
 class EventModel;
@@ -13,7 +14,10 @@ class EventPresenter : public NamedObject
 		EventPresenter(EventModel* model, EventView* view, QObject* parent);
 		virtual ~EventPresenter();
 
-		int id() const;
+		id_type<EventModel> id() const;
+		int32_t id_val() const
+		{ return *id().val(); }
+
 		EventView* view() const;
 		EventModel* model() const;
 
@@ -21,7 +25,7 @@ class EventPresenter : public NamedObject
 		void deselect();
 
 	signals:
-		void eventSelected(int);
+		void eventSelected(id_type<EventModel>);
 		void eventReleasedWithControl(EventData);
 		void eventReleased(EventData);
 		void linesExtremityChange(double, double);
@@ -31,7 +35,7 @@ class EventPresenter : public NamedObject
 
 	public slots:
 		void on_eventReleased(QPointF);
-        void on_eventReleasedWithControl(QPointF, QPointF);
+		void on_eventReleasedWithControl(QPointF, QPointF);
 
 	private:
 		EventModel* m_model{};

@@ -1,6 +1,7 @@
 #pragma once
 #include <InspectorInterface/InspectorSectionWidget.hpp>
-#include <QMap>
+#include <tools/SettableIdentifierAlternative.hpp>
+#include <unordered_map>
 class BoxModel;
 class DeckModel;
 class AddDeckWidget;
@@ -17,8 +18,8 @@ class BoxInspectorSection : public InspectorSectionWidget
 		void createDeck();
 
 	public slots:
-		void on_deckCreated(int deckId);
-		void on_deckRemoved(int deckId);
+		void on_deckCreated(id_type<DeckModel> deckId);
+		void on_deckRemoved(id_type<DeckModel> deckId);
 
 	private:
 		BoxModel* m_model{};
@@ -26,6 +27,6 @@ class BoxInspectorSection : public InspectorSectionWidget
 		InspectorSectionWidget* m_deckSection{};
 		AddDeckWidget* m_deckWidget{};
 
-		QMap<int, DeckInspectorSection*> m_decksSectionWidgets;
+		std::unordered_map<id_type<DeckModel>, DeckInspectorSection*, id_hash<DeckModel>> m_decksSectionWidgets;
 		//std::vector<DeckInspectorSection*> m_decksSectionWidgets;
 };

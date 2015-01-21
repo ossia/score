@@ -3,7 +3,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "ProcessInterface/ProcessViewModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -17,7 +17,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										ObjectPath&& boxPath,
-										int processViewId):
+										id_type<ProcessViewModelInterface> processViewId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")},
@@ -34,6 +34,7 @@ void RemoveProcessViewModelFromDeck::undo()
 {
 	auto deck = m_path.find<DeckModel>();
 	Deserializer<DataStream> s{&m_serializedProcessViewData};
+
 	auto pvm = createProcessViewModel(s,
 									  deck->parentConstraint(),
 									  deck);

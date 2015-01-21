@@ -5,7 +5,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
-TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModelId,
+TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																   ScenarioProcessSharedModel* model,
 																   QObject* parent):
 	AbstractScenarioProcessViewModel{viewModelId,
@@ -17,8 +17,8 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModel
 
 
 
-void TemporalScenarioProcessViewModel::makeConstraintViewModel(int constraintModelId,
-															   int constraintViewModelId)
+void TemporalScenarioProcessViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
+															   id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	auto constraint_model = model(this)->constraint(constraintModelId);
 
@@ -35,15 +35,15 @@ void TemporalScenarioProcessViewModel::addConstraintViewModel(constraint_view_mo
 {
 	m_constraints.push_back(constraint_view_model);
 
-	emit constraintViewModelCreated((SettableIdentifier::identifier_type)constraint_view_model->id());
+	emit constraintViewModelCreated(constraint_view_model->id());
 }
 
-void TemporalScenarioProcessViewModel::on_constraintRemoved(int constraintSharedModelId)
+void TemporalScenarioProcessViewModel::on_constraintRemoved(id_type<ConstraintModel> constraintSharedModelId)
 {	for(auto& constraint_view_model : constraintsViewModels(*this))
 	{
 		if(constraint_view_model->model()->id() == constraintSharedModelId)
 		{
-			removeConstraintViewModel((SettableIdentifier::identifier_type)constraint_view_model->id());
+			removeConstraintViewModel(constraint_view_model->id());
 			return;
 		}
 	}

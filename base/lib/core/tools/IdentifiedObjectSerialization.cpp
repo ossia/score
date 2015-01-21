@@ -2,7 +2,7 @@
 #include "interface/serialization/JSONVisitor.hpp"
 #include "IdentifiedObject.hpp"
 
-
+/*
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const IdentifiedObject& obj)
 {
@@ -33,4 +33,4 @@ void Visitor<Writer<JSON>>::writeTo(IdentifiedObject& obj)
 	{
 		obj.setId(SettableIdentifier((int)m_obj["Identifier"].toInt()));
 	}
-}
+}*/

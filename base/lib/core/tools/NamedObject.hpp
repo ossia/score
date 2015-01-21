@@ -43,4 +43,11 @@ inline void debug_parentHierarchy(QObject* obj)
 	}
 }
 
+class IdentifiedObjectAbstract : public NamedObject
+{
+	public:
+		using NamedObject::NamedObject;
+		virtual int32_t id_val() const = 0;
+};
+
 #define DEMO_PIXEL_SPACING_TEST 5

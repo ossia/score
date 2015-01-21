@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurveViewModel.hpp"
 
 
-PluginCurveModel::PluginCurveModel (int id, QObject* parentObject) :
+PluginCurveModel::PluginCurveModel (id_type<ProcessSharedModelInterface> id, QObject* parentObject) :
 	ProcessSharedModelInterface{id, "PluginCurveModel", parentObject}//,
 //	_pParent (parentItem)
 {
@@ -234,7 +234,7 @@ void PluginCurveModel::sectionRemoveOne (PluginCurveSection* section)
 	_sections.removeOne (section);
 }
 
-ProcessViewModelInterface* PluginCurveModel::makeViewModel(int viewModelId,
+ProcessViewModelInterface* PluginCurveModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														   QObject* parent)
 {
 	return new PluginCurveViewModel{viewModelId,

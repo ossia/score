@@ -12,8 +12,8 @@
 #include <QGraphicsScene>
 
 BoxPresenter::BoxPresenter(BoxModel* model,
-												   BoxView* view,
-												   QObject* parent):
+						   BoxView* view,
+						   QObject* parent):
 	NamedObject{"BoxPresenter", parent},
 	m_model{model},
 	m_view{view}
@@ -51,12 +51,12 @@ int BoxPresenter::height() const
 	return totalHeight;
 }
 
-int BoxPresenter::id() const
+id_type<BoxModel> BoxPresenter::id() const
 {
-	return (SettableIdentifier::identifier_type) m_model->id();
+	return m_model->id();
 }
 
-void BoxPresenter::on_deckCreated(int deckId)
+void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
 {
 	on_deckCreated_impl(m_model->deck(deckId));
 }
@@ -82,7 +82,7 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 	on_askUpdate();
 }
 
-void BoxPresenter::on_deckRemoved(int deckId)
+void BoxPresenter::on_deckRemoved(id_type<DeckModel> deckId)
 {
 	removeFromVectorWithId(m_decks, deckId);
 	on_askUpdate();

@@ -2,6 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class DeckModel;
 namespace Scenario
 {
 	namespace Command
@@ -15,7 +16,7 @@ namespace Scenario
 		{
 			public:
 				RemoveDeckFromBox();
-				RemoveDeckFromBox(ObjectPath&& boxPath, int deckId);
+				RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -28,7 +29,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_deckId{};
+				id_type<DeckModel> m_deckId{};
 
 				QByteArray m_serializedDeckData; // Should be done in the constructor
 		};

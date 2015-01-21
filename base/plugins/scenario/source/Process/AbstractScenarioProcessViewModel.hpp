@@ -1,8 +1,13 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 class ScenarioProcessSharedModel;
 class AbstractConstraintViewModel;
+class ConstraintModel;
+class TimeNodeModel;
+
+class EventModel;
 
 class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 {
@@ -10,31 +15,31 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 	public:
 		using model_type = ScenarioProcessSharedModel;
 
-		virtual void makeConstraintViewModel(int constraintModelId,
-											 int constraintViewModelId) = 0;
+		virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
+											 id_type<AbstractConstraintViewModel> constraintViewModelId) = 0;
 
-		void removeConstraintViewModel(int constraintViewModelId);
+		void removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId);
 
 		// Access to elements
-		AbstractConstraintViewModel* constraint(int constraintViewModelid) const;
+		AbstractConstraintViewModel* constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const;
 		QVector<AbstractConstraintViewModel*> constraints() const;
 
 	signals:
-		void constraintViewModelCreated(int constraintViewModelid);
-		void constraintViewModelRemoved(int constraintViewModelid);
+		void constraintViewModelCreated(id_type<AbstractConstraintViewModel> constraintViewModelid);
+		void constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelid);
 
 		// TODO transform in order to refer to view models instead
-		void eventCreated(int eventId);
-		void eventDeleted(int eventId);
-		void eventMoved(int eventId);
-        void timeNodeCreated(int timeNodeId);
-		void constraintMoved(int constraintId);
+		void eventCreated(id_type<EventModel> eventId);
+		void eventDeleted(id_type<EventModel> eventId);
+		void eventMoved(id_type<EventModel> eventId);
+		void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+		void constraintMoved(id_type<ConstraintModel> constraintId);
 
 	public slots:
-		virtual void on_constraintRemoved(int constraintId) = 0;
+		virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
 
 	protected:
-		AbstractScenarioProcessViewModel(int viewModelId,
+		AbstractScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
 										 QString name,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):
@@ -71,7 +76,7 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T* 
 }
 
 template<typename T>
-typename T::constraint_view_model_type* constraintViewModel(const T* scenarioViewModel, int cvm_id)
+typename T::constraint_view_model_type* constraintViewModel(const T* scenarioViewModel, id_type<AbstractConstraintViewModel> cvm_id)
 {
 	return static_cast<typename T::constraint_view_model_type*>(scenarioViewModel->constraint(cvm_id));
 }

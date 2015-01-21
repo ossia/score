@@ -1,7 +1,7 @@
 #pragma once
 
 #include <InspectorInterface/InspectorWidgetBase.hpp>
-#include <QMap>
+#include <unordered_map>
 
 class ConstraintModel;
 class TemporalConstraintViewModel;
@@ -39,11 +39,11 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void activeBoxChanged(QString box);
 
 		// Interface of Constraint
-		void on_processCreated(QString processName, int processId);
-		void on_processRemoved(int processId);
+		void on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+		void on_processRemoved(id_type<ProcessSharedModelInterface> processId);
 
-		void on_boxCreated(int boxId);
-		void on_boxRemoved(int boxId);
+		void on_boxCreated(id_type<BoxModel> boxId);
+		void on_boxRemoved(id_type<BoxModel> boxId);
 
 		// These methods are used to display created things
 		void displaySharedProcess(ProcessSharedModelInterface*);
@@ -60,7 +60,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
 		InspectorSectionWidget* m_boxSection{};
 		BoxWidget* m_boxWidget{};
-		QMap<int, BoxInspectorSection*> m_boxesSectionWidgets;
+		std::unordered_map<id_type<BoxModel>, BoxInspectorSection*, id_hash<BoxModel>> m_boxesSectionWidgets;
 
 		std::vector<QWidget*> m_properties;
 

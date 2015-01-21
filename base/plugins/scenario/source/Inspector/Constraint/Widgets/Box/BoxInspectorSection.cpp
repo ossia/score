@@ -51,7 +51,7 @@ void BoxInspectorSection::createDeck()
 
 void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 {
-	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg((SettableIdentifier::identifier_type)deck->id()),
+	DeckInspectorSection* newDeck = new DeckInspectorSection{QString{"Deck.%1"}.arg(*deck->id().val()),
 															 deck,
 															 this};
 
@@ -59,21 +59,21 @@ void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 			this,	 &BoxInspectorSection::submitCommand);
 	m_deckSection->addContent(newDeck);
 
-	m_decksSectionWidgets[(SettableIdentifier::identifier_type)deck->id()] = newDeck;
+	m_decksSectionWidgets[deck->id()] = newDeck;
 }
 
 
-void BoxInspectorSection::on_deckCreated(int deckId)
+void BoxInspectorSection::on_deckCreated(id_type<DeckModel> deckId)
 {
 	// TODO display them in the order of their position.
 	// TODO issue : the box should grow of 10 more pixels for each deck.
 	addDeckInspectorSection(m_model->deck(deckId));
 }
 
-void BoxInspectorSection::on_deckRemoved(int deckId)
+void BoxInspectorSection::on_deckRemoved(id_type<DeckModel> deckId)
 {
 	auto ptr = m_decksSectionWidgets[deckId];
-	m_decksSectionWidgets.remove(deckId);
+	m_decksSectionWidgets.erase(deckId);
 
 	if(ptr)
 	{

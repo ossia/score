@@ -11,7 +11,7 @@ class ScenarioProcessFactory : public ProcessFactoryInterface
 														 ProcessViewInterface*,
 														 QObject* parent) override;
 
-		virtual ProcessSharedModelInterface* makeModel(int id,
+		virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id,
 													   QObject* parent) override;
 
 		virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,

@@ -4,7 +4,7 @@
 
 class AbstractConstraintViewModel;
 class ConstraintModel;
-
+class BoxModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -21,9 +21,9 @@ namespace Scenario
 			public:
 				ShowBoxInViewModel();
 				ShowBoxInViewModel(ObjectPath&& constraint_path,
-								   int boxId);
+								   id_type<BoxModel> boxId);
 				ShowBoxInViewModel(AbstractConstraintViewModel* constraint,
-								   int boxId);
+								   id_type<BoxModel> boxId);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -36,10 +36,8 @@ namespace Scenario
 
 			private:
 				ObjectPath m_constraintViewModelPath;
-				int m_boxId{};
-
-				bool m_constraintPreviousId{};
-				int m_constraintPreviousState{};
+				id_type<BoxModel> m_boxId{};
+				id_type<BoxModel> m_previousBoxId{};
 
 		};
 	}

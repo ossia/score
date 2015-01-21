@@ -14,9 +14,8 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck():
 {
 }
 
-AddProcessViewModelToDeck::AddProcessViewModelToDeck(
-										ObjectPath&& deckPath,
-										int sharedModelId):
+AddProcessViewModelToDeck::AddProcessViewModelToDeck(ObjectPath&& deckPath,
+										id_type<ProcessSharedModelInterface> sharedModelId):
 	SerializableCommand{"ScenarioControl",
 						"AddProcessViewModelToDeck",
 						QObject::tr("Add process view")},
@@ -24,7 +23,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
 	m_sharedModelId{sharedModelId}
 {
 	auto deck = m_path.find<DeckModel>();
-	m_createdProcessViewId = getNextId(deck->processViewModels());
+	m_createdProcessViewId = getStrongId(deck->processViewModels());
 }
 
 void AddProcessViewModelToDeck::undo()

@@ -5,7 +5,7 @@ class PluginCurveModel;
 class PluginCurveViewModel : public ProcessViewModelInterface
 {
 	public:
-		PluginCurveViewModel(int id,
+		PluginCurveViewModel(id_type<ProcessViewModelInterface> id,
 							 PluginCurveModel* model,
 							 QObject* parent);
 

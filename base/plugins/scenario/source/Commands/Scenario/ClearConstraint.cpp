@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 
@@ -72,12 +72,12 @@ void ClearConstraint::redo()
 
 	for(auto& process : constraint->processes())
 	{
-		constraint->removeProcess((SettableIdentifier::identifier_type)process->id());
+		constraint->removeProcess(process->id());
 	}
 
 	for(auto& box : constraint->boxes())
 	{
-		constraint->removeBox((SettableIdentifier::identifier_type)box->id());
+		constraint->removeBox(box->id());
 	}
 }
 
@@ -93,10 +93,10 @@ bool ClearConstraint::mergeWith(const QUndoCommand* other)
 
 void ClearConstraint::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_serializedBoxes << m_serializedProcesses << m_scenarioViewModelsBoxMappings;
+	s << m_path << m_serializedBoxes << m_serializedProcesses;
 }
 
 void ClearConstraint::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_serializedBoxes >> m_serializedProcesses >> m_scenarioViewModelsBoxMappings;
+	s >> m_path >> m_serializedBoxes >> m_serializedProcesses;
 }

@@ -5,7 +5,7 @@
 template<>
 void Visitor<Reader<DataStream> >::readFrom(const State& state)
 {
-	readFrom(static_cast<const IdentifiedObject&>(state));
+// TODO	readFrom(static_cast<const IdentifiedObject&>(state));
 
 	m_stream << state.messages();
 }
@@ -25,7 +25,7 @@ void Visitor<Writer<DataStream> >::writeTo(State& state)
 template<>
 void Visitor<Reader<JSON>>::readFrom(const State& state)
 {
-	readFrom(static_cast<const IdentifiedObject&>(state));
+// TODO	readFrom(static_cast<const IdentifiedObject&>(state));
 
 	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
 }

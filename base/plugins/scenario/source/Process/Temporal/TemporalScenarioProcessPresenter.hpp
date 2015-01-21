@@ -1,5 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
+#include <tools/SettableIdentifierAlternative.hpp>
 
 namespace iscore
 {
@@ -8,6 +9,7 @@ namespace iscore
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 
+class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 class EventPresenter;
@@ -24,7 +26,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 {
 	Q_OBJECT
 
-		Q_PROPERTY(int currentlySelectedEvent
+		Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
 				   READ currentlySelectedEvent
 				   WRITE setCurrentlySelectedEvent
 				   NOTIFY currentlySelectedEventChanged)
@@ -36,48 +38,52 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		virtual ~TemporalScenarioProcessPresenter();
 
 
-		virtual int viewModelId() const;
-		virtual int modelId() const;
-		int currentlySelectedEvent() const;
-        long millisecPerPixel() const;
+		virtual id_type<ProcessViewModelInterface> viewModelId() const;
+		virtual id_type<ProcessSharedModelInterface> modelId() const;
+
+		virtual void putToFront() override;
+		virtual void putBack() override;
+
+		id_type<EventModel> currentlySelectedEvent() const;
+		long millisecPerPixel() const;
 
 	signals:
-		void currentlySelectedEventChanged(int arg);
+		void currentlySelectedEventChanged(id_type<EventModel> arg);
 		void linesExtremityScaled(int, int);
 
 	public slots:
 		// Model -> view
-		void on_eventCreated(int eventId);
-		void on_eventDeleted(int eventId);
-		void on_eventMoved(int eventId);
+		void on_eventCreated(id_type<EventModel> eventId);
+		void on_eventDeleted(id_type<EventModel> eventId);
+		void on_eventMoved(id_type<EventModel> eventId);
 
-        void on_timeNodeCreated(int timeNodeId);
+		void on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
 
-		void on_constraintCreated(int constraintId);
-		void on_constraintViewModelRemoved(int constraintId);
-		void on_constraintMoved(int constraintId);
+		void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
+		void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
+		void on_constraintMoved(id_type<ConstraintModel> constraintId);
 
 		// View -> Presenter
 		void on_deletePressed();
 
 		void on_scenarioPressed();
 		void on_scenarioPressedWithControl(QPointF);
-        void on_scenarioReleased(QPointF, QPointF);
+		void on_scenarioReleased(QPointF, QPointF);
 
 		void on_askUpdate();
 
 		void deleteSelection();
 
 	private slots:
-		void setCurrentlySelectedEvent(int arg);
-        void createConstraint(EventData data);
+		void setCurrentlySelectedEvent(id_type<EventModel> arg);
+		void createConstraint(EventData data);
 		void moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
-        void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
+		void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
 
 		TemporalScenarioProcessViewModel* m_viewModel;
@@ -85,9 +91,9 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		std::vector<TemporalConstraintPresenter*> m_constraints;
 		std::vector<EventPresenter*> m_events;
-        std::vector<TimeNodePresenter*> m_timeNodes;
+		std::vector<TimeNodePresenter*> m_timeNodes;
 
-		int m_currentlySelectedEvent{};
-        int m_pointedEvent{0};
-        long m_millisecPerPixel{1};
+		id_type<EventModel> m_currentlySelectedEvent{};
+		int m_pointedEvent{0};
+		long m_millisecPerPixel{1};
 };

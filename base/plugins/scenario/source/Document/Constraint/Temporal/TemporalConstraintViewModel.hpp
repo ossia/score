@@ -16,7 +16,7 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		 * @param model Pointer to the corresponding model object
 		 * @param parent Parent object (most certainly ScenarioProcessViewModel)
 		 */
-		TemporalConstraintViewModel(int id,
+		TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 									ConstraintModel* model,
 									QObject* parent);
 
@@ -32,6 +32,6 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 
 
 	public slots:
-		virtual void on_boxRemoved(int boxId) override;
+		virtual void on_boxRemoved(id_type<BoxModel> boxId) override;
 
 };

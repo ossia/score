@@ -1,7 +1,9 @@
 #pragma once
+#include <tools/SettableIdentifierAlternative.hpp>
+class ConstraintModel;
 
 struct ConstraintData {
-   int id{0};
+   id_type<ConstraintModel> id{0};
    int x{0};
    int y{0};
    int dDate{0};

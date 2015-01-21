@@ -2,6 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class State;
 namespace Scenario
 {
 	namespace Command
@@ -24,7 +25,7 @@ namespace Scenario
 				ObjectPath m_path;
 				QString m_message;
 
-				int m_stateId{};
+				id_type<State> m_stateId{};
 		};
 	}
 }

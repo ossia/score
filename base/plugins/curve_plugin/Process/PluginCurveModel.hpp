@@ -54,7 +54,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 	public:
 		// Constructor
-		PluginCurveModel (int id, QObject* parentObject);
+		PluginCurveModel (id_type<ProcessSharedModelInterface> id, QObject* parentObject);
 		// Returns the list of points
 		QList<PluginCurvePoint*> points();
 		// Returns the points area
@@ -94,7 +94,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 			return "CurvePlugin";
 		}
 
-		virtual ProcessViewModelInterface* makeViewModel (int viewModelId,
+		virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
 														  QObject* parent) override;
 
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,

@@ -1,6 +1,6 @@
 #pragma once
 #include <interface/plugincontrol/PluginControlInterface.hpp>
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 
 class ScenarioControl : public iscore::PluginControlInterface
 {

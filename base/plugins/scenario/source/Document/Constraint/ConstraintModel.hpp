@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include "Document/Constraint/ConstraintModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
 
@@ -13,6 +14,7 @@ namespace OSSIA
 
 class ProcessSharedModelInterface;
 class AbstractConstraintViewModel;
+class TemporalConstraintViewModel;
 
 class BoxModel;
 class EventModel;
@@ -22,7 +24,7 @@ class TimeBox;
  * @brief The ConstraintModel class
  */
 // TODO put some of this stuff in the corresponding view models.
-class ConstraintModel : public IdentifiedObject
+class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
 		Q_OBJECT
 
@@ -44,56 +46,50 @@ class ConstraintModel : public IdentifiedObject
 	public:
 		ConstraintModelMetadata metadata;
 
-		ConstraintModel(int id, QObject* parent);
-		ConstraintModel(int id, double yPos, QObject* parent);
+		ConstraintModel(id_type<ConstraintModel>,
+						id_type<AbstractConstraintViewModel> fullViewId,
+						QObject* parent);
+		ConstraintModel(id_type<ConstraintModel>,
+						id_type<AbstractConstraintViewModel> fullViewId,
+						double yPos,
+						QObject* parent);
 		~ConstraintModel();
 
 		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObject<ConstraintModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
 
 		// Factories for the view models.
 		template<typename ViewModelType> // Arg might be an id or a datastream [
-		ViewModelType* makeConstraintViewModel(int id, QObject* parent)
+		ViewModelType* makeConstraintViewModel(id_type<AbstractConstraintViewModel> id, QObject* parent)
 		{
 			auto viewmodel =  new ViewModelType{id, this, parent};
 			setupConstraintViewModel(viewmodel);
 			return viewmodel;
 		}
 
-		/*
-		template<typename ViewModelType, typename Impl> // Arg might be an id or a datastream [
-		ViewModelType* makeConstraintViewModel(Deserializer<Impl>& deserializer,
-											   QObject* parent)
-		{
-			auto viewmodel =  new ViewModelType{deserializer, this, parent};
-			setupConstraintViewModel(viewmodel);
-			return viewmodel;
-		}
-		*/
-
 		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
-		void createProcess(QString processName, int processId);
+		void createProcess(QString processName, id_type<ProcessSharedModelInterface> processId);
 		void addProcess(ProcessSharedModelInterface*);
-		void removeProcess(int processId);
+		void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
-		void createBox(int boxId);
+		void createBox(id_type<BoxModel> boxId);
 		void addBox(BoxModel*);
-		void removeBox(int boxId);
+		void removeBox(id_type<BoxModel> boxId);
 
-		int startEvent() const;
-		int endEvent() const;
-		void setStartEvent(int eventId); // Use ScenarioKey
-		void setEndEvent(int eventId); // Use ScenarioKey
+		id_type<EventModel> startEvent() const;
+		id_type<EventModel> endEvent() const;
+		void setStartEvent(id_type<EventModel> eventId); // Use ScenarioKey
+		void setEndEvent(id_type<EventModel> eventId); // Use ScenarioKey
 
 
-		BoxModel* box(int contentId) const;
-		ProcessSharedModelInterface* process(int processId) const;
+		BoxModel* box(id_type<BoxModel> id) const;
+		ProcessSharedModelInterface* process(id_type<ProcessSharedModelInterface> processId) const;
 
 		OSSIA::TimeBox* apiObject()
 		{ return m_timeBox;}
@@ -119,12 +115,15 @@ class ConstraintModel : public IdentifiedObject
 		int minDuration() const;
 		int maxDuration() const;
 
-	signals:
-		void processCreated(QString processName, int processId);
-		void processRemoved(int processId);
+		TemporalConstraintViewModel* fullView()
+		{ return m_fullViewModel; }
 
-		void boxCreated(int boxId);
-		void boxRemoved(int boxId);
+	signals:
+		void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+		void processRemoved(id_type<ProcessSharedModelInterface> processId);
+
+		void boxCreated(id_type<BoxModel> boxId);
+		void boxRemoved(id_type<BoxModel> boxId);
 
 		void heightPercentageChanged(double arg);
 
@@ -148,11 +147,16 @@ class ConstraintModel : public IdentifiedObject
 		std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
 		std::vector<ProcessSharedModelInterface*> m_processes;
 
-		// The constraint view models that show this constraint
+		// The small view constraint view models that show this constraint
+		// The constraint does not have ownership of these: their parent (in the Qt sense) are
+		// the scenario view models
 		QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
-		int m_startEvent{};
-		int m_endEvent{};
+		// Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
+		TemporalConstraintViewModel* m_fullViewModel{};
+
+		id_type<EventModel> m_startEvent{};
+		id_type<EventModel> m_endEvent{};
 
 		// ___ TEMPORARY ___
 		int m_defaultDuration{200};
@@ -163,4 +167,3 @@ class ConstraintModel : public IdentifiedObject
 
 		double m_heightPercentage{0.5};
 };
-

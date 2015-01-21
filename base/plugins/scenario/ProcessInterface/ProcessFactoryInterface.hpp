@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <interface/customfactory/FactoryInterface.hpp>
 #include <interface/serialization/VisitorInterface.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class ProcessViewModelInterface;
 class ProcessSharedModelInterface;
@@ -33,7 +34,7 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
 														 QObject* parent) = 0;
 
 
-		virtual ProcessSharedModelInterface* makeModel(int id, QObject* parent)  = 0;
+		virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)  = 0;
 		// virtual ProcessSharedModelInterface* makeModel(QDataStream& data, QObject* parent)  = 0;
 
 		// throws if the serialization method is not implemented by the subclass

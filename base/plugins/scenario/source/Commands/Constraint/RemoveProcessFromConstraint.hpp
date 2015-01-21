@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+class ProcessSharedModelInterface;
 namespace Scenario
 {
 	namespace Command
@@ -24,7 +25,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_processId;
+				id_type<ProcessSharedModelInterface> m_processId;
 
 				QByteArray m_serializedProcessData; // Should be done in the constructor
 		};

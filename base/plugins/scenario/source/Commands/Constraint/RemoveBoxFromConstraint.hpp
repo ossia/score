@@ -3,6 +3,8 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+
+class BoxModel;
 namespace Scenario
 {
 	namespace Command
@@ -17,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				RemoveBoxFromConstraint();
-				RemoveBoxFromConstraint(ObjectPath&& constraintPath, int boxId);
+				RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -30,7 +32,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_boxId{};
+				id_type<BoxModel> m_boxId{};
 
 				QByteArray m_serializedBoxData; // Should be done in the constructor
 		};

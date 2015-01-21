@@ -20,7 +20,7 @@ AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath):
 	m_path{boxPath}
 {
 	auto box = m_path.find<BoxModel>();
-	m_createdDeckId = getNextId(box->decks());
+	m_createdDeckId = getStrongId(box->decks());
 }
 
 void AddDeckToBox::undo()

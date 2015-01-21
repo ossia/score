@@ -5,8 +5,7 @@ AddressBar::AddressBar(QWidget* parent):
 	QWidget{parent},
 	m_layout{new QHBoxLayout{this}}
 {
-	setLayout(m_layout);
-	setTargetObject(ObjectPath{{"Blurb", 25}, {"Shplorp", 34}});
+    setLayout(m_layout);
 }
 
 
@@ -28,12 +27,15 @@ void AddressBar::setTargetObject(ObjectPath&& path)
 				this, SLOT(on_elementClicked(ClickableLabel*)));
 
 		m_layout->addWidget(lab);
+		m_layout->addWidget(new QLabel{"/"});
 	}
+
+	m_layout->addStretch();
 }
 
 void AddressBar::on_elementClicked(ClickableLabel* clicked)
 {
-	int index = m_layout->indexOf(clicked);
+	int index = m_layout->indexOf(clicked) / 2;
 	if(index < m_currentPath.vec().size())
 	{
 		auto vec = m_currentPath.vec();

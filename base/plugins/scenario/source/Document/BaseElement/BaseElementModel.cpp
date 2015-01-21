@@ -1,7 +1,7 @@
 #include "BaseElementModel.hpp"
 
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "source/Document/Constraint/ConstraintModel.hpp"
+#include "source/Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 #include <QJsonDocument>
 #include <interface/serialization/JSONVisitor.hpp>
 
@@ -41,8 +41,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	cmd2.redo();
 	auto box = constraint_model->boxes().front();
 
-	ShowBoxInViewModel cmd3{viewmodel,
-							(SettableIdentifier::identifier_type)box->id()};
+	ShowBoxInViewModel cmd3{viewmodel, box->id()};
 	cmd3.redo();
 
 	AddDeckToBox cmd4{
@@ -58,7 +57,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, (SettableIdentifier::identifier_type)scenarioId};
+		}, scenarioId};
 	cmd5.redo();
 }
 
@@ -68,23 +67,25 @@ BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	Deserializer<DataStream> deserializer{&data};
 	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-	m_viewModel = m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint);
 
-
-	(new Command::ShowBoxInViewModel(m_viewModel,
-									 (SettableIdentifier::identifier_type)m_baseConstraint->boxes().front()->id()))->redo();
+	(new Command::ShowBoxInViewModel(m_baseConstraint->fullView(),
+									 m_baseConstraint->boxes().front()->id()))->redo();
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseConstraint{new ConstraintModel{0, this}},
-	m_viewModel{m_baseConstraint->makeConstraintViewModel<TemporalConstraintViewModel>(0, m_baseConstraint)}
+	m_baseConstraint{new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, 0, this}}
 {
 	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-	testInit(m_viewModel);
+	testInit(m_baseConstraint->fullView());
 
 	setDisplayedConstraint(m_baseConstraint);
+}
+
+TemporalConstraintViewModel *BaseElementModel::constraintViewModel() const
+{
+	return m_baseConstraint->fullView();
 }
 
 QByteArray BaseElementModel::save()
@@ -94,9 +95,14 @@ QByteArray BaseElementModel::save()
 	s.readFrom(*constraintModel());
 
 	return arr;
-	//QJsonDocument doc;
-	//doc.setObject(s.m_obj);
-	//return doc.toJson();
+}
+
+QJsonObject BaseElementModel::toJson()
+{
+	Serializer<JSON> s;
+	s.readFrom(*constraintModel());
+
+	return s.m_obj;
 }
 
 void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)

@@ -1,11 +1,15 @@
 #pragma once
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
 
+class EventModel;
 struct EventData;
-
+class AbstractConstraintViewModel;
+class ConstraintModel;
+class ProcessViewModelInterface;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -17,13 +21,13 @@ namespace Scenario
  * This Command creates a constraint and another event in a scenario,
  * starting from an event selected by the user.
  */
-        class CreateConstraint : public iscore::SerializableCommand
+		class CreateConstraint : public iscore::SerializableCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
-                CreateConstraint();
-                CreateConstraint(ObjectPath&& scenarioPath, int startEvent, int endEvent);
-                CreateConstraint& operator=(CreateConstraint&&) = default;
+				CreateConstraint();
+				CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent);
+				CreateConstraint& operator=(CreateConstraint&&) = default;
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -37,11 +41,12 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdConstraintId{};
-                int m_startEventId{};
-                int m_endEventId{};
+				id_type<ConstraintModel> m_createdConstraintId{};
+				id_type<EventModel> m_startEventId{};
+				id_type<EventModel> m_endEventId{};
 
-				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
+				QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
+				id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId{};
 		};
 	}
 }

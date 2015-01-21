@@ -51,7 +51,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 			[&] (QPointF p)
 	{
 		ConstraintData data{};
-		data.id = (SettableIdentifier::identifier_type)viewModel()->model()->id();
+		data.id = viewModel()->model()->id();
 		data.y = p.y();
 		data.x = p.x();
 		emit constraintReleased(data);
@@ -95,7 +95,7 @@ void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 	emit elementSelected(m_viewModel);
 }
 
-void TemporalConstraintPresenter::on_boxShown(int boxId)
+void TemporalConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
 {
 	clearBoxPresenter();
 	createBoxPresenter(m_viewModel->model()->box(boxId));

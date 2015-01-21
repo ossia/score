@@ -2,12 +2,13 @@
 #include <core/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
-class AbstractConstraintViewModel : public IdentifiedObject
+class BoxModel;
+class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintViewModel>
 {
 		Q_OBJECT
 
 	public:
-		AbstractConstraintViewModel(int id,
+		AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 									QString name,
 									ConstraintModel* model,
 									QObject* parent);
@@ -16,7 +17,7 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		AbstractConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
 									QObject* parent):
-			IdentifiedObject{vis, parent},
+			IdentifiedObject<AbstractConstraintViewModel>{vis, parent},
 			m_model{model}
 		{
 			vis.writeTo(*this);
@@ -27,18 +28,18 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		{ return m_model; }
 
 		bool isBoxShown() const;
-		int shownBox() const;
+		id_type<BoxModel> shownBox() const;
 
 		void hideBox();
-		void showBox(int boxId);
+		void showBox(id_type<BoxModel> boxId);
 
 	signals:
 		void boxRemoved();
 		void boxHidden();
-		void boxShown(int boxId);
+		void boxShown(id_type<BoxModel> boxId);
 
 	public slots:
-		virtual void on_boxRemoved(int boxId) = 0;
+		virtual void on_boxRemoved(id_type<BoxModel> boxId) = 0;
 
 
 	private:
@@ -47,6 +48,5 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		ConstraintModel* m_model{};
 
 		// TODO use settable identifier instead
-		bool m_boxIsShown{};
-		int m_idOfShownBox{};
+		id_type<BoxModel> m_shownBox{};
 };

@@ -20,7 +20,7 @@ AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath):
 	m_path{constraintPath}
 {
 	auto constraint = m_path.find<ConstraintModel>();
-	m_createdBoxId = getNextId(constraint->boxes());
+	m_createdBoxId = getStrongId(constraint->boxes());
 }
 
 void AddBoxToConstraint::undo()

@@ -5,6 +5,7 @@
 #include <QString>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+class ProcessSharedModelInterface;
 namespace Scenario
 {
 	namespace Command
@@ -34,7 +35,7 @@ namespace Scenario
 				ObjectPath m_path;
 				QString m_processName;
 
-				int m_createdProcessId{};
+				id_type<ProcessSharedModelInterface> m_createdProcessId{};
 		};
 	}
 }

@@ -6,39 +6,39 @@
 
 class ConstraintModel;
 class DeckModel;
-
-class BoxModel : public IdentifiedObject
+class ProcessSharedModelInterface;
+class BoxModel : public IdentifiedObject<BoxModel>
 {
 	Q_OBJECT
 
 	public:
-		BoxModel(int id, QObject* parent);
+		BoxModel(id_type<BoxModel> id, QObject* parent);
 		template<typename Impl>
 		BoxModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObject<BoxModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
 
 		virtual ~BoxModel() = default;
 
-		int createDeck(int newDeckId);
-		int addDeck(DeckModel* m);
+		id_type<DeckModel> createDeck(id_type<DeckModel> newDeckId);
+		id_type<DeckModel> addDeck(DeckModel* m);
 
-		void removeDeck(int deckId);
-		void changeDeckOrder(int deckId, int position);
+		void removeDeck(id_type<DeckModel> deckId);
+		void changeDeckOrder(id_type<DeckModel> deckId, int position);
 
-		DeckModel* deck(int deckId) const;
+		DeckModel* deck(id_type<DeckModel> deckId) const;
 
 		const std::vector<DeckModel*>& decks() const
 		{ return m_decks; }
 
 	signals:
-		void deckCreated(int id);
-		void deckRemoved(int id);
-		void deckOrderChanged(int deckId);
+		void deckCreated(id_type<DeckModel> id);
+		void deckRemoved(id_type<DeckModel> id);
+		void deckOrderChanged(id_type<DeckModel> deckId);
 
-		void on_deleteSharedProcessModel(int processId);
+		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> processId);
 
 	private:
 		std::vector<DeckModel*> m_decks;

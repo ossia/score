@@ -1,7 +1,7 @@
 #include "AbstractScenarioProcessViewModel.hpp"
 #include "Document/Constraint/AbstractConstraintViewModel.hpp"
 
-AbstractConstraintViewModel* AbstractScenarioProcessViewModel::constraint(int constraintViewModelid) const
+AbstractConstraintViewModel* AbstractScenarioProcessViewModel::constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const
 {
 	return findById(m_constraints, constraintViewModelid);
 }
@@ -12,7 +12,7 @@ QVector<AbstractConstraintViewModel*> AbstractScenarioProcessViewModel::constrai
 }
 
 
-void AbstractScenarioProcessViewModel::removeConstraintViewModel(int constraintViewModelId)
+void AbstractScenarioProcessViewModel::removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	// We have to emit before, because on removal, some other stuff might use the now-removed model id to do the comparison in vec_erase_remove_if
 	emit constraintViewModelRemoved(constraintViewModelId);

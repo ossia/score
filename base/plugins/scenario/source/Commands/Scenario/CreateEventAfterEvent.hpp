@@ -1,10 +1,16 @@
 #pragma once
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
 
 struct EventData;
+class EventModel;
+class ProcessViewModelInterface;
+class AbstractConstraintViewModel;
+class ConstraintModel;
+class TimeNodeModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -37,15 +43,16 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdConstraintId{};
-				int m_createdEventId{};
-                int m_createdTimeNodeId{};
+				id_type<ConstraintModel> m_createdConstraintId{};
+				id_type<EventModel> m_createdEventId{};
+				id_type<TimeNodeModel> m_createdTimeNodeId{};
 
-				int m_firstEventId{};
+				id_type<EventModel> m_firstEventId{};
 				int m_time{};
 				double m_heightPosition{};
 
-				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
+				QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
+				id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId{};
 		};
 	}
 }

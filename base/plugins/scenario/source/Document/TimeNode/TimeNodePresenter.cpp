@@ -4,11 +4,11 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
-                                     TimeNodeView *view,
-                                     QObject *parent):
-    NamedObject{"EventPresenter", parent},
-    m_model{model},
-    m_view{view}
+									 TimeNodeView *view,
+									 QObject *parent):
+	NamedObject{"EventPresenter", parent},
+	m_model{model},
+	m_view{view}
 {
 
 }
@@ -16,25 +16,25 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 TimeNodePresenter::~TimeNodePresenter()
 {
 /*    if(m_view)
-    {
-        auto sc = m_view->scene();
-        if(sc) sc->removeItem(m_view);
-        m_view->deleteLater();
-    } */
+	{
+		auto sc = m_view->scene();
+		if(sc) sc->removeItem(m_view);
+		m_view->deleteLater();
+	} */
 }
 
-int TimeNodePresenter::id()
+id_type<TimeNodeModel> TimeNodePresenter::id() const
 {
-    return (SettableIdentifier::identifier_type)m_model->id();
+	return m_model->id();
 }
 
 TimeNodeModel *TimeNodePresenter::model()
 {
-    return m_model;
+	return m_model;
 }
 
 TimeNodeView *TimeNodePresenter::view()
 {
-    return m_view;
+	return m_view;
 }
 

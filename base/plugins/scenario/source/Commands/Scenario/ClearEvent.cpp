@@ -50,7 +50,7 @@ void ClearEvent::redo()
 	auto event = m_path.find<EventModel>();
 	for(auto& state : event->states())
 	{
-		event->removeState((SettableIdentifier::identifier_type)state->id());
+		event->removeState(state->id());
 	}
 
 }

@@ -27,38 +27,28 @@ void EventView::paint(QPainter* painter,
 					  const QStyleOptionGraphicsItem* option,
 					  QWidget* widget)
 {
+	QColor pen_color = Qt::black;
 	// Rect
 	if(isSelected())
 	{
-		painter->setPen(Qt::blue);
+		pen_color = Qt::blue;
 	}
 	else if(parentItem()->isSelected())
 	{
-		painter->setPen(Qt::cyan);
+		pen_color = Qt::cyan;
 	}
 
-	painter->drawRect(boundingRect());
+	//painter->drawRect(boundingRect());
 
 	// Ball
-	painter->setBrush(QBrush(QColor(80, 140, 50)));
-	painter->setPen(QPen(QBrush(QColor(130, 220, 80)), 3, Qt::DashLine));
-	painter->drawEllipse(boundingRect().center(), 15, 15);
+	painter->setBrush(pen_color);
+	painter->setPen(pen_color);
+	painter->drawEllipse(boundingRect().center(), 5, 5);
 
 	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
 
-	// Lines
-	painter->drawLine(m_firstLine);
-	painter->drawLine(m_secondLine);
-
 }
 
-void EventView::setLinesExtremity(int topPoint, int bottomPoint)
-{
-	m_firstLine.setP1(boundingRect().center());    m_firstLine.setP2(QPointF(boundingRect().center().x(), topPoint));
-
-	m_secondLine.setP1(boundingRect().center());
-    m_secondLine.setP2(QPointF(boundingRect().center().x(), bottomPoint));
-}
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {

@@ -1,15 +1,19 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
+
+#include <unordered_map>
 namespace OSSIA
 {
-    class TimeNode;
+	class TimeNode;
 }
 class State;
 class ConstraintModel;
+class TimeNodeModel;
 class ScenarioProcessSharedModel;
 
-class EventModel : public IdentifiedObject
+class EventModel : public IdentifiedObject<EventModel>
 {
 		Q_OBJECT
 
@@ -22,50 +26,52 @@ class EventModel : public IdentifiedObject
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
-		EventModel(int id, QObject* parent);
-		EventModel(int id, double yPos, QObject *parent);
+		EventModel(id_type<EventModel>, QObject* parent);
+		EventModel(id_type<EventModel>, double yPos, QObject *parent);
 		~EventModel();
 
 
 		template<typename Impl>
 		EventModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObject<EventModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
 
-		const QVector<int>& previousConstraints() const;
-		const QVector<int>& nextConstraints() const;
+		const QVector<id_type<ConstraintModel> >& previousConstraints() const;
+		const QVector<id_type<ConstraintModel>>& nextConstraints() const;
 
-		void addNextConstraint(int);
-		void addPreviousConstraint(int);
+		void addNextConstraint(id_type<ConstraintModel>);
+		void addPreviousConstraint(id_type<ConstraintModel>);
 
-		bool removeNextConstraint(int);
-		bool removePreviousConstraint(int);
+		bool removeNextConstraint(id_type<ConstraintModel>);
+		bool removePreviousConstraint(id_type<ConstraintModel>);
 
-        void changeTimeNode(int);
-        int timeNode() const;
+		void changeTimeNode(id_type<TimeNodeModel>);
+		id_type<TimeNodeModel> timeNode() const;
 
 		const std::vector<State*>& states() const;
 		void addState(State* s);
-		void removeState(int stateId);
+		void removeState(id_type<State> stateId);
 
-        OSSIA::TimeNode* apiObject()
-        { return m_timeEvent;}
+		OSSIA::TimeNode* apiObject()
+		{ return m_timeEvent;}
 
 		double heightPercentage() const;
 		int date() const;
 
 		void translate(int deltaTime);
 
-        void setVerticalExtremity(int, double);
-        void eventMovedVertically(double);
-        void updateVerticalLink();
+		void setVerticalExtremity(id_type<ConstraintModel>, double);
+		void eventMovedVertically(double);
+		void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
-        // Should maybe be in the Scenario instead ?
-		QMap<int, double> constraintsYPos() const
+		// Should maybe be in the Scenario instead ?
+		std::unordered_map<id_type<ConstraintModel>,
+						   double,
+						   id_hash<ConstraintModel>> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const
 		{ return m_topY; }
@@ -85,31 +91,33 @@ class EventModel : public IdentifiedObject
 
 	private:
 		// Setters required for serialization
-		void setPreviousConstraints(QVector<int>&& vec)
+		void setPreviousConstraints(QVector<id_type<ConstraintModel>>&& vec)
 		{ m_previousConstraints = std::move(vec); }
 
-		void setNextConstraints(QVector<int>&& vec)
+		void setNextConstraints(QVector<id_type<ConstraintModel>>&& vec)
 		{ m_nextConstraints = std::move(vec); }
 
-		void setConstraintsYPos(QMap<int, double>&& map)
+		void setConstraintsYPos(std::unordered_map<id_type<ConstraintModel>,
+												   double,
+												   id_hash<ConstraintModel>>&& map)
 		{ m_constraintsYPos = std::move(map); }
 
-        void setTopY(double val);
+		void setTopY(double val);
 
-        void setBottomY(double val);
-
-
-        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
-        { m_timeEvent = timeEvent; }
+		void setBottomY(double val);
 
 
-        OSSIA::TimeNode* m_timeEvent{};
+		void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
+		{ m_timeEvent = timeEvent; }
 
-        int m_timeNode{};
 
-		QVector<int> m_previousConstraints;
-		QVector<int> m_nextConstraints;
-		QMap<int, double> m_constraintsYPos;
+		OSSIA::TimeNode* m_timeEvent{};
+
+		id_type<TimeNodeModel> m_timeNode{};
+
+		QVector<id_type<ConstraintModel>> m_previousConstraints;
+		QVector<id_type<ConstraintModel>> m_nextConstraints;
+		std::unordered_map<id_type<ConstraintModel>, double, id_hash<ConstraintModel>> m_constraintsYPos;
 
 		double m_heightPercentage{0.5};
 
@@ -122,4 +130,3 @@ class EventModel : public IdentifiedObject
 		int m_date{0}; // Was : m_x
 
 };
-

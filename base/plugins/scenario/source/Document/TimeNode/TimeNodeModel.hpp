@@ -1,41 +1,43 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 
-class TimeNodeModel : public IdentifiedObject
+class EventModel;
+class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
-    Q_OBJECT
+	Q_OBJECT
 
-    public:
-        TimeNodeModel(int id, QObject* parent);
-        TimeNodeModel(int id, int date, QObject *parent);
-        ~TimeNodeModel();
+	public:
+		TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
+		TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent);
+		~TimeNodeModel();
 
-        void addEvent(int);
-        bool removeEvent(int);
+		void addEvent(id_type<EventModel>);
+		bool removeEvent(id_type<EventModel>);
 
-        double top() const;
-        double bottom() const;
-        int date() const;
+		double top() const;
+		double bottom() const;
+		int date() const;
 
-        void setTop(double);
-        void setBottom(double);
-        void setDate(int);
+		void setTop(double);
+		void setBottom(double);
+		void setDate(int);
 
-        double y() const;
-        void setY(double y);
+		double y() const;
+		void setY(double y);
 
-    signals:
+	signals:
 
-    public slots:
+	public slots:
 
-    private:
-        int m_date{0};
-        double m_y{0.0};
+	private:
+		int m_date{0};
+		double m_y{0.0};
 
-        QVector<int> m_events;
+		QVector<id_type<EventModel>> m_events;
 
-        // @todo : maybe not useful ...
-        double m_topY{0.0};
-        double m_bottomY{0.0};
+		// @todo : maybe not useful ...
+		double m_topY{0.0};
+		double m_bottomY{0.0};
 };

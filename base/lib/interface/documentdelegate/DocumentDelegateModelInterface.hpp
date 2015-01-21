@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-
+#include <QJsonObject>
 namespace iscore
 {
 	class DocumentDelegatePresenterInterface;
@@ -12,5 +12,6 @@ namespace iscore
 			virtual ~DocumentDelegateModelInterface() = default;
 
 			virtual QByteArray save() = 0;
+			virtual QJsonObject toJson() { return {}; }
 	};
 }

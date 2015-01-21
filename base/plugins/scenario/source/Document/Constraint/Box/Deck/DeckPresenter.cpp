@@ -5,7 +5,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessViewInterface.hpp"
@@ -37,6 +37,10 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 			this,	 &DeckPresenter::on_processViewModelCreated);
 	connect(m_model, &DeckModel::processViewModelRemoved,
 			this,	 &DeckPresenter::on_processViewModelDeleted);
+
+	connect(m_model, &DeckModel::processViewModelSelected,
+			this,	 &DeckPresenter::on_processViewModelSelected);
+
 	connect(m_model, &DeckModel::heightChanged,
 			this,	 &DeckPresenter::on_heightChanged);
 
@@ -58,9 +62,9 @@ DeckPresenter::~DeckPresenter()
 	}
 }
 
-int DeckPresenter::id() const
+id_type<DeckModel> DeckPresenter::id() const
 {
-	return (SettableIdentifier::identifier_type) m_model->id();
+	return m_model->id();
 }
 
 int DeckPresenter::height() const
@@ -83,12 +87,12 @@ void DeckPresenter::setVerticalPosition(int pos)
 	}
 }
 
-void DeckPresenter::on_processViewModelCreated(int processId)
+void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
 {
 	on_processViewModelCreated_impl(m_model->processViewModel(processId));
 }
 
-void DeckPresenter::on_processViewModelDeleted(int processId)
+void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
 {
 	vec_erase_remove_if(m_processes,
 						[&processId] (ProcessPresenterInterface* pres)
@@ -100,6 +104,22 @@ void DeckPresenter::on_processViewModelDeleted(int processId)
 
 
 	emit askUpdate();
+}
+
+void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterface> processId)
+{
+	// Put the selected one at z+1 and the others at z+2; set "disabled" graphics mode.
+	for(auto& pvm : m_processes)
+	{
+		if(pvm->viewModelId() == processId)
+		{
+			pvm->putToFront();
+		}
+		else
+		{
+			pvm->putBack();
+		}
+	}
 }
 
 void DeckPresenter::on_heightChanged(int height)

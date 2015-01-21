@@ -9,12 +9,12 @@ class ProcessViewModelInterface;
 	 *
 	 * Interface to implement to make a process.
 	 */
-class ProcessSharedModelInterface: public IdentifiedObject
+class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
 
 
 	public:
-		using IdentifiedObject::IdentifiedObject;
+		using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
 
 		/**
 			 * @brief processName
@@ -29,7 +29,7 @@ class ProcessSharedModelInterface: public IdentifiedObject
 
 		// TODO pass the name of the view model to be created
 		// (e.g. temporal / logical...).
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) = 0;
 
 

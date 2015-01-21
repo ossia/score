@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 #include <tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -18,16 +18,21 @@
 
 
 
-ConstraintModel::ConstraintModel(int id,
+ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
+								 id_type<AbstractConstraintViewModel> fullViewId,
 								 QObject* parent):
-	IdentifiedObject{id, "ConstraintModel", parent},
-	m_timeBox{new OSSIA::TimeBox}
+	IdentifiedObject<ConstraintModel>{id, "ConstraintModel", parent},
+	m_timeBox{new OSSIA::TimeBox},
+	m_fullViewModel{
+		new TemporalConstraintViewModel{fullViewId, this, this}
+		}
 {
-	metadata.setName(QString("Constraint.%1").arg((SettableIdentifier::identifier_type) this->id()));
+	setupConstraintViewModel(m_fullViewModel);
+	metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
 }
 
-ConstraintModel::ConstraintModel(int id, double yPos, QObject *parent):
-	ConstraintModel{id, parent}
+ConstraintModel::ConstraintModel(id_type<ConstraintModel> id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject *parent):
+	ConstraintModel{id, fullViewId, parent}
 {
 	setHeightPercentage(yPos);
 }
@@ -57,7 +62,7 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 }
 
 //// Complex commands
-void ConstraintModel::createProcess(QString processName, int processId)
+void ConstraintModel::createProcess(QString processName, id_type<ProcessSharedModelInterface> processId)
 {
 	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
 	addProcess(model);
@@ -68,11 +73,10 @@ void ConstraintModel::createProcess(QString processName, int processId)
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
-	emit processCreated(model->processName(),
-						(SettableIdentifier::identifier_type) model->id());
+	emit processCreated(model->processName(), model->id());
 }
 
-void ConstraintModel::removeProcess(int processId)
+void ConstraintModel::removeProcess(id_type<ProcessSharedModelInterface> processId)
 {
 	auto proc = process(processId);
 	vec_erase_remove_if(m_processes,
@@ -84,7 +88,7 @@ void ConstraintModel::removeProcess(int processId)
 }
 
 
-void ConstraintModel::createBox(int boxId)
+void ConstraintModel::createBox(id_type<BoxModel> boxId)
 {
 	auto box = new BoxModel{boxId, this};
 	addBox(box);
@@ -96,11 +100,11 @@ void ConstraintModel::addBox(BoxModel* box)
 			box,	&BoxModel::on_deleteSharedProcessModel);
 
 	m_boxes.push_back(box);
-	emit boxCreated((SettableIdentifier::identifier_type) box->id());
+	emit boxCreated(box->id());
 }
 
 
-void ConstraintModel::removeBox(int boxId)
+void ConstraintModel::removeBox(id_type<BoxModel> boxId)
 {
 	auto b = box(boxId);
 	vec_erase_remove_if(m_boxes,
@@ -111,32 +115,32 @@ void ConstraintModel::removeBox(int boxId)
 	delete b;
 }
 
-int ConstraintModel::startEvent() const
+id_type<EventModel> ConstraintModel::startEvent() const
 {
 	return m_startEvent;
 }
 
-int ConstraintModel::endEvent() const
+id_type<EventModel> ConstraintModel::endEvent() const
 {
 	return m_endEvent;
 }
 
-void ConstraintModel::setStartEvent(int e)
+void ConstraintModel::setStartEvent(id_type<EventModel> e)
 {
 	m_startEvent = e;
 }
 
-void ConstraintModel::setEndEvent(int e)
+void ConstraintModel::setEndEvent(id_type<EventModel> e)
 {
 	m_endEvent = e;
 }
 
-BoxModel*ConstraintModel::box(int contentId) const
+BoxModel*ConstraintModel::box(id_type<BoxModel> id) const
 {
-	return findById(m_boxes, contentId);
+	return findById(m_boxes, id);
 }
 
-ProcessSharedModelInterface* ConstraintModel::process(int processId) const
+ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModelInterface> processId) const
 {
 	return findById(m_processes, processId);
 }

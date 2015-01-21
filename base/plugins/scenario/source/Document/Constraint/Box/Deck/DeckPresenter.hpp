@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class DeckModel;
 class DeckView;
@@ -19,7 +19,7 @@ class DeckPresenter : public NamedObject
 						QObject* parent);
 		virtual ~DeckPresenter();
 
-		int id() const;
+		id_type<DeckModel> id() const;
 		int height() const; // Return the height of the view
 
 		// Position in the Box : 1st, second...
@@ -37,8 +37,9 @@ class DeckPresenter : public NamedObject
 
 	public slots:
 		// From Model
-		void on_processViewModelCreated(int processId);
-		void on_processViewModelDeleted(int processId);
+		void on_processViewModelCreated(id_type<ProcessViewModelInterface> processId);
+		void on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId);
+		void on_processViewModelSelected(id_type<ProcessViewModelInterface> processId);
 		void on_heightChanged(int height);
 
 		// From View

@@ -1,5 +1,6 @@
 #pragma once
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class BoxModel;
 class DeckModel;
@@ -7,6 +8,7 @@ class ConstraintInspectorWidget;
 class ProcessViewModelInterface;
 class AddProcessViewModelWidget;
 class BoxInspectorSection;
+class ProcessSharedModelInterface;
 
 // Contains a single box which can contain multiple decks and a Add Deck button.
 class DeckInspectorSection : public InspectorSectionWidget
@@ -17,14 +19,14 @@ class DeckInspectorSection : public InspectorSectionWidget
 							 BoxInspectorSection* parentBox);
 
 		void displayProcessViewModel(ProcessViewModelInterface*);
-		void createProcessViewModel(int sharedProcessId);
+		void createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId);
 
 		DeckModel* model() const
 		{ return m_model; }
 
 	public slots:
-		void on_processViewModelCreated(int id);
-		void on_processViewModelRemoved(int id);
+		void on_processViewModelCreated(id_type<ProcessViewModelInterface> id);
+		void on_processViewModelRemoved(id_type<ProcessViewModelInterface> id);
 
 	private:
 		DeckModel* m_model{};

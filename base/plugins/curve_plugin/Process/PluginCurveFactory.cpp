@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <QGraphicsItem>
 
-ProcessSharedModelInterface* PluginCurveFactory::makeModel(int id, QObject* parent)
+ProcessSharedModelInterface* PluginCurveFactory::makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)
 {
 	return new PluginCurveModel{id, parent};
 }

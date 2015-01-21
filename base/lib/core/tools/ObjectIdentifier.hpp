@@ -40,6 +40,14 @@ class ObjectIdentifier
 			m_id{std::move(id)}
 		{ }
 
+		template<typename T>
+		ObjectIdentifier(QString name, id_type<T> id):
+			m_objectName{std::move(name)}
+		{
+			if(id.val().is_initialized())
+				m_id = id.val().get();
+		}
+
 		const QString& objectName() const
 		{ return m_objectName; }
 
@@ -48,7 +56,7 @@ class ObjectIdentifier
 
 	private:
 		QString m_objectName;
-		SettableIdentifier m_id;
+		SettableIdentifier m_id; // TODO boost::optional instead.
 };
 
 Q_DECLARE_METATYPE(ObjectIdentifier)
