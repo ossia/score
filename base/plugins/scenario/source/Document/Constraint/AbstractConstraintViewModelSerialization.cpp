@@ -9,7 +9,7 @@ void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cv
 
 	// We happily do not require a way to save the derived type, since it is known
 	// at compile time and calls this function.
-	readFrom(static_cast<const IdentifiedObject&>(cvm));
+	// TODO readFrom(static_cast<const IdentifiedObject&>(cvm));
 
 	// Save the AbstractConstraintViewModelData
 	m_stream << cvm.isBoxShown();
@@ -41,7 +41,7 @@ void Visitor<Reader<JSON>>::readFrom(const AbstractConstraintViewModel& cvm)
 {
 	m_obj["ConstraintId"] = toJsonObject(cvm.model()->id());
 
-	readFrom(static_cast<const IdentifiedObject&>(cvm));
+	// TODO readFrom(static_cast<const IdentifiedObject&>(cvm));
 
 	m_obj["IsBoxShown"] = cvm.isBoxShown();
 	m_obj["ShownBoxId"] = cvm.shownBox();

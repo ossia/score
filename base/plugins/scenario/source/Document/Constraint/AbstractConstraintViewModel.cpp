@@ -24,11 +24,11 @@ void AbstractConstraintViewModel::showBox(int boxId)
 	emit boxShown(m_idOfShownBox);
 }
 
-AbstractConstraintViewModel::AbstractConstraintViewModel(int id,
+AbstractConstraintViewModel::AbstractConstraintViewModel(id_type id,
 														 QString name,
 														 ConstraintModel* model,
 														 QObject* parent):
-	IdentifiedObject{id, name, parent},
+	IdentifiedObjectAlternative<AbstractConstraintViewModel>{id, name, parent},
 	m_model{model}
 {
 }

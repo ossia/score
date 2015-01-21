@@ -33,7 +33,7 @@ CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, id_type<EventModel
 	// we have to generate ConstraintViewModels, too
 	for(auto& viewModel : viewModels(scenar))
 	{
-		m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel(viewModel)] = getNextId(viewModel->constraints());
+		m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel(viewModel)] = getStrongId(viewModel->constraints());
 	}
 }
 

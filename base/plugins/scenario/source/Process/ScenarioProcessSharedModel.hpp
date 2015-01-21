@@ -12,6 +12,7 @@ class ConstraintModel;
 class EventModel;
 using IdentifiedEventModel = id_mixin<EventModel>;
 class AbstractScenarioProcessViewModel;
+class AbstractConstraintViewModel;
 
 /**
  * @brief The ScenarioProcessSharedModel class
@@ -50,7 +51,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void createConstraintBetweenEvents(id_type<EventModel> startEventId,
 										   id_type<EventModel> endEventId,
 										   int newConstraintModelId,
-										   int newConstraintFullViewId);
+										   id_type<AbstractConstraintViewModel> newConstraintFullViewId);
 
 		/**
 		 * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
@@ -62,7 +63,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  int duration,
 												  double heightPos,
 												  int newConstraintId,
-												  int newConstraintFullViewId,
+												  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 												  id_type<EventModel> newEventId,
 												  int newTimeNodeId);
 

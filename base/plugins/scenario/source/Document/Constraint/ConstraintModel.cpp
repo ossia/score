@@ -19,7 +19,7 @@
 
 
 ConstraintModel::ConstraintModel(int id,
-								 int fullViewId,
+								 id_type<AbstractConstraintViewModel> fullViewId,
 								 QObject* parent):
 	IdentifiedObject{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox},
@@ -31,7 +31,7 @@ ConstraintModel::ConstraintModel(int id,
 	metadata.setName(QString("Constraint.%1").arg((SettableIdentifier::identifier_type) this->id()));
 }
 
-ConstraintModel::ConstraintModel(int id, int fullViewId, double yPos, QObject *parent):
+ConstraintModel::ConstraintModel(int id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject *parent):
 	ConstraintModel{id, fullViewId, parent}
 {
 	setHeightPercentage(yPos);

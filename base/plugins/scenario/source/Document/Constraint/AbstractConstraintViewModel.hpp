@@ -2,12 +2,14 @@
 #include <core/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
-class AbstractConstraintViewModel : public IdentifiedObject
+class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractConstraintViewModel>
 {
 		Q_OBJECT
 
 	public:
-		AbstractConstraintViewModel(int id,
+		using id_type = ::id_type<AbstractConstraintViewModel>;
+
+		AbstractConstraintViewModel(id_type id,
 									QString name,
 									ConstraintModel* model,
 									QObject* parent);
@@ -16,7 +18,7 @@ class AbstractConstraintViewModel : public IdentifiedObject
 		AbstractConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
 									QObject* parent):
-			IdentifiedObject{vis, parent},
+			IdentifiedObjectAlternative<AbstractConstraintViewModel>{vis, parent},
 			m_model{model}
 		{
 			vis.writeTo(*this);

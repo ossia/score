@@ -62,7 +62,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
 															   id_type<EventModel> endEventId,
 															   int newConstraintModelId,
-															   int newConstraintFullViewId)
+															   id_type<AbstractConstraintViewModel> newConstraintFullViewId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
@@ -98,7 +98,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 																 int constraint_duration,
 																 double heightPos,
 																 int newConstraintId,
-																 int newConstraintFullViewId,
+																 id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 																 id_type<EventModel> newEventId,
 																 int newTimeNodeId)
 {

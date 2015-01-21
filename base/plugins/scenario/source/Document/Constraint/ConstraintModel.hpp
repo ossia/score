@@ -46,8 +46,8 @@ class ConstraintModel : public IdentifiedObject
 	public:
 		ConstraintModelMetadata metadata;
 
-		ConstraintModel(int id, int fullViewId, QObject* parent);
-		ConstraintModel(int id, int fullViewId, double yPos, QObject* parent);
+		ConstraintModel(int id, id_type<AbstractConstraintViewModel> fullViewId, QObject* parent);
+		ConstraintModel(int id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject* parent);
 		~ConstraintModel();
 
 		template<typename Impl>
@@ -59,7 +59,7 @@ class ConstraintModel : public IdentifiedObject
 
 		// Factories for the view models.
 		template<typename ViewModelType> // Arg might be an id or a datastream [
-		ViewModelType* makeConstraintViewModel(int id, QObject* parent)
+		ViewModelType* makeConstraintViewModel(id_type<AbstractConstraintViewModel> id, QObject* parent)
 		{
 			auto viewmodel =  new ViewModelType{id, this, parent};
 			setupConstraintViewModel(viewmodel);

@@ -16,7 +16,7 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		 * @param model Pointer to the corresponding model object
 		 * @param parent Parent object (most certainly ScenarioProcessViewModel)
 		 */
-		TemporalConstraintViewModel(int id,
+		TemporalConstraintViewModel(id_type id,
 									ConstraintModel* model,
 									QObject* parent);
 

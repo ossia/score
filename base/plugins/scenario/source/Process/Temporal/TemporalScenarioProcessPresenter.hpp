@@ -9,6 +9,7 @@ namespace iscore
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 
+class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 class EventPresenter;
@@ -59,8 +60,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		void on_timeNodeCreated(int timeNodeId);
 
-		void on_constraintCreated(int constraintId);
-		void on_constraintViewModelRemoved(int constraintId);
+		void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
+		void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
 		void on_constraintMoved(int constraintId);
 
 		// View -> Presenter

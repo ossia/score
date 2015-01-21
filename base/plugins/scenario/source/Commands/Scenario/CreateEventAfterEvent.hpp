@@ -7,6 +7,7 @@
 
 struct EventData;
 class EventModel;
+class AbstractConstraintViewModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -47,8 +48,8 @@ namespace Scenario
 				int m_time{};
 				double m_heightPosition{};
 
-				QMap<std::tuple<int,int,int>, int> m_createdConstraintViewModelIDs;
-				int m_createdConstraintFullViewId{};
+				QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
+				id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId{};
 		};
 	}
 }

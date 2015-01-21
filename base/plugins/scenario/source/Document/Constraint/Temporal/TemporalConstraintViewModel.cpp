@@ -9,7 +9,7 @@ void TemporalConstraintViewModel::on_boxRemoved(int boxId)
 	}
 }
 
-TemporalConstraintViewModel::TemporalConstraintViewModel(int id,
+TemporalConstraintViewModel::TemporalConstraintViewModel(id_type id,
 														 ConstraintModel* model,
 														 QObject* parent):
 	AbstractConstraintViewModel{id,

@@ -39,7 +39,7 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 							   void* data) const override;
 
 		virtual void makeConstraintViewModel(int constraintModelId,
-											 int constraintViewModelId) override;
+											 id_type<AbstractConstraintViewModel> constraintViewModelId) override;
 
 		void addConstraintViewModel(constraint_view_model_type* constraint_view_model);
 

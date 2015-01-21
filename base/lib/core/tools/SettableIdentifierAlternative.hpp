@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/optional.hpp>
 #include <interface/serialization/VisitorInterface.hpp>
+#include <tools/NamedObject.hpp>
 
 template<typename tag, typename value_type>
 class id
@@ -42,20 +43,14 @@ using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
 template<typename tag>
 using id_type = optional_tagged_int32_id<tag>;
 
-template<typename T>
+template<typename T, typename tag = T>
 class id_mixin : public T
 {
 	public:
-		using id_type = optional_tagged_int32_id<T>;
-		/*	template <typename... Args>
-	explicit id_mixin(Args&&... args):
-		T{std::forward<Args>(args)...}
-	{
+		using id_type = optional_tagged_int32_id<tag>;
 
-	}
-*/
 		template <typename... Args>
-		explicit id_mixin(optional_tagged_int32_id<T> id,
+		explicit id_mixin(id_type id,
 						  Args&&... args):
 			T{std::forward<Args>(args)...},
 			m_id{id}
@@ -70,19 +65,55 @@ class id_mixin : public T
 			vis.writeTo(*this);
 		}
 
-		optional_tagged_int32_id<T> id() const
+		id_type id() const
 		{
 			return m_id;
 		}
 
-		void setId(optional_tagged_int32_id<T> id)
+		void setId(id_type id)
 		{
 			m_id = id;
 		}
 
 	private:
-		optional_tagged_int32_id<T> m_id;
+		id_type m_id;
 };
 
 // Usage exemple : class MyType_base { }; using MyType = id_mixin<MyType_base>;
 
+
+
+template<typename tag>
+class IdentifiedObjectAlternative : public NamedObject
+{
+
+	public:
+		template<typename... Args>
+		IdentifiedObjectAlternative(id_type<tag> id,
+									Args&&... args):
+			NamedObject{std::forward<Args>(args)...},
+			m_id{id}
+		{
+		}
+
+		template<typename ReaderImpl,typename... Args>
+		IdentifiedObjectAlternative(Deserializer<ReaderImpl>& v,
+									Args&&... args):
+			NamedObject{v, std::forward<Args>(args)...}
+		{
+			v.writeTo(*this);
+		}
+
+		const id_type<tag>& id() const
+		{
+			return m_id;
+		}
+
+		void setId(id_type<tag>&& id)
+		{
+			m_id = id;
+		}
+
+	private:
+		id_type<tag> m_id{};
+};

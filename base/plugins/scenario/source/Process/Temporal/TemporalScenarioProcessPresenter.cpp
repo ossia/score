@@ -148,7 +148,7 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated(int timeNodeId)
 	on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }
 
-void TemporalScenarioProcessPresenter::on_constraintCreated(int constraintViewModelId)
+void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
 }
@@ -159,7 +159,7 @@ void TemporalScenarioProcessPresenter::on_eventDeleted(id_type<EventModel> event
 	m_view->update();
 }
 
-void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(int constraintViewModelId)
+void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	vec_erase_remove_if(m_constraints,
 						[&constraintViewModelId] (TemporalConstraintPresenter* pres)
