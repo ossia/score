@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 #include <vector>
 
@@ -48,7 +48,7 @@ class TemporalConstraintPresenter : public NamedObject
 
 	public slots:
 		void on_constraintPressed(QPointF);
-		void on_boxShown(int boxId);
+		void on_boxShown(id_type<BoxModel> boxId);
 		void on_boxHidden();
 		void on_boxRemoved();
 

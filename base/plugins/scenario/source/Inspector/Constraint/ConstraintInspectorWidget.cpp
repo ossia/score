@@ -105,9 +105,9 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 	}
 	m_processesSectionWidgets.clear();
 
-	for(auto& box : m_boxesSectionWidgets)
+	for(auto& box_pair : m_boxesSectionWidgets)
 	{
-		m_boxSection->removeContent(box);
+		m_boxSection->removeContent(box_pair.second);
 	}
 	m_boxesSectionWidgets.clear();
 
@@ -196,7 +196,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 	else
 	{
 		bool ok{};
-		int id = box.toInt(&ok);
+		auto id = id_type<BoxModel>(box.toInt(&ok));
 
 		if(ok)
 		{
@@ -216,14 +216,14 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
 void ConstraintInspectorWidget::setupBox(BoxModel* box)
 {
 	// Display the widget
-	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg((SettableIdentifier::identifier_type)box->id()),
+	BoxInspectorSection* newBox = new BoxInspectorSection{QString{"Box.%1"}.arg(*box->id().val()),
 								  box,
 								  this};
 
 	connect(newBox, &BoxInspectorSection::submitCommand,
 			this,	&ConstraintInspectorWidget::submitCommand);
 
-	m_boxesSectionWidgets[(SettableIdentifier::identifier_type)box->id()] = newBox;
+	m_boxesSectionWidgets[box->id()] = newBox;
 	m_boxSection->addContent(newBox);
 }
 
@@ -239,16 +239,16 @@ void ConstraintInspectorWidget::on_processRemoved(int processId)
 }
 
 
-void ConstraintInspectorWidget::on_boxCreated(int boxId)
+void ConstraintInspectorWidget::on_boxCreated(id_type<BoxModel> boxId)
 {
 	setupBox(model()->box(boxId));
 	m_boxWidget->updateComboBox();
 }
 
-void ConstraintInspectorWidget::on_boxRemoved(int boxId)
+void ConstraintInspectorWidget::on_boxRemoved(id_type<BoxModel> boxId)
 {
 	auto ptr = m_boxesSectionWidgets[boxId];
-	m_boxesSectionWidgets.remove(boxId);
+	m_boxesSectionWidgets.erase(boxId);
 
 	if(ptr)
 	{

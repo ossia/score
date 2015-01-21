@@ -10,7 +10,7 @@ class State;
 class ConstraintModel;
 class ScenarioProcessSharedModel;
 
-class EventModel : public NamedObject
+class EventModel : public IdentifiedObjectAlternative<EventModel>
 {
 		Q_OBJECT
 
@@ -23,14 +23,14 @@ class EventModel : public NamedObject
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
-		EventModel(QObject* parent);
-		EventModel(double yPos, QObject *parent);
+		EventModel(id_type<EventModel>, QObject* parent);
+		EventModel(id_type<EventModel>, double yPos, QObject *parent);
 		~EventModel();
 
 
 		template<typename Impl>
 		EventModel(Deserializer<Impl>& vis, QObject* parent):
-			NamedObject{vis, parent}
+			IdentifiedObjectAlternative<EventModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
@@ -123,5 +123,3 @@ class EventModel : public NamedObject
 		int m_date{0}; // Was : m_x
 
 };
-
-using IdentifiedEventModel = id_mixin<EventModel>;

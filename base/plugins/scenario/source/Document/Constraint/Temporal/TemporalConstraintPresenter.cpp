@@ -95,7 +95,7 @@ void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 	emit elementSelected(m_viewModel);
 }
 
-void TemporalConstraintPresenter::on_boxShown(int boxId)
+void TemporalConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
 {
 	clearBoxPresenter();
 	createBoxPresenter(m_viewModel->model()->box(boxId));

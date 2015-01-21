@@ -2,6 +2,7 @@
 #include <core/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
+class BoxModel;
 class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractConstraintViewModel>
 {
 		Q_OBJECT
@@ -29,18 +30,18 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		{ return m_model; }
 
 		bool isBoxShown() const;
-		int shownBox() const;
+		::id_type<BoxModel> shownBox() const;
 
 		void hideBox();
-		void showBox(int boxId);
+		void showBox(::id_type<BoxModel> boxId);
 
 	signals:
 		void boxRemoved();
 		void boxHidden();
-		void boxShown(int boxId);
+		void boxShown(::id_type<BoxModel> boxId);
 
 	public slots:
-		virtual void on_boxRemoved(int boxId) = 0;
+		virtual void on_boxRemoved(::id_type<BoxModel> boxId) = 0;
 
 
 	private:
@@ -49,6 +50,5 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		ConstraintModel* m_model{};
 
 		// TODO use settable identifier instead
-		bool m_boxIsShown{};
-		int m_idOfShownBox{};
+		::id_type<BoxModel> m_shownBox{};
 };

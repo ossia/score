@@ -41,8 +41,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	cmd2.redo();
 	auto box = constraint_model->boxes().front();
 
-	ShowBoxInViewModel cmd3{viewmodel,
-							(SettableIdentifier::identifier_type)box->id()};
+	ShowBoxInViewModel cmd3{viewmodel, box->id()};
 	cmd3.redo();
 
 	AddDeckToBox cmd4{
@@ -70,7 +69,7 @@ BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 
 	(new Command::ShowBoxInViewModel(m_baseConstraint->fullView(),
-									 (SettableIdentifier::identifier_type)m_baseConstraint->boxes().front()->id()))->redo();
+									 m_baseConstraint->boxes().front()->id()))->redo();
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):

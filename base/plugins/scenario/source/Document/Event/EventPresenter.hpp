@@ -4,7 +4,6 @@
 #include "Document/Event/EventData.hpp"
 
 class EventModel;
-using IdentifiedEventModel = id_mixin<EventModel>;
 class EventView;
 
 class EventPresenter : public NamedObject
@@ -12,12 +11,15 @@ class EventPresenter : public NamedObject
 	Q_OBJECT
 
 	public:
-		EventPresenter(IdentifiedEventModel* model, EventView* view, QObject* parent);
+		EventPresenter(EventModel* model, EventView* view, QObject* parent);
 		virtual ~EventPresenter();
 
 		id_type<EventModel> id() const;
+		int32_t id_val() const
+		{ return *id().val(); }
+
 		EventView* view() const;
-		IdentifiedEventModel* model() const;
+		EventModel* model() const;
 
 		bool isSelected() const;
 		void deselect();
@@ -36,7 +38,7 @@ class EventPresenter : public NamedObject
 		void on_eventReleasedWithControl(QPointF, QPointF);
 
 	private:
-		IdentifiedEventModel* m_model{};
+		EventModel* m_model{};
 		EventView* m_view{};
 };
 

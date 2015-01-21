@@ -4,7 +4,7 @@
 
 class AbstractConstraintViewModel;
 class ConstraintModel;
-
+class BoxModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -44,7 +44,7 @@ namespace Scenario
 			private:
 				ObjectPath m_constraintViewModelPath;
 
-				int m_constraintPreviousId{};
+				id_type<BoxModel> m_constraintPreviousId{};
 		};
 	}
 }

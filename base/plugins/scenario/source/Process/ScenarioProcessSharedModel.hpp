@@ -10,7 +10,6 @@ namespace OSSIA
 class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
-using IdentifiedEventModel = id_mixin<EventModel>;
 class AbstractScenarioProcessViewModel;
 class AbstractConstraintViewModel;
 
@@ -75,7 +74,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
 		void addConstraint(ConstraintModel* constraint);
-		void addEvent(IdentifiedEventModel* event);
+		void addEvent(EventModel* event);
 
 		void removeConstraint(int constraintId);
 		void removeEvent(id_type<EventModel> eventId);
@@ -86,11 +85,11 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		// Accessors
 		ConstraintModel* constraint(int constraintId) const;
-		IdentifiedEventModel* event(id_type<EventModel> eventId) const;
+		EventModel* event(id_type<EventModel> eventId) const;
 		TimeNodeModel* timeNode(int timeNodeId) const;
 
-		IdentifiedEventModel* startEvent() const;
-		IdentifiedEventModel* endEvent() const;
+		EventModel* startEvent() const;
+		EventModel* endEvent() const;
 
 		// Here, a copy is returned because it might be possible
 		// to call a method on the scenario (e.g. removeConstraint) that changes the vector
@@ -98,7 +97,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		// and lead to undefined behaviour
 		std::vector<ConstraintModel*> constraints() const
 		{ return m_constraints; }
-		std::vector<IdentifiedEventModel*> events() const;
+		std::vector<EventModel*> events() const;
 		std::vector<TimeNodeModel*> timeNodes() const
 		{ return m_timeNodes; }
 
@@ -146,7 +145,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		OSSIA::Scenario* m_scenario;
 
 		std::vector<ConstraintModel*> m_constraints;
-		std::vector<IdentifiedEventModel*> m_events;
+		std::vector<EventModel*> m_events;
 		std::vector<TimeNodeModel*> m_timeNodes;
 
 		id_type<EventModel> m_startEventId{};

@@ -34,6 +34,9 @@ class id
 		value_type m_id{};
 };
 
+
+
+
 template<typename tag, typename impl>
 using optional_tagged_id = id<tag, boost::optional<impl>>;
 
@@ -42,6 +45,15 @@ using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
 
 template<typename tag>
 using id_type = optional_tagged_int32_id<tag>;
+
+template<typename tag>
+struct id_hash
+{
+		std::size_t operator()(const id_type<tag>& id) const
+		{
+			return std::hash<int32_t>()(*id.val());
+		}
+};
 
 template<typename T, typename tag = T>
 class id_mixin : public T
@@ -83,15 +95,16 @@ class id_mixin : public T
 
 
 
+
 template<typename tag>
-class IdentifiedObjectAlternative : public NamedObject
+class IdentifiedObjectAlternative : public IdentifiedObjectAbstract
 {
 
 	public:
 		template<typename... Args>
 		IdentifiedObjectAlternative(id_type<tag> id,
 									Args&&... args):
-			NamedObject{std::forward<Args>(args)...},
+			IdentifiedObjectAbstract{std::forward<Args>(args)...},
 			m_id{id}
 		{
 		}
@@ -99,7 +112,7 @@ class IdentifiedObjectAlternative : public NamedObject
 		template<typename ReaderImpl,typename... Args>
 		IdentifiedObjectAlternative(Deserializer<ReaderImpl>& v,
 									Args&&... args):
-			NamedObject{v, std::forward<Args>(args)...}
+			IdentifiedObjectAbstract{v, std::forward<Args>(args)...}
 		{
 			v.writeTo(*this);
 		}
@@ -107,6 +120,12 @@ class IdentifiedObjectAlternative : public NamedObject
 		const id_type<tag>& id() const
 		{
 			return m_id;
+		}
+
+		virtual int32_t id_val() const override
+		{
+			qDebug() << m_id.val().get();
+			return *m_id.val();
 		}
 
 		void setId(id_type<tag>&& id)

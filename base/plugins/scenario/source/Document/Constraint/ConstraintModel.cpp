@@ -89,7 +89,7 @@ void ConstraintModel::removeProcess(int processId)
 }
 
 
-void ConstraintModel::createBox(int boxId)
+void ConstraintModel::createBox(id_type<BoxModel> boxId)
 {
 	auto box = new BoxModel{boxId, this};
 	addBox(box);
@@ -101,11 +101,11 @@ void ConstraintModel::addBox(BoxModel* box)
 			box,	&BoxModel::on_deleteSharedProcessModel);
 
 	m_boxes.push_back(box);
-	emit boxCreated((SettableIdentifier::identifier_type) box->id());
+	emit boxCreated(box->id());
 }
 
 
-void ConstraintModel::removeBox(int boxId)
+void ConstraintModel::removeBox(id_type<BoxModel> boxId)
 {
 	auto b = box(boxId);
 	vec_erase_remove_if(m_boxes,
@@ -136,9 +136,9 @@ void ConstraintModel::setEndEvent(id_type<EventModel> e)
 	m_endEvent = e;
 }
 
-BoxModel*ConstraintModel::box(int contentId) const
+BoxModel*ConstraintModel::box(id_type<BoxModel> id) const
 {
-	return findById(m_boxes, contentId);
+	return findById(m_boxes, id);
 }
 
 ProcessSharedModelInterface* ConstraintModel::process(int processId) const

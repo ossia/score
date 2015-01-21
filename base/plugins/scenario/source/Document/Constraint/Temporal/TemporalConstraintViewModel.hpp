@@ -32,6 +32,6 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 
 
 	public slots:
-		virtual void on_boxRemoved(int boxId) override;
+		virtual void on_boxRemoved(::id_type<BoxModel> boxId) override;
 
 };

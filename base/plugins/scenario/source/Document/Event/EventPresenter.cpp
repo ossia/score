@@ -6,7 +6,7 @@
 #include <QPointF>
 #include <QGraphicsScene>
 
-EventPresenter::EventPresenter(IdentifiedEventModel* model,
+EventPresenter::EventPresenter(EventModel* model,
 							   EventView* view,
 							   QObject* parent):
 	NamedObject{"EventPresenter", parent},
@@ -50,7 +50,7 @@ EventView *EventPresenter::view() const
 	return m_view;
 }
 
-IdentifiedEventModel* EventPresenter::model() const
+EventModel* EventPresenter::model() const
 {
 	return m_model;
 }

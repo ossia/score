@@ -77,7 +77,7 @@ void ClearConstraint::redo()
 
 	for(auto& box : constraint->boxes())
 	{
-		constraint->removeBox((SettableIdentifier::identifier_type)box->id());
+		constraint->removeBox(box->id());
 	}
 }
 

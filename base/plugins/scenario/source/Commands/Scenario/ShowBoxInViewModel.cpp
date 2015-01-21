@@ -12,7 +12,7 @@ ShowBoxInViewModel::ShowBoxInViewModel():
 }
 
 ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
-									   int boxId):
+									   id_type<BoxModel> boxId):
 	SerializableCommand{"ScenarioControl",
 						"ShowBoxInViewModel",
 						QObject::tr("Show box in constraint view")},
@@ -20,12 +20,11 @@ ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
 	m_boxId{boxId}
 {
 	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-	m_constraintPreviousState = constraint_vm->isBoxShown();
-	m_constraintPreviousId = constraint_vm->shownBox();
+	m_previousBoxId = constraint_vm->shownBox();
 }
 
 ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_vm,
-									   int boxId):
+									   id_type<BoxModel> boxId):
 	SerializableCommand{"ScenarioControl",
 						"ShowBoxInViewModel",
 						QObject::tr("Show box in constraint view")},
@@ -33,17 +32,15 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 														 constraint_vm)},
 	m_boxId{boxId}
 {
-
-	m_constraintPreviousState = constraint_vm->isBoxShown();
-	m_constraintPreviousId = constraint_vm->shownBox();
+	m_previousBoxId = constraint_vm->shownBox();
 }
 
 void ShowBoxInViewModel::undo()
 {
 	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-	if(m_constraintPreviousState)
+	if(m_previousBoxId.val().is_initialized())
 	{
-		constraint_vm->showBox(m_constraintPreviousId);
+		constraint_vm->showBox(m_previousBoxId);
 	}
 	else
 	{
@@ -71,14 +68,12 @@ void ShowBoxInViewModel::serializeImpl(QDataStream& s)
 {
 	s << m_constraintViewModelPath
 	  << m_boxId
-	  << m_constraintPreviousId
-	  << m_constraintPreviousState;
+	  << m_previousBoxId;
 }
 
 void ShowBoxInViewModel::deserializeImpl(QDataStream& s)
 {
 	s >> m_constraintViewModelPath
 	  >> m_boxId
-	  >> m_constraintPreviousId
-	  >> m_constraintPreviousState;
+	  >> m_previousBoxId;
 }

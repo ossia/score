@@ -2,26 +2,25 @@
 
 bool AbstractConstraintViewModel::isBoxShown() const
 {
-	return m_boxIsShown;
+	return m_shownBox.val().is_initialized();
 }
 
-int AbstractConstraintViewModel::shownBox() const
+::id_type<BoxModel> AbstractConstraintViewModel::shownBox() const
 {
-	return m_idOfShownBox;
+	return m_shownBox;
 }
 
 void AbstractConstraintViewModel::hideBox()
 {
-	m_boxIsShown = false;
+	m_shownBox.val().reset();
 	emit boxHidden();
 }
 
-void AbstractConstraintViewModel::showBox(int boxId)
+void AbstractConstraintViewModel::showBox(::id_type<BoxModel> boxId)
 {
-	m_boxIsShown = true;
-	m_idOfShownBox = boxId;
+	m_shownBox = boxId;
 
-	emit boxShown(m_idOfShownBox);
+	emit boxShown(m_shownBox);
 }
 
 AbstractConstraintViewModel::AbstractConstraintViewModel(id_type id,

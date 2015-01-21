@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+class BoxModel;
 namespace Scenario
 {
 	namespace Command
@@ -32,7 +33,7 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdBoxId{};
+				id_type<BoxModel> m_createdBoxId{};
 		};
 	}
 }

@@ -8,20 +8,23 @@ class TimeNodeModel;
 
 class TimeNodePresenter :  public NamedObject
 {
-    Q_OBJECT
-    public:
-        explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject *parent);
-        ~TimeNodePresenter();
+	Q_OBJECT
+	public:
+		explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject *parent);
+		~TimeNodePresenter();
 
-    int id();
-    TimeNodeModel* model();
-    TimeNodeView* view();
+	int id() const;
+	int32_t id_val() const
+	{ return id(); }
 
-    signals:
+	TimeNodeModel* model();
+	TimeNodeView* view();
 
-    public slots:
+	signals:
 
-    private:
-        TimeNodeModel* m_model{};
-        TimeNodeView* m_view{};
+	public slots:
+
+	private:
+		TimeNodeModel* m_model{};
+		TimeNodeView* m_view{};
 };

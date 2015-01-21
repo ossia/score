@@ -16,7 +16,6 @@ class EventPresenter;
 class TemporalScenarioProcessViewModel;
 class TemporalScenarioProcessView;
 class EventModel;
-using IdentifiedEventModel = id_mixin<EventModel>;
 class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
@@ -82,7 +81,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void moveConstraint(ConstraintData data);
 
 	private:
-		void on_eventCreated_impl(IdentifiedEventModel* event_model);
+		void on_eventCreated_impl(EventModel* event_model);
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
 		void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 

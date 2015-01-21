@@ -16,7 +16,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
 	m_scenario{new OSSIA::Scenario},
 	m_startEventId{0} // Always
 {
-	m_events.push_back(new IdentifiedEventModel{m_startEventId, this});
+	m_events.push_back(new EventModel{m_startEventId, this});
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 	//m_events.push_back(new EventModel(1, this));
 }
@@ -108,7 +108,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 					  newConstraintFullViewId,
 					  this->event(startEventId)->heightPercentage(),
 					  this};
-	auto event = new IdentifiedEventModel{newEventId,
+	auto event = new EventModel{newEventId,
 				 heightPos,
 				 this};
 
@@ -268,7 +268,7 @@ void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
 	// @todo : delete event in timeNode list (and timeNode if empty)
 	auto ev = event(eventId);
 	vec_erase_remove_if(m_events,
-						[&eventId] (IdentifiedEventModel* model)
+						[&eventId] (EventModel* model)
 						{ return model->id() == eventId; });
 
 	emit eventRemoved(eventId);
@@ -323,7 +323,7 @@ ConstraintModel* ScenarioProcessSharedModel::constraint(int constraintId) const
 	return findById(m_constraints, constraintId);
 }
 
-IdentifiedEventModel* ScenarioProcessSharedModel::event(id_type<EventModel> eventId) const
+EventModel* ScenarioProcessSharedModel::event(id_type<EventModel> eventId) const
 {
 	return findById(m_events, eventId);
 }
@@ -333,17 +333,17 @@ TimeNodeModel *ScenarioProcessSharedModel::timeNode(int timeNodeId) const
 	return findById(m_timeNodes, timeNodeId);
 }
 
-IdentifiedEventModel* ScenarioProcessSharedModel::startEvent() const
+EventModel* ScenarioProcessSharedModel::startEvent() const
 {
 	return event(m_startEventId);
 }
 
-IdentifiedEventModel* ScenarioProcessSharedModel::endEvent() const
+EventModel* ScenarioProcessSharedModel::endEvent() const
 {
 	return event(m_endEventId);
 }
 
-std::vector<IdentifiedEventModel*> ScenarioProcessSharedModel::events() const
+std::vector<EventModel*> ScenarioProcessSharedModel::events() const
 {
 	return m_events;
 }
@@ -361,7 +361,7 @@ void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
 	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
 }
 
-void ScenarioProcessSharedModel::addEvent(IdentifiedEventModel* event)
+void ScenarioProcessSharedModel::addEvent(EventModel* event)
 {
 	m_events.push_back(event);
 	emit eventCreated(event->id());

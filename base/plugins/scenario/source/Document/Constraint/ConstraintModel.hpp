@@ -84,9 +84,9 @@ class ConstraintModel : public IdentifiedObject
 		void addProcess(ProcessSharedModelInterface*);
 		void removeProcess(int processId);
 
-		void createBox(int boxId);
+		void createBox(id_type<BoxModel> boxId);
 		void addBox(BoxModel*);
-		void removeBox(int boxId);
+		void removeBox(id_type<BoxModel> boxId);
 
 		id_type<EventModel> startEvent() const;
 		id_type<EventModel> endEvent() const;
@@ -94,7 +94,7 @@ class ConstraintModel : public IdentifiedObject
 		void setEndEvent(id_type<EventModel> eventId); // Use ScenarioKey
 
 
-		BoxModel* box(int contentId) const;
+		BoxModel* box(id_type<BoxModel> id) const;
 		ProcessSharedModelInterface* process(int processId) const;
 
 		OSSIA::TimeBox* apiObject()
@@ -128,8 +128,8 @@ class ConstraintModel : public IdentifiedObject
 		void processCreated(QString processName, int processId);
 		void processRemoved(int processId);
 
-		void boxCreated(int boxId);
-		void boxRemoved(int boxId);
+		void boxCreated(id_type<BoxModel> boxId);
+		void boxRemoved(id_type<BoxModel> boxId);
 
 		void heightPercentageChanged(double arg);
 

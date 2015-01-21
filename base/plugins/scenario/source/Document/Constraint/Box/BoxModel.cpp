@@ -7,8 +7,8 @@
 
 #include <QDebug>
 
-BoxModel::BoxModel(int id, QObject* parent):
-	IdentifiedObject{id, "BoxModel", parent}
+BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent):
+	IdentifiedObjectAlternative<BoxModel>{id, "BoxModel", parent}
 {
 
 }

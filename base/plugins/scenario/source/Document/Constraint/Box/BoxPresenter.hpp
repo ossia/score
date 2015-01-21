@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-
+#include <tools/SettableIdentifierAlternative.hpp>
 class DeckPresenter;
 class BoxModel;
 class BoxView;
@@ -22,7 +22,7 @@ class BoxPresenter : public NamedObject
 		virtual ~BoxPresenter();
 
 		int height() const;
-		int id() const;
+		id_type<BoxModel> id() const;
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);

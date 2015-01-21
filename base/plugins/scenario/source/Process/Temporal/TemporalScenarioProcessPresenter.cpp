@@ -374,7 +374,7 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
 
-void TemporalScenarioProcessPresenter::on_eventCreated_impl(IdentifiedEventModel* event_model)
+void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
 {
 	auto rect = m_view->boundingRect();
 

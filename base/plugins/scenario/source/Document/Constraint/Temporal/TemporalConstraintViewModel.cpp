@@ -1,6 +1,6 @@
 #include "TemporalConstraintViewModel.hpp"
 
-void TemporalConstraintViewModel::on_boxRemoved(int boxId)
+void TemporalConstraintViewModel::on_boxRemoved(::id_type<BoxModel> boxId)
 {
 	if(shownBox() == boxId)
 	{
