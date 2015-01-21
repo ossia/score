@@ -8,6 +8,7 @@
 class EventModel;
 struct EventData;
 class AbstractConstraintViewModel;
+class ConstraintModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -39,7 +40,7 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdConstraintId{};
+				id_type<ConstraintModel> m_createdConstraintId{};
 				id_type<EventModel> m_startEventId{};
 				id_type<EventModel> m_endEventId{};
 

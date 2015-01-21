@@ -33,8 +33,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
-	QVector<int> prevCstr, nextCstr;
-	QMap<int, double> cstrYPos;
+	QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
+	std::unordered_map<id_type<ConstraintModel>, double, id_hash<ConstraintModel>> cstrYPos;
 	double heightPercentage, bottomY, topY;
 	int date;
 	m_stream >> prevCstr
@@ -77,7 +77,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 	m_obj["PreviousConstraints"] = toJsonArray(ev.previousConstraints());
 	m_obj["NextConstraints"] = toJsonArray(ev.nextConstraints());
 	m_obj["HeightPercentage"] = ev.heightPercentage();
-	m_obj["ConstraintsYPos"] = toJsonMap(ev.constraintsYPos());
+	// TODO m_obj["ConstraintsYPos"] = toJsonMap(ev.constraintsYPos());
 	m_obj["BottomY"] = ev.bottomY();
 	m_obj["TopY"] = ev.topY();
 	m_obj["Date"] = ev.date(); // should be in OSSIA API
@@ -94,6 +94,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 
 template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 {
+	/* TODO
 	QVector<int> prevCstr, nextCstr;
 	;
 	fromJsonArray(m_obj["PreviousConstraints"].toArray(), prevCstr);
@@ -117,4 +118,5 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 	}
 
 	ev.setOSSIATimeNode(new OSSIA::TimeNode);
+	*/
 }

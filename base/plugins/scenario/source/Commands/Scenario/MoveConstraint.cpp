@@ -29,7 +29,7 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	m_path{std::move(scenarioPath)},
 	m_constraintId{d.id},
 	m_newHeightPosition{d.relativeY},
-    m_newX{d.dDate}
+	m_newX{d.dDate}
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 	auto cst = scenar->constraint(m_constraintId);

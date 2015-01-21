@@ -61,7 +61,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
 		void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
-		void on_constraintMoved(int constraintId);
+		void on_constraintMoved(id_type<ConstraintModel> constraintId);
 
 		// View -> Presenter
 		void on_deletePressed();

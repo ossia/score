@@ -27,7 +27,7 @@ CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, id_type<EventModel
 	m_endEventId{endEvent}
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
-	m_createdConstraintId = getNextId(scenar->constraints());
+	m_createdConstraintId = getStrongId(scenar->constraints());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,
 	// we have to generate ConstraintViewModels, too

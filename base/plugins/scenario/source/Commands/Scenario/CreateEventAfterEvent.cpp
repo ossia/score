@@ -31,7 +31,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
 	m_createdEventId = getStrongId(scenar->events());
-	m_createdConstraintId = getNextId(scenar->constraints());
+	m_createdConstraintId = getStrongId(scenar->constraints());
 	m_createdTimeNodeId = getNextId(scenar->timeNodes());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,

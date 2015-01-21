@@ -25,44 +25,45 @@ EventModel::~EventModel()
 	delete m_timeEvent;
 }
 
-const QVector<int>& EventModel::previousConstraints() const
+const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const
 {
 	return m_previousConstraints;
 }
 
-const QVector<int>& EventModel::nextConstraints() const
+const QVector<id_type<ConstraintModel> >& EventModel::nextConstraints() const
 {
 	return m_nextConstraints;
 }
 
-void EventModel::addNextConstraint(int constraint)
+void EventModel::addNextConstraint(id_type<ConstraintModel> constraint)
 {
 	m_nextConstraints.push_back(constraint);
 }
 
-void EventModel::addPreviousConstraint(int constraint)
+void EventModel::addPreviousConstraint(id_type<ConstraintModel> constraint)
 {
 	m_previousConstraints.push_back(constraint);
 }
 
-bool EventModel::removeNextConstraint(int constraintToDelete)
+// TODO refactor this with a small template
+bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelete)
 {
 	if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
-		m_constraintsYPos.remove(constraintToDelete);
+		m_constraintsYPos.erase(constraintToDelete);
 		updateVerticalLink();
 		return true;
 	}
 	return false;
 }
 
-bool EventModel::removePreviousConstraint(int constraintToDelete)
+bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToDelete)
 {
 	if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-		m_constraintsYPos.remove(constraintToDelete);
+		m_constraintsYPos.erase(constraintToDelete);
 		updateVerticalLink();
 		return true;
 	}
@@ -117,7 +118,7 @@ void EventModel::translate(int deltaTime)
 	m_date += deltaTime;
 }
 
-void EventModel::setVerticalExtremity(int consId, double newPosition)
+void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
 {
 	m_constraintsYPos[consId] = newPosition;
 	updateVerticalLink();
@@ -127,16 +128,16 @@ void EventModel::updateVerticalLink()
 {
 	m_topY = 0.0;
 	m_bottomY = 0.0;
-	for (auto pos : m_constraintsYPos)
+	for (auto& pos : m_constraintsYPos)
 	{
-		pos -= m_heightPercentage;
-		if (pos < m_topY)
+		pos.second -= m_heightPercentage;
+		if (pos.second < m_topY)
 		{
-			m_topY = pos;
+			m_topY = pos.second;
 		}
-		else if (pos > m_bottomY)
+		else if (pos.second > m_bottomY)
 		{
-			m_bottomY = pos;
+			m_bottomY = pos.second;
 		}
 	}
 	emit verticalExtremityChanged(m_topY, m_bottomY);

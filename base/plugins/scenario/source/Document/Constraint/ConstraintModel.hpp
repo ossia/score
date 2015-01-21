@@ -24,7 +24,7 @@ class TimeBox;
  * @brief The ConstraintModel class
  */
 // TODO put some of this stuff in the corresponding view models.
-class ConstraintModel : public IdentifiedObject
+class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 {
 		Q_OBJECT
 
@@ -46,13 +46,18 @@ class ConstraintModel : public IdentifiedObject
 	public:
 		ConstraintModelMetadata metadata;
 
-		ConstraintModel(int id, id_type<AbstractConstraintViewModel> fullViewId, QObject* parent);
-		ConstraintModel(int id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject* parent);
+		ConstraintModel(id_type<ConstraintModel>,
+						id_type<AbstractConstraintViewModel> fullViewId,
+						QObject* parent);
+		ConstraintModel(id_type<ConstraintModel>,
+						id_type<AbstractConstraintViewModel> fullViewId,
+						double yPos,
+						QObject* parent);
 		~ConstraintModel();
 
 		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObjectAlternative<ConstraintModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
@@ -65,17 +70,6 @@ class ConstraintModel : public IdentifiedObject
 			setupConstraintViewModel(viewmodel);
 			return viewmodel;
 		}
-
-		/*
-		template<typename ViewModelType, typename Impl> // Arg might be an id or a datastream [
-		ViewModelType* makeConstraintViewModel(Deserializer<Impl>& deserializer,
-											   QObject* parent)
-		{
-			auto viewmodel =  new ViewModelType{deserializer, this, parent};
-			setupConstraintViewModel(viewmodel);
-			return viewmodel;
-		}
-		*/
 
 		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 

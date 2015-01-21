@@ -38,12 +38,12 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;
 
-		virtual void makeConstraintViewModel(int constraintModelId,
+		virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
 											 id_type<AbstractConstraintViewModel> constraintViewModelId) override;
 
 		void addConstraintViewModel(constraint_view_model_type* constraint_view_model);
 
 	public slots:
-		virtual void on_constraintRemoved(int constraintId) override;
+		virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) override;
 
 };

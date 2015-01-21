@@ -49,7 +49,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 */
 		void createConstraintBetweenEvents(id_type<EventModel> startEventId,
 										   id_type<EventModel> endEventId,
-										   int newConstraintModelId,
+										   id_type<ConstraintModel> newConstraintModelId,
 										   id_type<AbstractConstraintViewModel> newConstraintFullViewId);
 
 		/**
@@ -61,30 +61,36 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
 												  int duration,
 												  double heightPos,
-												  int newConstraintId,
+												  id_type<ConstraintModel> newConstraintId,
 												  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 												  id_type<EventModel> newEventId,
 												  int newTimeNodeId);
 
 
-		void moveEventAndConstraint(id_type<EventModel> eventId, int time, double heightPosition);
-		void moveConstraint(int constraintId, int deltaX, double heightPosition);
-		void moveNextElements(id_type<EventModel> firstEventMovedId, int deltaTime, QVector<id_type<EventModel> >& movedEvent);
+		void moveEventAndConstraint(id_type<EventModel> eventId,
+									int time,
+									double heightPosition);
+		void moveConstraint(id_type<ConstraintModel> constraintId,
+							int deltaX,
+							double heightPosition);
+		void moveNextElements(id_type<EventModel> firstEventMovedId,
+							  int deltaTime,
+							  QVector<id_type<EventModel> >& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
 		void addConstraint(ConstraintModel* constraint);
 		void addEvent(EventModel* event);
 
-		void removeConstraint(int constraintId);
+		void removeConstraint(id_type<ConstraintModel> constraintId);
 		void removeEvent(id_type<EventModel> eventId);
 		void removeEventFromTimeNode(id_type<EventModel> eventId);
-		void undo_createConstraintAndEndEventFromEvent(int constraintId);
-		void undo_createConstraintBetweenEvent(int constraintId);
+		void undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId);
+		void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 
 
 		// Accessors
-		ConstraintModel* constraint(int constraintId) const;
+		ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;
 		EventModel* event(id_type<EventModel> eventId) const;
 		TimeNodeModel* timeNode(int timeNodeId) const;
 
@@ -103,12 +109,12 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 	signals:
 		void eventCreated(id_type<EventModel> eventId);
-		void constraintCreated(int constraintId);
+		void constraintCreated(id_type<ConstraintModel> constraintId);
 		void timeNodeCreated(int timeNodeId);
 		void eventRemoved(id_type<EventModel> eventId);
-		void constraintRemoved(int constraintId);
+		void constraintRemoved(id_type<ConstraintModel> constraintId);
 		void eventMoved(id_type<EventModel> eventId);
-		void constraintMoved(int constraintId);
+		void constraintMoved(id_type<ConstraintModel> constraintId);
 
 		void locked();
 		void unlocked();

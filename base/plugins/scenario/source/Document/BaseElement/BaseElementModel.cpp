@@ -74,7 +74,7 @@ BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 
 BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseConstraint{new ConstraintModel{0, id_type<AbstractConstraintViewModel>{0}, 0, this}}
+	m_baseConstraint{new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, 0, this}}
 {
 	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");

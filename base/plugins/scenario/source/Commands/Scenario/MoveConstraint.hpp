@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 struct ConstraintData;
+class ConstraintModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -27,7 +28,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_constraintId{};
+				id_type<ConstraintModel> m_constraintId{};
 
 				double m_oldHeightPosition{};
 				double m_newHeightPosition{};

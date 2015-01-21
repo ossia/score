@@ -191,7 +191,7 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 }
 
 
-void TemporalScenarioProcessPresenter::on_constraintMoved(int constraintId)
+void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintModel> constraintId)
 {
 	auto rect = m_view->boundingRect();
 

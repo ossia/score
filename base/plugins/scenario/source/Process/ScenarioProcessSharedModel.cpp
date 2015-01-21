@@ -61,7 +61,7 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 //////// Creation ////////
 void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
 															   id_type<EventModel> endEventId,
-															   int newConstraintModelId,
+															   id_type<ConstraintModel> newConstraintModelId,
 															   id_type<AbstractConstraintViewModel> newConstraintFullViewId)
 {
 	auto sev = this->event(startEventId);
@@ -90,14 +90,14 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 
 	// From now on everything must be in a valid state.
 	addConstraint(inter);
-	emit constraintCreated((SettableIdentifier::identifier_type) inter->id());
+	emit constraintCreated(inter->id());
 }
 
 void
 ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
 																 int constraint_duration,
 																 double heightPos,
-																 int newConstraintId,
+																 id_type<ConstraintModel> newConstraintId,
 																 id_type<AbstractConstraintViewModel> newConstraintFullViewId,
 																 id_type<EventModel> newEventId,
 																 int newTimeNodeId)
@@ -155,19 +155,21 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	m_timeNodes.push_back(timeNode);
 
 	emit eventCreated(event->id());
-	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
+	emit constraintCreated(constraint->id());
 	emit timeNodeCreated((SettableIdentifier::identifier_type) timeNode->id());
 
 	// link constraint with event
 	event->addPreviousConstraint(newConstraintId);
 	this->event(startEventId)->addNextConstraint(newConstraintId);
-	event->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+	event->setVerticalExtremity(constraint->id(),
 								constraint->heightPercentage());
-	this->event(startEventId)->setVerticalExtremity((SettableIdentifier::identifier_type) constraint->id(),
+	this->event(startEventId)->setVerticalExtremity(constraint->id(),
 													constraint->heightPercentage());
 }
 
-void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> eventId, int absolute_time, double heightPosition)
+void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> eventId,
+														int absolute_time,
+														double heightPosition)
 {
 	// resize previous constraint
 	if (! event(eventId)->previousConstraints().isEmpty() )
@@ -187,7 +189,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> even
 		{
 			auto prevConstraint = constraint(prevConstraintId);
 			prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
-			emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
+			emit constraintMoved(prevConstraintId);
 		}
 
 		emit eventMoved(eventId);
@@ -197,7 +199,9 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> even
 	}
 }
 
-void ScenarioProcessSharedModel::moveConstraint(int constraintId, int absolute_time, double heightPosition)
+void ScenarioProcessSharedModel::moveConstraint(id_type<ConstraintModel> constraintId,
+												int absolute_time,
+												double heightPosition)
 {
 	constraint(constraintId)->setHeightPercentage(heightPosition);
 	emit constraintMoved(constraintId);
@@ -213,7 +217,9 @@ void ScenarioProcessSharedModel::moveConstraint(int constraintId, int absolute_t
 						   sev->heightPercentage());
 }
 
-void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEventMovedId, int deltaTime, QVector<id_type<EventModel>> &movedEvent)
+void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEventMovedId,
+												  int deltaTime,
+												  QVector<id_type<EventModel>> &movedEvent)
 {
 	auto cur_event = event(firstEventMovedId);
 
@@ -241,7 +247,7 @@ void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEvent
 				{
 					auto prevConstraint = constraint(prevConstraintId);
 					prevConstraint->setDefaultDuration(event(evId)->date() - prevConstraint->startDate());
-					emit constraintMoved((SettableIdentifier::identifier_type) prevConstraintId);
+					emit constraintMoved(prevConstraintId);
 				}
 
 				moveNextElements(evId, deltaTime, movedEvent);
@@ -252,7 +258,7 @@ void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEvent
 
 ///////// DELETION //////////
 #include <tools/utilsCPP11.hpp>
-void ScenarioProcessSharedModel::removeConstraint(int constraintId)
+void ScenarioProcessSharedModel::removeConstraint(id_type<ConstraintModel> constraintId)
 {
 	auto cstr = constraint(constraintId);
 	vec_erase_remove_if(m_constraints,
@@ -286,7 +292,7 @@ void ScenarioProcessSharedModel::removeEventFromTimeNode(id_type<EventModel> eve
 	}
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int constraintId)
+void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId)
 {
 	// @todo : delete event in timeNode list (and timeNode if empty)
 	// End event suppression
@@ -305,7 +311,7 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(int c
 	removeConstraint(constraintId);
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(int constraintId)
+void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId)
 {
 	auto end_event = event(this->constraint(constraintId)->endEvent());
 	end_event->removePreviousConstraint(constraintId);
@@ -318,7 +324,7 @@ void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(int constrain
 
 
 /////////////////////////////
-ConstraintModel* ScenarioProcessSharedModel::constraint(int constraintId) const
+ConstraintModel* ScenarioProcessSharedModel::constraint(id_type<ConstraintModel> constraintId) const
 {
 	return findById(m_constraints, constraintId);
 }
@@ -358,7 +364,7 @@ void ScenarioProcessSharedModel::on_viewModelDestroyed(QObject* obj)
 void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
 {
 	m_constraints.push_back(constraint);
-	emit constraintCreated((SettableIdentifier::identifier_type) constraint->id());
+	emit constraintCreated(constraint->id());
 }
 
 void ScenarioProcessSharedModel::addEvent(EventModel* event)

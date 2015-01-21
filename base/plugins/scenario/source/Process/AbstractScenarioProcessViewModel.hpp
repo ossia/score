@@ -4,6 +4,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 class ScenarioProcessSharedModel;
 class AbstractConstraintViewModel;
+class ConstraintModel;
 
 class EventModel;
 
@@ -13,7 +14,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 	public:
 		using model_type = ScenarioProcessSharedModel;
 
-		virtual void makeConstraintViewModel(int constraintModelId,
+		virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
 											 id_type<AbstractConstraintViewModel> constraintViewModelId) = 0;
 
 		void removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId);
@@ -31,10 +32,10 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		void eventDeleted(id_type<EventModel> eventId);
 		void eventMoved(id_type<EventModel> eventId);
 		void timeNodeCreated(int timeNodeId);
-		void constraintMoved(int constraintId);
+		void constraintMoved(id_type<ConstraintModel> constraintId);
 
 	public slots:
-		virtual void on_constraintRemoved(int constraintId) = 0;
+		virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
 
 	protected:
 		AbstractScenarioProcessViewModel(int viewModelId,
