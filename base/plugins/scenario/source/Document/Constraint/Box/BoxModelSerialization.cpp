@@ -5,7 +5,7 @@
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const BoxModel& box)
 {
-	readFrom(static_cast<const IdentifiedObjectAlternative<BoxModel>&>(box));
+	readFrom(static_cast<const IdentifiedObject<BoxModel>&>(box));
 
 	auto decks = box.decks();
 	m_stream << (int)decks.size();
@@ -30,7 +30,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BoxModel& box)
 
 template<> void Visitor<Reader<JSON>>::readFrom(const BoxModel& box)
 {
-	readFrom(static_cast<const IdentifiedObjectAlternative<BoxModel>&>(box));
+	readFrom(static_cast<const IdentifiedObject<BoxModel>&>(box));
 
 	QJsonArray arr;
 	for(auto deck : box.decks())

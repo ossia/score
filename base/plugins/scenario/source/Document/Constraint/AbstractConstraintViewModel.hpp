@@ -3,7 +3,7 @@
 
 class ConstraintModel;
 class BoxModel;
-class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractConstraintViewModel>
+class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintViewModel>
 {
 		Q_OBJECT
 
@@ -17,7 +17,7 @@ class AbstractConstraintViewModel : public IdentifiedObjectAlternative<AbstractC
 		AbstractConstraintViewModel(Deserializer<Impl>& vis,
 									ConstraintModel* model,
 									QObject* parent):
-			IdentifiedObjectAlternative<AbstractConstraintViewModel>{vis, parent},
+			IdentifiedObject<AbstractConstraintViewModel>{vis, parent},
 			m_model{model}
 		{
 			vis.writeTo(*this);

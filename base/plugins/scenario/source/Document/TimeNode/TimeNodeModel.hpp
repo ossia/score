@@ -4,7 +4,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 
 class EventModel;
-class TimeNodeModel : public IdentifiedObjectAlternative<TimeNodeModel>
+class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
 	Q_OBJECT
 

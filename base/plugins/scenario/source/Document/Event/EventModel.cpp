@@ -8,7 +8,7 @@
 
 
 EventModel::EventModel(id_type<EventModel> id, QObject* parent):
-	IdentifiedObjectAlternative<EventModel>{id, "EventModel", parent},
+	IdentifiedObject<EventModel>{id, "EventModel", parent},
 	m_timeEvent{new OSSIA::TimeNode}
 {
 	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.

@@ -6,42 +6,46 @@
 #include <random>
 
 // This should maybe be a mixin ?
-/*
+
+template<typename tag>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
+
 	public:
 		template<typename... Args>
-		IdentifiedObject(SettableIdentifier id,
-						 Args&&... args):
+		IdentifiedObject(id_type<tag> id,
+									Args&&... args):
 			IdentifiedObjectAbstract{std::forward<Args>(args)...},
 			m_id{id}
 		{
 		}
 
 		template<typename ReaderImpl,typename... Args>
-		IdentifiedObject(Deserializer<ReaderImpl>& v, Args&&... args):
+		IdentifiedObject(Deserializer<ReaderImpl>& v,
+									Args&&... args):
 			IdentifiedObjectAbstract{v, std::forward<Args>(args)...}
 		{
 			v.writeTo(*this);
 		}
 
-		const SettableIdentifier& id() const
+		const id_type<tag>& id() const
 		{
 			return m_id;
 		}
 
-		void setId(SettableIdentifier&& id)
+		virtual int32_t id_val() const override
+		{
+			return *m_id.val();
+		}
+
+		void setId(id_type<tag>&& id)
 		{
 			m_id = id;
 		}
 
-		virtual int32_t id_val() const override
-		{ return (int32_t) m_id; }
-
 	private:
-		SettableIdentifier m_id{};
+		id_type<tag> m_id{};
 };
-*/
 ////////////////////////////////////////////////
 ///
 ///Functions that operate on collections of identified objects.
@@ -60,7 +64,7 @@ typename Container::value_type findById(const Container& c, int32_t id)
 	if(it != std::end(c))
 		return *it;
 
-	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(/*id*/"_TODO_").arg(typeid(c).name()).toLatin1().constData());
+	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
 }
 
 template<typename Container, typename id_T>
@@ -76,7 +80,7 @@ typename Container::value_type findById(const Container& c, id_T id)
 	if(it != std::end(c))
 		return *it;
 
-	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(/*id*/"_TODO_").arg(typeid(c).name()).toLatin1().constData());
+	throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
 }
 
 inline int32_t getNextId()

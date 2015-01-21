@@ -9,12 +9,12 @@ class ProcessViewModelInterface;
 	 *
 	 * Interface to implement to make a process.
 	 */
-class ProcessSharedModelInterface: public IdentifiedObjectAlternative<ProcessSharedModelInterface>
+class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
 
 
 	public:
-		using IdentifiedObjectAlternative<ProcessSharedModelInterface>::IdentifiedObjectAlternative;
+		using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
 
 		/**
 			 * @brief processName

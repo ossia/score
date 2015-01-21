@@ -24,7 +24,7 @@ class TimeBox;
  * @brief The ConstraintModel class
  */
 // TODO put some of this stuff in the corresponding view models.
-class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
+class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
 		Q_OBJECT
 
@@ -57,7 +57,7 @@ class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 
 		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObjectAlternative<ConstraintModel>{vis, parent}
+			IdentifiedObject<ConstraintModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}
@@ -167,6 +167,3 @@ class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 
 		double m_heightPercentage{0.5};
 };
-
-
-using IdentifiedConstraintModel = id_mixin<ConstraintModel>;

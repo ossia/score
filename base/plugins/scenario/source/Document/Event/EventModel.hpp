@@ -13,7 +13,7 @@ class ConstraintModel;
 class TimeNodeModel;
 class ScenarioProcessSharedModel;
 
-class EventModel : public IdentifiedObjectAlternative<EventModel>
+class EventModel : public IdentifiedObject<EventModel>
 {
 		Q_OBJECT
 
@@ -33,7 +33,7 @@ class EventModel : public IdentifiedObjectAlternative<EventModel>
 
 		template<typename Impl>
 		EventModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObjectAlternative<EventModel>{vis, parent}
+			IdentifiedObject<EventModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}

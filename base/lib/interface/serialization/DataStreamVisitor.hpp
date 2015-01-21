@@ -30,15 +30,6 @@ class Visitor<Reader<DataStream>>
 		}
 
 		template<typename T>
-		void readFrom(const id_mixin<T>& obj)
-		{
-			// We save the data before the id, because of the
-			// way id_mixin is constructed.
-			readFrom(static_cast<const T&>(obj));
-			readFrom(obj.id());
-		}
-
-		template<typename T>
 		void readFrom(const T&);
 
 
@@ -65,17 +56,6 @@ class Visitor<Writer<DataStream>>
 				m_stream >> val;
 
 			obj.setVal(boost::optional<int32_t>{init, val});
-		}
-
-		template<typename T>
-		void writeTo(id_mixin<T>& obj)
-		{
-			// id_mixin's constructor passes the visitor to
-			// the ctor of its base class. Hence we
-			// don't deserialize it here.
-			id_type<T> id;
-			writeTo(id);
-			obj.setId(id);
 		}
 
 		template<typename T>

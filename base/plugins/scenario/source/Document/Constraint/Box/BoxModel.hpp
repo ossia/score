@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/IdentifiedObject.hpp>
 #include <interface/serialization/VisitorInterface.hpp>
 
 #include <vector>
@@ -7,7 +7,7 @@
 class ConstraintModel;
 class DeckModel;
 class ProcessSharedModelInterface;
-class BoxModel : public IdentifiedObjectAlternative<BoxModel>
+class BoxModel : public IdentifiedObject<BoxModel>
 {
 	Q_OBJECT
 
@@ -15,7 +15,7 @@ class BoxModel : public IdentifiedObjectAlternative<BoxModel>
 		BoxModel(id_type<BoxModel> id, QObject* parent);
 		template<typename Impl>
 		BoxModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObjectAlternative<BoxModel>{vis, parent}
+			IdentifiedObject<BoxModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}

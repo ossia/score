@@ -21,7 +21,7 @@
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 								 id_type<AbstractConstraintViewModel> fullViewId,
 								 QObject* parent):
-	IdentifiedObjectAlternative<ConstraintModel>{id, "ConstraintModel", parent},
+	IdentifiedObject<ConstraintModel>{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox},
 	m_fullViewModel{
 		new TemporalConstraintViewModel{fullViewId, this, this}

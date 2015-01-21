@@ -8,7 +8,7 @@ class ConstraintModel;
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
-class DeckModel : public IdentifiedObjectAlternative<DeckModel>
+class DeckModel : public IdentifiedObject<DeckModel>
 {
 	Q_OBJECT
 
@@ -22,7 +22,7 @@ class DeckModel : public IdentifiedObjectAlternative<DeckModel>
 
 		template<typename Impl>
 		DeckModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObjectAlternative<DeckModel>{vis, parent}
+			IdentifiedObject<DeckModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}

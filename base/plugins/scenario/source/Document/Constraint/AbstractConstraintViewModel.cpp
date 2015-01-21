@@ -27,7 +27,7 @@ AbstractConstraintViewModel::AbstractConstraintViewModel(id_type<AbstractConstra
 														 QString name,
 														 ConstraintModel* model,
 														 QObject* parent):
-	IdentifiedObjectAlternative<AbstractConstraintViewModel>{id, name, parent},
+	IdentifiedObject<AbstractConstraintViewModel>{id, name, parent},
 	m_model{model}
 {
 }

@@ -1,7 +1,7 @@
 #include "TimeNodeModel.hpp"
 
 TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, QObject *parent):
-	IdentifiedObjectAlternative<TimeNodeModel>{id, "TimeNodeModel", parent}
+	IdentifiedObject<TimeNodeModel>{id, "TimeNodeModel", parent}
 {
 
 }

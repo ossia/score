@@ -1,19 +1,19 @@
 #pragma once
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/IdentifiedObject.hpp>
 
-class State : public IdentifiedObjectAlternative<State>
+class State : public IdentifiedObject<State>
 {
 		Q_OBJECT
 
 	public:
 		State(id_type<State> id, QObject* parent):
-			IdentifiedObjectAlternative<State>{id, "State", parent}
+			IdentifiedObject<State>{id, "State", parent}
 		{
 		}
 
 		template<typename Impl>
 		State(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObjectAlternative<State>{vis, parent}
+			IdentifiedObject<State>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}

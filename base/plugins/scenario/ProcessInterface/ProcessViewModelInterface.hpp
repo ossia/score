@@ -9,7 +9,7 @@ class ProcessSharedModelInterface;
  *
  * Interface to implement to make a process view model.
  */
-class ProcessViewModelInterface: public IdentifiedObjectAlternative<ProcessViewModelInterface>
+class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterface>
 {
 	public:
 		virtual ~ProcessViewModelInterface() = default;
@@ -26,7 +26,7 @@ class ProcessViewModelInterface: public IdentifiedObjectAlternative<ProcessViewM
 								  QString name,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObjectAlternative<ProcessViewModelInterface>{viewModelId, name, parent},
+			IdentifiedObject<ProcessViewModelInterface>{viewModelId, name, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
 
@@ -36,7 +36,7 @@ class ProcessViewModelInterface: public IdentifiedObjectAlternative<ProcessViewM
 		ProcessViewModelInterface(Deserializer<Impl>& vis,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObjectAlternative<ProcessViewModelInterface>{vis, parent},
+			IdentifiedObject<ProcessViewModelInterface>{vis, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
 			// Nothing else to load
