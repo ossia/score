@@ -10,8 +10,8 @@
 
 #include <QDebug>
 
-DeckModel::DeckModel(int position, int id, BoxModel* parent):
-	IdentifiedObject{id, "DeckModel", parent},
+DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
+	IdentifiedObjectAlternative<DeckModel>{id, "DeckModel", parent},
 	m_position{position}
 {
 }

@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+class DeckModel;
 namespace Scenario
 {
 	namespace Command
@@ -31,7 +32,7 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_createdDeckId{};
+				id_type<DeckModel> m_createdDeckId{};
 		};
 	}
 }

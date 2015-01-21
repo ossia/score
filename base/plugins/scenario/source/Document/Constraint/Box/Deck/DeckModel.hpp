@@ -6,12 +6,8 @@
 class BoxModel;
 class ConstraintModel;
 
-namespace iscore
-{
-}
-
 class ProcessViewModelInterface;
-class DeckModel : public IdentifiedObject
+class DeckModel : public IdentifiedObjectAlternative<DeckModel>
 {
 	Q_OBJECT
 
@@ -21,11 +17,11 @@ class DeckModel : public IdentifiedObject
 				   NOTIFY heightChanged)
 
 	public:
-		DeckModel(int position, int id, BoxModel* parent);
+		DeckModel(int position, id_type<DeckModel> id, BoxModel* parent);
 
 		template<typename Impl>
 		DeckModel(Deserializer<Impl>& vis, QObject* parent):
-			IdentifiedObject{vis, parent}
+			IdentifiedObjectAlternative<DeckModel>{vis, parent}
 		{
 			vis.writeTo(*this);
 		}

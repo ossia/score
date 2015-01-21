@@ -53,7 +53,6 @@ typename Container::value_type findById(const Container& c, int32_t id)
 						   std::end(c),
 						   [&id] (typename Container::value_type model)
 							{
-							  qDebug() << "id_val, id: " << model->id_val() << id;
 							  return model->id_val() == id;
 							});
 

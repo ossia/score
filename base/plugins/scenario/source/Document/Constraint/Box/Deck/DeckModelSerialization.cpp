@@ -6,7 +6,7 @@
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 {
-	readFrom(static_cast<const IdentifiedObject&>(deck));
+	// TODO readFrom(static_cast<const IdentifiedObject&>(deck));
 
 	m_stream << deck.editedProcessViewModel();
 
@@ -52,7 +52,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 
 template<> void Visitor<Reader<JSON>>::readFrom(const DeckModel& deck)
 {
-	readFrom(static_cast<const IdentifiedObject&>(deck));
+	// TODO  readFrom(static_cast<const IdentifiedObject&>(deck));
 
 	m_obj["EditedProcess"] = deck.editedProcessViewModel();
 	m_obj["Height"] = deck.height();

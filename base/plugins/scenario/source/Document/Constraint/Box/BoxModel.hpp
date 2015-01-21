@@ -22,21 +22,21 @@ class BoxModel : public IdentifiedObjectAlternative<BoxModel>
 
 		virtual ~BoxModel() = default;
 
-		int createDeck(int newDeckId);
-		int addDeck(DeckModel* m);
+		id_type<DeckModel> createDeck(id_type<DeckModel> newDeckId);
+		id_type<DeckModel> addDeck(DeckModel* m);
 
-		void removeDeck(int deckId);
-		void changeDeckOrder(int deckId, int position);
+		void removeDeck(id_type<DeckModel> deckId);
+		void changeDeckOrder(id_type<DeckModel> deckId, int position);
 
-		DeckModel* deck(int deckId) const;
+		DeckModel* deck(id_type<DeckModel> deckId) const;
 
 		const std::vector<DeckModel*>& decks() const
 		{ return m_decks; }
 
 	signals:
-		void deckCreated(int id);
-		void deckRemoved(int id);
-		void deckOrderChanged(int deckId);
+		void deckCreated(id_type<DeckModel> id);
+		void deckRemoved(id_type<DeckModel> id);
+		void deckOrderChanged(id_type<DeckModel> deckId);
 
 		void on_deleteSharedProcessModel(int processId);
 

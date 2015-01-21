@@ -62,9 +62,9 @@ DeckPresenter::~DeckPresenter()
 	}
 }
 
-int DeckPresenter::id() const
+id_type<DeckModel> DeckPresenter::id() const
 {
-	return (SettableIdentifier::identifier_type) m_model->id();
+	return m_model->id();
 }
 
 int DeckPresenter::height() const

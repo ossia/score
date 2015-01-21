@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class DeckModel;
 class DeckView;
@@ -19,7 +19,7 @@ class DeckPresenter : public NamedObject
 						QObject* parent);
 		virtual ~DeckPresenter();
 
-		int id() const;
+		id_type<DeckModel> id() const;
 		int height() const; // Return the height of the view
 
 		// Position in the Box : 1st, second...

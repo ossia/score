@@ -14,7 +14,7 @@ RemoveDeckFromBox::RemoveDeckFromBox():
 {
 }
 
-RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, int deckId):
+RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveDeckFromBox",
 						QObject::tr("Remove deck")},

@@ -124,7 +124,6 @@ class IdentifiedObjectAlternative : public IdentifiedObjectAbstract
 
 		virtual int32_t id_val() const override
 		{
-			qDebug() << m_id.val().get();
 			return *m_id.val();
 		}
 

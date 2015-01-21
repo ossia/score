@@ -13,7 +13,7 @@ BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent):
 
 }
 
-int BoxModel::createDeck(int newDeckId)
+id_type<DeckModel> BoxModel::createDeck(id_type<DeckModel> newDeckId)
 {
 	return addDeck(
 				new DeckModel{(int) m_decks.size(),
@@ -22,18 +22,18 @@ int BoxModel::createDeck(int newDeckId)
 
 }
 
-int BoxModel::addDeck(DeckModel* deck)
+id_type<DeckModel> BoxModel::addDeck(DeckModel* deck)
 {
 	connect(this, &BoxModel::on_deleteSharedProcessModel,
 			deck, &DeckModel::on_deleteSharedProcessModel);
 	m_decks.push_back(deck);
 
-	emit deckCreated((SettableIdentifier::identifier_type) deck->id());
-	return (SettableIdentifier::identifier_type) deck->id();
+	emit deckCreated(deck->id());
+	return deck->id();
 }
 
 
-void BoxModel::removeDeck(int deckId)
+void BoxModel::removeDeck(id_type<DeckModel> deckId)
 {
 	auto removedDeck = deck(deckId);
 
@@ -54,12 +54,12 @@ void BoxModel::removeDeck(int deckId)
 	delete removedDeck;
 }
 
-void BoxModel::changeDeckOrder(int deckId, int position)
+void BoxModel::changeDeckOrder(id_type<DeckModel> deckId, int position)
 {
 	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
-DeckModel* BoxModel::deck(int deckId) const
+DeckModel* BoxModel::deck(id_type<DeckModel> deckId) const
 {
 	return findById(m_decks, deckId);
 }
