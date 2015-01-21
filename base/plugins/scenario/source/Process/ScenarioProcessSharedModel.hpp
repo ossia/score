@@ -33,7 +33,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		ScenarioProcessSharedModel(int id, QObject* parent);
 
 		virtual ~ScenarioProcessSharedModel();
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) override;
 
 		virtual QString processName() const override

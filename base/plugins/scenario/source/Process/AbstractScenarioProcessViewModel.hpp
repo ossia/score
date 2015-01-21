@@ -39,7 +39,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
 
 	protected:
-		AbstractScenarioProcessViewModel(int viewModelId,
+		AbstractScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
 										 QString name,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):

@@ -94,7 +94,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 			return "CurvePlugin";
 		}
 
-		virtual ProcessViewModelInterface* makeViewModel (int viewModelId,
+		virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
 														  QObject* parent) override;
 
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,

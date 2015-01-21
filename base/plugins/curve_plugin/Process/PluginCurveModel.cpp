@@ -234,7 +234,7 @@ void PluginCurveModel::sectionRemoveOne (PluginCurveSection* section)
 	_sections.removeOne (section);
 }
 
-ProcessViewModelInterface* PluginCurveModel::makeViewModel(int viewModelId,
+ProcessViewModelInterface* PluginCurveModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														   QObject* parent)
 {
 	return new PluginCurveViewModel{viewModelId,

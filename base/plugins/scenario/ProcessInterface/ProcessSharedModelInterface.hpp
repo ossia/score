@@ -29,7 +29,7 @@ class ProcessSharedModelInterface: public IdentifiedObject
 
 		// TODO pass the name of the view model to be created
 		// (e.g. temporal / logical...).
-		virtual ProcessViewModelInterface* makeViewModel(int viewModelId,
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) = 0;
 
 

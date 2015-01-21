@@ -2,6 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+class ProcessViewModelInterface;
 namespace Scenario
 {
 	namespace Command
@@ -15,7 +16,7 @@ namespace Scenario
 		{
 			public:
 				RemoveProcessViewModelFromDeck();
-				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, int processViewId);
+				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -28,7 +29,7 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
-				int m_processViewId{};
+				id_type<ProcessViewModelInterface> m_processViewId{};
 
 				QByteArray m_serializedProcessViewData;
 		};

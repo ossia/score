@@ -1,7 +1,7 @@
 #include "PluginCurveViewModel.hpp"
 #include "PluginCurveModel.hpp"
 
-PluginCurveViewModel::PluginCurveViewModel(int id,
+PluginCurveViewModel::PluginCurveViewModel(id_type<ProcessViewModelInterface> id,
 										   PluginCurveModel* model,
 										   QObject* parent):
 	ProcessViewModelInterface{id, "PluginCurveViewModel", model, parent}

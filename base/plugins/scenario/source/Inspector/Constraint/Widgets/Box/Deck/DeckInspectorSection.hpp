@@ -1,5 +1,6 @@
 #pragma once
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
 class BoxModel;
 class DeckModel;
@@ -23,8 +24,8 @@ class DeckInspectorSection : public InspectorSectionWidget
 		{ return m_model; }
 
 	public slots:
-		void on_processViewModelCreated(int id);
-		void on_processViewModelRemoved(int id);
+		void on_processViewModelCreated(id_type<ProcessViewModelInterface> id);
+		void on_processViewModelRemoved(id_type<ProcessViewModelInterface> id);
 
 	private:
 		DeckModel* m_model{};

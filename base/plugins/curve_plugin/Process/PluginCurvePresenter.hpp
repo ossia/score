@@ -165,15 +165,15 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 
 		// ProcessPresenterInterface interface
 	public:
-		virtual int viewModelId() const override
+		virtual id_type<ProcessViewModelInterface> viewModelId() const override
 		{
 			qDebug() << "TODO: " << Q_FUNC_INFO;
-			return 36;
+			return id_type<ProcessViewModelInterface>{36};
 		}
 		virtual int modelId() const override
 		{
 			qDebug() << "TODO: " << Q_FUNC_INFO;
-			return 42;
+			return {42};
 		}
 };
 

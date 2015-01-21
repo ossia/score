@@ -7,6 +7,7 @@
 
 struct EventData;
 class EventModel;
+class ProcessViewModelInterface;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;

@@ -106,9 +106,9 @@ TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
 	}
 }
 
-int TemporalScenarioProcessPresenter::viewModelId() const
+id_type<ProcessViewModelInterface> TemporalScenarioProcessPresenter::viewModelId() const
 {
-	return (SettableIdentifier::identifier_type) m_viewModel->id();
+	return m_viewModel->id();
 }
 
 int TemporalScenarioProcessPresenter::modelId() const

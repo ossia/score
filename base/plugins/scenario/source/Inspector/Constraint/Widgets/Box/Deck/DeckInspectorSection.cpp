@@ -61,22 +61,22 @@ void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pv
 	widg->setLayout(lay);
 	auto pb = new QPushButton{"Front"};
 	connect(pb, &QPushButton::clicked,
-			[=] () { m_model->selectForEdition((int)pvm->id()); });
+			[=] () { m_model->selectForEdition(pvm->id()); });
 
 	lay->addWidget(pb);
-	lay->addWidget(new QLabel{QString{"ViewModel.%1"}.arg((int)pvm->id())});
+	lay->addWidget(new QLabel{QString{"ViewModel.%1"}.arg(*pvm->id().val())});
 
 
 	addContent(widg);
 }
 
 
-void DeckInspectorSection::on_processViewModelCreated(int pvmId)
+void DeckInspectorSection::on_processViewModelCreated(id_type<ProcessViewModelInterface> pvmId)
 {
 	displayProcessViewModel(m_model->processViewModel(pvmId));
 }
 
-void DeckInspectorSection::on_processViewModelRemoved(int pvmId)
+void DeckInspectorSection::on_processViewModelRemoved(id_type<ProcessViewModelInterface> pvmId)
 {
 	// TODO
 }

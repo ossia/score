@@ -24,7 +24,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
 	m_sharedModelId{sharedModelId}
 {
 	auto deck = m_path.find<DeckModel>();
-	m_createdProcessViewId = getNextId(deck->processViewModels());
+	m_createdProcessViewId = getStrongId(deck->processViewModels());
 }
 
 void AddProcessViewModelToDeck::undo()

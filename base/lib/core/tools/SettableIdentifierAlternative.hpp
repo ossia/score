@@ -21,6 +21,11 @@ class id
 			return lhs.m_id != rhs.m_id;
 		}
 
+		friend bool operator<(const id& lhs, const id& rhs)
+		{
+			return *lhs.val() < *rhs.val();
+		}
+
 		explicit operator value_type() const
 		{ return m_id; }
 

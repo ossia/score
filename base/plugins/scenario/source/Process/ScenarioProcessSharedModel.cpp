@@ -26,7 +26,7 @@ ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
 	delete m_scenario;
 }
 
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(int viewModelId,
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																	 QObject* parent)
 {
 	auto scen = new TemporalScenarioProcessViewModel(viewModelId, this, parent);

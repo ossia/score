@@ -9,7 +9,7 @@ class ProcessSharedModelInterface;
  *
  * Interface to implement to make a process view model.
  */
-class ProcessViewModelInterface: public IdentifiedObject
+class ProcessViewModelInterface: public IdentifiedObjectAlternative<ProcessViewModelInterface>
 {
 	public:
 		virtual ~ProcessViewModelInterface() = default;
@@ -22,12 +22,11 @@ class ProcessViewModelInterface: public IdentifiedObject
 							   void* data) const = 0;
 
 	protected:
-
-		ProcessViewModelInterface(int viewModelId,
+		ProcessViewModelInterface(id_type<ProcessViewModelInterface> viewModelId,
 								  QString name,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObject{viewModelId, name, parent},
+			IdentifiedObjectAlternative<ProcessViewModelInterface>{viewModelId, name, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
 
@@ -37,7 +36,7 @@ class ProcessViewModelInterface: public IdentifiedObject
 		ProcessViewModelInterface(Deserializer<Impl>& vis,
 								  ProcessSharedModelInterface* sharedProcess,
 								  QObject* parent):
-			IdentifiedObject{vis, parent},
+			IdentifiedObjectAlternative<ProcessViewModelInterface>{vis, parent},
 			m_sharedProcessModel{sharedProcess}
 		{
 			// Nothing else to load
@@ -73,11 +72,12 @@ typename T::model_type* model(T* viewModel)
  */
 inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessViewModelInterface* pvm)
 {
-	auto deckModel = static_cast<IdentifiedObject*>(pvm->parent());
-	auto boxModel = static_cast<IdentifiedObject*>(deckModel->parent());
+	// TODO - this only works by sheer luck
+	auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());
+	auto boxModel = static_cast<IdentifiedObjectAbstract*>(deckModel->parent());
 	return std::tuple<int,int,int>{
-				(SettableIdentifier::identifier_type) boxModel->id(),
-				(SettableIdentifier::identifier_type) deckModel->id(),
-				(SettableIdentifier::identifier_type) pvm->id()};
+				boxModel->id_val(),
+				deckModel->id_val(),
+				pvm->id_val()};
 }
 

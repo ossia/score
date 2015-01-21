@@ -1,6 +1,8 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifierAlternative.hpp>
 
+class ProcessViewModelInterface;
 namespace iscore
 {
 	class SerializableCommand;
@@ -15,7 +17,7 @@ class ProcessPresenterInterface : public NamedObject
 		virtual void putToFront() = 0;
 		virtual void putBack() = 0;
 
-		virtual int viewModelId() const = 0;
+		virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
 		virtual int modelId() const = 0;
 
 	signals:

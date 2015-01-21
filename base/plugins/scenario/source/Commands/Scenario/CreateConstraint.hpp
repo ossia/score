@@ -9,6 +9,7 @@ class EventModel;
 struct EventData;
 class AbstractConstraintViewModel;
 class ConstraintModel;
+class ProcessViewModelInterface;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {

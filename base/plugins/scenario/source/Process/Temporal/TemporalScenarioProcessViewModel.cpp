@@ -5,7 +5,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
-TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(int viewModelId,
+TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																   ScenarioProcessSharedModel* model,
 																   QObject* parent):
 	AbstractScenarioProcessViewModel{viewModelId,

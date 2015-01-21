@@ -16,7 +16,7 @@ DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
 {
 }
 
-void DeckModel::createProcessViewModel(int sharedProcessId, int newProcessViewModelId)
+void DeckModel::createProcessViewModel(int sharedProcessId, id_type<ProcessViewModelInterface> newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
@@ -29,10 +29,10 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 {
 	m_processViewModels.push_back(viewmodel);
 
-	emit processViewModelCreated((SettableIdentifier::identifier_type) viewmodel->id());
+	emit processViewModelCreated(viewmodel->id());
 }
 
-void DeckModel::deleteProcessViewModel(int processViewId)
+void DeckModel::deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewId)
 {
 	auto pvm = processViewModel(processViewId);
 	vec_erase_remove_if(m_processViewModels,
@@ -43,17 +43,17 @@ void DeckModel::deleteProcessViewModel(int processViewId)
 
 	if(!m_processViewModels.empty())
 	{
-		selectForEdition((int)(*m_processViewModels.begin())->id());
+		selectForEdition((*m_processViewModels.begin())->id());
 	}
 	else
 	{
-		m_editedProcessViewModelId = 0; // Todo use boost::optional
+		m_editedProcessViewModelId.setVal({});
 	}
 
 	delete pvm;
 }
 
-void DeckModel::selectForEdition(int processViewId)
+void DeckModel::selectForEdition(id_type<ProcessViewModelInterface> processViewId)
 {
 	if(processViewId != m_editedProcessViewModelId)
 	{
@@ -67,7 +67,7 @@ const std::vector<ProcessViewModelInterface*>&DeckModel::processViewModels() con
 	return m_processViewModels;
 }
 
-ProcessViewModelInterface* DeckModel::processViewModel(int processViewModelId) const
+ProcessViewModelInterface* DeckModel::processViewModel(id_type<ProcessViewModelInterface> processViewModelId) const
 {
 	return findById(m_processViewModels, processViewModelId);
 }
@@ -75,8 +75,6 @@ ProcessViewModelInterface* DeckModel::processViewModel(int processViewModelId) c
 void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 {
 	using namespace std;
-	// We HAVE to do a copy here because deleteProcessViewModel use the erase-remove idiom.
-	auto viewmodels = m_processViewModels;
 	auto it = find_if(begin(m_processViewModels),
 					  end(m_processViewModels),
 					  [&sharedProcessId] (const ProcessViewModelInterface* pvm)
@@ -84,7 +82,7 @@ void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
 
 	if(it != end(m_processViewModels))
 	{
-		deleteProcessViewModel((SettableIdentifier::identifier_type) (*it)->id());
+		deleteProcessViewModel((*it)->id());
 	}
 }
 

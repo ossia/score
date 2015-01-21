@@ -23,7 +23,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 {
-	int editedProcessId;
+	id_type<ProcessViewModelInterface> editedProcessId;
 	m_stream >> editedProcessId;
 
 	int pvm_size;
@@ -54,7 +54,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const DeckModel& deck)
 {
 	// TODO  readFrom(static_cast<const IdentifiedObject&>(deck));
 
-	m_obj["EditedProcess"] = deck.editedProcessViewModel();
+	// TODO m_obj["EditedProcess"] = deck.editedProcessViewModel();
 	m_obj["Height"] = deck.height();
 	m_obj["Position"] = deck.position();
 
@@ -83,5 +83,5 @@ template<> void Visitor<Writer<JSON>>::writeTo(DeckModel& deck)
 
 	deck.setHeight(m_obj["Height"].toInt());
 	deck.setPosition(m_obj["Position"].toInt());
-	deck.selectForEdition(m_obj["EditedProcess"].toInt());
+	// TODO deck.selectForEdition(m_obj["EditedProcess"].toInt());
 }

@@ -38,7 +38,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		virtual ~TemporalScenarioProcessPresenter();
 
 
-		virtual int viewModelId() const;
+		virtual id_type<ProcessViewModelInterface> viewModelId() const;
 		virtual int modelId() const;
 
 		virtual void putToFront() override;

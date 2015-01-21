@@ -16,7 +16,7 @@ void AbstractConstraintViewModel::hideBox()
 	emit boxHidden();
 }
 
-void AbstractConstraintViewModel::showBox(::id_type<BoxModel> boxId)
+void AbstractConstraintViewModel::showBox(id_type<BoxModel> boxId)
 {
 	m_shownBox = boxId;
 

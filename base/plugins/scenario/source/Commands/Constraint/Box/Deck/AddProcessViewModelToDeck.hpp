@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+class ProcessViewModelInterface;
 namespace Scenario
 {
 	namespace Command
@@ -32,7 +33,7 @@ namespace Scenario
 				ObjectPath m_path;
 
 				int m_sharedModelId{};
-				int m_createdProcessViewId{};
+				id_type<ProcessViewModelInterface> m_createdProcessViewId{};
 		};
 	}
 }

@@ -17,7 +17,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										ObjectPath&& boxPath,
-										int processViewId):
+										id_type<ProcessViewModelInterface> processViewId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessViewModelFromDeck",
 						QObject::tr("Remove process view")},
@@ -36,7 +36,7 @@ void RemoveProcessViewModelFromDeck::undo()
 	Deserializer<DataStream> s{&m_serializedProcessViewData};
 
 	auto pvm = createProcessViewModel(s,
-                                      deck->parentConstraint(),
+									  deck->parentConstraint(),
 									  deck);
 	deck->addProcessViewModel(pvm);
 }

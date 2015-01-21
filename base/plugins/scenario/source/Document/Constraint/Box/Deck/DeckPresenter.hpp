@@ -37,9 +37,9 @@ class DeckPresenter : public NamedObject
 
 	public slots:
 		// From Model
-		void on_processViewModelCreated(int processId);
-		void on_processViewModelDeleted(int processId);
-		void on_processViewModelSelected(int processId);
+		void on_processViewModelCreated(id_type<ProcessViewModelInterface> processId);
+		void on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId);
+		void on_processViewModelSelected(id_type<ProcessViewModelInterface> processId);
 		void on_heightChanged(int height);
 
 		// From View
