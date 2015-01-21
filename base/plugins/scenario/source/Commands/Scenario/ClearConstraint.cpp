@@ -72,7 +72,7 @@ void ClearConstraint::redo()
 
 	for(auto& process : constraint->processes())
 	{
-		constraint->removeProcess((SettableIdentifier::identifier_type)process->id());
+		constraint->removeProcess(process->id());
 	}
 
 	for(auto& box : constraint->boxes())
@@ -93,10 +93,10 @@ bool ClearConstraint::mergeWith(const QUndoCommand* other)
 
 void ClearConstraint::serializeImpl(QDataStream& s)
 {
-	s << m_path << m_serializedBoxes << m_serializedProcesses << m_scenarioViewModelsBoxMappings;
+	s << m_path << m_serializedBoxes << m_serializedProcesses;
 }
 
 void ClearConstraint::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_serializedBoxes >> m_serializedProcesses >> m_scenarioViewModelsBoxMappings;
+	s >> m_path >> m_serializedBoxes >> m_serializedProcesses;
 }

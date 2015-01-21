@@ -35,7 +35,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurveViewModel.hpp"
 
 
-PluginCurveModel::PluginCurveModel (int id, QObject* parentObject) :
+PluginCurveModel::PluginCurveModel (id_type<ProcessSharedModelInterface> id, QObject* parentObject) :
 	ProcessSharedModelInterface{id, "PluginCurveModel", parentObject}//,
 //	_pParent (parentItem)
 {

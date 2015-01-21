@@ -4,6 +4,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class ProcessViewModelInterface;
+class ProcessSharedModelInterface;
 namespace Scenario
 {
 	namespace Command
@@ -18,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				AddProcessViewModelToDeck();
-				AddProcessViewModelToDeck(ObjectPath&& deckPath, int sharedModelId);
+				AddProcessViewModelToDeck(ObjectPath&& deckPath, id_type<ProcessSharedModelInterface> sharedModelId);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -32,7 +33,7 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_sharedModelId{};
+				id_type<ProcessSharedModelInterface> m_sharedModelId{};
 				id_type<ProcessViewModelInterface> m_createdProcessViewId{};
 		};
 	}

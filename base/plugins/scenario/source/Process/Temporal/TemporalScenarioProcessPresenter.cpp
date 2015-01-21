@@ -111,9 +111,9 @@ id_type<ProcessViewModelInterface> TemporalScenarioProcessPresenter::viewModelId
 	return m_viewModel->id();
 }
 
-int TemporalScenarioProcessPresenter::modelId() const
+id_type<ProcessSharedModelInterface> TemporalScenarioProcessPresenter::modelId() const
 {
-	return (SettableIdentifier::identifier_type) m_viewModel->sharedProcessModel()->id();
+	return m_viewModel->sharedProcessModel()->id();
 }
 
 void TemporalScenarioProcessPresenter::putToFront()

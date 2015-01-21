@@ -27,12 +27,12 @@ ScenarioProcessFactory::makePresenter(ProcessViewModelInterface* pvm,
 									  ProcessViewInterface* view,
 									  QObject* parent)
 {
-	return new TemporalScenarioProcessPresenter(pvm, view, parent);
+	return new TemporalScenarioProcessPresenter{pvm, view, parent};
 }
 
-ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(int id, QObject* parent)
+ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)
 {
-	return new ScenarioProcessSharedModel(id, parent);
+	return new ScenarioProcessSharedModel{id, parent};
 }
 
 #include <interface/serialization/DataStreamVisitor.hpp>

@@ -11,7 +11,7 @@
 
 #include <QDebug>
 
-ScenarioProcessSharedModel::ScenarioProcessSharedModel(int id, QObject* parent):
+ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface> id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
 	m_scenario{new OSSIA::Scenario},
 	m_startEventId{0} // Always

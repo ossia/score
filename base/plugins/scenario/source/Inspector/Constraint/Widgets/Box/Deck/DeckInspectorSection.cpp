@@ -41,7 +41,7 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 	addContent(m_addPvmWidget);
 }
 
-void DeckInspectorSection::createProcessViewModel(int sharedProcessModelId)
+void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessModelId)
 {
 	auto cmd = new AddProcessViewModelToDeck(
 						ObjectPath::pathFromObject(

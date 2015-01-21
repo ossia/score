@@ -228,12 +228,12 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
 }
 
 
-void ConstraintInspectorWidget::on_processCreated(QString processName, int processId)
+void ConstraintInspectorWidget::on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId)
 {
 	reloadDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(int processId)
+void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessSharedModelInterface> processId)
 {
 	reloadDisplayedValues();
 }

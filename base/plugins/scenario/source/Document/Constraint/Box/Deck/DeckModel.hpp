@@ -6,6 +6,7 @@
 class BoxModel;
 class ConstraintModel;
 
+class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
 class DeckModel : public IdentifiedObjectAlternative<DeckModel>
 {
@@ -28,7 +29,7 @@ class DeckModel : public IdentifiedObjectAlternative<DeckModel>
 
 		virtual ~DeckModel() = default;
 
-		void createProcessViewModel(int sharedProcessId,
+		void createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId,
 									id_type<ProcessViewModelInterface> newProcessViewModelId);
 		void addProcessViewModel(ProcessViewModelInterface*);
 		void deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewModelId);
@@ -65,7 +66,7 @@ class DeckModel : public IdentifiedObjectAlternative<DeckModel>
 		void positionChanged(int arg);
 
 	public slots:
-		void on_deleteSharedProcessModel(int sharedProcessId);
+		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> sharedProcessId);
 
 		void setHeight(int arg);
 		void setPosition(int arg);

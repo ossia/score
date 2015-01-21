@@ -51,7 +51,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
 
 			if(it == std::end(already_displayed_processes))
 			{
-				available_models += QString::number((SettableIdentifier::identifier_type) process->id());
+				available_models += QString::number(*process->id().val());
 			}
 		}
 
@@ -68,7 +68,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
 													  &ok);
 
 			if(ok)
-				parentDeck->createProcessViewModel(process_name.toInt());
+				parentDeck->createProcessViewModel(id_type<ProcessSharedModelInterface>{process_name.toInt()});
 		}
 	} );
 }

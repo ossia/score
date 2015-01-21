@@ -74,9 +74,9 @@ class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
-		void createProcess(QString processName, int processId);
+		void createProcess(QString processName, id_type<ProcessSharedModelInterface> processId);
 		void addProcess(ProcessSharedModelInterface*);
-		void removeProcess(int processId);
+		void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
 		void createBox(id_type<BoxModel> boxId);
 		void addBox(BoxModel*);
@@ -89,7 +89,7 @@ class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 
 
 		BoxModel* box(id_type<BoxModel> id) const;
-		ProcessSharedModelInterface* process(int processId) const;
+		ProcessSharedModelInterface* process(id_type<ProcessSharedModelInterface> processId) const;
 
 		OSSIA::TimeBox* apiObject()
 		{ return m_timeBox;}
@@ -119,8 +119,8 @@ class ConstraintModel : public IdentifiedObjectAlternative<ConstraintModel>
 		{ return m_fullViewModel; }
 
 	signals:
-		void processCreated(QString processName, int processId);
-		void processRemoved(int processId);
+		void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+		void processRemoved(id_type<ProcessSharedModelInterface> processId);
 
 		void boxCreated(id_type<BoxModel> boxId);
 		void boxRemoved(id_type<BoxModel> boxId);

@@ -24,7 +24,7 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
 	m_processName{process}
 {
 	auto constraint = m_path.find<ConstraintModel>();
-	m_createdProcessId = getNextId(constraint->processes());
+	m_createdProcessId = getStrongId(constraint->processes());
 }
 
 void AddProcessToConstraint::undo()

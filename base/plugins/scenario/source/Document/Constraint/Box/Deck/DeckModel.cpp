@@ -16,7 +16,7 @@ DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
 {
 }
 
-void DeckModel::createProcessViewModel(int sharedProcessId, id_type<ProcessViewModelInterface> newProcessViewModelId)
+void DeckModel::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId, id_type<ProcessViewModelInterface> newProcessViewModelId)
 {
 	// Search the corresponding process in the parent constraint.
 	auto process = parentConstraint()->process(sharedProcessId);
@@ -72,7 +72,7 @@ ProcessViewModelInterface* DeckModel::processViewModel(id_type<ProcessViewModelI
 	return findById(m_processViewModels, processViewModelId);
 }
 
-void DeckModel::on_deleteSharedProcessModel(int sharedProcessId)
+void DeckModel::on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> sharedProcessId)
 {
 	using namespace std;
 	auto it = find_if(begin(m_processViewModels),

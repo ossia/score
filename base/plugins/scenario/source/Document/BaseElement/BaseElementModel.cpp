@@ -57,7 +57,7 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, (SettableIdentifier::identifier_type)scenarioId};
+		}, scenarioId};
 	cmd5.redo();
 }
 

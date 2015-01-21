@@ -6,7 +6,7 @@
 
 class ConstraintModel;
 class DeckModel;
-
+class ProcessSharedModelInterface;
 class BoxModel : public IdentifiedObjectAlternative<BoxModel>
 {
 	Q_OBJECT
@@ -38,7 +38,7 @@ class BoxModel : public IdentifiedObjectAlternative<BoxModel>
 		void deckRemoved(id_type<DeckModel> id);
 		void deckOrderChanged(id_type<DeckModel> deckId);
 
-		void on_deleteSharedProcessModel(int processId);
+		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> processId);
 
 	private:
 		std::vector<DeckModel*> m_decks;

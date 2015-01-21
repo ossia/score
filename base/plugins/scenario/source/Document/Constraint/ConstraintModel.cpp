@@ -62,7 +62,7 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 }
 
 //// Complex commands
-void ConstraintModel::createProcess(QString processName, int processId)
+void ConstraintModel::createProcess(QString processName, id_type<ProcessSharedModelInterface> processId)
 {
 	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
 	addProcess(model);
@@ -73,11 +73,10 @@ void ConstraintModel::createProcess(QString processName, int processId)
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
-	emit processCreated(model->processName(),
-						(SettableIdentifier::identifier_type) model->id());
+	emit processCreated(model->processName(), model->id());
 }
 
-void ConstraintModel::removeProcess(int processId)
+void ConstraintModel::removeProcess(id_type<ProcessSharedModelInterface> processId)
 {
 	auto proc = process(processId);
 	vec_erase_remove_if(m_processes,
@@ -141,7 +140,7 @@ BoxModel*ConstraintModel::box(id_type<BoxModel> id) const
 	return findById(m_boxes, id);
 }
 
-ProcessSharedModelInterface* ConstraintModel::process(int processId) const
+ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModelInterface> processId) const
 {
 	return findById(m_processes, processId);
 }

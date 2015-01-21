@@ -39,8 +39,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		void activeBoxChanged(QString box);
 
 		// Interface of Constraint
-		void on_processCreated(QString processName, int processId);
-		void on_processRemoved(int processId);
+		void on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+		void on_processRemoved(id_type<ProcessSharedModelInterface> processId);
 
 		void on_boxCreated(id_type<BoxModel> boxId);
 		void on_boxRemoved(id_type<BoxModel> boxId);
