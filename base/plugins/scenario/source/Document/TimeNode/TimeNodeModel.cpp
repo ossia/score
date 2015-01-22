@@ -49,7 +49,12 @@ int TimeNodeModel::date() const
 
 void TimeNodeModel::setDate(int date)
 {
-	m_date = date;
+    m_date = date;
+}
+
+bool TimeNodeModel::isEmpty()
+{
+    return (m_events.size() == 0);
 }
 double TimeNodeModel::y() const
 {

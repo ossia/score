@@ -20,7 +20,9 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double bottom() const;
 		int date() const;
 
-	        void setDate(int);
+        void setDate(int);
+
+        bool isEmpty();
 
 		double y() const;
 		void setY(double y);

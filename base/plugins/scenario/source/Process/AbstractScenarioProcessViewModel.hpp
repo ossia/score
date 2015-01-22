@@ -31,6 +31,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		// TODO transform in order to refer to view models instead
 		void eventCreated(id_type<EventModel> eventId);
 		void eventDeleted(id_type<EventModel> eventId);
+        void timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
 		void eventMoved(id_type<EventModel> eventId);
 		void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
 		void constraintMoved(id_type<ConstraintModel> constraintId);

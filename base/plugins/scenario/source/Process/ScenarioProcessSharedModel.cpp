@@ -51,7 +51,9 @@ void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::
 			scen, &view_model_type::timeNodeCreated);
 	connect(this, &ScenarioProcessSharedModel::eventRemoved,
 			scen, &view_model_type::eventDeleted);
-	connect(this, &ScenarioProcessSharedModel::eventMoved,
+    connect(this, &ScenarioProcessSharedModel::timeNodeRemoved,
+            scen, &view_model_type::timeNodeDeleted);
+    connect(this, &ScenarioProcessSharedModel::eventMoved,
 			scen, &view_model_type::eventMoved);
 	connect(this, &ScenarioProcessSharedModel::constraintMoved,
 			scen, &view_model_type::constraintMoved);
@@ -277,6 +279,7 @@ void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
 						[&eventId] (EventModel* model)
 						{ return model->id() == eventId; });
 
+    removeEventFromTimeNode(eventId);
 	emit eventRemoved(eventId);
 	delete ev;
 }
@@ -287,9 +290,21 @@ void ScenarioProcessSharedModel::removeEventFromTimeNode(id_type<EventModel> eve
 	{
 		if ( timeNode->removeEvent(eventId) )
 		{
+            if (timeNode->isEmpty()) removeTimeNode(timeNode->id());
 			return;
 		}
-	}
+    }
+}
+
+void ScenarioProcessSharedModel::removeTimeNode(id_type<TimeNodeModel> timeNodeId)
+{
+    auto tn = timeNode(timeNodeId);
+    vec_erase_remove_if(m_timeNodes,
+                        [&timeNodeId] (TimeNodeModel* model)
+                        { return model->id() == timeNodeId; });
+
+    emit timeNodeRemoved(timeNodeId);
+    delete tn;
 }
 
 void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId)
@@ -298,6 +313,8 @@ void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_ty
 	// End event suppression
 	{
 		auto end_event_id = this->constraint(constraintId)->endEvent();
+
+        removeEventFromTimeNode(end_event_id);
 
 		emit eventRemoved(end_event_id);
 		// TODO careful with this.

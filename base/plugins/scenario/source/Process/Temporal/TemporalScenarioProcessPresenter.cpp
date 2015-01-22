@@ -78,6 +78,8 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeCreated,
 			this,        &TemporalScenarioProcessPresenter::on_timeNodeCreated);
+    connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeDeleted,
+            this,        &TemporalScenarioProcessPresenter::on_timeNodeDeleted);
 
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
@@ -145,7 +147,7 @@ void TemporalScenarioProcessPresenter::on_eventCreated(id_type<EventModel> event
 
 void TemporalScenarioProcessPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
-	on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
+    on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
@@ -155,8 +157,14 @@ void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractCons
 
 void TemporalScenarioProcessPresenter::on_eventDeleted(id_type<EventModel> eventId)
 {
-	removeFromVectorWithId(m_events, eventId);
+    removeFromVectorWithId(m_events, eventId);
 	m_view->update();
+}
+
+void TemporalScenarioProcessPresenter::on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId)
+{
+    removeFromVectorWithId(m_timeNodes, timeNodeId);
+    m_view->update();
 }
 
 void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
