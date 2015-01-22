@@ -33,7 +33,7 @@ QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
 {
-	// TODO readFrom(static_cast<const IdentifiedObject&>(constraint));
+	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 
 	// Metadata
 	m_stream	<< constraint.metadata
@@ -116,7 +116,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
 {
-	// TODO readFrom(static_cast<const IdentifiedObject&>(constraint));
+	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
 	m_obj["HeightPercentage"] = constraint.heightPercentage();
 	m_obj["StartEvent"] = *constraint.startEvent().val();

@@ -88,7 +88,7 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 	for(auto key : map.keys())
 	{
 		QJsonObject obj;
-		obj["k"] = key;
+		obj["k"] = *key.val();
 		obj["v"] = map[key];
 		arr.append(obj);
 	}
@@ -96,13 +96,14 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 	return arr;
 }
 
-inline QMap<int, double> fromJsonMap(const QJsonArray& array)
+template<typename Key>
+QMap<Key, double> fromJsonMap(const QJsonArray& array)
 {
-	QMap<int, double> map;
+	QMap<Key, double> map;
 	for(auto value : array)
 	{
-		QJsonObject obj;
-		map[obj["k"].toInt()] = obj["v"].toDouble();
+		QJsonObject obj = value.toObject();
+		map[Key{obj["k"].toInt()}] = obj["v"].toDouble();
 	}
 
 	return map;

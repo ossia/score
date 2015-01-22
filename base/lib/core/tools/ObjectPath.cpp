@@ -46,10 +46,10 @@ QString ObjectPath::toString() const
 	for(auto& obj : m_objectIdentifiers)
 	{
 		s += obj.objectName();
-		if(obj.id().set())
+		if(obj.id().is_initialized())
 		{
 			s += ".";
-			s += QString::number((SettableIdentifier::identifier_type)obj.id());
+			s += QString::number(*obj.id());
 		}
 		s += "/";
 	}
@@ -82,13 +82,13 @@ QObject* ObjectPath::find_impl() const
 
 	for(const auto& currentObjIdentifier : children)
 	{
-		if(currentObjIdentifier.id().set())
+		if(currentObjIdentifier.id().is_initialized())
 		{
 			auto children = obj->findChildren<IdentifiedObjectAbstract*>(currentObjIdentifier.objectName(),
 																		 Qt::FindDirectChildrenOnly);
 
 			obj = findById(children,
-						   (int32_t) currentObjIdentifier.id());
+						   *currentObjIdentifier.id());
 		}
 		else
 		{

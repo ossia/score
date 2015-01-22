@@ -30,12 +30,7 @@ class ObjectIdentifier
 			m_objectName{name}
 		{ }
 
-		ObjectIdentifier(const char* name, SettableIdentifier id):
-			m_objectName{name},
-			m_id{std::move(id)}
-		{ }
-
-		ObjectIdentifier(QString name, SettableIdentifier id):
+		ObjectIdentifier(QString name, boost::optional<int32_t> id):
 			m_objectName{std::move(name)},
 			m_id{std::move(id)}
 		{ }
@@ -51,12 +46,12 @@ class ObjectIdentifier
 		const QString& objectName() const
 		{ return m_objectName; }
 
-		const SettableIdentifier& id() const
+		const boost::optional<int32_t>& id() const
 		{ return m_id; }
 
 	private:
 		QString m_objectName;
-		SettableIdentifier m_id; // TODO boost::optional instead.
+		boost::optional<int32_t> m_id;
 };
 
 Q_DECLARE_METATYPE(ObjectIdentifier)

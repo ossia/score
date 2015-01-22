@@ -69,9 +69,7 @@ class EventModel : public IdentifiedObject<EventModel>
 		ScenarioProcessSharedModel* parentScenario() const;
 
 		// Should maybe be in the Scenario instead ?
-		std::unordered_map<id_type<ConstraintModel>,
-						   double,
-						   id_hash<ConstraintModel>> constraintsYPos() const
+		QMap<id_type<ConstraintModel>, double> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const
 		{ return m_topY; }
@@ -97,9 +95,7 @@ class EventModel : public IdentifiedObject<EventModel>
 		void setNextConstraints(QVector<id_type<ConstraintModel>>&& vec)
 		{ m_nextConstraints = std::move(vec); }
 
-		void setConstraintsYPos(std::unordered_map<id_type<ConstraintModel>,
-												   double,
-												   id_hash<ConstraintModel>>&& map)
+		void setConstraintsYPos(QMap<id_type<ConstraintModel>, double>&& map)
 		{ m_constraintsYPos = std::move(map); }
 
 		void setTopY(double val);
@@ -117,7 +113,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		QVector<id_type<ConstraintModel>> m_previousConstraints;
 		QVector<id_type<ConstraintModel>> m_nextConstraints;
-		std::unordered_map<id_type<ConstraintModel>, double, id_hash<ConstraintModel>> m_constraintsYPos;
+		QMap<id_type<ConstraintModel>, double> m_constraintsYPos;
 
 		double m_heightPercentage{0.5};
 

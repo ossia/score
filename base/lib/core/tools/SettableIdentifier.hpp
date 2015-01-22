@@ -2,7 +2,7 @@
 #include <QDataStream>
 #include "interface/serialization/DataStreamVisitor.hpp"
 #include "interface/serialization/JSONVisitor.hpp"
-
+/*
 class NoIdentifier {};
 class SettableIdentifier
 {
@@ -43,3 +43,4 @@ class SettableIdentifier
 };
 
 Q_DECLARE_METATYPE(SettableIdentifier)
+*/

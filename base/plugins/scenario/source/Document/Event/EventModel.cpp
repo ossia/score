@@ -51,7 +51,7 @@ bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelet
 	if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
-		m_constraintsYPos.erase(constraintToDelete);
+		m_constraintsYPos.remove(constraintToDelete);
 		updateVerticalLink();
 		return true;
 	}
@@ -63,7 +63,7 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
 	if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-		m_constraintsYPos.erase(constraintToDelete);
+		m_constraintsYPos.remove(constraintToDelete);
 		updateVerticalLink();
 		return true;
 	}
@@ -130,14 +130,14 @@ void EventModel::updateVerticalLink()
 	m_bottomY = 0.0;
 	for (auto& pos : m_constraintsYPos)
 	{
-		pos.second -= m_heightPercentage;
-		if (pos.second < m_topY)
+		pos -= m_heightPercentage;
+		if (pos < m_topY)
 		{
-			m_topY = pos.second;
+			m_topY = pos;
 		}
-		else if (pos.second > m_bottomY)
+		else if (pos > m_bottomY)
 		{
-			m_bottomY = pos.second;
+			m_bottomY = pos;
 		}
 	}
 	emit verticalExtremityChanged(m_topY, m_bottomY);

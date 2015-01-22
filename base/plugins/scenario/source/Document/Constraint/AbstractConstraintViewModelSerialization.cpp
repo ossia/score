@@ -4,68 +4,56 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cvm)
 {
-	/* TODO
 	// Add the constraint id since we need it for construction
 	m_stream << cvm.model()->id();
 
 	// We happily do not require a way to save the derived type, since it is known
 	// at compile time and calls this function.
-	readFrom(static_cast<const IdentifiedObjectAlternative<AbstractConstraintViewModel>&>(cvm));
+	readFrom(static_cast<const IdentifiedObject<AbstractConstraintViewModel>&>(cvm));
 
 	// Save the AbstractConstraintViewModelData
-	m_stream << cvm.isBoxShown();
 	m_stream << cvm.shownBox();
-	*/
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 {
-	/* TODO
-	bool shown;
-	int shown_id;
+	id_type<BoxModel> id;
+	m_stream >> id;
 
-	m_stream >> shown;
-	m_stream >> shown_id;
-
-	if(shown)
+	if(id.val().is_initialized())
 	{
-		cvm.showBox(shown_id);
+		cvm.showBox(id);
 	}
 	else
 	{
 		cvm.hideBox();
 	}
-	*/
 }
 
 
 template<>
 void Visitor<Reader<JSON>>::readFrom(const AbstractConstraintViewModel& cvm)
 {
-
-	/* TODO
 	m_obj["ConstraintId"] = toJsonObject(cvm.model()->id());
 
-	readFrom(static_cast<const IdentifiedObjectAlternative<AbstractConstraintViewModel>&>(cvm));
+	readFrom(static_cast<const IdentifiedObject<AbstractConstraintViewModel>&>(cvm));
 
-	m_obj["IsBoxShown"] = cvm.isBoxShown();
-	m_obj["ShownBoxId"] = cvm.shownBox();
-	*/
+	m_obj["ShownBox"] = toJsonObject(cvm.shownBox());
 }
 
 template<>
 void Visitor<Writer<JSON>>::writeTo(AbstractConstraintViewModel& cvm)
 {
+	id_type<BoxModel> id;
+	fromJsonObject(m_obj["ShownBox"].toObject(), id);
 
-	/* TODO
-	if(m_obj["IsBoxShown"].toBool())
+	if(id.val().is_initialized())
 	{
-		cvm.showBox(m_obj["ShownBoxId"].toInt());
+		cvm.showBox(id);
 	}
 	else
 	{
 		cvm.hideBox();
 	}
-	*/
 }

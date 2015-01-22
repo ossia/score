@@ -47,6 +47,5 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 		// hence we are safe with a pointer
 		ConstraintModel* m_model{};
 
-		// TODO use settable identifier instead
 		id_type<BoxModel> m_shownBox{};
 };
