@@ -22,6 +22,8 @@ class TemporalConstraintView : public QGraphicsObject
 
 		//void setTopLeft(QPointF p);
 		void setWidth(int width);
+        void setMaxWidth(int max);
+        void setMinWidth(int min);
 		void setHeight(int height);
 
 		//QRectF m_rect;
@@ -38,6 +40,9 @@ class TemporalConstraintView : public QGraphicsObject
 
 	private:
 		int m_width{};
+        int m_maxWidth{};
+        int m_minWidth{};
+
 		int m_height{};
 
 		QPointF m_clickedPoint{};
@@ -55,6 +60,5 @@ class TemporalConstraintView : public QGraphicsObject
 			4,
 			Qt::DashLine,
 			Qt::RoundCap,
-			Qt::RoundJoin};
+                    Qt::RoundJoin};
 };
-

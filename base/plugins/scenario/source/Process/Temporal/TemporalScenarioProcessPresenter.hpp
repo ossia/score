@@ -58,6 +58,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_eventMoved(id_type<EventModel> eventId);
 
 		void on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+        void on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
 
 		void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
 		void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
@@ -95,5 +96,5 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		id_type<EventModel> m_currentlySelectedEvent{};
 		int m_pointedEvent{0};
-		long m_millisecPerPixel{1};
+        long m_millisecPerPixel{2};
 };

@@ -64,7 +64,6 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		void setVerticalExtremity(id_type<ConstraintModel>, double);
 		void eventMovedVertically(double);
-		void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
@@ -85,7 +84,6 @@ class EventModel : public IdentifiedObject<EventModel>
 	signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
-		void verticalExtremityChanged(double, double);
 
 	private:
 		// Setters required for serialization

@@ -1,7 +1,6 @@
 #include "TemporalConstraintView.hpp"
 
 #include "TemporalConstraintViewModel.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -11,7 +10,6 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-// TODO don't use model here, in case it is removed.
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintViewModel* viewModel, QGraphicsObject* parent):
 	QGraphicsObject{parent},
 	m_viewModel{viewModel}
@@ -24,7 +22,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintViewModel* view
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-	return {0, -18, qreal(m_viewModel->model()->maxDuration()) + 3, qreal(m_height) + 3};
+    return {0, -18, qreal(m_maxWidth) + 3, qreal(m_height) + 3};
 }
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -43,13 +41,12 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 	m_solidPen.setColor(c);
 	m_dashPen.setColor(c);
 
-	auto model = m_viewModel->model();
-	if(model->minDuration() == model->maxDuration())
+    if(m_minWidth == m_maxWidth)
 	{
 		painter->setPen(m_solidPen);
 		painter->drawLine(0,
 						  0,
-						  model->defaultDuration(),
+                          m_width,
 						  0);
 	}
 	else
@@ -58,28 +55,28 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 		painter->setPen(m_solidPen);
 		painter->drawLine(0,
 						  0,
-						  model->minDuration(),
+                          m_minWidth,
 						  0);
 
 		// The little hat
-		painter->drawLine(model->minDuration(),
+        painter->drawLine(m_minWidth,
 						  -5,
-						  model->minDuration(),
+                          m_minWidth,
 						  -15);
-		painter->drawLine(model->minDuration(),
+        painter->drawLine(m_minWidth,
 						  -15,
-						  model->maxDuration(),
+                          m_maxWidth,
 						  -15);
-		painter->drawLine(model->maxDuration(),
+        painter->drawLine(m_maxWidth,
 						  -5,
-						  model->maxDuration(),
+                          m_maxWidth,
 						  -15);
 
 		// Finally the dashed line
 		painter->setPen(m_dashPen);
-		painter->drawLine(model->minDuration(),
+        painter->drawLine(m_minWidth,
 						  0,
-						  model->maxDuration(),
+                          m_maxWidth,
 						  0);
 	}
 	// TODO max -> +inf
@@ -90,7 +87,19 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 void TemporalConstraintView::setWidth(int width)
 {
 	prepareGeometryChange();
-	m_width = width;
+    m_width = width;
+}
+
+void TemporalConstraintView::setMaxWidth(int max)
+{
+    prepareGeometryChange();
+    m_maxWidth = max;
+}
+
+void TemporalConstraintView::setMinWidth(int min)
+{
+    prepareGeometryChange();
+    m_minWidth = min;
 }
 
 void TemporalConstraintView::setHeight(int height)

@@ -28,8 +28,7 @@ class EventPresenter : public NamedObject
 		void eventSelected(id_type<EventModel>);
 		void eventReleasedWithControl(EventData);
 		void eventReleased(EventData);
-		void linesExtremityChange(double, double);
-
+        void linesExtremityChange(int, double);
 
 		void elementSelected(QObject*);
 

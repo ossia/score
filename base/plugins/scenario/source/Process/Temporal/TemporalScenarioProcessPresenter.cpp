@@ -78,6 +78,8 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeCreated,
 			this,        &TemporalScenarioProcessPresenter::on_timeNodeCreated);
+    connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeDeleted,
+            this,        &TemporalScenarioProcessPresenter::on_timeNodeDeleted);
 
 	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
 			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
@@ -145,7 +147,7 @@ void TemporalScenarioProcessPresenter::on_eventCreated(id_type<EventModel> event
 
 void TemporalScenarioProcessPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
-	on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
+    on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
@@ -155,8 +157,14 @@ void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractCons
 
 void TemporalScenarioProcessPresenter::on_eventDeleted(id_type<EventModel> eventId)
 {
-	removeFromVectorWithId(m_events, eventId);
+    removeFromVectorWithId(m_events, eventId);
 	m_view->update();
+}
+
+void TemporalScenarioProcessPresenter::on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId)
+{
+    removeFromVectorWithId(m_timeNodes, timeNodeId);
+    m_view->update();
 }
 
 void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
@@ -204,6 +212,8 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintMode
 									   rect.height() * cstr_model->heightPercentage()});
 
 			cstr_pres->view()->setWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
+            cstr_pres->view()->setMinWidth(cstr_model->minDuration() / m_millisecPerPixel);
+            cstr_pres->view()->setMaxWidth(cstr_model->maxDuration() / m_millisecPerPixel);
 		}
 	}
 	m_view->update();
@@ -360,8 +370,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
-	// @todo : use relative t and not absolute, so we can move constraint on vertical axis without unfortunately change t position.
-	data.dDate = data.x * m_millisecPerPixel;
+    data.dDate = data.x * m_millisecPerPixel;
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -435,7 +444,10 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 													this};
 
 	constraint_view->setWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
-	constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
+    constraint_view->setMinWidth(constraint_view_model->model()->minDuration() / m_millisecPerPixel);
+    constraint_view->setMaxWidth(constraint_view_model->model()->maxDuration() / m_millisecPerPixel);
+
+    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
 							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 
 	m_constraints.push_back(constraint_presenter);
@@ -447,7 +459,6 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 	connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
 			this,					&TemporalScenarioProcessPresenter::elementSelected);
 
-
-	connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
+    connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
 			this,					&TemporalScenarioProcessPresenter::on_askUpdate);
 }

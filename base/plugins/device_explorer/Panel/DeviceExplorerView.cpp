@@ -111,7 +111,7 @@ DeviceExplorerView::installStyleSheet()
   setStyleSheet(
                 "QTreeView {"
                 "show-decoration-selected: 1;"
-                "background-color: #5a5a5a;"
+                "background-color: #bababa;"
                 "}"
 
                 "QTreeView::item {"
@@ -126,7 +126,7 @@ DeviceExplorerView::installStyleSheet()
                 
                 "QTreeView::item:hover {"
                 "background: qlineargradient(x1: -5, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
-                "color: #5a5a5a;"
+                "color: #bababa;"
                 "border: 1px solid #bfcde4;"
                 "}"
 
