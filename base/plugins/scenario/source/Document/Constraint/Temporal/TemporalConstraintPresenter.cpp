@@ -21,7 +21,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
-	view->setWidth(m_viewModel->model()->defaultDuration());
 
 	if(m_viewModel->isBoxShown())
 	{
@@ -36,9 +35,9 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 			this,		 &TemporalConstraintPresenter::on_boxRemoved);
 
 	connect(m_viewModel->model(), &ConstraintModel::minDurationChanged,
-			this,				  &TemporalConstraintPresenter::on_minDurationChanged);
+            this,				  &TemporalConstraintPresenter::on_minDurationChanged);
 	connect(m_viewModel->model(), &ConstraintModel::maxDurationChanged,
-			this,				  &TemporalConstraintPresenter::on_maxDurationChanged);
+            this,				  &TemporalConstraintPresenter::on_maxDurationChanged);
 
 	// Le contentView est child de TemporalConstraintView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
@@ -117,13 +116,16 @@ void TemporalConstraintPresenter::on_boxRemoved()
 	updateView();
 }
 
-void TemporalConstraintPresenter::on_minDurationChanged(int)
+void TemporalConstraintPresenter::on_minDurationChanged(int min)
 {
+    //todo passer par scenariopresenter pour le zoom
+    m_view->setMinWidth(m_viewModel->model()->minDuration());
 	updateView();
 }
 
-void TemporalConstraintPresenter::on_maxDurationChanged(int)
+void TemporalConstraintPresenter::on_maxDurationChanged(int max)
 {
+    m_view->setMaxWidth(m_viewModel->model()->maxDuration());
 	updateView();
 }
 

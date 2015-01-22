@@ -187,7 +187,7 @@ DeviceExplorerWidget::installStyleSheet()
 {
   setStyleSheet(
 				"* {"
-				"background-color: #5a5a5a;"
+               // "background-color: #bababa;"
 				"}"
 		);
 }

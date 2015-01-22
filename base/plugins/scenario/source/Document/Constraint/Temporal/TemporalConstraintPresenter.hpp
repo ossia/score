@@ -44,6 +44,10 @@ class TemporalConstraintPresenter : public NamedObject
 		void elementSelected(QObject*);
 		void constraintReleased(ConstraintData);
 
+        void minDurationChanged();
+        void maxDurationChanged();
+        void defaultDurationChanged();
+
 		void askUpdate();
 
 	public slots:

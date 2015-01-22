@@ -94,6 +94,7 @@ void EventInspectorWidget::on_addAddressClicked()
 					txt};
 
 	emit submitCommand(cmd);
+    m_addressLineEdit->clear();
 }
 
 void EventInspectorWidget::updateMessages()

@@ -96,5 +96,5 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		id_type<EventModel> m_currentlySelectedEvent{};
 		int m_pointedEvent{0};
-		long m_millisecPerPixel{1};
+        long m_millisecPerPixel{2};
 };
