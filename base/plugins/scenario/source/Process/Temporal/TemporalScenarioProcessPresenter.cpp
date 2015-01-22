@@ -360,8 +360,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
-	// @todo : use relative t and not absolute, so we can move constraint on vertical axis without unfortunately change t position.
-	data.dDate = data.x * m_millisecPerPixel;
+    data.dDate = data.x * m_millisecPerPixel;
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",

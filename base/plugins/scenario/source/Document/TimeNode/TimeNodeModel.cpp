@@ -47,16 +47,6 @@ int TimeNodeModel::date() const
 	return m_date;
 }
 
-void TimeNodeModel::setTop(double top)
-{
-	m_topY = top;
-}
-
-void TimeNodeModel::setBottom(double bottom)
-{
-	m_bottomY = bottom;
-}
-
 void TimeNodeModel::setDate(int date)
 {
 	m_date = date;

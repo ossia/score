@@ -203,14 +203,14 @@ void ScenarioProcessSharedModel::moveConstraint(id_type<ConstraintModel> constra
 												int absolute_time,
 												double heightPosition)
 {
-	constraint(constraintId)->setHeightPercentage(heightPosition);
-	emit constraintMoved(constraintId);
+    constraint(constraintId)->setHeightPercentage(heightPosition);
+    emit constraintMoved(constraintId);
 
-	// redraw constraint-event link
-	auto eev = event(constraint(constraintId)->endEvent());
-	auto sev = event(constraint(constraintId)->startEvent());
-	eev->setVerticalExtremity(constraintId, heightPosition);
-	sev->setVerticalExtremity(constraintId, heightPosition);
+    auto eev = event(constraint(constraintId)->endEvent());
+    auto sev = event(constraint(constraintId)->startEvent());
+
+    auto etn = timeNode(eev->timeNode());
+    auto stn = timeNode(sev->timeNode());
 
 	moveEventAndConstraint(sev->id(),
 						   absolute_time,

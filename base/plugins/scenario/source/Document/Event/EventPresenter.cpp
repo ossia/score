@@ -25,9 +25,6 @@ EventPresenter::EventPresenter(EventModel* model,
 
 	connect(m_view, &EventView::eventReleased,
 			this, &EventPresenter::on_eventReleased);
-
-	connect(m_model, &EventModel::verticalExtremityChanged,
-			this, &EventPresenter::linesExtremityChange);
 }
 
 EventPresenter::~EventPresenter()

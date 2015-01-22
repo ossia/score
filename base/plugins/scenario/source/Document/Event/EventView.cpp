@@ -19,8 +19,7 @@ EventView::EventView(QGraphicsObject* parent):
 
 QRectF EventView::boundingRect() const
 {
-	// TODO inclure les lignes dans le rect
-	return {-15, -15, 30, 30};
+    return {-15, -15, 30, 30};
 }
 
 void EventView::paint(QPainter* painter,

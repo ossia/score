@@ -20,9 +20,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double bottom() const;
 		int date() const;
 
-		void setTop(double);
-		void setBottom(double);
-		void setDate(int);
+	        void setDate(int);
 
 		double y() const;
 		void setY(double y);
@@ -36,7 +34,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double m_y{0.0};
 
 		QVector<id_type<EventModel>> m_events;
-
+//	        QMap<int, double> m_yPoints;
+	
 		// @todo : maybe not useful ...
 		double m_topY{0.0};
 		double m_bottomY{0.0};

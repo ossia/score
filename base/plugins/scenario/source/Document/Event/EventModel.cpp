@@ -52,7 +52,6 @@ bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelet
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
 		m_constraintsYPos.erase(constraintToDelete);
-		updateVerticalLink();
 		return true;
 	}
 	return false;
@@ -64,7 +63,6 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
 		m_constraintsYPos.erase(constraintToDelete);
-		updateVerticalLink();
 		return true;
 	}
 	return false;
@@ -120,27 +118,7 @@ void EventModel::translate(int deltaTime)
 
 void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
 {
-	m_constraintsYPos[consId] = newPosition;
-	updateVerticalLink();
-}
-
-void EventModel::updateVerticalLink()
-{
-	m_topY = 0.0;
-	m_bottomY = 0.0;
-	for (auto& pos : m_constraintsYPos)
-	{
-		pos.second -= m_heightPercentage;
-		if (pos.second < m_topY)
-		{
-			m_topY = pos.second;
-		}
-		else if (pos.second > m_bottomY)
-		{
-			m_bottomY = pos.second;
-		}
-	}
-	emit verticalExtremityChanged(m_topY, m_bottomY);
+    m_constraintsYPos[consId] = newPosition;
 }
 
 // Maybe remove the need for this by passing to the scenario instead ?
@@ -172,6 +150,5 @@ void EventModel::setHeightPercentage(double arg)
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
-		updateVerticalLink();
 	}
 }
