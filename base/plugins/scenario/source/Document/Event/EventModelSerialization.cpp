@@ -2,7 +2,6 @@
 #include <interface/serialization/JSONVisitor.hpp>
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Event/State/State.hpp"
-#include "source/Document/Event/State/StateSerialization.hpp"
 
 #include <API/Headers/Editor/TimeNode.h>
 

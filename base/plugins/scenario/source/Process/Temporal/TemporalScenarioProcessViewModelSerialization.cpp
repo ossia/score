@@ -1,4 +1,3 @@
-#include "TemporalScenarioProcessViewModelSerialization.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
 #include "Document/Constraint/AbstractConstraintViewModelSerialization.hpp"
 #include "TemporalScenarioProcessViewModel.hpp"

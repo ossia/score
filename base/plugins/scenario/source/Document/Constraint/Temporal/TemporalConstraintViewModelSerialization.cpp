@@ -1,4 +1,3 @@
-#include "TemporalConstraintViewModelSerialization.hpp"
 #include "TemporalConstraintViewModel.hpp"
 
 #include "Document/Constraint/AbstractConstraintViewModel.hpp"

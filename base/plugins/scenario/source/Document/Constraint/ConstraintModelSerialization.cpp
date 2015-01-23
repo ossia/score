@@ -1,5 +1,3 @@
-#include "ConstraintModelSerialization.hpp"
-
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"

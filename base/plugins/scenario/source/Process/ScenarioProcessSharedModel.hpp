@@ -1,6 +1,5 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "ScenarioProcessSharedModelSerialization.hpp"
 #include <tools/SettableIdentifier.hpp>
 
 #include <interface/serialization/DataStreamVisitor.hpp>

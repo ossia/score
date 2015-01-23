@@ -1,9 +1,5 @@
-#include "ScenarioProcessSharedModelSerialization.hpp"
-
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Event/EventModelSerialization.hpp"
-#include "Document/Constraint/ConstraintModelSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "ScenarioProcessSharedModel.hpp"
 
