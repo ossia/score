@@ -1,7 +1,8 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 #include <unordered_map>
 namespace OSSIA

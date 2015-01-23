@@ -4,7 +4,7 @@
 #include <QByteArray>
 #include <interface/customfactory/FactoryInterface.hpp>
 #include <interface/serialization/VisitorInterface.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 
 class ProcessViewModelInterface;
 class ProcessSharedModelInterface;

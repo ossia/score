@@ -3,20 +3,6 @@
 #include "IdentifiedObject.hpp"
 
 /*
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const IdentifiedObject& obj)
-{
-	readFrom(static_cast<const NamedObject&>(obj));
-	readFrom(obj.id());
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(IdentifiedObject& obj)
-{
-	SettableIdentifier id;
-	writeTo(id);
-	obj.setId(std::move(id));
-}
 
 template<>
 void Visitor<Reader<JSON>>::readFrom(const IdentifiedObject& obj)

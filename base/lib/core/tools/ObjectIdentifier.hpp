@@ -1,5 +1,8 @@
 #pragma once
 #include <core/tools/SettableIdentifier.hpp>
+#include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
+
 
 /**
  * @brief The ObjectIdentifier class

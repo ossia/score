@@ -13,7 +13,7 @@
 
 ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface> id, QObject* parent):
 	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
-	m_scenario{new OSSIA::Scenario},
+	//m_scenario{nullptr},
 	m_startEventId{0} // Always
 {
 	m_events.push_back(new EventModel{m_startEventId, this});
@@ -23,7 +23,7 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedMode
 
 ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
 {
-	delete m_scenario;
+	//if(m_scenario) delete m_scenario;
 }
 
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
@@ -72,14 +72,14 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 									 newConstraintFullViewId,
 									 this};
 
-	auto ossia_tn0 = sev->apiObject();
+/*	auto ossia_tn0 = sev->apiObject();
 	auto ossia_tn1 = eev->apiObject();
 	auto ossia_tb = inter->apiObject();
 
 	m_scenario->addTimeBox(*ossia_tb,
 						   *ossia_tn0,
 						   *ossia_tn1);
-
+*/
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
 	inter->setStartEvent(sev->id());
@@ -129,13 +129,13 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	constraint->setDefaultDuration(constraint_duration);
 	event->setDate(constraint->startDate() + constraint->defaultDuration());
 
-	auto ossia_tn0 = this->event(startEventId)->apiObject();
-	auto ossia_tn1 = event->apiObject();
-	auto ossia_tb = constraint->apiObject();
+//	auto ossia_tn0 = this->event(startEventId)->apiObject();
+//	auto ossia_tn1 = event->apiObject();
+//	auto ossia_tb = constraint->apiObject();
 
-	m_scenario->addTimeBox(*ossia_tb,
-						   *ossia_tn0,
-						   *ossia_tn1);
+//	m_scenario->addTimeBox(*ossia_tb,
+//						   *ossia_tn0,
+//						   *ossia_tn1);
 
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
@@ -208,11 +208,12 @@ void ScenarioProcessSharedModel::moveConstraint(id_type<ConstraintModel> constra
     constraint(constraintId)->setHeightPercentage(heightPosition);
     emit constraintMoved(constraintId);
 
-    auto eev = event(constraint(constraintId)->endEvent());
-    auto sev = event(constraint(constraintId)->startEvent());
+	//auto eev = event(constraint(constraintId)->endEvent());
+	auto sev = event(constraint(constraintId)->startEvent());
 
-    auto etn = timeNode(eev->timeNode());
-    auto stn = timeNode(sev->timeNode());
+	// TODO start timenode, end timenode
+	//auto etn = timeNode(eev->timeNode());
+	//auto stn = timeNode(sev->timeNode());
 
 	moveEventAndConstraint(sev->id(),
 						   absolute_time,

@@ -1,7 +1,9 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ScenarioProcessSharedModelSerialization.hpp"
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
+
+#include <interface/serialization/DataStreamVisitor.hpp>
 
 namespace OSSIA
 {
@@ -150,7 +152,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 	private:
 		void makeViewModel_impl(view_model_type*);
 
-		OSSIA::Scenario* m_scenario;
+		//OSSIA::Scenario* m_scenario;
 
 		std::vector<ConstraintModel*> m_constraints;
 		std::vector<EventModel*> m_events;

@@ -1,7 +1,7 @@
 #pragma once
 #include <QDataStream>
 #include "interface/serialization/VisitorInterface.hpp"
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/IdentifiedObject.hpp>
 
 class DataStream
 {
@@ -27,6 +27,14 @@ class Visitor<Reader<DataStream>>
 			m_stream << obj.val().is_initialized();
 			if(obj.val().is_initialized())
 				m_stream << *obj.val();
+		}
+
+		template<typename T>
+		void readFrom(const IdentifiedObject<T>& obj)
+		{
+			readFrom(static_cast<const NamedObject&>(obj));
+			readFrom(obj.id());
+			qDebug() << "Reading: " << *obj.id().val();
 		}
 
 		template<typename T>
@@ -57,6 +65,16 @@ class Visitor<Writer<DataStream>>
 
 			obj.setVal(boost::optional<int32_t>{init, val});
 		}
+
+		template<typename T>
+		void writeTo(IdentifiedObject<T>& obj)
+		{
+			id_type<T> id;
+			writeTo(id);
+			qDebug() << "Writing id: " << *id.val();
+			obj.setId(std::move(id));
+		}
+
 
 		template<typename T>
 		void writeTo(T&);

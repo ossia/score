@@ -1,5 +1,6 @@
 #pragma once
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 #include "ConstraintModel.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"

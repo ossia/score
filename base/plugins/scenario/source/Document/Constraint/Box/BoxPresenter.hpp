@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 class DeckPresenter;
 class BoxModel;
 class BoxView;

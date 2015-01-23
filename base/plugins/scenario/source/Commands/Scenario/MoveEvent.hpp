@@ -1,6 +1,6 @@
 #pragma once
 #include <core/presenter/command/SerializableCommand.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include <tools/ObjectPath.hpp>
 
 struct EventData;

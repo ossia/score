@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QPointF>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 
 class EventModel;
 

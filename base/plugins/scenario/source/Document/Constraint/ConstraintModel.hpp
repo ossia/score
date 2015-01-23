@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include "Document/Constraint/ConstraintModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
 

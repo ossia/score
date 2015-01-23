@@ -1,5 +1,6 @@
 #pragma once
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
+#include <tools/NamedObject.hpp>
 
 #include <vector>
 
