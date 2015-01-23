@@ -27,10 +27,10 @@ class id
 		explicit operator value_type() const
 		{ return m_id; }
 
-		value_type val() const
+		const value_type& val() const
 		{ return m_id; }
 
-		void setVal(value_type val)
+		void setVal(value_type&& val)
 		{ m_id = val; }
 
 	private:

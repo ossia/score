@@ -2,17 +2,17 @@
 
 bool AbstractConstraintViewModel::isBoxShown() const
 {
-	return m_shownBox.val().is_initialized();
+	return bool(m_shownBox.val());
 }
 
-::id_type<BoxModel> AbstractConstraintViewModel::shownBox() const
+id_type<BoxModel> AbstractConstraintViewModel::shownBox() const
 {
 	return m_shownBox;
 }
 
 void AbstractConstraintViewModel::hideBox()
 {
-	m_shownBox.val().reset();
+	m_shownBox.setVal(boost::optional<int32_t>{});
 	emit boxHidden();
 }
 
