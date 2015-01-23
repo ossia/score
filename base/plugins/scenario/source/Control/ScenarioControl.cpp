@@ -13,6 +13,7 @@
 #include "Commands/Constraint/SetMaxDuration.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
+#include "Commands/Event/SetCondition.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
@@ -141,6 +142,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "RemoveBoxFromConstraint")			{ cmd = new RemoveBoxFromConstraint;}
 	else if(name == "RemoveProcessFromConstraint")		{ cmd = new RemoveProcessFromConstraint;}
 	else if(name == "AddStateToEvent")					{ cmd = new AddStateToEvent;}
+	else if(name == "SetCondition")						{ cmd = new SetCondition;}
 	else if(name == "ClearConstraint")					{ cmd = new ClearConstraint;}
 	else if(name == "ClearEvent")						{ cmd = new ClearEvent;}
 	else if(name == "CreateEvent")						{ cmd = new CreateEvent;}

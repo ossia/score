@@ -23,6 +23,11 @@ class EventModel : public IdentifiedObject<EventModel>
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
+		Q_PROPERTY(QString condition
+				   READ condition
+				   WRITE setCondition
+				   NOTIFY conditionChanged)
+
 		friend void Visitor<Writer<DataStream>>::writeTo<EventModel>(EventModel& ev);
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
@@ -75,31 +80,21 @@ class EventModel : public IdentifiedObject<EventModel>
 		double bottomY() const
 		{ return m_bottomY; }
 
+		QString condition() const;
 
-	public slots:
+public slots:
 		void setHeightPercentage(double arg);
 		void setDate(int date);
+		void setCondition(QString arg);
 
-
-	signals:
+signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
+		void conditionChanged(QString arg);
 
-	private:
-		// Setters required for serialization
-		void setPreviousConstraints(QVector<id_type<ConstraintModel>>&& vec)
-		{ m_previousConstraints = std::move(vec); }
-
-		void setNextConstraints(QVector<id_type<ConstraintModel>>&& vec)
-		{ m_nextConstraints = std::move(vec); }
-
-		void setConstraintsYPos(QMap<id_type<ConstraintModel>, double>&& map)
-		{ m_constraintsYPos = std::move(map); }
-
+private:
 		void setTopY(double val);
-
 		void setBottomY(double val);
-
 
 		void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
 		{ m_timeEvent = timeEvent; }
@@ -119,7 +114,7 @@ class EventModel : public IdentifiedObject<EventModel>
 		double m_bottomY{0.5};
 
 		std::vector<State*> m_states;
-
+		QString m_condition{};
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
 		int m_date{0}; // Was : m_x
 

@@ -128,6 +128,11 @@ ScenarioProcessSharedModel* EventModel::parentScenario() const
 	return dynamic_cast<ScenarioProcessSharedModel*>(parent());
 }
 
+QString EventModel::condition() const
+{
+	return m_condition;
+}
+
 const std::vector<State*>&EventModel::states() const
 {
 	return m_states;
@@ -151,4 +156,14 @@ void EventModel::setHeightPercentage(double arg)
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
 	}
+}
+
+
+void EventModel::setCondition(QString arg)
+{
+	if (m_condition == arg)
+		return;
+
+	m_condition = arg;
+	emit conditionChanged(arg);
 }

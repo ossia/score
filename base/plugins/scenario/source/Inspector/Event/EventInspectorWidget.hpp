@@ -22,6 +22,7 @@ class EventInspectorWidget : public InspectorWidgetBase
 		void updateDisplayedValues (EventModel* obj);
 
 		void on_addAddressClicked();
+		void on_conditionChanged();
 
 		void updateMessages();
 
@@ -30,6 +31,7 @@ class EventInspectorWidget : public InspectorWidgetBase
 
 		std::vector<QLabel*> m_addresses;
 
+		QLineEdit* m_conditionWidget{};
 		QLineEdit* m_addressLineEdit{};
 		EventModel* m_eventModel{};
 

@@ -4,6 +4,7 @@
 
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
+#include "Commands/Event/SetCondition.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 
@@ -24,6 +25,12 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	setObjectName ("EventInspectorWidget");
 	setParent(parent);
 
+	m_conditionWidget = new QLineEdit{this};
+	connect(m_conditionWidget, SIGNAL(editingFinished()),
+			this,			 SLOT(on_conditionChanged()));
+	m_properties.push_back(new QLabel{"Condition"});
+	m_properties.push_back(m_conditionWidget);
+
 	QWidget* addressesWidget = new QWidget{this};
 	auto dispLayout = new QVBoxLayout{addressesWidget};
 	addressesWidget->setLayout(dispLayout);
@@ -37,7 +44,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	addLayout->addWidget(m_addressLineEdit);
 	addLayout->addWidget(ok_button);
 
-
+	m_properties.push_back(new QLabel{"States"});
 	m_properties.push_back(addressesWidget);
 	m_properties.push_back(addAddressWidget);
 
@@ -94,7 +101,21 @@ void EventInspectorWidget::on_addAddressClicked()
 					txt};
 
 	emit submitCommand(cmd);
-    m_addressLineEdit->clear();
+	m_addressLineEdit->clear();
+}
+
+void EventInspectorWidget::on_conditionChanged()
+{
+	auto txt = m_conditionWidget->text();
+	if(txt == m_eventModel->condition()) return;
+
+	auto cmd = new Command::SetCondition{
+					ObjectPath::pathFromObject("BaseConstraintModel",
+											   m_eventModel),
+					txt};
+
+	emit submitCommand(cmd);
+
 }
 
 void EventInspectorWidget::updateMessages()
