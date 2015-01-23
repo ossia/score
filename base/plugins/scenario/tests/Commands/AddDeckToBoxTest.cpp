@@ -14,7 +14,7 @@ class AddDeckToBoxTest: public QObject
 	private slots:
 		void CreateDeckTest()
 		{
-			BoxModel* box  = new BoxModel{0, qApp};
+			BoxModel* box  = new BoxModel{id_type<BoxModel>{0}, qApp};
 
 			QCOMPARE((int)box->decks().size(), 0);
 			AddDeckToBox cmd(

@@ -5,6 +5,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/ConstraintData.hpp>
 #include <Document/Event/EventModel.hpp>
+#include <Document/TimeNode/TimeNodeModel.hpp>
 
 #include <Process/ScenarioProcessSharedModel.hpp>
 
@@ -20,11 +21,14 @@ class MoveConstraintTest: public QObject
 
 		void MoveCommandTest()
 		{
-			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface>{0}, qApp);
 
-			auto int_0_id = getNextId(scenar->constraints());
-			auto ev_0_id = getNextId(scenar->events());
-			scenar->createConstraintAndEndEventFromEvent((SettableIdentifier::identifier_type)scenar->startEvent()->id(), 10, 0.5, int_0_id, ev_0_id);
+			auto int_0_id = getStrongId(scenar->constraints());
+			auto ev_0_id = getStrongId(scenar->events());
+
+			auto fv_0_id = id_type<AbstractConstraintViewModel>{234};
+			auto tb_0_id = getStrongId(scenar->timeNodes());
+			scenar->createConstraintAndEndEventFromEvent(scenar->startEvent()->id(), 10, 0.5, int_0_id, fv_0_id, ev_0_id, tb_0_id);
 
 			ConstraintData data{};
 			data.id = int_0_id;

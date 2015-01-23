@@ -11,7 +11,7 @@
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include <Process/ScenarioProcessFactory.hpp>
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 
 #include <QUndoStack>
 
@@ -32,7 +32,7 @@ class AddProcessViewModelToDeckTest: public QObject
 			plist->addProcess(new ScenarioProcessFactory);
 
 			// Setup
-			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
+			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
 			auto cmd_proc = new AddProcessToConstraint (
 			{

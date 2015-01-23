@@ -20,7 +20,7 @@ class MoveEventTest: public QObject
 
 		void MoveCommandTest()
 		{
-			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface>{0}, qApp);
 			// 1. Create a new event (the first one cannot move since it does not have
 			// predecessors ?)
 

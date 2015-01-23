@@ -20,7 +20,7 @@ class CreateEventTest: public QObject
 
 		void CreateTest()
 		{
-			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(0, qApp);
+			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface>{0}, qApp);
 			EventData data{};
 			// data.id = 0; unused here
 			data.dDate = 10;

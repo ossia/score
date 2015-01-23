@@ -19,7 +19,7 @@ class RemoveDeckFromBoxTest: public QObject
 	private slots:
 		void test()
 		{
-			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
+			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
 			AddBoxToConstraint cmd{
 				ObjectPath{ {"ConstraintModel", {}} }};

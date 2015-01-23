@@ -18,7 +18,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
 
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 
 
 using namespace iscore;
@@ -39,7 +39,8 @@ class ShowBoxInViewModelTest: public QObject
 			plist->addProcess(new ScenarioProcessFactory);
 
 			// Setup
-			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
+			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0},
+															   id_type<AbstractConstraintViewModel>{0}, qApp};
 
 			// Creation of a scenario with a constraint
 			auto cmd_proc = new AddProcessToConstraint (
