@@ -42,7 +42,7 @@ class ObjectIdentifier
 		ObjectIdentifier(QString name, id_type<T> id):
 			m_objectName{std::move(name)}
 		{
-			if(id.val().is_initialized())
+			if(id.val())
 				m_id = id.val().get();
 		}
 

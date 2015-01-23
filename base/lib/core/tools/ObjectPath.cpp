@@ -46,7 +46,7 @@ QString ObjectPath::toString() const
 	for(auto& obj : m_objectIdentifiers)
 	{
 		s += obj.objectName();
-		if(obj.id().is_initialized())
+		if(obj.id())
 		{
 			s += ".";
 			s += QString::number(*obj.id());
@@ -82,7 +82,7 @@ QObject* ObjectPath::find_impl() const
 
 	for(const auto& currentObjIdentifier : children)
 	{
-		if(currentObjIdentifier.id().is_initialized())
+		if(currentObjIdentifier.id())
 		{
 			auto children = obj->findChildren<IdentifiedObjectAbstract*>(currentObjIdentifier.objectName(),
 																		 Qt::FindDirectChildrenOnly);

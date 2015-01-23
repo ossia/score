@@ -13,6 +13,8 @@ void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cv
 
 	// Save the AbstractConstraintViewModelData
 	m_stream << cvm.shownBox();
+	m_stream << QString{"PIPICACA"};
+	qDebug() << Q_FUNC_INFO << *cvm.shownBox().val();
 }
 
 template<>
@@ -20,8 +22,12 @@ void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 {
 	id_type<BoxModel> id;
 	m_stream >> id;
+	QString s;
+	m_stream >> s; qDebug() << s;
 
-	if(id.val().is_initialized())
+	qDebug() << Q_FUNC_INFO << *id.val();
+
+	if(id.val())
 	{
 		cvm.showBox(id);
 	}
@@ -48,7 +54,7 @@ void Visitor<Writer<JSON>>::writeTo(AbstractConstraintViewModel& cvm)
 	id_type<BoxModel> id;
 	fromJsonObject(m_obj["ShownBox"].toObject(), id);
 
-	if(id.val().is_initialized())
+	if(id.val())
 	{
 		cvm.showBox(id);
 	}

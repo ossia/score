@@ -62,14 +62,12 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 }
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
-	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent}
+	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
+	m_baseConstraint{new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
-	Deserializer<DataStream> deserializer{&data};
-	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 
-	(new Command::ShowBoxInViewModel(m_baseConstraint->fullView(),
-									 m_baseConstraint->boxes().front()->id()))->redo();
+	setDisplayedConstraint(m_baseConstraint);
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):
@@ -116,7 +114,7 @@ void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
 
 void BaseElementModel::setDisplayedObject(ObjectPath path)
 {
-	qDebug() << path.vec().last().objectName();
+	qDebug() << Q_FUNC_INFO << path.vec().last().objectName();
 	if(path.vec().last().objectName() == "ConstraintModel" || path.vec().last().objectName() == "BaseConstraintModel")
 	{
 		setDisplayedConstraint(path.find<ConstraintModel>());

@@ -29,10 +29,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	on_displayedConstraintChanged();
 }
 
-void BaseElementPresenter::on_reset()
-{
-}
-
 void BaseElementPresenter::on_askUpdate()
 {
 	view()->update();
@@ -82,9 +78,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	auto cstrView = new TemporalConstraintView{constraintViewModel,
 											   this->view()->baseObject()};
 	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
-    cstrView->setWidth(1000);
-    cstrView->setMinWidth(1000);
-    cstrView->setMaxWidth(1000);
+	cstrView->setWidth(1000);
+	cstrView->setMinWidth(1000);
+	cstrView->setMaxWidth(1000);
 
 	delete m_baseConstraintPresenter;
 	m_baseConstraintPresenter = new TemporalConstraintPresenter
@@ -92,8 +88,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 										constraintViewModel,
 										cstrView,
 										this
-                                        };
-    on_askUpdate();
+										};
+	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
 			this,						&BaseElementPresenter::submitCommand);
@@ -104,10 +100,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
 
-    // Update the address bar
-    view()
-        ->addressBar()
-        ->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
+	// Update the address bar
+	view()
+		->addressBar()
+		->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
 }
 
 BaseElementModel* BaseElementPresenter::model()

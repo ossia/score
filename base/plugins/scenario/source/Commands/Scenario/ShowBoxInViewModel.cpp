@@ -38,7 +38,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 void ShowBoxInViewModel::undo()
 {
 	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-	if(m_previousBoxId.val().is_initialized())
+	if(m_previousBoxId.val())
 	{
 		constraint_vm->showBox(m_previousBoxId);
 	}

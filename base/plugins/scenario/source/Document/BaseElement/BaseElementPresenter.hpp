@@ -22,7 +22,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		virtual ~BaseElementPresenter() = default;
 
 	public slots:
-		void on_reset();
 		void on_askUpdate();
 
 		void selectAll();

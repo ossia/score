@@ -180,6 +180,13 @@ int ConstraintModel::maxDuration() const
 	return m_maxDuration;
 }
 
+void ConstraintModel::setFullView(TemporalConstraintViewModel* fv)
+{
+	qDebug() << Q_FUNC_INFO << fv << fv->id_val() << fv->shownBox().val();
+	m_fullViewModel = fv;
+	setupConstraintViewModel(m_fullViewModel);
+}
+
 int ConstraintModel::defaultDuration() const
 {
 	return m_defaultDuration;

@@ -23,6 +23,17 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 			vis.writeTo(*this);
 		}
 
+		template<typename Impl>
+		AbstractConstraintViewModel(Deserializer<Impl>&& vis,
+									ConstraintModel* model,
+									QObject* parent):
+			IdentifiedObject<AbstractConstraintViewModel>{vis, parent},
+			m_model{model}
+		{
+			vis.writeTo(*this);
+		}
+
+
 
 		ConstraintModel* model() const
 		{ return m_model; }

@@ -55,7 +55,7 @@ void DeckModel::deleteProcessViewModel(id_type<ProcessViewModelInterface> proces
 
 void DeckModel::selectForEdition(id_type<ProcessViewModelInterface> processViewId)
 {
-	if(!processViewId.val().is_initialized())
+	if(!processViewId.val())
 	{
 		// TODO no pvm
 		return;

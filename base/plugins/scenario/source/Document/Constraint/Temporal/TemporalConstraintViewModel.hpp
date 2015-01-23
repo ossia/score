@@ -30,6 +30,16 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 			// Nothing to add, no vis.visit(*this);
 		}
 
+		template<typename Impl>
+		TemporalConstraintViewModel(Deserializer<Impl>&& vis,
+									ConstraintModel* model,
+									QObject* parent):
+			AbstractConstraintViewModel{vis, model, parent}
+		{
+			// Nothing to add, no vis.visit(*this);
+		}
+
+
 
 	public slots:
 		virtual void on_boxRemoved(id_type<BoxModel> boxId) override;

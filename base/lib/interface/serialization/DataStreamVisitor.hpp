@@ -24,8 +24,8 @@ class Visitor<Reader<DataStream>>
 		template<typename T>
 		void readFrom(const id_type<T>& obj)
 		{
-			m_stream << obj.val().is_initialized();
-			if(obj.val().is_initialized())
+			m_stream << bool(obj.val());
+			if(obj.val())
 				m_stream << *obj.val();
 		}
 

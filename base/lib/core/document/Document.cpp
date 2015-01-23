@@ -70,6 +70,4 @@ void Document::setupDocument()
 	// Presenter setup
 	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
 	m_presenter->setPresenterDelegate(pres);
-
-
 }

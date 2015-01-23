@@ -56,6 +56,13 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		~ConstraintModel();
 
 		template<typename Impl>
+		ConstraintModel(Deserializer<Impl>&& vis, QObject* parent):
+			IdentifiedObject<ConstraintModel>{vis, parent}
+		{
+			vis.writeTo(*this);
+		}
+
+		template<typename Impl>
 		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject<ConstraintModel>{vis, parent}
 		{
@@ -115,8 +122,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		int minDuration() const;
 		int maxDuration() const;
 
-		TemporalConstraintViewModel* fullView()
+		TemporalConstraintViewModel* fullView() const
 		{ return m_fullViewModel; }
+
+		void setFullView(TemporalConstraintViewModel* fv);
 
 	signals:
 		void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);

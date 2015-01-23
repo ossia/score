@@ -4,6 +4,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
 
 
 
@@ -55,6 +56,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 		readFrom(*box);
 	}
 
+	m_stream << QString{"PLOP"};
+	readFrom(*constraint.fullView());
+
 	// Events
 	m_stream	<< constraint.startEvent();
 	m_stream	<< constraint.endEvent();
@@ -90,6 +94,11 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	{
 		constraint.addBox(new BoxModel(*this, &constraint));
 	}
+
+	QString test;
+	m_stream >> test;
+	qDebug() << "SHOULD BE PLOP: " << test;
+	constraint.setFullView(new TemporalConstraintViewModel{*this, &constraint, &constraint});
 
 	// Events
 	id_type<EventModel> startId{}, endId{};
@@ -138,10 +147,12 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	}
 	m_obj["Boxes"] = box_array;
 
+	m_obj["FullView"] = toJsonObject(*constraint.fullView());
+
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_obj["DefaultDuration"] = constraint.defaultDuration(); // TODO should be in the view model
+	m_obj["DefaultDuration"] = constraint.defaultDuration();
 	m_obj["StartDate"] = constraint.startDate();
 	m_obj["MinDuration"] = constraint.minDuration();
 	m_obj["MaxDuration"] = constraint.maxDuration();
@@ -167,6 +178,8 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 		Deserializer<JSON> deserializer{json_vref.toObject()};
 		constraint.addBox(new BoxModel(deserializer, &constraint));
 	}
+
+	constraint.setFullView(new TemporalConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()}, &constraint, &constraint});
 
 	// Things that should be queried from the API :
 	constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());
