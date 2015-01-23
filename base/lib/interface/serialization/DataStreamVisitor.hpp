@@ -39,6 +39,10 @@ class Visitor<Reader<DataStream>>
 		template<typename T>
 		void readFrom(const T&);
 
+		void insertDelimiter()
+		{
+			m_stream << int32_t(0xDEADBEEF);
+		}
 
 		QDataStream m_stream;
 };
@@ -73,9 +77,18 @@ class Visitor<Writer<DataStream>>
 			obj.setId(std::move(id));
 		}
 
-
 		template<typename T>
 		void writeTo(T&);
+
+		void checkDelimiter()
+		{
+			int val{};
+			m_stream >> val;
+			if(val != int32_t(0xDEADBEEF))
+				throw std::runtime_error("Corrupt QDataStream");
+		}
+
+
 
 		QDataStream m_stream;
 };

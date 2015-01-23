@@ -67,6 +67,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 			 << constraint.startDate()
 			 << constraint.minDuration()
 			 << constraint.maxDuration();
+
+	insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
@@ -113,6 +115,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	constraint.setStartDate(startDate);
 	constraint.setMinDuration(minDur);
 	constraint.setMaxDuration(maxDur);
+
+	checkDelimiter();
 }
 
 

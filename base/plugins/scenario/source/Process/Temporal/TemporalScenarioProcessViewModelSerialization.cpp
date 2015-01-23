@@ -13,6 +13,8 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewMode
 	{
 		readFrom(*constraint);
 	}
+
+	insertDelimiter();
 }
 
 template<>
@@ -26,6 +28,8 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 		auto cstr = createConstraintViewModel(*this, &pvm);
 		pvm.addConstraintViewModel(cstr);
 	}
+
+	checkDelimiter();
 }
 
 

@@ -20,6 +20,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
 	// Save the subclass
 	processViewModel.serialize(DataStream::type(),
 							   static_cast<void*>(this));
+
+	insertDelimiter();
 }
 
 template<>
@@ -34,6 +36,8 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
 	auto viewmodel = process->makeViewModel(DataStream::type(),
 											static_cast<void*>(&deserializer),
 											parent);
+
+	deserializer.checkDelimiter();
 
 	return viewmodel;
 }

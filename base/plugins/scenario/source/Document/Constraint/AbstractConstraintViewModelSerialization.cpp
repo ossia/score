@@ -13,6 +13,7 @@ void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cv
 
 	// Save the AbstractConstraintViewModelData
 	m_stream << cvm.shownBox();
+	insertDelimiter();
 }
 
 template<>
@@ -29,6 +30,7 @@ void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 	{
 		cvm.hideBox();
 	}
+	checkDelimiter();
 }
 
 

@@ -18,6 +18,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& pr
 	// Save the subclass
 	process.serialize(DataStream::type(),
 					  static_cast<void*>(this));
+
+	insertDelimiter();
 }
 
 template<>
@@ -32,6 +34,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 								static_cast<void*>(&deserializer),
 								parent);
 
+	deserializer.checkDelimiter();
 	return model;
 }
 

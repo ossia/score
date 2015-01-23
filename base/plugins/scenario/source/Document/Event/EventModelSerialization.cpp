@@ -29,6 +29,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 	}
 
 	// TODO save OSSIA::TimeNode
+	insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
@@ -65,6 +66,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 
 	ev.setOSSIATimeNode(new OSSIA::TimeNode);
 	// TODO load the timenode
+
+	checkDelimiter();
 }
 
 

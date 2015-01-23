@@ -24,6 +24,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 	{
 		readFrom(*event);
 	}
+
+	insertDelimiter();
 }
 
 template<>
@@ -60,6 +62,8 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 										*sev->apiObject(),
 										*eev->apiObject());
 	}*/
+
+	checkDelimiter();
 }
 
 

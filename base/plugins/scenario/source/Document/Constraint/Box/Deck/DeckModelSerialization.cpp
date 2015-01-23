@@ -19,6 +19,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 
 	m_stream << deck.height()
 			 << deck.position();
+
+	insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
@@ -44,6 +46,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 	deck.setPosition(position);
 
 	deck.selectForEdition(editedProcessId);
+
+	checkDelimiter();
 }
 
 
