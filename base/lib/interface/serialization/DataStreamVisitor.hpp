@@ -34,7 +34,6 @@ class Visitor<Reader<DataStream>>
 		{
 			readFrom(static_cast<const NamedObject&>(obj));
 			readFrom(obj.id());
-			qDebug() << "Reading: " << *obj.id().val();
 		}
 
 		template<typename T>
@@ -71,7 +70,6 @@ class Visitor<Writer<DataStream>>
 		{
 			id_type<T> id;
 			writeTo(id);
-			qDebug() << "Writing id: " << *id.val();
 			obj.setId(std::move(id));
 		}
 

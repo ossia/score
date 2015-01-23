@@ -1,9 +1,13 @@
 #pragma once
 #include "interface/serialization/VisitorInterface.hpp"
+#include <tools/IdentifiedObject.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QVector>
 #include <QMap>
+
+template<typename T>
+T fromJsonObject(QJsonObject&& json);
 
 class JSON
 {
@@ -18,6 +22,24 @@ class Visitor<Reader<JSON>>
 	public:
 		template<typename T>
 		void readFrom(const T&);
+
+
+		template<typename T>
+		void readFrom(const id_type<T>& obj)
+		{
+			m_obj["IdentifierSet"] = bool(obj.val());
+			if(obj.val())
+				m_obj["IdentifierValue"] = *obj.val();
+		}
+
+
+		template<typename T>
+		void readFrom(const IdentifiedObject<T>& obj)
+		{
+			readFrom(static_cast<const NamedObject&>(obj));
+
+			m_obj["Identifier"] = toJsonObject(obj.id());
+		}
 
 		QJsonObject m_obj;
 };
@@ -34,8 +56,27 @@ class Visitor<Writer<JSON>>
 		Visitor<Writer<JSON>>(QJsonObject&& obj):
 			m_obj{std::move(obj)}
 		{}
+
 		template<typename T>
 		void writeTo(T&);
+
+		template<typename T>
+		void writeTo(id_type<T>& obj)
+		{
+			bool init = m_obj["IdentifierSet"].toBool();
+			int32_t val{};
+			if(init)
+				val = m_obj["IdentifierValue"].toInt();
+
+			obj.setVal(boost::optional<int32_t>{init, val});
+		}
+
+		template<typename T>
+		void writeTo(IdentifiedObject<T>& obj)
+		{
+			obj.setId(fromJsonObject<id_type<T>>(m_obj["Identifier"].toObject()));
+		}
+
 
 		QJsonObject m_obj;
 };
@@ -55,6 +96,17 @@ void fromJsonObject(QJsonObject&& json, T& obj)
 	Visitor<Writer<JSON>> writer{json};
 	writer.writeTo(obj);
 }
+
+template<typename T>
+T fromJsonObject(QJsonObject&& json)
+{
+	T obj;
+	Visitor<Writer<JSON>> writer{json};
+	writer.writeTo(obj);
+
+	return obj;
+}
+
 
 inline QJsonArray toJsonArray(const QVector<int>& array)
 {
