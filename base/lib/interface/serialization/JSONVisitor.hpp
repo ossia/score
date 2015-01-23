@@ -108,7 +108,29 @@ T fromJsonObject(QJsonObject&& json)
 }
 
 
+template<typename T>
+QJsonArray toJsonArray(const QVector<T*>& array)
+{
+	QJsonArray arr;
+	for(auto elt : array)
+	{
+		arr.append(toJsonObject(*elt));
+	}
 
+	return arr;
+}
+
+template<typename T>
+QJsonArray toJsonArray(const std::vector<T*>& array)
+{
+	QJsonArray arr;
+	for(auto elt : array)
+	{
+		arr.append(toJsonObject(*elt));
+	}
+
+	return arr;
+}
 
 template<typename T>
 QJsonArray toJsonArray(const T& array)
@@ -122,17 +144,7 @@ QJsonArray toJsonArray(const T& array)
 	return arr;
 }
 
-template<typename T>
-QJsonArray toJsonArray(const QVector<T*>& array)
-{
-	QJsonArray arr;
-	for(auto elt : array)
-	{
-		arr.append(toJsonObject(*elt));
-	}
 
-	return arr;
-}
 
 template<>
 inline QJsonArray toJsonArray(const QVector<int>& array)

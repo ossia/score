@@ -28,7 +28,12 @@
 #include <QAction>
 #include <QApplication>
 
+#include <QFile>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <QJsonDocument>
+
 
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
@@ -42,6 +47,55 @@ ScenarioControl::ScenarioControl(QObject* parent):
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
 	using namespace iscore;
+
+	// File
+
+	// Export in old format
+	auto toZeroTwo = new QAction("To i-score 0.2", this);
+	connect(toZeroTwo, &QAction::triggered,
+			[this] ()
+	{
+		auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
+
+		if(!savename.isEmpty())
+		{
+			auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*>("BaseElementModel");
+			auto json = bem->toJson();
+
+			QFile f(savename);
+			f.open(QIODevice::WriteOnly);
+		//	f.write(theFile);
+		}
+	});
+
+
+	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+									   FileMenuElement::Separator_Quit,
+									   toZeroTwo);
+
+
+	// Save as json
+	auto toJson = new QAction("To JSON", this);
+	connect(toJson, &QAction::triggered,
+			[this] ()
+	{
+		auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
+
+		if(!savename.isEmpty())
+		{
+			QJsonDocument doc;
+			auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*>("BaseElementModel");
+			doc.setObject(bem->toJson());
+
+			QFile f(savename);
+			f.open(QIODevice::WriteOnly);
+			f.write(doc.toJson());
+		}
+	});
+	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+									   FileMenuElement::Separator_Quit,
+									   toJson);
+
 
 	// View
 	QAction* selectAll = new QAction{tr("Select all"), this};

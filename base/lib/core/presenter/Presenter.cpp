@@ -17,6 +17,8 @@
 
 #include <QKeySequence>
 
+#include <QFileDialog>
+
 using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
@@ -101,11 +103,6 @@ void Presenter::on_elementSelected(QObject* elt)
 	emit elementSelected(elt);
 }
 
-#include <QFile>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <QJsonDocument>
 void Presenter::setupMenus()
 {
 	////// File //////
@@ -164,27 +161,6 @@ void Presenter::setupMenus()
 	m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
 										   FileMenuElement::Separator_Quit);
 
-	// Save as json
-	auto toJson = new QAction("To JSON", this);
-	connect(toJson, &QAction::triggered,
-			[this] ()
-	{
-		auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
-
-		if(!savename.isEmpty())
-		{
-			QJsonDocument doc;
-			auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*>("BaseElementModel");
-			doc.setObject(bem->toJson());
-
-			QFile f(savename);
-			f.open(QIODevice::WriteOnly);
-			f.write(doc.toJson());
-		}
-	});
-	m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-										   FileMenuElement::Separator_Quit,
-										   toJson);
 
 	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
 										FileMenuElement::Quit,
