@@ -13,8 +13,6 @@ void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cv
 
 	// Save the AbstractConstraintViewModelData
 	m_stream << cvm.shownBox();
-	m_stream << QString{"PIPICACA"};
-	qDebug() << Q_FUNC_INFO << *cvm.shownBox().val();
 }
 
 template<>
@@ -22,10 +20,6 @@ void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 {
 	id_type<BoxModel> id;
 	m_stream >> id;
-	QString s;
-	m_stream >> s; qDebug() << s;
-
-	qDebug() << Q_FUNC_INFO << *id.val();
 
 	if(id.val())
 	{

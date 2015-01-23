@@ -56,7 +56,6 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 		readFrom(*box);
 	}
 
-	m_stream << QString{"PLOP"};
 	readFrom(*constraint.fullView());
 
 	// Events
@@ -95,9 +94,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 		constraint.addBox(new BoxModel(*this, &constraint));
 	}
 
-	QString test;
-	m_stream >> test;
-	qDebug() << "SHOULD BE PLOP: " << test;
+	id_type<ConstraintModel> savedConstraintId;
+	m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
 	constraint.setFullView(new TemporalConstraintViewModel{*this, &constraint, &constraint});
 
 	// Events
@@ -128,8 +126,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
 	m_obj["HeightPercentage"] = constraint.heightPercentage();
-	m_obj["StartEvent"] = *constraint.startEvent().val();
-	m_obj["EndEvent"] = *constraint.endEvent().val();
+	m_obj["StartEvent"] = toJsonObject(constraint.startEvent());
+	m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
 
 	// Processes
 	QJsonArray process_array;
@@ -162,8 +160,8 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
 	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
 	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-	constraint.setStartEvent(id_type<EventModel>(m_obj["StartEvent"].toInt()));
-	constraint.setEndEvent(id_type<EventModel>(m_obj["EndEvent"].toInt()));
+	constraint.setStartEvent(fromJsonObject<id_type<EventModel>>(m_obj["StartEvent"].toObject()));
+	constraint.setEndEvent(fromJsonObject<id_type<EventModel>>(m_obj["EndEvent"].toObject()));
 
 	QJsonArray process_array = m_obj["Processes"].toArray();
 	for(auto json_vref : process_array)
@@ -179,7 +177,9 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 		constraint.addBox(new BoxModel(deserializer, &constraint));
 	}
 
-	constraint.setFullView(new TemporalConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()}, &constraint, &constraint});
+	constraint.setFullView(new TemporalConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()},
+																			  &constraint,
+																			  &constraint});
 
 	// Things that should be queried from the API :
 	constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());

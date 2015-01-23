@@ -10,6 +10,9 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& scenario)
 {
+	m_stream << scenario.m_startEventId;
+	m_stream << scenario.m_endEventId;
+
 	// Constraints
 	auto constraints = scenario.constraints();
 	m_stream << (int) constraints.size();
@@ -30,6 +33,9 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 {
+	m_stream >> scenario.m_startEventId;
+	m_stream >> scenario.m_endEventId;
+
 	// Constraints
 	int constraint_count;
 	m_stream >> constraint_count;
@@ -66,6 +72,9 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 template<>
 void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
 {
+	m_obj["StartEventId"] = toJsonObject(scenario.m_startEventId);
+	m_obj["EndEventId"] = toJsonObject(scenario.m_endEventId);
+
 	QJsonArray constraints_array;
 	for(auto constraint : scenario.constraints())
 	{
@@ -84,6 +93,8 @@ void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
 template<>
 void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
 {
+	scenario.m_startEventId = fromJsonObject<id_type<EventModel>>(m_obj["StartEventId"].toObject());
+	scenario.m_endEventId = fromJsonObject<id_type<EventModel>>(m_obj["EndEventId"].toObject());
 	QJsonArray constraints_array = m_obj["Constraints"].toArray();
 	for(auto json_vref : constraints_array)
 	{

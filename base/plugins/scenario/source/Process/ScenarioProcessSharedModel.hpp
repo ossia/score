@@ -4,6 +4,7 @@
 #include <tools/SettableIdentifier.hpp>
 
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 namespace OSSIA
 {
@@ -27,6 +28,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
 		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+		friend void Visitor<Reader<JSON>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
+		friend void Visitor<Writer<JSON>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
 		friend class ScenarioProcessFactory;
 
 	public:

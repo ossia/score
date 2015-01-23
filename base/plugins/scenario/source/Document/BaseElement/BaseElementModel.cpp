@@ -114,7 +114,6 @@ void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
 
 void BaseElementModel::setDisplayedObject(ObjectPath path)
 {
-	qDebug() << Q_FUNC_INFO << path.vec().last().objectName();
 	if(path.vec().last().objectName() == "ConstraintModel" || path.vec().last().objectName() == "BaseConstraintModel")
 	{
 		setDisplayedConstraint(path.find<ConstraintModel>());

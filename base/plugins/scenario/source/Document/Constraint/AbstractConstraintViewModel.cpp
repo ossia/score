@@ -18,9 +18,16 @@ void AbstractConstraintViewModel::hideBox()
 
 void AbstractConstraintViewModel::showBox(id_type<BoxModel> boxId)
 {
-	m_shownBox = boxId;
+	if(boxId.val().is_initialized())
+	{
+		m_shownBox = boxId;
 
-	emit boxShown(m_shownBox);
+		emit boxShown(m_shownBox);
+	}
+	else
+	{
+		hideBox();
+	}
 }
 
 AbstractConstraintViewModel::AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
