@@ -25,7 +25,7 @@ bool loadJSON(QJsonDocument* doc)
     return true;
 }
 
-QString JSONToZeroTwo(QJsonObject obj)
+QString JSONToZeroTwo(QJsonObject base)
 {
     //QCoreApplication a(argc, argv);
 
@@ -179,9 +179,9 @@ QString JSONToZeroTwo(QJsonObject obj)
     int deltaDuration = 1; // durée de l'intervalle artificiel
 
 
-    QJsonDocument* json = new QJsonDocument;
-    loadJSON(json);
-    QJsonObject base = json->object();
+	//QJsonDocument* json = new QJsonDocument;
+	//loadJSON(json);
+	//QJsonObject base = json->object();
 
     QJsonArray processes = base["Processes"].toArray();
     for (auto process : processes)
@@ -354,8 +354,8 @@ QString JSONToZeroTwo(QJsonObject obj)
     //////////////////////////////////////////////////////////////
     // Writing into file
     //////////////////////////////////////////////////////////////
-    QString xml = domdoc.toString();
-
+	return domdoc.toString();
+/*
     QFile file("out.xml");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return 1;
@@ -363,6 +363,5 @@ QString JSONToZeroTwo(QJsonObject obj)
     QTextStream out(&file);
     out << xml;
     file.close();
-
-    return 0;
+	*/
 }

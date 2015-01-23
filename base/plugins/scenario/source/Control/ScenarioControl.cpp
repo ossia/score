@@ -37,6 +37,9 @@
 
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+
+#include "Control/OldFormatConversion.hpp"
+
 ScenarioControl::ScenarioControl(QObject* parent):
 	PluginControlInterface{"ScenarioControl", parent},
 	m_processList{new ProcessList{this}}
@@ -60,11 +63,10 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 		if(!savename.isEmpty())
 		{
 			auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*>("BaseElementModel");
-			auto json = bem->toJson();
 
 			QFile f(savename);
 			f.open(QIODevice::WriteOnly);
-		//	f.write(theFile);
+			f.write(JSONToZeroTwo(bem->toJson()).toLatin1().constData());
 		}
 	});
 
