@@ -42,9 +42,6 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
 	return viewmodel;
 }
 
-
-
-
 template<>
 void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processViewModel)
 {

@@ -2,11 +2,17 @@
 #include <tools/IdentifiedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
 	Q_OBJECT
+
+		friend void Visitor<Reader<DataStream>>::readFrom<TimeNodeModel>(const TimeNodeModel& ev);
+		friend void Visitor<Reader<JSON>>::readFrom<TimeNodeModel>(const TimeNodeModel& ev);
+		friend void Visitor<Writer<DataStream>>::writeTo<TimeNodeModel>(TimeNodeModel& ev);
+		friend void Visitor<Writer<JSON>>::writeTo<TimeNodeModel>(TimeNodeModel& ev);
 
 	public:
 		TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
