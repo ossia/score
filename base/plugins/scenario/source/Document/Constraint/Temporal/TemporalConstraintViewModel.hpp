@@ -20,18 +20,8 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 									ConstraintModel* model,
 									QObject* parent);
 
-
-		template<typename Impl>
-		TemporalConstraintViewModel(Deserializer<Impl>& vis,
-									ConstraintModel* model,
-									QObject* parent):
-			AbstractConstraintViewModel{vis, model, parent}
-		{
-			// Nothing to add, no vis.visit(*this);
-		}
-
-		template<typename Impl>
-		TemporalConstraintViewModel(Deserializer<Impl>&& vis,
+		template<typename DeserializerVisitor>
+		TemporalConstraintViewModel(DeserializerVisitor&& vis,
 									ConstraintModel* model,
 									QObject* parent):
 			AbstractConstraintViewModel{vis, model, parent}

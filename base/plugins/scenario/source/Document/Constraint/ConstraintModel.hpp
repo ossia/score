@@ -55,15 +55,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 						QObject* parent);
 		~ConstraintModel();
 
-		template<typename Impl>
-		ConstraintModel(Deserializer<Impl>&& vis, QObject* parent):
-			IdentifiedObject<ConstraintModel>{vis, parent}
-		{
-			vis.writeTo(*this);
-		}
-
-		template<typename Impl>
-		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
+		template<typename DeserializerVisitor>
+		ConstraintModel(DeserializerVisitor&& vis, QObject* parent):
 			IdentifiedObject<ConstraintModel>{vis, parent}
 		{
 			vis.writeTo(*this);

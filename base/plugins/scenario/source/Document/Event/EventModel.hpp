@@ -31,9 +31,8 @@ class EventModel : public IdentifiedObject<EventModel>
 		EventModel(id_type<EventModel>, double yPos, QObject *parent);
 		~EventModel();
 
-
-		template<typename Impl>
-		EventModel(Deserializer<Impl>& vis, QObject* parent):
+		template<typename DeserializerVisitor>
+		EventModel(DeserializerVisitor&& vis, QObject* parent):
 			IdentifiedObject<EventModel>{vis, parent}
 		{
 			vis.writeTo(*this);

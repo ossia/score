@@ -19,6 +19,13 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent);
 		~TimeNodeModel();
 
+		template<typename DeserializerVisitor>
+		TimeNodeModel(DeserializerVisitor&& vis, QObject* parent):
+			IdentifiedObject<TimeNodeModel>{vis, parent}
+		{
+			vis.writeTo(*this);
+		}
+
 		void addEvent(id_type<EventModel>);
 		bool removeEvent(id_type<EventModel>);
 

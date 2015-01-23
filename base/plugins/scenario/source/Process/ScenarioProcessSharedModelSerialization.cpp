@@ -1,5 +1,6 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "ScenarioProcessSharedModel.hpp"
 
@@ -23,6 +24,13 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 	for(auto event : events)
 	{
 		readFrom(*event);
+	}
+
+	auto timenodes = scenario.timeNodes();
+	m_stream << (int) timenodes.size();
+	for(auto timenode : timenodes)
+	{
+		readFrom(*timenode);
 	}
 
 	insertDelimiter();
@@ -52,6 +60,14 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 		scenario.addEvent(evmodel);
 	}
 
+	int timenode_count;
+	m_stream >> timenode_count;
+	for(; timenode_count --> 0;)
+	{
+		auto tnmodel = new TimeNodeModel{*this, &scenario};
+		scenario.m_timeNodes.push_back(tnmodel);
+	}
+
 	// Recreate the API
 	/*for(ConstraintModel* constraint : scenario.m_constraints)
 	{
@@ -75,19 +91,9 @@ void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
 	m_obj["StartEventId"] = toJsonObject(scenario.m_startEventId);
 	m_obj["EndEventId"] = toJsonObject(scenario.m_endEventId);
 
-	QJsonArray constraints_array;
-	for(auto constraint : scenario.constraints())
-	{
-		constraints_array.push_back(toJsonObject(*constraint));
-	}
-	m_obj["Constraints"] = constraints_array;
-
-	QJsonArray events_array;
-	for(auto event : scenario.events())
-	{
-		events_array.push_back(toJsonObject(*event));
-	}
-	m_obj["Events"] = events_array;
+	m_obj["Constraints"] = toJsonArray(scenario.constraints());
+	m_obj["Events"] = toJsonArray(scenario.events());
+	m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes());
 }
 
 template<>
@@ -95,22 +101,27 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
 {
 	scenario.m_startEventId = fromJsonObject<id_type<EventModel>>(m_obj["StartEventId"].toObject());
 	scenario.m_endEventId = fromJsonObject<id_type<EventModel>>(m_obj["EndEventId"].toObject());
-	QJsonArray constraints_array = m_obj["Constraints"].toArray();
-	for(auto json_vref : constraints_array)
+
+	for(auto json_vref : m_obj["Constraints"].toArray())
 	{
-		Deserializer<JSON> deserializer{json_vref.toObject()};
-		auto constraint = new ConstraintModel{deserializer,
+		auto constraint = new ConstraintModel{Deserializer<JSON>{json_vref.toObject()},
 											  &scenario};
 		scenario.addConstraint(constraint);
 	}
 
-	QJsonArray events_array = m_obj["Events"].toArray();
-	for(auto json_vref : events_array)
+	for(auto json_vref : m_obj["Events"].toArray())
 	{
-		Deserializer<JSON> deserializer{json_vref.toObject()};
-		auto evmodel = new EventModel{deserializer,
+		auto evmodel = new EventModel{Deserializer<JSON>{json_vref.toObject()},
 									  &scenario};
 		scenario.addEvent(evmodel);
+	}
+
+	for(auto json_vref : m_obj["TimeNodes"].toArray())
+	{
+		auto tnmodel = new TimeNodeModel{Deserializer<JSON>{json_vref.toObject()},
+										 &scenario};
+
+		scenario.m_timeNodes.push_back(tnmodel);
 	}
 
 	// Recreate the API
