@@ -2,7 +2,7 @@
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Event/EventModel.hpp"

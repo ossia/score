@@ -2,8 +2,8 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"

@@ -1,7 +1,7 @@
 #include "BaseElementModel.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
+#include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <QJsonDocument>
 #include <interface/serialization/JSONVisitor.hpp>
 

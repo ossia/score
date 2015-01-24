@@ -30,6 +30,16 @@ void AbstractConstraintViewModel::showBox(id_type<BoxModel> boxId)
 	}
 }
 
+void AbstractConstraintViewModel::on_boxRemoved(id_type<BoxModel> boxId)
+{
+	if(shownBox() == boxId)
+	{
+		hideBox();
+		emit boxRemoved();
+	}
+}
+
+
 AbstractConstraintViewModel::AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 														 QString name,
 														 ConstraintModel* model,

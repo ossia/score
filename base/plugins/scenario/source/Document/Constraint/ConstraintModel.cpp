@@ -1,6 +1,6 @@
 #include "ConstraintModel.hpp"
 
-#include "Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 

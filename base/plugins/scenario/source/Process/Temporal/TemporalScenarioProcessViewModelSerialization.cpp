@@ -1,7 +1,7 @@
 #include "Process/AbstractScenarioProcessViewModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModelSerialization.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
 #include "TemporalScenarioProcessViewModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewModel& pvm)

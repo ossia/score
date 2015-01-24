@@ -6,7 +6,7 @@
 #include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"

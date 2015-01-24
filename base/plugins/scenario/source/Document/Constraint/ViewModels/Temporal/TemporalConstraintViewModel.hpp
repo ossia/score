@@ -1,9 +1,14 @@
 #pragma once
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 
 class ConstraintModel;
-// TODO might be different in temporal vs logical view. Same for Event.
+
+/**
+ * @brief The TemporalConstraintViewModel class
+ *
+ * The ViewModel of a Constraint shown inside a temporal view of a scenario
+ */
 class TemporalConstraintViewModel : public AbstractConstraintViewModel
 {
 		Q_OBJECT
@@ -28,10 +33,4 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		{
 			// Nothing to add, no vis.visit(*this);
 		}
-
-
-
-	public slots:
-		virtual void on_boxRemoved(id_type<BoxModel> boxId) override;
-
 };

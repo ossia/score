@@ -1,6 +1,6 @@
 #include "BaseElementView.hpp"
 
-#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
 
 #include <QLabel>
 #include <QGridLayout>

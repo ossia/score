@@ -1,5 +1,5 @@
 #include "AbstractScenarioProcessViewModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 AbstractConstraintViewModel* AbstractScenarioProcessViewModel::constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const
 {

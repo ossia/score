@@ -1,8 +1,8 @@
 #include "BaseElementPresenter.hpp"
 
-#include "Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
-#include "Document/Constraint/FullView/FullViewConstraintPresenter.hpp"
-#include "Document/Constraint/FullView/FullViewConstraintView.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"

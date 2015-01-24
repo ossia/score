@@ -4,9 +4,9 @@
 #include "source/Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioProcessView.hpp"
 
-#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"

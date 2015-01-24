@@ -2,7 +2,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
 
-#include "ConstraintModel.hpp"
+#include "source/Document/Constraint/ConstraintModel.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
 

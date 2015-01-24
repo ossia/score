@@ -3,7 +3,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioProcessSharedModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																   ScenarioProcessSharedModel* model,

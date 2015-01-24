@@ -38,7 +38,7 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 		void boxShown(id_type<BoxModel> boxId);
 
 	public slots:
-		virtual void on_boxRemoved(id_type<BoxModel> boxId) = 0;
+		virtual void on_boxRemoved(id_type<BoxModel> boxId);
 
 
 	private:

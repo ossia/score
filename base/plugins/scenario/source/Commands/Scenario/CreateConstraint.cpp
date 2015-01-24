@@ -4,7 +4,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventData.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
 using namespace iscore;

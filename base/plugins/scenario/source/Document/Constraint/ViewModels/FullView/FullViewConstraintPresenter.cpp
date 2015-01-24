@@ -2,8 +2,8 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
-#include "Document/Constraint/FullView/FullViewConstraintView.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"

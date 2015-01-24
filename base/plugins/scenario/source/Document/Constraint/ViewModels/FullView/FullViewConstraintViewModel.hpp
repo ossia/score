@@ -1,9 +1,14 @@
 #pragma once
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
-
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 class ConstraintModel;
-// TODO might be different in temporal vs logical view. Same for Event.
+/**
+ * @brief The FullViewConstraintViewModel class
+ *
+ * The ViewModel of a Constraint shown in full view.
+ * This is different for the case of the original Constraint, because
+ * this one must appear infinite.
+ */
 class FullViewConstraintViewModel : public AbstractConstraintViewModel
 {
 		Q_OBJECT
@@ -28,10 +33,4 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
 		{
 			// Nothing to add, no vis.visit(*this);
 		}
-
-
-
-	public slots:
-		virtual void on_boxRemoved(id_type<BoxModel> boxId) override;
-
 };
