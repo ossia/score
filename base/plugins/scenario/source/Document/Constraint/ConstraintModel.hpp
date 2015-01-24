@@ -14,7 +14,7 @@ namespace OSSIA
 
 class ProcessSharedModelInterface;
 class AbstractConstraintViewModel;
-class TemporalConstraintViewModel;
+class FullViewConstraintViewModel;
 
 class BoxModel;
 class EventModel;
@@ -115,10 +115,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		int minDuration() const;
 		int maxDuration() const;
 
-		TemporalConstraintViewModel* fullView() const
+		FullViewConstraintViewModel* fullView() const
 		{ return m_fullViewModel; }
 
-		void setFullView(TemporalConstraintViewModel* fv);
+		void setFullView(FullViewConstraintViewModel* fv);
 
 	signals:
 		void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
@@ -155,7 +155,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
 		// Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
-		TemporalConstraintViewModel* m_fullViewModel{};
+		FullViewConstraintViewModel* m_fullViewModel{};
 
 		id_type<EventModel> m_startEvent{};
 		id_type<EventModel> m_endEvent{};

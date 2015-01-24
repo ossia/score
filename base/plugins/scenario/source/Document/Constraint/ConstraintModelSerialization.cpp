@@ -2,7 +2,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
 
 
 
@@ -96,7 +96,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 	id_type<ConstraintModel> savedConstraintId;
 	m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
-	constraint.setFullView(new TemporalConstraintViewModel{*this, &constraint, &constraint});
+	constraint.setFullView(new FullViewConstraintViewModel{*this, &constraint, &constraint});
 
 	// Events
 	id_type<EventModel> startId{}, endId{};
@@ -179,7 +179,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 		constraint.addBox(new BoxModel(deserializer, &constraint));
 	}
 
-	constraint.setFullView(new TemporalConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()},
+	constraint.setFullView(new FullViewConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()},
 																			  &constraint,
 																			  &constraint});
 

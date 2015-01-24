@@ -1,7 +1,7 @@
 #include "BaseElementModel.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "source/Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
 #include <QJsonDocument>
 #include <interface/serialization/JSONVisitor.hpp>
 
@@ -21,7 +21,7 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 using namespace Scenario;
-void testInit(TemporalConstraintViewModel* viewmodel)
+void testInit(FullViewConstraintViewModel* viewmodel)
 {
 	using namespace Scenario::Command;
 	auto constraint_model = viewmodel->model();
@@ -81,7 +81,7 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	setDisplayedConstraint(m_baseConstraint);
 }
 
-TemporalConstraintViewModel *BaseElementModel::constraintViewModel() const
+FullViewConstraintViewModel *BaseElementModel::constraintViewModel() const
 {
 	return m_baseConstraint->fullView();
 }

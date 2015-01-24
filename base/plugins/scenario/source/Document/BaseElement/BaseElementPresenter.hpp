@@ -4,7 +4,7 @@
 
 class BaseElementModel;
 class BaseElementView;
-class TemporalConstraintPresenter;
+class FullViewConstraintPresenter;
 /**
  * @brief The BaseElementPresenter class
  *
@@ -34,7 +34,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 	private:
 		BaseElementModel* model();
 		BaseElementView* view();
-		TemporalConstraintPresenter* m_baseConstraintPresenter{};
+		FullViewConstraintPresenter* m_baseConstraintPresenter{};
 
 };
 

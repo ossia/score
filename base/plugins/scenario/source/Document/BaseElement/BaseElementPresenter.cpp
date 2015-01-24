@@ -1,8 +1,8 @@
 #include "BaseElementPresenter.hpp"
 
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintPresenter.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintView.hpp"
+#include "Document/Constraint/FullView/FullViewConstraintViewModel.hpp"
+#include "Document/Constraint/FullView/FullViewConstraintPresenter.hpp"
+#include "Document/Constraint/FullView/FullViewConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
@@ -56,26 +56,9 @@ void BaseElementPresenter::deleteSelection()
 
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-	TemporalConstraintViewModel* constraintViewModel{};
-	if(model()->constraintModel() == model()->displayedConstraint())
-	{
-		constraintViewModel = model()->constraintViewModel();
-	}
-	else
-	{
-		auto viewmodels = model()->displayedConstraint()->viewModels();
+	auto constraintViewModel = model()->displayedConstraint()->fullView();
 
-		for(auto& viewmodel : viewmodels)
-		{
-			if((constraintViewModel = dynamic_cast<TemporalConstraintViewModel*>(viewmodel)))
-				break;
-		}
-
-		if(!constraintViewModel)
-			qFatal("Error : cannot display a constraint without view model");
-	}
-
-	auto cstrView = new TemporalConstraintView{constraintViewModel,
+	auto cstrView = new FullViewConstraintView{constraintViewModel,
 											   this->view()->baseObject()};
 	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
 	cstrView->setWidth(1000);
@@ -83,21 +66,18 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	cstrView->setMaxWidth(1000);
 
 	delete m_baseConstraintPresenter;
-	m_baseConstraintPresenter = new TemporalConstraintPresenter
-									{
-										constraintViewModel,
-										cstrView,
-										this
-										};
+	m_baseConstraintPresenter = new FullViewConstraintPresenter{constraintViewModel,
+																cstrView,
+																this};
 	on_askUpdate();
 
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::submitCommand,
+	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::submitCommand,
 			this,						&BaseElementPresenter::submitCommand);
 
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::elementSelected,
+	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
 			this,						&BaseElementPresenter::elementSelected);
 
-	connect(m_baseConstraintPresenter,	&TemporalConstraintPresenter::askUpdate,
+	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
 
 	// Update the address bar

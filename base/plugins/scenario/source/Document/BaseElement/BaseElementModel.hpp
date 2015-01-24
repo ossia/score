@@ -3,7 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 class BaseElementPresenter;
-class TemporalConstraintViewModel;
+class FullViewConstraintViewModel;
 class ConstraintModel;
 
 /**
@@ -32,7 +32,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_displayedConstraint;
 		}
 
-		TemporalConstraintViewModel* constraintViewModel() const;
+		FullViewConstraintViewModel *constraintViewModel() const;
 
 		virtual QByteArray save() override;
 		virtual QJsonObject toJson() override;
