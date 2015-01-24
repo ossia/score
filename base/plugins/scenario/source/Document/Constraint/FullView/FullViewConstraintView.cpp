@@ -22,7 +22,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintViewModel* view
 
 QRectF FullViewConstraintView::boundingRect() const
 {
-    return {0, -18, qreal(m_maxWidth) + 3, qreal(m_height) + 3};
+	return {0, -18, qreal(m_maxWidth) + 3, qreal(m_height) + 3};
 }
 
 void FullViewConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -80,6 +80,17 @@ void FullViewConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 						  0);
 	}
 	// TODO max -> +inf
+
+	QLinearGradient gradient{qreal(m_maxWidth), 0, qreal(m_maxWidth + 200), 0};
+	gradient.setColorAt(0, Qt::black);
+	gradient.setColorAt(1, Qt::transparent);
+
+	QBrush brush{gradient};
+	painter->setBrush(brush);
+	painter->setPen(QPen(brush, 4));
+
+
+	painter->drawLine(m_maxWidth, 0, m_maxWidth + 200, 0);
 
 
 }
