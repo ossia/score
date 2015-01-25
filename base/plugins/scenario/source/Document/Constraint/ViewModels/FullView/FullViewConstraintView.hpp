@@ -26,6 +26,9 @@ class FullViewConstraintView : public QGraphicsObject
         void setMinWidth(int min);
 		void setHeight(int height);
 
+		int constraintWidth() const
+		{ return m_width; }
+
 		//QRectF m_rect;
 		QLineF firstLine;
 		QLineF secondLine;

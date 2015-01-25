@@ -1,9 +1,16 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
+#include <tools/SettableIdentifier.hpp>
+#include <tools/NamedObject.hpp>
+
+#include <vector>
+
 #include "Document/Constraint/ConstraintData.hpp"
 
-class TemporalConstraintViewModel;
-class TemporalConstraintView;
+class FullViewConstraintViewModel;
+class BaseConstraintView;
+class BaseElementPresenter;
+class BoxPresenter;
+class BoxModel;
 
 
 namespace iscore
@@ -13,23 +20,23 @@ namespace iscore
 class ProcessPresenterInterface;
 
 /**
- * @brief The TemporalConstraintPresenter class
+ * @brief The BaseConstraintPresenter class
  *
  * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
  * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
  */
-class TemporalConstraintPresenter : public AbstractConstraintPresenter
+class BaseConstraintPresenter : public NamedObject
 {
 	Q_OBJECT
 
 	public:
-		using view_model_type = TemporalConstraintViewModel;
-		using view_type = TemporalConstraintView;
+		BaseConstraintPresenter(FullViewConstraintViewModel *viewModel,
+								BaseConstraintView* view,
+								BaseElementPresenter *parent);
+		virtual ~BaseConstraintPresenter();
 
-		TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
-									TemporalConstraintView* view,
-									QObject* parent);
-		virtual ~TemporalConstraintPresenter();
+		BaseConstraintView* view();
+		FullViewConstraintViewModel* viewModel();
 
 		bool isSelected() const;
 		void deselect();
@@ -39,9 +46,7 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 		void elementSelected(QObject*);
 		void constraintReleased(ConstraintData);
 
-        void minDurationChanged();
-        void maxDurationChanged();
-        void defaultDurationChanged();
+		void viewportChanged();
 
 		void askUpdate();
 
@@ -51,8 +56,9 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 		void on_boxHidden();
 		void on_boxRemoved();
 
-		void on_minDurationChanged(int);
-		void on_maxDurationChanged(int);
+		void on_horizontalZoomChanged(int);
+
+		void recomputeViewport();
 
 		void updateView();
 
@@ -62,5 +68,15 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 		void clearBoxPresenter();
 
 		BoxPresenter* m_box{};
+		// Process presenters are in the deck presenters.
+		FullViewConstraintViewModel* m_viewModel{};
+		BaseConstraintView* m_view{};
+
+		int m_viewportStartTime{};
+		int m_viewportEndTime{};
+
+		int m_horizontalZoomSliderVal{};
+
+
 };
 

@@ -5,6 +5,7 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
+#include <QGraphicsView>
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
 
 // TODO put this somewhere else
@@ -18,10 +19,16 @@ using namespace iscore;
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 										   DocumentDelegateModelInterface* delegate_model,
 										   DocumentDelegateViewInterface* delegate_view):
-	DocumentDelegatePresenterInterface{parent_presenter, "BaseElementPresenter", delegate_model, delegate_view}
+	DocumentDelegatePresenterInterface{parent_presenter,
+									   "BaseElementPresenter",
+									   delegate_model,
+									   delegate_view}
 {
 	connect(view()->addressBar(), &AddressBar::objectSelected,
 			model(),			  &BaseElementModel::setDisplayedObject);
+	connect(view(), &BaseElementView::horizontalZoomChanged,
+			this,	&BaseElementPresenter::on_horizontalZoomChanged);
+
 
 	connect(model(), &BaseElementModel::displayedConstraintChanged,
 			this,	 &BaseElementPresenter::on_displayedConstraintChanged);
@@ -83,7 +90,19 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	// Update the address bar
 	view()
 		->addressBar()
-		->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
+			->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
+}
+
+void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
+{
+	// 0 : least zoom (min = 20)
+	// 100 : most zoom (max = 80)
+
+
+	// Recalculer le viewport
+	//view()->view()->translate();
+	// Mettre à jour la contrainte
+	m_baseConstraintPresenter->on_horizontalZoomChanged(newzoom);
 }
 
 BaseElementModel* BaseElementPresenter::model()

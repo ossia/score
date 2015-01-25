@@ -40,7 +40,8 @@ class FullViewConstraintPresenter : public NamedObject
 		bool isSelected() const;
 		void deselect();
 
-	signals:
+		void recomputeViewport();
+signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 		void constraintReleased(ConstraintData);
@@ -48,6 +49,8 @@ class FullViewConstraintPresenter : public NamedObject
         void minDurationChanged();
         void maxDurationChanged();
         void defaultDurationChanged();
+
+		void viewportChanged();
 
 		void askUpdate();
 
@@ -60,6 +63,8 @@ class FullViewConstraintPresenter : public NamedObject
 		void on_minDurationChanged(int);
 		void on_maxDurationChanged(int);
 
+		void on_horizontalZoomChanged(int);
+
 		void updateView();
 
 
@@ -71,5 +76,10 @@ class FullViewConstraintPresenter : public NamedObject
 		// Process presenters are in the deck presenters.
 		FullViewConstraintViewModel* m_viewModel{};
 		FullViewConstraintView* m_view{};
+
+		int m_viewportStartTime{};
+		int m_viewportEndTime{};
+
+		int m_horizontalZoomSliderVal{};
 };
 

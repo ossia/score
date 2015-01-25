@@ -172,3 +172,34 @@ void FullViewConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 	connect(m_box, &BoxPresenter::askUpdate,
 			this,  &FullViewConstraintPresenter::updateView);
 }
+
+
+void FullViewConstraintPresenter::on_horizontalZoomChanged(int val)
+{
+	m_horizontalZoomSliderVal = val;
+	recomputeViewport();
+}
+
+void FullViewConstraintPresenter::recomputeViewport()
+{
+
+	// Set width of constraint
+	double secPerPixel = 46.73630963 * std::exp(-0.07707388206 * m_horizontalZoomSliderVal);
+	// sliderval = 20 => 1 pixel = 10s
+	// sliderval = 50 => 1 pixel = 1s
+	// sliderval = 80 => 1 pixel = 0.01s
+
+	// Formule : y = 46.73630963 e^(x * -7.707388206 * 10^-2 )
+//	double centralTime = (m_viewportStartTime + m_viewportEndTime) / 2.0; // Replace with cursor in the future
+
+	// prendre en compte la distance du clic à chaque côté
+	view()->setWidth(m_viewModel->model()->defaultDuration() / secPerPixel);
+
+	updateView();
+	// translate viewport to accomodate
+
+
+	// Fetch zoom cursor ?
+	emit viewportChanged();
+}
+

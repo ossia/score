@@ -24,10 +24,18 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 		QGraphicsScene* scene()
 		{ return m_scene; }
 
+		QGraphicsView* view()
+		{ return m_view; }
+
 		AddressBar* addressBar()
 		{ return m_addressBar; }
 
+	signals:
+		void horizontalZoomChanged(int newZoom);
+		void verticalZoomChanged(int newZoom);
+
 	private:
+		QWidget* m_widget{};
 		QGraphicsScene* m_scene{};
 		QGraphicsView* m_view{};
 		QGraphicsObject* m_baseObject{};

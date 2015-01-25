@@ -172,7 +172,7 @@ void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<Abs
 	vec_erase_remove_if(m_constraints,
 						[&constraintViewModelId] (TemporalConstraintPresenter* pres)
 						{
-							bool to_delete = pres->viewModel()->id() == constraintViewModelId;
+							bool to_delete = viewModel(pres)->id() == constraintViewModelId;
 							if(to_delete) delete pres;
 							return to_delete;
 						} );
@@ -203,17 +203,17 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintMode
 {
 	auto rect = m_view->boundingRect();
 
-	for(TemporalConstraintPresenter* cstr_pres : m_constraints)
+	for(TemporalConstraintPresenter* pres : m_constraints)
 	{
-		ConstraintModel* cstr_model{cstr_pres->viewModel()->model()};
+		ConstraintModel* cstr_model{viewModel(pres)->model()};
 		if(cstr_model->id() == constraintId )
 		{
-			cstr_pres->view()->setPos({qreal(cstr_model->startDate()) / m_millisecPerPixel,
+			view(pres)->setPos({qreal(cstr_model->startDate()) / m_millisecPerPixel,
 									   rect.height() * cstr_model->heightPercentage()});
 
-			cstr_pres->view()->setWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
-            cstr_pres->view()->setMinWidth(cstr_model->minDuration() / m_millisecPerPixel);
-            cstr_pres->view()->setMaxWidth(cstr_model->maxDuration() / m_millisecPerPixel);
+			view(pres)->setDefaultWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
+			view(pres)->setMinWidth(cstr_model->minDuration() / m_millisecPerPixel);
+			view(pres)->setMaxWidth(cstr_model->maxDuration() / m_millisecPerPixel);
 		}
 	}
 	m_view->update();
@@ -296,7 +296,7 @@ void TemporalScenarioProcessPresenter::deleteSelection()
 		commands.push_back(
 					new ClearConstraint(
 						ObjectPath::pathFromObject("BaseConstraintModel",
-												   constraint->viewModel()->model())));
+												   viewModel(constraint)->model())));
 	}
 
 	for(auto& event : m_events)
@@ -437,13 +437,13 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 {
 	auto rect = m_view->boundingRect();
 
-	auto constraint_view = new TemporalConstraintView{constraint_view_model, m_view};
+	auto constraint_view = new TemporalConstraintView{m_view};
 	auto constraint_presenter = new TemporalConstraintPresenter{
 													constraint_view_model,
 													constraint_view,
 													this};
 
-	constraint_view->setWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
+	constraint_view->setDefaultWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
     constraint_view->setMinWidth(constraint_view_model->model()->minDuration() / m_millisecPerPixel);
     constraint_view->setMaxWidth(constraint_view_model->model()->maxDuration() / m_millisecPerPixel);
 
