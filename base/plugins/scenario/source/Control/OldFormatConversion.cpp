@@ -197,9 +197,10 @@ QString JSONToZeroTwo(QJsonObject base)
             for (auto event : events)
             {
                 auto j_ev = event.toObject();
+                auto idNode = j_ev["Identifier"].toObject();
 
                 QString id = "j"; // identifiant 0.2 commencent par un j ...
-                id += QString::number(j_ev["Identifier"].toInt());
+                id += QString::number(idNode["IdentifierValue"].toInt());
 
                 QString date = QString::number(j_ev["Date"].toInt() * TIMECOEFF + DELTAT);
                 date += "u";    // position 0.2 finissent par u ...
@@ -220,14 +221,17 @@ QString JSONToZeroTwo(QJsonObject base)
             for (auto constraint : constraints)
             {
                 auto j_cstr = constraint.toObject();
+                auto idNode = j_cstr["Identifier"].toObject();
+                auto endEvent = j_cstr["EndEvent"].toObject();
+                auto startEvent = j_cstr["StartEvent"].toObject();
 
-                int endEv = j_cstr["EndEvent"].toInt();
+                int endEv = endEvent["IdentifierValue"].toInt();
 
                 QString boxName = "box_";
-                        boxName += QString::number(j_cstr["Identifier"].toInt());
+                        boxName += QString::number(idNode["IdentifierValue"].toInt());
 
                 QString interStart = "j";
-                        interStart += QString::number(j_cstr["StartEvent"].toInt());
+                        interStart += QString::number(startEvent["IdentifierValue"].toInt());
 
                 QString boxEnd = "j";
                         boxEnd += QString::number(endEv);
@@ -281,7 +285,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 dom_scenar.appendChild(dom_subscenar);
 
                 // pas d'intervalle à partir de l'origine
-                if (j_cstr["StartEvent"].toInt())
+                if (startEvent["IdentifierValue"].toInt())
                 {
                     QDomElement dom_interval = domdoc.createElement("Interval");
                     dom_interval.setAttribute("name", "interval");

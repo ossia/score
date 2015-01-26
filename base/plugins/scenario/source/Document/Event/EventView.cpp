@@ -75,7 +75,7 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
         {
             posInScenario.setY(pos().y());
         }
-        emit eventReleased(posInScenario);
+        if(m->pos() != m_clickedPoint)  emit eventReleased(posInScenario);
 	}
 }
 
