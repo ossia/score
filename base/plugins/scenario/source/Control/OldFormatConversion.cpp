@@ -37,6 +37,31 @@ QString JSONToZeroTwo(QJsonObject base)
     // default nodes, pour mémoire et pour copier-coller
     ////////////////////////////////////////////////
 /*/
+
+  // appli device
+    QDomElement dom_devAppli = domdoc.createElement("application");
+    dom_appli.setAttribute("name", "oscDevice");
+    dom_appli.setAttribute("author", "");
+    dom_appli.setAttribute("version", "");
+    dom_appli.setAttribute("type", "proxy");
+        QDomElement dom_devNode = domdoc.createElement(("node");
+        dom_devNode.setAttribute("address", "");
+        dom_devNode.setAttribute("object", "Data");
+        dom_devNode.setAttribute("service", "parameter");
+        dom_devNode.setAttribute("dataspace", "none");
+        dom_devNode.setAttribute("type", "generic");
+        dom_devNode.setAttribute("valueStepsize", "0,100000");
+        dom_devNode.setAttribute("priority", "0");
+        dom_devNode.setAttribute("rangeClipmode", "none");
+        dom_devNode.setAttribute("valueDefault", "0,000000");
+        dom_devNode.setAttribute("rangeBounds", "0. 1.");
+        dom_devNode.setAttribute("tags", "O");
+        dom_devNode.setAttribute("repetitionsFilter", "0");
+        dom_devNode.setAttribute("dataspaceUnit", "none");
+        dom_devNode.setAttribute("rampDrive", "none");
+        dom_devNode.setAttribute("active", "1");
+        dom_devNode.setAttribute("rampFunction", "none");
+
     // dans Application i-score
     QDomElement AutomationNode = domdoc.createElement("node");
     AutomationNode.setAttribute("address", "boxName");
@@ -47,16 +72,18 @@ QString JSONToZeroTwo(QJsonObject base)
     TriggerNode.setAttribute("object", "TimeCondition");
 
     // dans scenario
-    QDomElement DefaultCommand = domdoc.createElement("command");
-    DefaultCommand.setAttribute("address", "device:/path");
-    QDomText value = domdoc.createTextNode("value");
-    DefaultCommand.appendChild(value);
+
 
     QDomElement DefaultEvent = domdoc.createElement("event");
     DefaultEvent.setAttribute("name", "j0");
     DefaultEvent.setAttribute("date", "0u");
     DefaultEvent.setAttribute("mute", "0");
     DefaultEvent.setAttribute("condition", "j0"); // if needed
+
+        QDomElement DefaultCommand = domdoc.createElement("command");
+        DefaultCommand.setAttribute("address", "device:/path");
+            QDomText value = domdoc.createTextNode("value");
+            DefaultCommand.appendChild(value);
 
     QDomElement DefaultAutomation = domdoc.createElement("Automation");
     DefaultAutomation.setAttribute("name","id");
@@ -68,23 +95,24 @@ QString JSONToZeroTwo(QJsonObject base)
     DefaultAutomation.setAttribute("verticalPosition","0u");
     DefaultAutomation.setAttribute("verticalSize","1u");
 
-    QDomElement DefaultIndex = domdoc.createElement("indexedCurves");
-    DefaultIndex.setAttribute("address", "device:/path");
+        QDomElement DefaultIndex = domdoc.createElement("indexedCurves");
+        DefaultIndex.setAttribute("address", "device:/path");
 
-    QDomElement DefaultCurve = domdoc.createElement("curve");
-    DefaultCurve.setAttribute("active","1");
-    DefaultCurve.setAttribute("redundancy","0");
-    DefaultCurve.setAttribute("sampleRate","40u");
-    DefaultCurve.setAttribute("function","0 0 1"); // WARNING : virgule comme separateur decimal !!
+            QDomElement DefaultCurve = domdoc.createElement("curve");
+            DefaultCurve.setAttribute("active","1");
+            DefaultCurve.setAttribute("redundancy","0");
+            DefaultCurve.setAttribute("sampleRate","40u");
+            DefaultCurve.setAttribute("function","0 0 1"); // WARNING : virgule comme separateur decimal !!
 
     QDomElement DefaultCondition = domdoc.createElement("condition");
     DefaultCondition.setAttribute("name", "jxxx");
     DefaultCondition.setAttribute("dispose", "");
 
-    QDomElement DefaultCase = domdoc.createElement("case");
-    DefaultCase.setAttribute("event", "eventId");
-    DefaultCase.setAttribute("trigger", "expression");
-    DefaultCase.setAttribute("default", "0");
+        QDomElement DefaultCase = domdoc.createElement("case");
+        DefaultCase.setAttribute("event", "eventId");
+        DefaultCase.setAttribute("trigger", "expression");
+        DefaultCase.setAttribute("default", "0");
+        DefaultCondition.appendChild(DefaultCase);
 //*/
 
     ////////////////////////////////////////////////////////////////
@@ -105,6 +133,7 @@ QString JSONToZeroTwo(QJsonObject base)
         dom_root.appendChild(osc);
             QDomElement oscDev = domdoc.createElement("oscDevice");
             oscDev.setAttribute("ip", "127.0.0.1");
+            oscDev.setAttribute("port", "9997u 9996u");
             osc.appendChild(oscDev);
 
             QDomElement iscore = domdoc.createElement("i-score");
@@ -119,7 +148,15 @@ QString JSONToZeroTwo(QJsonObject base)
             iscore.setAttribute("port", "13579");
             minuit.appendChild(iscore);
 
-        // application
+        // application device
+        QDomElement dom_devAppli = domdoc.createElement("application");
+        dom_devAppli.setAttribute("name", "oscDevice");
+        dom_devAppli.setAttribute("author", "");
+        dom_devAppli.setAttribute("version", "");
+        dom_devAppli.setAttribute("type", "proxy");
+        dom_root.appendChild(dom_devAppli);
+
+        // application i-score
         QDomElement dom_appli = domdoc.createElement("application");
         dom_appli.setAttribute("name", "i-score");
         dom_appli.setAttribute("author", "");
@@ -137,7 +174,7 @@ QString JSONToZeroTwo(QJsonObject base)
         dom_scenar.setAttribute("durationMin", "0u");
         dom_scenar.setAttribute("durationMax", "0u");
         dom_scenar.setAttribute("mute", "0");
-        dom_scenar.setAttribute("color", "255 255 255");
+        dom_scenar.setAttribute("color", "255 0 100");
         dom_scenar.setAttribute("version", "0.3");
         dom_scenar.setAttribute("viewZoom", "1,000000 1,000000");
         dom_scenar.setAttribute("viewPosition", "0 0");
@@ -174,7 +211,7 @@ QString JSONToZeroTwo(QJsonObject base)
     problème aussi pour les convergences
     */
 
-    int i = 10; // utilisé pour créer des identifiants des nouveaux "fakes" events
+    int idIndent = 10; // utilisé pour créer des identifiants des nouveaux "fakes" events
     const int DELTAT = 100; // translate tout le scénario (évite le GRIP du début)
     int deltaDuration = 1; // durée de l'intervalle artificiel
 
@@ -211,6 +248,84 @@ QString JSONToZeroTwo(QJsonObject base)
                 dom_event.setAttribute("date", date);
                 dom_event.setAttribute("mute", "0");
                 dom_scenar.appendChild(dom_event);
+
+                auto states = j_ev["States"].toArray();
+                if(states.size())
+                {
+                    for (auto state : states)
+                    {
+                        auto j_state = state.toObject();
+                        auto j_msg = j_state["Messages"].toArray();
+
+                        QString msg = j_msg.first().toString();
+                        QString address = msg;
+                        address.truncate(msg.indexOf(" "));
+                        QString currentNode;
+
+                        // dans le nom application correspondant au device (ici device OSC)
+                        QDomElement prevNode = dom_devAppli;
+                        for (int i=0; i < address.count("/"); i++ )
+                        {
+                            currentNode = address.section("/",i+1, i+1);
+
+                            auto elt = prevNode.firstChildElement("node");
+                            int max = prevNode.childNodes().size();
+                            int j{0};
+                            while (!elt.isNull() && (elt.attribute("address") != currentNode) && j<max)
+                            {
+                                elt.nextSiblingElement("node");
+                                j++;
+                            }
+
+                            if (elt.attribute("address") == currentNode)
+                            {
+                                prevNode = elt;
+                            }
+                            else
+                            {
+                                qDebug() << prevNode.nodeName();
+                                QDomElement dom_devNode = domdoc.createElement("node");
+                                    dom_devNode.setAttribute("address", currentNode);
+                                    dom_devNode.setAttribute("object", "Data");
+                                    dom_devNode.setAttribute("service", "parameter");
+                                    dom_devNode.setAttribute("dataspace", "none");
+                                    dom_devNode.setAttribute("type", "generic");
+                                    dom_devNode.setAttribute("valueStepsize", "0,100000");
+                                    dom_devNode.setAttribute("priority", "0");
+                                    dom_devNode.setAttribute("rangeClipmode", "none");
+                                    dom_devNode.setAttribute("valueDefault", "0,000000");
+                                    dom_devNode.setAttribute("rangeBounds", "0. 1.");
+                                    dom_devNode.setAttribute("tags", "0");
+                                    dom_devNode.setAttribute("repetitionsFilter", "0");
+                                    dom_devNode.setAttribute("dataspaceUnit", "none");
+                                    dom_devNode.setAttribute("rampDrive", "none");
+                                    dom_devNode.setAttribute("active", "1");
+                                    dom_devNode.setAttribute("rampFunction", "none");
+                                    prevNode.appendChild(dom_devNode);
+                                    prevNode = dom_devNode;
+                            }
+                        }
+                        QString value = msg.remove(0, address.length() + 1);
+
+                        address = "oscDevice:" + address;
+                        QDomElement dom_Command = domdoc.createElement("command");
+                        dom_Command.setAttribute("address", address );
+                            QDomText dom_value = domdoc.createTextNode(value);
+                            dom_Command.appendChild(dom_value);
+                            dom_event.appendChild(dom_Command);
+                    }
+                }
+                        /*
+                QDomElement DefaultCondition = domdoc.createElement("condition");
+                DefaultCondition.setAttribute("name", "jxxx");
+                DefaultCondition.setAttribute("dispose", "");
+
+                    QDomElement DefaultCase = domdoc.createElement("case");
+                    DefaultCase.setAttribute("event", "eventId");
+                    DefaultCase.setAttribute("trigger", "expression");
+                    DefaultCase.setAttribute("default", "0");
+                    DefaultCondition.appendChild(DefaultCase);
+                    */
             }
 
             //////////////////////////////////////////////////////////////////////////////
@@ -250,8 +365,8 @@ QString JSONToZeroTwo(QJsonObject base)
                 ** **********************************************************************/
 
                 QString boxStart = interStart;
-                        boxStart += QString::number(i);
-                        i++;
+                        boxStart += QString::number(idIndent);
+                        idIndent++;
                 QString date = QString::number(j_cstr["StartDate"].toInt() * TIMECOEFF + DELTAT + deltaDuration);
                         date += "u";
 
