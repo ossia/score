@@ -107,6 +107,7 @@ void FullViewConstraintPresenter::recomputeViewport()
 	// prendre en compte la distance du clic à chaque côté
 	view(this)->setDefaultWidth(viewModel(this)->model()->defaultDuration() / secPerPixel);
 
+	box()->setWidth(view(this)->defaultWidth() - 20);
 	updateView();
 	// translate viewport to accomodate
 

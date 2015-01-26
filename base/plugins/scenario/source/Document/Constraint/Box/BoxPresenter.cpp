@@ -51,6 +51,16 @@ int BoxPresenter::height() const
 	return totalHeight;
 }
 
+int BoxPresenter::width() const
+{
+	return m_view->boundingRect().width();
+}
+
+void BoxPresenter::setWidth(int w)
+{
+	m_view->setWidth(w);
+}
+
 id_type<BoxModel> BoxPresenter::id() const
 {
 	return m_model->id();

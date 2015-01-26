@@ -18,7 +18,7 @@ QRectF BoxView::boundingRect() const
 {
 	return {0,
 			0,
-			parentItem()->boundingRect().width()  - 2 * DEMO_PIXEL_SPACING_TEST,
+			qreal(m_width),
 			qreal(m_height)};
 }
 

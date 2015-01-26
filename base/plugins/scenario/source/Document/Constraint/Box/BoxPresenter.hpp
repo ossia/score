@@ -22,6 +22,9 @@ class BoxPresenter : public NamedObject
 		virtual ~BoxPresenter();
 
 		int height() const;
+		int width() const;
+		void setWidth(int);
+
 		id_type<BoxModel> id() const;
 
 	signals:
