@@ -28,6 +28,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	m_conditionWidget = new QLineEdit{this};
 	connect(m_conditionWidget, SIGNAL(editingFinished()),
 			this,			 SLOT(on_conditionChanged()));
+    // todo : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
 	m_properties.push_back(new QLabel{"Condition"});
 	m_properties.push_back(m_conditionWidget);
 
@@ -60,7 +61,7 @@ void EventInspectorWidget::addAddress(const QString& addr)
 	auto lbl = new QLabel{addr, this};
 
 	m_addresses.push_back(lbl);
-	m_properties[0]->layout()->addWidget(lbl);
+    m_properties[3]->layout()->addWidget(lbl);
 }
 
 void EventInspectorWidget::updateDisplayedValues (EventModel* event)
@@ -89,6 +90,8 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 				addAddress(msg);
 			}
 		}
+
+        m_conditionWidget->setText(event->condition());
 	}
 }
 
