@@ -22,7 +22,15 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
+	connect(m_viewModel, &AbstractConstraintViewModel::boxShown,
+			this,		 &AbstractConstraintPresenter::on_boxShown);
+	connect(m_viewModel, &AbstractConstraintViewModel::boxHidden,
+			this,		 &AbstractConstraintPresenter::on_boxHidden);
+	connect(m_viewModel, &AbstractConstraintViewModel::boxRemoved,
+			this,		 &AbstractConstraintPresenter::on_boxRemoved);
 
+	connect(m_view, &AbstractConstraintView::constraintPressed,
+			this,	&AbstractConstraintPresenter::on_constraintPressed);
 }
 
 bool AbstractConstraintPresenter::isSelected() const

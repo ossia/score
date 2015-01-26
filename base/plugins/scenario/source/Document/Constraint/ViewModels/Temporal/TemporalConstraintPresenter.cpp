@@ -19,19 +19,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		QObject* parent):
 	AbstractConstraintPresenter{"TemporalConstraintPresenter", cstr_model, cstr_view, parent}
 {
-
-	if(viewModel(this)->isBoxShown())
-	{
-		on_boxShown(viewModel(this)->shownBox());
-	}
-
-	connect(viewModel(this), &TemporalConstraintViewModel::boxShown,
-			this,			 &AbstractConstraintPresenter::on_boxShown);
-	connect(viewModel(this), &TemporalConstraintViewModel::boxHidden,
-			this,			 &AbstractConstraintPresenter::on_boxHidden);
-	connect(viewModel(this), &TemporalConstraintViewModel::boxRemoved,
-			this,			 &AbstractConstraintPresenter::on_boxRemoved);
-
 	connect(viewModel(this)->model(),   &ConstraintModel::minDurationChanged,
 			this,						&TemporalConstraintPresenter::on_minDurationChanged);
 	connect(viewModel(this)->model(),   &ConstraintModel::maxDurationChanged,
@@ -41,8 +28,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
 	// TODO mettre ça dans la doc des classes
 
-	connect(view(this), &TemporalConstraintView::constraintPressed,
-			this,		&TemporalConstraintPresenter::on_constraintPressed);
 
 	connect(view(this), &TemporalConstraintView::constraintReleased,
 			[&] (QPointF p)
@@ -53,6 +38,12 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		data.x = p.x();
 		emit constraintReleased(data);
 	});
+
+
+	if(viewModel(this)->isBoxShown())
+	{
+		on_boxShown(viewModel(this)->shownBox());
+	}
 
 	updateView();
 }
@@ -74,7 +65,7 @@ void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
 
 void TemporalConstraintPresenter::on_minDurationChanged(int min)
 {
-    //todo passer par scenariopresenter pour le zoom
+	//todo passer par scenariopresenter pour le zoom
 	view(this)->setMinWidth(viewModel(this)->model()->minDuration());
 	updateView();
 }
@@ -89,7 +80,7 @@ void TemporalConstraintPresenter::updateView()
 {
 	if(viewModel(this)->isBoxShown())
 	{
-		view(this)->setHeight(m_box->height() + 60);
+		view(this)->setHeight(box()->height() + 60);
 	}
 	else
 	{

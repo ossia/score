@@ -35,21 +35,25 @@ class AbstractConstraintPresenter : public NamedObject
 									QObject *parent);
 		virtual ~AbstractConstraintPresenter() = default;
 
+		virtual void recomputeViewport() = 0;
+
 		bool isSelected() const;
 		void deselect();
 
+		BoxPresenter* box() const
+		{ return m_box; }
+
 		AbstractConstraintViewModel* abstractConstraintViewModel() const
-		{
-			 return m_viewModel;
-		}
+		{ return m_viewModel; }
 
 		AbstractConstraintView* abstractConstraintView() const
-		{
-			return m_view;
-		}
-signals:
+		{ return m_view; }
+
+	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
+
+		void defaultWidthChanged();
 
 		void askUpdate();
 
@@ -59,6 +63,7 @@ signals:
 		void on_boxRemoved();
 
 		virtual void updateView() = 0;
+		virtual void on_constraintPressed(QPointF) { }
 
 	private:
 		void createBoxPresenter(BoxModel*);

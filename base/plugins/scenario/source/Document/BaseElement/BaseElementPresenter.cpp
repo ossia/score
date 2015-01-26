@@ -65,10 +65,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
 	auto constraintViewModel = model()->displayedConstraint()->fullView();
 
-	auto cstrView = new FullViewConstraintView{constraintViewModel,
-											   this->view()->baseObject()};
+	auto cstrView = new FullViewConstraintView{this->view()->baseObject()};
 	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
-	cstrView->setWidth(1000);
+	cstrView->setDefaultWidth(1000);
 	cstrView->setMinWidth(1000);
 	cstrView->setMaxWidth(1000);
 
