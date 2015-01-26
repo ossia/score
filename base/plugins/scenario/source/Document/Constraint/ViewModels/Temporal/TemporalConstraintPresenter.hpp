@@ -31,26 +31,15 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 									QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
-		bool isSelected() const;
-		void deselect();
-
 	signals:
-		void submitCommand(iscore::SerializableCommand*);
-		void elementSelected(QObject*);
 		void constraintReleased(ConstraintData);
 
         void minDurationChanged();
         void maxDurationChanged();
-        void defaultDurationChanged();
-
-		void askUpdate();
+		void defaultDurationChanged();
 
 	public slots:
 		void on_constraintPressed(QPointF);
-		void on_boxShown(id_type<BoxModel> boxId);
-		void on_boxHidden();
-		void on_boxRemoved();
-
 		void on_minDurationChanged(int);
 		void on_maxDurationChanged(int);
 
