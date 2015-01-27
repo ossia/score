@@ -66,6 +66,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		// View -> Presenter
 		void on_deletePressed();
+        void on_clearPressed();
 
 		void on_scenarioPressed();
 		void on_scenarioPressedWithControl(QPointF);
@@ -73,7 +74,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		void on_askUpdate();
 
-		void deleteSelection();
+        void clearContentFromSelection();
+        void deleteSelection();
 
 	private slots:
 		void setCurrentlySelectedEvent(id_type<EventModel> arg);

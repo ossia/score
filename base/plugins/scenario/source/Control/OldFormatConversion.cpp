@@ -283,7 +283,6 @@ QString JSONToZeroTwo(QJsonObject base)
                             }
                             else
                             {
-                                qDebug() << prevNode.nodeName();
                                 QDomElement dom_devNode = domdoc.createElement("node");
                                     dom_devNode.setAttribute("address", currentNode);
                                     dom_devNode.setAttribute("object", "Data");

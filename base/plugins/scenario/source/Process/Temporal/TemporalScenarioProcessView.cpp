@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
+#include <QMenu>
 #include <QDebug>
 
 TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent):
@@ -16,6 +17,10 @@ TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent
 
 	this->setZValue(parent->zValue() + 1);
 	//this->parentItem()->scene()->addItem(this);
+
+    m_clearAction = new QAction("clear contents", this);
+    connect(m_clearAction,  &QAction::triggered,
+            this,           &TemporalScenarioProcessView::clearPressed);
 }
 
 
@@ -74,7 +79,15 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
 	if(event->modifiers() == Qt::ControlModifier)
 	{
         emit scenarioReleased(event->pos(), mapToScene(event->pos()));
-	}
+    }
+}
+
+void TemporalScenarioProcessView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    QMenu contextMenu{};
+    contextMenu.clear();
+    contextMenu.addAction(m_clearAction);
+    contextMenu.exec(event->screenPos());
 }
 
 void TemporalScenarioProcessView::keyPressEvent(QKeyEvent* event)
@@ -84,4 +97,5 @@ void TemporalScenarioProcessView::keyPressEvent(QKeyEvent* event)
 		emit deletePressed();
 	}
 }
+
 
