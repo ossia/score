@@ -15,7 +15,6 @@ class State : public IdentifiedObject<State>
 		State(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject<State>{vis, parent}
 		{
-			vis.writeTo(*this);
 		}
 
 		virtual ~State() = default;
@@ -34,7 +33,7 @@ class FakeState : public State
 		FakeState(Deserializer<Impl>& vis, QObject* parent):
 			State{vis, parent}
 		{
-			// The parent already does everything required
+			vis.writeTo(*this);
 		}
 
 		virtual QStringList messages() const override

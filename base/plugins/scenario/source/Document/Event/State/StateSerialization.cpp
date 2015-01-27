@@ -6,13 +6,29 @@ template<>
 void Visitor<Reader<DataStream> >::readFrom(const State& state)
 {
 	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+}
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const State& state)
+{
+	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+}
+
+
+
+
+template<>
+void Visitor<Reader<DataStream> >::readFrom(const FakeState& state)
+{
+	readFrom(static_cast<const State&>(state));
 
 	m_stream << state.messages();
+
 	insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream> >::writeTo(State& state)
+void Visitor<Writer<DataStream> >::writeTo(FakeState& state)
 {
 	QStringList messages;
 	m_stream >> messages;
@@ -21,19 +37,20 @@ void Visitor<Writer<DataStream> >::writeTo(State& state)
 	{
 		state.addMessage(message);
 	}
+
 	checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const State& state)
+void Visitor<Reader<JSON>>::readFrom(const FakeState& state)
 {
-	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+	readFrom(static_cast<const State&>(state));
 
 	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(State& state)
+void Visitor<Writer<JSON>>::writeTo(FakeState& state)
 {
 	for(auto& message : m_obj["Messages"].toArray().toVariantList())
 	{
