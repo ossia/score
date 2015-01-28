@@ -32,7 +32,7 @@ RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event):
     m_serializedEvent = arr;
 
     m_evId = event->id();
-
+/*
     for (auto cstr : event->previousConstraints())
     {
         QByteArray arr;
@@ -47,19 +47,20 @@ RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event):
         s.readFrom(cstr);
         m_serializedConstraints.push_back(arr);
     }
-
+*/
 
 }
 
 void RemoveEvent::undo()
 {
+/*
     auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
     Deserializer<DataStream> s{&m_serializedEvent};
     auto event = new EventModel(s, scenar); // todo : quel est le parent à mettre ? scenar ? je crois pas
     scenar->addEvent(event);
 
-    /*
+
     for (auto scstr : m_serializedConstraints)
     {
         Deserializer<DataStream> s{&scstr};

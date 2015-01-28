@@ -25,6 +25,7 @@
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/CreateConstraint.hpp"
+#include "Commands/Scenario/RemoveConstraint.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
@@ -334,14 +335,15 @@ void TemporalScenarioProcessPresenter::deleteSelection()
     QVector<iscore::SerializableCommand*> commands;
 
     // 2. Create a Delete command for each. For now : only emptying.
- /*   for(auto& constraint : constraintsToRemove)
+    for(auto& constraint : constraintsToRemove)
     {
         commands.push_back(
-                    new ClearConstraint(
+                    new RemoveConstraint(
                         ObjectPath::pathFromObject("BaseConstraintModel",
-                                                   constraint->viewModel()->model())));
+                                                   m_viewModel->sharedProcessModel()),
+                        constraint->viewModel()->model() ));
     }
-*/
+
     for(auto& event : eventsToRemove)
     {
         commands.push_back(
@@ -350,6 +352,8 @@ void TemporalScenarioProcessPresenter::deleteSelection()
                                                    m_viewModel->sharedProcessModel()),
                         event->model()) );
     }
+
+    // todo : modifier pour selection multiple
 
     // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
 //    auto cmd = new RemoveMultipleElements{std::move(commands)};
