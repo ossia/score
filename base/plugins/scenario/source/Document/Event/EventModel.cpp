@@ -17,7 +17,7 @@ EventModel::EventModel(id_type<EventModel> id, QObject* parent):
 EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):
 	EventModel{id, parent}
 {
-	m_heightPercentage = yPos;
+    m_heightPercentage = yPos;
 }
 
 EventModel::~EventModel()

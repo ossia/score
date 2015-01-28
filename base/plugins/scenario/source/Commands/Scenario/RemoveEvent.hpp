@@ -1,7 +1,11 @@
 #pragma once
+#include <tools/SettableIdentifier.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
+class AbstractConstraintViewModel;
 
 #include <core/tools/ObjectPath.hpp>
+
+class EventModel;
 
 namespace Scenario
 {
@@ -15,9 +19,9 @@ namespace Scenario
  */
         class RemoveEvent : public iscore::SerializableCommand
 		{
-			public:
+            public:
                 RemoveEvent();
-                RemoveEvent(ObjectPath&& path);
+                RemoveEvent(ObjectPath&& scenarioPath, EventModel* event);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;
@@ -29,10 +33,10 @@ namespace Scenario
 
 			private:
 				ObjectPath m_path;
+                id_type<EventModel> m_evId{};
+                QByteArray m_serializedEvent;
+                QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
 
-				QVector<QByteArray> m_serializedStates;
-				//		QByteArray m_serializedEvent;
-				//		QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
 		};
 	}
 }

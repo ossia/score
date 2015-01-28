@@ -153,7 +153,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
-	m_constraints.push_back(constraint);
+    m_constraints.push_back(constraint);
 	m_timeNodes.push_back(timeNode);
 
 	emit eventCreated(event->id());
@@ -268,15 +268,28 @@ void ScenarioProcessSharedModel::removeConstraint(id_type<ConstraintModel> const
 						[&constraintId] (ConstraintModel* model)
 						{ return model->id() == constraintId; });
 
+    auto sev = event(cstr->startEvent());
+    sev->removeNextConstraint(constraintId);
+
+    auto eev = event(cstr->endEvent());
+    eev->removePreviousConstraint(constraintId);
+
 	emit constraintRemoved(constraintId);
-	delete cstr;
+
+    delete cstr;
 }
 
 void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
 {
 	// @todo : delete event in timeNode list (and timeNode if empty)
 	auto ev = event(eventId);
-	vec_erase_remove_if(m_events,
+
+    for (auto constraint : ev->previousConstraints())
+    {
+        removeConstraint(constraint);
+    }
+
+    vec_erase_remove_if(m_events,
 						[&eventId] (EventModel* model)
 						{ return model->id() == eventId; });
 
@@ -349,7 +362,7 @@ ConstraintModel* ScenarioProcessSharedModel::constraint(id_type<ConstraintModel>
 
 EventModel* ScenarioProcessSharedModel::event(id_type<EventModel> eventId) const
 {
-	return findById(m_events, eventId);
+    return findById(m_events, eventId);
 }
 
 TimeNodeModel *ScenarioProcessSharedModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
@@ -387,6 +400,6 @@ void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
 
 void ScenarioProcessSharedModel::addEvent(EventModel* event)
 {
-	m_events.push_back(event);
+    m_events.push_back(event);
 	emit eventCreated(event->id());
 }

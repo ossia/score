@@ -62,8 +62,6 @@ void ClearConstraint::undo()
 		Deserializer<DataStream> s{&serializedBox};
 		constraint->addBox(new BoxModel{s, constraint});
 	}
-
-
 }
 
 void ClearConstraint::redo()
