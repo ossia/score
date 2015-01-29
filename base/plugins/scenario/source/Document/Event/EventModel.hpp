@@ -82,6 +82,8 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		QString condition() const;
 
+        QString name() const;
+
 public slots:
 		void setHeightPercentage(double arg);
 		void setDate(int date);

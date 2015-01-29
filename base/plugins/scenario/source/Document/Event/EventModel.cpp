@@ -130,7 +130,12 @@ ScenarioProcessSharedModel* EventModel::parentScenario() const
 
 QString EventModel::condition() const
 {
-	return m_condition;
+    return m_condition;
+}
+
+QString EventModel::name() const
+{
+    return QString("Event.%1").arg(*this->id().val());
 }
 
 const std::vector<State*>&EventModel::states() const

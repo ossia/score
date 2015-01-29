@@ -76,10 +76,11 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 	// DEMO
 	if (event)
 	{
-//		setName (event->name() );
+        setName (event->name() );
 //		setColor (event->color() );
 //		setComments (event->comment() );
-		setInspectedObject (event);
+
+        setInspectedObject (event);
 		changeLabelType ("Event");
 
 
