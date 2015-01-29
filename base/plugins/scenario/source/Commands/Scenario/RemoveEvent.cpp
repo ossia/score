@@ -53,14 +53,20 @@ RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event):
 
 void RemoveEvent::undo()
 {
-/*
+
     auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
     Deserializer<DataStream> s{&m_serializedEvent};
-    auto event = new EventModel(s, scenar); // todo : quel est le parent à mettre ? scenar ? je crois pas
+    auto event = new EventModel(s, scenar);
     scenar->addEvent(event);
 
+    // todo : recréer les contraintes. En attendant, on les supprimes de EventModel pour eviter les crashs.
+    for (auto cstr : event->previousConstraints())
+    {
+        event->removePreviousConstraint(cstr);
+    }
 
+/*
     for (auto scstr : m_serializedConstraints)
     {
         Deserializer<DataStream> s{&scstr};

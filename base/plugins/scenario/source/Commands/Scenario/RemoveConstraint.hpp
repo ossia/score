@@ -36,6 +36,8 @@ namespace Scenario
                 id_type<ConstraintModel> m_cstrId{};
                 QByteArray m_serializedConstraint;
 
+                QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_constraintViewModelIDs;
+                id_type<AbstractConstraintViewModel> m_constraintFullViewId{};
 		};
 	}
 }

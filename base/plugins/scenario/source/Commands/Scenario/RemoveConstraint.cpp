@@ -5,6 +5,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 
@@ -31,11 +32,38 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
     m_serializedConstraint = arr;
 
     m_cstrId = constraint->id();
+
+    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    for(auto& viewModel : viewModels(scenar))
+    {
+        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+
+    }
+
 }
 
 void RemoveConstraint::undo()
 {
+    auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
+    Deserializer<DataStream> s{&m_serializedConstraint};
+    scenar->addConstraint(new ConstraintModel(s, scenar));
+
+    for(auto& viewModel : viewModels(scenar))
+    {
+        /*
+        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+        if(m_constraintViewModelIDs.contains(cvm_id))
+        {
+            viewModel->makeConstraintViewModel(m_cstrId,
+                                               m_constraintViewModelIDs[cvm_id]);
+        }
+        else
+        {
+            throw std::runtime_error("undo RemoveConstraint : missing identifier.");
+        }
+        */
+    }
 }
 
 void RemoveConstraint::redo()

@@ -346,18 +346,22 @@ void TemporalScenarioProcessPresenter::deleteSelection()
 
     for(auto& event : eventsToRemove)
     {
-        commands.push_back(
-                    new RemoveEvent(
-                        ObjectPath::pathFromObject("BaseConstraintModel",
-                                                   m_viewModel->sharedProcessModel()),
-                        event->model()) );
+        if (! event->model()->nextConstraints().size() )
+        {
+            commands.push_back(
+                        new RemoveEvent(
+                            ObjectPath::pathFromObject("BaseConstraintModel",
+                                                       m_viewModel->sharedProcessModel()),
+                            event->model()) );
+        }
     }
 
     // todo : modifier pour selection multiple
 
     // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
 //    auto cmd = new RemoveMultipleElements{std::move(commands)};
-    emit submitCommand(commands.at(0));
+
+    if (commands.size()) emit submitCommand(commands.at(0));
    // */
 }
 
