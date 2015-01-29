@@ -17,6 +17,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedMode
 	m_startEventId{0} // Always
 {
 	m_events.push_back(new EventModel{m_startEventId, this});
+
+    // todo timeNode sur l'event de début du scenario ?
+
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 	//m_events.push_back(new EventModel(1, this));
 }
@@ -169,7 +172,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 													constraint->heightPercentage());
 }
 
-void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> eventId,
+void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 														int absolute_time,
 														double heightPosition)
 {
@@ -185,7 +188,7 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> even
 
 		auto tn = timeNode(ev->timeNode());
 		tn->setDate(ev->date());
-		tn->setY(heightPosition);
+//		tn->setY(heightPosition);
 
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
@@ -197,11 +200,11 @@ void ScenarioProcessSharedModel::moveEventAndConstraint(id_type<EventModel> even
 		emit eventMoved(eventId);
 
 		QVector<id_type<EventModel>> already_moved_events;
-		moveNextElements(eventId, time, already_moved_events);
+        translateNextElements(eventId, time, already_moved_events);
 	}
 }
 
-void ScenarioProcessSharedModel::moveConstraint(id_type<ConstraintModel> constraintId,
+void ScenarioProcessSharedModel::setConstraintPosition(id_type<ConstraintModel> constraintId,
 												int absolute_time,
 												double heightPosition)
 {
@@ -215,14 +218,17 @@ void ScenarioProcessSharedModel::moveConstraint(id_type<ConstraintModel> constra
 	//auto etn = timeNode(eev->timeNode());
 	//auto stn = timeNode(sev->timeNode());
 
-	moveEventAndConstraint(sev->id(),
-						   absolute_time,
-						   sev->heightPercentage());
+    if (sev->date() != absolute_time)
+    {
+        setEventPosition(sev->id(),
+                               absolute_time,
+                               sev->heightPercentage());
+    }
 }
 
-void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEventMovedId,
+void ScenarioProcessSharedModel::translateNextElements(id_type<EventModel> firstEventMovedId,
 												  int deltaTime,
-												  QVector<id_type<EventModel>> &movedEvent)
+                                                  QVector<id_type<EventModel>> &movedEvents)
 {
 	auto cur_event = event(firstEventMovedId);
 
@@ -232,10 +238,10 @@ void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEvent
 		{
 			auto evId = constraint(cons)->endEvent();
 			// if event not already moved
-			if (movedEvent.indexOf(evId) == -1)
+            if (movedEvents.indexOf(evId) == -1)
 			{
 				event(evId)->translate(deltaTime);
-				movedEvent.push_back(evId);
+                movedEvents.push_back(evId);
 				constraint(cons)->translate(deltaTime);
 
 				// move timeNode
@@ -253,7 +259,7 @@ void ScenarioProcessSharedModel::moveNextElements(id_type<EventModel> firstEvent
 					emit constraintMoved(prevConstraintId);
 				}
 
-				moveNextElements(evId, deltaTime, movedEvent);
+                translateNextElements(evId, deltaTime, movedEvents);
 			}
 		}
 	}
@@ -281,7 +287,6 @@ void ScenarioProcessSharedModel::removeConstraint(id_type<ConstraintModel> const
 
 void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
 {
-	// @todo : delete event in timeNode list (and timeNode if empty)
 	auto ev = event(eventId);
 
     for (auto constraint : ev->previousConstraints())

@@ -71,13 +71,13 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 												  id_type<TimeNodeModel> newTimeNodeId);
 
 
-		void moveEventAndConstraint(id_type<EventModel> eventId,
+		void setEventPosition(id_type<EventModel> eventId,
 									int time,
 									double heightPosition);
-		void moveConstraint(id_type<ConstraintModel> constraintId,
+		void setConstraintPosition(id_type<ConstraintModel> constraintId,
 							int deltaX,
 							double heightPosition);
-		void moveNextElements(id_type<EventModel> firstEventMovedId,
+		void translateNextElements(id_type<EventModel> firstEventMovedId,
 							  int deltaTime,
 							  QVector<id_type<EventModel>>& movedEvent);
 

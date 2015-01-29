@@ -199,6 +199,8 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 	auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
 	timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
 							  rect.height() * timeNode->model()->y()});
+
+    updateTimeNode(timeNode->id());
 	m_view->update();
 }
 
@@ -218,9 +220,70 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintMode
 			cstr_pres->view()->setWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
             cstr_pres->view()->setMinWidth(cstr_model->minDuration() / m_millisecPerPixel);
             cstr_pres->view()->setMaxWidth(cstr_model->maxDuration() / m_millisecPerPixel);
+
+            auto endTimeNode = findById(m_events, cstr_model->endEvent())->model()->timeNode();
+            updateTimeNode(endTimeNode);
+
+            if (cstr_model->startDate() != 0 )
+            {
+                auto startTimeNode = findById(m_events, cstr_model->startEvent())->model()->timeNode();
+                updateTimeNode(startTimeNode);
+            }
 		}
 	}
 	m_view->update();
+}
+
+void TemporalScenarioProcessPresenter::updateTimeNode(id_type<TimeNodeModel> id)
+{
+    auto timeNode = findById(m_timeNodes, id);
+    auto rect = m_view->boundingRect();
+
+    double min = 1.0;
+    double max = 0.0;
+
+    for (auto eventId : timeNode->model()->events() )
+    {
+        auto event = findById(m_events, eventId);
+        double y = event->model()->heightPercentage();
+
+        if (y < min)
+            min = y;
+        if (y > max)
+            max = y;
+
+        for(TemporalConstraintPresenter* cstr_pres : m_constraints)
+        {
+            ConstraintModel* cstr_model{cstr_pres->viewModel()->model()};
+            for (auto cstrId : event->model()->previousConstraints() )
+            {
+                if(cstr_model->id() == cstrId )
+                {
+                    y = cstr_model->heightPercentage();
+                    if (y < min)
+                        min = y;
+                    if (y > max)
+                        max = y;
+                }
+            }
+            for (auto cstrId : event->model()->nextConstraints() )
+            {
+                if(cstr_model->id() == cstrId )
+                {
+                    y = cstr_model->heightPercentage();
+                    if (y < min)
+                        min = y;
+                    if (y > max)
+                        max = y;
+                }
+            }
+        }
+
+    }
+    min -= timeNode->model()->y();
+    max -= timeNode->model()->y();
+
+    timeNode->view()->setExtremities(int(rect.height() * min), int(rect.height() * max));
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -480,11 +543,9 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
 	timeNode_view->setPos({(qreal) (timeNode_model->date() / m_millisecPerPixel),
 						   timeNode_model->y() * rect.height()});
 
-	timeNode_view->setExtremities(-30, 30);
-
-	m_timeNodes.push_back(timeNode_presenter);
+    m_timeNodes.push_back(timeNode_presenter);
+    updateTimeNode(timeNode_model->id());
 }
-
 
 void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
 {

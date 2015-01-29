@@ -40,18 +40,20 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double y() const;
 		void setY(double y);
 
-	signals:
+        QVector<id_type<EventModel> > events() const;
+        void setEvents(const QVector<id_type<EventModel> > &events);
 
-	public slots:
+signals:
 
-	private:
-		int m_date{0};
-		double m_y{0.0};
+public slots:
 
-		QVector<id_type<EventModel>> m_events;
-//	        QMap<int, double> m_yPoints;
+private:
+        int m_date{0};
+        double m_y{0.0};
+
+        QVector<id_type<EventModel>> m_events;
 	
 		// @todo : maybe not useful ...
-		double m_topY{0.0};
+        double m_topY{0.0};
 		double m_bottomY{0.0};
 };

@@ -41,7 +41,7 @@ void MoveConstraint::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->moveConstraint(m_constraintId, m_oldX, m_oldHeightPosition);
+	scenar->setConstraintPosition(m_constraintId, m_oldX, m_oldHeightPosition);
 }
 
 void MoveConstraint::redo()
@@ -50,7 +50,7 @@ void MoveConstraint::redo()
 
 	m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
 
-	scenar->moveConstraint(m_constraintId, m_newX, m_newHeightPosition);
+	scenar->setConstraintPosition(m_constraintId, m_newX, m_newHeightPosition);
 }
 
 int MoveConstraint::id() const

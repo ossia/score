@@ -38,14 +38,14 @@ void MoveEvent::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->moveEventAndConstraint(m_eventId, m_oldX, m_oldHeightPosition);
+	scenar->setEventPosition(m_eventId, m_oldX, m_oldHeightPosition);
 }
 
 void MoveEvent::redo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->moveEventAndConstraint(m_eventId, m_newX, m_newHeightPosition);
+	scenar->setEventPosition(m_eventId, m_newX, m_newHeightPosition);
 }
 
 int MoveEvent::id() const
