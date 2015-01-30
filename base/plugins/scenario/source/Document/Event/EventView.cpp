@@ -19,7 +19,7 @@ EventView::EventView(QGraphicsObject* parent):
 
 QRectF EventView::boundingRect() const
 {
-    return {-15, -15, 30, 30};
+    return {-5, -5, 10, 10};
 }
 
 void EventView::paint(QPainter* painter,

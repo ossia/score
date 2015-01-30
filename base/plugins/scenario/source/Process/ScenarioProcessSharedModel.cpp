@@ -200,6 +200,16 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 
 		QVector<id_type<EventModel>> already_moved_events;
         translateNextElements(ev->timeNode(), time, already_moved_events);
+
+        // update constraints size
+
+        for (ConstraintModel* constraint : m_constraints)
+        {
+            constraint->setStartDate(event(constraint->startEvent())->date());
+            constraint->setDefaultDuration(event(constraint->endEvent())->date() - event(constraint->startEvent())->date());
+            emit constraintMoved(constraint->id());
+        }
+
 	}
 }
 
@@ -249,14 +259,6 @@ void ScenarioProcessSharedModel::translateNextElements(id_type<TimeNodeModel> fi
 
                     emit eventMoved(evId);
                     emit constraintMoved(cons);
-
-                    // adjust previous constraint width
-                    for (auto& prevConstraintId : event(evId)->previousConstraints())
-                    {
-                        auto prevConstraint = constraint(prevConstraintId);
-                        prevConstraint->setDefaultDuration(event(evId)->date() - prevConstraint->startDate());
-                        emit constraintMoved(prevConstraintId);
-                    }
 
                     translateNextElements(tn->id(), deltaTime, movedEvents);
                 }

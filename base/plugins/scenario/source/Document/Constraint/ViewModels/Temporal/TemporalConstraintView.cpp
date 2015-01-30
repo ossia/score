@@ -38,6 +38,11 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 		c = Qt::cyan;
 	}
 
+    if (m_width < 0)
+    {
+        c = Qt::red;
+    }
+
 	m_solidPen.setColor(c);
 	m_dashPen.setColor(c);
 

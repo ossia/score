@@ -26,10 +26,6 @@ class TemporalConstraintView : public QGraphicsObject
         void setMinWidth(int min);
 		void setHeight(int height);
 
-		//QRectF m_rect;
-		QLineF firstLine;
-		QLineF secondLine;
-
 	signals:
 		void constraintPressed(QPointF);
 		void constraintReleased(QPointF);
