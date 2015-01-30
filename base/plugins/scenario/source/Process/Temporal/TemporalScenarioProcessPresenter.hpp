@@ -69,7 +69,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
         void on_clearPressed();
 
 		void on_scenarioPressed();
-		void on_scenarioPressedWithControl(QPointF);
+        void on_scenarioPressedWithControl(QPointF, QPointF);
 		void on_scenarioReleased(QPointF, QPointF);
 
 		void on_askUpdate();

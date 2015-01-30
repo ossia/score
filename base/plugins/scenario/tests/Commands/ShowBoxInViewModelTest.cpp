@@ -87,7 +87,7 @@ class ShowBoxInViewModelTest: public QObject
 			auto cmd_event = new CreateEvent(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data.dDate, data.relativeY);
+            }, data);
 			stack.push(cmd_event);
 
 			// This will create a view model for this constraint

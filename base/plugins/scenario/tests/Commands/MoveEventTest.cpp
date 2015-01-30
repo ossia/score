@@ -24,20 +24,16 @@ class MoveEventTest: public QObject
 			// 1. Create a new event (the first one cannot move since it does not have
 			// predecessors ?)
 
+            EventData data{};
+            data.dDate = 10;
+            data.relativeY = 0.1;
 
 			CreateEvent create_ev_cmd(
 				{{"ScenarioProcessSharedModel", {}}},
-				10,
-				0.5);
+                data);
 
 			create_ev_cmd.redo();
 			auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
-
-
-			EventData data{};
-			data.eventClickedId = eventid;
-			data.dDate = 10;
-			data.relativeY = 0.1;
 
 			MoveEvent cmd(
 			{

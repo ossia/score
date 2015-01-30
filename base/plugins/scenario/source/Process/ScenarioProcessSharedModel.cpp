@@ -89,6 +89,7 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 	inter->setEndEvent(eev->id());
 	inter->setStartDate(sev->date());
 	inter->setDefaultDuration(eev->date() - sev->date());
+    inter->setHeightPercentage( (sev->heightPercentage() + eev->heightPercentage()) / 2);
 
 	sev->addNextConstraint(newConstraintModelId);
 	eev->addPreviousConstraint(newConstraintModelId);
@@ -104,8 +105,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 																 double heightPos,
 																 id_type<ConstraintModel> newConstraintId,
 																 id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-																 id_type<EventModel> newEventId,
-																 id_type<TimeNodeModel> newTimeNodeId)
+                                                                 id_type<EventModel> newEventId)
 {
 	auto startEvent = this->event(startEventId);
 
@@ -124,7 +124,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	}
 	else
 	{
-		constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
+        constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
 	}
 
 	// TEMPORARY :
@@ -145,32 +145,34 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	constraint->setStartEvent(startEventId);
 	constraint->setEndEvent(event->id());
 
-	// TIMENODE
-	auto timeNode = new TimeNodeModel{newTimeNodeId,
-					event->date(),
-					this};
-	timeNode->addEvent(newEventId);
-	timeNode->setY(event->heightPercentage());
-
-	event->changeTimeNode(newTimeNodeId);
-
 	// From now on everything must be in a valid state.
 	m_events.push_back(event);
     m_constraints.push_back(constraint);
-	m_timeNodes.push_back(timeNode);
 
 	emit eventCreated(event->id());
 	emit constraintCreated(constraint->id());
-	emit timeNodeCreated(timeNode->id());
 
 	// link constraint with event
 	event->addPreviousConstraint(newConstraintId);
 	this->event(startEventId)->addNextConstraint(newConstraintId);
-	event->setVerticalExtremity(constraint->id(),
-								constraint->heightPercentage());
-	this->event(startEventId)->setVerticalExtremity(constraint->id(),
-													constraint->heightPercentage());
 }
+
+void ScenarioProcessSharedModel::createTimeNode(id_type<TimeNodeModel> timeNodeId, id_type<EventModel> eventId)
+{
+    auto newEvent = event(eventId);
+
+    auto timeNode = new TimeNodeModel{timeNodeId,
+                    newEvent->date(),
+                    this};
+    timeNode->addEvent(eventId);
+    timeNode->setY(newEvent->heightPercentage());
+
+    newEvent->changeTimeNode(timeNodeId);
+    m_timeNodes.push_back(timeNode);
+    emit timeNodeCreated(timeNode->id());
+}
+
+
 
 void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 														int absolute_time,
@@ -184,19 +186,17 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 		int time = absolute_time - ev->date();
 
 		ev->setHeightPercentage(heightPosition);
-		ev->translate(time);
+/*        ev->setDate(absolute_time);
 
 		auto tn = timeNode(ev->timeNode());
 		tn->setDate(ev->date());
-
+*/
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
 			auto prevConstraint = constraint(prevConstraintId);
 			prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
 			emit constraintMoved(prevConstraintId);
 		}
-
-		emit eventMoved(eventId);
 
 		QVector<id_type<EventModel>> already_moved_events;
         translateNextElements(ev->timeNode(), time, already_moved_events);
@@ -239,6 +239,14 @@ void ScenarioProcessSharedModel::translateNextElements(id_type<TimeNodeModel> fi
     for (id_type<EventModel> cur_eventId : cur_timeNode->events() )
     {
         EventModel* cur_event = event(cur_eventId);
+
+        if (movedEvents.indexOf(cur_eventId) == -1)
+        {
+            cur_event->translate(deltaTime);
+            movedEvents.push_back(cur_eventId);
+            cur_timeNode->setDate(cur_event->date());
+            emit eventMoved(cur_eventId);
+        }
 
         // if current event is'nt the StartEvent
         if (! cur_event->previousConstraints().isEmpty())

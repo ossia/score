@@ -4,6 +4,7 @@
 #include <tools/SettableIdentifier.hpp>
 
 class EventModel;
+class TimeNodeModel;
 
 struct EventData
 {
@@ -16,4 +17,6 @@ struct EventData
 	double relativeY{0.0}; // y scaled with current scenario
 
 	QPointF scenePos{QPointF(0,0)}; // position of mouse in scene Coordinates
+
+    id_type<TimeNodeModel> endTimeNodeId{0};
 };

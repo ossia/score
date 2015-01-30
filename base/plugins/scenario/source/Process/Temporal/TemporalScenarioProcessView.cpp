@@ -60,7 +60,7 @@ void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* even
 
 	if(event->modifiers() == Qt::ControlModifier)
 	{
-		emit scenarioPressedWithControl(event->pos());
+        emit scenarioPressedWithControl(event->pos(), event->scenePos());
 	}
 	else
 	{

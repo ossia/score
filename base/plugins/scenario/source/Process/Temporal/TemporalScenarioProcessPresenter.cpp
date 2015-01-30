@@ -312,28 +312,52 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 }
 
 
-void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point)
+void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
 {
 	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
-	auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseConstraintModel",
-																 m_viewModel->sharedProcessModel()),
-									 point.x() * m_millisecPerPixel,
-									 (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height() );
-	this->submitCommand(cmd);
+    EventData d;
+    d.dDate = point.x() * m_millisecPerPixel;
+    d.relativeY = (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height();
+
+
 }
 
 void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
-	if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) > 20 ) // @todo use a const to do that !
-	{
-		EventData data{};
-		data.eventClickedId = m_events.back()->id();
-		data.x = point.x();
-		data.dDate = point.x() * m_millisecPerPixel;
-		data.y = point.y();
-		data.scenePos = scenePoint;
-		createConstraint(data);
+    EventData data{};
+    data.eventClickedId = m_events.back()->id();
+    data.x = point.x();
+    data.dDate = point.x() * m_millisecPerPixel;
+    data.y = point.y();
+    data.relativeY = point.y() /  m_view->boundingRect().height();
+    data.scenePos = scenePoint;
+
+    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(point, QTransform()));
+    if (tnv)
+    {
+        for (auto timeNode : m_timeNodes)
+        {
+            if (timeNode->view() == tnv)
+            {
+                data.endTimeNodeId = timeNode->id();
+            }
+        }
+    }
+
+    auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+                                                                 m_viewModel->sharedProcessModel()),
+                                        data);
+    this->submitCommand(cmd);
+/*
+    if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) < 20 ) // @todo use a const to do that !
+    {
+
+    }
+    else
+    {
+        createConstraint(data);
 	}
+    */
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -463,6 +487,18 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 	}
 	else
 	{
+        TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
+        if (tnv)
+        {
+            for (auto timeNode : m_timeNodes)
+            {
+                if (timeNode->view() == tnv)
+                {
+                    data.endTimeNodeId = timeNode->id();
+                }
+            }
+        }
+
 		auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
 																			   m_viewModel->sharedProcessModel()),
 													data);
