@@ -49,7 +49,7 @@ void CreateEventAfterEvent::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
+    scenar->undo_createConstraintAndEndEventFromEvent(m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()

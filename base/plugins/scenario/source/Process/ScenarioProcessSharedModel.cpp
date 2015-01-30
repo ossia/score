@@ -188,7 +188,6 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 
 		auto tn = timeNode(ev->timeNode());
 		tn->setDate(ev->date());
-//		tn->setY(heightPosition);
 
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
@@ -200,7 +199,7 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 		emit eventMoved(eventId);
 
 		QVector<id_type<EventModel>> already_moved_events;
-        translateNextElements(eventId, time, already_moved_events);
+        translateNextElements(ev->timeNode(), time, already_moved_events);
 	}
 }
 
@@ -211,12 +210,7 @@ void ScenarioProcessSharedModel::setConstraintPosition(id_type<ConstraintModel> 
     constraint(constraintId)->setHeightPercentage(heightPosition);
     emit constraintMoved(constraintId);
 
-	//auto eev = event(constraint(constraintId)->endEvent());
 	auto sev = event(constraint(constraintId)->startEvent());
-
-	// TODO start timenode, end timenode
-	//auto etn = timeNode(eev->timeNode());
-	//auto stn = timeNode(sev->timeNode());
 
     if (sev->date() != absolute_time)
     {
@@ -226,43 +220,49 @@ void ScenarioProcessSharedModel::setConstraintPosition(id_type<ConstraintModel> 
     }
 }
 
-void ScenarioProcessSharedModel::translateNextElements(id_type<EventModel> firstEventMovedId,
-												  int deltaTime,
+void ScenarioProcessSharedModel::translateNextElements(id_type<TimeNodeModel> firstTimeNodeMovedId,
+                                                  int deltaTime,
                                                   QVector<id_type<EventModel>> &movedEvents)
 {
-	auto cur_event = event(firstEventMovedId);
+    auto cur_timeNode = timeNode(firstTimeNodeMovedId);
 
-	if (! cur_event->previousConstraints().isEmpty())
-	{
-		for (auto cons : cur_event->nextConstraints())
-		{
-			auto evId = constraint(cons)->endEvent();
-			// if event not already moved
-            if (movedEvents.indexOf(evId) == -1)
-			{
-				event(evId)->translate(deltaTime);
-                movedEvents.push_back(evId);
-				constraint(cons)->translate(deltaTime);
+    for (id_type<EventModel> cur_eventId : cur_timeNode->events() )
+    {
+        EventModel* cur_event = event(cur_eventId);
 
-				// move timeNode
-				auto tn = timeNode(event(evId)->timeNode());
-				tn->setDate(event(evId)->date());
+        // if current event is'nt the StartEvent
+        if (! cur_event->previousConstraints().isEmpty())
+        {
+            for (id_type<ConstraintModel> cons : cur_event->nextConstraints())
+            {
+                auto evId = constraint(cons)->endEvent();
+                // if event has not already moved
+                if (movedEvents.indexOf(evId) == -1)
+                {
+                    event(evId)->translate(deltaTime);
+                    movedEvents.push_back(evId);
+                    constraint(cons)->translate(deltaTime);
 
-				emit eventMoved(evId);
-				emit constraintMoved(cons);
+                    // move timeNode
+                    auto tn = timeNode(event(evId)->timeNode());
+                    tn->setDate(event(evId)->date());
 
-				// adjust previous constraint width
-				for (auto& prevConstraintId : event(evId)->previousConstraints())
-				{
-					auto prevConstraint = constraint(prevConstraintId);
-					prevConstraint->setDefaultDuration(event(evId)->date() - prevConstraint->startDate());
-					emit constraintMoved(prevConstraintId);
-				}
+                    emit eventMoved(evId);
+                    emit constraintMoved(cons);
 
-                translateNextElements(evId, deltaTime, movedEvents);
-			}
-		}
-	}
+                    // adjust previous constraint width
+                    for (auto& prevConstraintId : event(evId)->previousConstraints())
+                    {
+                        auto prevConstraint = constraint(prevConstraintId);
+                        prevConstraint->setDefaultDuration(event(evId)->date() - prevConstraint->startDate());
+                        emit constraintMoved(prevConstraintId);
+                    }
+
+                    translateNextElements(tn->id(), deltaTime, movedEvents);
+                }
+            }
+        }
+    }
 }
 
 ///////// DELETION //////////
@@ -326,35 +326,13 @@ void ScenarioProcessSharedModel::removeTimeNode(id_type<TimeNodeModel> timeNodeI
     delete tn;
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId)
+void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId)
 {
-	// @todo : delete event in timeNode list (and timeNode if empty)
-	// End event suppression
-	{
-		auto end_event_id = this->constraint(constraintId)->endEvent();
-
-        removeEventFromTimeNode(end_event_id);
-
-		emit eventRemoved(end_event_id);
-		// TODO careful with this.
-		removeById(m_events, end_event_id);
-
-		auto start_event = event(constraint(constraintId)->startEvent());
-		start_event->removeNextConstraint(constraintId);
-	}
-
-	// Constraint suppression
-	removeConstraint(constraintId);
+    removeEvent(endEventId);
 }
 
 void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId)
 {
-	auto end_event = event(this->constraint(constraintId)->endEvent());
-	end_event->removePreviousConstraint(constraintId);
-
-	auto start_event = event(this->constraint(constraintId)->startEvent());
-	start_event->removeNextConstraint(constraintId);
-
 	removeConstraint(constraintId);
 }
 
