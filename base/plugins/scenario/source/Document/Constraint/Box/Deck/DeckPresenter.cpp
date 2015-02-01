@@ -146,6 +146,14 @@ void DeckPresenter::on_bottomHandleReleased()
 	emit submitCommand(cmd);
 }
 
+void DeckPresenter::on_horizontalZoomChanged(int val)
+{
+	for(auto proc : m_processes)
+	{
+		proc->on_horizontalZoomChanged(val);
+	}
+}
+
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
 	auto procname = proc_vm->sharedProcessModel()->processName();

@@ -9,7 +9,6 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 
@@ -58,6 +57,10 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 		on_eventCreated_impl(event_model);
 	}
 
+	for(auto tn_model : model(m_viewModel)->timeNodes())
+	{
+		on_timeNodeCreated_impl(tn_model);
+	}
 	/////// Connections
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
@@ -128,6 +131,20 @@ void TemporalScenarioProcessPresenter::putBack()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 	m_view->setOpacity(0.1);
+}
+
+void TemporalScenarioProcessPresenter::on_horizontalZoomChanged(int val)
+{
+	m_millisecPerPixel = 46.73630963 * std::exp(-0.07707388206 * val) * 1000;
+	for(auto constraint : m_constraints)
+	{
+		on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+	}
+
+	for(auto event : m_events)
+	{
+		on_eventMoved(event->id());
+	}
 }
 
 id_type<EventModel> TemporalScenarioProcessPresenter::currentlySelectedEvent() const
@@ -404,15 +421,6 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioProcessPresenter::elementSelected);
-
-
-//	connect(event_presenter, &EventPresenter::linesExtremityChange,
-
-	/*[event_view, this] (double top, double bottom)
-			{
-				event_view->setLinesExtremity(top * m_view->boundingRect().height(),
-											  bottom * m_view->boundingRect().height());
-			}); */
 }
 
 void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)

@@ -16,7 +16,20 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedMode
 	//m_scenario{nullptr},
 	m_startEventId{0} // Always
 {
-	m_events.push_back(new EventModel{m_startEventId, this});
+	auto event = new EventModel{m_startEventId, this};
+	auto timeNode = new TimeNodeModel{id_type<TimeNodeModel>(0),
+					event->date(),
+					this};
+	timeNode->addEvent(m_startEventId);
+	timeNode->setY(event->heightPercentage());
+
+	// TODO jm : TimeNode::addEvent devrait faire ça
+	event->changeTimeNode(id_type<TimeNodeModel>(0));
+
+	addEvent(event);
+	m_timeNodes.push_back(timeNode); // TODO : addTimeNode qui envoie un signal.
+
+
 	//TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
 	//m_events.push_back(new EventModel(1, this));
 }
@@ -149,6 +162,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	timeNode->addEvent(newEventId);
 	timeNode->setY(event->heightPercentage());
 
+	// TODO jm : TimeNode::addEvent devrait faire ça
 	event->changeTimeNode(newTimeNodeId);
 
 	// From now on everything must be in a valid state.

@@ -48,7 +48,7 @@ class DeckPresenter : public NamedObject
 		void on_bottomHandleChanged(int newHeight);
 		void on_bottomHandleReleased();
 
-
+		void on_horizontalZoomChanged(int);
 
 	private:
 		void on_processViewModelCreated_impl(ProcessViewModelInterface*);

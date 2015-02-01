@@ -175,6 +175,13 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 			qDebug() << "TODO: " << Q_FUNC_INFO;
 			return id_type<ProcessSharedModelInterface>{42};
 		}
+
+		// ProcessPresenterInterface interface
+public:
+		void on_horizontalZoomChanged(int)
+		{
+			qDebug() << "TODO: " << Q_FUNC_INFO;
+		}
 };
 
 #endif // PLUGINCURVEPRESENTER_HPP

@@ -91,4 +91,6 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 
 	connect(m_box, &BoxPresenter::askUpdate,
 			this,  &AbstractConstraintPresenter::updateView);
+
+	box()->setWidth(m_view->defaultWidth() - 20);
 }

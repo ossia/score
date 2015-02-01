@@ -47,6 +47,9 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 		void on_minDurationChanged(int);
 		void on_maxDurationChanged(int);
 
+
+		void on_horizontalZoomChanged(int val);
+
 		void updateView();
 };
 

@@ -44,6 +44,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		virtual void putToFront() override;
 		virtual void putBack() override;
 
+		void on_horizontalZoomChanged(int val);
+
 		id_type<EventModel> currentlySelectedEvent() const;
 		long millisecPerPixel() const;
 
@@ -96,5 +98,5 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		id_type<EventModel> m_currentlySelectedEvent{};
 		int m_pointedEvent{0};
-        long m_millisecPerPixel{2};
+		long m_millisecPerPixel{2};
 };

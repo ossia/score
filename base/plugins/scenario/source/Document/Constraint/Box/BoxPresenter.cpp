@@ -124,3 +124,14 @@ void BoxPresenter::on_askUpdate()
 	updateShape();
 	emit askUpdate();
 }
+
+void BoxPresenter::on_horizontalZoomChanged(int val)
+{
+	for(auto deck : m_decks)
+	{
+		deck->on_horizontalZoomChanged(val);
+	}
+
+	updateShape();
+	emit askUpdate();
+}
