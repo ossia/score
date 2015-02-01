@@ -25,15 +25,16 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 									   delegate_view}
 {
 	connect(view()->addressBar(), &AddressBar::objectSelected,
-			model(),			  &BaseElementModel::setDisplayedObject);
+			this,				  &BaseElementPresenter::setDisplayedObject);
 	connect(view(), &BaseElementView::horizontalZoomChanged,
 			this,	&BaseElementPresenter::on_horizontalZoomChanged);
 
+	setDisplayedConstraint(model()->constraintModel());
+}
 
-	connect(model(), &BaseElementModel::displayedConstraintChanged,
-			this,	 &BaseElementPresenter::on_displayedConstraintChanged);
-
-	on_displayedConstraintChanged();
+ConstraintModel* BaseElementPresenter::displayedConstraint() const
+{
+	return m_displayedConstraint;
 }
 
 void BaseElementPresenter::on_askUpdate()
@@ -61,9 +62,28 @@ void BaseElementPresenter::deleteSelection()
 {
 }
 
+
+void BaseElementPresenter::setDisplayedObject(ObjectPath path)
+{
+	if(path.vec().last().objectName() == "ConstraintModel"
+	|| path.vec().last().objectName() == "BaseConstraintModel")
+	{
+		setDisplayedConstraint(path.find<ConstraintModel>());
+	}
+}
+
+void BaseElementPresenter::setDisplayedConstraint(ConstraintModel* c)
+{
+	if(c && c != m_displayedConstraint)
+	{
+		m_displayedConstraint = c;
+		on_displayedConstraintChanged();
+	}
+}
+
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-	auto constraintViewModel = model()->displayedConstraint()->fullView();
+	auto constraintViewModel = m_displayedConstraint->fullView();
 
 	auto cstrView = new FullViewConstraintView{this->view()->baseObject()};
 	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
@@ -89,7 +109,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	// Update the address bar
 	view()
 		->addressBar()
-			->setTargetObject(ObjectPath::pathFromObject(model()->displayedConstraint()));
+			->setTargetObject(ObjectPath::pathFromObject(displayedConstraint()));
 }
 
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)

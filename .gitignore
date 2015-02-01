@@ -18,3 +18,4 @@ Makefile
 
 /i-scoreRecast.app/
 *.db
+*kde*

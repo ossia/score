@@ -66,8 +66,6 @@ BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
 	m_baseConstraint{new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-
-	setDisplayedConstraint(m_baseConstraint);
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):
@@ -77,13 +75,6 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_baseConstraint->fullView());
-
-	setDisplayedConstraint(m_baseConstraint);
-}
-
-FullViewConstraintViewModel *BaseElementModel::constraintViewModel() const
-{
-	return m_baseConstraint->fullView();
 }
 
 QByteArray BaseElementModel::save()
@@ -101,21 +92,4 @@ QJsonObject BaseElementModel::toJson()
 	s.readFrom(*constraintModel());
 
 	return s.m_obj;
-}
-
-void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
-{
-	if(c && c != m_displayedConstraint)
-	{
-		m_displayedConstraint = c;
-		emit displayedConstraintChanged();
-	}
-}
-
-void BaseElementModel::setDisplayedObject(ObjectPath path)
-{
-	if(path.vec().last().objectName() == "ConstraintModel" || path.vec().last().objectName() == "BaseConstraintModel")
-	{
-		setDisplayedConstraint(path.find<ConstraintModel>());
-	}
 }

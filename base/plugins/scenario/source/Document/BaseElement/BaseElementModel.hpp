@@ -27,26 +27,11 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 			return m_baseConstraint;
 		}
 
-		ConstraintModel* displayedConstraint() const
-		{
-			return m_displayedConstraint;
-		}
-
-		FullViewConstraintViewModel *constraintViewModel() const;
-
 		virtual QByteArray save() override;
 		virtual QJsonObject toJson() override;
 
-	signals:
-		void displayedConstraintChanged();
-
-	public slots:
-		void setDisplayedConstraint(ConstraintModel* );
-		void setDisplayedObject(ObjectPath);
 
 	private:
 		ConstraintModel* m_baseConstraint{};
-
-		ConstraintModel* m_displayedConstraint{};
 };
 

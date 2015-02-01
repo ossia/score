@@ -42,7 +42,7 @@ class Separator : public QFrame
 		}
 };
 
-#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
@@ -53,7 +53,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	connect(setAsDisplayedConstraint, &QPushButton::clicked,
 			[this] ()
 	{
-		auto base = qApp->findChild<BaseElementModel*>("BaseElementModel");
+		auto base = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 		base->setDisplayedConstraint(this->model());
 	});
 	m_properties.push_back(setAsDisplayedConstraint);

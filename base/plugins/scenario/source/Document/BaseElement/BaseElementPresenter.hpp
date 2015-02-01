@@ -5,6 +5,7 @@
 class BaseElementModel;
 class BaseElementView;
 class FullViewConstraintPresenter;
+class ConstraintModel;
 /**
  * @brief The BaseElementPresenter class
  *
@@ -21,7 +22,12 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 							 iscore::DocumentDelegateViewInterface* view);
 		virtual ~BaseElementPresenter() = default;
 
+		ConstraintModel* displayedConstraint() const;
+
 	public slots:
+		void setDisplayedConstraint(ConstraintModel* );
+		void setDisplayedObject(ObjectPath);
+
 		void on_askUpdate();
 
 		void selectAll();
@@ -36,6 +42,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		BaseElementModel* model();
 		BaseElementView* view();
 		FullViewConstraintPresenter* m_baseConstraintPresenter{};
+
+		ConstraintModel* m_displayedConstraint{};
 
 };
 
