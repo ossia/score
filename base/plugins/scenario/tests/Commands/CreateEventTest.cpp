@@ -29,7 +29,7 @@ class CreateEventTest: public QObject
 			CreateEvent cmd(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data.dDate, data.relativeY);
+            }, data);
 
 			cmd.redo();
 			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent

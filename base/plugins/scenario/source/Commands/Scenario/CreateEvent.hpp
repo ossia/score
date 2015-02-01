@@ -24,7 +24,7 @@ namespace Scenario
 			public:
 				CreateEvent();
 				~CreateEvent();
-				CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition);
+                CreateEvent(ObjectPath&& scenarioPath, EventData data);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;

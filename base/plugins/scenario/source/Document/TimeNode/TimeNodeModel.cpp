@@ -65,5 +65,15 @@ void TimeNodeModel::setY(double y)
 {
 	m_y = y;
 }
+QVector<id_type<EventModel> > TimeNodeModel::events() const
+{
+    return m_events;
+}
+
+void TimeNodeModel::setEvents(const QVector<id_type<EventModel> > &events)
+{
+    m_events = events;
+}
+
 
 

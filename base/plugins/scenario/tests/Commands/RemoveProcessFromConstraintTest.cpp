@@ -45,7 +45,7 @@ class RemoveProcessFromConstraintTest: public QObject
 			auto ev_0_id = getStrongId(s0->events());
 			auto fv_0_id = id_type<AbstractConstraintViewModel>{234};
 			auto tb_0_id = getStrongId(s0->timeNodes());
-			s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 55, 10, int_0_id, fv_0_id, ev_0_id, tb_0_id);
+            s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 55, 10, int_0_id, fv_0_id, ev_0_id);
 			s0->constraint(int_0_id)->createBox(id_type<BoxModel>{5676});
 			QCOMPARE((int)s0->constraints().size(), 1);
 			QCOMPARE((int)s0->events().size(), 2); // TODO 3 if endEvent

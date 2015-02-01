@@ -62,24 +62,25 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-		void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-												  int duration,
-												  double heightPos,
-												  id_type<ConstraintModel> newConstraintId,
-												  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-												  id_type<EventModel> newEventId,
-												  id_type<TimeNodeModel> newTimeNodeId);
+        void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
+                                                  int duration,
+                                                  double heightPos,
+                                                  id_type<ConstraintModel> newConstraintId,
+                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
+                                                  id_type<EventModel> newEventId);
 
+        void createTimeNode(id_type<TimeNodeModel> timeNodeId,
+                            id_type<EventModel> eventId);
 
-		void moveEventAndConstraint(id_type<EventModel> eventId,
+		void setEventPosition(id_type<EventModel> eventId,
 									int time,
 									double heightPosition);
-		void moveConstraint(id_type<ConstraintModel> constraintId,
+		void setConstraintPosition(id_type<ConstraintModel> constraintId,
 							int deltaX,
 							double heightPosition);
-		void moveNextElements(id_type<EventModel> firstEventMovedId,
-							  int deltaTime,
-							  QVector<id_type<EventModel>>& movedEvent);
+        void translateNextElements(id_type<TimeNodeModel> firstTimeNodeMovedId,
+                              int deltaTime,
+                              QVector<id_type<EventModel>>& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
@@ -90,8 +91,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void removeEvent(id_type<EventModel> eventId);
 		void removeEventFromTimeNode(id_type<EventModel> eventId);
         void removeTimeNode(id_type<TimeNodeModel> timeNodeId );
-		void undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId);
-		void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
+        void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
+        void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 
 
 		// Accessors

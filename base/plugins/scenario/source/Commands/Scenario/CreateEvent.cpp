@@ -22,19 +22,17 @@ CreateEvent::~CreateEvent()
 	delete m_cmd;
 }
 
-CreateEvent::CreateEvent(ObjectPath&& scenarioPath, int time, double heightPosition):
+CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data):
 	SerializableCommand{"ScenarioControl",
 						"CreateEvent",
 						QObject::tr("Event creation")}
 {
 	auto scenar = scenarioPath.find<ScenarioProcessSharedModel>();
 
-	EventData d;
-	d.eventClickedId = scenar->startEvent()->id();
-	d.dDate = time;
-	d.relativeY = heightPosition;
+    data.eventClickedId = scenar->startEvent()->id();
 
-	m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), d};
+
+    m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
 }
 
 void CreateEvent::undo()

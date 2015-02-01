@@ -16,6 +16,7 @@
 #include "Commands/Event/SetCondition.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
+#include "Commands/Scenario/RemoveEvent.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
@@ -146,7 +147,8 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "ClearConstraint")					{ cmd = new ClearConstraint;}
 	else if(name == "ClearEvent")						{ cmd = new ClearEvent;}
 	else if(name == "CreateEvent")						{ cmd = new CreateEvent;}
-	else if(name == "CreateEventAfterEvent")			{ cmd = new CreateEventAfterEvent;}
+    else if(name == "RemoveEvent")						{ cmd = new RemoveEvent;}
+    else if(name == "CreateEventAfterEvent")			{ cmd = new CreateEventAfterEvent;}
 	else if(name == "HideBoxInViewModel")				{ cmd = new HideBoxInViewModel;}
 	else if(name == "MoveConstraint")					{ cmd = new MoveConstraint;}
 	else if(name == "MoveEvent")						{ cmd = new MoveEvent;}

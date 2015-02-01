@@ -8,7 +8,16 @@ void Visitor<Reader<DataStream> >::readFrom(const State& state)
 	readFrom(static_cast<const IdentifiedObject<State>&>(state));
 
 	m_stream << state.messages();
+
 	insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const State& state)
+{
+	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+
+	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
 }
 
 template<>
@@ -21,15 +30,8 @@ void Visitor<Writer<DataStream> >::writeTo(State& state)
 	{
 		state.addMessage(message);
 	}
+
 	checkDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSON>>::readFrom(const State& state)
-{
-	readFrom(static_cast<const IdentifiedObject<State>&>(state));
-
-	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
 }
 
 template<>

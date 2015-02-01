@@ -32,9 +32,17 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
 	m_createdEventId = getStrongId(scenar->events());
 	m_createdConstraintId = getStrongId(scenar->constraints());
-	m_createdTimeNodeId = getStrongId(scenar->timeNodes());
 
-	// For each ScenarioViewModel of the scenario we are applying this command in,
+    if (*data.endTimeNodeId.val() == 0)
+    {
+        m_createdTimeNodeId = getStrongId(scenar->timeNodes());
+    }
+    else
+    {
+        m_existingTimeNodeId = data.endTimeNodeId ;
+    }
+
+    // For each ScenarioViewModel of the scenario we are applying this command in,
 	// we have to generate ConstraintViewModels, too
 	for(auto& viewModel : viewModels(scenar))
 	{
@@ -49,20 +57,34 @@ void CreateEventAfterEvent::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->undo_createConstraintAndEndEventFromEvent(m_createdConstraintId);
+    scenar->undo_createConstraintAndEndEventFromEvent(m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
+	// TODO pourquoi 0 ? c'est la timenode de début du scénario ? ou ça veut dire qu'elle n'est pas set ?
+    if (*m_existingTimeNodeId.val() != 0 )
+    {
+        scenar->timeNode(m_existingTimeNodeId)->addEvent(m_createdEventId);
+    }
+
 	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
 												 m_time,
 												 m_heightPosition,
 												 m_createdConstraintId,
 												 m_createdConstraintFullViewId,
-												 m_createdEventId,
-												 m_createdTimeNodeId);
+                                                 m_createdEventId);
+    if (*m_createdTimeNodeId.val() != 0 )
+    {
+        scenar->createTimeNode(m_createdTimeNodeId, m_createdEventId);
+        scenar->event(m_createdEventId)->changeTimeNode(m_createdTimeNodeId);
+    }
+    else
+    {
+        scenar->event(m_createdEventId)->changeTimeNode(m_existingTimeNodeId);
+    }
 
 	// Creation of all the constraint view models
 	for(auto& viewModel : viewModels(scenar))

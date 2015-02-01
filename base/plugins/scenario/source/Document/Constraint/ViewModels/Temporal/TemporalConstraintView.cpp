@@ -37,6 +37,11 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 		c = Qt::cyan;
 	}
 
+	if (defaultWidth() < 0)
+    {
+        c = Qt::red;
+    }
+
 	m_solidPen.setColor(c);
 	m_dashPen.setColor(c);
 
@@ -105,5 +110,5 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 	{
 		posInScenario.setY(pos().y());
 	}
-	emit constraintReleased(posInScenario);
+    if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
 }

@@ -68,14 +68,16 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		// View -> Presenter
 		void on_deletePressed();
+        void on_clearPressed();
 
 		void on_scenarioPressed();
-		void on_scenarioPressedWithControl(QPointF);
+        void on_scenarioPressedWithControl(QPointF, QPointF);
 		void on_scenarioReleased(QPointF, QPointF);
 
 		void on_askUpdate();
 
-		void deleteSelection();
+        void clearContentFromSelection();
+        void deleteSelection();
 
 	private slots:
 		void setCurrentlySelectedEvent(id_type<EventModel> arg);
@@ -87,6 +89,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void on_eventCreated_impl(EventModel* event_model);
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
 		void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
+        void updateTimeNode(id_type<TimeNodeModel> id);
 
 
 		TemporalScenarioProcessViewModel* m_viewModel;
@@ -98,5 +101,6 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 
 		id_type<EventModel> m_currentlySelectedEvent{};
 		int m_pointedEvent{0};
-		long m_millisecPerPixel{2};
+
+		long m_millisecPerPixel{1};
 };
