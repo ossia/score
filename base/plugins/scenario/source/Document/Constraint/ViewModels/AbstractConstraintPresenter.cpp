@@ -76,12 +76,12 @@ void AbstractConstraintPresenter::clearBoxPresenter()
 
 void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 {
-	auto contentView = new BoxView{m_view};
-	contentView->setPos(5, 50);
+	auto boxView = new BoxView{m_view};
+	boxView->setPos(5, 50);
 
 	// Cas par défaut
 	m_box = new BoxPresenter{boxModel,
-							 contentView,
+							 boxView,
 							 this};
 
 	connect(m_box, &BoxPresenter::submitCommand,

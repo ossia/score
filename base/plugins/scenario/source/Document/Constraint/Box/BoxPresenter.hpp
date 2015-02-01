@@ -50,5 +50,7 @@ class BoxPresenter : public NamedObject
 		BoxModel* m_model;
 		BoxView* m_view;
 		std::vector<DeckPresenter*> m_decks;
+
+		int m_horizontalZoomSliderVal{};
 };
 

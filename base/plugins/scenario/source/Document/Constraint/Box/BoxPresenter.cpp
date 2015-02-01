@@ -59,6 +59,11 @@ int BoxPresenter::width() const
 void BoxPresenter::setWidth(int w)
 {
 	m_view->setWidth(w);
+
+	for(auto deck : m_decks)
+	{
+		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
+	}
 }
 
 id_type<BoxModel> BoxPresenter::id() const
@@ -127,11 +132,16 @@ void BoxPresenter::on_askUpdate()
 
 void BoxPresenter::on_horizontalZoomChanged(int val)
 {
-	for(auto deck : m_decks)
-	{
-		deck->on_horizontalZoomChanged(val);
-	}
+	m_horizontalZoomSliderVal = val;
 
 	updateShape();
 	emit askUpdate();
+
+	// We have to change the width of the decks aftewards
+	// because their width depend on the box width
+	for(auto deck : m_decks)
+	{
+		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
+		deck->on_horizontalZoomChanged(val);
+	}
 }

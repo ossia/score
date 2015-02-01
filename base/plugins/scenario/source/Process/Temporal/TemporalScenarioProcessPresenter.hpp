@@ -95,6 +95,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		TemporalScenarioProcessViewModel* m_viewModel;
 		TemporalScenarioProcessView* m_view;
 
+		// TODO faire passer l'abstract et utiliser des free functions de cast
 		std::vector<TemporalConstraintPresenter*> m_constraints;
 		std::vector<EventPresenter*> m_events;
 		std::vector<TimeNodePresenter*> m_timeNodes;
@@ -103,4 +104,6 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		int m_pointedEvent{0};
 
 		long m_millisecPerPixel{1};
+
+		int m_horizontalZoomSliderVal{};
 };

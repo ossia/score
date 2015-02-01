@@ -51,5 +51,8 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 		void on_horizontalZoomChanged(int val);
 
 		void updateView();
+
+	private:
+		int m_horizontalZoomSliderVal{};
 };
 

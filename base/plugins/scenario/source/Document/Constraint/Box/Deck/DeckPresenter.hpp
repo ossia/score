@@ -29,8 +29,10 @@ class DeckPresenter : public NamedObject
 		// Vertical position in pixels in the scene
 		void setVerticalPosition(int pos);
 
+		void setWidth(int w);
 
-	signals:
+
+signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
@@ -59,5 +61,7 @@ class DeckPresenter : public NamedObject
 
 		// Maybe move this out of the state of the presenter ?
 		int m_currentResizingValue{}; // Used when the deckView is being resized.
+
+		int m_horizontalZoomSliderVal{};
 };
 

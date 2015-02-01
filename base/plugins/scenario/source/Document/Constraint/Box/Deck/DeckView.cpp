@@ -17,7 +17,7 @@ DeckView::DeckView(QGraphicsObject* parent):
 QRectF DeckView::boundingRect() const
 {
 	return {0, 0,
-			parentItem()->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST,
+			qreal(m_width),
 			qreal(m_height)};
 }
 
@@ -35,6 +35,17 @@ void DeckView::setHeight(int height)
 int DeckView::height() const
 {
 	return m_height;
+}
+
+void DeckView::setWidth(int width)
+{
+	prepareGeometryChange();
+	m_width = width;
+}
+
+int DeckView::width() const
+{
+	return m_width;
 }
 
 void DeckView::mousePressEvent(QGraphicsSceneMouseEvent* event)

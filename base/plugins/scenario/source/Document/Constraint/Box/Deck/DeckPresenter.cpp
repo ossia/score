@@ -26,7 +26,6 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 	m_model{model},
 	m_view{view}
 {
-	m_view->setHeight(m_model->height());
 
 	for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
 	{
@@ -50,6 +49,9 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 			this,	&DeckPresenter::on_bottomHandleReleased);
 	connect(m_view, &DeckView::bottomHandleSelected,
 			this,	&DeckPresenter::on_bottomHandleSelected);
+
+
+	m_view->setHeight(m_model->height());
 }
 
 DeckPresenter::~DeckPresenter()
@@ -85,6 +87,11 @@ void DeckPresenter::setVerticalPosition(int pos)
 		m_view->setPos(view_pos.x(), pos);
 		m_view->update();
 	}
+}
+
+void DeckPresenter::setWidth(int w)
+{
+	m_view->setWidth(w);
 }
 
 void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
@@ -140,18 +147,23 @@ void DeckPresenter::on_bottomHandleChanged(int newHeight)
 
 void DeckPresenter::on_bottomHandleReleased()
 {
-	auto path = ObjectPath::pathFromObject("BaseConstraintModel", m_model);
+	auto path = ObjectPath::pathFromObject("BaseConstraintModel",
+										   m_model);
 
-	auto cmd = new Command::ResizeDeckVertically{std::move(path), m_view->height()};
+	auto cmd = new Command::ResizeDeckVertically{std::move(path),
+												 m_view->height()};
 	emit submitCommand(cmd);
 }
 
 void DeckPresenter::on_horizontalZoomChanged(int val)
 {
+	m_horizontalZoomSliderVal = val;
+
 	for(auto proc : m_processes)
 	{
 		proc->on_horizontalZoomChanged(val);
 	}
+
 }
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)

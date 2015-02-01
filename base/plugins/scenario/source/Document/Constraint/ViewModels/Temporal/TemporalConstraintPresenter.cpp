@@ -78,7 +78,6 @@ void TemporalConstraintPresenter::on_maxDurationChanged(int max)
 
 void TemporalConstraintPresenter::on_horizontalZoomChanged(int val)
 {
-	box()->on_horizontalZoomChanged(val);
 
 	// Set width of constraint
 	double secPerPixel = 46.73630963 * std::exp(-0.07707388206 * val);
@@ -92,7 +91,12 @@ void TemporalConstraintPresenter::on_horizontalZoomChanged(int val)
 	// prendre en compte la distance du clic à chaque côté
 	view(this)->setDefaultWidth(viewModel(this)->model()->defaultDuration() / secPerPixel);
 
-	box()->setWidth(view(this)->defaultWidth() - 20);
+	if(box())
+	{
+		box()->setWidth(view(this)->defaultWidth() - 20);
+		box()->on_horizontalZoomChanged(val);
+	}
+
 	updateView();
 	// translate viewport to accomodate
 
