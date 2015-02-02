@@ -49,6 +49,9 @@ BaseElementView::BaseElementView(QObject* parent):
 	QHBoxLayout* zoomLayout = new QHBoxLayout;
 	auto verticalZoomSlider = new QSlider{Qt::Horizontal};
 	auto horizontalZoomSlider = new QSlider{Qt::Horizontal};
+	horizontalZoomSlider->setMinimum(20);
+	horizontalZoomSlider->setMaximum(80);
+	horizontalZoomSlider->setValue(50);
 
 	connect(horizontalZoomSlider, SIGNAL(sliderMoved(int)),
 			this, SIGNAL(horizontalZoomChanged(int)));

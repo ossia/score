@@ -11,7 +11,6 @@ EventModel::EventModel(id_type<EventModel> id, QObject* parent):
 	IdentifiedObject<EventModel>{id, "EventModel", parent},
 	m_timeEvent{new OSSIA::TimeNode}
 {
-	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
 }
 
 EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):

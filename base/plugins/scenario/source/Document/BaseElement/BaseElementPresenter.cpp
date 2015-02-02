@@ -30,6 +30,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 			this,	&BaseElementPresenter::on_horizontalZoomChanged);
 
 	setDisplayedConstraint(model()->constraintModel());
+
+	// Use the default value in the slider.
+	on_horizontalZoomChanged(50);
 }
 
 ConstraintModel* BaseElementPresenter::displayedConstraint() const
