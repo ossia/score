@@ -45,5 +45,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
 		ConstraintModel* m_displayedConstraint{};
 
-};
+		int m_horizontalZoomValue{50};
 
+};

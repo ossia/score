@@ -31,6 +31,7 @@
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/Scenario/RemoveEvent.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
+#include "Document/ZoomHelper.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -139,9 +140,12 @@ void TemporalScenarioProcessPresenter::putBack()
 
 void TemporalScenarioProcessPresenter::on_horizontalZoomChanged(int val)
 {
-	m_millisecPerPixel = 46.73630963 * std::exp(-0.07707388206 * val) * 1000;
+	m_horizontalZoomSliderVal = val;
+	m_millisecPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+
 	for(auto constraint : m_constraints)
 	{
+		constraint->on_horizontalZoomChanged(val);
 		on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
 	}
 
@@ -485,7 +489,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
-	id_type<EventModel> endEvent{0};
+	id_type<EventModel> endEvent;
 
 	if (it)
 	{
@@ -602,12 +606,10 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 													constraint_view,
 													this};
 
-	constraint_view->setDefaultWidth(constraint_view_model->model()->defaultDuration() / m_millisecPerPixel);
-    constraint_view->setMinWidth(constraint_view_model->model()->minDuration() / m_millisecPerPixel);
-    constraint_view->setMaxWidth(constraint_view_model->model()->maxDuration() / m_millisecPerPixel);
-
     constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
 							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
+
+	constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
 	m_constraints.push_back(constraint_presenter);
 

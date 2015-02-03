@@ -8,6 +8,8 @@
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/ZoomHelper.hpp"
+
 
 #include <core/presenter/command/SerializableCommand.hpp>
 
@@ -118,16 +120,12 @@ void BaseConstraintPresenter::recomputeViewport()
 {
 
 	// Set width of constraint
-	double secPerPixel = 46.73630963 * std::exp(-0.07707388206 * m_horizontalZoomSliderVal);
-	// sliderval = 20 => 1 pixel = 10s
-	// sliderval = 50 => 1 pixel = 1s
-	// sliderval = 80 => 1 pixel = 0.01s
+	double msecPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
 
-	// Formule : y = 46.73630963 e^(x * -7.707388206 * 10^-2 )
 	double centralTime = (m_viewportStartTime + m_viewportEndTime) / 2.0; // Replace with cursor in the future
 
 	// prendre en compte la distance du clic à chaque côté
-	view()->setWidth(m_viewModel->model()->defaultDuration() / secPerPixel);
+	view()->setWidth(m_viewModel->model()->defaultDuration() / msecPerPixel);
 
 	updateView();
 	// translate viewport to accomodate

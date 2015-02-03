@@ -55,8 +55,9 @@ void SetRigidity::redo()
 	else
 	{
 		// TODO find a better default ? (and be careful with min < 0
-		constraint->setMinDuration(constraint->defaultDuration() - 50);
-		constraint->setMaxDuration(constraint->defaultDuration() + 50);
+		auto percentage = constraint->defaultDuration() * 0.1;
+		constraint->setMinDuration(constraint->defaultDuration() - percentage);
+		constraint->setMaxDuration(constraint->defaultDuration() + percentage);
 	}
 }
 

@@ -32,7 +32,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 	setDisplayedConstraint(model()->constraintModel());
 
 	// Use the default value in the slider.
-	on_horizontalZoomChanged(50);
+	on_horizontalZoomChanged(m_horizontalZoomValue);
 }
 
 ConstraintModel* BaseElementPresenter::displayedConstraint() const
@@ -98,6 +98,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	m_baseConstraintPresenter = new FullViewConstraintPresenter{constraintViewModel,
 																cstrView,
 																this};
+	m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
 	on_askUpdate();
 
 	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::submitCommand,

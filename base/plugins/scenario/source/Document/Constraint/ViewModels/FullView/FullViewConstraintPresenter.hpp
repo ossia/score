@@ -32,27 +32,5 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
 									QObject* parent);
 		virtual ~FullViewConstraintPresenter();
 
-		virtual void recomputeViewport() override;
-		virtual void on_constraintPressed(QPointF) override;
-
-	signals:
-		void minDurationChanged();
-		void maxDurationChanged();
-
-		void viewportChanged();
-
-	public slots:
-		void on_minDurationChanged(int);
-		void on_maxDurationChanged(int);
-
-		void on_horizontalZoomChanged(int);
-
-		void updateView();
-
-	private:
-		int m_viewportStartTime{};
-		int m_viewportEndTime{};
-
-		int m_horizontalZoomSliderVal{};
 };
 

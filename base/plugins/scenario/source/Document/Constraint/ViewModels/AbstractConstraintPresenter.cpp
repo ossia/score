@@ -7,11 +7,19 @@
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Document/ZoomHelper.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 
 #include <QDebug>
 #include <QGraphicsScene>
+
+/**
+ * TODO Mettre dans la doc :
+ * L'abstract constraint presenter a deux interfaces :
+ *  - une qui est relative à la gestion de la vue (setScaleFactor)
+ *  - une qui est là pour interagir avec le modèle (on_defaul/min/maxDurationChanged)
+ */
 
 AbstractConstraintPresenter::AbstractConstraintPresenter(
 		QString name,
@@ -33,6 +41,67 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
 			this,	&AbstractConstraintPresenter::on_constraintPressed);
 }
 
+int AbstractConstraintPresenter::zoomSlider() const
+{
+	return m_horizontalZoomSliderVal;
+}
+
+void AbstractConstraintPresenter::updateScaling(double secPerPixel)
+{
+	// prendre en compte la distance du clic à chaque côté
+	m_view->setDefaultWidth(m_viewModel->model()->defaultDuration() / secPerPixel);
+	m_view->setMinWidth(m_viewModel->model()->minDuration() / secPerPixel);
+	m_view->setMaxWidth(m_viewModel->model()->maxDuration() / secPerPixel);
+
+	if(box())
+	{
+		box()->setWidth(m_view->defaultWidth() - 20);
+	}
+
+	updateHeight();
+}
+
+void AbstractConstraintPresenter::on_horizontalZoomChanged(int val)
+{
+	m_horizontalZoomSliderVal = val;
+	updateScaling(secondsPerPixel(m_horizontalZoomSliderVal));
+
+	if(box())
+	{
+		box()->on_horizontalZoomChanged(val);
+	}
+}
+
+void AbstractConstraintPresenter::on_minDurationChanged(int min)
+{
+	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	m_view->setMinWidth(m_viewModel->model()->minDuration() / secPerPixel);
+	updateHeight();
+}
+
+void AbstractConstraintPresenter::on_maxDurationChanged(int max)
+{
+	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	m_view->setMaxWidth(m_viewModel->model()->maxDuration() / secPerPixel);
+	updateHeight();
+}
+
+void AbstractConstraintPresenter::updateHeight()
+{
+	if(m_viewModel->isBoxShown())
+	{
+		m_view->setHeight(box()->height() + 60);
+	}
+	else
+	{
+		// faire vue appropriée plus tard
+		m_view->setHeight(25);
+	}
+
+	emit askUpdate();
+	m_view->update();
+}
+
 bool AbstractConstraintPresenter::isSelected() const
 {
 	return m_view->isSelected();
@@ -48,21 +117,21 @@ void AbstractConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
 	clearBoxPresenter();
 	createBoxPresenter(m_viewModel->model()->box(boxId));
 
-	updateView();
+	updateHeight();
 }
 
 void AbstractConstraintPresenter::on_boxHidden()
 {
 	clearBoxPresenter();
 
-	updateView();
+	updateHeight();
 }
 
 void AbstractConstraintPresenter::on_boxRemoved()
 {
 	clearBoxPresenter();
 
-	updateView();
+	updateHeight();
 }
 
 void AbstractConstraintPresenter::clearBoxPresenter()
@@ -90,7 +159,7 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 			this,  &AbstractConstraintPresenter::elementSelected);
 
 	connect(m_box, &BoxPresenter::askUpdate,
-			this,  &AbstractConstraintPresenter::updateView);
+			this,  &AbstractConstraintPresenter::updateHeight);
 
 	box()->setWidth(m_view->defaultWidth() - 20);
 }

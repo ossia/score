@@ -31,28 +31,11 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 									QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
-		virtual void recomputeViewport() override {}
-
 		// public slot override
 		virtual void on_constraintPressed(QPointF) override;
 
 	signals:
 		void constraintReleased(ConstraintData);
 
-		void minDurationChanged();
-		void maxDurationChanged();
-		void defaultDurationChanged();
-
-	public slots:
-		void on_minDurationChanged(int);
-		void on_maxDurationChanged(int);
-
-
-		void on_horizontalZoomChanged(int val);
-
-		void updateView();
-
-	private:
-		int m_horizontalZoomSliderVal{};
 };
 

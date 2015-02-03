@@ -35,10 +35,13 @@ class AbstractConstraintPresenter : public NamedObject
 									QObject *parent);
 		virtual ~AbstractConstraintPresenter() = default;
 
-		virtual void recomputeViewport() = 0;
+		int zoomSlider() const;
+
+		virtual void updateScaling(double scaling);
 
 		bool isSelected() const;
 		void deselect();
+
 
 		BoxPresenter* box() const
 		{ return m_box; }
@@ -49,23 +52,30 @@ class AbstractConstraintPresenter : public NamedObject
 		AbstractConstraintView* abstractConstraintView() const
 		{ return m_view; }
 
+		void on_horizontalZoomChanged(int val);
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
-		void defaultWidthChanged();
+		void minDurationChanged();
+		void maxDurationChanged();
+		void defaultDurationChanged();
 
 		void askUpdate();
 
 	public slots:
+		void on_minDurationChanged(int min);
+		void on_maxDurationChanged(int max);
+
 		void on_boxShown(id_type<BoxModel> boxId);
 		void on_boxHidden();
 		void on_boxRemoved();
 
-		virtual void updateView() = 0;
+		void updateHeight();
 		virtual void on_constraintPressed(QPointF) { }
 
 	private:
+		int m_horizontalZoomSliderVal{};
 		void createBoxPresenter(BoxModel*);
 		void clearBoxPresenter();
 

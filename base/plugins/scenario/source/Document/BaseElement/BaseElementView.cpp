@@ -39,15 +39,13 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-	// Address bar
-	// TODO set length = length of the view.
-	//auto addressBarGraphicsWidget = new QGraphicsProxyWidget;
-	//addressBarGraphicsWidget->setWidget(m_addressBar);
-
 	// Zoom
 	QWidget* m_zoomWidget = new QWidget;
 	QHBoxLayout* zoomLayout = new QHBoxLayout;
-	auto verticalZoomSlider = new QSlider{Qt::Horizontal};
+	auto positionSlider = new QSlider{Qt::Horizontal};
+	positionSlider->setMinimum(0);
+	// TODO quelles sont les unités ?
+	positionSlider->setMaximum(50);
 	auto horizontalZoomSlider = new QSlider{Qt::Horizontal};
 	horizontalZoomSlider->setMinimum(20);
 	horizontalZoomSlider->setMaximum(80);
@@ -56,21 +54,11 @@ BaseElementView::BaseElementView(QObject* parent):
 	connect(horizontalZoomSlider, SIGNAL(sliderMoved(int)),
 			this, SIGNAL(horizontalZoomChanged(int)));
 
-	zoomLayout->addWidget(verticalZoomSlider);
+	zoomLayout->addWidget(positionSlider);
 	zoomLayout->addWidget(horizontalZoomSlider);
 	m_zoomWidget->setLayout(zoomLayout);
 
-	//auto zoomBarGraphicsWidget = new QGraphicsProxyWidget;
-	//zoomBarGraphicsWidget->setWidget(m_zoomWidget);
-
-	// Positions
-	//addressBarGraphicsWidget->setPos(0, 0);
-	//m_baseObject->setPos(0, 0);
-
-	//m_scene->addItem(addressBarGraphicsWidget);
 	m_scene->addItem(m_baseObject);
-	//m_scene->addItem(zoomBarGraphicsWidget);
-
 
 	auto lay = new QVBoxLayout;
 	m_widget->setLayout(lay);
