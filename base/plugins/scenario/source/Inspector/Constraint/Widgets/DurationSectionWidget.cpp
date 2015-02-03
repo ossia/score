@@ -24,15 +24,14 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->setContentsMargins(0, 0, 0 ,0);
 	widg->setLayout(lay);
 
-	auto valueLabel = new QLabel{QString{"Default: %1 s"}.arg(m_model->defaultDuration())};
+	m_valueLabel = new QLabel{QString{"Default: %1 s"}.arg(m_model->defaultDuration())};
 	auto checkbox = new QCheckBox{"Rigid"};
 	auto minSpin = new QSpinBox{};
 	auto maxSpin = new QSpinBox{};
 
 	// TODO these need to be updated when the default duration changes
 	connect(m_model, &ConstraintModel::defaultDurationChanged,
-			[=] (int t)
-	{ valueLabel->setText(QString{"Default: %1 s"}.arg(m_model->defaultDuration())); });
+			this,	 &DurationSectionWidget::on_defaultDurationChanged);
 
 
 	minSpin->setMinimum(0);
@@ -60,7 +59,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->addWidget(new QLabel{tr("Max duration")}, 2, 0);
 	lay->addWidget(maxSpin, 2, 1);
 
-	lay->addWidget(valueLabel, 3, 0);
+	lay->addWidget(m_valueLabel, 3, 0);
 
 	connect(minSpin,	SIGNAL(valueChanged(int)),
 			this,		SLOT(minDurationSpinboxChanged(int)));
@@ -133,4 +132,9 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
 				   b);
 
 	emit m_parent->submitCommand(cmd);
+}
+
+void DurationSectionWidget::on_defaultDurationChanged(int dur)
+{
+	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
 }
