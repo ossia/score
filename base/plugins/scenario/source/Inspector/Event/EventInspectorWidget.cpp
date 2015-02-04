@@ -15,9 +15,11 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QApplication>
 #include <QCompleter>
 
 #include "base/plugins/device_explorer/DeviceInterface/DeviceList.hpp"
+#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
 using namespace Scenario;
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
@@ -41,14 +43,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	QWidget* addAddressWidget = new QWidget{this};
 	auto addLayout = new QHBoxLayout{addAddressWidget};
 
-	QStringList allAddresses;
-	auto devices = DeviceList::getDevices();
-	for(auto device : devices)
-	{
-		allAddresses += DeviceList::getAddresses(device);
-	}
-
-	auto completer = new QCompleter{allAddresses, this};
+	auto completer = new DeviceCompleter{this};
 
 	m_addressLineEdit = new QLineEdit{addAddressWidget};
 	m_addressLineEdit->setCompleter(completer);
