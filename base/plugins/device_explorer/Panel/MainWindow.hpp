@@ -1,4 +1,5 @@
 #pragma once
+/*
 
 #include <QMainWindow>
 
@@ -31,3 +32,4 @@ class DeviceExplorerMainWindow : public QWidget
 
 };
 
+*/

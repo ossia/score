@@ -1,4 +1,4 @@
-
+/*
 #include "MainWindow.hpp"
 
 #include <cassert>
@@ -39,10 +39,11 @@ DeviceExplorerMainWindow::DeviceExplorerMainWindow(QWidget *parent)
   this->setLayout(layout);
 
 
-  QSettings settings;
-  restoreGeometry(settings.value(GeometrySetting).toByteArray());
+//  QSettings settings;
+//  restoreGeometry(settings.value(GeometrySetting).toByteArray());
 }
 
+/*
 void
 DeviceExplorerMainWindow::closeEvent(QCloseEvent *event)
 {
@@ -66,3 +67,4 @@ DeviceExplorerMainWindow::load(const QString &filename)
 
   QApplication::restoreOverrideCursor();
 }
+*/
