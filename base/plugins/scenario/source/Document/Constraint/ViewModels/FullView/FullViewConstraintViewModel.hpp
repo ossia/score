@@ -6,8 +6,7 @@ class ConstraintModel;
  * @brief The FullViewConstraintViewModel class
  *
  * The ViewModel of a Constraint shown in full view.
- * This is different for the case of the original Constraint, because
- * this one must appear infinite.
+ * It should show a TimeBar.
  */
 class FullViewConstraintViewModel : public AbstractConstraintViewModel
 {
