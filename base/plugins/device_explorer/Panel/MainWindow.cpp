@@ -11,6 +11,8 @@
 
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerWidget.hpp"
+#include <core/presenter/command/CommandQueue.hpp>
+#include "tools/NamedObject.hpp"
 
 namespace {
   const QString GeometrySetting("MWGeometry");
@@ -18,10 +20,13 @@ namespace {
 
 
 DeviceExplorerMainWindow::DeviceExplorerMainWindow(QWidget *parent)
-	: QMainWindow(parent)
+	: QWidget(parent)
 {
   m_model = new DeviceExplorerModel(this);
 
+  auto cq = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
+  Q_ASSERT(cq);
+  m_model->setCommandQueue(cq);
   //_proxyModel
 
   m_treeWidget = new DeviceExplorerWidget(this);
@@ -31,9 +36,7 @@ DeviceExplorerMainWindow::DeviceExplorerMainWindow(QWidget *parent)
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addWidget(m_treeWidget);
 
-  QWidget *widget = new QWidget(this);
-  widget->setLayout(layout);
-  setCentralWidget(widget);
+  this->setLayout(layout);
 
 
   QSettings settings;
@@ -45,7 +48,7 @@ DeviceExplorerMainWindow::closeEvent(QCloseEvent *event)
 {
   QSettings settings;
   settings.setValue(GeometrySetting, saveGeometry());
-  QMainWindow::closeEvent(event);
+  QWidget::closeEvent(event);
 }
 
 void

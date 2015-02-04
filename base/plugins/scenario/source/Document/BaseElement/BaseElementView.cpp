@@ -9,6 +9,7 @@
 #include <QGraphicsItem>
 #include <QSlider>
 #include "Widgets/AddressBar.hpp"
+
 class GrapicsProxyObject : public QGraphicsObject
 {
 	public:
@@ -32,6 +33,7 @@ void ScoreGraphicsView::resizeEvent(QResizeEvent* ev)
 
 
 #include <QDebug>
+#include <QPushButton>
 BaseElementView::BaseElementView(QObject* parent):
 	iscore::DocumentDelegateViewInterface{parent},
 	m_widget{new QWidget{}},
@@ -72,9 +74,8 @@ BaseElementView::BaseElementView(QObject* parent):
 	transportLayout->addWidget(m_zoomSlider, 1, 1);
 	transportWidget->setLayout(transportLayout);
 
+	// view layout
 	m_scene->addItem(m_baseObject);
-
-	// complete view layout
 	auto lay = new QVBoxLayout;
 	m_widget->setLayout(lay);
 	lay->addWidget(m_addressBar);

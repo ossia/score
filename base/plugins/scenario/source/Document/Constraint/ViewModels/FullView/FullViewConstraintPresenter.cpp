@@ -20,19 +20,6 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 		QObject* parent):
 	AbstractConstraintPresenter{"FullViewConstraintPresenter", cstr_model, cstr_view, parent}
 {
-	connect(viewModel(this)->model(), &ConstraintModel::minDurationChanged,
-			this,					  &FullViewConstraintPresenter::on_minDurationChanged);
-	connect(viewModel(this)->model(), &ConstraintModel::maxDurationChanged,
-			this,					  &FullViewConstraintPresenter::on_maxDurationChanged);
-
-	// Le contentView est child de FullViewConstraintView (au sens Qt) mais est accessible via son présenteur.
-	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants
-	// TODO mettre ça dans la doc des classes
-
-	connect(view(this), &FullViewConstraintView::constraintPressed,
-			this,		&FullViewConstraintPresenter::on_constraintPressed);
-
-
 	if(viewModel(this)->isBoxShown())
 	{
 		on_boxShown(viewModel(this)->shownBox());

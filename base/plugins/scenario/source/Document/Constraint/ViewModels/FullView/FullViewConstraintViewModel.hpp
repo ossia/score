@@ -7,6 +7,8 @@ class ConstraintModel;
  *
  * The ViewModel of a Constraint shown in full view.
  * It should show a TimeBar.
+ *
+ * In addition if it's the base constraint, it should be extensible.
  */
 class FullViewConstraintViewModel : public AbstractConstraintViewModel
 {

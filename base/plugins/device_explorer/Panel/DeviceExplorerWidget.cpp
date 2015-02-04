@@ -25,8 +25,8 @@
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget *parent)
   : QWidget(parent),
 	m_proxyModel(nullptr),
-	m_deviceDialog(nullptr), m_addressDialog(nullptr),
-	m_cmdQ(nullptr)
+	m_deviceDialog(nullptr), m_addressDialog(nullptr)//,
+	//m_cmdQ(nullptr)
 {
   buildGUI();
 
@@ -42,11 +42,12 @@ DeviceExplorerWidget::buildGUI()
   connect(m_ntView, SIGNAL(selectionChanged()), this, SLOT(updateActions()));
 
 
+  /*
   m_cmdQ = new iscore::CommandQueue(this);
   m_undoAction = m_cmdQ->createUndoAction(this, tr("&Undo"));
   m_undoAction->setShortcuts(QKeySequence::Undo);
   m_redoAction = m_cmdQ->createRedoAction(this, tr("&Redo"));
-  m_redoAction->setShortcuts(QKeySequence::Redo);
+  m_redoAction->setShortcuts(QKeySequence::Redo);*/
 
 
   m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
@@ -143,9 +144,9 @@ DeviceExplorerWidget::buildGUI()
   editMenu->addAction(m_moveDownAction);
   editMenu->addAction(m_promoteAction);
   editMenu->addAction(m_demoteAction);
-  editMenu->addSeparator();
+  editMenu->addSeparator();/*
   editMenu->addAction(m_undoAction);
-  editMenu->addAction(m_redoAction);
+  editMenu->addAction(m_redoAction);*/
 
   editButton->setMenu(editMenu);
 
@@ -211,9 +212,9 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent *event)
   contextMenu.addAction(m_moveDownAction);
   contextMenu.addAction(m_promoteAction);
   contextMenu.addAction(m_demoteAction);
-  contextMenu.addSeparator();
+  contextMenu.addSeparator();/*
   contextMenu.addAction(m_undoAction);
-  contextMenu.addAction(m_redoAction);
+  contextMenu.addAction(m_redoAction);*/
 
   contextMenu.exec(event->globalPos());
 }
@@ -228,8 +229,6 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel *model)
   m_proxyModel = new DeviceExplorerFilterProxyModel(this);
   m_proxyModel->setSourceModel(model);
   m_ntView->setModel(m_proxyModel);
-
-  model->setCommandQueue(m_cmdQ);
 
   populateColumnCBox();
 

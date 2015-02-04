@@ -53,6 +53,7 @@ class AbstractConstraintPresenter : public NamedObject
 		{ return m_view; }
 
 		void on_horizontalZoomChanged(int val);
+
 	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);

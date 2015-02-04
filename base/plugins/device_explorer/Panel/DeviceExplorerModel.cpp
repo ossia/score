@@ -20,13 +20,6 @@
 enum {
   NAME_COLUMN=0,
   VALUE_COLUMN,
-  //START_ASSIGNATION_COLUMN,
-  //START_COLUMN,
-  //INTERPOLATION_COLUMN,
-  //END_ASSIGNATION_COLUMN,
-  //END_COLUMN,
-  //REDUNDANCY_COLUMN,
-  //SR_COLUMN,
   IOTYPE_COLUMN,
   MIN_COLUMN,
   MAX_COLUMN,
@@ -47,12 +40,7 @@ public:
   typedef enum {Invalid, In, Out, InOut} IOType;
 
   Node(const QString &name = QString(), Node *parent = nullptr)
-    : m_name(name), 
-      //m_startAssignation(false),
-      //m_interpolation(false),
-      //m_endAssignation(false),
-      //m_redundancy(false),
-      //m_sr(INVALID_FLOAT),
+	: m_name(name),
       m_ioType(Invalid),
       m_min(INVALID_FLOAT),
       m_max(INVALID_FLOAT),
@@ -112,13 +100,6 @@ public:
 
   QString name() const { return m_name; }
   QString value() const { return m_value; }
-  //bool startAssignation() const { return m_startAssignation; }
-  //QString start() const { return m_start; }
-  //bool interpolation() const { return m_interpolation; }
-  //bool endAssignation() const { return m_endAssignation; }
-  //QString end() const { return m_end; }
-  //bool redundancy() const { return m_redundancy; }
-  //float sr() const { return m_sr; }
   Node::IOType ioType() const { return m_ioType; }
   float minValue() const { return m_min; }
   float maxValue() const { return m_max; }
@@ -126,34 +107,10 @@ public:
 
   void setName(const QString &name) { m_name = name; }
   void setValue(const QString &value) { m_value = value; }
-  //void setStartAssignation(bool startAssignation) { m_startAssignation = startAssignation; }
-  //void setStart(const QString &start) { m_start = start; }
-  //void setInterpolation(bool interpolation) { m_interpolation = interpolation; }
-  //void setEndAssignation(bool endAssignation) { m_endAssignation = endAssignation; }
-  //void setEnd(const QString &end) { m_end = end; }
-  //void setRedundancy(bool redundancy) { m_redundancy = redundancy; }
-  //void setSR(float sr) { m_sr = sr; }
   void setIOType(const Node::IOType ioType) { m_ioType = ioType; }
   void setMinValue(float minV) { m_min = minV; }
   void setMaxValue(float maxV) { m_max = maxV; }
   void setPriority(unsigned int priority) { m_priority = priority; }
-
-  /*
-  void setStartAssignationRecursive(bool startAssignation) 
-  { 
-    setStartAssignation(startAssignation); 
-    for (int i=0; i<m_children.count(); ++i)
-      m_children.at(i)->setStartAssignationRecursive(startAssignation);
-  }
-
-  void setEndAssignationRecursive(bool endAssignation) 
-  { 
-    setEndAssignation(endAssignation); 
-    for (int i=0; i<m_children.count(); ++i)
-      m_children.at(i)->setEndAssignationRecursive(endAssignation);
-  }
-  */
-
 
   bool isSelectable() const 
   { 
@@ -170,25 +127,6 @@ public:
     }
     return false;
   }
-
-  /*
-  bool startAssignationChecked() const { return m_startAssignation; }
-  bool endAssignationChecked() const { return m_endAssignation; }
-
-  void startAssignationNbChecks(int &nbChecks, int &nbLeafs) const
-  {
-    nbChecks = 0;
-    nbLeafs = 0;
-    startAssignationNbChecks_aux(nbChecks, nbLeafs);
-  }
-
-  void endAssignationNbChecks(int &nbChecks, int &nbLeafs) const
-  {
-    nbChecks = 0;
-    nbLeafs = 0;
-    endAssignationNbChecks_aux(nbChecks, nbLeafs);
-  }
-  */
   
   Node *clone() const
   {
@@ -204,52 +142,10 @@ public:
   }
 
 
-
-protected:
-
-  /*
-  void startAssignationNbChecks_aux(int &nbChecks, int &nbLeafs) const
-  {
-    if (m_children.empty()) {
-      nbChecks += startAssignationChecked();
-      ++nbLeafs;
-    }
-    else {
-      for (int i=0; i<m_children.size(); ++i) {
-	m_children.at(i)->startAssignationNbChecks_aux(nbChecks, nbLeafs);
-      }
-    }
-    assert(nbChecks <= nbLeafs);
-  }
-
-  void endAssignationNbChecks_aux(int &nbChecks, int &nbLeafs) const
-  {
-    if (m_children.empty()) {
-      nbChecks += endAssignationChecked();
-      ++nbLeafs;
-    }
-    else {
-      for (int i=0; i<m_children.size(); ++i) {
-	m_children.at(i)->endAssignationNbChecks_aux(nbChecks, nbLeafs);
-      }
-    }
-    assert(nbChecks <= nbLeafs);
-  }
-  */
-
-
-
 protected: 
 
   QString m_name;
   QString m_value;
-  //bool m_startAssignation;
-  //QString m_start;
-  //bool m_interpolation;
-  //bool m_endAssignation;
-  //QString m_end;
-  //bool m_redundancy;
-  //float m_sr;
   IOType m_ioType;
   float m_min;
   float m_max;
@@ -349,16 +245,10 @@ DeviceExplorerModel::DeviceExplorerModel(QObject *parent)
     m_cmdQ(nullptr),
     m_cachedResult(true)
 {
+	this->setObjectName("DeviceExplorerModel");
 
   HEADERS[NAME_COLUMN] = tr("Address");
   HEADERS[VALUE_COLUMN] = tr("Value");
-  //HEADERS[START_ASSIGNATION_COLUMN] = "v";
-  //HEADERS[START_COLUMN] = tr("Start");
-  //HEADERS[INTERPOLATION_COLUMN] = "~";
-  //HEADERS[END_ASSIGNATION_COLUMN] = "v";
-  //HEADERS[END_COLUMN] = tr("End");
-  //HEADERS[REDUNDANCY_COLUMN] = "=";
-  //HEADERS[SR_COLUMN] = "%";
   HEADERS[IOTYPE_COLUMN] = tr("I/O");
   HEADERS[MIN_COLUMN] = tr("min");
   HEADERS[MAX_COLUMN] = tr("max");
@@ -392,98 +282,84 @@ readNode(QTextStream &in, Node *parent)
   in >> name;
 
   if (name.isEmpty())
-     return NULL;
-  
+	 return NULL;
+
   if (in.status() != QTextStream::Ok) {
-    std::cerr<<"status not ok (2)\n";
-    exit(10);
+	std::cerr<<"status not ok (2)\n";
+	exit(10);
   }
 
   if (in.atEnd())
-    return 0;
+	return 0;
 
   static const QString INVALID = "-_-";
 
   if (name == INVALID)
-    return 0;
+	return 0;
 
   Node *node = new Node(name, parent);
-  
+
   QString value;
   in >> value;
   if (value != INVALID)
-    node->setValue(value);
+	node->setValue(value);
 
   QString startAssignation;
   in >> startAssignation;
-  //if (startAssignation != INVALID)
-  //node->setStartAssignation(startAssignation.toInt());
-    
+
   QString start;
   in >> start;
-  //if (start != INVALID)
-  //node->setStart(start);
-    
+
   QString interpolation;
   in >> interpolation;
-  //if (interpolation != INVALID)
-  //node->setInterpolation(interpolation.toInt());
-  
+
   QString endAssignation;
   in >> endAssignation;
-  //if (endAssignation != INVALID)
-  //node->setEndAssignation(endAssignation.toInt());
 
   QString end;
   in >> end;
-  //if (end != INVALID)
-  //node->setEnd(end);
-  
+
   QString redundancy;
   in >> redundancy;
-  //if (redundancy != INVALID)
-  //node->setRedundancy(redundancy.toInt());
 
   QString sr;
   in >> sr;
-  //if (sr != INVALID)
-  //node->setSR(sr.toFloat());
 
   QString iotype;
   in >> iotype;
   if (iotype != INVALID) {
-    if (iotype == "->")
-      node->setIOType(Node::In);
-    else if (iotype == "<-")
-      node->setIOType(Node::Out);
-    else if (iotype == "<->")
-      node->setIOType(Node::InOut);
+	if (iotype == "->")
+	  node->setIOType(Node::In);
+	else if (iotype == "<-")
+	  node->setIOType(Node::Out);
+	else if (iotype == "<->")
+	  node->setIOType(Node::InOut);
   }
 
   QString minB;
   in >> minB;
   if (minB != INVALID)
-    node->setMinValue(minB.toFloat());
+	node->setMinValue(minB.toFloat());
 
   QString maxB;
   in >> maxB;
   if (maxB != INVALID)
-    node->setMaxValue(maxB.toFloat());
+	node->setMaxValue(maxB.toFloat());
 
   QString priority;
   in >> priority;
   if (priority != INVALID)
-    node->setPriority(priority.toInt());
+	node->setPriority(priority.toInt());
 
   int nbChildren = 0;
   in >> nbChildren;
 
   //node->_children.reserve(nbChildren);
   for (int i=0; i<nbChildren; ++i) {
-    readNode(in, node); //add read child to node.
-    //Node *n = readNode(in, node);
-    //if (n != nullptr)
-    // node->addChild(n);
+	readNode(in, node); //add read child to node.
+	//Node *n = readNode(in, node);
+	//if (n != nullptr)
+	// node->addChild(n);
   }
 
   return node;
@@ -533,8 +409,10 @@ DeviceExplorerModel::getColumns() const
   return l;
 }
 
-void
-DeviceExplorerModel::addDevice(const QList<QString> &deviceSettings)
+/**
+ * TODO : Put this in a command
+ */
+void DeviceExplorerModel::addDevice(const QList<QString> &deviceSettings)
 {
   Q_ASSERT(deviceSettings.size() >= 2);
   const QString protocol = deviceSettings.at(0);
@@ -656,14 +534,6 @@ DeviceExplorerModel::addAddress(QModelIndex index, DeviceExplorerModel::Insert i
   QModelIndex parentIndex = createIndex(rowParent, 0, parent);
   
   beginInsertRows(parentIndex, row, row);
-  
-  /*
-  std::cerr<<"DeviceExplorerModel::addAddress parent="<<parent<<"\n";
-  std::cerr<<"DeviceExplorerModel::addAddress parent->name="<<parent->name().toStdString()<<"\n";
-  std::cerr<<"addressSettings.size()="<<addressSettings.size()<<"\n";
-  std::cerr<<"name="<<addressSettings.at(0).toStdString()<<"\n";
-  std::cerr<<"row="<<row<<"\n";
-  */
 
   Q_ASSERT(addressSettings.size() >= 2);
   QString name = addressSettings.at(0);
@@ -838,99 +708,8 @@ DeviceExplorerModel::data(const QModelIndex &index, int role) const
 	}
       }
     }
-    break;
-    /*
-  case START_ASSIGNATION_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return QVariant();
-	//return QVariant((bool)(node->startAssignation()));
-      }
-      else if (role == Qt::CheckStateRole) {
-	int nbChecks, nbLeafs;
-	node->startAssignationNbChecks(nbChecks, nbLeafs);
-	if (nbChecks > 0) //TODO: use ratio nbChecks/nbLeafs to draw icon 
-	  return Qt::Checked;
-	else
-	  return Qt::Unchecked;
-      }
-    }
-    break;
-  case START_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return node->start();
-      }
-    }
-    break;
-  case INTERPOLATION_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return QVariant();
-	//return node->interpolation();
-      }
-      else if (role == Qt::CheckStateRole) {
-	if (node->hasChildren())
-	  return QVariant();
-	const bool checked = node->interpolation();
-	if (checked) 
-	  return Qt::Checked;
-	else
-	  return Qt::Unchecked;
-      }
-    }
-    break;
-  case END_ASSIGNATION_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return QVariant();
-	//return QVariant((bool)(node->endAssignation()));
-      }
-      else if (role == Qt::CheckStateRole) {
-	int nbChecks, nbLeafs;
-	node->endAssignationNbChecks(nbChecks, nbLeafs);
-	if (nbChecks > 0) //TODO: use ratio nbChecks/nbLeafs to draw icon 
-	  return Qt::Checked;
-	else
-	  return Qt::Unchecked;
-      }
-    }
-    break;
-  case END_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return node->end();
-      }
-    }
-    break;
-  case REDUNDANCY_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	return QVariant();
-	//return QVariant((bool)(node->redundancy()));
-      }
-      else if (role == Qt::CheckStateRole) {
-	if (node->hasChildren())
-	  return QVariant();
-	const bool checked = node->redundancy();
-	if (checked) 
-	  return Qt::Checked;
-	else
-	  return Qt::Unchecked;
-      }
-    }
-    break;
-  case SR_COLUMN:
-    {
-      if (role == Qt::DisplayRole || role == Qt::EditRole) {
-	float sr = node->sr();
-	if (sr != Node::INVALID_FLOAT)
-	  return sr;
-	return QString();
-      }
-     }
-    break;
-    */
+	break;
+
   case IOTYPE_COLUMN:
     {
       if (role == Qt::DisplayRole || role == Qt::EditRole) {
@@ -982,112 +761,11 @@ DeviceExplorerModel::data(const QModelIndex &index, int role) const
     assert(false);
     return QString();
   }
-  
-  //also
-  //role == Qt::TextAlignmentRole
-  //role == Qt::DecorationRole
 
 
 
   return QVariant();
 }
-
-/*
-QVariant
-DeviceExplorerModel::getColumnValue(Node *node, int col) const
-{
-  if (col < 0 || col >= COLUMN_COUNT)
-    return QString();
-
-  assert(node);
-
-  switch (col) {
-  case NAME_COLUMN:
-    {
-      return node->name();
-    }
-    break;
-  case VALUE_COLUMN:
-    {
-      return node->value();
-    }
-    break;
-  case START_ASSIGNATION_COLUMN:
-    {
-      return QVariant();
-      //return QVariant((bool)(node->startAssignation()));
-    }
-    break;
-  case START_COLUMN:
-    {
-      return node->start();
-    }
-    break;
-  case INTERPOLATION_COLUMN:
-    {
-      return QVariant();
-      //return node->interpolation();
-    }
-    break;
-  case END_ASSIGNATION_COLUMN:
-    {
-      return QVariant();
-      //return QVariant((bool)(node->endAssignation()));
-    }
-    break;
-  case END_COLUMN:
-    {
-      return node->end();
-    }
-    break;
-  case REDUNDANCY_COLUMN:
-    {
-      return QVariant();
-      //return QVariant((bool)(node->redundancy()));
-    }
-    break;
-  case SR_COLUMN:
-    {
-      float sr = node->sr();
-      if (sr != Node::INVALID_FLOAT)
-        return sr;
-      return QString();
-     }
-    break;
-  case IOTYPE_COLUMN:
-    {
-      return node->type();
-    }
-    break;
-  case MIN_COLUMN:
-    {
-      const float minV = node->minValue();
-      if (minV != Node::INVALID_FLOAT)
-        return minV;
-      return QString();
-    }
-    break;
-  case MAX_COLUMN:
-    {
-      const float maxV = node->maxValue();
-      if (maxV != Node::INVALID_FLOAT)
-	return maxV;
-      return QString();
-    }
-    break;
-  case PRIORITY_COLUMN:
-    {
-      return node->priority();
-    }
-    break;
-  default :
-    assert(false);
-    return QString();
-  }
-
-  return QString();
-}
-*/
 
 void
 DeviceExplorerModel::setColumnValue(Node *node, const QVariant &v, int col) 
@@ -1107,44 +785,7 @@ DeviceExplorerModel::setColumnValue(Node *node, const QVariant &v, int col)
     {
       node->setValue(v.toString());
     }
-    break;
-    /*
-  case START_ASSIGNATION_COLUMN:
-    {
-      node->setStartAssignation(v.toBool());
-    }
-    break;
-  case START_COLUMN:
-    {
-      node->setStart(v.toString());
-    }
-    break;
-  case INTERPOLATION_COLUMN:
-    {
-      node->setInterpolation(v.toBool());
-    }
-    break;
-  case END_ASSIGNATION_COLUMN:
-    {
-      node->setEndAssignation(v.toBool());
-    }
-    break;
-  case END_COLUMN:
-    {
-      node->setEnd(v.toString());
-    }
-    break;
-  case REDUNDANCY_COLUMN:
-    {
-      node->setRedundancy(v.toBool());
-    }
-    break;
-  case SR_COLUMN:
-    {
-      node->setSR(v.toFloat());
-     }
-    break;
-    */
+	break;
   case IOTYPE_COLUMN:
     {
       //node->setType(v.toString());
@@ -1194,21 +835,7 @@ DeviceExplorerModel::flags(const QModelIndex &index) const
 
     if (n->isSelectable()) {
       f |= Qt::ItemIsSelectable;
-    }
-    
-    /*
-    const int col = index.column();
-    if (col == START_ASSIGNATION_COLUMN 
-	|| col == END_ASSIGNATION_COLUMN) {
-      f |= Qt::ItemIsUserCheckable;
-    }
-    else if (col == INTERPOLATION_COLUMN 
-	     || col == REDUNDANCY_COLUMN) {
-      if (! n->hasChildren()) {
-	f |= Qt::ItemIsUserCheckable;
-      }
-    }
-    */
+	}
 
     //we allow drag'n drop only from the name column
     if (index.column() == NAME_COLUMN) {
@@ -1275,29 +902,7 @@ DeviceExplorerModel::setData(const QModelIndex &index, const QVariant &value, in
     
 
   }
-  /*
-  else if (role == Qt::CheckStateRole) {
-    const bool checked = value.toBool();
-    if (index.column() == START_ASSIGNATION_COLUMN) {
-      node->setStartAssignationRecursive(checked);
-      changedBottomRight = bottomIndex(index);
-      changed = true;
-    }
-    else if (index.column() == END_ASSIGNATION_COLUMN) {
-      node->setEndAssignationRecursive(checked);
-      changedBottomRight = bottomIndex(index);
-      changed = true;
-    }
-    else if (index.column() == INTERPOLATION_COLUMN) {
-      node->setInterpolation(checked);
-      changed = true;
-    }
-    else if (index.column() == REDUNDANCY_COLUMN) {
-      node->setRedundancy(checked);
-      changed = true;
-    }
-  }
-  */
+
 
   //NON ! emitDatachanged devrait être fait pour tous les indices des fils !!!
   
@@ -1343,32 +948,6 @@ DeviceExplorerModel::createRootNode() const
 {
   return new Node("Invisible root", nullptr);
 }
-
-/*
-//this method is called (behind the scenes) when there is a drag and drop to insert drop rows
-bool
-DeviceExplorerModel::insertRows(int row, int count, const QModelIndex &parent)
-{
-  if (! m_rootNode)
-    m_rootNode = createRootNode();
-
-  std::cerr<<"***##### DeviceExplorerModel::insertRows("<<row<<", "<<count<<" ) ###### \n";
-
-  Node *parentNode = parent.isValid() ? nodeFromModelIndex(parent) : m_rootNode;
-
-  //TODO: if (parentNode == m_rootNode) : we insert count devices ! Is it what we want ???
-
-  beginInsertRows(parent, row, row+count-1);
-
-  for (int i=0; i<count; ++i) {
-    (void) new Node(tr("default name"), parentNode);
-  }
-  
-  endInsertRows();
-
-  return true;
-}
-*/
 
 
 //this method is called (behind the scenes) when there is a drag and drop to delete the original dragged rows once they have been dropped (dropped rows are inserted using insertRows)
@@ -1818,29 +1397,6 @@ DeviceExplorerModel::moveUp(const QModelIndex &index)
   int rowParent = grandparent->indexOfChild(parent);
   QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
-#if 0
-  beginMoveRows(srcParentIndex, oldRow, oldRow, srcParentIndex, newRow);
-
-  //parent->swapChildren(oldRow, newRow);
-  {
-    parent->takeChild(oldRow);
-    parent->insertChild(newRow, n); 
-  }
-  
-  endMoveRows();
-
-  return createIndex(newRow, 0, n);
-
-#else
-
-#if 0
-  bool moved = moveRow(srcParentIndex, oldRow, srcParentIndex, newRow);
-  if (moved)
-    return createIndex(newRow, 0, n);
-  else
-    return index;
-#else
-
   DeviceExplorerMoveCommand *cmd = new DeviceExplorerMoveCommand;
   cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow, tr("Move up %1").arg(n->name()) , this);
   Q_ASSERT(m_cmdQ);
@@ -1851,13 +1407,6 @@ DeviceExplorerModel::moveUp(const QModelIndex &index)
     return index;
   }
   return createIndex(newRow, 0, n);
-
-#endif
-
-
-#endif
-
-
 }
 
 QModelIndex
@@ -1883,30 +1432,6 @@ DeviceExplorerModel::moveDown(const QModelIndex &index)
   int rowParent = grandparent->indexOfChild(parent);
   QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
-#if 0
-
-  beginMoveRows(srcParentIndex, oldRow, oldRow, srcParentIndex, newRow+1); //+1 because moved before, cf doc.
-
-  //parent->swapChildren(oldRow, newRow);
-  {
-    Node *n2 = parent->takeChild(oldRow);
-    Q_ASSERT(n2 == n);
-    parent->insertChild(newRow, n); 
-  }
-
-  endMoveRows();
-
-  return createIndex(newRow, 0, n);
-#else
-  
-#if 0
-  const bool moved = moveRow(srcParentIndex, oldRow, srcParentIndex, newRow+1); //newRow+1 because moved before, cf doc.
-  if (moved)
-    return createIndex(newRow, 0, n);
-  else
-    return index;
-#else
-
   DeviceExplorerMoveCommand *cmd = new DeviceExplorerMoveCommand;
   cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow+1, tr("Move down %1").arg(n->name()) , this);
   //newRow+1 because moved before, cf doc.
@@ -1917,12 +1442,7 @@ DeviceExplorerModel::moveDown(const QModelIndex &index)
     m_cachedResult = true;
     return index;
   }
-  return createIndex(newRow, 0, n);  
-
-#endif
-
-#endif
-
+  return createIndex(newRow, 0, n);
 }
 
 
@@ -1955,29 +1475,6 @@ DeviceExplorerModel::promote(const QModelIndex &index) //== moveLeft
   QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
   QModelIndex dstParentIndex = createIndex(rowGrandParent, 0 , grandParent);
 
-#if 0
-
-  beginMoveRows(srcParentIndex, row, row, dstParentIndex, rowParent+1); //+1 because moved before, cf doc.
-  
-  Node *child = parent->takeChild(row);
-  Q_ASSERT(child == n);
-
-  grandParent->insertChild(rowParent+1, child);
-
-  endMoveRows();
-
-  return createIndex(rowParent+1, 0, n); 
-
-#else
-
-#if 0
-  const bool moved = moveRow(srcParentIndex, row, dstParentIndex, rowParent+1);
-  if (moved)
-    return createIndex(rowParent+1, 0, n);
-  else
-    return index;
-#else
-
   DeviceExplorerMoveCommand *cmd = new DeviceExplorerMoveCommand;
   cmd->set(srcParentIndex, row, 1, dstParentIndex, rowParent+1, tr("Promote %1").arg(n->name()) , this);
   Q_ASSERT(m_cmdQ);
@@ -1988,12 +1485,6 @@ DeviceExplorerModel::promote(const QModelIndex &index) //== moveLeft
     return index;
   }
   return createIndex(rowParent+1, 0, n);  
-
-#endif
-
-
-#endif
-
 }
 
 QModelIndex
@@ -2023,30 +1514,6 @@ DeviceExplorerModel::demote(const QModelIndex &index) //== moveRight
   QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
   QModelIndex dstParentIndex = createIndex(row-1, 0, sibling);
 
-#if 0
-
-  beginMoveRows(srcParentIndex, row, row, dstParentIndex, sibling->childCount()); 
-
-  Node *child = parent->takeChild(row);
-  Q_ASSERT(child == n);
-
-  //sibling->addChild(child);
-  sibling->insertChild(sibling->childCount(), child);
-
-  endMoveRows();
-
-  return createIndex(sibling->childCount()-1, 0, n);
-
-#else
-
-#if 0
-  const bool moved = moveRow(srcParentIndex, row, dstParentIndex, sibling->childCount());
-  if (moved)
-    return createIndex(sibling->childCount()-1, 0, n);
-  else
-    return index;
-#else
-
   DeviceExplorerMoveCommand *cmd = new DeviceExplorerMoveCommand;
   cmd->set(srcParentIndex, row, 1, dstParentIndex, sibling->childCount(), tr("Demote %1").arg(n->name()) , this);
   Q_ASSERT(m_cmdQ);
@@ -2057,10 +1524,6 @@ DeviceExplorerModel::demote(const QModelIndex &index) //== moveRight
     return index;
   }
   return createIndex(sibling->childCount()-1, 0, n);
-
-#endif
-
-#endif
 
 }
 
@@ -2238,24 +1701,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData *mimeData,
 
     if (row == -1)
       row = parentNode->childCount(); //parent.isValid() ? parent.row() : parentNode->childCount();
-    
-#if 0
-    /*
-    QByteArray data = qUncompress(mimeData->data(mimeType));
-    QDataStream stream(&data, QIODevice::ReadOnly);
-    BinaryReader br(stream);
 
-    beginInsertRows(parentIndex, row, row);
-
-    br.read(parentNode);
-    
-    endInsertRows();
-    */
-    const bool insertOk = insertTreeData(parentIndex, row, mimeData->data(mimeType));
-    Q_ASSERT(insertOk);
-
-    return true;
-#else
     DeviceExplorerInsertCommand *cmd = new DeviceExplorerInsertCommand;
     const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
     cmd->set(parentIndex, row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), this);
@@ -2266,8 +1712,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData *mimeData,
       m_cachedResult = true;
       return false;
     }
-    return true;
-#endif
+	return true;
 
   }
 

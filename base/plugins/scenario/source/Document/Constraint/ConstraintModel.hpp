@@ -160,7 +160,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_startEvent{};
 		id_type<EventModel> m_endEvent{};
 
-		// ___ TEMPORARY ___
+		// ___ Use TimeValue instead ___
 		int m_defaultDuration{200};
 		int m_minDuration{m_defaultDuration};
 		int m_maxDuration{m_defaultDuration};
