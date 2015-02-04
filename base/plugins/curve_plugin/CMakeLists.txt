@@ -11,6 +11,10 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
 
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${ISCORE_INTERFACE_FOLDER}")

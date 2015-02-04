@@ -90,7 +90,7 @@ int EventModel::date() const
 void EventModel::setDate(int date)
 {
 	m_date = date;
-}
+} //TODO ajuster la date avec celle du Timenode
 
 void EventModel::setTopY(double val)
 {

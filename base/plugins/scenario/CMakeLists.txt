@@ -10,6 +10,10 @@ set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source/Proces
 find_package(Qt5Core 5.2 REQUIRED)
 find_package(Qt5Widgets 5.2 REQUIRED)
 find_package(Qt5Xml 5.2 REQUIRED)
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")

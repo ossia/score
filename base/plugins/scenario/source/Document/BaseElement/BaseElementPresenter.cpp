@@ -130,12 +130,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	// minSlider = viewportwidth * 100 * 0.97 / constraintDuration
 
 	view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
-	qDebug() << "New min:" << view()->zoomSlider()->minimum();
 }
 
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
 {
-	qDebug(Q_FUNC_INFO);
 	m_horizontalZoomValue = newzoom;
 
 	// Maybe translate

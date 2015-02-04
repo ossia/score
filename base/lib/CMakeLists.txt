@@ -7,6 +7,16 @@ set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 # Packages
 find_package(Qt5Core 5.2 REQUIRED)
 find_package(Qt5Widgets 5.2 REQUIRED)
+find_package(Boost)
+
+if(NOT Boost_FOUND)
+        message("The network plugin requires boost to build")
+        return()
+endif()
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 
 # Files & main target
 include_directories(.)
