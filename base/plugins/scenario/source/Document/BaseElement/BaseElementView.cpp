@@ -45,18 +45,19 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-	// Zoom
-	QWidget* m_zoomWidget = new QWidget;
-	QHBoxLayout* zoomLayout = new QHBoxLayout;
-	m_positionSlider = new QSlider{Qt::Horizontal};
+	// Transport
+	auto transportWidget = new QWidget;
+	auto transportLayout = new QGridLayout;
 
-	// TODO quelles sont les unités ?
+	/// Position
+	m_positionSlider = new QSlider{Qt::Horizontal};
 	m_positionSlider->setMinimum(0);
 	m_positionSlider->setMaximum(100);
+
 	connect(m_positionSlider, SIGNAL(sliderMoved(int)),
 			this, SLOT(on_positionSliderReleased(int)));
 
-
+	/// Zoom
 	m_zoomSlider = new QSlider{Qt::Horizontal};
 	m_zoomSlider->setMinimum(10);
 	m_zoomSlider->setMaximum(500);
@@ -65,17 +66,20 @@ BaseElementView::BaseElementView(QObject* parent):
 	connect(m_zoomSlider, SIGNAL(sliderMoved(int)),
 			this, SIGNAL(horizontalZoomChanged(int)));
 
-	zoomLayout->addWidget(m_positionSlider);
-	zoomLayout->addWidget(m_zoomSlider);
-	m_zoomWidget->setLayout(zoomLayout);
+	transportLayout->addWidget(new QLabel{tr("Position")}, 0, 0);
+	transportLayout->addWidget(new QLabel{tr("Zoom")}, 0, 1);
+	transportLayout->addWidget(m_positionSlider, 1, 0);
+	transportLayout->addWidget(m_zoomSlider, 1, 1);
+	transportWidget->setLayout(transportLayout);
 
 	m_scene->addItem(m_baseObject);
 
+	// complete view layout
 	auto lay = new QVBoxLayout;
 	m_widget->setLayout(lay);
 	lay->addWidget(m_addressBar);
 	lay->addWidget(m_view);
-	lay->addWidget(m_zoomWidget);
+	lay->addWidget(transportWidget);
 }
 
 QWidget* BaseElementView::getWidget()
