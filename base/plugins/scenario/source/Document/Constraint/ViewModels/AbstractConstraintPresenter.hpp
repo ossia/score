@@ -64,6 +64,7 @@ class AbstractConstraintPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
+		void on_defaultDurationChanged(int val);
 		void on_minDurationChanged(int min);
 		void on_maxDurationChanged(int max);
 

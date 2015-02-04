@@ -36,7 +36,12 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		void deleteSelection();
 
 		void on_displayedConstraintChanged();
+
+	private slots:
 		void on_horizontalZoomChanged(int);
+		void on_positionSliderChanged(int);
+
+		void on_viewWidthChanged(int);
 
 	private:
 		BaseElementModel* model();

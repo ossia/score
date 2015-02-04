@@ -98,6 +98,8 @@ void ConstraintModel::addBox(BoxModel* box)
 {
 	connect(this,	&ConstraintModel::processRemoved,
 			box,	&BoxModel::on_deleteSharedProcessModel);
+	connect(this,	&ConstraintModel::defaultDurationChanged,
+			box,	&BoxModel::on_parentDurationChanged);
 
 	m_boxes.push_back(box);
 	emit boxCreated(box->id());

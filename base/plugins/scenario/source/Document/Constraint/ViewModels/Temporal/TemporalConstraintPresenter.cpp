@@ -19,10 +19,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 		QObject* parent):
 	AbstractConstraintPresenter{"TemporalConstraintPresenter", cstr_model, cstr_view, parent}
 {
-	connect(viewModel(this)->model(),   &ConstraintModel::minDurationChanged,
-			this,						&TemporalConstraintPresenter::on_minDurationChanged);
-	connect(viewModel(this)->model(),   &ConstraintModel::maxDurationChanged,
-			this,						&TemporalConstraintPresenter::on_maxDurationChanged);
 
 	// Le contentView est child de TemporalConstraintView (au sens Qt) mais est accessible via son présenteur.
 	// Le présenteur parent va créer les vues correspondant aux présenteurs enfants

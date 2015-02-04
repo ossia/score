@@ -8,5 +8,7 @@ inline double secondsPerPixel(int zoomLevel)
 
 	// Formule : y = 46.73630963 e^(x * -7.707388206 * 10^-2 )
 	//	double centralTime = (m_viewportStartTime + m_viewportEndTime) / 2.0; // Replace with cursor in the future
-	return 46.73630963 * std::exp(-0.07707388206 * zoomLevel);
+
+	return 100.0 / zoomLevel;
+	//return 46.73630963 * std::exp(-0.07707388206 * zoomLevel);
 }

@@ -34,6 +34,7 @@ class BoxPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
+		void setDuration(int duration);
 		void on_deckCreated(id_type<DeckModel> deckId);
 		void on_deckRemoved(id_type<DeckModel> deckId);
 

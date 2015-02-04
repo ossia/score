@@ -30,6 +30,14 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
+
+	connect(m_viewModel->model(),   &ConstraintModel::minDurationChanged,
+			this,					&AbstractConstraintPresenter::on_minDurationChanged);
+	connect(m_viewModel->model(),   &ConstraintModel::defaultDurationChanged,
+			this,					&AbstractConstraintPresenter::on_defaultDurationChanged);
+	connect(m_viewModel->model(),   &ConstraintModel::maxDurationChanged,
+			this,					&AbstractConstraintPresenter::on_maxDurationChanged);
+
 	connect(m_viewModel, &AbstractConstraintViewModel::boxShown,
 			this,		 &AbstractConstraintPresenter::on_boxShown);
 	connect(m_viewModel, &AbstractConstraintViewModel::boxHidden,
@@ -72,17 +80,24 @@ void AbstractConstraintPresenter::on_horizontalZoomChanged(int val)
 	}
 }
 
+void AbstractConstraintPresenter::on_defaultDurationChanged(int val)
+{
+	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	m_view->setDefaultWidth(val / secPerPixel);
+	updateHeight();
+}
+
 void AbstractConstraintPresenter::on_minDurationChanged(int min)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	m_view->setMinWidth(m_viewModel->model()->minDuration() / secPerPixel);
+	m_view->setMinWidth(min / secPerPixel);
 	updateHeight();
 }
 
 void AbstractConstraintPresenter::on_maxDurationChanged(int max)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	m_view->setMaxWidth(m_viewModel->model()->maxDuration() / secPerPixel);
+	m_view->setMaxWidth(max / secPerPixel);
 	updateHeight();
 }
 
