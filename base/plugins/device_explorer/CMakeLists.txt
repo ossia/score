@@ -12,6 +12,10 @@ include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
 
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 set(COMMANDS_SRCS
 ${CMAKE_CURRENT_SOURCE_DIR}/Commands/DeviceExplorerPasteCommand.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Commands/DeviceExplorerRemoveCommand.cpp
