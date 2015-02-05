@@ -341,12 +341,11 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 
 void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
 {
-	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
+/*	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
     EventData d;
     d.dDate = point.x() * m_millisecPerPixel;
     d.relativeY = (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height();
-
-
+*/
 }
 
 void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
@@ -359,7 +358,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
     data.relativeY = point.y() /  m_view->boundingRect().height();
     data.scenePos = scenePoint;
 
-    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(point, QTransform()));
+    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(scenePoint, QTransform()));
     if (tnv)
     {
         for (auto timeNode : m_timeNodes)
@@ -367,6 +366,8 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
             if (timeNode->view() == tnv)
             {
                 data.endTimeNodeId = timeNode->id();
+                data.dDate = timeNode->model()->date();
+                data.x = data.dDate / m_millisecPerPixel;
             }
         }
     }
@@ -375,16 +376,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
                                                                  m_viewModel->sharedProcessModel()),
                                         data);
     this->submitCommand(cmd);
-/*
-    if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) < 20 ) // @todo use a const to do that !
-    {
 
-    }
-    else
-    {
-        createConstraint(data);
-	}
-    */
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -522,6 +514,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
                 if (timeNode->view() == tnv)
                 {
                     data.endTimeNodeId = timeNode->id();
+                    data.dDate = timeNode->model()->date() - model(m_viewModel)->event(data.eventClickedId)->date();
                 }
             }
         }
@@ -556,7 +549,14 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 																	m_viewModel->sharedProcessModel()),
 									data);
 
-	submitCommand(cmd);
+    submitCommand(cmd);
+}
+
+void TemporalScenarioProcessPresenter::moveTimeNode(EventData data)
+{
+    auto ev = findById(m_events, data.eventClickedId);
+    data.y = ev->view()->y();
+    moveEventAndConstraint(data);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -574,7 +574,6 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
-
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
@@ -599,6 +598,10 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
 
     m_timeNodes.push_back(timeNode_presenter);
     updateTimeNode(timeNode_model->id());
+
+    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
+            this,			 &TemporalScenarioProcessPresenter::moveTimeNode);
+
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)

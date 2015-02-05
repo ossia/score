@@ -129,7 +129,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
 	// minSlider = viewportwidth * 100 * 0.97 / constraintDuration
 
-	view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
+//    view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
 }
 
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)

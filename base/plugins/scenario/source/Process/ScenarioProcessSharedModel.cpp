@@ -88,7 +88,8 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 	// Else...
 	inter->setStartEvent(sev->id());
 	inter->setEndEvent(eev->id());
-	inter->setStartDate(sev->date());
+
+    inter->setStartDate(sev->date());
 	inter->setDefaultDuration(eev->date() - sev->date());
     inter->setHeightPercentage( (sev->heightPercentage() + eev->heightPercentage()) / 2);
 
@@ -97,7 +98,9 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 
 	// From now on everything must be in a valid state.
 	addConstraint(inter);
-	emit constraintCreated(inter->id());
+    emit constraintCreated(inter->id());
+
+    setConstraintPosition(newConstraintModelId, 0, inter->heightPercentage());
 }
 
 void
@@ -188,11 +191,7 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 		int time = absolute_time - ev->date();
 
 		ev->setHeightPercentage(heightPosition);
-/*        ev->setDate(absolute_time);
 
-		auto tn = timeNode(ev->timeNode());
-		tn->setDate(ev->date());
-*/
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
 			auto prevConstraint = constraint(prevConstraintId);

@@ -86,6 +86,7 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 		void createConstraint(EventData data);
 		void moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);
+        void moveTimeNode(EventData data);
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);

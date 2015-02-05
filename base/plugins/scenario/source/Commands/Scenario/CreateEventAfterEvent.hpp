@@ -45,8 +45,9 @@ namespace Scenario
 
 				id_type<ConstraintModel> m_createdConstraintId{};
 				id_type<EventModel> m_createdEventId{};
-                id_type<TimeNodeModel> m_createdTimeNodeId{0};
-                id_type<TimeNodeModel> m_existingTimeNodeId{0};
+                id_type<TimeNodeModel> m_TimeNodeId{0};
+
+                bool timeNodeToCreate;
 
 				id_type<EventModel> m_firstEventId{};
 				int m_time{};

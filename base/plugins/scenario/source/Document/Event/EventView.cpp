@@ -59,7 +59,7 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
-	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+    auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
 	if(m->modifiers() == Qt::ControlModifier)
 	{
