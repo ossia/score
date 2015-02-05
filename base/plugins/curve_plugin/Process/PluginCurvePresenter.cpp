@@ -50,24 +50,24 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QTransform>
 #include <iostream>
 
-PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel,
-											ProcessViewInterface* view,
+PluginCurvePresenter::PluginCurvePresenter (PluginCurveModel* model,
+											PluginCurveView* view,
 											QObject* parent):
-	ProcessPresenterInterface ("PluginCurvePresenter", parent),
-	_pModel (static_cast<PluginCurveModel*>(static_cast<PluginCurveViewModel*>(viewModel)->sharedProcessModel())),
-	_pView (static_cast<PluginCurveView*>(view))
+	QObject{parent},
+	_pModel{model},
+	_pView{view}
 {
 	// ** Initialisation **
-	qreal minXValue = 0.01;
-	qreal minYValue = -10;
-	qreal maxXValue = 0.015;
-	qreal maxYValue = 10;
+	qreal minXValue = 0;
+	qreal minYValue = -1;
+	qreal maxXValue = 1;
+	qreal maxYValue = 1;
 	// Point's area
 	/// @todo prendre l'echelle en paramètre du constructeur (?)
 	// Point's area in scale coordinate
 	_scale = QRectF (minXValue, minYValue, maxXValue - minXValue, maxYValue - minYValue);
 	updateLimitRect();
-	_pMap = new PluginCurveMap (_scale, _limitRect);
+	_pMap = new PluginCurveMap (_scale, _limitRect, this);
 	_pGrid = new PluginCurveGrid (_pView->zoomer(), _pMap);
 	// Points behavior
 	//_pointCanCross = mainWindow()->pointCanCross();
@@ -106,18 +106,6 @@ PluginCurvePresenter::PluginCurvePresenter (ProcessViewModelInterface* viewModel
 	connect (this, SIGNAL (notifySectionDeleted (QPointF, QPointF) ), parent, SIGNAL (notifySectionDeleted (QPointF, QPointF) ) );
 	connect (this, SIGNAL (notifySectionMoved (QPointF, QPointF, QPointF, QPointF) ), parent, SIGNAL (notifySectionMoved (QPointF, QPointF, QPointF, QPointF) ) );
 	*/
-}
-
-PluginCurvePresenter::~PluginCurvePresenter()
-{
-	//Remove all points
-	foreach (PluginCurvePoint* point, _pModel->points() )
-	{
-		removePoint (point);
-	}
-
-	delete _pMap;
-	delete _pGrid;
 }
 
 ///@todo customize cursors !!!
@@ -215,16 +203,6 @@ void PluginCurvePresenter::adjustPoint (PluginCurvePoint* point, QPointF& newPos
 
 	//Respect the minimum distance between points
 	adjustPointMinDist (point, newPos);
-}
-
-void PluginCurvePresenter::putToFront()
-{
-	_pView->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
-}
-
-void PluginCurvePresenter::putBack()
-{
-	_pView->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
 void PluginCurvePresenter::adjustPointMagnetism (QPointF& newPos)
@@ -497,6 +475,7 @@ PluginCurveSection* PluginCurvePresenter::addSection (PluginCurvePoint* source, 
 	return section;
 }
 
+#include <QDebug>
 /// @todo Utiliser fonction déjà faites.
 /// qpoint : view coordinates
 PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode mobility, bool removable)
@@ -510,10 +489,12 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
 	PluginCurveZoomer* zoomer = _pView->zoomer();
 
 	// No point added if out the aera
+	/*
 	if (!_limitRect.contains (qpoint) ) // qPoint view coordinate, _limitRect : view coordinate
 	{
 		return nullptr;
 	}
+	*/
 
 	newPos = zoomer->mapFromItem (_pView, newPos); // Map the new position in zoomer's coordinates (paint coordinates).
 
@@ -547,6 +528,7 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
 	// Create the point
 	point = new PluginCurvePoint (zoomer, this, newPos, _pMap->paintToScale (newPos), mobility, removable);
 	emit (notifyPointCreated (_pMap->paintToScale (newPos) ) ); // Notify the user
+//	emit (notifyPointCreated ( newPos ) ); // Notify the user
 
 	//Create a new curve, update previousPoint and point.
 	if (previousPoint != nullptr)
@@ -885,6 +867,7 @@ void PluginCurvePresenter::viewSceneChanged (QGraphicsScene* scene)
 
 void PluginCurvePresenter::pointPositionHasChanged()
 {
+	qDebug() << Q_FUNC_INFO;
 	QListIterator<PluginCurvePoint*> iterator (_pModel->points() );
 	PluginCurvePoint* point;
 

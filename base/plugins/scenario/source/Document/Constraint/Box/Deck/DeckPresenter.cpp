@@ -132,6 +132,11 @@ void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterfac
 void DeckPresenter::on_heightChanged(int height)
 {
 	m_view->setHeight(height);
+	for(auto process : m_processes)
+	{
+		process->parentGeometryChanged();
+	}
+
 	emit askUpdate();
 }
 

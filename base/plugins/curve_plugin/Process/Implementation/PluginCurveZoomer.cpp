@@ -4,6 +4,7 @@
 PluginCurveZoomer::PluginCurveZoomer (QGraphicsObject* parent) :
 	QGraphicsObject (parent)
 {
+	this->setZValue(parent->zValue() + 1);
 }
 
 void PluginCurveZoomer::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -23,10 +24,10 @@ void PluginCurveZoomer::zoom (QPointF origin, qreal delta)
 	update();
 	//origin : zommer coordinate
 	qreal scaleFact = scale();
-	qreal fact = delta / 120;
+	qreal fact = delta / 120.0;
 	setTransformOriginPoint (origin);
-//    setScale(qMax((fact/20)+scaleFact,0.1));
-	setScale (scaleFact * (1 + fact / 20) );
+
+	setScale (scaleFact * (1.0 + fact / 20.0) );
 	prepareGeometryChange();
 	update();
 }

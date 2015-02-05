@@ -17,6 +17,8 @@ if(APPLE)
 endif()
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
+
+include_directories(".")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 

@@ -7,7 +7,6 @@
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Document/ZoomHelper.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 

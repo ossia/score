@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "Document/ZoomHelper.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>

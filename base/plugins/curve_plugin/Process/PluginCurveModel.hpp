@@ -34,12 +34,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QGraphicsObject>
 #include <QRectF>
 
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
-
 class PluginCurvePoint;
 class PluginCurveSection;
 
-class PluginCurveModel : public ProcessSharedModelInterface
+class PluginCurveModel : public QObject
 {
 		Q_OBJECT
 	private:
@@ -54,7 +52,7 @@ class PluginCurveModel : public ProcessSharedModelInterface
 
 	public:
 		// Constructor
-		PluginCurveModel (id_type<ProcessSharedModelInterface> id, QObject* parentObject);
+		PluginCurveModel (QObject* parentObject);
 		// Returns the list of points
 		QList<PluginCurvePoint*> points();
 		// Returns the points area
@@ -71,7 +69,6 @@ class PluginCurveModel : public ProcessSharedModelInterface
 		PluginCurvePoint* previousPoint (PluginCurvePoint* point);
 		// Return point's next point
 		PluginCurvePoint* nextPoint (PluginCurvePoint* point);
-	signals:
 
 	public slots:
 		// Changes the state (Activ/Inactiv) of the curve
@@ -86,23 +83,6 @@ class PluginCurveModel : public ProcessSharedModelInterface
 		void sectionAppend (PluginCurveSection* section);
 		// Remove a section from the list
 		void sectionRemoveOne (PluginCurveSection* section);
-
-		// ProcessSharedModelInterface interface
-	public:
-		virtual QString processName() const
-		{
-			return "CurvePlugin";
-		}
-
-		virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
-														  QObject* parent) override;
-
-		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-														 void* data,
-														 QObject* parent) override;
-
-		virtual void serialize(SerializationIdentifier identifier, void* data) const override;
-
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

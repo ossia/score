@@ -19,6 +19,7 @@ class ProcessPresenterInterface : public NamedObject
 		virtual void putBack() = 0;
 
 		virtual void on_horizontalZoomChanged(int) = 0;
+		virtual void parentGeometryChanged() = 0;
 
 		virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
 		virtual id_type<ProcessSharedModelInterface> modelId() const = 0;

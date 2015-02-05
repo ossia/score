@@ -41,11 +41,13 @@
 #include <QGraphicsScene>
 #include <QCursor>
 #include <iostream>
-
+#include <QDebug>
 
 PluginCurveView::PluginCurveView (QGraphicsObject* parent)
-	: ProcessViewInterface (parent)
+	: QGraphicsObject (parent)
 {
+
+	this->setZValue(parent->zValue() + 1);
 	_pZoomer = new PluginCurveZoomer (this);
 	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);
 	_pSelectionRectangle->setFlag (ItemIgnoresTransformations);
@@ -54,7 +56,6 @@ PluginCurveView::PluginCurveView (QGraphicsObject* parent)
 	setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
 	setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
 
-	this->setZValue(parent->zValue() + 1);
 }
 
 PluginCurveView::~PluginCurveView()
@@ -99,6 +100,7 @@ QRectF PluginCurveView::boundingRect() const
 	}
 	else
 	{
+
 		auto p_rect = parentItem()->boundingRect();
 		QRectF rect = { p_rect.x() + 5, p_rect.y() + 5,
 						p_rect.width() - 10, p_rect.height() - 10};
@@ -123,6 +125,7 @@ void PluginCurveView::mouseMoveEvent (QGraphicsSceneMouseEvent* moveEvent)
 
 void PluginCurveView::mouseReleaseEvent (QGraphicsSceneMouseEvent* releaseEvent)
 {
+	qDebug() << Q_FUNC_INFO;
 	emit (mouseReleased (releaseEvent) );
 }
 

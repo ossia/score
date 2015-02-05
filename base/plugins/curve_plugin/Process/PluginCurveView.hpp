@@ -35,8 +35,6 @@
 #include <QGraphicsRectItem>
 #include <QCursor>
 
-#include <ProcessInterface/ProcessViewInterface.hpp>
-
 class QGraphicsItem;
 class PluginCurvePresenter;
 class PluginCurveGrid;
@@ -52,7 +50,7 @@ class PluginCurveZoomer;
 *  @date 2014
 */
 
-class PluginCurveView : public ProcessViewInterface
+class PluginCurveView : public QGraphicsObject
 {
 		Q_OBJECT
 
@@ -70,6 +68,11 @@ class PluginCurveView : public ProcessViewInterface
 		PluginCurveZoomer* zoomer();
 		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 		QRectF boundingRect() const;
+
+		void on_parentGeometryChange()
+		{ prepareGeometryChange(); }
+
+
 
 	signals:
 		void doubleClicked (QGraphicsSceneMouseEvent*);

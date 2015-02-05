@@ -24,7 +24,7 @@ PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresente
 	setCacheMode (DeviceCoordinateCache);
 	setFlag (ItemIsFocusable, false);
 	setFlag (QGraphicsItem::ItemIgnoresTransformations);
-	setZValue (1);
+	setZValue (parent->zValue() + 1);
 	setValue (value);
 	setPos (point);
 	setMobility (mobility); // Warning ! setMobility after setPos();
@@ -83,6 +83,7 @@ QPointF PluginCurvePoint::globalPos()
 {
 	Q_ASSERT (scene() != NULL); // the focus item belongs to a scene
 	Q_ASSERT (!scene()->views().isEmpty() ); // that scene is displayed in a view...
+	// TODO jm : this views().first() will bite us
 	Q_ASSERT (scene()->views().first() != NULL); // ... which is not null...
 	Q_ASSERT (scene()->views().first()->viewport() != NULL); // ... and has a viewport
 	QGraphicsView* v = scene()->views().first();
@@ -218,8 +219,10 @@ QPainterPath PluginCurvePoint::shape() const
 	return circle;
 }
 
+#include <QDebug>
 void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
 {
+	qDebug() << Q_FUNC_INFO;
 	if (event->button() == Qt::RightButton)
 	{
 		emit (rightClicked (this) );
@@ -232,6 +235,7 @@ void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurvePoint::mouseReleaseEvent (QGraphicsSceneMouseEvent* event)
 {
+	qDebug() << Q_FUNC_INFO;
 	if (event->buttonDownScenePos (Qt::LeftButton) != event->scenePos() ) // If the point has been moved.
 	{
 		emit (pointPositionHasChanged() );
@@ -242,6 +246,7 @@ void PluginCurvePoint::mouseReleaseEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurvePoint::mouseMoveEvent (QGraphicsSceneMouseEvent* event)
 {
+	qDebug() << Q_FUNC_INFO;
 	QGraphicsItem::mouseMoveEvent (event);
 }
 

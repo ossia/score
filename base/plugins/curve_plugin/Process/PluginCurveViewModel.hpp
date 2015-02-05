@@ -1,3 +1,5 @@
+/*
+ *
 #pragma once
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
 
@@ -12,3 +14,4 @@ class PluginCurveViewModel : public ProcessViewModelInterface
 	public:
 		virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 };
+*/

@@ -15,6 +15,9 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+		void on_parentGeometryChange()
+		{ prepareGeometryChange(); }
+
 
 	signals:
 		void scenarioPressed();

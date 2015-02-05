@@ -6,7 +6,7 @@
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
-#include "Document/ZoomHelper.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"

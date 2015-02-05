@@ -1,3 +1,4 @@
+/*
 #include "PluginCurveViewModel.hpp"
 #include "PluginCurveModel.hpp"
 
@@ -12,3 +13,4 @@ void PluginCurveViewModel::serialize(SerializationIdentifier identifier, void* d
 {
 	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
+*/

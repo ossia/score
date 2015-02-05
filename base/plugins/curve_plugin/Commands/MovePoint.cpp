@@ -1,0 +1,59 @@
+#include "MovePoint.hpp"
+#include <Automation/AutomationModel.hpp>
+using namespace iscore;
+#define CMD_UID 2000
+#define CMD_NAME "RemovePoint"
+#define CMD_DESC QObject::tr("Remove point from curve")
+
+MovePoint::MovePoint():
+	SerializableCommand{"CurveControl",
+						CMD_NAME,
+						CMD_DESC}
+{
+}
+
+MovePoint::MovePoint(ObjectPath&& path,
+					 double oldx, double newx, double newy):
+	SerializableCommand{"CurveControl",
+						CMD_NAME,
+						CMD_DESC},
+	m_path{path},
+	m_oldX{oldx},
+	m_newX{newx},
+	m_newY{newy}
+{
+	auto autom = m_path.find<AutomationModel>();
+	m_oldY = autom->points()[oldx];
+}
+
+void MovePoint::undo()
+{
+	auto autom = m_path.find<AutomationModel>();
+	autom->movePoint(m_newX, m_oldX, m_oldY);
+}
+
+void MovePoint::redo()
+{
+	auto autom = m_path.find<AutomationModel>();
+	autom->movePoint(m_oldX, m_newX, m_newY);
+}
+
+int MovePoint::id() const
+{
+	return CMD_UID;
+}
+
+bool MovePoint::mergeWith(const QUndoCommand* other)
+{
+	return false;
+}
+
+void MovePoint::serializeImpl(QDataStream& s)
+{
+	s << m_oldX << m_oldY << m_newX << m_newY;
+}
+
+void MovePoint::deserializeImpl(QDataStream& s)
+{
+	s >> m_oldX >> m_oldY >> m_newX >> m_newY;
+}

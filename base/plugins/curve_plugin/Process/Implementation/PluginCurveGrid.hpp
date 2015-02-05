@@ -23,7 +23,6 @@ class PluginCurveGrid : public QGraphicsObject
 // Attributes
 	private:
 		PluginCurveMap* _pMap; /*!< Permit to transform devices from paint coordinate to scale coordinate and vice versa. */
-		PluginCurveMap* _pDefaultMap; /*!< The default map if no map is giving. */
 		QVector<qreal> magnetPointX; /*!< Magnetic points' abscissas. */
 		QVector<qreal> magnetPointY; /*!< Magnetic points' ordonates. */
 		qreal stepX; /*!< Horizontal distance (in scale coordinate) between two magnetic points. */
@@ -35,7 +34,7 @@ class PluginCurveGrid : public QGraphicsObject
 		    \param map The map used for transform coordinates.
 		*/
 		PluginCurveGrid (QGraphicsObject* parent, PluginCurveMap* map);
-		~PluginCurveGrid();
+
 		/*! Return the nearest magnetic point (in paint coordinate) of the point p (in paint coordinate)*/
 		QPointF nearestMagnetPoint (QPointF p);
 		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

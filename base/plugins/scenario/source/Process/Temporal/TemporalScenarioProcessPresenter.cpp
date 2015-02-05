@@ -31,7 +31,7 @@
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/Scenario/RemoveEvent.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
-#include "Document/ZoomHelper.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -136,6 +136,11 @@ void TemporalScenarioProcessPresenter::putBack()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 	m_view->setOpacity(0.1);
+}
+
+void TemporalScenarioProcessPresenter::parentGeometryChanged()
+{
+	m_view->on_parentGeometryChange();
 }
 
 void TemporalScenarioProcessPresenter::on_horizontalZoomChanged(int val)

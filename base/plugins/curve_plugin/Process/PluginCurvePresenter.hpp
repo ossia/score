@@ -31,7 +31,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef PLUGINCURVEPRESENTER_HPP
 #define PLUGINCURVEPRESENTER_HPP
 
-#include <ProcessInterface/ProcessPresenterInterface.hpp>
 #include <QGraphicsItem>
 #include <QCursor>
 
@@ -40,8 +39,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "Implementation/PluginCurvePoint.hpp"
 #include "Implementation/PluginCurveSection.hpp"
 #include "Implementation/PluginCurveMap.hpp"
-class PluginCurveFactory;
+
 class PluginCurveGrid;
+class PluginCurveViewModel;
 
 enum EditionMode
 {
@@ -53,7 +53,7 @@ enum EditionMode
 	InactivMode
 };
 
-class PluginCurvePresenter : public ProcessPresenterInterface
+class PluginCurvePresenter : public QObject
 {
 		Q_OBJECT
 		//Attributs
@@ -100,8 +100,12 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 		// Update the limit rect. Used after scaling.
 		void updateLimitRect();
 	public:
-		PluginCurvePresenter (ProcessViewModelInterface* model, ProcessViewInterface* view, QObject* parent);
-		~PluginCurvePresenter();
+
+		PluginCurveMap* map() const
+		{ return _pMap; }
+
+		PluginCurvePresenter (PluginCurveModel* model, PluginCurveView* view, QObject* parent);
+
 		// Add a curve and updates source and dest points
 		PluginCurveSection* addSection (PluginCurvePoint* source, PluginCurvePoint* dest);
 		// Add a point at the position qpoint
@@ -121,8 +125,8 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 		/* Adjusts the point position. */
 		void adjustPoint (PluginCurvePoint* point, QPointF& newPos);
 
-		virtual void putToFront() override;
-		virtual void putBack() override;
+		void updateScale(QRectF newScale);
+
 	signals:
 // --> Model
 		void stateChanged (bool b);
@@ -161,27 +165,6 @@ class PluginCurvePresenter : public ProcessPresenterInterface
 		void pointRightClicked (PluginCurvePoint* point);
 // PluginCurveSection -->
 		void sectionRightClicked (PluginCurveSection* section, QPointF scenePos);
-
-
-		// ProcessPresenterInterface interface
-	public:
-		virtual id_type<ProcessViewModelInterface> viewModelId() const override
-		{
-			qDebug() << "TODO: " << Q_FUNC_INFO;
-			return id_type<ProcessViewModelInterface>{36};
-		}
-		virtual id_type<ProcessSharedModelInterface> modelId() const override
-		{
-			qDebug() << "TODO: " << Q_FUNC_INFO;
-			return id_type<ProcessSharedModelInterface>{42};
-		}
-
-		// ProcessPresenterInterface interface
-public:
-		void on_horizontalZoomChanged(int)
-		{
-			qDebug() << "TODO: " << Q_FUNC_INFO;
-		}
 };
 
 #endif // PLUGINCURVEPRESENTER_HPP

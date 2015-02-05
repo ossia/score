@@ -43,7 +43,6 @@ DeviceExplorerMainWindow::DeviceExplorerMainWindow(QWidget *parent)
 //  restoreGeometry(settings.value(GeometrySetting).toByteArray());
 }
 
-/*
 void
 DeviceExplorerMainWindow::closeEvent(QCloseEvent *event)
 {
