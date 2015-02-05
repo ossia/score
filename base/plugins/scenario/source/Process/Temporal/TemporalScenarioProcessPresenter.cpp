@@ -544,7 +544,14 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 																	m_viewModel->sharedProcessModel()),
 									data);
 
-	submitCommand(cmd);
+    submitCommand(cmd);
+}
+
+void TemporalScenarioProcessPresenter::moveTimeNode(EventData data)
+{
+    auto ev = findById(m_events, data.eventClickedId);
+    data.y = ev->view()->y();
+    moveEventAndConstraint(data);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -562,7 +569,6 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
-
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
@@ -587,6 +593,10 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
 
     m_timeNodes.push_back(timeNode_presenter);
     updateTimeNode(timeNode_model->id());
+
+    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
+            this,			 &TemporalScenarioProcessPresenter::moveTimeNode);
+
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)

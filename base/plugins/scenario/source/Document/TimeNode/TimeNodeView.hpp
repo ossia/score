@@ -19,10 +19,15 @@ class TimeNodeView : public QGraphicsObject
         QRectF boundingRect() const;
 
         void setExtremities(int top, int bottom);
+        void mousePressEvent(QGraphicsSceneMouseEvent* m);
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* m);
+
+    signals:
+        void timeNodeReleased(QPointF);
 
     private:
         int m_top{0};
         int m_bottom{0};
 
-
+        QPointF m_clickedPoint{};
 };

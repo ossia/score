@@ -4,6 +4,8 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include <QGraphicsScene>
 
+#include "Document/Event/EventData.hpp"
+
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 									 TimeNodeView *view,
 									 QObject *parent):
@@ -12,6 +14,8 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 	m_view{view}
 {
 
+    connect(m_view, &TimeNodeView::timeNodeReleased,
+            this,   &TimeNodePresenter::on_timeNodeReleased);
 }
 
 TimeNodePresenter::~TimeNodePresenter()
@@ -36,6 +40,13 @@ TimeNodeModel *TimeNodePresenter::model()
 
 TimeNodeView *TimeNodePresenter::view()
 {
-	return m_view;
+    return m_view;
 }
 
+void TimeNodePresenter::on_timeNodeReleased(QPointF p)
+{
+    EventData d{};
+    d.eventClickedId = model()->events().first();
+    d.x = p.x();
+    emit timeNodeReleased(d);
+}
