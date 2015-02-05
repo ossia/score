@@ -336,12 +336,11 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 
 void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
 {
-	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
+/*	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
     EventData d;
     d.dDate = point.x() * m_millisecPerPixel;
     d.relativeY = (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height();
-
-
+*/
 }
 
 void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
@@ -354,7 +353,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
     data.relativeY = point.y() /  m_view->boundingRect().height();
     data.scenePos = scenePoint;
 
-    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(point, QTransform()));
+    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(scenePoint, QTransform()));
     if (tnv)
     {
         for (auto timeNode : m_timeNodes)
@@ -362,6 +361,8 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
             if (timeNode->view() == tnv)
             {
                 data.endTimeNodeId = timeNode->id();
+                data.dDate = timeNode->model()->date();
+                data.x = data.dDate / m_millisecPerPixel;
             }
         }
     }
@@ -370,16 +371,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
                                                                  m_viewModel->sharedProcessModel()),
                                         data);
     this->submitCommand(cmd);
-/*
-    if (point.x() - (m_events.back()->model()->date() / m_millisecPerPixel) < 20 ) // @todo use a const to do that !
-    {
 
-    }
-    else
-    {
-        createConstraint(data);
-	}
-    */
 }
 
 void TemporalScenarioProcessPresenter::on_askUpdate()
@@ -517,6 +509,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
                 if (timeNode->view() == tnv)
                 {
                     data.endTimeNodeId = timeNode->id();
+                    data.dDate = timeNode->model()->date() - model(m_viewModel)->event(data.eventClickedId)->date();
                 }
             }
         }

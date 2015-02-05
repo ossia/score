@@ -35,11 +35,13 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
     if (*data.endTimeNodeId.val() == 0)
     {
-        m_createdTimeNodeId = getStrongId(scenar->timeNodes());
+        m_TimeNodeId = getStrongId(scenar->timeNodes());
+        timeNodeToCreate = true;
     }
     else
     {
-        m_existingTimeNodeId = data.endTimeNodeId ;
+        m_TimeNodeId = data.endTimeNodeId ;
+        timeNodeToCreate = false;
     }
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
@@ -64,10 +66,9 @@ void CreateEventAfterEvent::redo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	// TODO pourquoi 0 ? c'est la timenode de début du scénario ? ou ça veut dire qu'elle n'est pas set ?
-    if (*m_existingTimeNodeId.val() != 0 )
+    if (! timeNodeToCreate)
     {
-        scenar->timeNode(m_existingTimeNodeId)->addEvent(m_createdEventId);
+        scenar->timeNode(m_TimeNodeId)->addEvent(m_createdEventId);
     }
 
 	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
@@ -76,14 +77,14 @@ void CreateEventAfterEvent::redo()
 												 m_createdConstraintId,
 												 m_createdConstraintFullViewId,
                                                  m_createdEventId);
-    if (*m_createdTimeNodeId.val() != 0 )
+    if (timeNodeToCreate)
     {
-        scenar->createTimeNode(m_createdTimeNodeId, m_createdEventId);
-        scenar->event(m_createdEventId)->changeTimeNode(m_createdTimeNodeId);
+        scenar->createTimeNode(m_TimeNodeId, m_createdEventId);
+        scenar->event(m_createdEventId)->changeTimeNode(m_TimeNodeId);
     }
     else
     {
-        scenar->event(m_createdEventId)->changeTimeNode(m_existingTimeNodeId);
+        scenar->event(m_createdEventId)->changeTimeNode(m_TimeNodeId);
     }
 
 	// Creation of all the constraint view models

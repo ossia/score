@@ -188,11 +188,7 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 		int time = absolute_time - ev->date();
 
 		ev->setHeightPercentage(heightPosition);
-/*        ev->setDate(absolute_time);
 
-		auto tn = timeNode(ev->timeNode());
-		tn->setDate(ev->date());
-*/
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
 			auto prevConstraint = constraint(prevConstraintId);
