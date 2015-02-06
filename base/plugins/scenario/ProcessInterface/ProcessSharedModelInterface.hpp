@@ -2,7 +2,7 @@
 #include <tools/IdentifiedObject.hpp>
 class QDataStream;
 
-
+class InspectorSectionWidget;
 class ProcessViewModelInterface;
 /**
 	 * @brief The ProcessSharedModelInterface class
@@ -11,22 +11,21 @@ class ProcessViewModelInterface;
 	 */
 class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
-
-
 	public:
 		using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
 
 		/**
-			 * @brief processName
-			 * @return the name of the process.
-			 *
-			 * Needed for serialization - deserialization, in order to recreate
-			 * a new process from the same plug-in.
-			 */
+		 * @brief processName
+		 * @return the name of the process.
+		 *
+		 * Needed for serialization - deserialization, in order to recreate
+		 * a new process from the same plug-in.
+		 */
 		virtual QString processName() const = 0; // Needed for serialization.
 
 		virtual ~ProcessSharedModelInterface() = default;
 
+		//// View models interface
 		// TODO pass the name of the view model to be created
 		// (e.g. temporal / logical...).
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,

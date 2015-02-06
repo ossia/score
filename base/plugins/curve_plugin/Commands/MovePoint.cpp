@@ -1,7 +1,7 @@
 #include "MovePoint.hpp"
 #include <Automation/AutomationModel.hpp>
 using namespace iscore;
-#define CMD_UID 2000
+#define CMD_UID 2002
 #define CMD_NAME "RemovePoint"
 #define CMD_DESC QObject::tr("Remove point from curve")
 

@@ -16,6 +16,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <InspectorControl.hpp>
 
 #include <tools/ObjectPath.hpp>
 
@@ -209,6 +210,10 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
 	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
+	auto widg = InspectorControl::getInspectorWidget(process);
+
+	newProc->addContent(widg);
+
 	m_processesSectionWidgets.push_back (newProc);
 	m_processSection->addContent (newProc);
 }

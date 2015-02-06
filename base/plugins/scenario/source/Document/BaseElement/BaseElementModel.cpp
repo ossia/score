@@ -103,6 +103,7 @@ QByteArray BaseElementModel::save()
 #include "base/plugins/device_explorer/Panel/Node.hpp"
 QJsonObject BaseElementModel::toJson()
 {
+	// TODO Make a Presenter::toJson instead
 	auto device = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
 	QJsonObject complete;

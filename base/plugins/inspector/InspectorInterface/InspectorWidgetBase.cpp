@@ -25,7 +25,7 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	// Name : label + lineEdit in a container
 	QWidget* nameLine = new QWidget (this);
 	QHBoxLayout* nameLayout = new QHBoxLayout;
-	_objectName = new QLineEdit;
+	_objectName = new QLineEdit(this);
 	nameLine->setObjectName ("ElementName");
 
 	nameLayout->addWidget (_objectName);
@@ -33,7 +33,7 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	nameLine->setLayout (nameLayout);
 
 	// color
-	_colorButton = new QPushButton;
+	_colorButton = new QPushButton(this);
 	_colorButton->setMaximumSize (QSize (1.5 * m_colorIconSize, 1.5 * m_colorIconSize) );
 	_colorButton->setIconSize (QSize (m_colorIconSize, m_colorIconSize) );
 	setColor (Qt::gray);
@@ -54,6 +54,7 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	// comments
 	_comments = new QTextEdit;
 	InspectorSectionWidget* comments = new InspectorSectionWidget ("Comments");
+	comments->setParent(this);
 	comments->addContent (_comments);
 
 	_sections.push_back (_objectType);
@@ -121,7 +122,10 @@ void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<Q
 {
 	while (! layout->isEmpty() )
 	{
-		delete layout->itemAt (0)->widget();
+		auto item = layout->takeAt(0);
+
+		delete item->widget();
+		delete item;
 	}
 
 	for (auto& section : contents)
