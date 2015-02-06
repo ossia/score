@@ -1,6 +1,7 @@
 #pragma once
 #include <QString>
 #include <QList>
+#include <QJsonObject>
 
 class Node
 {
@@ -59,3 +60,5 @@ class Node
 		Node *m_parent;
 		QList<Node *> m_children;
 };
+
+QJsonObject nodeToJson(const Node* n);

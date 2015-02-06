@@ -1,5 +1,5 @@
 #include "Node.hpp"
-
+#include <QJsonArray>
 QString Node::INVALID_STR = "-_-";
 float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
@@ -119,4 +119,26 @@ Node*Node::clone() const
 		n->m_children.append( m_children.at(i)->clone() );
 	}
 	return n;
+}
+
+
+QJsonObject nodeToJson(const Node* n)
+{
+	QJsonObject obj;
+	obj["Name"] = n->name();
+	obj["Value"] = n->value();
+	obj["IOType"] = n->ioType();
+	obj["MinValue"] = n->minValue();
+	obj["MaxValue"] = n->maxValue();
+	obj["Priority"] = (int)n->priority();
+
+	QJsonArray arr;
+	for(const Node* child : n->children())
+	{
+		arr.append(nodeToJson(child));
+	}
+
+	obj["Children"] = arr;
+
+	return obj;
 }
