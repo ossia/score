@@ -1,7 +1,9 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "ScenarioProcessSharedModelSerialization.hpp"
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
+
+#include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 namespace OSSIA
 {
@@ -25,6 +27,8 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
 		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
+		friend void Visitor<Reader<JSON>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
+		friend void Visitor<Writer<JSON>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
 		friend class ScenarioProcessFactory;
 
 	public:
@@ -58,24 +62,25 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		 * Given a starting event and a duration, creates an constraint and an event where
 		 * the constraint is linked to both events.
 		 */
-		void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-												  int duration,
-												  double heightPos,
-												  id_type<ConstraintModel> newConstraintId,
-												  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-												  id_type<EventModel> newEventId,
-												  id_type<TimeNodeModel> newTimeNodeId);
+        void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
+                                                  int duration,
+                                                  double heightPos,
+                                                  id_type<ConstraintModel> newConstraintId,
+                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
+                                                  id_type<EventModel> newEventId);
 
+        void createTimeNode(id_type<TimeNodeModel> timeNodeId,
+                            id_type<EventModel> eventId);
 
-		void moveEventAndConstraint(id_type<EventModel> eventId,
+		void setEventPosition(id_type<EventModel> eventId,
 									int time,
 									double heightPosition);
-		void moveConstraint(id_type<ConstraintModel> constraintId,
+		void setConstraintPosition(id_type<ConstraintModel> constraintId,
 							int deltaX,
 							double heightPosition);
-		void moveNextElements(id_type<EventModel> firstEventMovedId,
-							  int deltaTime,
-							  QVector<id_type<EventModel>>& movedEvent);
+        void translateNextElements(id_type<TimeNodeModel> firstTimeNodeMovedId,
+                              int deltaTime,
+                              QVector<id_type<EventModel>>& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
@@ -85,8 +90,9 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void removeConstraint(id_type<ConstraintModel> constraintId);
 		void removeEvent(id_type<EventModel> eventId);
 		void removeEventFromTimeNode(id_type<EventModel> eventId);
-		void undo_createConstraintAndEndEventFromEvent(id_type<ConstraintModel> constraintId);
-		void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
+        void removeTimeNode(id_type<TimeNodeModel> timeNodeId );
+        void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
+        void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 
 
 		// Accessors
@@ -113,6 +119,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
 		void eventRemoved(id_type<EventModel> eventId);
 		void constraintRemoved(id_type<ConstraintModel> constraintId);
+        void timeNodeRemoved(id_type<TimeNodeModel> timeNodeId);
 		void eventMoved(id_type<EventModel> eventId);
 		void constraintMoved(id_type<ConstraintModel> constraintId);
 
@@ -148,7 +155,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 	private:
 		void makeViewModel_impl(view_model_type*);
 
-		OSSIA::Scenario* m_scenario;
+		//OSSIA::Scenario* m_scenario;
 
 		std::vector<ConstraintModel*> m_constraints;
 		std::vector<EventModel*> m_events;

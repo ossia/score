@@ -95,48 +95,18 @@ inline int32_t getNextId()
 	return dist(gen);
 }
 
-template <typename Vector>
-int getNextId(const Vector& v)
+inline int getNextId(const std::vector<int>& ids)
 {
-	using namespace std;
-	vector<int> ids(v.size()); // Map reduce
-	transform(begin(v),
-			  end(v),
-			  begin(ids),
-			  [] (typename Vector::value_type elt) { return (SettableIdentifier::identifier_type)elt->id(); });
+	int id{};
+	do {
+		id = getNextId();
+	} while(find(begin(ids),
+				 end(ids),
+				 id) != end(ids));
 
-	return getNextId(ids);
-}
-/*
-template<typename T>
-typename T::id_type getStrongId(const std::vector<T*>& v)
-{
-	using namespace std;
-	vector<int> ids(v.size()); // Map reduce
-
-	transform(begin(v),
-			  end(v),
-			  begin(ids),
-			  [] (const T* elt) { return *(elt->id().val()); });
-
-	return typename T::id_type{getNextId(ids)};
+	return id;
 }
 
-template<typename T>
-typename T::id_type getStrongId(const QVector<T*>& v)
-{
-	using namespace std;
-	vector<int> ids(v.size()); // Map reduce
-
-	transform(begin(v),
-			  end(v),
-			  begin(ids),
-			  [] (const T* elt) { return *(elt->id().val()); });
-
-	return typename T::id_type{getNextId(ids)};
-}
-
-*/
 template<typename T>
 id_type<T> getStrongId(const std::vector<T*>& v)
 {
@@ -150,6 +120,7 @@ id_type<T> getStrongId(const std::vector<T*>& v)
 
 	return id_type<T>{getNextId(ids)};
 }
+
 template<typename T>
 id_type<T> getStrongId(const QVector<T*>& v)
 {
@@ -163,25 +134,13 @@ id_type<T> getStrongId(const QVector<T*>& v)
 
 	return id_type<T>{getNextId(ids)};
 }
+
 template<typename T>
 id_type<T> getStrongId(const std::vector<id_type<T>>& ids)
 {
 	id_type<T> id{};
 	do {
 		id = id_type<T>{getNextId()};
-	} while(find(begin(ids),
-				 end(ids),
-				 id) != end(ids));
-
-	return id;
-}
-
-template<>
-inline int getNextId(const std::vector<int>& ids)
-{
-	int id{};
-	do {
-		id = getNextId();
 	} while(find(begin(ids),
 				 end(ids),
 				 id) != end(ids));

@@ -4,7 +4,8 @@
 
 class BaseElementModel;
 class BaseElementView;
-class TemporalConstraintPresenter;
+class FullViewConstraintPresenter;
+class ConstraintModel;
 /**
  * @brief The BaseElementPresenter class
  *
@@ -21,8 +22,12 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 							 iscore::DocumentDelegateViewInterface* view);
 		virtual ~BaseElementPresenter() = default;
 
+		ConstraintModel* displayedConstraint() const;
+
 	public slots:
-		void on_reset();
+		void setDisplayedConstraint(ConstraintModel* );
+		void setDisplayedObject(ObjectPath);
+
 		void on_askUpdate();
 
 		void selectAll();
@@ -32,10 +37,19 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
 		void on_displayedConstraintChanged();
 
+	private slots:
+		void on_horizontalZoomChanged(int);
+		void on_positionSliderChanged(int);
+
+		void on_viewWidthChanged(int);
+
 	private:
 		BaseElementModel* model();
 		BaseElementView* view();
-		TemporalConstraintPresenter* m_baseConstraintPresenter{};
+		FullViewConstraintPresenter* m_baseConstraintPresenter{};
+
+		ConstraintModel* m_displayedConstraint{};
+
+		int m_horizontalZoomValue{50};
 
 };
-

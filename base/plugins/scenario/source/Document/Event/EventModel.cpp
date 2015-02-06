@@ -11,13 +11,12 @@ EventModel::EventModel(id_type<EventModel> id, QObject* parent):
 	IdentifiedObject<EventModel>{id, "EventModel", parent},
 	m_timeEvent{new OSSIA::TimeNode}
 {
-	// TODO : connect to the timenode handlers so that the links to the constraints are correctly created.
 }
 
 EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):
 	EventModel{id, parent}
 {
-	m_heightPercentage = yPos;
+    m_heightPercentage = yPos;
 }
 
 EventModel::~EventModel()
@@ -51,8 +50,7 @@ bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelet
 	if (m_nextConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
-		m_constraintsYPos.erase(constraintToDelete);
-		updateVerticalLink();
+		m_constraintsYPos.remove(constraintToDelete);
 		return true;
 	}
 	return false;
@@ -63,8 +61,7 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
 	if (m_previousConstraints.indexOf(constraintToDelete) >= 0)
 	{
 		m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-		m_constraintsYPos.erase(constraintToDelete);
-		updateVerticalLink();
+		m_constraintsYPos.remove(constraintToDelete);
 		return true;
 	}
 	return false;
@@ -93,7 +90,7 @@ int EventModel::date() const
 void EventModel::setDate(int date)
 {
 	m_date = date;
-}
+} //TODO ajuster la date avec celle du Timenode
 
 void EventModel::setTopY(double val)
 {
@@ -121,26 +118,6 @@ void EventModel::translate(int deltaTime)
 void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
 {
 	m_constraintsYPos[consId] = newPosition;
-	updateVerticalLink();
-}
-
-void EventModel::updateVerticalLink()
-{
-	m_topY = 0.0;
-	m_bottomY = 0.0;
-	for (auto& pos : m_constraintsYPos)
-	{
-		pos.second -= m_heightPercentage;
-		if (pos.second < m_topY)
-		{
-			m_topY = pos.second;
-		}
-		else if (pos.second > m_bottomY)
-		{
-			m_bottomY = pos.second;
-		}
-	}
-	emit verticalExtremityChanged(m_topY, m_bottomY);
 }
 
 // Maybe remove the need for this by passing to the scenario instead ?
@@ -148,6 +125,16 @@ void EventModel::updateVerticalLink()
 ScenarioProcessSharedModel* EventModel::parentScenario() const
 {
 	return dynamic_cast<ScenarioProcessSharedModel*>(parent());
+}
+
+QString EventModel::condition() const
+{
+    return m_condition;
+}
+
+QString EventModel::name() const
+{
+    return QString("Event.%1").arg(*this->id().val());
 }
 
 const std::vector<State*>&EventModel::states() const
@@ -172,6 +159,15 @@ void EventModel::setHeightPercentage(double arg)
 	if (m_heightPercentage != arg) {
 		m_heightPercentage = arg;
 		emit heightPercentageChanged(arg);
-		updateVerticalLink();
 	}
+}
+
+
+void EventModel::setCondition(QString arg)
+{
+	if (m_condition == arg)
+		return;
+
+	m_condition = arg;
+	emit conditionChanged(arg);
 }

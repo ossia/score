@@ -32,12 +32,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "Implementation/PluginCurvePoint.hpp"
 #include "Implementation/PluginCurveSection.hpp"
 
-#include "PluginCurveViewModel.hpp"
-
-
-PluginCurveModel::PluginCurveModel (id_type<ProcessSharedModelInterface> id, QObject* parentObject) :
-	ProcessSharedModelInterface{id, "PluginCurveModel", parentObject}//,
-//	_pParent (parentItem)
+PluginCurveModel::PluginCurveModel (QObject* parentObject) :
+	QObject{parentObject}
 {
 	_state = true; // Active when created
 }
@@ -167,24 +163,6 @@ PluginCurvePoint* PluginCurveModel::nextPoint (PluginCurvePoint* point)
 	}
 }
 
-//bool PluginCurveModel::enoughSpaceBefore(PluginCurvePoint *point)
-//{
-//  PluginCurvePoint *previous = previousPoint(point);
-//  if (previous != NULL)
-//    return (point->x() - previous->x() >= 2*PluginCurvePresenter::POINTMINDIST);
-//  else
-//    return (point->x() - limitRect().x() >= PluginCurvePresenter::POINTMINDIST);
-//}
-
-//bool PluginCurveModel::enoughSpaceAfter(PluginCurvePoint *point)
-//{
-//  PluginCurvePoint *next = nextPoint(point);
-//  if (next != NULL)
-//    return (next->x() - point->x() >= 2*PluginCurvePresenter::POINTMINDIST);
-//  else
-//    return (limitRect().x() + limitRect().width() - point->x() >= PluginCurvePresenter::POINTMINDIST);
-//}
-
 void PluginCurveModel::setState (bool b)
 {
 	if (b != _state)
@@ -206,6 +184,7 @@ void PluginCurveModel::pointSwap (int index1, int index2)
 	_points.swap (index1, index2);
 }
 
+#include <QDebug>
 void PluginCurveModel::pointInsert (int index, PluginCurvePoint* point)
 {
 	if (point != nullptr)
@@ -234,23 +213,3 @@ void PluginCurveModel::sectionRemoveOne (PluginCurveSection* section)
 	_sections.removeOne (section);
 }
 
-ProcessViewModelInterface* PluginCurveModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-														   QObject* parent)
-{
-	return new PluginCurveViewModel{viewModelId,
-									this,
-									parent};
-}
-
-ProcessViewModelInterface*PluginCurveModel::makeViewModel(SerializationIdentifier identifier,
-														  void* data,
-														  QObject* parent)
-{
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
-	return nullptr;
-}
-
-void PluginCurveModel::serialize(SerializationIdentifier identifier, void* data) const
-{
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
-}

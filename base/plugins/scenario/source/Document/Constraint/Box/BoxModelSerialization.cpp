@@ -13,6 +13,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const BoxModel& box)
 	{
 		readFrom(*deck);
 	}
+
+	insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(BoxModel& box)
@@ -25,6 +27,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BoxModel& box)
 		auto deck = new DeckModel(*this, &box);
 		box.addDeck(deck);
 	}
+
+	checkDelimiter();
 }
 
 

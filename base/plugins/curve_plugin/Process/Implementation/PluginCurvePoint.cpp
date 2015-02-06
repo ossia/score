@@ -13,7 +13,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <iostream>
-
+#include <QDebug>
 PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility, bool removable) :
 	QGraphicsObject (parent), _pPresenter (presenter)
 {
@@ -24,14 +24,10 @@ PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresente
 	setCacheMode (DeviceCoordinateCache);
 	setFlag (ItemIsFocusable, false);
 	setFlag (QGraphicsItem::ItemIgnoresTransformations);
-	setZValue (1);
+	setZValue (parent->zValue() + 10);
 	setValue (value);
 	setPos (point);
 	setMobility (mobility); // Warning ! setMobility after setPos();
-}
-
-PluginCurvePoint::~PluginCurvePoint()
-{
 }
 
 void PluginCurvePoint::setValue (QPointF value)
@@ -83,6 +79,7 @@ QPointF PluginCurvePoint::globalPos()
 {
 	Q_ASSERT (scene() != NULL); // the focus item belongs to a scene
 	Q_ASSERT (!scene()->views().isEmpty() ); // that scene is displayed in a view...
+	// TODO jm : this views().first() will bite us
 	Q_ASSERT (scene()->views().first() != NULL); // ... which is not null...
 	Q_ASSERT (scene()->views().first()->viewport() != NULL); // ... and has a viewport
 	QGraphicsView* v = scene()->views().first();
@@ -218,6 +215,7 @@ QPainterPath PluginCurvePoint::shape() const
 	return circle;
 }
 
+#include <QDebug>
 void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
 {
 	if (event->button() == Qt::RightButton)

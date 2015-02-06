@@ -9,6 +9,11 @@ set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source/Proces
 # Packages
 find_package(Qt5Core 5.2 REQUIRED)
 find_package(Qt5Widgets 5.2 REQUIRED)
+find_package(Qt5Xml 5.2 REQUIRED)
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
@@ -29,9 +34,11 @@ add_library(process_interface ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_link_libraries(process_interface Qt5::Core Qt5::Widgets iscore_lib)
 
 add_library(scenario_process ${SRCS} ${HDRS})
-target_link_libraries(scenario_process Qt5::Core Qt5::Widgets iscore_lib APIMock inspector_plugin process_interface)
+target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
+                                       iscore_lib APIMock
+                                       inspector_plugin process_interface device_explorer_plugin)
 if(APPLE)
 	 SET_TARGET_PROPERTIES(scenario_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

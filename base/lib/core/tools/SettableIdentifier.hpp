@@ -1,45 +1,56 @@
 #pragma once
-#include <QDataStream>
-#include "interface/serialization/DataStreamVisitor.hpp"
-#include "interface/serialization/JSONVisitor.hpp"
+#include <boost/optional.hpp>
 
-class NoIdentifier {};
-class SettableIdentifier
+template<typename tag, typename value_type>
+class id
 {
-		friend Serializer<DataStream>;
-		friend Serializer<JSON>;
-		friend Deserializer<DataStream>;
-		friend Deserializer<JSON>;
-
 	public:
-		using identifier_type = int;
 
-		friend bool operator==(const SettableIdentifier& lhs, const SettableIdentifier& rhs)
+		explicit id() = default;
+		explicit id(value_type val) : m_id{val} { }
+
+		friend bool operator==(const id& lhs, const id& rhs)
 		{
-			return (lhs.m_set && rhs.m_set && (lhs.m_id == rhs.m_id)) || (!lhs.m_set && !rhs.m_set);
-		}
-		friend bool operator==(const SettableIdentifier& lhs, identifier_type& id)
-		{
-			return (lhs.m_set && (lhs.m_id == id));
+			return lhs.m_id == rhs.m_id;
 		}
 
+		friend bool operator!=(const id& lhs, const id& rhs)
+		{
+			return lhs.m_id != rhs.m_id;
+		}
 
-		SettableIdentifier() = default;
-		SettableIdentifier(NoIdentifier) { }
-		SettableIdentifier(identifier_type i):
-			m_id{i},
-			m_set{true}
-		{ }
+		friend bool operator<(const id& lhs, const id& rhs)
+		{
+			return *lhs.val() < *rhs.val();
+		}
 
-		bool set() const
-		{ return m_set; }
-
-		explicit operator identifier_type() const
+		explicit operator value_type() const
 		{ return m_id; }
 
+		const value_type& val() const
+		{ return m_id; }
+
+		void setVal(value_type&& val)
+		{ m_id = val; }
+
 	private:
-		identifier_type m_id{};
-		bool m_set{false};
+		value_type m_id{};
 };
 
-Q_DECLARE_METATYPE(SettableIdentifier)
+template<typename tag, typename impl>
+using optional_tagged_id = id<tag, boost::optional<impl>>;
+
+template<typename tag>
+using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
+
+template<typename tag>
+using id_type = optional_tagged_int32_id<tag>;
+
+template<typename tag>
+struct id_hash
+{
+		std::size_t operator()(const id_type<tag>& id) const
+		{
+			return std::hash<int32_t>()(*id.val());
+		}
+};

@@ -27,7 +27,7 @@ class PluginCurveMap : public QObject
 		\param scaleRect The rectangle delimitting the points in scale coordinate.
 		\param paintRect The rectangle delimitting the points in paint coordinate.
 		*/
-		PluginCurveMap (QRectF scaleRect, QRectF paintRect);
+		PluginCurveMap (QRectF scaleRect, QRectF paintRect, QObject* parent);
 		/*! Transform a point from scale to paint coordinates. */
 		QPointF scaleToPaint (QPointF val);
 		/*! Transform a rectangle from scale to paint coordinates. */

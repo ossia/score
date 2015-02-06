@@ -2,7 +2,7 @@
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Event/EventModel.hpp"
@@ -18,7 +18,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
 
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 
 
 using namespace iscore;
@@ -39,7 +39,8 @@ class ShowBoxInViewModelTest: public QObject
 			plist->addProcess(new ScenarioProcessFactory);
 
 			// Setup
-			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
+			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0},
+															   id_type<AbstractConstraintViewModel>{0}, qApp};
 
 			// Creation of a scenario with a constraint
 			auto cmd_proc = new AddProcessToConstraint (
@@ -86,7 +87,7 @@ class ShowBoxInViewModelTest: public QObject
 			auto cmd_event = new CreateEvent(
 			{
 				{"ScenarioProcessSharedModel", {}},
-			}, data.dDate, data.relativeY);
+            }, data);
 			stack.push(cmd_event);
 
 			// This will create a view model for this constraint

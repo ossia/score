@@ -15,8 +15,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				MoveConstraint();
-				// TODO le endEvent est-il nécessaire ?
-				MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d);
+                MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;

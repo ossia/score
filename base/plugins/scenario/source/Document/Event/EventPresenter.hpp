@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include "Document/Event/EventData.hpp"
 
 class EventModel;
@@ -28,8 +28,7 @@ class EventPresenter : public NamedObject
 		void eventSelected(id_type<EventModel>);
 		void eventReleasedWithControl(EventData);
 		void eventReleased(EventData);
-		void linesExtremityChange(double, double);
-
+        void linesExtremityChange(int, double);
 
 		void elementSelected(QObject*);
 

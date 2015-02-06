@@ -8,26 +8,22 @@
 PluginCurveGrid::PluginCurveGrid (QGraphicsObject* parent, PluginCurveMap* map) :
 	QGraphicsObject (parent)
 {
+	setObjectName("PluginCurveGrid");
 	//setFlag(ItemIgnoresTransformations);
-	_pDefaultMap = new PluginCurveMap (QRectF (0, 0, 100, 100), QRectF (0, 0, 3, 3) );
 
 	if (map == nullptr)
 	{
-		_pMap = _pDefaultMap;
+		_pMap = new PluginCurveMap (QRectF (0, 0, 100, 100), QRectF (0, 0, 3, 3), this);
 	}
 	else
 	{
 		_pMap = map;
+		_pMap->setParent(this);
 	}
 
 	connect (_pMap, SIGNAL (mapChanged() ), this, SLOT (mapChanged() ) );
 	updateMagnetPoints();
 	setZValue (-1);
-}
-
-PluginCurveGrid::~PluginCurveGrid()
-{
-	delete _pDefaultMap;
 }
 
 QPointF PluginCurveGrid::nearestMagnetPoint (QPointF p)
@@ -87,6 +83,7 @@ QRectF PluginCurveGrid::boundingRect() const
 	return parentItem()->boundingRect();
 }
 
+#include <QDebug>
 void PluginCurveGrid::updateMagnetPoints()
 {
 	magnetPointX.clear();
@@ -105,9 +102,12 @@ void PluginCurveGrid::updateMagnetPoints()
 		magnetPointX.append (x);
 	}
 
-	for (y = firstPoint.y(); y >= paintRect.y(); y -= paintStepY)
+	if(paintStepY > 0)
 	{
-		magnetPointY.append (y);
+		for (y = firstPoint.y(); y >= paintRect.y(); y -= paintStepY)
+		{
+			magnetPointY.append (y);
+		}
 	}
 }
 

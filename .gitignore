@@ -1,4 +1,5 @@
 # directories
+build
 Trash
 Doxygen/html
 bin
@@ -18,3 +19,4 @@ Makefile
 
 /i-scoreRecast.app/
 *.db
+*kde*

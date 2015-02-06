@@ -4,6 +4,8 @@
 #include <Document/Constraint/Box/BoxModel.hpp>
 #include <Process/ScenarioProcessSharedModel.hpp>
 
+#include <Document/TimeNode/TimeNodeModel.hpp>
+
 #include <core/tools/ObjectPath.hpp>
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 
@@ -20,13 +22,13 @@ class ConstraintModelTests: public QObject
 
 		void CreateDeckTest()
 		{
-			ConstraintModel model{0, this};
-			auto content_id = getNextId(model.boxes());
+			ConstraintModel model{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
+			auto content_id = getStrongId(model.boxes());
 			model.createBox(content_id);
 			auto content = model.box(content_id);
 			QVERIFY(content != nullptr);
 
-			auto deck_id = getNextId(content->decks());
+			auto deck_id = getStrongId(content->decks());
 			content->createDeck(deck_id);
 			auto deck = content->deck(deck_id);
 			QVERIFY(deck != nullptr);
@@ -36,12 +38,12 @@ class ConstraintModelTests: public QObject
 		{
 			/////
 			{
-				ConstraintModel model{0, this};
-				auto content_id = getNextId(model.boxes());
+				ConstraintModel model{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
+				auto content_id = getStrongId(model.boxes());
 				model.createBox(content_id);
 				auto content = model.box(content_id);
 
-				auto deck_id = getNextId(content->decks());
+				auto deck_id = getStrongId(content->decks());
 				content->createDeck(deck_id);
 				content->removeDeck(deck_id);
 				model.removeBox(content_id);
@@ -49,35 +51,41 @@ class ConstraintModelTests: public QObject
 
 			//////
 			{
-				ConstraintModel model{0, this};
-				auto content_id = getNextId(model.boxes());
+				ConstraintModel model{id_type<ConstraintModel>{0},
+									  id_type<AbstractConstraintViewModel>{0}, this};
+				auto content_id = getStrongId(model.boxes());
 				model.createBox(content_id);
 				auto content = model.box(content_id);
 
-				content->createDeck(getNextId(content->decks()));
-				content->createDeck(getNextId(content->decks()));
-				content->createDeck(getNextId(content->decks()));
+				content->createDeck(getStrongId(content->decks()));
+				content->createDeck(getStrongId(content->decks()));
+				content->createDeck(getStrongId(content->decks()));
 				model.removeBox(content_id);
 			}
 		}
 
 		void FindSubProcessTest()
 		{
-			ConstraintModel i0{0, qApp};
+			ConstraintModel i0{id_type<ConstraintModel>{0},
+							   id_type<AbstractConstraintViewModel>{0}, qApp};
 			i0.setObjectName("OriginalConstraint");
-			auto s0 = new ScenarioProcessSharedModel{0, &i0};
+			auto s0 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{0}, &i0};
 
-			auto int_0_id = getNextId(s0->constraints());
-			auto ev_0_id = getNextId(s0->events());
-			s0->createConstraintAndEndEventFromEvent((SettableIdentifier::identifier_type)s0->startEvent()->id(), 34, 10, int_0_id, ev_0_id);
+			auto int_0_id = getStrongId(s0->constraints());
+			auto ev_0_id = getStrongId(s0->events());
+			auto fv_0_id = id_type<AbstractConstraintViewModel>{234};
+			auto tb_0_id = getStrongId(s0->timeNodes());
+            s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 34, 10, int_0_id, fv_0_id, ev_0_id);
 
-			auto int_2_id = getNextId(s0->constraints());
-			auto ev_2_id = getNextId(s0->events());
-			s0->createConstraintAndEndEventFromEvent((SettableIdentifier::identifier_type)s0->startEvent()->id(), 46, 10, int_2_id, ev_2_id);
+			auto int_2_id = getStrongId(s0->constraints());
+			auto fv_2_id = id_type<AbstractConstraintViewModel>{454};
+			auto ev_2_id = getStrongId(s0->events());
+			auto tb_2_id = getStrongId(s0->timeNodes());
+            s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), 46, 10, int_2_id, fv_2_id, ev_2_id);
 
 			auto i1 = s0->constraint(int_0_id);
-			auto s1 = new ScenarioProcessSharedModel{0, i1}; (void) s1;
-			auto s2 = new ScenarioProcessSharedModel{1, i1};
+			auto s1 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{0}, i1}; (void) s1;
+			auto s2 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{1}, i1};
 
 			ObjectPath p{
 							{"OriginalConstraint", {}},

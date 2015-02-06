@@ -1,5 +1,5 @@
 #include "HideBoxInViewModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

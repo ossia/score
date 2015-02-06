@@ -1,7 +1,8 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
+#include <interface/serialization/JSONVisitor.hpp>
 
 #include <unordered_map>
 namespace OSSIA
@@ -22,6 +23,11 @@ class EventModel : public IdentifiedObject<EventModel>
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
+		Q_PROPERTY(QString condition
+				   READ condition
+				   WRITE setCondition
+				   NOTIFY conditionChanged)
+
 		friend void Visitor<Writer<DataStream>>::writeTo<EventModel>(EventModel& ev);
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
@@ -30,9 +36,8 @@ class EventModel : public IdentifiedObject<EventModel>
 		EventModel(id_type<EventModel>, double yPos, QObject *parent);
 		~EventModel();
 
-
-		template<typename Impl>
-		EventModel(Deserializer<Impl>& vis, QObject* parent):
+		template<typename DeserializerVisitor>
+		EventModel(DeserializerVisitor&& vis, QObject* parent):
 			IdentifiedObject<EventModel>{vis, parent}
 		{
 			vis.writeTo(*this);
@@ -64,48 +69,34 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		void setVerticalExtremity(id_type<ConstraintModel>, double);
 		void eventMovedVertically(double);
-		void updateVerticalLink();
 
 		ScenarioProcessSharedModel* parentScenario() const;
 
 		// Should maybe be in the Scenario instead ?
-		std::unordered_map<id_type<ConstraintModel>,
-						   double,
-						   id_hash<ConstraintModel>> constraintsYPos() const
+		QMap<id_type<ConstraintModel>, double> constraintsYPos() const
 		{ return m_constraintsYPos; }
 		double topY() const
 		{ return m_topY; }
 		double bottomY() const
 		{ return m_bottomY; }
 
+		QString condition() const;
 
-	public slots:
+        QString name() const;
+
+public slots:
 		void setHeightPercentage(double arg);
 		void setDate(int date);
+		void setCondition(QString arg);
 
-
-	signals:
+signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
-		void verticalExtremityChanged(double, double);
+		void conditionChanged(QString arg);
 
-	private:
-		// Setters required for serialization
-		void setPreviousConstraints(QVector<id_type<ConstraintModel>>&& vec)
-		{ m_previousConstraints = std::move(vec); }
-
-		void setNextConstraints(QVector<id_type<ConstraintModel>>&& vec)
-		{ m_nextConstraints = std::move(vec); }
-
-		void setConstraintsYPos(std::unordered_map<id_type<ConstraintModel>,
-												   double,
-												   id_hash<ConstraintModel>>&& map)
-		{ m_constraintsYPos = std::move(map); }
-
+private:
 		void setTopY(double val);
-
 		void setBottomY(double val);
-
 
 		void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
 		{ m_timeEvent = timeEvent; }
@@ -117,7 +108,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		QVector<id_type<ConstraintModel>> m_previousConstraints;
 		QVector<id_type<ConstraintModel>> m_nextConstraints;
-		std::unordered_map<id_type<ConstraintModel>, double, id_hash<ConstraintModel>> m_constraintsYPos;
+		QMap<id_type<ConstraintModel>, double> m_constraintsYPos;
 
 		double m_heightPercentage{0.5};
 
@@ -125,7 +116,7 @@ class EventModel : public IdentifiedObject<EventModel>
 		double m_bottomY{0.5};
 
 		std::vector<State*> m_states;
-
+		QString m_condition{};
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
 		int m_date{0}; // Was : m_x
 

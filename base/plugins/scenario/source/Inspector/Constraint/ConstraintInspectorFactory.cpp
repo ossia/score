@@ -1,7 +1,7 @@
 #include "ConstraintInspectorFactory.hpp"
 #include "ConstraintInspectorWidget.hpp"
 
-#include <Document/Constraint/Temporal/TemporalConstraintViewModel.hpp>
+#include <Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget (QObject* sourceElement)
 {

@@ -6,7 +6,7 @@
 #include "Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
@@ -42,7 +42,7 @@ class Separator : public QFrame
 		}
 };
 
-#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
 	InspectorWidgetBase (parent)
 {
@@ -53,7 +53,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	connect(setAsDisplayedConstraint, &QPushButton::clicked,
 			[this] ()
 	{
-		auto base = qApp->findChild<BaseElementModel*>("BaseElementModel");
+		auto base = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 		base->setDisplayedConstraint(this->model());
 	});
 	m_properties.push_back(setAsDisplayedConstraint);
@@ -166,7 +166,6 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
-	qDebug() << Q_FUNC_INFO << model()->id().val().get();
 	auto cmd = new AddProcessToConstraint{
 			   ObjectPath::pathFromObject("BaseConstraintModel",
 										  model()),

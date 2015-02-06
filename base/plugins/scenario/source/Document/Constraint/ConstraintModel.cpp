@@ -1,6 +1,6 @@
 #include "ConstraintModel.hpp"
 
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
@@ -24,7 +24,7 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 	IdentifiedObject<ConstraintModel>{id, "ConstraintModel", parent},
 	m_timeBox{new OSSIA::TimeBox},
 	m_fullViewModel{
-		new TemporalConstraintViewModel{fullViewId, this, this}
+		new FullViewConstraintViewModel{fullViewId, this, this}
 		}
 {
 	setupConstraintViewModel(m_fullViewModel);
@@ -98,6 +98,8 @@ void ConstraintModel::addBox(BoxModel* box)
 {
 	connect(this,	&ConstraintModel::processRemoved,
 			box,	&BoxModel::on_deleteSharedProcessModel);
+	connect(this,	&ConstraintModel::defaultDurationChanged,
+			box,	&BoxModel::on_parentDurationChanged);
 
 	m_boxes.push_back(box);
 	emit boxCreated(box->id());
@@ -178,6 +180,12 @@ int ConstraintModel::minDuration() const
 int ConstraintModel::maxDuration() const
 {
 	return m_maxDuration;
+}
+
+void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
+{
+	m_fullViewModel = fv;
+	setupConstraintViewModel(m_fullViewModel);
 }
 
 int ConstraintModel::defaultDuration() const

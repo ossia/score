@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 class ConstraintModel;
 
 struct ConstraintData {

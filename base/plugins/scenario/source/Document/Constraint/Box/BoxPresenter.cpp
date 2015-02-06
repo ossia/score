@@ -5,6 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
@@ -29,6 +30,9 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 			this,		&BoxPresenter::on_deckCreated);
 	connect(m_model,	&BoxModel::deckRemoved,
 			this,		&BoxPresenter::on_deckRemoved);
+
+	connect(m_model,	&BoxModel::on_parentDurationChanged,
+			this,		&BoxPresenter::setDuration);
 }
 
 BoxPresenter::~BoxPresenter()
@@ -51,9 +55,30 @@ int BoxPresenter::height() const
 	return totalHeight;
 }
 
+int BoxPresenter::width() const
+{
+	return m_view->boundingRect().width();
+}
+
+void BoxPresenter::setWidth(int w)
+{
+	m_view->setWidth(w);
+
+	for(auto deck : m_decks)
+	{
+		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
+	}
+}
+
 id_type<BoxModel> BoxPresenter::id() const
 {
 	return m_model->id();
+}
+
+void BoxPresenter::setDuration(int duration)
+{
+	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	setWidth(duration / secPerPixel);
 }
 
 void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
@@ -104,6 +129,7 @@ void BoxPresenter::updateShape()
 	int currentDeckY = 20;
 	for(auto& deck : sortedDecks)
 	{
+		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
 		deck->setVerticalPosition(currentDeckY);
 		currentDeckY += deck->height() + 5;
 	}
@@ -113,4 +139,19 @@ void BoxPresenter::on_askUpdate()
 {
 	updateShape();
 	emit askUpdate();
+}
+
+void BoxPresenter::on_horizontalZoomChanged(int val)
+{
+	m_horizontalZoomSliderVal = val;
+
+	updateShape();
+	emit askUpdate();
+
+	// We have to change the width of the decks aftewards
+	// because their width depend on the box width
+	for(auto deck : m_decks)
+	{
+		deck->on_horizontalZoomChanged(val);
+	}
 }

@@ -19,8 +19,7 @@ EventView::EventView(QGraphicsObject* parent):
 
 QRectF EventView::boundingRect() const
 {
-	// TODO inclure les lignes dans le rect
-	return {-15, -15, 30, 30};
+    return {-5, -5, 10, 10};
 }
 
 void EventView::paint(QPainter* painter,
@@ -60,7 +59,7 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
-	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+    auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
 	if(m->modifiers() == Qt::ControlModifier)
 	{
@@ -76,7 +75,7 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
         {
             posInScenario.setY(pos().y());
         }
-        emit eventReleased(posInScenario);
+        if(m->pos() != m_clickedPoint)  emit eventReleased(posInScenario);
 	}
 }
 

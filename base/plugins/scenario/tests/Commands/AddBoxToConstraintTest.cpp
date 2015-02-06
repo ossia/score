@@ -14,7 +14,9 @@ class AddBoxToConstraintTest: public QObject
 	private slots:
 		void CreateBoxTest()
 		{
-			ConstraintModel* constraint  = new ConstraintModel{0, qApp};
+			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0},
+															   id_type<AbstractConstraintViewModel>{0},
+															   qApp};
 
 			QCOMPARE((int)constraint->boxes().size(), 0);
 			AddBoxToConstraint cmd(

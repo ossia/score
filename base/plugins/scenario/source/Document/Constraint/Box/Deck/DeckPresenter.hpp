@@ -1,5 +1,6 @@
 #pragma once
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/NamedObject.hpp>
+#include <tools/SettableIdentifier.hpp>
 
 class DeckModel;
 class DeckView;
@@ -28,8 +29,10 @@ class DeckPresenter : public NamedObject
 		// Vertical position in pixels in the scene
 		void setVerticalPosition(int pos);
 
+		void setWidth(int w);
 
-	signals:
+
+signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
@@ -47,7 +50,7 @@ class DeckPresenter : public NamedObject
 		void on_bottomHandleChanged(int newHeight);
 		void on_bottomHandleReleased();
 
-
+		void on_horizontalZoomChanged(int);
 
 	private:
 		void on_processViewModelCreated_impl(ProcessViewModelInterface*);
@@ -58,5 +61,7 @@ class DeckPresenter : public NamedObject
 
 		// Maybe move this out of the state of the presenter ?
 		int m_currentResizingValue{}; // Used when the deckView is being resized.
+
+		int m_horizontalZoomSliderVal{};
 };
 

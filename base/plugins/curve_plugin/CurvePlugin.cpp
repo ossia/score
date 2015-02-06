@@ -1,8 +1,8 @@
 #include "CurvePlugin.hpp"
 
-#include <ProcessInterface/ProcessViewInterface.hpp>
-#include "Process/PluginCurveFactory.hpp"
-
+//#include "Process/PluginCurveFactory.hpp"
+#include "Automation/AutomationFactory.hpp"
+#include <QVector>
 
 CurvePlugin::CurvePlugin() :
 	QObject{}
@@ -14,7 +14,7 @@ QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryN
 {
 	if (factoryName == "Process")
 	{
-		return {new PluginCurveFactory};
+		return {new AutomationFactory};
 	}
 
 	return {};

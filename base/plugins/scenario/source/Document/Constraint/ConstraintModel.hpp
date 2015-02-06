@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 #include "Document/Constraint/ConstraintModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
 
@@ -14,7 +14,7 @@ namespace OSSIA
 
 class ProcessSharedModelInterface;
 class AbstractConstraintViewModel;
-class TemporalConstraintViewModel;
+class FullViewConstraintViewModel;
 
 class BoxModel;
 class EventModel;
@@ -55,8 +55,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 						QObject* parent);
 		~ConstraintModel();
 
-		template<typename Impl>
-		ConstraintModel(Deserializer<Impl>& vis, QObject* parent):
+		template<typename DeserializerVisitor>
+		ConstraintModel(DeserializerVisitor&& vis, QObject* parent):
 			IdentifiedObject<ConstraintModel>{vis, parent}
 		{
 			vis.writeTo(*this);
@@ -115,8 +115,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		int minDuration() const;
 		int maxDuration() const;
 
-		TemporalConstraintViewModel* fullView()
+		FullViewConstraintViewModel* fullView() const
 		{ return m_fullViewModel; }
+
+		void setFullView(FullViewConstraintViewModel* fv);
 
 	signals:
 		void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
@@ -153,12 +155,12 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
 		// Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
-		TemporalConstraintViewModel* m_fullViewModel{};
+		FullViewConstraintViewModel* m_fullViewModel{};
 
 		id_type<EventModel> m_startEvent{};
 		id_type<EventModel> m_endEvent{};
 
-		// ___ TEMPORARY ___
+		// ___ Use TimeValue instead ___
 		int m_defaultDuration{200};
 		int m_minDuration{m_defaultDuration};
 		int m_maxDuration{m_defaultDuration};

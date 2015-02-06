@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 class DeckPresenter;
 class BoxModel;
 class BoxView;
@@ -22,6 +22,9 @@ class BoxPresenter : public NamedObject
 		virtual ~BoxPresenter();
 
 		int height() const;
+		int width() const;
+		void setWidth(int);
+
 		id_type<BoxModel> id() const;
 
 	signals:
@@ -31,10 +34,13 @@ class BoxPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
+		void setDuration(int duration);
 		void on_deckCreated(id_type<DeckModel> deckId);
 		void on_deckRemoved(id_type<DeckModel> deckId);
 
 		void on_askUpdate();
+
+		void on_horizontalZoomChanged(int val);
 
 	private:
 		void on_deckCreated_impl(DeckModel* m);
@@ -45,5 +51,7 @@ class BoxPresenter : public NamedObject
 		BoxModel* m_model;
 		BoxView* m_view;
 		std::vector<DeckPresenter*> m_decks;
+
+		int m_horizontalZoomSliderVal{};
 };
 

@@ -29,6 +29,9 @@ public:
   explicit DeviceExplorerModel(QObject *parent = 0);
   ~DeviceExplorerModel();
 
+  Node* rootNode() const
+  { return m_rootNode; }
+
 
   void setCommandQueue(iscore::CommandQueue *q);
 

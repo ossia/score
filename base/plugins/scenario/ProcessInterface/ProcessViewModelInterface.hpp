@@ -81,3 +81,13 @@ inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessVie
 				pvm->id_val()};
 }
 
+inline QDataStream& operator<<(QDataStream& s, const std::tuple<int,int,int>& tuple)
+{
+	s << std::get<0>(tuple) << std::get<1>(tuple) << std::get<2>(tuple);
+	return s;
+}
+inline QDataStream& operator>>(QDataStream& s, std::tuple<int,int,int>& tuple)
+{
+	s >> std::get<0>(tuple) >> std::get<1>(tuple) >> std::get<2>(tuple);
+	return s;
+}

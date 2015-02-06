@@ -41,26 +41,21 @@
 #include <QGraphicsScene>
 #include <QCursor>
 #include <iostream>
-
+#include <QDebug>
 
 PluginCurveView::PluginCurveView (QGraphicsObject* parent)
-	: ProcessViewInterface (parent)
+	: QGraphicsObject (parent)
 {
+
+	this->setZValue(parent->zValue() + 1);
 	_pZoomer = new PluginCurveZoomer (this);
 	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);
 	_pSelectionRectangle->setFlag (ItemIgnoresTransformations);
 	_pSelectionRectangle->hide();
-	setFlag (ItemIsFocusable); // For board entries
+	//setFlag (ItemIsFocusable); // For board entries
 	setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
-	setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
+	//setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
 
-	this->setZValue(parent->zValue() + 1);
-}
-
-PluginCurveView::~PluginCurveView()
-{
-	delete _pSelectionRectangle;
-	delete _pZoomer;
 }
 
 PluginCurveZoomer* PluginCurveView::zoomer()
@@ -78,9 +73,8 @@ void PluginCurveView::paint (QPainter* painter, const QStyleOptionGraphicsItem* 
 	Q_UNUSED (option)
 	Q_UNUSED (widget)
 
-	painter->drawText(boundingRect(), "Curve");
-	painter->drawRect(boundingRect());
-
+	//painter->drawText(boundingRect(), "Curve");
+	//painter->drawRect(boundingRect());
 }
 
 /// @todo corriger si scene rect non défini !

@@ -13,6 +13,10 @@ include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
 
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp
 

@@ -1,9 +1,10 @@
 #include "PluginCurveMap.hpp"
 #include <iostream>
 
-PluginCurveMap::PluginCurveMap (QRectF scaleRect, QRectF paintRect) :
-	QObject() //, _scaleRect(&scaleRect), _paintRect(&paintRect)
+PluginCurveMap::PluginCurveMap (QRectF scaleRect, QRectF paintRect, QObject* parent) :
+	QObject(parent) //, _scaleRect(&scaleRect), _paintRect(&paintRect)
 {
+	setObjectName("PluginCurveMap");
 	_pScaleRect = new QRectF (scaleRect);
 	_pPaintRect = new QRectF (paintRect);
 }

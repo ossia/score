@@ -1,5 +1,5 @@
 #include "ShowBoxInViewModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -38,7 +38,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 void ShowBoxInViewModel::undo()
 {
 	auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-	if(m_previousBoxId.val().is_initialized())
+	if(m_previousBoxId.val())
 	{
 		constraint_vm->showBox(m_previousBoxId);
 	}

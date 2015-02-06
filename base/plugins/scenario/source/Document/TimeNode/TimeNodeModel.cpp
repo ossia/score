@@ -47,19 +47,14 @@ int TimeNodeModel::date() const
 	return m_date;
 }
 
-void TimeNodeModel::setTop(double top)
-{
-	m_topY = top;
-}
-
-void TimeNodeModel::setBottom(double bottom)
-{
-	m_bottomY = bottom;
-}
-
 void TimeNodeModel::setDate(int date)
 {
-	m_date = date;
+    m_date = date;
+}
+
+bool TimeNodeModel::isEmpty()
+{
+    return (m_events.size() == 0);
 }
 double TimeNodeModel::y() const
 {
@@ -70,5 +65,15 @@ void TimeNodeModel::setY(double y)
 {
 	m_y = y;
 }
+QVector<id_type<EventModel> > TimeNodeModel::events() const
+{
+    return m_events;
+}
+
+void TimeNodeModel::setEvents(const QVector<id_type<EventModel> > &events)
+{
+    m_events = events;
+}
+
 
 

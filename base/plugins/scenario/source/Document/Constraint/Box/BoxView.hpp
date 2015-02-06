@@ -17,9 +17,17 @@ class BoxView : public QGraphicsObject
 
 		void setHeight(int height)
 		{
+			prepareGeometryChange();
 			m_height = height;
+		}
+
+		void setWidth(int width)
+		{
+			prepareGeometryChange();
+			m_width = width;
 		}
 
 	private:
 		int m_height{};
+		int m_width{};
 };

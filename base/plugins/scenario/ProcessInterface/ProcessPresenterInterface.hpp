@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
@@ -17,6 +17,9 @@ class ProcessPresenterInterface : public NamedObject
 
 		virtual void putToFront() = 0;
 		virtual void putBack() = 0;
+
+		virtual void on_horizontalZoomChanged(int) = 0;
+		virtual void parentGeometryChanged() = 0;
 
 		virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
 		virtual id_type<ProcessSharedModelInterface> modelId() const = 0;

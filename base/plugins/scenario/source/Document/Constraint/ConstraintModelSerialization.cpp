@@ -1,9 +1,8 @@
-#include "ConstraintModelSerialization.hpp"
-
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 
 
@@ -33,7 +32,7 @@ QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
 {
-	// TODO readFrom(static_cast<const IdentifiedObject&>(constraint));
+	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 
 	// Metadata
 	m_stream	<< constraint.metadata
@@ -55,6 +54,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 		readFrom(*box);
 	}
 
+	readFrom(*constraint.fullView());
+
 	// Events
 	m_stream	<< constraint.startEvent();
 	m_stream	<< constraint.endEvent();
@@ -66,6 +67,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 			 << constraint.startDate()
 			 << constraint.minDuration()
 			 << constraint.maxDuration();
+
+	insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
@@ -91,6 +94,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 		constraint.addBox(new BoxModel(*this, &constraint));
 	}
 
+	id_type<ConstraintModel> savedConstraintId;
+	m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
+	constraint.setFullView(new FullViewConstraintViewModel{*this, &constraint, &constraint});
+
 	// Events
 	id_type<EventModel> startId{}, endId{};
 	m_stream >> startId;
@@ -108,6 +115,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	constraint.setStartDate(startDate);
 	constraint.setMinDuration(minDur);
 	constraint.setMaxDuration(maxDur);
+
+	checkDelimiter();
 }
 
 
@@ -116,11 +125,11 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
 {
-	// TODO readFrom(static_cast<const IdentifiedObject&>(constraint));
+	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
 	m_obj["HeightPercentage"] = constraint.heightPercentage();
-	m_obj["StartEvent"] = *constraint.startEvent().val();
-	m_obj["EndEvent"] = *constraint.endEvent().val();
+	m_obj["StartEvent"] = toJsonObject(constraint.startEvent());
+	m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
 
 	// Processes
 	QJsonArray process_array;
@@ -138,10 +147,12 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	}
 	m_obj["Boxes"] = box_array;
 
+	m_obj["FullView"] = toJsonObject(*constraint.fullView());
+
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_obj["DefaultDuration"] = constraint.defaultDuration(); // TODO should be in the view model
+	m_obj["DefaultDuration"] = constraint.defaultDuration();
 	m_obj["StartDate"] = constraint.startDate();
 	m_obj["MinDuration"] = constraint.minDuration();
 	m_obj["MaxDuration"] = constraint.maxDuration();
@@ -151,8 +162,8 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
 	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
 	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-	constraint.setStartEvent(id_type<EventModel>(m_obj["StartEvent"].toInt()));
-	constraint.setEndEvent(id_type<EventModel>(m_obj["EndEvent"].toInt()));
+	constraint.setStartEvent(fromJsonObject<id_type<EventModel>>(m_obj["StartEvent"].toObject()));
+	constraint.setEndEvent(fromJsonObject<id_type<EventModel>>(m_obj["EndEvent"].toObject()));
 
 	QJsonArray process_array = m_obj["Processes"].toArray();
 	for(auto json_vref : process_array)
@@ -167,6 +178,10 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 		Deserializer<JSON> deserializer{json_vref.toObject()};
 		constraint.addBox(new BoxModel(deserializer, &constraint));
 	}
+
+	constraint.setFullView(new FullViewConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()},
+																			  &constraint,
+																			  &constraint});
 
 	// Things that should be queried from the API :
 	constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());

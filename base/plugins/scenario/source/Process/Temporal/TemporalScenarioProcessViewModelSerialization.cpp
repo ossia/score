@@ -1,8 +1,7 @@
-#include "TemporalScenarioProcessViewModelSerialization.hpp"
 #include "Process/AbstractScenarioProcessViewModel.hpp"
-#include "Document/Constraint/AbstractConstraintViewModelSerialization.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
 #include "TemporalScenarioProcessViewModel.hpp"
-#include "Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewModel& pvm)
@@ -14,6 +13,8 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewMode
 	{
 		readFrom(*constraint);
 	}
+
+	insertDelimiter();
 }
 
 template<>
@@ -27,6 +28,8 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 		auto cstr = createConstraintViewModel(*this, &pvm);
 		pvm.addConstraintViewModel(cstr);
 	}
+
+	checkDelimiter();
 }
 
 

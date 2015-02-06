@@ -1,31 +1,35 @@
 #pragma once
+/*
 
 #include <QMainWindow>
 
 class DeviceExplorerModel;
 class DeviceExplorerWidget;
 
-class DeviceExplorerMainWindow : public QMainWindow
+class DeviceExplorerMainWindow : public QWidget
 {
-  Q_OBJECT
+		Q_OBJECT
 
-public:
-  explicit DeviceExplorerMainWindow(QWidget *parent=0);
+	public:
+		explicit DeviceExplorerMainWindow(QWidget *parent=0);
+		DeviceExplorerModel* model()
+		{ return m_model; }
 
-protected:
-  //void closeEvent(QCloseEvent *event);
+	protected:
+		//void closeEvent(QCloseEvent *event);
 
-public slots:
-  //void load();
-  void load(const QString &filename);
+	public slots:
+		//void load();
+		void load(const QString &filename);
 
-protected:
-  virtual void closeEvent(QCloseEvent *event) override;
+	protected:
+		virtual void closeEvent(QCloseEvent *event) override;
 
-private:
+	private:
 
-  DeviceExplorerWidget *m_treeWidget;
-  DeviceExplorerModel *m_model;
-  
+		DeviceExplorerWidget *m_treeWidget;
+		DeviceExplorerModel *m_model;
+
 };
 
+*/

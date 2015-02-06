@@ -3,7 +3,7 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/Constraint/Box/BoxModel.hpp>
 #include <Process/ScenarioProcessSharedModel.hpp>
-#include "Control/ProcessList.hpp"
+#include "ProcessInterface/ProcessList.hpp"
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
@@ -25,9 +25,9 @@ class AddProcessToConstraintTest: public QObject
 			ProcessList* plist = new ProcessList{obj};
 			plist->addProcess(new ScenarioProcessFactory);
 
-			ConstraintModel* int_model  = new ConstraintModel{0, qApp};
+			ConstraintModel* int_model  = new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
-			int_model->createBox(646); // TODO use command instead.
+			int_model->createBox(id_type<BoxModel>{421}); // TODO use command instead.
 			AddProcessToConstraint cmd(
 			{
 				{"ConstraintModel", {}}

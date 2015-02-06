@@ -8,9 +8,20 @@ find_package(Qt5Core 5.2 REQUIRED)
 find_package(Qt5Widgets 5.2 REQUIRED)
 
 # Files & main target
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
+
+# TODO mieux
+if(APPLE)
+        include_directories(/usr/local/Cellar/boost/1.56.0/include)
+endif()
+
+
+file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.cpp")
+file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.hpp")
 
 set(COMMANDS_SRCS
 ${CMAKE_CURRENT_SOURCE_DIR}/Commands/DeviceExplorerPasteCommand.cpp
@@ -44,6 +55,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressFloatSettingsWidget.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressIntSettingsWidget.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/DeviceExplorerView.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/MainWindow.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/Panel/Node.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/NodeFactory.cpp
 
 )
@@ -65,6 +77,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressFloatSettingsWidget.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressIntSettingsWidget.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/DeviceExplorerView.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/MainWindow.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Panel/Node.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/NodeFactory.hpp
 )
 
@@ -80,9 +93,12 @@ file(GLOB_RECURSE QRC "${CMAKE_CURRENT_SOURCE_DIR}/*.qrc")
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer.qrc")
 
 add_library(device_explorer_plugin 
+                        ${INTERFACE_SRCS} ${INTERFACE_SRCS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${PANEL_HDRS} ${PANEL_SRCS}
 			${PLUGIN_FILES} ${EXPLORER_RESOURCES_RCC})
+
+
 
 target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets iscore_lib)
 if(APPLE)

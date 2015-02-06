@@ -1,11 +1,12 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifierAlternative.hpp>
+#include <tools/SettableIdentifier.hpp>
 
 #include <QObject>
 
 class TimeNodeView;
 class TimeNodeModel;
+struct EventData;
 
 class TimeNodePresenter :  public NamedObject
 {
@@ -22,8 +23,10 @@ class TimeNodePresenter :  public NamedObject
 	TimeNodeView* view();
 
 	signals:
+        void timeNodeReleased(EventData);
 
 	public slots:
+        void on_timeNodeReleased(QPointF);
 
 	private:
 		TimeNodeModel* m_model{};

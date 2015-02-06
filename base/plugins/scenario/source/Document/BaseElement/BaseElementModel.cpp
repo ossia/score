@@ -1,7 +1,7 @@
 #include "BaseElementModel.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Constraint/Temporal/TemporalConstraintViewModel.hpp"
+#include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <QJsonDocument>
 #include <interface/serialization/JSONVisitor.hpp>
 
@@ -10,6 +10,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
@@ -21,7 +22,7 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 using namespace Scenario;
-void testInit(TemporalConstraintViewModel* viewmodel)
+void testInit(FullViewConstraintViewModel* viewmodel)
 {
 	using namespace Scenario::Command;
 	auto constraint_model = viewmodel->model();
@@ -52,24 +53,31 @@ void testInit(TemporalConstraintViewModel* viewmodel)
 	cmd4.redo();
 	auto deckId = box->decks().front()->id();
 
-	AddProcessViewModelToDeck cmd5{
+	ResizeDeckVertically cmd5{
+		ObjectPath{
+			{"BaseConstraintModel", {}},
+			{"BoxModel", box->id()},
+			{"DeckModel", deckId}
+		},
+		500
+	};
+	cmd5.redo();
+
+
+	AddProcessViewModelToDeck cmd6{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
 		}, scenarioId};
-	cmd5.redo();
+	cmd6.redo();
 }
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
-	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent}
+	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
+	m_baseConstraint{new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
-	Deserializer<DataStream> deserializer{&data};
-	m_baseConstraint = new ConstraintModel{deserializer, this};
 	m_baseConstraint->setObjectName("BaseConstraintModel");
-
-	(new Command::ShowBoxInViewModel(m_baseConstraint->fullView(),
-									 m_baseConstraint->boxes().front()->id()))->redo();
 }
 
 BaseElementModel::BaseElementModel(QObject* parent):
@@ -79,13 +87,6 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	m_baseConstraint->setDefaultDuration(1000);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_baseConstraint->fullView());
-
-	setDisplayedConstraint(m_baseConstraint);
-}
-
-TemporalConstraintViewModel *BaseElementModel::constraintViewModel() const
-{
-	return m_baseConstraint->fullView();
 }
 
 QByteArray BaseElementModel::save()
@@ -97,28 +98,19 @@ QByteArray BaseElementModel::save()
 	return arr;
 }
 
+#include <QApplication>
+#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
+#include "base/plugins/device_explorer/Panel/Node.hpp"
 QJsonObject BaseElementModel::toJson()
 {
+	auto device = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+
+	QJsonObject complete;
+	complete["DeviceExplorer"] = nodeToJson(device->rootNode());
+
 	Serializer<JSON> s;
 	s.readFrom(*constraintModel());
 
-	return s.m_obj;
-}
-
-void BaseElementModel::setDisplayedConstraint(ConstraintModel* c)
-{
-	if(c && c != m_displayedConstraint)
-	{
-		m_displayedConstraint = c;
-		emit displayedConstraintChanged();
-	}
-}
-
-void BaseElementModel::setDisplayedObject(ObjectPath path)
-{
-	qDebug() << path.vec().last().objectName();
-	if(path.vec().last().objectName() == "ConstraintModel" || path.vec().last().objectName() == "BaseConstraintModel")
-	{
-		setDisplayedConstraint(path.find<ConstraintModel>());
-	}
+	complete["Scenario"] = s.m_obj;
+	return complete;
 }

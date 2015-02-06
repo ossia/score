@@ -17,7 +17,8 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint():
 {
 }
 
-RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath, int processId):
+RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath,
+														 id_type<ProcessSharedModelInterface> processId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveProcessFromConstraint",
 						QObject::tr("Delete process")},

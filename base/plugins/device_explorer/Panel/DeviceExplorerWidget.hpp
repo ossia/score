@@ -65,9 +65,9 @@ protected:
   DeviceExplorerFilterProxyModel *m_proxyModel;
   DeviceEditDialog *m_deviceDialog;
   AddressEditDialog *m_addressDialog;
-  iscore::CommandQueue *m_cmdQ;
-  QAction *m_undoAction;
-  QAction *m_redoAction;
+  //iscore::CommandQueue *m_cmdQ;
+//  QAction *m_undoAction;
+//  QAction *m_redoAction;
 
   QAction *m_addDeviceAction;
   QAction *m_addSiblingAction;

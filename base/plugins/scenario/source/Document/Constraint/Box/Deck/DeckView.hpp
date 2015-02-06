@@ -17,6 +17,9 @@ class DeckView : public QGraphicsObject
 		void setHeight(int height);
 		int height() const;
 
+		void setWidth(int width);
+		int width() const;
+
 	signals:
 		void bottomHandleSelected();
 		void bottomHandleChanged(int newHeight);
@@ -29,5 +32,6 @@ class DeckView : public QGraphicsObject
 
 	private:
 		int m_height{};
+		int m_width{};
 };
 

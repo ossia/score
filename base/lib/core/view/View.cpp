@@ -4,6 +4,7 @@
 #include <interface/plugincontrol/MenuInterface.hpp>
 #include <QDockWidget>
 #include <QGridLayout>
+#include <QDesktopWidget>
 
 #include <core/application/Application.hpp>
 #include <core/document/DocumentView.hpp>
@@ -14,6 +15,7 @@ View::View(QObject* parent):
 	QMainWindow{}
 {
 	setObjectName("View");
+	setUnifiedTitleAndToolBarOnMac(true);
 }
 
 void View::addPanel(PanelViewInterface* v)
@@ -39,7 +41,12 @@ void View::addPanel(PanelViewInterface* v)
 
 void View::setCentralView(DocumentView* doc)
 {
+	QDesktopWidget w;
+	auto rect = w.availableGeometry();
 	doc->setParent(this);
 	this->setCentralWidget(doc);
+	qDebug() << rect;
+	this->resize(rect.width() * 0.75, rect.height() * 0.75);
+
 }
 
