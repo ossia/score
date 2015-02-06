@@ -16,23 +16,10 @@ QString AutomationModel::processName() const
 	return "Automation";
 }
 
-void AutomationModel::serialize(SerializationIdentifier identifier, void* data) const
-{
-	qDebug() << Q_FUNC_INFO << "TODO";
-}
-
 ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														  QObject* parent)
 {
 	return new AutomationViewModel{this, viewModelId, parent};
-}
-
-ProcessViewModelInterface* AutomationModel::makeViewModel(SerializationIdentifier identifier,
-														  void* data,
-														  QObject* parent)
-{
-	qDebug() << Q_FUNC_INFO << "TODO";
-	return nullptr;
 }
 
 // Note : the presenter should see the modifications happening,

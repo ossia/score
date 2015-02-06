@@ -160,6 +160,21 @@ inline QJsonArray toJsonArray(const QVector<int>& array)
 
 
 
+template<typename Value>
+QJsonArray toJsonMap(const QMap<double, Value>& map)
+{
+	QJsonArray arr;
+	for(auto key : map.keys())
+	{
+		QJsonObject obj;
+		obj["k"] = key;
+		obj["v"] = map[key];
+		arr.append(obj);
+	}
+
+	return arr;
+}
+
 template<typename Key, typename Value>
 QJsonArray toJsonMap(const QMap<Key, Value>& map)
 {
@@ -175,6 +190,7 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 	return arr;
 }
 
+
 template<typename Key>
 QMap<Key, double> fromJsonMap(const QJsonArray& array)
 {
@@ -183,6 +199,31 @@ QMap<Key, double> fromJsonMap(const QJsonArray& array)
 	{
 		QJsonObject obj = value.toObject();
 		map[Key{obj["k"].toInt()}] = obj["v"].toDouble();
+	}
+
+	return map;
+}
+
+template<>
+inline QMap<int32_t, double> fromJsonMap(const QJsonArray& array)
+{
+	QMap<int32_t, double> map;
+	for(auto value : array)
+	{
+		QJsonObject obj = value.toObject();
+		map[obj["k"].toInt()] = obj["v"].toDouble();
+	}
+
+	return map;
+}
+template<>
+inline QMap<double, double> fromJsonMap(const QJsonArray& array)
+{
+	QMap<double, double> map;
+	for(auto value : array)
+	{
+		QJsonObject obj = value.toObject();
+		map[obj["k"].toDouble()] = obj["v"].toDouble();
 	}
 
 	return map;

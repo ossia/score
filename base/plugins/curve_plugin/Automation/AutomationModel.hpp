@@ -21,9 +21,15 @@ class AutomationModel : public ProcessSharedModelInterface
 	public:
 		AutomationModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
 
+		template<typename Impl>
+		AutomationModel(Deserializer<Impl>& vis, QObject* parent):
+			ProcessSharedModelInterface{vis, parent}
+		{
+			vis.writeTo(*this);
+		}
+
 		virtual QString processName() const override;
 		virtual void serialize(SerializationIdentifier identifier, void* data) const override;
-
 
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) override;
@@ -38,6 +44,11 @@ class AutomationModel : public ProcessSharedModelInterface
 		const QMap<double, double>& points() const
 		{ return m_points; }
 
+		void setPoints(QMap<double,double>&& points)
+		{
+			m_points = std::move(points);
+		}
+
 		void addPoint(double x, double y);
 		void removePoint(double x);
 		void movePoint(double oldx, double newx, double newy);
@@ -47,6 +58,7 @@ class AutomationModel : public ProcessSharedModelInterface
 		void pointsChanged();
 
 	public slots:
+
 		void setAddress(QString arg)
 		{
 			if (m_address == arg)
