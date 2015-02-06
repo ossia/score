@@ -58,7 +58,6 @@ class AutomationModel : public ProcessSharedModelInterface
 		void pointsChanged();
 
 	public slots:
-
 		void setAddress(QString arg)
 		{
 			if (m_address == arg)

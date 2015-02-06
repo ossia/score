@@ -10,6 +10,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
@@ -52,13 +53,24 @@ void testInit(FullViewConstraintViewModel* viewmodel)
 	cmd4.redo();
 	auto deckId = box->decks().front()->id();
 
-	AddProcessViewModelToDeck cmd5{
+	ResizeDeckVertically cmd5{
+		ObjectPath{
+			{"BaseConstraintModel", {}},
+			{"BoxModel", box->id()},
+			{"DeckModel", deckId}
+		},
+		500
+	};
+	cmd5.redo();
+
+
+	AddProcessViewModelToDeck cmd6{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
 		}, scenarioId};
-	cmd5.redo();
+	cmd6.redo();
 }
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
@@ -86,6 +98,8 @@ QByteArray BaseElementModel::save()
 	return arr;
 }
 
+
+#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
 QJsonObject BaseElementModel::toJson()
 {
 	Serializer<JSON> s;
