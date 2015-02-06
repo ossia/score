@@ -63,7 +63,7 @@ class PluginCurvePoint : public QGraphicsObject
 		  \param removable Indicates if the point can be removed.
 		*/
 		PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility = Normal, bool removable = true);
-		~PluginCurvePoint();
+
 		/*! Sets the point's value to value.
 		*/
 		void setValue (QPointF value);

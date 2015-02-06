@@ -52,16 +52,10 @@ PluginCurveView::PluginCurveView (QGraphicsObject* parent)
 	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);
 	_pSelectionRectangle->setFlag (ItemIgnoresTransformations);
 	_pSelectionRectangle->hide();
-	setFlag (ItemIsFocusable); // For board entries
+	//setFlag (ItemIsFocusable); // For board entries
 	setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
-	setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
+	//setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
 
-}
-
-PluginCurveView::~PluginCurveView()
-{
-	delete _pSelectionRectangle;
-	delete _pZoomer;
 }
 
 PluginCurveZoomer* PluginCurveView::zoomer()
@@ -79,9 +73,8 @@ void PluginCurveView::paint (QPainter* painter, const QStyleOptionGraphicsItem* 
 	Q_UNUSED (option)
 	Q_UNUSED (widget)
 
-	painter->drawText(boundingRect(), "Curve");
-	painter->drawRect(boundingRect());
-
+	//painter->drawText(boundingRect(), "Curve");
+	//painter->drawRect(boundingRect());
 }
 
 /// @todo corriger si scene rect non défini !
@@ -100,7 +93,6 @@ QRectF PluginCurveView::boundingRect() const
 	}
 	else
 	{
-
 		auto p_rect = parentItem()->boundingRect();
 		QRectF rect = { p_rect.x() + 5, p_rect.y() + 5,
 						p_rect.width() - 10, p_rect.height() - 10};
@@ -125,7 +117,6 @@ void PluginCurveView::mouseMoveEvent (QGraphicsSceneMouseEvent* moveEvent)
 
 void PluginCurveView::mouseReleaseEvent (QGraphicsSceneMouseEvent* releaseEvent)
 {
-	qDebug() << Q_FUNC_INFO;
 	emit (mouseReleased (releaseEvent) );
 }
 

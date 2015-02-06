@@ -24,6 +24,7 @@ class AutomationPresenter : public ProcessPresenterInterface
 		virtual id_type<ProcessSharedModelInterface> modelId() const;
 
 	public slots:
+		// From model
 		void on_modelPointsChanged();
 
 	private:
@@ -33,5 +34,4 @@ class AutomationPresenter : public ProcessPresenterInterface
 		PluginCurveModel* m_curveModel{};
 		PluginCurvePresenter* m_curvePresenter{};
 		PluginCurveView* m_curveView{};
-
 };

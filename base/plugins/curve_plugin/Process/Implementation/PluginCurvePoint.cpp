@@ -13,7 +13,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <iostream>
-
+#include <QDebug>
 PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility, bool removable) :
 	QGraphicsObject (parent), _pPresenter (presenter)
 {
@@ -24,14 +24,10 @@ PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresente
 	setCacheMode (DeviceCoordinateCache);
 	setFlag (ItemIsFocusable, false);
 	setFlag (QGraphicsItem::ItemIgnoresTransformations);
-	setZValue (parent->zValue() + 1);
+	setZValue (parent->zValue() + 10);
 	setValue (value);
 	setPos (point);
 	setMobility (mobility); // Warning ! setMobility after setPos();
-}
-
-PluginCurvePoint::~PluginCurvePoint()
-{
 }
 
 void PluginCurvePoint::setValue (QPointF value)
@@ -222,7 +218,6 @@ QPainterPath PluginCurvePoint::shape() const
 #include <QDebug>
 void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
 {
-	qDebug() << Q_FUNC_INFO;
 	if (event->button() == Qt::RightButton)
 	{
 		emit (rightClicked (this) );
@@ -235,7 +230,6 @@ void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurvePoint::mouseReleaseEvent (QGraphicsSceneMouseEvent* event)
 {
-	qDebug() << Q_FUNC_INFO;
 	if (event->buttonDownScenePos (Qt::LeftButton) != event->scenePos() ) // If the point has been moved.
 	{
 		emit (pointPositionHasChanged() );
@@ -246,7 +240,6 @@ void PluginCurvePoint::mouseReleaseEvent (QGraphicsSceneMouseEvent* event)
 
 void PluginCurvePoint::mouseMoveEvent (QGraphicsSceneMouseEvent* event)
 {
-	qDebug() << Q_FUNC_INFO;
 	QGraphicsItem::mouseMoveEvent (event);
 }
 

@@ -39,16 +39,12 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(SerializationIdentifie
 // and prevent accidental point removal.
 void AutomationModel::addPoint(double x, double y)
 {
-
-	qDebug() << Q_FUNC_INFO;
 	m_points[x] = y;
 	emit pointsChanged();
 }
 
 void AutomationModel::removePoint(double x)
 {
-	qDebug() << x;
-	qDebug() << m_points;
 	m_points.remove(x);
 	emit pointsChanged();
 }

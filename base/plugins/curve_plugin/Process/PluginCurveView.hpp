@@ -63,7 +63,7 @@ class PluginCurveView : public QGraphicsObject
 		PluginCurveZoomer* _pZoomer; // Contains all the others graphics element. Zoom effet will be applied on it.
 	public:
 		PluginCurveView (QGraphicsObject* parent);
-		~PluginCurveView();
+
 		QGraphicsRectItem* selectionRectangle();
 		PluginCurveZoomer* zoomer();
 		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

@@ -32,9 +32,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "Implementation/PluginCurvePoint.hpp"
 #include "Implementation/PluginCurveSection.hpp"
 
-#include "PluginCurveViewModel.hpp"
-
-
 PluginCurveModel::PluginCurveModel (QObject* parentObject) :
 	QObject{parentObject}
 {

@@ -23,7 +23,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
 	m_view{static_cast<AutomationView*>(view)}
 {
 	connect(m_viewModel->model(), &AutomationModel::pointsChanged,
-			this, &AutomationPresenter::on_modelPointsChanged);
+			this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
 
 	on_modelPointsChanged();
 }
@@ -40,7 +40,7 @@ void AutomationPresenter::putBack()
 
 void AutomationPresenter::on_horizontalZoomChanged(int)
 {
-	on_modelPointsChanged();
+	//on_modelPointsChanged();
 }
 
 void AutomationPresenter::parentGeometryChanged()
@@ -66,11 +66,14 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 #include "../Commands/MovePoint.hpp"
 #include "../Commands/RemovePoint.hpp"
 
+#include <QGraphicsScene>
 void AutomationPresenter::on_modelPointsChanged()
 {
-	delete m_curveModel;
-	delete m_curveView;
-	delete m_curvePresenter;
+	if(m_curveView)
+		m_view->scene()->removeItem(m_curveView);
+	m_curveModel->deleteLater();
+	m_curveView->deleteLater();
+	m_curvePresenter->deleteLater();
 
 	m_curveModel = new PluginCurveModel{this};
 	m_curveView = new PluginCurveView{m_view};
@@ -79,19 +82,21 @@ void AutomationPresenter::on_modelPointsChanged()
 	// Recreate the points in the model
 	auto pts = m_viewModel->model()->points();
 
+
+	m_curveView->scene()->clearSelection();
 	for(double x : pts.keys())
 	{
 		m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}));
 	}
+	m_curvePresenter->setAllFlags(true);
 
 	// Connect required signals and slots.
 	connect(m_curvePresenter, &PluginCurvePresenter::notifyPointCreated,
 			[&] (QPointF pt)
 	{
-		qDebug() << "Add point:" << pt;
 		auto cmd = new AddPoint{
-					ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
-					pt.x(), pt.y()};
+				ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
+				pt.x(), pt.y()};
 
 		submitCommand(cmd);
 	});
@@ -99,7 +104,6 @@ void AutomationPresenter::on_modelPointsChanged()
 	connect(m_curvePresenter, &PluginCurvePresenter::notifyPointMoved,
 			[&] (QPointF oldPt, QPointF newPt)
 	{
-		qDebug() << "Move point:" << oldPt << newPt;
 		auto cmd = new MovePoint{
 				   ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
 				   oldPt.x(), newPt.x(), newPt.y()};
@@ -110,7 +114,6 @@ void AutomationPresenter::on_modelPointsChanged()
 	connect(m_curvePresenter, &PluginCurvePresenter::notifyPointDeleted,
 			[&] (QPointF pt)
 	{
-		qDebug() << "Remove point:" << pt;
 		auto cmd = new RemovePoint{
 				   ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
 				   pt.x()};
@@ -118,3 +121,4 @@ void AutomationPresenter::on_modelPointsChanged()
 		submitCommand(cmd);
 	});
 }
+

@@ -31,7 +31,6 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurvePresenter.hpp"
 #include "PluginCurveModel.hpp"
 #include "PluginCurveView.hpp"
-#include "PluginCurveViewModel.hpp"
 
 #include "Implementation/PluginCurveSection.hpp"
 #include "Implementation/PluginCurveSectionLinear.hpp"
@@ -867,7 +866,6 @@ void PluginCurvePresenter::viewSceneChanged (QGraphicsScene* scene)
 
 void PluginCurvePresenter::pointPositionHasChanged()
 {
-	qDebug() << Q_FUNC_INFO;
 	QListIterator<PluginCurvePoint*> iterator (_pModel->points() );
 	PluginCurvePoint* point;
 
