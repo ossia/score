@@ -55,6 +55,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressFloatSettingsWidget.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressIntSettingsWidget.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/DeviceExplorerView.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/MainWindow.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/Panel/Node.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/NodeFactory.cpp
 
 )
@@ -76,6 +77,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressFloatSettingsWidget.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/AddressIntSettingsWidget.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/DeviceExplorerView.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/MainWindow.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Panel/Node.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Panel/NodeFactory.hpp
 )
 

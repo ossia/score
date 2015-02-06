@@ -98,10 +98,17 @@ QByteArray BaseElementModel::save()
 	return arr;
 }
 
-
+#include <QApplication>
 #include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
+#include "base/plugins/device_explorer/Panel/Node.hpp"
 QJsonObject BaseElementModel::toJson()
 {
+	auto device = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+	for(Node* n : device->rootNode()->children())
+	{
+		qDebug() << n->name();
+	}
+
 	Serializer<JSON> s;
 	s.readFrom(*constraintModel());
 
