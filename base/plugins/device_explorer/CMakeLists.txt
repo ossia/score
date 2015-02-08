@@ -22,6 +22,12 @@ endif()
 
 file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.cpp")
 file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.hpp")
+set(INTERFACE_SRCS ${INTERFACE_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview.h
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview_p.h
+)
+
 
 set(COMMANDS_SRCS
 ${CMAKE_CURRENT_SOURCE_DIR}/Commands/DeviceExplorerPasteCommand.cpp

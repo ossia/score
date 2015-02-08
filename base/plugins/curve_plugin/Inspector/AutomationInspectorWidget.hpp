@@ -9,4 +9,11 @@ class AutomationInspectorWidget : public InspectorWidgetBase
 	public:
 		explicit AutomationInspectorWidget (AutomationModel* object,
 											QWidget* parent = 0);
+
+	public slots:
+		void on_addressChange(const QString& newText);
+
+	private:
+		QLineEdit* m_lineEdit{};
+		AutomationModel* m_model{};
 };

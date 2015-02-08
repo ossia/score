@@ -3,7 +3,9 @@
 
 #include <QVector>
 #include <QCompleter>
+#include <QMenu>
 
+class Node;
 class DeviceCompleter : public QCompleter
 {
 	public:
@@ -12,6 +14,10 @@ class DeviceCompleter : public QCompleter
 		QString pathFromIndex(const QModelIndex& index) const;
 		QStringList splitPath(const QString& path) const;
 };
+
+
+QMenu* nodeToQMenu(const Node* n);
+QMenu* rootNodeToQMenu();
 
 class DeviceList : public NamedObject
 {
