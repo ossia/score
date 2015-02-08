@@ -3,7 +3,7 @@
 #include "Panel/DeviceExplorerModel.hpp"
 #include "Panel/DeviceExplorerWidget.hpp"
 #include "document/DocumentPresenter.hpp"
-#include <core/model/Model.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/view/View.hpp>
 using namespace iscore;
 
@@ -21,7 +21,7 @@ QWidget* DeviceExplorerPanelView::getWidget()
 }
 
 
-DeviceExplorerPanelModel::DeviceExplorerPanelModel(Model* parent):
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(DocumentModel* parent):
 	iscore::PanelModelInterface{"DeviceExplorerPanelModel", parent},
 	m_model{new DeviceExplorerModel{this}}
 {
@@ -29,14 +29,19 @@ DeviceExplorerPanelModel::DeviceExplorerPanelModel(Model* parent):
 
 
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-														   iscore::PanelModelInterface* model,
 														   iscore::PanelViewInterface* view):
-	iscore::PanelPresenterInterface{parent, model, view}
+	iscore::PanelPresenterInterface{parent, view}
 {
-	auto v = static_cast<DeviceExplorerPanelView*>(view);
-	auto m = static_cast<DeviceExplorerPanelModel*>(model);
 
-	m->m_model->setCommandQueue(parent->document()->presenter()->commandQueue());
+}
+
+void DeviceExplorerPanelPresenter::on_modelChanged()
+{
+	auto v = static_cast<DeviceExplorerPanelView*>(m_view);
+	auto m = static_cast<DeviceExplorerPanelModel*>(m_model);
+
+	// TODO make a function to get the document here
+	m->m_model->setCommandQueue(m_parentPresenter->document()->presenter()->commandQueue());
 	v->m_widget->setModel(m->m_model);
 }
 
@@ -51,15 +56,13 @@ iscore::PanelViewInterface*DeviceExplorerPanelFactory::makeView(iscore::View* pa
 	return new DeviceExplorerPanelView{parent};
 }
 
-iscore::PanelPresenterInterface*DeviceExplorerPanelFactory::makePresenter(
-		iscore::Presenter* parent_presenter,
-		iscore::PanelModelInterface* model,
+iscore::PanelPresenterInterface*DeviceExplorerPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
 		iscore::PanelViewInterface* view)
 {
-	return new DeviceExplorerPanelPresenter{parent_presenter, model, view};
+	return new DeviceExplorerPanelPresenter{parent_presenter, view};
 }
 
-iscore::PanelModelInterface*DeviceExplorerPanelFactory::makeModel(iscore::Model* parent)
+iscore::PanelModelInterface*DeviceExplorerPanelFactory::makeModel(DocumentModel* parent)
 {
 	return new DeviceExplorerPanelModel{parent};
 }

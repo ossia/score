@@ -11,15 +11,14 @@ iscore::PanelViewInterface* InspectorPanelFactory::makeView (iscore::View* paren
 	return new InspectorPanelView {parent};
 }
 
-iscore::PanelPresenterInterface* InspectorPanelFactory::makePresenter (
-    iscore::Presenter* parent_presenter,
-    iscore::PanelModelInterface* model,
-    iscore::PanelViewInterface* view)
+iscore::PanelPresenterInterface* InspectorPanelFactory::makePresenter(
+	iscore::Presenter* parent_presenter,
+	iscore::PanelViewInterface* view)
 {
-	return new InspectorPanelPresenter {parent_presenter, model, view};
+	return new InspectorPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModelInterface* InspectorPanelFactory::makeModel (iscore::Model* parent)
+iscore::PanelModelInterface* InspectorPanelFactory::makeModel (iscore::DocumentModel* parent)
 {
 	return new InspectorPanelModel {parent};
 }

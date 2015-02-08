@@ -9,11 +9,13 @@ namespace iscore
 	 * @brief The Model class holds the models of the panels.
 	 *
 	 */
+
+	// TODO remove. It is not useful. The models should be completely in the documents;
+	// the software model is materialized by the Settings.
 	class Model : public QObject
 	{
 		public:
 			using QObject::QObject;
-			void addPanel(PanelModelInterface*);
 
 		private:
 			std::set<PanelModelInterface*> m_panelsModels;

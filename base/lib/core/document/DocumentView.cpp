@@ -1,6 +1,7 @@
 #include <core/document/DocumentView.hpp>
 #include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
 
+
 #include <QGridLayout>
 using namespace iscore;
 

@@ -3,7 +3,7 @@
 #include <interface/panel/PanelModelInterface.hpp>
 namespace iscore
 {
-	class Model;
+	class DocumentModel;
 }
 /**
  * @brief The InspectorPanelModel class
@@ -14,7 +14,7 @@ class InspectorPanelModel : public iscore::PanelModelInterface
 {
 		Q_OBJECT
 	public:
-		InspectorPanelModel(iscore::Model* parent);
+		InspectorPanelModel(iscore::DocumentModel* parent);
 		
 	signals:
 		void setNewItem(QObject*);

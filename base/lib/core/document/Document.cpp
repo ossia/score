@@ -3,6 +3,9 @@
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
+#include <interface/panel/PanelFactoryInterface.hpp>
+#include <interface/panel/PanelPresenterInterface.hpp>
+
 #include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
@@ -36,6 +39,14 @@ void Document::newDocument()
 void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
 {
 	m_currentDocumentType = p;
+}
+
+void Document::setupPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
+{
+	auto model = factory->makeModel(m_model);
+	m_model->addPanel(model);
+
+	pres->setModel(model);
 }
 
 

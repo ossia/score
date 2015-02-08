@@ -42,7 +42,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 			this,		&Presenter::on_elementSelected);
 }
 
-void Presenter::setupCommand(PluginControlInterface* cmd)
+void Presenter::registerPluginControl(PluginControlInterface* cmd)
 {
 	cmd->setParent(this); // Ownership transfer
 	cmd->setPresenter(this);
@@ -52,21 +52,20 @@ void Presenter::setupCommand(PluginControlInterface* cmd)
 	cmd->populateMenus(&m_menubar);
 	cmd->populateToolbars();
 
-	m_customCommands.push_back(cmd);
+	m_customControls.push_back(cmd);
 }
 
-void Presenter::addPanel(PanelFactoryInterface* p)
+void Presenter::registerPanel(PanelFactoryInterface* p)
 {
-	auto model = p->makeModel(m_model);
 	auto view = p->makeView(m_view);
-	auto pres = p->makePresenter(this, model, view);
+	auto pres = p->makePresenter(this, view);
 
 	connect(pres, &PanelPresenterInterface::submitCommand,
 			this, &Presenter::applyCommand, Qt::QueuedConnection);
 
-	m_view->addPanel(view);
-	m_model->addPanel(model);
-	m_panelsPresenters.insert(pres);
+	m_view->setupPanelView(view);
+
+	m_document->setupPanel(pres, p);
 }
 
 void Presenter::setDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
@@ -81,12 +80,12 @@ void Presenter::newDocument()
 
 void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 {
-	m_document->presenter()->commandQueue()->pushAndEmit(cmd);
+	m_document->presenter()->applyCommand(cmd);
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
 {
-	for(auto& ccmd : m_customCommands)
+	for(auto& ccmd : m_customControls)
 	{
 		if(ccmd->objectName() == parent_name)
 		{

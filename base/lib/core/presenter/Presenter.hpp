@@ -33,8 +33,8 @@ namespace iscore
 			View* view() { return m_view; }
 			Document* document() { return m_document; }
 
-			void setupCommand(PluginControlInterface*);
-			void addPanel(PanelFactoryInterface*);
+			void registerPluginControl(PluginControlInterface*);
+			void registerPanel(PanelFactoryInterface*);
 			void setDocumentPanel(DocumentDelegateFactoryInterface*);
 
 
@@ -69,6 +69,8 @@ namespace iscore
 			 * @brief applyCommand
 			 *
 			 * Forwards a command to the undo/redo stack
+			 * of the currently displayed Document.
+			 *
 			 */
 			void applyCommand(iscore::SerializableCommand*);
 
@@ -85,12 +87,11 @@ namespace iscore
 		private:
 			void setupMenus();
 
-			Model* m_model;
-			View* m_view;
+			Model* m_model{};
+			View* m_view{};
 			MenubarManager m_menubar;
 			Document* m_document{};
 
-			std::vector<PluginControlInterface*> m_customCommands;
-			std::set<PanelPresenterInterface*> m_panelsPresenters;
+			std::vector<PluginControlInterface*> m_customControls;
 	};
 }

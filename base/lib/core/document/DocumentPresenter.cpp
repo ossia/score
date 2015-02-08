@@ -10,7 +10,8 @@ using namespace iscore;
 DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject* parent):
 	NamedObject{"DocumentPresenter", parent},
 	m_commandQueue{std::make_unique<CommandQueue>(this)},
-	m_view{v}
+	m_view{v},
+	m_model{m}
 {
 }
 

@@ -4,6 +4,7 @@
 namespace iscore
 {
 	class DocumentDelegateModelInterface;
+	class PanelModelInterface;
 	/**
 	 * @brief The DocumentDelegateModelInterface class
 	 *
@@ -17,6 +18,8 @@ namespace iscore
 			void setModelDelegate(DocumentDelegateModelInterface* m);
 			DocumentDelegateModelInterface* modelDelegate() const
 			{ return m_model; }
+
+			void addPanel(PanelModelInterface*);
 
 		private:
 			DocumentDelegateModelInterface* m_model{};

@@ -21,3 +21,8 @@ void DocumentModel::setModelDelegate(DocumentDelegateModelInterface* m)
 	}
 	m_model = m;
 }
+
+
+void DocumentModel::addPanel(PanelModelInterface* m)
+{
+}
