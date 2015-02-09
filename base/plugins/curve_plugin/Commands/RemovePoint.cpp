@@ -6,7 +6,7 @@ using namespace iscore;
 #define CMD_DESC QObject::tr("Remove point from curve")
 
 RemovePoint::RemovePoint():
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC}
 {
@@ -14,7 +14,7 @@ RemovePoint::RemovePoint():
 
 RemovePoint::RemovePoint(ObjectPath&& path,
 						 double x):
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC},
 	m_path{path},
@@ -48,10 +48,10 @@ bool RemovePoint::mergeWith(const QUndoCommand* other)
 
 void RemovePoint::serializeImpl(QDataStream& s)
 {
-	s << m_x << m_oldY;
+	s << m_path << m_x << m_oldY;
 }
 
 void RemovePoint::deserializeImpl(QDataStream& s)
 {
-	s >> m_x >> m_oldY;
+	s >> m_path >> m_x >> m_oldY;
 }

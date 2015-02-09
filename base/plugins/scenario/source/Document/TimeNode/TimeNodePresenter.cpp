@@ -9,11 +9,10 @@
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 									 TimeNodeView *view,
 									 QObject *parent):
-	NamedObject{"EventPresenter", parent},
+	NamedObject{"TimeNodePresenter", parent},
 	m_model{model},
 	m_view{view}
 {
-
     connect(m_view, &TimeNodeView::timeNodeReleased,
             this,   &TimeNodePresenter::on_timeNodeReleased);
 }

@@ -2,11 +2,11 @@
 #include <Automation/AutomationModel.hpp>
 using namespace iscore;
 #define CMD_UID 2002
-#define CMD_NAME "RemovePoint"
-#define CMD_DESC QObject::tr("Remove point from curve")
+#define CMD_NAME "MovePoint"
+#define CMD_DESC QObject::tr("Move point from curve")
 
 MovePoint::MovePoint():
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC}
 {
@@ -14,7 +14,7 @@ MovePoint::MovePoint():
 
 MovePoint::MovePoint(ObjectPath&& path,
 					 double oldx, double newx, double newy):
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC},
 	m_path{path},
@@ -50,10 +50,10 @@ bool MovePoint::mergeWith(const QUndoCommand* other)
 
 void MovePoint::serializeImpl(QDataStream& s)
 {
-	s << m_oldX << m_oldY << m_newX << m_newY;
+	s << m_path << m_oldX << m_oldY << m_newX << m_newY;
 }
 
 void MovePoint::deserializeImpl(QDataStream& s)
 {
-	s >> m_oldX >> m_oldY >> m_newX >> m_newY;
+	s >> m_path >> m_oldX >> m_oldY >> m_newX >> m_newY;
 }

@@ -222,6 +222,7 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 						rect.height() * ev->model()->heightPercentage()});
 
 	// @todo change when multiple event on a same timeNode
+	qDebug() << ev->model()->timeNode();
 	auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
 	timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
 							  rect.height() * timeNode->model()->y()});

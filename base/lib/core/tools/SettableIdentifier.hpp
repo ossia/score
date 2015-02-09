@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/optional.hpp>
+#include <QDebug>
 
 template<typename tag, typename value_type>
 class id
@@ -54,3 +55,18 @@ struct id_hash
 			return std::hash<int32_t>()(*id.val());
 		}
 };
+
+template<typename tag>
+QDebug operator<<(QDebug dbg, const id_type<tag> &c)
+{
+	if(c.val())
+	{
+		dbg.nospace() << *c.val();
+	}
+	else
+	{
+		dbg.nospace() << "Not set";
+	}
+
+	return dbg.space();
+}

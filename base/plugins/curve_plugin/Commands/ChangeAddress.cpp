@@ -6,7 +6,7 @@ using namespace iscore;
 #define CMD_DESC QObject::tr("Change Curve address")
 
 ChangeAddress::ChangeAddress():
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC}
 {
@@ -14,7 +14,7 @@ ChangeAddress::ChangeAddress():
 
 ChangeAddress::ChangeAddress(ObjectPath&& path,
 							 QString addr):
-	SerializableCommand{"CurveControl",
+	SerializableCommand{"AutomationControl",
 						CMD_NAME,
 						CMD_DESC},
 	m_path{path},
@@ -48,10 +48,10 @@ bool ChangeAddress::mergeWith(const QUndoCommand* other)
 
 void ChangeAddress::serializeImpl(QDataStream& s)
 {
-	s << m_oldAddr << m_newAddr;
+	s << m_path << m_oldAddr << m_newAddr;
 }
 
 void ChangeAddress::deserializeImpl(QDataStream& s)
 {
-	s >> m_oldAddr >> m_newAddr;
+	s >> m_path >> m_oldAddr >> m_newAddr;
 }
