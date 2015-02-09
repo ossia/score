@@ -22,8 +22,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 	setObjectName ("TimeNodeInspectorWidget");
 	setParent(parent);
 
-    m_eventList = new InspectorSectionWidget{"Events", this};
-
+    // default date
     QWidget* dateWid = new QWidget{this};
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
@@ -32,6 +31,9 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
+
+    // Events ids list
+    m_eventList = new InspectorSectionWidget{"Events", this};
 
     m_properties.push_back(dateWid);
     m_properties.push_back(m_eventList);
@@ -59,7 +61,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
     // DEMO
     if (timeNode)
 	{
-//        setName (timeNode->name() );
+        setName (timeNode->name() );
 //		setColor (timeNode->color() );
 //		setComments (timeNode->comment() );
 

@@ -39,7 +39,6 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
         auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
 
     }
-
 }
 
 void RemoveConstraint::undo()
@@ -84,10 +83,10 @@ bool RemoveConstraint::mergeWith(const QUndoCommand* other)
 
 void RemoveConstraint::serializeImpl(QDataStream& s)
 {
-    s << m_path ;
+    s << m_path << m_cstrId << m_serializedConstraint << m_constraintViewModelIDs << m_constraintFullViewId;
 }
 
 void RemoveConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path ;
+    s >> m_path >> m_cstrId >> m_serializedConstraint >> m_constraintViewModelIDs >> m_constraintFullViewId ;
 }

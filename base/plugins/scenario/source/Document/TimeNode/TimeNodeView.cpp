@@ -62,5 +62,5 @@ void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent *m)
 
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
-    emit timeNodeReleased( pos() + m->pos() - m_clickedPoint );
+    if(m->pos() != m_clickedPoint) emit timeNodeReleased( pos() + m->pos() - m_clickedPoint );
 }
