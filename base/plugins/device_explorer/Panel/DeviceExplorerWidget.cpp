@@ -229,6 +229,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel *model)
   m_proxyModel = new DeviceExplorerFilterProxyModel(this);
   m_proxyModel->setSourceModel(model);
   m_ntView->setModel(m_proxyModel);
+  model->setView(m_ntView);
 
   populateColumnCBox();
 

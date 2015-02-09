@@ -1,6 +1,6 @@
 #include "%ClassName%.hpp"
 
-%ClassName%::%ClassName%(QObject *parent) :
+%ClassName%::%ClassName%() :
     QObject{}
 {
 }

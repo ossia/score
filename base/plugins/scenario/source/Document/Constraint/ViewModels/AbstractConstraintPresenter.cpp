@@ -30,7 +30,6 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
 	m_viewModel{model},
 	m_view{view}
 {
-
 	connect(m_viewModel->model(),   &ConstraintModel::minDurationChanged,
 			this,					&AbstractConstraintPresenter::on_minDurationChanged);
 	connect(m_viewModel->model(),   &ConstraintModel::defaultDurationChanged,

@@ -52,6 +52,8 @@ ScenarioControl::ScenarioControl(QObject* parent):
 
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
+	// TODO the stuff here must apply on the current document
+	// We have to chase the findchild<DocumentDelegate.../BaseElement...>.
 	using namespace iscore;
 
 	// File
@@ -80,6 +82,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
 
 	// Save as json
+	// TODO this should go in the global presenter instead.
 	auto toJson = new QAction("To JSON", this);
 	connect(toJson, &QAction::triggered,
 			[this] ()
@@ -176,6 +179,7 @@ void ScenarioControl::selectAll()
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 	pres->selectAll();
 }
+
 
 void ScenarioControl::deselectAll()
 {

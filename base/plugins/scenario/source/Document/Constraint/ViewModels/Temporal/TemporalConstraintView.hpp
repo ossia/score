@@ -26,6 +26,4 @@ class TemporalConstraintView : public AbstractConstraintView
 
 	private:
 		QPointF m_clickedPoint{};
-
-		TemporalConstraintViewModel* m_viewModel{};
 };
