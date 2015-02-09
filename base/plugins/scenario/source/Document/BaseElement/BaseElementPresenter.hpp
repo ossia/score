@@ -23,6 +23,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		virtual ~BaseElementPresenter() = default;
 
 		ConstraintModel* displayedConstraint() const;
+		BaseElementModel* model() const;
 
 	public slots:
 		void setDisplayedConstraint(ConstraintModel* );
@@ -32,6 +33,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
 		void selectAll();
 		void deselectAll();
+		QList<QGraphicsItem*> selectedItems() const;
 
 		void deleteSelection();
 
@@ -44,8 +46,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 		void on_viewWidthChanged(int);
 
 	private:
-		BaseElementModel* model();
-		BaseElementView* view();
+		BaseElementView* view() const;
 		FullViewConstraintPresenter* m_baseConstraintPresenter{};
 
 		ConstraintModel* m_displayedConstraint{};

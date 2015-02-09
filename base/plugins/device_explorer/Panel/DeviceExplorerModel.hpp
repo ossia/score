@@ -8,6 +8,7 @@ namespace iscore {
 }
 
 class Node;
+class DeviceExplorerView;
 
 
 class DeviceExplorerModel : public QAbstractItemModel
@@ -31,6 +32,11 @@ public:
 
   Node* rootNode() const
   { return m_rootNode; }
+
+  void setView(DeviceExplorerView* v)
+  { m_view = v; }
+
+  QModelIndexList selectedIndexes() const;
 
 
   void setCommandQueue(iscore::CommandQueue *q);
@@ -163,20 +169,13 @@ protected:
   void setCachedResult(Result r);
 
 private:
-
   Node *createRootNode() const;
-
   Node *nodeFromModelIndex(const QModelIndex &index) const;
 
-  //QVariant getColumnValue(Node *node, int col) const;
-
   void setColumnValue(Node *node, const QVariant &v, int col);
-
   QModelIndex bottomIndex(const QModelIndex &index) const;
-
   QModelIndex moveChildAmongSiblings(Node *parent, int oldRow, int newRow);
 
-private:
 
   Node *m_rootNode;
 
@@ -186,5 +185,7 @@ private:
 
   iscore::CommandQueue *m_cmdQ;
   Result m_cachedResult;
+
+  DeviceExplorerView* m_view{};
 };
 

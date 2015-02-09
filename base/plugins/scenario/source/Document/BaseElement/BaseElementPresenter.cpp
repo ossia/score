@@ -69,6 +69,11 @@ void BaseElementPresenter::deselectAll()
 	}
 }
 
+QList<QGraphicsItem *> BaseElementPresenter::selectedItems() const
+{
+	return view()->scene()->selectedItems();
+}
+
 void BaseElementPresenter::deleteSelection()
 {
 }
@@ -173,12 +178,12 @@ void BaseElementPresenter::on_viewWidthChanged(int w)
 	}
 }
 
-BaseElementModel* BaseElementPresenter::model()
+BaseElementModel* BaseElementPresenter::model() const
 {
 	return static_cast<BaseElementModel*>(m_model);
 }
 
-BaseElementView* BaseElementPresenter::view()
+BaseElementView* BaseElementPresenter::view() const
 {
 	return static_cast<BaseElementView*>(m_view);
 }

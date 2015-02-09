@@ -22,6 +22,9 @@ class ScenarioControl : public iscore::PluginControlInterface
 		void deselectAll();
 		void selectAll();
 
+		// Only if there is device explorer AND curve plugin
+		void createCurvesFromAddresses();
+
 	private:
 		ProcessList* m_processList{};
 

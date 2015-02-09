@@ -11,10 +11,8 @@ namespace Scenario
 	namespace Command
 	{
 		/**
- * @brief The AddProcessToConstraintCommand class
- *
- * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
- */
+		* @brief The AddProcessToConstraint class
+		*/
 		class AddProcessToConstraint : public iscore::SerializableCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>

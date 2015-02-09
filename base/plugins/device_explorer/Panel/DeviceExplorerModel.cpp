@@ -1,4 +1,5 @@
 #include "DeviceExplorerModel.hpp"
+#include "DeviceExplorerView.hpp"
 #include "Node.hpp"
 #include <cassert>
 #include <iostream>
@@ -139,6 +140,11 @@ DeviceExplorerModel::~DeviceExplorerModel()
     delete it->first;
   }
 
+}
+
+QModelIndexList DeviceExplorerModel::selectedIndexes() const
+{
+	return m_view->selectedIndexes();
 }
 
 //TODO:REMOVE
