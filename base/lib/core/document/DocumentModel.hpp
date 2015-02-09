@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <set>
 
 namespace iscore
 {
@@ -19,9 +20,24 @@ namespace iscore
 			DocumentDelegateModelInterface* modelDelegate() const
 			{ return m_model; }
 
-			void addPanel(PanelModelInterface*);
+			void addPanel(PanelModelInterface* m)
+			{ m_panelModels.insert(m); }
+			const std::set<PanelModelInterface*>& panels() const
+			{ return m_panelModels; }
+
+			// Returns a Panel by name.
+			PanelModelInterface* panel(QString name) const;
 
 		private:
 			DocumentDelegateModelInterface* m_model{};
+			std::set<PanelModelInterface*> m_panelModels;
 	};
+
+	/**
+	 * @brief getDocumentFromObject
+	 * @param obj an object in the application hierarchy
+	 *
+	 * @return the DocumentModel parent of the object or nullptr.
+	 */
+	DocumentModel* getDocumentFromObject(QObject* obj);
 }

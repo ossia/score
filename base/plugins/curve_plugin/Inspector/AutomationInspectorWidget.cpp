@@ -10,13 +10,15 @@
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <core/document/DocumentModel.hpp>
+#include <interface/panel/PanelModelInterface.hpp>
 
 #include <QApplication>
 
-AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* object,
+AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automationModel,
 													  QWidget* parent) :
 	InspectorWidgetBase{nullptr},
-	m_model{object}
+	m_model{automationModel}
 {
 	setObjectName ("AutomationInspectorWidget");
 	setParent(parent);
@@ -36,7 +38,10 @@ AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* object,
 
 	auto pb = new QPushButton{"/"};
 
-	auto deviceexplorer = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+	auto deviceexplorer = iscore::getDocumentFromObject(automationModel)
+							->panel("DeviceExplorerPanelModel")
+							->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+
 	auto menuview = new QMenuView{pb};
 	connect(menuview, &QMenuView::triggered,
 			[=] (const QModelIndex& m)
