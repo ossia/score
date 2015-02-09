@@ -99,16 +99,19 @@ QByteArray BaseElementModel::save()
 }
 
 #include <QApplication>
-#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
-#include "base/plugins/device_explorer/Panel/Node.hpp"
+#include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 QJsonObject BaseElementModel::toJson()
 {
-	// TODO Make a Presenter::toJson instead
-	auto device = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
 	QJsonObject complete;
-	complete["DeviceExplorer"] = nodeToJson(device->rootNode());
+	// TODO : save all panels from the iscore_lib::Document
+	// Device explorer
+	auto deviceExplorerModel = DeviceExplorer::getModel(this);
+	if(deviceExplorerModel)
+	{
+		complete["DeviceExplorer"] = DeviceExplorer::toJson(deviceExplorerModel);
+	}
 
+	// Document
 	Serializer<JSON> s;
 	s.readFrom(*constraintModel());
 

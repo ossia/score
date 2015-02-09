@@ -1,29 +1,8 @@
-#include "DeviceList.hpp"
+#include "DeviceCompleter.hpp"
 #include "../Panel/DeviceExplorerModel.hpp"
 
 #include <QApplication>
-
-QStringList DeviceList::getDevices()
-{
-	QStringList s;
-	auto treemodel =
-			qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
-	for(int i = 0; i < treemodel->rowCount(QModelIndex()); i++)
-	{
-		auto index = treemodel->index(i,
-									  treemodel->getNameColumn(),
-									  QModelIndex());
-		if(treemodel->isDevice(index))
-		{
-			QString str = treemodel->data(index, treemodel->getNameColumn()).toString();
-			s << str;
-		}
-	}
-
-	return s;
-}
-
+/*
 void recursivelyGetAddresses(const DeviceExplorerModel& explorer,
 							 QModelIndex index,
 							 QString currentAddress,
@@ -41,7 +20,7 @@ void recursivelyGetAddresses(const DeviceExplorerModel& explorer,
 	}
 }
 
-QStringList DeviceList::getAddresses(QString device)
+QStringList getAddresses(QString device)
 {
 	QStringList s;
 	auto treemodel =
@@ -70,15 +49,12 @@ QStringList DeviceList::getAddresses(QString device)
 
 	return s;
 }
+*/
 
-
-#include <QApplication>
-DeviceCompleter::DeviceCompleter(QObject* parent):
+DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
+								 QObject* parent):
 	QCompleter{parent}
 {
-	auto treemodel =
-			qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
 	setModel(treemodel);
 
 	setCompletionColumn(0);
@@ -111,6 +87,7 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
 
 	return p2.split("/");
 }
+/*
 
 #include <QMenu>
 #include "../Panel/Node.hpp"
@@ -143,3 +120,4 @@ QMenu* rootNodeToQMenu()
 
 	return new QMenu{QObject::tr("No device")};
 }
+*/

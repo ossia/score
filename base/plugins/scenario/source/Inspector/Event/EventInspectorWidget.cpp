@@ -18,8 +18,8 @@
 #include <QApplication>
 #include <QCompleter>
 
-#include "base/plugins/device_explorer/DeviceInterface/DeviceList.hpp"
-#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
+#include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
+#include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 using namespace Scenario;
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
@@ -43,10 +43,14 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	QWidget* addAddressWidget = new QWidget{this};
 	auto addLayout = new QHBoxLayout{addAddressWidget};
 
-	auto completer = new DeviceCompleter{this};
-
 	m_addressLineEdit = new QLineEdit{addAddressWidget};
-	m_addressLineEdit->setCompleter(completer);
+
+	auto deviceexplorer = DeviceExplorer::getModel(object);
+	if(deviceexplorer)
+	{
+		auto completer = new DeviceCompleter{deviceexplorer, this};
+		m_addressLineEdit->setCompleter(completer);
+	}
 
 
 	auto ok_button = new QPushButton{"Add", addAddressWidget};
