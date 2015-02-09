@@ -15,8 +15,8 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 	// HEADER : arrow button and name
 	QWidget* title = new QWidget;
 	QHBoxLayout* titleLayout = new QHBoxLayout;
-	_sectionTitle = new QLineEdit; //QLabel ?;
-	_sectionTitle->setStyleSheet ( QString ( "background-color: lightGray;") );
+//	_sectionTitle = new QLineEdit; //QLabel ?;
+//	_sectionTitle->setStyleSheet ( QString ( "background-color: lightGray;") );
 	_btn = new QToolButton;
 
 	_buttonTitle = new QPushButton;
@@ -24,12 +24,12 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 	_buttonTitle->setText ("section name");
 	_buttonTitle->setStyleSheet ("text-align: left;");
 	_buttonTitle->setLayout (new QVBoxLayout);
-	_buttonTitle->layout()->addWidget (_sectionTitle);
-	_buttonTitle->layout()->setMargin (0);
-	_sectionTitle->hide();
+//	_buttonTitle->layout()->addWidget (_sectionTitle);
+    _buttonTitle->layout()->setMargin (0);
+//	_sectionTitle->hide();
 
 	titleLayout->addWidget (_btn);
-	titleLayout->addWidget (_buttonTitle);
+    titleLayout->addWidget (_buttonTitle);
 	title->setLayout (titleLayout);
 
 	// CONTENT
@@ -57,8 +57,8 @@ InspectorSectionWidget::InspectorSectionWidget (QWidget* parent) :
 	globalLayout->setMargin (5);
 
 	connect (_btn, SIGNAL (released() ), this, SLOT (expand() ) );
-	//connect (_buttonTitle, SIGNAL (clicked() ), this, SLOT (nameEditEnable() ) );
-	connect (_sectionTitle, SIGNAL (editingFinished() ), this, SLOT (nameEditDisable() ) );
+    connect (_buttonTitle, SIGNAL (clicked() ), this, SLOT (expand() ) );
+//	connect (_sectionTitle, SIGNAL (editingFinished() ), this, SLOT (nameEditDisable() ) );
 
 
 	// INIT
@@ -105,7 +105,7 @@ void InspectorSectionWidget::clear()
 
 void InspectorSectionWidget::renameSection (QString newName)
 {
-	_sectionTitle->setText (newName);
+//	_sectionTitle->setText (newName);
 	_buttonTitle->setText (newName);
 }
 
@@ -128,12 +128,12 @@ void InspectorSectionWidget::insertInSection (int index, QWidget* newWidget)
 
 void InspectorSectionWidget::nameEditEnable()
 {
-	_sectionTitle->show();
-	_sectionTitle->setFocus();
+//	_sectionTitle->show();
+//	_sectionTitle->setFocus();
 }
 
 void InspectorSectionWidget::nameEditDisable()
 {
-	_sectionTitle->hide();
-	_buttonTitle->setText (_sectionTitle->text() );
+//	_sectionTitle->hide();
+//	_buttonTitle->setText (_sectionTitle->text() );
 }

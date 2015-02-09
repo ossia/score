@@ -19,7 +19,6 @@ endif()
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB_RECURSE UIS "${CMAKE_CURRENT_SOURCE_DIR}/*.ui")
 
 add_library(inspector_plugin ${HDRS} ${SRCS} ${UIS})
 

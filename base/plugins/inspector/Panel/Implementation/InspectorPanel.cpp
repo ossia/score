@@ -1,11 +1,12 @@
 #include "InspectorPanel.hpp"
-#include "ui_InspectorPanel.h"
 #include "QPushButton"
 #include <QLayout>
 #include <QDebug>
 #include <QScrollArea>
 #include "InspectorInterface/InspectorWidgetBase.hpp"
 #include "InspectorInterface/InspectorSectionWidget.hpp"
+
+#include <QApplication>
 
 #include <core/plugin/PluginManager.hpp>
 #include "InspectorControl.hpp"

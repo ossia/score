@@ -24,6 +24,7 @@ class TimeNodePresenter :  public NamedObject
 
 	signals:
         void timeNodeReleased(EventData);
+        void elementSelected(QObject*);
 
 	public slots:
         void on_timeNodeReleased(QPointF);

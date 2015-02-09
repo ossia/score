@@ -50,6 +50,7 @@ int TimeNodeModel::date() const
 void TimeNodeModel::setDate(int date)
 {
     m_date = date;
+    emit dateChanged();
 }
 
 bool TimeNodeModel::isEmpty()

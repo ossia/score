@@ -96,7 +96,7 @@ class InspectorWidgetBase : public QWidget
 		QScrollArea* _scrollArea{};
 		QTextEdit* _comments{};
 
-		std::vector<QWidget*> _sections{}; // @todo why a pointer on a vector ?
+        std::vector<QWidget*> _sections{};
 		QColor _currentColor{Qt::gray};
 
 		QObject* _inspectedObject{};
