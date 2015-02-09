@@ -19,11 +19,24 @@ void TimeNodeView::paint(QPainter *painter,
                          const QStyleOptionGraphicsItem *option,
                          QWidget *widget)
 {
-    painter->setPen(QPen(QBrush(QColor(180,0,220)), 5, Qt::SolidLine));
+    QColor pen_color = Qt::magenta;
+
+    if(isSelected())
+    {
+        pen_color = Qt::blue;
+    }
+    else if(parentItem()->isSelected())
+    {
+        pen_color = Qt::cyan;
+    }
+
+    painter->setBrush(pen_color);
+    painter->setPen(QPen(QBrush(pen_color), 5, Qt::SolidLine));
+
     painter->drawLine(0, m_top, 0, m_bottom);
 
-    painter->setPen(QPen(QBrush(QColor(0,200,0)), 1, Qt::SolidLine));
-    painter->drawRect(boundingRect());
+//    painter->setPen(QPen(QBrush(QColor(0,200,0)), 1, Qt::SolidLine));
+//    painter->drawRect(boundingRect());
 }
 
 QRectF TimeNodeView::boundingRect() const
@@ -43,6 +56,8 @@ void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent *m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint =  m->pos();
+
+    emit timeNodeSelected();
 }
 
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)

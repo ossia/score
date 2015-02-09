@@ -44,6 +44,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void setEvents(const QVector<id_type<EventModel> > &events);
 
 signals:
+        void dateChanged();
 
 public slots:
 

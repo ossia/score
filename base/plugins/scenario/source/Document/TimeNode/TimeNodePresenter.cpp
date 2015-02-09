@@ -15,6 +15,12 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 {
     connect(m_view, &TimeNodeView::timeNodeReleased,
             this,   &TimeNodePresenter::on_timeNodeReleased);
+
+    connect(m_view, &TimeNodeView::timeNodeSelected,
+            [&] ()
+        {
+            emit elementSelected(m_model);
+        });
 }
 
 TimeNodePresenter::~TimeNodePresenter()

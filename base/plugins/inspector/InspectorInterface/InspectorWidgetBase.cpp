@@ -56,6 +56,7 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	InspectorSectionWidget* comments = new InspectorSectionWidget ("Comments");
 	comments->setParent(this);
 	comments->addContent (_comments);
+    comments->expand(); // todo à enlever par la suite
 
 	_sections.push_back (_objectType);
 	_sections.push_back (nameLine);

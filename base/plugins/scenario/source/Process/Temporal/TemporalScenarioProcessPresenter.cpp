@@ -222,7 +222,7 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 						rect.height() * ev->model()->heightPercentage()});
 
 	// @todo change when multiple event on a same timeNode
-	qDebug() << ev->model()->timeNode();
+//	qDebug() << ev->model()->timeNode();
 	auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
 	timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
 							  rect.height() * timeNode->model()->y()});
@@ -430,6 +430,8 @@ void TemporalScenarioProcessPresenter::clearContentFromSelection()
 
 void TemporalScenarioProcessPresenter::deleteSelection()
 {
+    // TODO quelques comportements bizarres à régler ...
+
    //*
     using namespace Scenario::Command;
     // 1. Select items
@@ -603,6 +605,8 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
     connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
             this,			 &TemporalScenarioProcessPresenter::moveTimeNode);
 
+    connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
+            this,			 &TemporalScenarioProcessPresenter::elementSelected);
 }
 
 void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)

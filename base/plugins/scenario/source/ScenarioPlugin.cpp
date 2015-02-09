@@ -6,6 +6,7 @@
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
+#include <Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 
 ScenarioPlugin::ScenarioPlugin():
 	QObject{},
@@ -84,7 +85,8 @@ QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factor
 	{
 		return {new ConstraintInspectorFactory,
 				new EventInspectorFactory,
-				new ScenarioInspectorFactory};
+                new ScenarioInspectorFactory,
+                new TimeNodeInspectorFactory};
 	}
 
 	return {};
