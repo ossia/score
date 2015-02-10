@@ -337,6 +337,17 @@ void ScenarioProcessSharedModel::removeTimeNode(id_type<TimeNodeModel> timeNodeI
     delete tn;
 }
 
+void ScenarioProcessSharedModel::undo_removeConstraint(ConstraintModel *newConstraint)
+{
+    addConstraint(newConstraint);
+
+    EventModel* sev = event(newConstraint->startEvent());
+    EventModel* eev = event(newConstraint->endEvent());
+
+    sev->addNextConstraint(newConstraint->id());
+    eev->addPreviousConstraint(newConstraint->id());
+}
+
 void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId)
 {
     removeEvent(endEventId);

@@ -6,6 +6,7 @@ class AbstractConstraintViewModel;
 #include <core/tools/ObjectPath.hpp>
 
 class ConstraintModel;
+class EventModel;
 
 namespace Scenario
 {
@@ -35,6 +36,9 @@ namespace Scenario
 				ObjectPath m_path;
                 id_type<ConstraintModel> m_cstrId{};
                 QByteArray m_serializedConstraint;
+
+                id_type<EventModel> m_startEvent;
+                id_type<EventModel> m_endEvent;
 
                 QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_constraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_constraintFullViewId{};
