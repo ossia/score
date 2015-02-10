@@ -6,7 +6,7 @@
 
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
-#include "Commands/Scenario//ResizeConstraint.hpp"
+// TODO NICO #include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
 #include <QCheckBox>
@@ -143,7 +143,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
-    auto cmd = new ResizeConstraint(
+	/* TODO NICO auto cmd = new ResizeConstraint(
                 ObjectPath::pathFromObject(
                     "BaseConstraintModel",
                     m_model),
@@ -157,7 +157,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     else
     {
         emit m_parent->continueOngoingCommand(cmd);
-    }
+	} */
 }
 
 void DurationSectionWidget::rigidCheckboxToggled(bool b)

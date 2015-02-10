@@ -103,3 +103,29 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(SerializationIdentifie
 
 	throw std::runtime_error("Automation ViewModel only supports DataStream & JSON serialization");
 }
+
+
+
+/////// ViewModel
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const AutomationViewModel& pvm)
+{
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& pvm)
+{
+}
+
+
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const AutomationViewModel& pvm)
+{
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(AutomationViewModel& pvm)
+{
+}
