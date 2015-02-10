@@ -71,7 +71,7 @@ void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* even
 	{
         emit scenarioPressedWithControl(event->pos(), event->scenePos());
 	}
-	else
+    else if (event->button() == Qt::LeftButton)
 	{
 		emit scenarioPressed();
         m_selectArea = new QRectF{0,0,0,0};
@@ -110,9 +110,8 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
         this->scene()->setSelectionArea(path, QTransform());
         delete m_selectArea;
         this->update();
+        m_clicked = false;
     }
-
-    m_clicked = false;
 }
 
 void TemporalScenarioProcessView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)

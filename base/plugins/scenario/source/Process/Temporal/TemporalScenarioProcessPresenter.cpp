@@ -337,6 +337,10 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 	{
 		constraint->deselect();
 	}
+    for(auto& timeNode : m_timeNodes)
+    {
+        timeNode->deselect();
+    }
 }
 
 

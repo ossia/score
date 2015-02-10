@@ -48,6 +48,16 @@ TimeNodeView *TimeNodePresenter::view()
     return m_view;
 }
 
+bool TimeNodePresenter::isSelected()
+{
+    return m_view->isSelected();
+}
+
+void TimeNodePresenter::deselect()
+{
+    m_view->setSelected(false);
+}
+
 void TimeNodePresenter::on_timeNodeReleased(QPointF p)
 {
     EventData d{};

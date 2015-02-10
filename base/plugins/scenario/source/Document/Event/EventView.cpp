@@ -32,11 +32,11 @@ void EventView::paint(QPainter* painter,
 	{
 		pen_color = Qt::blue;
 	}
-	else if(parentItem()->isSelected())
+/*	else if(parentItem()->isSelected())
 	{
-		pen_color = Qt::cyan;
+        pen_color = Qt::cyan;
 	}
-
+*/
 	//painter->drawRect(boundingRect());
 
 	// Ball
@@ -44,7 +44,7 @@ void EventView::paint(QPainter* painter,
 	painter->setPen(pen_color);
 	painter->drawEllipse(boundingRect().center(), 5, 5);
 
-	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
+//	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
 
 }
 
@@ -59,6 +59,8 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
+    QGraphicsObject::mouseReleaseEvent(m);
+
     auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
 	if(m->modifiers() == Qt::ControlModifier)
@@ -66,7 +68,7 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
         emit eventReleasedWithControl(posInScenario, mapToScene(m->pos()));
 	}
     else
-    {   // @todo : aimantation à revoir.
+    {   // TODO : aimantation à revoir.
         if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
         {
             posInScenario.setX(pos().x());
@@ -81,5 +83,5 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 {
-
+    QGraphicsObject::mouseMoveEvent(m);
 }
