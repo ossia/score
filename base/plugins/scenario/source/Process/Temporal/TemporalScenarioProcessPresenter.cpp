@@ -342,11 +342,7 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 
 void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
 {
-/*	// @todo maybe better to create event on mouserelease ? And only show a "fake" event + interval on mousepress.
-    EventData d;
-    d.dDate = point.x() * m_millisecPerPixel;
-    d.relativeY = (point - m_view->boundingRect().topLeft() ).y() / m_view->boundingRect().height();
-*/
+
 }
 
 void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
@@ -494,14 +490,14 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 		for (auto& ev : m_events)
 		{
 			if(ev->view() == it)
-			{
+            {
 				endEvent = ev->id();
 				auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
 																					m_viewModel->sharedProcessModel()),
 														 data.eventClickedId,
 														 endEvent);
 				submitCommand(cmd);
-				break;
+                break;
 			}
 		}
 	}
@@ -618,7 +614,7 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 													this};
 
     constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
-							 rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
+                             rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 
 	constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
@@ -632,5 +628,8 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 			this,					&TemporalScenarioProcessPresenter::elementSelected);
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
-			this,					&TemporalScenarioProcessPresenter::on_askUpdate);
+            this,					&TemporalScenarioProcessPresenter::on_askUpdate);
+
+    updateTimeNode( findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
+    updateTimeNode( findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
 }
