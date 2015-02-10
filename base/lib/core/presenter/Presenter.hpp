@@ -43,6 +43,8 @@ namespace iscore
 			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
 			 * @param name The name of the command to generate.
 			 * @param data The data of the command.
+			 *
+			 * Ownership of the command is transferred to the caller, and he must delete it.
 			 */
 			iscore::SerializableCommand*
 				instantiateUndoCommand(QString parent_name,

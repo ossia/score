@@ -25,6 +25,9 @@ namespace Scenario
 				virtual int id() const override;
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
+				id_type<ProcessSharedModelInterface> processId() const
+				{ return m_createdProcessId; }
+
 			protected:
 				virtual void serializeImpl(QDataStream&) override;
 				virtual void deserializeImpl(QDataStream&) override;

@@ -22,6 +22,8 @@ iscore::PluginControlInterface*CurvePlugin::control_make(QString name)
 	{
 		return new AutomationControl{nullptr};
 	}
+
+	return nullptr;
 }
 
 QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryName)
