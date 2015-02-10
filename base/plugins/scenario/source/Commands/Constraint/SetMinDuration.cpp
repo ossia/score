@@ -4,6 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+// TODO changer gestion de UID
 #define CMD_UID 1000
 #define CMD_NAME "SetMinDuration"
 #define CMD_DESC QObject::tr("Set min duration of constraint")

@@ -21,8 +21,9 @@ namespace Scenario
 				virtual void redo() override;
 				virtual int id() const override;
 				virtual bool mergeWith(const QUndoCommand* other) override;
+                int m_oldX{};
 
-			protected:
+            protected:
 				virtual void serializeImpl(QDataStream&) override;
 				virtual void deserializeImpl(QDataStream&) override;
 
@@ -32,8 +33,7 @@ namespace Scenario
 
 				double m_oldHeightPosition{};
 				double m_newHeightPosition{};
-				int m_oldX{};
-				int m_newX{};
+                int m_newX{};
 		};
 	}
 }

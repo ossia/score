@@ -4,6 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+// TODO changer gestion de UID
 #define CMD_UID 1001
 #define CMD_NAME "SetMaxDuration"
 #define CMD_DESC QObject::tr("Set max duration of constraint")

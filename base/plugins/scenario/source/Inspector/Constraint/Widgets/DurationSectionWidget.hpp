@@ -13,6 +13,7 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 		void minDurationSpinboxChanged(int val);
 		void maxDurationSpinboxChanged(int val);
+        void defaultDurationSpinboxChanged(int val);
 		void rigidCheckboxToggled(bool b);
 
 		void on_defaultDurationChanged(int dur);
@@ -25,4 +26,5 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 		bool m_minSpinboxEditing{};
 		bool m_maxSpinboxEditing{};
+        bool m_valueSpinboxEditing{};
 };
