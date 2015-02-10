@@ -36,10 +36,11 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
     auto scenar = m_path.find<ScenarioProcessSharedModel>();
     for(auto& viewModel : viewModels(scenar))
     {
+        // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
+        auto cstrVM = constraint->viewModels().first();
         auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-
+        m_constraintViewModelIDs[cvm_id] = cstrVM->id();
     }
-
 }
 
 void RemoveConstraint::undo()
@@ -47,11 +48,12 @@ void RemoveConstraint::undo()
     auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
     Deserializer<DataStream> s{&m_serializedConstraint};
-    scenar->addConstraint(new ConstraintModel(s, scenar));
+
+    scenar->undo_removeConstraint(new ConstraintModel(s, scenar));
 
     for(auto& viewModel : viewModels(scenar))
     {
-        /*
+       //*
         auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
         if(m_constraintViewModelIDs.contains(cvm_id))
         {
@@ -62,7 +64,7 @@ void RemoveConstraint::undo()
         {
             throw std::runtime_error("undo RemoveConstraint : missing identifier.");
         }
-        */
+        //*/
     }
 }
 
@@ -84,10 +86,10 @@ bool RemoveConstraint::mergeWith(const QUndoCommand* other)
 
 void RemoveConstraint::serializeImpl(QDataStream& s)
 {
-    s << m_path ;
+    s << m_path << m_cstrId << m_serializedConstraint << m_constraintViewModelIDs << m_constraintFullViewId << m_startEvent << m_endEvent;
 }
 
 void RemoveConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path ;
+    s >> m_path >> m_cstrId >> m_serializedConstraint >> m_constraintViewModelIDs >> m_constraintFullViewId >> m_startEvent >> m_endEvent ;
 }

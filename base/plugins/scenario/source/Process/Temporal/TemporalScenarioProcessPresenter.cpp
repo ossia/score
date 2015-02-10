@@ -465,12 +465,10 @@ void TemporalScenarioProcessPresenter::deleteSelection()
         }
     }
 
-    // todo : modifier pour selection multiple
-
     // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
-//    auto cmd = new RemoveMultipleElements{std::move(commands)};
+    auto cmd = new RemoveMultipleElements{std::move(commands)};
 
-    if (commands.size()) emit submitCommand(commands.at(0));
+    if (cmd) emit submitCommand(cmd);
    // */
 }
 

@@ -32,6 +32,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double top() const;
 		double bottom() const;
 		int date() const;
+        QString name() const;
 
         void setDate(int);
 

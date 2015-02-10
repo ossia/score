@@ -91,6 +91,9 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void removeEvent(id_type<EventModel> eventId);
 		void removeEventFromTimeNode(id_type<EventModel> eventId);
         void removeTimeNode(id_type<TimeNodeModel> timeNodeId );
+
+        void undo_removeConstraint(ConstraintModel* newConstraint);
+
         void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
         void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 

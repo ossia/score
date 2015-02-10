@@ -44,7 +44,12 @@ double TimeNodeModel::bottom() const
 
 int TimeNodeModel::date() const
 {
-	return m_date;
+    return m_date;
+}
+
+QString TimeNodeModel::name() const
+{
+    return QString("TimeNode.%1").arg(*this->id().val());
 }
 
 void TimeNodeModel::setDate(int date)
