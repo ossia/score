@@ -51,6 +51,19 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		{
 		}
 
+		// Copy
+		AbstractScenarioProcessViewModel(const AbstractScenarioProcessViewModel* source,
+										 id_type<ProcessViewModelInterface> viewModelId,
+										 QString name,
+										 ProcessSharedModelInterface* sharedProcess,
+										 QObject* parent):
+			ProcessViewModelInterface{viewModelId,
+									  name,
+									  sharedProcess,
+									  parent}
+		{
+		}
+
 		template<typename Impl>
 		AbstractScenarioProcessViewModel(Deserializer<Impl>& vis,
 										 ProcessSharedModelInterface* sharedProcess,

@@ -33,7 +33,21 @@ ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
 ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																	 QObject* parent)
 {
-	auto scen = new TemporalScenarioProcessViewModel(viewModelId, this, parent);
+	auto scen = new TemporalScenarioProcessViewModel{viewModelId, this, parent};
+	makeViewModel_impl(scen);
+	return scen;
+}
+
+
+ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+												 const ProcessViewModelInterface* source,
+												 QObject* parent)
+{
+	auto scen = new TemporalScenarioProcessViewModel{
+					static_cast<const TemporalScenarioProcessViewModel*>(source),
+					newId,
+					this,
+					parent};
 	makeViewModel_impl(scen);
 	return scen;
 }

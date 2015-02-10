@@ -24,6 +24,11 @@ class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
 										 ScenarioProcessSharedModel* model,
 										 QObject* parent);
 
+		TemporalScenarioProcessViewModel(const TemporalScenarioProcessViewModel* source,
+										 id_type<ProcessViewModelInterface> id,
+										 ScenarioProcessSharedModel* model,
+										 QObject* parent);
+
 		template<typename Impl>
 		TemporalScenarioProcessViewModel(Deserializer<Impl>& vis,
 										 ScenarioProcessSharedModel* model,

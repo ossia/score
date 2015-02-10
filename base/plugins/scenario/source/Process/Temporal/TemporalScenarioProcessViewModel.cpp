@@ -15,6 +15,22 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(id_type<Proce
 {
 }
 
+TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(const TemporalScenarioProcessViewModel *source,
+																   id_type<ProcessViewModelInterface> id,
+																   ScenarioProcessSharedModel *model,
+																   QObject *parent):
+	AbstractScenarioProcessViewModel{source,
+									 id,
+									 "TemporalScenarioProcessViewModel",
+									 model,
+									 parent}
+{
+	qDebug() << Q_FUNC_INFO << "TODO : Copy constraints";
+	for(auto& constraint : source->constraints())
+	{
+		//qDebug() << Q_FUNC_INFO << "TODO : Copy constraints";
+	}
+}
 
 
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,

@@ -31,10 +31,14 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) = 0;
 
-
 		// To be called by createProcessViewModel only.
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
 														 void* data,
+														 QObject* parent) = 0;
+
+		// "Copy" factory
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+														 const ProcessViewModelInterface* source,
 														 QObject* parent) = 0;
 
 		// Do a copy.

@@ -29,8 +29,6 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
 		virtual ~DeckModel() = default;
 
-		void createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId,
-									id_type<ProcessViewModelInterface> newProcessViewModelId);
 		void addProcessViewModel(ProcessViewModelInterface*);
 		void deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewModelId);
 

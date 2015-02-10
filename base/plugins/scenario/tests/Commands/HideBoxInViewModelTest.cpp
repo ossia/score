@@ -68,7 +68,9 @@ class HideBoxInViewModelTest: public QObject
 			auto cmd_pvm = new AddProcessViewModelToDeck(
 			{{"ConstraintModel", {}},
 			 {"BoxModel", boxId},
-			 {"DeckModel", deckId}}, scenarioId);
+			 {"DeckModel", deckId}},
+			{{"ConstraintModel", {}},
+			 {"ScenarioProcessSharedModel", scenarioId}});
 			stack.push(cmd_pvm);
 
 			auto viewmodel = constraint->boxes().front()->decks().front()->processViewModels().front();

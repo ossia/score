@@ -10,6 +10,16 @@ AutomationViewModel::AutomationViewModel(AutomationModel* model,
 
 }
 
+AutomationViewModel::AutomationViewModel(const AutomationViewModel *source,
+										 AutomationModel *model,
+										 id_type<ProcessViewModelInterface> id,
+										 QObject *parent):
+	ProcessViewModelInterface{id, "AutomationViewModel", model, parent},
+	m_model{model}
+{
+	// Nothing to copy
+}
+
 void AutomationViewModel::serialize(SerializationIdentifier identifier, void* data) const
 {
 }

@@ -16,15 +16,6 @@ DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
 {
 }
 
-void DeckModel::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId, id_type<ProcessViewModelInterface> newProcessViewModelId)
-{
-	// Search the corresponding process in the parent constraint.
-	auto process = parentConstraint()->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(newProcessViewModelId, this);
-
-	addProcessViewModel(viewmodel);
-}
-
 void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 {
 	m_processViewModels.push_back(viewmodel);

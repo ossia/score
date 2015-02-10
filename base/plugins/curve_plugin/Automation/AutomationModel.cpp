@@ -22,6 +22,13 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewMod
 	return new AutomationViewModel{this, viewModelId, parent};
 }
 
+ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+												 const ProcessViewModelInterface* source,
+												 QObject* parent)
+{
+	return new AutomationViewModel{static_cast<const AutomationViewModel*>(source), this, newId, parent};
+}
+
 // Note : the presenter should see the modifications happening,
 // and prevent accidental point removal.
 void AutomationModel::addPoint(double x, double y)

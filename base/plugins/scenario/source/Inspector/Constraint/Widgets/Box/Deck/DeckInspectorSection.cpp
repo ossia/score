@@ -11,6 +11,7 @@
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <QtWidgets>
 
@@ -47,7 +48,9 @@ void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInte
 						ObjectPath::pathFromObject(
 							"BaseConstraintModel",
 							m_model),
-						sharedProcessModelId);
+						ObjectPath::pathFromObject(
+							"BaseConstraintModel",
+							m_model->parentConstraint()->process(sharedProcessModelId)));
 
 	emit submitCommand(cmd);
 }

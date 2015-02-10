@@ -191,4 +191,9 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 			this,		&DeckPresenter::elementSelected);
 
 	m_processes.push_back(presenter);
+
+	for(auto& process : m_processes)
+	{
+		process->parentGeometryChanged();
+	}
 }

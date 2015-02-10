@@ -36,6 +36,9 @@ class AutomationModel : public ProcessSharedModelInterface
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
 														 void* data,
 														 QObject* parent) override;
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+														 const ProcessViewModelInterface* source,
+														 QObject* parent) override;
 
 
 		QString address() const

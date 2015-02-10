@@ -56,7 +56,9 @@ class AddProcessViewModelToDeckTest: public QObject
 			auto cmd_pvm = new AddProcessViewModelToDeck(
 			{{"ConstraintModel", {}},
 			 {"BoxModel", boxId},
-			 {"DeckModel", deckId}}, procId);
+			 {"DeckModel", deckId}},
+			{{"ConstraintModel", {}},
+			 {"ScenarioProcessSharedModel", procId}});
 			stack.push(cmd_pvm);
 
 			for(int i = 4; i --> 0;)

@@ -81,7 +81,9 @@ class ObjectPath
 		template<typename T>
 		T* find() const
 		{
-			return static_cast<T*>(find_impl());
+			auto ptr = dynamic_cast<T*>(find_impl());
+			if(!ptr) throw std::runtime_error("Invalid cast on ObjectPath::find<T>");
+			return ptr;
 		}
 
 		const ObjectIdentifierVector& vec()

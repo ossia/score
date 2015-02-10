@@ -10,6 +10,12 @@ class AutomationViewModel : public ProcessViewModelInterface
 							id_type<ProcessViewModelInterface> id,
 							QObject* parent);
 
+		// Copy
+		AutomationViewModel(const AutomationViewModel *source,
+							AutomationModel* model,
+							id_type<ProcessViewModelInterface> id,
+							QObject* parent);
+
 		template<typename Impl>
 		AutomationViewModel(Deserializer<Impl>& vis,
 							AutomationModel* model,

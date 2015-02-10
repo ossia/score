@@ -59,17 +59,21 @@ void testInit(FullViewConstraintViewModel* viewmodel)
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
 		},
-		500
+		1500
 	};
 	cmd5.redo();
-
 
 	AddProcessViewModelToDeck cmd6{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, scenarioId};
+		},
+		{
+			{"BaseConstraintModel", {}},
+			{"ScenarioProcessSharedModel", scenarioId}
+		}
+	};
 	cmd6.redo();
 }
 

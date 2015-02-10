@@ -10,16 +10,17 @@ namespace Scenario
 	namespace Command
 	{
 		/**
-		 * @brief The AddProcessViewToDeck class
+		 * @brief The CopyProcessViewModel class
 		 *
-		 * Adds a process view to a deck.
+		 * Copy a process view from a Deck to another.
 		 */
-		class AddProcessViewModelToDeck : public iscore::SerializableCommand
+		class CopyProcessViewModel : public iscore::SerializableCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
-				AddProcessViewModelToDeck();
-				AddProcessViewModelToDeck(ObjectPath&& deck, ObjectPath&& process);
+				CopyProcessViewModel();
+				CopyProcessViewModel(ObjectPath&& pvmToCopy,
+									 ObjectPath&& targetDeck);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -31,10 +32,10 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_deckPath;
-				ObjectPath m_processPath;
+				ObjectPath m_pvmPath;
+				ObjectPath m_targetDeckPath;
 
-				id_type<ProcessViewModelInterface> m_createdProcessViewId{};
+				id_type<ProcessViewModelInterface> m_newProcessViewModelId;
 		};
 	}
 }
