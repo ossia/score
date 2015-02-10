@@ -9,7 +9,7 @@ find_package(Qt5Widgets 5.3 REQUIRED)
 find_package(Qt5Xml 5.3 REQUIRED)
 
 # Files & main target
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../scenario/source")
 # TODO put this in CMake interface of iscore_lib
 include_directories("${ISCORE_INTERFACE_FOLDER}")

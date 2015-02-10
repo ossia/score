@@ -46,22 +46,26 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 	// Fetch the selected constraints
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 	auto constraints = pres->findChildren<AbstractConstraintPresenter*>();
-	QList<AbstractConstraintPresenter*> selected_constraints;
-	for(auto& constraint : constraints)
+	QList<ConstraintModel*> selected_constraints;
+	for(AbstractConstraintPresenter* constraint : constraints)
 	{
 		if(constraint->isSelected())
-			selected_constraints.push_back(constraint);
+			selected_constraints.push_back(constraint->abstractConstraintViewModel()->model());
 	}
 
 	// Fetch the selected DeviceExplorer elements
 	auto device_explorer = DeviceExplorer::getModel(pres->model());
 	auto addresses = device_explorer->selectedIndexes();
 
-//	for(auto& constraint : constraints)
+	for(auto& constraint : selected_constraints)
 	{
-//		for(auto& address : addresses)
+		QStringList l;
+		for(auto& index : addresses)
 		{
-
+			l.push_back(DeviceExplorer::addressFromModelIndex(index));
 		}
+
+		auto cmd = new CreateCurvesFromAddresses{ObjectPath::pathFromObject("BaseElementModel", constraint), l};
+		submitCommand(cmd);
 	}
 }
