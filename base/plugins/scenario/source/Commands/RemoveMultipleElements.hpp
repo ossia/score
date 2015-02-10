@@ -24,9 +24,9 @@ namespace Scenario
 
 			private:
 				QVector<QPair<
-				QPair<QString, QString>, // Meta-data
-				QByteArray>>
-				m_serializedCommands;
+							QPair<QString, QString>, // Meta-data
+							QByteArray>>
+					m_serializedCommands;
 		};
 
 	}

@@ -11,6 +11,8 @@
 #include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
+#include <Commands/CreateCurvesFromAddresses.hpp>
+
 #include <QAction>
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(QObject *parent):
@@ -40,7 +42,6 @@ SerializableCommand *IScoreCohesionControl::instantiateUndoCommand(QString name,
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
 	// TODO use current document.
-	// TODO 2 : put stuff like this in its own plug-in.
 
 	// Fetch the selected constraints
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
@@ -56,9 +57,9 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 	auto device_explorer = DeviceExplorer::getModel(pres->model());
 	auto addresses = device_explorer->selectedIndexes();
 
-	for(auto& constraint : constraints)
+//	for(auto& constraint : constraints)
 	{
-		for(auto& address : addresses)
+//		for(auto& address : addresses)
 		{
 
 		}
