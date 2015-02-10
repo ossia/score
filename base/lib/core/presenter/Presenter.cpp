@@ -18,6 +18,7 @@
 #include <QKeySequence>
 
 #include <QFileDialog>
+#include <QUndoView>
 
 using namespace iscore;
 
@@ -40,6 +41,10 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 
 	connect(m_document, &Document::on_elementSelected,
 			this,		&Presenter::on_elementSelected);
+
+	m_view->addSidePanel(new QUndoView{
+							 m_document->presenter()->commandQueue(),
+							 m_view}, tr("Undo View"), Qt::RightDockWidgetArea);
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* cmd)

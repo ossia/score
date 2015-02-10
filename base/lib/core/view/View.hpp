@@ -23,6 +23,8 @@ namespace iscore
 			void setCentralView(iscore::DocumentView*);
 			void setupPanelView(PanelViewInterface* v);
 
+			void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
+
 	signals:
 			/**
 			 * @brief insertActionIntoMenubar

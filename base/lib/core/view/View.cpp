@@ -32,10 +32,15 @@ void View::setCentralView(DocumentView* doc)
 
 void View::setupPanelView(PanelViewInterface* v)
 {
-	QDockWidget* dial = new QDockWidget(this);
-	dial->setWidget(v->getWidget());
+	addSidePanel(v->getWidget(), v->objectName(), v->defaultDock());
+}
 
-	QAction* hideDialog = new QAction(v->objectName(), nullptr);
+void View::addSidePanel(QWidget *widg, QString name, Qt::DockWidgetArea dock)
+{
+	QDockWidget* dial = new QDockWidget(this);
+	dial->setWidget(widg);
+
+	QAction* hideDialog = new QAction(name, nullptr);
 	hideDialog->setCheckable(true);
 	hideDialog->setChecked(true);
 
@@ -46,5 +51,5 @@ void View::setupPanelView(PanelViewInterface* v)
 								  MenuInterface::name(ViewMenuElement::Windows),
 								  hideDialog});
 
-	this->addDockWidget(v->defaultDock(), dial);
+	this->addDockWidget(dock, dial);
 }
