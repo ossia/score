@@ -10,6 +10,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/AddProcessViewInNewDeck.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
@@ -180,7 +181,17 @@ void ConstraintInspectorWidget::createBox()
 				   ObjectPath::pathFromObject(
 					   "BaseConstraintModel",
 					   model()));
-	emit submitCommand(cmd);
+    emit submitCommand(cmd);
+}
+
+void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
+{
+    auto cmd = new AddProcessViewInNewDeck(
+                ObjectPath::pathFromObject(
+                    "BaseConstraintModel",
+                    model()),
+                processName);
+    emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box)
@@ -216,6 +227,9 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
 
 	m_processesSectionWidgets.push_back (newProc);
 	m_processSection->addContent (newProc);
+
+    connect(widg,   SIGNAL(createViewInNewDeck(QString)),
+            this,   SLOT(createProcessViewInNewDeck(QString)));
 }
 
 void ConstraintInspectorWidget::setupBox(BoxModel* box)

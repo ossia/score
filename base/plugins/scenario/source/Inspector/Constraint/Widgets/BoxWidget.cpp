@@ -55,7 +55,9 @@ void BoxWidget::updateComboBox()
 		{
 			m_boxList->addItem(QString::number(*box->id().val()));
 		}
-	}
+    }
+    m_boxList->setCurrentIndex(m_boxList->count() - 1);
+    on_comboBoxActivated(m_boxList->itemText(m_boxList->count() - 1));
 }
 
 void BoxWidget::setModel(ConstraintModel* m)

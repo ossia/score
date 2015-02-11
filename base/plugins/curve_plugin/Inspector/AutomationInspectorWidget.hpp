@@ -13,6 +13,9 @@ class AutomationInspectorWidget : public InspectorWidgetBase
 	public slots:
 		void on_addressChange(const QString& newText);
 
+    signals:
+        void createViewInNewDeck(QString);
+
 	private:
 		QLineEdit* m_lineEdit{};
 		AutomationModel* m_model{};

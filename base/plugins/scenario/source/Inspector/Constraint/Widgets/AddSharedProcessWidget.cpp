@@ -23,7 +23,7 @@ AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent
 	addAutomButton->setObjectName ("addAutom");
 
 	// Text
-	auto addAutomText = new QLabel("Add Automation");
+    auto addAutomText = new QLabel("Add Process");
 	addAutomText->setStyleSheet (QString ("text-align : left;") );
 
 	addAutomLayout->addWidget(addAutomButton);
@@ -43,6 +43,8 @@ AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent
 												  &ok);
 
 		if(ok)
+        {
 			parent->createProcess(process_name);
+        }
 	} );
 }
