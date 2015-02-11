@@ -37,6 +37,11 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		EventModel(id_type<EventModel>, QObject* parent);
 		EventModel(id_type<EventModel>, double yPos, QObject *parent);
+
+		// Copy
+		EventModel(EventModel* source,
+				   id_type<EventModel>,
+				   QObject* parent);
 		~EventModel();
 
 		template<typename DeserializerVisitor>

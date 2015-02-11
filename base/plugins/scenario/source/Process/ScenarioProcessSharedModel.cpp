@@ -32,12 +32,16 @@ ProcessSharedModelInterface *ScenarioProcessSharedModel::clone(id_type<ProcessSh
 	{
 		scenario->addConstraint(new ConstraintModel{constraint, constraint->id(), scenario});
 	}
-	std::vector<ConstraintModel*> m_constraints;
-	std::vector<EventModel*> m_events;
-	std::vector<TimeNodeModel*> m_timeNodes;
 
-	id_type<EventModel> m_startEventId{};
-	id_type<EventModel> m_endEventId{};
+	for(EventModel* event : m_events)
+	{
+		scenario->addEvent(new EventModel{event, event->id(), scenario});
+	}
+
+	//TODO addTimeNode ????
+
+	scenario->m_startEventId = m_startEventId;
+	scenario->m_endEventId = m_endEventId;
 
 	return scenario;
 }

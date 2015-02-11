@@ -20,6 +20,30 @@ EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
+EventModel::EventModel(EventModel* source,
+					   id_type<EventModel> id,
+					   QObject* parent):
+	EventModel{id, parent}
+{
+	m_timeNode = source->timeNode();
+	m_previousConstraints = source->previousConstraints();
+	m_nextConstraints = source->nextConstraints();
+	m_constraintsYPos = source->constraintsYPos();
+	m_heightPercentage = source->heightPercentage();
+	m_topY = source->topY();
+	m_bottomY = source->bottomY();
+
+	for(State* state : source->m_states)
+	{
+		FakeState* newstate = new FakeState{state->id(), this};
+		newstate->addMessage(state->messages().first());
+		addState(newstate);
+	}
+
+	m_condition = source->condition();
+	m_date = source->date();
+}
+
 EventModel::~EventModel()
 {
 	delete m_timeEvent;
