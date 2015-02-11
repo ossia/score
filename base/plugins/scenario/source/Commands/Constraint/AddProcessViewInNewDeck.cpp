@@ -29,10 +29,12 @@ AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath, QS
     if(constraint->boxes().size() == 0)
     {
         m_createdBoxId = getStrongId(constraint->boxes());
+        m_existingBox = false;
     }
     else
     {
         m_createdBoxId = constraint->boxes().back()->id();
+        m_existingBox = true;
     }
     m_createdDeckId = id_type<DeckModel>(getNextId());
     m_createdProcessViewId = id_type<ProcessViewModelInterface>(getNextId());
@@ -52,22 +54,25 @@ void AddProcessViewInNewDeck::undo()
     // DECK
     box->removeDeck(m_createdDeckId);
     // BOX
-    constraint->removeBox(m_createdBoxId);
+    if (!m_existingBox)
+            constraint->removeBox(m_createdBoxId);
 }
 
 void AddProcessViewInNewDeck::redo()
 {
-    // BOX
     auto constraint = m_path.find<ConstraintModel>();
-    constraint->createBox(m_createdBoxId);
-
-    // If it is the first box created,
-    // it is also assigned to the full view of the constraint.
-    if(constraint->boxes().size() == 1)
+    // BOX
+    if (!m_existingBox)
     {
-        constraint->fullView()->showBox(m_createdBoxId);
-    }
+        constraint->createBox(m_createdBoxId);
 
+        // If it is the first box created,
+        // it is also assigned to the full view of the constraint.
+        if(constraint->boxes().size() == 1)
+        {
+            constraint->fullView()->showBox(m_createdBoxId);
+        }
+    }
     //DECK
     auto box = constraint->box(m_createdBoxId);
 	box->addDeck(new DeckModel{(int) box->decks().size(),
@@ -93,10 +98,10 @@ bool AddProcessViewInNewDeck::mergeWith(const QUndoCommand* other)
 
 void AddProcessViewInNewDeck::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_processName << m_processId;
+    s << m_path << m_processPath << m_processName << m_existingBox << m_processId << m_createdBoxId << m_createdDeckId << m_createdProcessViewId << m_sharedProcessModelId;
 }
 
 void AddProcessViewInNewDeck::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_processName >> m_processId;
+    s >> m_path >> m_processPath >> m_processName >> m_existingBox >> m_processId >> m_createdBoxId >> m_createdDeckId >> m_createdProcessViewId >> m_sharedProcessModelId;
 }
