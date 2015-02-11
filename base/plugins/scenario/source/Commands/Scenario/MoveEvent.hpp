@@ -24,7 +24,7 @@ namespace Scenario
                 int m_oldX{};
 
             protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:

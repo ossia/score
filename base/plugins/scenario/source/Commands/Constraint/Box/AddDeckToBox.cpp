@@ -47,7 +47,7 @@ bool AddDeckToBox::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddDeckToBox::serializeImpl(QDataStream& s)
+void AddDeckToBox::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_createdDeckId;
 }

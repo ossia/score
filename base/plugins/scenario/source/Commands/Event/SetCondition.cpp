@@ -53,7 +53,7 @@ bool SetCondition::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void SetCondition::serializeImpl(QDataStream& s)
+void SetCondition::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_condition << m_previousCondition;
 }

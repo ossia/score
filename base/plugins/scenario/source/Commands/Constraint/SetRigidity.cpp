@@ -71,7 +71,7 @@ bool SetRigidity::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void SetRigidity::serializeImpl(QDataStream& s)
+void SetRigidity::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_rigidity << m_oldMinDuration << m_oldMaxDuration;
 }

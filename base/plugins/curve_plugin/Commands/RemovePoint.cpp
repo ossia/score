@@ -46,7 +46,7 @@ bool RemovePoint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemovePoint::serializeImpl(QDataStream& s)
+void RemovePoint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_x << m_oldY;
 }

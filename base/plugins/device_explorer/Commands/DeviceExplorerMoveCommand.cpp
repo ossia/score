@@ -64,7 +64,7 @@ DeviceExplorerMoveCommand::mergeWith(const QUndoCommand */*other*/)
 }
 
 void
-DeviceExplorerMoveCommand::serializeImpl(QDataStream &d)
+DeviceExplorerMoveCommand::serializeImpl(QDataStream &d) const
 {
   //TODO: should we pass the model ? how ???
   //TODO: should we serialize text() or is it serialized by base class ?

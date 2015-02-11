@@ -46,7 +46,7 @@ bool ResizeDeckVertically::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void ResizeDeckVertically::serializeImpl(QDataStream& s)
+void ResizeDeckVertically::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_originalSize << m_newSize;
 }

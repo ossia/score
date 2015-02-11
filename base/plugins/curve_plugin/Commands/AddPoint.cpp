@@ -45,7 +45,7 @@ bool AddPoint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddPoint::serializeImpl(QDataStream& s)
+void AddPoint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_x << m_y;
 }

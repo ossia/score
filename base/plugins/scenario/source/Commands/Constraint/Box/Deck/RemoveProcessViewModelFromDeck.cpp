@@ -68,7 +68,7 @@ bool RemoveProcessViewModelFromDeck::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveProcessViewModelFromDeck::serializeImpl(QDataStream& s)
+void RemoveProcessViewModelFromDeck::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_processViewId << m_serializedProcessViewData;
 }

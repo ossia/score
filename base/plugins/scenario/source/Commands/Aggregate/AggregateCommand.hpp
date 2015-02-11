@@ -42,8 +42,14 @@ namespace Scenario
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
+
+				void addCommand(const iscore::SerializableCommand* cmd)
+				{
+					m_serializedCommands.push_back({{cmd->parentName(), cmd->name()},
+													 cmd->serialize()});
+				}
 
 			private:
 				// Meta-data : {{parent name, command name}, command data}

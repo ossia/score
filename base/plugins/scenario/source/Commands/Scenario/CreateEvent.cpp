@@ -55,7 +55,7 @@ bool CreateEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateEvent::serializeImpl(QDataStream& s)
+void CreateEvent::serializeImpl(QDataStream& s) const
 {
 	s << m_cmd->serialize();
 }

@@ -81,7 +81,7 @@ bool CreateConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateConstraint::serializeImpl(QDataStream& s)
+void CreateConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path
 	  << m_startEventId

@@ -48,7 +48,7 @@ bool MovePoint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void MovePoint::serializeImpl(QDataStream& s)
+void MovePoint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldX << m_oldY << m_newX << m_newY;
 }

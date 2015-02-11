@@ -42,7 +42,7 @@ bool AggregateCommand::mergeWith(const QUndoCommand *other)
 	return false;
 }
 
-void AggregateCommand::serializeImpl(QDataStream& s)
+void AggregateCommand::serializeImpl(QDataStream& s) const
 {
 	s << m_serializedCommands;
 }

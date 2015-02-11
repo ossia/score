@@ -71,7 +71,7 @@ bool ResizeConstraint::mergeWith(const QUndoCommand* other)
     return true;;
 }
 
-void ResizeConstraint::serializeImpl(QDataStream& s)
+void ResizeConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_cmd->serialize();
 }

@@ -21,7 +21,7 @@ bool RemoveStateFromEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveStateFromEvent::serializeImpl(QDataStream&)
+void RemoveStateFromEvent::serializeImpl(QDataStream&) const
 {
 }
 

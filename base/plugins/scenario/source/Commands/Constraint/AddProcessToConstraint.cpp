@@ -51,7 +51,7 @@ bool AddProcessToConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddProcessToConstraint::serializeImpl(QDataStream& s)
+void AddProcessToConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_processName << m_createdProcessId;
 }

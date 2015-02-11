@@ -46,7 +46,7 @@ bool ChangeAddress::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void ChangeAddress::serializeImpl(QDataStream& s)
+void ChangeAddress::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldAddr << m_newAddr;
 }

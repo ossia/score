@@ -51,7 +51,7 @@ bool CopyDeck::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CopyDeck::serializeImpl(QDataStream& s)
+void CopyDeck::serializeImpl(QDataStream& s) const
 {
 	s << m_deckPath << m_targetBoxPath << m_newDeckId;
 }

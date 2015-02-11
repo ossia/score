@@ -51,7 +51,7 @@ bool RemoveBoxFromConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveBoxFromConstraint::serializeImpl(QDataStream& s)
+void RemoveBoxFromConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_boxId << m_serializedBoxData;
 }

@@ -86,7 +86,7 @@ bool CreateCurvesFromAddresses::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateCurvesFromAddresses::serializeImpl(QDataStream& s)
+void CreateCurvesFromAddresses::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_addresses << m_serializedCommands;
 }

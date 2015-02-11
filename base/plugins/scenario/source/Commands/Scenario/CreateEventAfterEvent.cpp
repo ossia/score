@@ -115,7 +115,7 @@ bool CreateEventAfterEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateEventAfterEvent::serializeImpl(QDataStream& s)
+void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
 {
 	s << m_path
 	  << m_firstEventId

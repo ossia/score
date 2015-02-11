@@ -14,7 +14,7 @@ class BlacklistCommand : public iscore::SerializableCommand
 		virtual bool mergeWith(const QUndoCommand* other);
 
 	protected:
-		virtual void serializeImpl(QDataStream&) override { }
+		virtual void serializeImpl(QDataStream&) const override { }
 		virtual void deserializeImpl(QDataStream&) override { }
 
 		QMap<QString, bool> m_blacklistedState;

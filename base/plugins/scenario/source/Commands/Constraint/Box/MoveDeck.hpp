@@ -29,3 +29,36 @@ namespace Scenario
 		};
 	}
 }
+
+#include <Document/Constraint/Box/Deck/DeckModel.hpp>
+#include "Deck/MoveProcessViewModel.hpp"
+namespace Scenario
+{
+	namespace Command
+	{
+		/**
+		 * @brief The MergeDeck class
+		 *
+		 * Merges a Deck into another.
+		 * This moves all the PVMs of the first deck into the second, and deletes the
+		 * first deck
+		 */
+		class MergeDeck : public AggregateCommand
+		{
+#include <tests/helpers/FriendDeclaration.hpp>
+			public:
+				MergeDeck(const ObjectPath& mergeSource,
+						  ObjectPath&& mergeTarget):
+					AggregateCommand{
+						"ScenarioControl", "MergeDeck", QObject::tr("Merge decks"),
+		//				new CopyDeck{ObjectPath{mergeSource}, std::move(targetBox)},
+		//				new RemoveDeckFromBox{ObjectPath{deckToMove}}
+		}
+				{
+					auto sourcedeck = mergeSource.find<DeckModel>();
+
+				//	for(ProcessV)
+				}
+		};
+	}
+}

@@ -54,7 +54,7 @@ bool SetMinDuration::mergeWith(const QUndoCommand* other)
 	return true;
 }
 
-void SetMinDuration::serializeImpl(QDataStream& s)
+void SetMinDuration::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldDuration << m_newDuration;
 }

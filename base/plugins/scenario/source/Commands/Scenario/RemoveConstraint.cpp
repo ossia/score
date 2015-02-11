@@ -84,7 +84,7 @@ bool RemoveConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveConstraint::serializeImpl(QDataStream& s)
+void RemoveConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_cstrId << m_serializedConstraint << m_constraintViewModelIDs << m_constraintFullViewId << m_startEvent << m_endEvent;
 }

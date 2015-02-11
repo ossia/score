@@ -22,7 +22,7 @@ bool UnassignMessagesFromState::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void UnassignMessagesFromState::serializeImpl(QDataStream&)
+void UnassignMessagesFromState::serializeImpl(QDataStream&) const
 {
 }
 

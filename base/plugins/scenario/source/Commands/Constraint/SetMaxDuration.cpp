@@ -54,7 +54,7 @@ bool SetMaxDuration::mergeWith(const QUndoCommand* other)
 	return true;
 }
 
-void SetMaxDuration::serializeImpl(QDataStream& s)
+void SetMaxDuration::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldDuration << m_newDuration;
 }

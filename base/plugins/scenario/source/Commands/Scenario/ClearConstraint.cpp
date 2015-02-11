@@ -89,7 +89,7 @@ bool ClearConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void ClearConstraint::serializeImpl(QDataStream& s)
+void ClearConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_serializedBoxes << m_serializedProcesses;
 }

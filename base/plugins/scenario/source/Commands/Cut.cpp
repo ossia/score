@@ -21,7 +21,7 @@ bool Cut::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void Cut::serializeImpl(QDataStream&)
+void Cut::serializeImpl(QDataStream&) const
 {
 }
 

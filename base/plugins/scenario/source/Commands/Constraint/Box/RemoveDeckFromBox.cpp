@@ -61,7 +61,7 @@ bool RemoveDeckFromBox::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveDeckFromBox::serializeImpl(QDataStream& s)
+void RemoveDeckFromBox::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_deckId << m_serializedDeckData;
 }

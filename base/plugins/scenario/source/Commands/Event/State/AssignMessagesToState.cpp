@@ -21,7 +21,7 @@ bool AssignMessagesToState::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AssignMessagesToState::serializeImpl(QDataStream&)
+void AssignMessagesToState::serializeImpl(QDataStream&) const
 {
 }
 

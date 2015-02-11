@@ -53,7 +53,7 @@ bool AddStateToEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddStateToEvent::serializeImpl(QDataStream& s)
+void AddStateToEvent::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_message << m_stateId;
 }

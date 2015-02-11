@@ -52,7 +52,7 @@ bool AddProcessViewModelToDeck::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddProcessViewModelToDeck::serializeImpl(QDataStream& s)
+void AddProcessViewModelToDeck::serializeImpl(QDataStream& s) const
 {
 	s << m_deckPath << m_processPath << m_createdProcessViewId;
 }

@@ -64,7 +64,7 @@ bool ShowBoxInViewModel::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void ShowBoxInViewModel::serializeImpl(QDataStream& s)
+void ShowBoxInViewModel::serializeImpl(QDataStream& s) const
 {
 	s << m_constraintViewModelPath
 	  << m_boxId
