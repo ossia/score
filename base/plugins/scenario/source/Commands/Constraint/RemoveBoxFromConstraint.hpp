@@ -19,6 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				RemoveBoxFromConstraint();
+				RemoveBoxFromConstraint(ObjectPath&& boxPath);
 				RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId);
 
 				virtual void undo() override;

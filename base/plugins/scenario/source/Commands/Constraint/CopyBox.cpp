@@ -15,7 +15,7 @@ CopyBox::CopyBox():
 
 CopyBox::CopyBox(ObjectPath&& boxToCopy):
 	SerializableCommand{"ScenarioControl",
-						"CopyDeck",
+						"CopyBox",
 						QObject::tr("Copy a box")},
 	m_boxPath{boxToCopy}
 {

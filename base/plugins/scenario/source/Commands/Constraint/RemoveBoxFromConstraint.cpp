@@ -15,6 +15,17 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint():
 {
 }
 
+RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath &&boxPath):
+	SerializableCommand{"ScenarioControl",
+						"RemoveBoxFromConstraint",
+						QObject::tr("Remove box")}
+{
+	auto constraintPath = boxPath.vec();
+	auto lastId = constraintPath.takeLast();
+	m_path = ObjectPath{std::move(constraintPath)};
+	m_boxId = id_type<BoxModel>(lastId.id());
+}
+
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveBoxFromConstraint",

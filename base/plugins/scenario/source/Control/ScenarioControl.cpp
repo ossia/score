@@ -12,6 +12,7 @@
 #include "Commands/Constraint/Box/MergeDecks.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/MergeBoxes.hpp"
 #include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
 #include "Commands/Constraint/SetMinDuration.hpp"
