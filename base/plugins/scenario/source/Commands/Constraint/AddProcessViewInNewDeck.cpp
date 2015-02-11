@@ -70,7 +70,9 @@ void AddProcessViewInNewDeck::redo()
 
     //DECK
     auto box = constraint->box(m_createdBoxId);
-    box->createDeck(m_createdDeckId);
+	box->addDeck(new DeckModel{(int) box->decks().size(),
+							   m_createdDeckId,
+							   box});
 
     // Process View
     auto deck = box->deck(m_createdDeckId);
@@ -89,7 +91,7 @@ bool AddProcessViewInNewDeck::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddProcessViewInNewDeck::serializeImpl(QDataStream& s)
+void AddProcessViewInNewDeck::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_processName << m_processId;
 }

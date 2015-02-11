@@ -33,7 +33,7 @@ namespace Scenario
                 { return m_processId; }
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+                                virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
