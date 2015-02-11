@@ -84,9 +84,14 @@ void AutomationPresenter::on_modelPointsChanged()
 
 
 	m_curveView->scene()->clearSelection();
-	for(double x : pts.keys())
+	auto keys = pts.keys();
+	for(int i = 0; i <keys.size(); ++i)
 	{
-		m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}));
+		double x = keys[i];
+		if(i != 0 && i != keys.size() - 1)
+			m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}));
+		else
+			m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}), MobilityMode::Vertical);
 	}
 	m_curvePresenter->setAllFlags(true);
 
