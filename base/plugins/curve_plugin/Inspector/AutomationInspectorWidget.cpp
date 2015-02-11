@@ -28,7 +28,8 @@ AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automatio
 	std::vector<QWidget*> vec;
 
 	auto widg = new QWidget;
-	auto lay = new QHBoxLayout{widg};
+    auto vlay = new QVBoxLayout{widg};
+    auto hlay = new QHBoxLayout{};
 
 	vec.push_back(widg);
 
@@ -44,7 +45,7 @@ AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automatio
 		on_addressChange(m_lineEdit->text());
 	});
 
-	lay->addWidget(m_lineEdit);
+    vlay->addWidget(m_lineEdit);
 
 	// If there is a DeviceExplorer in the current document, use it
 	// to make a widget.
@@ -72,8 +73,20 @@ AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automatio
 
 		pb->setMenu(menuview);
 
-		lay->addWidget(pb);
+        hlay->addWidget(pb);
 	}
+
+    // Add it to a new deck
+    auto display = new QPushButton{"~"};
+    hlay->addWidget(display);
+    connect(display,    &QPushButton::clicked,
+            [=] ()
+    {
+        createViewInNewDeck(QString::number(m_model->id_val()));
+    });
+
+    vlay->addLayout(hlay);
+
 
 	updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
