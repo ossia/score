@@ -17,6 +17,7 @@ EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):
 	EventModel{id, parent}
 {
     m_heightPercentage = yPos;
+    metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
 EventModel::~EventModel()
@@ -130,11 +131,6 @@ ScenarioProcessSharedModel* EventModel::parentScenario() const
 QString EventModel::condition() const
 {
     return m_condition;
-}
-
-QString EventModel::name() const
-{
-    return QString("Event.%1").arg(*this->id().val());
 }
 
 const std::vector<State*>&EventModel::states() const

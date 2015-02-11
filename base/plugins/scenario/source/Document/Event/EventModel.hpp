@@ -3,6 +3,7 @@
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
+#include "Document/ModelMetadata.hpp"
 
 #include <unordered_map>
 namespace OSSIA
@@ -32,6 +33,8 @@ class EventModel : public IdentifiedObject<EventModel>
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
+        ModelMetadata metadata;
+
 		EventModel(id_type<EventModel>, QObject* parent);
 		EventModel(id_type<EventModel>, double yPos, QObject *parent);
 		~EventModel();
@@ -81,8 +84,6 @@ class EventModel : public IdentifiedObject<EventModel>
 		{ return m_bottomY; }
 
 		QString condition() const;
-
-        QString name() const;
 
 public slots:
 		void setHeightPercentage(double arg);

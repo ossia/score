@@ -90,9 +90,9 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 	// DEMO
 	if (event)
 	{
-        setName (event->name() );
-//		setColor (event->color() );
-//		setComments (event->comment() );
+        setName (event->metadata.name());
+//		setColor (event->metadata.color() );
+//		setComments (event->metadata.comment() );
 
         setInspectedObject (event);
 		changeLabelType ("Event");

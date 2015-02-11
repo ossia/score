@@ -6,8 +6,6 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 
-
-
 template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
 	readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));

@@ -10,6 +10,8 @@ TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *paren
 	TimeNodeModel{id, parent}
 {
 	m_date = date;
+    metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
+    metadata.setLabel("TimeNode");
 }
 
 TimeNodeModel::~TimeNodeModel()
@@ -45,11 +47,6 @@ double TimeNodeModel::bottom() const
 int TimeNodeModel::date() const
 {
     return m_date;
-}
-
-QString TimeNodeModel::name() const
-{
-    return QString("TimeNode.%1").arg(*this->id().val());
 }
 
 void TimeNodeModel::setDate(int date)

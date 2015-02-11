@@ -3,6 +3,7 @@
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
+#include "Document/ModelMetadata.hpp"
 
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
@@ -15,6 +16,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		friend void Visitor<Writer<JSON>>::writeTo<TimeNodeModel>(TimeNodeModel& ev);
 
 	public:
+        ModelMetadata metadata;
+
 		TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
 		TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent);
 		~TimeNodeModel();
@@ -32,7 +35,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		double top() const;
 		double bottom() const;
 		int date() const;
-        QString name() const;
 
         void setDate(int);
 
