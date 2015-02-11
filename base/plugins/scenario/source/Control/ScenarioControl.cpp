@@ -9,6 +9,7 @@
 #include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
 #include "Commands/Constraint/Box/CopyDeck.hpp"
 #include "Commands/Constraint/Box/MoveDeck.hpp"
+#include "Commands/Constraint/Box/MergeDecks.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
