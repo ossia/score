@@ -21,7 +21,7 @@ SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, int newDuration):
 						CMD_NAME,
 						CMD_DESC},
 	m_path{constraintPath},
-	m_oldDuration{m_path.find<ConstraintModel>()->maxDuration()},
+	m_oldDuration{m_path.find<ConstraintModel>()->maxDuration().msec()},
 	m_newDuration{newDuration}
 {
 }

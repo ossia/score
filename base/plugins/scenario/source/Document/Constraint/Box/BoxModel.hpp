@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <interface/serialization/VisitorInterface.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 
 #include <vector>
 
@@ -51,7 +52,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
 		void deckOrderChanged(id_type<DeckModel> deckId);
 
 		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> processId);
-		void on_parentDurationChanged(int dur);
+		void on_parentDurationChanged(TimeValue dur);
 
 	private:
 		std::vector<DeckModel*> m_decks;

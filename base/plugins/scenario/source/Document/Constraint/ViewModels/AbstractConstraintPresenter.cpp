@@ -56,9 +56,9 @@ int AbstractConstraintPresenter::zoomSlider() const
 void AbstractConstraintPresenter::updateScaling(double secPerPixel)
 {
 	// prendre en compte la distance du clic à chaque côté
-	m_view->setDefaultWidth(m_viewModel->model()->defaultDuration() / secPerPixel);
-	m_view->setMinWidth(m_viewModel->model()->minDuration() / secPerPixel);
-	m_view->setMaxWidth(m_viewModel->model()->maxDuration() / secPerPixel);
+	m_view->setDefaultWidth(m_viewModel->model()->defaultDuration().msec() / secPerPixel);
+	m_view->setMinWidth(m_viewModel->model()->minDuration().msec() / secPerPixel);
+	m_view->setMaxWidth(m_viewModel->model()->maxDuration().msec() / secPerPixel);
 
 	if(box())
 	{
@@ -79,24 +79,24 @@ void AbstractConstraintPresenter::on_horizontalZoomChanged(int val)
 	}
 }
 
-void AbstractConstraintPresenter::on_defaultDurationChanged(int val)
+void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	m_view->setDefaultWidth(val / secPerPixel);
+	m_view->setDefaultWidth(val.msec() / secPerPixel);
 	updateHeight();
 }
 
-void AbstractConstraintPresenter::on_minDurationChanged(int min)
+void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	m_view->setMinWidth(min / secPerPixel);
+	m_view->setMinWidth(min.msec() / secPerPixel);
 	updateHeight();
 }
 
-void AbstractConstraintPresenter::on_maxDurationChanged(int max)
+void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	m_view->setMaxWidth(max / secPerPixel);
+	m_view->setMaxWidth(max .msec()/ secPerPixel);
 	updateHeight();
 }
 

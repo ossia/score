@@ -241,18 +241,18 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintMode
 		ConstraintModel* cstr_model{viewModel(pres)->model()};
 		if(cstr_model->id() == constraintId )
 		{
-			view(pres)->setPos({qreal(cstr_model->startDate()) / m_millisecPerPixel,
+			view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_millisecPerPixel,
 									   rect.height() * cstr_model->heightPercentage()});
 
-			view(pres)->setDefaultWidth(cstr_model->defaultDuration() / m_millisecPerPixel);
-			view(pres)->setMinWidth(cstr_model->minDuration() / m_millisecPerPixel);
-			view(pres)->setMaxWidth(cstr_model->maxDuration() / m_millisecPerPixel);
+			view(pres)->setDefaultWidth(cstr_model->defaultDuration().msec() / m_millisecPerPixel);
+			view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_millisecPerPixel);
+			view(pres)->setMaxWidth(cstr_model->maxDuration().msec() / m_millisecPerPixel);
 
 
             auto endTimeNode = findById(m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
 
-            if (cstr_model->startDate() != 0 )
+			if (cstr_model->startDate().msec() != 0 )
             {
                 auto startTimeNode = findById(m_events, cstr_model->startEvent())->model()->timeNode();
                 updateTimeNode(startTimeNode);
@@ -617,7 +617,7 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 													constraint_view,
 													this};
 
-    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate() / m_millisecPerPixel,
+	constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate().msec() / m_millisecPerPixel,
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()});
 
 	constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);

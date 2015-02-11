@@ -33,11 +33,11 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, int duration):
 
     auto constraint = constraintPath.find<ConstraintModel>();
     EventData endEventData{};
-    endEventData.dDate = constraint->startDate() + duration;
+	endEventData.dDate = constraint->startDate().msec() + duration;
     endEventData.relativeY = constraint->heightPercentage();
     endEventData.eventClickedId = constraint->endEvent();
 
-    m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
+	m_oldEndDate = constraint->startDate().msec() + constraint->defaultDuration().msec();
 
     m_cmd = new MoveEvent{ObjectPath::pathFromObject("BaseConstraintModel", constraint->parent()), endEventData};
 }

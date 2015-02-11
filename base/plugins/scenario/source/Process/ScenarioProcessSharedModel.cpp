@@ -170,7 +170,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	// TEMPORARY :
 	constraint->setStartDate(this->event(startEventId)->date());
 	constraint->setDefaultDuration(constraint_duration);
-	event->setDate(constraint->startDate() + constraint->defaultDuration());
+	event->setDate(constraint->startDate().msec() + constraint->defaultDuration().msec());
 
 //	auto ossia_tn0 = this->event(startEventId)->apiObject();
 //	auto ossia_tn1 = event->apiObject();
@@ -231,7 +231,7 @@ void ScenarioProcessSharedModel::setEventPosition(id_type<EventModel> eventId,
 		for (auto& prevConstraintId : event(eventId)->previousConstraints())
 		{
 			auto prevConstraint = constraint(prevConstraintId);
-			prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
+			prevConstraint->setDefaultDuration(prevConstraint->defaultDuration().msec() + time);
 			emit constraintMoved(prevConstraintId);
 		}
 

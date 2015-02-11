@@ -3,6 +3,7 @@
 #include <tools/SettableIdentifier.hpp>
 #include "Document/ModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
+#include "ProcessInterface/TimeValue.hpp"
 
 #include <QColor>
 #include <vector>
@@ -34,11 +35,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 				   NOTIFY heightPercentageChanged)
 
 		// These dates are relative to the beginning of the constraint.
-		Q_PROPERTY(int minDuration
+		Q_PROPERTY(TimeValue minDuration
 				   READ minDuration
 				   WRITE setMinDuration
 				   NOTIFY minDurationChanged)
-		Q_PROPERTY(int maxDuration
+		Q_PROPERTY(TimeValue maxDuration
 				   READ maxDuration
 				   WRITE setMaxDuration
 				   NOTIFY maxDurationChanged)
@@ -110,15 +111,16 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		const QVector<AbstractConstraintViewModel*>& viewModels() const
 		{ return m_constraintViewModels; }
 
-		int startDate() const;
-		void setStartDate(int start);
-		void translate(int deltaTime);
+		TimeValue startDate() const;
+		void setStartDate(TimeValue start);
+		void translate(TimeValue deltaTime);
+		void translate(int msec);
 
 		double heightPercentage() const;
 
-		int defaultDuration() const;
-		int minDuration() const;
-		int maxDuration() const;
+		TimeValue defaultDuration() const;
+		TimeValue minDuration() const;
+		TimeValue maxDuration() const;
 
 		FullViewConstraintViewModel* fullView() const
 		{ return m_fullViewModel; }
@@ -134,13 +136,19 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 		void heightPercentageChanged(double arg);
 
-		void defaultDurationChanged(int arg);
-		void minDurationChanged(int arg);
-		void maxDurationChanged(int arg);
+		void defaultDurationChanged(TimeValue arg);
+		void minDurationChanged(TimeValue arg);
+		void maxDurationChanged(TimeValue arg);
 
 	public slots:
 		void setHeightPercentage(double arg);
 
+		void setDefaultDuration(TimeValue defaultDuration);
+		void setMinDuration(TimeValue arg);
+		void setMaxDuration(TimeValue arg);
+
+		// To remove. In msecs.
+		void setStartDate(int arg);
 		void setDefaultDuration(int defaultDuration);
 		void setMinDuration(int arg);
 		void setMaxDuration(int arg);
@@ -166,11 +174,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_endEvent{};
 
 		// ___ Use TimeValue instead ___
-		int m_defaultDuration{200};
-		int m_minDuration{m_defaultDuration};
-		int m_maxDuration{m_defaultDuration};
+		TimeValue m_defaultDuration{0, 2, 30}; // 2 minutes
+		TimeValue m_minDuration{m_defaultDuration};
+		TimeValue m_maxDuration{m_defaultDuration};
 
-		int m_x{}; // origin
+		TimeValue m_x{}; // origin
 
 		double m_heightPercentage{0.5};
 };

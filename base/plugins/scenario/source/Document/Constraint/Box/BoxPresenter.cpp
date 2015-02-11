@@ -75,10 +75,10 @@ id_type<BoxModel> BoxPresenter::id() const
 	return m_model->id();
 }
 
-void BoxPresenter::setDuration(int duration)
+void BoxPresenter::setDuration(TimeValue duration)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	setWidth(duration / secPerPixel);
+	setWidth(duration.msec() / secPerPixel);
 }
 
 void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)

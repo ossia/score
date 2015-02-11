@@ -149,7 +149,7 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
 	// Else positionSliderMax is such that max = 3% more.
 
 	int val = view()->positionSlider()->value();
-	auto newMax = model()->constraintModel()->defaultDuration() / secondsPerPixel(view()->zoomSlider()->value())
+	auto newMax = model()->constraintModel()->defaultDuration().msec() / secondsPerPixel(view()->zoomSlider()->value())
 				  - 0.97 * view()->view()->width();
 	view()->positionSlider()->setMaximum(newMax);
 
@@ -169,7 +169,7 @@ void BaseElementPresenter::on_positionSliderChanged(int newPos)
 void BaseElementPresenter::on_viewWidthChanged(int w)
 {
 	int val = view()->zoomSlider()->value();
-	int newMin = w * 97.0 / model()->constraintModel()->defaultDuration();
+	int newMin = w * 97.0 / model()->constraintModel()->defaultDuration().msec();
 	view()->zoomSlider()->setMinimum(newMin);
 	if(val < newMin)
 	{

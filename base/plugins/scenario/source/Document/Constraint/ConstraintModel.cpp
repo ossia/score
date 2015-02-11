@@ -176,19 +176,19 @@ ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModel
 
 
 
-int ConstraintModel::startDate() const
+TimeValue ConstraintModel::startDate() const
 {
 	return m_x;
 }
 
-void ConstraintModel::setStartDate(int start)
+void ConstraintModel::setStartDate(TimeValue start)
 {
 	m_x = start;
 }
 
-void ConstraintModel::translate(int deltaTime)
+void ConstraintModel::translate(TimeValue deltaTime)
 {
-	m_x += deltaTime;
+	m_x.addMSecs(deltaTime.msec());
 }
 
 // Simple getters and setters
@@ -198,37 +198,11 @@ double ConstraintModel::heightPercentage() const
 	return m_heightPercentage;
 }
 
-int ConstraintModel::minDuration() const
-{
-	return m_minDuration;
-}
-
-int ConstraintModel::maxDuration() const
-{
-	return m_maxDuration;
-}
 
 void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 {
 	m_fullViewModel = fv;
 	setupConstraintViewModel(m_fullViewModel);
-}
-
-int ConstraintModel::defaultDuration() const
-{
-	return m_defaultDuration;
-}
-
-void ConstraintModel::setDefaultDuration(int width)
-{
-	if (m_defaultDuration != width)
-	{
-		setMinDuration(minDuration() + (width - defaultDuration()));
-		setMaxDuration(maxDuration() + (width - defaultDuration()));
-
-		m_defaultDuration = width;
-		emit defaultDurationChanged(width);
-	}
 }
 
 void ConstraintModel::setHeightPercentage(double arg)
@@ -239,7 +213,37 @@ void ConstraintModel::setHeightPercentage(double arg)
 	}
 }
 
-void ConstraintModel::setMinDuration(int arg)
+
+
+TimeValue ConstraintModel::defaultDuration() const
+{
+	return m_defaultDuration;
+}
+
+TimeValue ConstraintModel::minDuration() const
+{
+	return m_minDuration;
+}
+
+TimeValue ConstraintModel::maxDuration() const
+{
+	return m_maxDuration;
+}
+
+
+void ConstraintModel::setDefaultDuration(TimeValue arg)
+{
+	if (m_defaultDuration != arg)
+	{
+		setMinDuration(minDuration().msec() + (arg.msec() - defaultDuration().msec()));
+		setMaxDuration(maxDuration().msec() + (arg.msec() - defaultDuration().msec()));
+
+		m_defaultDuration = arg;
+		emit defaultDurationChanged(arg);
+	}
+}
+
+void ConstraintModel::setMinDuration(TimeValue arg)
 {
 	if (m_minDuration != arg) {
 		m_minDuration = arg;
@@ -247,11 +251,40 @@ void ConstraintModel::setMinDuration(int arg)
 	}
 }
 
-void ConstraintModel::setMaxDuration(int arg)
+void ConstraintModel::setMaxDuration(TimeValue arg)
 {
 	if (m_maxDuration != arg) {
 		m_maxDuration = arg;
 		emit maxDurationChanged(arg);
 	}
+}
+
+void ConstraintModel::translate(int deltaTime)
+{
+	m_x.addMSecs(deltaTime);
+}
+
+void ConstraintModel::setStartDate(int arg)
+{
+	TimeValue t; t.addMSecs(arg);
+	setStartDate(t);
+}
+
+void ConstraintModel::setDefaultDuration(int arg)
+{
+	TimeValue t; t.addMSecs(arg);
+	setDefaultDuration(t);
+}
+
+void ConstraintModel::setMinDuration(int arg)
+{
+	TimeValue t; t.addMSecs(arg);
+	setMinDuration(t);
+}
+
+void ConstraintModel::setMaxDuration(int arg)
+{
+	TimeValue t; t.addMSecs(arg);
+	setMaxDuration(t);
 }
 

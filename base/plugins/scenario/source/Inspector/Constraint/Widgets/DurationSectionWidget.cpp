@@ -37,8 +37,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
 
 	minSpin->setMinimum(0);
-	minSpin->setMaximum(m_model->defaultDuration());
-	maxSpin->setMinimum(m_model->defaultDuration() + 1);
+	minSpin->setMaximum(m_model->defaultDuration().msec());
+	maxSpin->setMinimum(m_model->defaultDuration().msec() + 1);
     maxSpin->setMaximum(std::numeric_limits<int>::max());
     valueSpin->setMinimum(std::numeric_limits<int>::min());
     valueSpin->setMaximum(std::numeric_limits<int>::max());
@@ -50,13 +50,13 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 		maxSpin->setEnabled(!val);
 	});
 
-	minSpin->setValue(m_model->minDuration());
-	maxSpin->setValue(m_model->maxDuration());
+	minSpin->setValue(m_model->minDuration().msec());
+	maxSpin->setValue(m_model->maxDuration().msec());
 	if(m_model->minDuration() == m_model->maxDuration())
 	{
 		checkbox->setChecked(true);
 	}
-    valueSpin->setValue(m_model->defaultDuration());
+	valueSpin->setValue(m_model->defaultDuration().msec());
 
 	lay->addWidget(checkbox, 0, 0);
 	lay->addWidget(new QLabel{tr("Min duration")}, 1, 0);
@@ -171,7 +171,7 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
 	emit m_parent->submitCommand(cmd);
 }
 
-void DurationSectionWidget::on_defaultDurationChanged(int dur)
+void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)
 {
 //	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
 }

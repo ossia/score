@@ -34,7 +34,7 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 	auto cst = scenar->constraint(m_constraintId);
 	m_oldHeightPosition = cst->heightPercentage();
-	m_oldX = cst->startDate();
+	m_oldX = cst->startDate().msec();
 }
 
 void MoveConstraint::undo()
