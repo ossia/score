@@ -41,6 +41,8 @@ namespace Scenario
                 ObjectPath m_processPath;
 				QString m_processName;
 
+                bool m_existingBox{};
+
                 id_type<ProcessSharedModelInterface> m_processId{};
                 id_type<BoxModel> m_createdBoxId{};
                 id_type<DeckModel> m_createdDeckId{};

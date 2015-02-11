@@ -73,12 +73,12 @@ bool ResizeConstraint::mergeWith(const QUndoCommand* other)
 
 void ResizeConstraint::serializeImpl(QDataStream& s) const
 {
-	s << m_cmd->serialize();
+    s << m_cmd->serialize() << m_oldEndDate;
 }
 
 void ResizeConstraint::deserializeImpl(QDataStream& s)
 {
 	QByteArray b;
-	s >> b;
+    s >> b >> m_oldEndDate;
 	m_cmd->deserialize(b);
 }
