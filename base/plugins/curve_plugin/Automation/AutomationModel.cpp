@@ -11,6 +11,15 @@ AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
 	addPoint(1, 1);
 }
 
+ProcessSharedModelInterface *AutomationModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
+{
+	auto autom = new AutomationModel{newId, newParent};
+	autom->setAddress(address());
+	autom->setPoints(QMap<double, double>{points()});
+
+	return autom;
+}
+
 QString AutomationModel::processName() const
 {
 	return "Automation";

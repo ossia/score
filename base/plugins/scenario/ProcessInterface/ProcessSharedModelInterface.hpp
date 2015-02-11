@@ -13,6 +13,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 {
 	public:
 		using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
+		virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
 
 		/**
 		 * @brief processName
@@ -36,7 +37,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 														 void* data,
 														 QObject* parent) = 0;
 
-		// "Copy" factory
+		// "Copy" factory. TODO replace by clone methode on PVM ?
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
 														 const ProcessViewModelInterface* source,
 														 QObject* parent) = 0;

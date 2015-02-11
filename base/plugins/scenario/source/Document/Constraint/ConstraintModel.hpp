@@ -53,6 +53,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 						id_type<AbstractConstraintViewModel> fullViewId,
 						double yPos,
 						QObject* parent);
+
+		// Copy
+		ConstraintModel(ConstraintModel* source,
+						id_type<ConstraintModel> id,
+						QObject* parent);
 		~ConstraintModel();
 
 		template<typename DeserializerVisitor>

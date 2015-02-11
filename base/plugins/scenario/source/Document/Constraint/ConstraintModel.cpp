@@ -29,10 +29,46 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 	metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
 }
 
-ConstraintModel::ConstraintModel(id_type<ConstraintModel> id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject *parent):
+ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
+								 id_type<AbstractConstraintViewModel> fullViewId,
+								 double yPos,
+								 QObject *parent):
 	ConstraintModel{id, fullViewId, parent}
 {
 	setHeightPercentage(yPos);
+}
+
+ConstraintModel::ConstraintModel(ConstraintModel *source,
+								 id_type<ConstraintModel> id,
+								 QObject *parent):
+	IdentifiedObject<ConstraintModel>{id, "ConstraintModel", parent},
+	m_timeBox{new OSSIA::TimeBox}
+{
+	metadata = source->metadata;
+	for(auto& box : source->boxes())
+	{
+		addBox(new BoxModel{box, box->id(), this});
+	}
+
+	for(auto& process : source->processes())
+	{
+		addProcess(process->clone(process->id(), this));
+	}
+
+	// NOTE : we do not copy the view models on which this constraint does not have ownership,
+	// this is the job of a command.
+	// However, the full view constraint must be copied.
+
+	m_fullViewModel = source->fullView()->clone(source->fullView()->id(), this, this);
+
+	m_startEvent = source->startEvent();
+	m_endEvent = source->endEvent();
+
+	m_defaultDuration = source->defaultDuration();
+	m_minDuration = source->minDuration();
+	m_maxDuration = source->maxDuration();
+	m_x = source->m_x;
+	m_heightPercentage = source->heightPercentage();
 }
 
 ConstraintModel::~ConstraintModel()
@@ -127,7 +163,7 @@ void ConstraintModel::setEndEvent(id_type<EventModel> e)
 	m_endEvent = e;
 }
 
-BoxModel*ConstraintModel::box(id_type<BoxModel> id) const
+BoxModel* ConstraintModel::box(id_type<BoxModel> id) const
 {
 	return findById(m_boxes, id);
 }

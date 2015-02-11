@@ -25,6 +25,10 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 									ConstraintModel* model,
 									QObject* parent);
 
+		virtual TemporalConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
+												   ConstraintModel* cm,
+												   QObject* parent) override;
+
 		template<typename DeserializerVisitor>
 		TemporalConstraintViewModel(DeserializerVisitor&& vis,
 									ConstraintModel* model,

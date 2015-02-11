@@ -10,3 +10,13 @@ FullViewConstraintViewModel::FullViewConstraintViewModel(id_type<AbstractConstra
 {
 
 }
+
+FullViewConstraintViewModel* FullViewConstraintViewModel::clone(id_type<AbstractConstraintViewModel> id,
+																ConstraintModel* cm,
+																QObject* parent)
+{
+	auto cstr = new FullViewConstraintViewModel{id, cm, parent};
+	cstr->showBox(this->shownBox());
+
+	return cstr;
+}

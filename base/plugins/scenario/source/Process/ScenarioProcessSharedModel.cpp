@@ -25,6 +25,23 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedMode
 	//m_events.push_back(new EventModel(1, this));
 }
 
+ProcessSharedModelInterface *ScenarioProcessSharedModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
+{
+	auto scenario = new ScenarioProcessSharedModel{newId, newParent};
+	for(ConstraintModel* constraint : m_constraints)
+	{
+		scenario->addConstraint(new ConstraintModel{constraint, constraint->id(), scenario});
+	}
+	std::vector<ConstraintModel*> m_constraints;
+	std::vector<EventModel*> m_events;
+	std::vector<TimeNodeModel*> m_timeNodes;
+
+	id_type<EventModel> m_startEventId{};
+	id_type<EventModel> m_endEventId{};
+
+	return scenario;
+}
+
 ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
 {
 	//if(m_scenario) delete m_scenario;

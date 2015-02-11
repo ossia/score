@@ -20,6 +20,8 @@ class AutomationModel : public ProcessSharedModelInterface
 
 	public:
 		AutomationModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+		virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+												   QObject* newParent) override;
 
 		template<typename Impl>
 		AutomationModel(Deserializer<Impl>& vis, QObject* parent):

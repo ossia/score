@@ -10,3 +10,13 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(id_type<AbstractConstra
 {
 
 }
+
+TemporalConstraintViewModel* TemporalConstraintViewModel::clone(id_type<AbstractConstraintViewModel> id,
+																ConstraintModel* cm,
+																QObject* parent)
+{
+	auto cstr = new TemporalConstraintViewModel{id, cm, parent};
+	cstr->showBox(this->shownBox());
+
+	return cstr;
+}

@@ -27,9 +27,10 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(const Tempora
 {
 	for(TemporalConstraintViewModel* constraint : constraintsViewModels(*source))
 	{
-		// TODO Make a proper copy if necessary
 		// TODO some room for optimization here
-		makeConstraintViewModel(constraint->model()->id(), constraint->id());
+		addConstraintViewModel(constraint->clone(constraint->id(),
+												 constraint->model(),
+												 this));
 	}
 }
 
