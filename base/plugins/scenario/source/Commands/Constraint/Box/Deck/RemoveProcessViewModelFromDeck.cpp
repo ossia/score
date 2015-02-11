@@ -15,6 +15,17 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck():
 {
 }
 
+RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath &&pvmPath):
+	SerializableCommand{"ScenarioControl",
+						"RemoveProcessViewModelFromDeck",
+						QObject::tr("Remove process view")}
+{
+	auto deckPath = pvmPath.vec();
+	auto lastId = deckPath.takeLast();
+	m_path = ObjectPath{std::move(deckPath)};
+	m_processViewId = id_type<ProcessViewModelInterface>(lastId.id());
+}
+
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 										ObjectPath&& boxPath,
 										id_type<ProcessViewModelInterface> processViewId):

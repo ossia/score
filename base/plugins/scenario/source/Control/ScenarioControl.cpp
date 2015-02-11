@@ -1,6 +1,8 @@
 #include "ScenarioControl.hpp"
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
+#include "Commands/Constraint/Box/Deck/CopyProcessViewModel.hpp"
+#include "Commands/Constraint/Box/Deck/MoveProcessViewModel.hpp"
 #include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"

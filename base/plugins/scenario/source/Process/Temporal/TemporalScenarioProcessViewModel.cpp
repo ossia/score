@@ -25,10 +25,11 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(const Tempora
 									 model,
 									 parent}
 {
-	qDebug() << Q_FUNC_INFO << "TODO : Copy constraints";
-	for(auto& constraint : source->constraints())
+	for(TemporalConstraintViewModel* constraint : constraintsViewModels(*source))
 	{
-		//qDebug() << Q_FUNC_INFO << "TODO : Copy constraints";
+		// TODO Make a proper copy if necessary
+		// TODO some room for optimization here
+		makeConstraintViewModel(constraint->model()->id(), constraint->id());
 	}
 }
 
@@ -38,11 +39,10 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(id_type<Constrain
 {
 	auto constraint_model = model(this)->constraint(constraintModelId);
 
-
 	auto constraint_view_model =
 			constraint_model->makeConstraintViewModel<constraint_view_model_type>(
-									 constraintViewModelId,
-									 this);
+				constraintViewModelId,
+				this);
 
 	addConstraintViewModel(constraint_view_model);
 }

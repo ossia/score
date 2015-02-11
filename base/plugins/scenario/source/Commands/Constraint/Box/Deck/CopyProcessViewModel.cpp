@@ -39,7 +39,9 @@ void CopyProcessViewModel::redo()
 
 	auto proc = sourcePVM->sharedProcessModel();
 	targetDeck->addProcessViewModel(
-				proc->makeViewModel(m_newProcessViewModelId, sourcePVM, targetDeck));
+					proc->makeViewModel(m_newProcessViewModelId,
+										sourcePVM,
+										targetDeck));
 }
 
 int CopyProcessViewModel::id() const
@@ -54,8 +56,10 @@ bool CopyProcessViewModel::mergeWith(const QUndoCommand* other)
 
 void CopyProcessViewModel::serializeImpl(QDataStream& s)
 {
+	s << m_pvmPath << m_targetDeckPath << m_newProcessViewModelId;
 }
 
 void CopyProcessViewModel::deserializeImpl(QDataStream& s)
 {
+	s >> m_pvmPath >> m_targetDeckPath >> m_newProcessViewModelId;
 }

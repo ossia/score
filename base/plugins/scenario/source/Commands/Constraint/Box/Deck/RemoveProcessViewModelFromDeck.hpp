@@ -16,6 +16,8 @@ namespace Scenario
 		{
 			public:
 				RemoveProcessViewModelFromDeck();
+
+				RemoveProcessViewModelFromDeck(ObjectPath&& pvmPath);
 				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);
 
 				virtual void undo() override;
