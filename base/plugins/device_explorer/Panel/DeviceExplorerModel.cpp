@@ -313,7 +313,7 @@ void DeviceExplorerModel::addDevice(const QList<QString> &deviceSettings)
 	beginInsertRows(parent, row, row);
 
 	//TODO: contact MainWindow or Model to get/build/explore hierarchy from these settings
-	Node *node = new Node(deviceName, m_rootNode);
+	Node *node = new Node(deviceSettings, deviceName, m_rootNode);
 	{
 		//DEBUG: arbitrary population of the tree
 

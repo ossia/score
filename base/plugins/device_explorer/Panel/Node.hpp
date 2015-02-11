@@ -2,6 +2,7 @@
 #include <QString>
 #include <QList>
 #include <QJsonObject>
+#include <QStringList>
 
 class Node
 {
@@ -11,7 +12,11 @@ class Node
 
 		typedef enum {Invalid, In, Out, InOut} IOType;
 
-		Node(const QString &name = QString(), Node *parent = nullptr);
+		Node(const QString &name = QString(),
+			 Node *parent = nullptr);
+		Node(const QList<QString>& devices,
+			 const QString &name = QString(),
+			 Node *parent = nullptr);
 
 		~Node();
 
@@ -47,6 +52,7 @@ class Node
 
 		bool isEditable() const;
 		bool isDevice() const;
+		const QStringList& deviceSettings() const;
 		Node *clone() const;
 
 
@@ -59,6 +65,8 @@ class Node
 		unsigned int m_priority;
 		Node *m_parent;
 		QList<Node *> m_children;
+
+		QStringList m_deviceSettings;
 };
 
 QJsonObject nodeToJson(const Node* n);
