@@ -35,8 +35,6 @@ QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 	QModelIndex index = m;
 	QString txt;
 
-	// Convert to address
-	// TODO put this in its own function
 	while(index.isValid())
 	{
 		txt.prepend(QString("/%1")
