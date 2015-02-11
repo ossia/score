@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
-#include "Document/Constraint/ConstraintModelMetadata.hpp"
+#include "Document/ModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
 
 #include <QColor>
@@ -44,7 +44,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 				   NOTIFY maxDurationChanged)
 
 	public:
-		ConstraintModelMetadata metadata;
+        ModelMetadata metadata;
 
 		ConstraintModel(id_type<ConstraintModel>,
 						id_type<AbstractConstraintViewModel> fullViewId,

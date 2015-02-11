@@ -6,22 +6,23 @@
 
 
 
-QDataStream& operator<<(QDataStream& s, const ConstraintModelMetadata& m)
+QDataStream& operator<<(QDataStream& s, const ModelMetadata& m)
 {
-	s << m.name() << m.comment() << m.color();
+    s << m.name() << m.comment() << m.color() << m.label();
 
 	return s;
 }
 
-QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
+QDataStream& operator>>(QDataStream& s, ModelMetadata& m)
 {
-	QString name, comment;
+    QString name, comment, label;
 	QColor color;
-	s >> name >> comment >> color;
+    s >> name >> comment >> color >> label;
 
 	m.setName(name);
-	m.setComment(comment);
+    m.setComment(comment);
 	m.setColor(color);
+    m.setLabel(label);
 
 	return s;
 }
@@ -160,7 +161,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
-	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
+    constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ModelMetadata>();
 	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
 	constraint.setStartEvent(fromJsonObject<id_type<EventModel>>(m_obj["StartEvent"].toObject()));
 	constraint.setEndEvent(fromJsonObject<id_type<EventModel>>(m_obj["EndEvent"].toObject()));

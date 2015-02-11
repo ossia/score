@@ -3,12 +3,12 @@
 #include <QColor>
 
 /**
- * @brief The ConstraintModelMetadata class
+ * @brief The ModelMetadata class
  *
  * Metadata for the constraint, in order to make ConstraintModel lighter
  *
  */
-class ConstraintModelMetadata : public QObject
+class ModelMetadata : public QObject
 {
 		Q_OBJECT
 		Q_PROPERTY(QString name
@@ -26,9 +26,14 @@ class ConstraintModelMetadata : public QObject
 				   WRITE setColor
 				   NOTIFY colorChanged)
 
+        Q_PROPERTY(QString label
+                   READ label
+                   WRITE setLabel
+                   NOTIFY labelChanged)
+
 	public:
-		ConstraintModelMetadata() = default;
-		ConstraintModelMetadata(const ConstraintModelMetadata& other):
+        ModelMetadata() = default;
+        ModelMetadata(const ModelMetadata& other):
 			QObject{}
 		{
 			setName(other.name());
@@ -36,7 +41,7 @@ class ConstraintModelMetadata : public QObject
 			setColor(other.color());
 		}
 
-		ConstraintModelMetadata& operator=(const ConstraintModelMetadata& other)
+        ModelMetadata& operator=(const ModelMetadata& other)
 		{
 			setName(other.name());
 			setComment(other.comment());
@@ -47,22 +52,27 @@ class ConstraintModelMetadata : public QObject
 
 		QString name() const;
 		QString comment() const;
-		QColor color() const;
+		QColor color() const;        
+        QString label() const;
 
-	signals:
+signals:
 		void nameChanged(QString arg);
 		void commentChanged(QString arg);
-		void colorChanged(QColor arg);
+		void colorChanged(QColor arg);        
+        void labelChanged(QString arg);
 
-	public slots:
+public slots:
 		void setName(QString arg);
 		void setComment(QString arg);
-		void setColor(QColor arg);
+		void setColor(QColor arg);        
+        void setLabel(QString arg);
 
-	private:
-		QString m_name;
-		QString m_comment;
+
+private:
+        QString m_scriptingName;
+        QString m_comment;
 		QColor m_color;
+        QString m_label;
 };
 
-Q_DECLARE_METATYPE(ConstraintModelMetadata)
+Q_DECLARE_METATYPE(ModelMetadata)

@@ -61,9 +61,9 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
     // DEMO
     if (timeNode)
 	{
-        setName (timeNode->name() );
-//		setColor (timeNode->color() );
-//		setComments (timeNode->comment() );
+        setName (timeNode->metadata.name() );
+//		setColor (timeNode->metadata.color() );
+//		setComments (timeNode->metadata.comment() );
 
         m_date->setText(QString::number(m_timeNodeModel->date()));
         for(id_type<EventModel> event : timeNode->events())

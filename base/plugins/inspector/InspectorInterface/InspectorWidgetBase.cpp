@@ -29,7 +29,6 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	nameLine->setObjectName ("ElementName");
 
 	nameLayout->addWidget (_objectName);
-	nameLayout->addStretch();
 	nameLine->setLayout (nameLayout);
 
 	// color
@@ -40,7 +39,6 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	_colorButton->setIcon (QIcon (_colorButtonPixmap) );
 
 	nameLayout->addWidget (_colorButton);
-	nameLayout->addStretch(1);
 
 	// scroll Area
 	_scrollAreaLayout = new QVBoxLayout;
