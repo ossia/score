@@ -71,10 +71,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 			return viewmodel;
 		}
 
+		// Note : the Constraint does not have ownership (it's generally the Deck)
 		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
-		void createProcess(QString processName, id_type<ProcessSharedModelInterface> processId);
 		void addProcess(ProcessSharedModelInterface*);
 		void removeProcess(id_type<ProcessSharedModelInterface> processId);
 

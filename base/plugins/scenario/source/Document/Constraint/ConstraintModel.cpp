@@ -4,9 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include "ProcessInterface/ProcessList.hpp"
 #include <tools/utilsCPP11.hpp>
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <API/Headers/Editor/TimeBox.h>
@@ -62,14 +60,6 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 }
 
 //// Complex commands
-void ConstraintModel::createProcess(QString processName, id_type<ProcessSharedModelInterface> processId)
-{
-	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
-	addProcess(model);
-}
-
-
-
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
