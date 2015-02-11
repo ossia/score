@@ -8,11 +8,13 @@ using namespace Scenario::Command;
 void AggregateCommand::undo()
 {
 	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-	for(auto& cmd_pack : m_serializedCommands)
+
+
+	for(int i = m_serializedCommands.size() - 1; i >= 0; --i)
 	{
-		auto cmd = presenter->instantiateUndoCommand(cmd_pack.first.first,
-													 cmd_pack.first.second,
-													 cmd_pack.second);
+		auto cmd = presenter->instantiateUndoCommand(m_serializedCommands[i].first.first,
+													 m_serializedCommands[i].first.second,
+													 m_serializedCommands[i].second);
 
 		cmd->undo();
 	}

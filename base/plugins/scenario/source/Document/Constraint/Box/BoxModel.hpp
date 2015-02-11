@@ -7,12 +7,23 @@
 class ConstraintModel;
 class DeckModel;
 class ProcessSharedModelInterface;
+
+/**
+ * @brief The BoxModel class
+ *
+ * A Box is a deck container.
+ * A Box is always found in a Constraint.
+ */
 class BoxModel : public IdentifiedObject<BoxModel>
 {
 	Q_OBJECT
 
 	public:
 		BoxModel(id_type<BoxModel> id, QObject* parent);
+
+		// Copy
+		BoxModel(BoxModel* source, id_type<BoxModel> id, QObject* parent);
+
 		template<typename Impl>
 		BoxModel(Deserializer<Impl>& vis, QObject* parent):
 			IdentifiedObject<BoxModel>{vis, parent}
@@ -22,6 +33,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
 
 		virtual ~BoxModel() = default;
 
+		ConstraintModel* constraint() const;
 		// TODO this should take the position in parameter
 		void addDeck(DeckModel* m);
 

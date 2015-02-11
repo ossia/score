@@ -13,6 +13,20 @@ BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent):
 
 }
 
+BoxModel::BoxModel(BoxModel *source, id_type<BoxModel> id, QObject *parent):
+	IdentifiedObject<BoxModel>{id, "BoxModel", parent}
+{
+	for(auto& deck : source->m_decks)
+	{
+		addDeck(new DeckModel{deck, deck->id(), this});
+	}
+}
+
+ConstraintModel* BoxModel::constraint() const
+{
+	return static_cast<ConstraintModel*>(this->parent());
+}
+
 void BoxModel::addDeck(DeckModel* deck)
 {
 	// Reordering : if deck is inserted at position x, what was at x goes at x+1.
