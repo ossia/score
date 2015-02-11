@@ -8,6 +8,8 @@ class ConstraintModel;
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
+// TODO with composition instead of inheritance it would maybe be cleaner
+// and allow us to use "traditional" copy ctors instead ?
 class DeckModel : public IdentifiedObject<DeckModel>
 {
 	Q_OBJECT
@@ -19,6 +21,9 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
 	public:
 		DeckModel(int position, id_type<DeckModel> id, BoxModel* parent);
+
+		// Copy
+		DeckModel(DeckModel* source, id_type<DeckModel> id, BoxModel* parent);
 
 		template<typename Impl>
 		DeckModel(Deserializer<Impl>& vis, QObject* parent):
@@ -51,6 +56,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
 		ConstraintModel* parentConstraint() const;
 
 		int height() const;
+		// TODO put the position in the box.
 		int position() const;
 		id_type<ProcessViewModelInterface> editedProcessViewModel() const
 		{ return m_editedProcessViewModelId; }

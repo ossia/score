@@ -14,6 +14,7 @@ namespace Scenario
 		 *
 		 * Copy a process view from a Deck to another.
 		 * Note : this must be in the same constraint.
+		 * Note : there cannot be two Process View Models of the same Process in the same Deck.
 		 */
 		class CopyProcessViewModel : public iscore::SerializableCommand
 		{

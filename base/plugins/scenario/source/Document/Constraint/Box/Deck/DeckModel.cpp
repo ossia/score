@@ -16,6 +16,23 @@ DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
 {
 }
 
+DeckModel::DeckModel(DeckModel *source, id_type<DeckModel> id, BoxModel *parent):
+	IdentifiedObject<DeckModel>{id, "DeckModel", parent},
+	m_editedProcessViewModelId{source->editedProcessViewModel()}, // Keep the same id.
+	m_height{source->height()},
+	m_position{0}
+{
+	for(ProcessViewModelInterface* pvm : source->processViewModels())
+	{
+		// We can safely reuse the same id since it's in a different deck.
+		auto proc = pvm->sharedProcessModel();
+		addProcessViewModel(
+						proc->makeViewModel(pvm->id(),
+											pvm,
+											this));
+	}
+}
+
 void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 {
 	m_processViewModels.push_back(viewmodel);

@@ -14,6 +14,17 @@ RemoveDeckFromBox::RemoveDeckFromBox():
 {
 }
 
+RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath &&deckPath):
+	SerializableCommand{"ScenarioControl",
+						"RemoveProcessViewModelFromDeck",
+						QObject::tr("Remove process view")}
+{
+	auto boxPath = deckPath.vec();
+	auto lastId = boxPath.takeLast();
+	m_path = ObjectPath{std::move(boxPath)};
+	m_deckId = id_type<DeckModel>(lastId.id());
+}
+
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId):
 	SerializableCommand{"ScenarioControl",
 						"RemoveDeckFromBox",

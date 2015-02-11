@@ -22,8 +22,8 @@ class BoxModel : public IdentifiedObject<BoxModel>
 
 		virtual ~BoxModel() = default;
 
-		id_type<DeckModel> createDeck(id_type<DeckModel> newDeckId);
-		id_type<DeckModel> addDeck(DeckModel* m);
+		// TODO this should take the position in parameter
+		void addDeck(DeckModel* m);
 
 		void removeDeck(id_type<DeckModel> deckId);
 		void changeDeckOrder(id_type<DeckModel> deckId, int position);

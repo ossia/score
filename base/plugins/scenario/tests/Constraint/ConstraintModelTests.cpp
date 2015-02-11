@@ -25,12 +25,14 @@ class ConstraintModelTests: public QObject
 			ConstraintModel model{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
 			auto content_id = getStrongId(model.boxes());
 			model.createBox(content_id);
-			auto content = model.box(content_id);
-			QVERIFY(content != nullptr);
+			auto box = model.box(content_id);
+			QVERIFY(box != nullptr);
 
-			auto deck_id = getStrongId(content->decks());
-			content->createDeck(deck_id);
-			auto deck = content->deck(deck_id);
+			auto deck_id = getStrongId(box->decks());
+			box->addDeck(new DeckModel{(int) box->decks().size(),
+									   deck_id,
+									   box});
+			auto deck = box->deck(deck_id);
 			QVERIFY(deck != nullptr);
 		}
 
@@ -41,11 +43,13 @@ class ConstraintModelTests: public QObject
 				ConstraintModel model{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
 				auto content_id = getStrongId(model.boxes());
 				model.createBox(content_id);
-				auto content = model.box(content_id);
+				auto box = model.box(content_id);
 
-				auto deck_id = getStrongId(content->decks());
-				content->createDeck(deck_id);
-				content->removeDeck(deck_id);
+				auto deck_id = getStrongId(box->decks());
+				box->addDeck(new DeckModel{(int) box->decks().size(),
+										   deck_id,
+										   box});
+				box->removeDeck(deck_id);
 				model.removeBox(content_id);
 			}
 
@@ -55,11 +59,20 @@ class ConstraintModelTests: public QObject
 									  id_type<AbstractConstraintViewModel>{0}, this};
 				auto content_id = getStrongId(model.boxes());
 				model.createBox(content_id);
-				auto content = model.box(content_id);
+				auto box = model.box(content_id);
 
-				content->createDeck(getStrongId(content->decks()));
-				content->createDeck(getStrongId(content->decks()));
-				content->createDeck(getStrongId(content->decks()));
+				box->addDeck(new DeckModel{(int) box->decks().size(),
+										   getStrongId(box->decks()),
+										   box});
+
+				box->addDeck(new DeckModel{(int) box->decks().size(),
+										   getStrongId(box->decks()),
+										   box});
+
+				box->addDeck(new DeckModel{(int) box->decks().size(),
+										   getStrongId(box->decks()),
+										   box});
+
 				model.removeBox(content_id);
 			}
 		}

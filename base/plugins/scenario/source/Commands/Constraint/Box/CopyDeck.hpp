@@ -2,22 +2,26 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
+#include <tests/helpers/ForwardDeclaration.hpp>
+
 class DeckModel;
 namespace Scenario
 {
 	namespace Command
 	{
 		/**
-		 * @brief The RemoveDeckFromBox class
+		 * @brief The CopyProcessViewModel class
 		 *
-		 * Removes a deck. All the function views will be deleted.
+		 * Copy a deck, in any Box of its parent constraint.
+		 * The process view models are recursively copied.
 		 */
-		class RemoveDeckFromBox : public iscore::SerializableCommand
+		class CopyDeck : public iscore::SerializableCommand
 		{
+#include <tests/helpers/FriendDeclaration.hpp>
 			public:
-				RemoveDeckFromBox();
-				RemoveDeckFromBox(ObjectPath&& deckPath);
-				RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId);
+				CopyDeck();
+				CopyDeck(ObjectPath&& deckToCopy,
+						 ObjectPath&& targetBoxPath);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -29,10 +33,10 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_path;
-				id_type<DeckModel> m_deckId{};
+				ObjectPath m_deckPath;
+				ObjectPath m_targetBoxPath;
 
-				QByteArray m_serializedDeckData; // Should be done in the constructor
+				id_type<DeckModel> m_newDeckId;
 		};
 	}
 }
