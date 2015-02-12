@@ -12,14 +12,14 @@ QRectF AutomationView::boundingRect() const
 {
 	auto pr = parentItem()->boundingRect();
 	return {0, 0,
-			pr.width()  - 2 * 5,
-			pr.height() - 2 * 5};
+		pr.width(),
+				pr.height()};
 }
 
 
 void AutomationView::paint(QPainter* painter,
-								const QStyleOptionGraphicsItem* option,
-								QWidget* widget)
+						   const QStyleOptionGraphicsItem* option,
+						   QWidget* widget)
 {
 
 }

@@ -97,9 +97,12 @@ void PluginCurveGrid::updateMagnetPoints()
 	qreal paintStepY = qAbs (_pMap->scaleToPaint (QPointF (0, stepY) ).y() - _pMap->scaleToPaint (QPointF (0, 0) ).y() );
 	qreal paintStepX = _pMap->scaleToPaint (QPointF (stepX, 0) ).x() - _pMap->scaleToPaint (QPointF (0, 0) ).x();
 
-	for (x = firstPoint.x(); x <= paintRect.x() + paintRect.width(); x += paintStepX)
+	if(paintStepX > 0)
 	{
-		magnetPointX.append (x);
+		for (x = firstPoint.x(); x <= paintRect.x() + paintRect.width(); x += paintStepX)
+		{
+			magnetPointX.append (x);
+		}
 	}
 
 	if(paintStepY > 0)

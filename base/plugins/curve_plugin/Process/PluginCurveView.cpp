@@ -94,8 +94,8 @@ QRectF PluginCurveView::boundingRect() const
 	else
 	{
 		auto p_rect = parentItem()->boundingRect();
-		QRectF rect = { p_rect.x() + 5, p_rect.y() + 5,
-						p_rect.width() - 10, p_rect.height() - 10};
+		QRectF rect = { p_rect.x(), p_rect.y(),
+						p_rect.width(), p_rect.height()};
 		return mapFromParent ( rect ).boundingRect();
 	}
 }
