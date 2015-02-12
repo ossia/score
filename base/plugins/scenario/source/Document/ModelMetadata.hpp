@@ -71,7 +71,7 @@ public slots:
 private:
         QString m_scriptingName;
         QString m_comment;
-		QColor m_color;
+        QColor m_color{Qt::gray};
         QString m_label;
 };
 

@@ -16,6 +16,7 @@
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include "Inspector/MetadataWidget.hpp"
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include <InspectorControl.hpp>
 
@@ -46,7 +47,7 @@ class Separator : public QFrame
 
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
-	InspectorWidgetBase (parent)
+    InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
 	m_currentConstraint = object;
@@ -89,6 +90,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	updateSectionsView (areaLayout(), m_properties);
 	areaLayout()->addStretch(1);
 
+    // metadata
+    m_metadata = new MetadataWidget(&object->model()->metadata);
+    m_metadata->setType("Constraint");
+    addHeader(m_metadata);
+
 	updateDisplayedValues(object);
 }
 
@@ -122,14 +128,14 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 	if (constraint != nullptr)
 	{
 		m_currentConstraint = constraint;
-
+/*
 		// Constraint settings
 		setName (model()->metadata.name() );
 		setColor (model()->metadata.color() );
 		setComments (model()->metadata.comment() );
 		setInspectedObject (m_currentConstraint);
 		changeLabelType ("Constraint");
-
+*/
 		// Constraint interface
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::processCreated,

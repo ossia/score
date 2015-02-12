@@ -25,7 +25,7 @@ AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automatio
 	setObjectName ("AutomationInspectorWidget");
 	setParent(parent);
 
-	std::vector<QWidget*> vec;
+    QVector<QWidget*> vec;
 
 	auto widg = new QWidget;
     auto vlay = new QVBoxLayout{widg};

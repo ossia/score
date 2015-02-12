@@ -4,6 +4,7 @@
 class TimeNodeModel;
 
 class QFormLayout;
+class MetadataWidget;
 
 /*!
  * \brief The TimeNodeInspectorWidget class
@@ -23,11 +24,13 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         void updateInspector();
 
 	private:
-		std::vector<QWidget*> m_properties;
+        QVector<QWidget*> m_properties;
         std::vector<QLabel*> m_events;
 
 		TimeNodeModel* m_timeNodeModel{};
 
         InspectorSectionWidget* m_eventList{};
         QLabel* m_date{};
+
+        MetadataWidget* m_metadata{};
 };
