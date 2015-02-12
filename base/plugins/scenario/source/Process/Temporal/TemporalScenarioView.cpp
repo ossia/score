@@ -26,11 +26,13 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent):
 
 QRectF TemporalScenarioView::boundingRect() const
 {
+	// TODO ne plus faire comme ça mais avoir setWidth / setHeight.
 	auto pr = parentItem()->boundingRect();
 
-    if (pr.isValid()) 	return {0, 0,
-			pr.width()  - 2 * DEMO_PIXEL_SPACING_TEST,
-			pr.height() - 2 * DEMO_PIXEL_SPACING_TEST};
+	if (pr.isValid())
+		return {0, 0,
+			pr.width(),
+			pr.height()};
     else
         return {0,0,1,1};
 }
@@ -40,8 +42,6 @@ void TemporalScenarioView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {
-	painter->drawText(boundingRect(), "Scenario");
-
 	if(isSelected())
 	{
 		painter->setPen(Qt::blue);

@@ -22,7 +22,9 @@ void AddressBar::setTargetObject(ObjectPath&& path)
 	for(auto& identifier : m_currentPath)
 	{
 		auto lab = new ClickableLabel{QString{"%1%2"}.arg(identifier.objectName())
-													  .arg(identifier.id() ? "." + QString::number(*identifier.id()) : ""), this};
+													 .arg(identifier.id() ? "." + QString::number(*identifier.id()) :
+																			""),
+									  this};
 		connect(lab, SIGNAL(clicked(ClickableLabel*)),
 				this, SLOT(on_elementClicked(ClickableLabel*)));
 

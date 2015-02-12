@@ -3,17 +3,16 @@
 ClickableLabel::ClickableLabel(QString text, QWidget* parent):
 	QLabel{text, parent}
 {
-	setStyleSheet("QLabel { color: blue }");
 }
 
 void ClickableLabel::enterEvent(QEvent*)
 {
-	setStyleSheet("QLabel { color: blue; text-decoration: underline; }");
+	setStyleSheet("QLabel { text-decoration: underline; }");
 }
 
 void ClickableLabel::leaveEvent(QEvent*)
 {
-	setStyleSheet("QLabel { color: blue; }");
+	setStyleSheet("QLabel { }");
 }
 
 void ClickableLabel::mousePressEvent(QMouseEvent* event)

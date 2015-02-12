@@ -43,6 +43,7 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_addressBar{new AddressBar{nullptr}}
 {
 	// Configuration
+	m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark()});
 	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
