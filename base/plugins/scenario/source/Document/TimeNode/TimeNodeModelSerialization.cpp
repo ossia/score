@@ -34,7 +34,7 @@ void Visitor<Reader<JSON>>::readFrom(const TimeNodeModel& timenode)
 
 	m_obj["Top"] = timenode.top();
 	m_obj["Bottom"] = timenode.bottom();
-	m_obj["Date"] = timenode.date();
+	m_obj["Date"] = toJsonObject(timenode.date());
 	m_obj["Y"] = timenode.y();
 	m_obj["Events"] = toJsonArray(timenode.m_events);
 }
@@ -44,7 +44,7 @@ void Visitor<Writer<JSON>>::writeTo(TimeNodeModel& timenode)
 {
 	timenode.m_topY = m_obj["Top"].toDouble();
 	timenode.m_bottomY = m_obj["Bottom"].toDouble();
-	timenode.m_date = m_obj["Date"].toInt();
+	timenode.m_date = fromJsonObject<TimeValue>(m_obj["Date"].toObject());
 	timenode.m_y = m_obj["Y"].toDouble();
 
 	fromJsonArray(m_obj["Events"].toArray(), timenode.m_events);

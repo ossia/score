@@ -6,7 +6,7 @@
 
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
-// TODO NICO #include "Commands/Scenario/ResizeConstraint.hpp"
+#include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
 #include <QCheckBox>
@@ -109,7 +109,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
 				ObjectPath::pathFromObject(
 					"BaseConstraintModel",
 					m_model),
-				val);
+				std::chrono::milliseconds{val});
 	if(!m_minSpinboxEditing)
 	{
 		m_minSpinboxEditing = true;
@@ -128,7 +128,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 				ObjectPath::pathFromObject(
 					"BaseConstraintModel",
 					m_model),
-				val);
+				std::chrono::milliseconds{val});
 	if(!m_maxSpinboxEditing)
 	{
 		m_maxSpinboxEditing = true;
@@ -143,11 +143,11 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
-	/* TODO NICO auto cmd = new ResizeConstraint(
+	auto cmd = new ResizeConstraint(
                 ObjectPath::pathFromObject(
                     "BaseConstraintModel",
                     m_model),
-                val);
+				std::chrono::milliseconds{val});
     if(!m_valueSpinboxEditing)
     {
         m_valueSpinboxEditing = true;
@@ -157,7 +157,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     else
     {
         emit m_parent->continueOngoingCommand(cmd);
-	} */
+	}
 }
 
 void DurationSectionWidget::rigidCheckboxToggled(bool b)

@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -18,7 +19,7 @@ namespace Scenario
 
 			public:
 				SetMaxDuration();
-				SetMaxDuration(ObjectPath&& constraintPath, int duration);
+				SetMaxDuration(ObjectPath&& constraintPath, TimeValue duration);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -32,8 +33,8 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 
-				int m_oldDuration{};
-				int m_newDuration{};
+				TimeValue m_oldDuration{};
+				TimeValue m_newDuration{};
 		};
 	}
 }

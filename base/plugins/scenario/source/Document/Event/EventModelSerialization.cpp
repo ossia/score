@@ -37,7 +37,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 	QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
 	QMap<id_type<ConstraintModel>, double> cstrYPos;
 	double heightPercentage, bottomY, topY;
-	int date;
+	TimeValue date;
 	QString condition;
 	id_type<TimeNodeModel> timenode;
 	m_stream >> prevCstr
@@ -88,7 +88,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 	m_obj["ConstraintsYPos"] = toJsonMap(ev.constraintsYPos());
 	m_obj["BottomY"] = ev.bottomY();
 	m_obj["TopY"] = ev.topY();
-	m_obj["Date"] = ev.date(); // should be in OSSIA API
+	m_obj["Date"] = toJsonObject(ev.date()); // should be in OSSIA API
 	m_obj["Condition"] = ev.condition();
 	m_obj["TimeNode"] = toJsonObject(ev.timeNode());
 
@@ -111,7 +111,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 	ev.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
 	ev.setBottomY(m_obj["BottomY"].toInt());
 	ev.setTopY(m_obj["TopY"].toInt());
-	ev.setDate(m_obj["Date"].toInt());
+	ev.setDate(fromJsonObject<TimeValue>(m_obj["Date"].toObject()));
 	ev.setCondition(m_obj["Condition"].toString());
 	ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>>(m_obj["TimeNode"].toObject()));
 

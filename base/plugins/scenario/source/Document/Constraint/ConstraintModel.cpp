@@ -188,7 +188,7 @@ void ConstraintModel::setStartDate(TimeValue start)
 
 void ConstraintModel::translate(TimeValue deltaTime)
 {
-	m_x.addMSecs(deltaTime.msec());
+	m_x = m_x + deltaTime;
 }
 
 // Simple getters and setters
@@ -235,8 +235,8 @@ void ConstraintModel::setDefaultDuration(TimeValue arg)
 {
 	if (m_defaultDuration != arg)
 	{
-		setMinDuration(minDuration().msec() + (arg.msec() - defaultDuration().msec()));
-		setMaxDuration(maxDuration().msec() + (arg.msec() - defaultDuration().msec()));
+		setMinDuration(minDuration() + (arg - defaultDuration()));
+		setMaxDuration(maxDuration() + (arg - defaultDuration()));
 
 		m_defaultDuration = arg;
 		emit defaultDurationChanged(arg);

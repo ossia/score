@@ -16,12 +16,12 @@ SetMinDuration::SetMinDuration():
 {
 }
 
-SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, int newDuration):
+SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, TimeValue newDuration):
 	SerializableCommand{"ScenarioControl",
 						CMD_NAME,
 						CMD_DESC},
 	m_path{constraintPath},
-	m_oldDuration{m_path.find<ConstraintModel>()->minDuration().msec()},
+	m_oldDuration{m_path.find<ConstraintModel>()->minDuration()},
 	m_newDuration{newDuration}
 {
 }

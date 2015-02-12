@@ -139,6 +139,7 @@ Node*Node::clone() const
 QJsonObject nodeToJson(const Node* n)
 {
 	QJsonObject obj;
+	if(!n) return obj;
 	obj["Name"] = n->name();
 	obj["Value"] = n->value();
 	obj["IOType"] = n->ioType();

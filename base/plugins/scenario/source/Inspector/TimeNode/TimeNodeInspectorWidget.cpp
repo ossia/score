@@ -27,7 +27,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"default date : "};
-    m_date = new QLabel{QString::number(object->date())};
+	m_date = new QLabel{QString::number(object->date().msec())};
 
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
@@ -65,7 +65,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 //		setColor (timeNode->metadata.color() );
 //		setComments (timeNode->metadata.comment() );
 
-        m_date->setText(QString::number(m_timeNodeModel->date()));
+		m_date->setText(QString::number(m_timeNodeModel->date().msec()));
         for(id_type<EventModel> event : timeNode->events())
         {
             auto label = new QLabel{QString::number((*event.val())), this};

@@ -50,11 +50,6 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 {
 	/////// Setup of existing data
 	// For each constraint & event, display' em
-	for(auto constraint_view_model : constraintsViewModels(m_viewModel))
-	{
-		on_constraintCreated_impl(constraint_view_model);
-	}
-
 	for(auto event_model : model(m_viewModel)->events())
 	{
 		on_eventCreated_impl(event_model);
@@ -63,6 +58,11 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 	for(auto tn_model : model(m_viewModel)->timeNodes())
 	{
 		on_timeNodeCreated_impl(tn_model);
+	}
+
+	for(auto constraint_view_model : constraintsViewModels(m_viewModel))
+	{
+		on_constraintCreated_impl(constraint_view_model);
 	}
 	/////// Connections
 	connect(this,	SIGNAL(elementSelected(QObject*)),
@@ -218,13 +218,13 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
 
-	ev->view()->setPos({qreal(ev->model()->date() / m_millisecPerPixel),
+	ev->view()->setPos({qreal(ev->model()->date().msec() / m_millisecPerPixel),
 						rect.height() * ev->model()->heightPercentage()});
 
 	// @todo change when multiple event on a same timeNode
 //	qDebug() << ev->model()->timeNode();
 	auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
-	timeNode->view()->setPos({qreal(timeNode->model()->date() / m_millisecPerPixel),
+	timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_millisecPerPixel),
 							  rect.height() * timeNode->model()->y()});
 
     updateTimeNode(timeNode->id());
@@ -354,7 +354,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
     EventData data{};
     data.eventClickedId = m_events.back()->id();
     data.x = point.x();
-    data.dDate = point.x() * m_millisecPerPixel;
+	data.dDate.setMSecs(point.x() * m_millisecPerPixel);
     data.y = point.y();
     data.relativeY = point.y() /  m_view->boundingRect().height();
     data.scenePos = scenePoint;
@@ -368,7 +368,8 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
             {
                 data.endTimeNodeId = timeNode->id();
                 data.dDate = timeNode->model()->date();
-                data.x = data.dDate / m_millisecPerPixel;
+				data.x = data.dDate.msec() / m_millisecPerPixel;
+				break;
             }
         }
     }
@@ -483,7 +484,7 @@ void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(id_type<EventMo
 
 void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 {
-	data.dDate = data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date();
+	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
@@ -532,7 +533,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 {
-	data.dDate = data.x * m_millisecPerPixel;
+	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -543,7 +544,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 
 void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
 {
-    data.dDate = data.x * m_millisecPerPixel;
+	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
 	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
@@ -571,7 +572,7 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 	auto event_presenter = new EventPresenter{event_model,
 											  event_view,
 											  this};
-	event_view->setPos({rect.x() + event_model->date() / m_millisecPerPixel,
+	event_view->setPos({rect.x() + event_model->date().msec() / m_millisecPerPixel,
 						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
@@ -594,7 +595,7 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
 													timeNode_view,
 													this};
 
-	timeNode_view->setPos({(qreal) (timeNode_model->date() / m_millisecPerPixel),
+	timeNode_view->setPos({(qreal) (timeNode_model->date().msec() / m_millisecPerPixel),
 						   timeNode_model->y() * rect.height()});
 
     m_timeNodes.push_back(timeNode_presenter);

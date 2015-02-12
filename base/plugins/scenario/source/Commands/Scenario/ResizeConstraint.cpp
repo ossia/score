@@ -11,6 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+#include <ProcessInterface/TimeValue.hpp>
 ResizeConstraint::ResizeConstraint():
     SerializableCommand{"ScenarioControl",
                         "ResizeConstraint",
@@ -25,7 +26,7 @@ ResizeConstraint::~ResizeConstraint()
 //	delete m_cmd;
 }
 
-ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, int duration):
+ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration):
 	SerializableCommand{"ScenarioControl",
                         "ResizeConstraint",
                         QObject::tr("Set default duration of constraint")}
@@ -33,11 +34,11 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, int duration):
 
     auto constraint = constraintPath.find<ConstraintModel>();
     EventData endEventData{};
-	endEventData.dDate = constraint->startDate().msec() + duration;
+	endEventData.dDate = constraint->startDate() + duration;
     endEventData.relativeY = constraint->heightPercentage();
     endEventData.eventClickedId = constraint->endEvent();
 
-	m_oldEndDate = constraint->startDate().msec() + constraint->defaultDuration().msec();
+	m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
 
     m_cmd = new MoveEvent{ObjectPath::pathFromObject("BaseConstraintModel", constraint->parent()), endEventData};
 }

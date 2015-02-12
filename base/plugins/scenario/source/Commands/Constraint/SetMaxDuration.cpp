@@ -16,12 +16,12 @@ SetMaxDuration::SetMaxDuration():
 {
 }
 
-SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, int newDuration):
+SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration):
 	SerializableCommand{"ScenarioControl",
 						CMD_NAME,
 						CMD_DESC},
 	m_path{constraintPath},
-	m_oldDuration{m_path.find<ConstraintModel>()->maxDuration().msec()},
+	m_oldDuration{m_path.find<ConstraintModel>()->maxDuration()},
 	m_newDuration{newDuration}
 {
 }

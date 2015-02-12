@@ -6,6 +6,7 @@
 #include <QPointF>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 
 namespace Scenario
 {
@@ -23,7 +24,7 @@ namespace Scenario
 			public:
                 ResizeConstraint();
                 ~ResizeConstraint();
-                ResizeConstraint(ObjectPath&& constraintPath, int duration);
+				ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;
@@ -35,7 +36,7 @@ namespace Scenario
 
 			private:
                 MoveEvent* m_cmd{};
-                int m_oldEndDate{};
+				TimeValue m_oldEndDate{};
         };
 	}
 }

@@ -23,8 +23,8 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid):
 	if(rigid) // it is currently not rigid so min & max are set
 	{
 		auto constraint = m_path.find<ConstraintModel>();
-		m_oldMinDuration = constraint->minDuration().msec();
-		m_oldMaxDuration = constraint->maxDuration().msec();
+		m_oldMinDuration = constraint->minDuration();
+		m_oldMaxDuration = constraint->maxDuration();
 	}
 }
 
@@ -55,9 +55,9 @@ void SetRigidity::redo()
 	else
 	{
 		// TODO find a better default ? (and be careful with min < 0
-		auto percentage = constraint->defaultDuration().msec() * 0.1;
-		constraint->setMinDuration(constraint->defaultDuration().msec() - percentage);
-		constraint->setMaxDuration(constraint->defaultDuration().msec() + percentage);
+		auto percentage = constraint->defaultDuration() * 0.1;
+		constraint->setMinDuration(constraint->defaultDuration() - percentage);
+		constraint->setMaxDuration(constraint->defaultDuration() + percentage);
 	}
 }
 

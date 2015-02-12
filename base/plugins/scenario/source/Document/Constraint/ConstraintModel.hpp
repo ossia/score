@@ -174,7 +174,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_endEvent{};
 
 		// ___ Use TimeValue instead ___
-		TimeValue m_defaultDuration{0, 2, 30}; // 2 minutes
+		TimeValue m_defaultDuration{200ms};
 		TimeValue m_minDuration{m_defaultDuration};
 		TimeValue m_maxDuration{m_defaultDuration};
 

@@ -107,12 +107,12 @@ double EventModel::heightPercentage() const
 	return m_heightPercentage;
 }
 
-int EventModel::date() const
+TimeValue EventModel::date() const
 {
 	return m_date;
 }
 
-void EventModel::setDate(int date)
+void EventModel::setDate(TimeValue date)
 {
 	m_date = date;
 } //TODO ajuster la date avec celle du Timenode
@@ -135,9 +135,9 @@ void EventModel::setBottomY(double val)
 	m_bottomY = val;
 }
 
-void EventModel::translate(int deltaTime)
+void EventModel::translate(TimeValue deltaTime)
 {
-	m_date += deltaTime;
+	m_date = m_date + deltaTime;
 }
 
 void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
