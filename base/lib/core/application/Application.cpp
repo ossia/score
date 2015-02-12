@@ -59,10 +59,10 @@ void Application::loadPluginData()
 		m_settings->setupSettingsPlugin(set);
 
 	for(auto& cmd : m_pluginManager.m_commandList)
-		m_presenter->setupCommand(cmd);
+		m_presenter->registerPluginControl(cmd);
 
 	for(auto& pnl : m_pluginManager.m_panelList)
-		m_presenter->addPanel(pnl);
+		m_presenter->registerPanel(pnl);
 
 	if(!m_pluginManager.m_documentPanelList.empty())
 		m_presenter->setDocumentPanel(m_pluginManager.m_documentPanelList.front());

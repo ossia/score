@@ -26,6 +26,10 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
 									ConstraintModel* model,
 									QObject* parent);
 
+		virtual FullViewConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
+												   ConstraintModel* cm,
+												   QObject* parent) override;
+
 		template<typename DeserializerVisitor>
 		FullViewConstraintViewModel(DeserializerVisitor&& vis,
 									ConstraintModel* model,

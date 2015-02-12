@@ -6,7 +6,7 @@ namespace iscore
 	class PanelModelInterface;
 	class PanelViewInterface;
 	class Presenter;
-	class Model;
+	class DocumentModel;
 	class View;
 
 	/**
@@ -20,8 +20,7 @@ namespace iscore
 			virtual ~PanelFactoryInterface() = default;
 			virtual PanelViewInterface* makeView(View* parent) = 0;
 			virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter,
-														   PanelModelInterface* model,
 														   PanelViewInterface* view) = 0;
-			virtual PanelModelInterface* makeModel(Model* parent) = 0;
+			virtual PanelModelInterface* makeModel(DocumentModel* parent) = 0;
 	};
 }

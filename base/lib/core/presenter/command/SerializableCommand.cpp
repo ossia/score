@@ -1,7 +1,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 using namespace iscore;
 
-QByteArray SerializableCommand::serialize()
+QByteArray SerializableCommand::serialize() const
 {
 	QByteArray arr;
 	{

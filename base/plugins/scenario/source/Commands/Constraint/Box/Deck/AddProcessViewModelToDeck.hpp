@@ -19,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				AddProcessViewModelToDeck();
-				AddProcessViewModelToDeck(ObjectPath&& deckPath, id_type<ProcessSharedModelInterface> sharedModelId);
+				AddProcessViewModelToDeck(ObjectPath&& deck, ObjectPath&& process);
 
 				virtual void undo() override;
 				virtual void redo() override;
@@ -27,13 +27,13 @@ namespace Scenario
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
-				ObjectPath m_path;
+				ObjectPath m_deckPath;
+				ObjectPath m_processPath;
 
-				id_type<ProcessSharedModelInterface> m_sharedModelId{};
 				id_type<ProcessViewModelInterface> m_createdProcessViewId{};
 		};
 	}

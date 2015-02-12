@@ -3,11 +3,13 @@
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
+#include "Document/ModelMetadata.hpp"
+#include <ProcessInterface/TimeValue.hpp>
 
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
-	Q_OBJECT
+		Q_OBJECT
 
 		friend void Visitor<Reader<DataStream>>::readFrom<TimeNodeModel>(const TimeNodeModel& ev);
 		friend void Visitor<Reader<JSON>>::readFrom<TimeNodeModel>(const TimeNodeModel& ev);
@@ -15,8 +17,10 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 		friend void Visitor<Writer<JSON>>::writeTo<TimeNodeModel>(TimeNodeModel& ev);
 
 	public:
+		ModelMetadata metadata;
+
 		TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
-		TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent);
+		TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject *parent);
 		~TimeNodeModel();
 
 		template<typename DeserializerVisitor>
@@ -31,29 +35,30 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
 		double top() const;
 		double bottom() const;
-		int date() const;
+		TimeValue date() const;
 
-        void setDate(int);
+		void setDate(TimeValue);
 
-        bool isEmpty();
+		bool isEmpty();
 
 		double y() const;
 		void setY(double y);
 
-        QVector<id_type<EventModel> > events() const;
-        void setEvents(const QVector<id_type<EventModel> > &events);
+		QVector<id_type<EventModel> > events() const;
+		void setEvents(const QVector<id_type<EventModel> > &events);
 
-signals:
+	signals:
+		void dateChanged();
 
-public slots:
+	public slots:
 
-private:
-        int m_date{0};
-        double m_y{0.0};
+	private:
+		TimeValue m_date{0s};
+		double m_y{0.0};
 
-        QVector<id_type<EventModel>> m_events;
-	
+		QVector<id_type<EventModel>> m_events;
+
 		// @todo : maybe not useful ...
-        double m_topY{0.0};
+		double m_topY{0.0};
 		double m_bottomY{0.0};
 };

@@ -15,7 +15,7 @@ class MovePoint : public iscore::SerializableCommand
 		virtual bool mergeWith(const QUndoCommand* other) override;
 
 	protected:
-		virtual void serializeImpl(QDataStream&) override;
+		virtual void serializeImpl(QDataStream&) const override;
 		virtual void deserializeImpl(QDataStream&) override;
 
 	private:

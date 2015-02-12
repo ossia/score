@@ -25,7 +25,7 @@ class MoveEventTest: public QObject
 			// predecessors ?)
 
             EventData data{};
-            data.dDate = 10;
+			data.dDate.setMSecs(56);
             data.relativeY = 0.1;
 
 			CreateEvent create_ev_cmd(

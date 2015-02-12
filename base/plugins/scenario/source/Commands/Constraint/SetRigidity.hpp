@@ -3,6 +3,7 @@
 #include <tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -26,7 +27,7 @@ namespace Scenario
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
@@ -35,8 +36,8 @@ namespace Scenario
 				bool m_rigidity{};
 
 				// Unused if the constraint was rigid
-				int m_oldMinDuration{};
-				int m_oldMaxDuration{};
+				TimeValue m_oldMinDuration{};
+				TimeValue m_oldMaxDuration{};
 		};
 	}
 }

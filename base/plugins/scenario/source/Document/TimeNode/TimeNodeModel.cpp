@@ -6,10 +6,12 @@ TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, QObject *parent):
 
 }
 
-TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, int date, QObject *parent):
+TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject *parent):
 	TimeNodeModel{id, parent}
 {
 	m_date = date;
+    metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
+    metadata.setLabel("TimeNode");
 }
 
 TimeNodeModel::~TimeNodeModel()
@@ -42,14 +44,15 @@ double TimeNodeModel::bottom() const
 	return m_bottomY;
 }
 
-int TimeNodeModel::date() const
+TimeValue TimeNodeModel::date() const
 {
-	return m_date;
+    return m_date;
 }
 
-void TimeNodeModel::setDate(int date)
+void TimeNodeModel::setDate(TimeValue date)
 {
     m_date = date;
+    emit dateChanged();
 }
 
 bool TimeNodeModel::isEmpty()

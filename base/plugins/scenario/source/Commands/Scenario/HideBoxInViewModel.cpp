@@ -53,7 +53,7 @@ bool HideBoxInViewModel::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void HideBoxInViewModel::serializeImpl(QDataStream& s)
+void HideBoxInViewModel::serializeImpl(QDataStream& s) const
 {
 	s << m_constraintViewModelPath
 	  << m_constraintPreviousId;

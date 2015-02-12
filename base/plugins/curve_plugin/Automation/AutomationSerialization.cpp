@@ -8,7 +8,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 {
-	m_stream << autom.points();
+	m_stream << autom.address() << autom.points();
 
 	insertDelimiter();
 }
@@ -16,7 +16,12 @@ void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
-	m_stream >> autom.points();
+	QString address;
+	QMap<double, double> points;
+	m_stream >> address >> points;
+
+	autom.setAddress(address);
+	autom.setPoints(std::move(points));
 
 	checkDelimiter();
 }
@@ -27,12 +32,14 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 template<>
 void Visitor<Reader<JSON>>::readFrom(const AutomationModel& autom)
 {
+	m_obj["Address"] = autom.address();
 	m_obj["Points"] = toJsonMap(autom.points());
 }
 
 template<>
 void Visitor<Writer<JSON>>::writeTo(AutomationModel& autom)
 {
+	autom.setAddress(m_obj["Address"].toString());
 	autom.setPoints(fromJsonMap<double>(m_obj["Points"].toArray()));
 }
 
@@ -95,4 +102,30 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(SerializationIdentifie
 	}
 
 	throw std::runtime_error("Automation ViewModel only supports DataStream & JSON serialization");
+}
+
+
+
+/////// ViewModel
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const AutomationViewModel& pvm)
+{
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& pvm)
+{
+}
+
+
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const AutomationViewModel& pvm)
+{
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(AutomationViewModel& pvm)
+{
 }

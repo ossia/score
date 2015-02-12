@@ -69,6 +69,11 @@ void BaseElementPresenter::deselectAll()
 	}
 }
 
+QList<QGraphicsItem *> BaseElementPresenter::selectedItems() const
+{
+	return view()->scene()->selectedItems();
+}
+
 void BaseElementPresenter::deleteSelection()
 {
 }
@@ -144,7 +149,7 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
 	// Else positionSliderMax is such that max = 3% more.
 
 	int val = view()->positionSlider()->value();
-	auto newMax = model()->constraintModel()->defaultDuration() / secondsPerPixel(view()->zoomSlider()->value())
+	auto newMax = model()->constraintModel()->defaultDuration().msec() / secondsPerPixel(view()->zoomSlider()->value())
 				  - 0.97 * view()->view()->width();
 	view()->positionSlider()->setMaximum(newMax);
 
@@ -164,7 +169,7 @@ void BaseElementPresenter::on_positionSliderChanged(int newPos)
 void BaseElementPresenter::on_viewWidthChanged(int w)
 {
 	int val = view()->zoomSlider()->value();
-	int newMin = w * 97.0 / model()->constraintModel()->defaultDuration();
+	int newMin = w * 97.0 / model()->constraintModel()->defaultDuration().msec();
 	view()->zoomSlider()->setMinimum(newMin);
 	if(val < newMin)
 	{
@@ -173,12 +178,12 @@ void BaseElementPresenter::on_viewWidthChanged(int w)
 	}
 }
 
-BaseElementModel* BaseElementPresenter::model()
+BaseElementModel* BaseElementPresenter::model() const
 {
 	return static_cast<BaseElementModel*>(m_model);
 }
 
-BaseElementView* BaseElementPresenter::view()
+BaseElementView* BaseElementPresenter::view() const
 {
 	return static_cast<BaseElementView*>(m_view);
 }

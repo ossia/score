@@ -10,18 +10,20 @@ class DeviceExplorerPanelPresenter : public iscore::PanelPresenterInterface
 {
 	public:
 		DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-									 iscore::PanelModelInterface* model,
 									 iscore::PanelViewInterface* view);
+
+		virtual void on_modelChanged() override;
+
 };
 
 class DeviceExplorerPanelModel : public iscore::PanelModelInterface
 {
 		friend class DeviceExplorerPanelPresenter;
 	public:
-		DeviceExplorerPanelModel(iscore::Model* parent);
+		DeviceExplorerPanelModel(iscore::DocumentModel* parent);
 
 	private:
-		DeviceExplorerModel* m_model;
+		DeviceExplorerModel* m_model{};
 };
 
 
@@ -48,7 +50,6 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
 	public:
 		virtual iscore::PanelViewInterface* makeView(iscore::View*);
 		virtual iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
-															   iscore::PanelModelInterface* model,
 															   iscore::PanelViewInterface* view);
-		virtual iscore::PanelModelInterface* makeModel(iscore::Model*);
+		virtual iscore::PanelModelInterface* makeModel(iscore::DocumentModel*);
 };

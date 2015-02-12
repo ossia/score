@@ -36,7 +36,7 @@ namespace iscore
 
 
 		protected:
-			quint32 timestamp()
+			quint32 timestamp() const
 			{ return m_timestamp.count(); }
 			void setTimestamp(quint32 stmp)
 			{ m_timestamp = std::chrono::duration<quint32>(stmp); }

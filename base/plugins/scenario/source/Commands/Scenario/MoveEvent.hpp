@@ -2,7 +2,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/SettableIdentifier.hpp>
 #include <tools/ObjectPath.hpp>
-
+#include <ProcessInterface/TimeValue.hpp>
 struct EventData;
 class EventModel;
 
@@ -21,9 +21,10 @@ namespace Scenario
 				virtual void redo() override;
 				virtual int id() const override;
 				virtual bool mergeWith(const QUndoCommand* other) override;
+				TimeValue m_oldX{}; // TODO : bof bof !
 
-			protected:
-				virtual void serializeImpl(QDataStream&) override;
+            protected:
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
@@ -32,8 +33,7 @@ namespace Scenario
 
 				double m_oldHeightPosition{};
 				double m_newHeightPosition{};
-				int m_oldX{};
-				int m_newX{};
+				TimeValue m_newX{};
 		};
 	}
 }

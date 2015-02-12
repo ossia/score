@@ -92,6 +92,10 @@ void DeckPresenter::setVerticalPosition(int pos)
 void DeckPresenter::setWidth(int w)
 {
 	m_view->setWidth(w);
+	for(auto& process : m_processes)
+	{
+		process->parentGeometryChanged();
+	}
 }
 
 void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
@@ -187,4 +191,9 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 			this,		&DeckPresenter::elementSelected);
 
 	m_processes.push_back(presenter);
+
+	for(auto& process : m_processes)
+	{
+		process->parentGeometryChanged();
+	}
 }

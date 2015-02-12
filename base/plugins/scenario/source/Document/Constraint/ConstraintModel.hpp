@@ -1,8 +1,9 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
-#include "Document/Constraint/ConstraintModelMetadata.hpp"
+#include "Document/ModelMetadata.hpp"
 #include <interface/serialization/VisitorInterface.hpp>
+#include "ProcessInterface/TimeValue.hpp"
 
 #include <QColor>
 #include <vector>
@@ -28,23 +29,24 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
 		Q_OBJECT
 
+		// TODO must go in view model
 		Q_PROPERTY(double heightPercentage
 				   READ heightPercentage
 				   WRITE setHeightPercentage
 				   NOTIFY heightPercentageChanged)
 
 		// These dates are relative to the beginning of the constraint.
-		Q_PROPERTY(int minDuration
+		Q_PROPERTY(TimeValue minDuration
 				   READ minDuration
 				   WRITE setMinDuration
 				   NOTIFY minDurationChanged)
-		Q_PROPERTY(int maxDuration
+		Q_PROPERTY(TimeValue maxDuration
 				   READ maxDuration
 				   WRITE setMaxDuration
 				   NOTIFY maxDurationChanged)
 
 	public:
-		ConstraintModelMetadata metadata;
+        ModelMetadata metadata;
 
 		ConstraintModel(id_type<ConstraintModel>,
 						id_type<AbstractConstraintViewModel> fullViewId,
@@ -52,6 +54,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		ConstraintModel(id_type<ConstraintModel>,
 						id_type<AbstractConstraintViewModel> fullViewId,
 						double yPos,
+						QObject* parent);
+
+		// Copy
+		ConstraintModel(ConstraintModel* source,
+						id_type<ConstraintModel> id,
 						QObject* parent);
 		~ConstraintModel();
 
@@ -71,10 +78,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 			return viewmodel;
 		}
 
+		// Note : the Constraint does not have ownership (it's generally the Deck)
 		void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
 		// Sub-element creation
-		void createProcess(QString processName, id_type<ProcessSharedModelInterface> processId);
 		void addProcess(ProcessSharedModelInterface*);
 		void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
@@ -105,15 +112,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		const QVector<AbstractConstraintViewModel*>& viewModels() const
 		{ return m_constraintViewModels; }
 
-		int startDate() const;
-		void setStartDate(int start);
-		void translate(int deltaTime);
+		TimeValue startDate() const;
+		void setStartDate(TimeValue start);
+		void translate(TimeValue deltaTime);
 
 		double heightPercentage() const;
 
-		int defaultDuration() const;
-		int minDuration() const;
-		int maxDuration() const;
+		TimeValue defaultDuration() const;
+		TimeValue minDuration() const;
+		TimeValue maxDuration() const;
 
 		FullViewConstraintViewModel* fullView() const
 		{ return m_fullViewModel; }
@@ -129,16 +136,16 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 		void heightPercentageChanged(double arg);
 
-		void defaultDurationChanged(int arg);
-		void minDurationChanged(int arg);
-		void maxDurationChanged(int arg);
+		void defaultDurationChanged(TimeValue arg);
+		void minDurationChanged(TimeValue arg);
+		void maxDurationChanged(TimeValue arg);
 
 	public slots:
 		void setHeightPercentage(double arg);
 
-		void setDefaultDuration(int defaultDuration);
-		void setMinDuration(int arg);
-		void setMaxDuration(int arg);
+		void setDefaultDuration(TimeValue defaultDuration);
+		void setMinDuration(TimeValue arg);
+		void setMaxDuration(TimeValue arg);
 
 	private slots:
 		void on_destroyedViewModel(QObject*);
@@ -161,11 +168,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_endEvent{};
 
 		// ___ Use TimeValue instead ___
-		int m_defaultDuration{200};
-		int m_minDuration{m_defaultDuration};
-		int m_maxDuration{m_defaultDuration};
+		TimeValue m_defaultDuration{200ms};
+		TimeValue m_minDuration{m_defaultDuration};
+		TimeValue m_maxDuration{m_defaultDuration};
 
-		int m_x{}; // origin
+		TimeValue m_x{}; // origin
 
 		double m_heightPercentage{0.5};
 };

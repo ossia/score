@@ -2,14 +2,20 @@
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelView.hpp"
 
-InspectorPanelPresenter::InspectorPanelPresenter (iscore::Presenter* parent, 
-												  iscore::PanelModelInterface* model, 
+InspectorPanelPresenter::InspectorPanelPresenter (iscore::Presenter* parent,
 												  iscore::PanelViewInterface* view) :
-	iscore::PanelPresenterInterface {parent, model, view}
+	iscore::PanelPresenterInterface {parent, view}
 {
-	auto i_model = static_cast<InspectorPanelModel*>(model);
-	auto i_view  = static_cast<InspectorPanelView*>(view);
-	
-	connect(i_model, &InspectorPanelModel::setNewItem,
-			i_view , &InspectorPanelView::on_setNewItem);
+
+}
+
+void InspectorPanelPresenter::on_modelChanged()
+{
+	auto i_model = static_cast<InspectorPanelModel*>(m_model);
+	auto i_view  = static_cast<InspectorPanelView*>(m_view);
+
+	i_view->disconnect(m_mvConnection);
+	m_mvConnection = connect(
+		i_model, &InspectorPanelModel::setNewItem,
+		i_view , &InspectorPanelView::on_setNewItem);
 }

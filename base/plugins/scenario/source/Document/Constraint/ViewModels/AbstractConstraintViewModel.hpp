@@ -23,6 +23,10 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 			vis.writeTo(*this);
 		}
 
+		virtual AbstractConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
+												   ConstraintModel* cm,
+												   QObject* parent) = 0;
+
 		ConstraintModel* model() const
 		{ return m_model; }
 

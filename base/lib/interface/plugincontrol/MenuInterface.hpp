@@ -28,6 +28,11 @@ namespace iscore
 		Quit
 	};
 
+	enum class EditMenuElement
+	{
+
+	};
+
 	enum class ViewMenuElement
 	{
 		Windows

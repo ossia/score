@@ -5,13 +5,10 @@
 
 class InspectorPanelFactory : public iscore::PanelFactoryInterface
 {
-
-
 		// PanelFactoryInterface interface
 	public:
-		virtual iscore::PanelViewInterface* makeView (iscore::View*);
+		virtual iscore::PanelViewInterface* makeView (iscore::View*) override;
 		virtual iscore::PanelPresenterInterface* makePresenter (iscore::Presenter* parent_presenter,
-		        iscore::PanelModelInterface* model,
-		        iscore::PanelViewInterface* view);
-		virtual iscore::PanelModelInterface* makeModel (iscore::Model*);
+				iscore::PanelViewInterface* view) override;
+		virtual iscore::PanelModelInterface* makeModel (iscore::DocumentModel*) override;
 };

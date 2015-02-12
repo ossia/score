@@ -58,7 +58,7 @@ bool MoveEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void MoveEvent::serializeImpl(QDataStream& s)
+void MoveEvent::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_eventId
 	  << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;

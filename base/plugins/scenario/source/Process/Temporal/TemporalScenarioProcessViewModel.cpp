@@ -15,6 +15,24 @@ TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(id_type<Proce
 {
 }
 
+TemporalScenarioProcessViewModel::TemporalScenarioProcessViewModel(const TemporalScenarioProcessViewModel *source,
+																   id_type<ProcessViewModelInterface> id,
+																   ScenarioProcessSharedModel *model,
+																   QObject *parent):
+	AbstractScenarioProcessViewModel{source,
+									 id,
+									 "TemporalScenarioProcessViewModel",
+									 model,
+									 parent}
+{
+	for(TemporalConstraintViewModel* constraint : constraintsViewModels(*source))
+	{
+		// TODO some room for optimization here
+		addConstraintViewModel(constraint->clone(constraint->id(),
+												 constraint->model(),
+												 this));
+	}
+}
 
 
 void TemporalScenarioProcessViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
@@ -22,11 +40,10 @@ void TemporalScenarioProcessViewModel::makeConstraintViewModel(id_type<Constrain
 {
 	auto constraint_model = model(this)->constraint(constraintModelId);
 
-
 	auto constraint_view_model =
 			constraint_model->makeConstraintViewModel<constraint_view_model_type>(
-									 constraintViewModelId,
-									 this);
+				constraintViewModelId,
+				this);
 
 	addConstraintViewModel(constraint_view_model);
 }

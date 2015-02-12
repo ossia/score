@@ -17,6 +17,31 @@ EventModel::EventModel(id_type<EventModel> id, double yPos, QObject *parent):
 	EventModel{id, parent}
 {
     m_heightPercentage = yPos;
+    metadata.setName(QString("Event.%1").arg(*this->id().val()));
+}
+
+EventModel::EventModel(EventModel* source,
+					   id_type<EventModel> id,
+					   QObject* parent):
+	EventModel{id, parent}
+{
+	m_timeNode = source->timeNode();
+	m_previousConstraints = source->previousConstraints();
+	m_nextConstraints = source->nextConstraints();
+	m_constraintsYPos = source->constraintsYPos();
+	m_heightPercentage = source->heightPercentage();
+	m_topY = source->topY();
+	m_bottomY = source->bottomY();
+
+	for(State* state : source->m_states)
+	{
+		FakeState* newstate = new FakeState{state->id(), this};
+		newstate->addMessage(state->messages().first());
+		addState(newstate);
+	}
+
+	m_condition = source->condition();
+	m_date = source->date();
 }
 
 EventModel::~EventModel()
@@ -82,12 +107,12 @@ double EventModel::heightPercentage() const
 	return m_heightPercentage;
 }
 
-int EventModel::date() const
+TimeValue EventModel::date() const
 {
 	return m_date;
 }
 
-void EventModel::setDate(int date)
+void EventModel::setDate(TimeValue date)
 {
 	m_date = date;
 } //TODO ajuster la date avec celle du Timenode
@@ -110,9 +135,9 @@ void EventModel::setBottomY(double val)
 	m_bottomY = val;
 }
 
-void EventModel::translate(int deltaTime)
+void EventModel::translate(TimeValue deltaTime)
 {
-	m_date += deltaTime;
+	m_date = m_date + deltaTime;
 }
 
 void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
@@ -130,11 +155,6 @@ ScenarioProcessSharedModel* EventModel::parentScenario() const
 QString EventModel::condition() const
 {
     return m_condition;
-}
-
-QString EventModel::name() const
-{
-    return QString("Event.%1").arg(*this->id().val());
 }
 
 const std::vector<State*>&EventModel::states() const

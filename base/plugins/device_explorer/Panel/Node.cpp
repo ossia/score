@@ -15,6 +15,15 @@ Node::Node(const QString& name, Node* parent)
 		m_parent->addChild(this);
 }
 
+Node::Node(const QList<QString>& devices,
+		   const QString& name,
+		   Node* parent):
+	Node{name, parent}
+{
+	m_deviceSettings = devices;
+}
+
+
 Node::~Node()
 {
 	qDeleteAll(m_children); //calls delete on each children
@@ -109,6 +118,11 @@ bool Node::isDevice() const
 	return false;
 }
 
+const QStringList& Node::deviceSettings() const
+{
+	return m_deviceSettings;
+}
+
 Node*Node::clone() const
 {
 	Node *n = new Node(*this);
@@ -125,12 +139,18 @@ Node*Node::clone() const
 QJsonObject nodeToJson(const Node* n)
 {
 	QJsonObject obj;
+	if(!n) return obj;
 	obj["Name"] = n->name();
 	obj["Value"] = n->value();
 	obj["IOType"] = n->ioType();
 	obj["MinValue"] = n->minValue();
 	obj["MaxValue"] = n->maxValue();
 	obj["Priority"] = (int)n->priority();
+
+	if(n->isDevice())
+	{
+		obj["DeviceSettings"] = QJsonArray::fromStringList(n->deviceSettings());
+	}
 
 	QJsonArray arr;
 	for(const Node* child : n->children())

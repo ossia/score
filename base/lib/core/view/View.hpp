@@ -20,10 +20,12 @@ namespace iscore
 		public:
 			View(QObject* parent);
 
-			void addPanel(PanelViewInterface*);
 			void setCentralView(iscore::DocumentView*);
+			void setupPanelView(PanelViewInterface* v);
 
-		signals:
+			void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
+
+	signals:
 			/**
 			 * @brief insertActionIntoMenubar
 			 *
@@ -31,8 +33,5 @@ namespace iscore
 			 * Especially considering that we already know the presenter.
 			 */
 			void insertActionIntoMenubar(PositionedMenuAction);
-
-		private:
-			std::set<PanelViewInterface*> m_panelsViews;
 	};
 }

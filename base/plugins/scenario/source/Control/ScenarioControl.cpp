@@ -1,12 +1,18 @@
 #include "ScenarioControl.hpp"
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
+#include "Commands/Constraint/Box/Deck/CopyProcessViewModel.hpp"
+#include "Commands/Constraint/Box/Deck/MoveProcessViewModel.hpp"
 #include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 #include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
+#include "Commands/Constraint/Box/CopyDeck.hpp"
+#include "Commands/Constraint/Box/MoveDeck.hpp"
+#include "Commands/Constraint/Box/MergeDecks.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/MergeBoxes.hpp"
 #include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
 #include "Commands/Constraint/SetMinDuration.hpp"
@@ -17,11 +23,13 @@
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/Scenario/RemoveEvent.hpp"
+#include "Commands/Scenario/RemoveConstraint.hpp"
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
+#include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
 
@@ -51,6 +59,8 @@ ScenarioControl::ScenarioControl(QObject* parent):
 
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
+	// TODO the stuff here must apply on the current document
+	// We have to chase the findchild<DocumentDelegate.../BaseElement...>.
 	using namespace iscore;
 
 	// File
@@ -79,6 +89,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
 
 	// Save as json
+	// TODO this should go in the global presenter instead.
 	auto toJson = new QAction("To JSON", this);
 	connect(toJson, &QAction::triggered,
 			[this] ()
@@ -148,6 +159,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "ClearEvent")						{ cmd = new ClearEvent;}
 	else if(name == "CreateEvent")						{ cmd = new CreateEvent;}
     else if(name == "RemoveEvent")						{ cmd = new RemoveEvent;}
+    else if(name == "RemoveConstraint")                 { cmd = new RemoveConstraint;}
     else if(name == "CreateEventAfterEvent")			{ cmd = new CreateEventAfterEvent;}
 	else if(name == "HideBoxInViewModel")				{ cmd = new HideBoxInViewModel;}
 	else if(name == "MoveConstraint")					{ cmd = new MoveConstraint;}
@@ -156,6 +168,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "RemoveMultipleElements")			{ cmd = new RemoveMultipleElements;}
 	else if(name == "SetMinDuration")					{ cmd = new SetMinDuration;}
 	else if(name == "SetMaxDuration")					{ cmd = new SetMaxDuration;}
+	else if(name == "ResizeConstraint")                 { cmd = new ResizeConstraint;}
 	else if(name == "SetRigidity")						{ cmd = new SetRigidity;}
 
 	else
@@ -174,6 +187,7 @@ void ScenarioControl::selectAll()
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 	pres->selectAll();
 }
+
 
 void ScenarioControl::deselectAll()
 {

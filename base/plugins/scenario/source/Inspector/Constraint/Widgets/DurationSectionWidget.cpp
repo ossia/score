@@ -6,6 +6,7 @@
 
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
+#include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
 #include <QCheckBox>
@@ -24,10 +25,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->setContentsMargins(0, 0, 0 ,0);
 	widg->setLayout(lay);
 
-	m_valueLabel = new QLabel{QString{"Default: %1 s"}.arg(m_model->defaultDuration())};
+    m_valueLabel = new QLabel{"Default: "};
 	auto checkbox = new QCheckBox{"Rigid"};
 	auto minSpin = new QSpinBox{};
 	auto maxSpin = new QSpinBox{};
+    auto valueSpin = new QSpinBox{};
 
 	// TODO these need to be updated when the default duration changes
 	connect(m_model, &ConstraintModel::defaultDurationChanged,
@@ -35,9 +37,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
 
 	minSpin->setMinimum(0);
-	minSpin->setMaximum(m_model->defaultDuration());
-	maxSpin->setMinimum(m_model->defaultDuration() + 1);
-	maxSpin->setMaximum(std::numeric_limits<int>::max());
+	minSpin->setMaximum(m_model->defaultDuration().msec());
+	maxSpin->setMinimum(m_model->defaultDuration().msec() + 1);
+    maxSpin->setMaximum(std::numeric_limits<int>::max());
+    valueSpin->setMinimum(std::numeric_limits<int>::min());
+    valueSpin->setMaximum(std::numeric_limits<int>::max());
 
 	connect(checkbox, &QCheckBox::toggled,
 			[=] (bool val)
@@ -46,12 +50,13 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 		maxSpin->setEnabled(!val);
 	});
 
-	minSpin->setValue(m_model->minDuration());
-	maxSpin->setValue(m_model->maxDuration());
+	minSpin->setValue(m_model->minDuration().msec());
+	maxSpin->setValue(m_model->maxDuration().msec());
 	if(m_model->minDuration() == m_model->maxDuration())
 	{
 		checkbox->setChecked(true);
 	}
+	valueSpin->setValue(m_model->defaultDuration().msec());
 
 	lay->addWidget(checkbox, 0, 0);
 	lay->addWidget(new QLabel{tr("Min duration")}, 1, 0);
@@ -60,6 +65,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 	lay->addWidget(maxSpin, 2, 1);
 
 	lay->addWidget(m_valueLabel, 3, 0);
+    lay->addWidget(valueSpin, 3, 1);
 
 	connect(minSpin,	SIGNAL(valueChanged(int)),
 			this,		SLOT(minDurationSpinboxChanged(int)));
@@ -77,8 +83,20 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 		emit m_parent->validateOngoingCommand();
 		m_maxSpinboxEditing = false;
 	});
+
+    connect(valueSpin,  SIGNAL(valueChanged(int)),
+            this,       SLOT(defaultDurationSpinboxChanged(int)));
+    connect(valueSpin,  &QSpinBox::editingFinished,
+            [&] ()
+    {
+        emit m_parent->validateOngoingCommand();
+        m_valueSpinboxEditing = false;
+    });
+
 	connect(checkbox,	&QCheckBox::toggled,
 			this,		&DurationSectionWidget::rigidCheckboxToggled);
+
+
 
 	addContent(widg);
 }
@@ -91,7 +109,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
 				ObjectPath::pathFromObject(
 					"BaseConstraintModel",
 					m_model),
-				val);
+				std::chrono::milliseconds{val});
 	if(!m_minSpinboxEditing)
 	{
 		m_minSpinboxEditing = true;
@@ -110,7 +128,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 				ObjectPath::pathFromObject(
 					"BaseConstraintModel",
 					m_model),
-				val);
+				std::chrono::milliseconds{val});
 	if(!m_maxSpinboxEditing)
 	{
 		m_maxSpinboxEditing = true;
@@ -120,6 +138,25 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 	else
 	{
 		emit m_parent->continueOngoingCommand(cmd);
+    }
+}
+
+void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
+{
+	auto cmd = new ResizeConstraint(
+                ObjectPath::pathFromObject(
+                    "BaseConstraintModel",
+                    m_model),
+				std::chrono::milliseconds{val});
+    if(!m_valueSpinboxEditing)
+    {
+        m_valueSpinboxEditing = true;
+
+        emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
+    }
+    else
+    {
+        emit m_parent->continueOngoingCommand(cmd);
 	}
 }
 
@@ -134,7 +171,7 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
 	emit m_parent->submitCommand(cmd);
 }
 
-void DurationSectionWidget::on_defaultDurationChanged(int dur)
+void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)
 {
-	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
+//	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
 }

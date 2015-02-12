@@ -32,7 +32,9 @@ void AddDeckToBox::undo()
 void AddDeckToBox::redo()
 {
 	auto box = m_path.find<BoxModel>();
-	box->createDeck(m_createdDeckId);
+	box->addDeck(new DeckModel{(int) box->decks().size(),
+							   m_createdDeckId,
+							   box});
 }
 
 int AddDeckToBox::id() const
@@ -45,7 +47,7 @@ bool AddDeckToBox::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddDeckToBox::serializeImpl(QDataStream& s)
+void AddDeckToBox::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_createdDeckId;
 }

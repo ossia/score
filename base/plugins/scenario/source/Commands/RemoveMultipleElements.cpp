@@ -63,7 +63,7 @@ bool RemoveMultipleElements::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveMultipleElements::serializeImpl(QDataStream& s)
+void RemoveMultipleElements::serializeImpl(QDataStream& s) const
 {
 	s << m_serializedCommands;
 }

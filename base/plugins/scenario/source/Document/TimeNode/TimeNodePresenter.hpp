@@ -22,8 +22,12 @@ class TimeNodePresenter :  public NamedObject
 	TimeNodeModel* model();
 	TimeNodeView* view();
 
+    bool isSelected();
+    void deselect();
+
 	signals:
         void timeNodeReleased(EventData);
+        void elementSelected(QObject*);
 
 	public slots:
         void on_timeNodeReleased(QPointF);

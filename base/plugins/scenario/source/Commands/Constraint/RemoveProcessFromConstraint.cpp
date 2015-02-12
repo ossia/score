@@ -55,7 +55,7 @@ bool RemoveProcessFromConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveProcessFromConstraint::serializeImpl(QDataStream& s)
+void RemoveProcessFromConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_processId << m_serializedProcessData;
 }

@@ -6,6 +6,9 @@
 
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include "ProcessInterface/ProcessList.hpp"
+#include "ProcessInterface/ProcessFactoryInterface.hpp"
+
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -38,7 +41,7 @@ void AddProcessToConstraint::redo()
 	auto constraint = m_path.find<ConstraintModel>();
 
 	// Create process model
-	constraint->createProcess(m_processName, m_createdProcessId);
+	constraint->addProcess(ProcessList::getFactory(m_processName)->makeModel(m_createdProcessId, constraint));
 }
 
 int AddProcessToConstraint::id() const
@@ -51,7 +54,7 @@ bool AddProcessToConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void AddProcessToConstraint::serializeImpl(QDataStream& s)
+void AddProcessToConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_processName << m_createdProcessId;
 }

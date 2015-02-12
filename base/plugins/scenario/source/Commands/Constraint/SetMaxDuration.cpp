@@ -4,6 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+// TODO changer gestion de UID
 #define CMD_UID 1001
 #define CMD_NAME "SetMaxDuration"
 #define CMD_DESC QObject::tr("Set max duration of constraint")
@@ -15,7 +16,7 @@ SetMaxDuration::SetMaxDuration():
 {
 }
 
-SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, int newDuration):
+SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration):
 	SerializableCommand{"ScenarioControl",
 						CMD_NAME,
 						CMD_DESC},
@@ -53,7 +54,7 @@ bool SetMaxDuration::mergeWith(const QUndoCommand* other)
 	return true;
 }
 
-void SetMaxDuration::serializeImpl(QDataStream& s)
+void SetMaxDuration::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldDuration << m_newDuration;
 }

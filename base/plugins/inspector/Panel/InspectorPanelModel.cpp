@@ -1,10 +1,9 @@
 #include "InspectorPanelModel.hpp"
 
-#include <core/model/Model.hpp>
-#include <QMetaMethod>
-#include <QDebug>
+#include <core/document/DocumentModel.hpp>
 
-InspectorPanelModel::InspectorPanelModel (iscore::Model* parent) :
+
+InspectorPanelModel::InspectorPanelModel (iscore::DocumentModel* parent) :
 	iscore::PanelModelInterface {"InspectorPanelModel", nullptr}
   // NOTE : here we declare parent after because else for some weird reason,
   // "newItemInspected" is not found...

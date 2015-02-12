@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 class DeckPresenter;
 class BoxModel;
 class BoxView;
@@ -34,7 +35,7 @@ class BoxPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
-		void setDuration(int duration);
+		void setDuration(TimeValue duration);
 		void on_deckCreated(id_type<DeckModel> deckId);
 		void on_deckRemoved(id_type<DeckModel> deckId);
 

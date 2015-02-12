@@ -27,9 +27,12 @@ TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent
 QRectF TemporalScenarioProcessView::boundingRect() const
 {
 	auto pr = parentItem()->boundingRect();
-	return {0, 0,
+
+    if (pr.isValid()) 	return {0, 0,
 			pr.width()  - 2 * DEMO_PIXEL_SPACING_TEST,
 			pr.height() - 2 * DEMO_PIXEL_SPACING_TEST};
+    else
+        return {0,0,1,1};
 }
 
 
@@ -51,6 +54,12 @@ void TemporalScenarioProcessView::paint(QPainter* painter,
 		painter->setBrush({Qt::red, Qt::DiagCrossPattern});
 		painter->drawRect(boundingRect());
 	}
+
+    if (m_clicked)
+    {
+        painter->setPen(Qt::black);
+        painter->drawRect(*m_selectArea);
+    }
 }
 
 
@@ -62,15 +71,25 @@ void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* even
 	{
         emit scenarioPressedWithControl(event->pos(), event->scenePos());
 	}
-	else
+    else if (event->button() == Qt::LeftButton)
 	{
 		emit scenarioPressed();
+        m_selectArea = new QRectF{0,0,0,0};
+        m_clickedPoint = event->pos();
+        m_clicked = true;
 	}
 }
 
 void TemporalScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-	QGraphicsObject::mouseMoveEvent(event);
+    QGraphicsObject::mouseMoveEvent(event);
+
+    if(m_clicked)
+    {
+        m_selectArea->setTopLeft(m_clickedPoint);
+        m_selectArea->setBottomRight(event->pos());
+    }
+    this->update();
 }
 
 void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -79,6 +98,19 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
 	if(event->modifiers() == Qt::ControlModifier)
 	{
         emit scenarioReleased(event->pos(), mapToScene(event->pos()));
+    }
+    else
+    {
+        QPainterPath path{};
+        QRectF rect{};
+        rect.setTopLeft(this->mapToScene(m_clickedPoint));
+        rect.setBottomRight(event->scenePos());
+
+        path.addRect(rect);
+        this->scene()->setSelectionArea(path, QTransform());
+        delete m_selectArea;
+        this->update();
+        m_clicked = false;
     }
 }
 

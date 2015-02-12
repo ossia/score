@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Document/Constraint/ConstraintData.hpp"
+#include "ProcessInterface/TimeValue.hpp"
 
 class AbstractConstraintViewModel;
 class AbstractConstraintView;
@@ -65,9 +66,9 @@ class AbstractConstraintPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
-		void on_defaultDurationChanged(int val);
-		void on_minDurationChanged(int min);
-		void on_maxDurationChanged(int max);
+		void on_defaultDurationChanged(TimeValue val);
+		void on_minDurationChanged(TimeValue min);
+		void on_maxDurationChanged(TimeValue max);
 
 		void on_boxShown(id_type<BoxModel> boxId);
 		void on_boxHidden();

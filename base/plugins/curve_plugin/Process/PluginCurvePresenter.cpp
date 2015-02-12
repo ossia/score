@@ -92,8 +92,12 @@ PluginCurvePresenter::PluginCurvePresenter (PluginCurveModel* model,
 	connect (_pView, SIGNAL (mouseReleased (QGraphicsSceneMouseEvent*) ), this, SLOT (mouseRelease (QGraphicsSceneMouseEvent*) ) );
 	connect (_pView, SIGNAL (keyPressed (QKeyEvent*) ), this, SLOT (keyPress (QKeyEvent*) ) );
 	connect (_pView, SIGNAL (keyReleased (QKeyEvent*) ), this, SLOT (keyRelease (QKeyEvent*) ) );
-	connect (_pView, SIGNAL (wheelTurned (QGraphicsSceneWheelEvent*) ), this, SLOT (wheelTurned (QGraphicsSceneWheelEvent*) ) );
 	connect (_pView, SIGNAL (viewSceneChanged (QGraphicsScene*) ), this, SLOT (viewSceneChanged (QGraphicsScene*) ) );
+
+
+	// NOTE : Uncomment for zooming on wheel
+	// connect (_pView, SIGNAL (wheelTurned (QGraphicsSceneWheelEvent*) ), this, SLOT (wheelTurned (QGraphicsSceneWheelEvent*) ) );
+
 
 	/*
 	// Presenter --> PluginCurve

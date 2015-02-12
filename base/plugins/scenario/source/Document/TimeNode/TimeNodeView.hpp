@@ -24,6 +24,7 @@ class TimeNodeView : public QGraphicsObject
 
     signals:
         void timeNodeReleased(QPointF);
+        void timeNodeSelected();
 
     private:
         int m_top{0};

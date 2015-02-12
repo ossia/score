@@ -21,7 +21,7 @@ TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent):
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-	return {0, -18, qreal(maxWidth()) + 3, qreal(constraintHeight()) + 3};
+    return {0, -18, qreal(maxWidth()), qreal(constraintHeight())};
 }
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -32,11 +32,11 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 	{
 		c = Qt::blue;
 	}
-	else if(parentItem()->isSelected())
+/*	else if(parentItem()->isSelected())
 	{
 		c = Qt::cyan;
 	}
-
+*/
 	if (defaultWidth() < 0)
     {
         c = Qt::red;
@@ -84,7 +84,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 						  0);
 	}
 	// TODO max -> +inf
-
 
 }
 

@@ -4,6 +4,7 @@
 namespace iscore
 {
 	class DocumentDelegateViewInterface;
+	class PanelViewInterface;
 
 	/**
 	 * @brief The DocumentView class is the central view of i-score.
@@ -17,6 +18,9 @@ namespace iscore
 			void setViewDelegate(DocumentDelegateViewInterface*);
 
 			void reset();
+
+
+			void addPanel(PanelViewInterface*);
 
 		private:
 			DocumentDelegateViewInterface* m_view{};

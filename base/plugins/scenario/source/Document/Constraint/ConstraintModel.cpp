@@ -4,9 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include "ProcessInterface/ProcessList.hpp"
 #include <tools/utilsCPP11.hpp>
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <API/Headers/Editor/TimeBox.h>
@@ -31,10 +29,46 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 	metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
 }
 
-ConstraintModel::ConstraintModel(id_type<ConstraintModel> id, id_type<AbstractConstraintViewModel> fullViewId, double yPos, QObject *parent):
+ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
+								 id_type<AbstractConstraintViewModel> fullViewId,
+								 double yPos,
+								 QObject *parent):
 	ConstraintModel{id, fullViewId, parent}
 {
 	setHeightPercentage(yPos);
+}
+
+ConstraintModel::ConstraintModel(ConstraintModel *source,
+								 id_type<ConstraintModel> id,
+								 QObject *parent):
+	IdentifiedObject<ConstraintModel>{id, "ConstraintModel", parent},
+	m_timeBox{new OSSIA::TimeBox}
+{
+	metadata = source->metadata;
+	for(auto& box : source->boxes())
+	{
+		addBox(new BoxModel{box, box->id(), this});
+	}
+
+	for(auto& process : source->processes())
+	{
+		addProcess(process->clone(process->id(), this));
+	}
+
+	// NOTE : we do not copy the view models on which this constraint does not have ownership,
+	// this is the job of a command.
+	// However, the full view constraint must be copied.
+
+	m_fullViewModel = source->fullView()->clone(source->fullView()->id(), this, this);
+
+	m_startEvent = source->startEvent();
+	m_endEvent = source->endEvent();
+
+	m_defaultDuration = source->defaultDuration();
+	m_minDuration = source->minDuration();
+	m_maxDuration = source->maxDuration();
+	m_x = source->m_x;
+    m_heightPercentage = source->heightPercentage();
 }
 
 ConstraintModel::~ConstraintModel()
@@ -62,14 +96,6 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 }
 
 //// Complex commands
-void ConstraintModel::createProcess(QString processName, id_type<ProcessSharedModelInterface> processId)
-{
-	auto model = ProcessList::getFactory(processName)->makeModel(processId, this);
-	addProcess(model);
-}
-
-
-
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
 	m_processes.push_back(model);
@@ -137,7 +163,7 @@ void ConstraintModel::setEndEvent(id_type<EventModel> e)
 	m_endEvent = e;
 }
 
-BoxModel*ConstraintModel::box(id_type<BoxModel> id) const
+BoxModel* ConstraintModel::box(id_type<BoxModel> id) const
 {
 	return findById(m_boxes, id);
 }
@@ -150,19 +176,19 @@ ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModel
 
 
 
-int ConstraintModel::startDate() const
+TimeValue ConstraintModel::startDate() const
 {
 	return m_x;
 }
 
-void ConstraintModel::setStartDate(int start)
+void ConstraintModel::setStartDate(TimeValue start)
 {
 	m_x = start;
 }
 
-void ConstraintModel::translate(int deltaTime)
+void ConstraintModel::translate(TimeValue deltaTime)
 {
-	m_x += deltaTime;
+	m_x = m_x + deltaTime;
 }
 
 // Simple getters and setters
@@ -172,37 +198,11 @@ double ConstraintModel::heightPercentage() const
 	return m_heightPercentage;
 }
 
-int ConstraintModel::minDuration() const
-{
-	return m_minDuration;
-}
-
-int ConstraintModel::maxDuration() const
-{
-	return m_maxDuration;
-}
 
 void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 {
 	m_fullViewModel = fv;
 	setupConstraintViewModel(m_fullViewModel);
-}
-
-int ConstraintModel::defaultDuration() const
-{
-	return m_defaultDuration;
-}
-
-void ConstraintModel::setDefaultDuration(int width)
-{
-	if (m_defaultDuration != width)
-	{
-		setMinDuration(minDuration() + (width - defaultDuration()));
-		setMaxDuration(maxDuration() + (width - defaultDuration()));
-
-		m_defaultDuration = width;
-		emit defaultDurationChanged(width);
-	}
 }
 
 void ConstraintModel::setHeightPercentage(double arg)
@@ -213,7 +213,37 @@ void ConstraintModel::setHeightPercentage(double arg)
 	}
 }
 
-void ConstraintModel::setMinDuration(int arg)
+
+
+TimeValue ConstraintModel::defaultDuration() const
+{
+	return m_defaultDuration;
+}
+
+TimeValue ConstraintModel::minDuration() const
+{
+	return m_minDuration;
+}
+
+TimeValue ConstraintModel::maxDuration() const
+{
+	return m_maxDuration;
+}
+
+
+void ConstraintModel::setDefaultDuration(TimeValue arg)
+{
+	if (m_defaultDuration != arg)
+	{
+		setMinDuration(minDuration() + (arg - defaultDuration()));
+		setMaxDuration(maxDuration() + (arg - defaultDuration()));
+
+		m_defaultDuration = arg;
+		emit defaultDurationChanged(arg);
+	}
+}
+
+void ConstraintModel::setMinDuration(TimeValue arg)
 {
 	if (m_minDuration != arg) {
 		m_minDuration = arg;
@@ -221,11 +251,10 @@ void ConstraintModel::setMinDuration(int arg)
 	}
 }
 
-void ConstraintModel::setMaxDuration(int arg)
+void ConstraintModel::setMaxDuration(TimeValue arg)
 {
 	if (m_maxDuration != arg) {
 		m_maxDuration = arg;
 		emit maxDurationChanged(arg);
 	}
 }
-

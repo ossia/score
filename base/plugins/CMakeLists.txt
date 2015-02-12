@@ -39,3 +39,7 @@ endif()
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/curve_plugin")
 	add_subdirectory(curve_plugin)
 endif()
+
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/iscore_cohesion")
+        add_subdirectory(iscore_cohesion)
+endif()

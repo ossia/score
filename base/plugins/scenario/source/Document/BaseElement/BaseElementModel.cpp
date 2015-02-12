@@ -59,17 +59,21 @@ void testInit(FullViewConstraintViewModel* viewmodel)
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
 		},
-		500
+		1500
 	};
 	cmd5.redo();
-
 
 	AddProcessViewModelToDeck cmd6{
 		{
 			{"BaseConstraintModel", {}},
 			{"BoxModel", box->id()},
 			{"DeckModel", deckId}
-		}, scenarioId};
+		},
+		{
+			{"BaseConstraintModel", {}},
+			{"ScenarioProcessSharedModel", scenarioId}
+		}
+	};
 	cmd6.redo();
 }
 
@@ -84,7 +88,7 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
 	m_baseConstraint{new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, 0, this}}
 {
-	m_baseConstraint->setDefaultDuration(1000);
+	m_baseConstraint->setDefaultDuration(1s);
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_baseConstraint->fullView());
 }
@@ -99,15 +103,19 @@ QByteArray BaseElementModel::save()
 }
 
 #include <QApplication>
-#include "base/plugins/device_explorer/Panel/DeviceExplorerModel.hpp"
-#include "base/plugins/device_explorer/Panel/Node.hpp"
+#include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 QJsonObject BaseElementModel::toJson()
 {
-	auto device = qApp->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
 	QJsonObject complete;
-	complete["DeviceExplorer"] = nodeToJson(device->rootNode());
+	// TODO : save all panels from the iscore_lib::Document
+	// Device explorer
+	auto deviceExplorerModel = DeviceExplorer::getModel(this);
+	if(deviceExplorerModel)
+	{
+		complete["DeviceExplorer"] = DeviceExplorer::toJson(deviceExplorerModel);
+	}
 
+	// Document
 	Serializer<JSON> s;
 	s.readFrom(*constraintModel());
 

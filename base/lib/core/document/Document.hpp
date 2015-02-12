@@ -7,7 +7,8 @@ namespace iscore
 	class DocumentPresenter;
 	class DocumentView;
 	class DocumentDelegateFactoryInterface;
-
+	class PanelFactoryInterface;
+	class PanelPresenterInterface;
 	/**
 	 * @brief The Document class is the central part of the software.
 	 *
@@ -24,6 +25,9 @@ namespace iscore
 
 			void newDocument();
 			void setDocumentPanel(DocumentDelegateFactoryInterface* p);
+
+			void setupPanel(PanelPresenterInterface* pres,
+							PanelFactoryInterface* factory);
 			void reset();
 
 			QByteArray save();

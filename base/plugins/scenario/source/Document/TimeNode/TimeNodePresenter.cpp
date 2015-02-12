@@ -9,13 +9,18 @@
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 									 TimeNodeView *view,
 									 QObject *parent):
-	NamedObject{"EventPresenter", parent},
+	NamedObject{"TimeNodePresenter", parent},
 	m_model{model},
 	m_view{view}
 {
-
     connect(m_view, &TimeNodeView::timeNodeReleased,
             this,   &TimeNodePresenter::on_timeNodeReleased);
+
+    connect(m_view, &TimeNodeView::timeNodeSelected,
+            [&] ()
+        {
+            emit elementSelected(m_model);
+        });
 }
 
 TimeNodePresenter::~TimeNodePresenter()
@@ -41,6 +46,16 @@ TimeNodeModel *TimeNodePresenter::model()
 TimeNodeView *TimeNodePresenter::view()
 {
     return m_view;
+}
+
+bool TimeNodePresenter::isSelected()
+{
+    return m_view->isSelected();
+}
+
+void TimeNodePresenter::deselect()
+{
+    m_view->setSelected(false);
 }
 
 void TimeNodePresenter::on_timeNodeReleased(QPointF p)

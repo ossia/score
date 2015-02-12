@@ -91,12 +91,12 @@ bool RemoveEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void RemoveEvent::serializeImpl(QDataStream& s)
+void RemoveEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path ;
+    s << m_path << m_evId << m_serializedEvent << m_serializedConstraints ;
 }
 
 void RemoveEvent::deserializeImpl(QDataStream& s)
 {
-    s >> m_path ;
+    s >> m_path >> m_evId >> m_serializedEvent >> m_serializedConstraints ;
 }

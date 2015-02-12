@@ -54,7 +54,7 @@ void CreateConstraint::redo()
 										  m_createdConstraintFullViewId);
 
 	// Creation of all the constraint view models
-	for(auto& viewModel : viewModels(scenar))
+    for(auto& viewModel : viewModels(scenar))
 	{
 		auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
 		if(m_createdConstraintViewModelIDs.contains(cvm_id))
@@ -81,7 +81,7 @@ bool CreateConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void CreateConstraint::serializeImpl(QDataStream& s)
+void CreateConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path
 	  << m_startEventId

@@ -11,6 +11,15 @@ AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
 	addPoint(1, 1);
 }
 
+ProcessSharedModelInterface *AutomationModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
+{
+	auto autom = new AutomationModel{newId, newParent};
+	autom->setAddress(address());
+	autom->setPoints(QMap<double, double>{points()});
+
+	return autom;
+}
+
 QString AutomationModel::processName() const
 {
 	return "Automation";
@@ -20,6 +29,13 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewMod
 														  QObject* parent)
 {
 	return new AutomationViewModel{this, viewModelId, parent};
+}
+
+ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+												 const ProcessViewModelInterface* source,
+												 QObject* parent)
+{
+	return new AutomationViewModel{static_cast<const AutomationViewModel*>(source), this, newId, parent};
 }
 
 // Note : the presenter should see the modifications happening,

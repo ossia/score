@@ -63,7 +63,7 @@ bool MoveConstraint::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void MoveConstraint::serializeImpl(QDataStream& s)
+void MoveConstraint::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_constraintId
 	  << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;

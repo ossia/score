@@ -4,6 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+// TODO changer gestion de UID
 #define CMD_UID 1000
 #define CMD_NAME "SetMinDuration"
 #define CMD_DESC QObject::tr("Set min duration of constraint")
@@ -15,7 +16,7 @@ SetMinDuration::SetMinDuration():
 {
 }
 
-SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, int newDuration):
+SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, TimeValue newDuration):
 	SerializableCommand{"ScenarioControl",
 						CMD_NAME,
 						CMD_DESC},
@@ -53,7 +54,7 @@ bool SetMinDuration::mergeWith(const QUndoCommand* other)
 	return true;
 }
 
-void SetMinDuration::serializeImpl(QDataStream& s)
+void SetMinDuration::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_oldDuration << m_newDuration;
 }

@@ -6,8 +6,6 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 
-
-
 template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
 	readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
@@ -21,6 +19,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
 	m_stream << ev.date(); // should be in OSSIA API
 	m_stream << ev.condition();
+	m_stream << ev.timeNode();
 
 	auto states = ev.states();
 	m_stream << int(states.size());
@@ -38,8 +37,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 	QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
 	QMap<id_type<ConstraintModel>, double> cstrYPos;
 	double heightPercentage, bottomY, topY;
-	int date;
+	TimeValue date;
 	QString condition;
+	id_type<TimeNodeModel> timenode;
 	m_stream >> prevCstr
 			>> nextCstr
 			>> heightPercentage
@@ -49,6 +49,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 
 	m_stream >> date; // should be in OSSIA API
 	m_stream >> condition;
+	m_stream >> timenode;
 
 	ev.m_previousConstraints = std::move(prevCstr);
 	ev.m_nextConstraints = std::move(nextCstr);
@@ -58,6 +59,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 	ev.setTopY(topY);
 	ev.setDate(date);
 	ev.setCondition(condition);
+	ev.changeTimeNode(timenode);
 
 	int numStates{};
 	m_stream >> numStates;
@@ -86,8 +88,9 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 	m_obj["ConstraintsYPos"] = toJsonMap(ev.constraintsYPos());
 	m_obj["BottomY"] = ev.bottomY();
 	m_obj["TopY"] = ev.topY();
-	m_obj["Date"] = ev.date(); // should be in OSSIA API
+	m_obj["Date"] = toJsonObject(ev.date()); // should be in OSSIA API
 	m_obj["Condition"] = ev.condition();
+	m_obj["TimeNode"] = toJsonObject(ev.timeNode());
 
 	m_obj["States"] = toJsonArray(ev.states());
 
@@ -108,8 +111,9 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 	ev.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
 	ev.setBottomY(m_obj["BottomY"].toInt());
 	ev.setTopY(m_obj["TopY"].toInt());
-	ev.setDate(m_obj["Date"].toInt());
+	ev.setDate(fromJsonObject<TimeValue>(m_obj["Date"].toObject()));
 	ev.setCondition(m_obj["Condition"].toString());
+	ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>>(m_obj["TimeNode"].toObject()));
 
 	QJsonArray states = m_obj["States"].toArray();
 	for(auto json_vref : states)

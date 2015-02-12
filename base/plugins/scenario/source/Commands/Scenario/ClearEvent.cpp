@@ -65,7 +65,7 @@ bool ClearEvent::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void ClearEvent::serializeImpl(QDataStream& s)
+void ClearEvent::serializeImpl(QDataStream& s) const
 {
 	s << m_path << m_serializedStates;
 }

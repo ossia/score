@@ -14,11 +14,11 @@ namespace iscore
 		public:
 			using Command::Command;
 
-			QByteArray serialize();
+			QByteArray serialize() const;
 			void deserialize(QByteArray&);
 
 		protected:
-			virtual void serializeImpl(QDataStream&) = 0;
+			virtual void serializeImpl(QDataStream&) const = 0;
 			virtual void deserializeImpl(QDataStream&) = 0;
 	};
 }

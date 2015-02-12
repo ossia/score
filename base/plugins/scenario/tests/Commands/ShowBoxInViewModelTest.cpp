@@ -68,7 +68,9 @@ class ShowBoxInViewModelTest: public QObject
 			auto cmd_pvm = new AddProcessViewModelToDeck(
 			{{"ConstraintModel", {}},
 			 {"BoxModel", boxId},
-			 {"DeckModel", deckId}}, scenarioId);
+			 {"DeckModel", deckId}},
+			{{"ConstraintModel", {}},
+			 {"ScenarioProcessSharedModel", scenarioId}});
 			stack.push(cmd_pvm);
 
 			auto viewmodel = constraint->boxes().front()->decks().front()->processViewModels().front();
@@ -81,7 +83,7 @@ class ShowBoxInViewModelTest: public QObject
 			// Creation of an even and a constraint inside the scenario
 			EventData data{};
 			// data.id = 0; unused here
-			data.dDate = 10;
+			data.dDate.setMSecs(10);
 			data.relativeY = 0.5;
 
 			auto cmd_event = new CreateEvent(

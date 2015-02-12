@@ -2,7 +2,7 @@
 #include <tools/IdentifiedObject.hpp>
 class QDataStream;
 
-
+class InspectorSectionWidget;
 class ProcessViewModelInterface;
 /**
 	 * @brief The ProcessSharedModelInterface class
@@ -11,31 +11,35 @@ class ProcessViewModelInterface;
 	 */
 class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
-
-
 	public:
 		using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
+		virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
 
 		/**
-			 * @brief processName
-			 * @return the name of the process.
-			 *
-			 * Needed for serialization - deserialization, in order to recreate
-			 * a new process from the same plug-in.
-			 */
+		 * @brief processName
+		 * @return the name of the process.
+		 *
+		 * Needed for serialization - deserialization, in order to recreate
+		 * a new process from the same plug-in.
+		 */
 		virtual QString processName() const = 0; // Needed for serialization.
 
 		virtual ~ProcessSharedModelInterface() = default;
 
+		//// View models interface
 		// TODO pass the name of the view model to be created
 		// (e.g. temporal / logical...).
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) = 0;
 
-
 		// To be called by createProcessViewModel only.
 		virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
 														 void* data,
+														 QObject* parent) = 0;
+
+		// "Copy" factory. TODO replace by clone methode on PVM ?
+		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+														 const ProcessViewModelInterface* source,
 														 QObject* parent) = 0;
 
 		// Do a copy.

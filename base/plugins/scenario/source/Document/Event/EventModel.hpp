@@ -3,6 +3,8 @@
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
+#include "Document/ModelMetadata.hpp"
+#include <ProcessInterface/TimeValue.hpp>
 
 #include <unordered_map>
 namespace OSSIA
@@ -32,8 +34,15 @@ class EventModel : public IdentifiedObject<EventModel>
 		friend void Visitor<Writer<JSON>>::writeTo<EventModel>(EventModel& ev);
 
 	public:
+		ModelMetadata metadata;
+
 		EventModel(id_type<EventModel>, QObject* parent);
 		EventModel(id_type<EventModel>, double yPos, QObject *parent);
+
+		// Copy
+		EventModel(EventModel* source,
+				   id_type<EventModel>,
+				   QObject* parent);
 		~EventModel();
 
 		template<typename DeserializerVisitor>
@@ -43,7 +52,7 @@ class EventModel : public IdentifiedObject<EventModel>
 			vis.writeTo(*this);
 		}
 
-		const QVector<id_type<ConstraintModel> >& previousConstraints() const;
+		const QVector<id_type<ConstraintModel>>& previousConstraints() const;
 		const QVector<id_type<ConstraintModel>>& nextConstraints() const;
 
 		void addNextConstraint(id_type<ConstraintModel>);
@@ -63,9 +72,9 @@ class EventModel : public IdentifiedObject<EventModel>
 		{ return m_timeEvent;}
 
 		double heightPercentage() const;
-		int date() const;
+		TimeValue date() const;
 
-		void translate(int deltaTime);
+		void translate(TimeValue deltaTime);
 
 		void setVerticalExtremity(id_type<ConstraintModel>, double);
 		void eventMovedVertically(double);
@@ -82,19 +91,17 @@ class EventModel : public IdentifiedObject<EventModel>
 
 		QString condition() const;
 
-        QString name() const;
-
-public slots:
+	public slots:
 		void setHeightPercentage(double arg);
-		void setDate(int date);
+		void setDate(TimeValue date);
 		void setCondition(QString arg);
 
-signals:
+	signals:
 		void heightPercentageChanged(double arg);
 		void messagesChanged();
 		void conditionChanged(QString arg);
 
-private:
+	private:
 		void setTopY(double val);
 		void setBottomY(double val);
 
@@ -117,7 +124,7 @@ private:
 
 		std::vector<State*> m_states;
 		QString m_condition{};
-		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-		int m_date{0}; // Was : m_x
 
+		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
+		TimeValue m_date{0s}; // Was : m_x
 };

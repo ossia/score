@@ -21,7 +21,7 @@ bool SwitchStatePosition::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void SwitchStatePosition::serializeImpl(QDataStream&)
+void SwitchStatePosition::serializeImpl(QDataStream&) const
 {
 }
 

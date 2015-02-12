@@ -67,7 +67,7 @@ DeviceExplorerRemoveCommand::mergeWith(const QUndoCommand */*other*/)
 
 
 void
-DeviceExplorerRemoveCommand::serializeImpl(QDataStream &d)
+DeviceExplorerRemoveCommand::serializeImpl(QDataStream &d) const
 {
   //TODO: should we pass the model ? how ???
   //TODO: should we serialize text() or is it serialized by base class ?

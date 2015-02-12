@@ -6,22 +6,23 @@
 
 
 
-QDataStream& operator<<(QDataStream& s, const ConstraintModelMetadata& m)
+QDataStream& operator<<(QDataStream& s, const ModelMetadata& m)
 {
-	s << m.name() << m.comment() << m.color();
+    s << m.name() << m.comment() << m.color() << m.label();
 
 	return s;
 }
 
-QDataStream& operator>>(QDataStream& s, ConstraintModelMetadata& m)
+QDataStream& operator>>(QDataStream& s, ModelMetadata& m)
 {
-	QString name, comment;
+    QString name, comment, label;
 	QColor color;
-	s >> name >> comment >> color;
+    s >> name >> comment >> color >> label;
 
 	m.setName(name);
-	m.setComment(comment);
+    m.setComment(comment);
 	m.setColor(color);
+    m.setLabel(label);
 
 	return s;
 }
@@ -106,7 +107,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 	constraint.setEndEvent(endId);
 
 	// Things that should be queried from the API :
-	int width{}, startDate{}, minDur{}, maxDur{};
+	TimeValue width{}, startDate{}, minDur{}, maxDur{};
 	m_stream >> width
 			 >> startDate
 			 >> minDur
@@ -152,15 +153,15 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 	// API Object
 	// s << i.apiObject()->save();
 	// Things that should be queried from the API :
-	m_obj["DefaultDuration"] = constraint.defaultDuration();
-	m_obj["StartDate"] = constraint.startDate();
-	m_obj["MinDuration"] = constraint.minDuration();
-	m_obj["MaxDuration"] = constraint.maxDuration();
+	m_obj["DefaultDuration"] = toJsonObject(constraint.defaultDuration());
+	m_obj["StartDate"] = toJsonObject(constraint.startDate());
+	m_obj["MinDuration"] = toJsonObject(constraint.minDuration());
+	m_obj["MaxDuration"] = toJsonObject(constraint.maxDuration());
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
-	constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ConstraintModelMetadata>();
+    constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ModelMetadata>();
 	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
 	constraint.setStartEvent(fromJsonObject<id_type<EventModel>>(m_obj["StartEvent"].toObject()));
 	constraint.setEndEvent(fromJsonObject<id_type<EventModel>>(m_obj["EndEvent"].toObject()));
@@ -184,8 +185,8 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 																			  &constraint});
 
 	// Things that should be queried from the API :
-	constraint.setDefaultDuration(m_obj["DefaultDuration"].toInt());
-	constraint.setStartDate(m_obj["StartDate"].toInt());
-	constraint.setMinDuration(m_obj["MinDuration"].toInt());
-	constraint.setMaxDuration(m_obj["MaxDuration"].toInt());
+	constraint.setDefaultDuration(fromJsonObject<TimeValue>(m_obj["DefaultDuration"].toObject()));
+	constraint.setStartDate(fromJsonObject<TimeValue>(m_obj["StartDate"].toObject()));
+	constraint.setMinDuration(fromJsonObject<TimeValue>(m_obj["MinDuration"].toObject()));
+	constraint.setMaxDuration(fromJsonObject<TimeValue>(m_obj["MaxDuration"].toObject()));
 }

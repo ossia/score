@@ -6,6 +6,7 @@ struct ConstraintData;
 class ConstraintModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 namespace Scenario
 {
 	namespace Command
@@ -22,7 +23,7 @@ namespace Scenario
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
@@ -31,8 +32,8 @@ namespace Scenario
 
 				double m_oldHeightPosition{};
 				double m_newHeightPosition{};
-				int m_oldX{};
-				int m_newX{};
+				TimeValue m_oldX{};
+				TimeValue m_newX{};
 		};
 	}
 }

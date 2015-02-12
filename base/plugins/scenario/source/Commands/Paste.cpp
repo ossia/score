@@ -21,7 +21,7 @@ bool Paste::mergeWith(const QUndoCommand* other)
 	return false;
 }
 
-void Paste::serializeImpl(QDataStream&)
+void Paste::serializeImpl(QDataStream&) const
 {
 }
 

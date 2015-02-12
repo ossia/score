@@ -2,7 +2,6 @@
 #include <interface/plugincontrol/PluginControlInterface.hpp>
 #include "InspectorInterface/InspectorWidgetFactoryInterface.hpp"
 
-
 class InspectorControl : public iscore::PluginControlInterface
 {
 	public:
@@ -26,6 +25,9 @@ class InspectorControl : public iscore::PluginControlInterface
 
 		const QVector<InspectorWidgetFactoryInterface*>& factories() const
 		{ return m_factories; }
+
+
+		static InspectorWidgetBase* getInspectorWidget(QObject* object);
 
 	public slots:
 		void on_newInspectorWidgetFactory(iscore::FactoryInterface *e)

@@ -4,6 +4,7 @@
 #include <tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
+#include <ProcessInterface/TimeValue.hpp>
 
 struct EventData;
 class EventModel;
@@ -37,7 +38,7 @@ namespace Scenario
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
@@ -50,7 +51,7 @@ namespace Scenario
                 bool timeNodeToCreate;
 
 				id_type<EventModel> m_firstEventId{};
-				int m_time{};
+				TimeValue m_time{};
 				double m_heightPosition{};
 
 				QMap<std::tuple<int,int,int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;

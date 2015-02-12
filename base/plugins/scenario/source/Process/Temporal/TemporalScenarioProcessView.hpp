@@ -43,12 +43,10 @@ class TemporalScenarioProcessView : public ProcessViewInterface
 
     private:
         QPointF m_clickedPoint{};
+        QRectF* m_selectArea{};
+
         QAction* m_clearAction{};
 
         bool m_lock{};
+        bool m_clicked{false};
 };
-
-
-
-
-

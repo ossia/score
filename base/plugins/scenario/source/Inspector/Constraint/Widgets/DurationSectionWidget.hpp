@@ -1,4 +1,5 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 
 class QLabel;
 class ConstraintModel;
@@ -13,9 +14,10 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 		void minDurationSpinboxChanged(int val);
 		void maxDurationSpinboxChanged(int val);
+        void defaultDurationSpinboxChanged(int val);
 		void rigidCheckboxToggled(bool b);
 
-		void on_defaultDurationChanged(int dur);
+		void on_defaultDurationChanged(TimeValue dur);
 
 
 	private:
@@ -25,4 +27,5 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 		bool m_minSpinboxEditing{};
 		bool m_maxSpinboxEditing{};
+        bool m_valueSpinboxEditing{};
 };

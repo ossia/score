@@ -10,12 +10,15 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/AddProcessViewInNewDeck.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include "Inspector/MetadataWidget.hpp"
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <InspectorControl.hpp>
 
 #include <tools/ObjectPath.hpp>
 
@@ -44,7 +47,7 @@ class Separator : public QFrame
 
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
-	InspectorWidgetBase (parent)
+    InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
 	m_currentConstraint = object;
@@ -87,6 +90,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	updateSectionsView (areaLayout(), m_properties);
 	areaLayout()->addStretch(1);
 
+    // metadata
+    m_metadata = new MetadataWidget(&object->model()->metadata);
+    m_metadata->setType("Constraint");
+    addHeader(m_metadata);
+
 	updateDisplayedValues(object);
 }
 
@@ -120,14 +128,14 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 	if (constraint != nullptr)
 	{
 		m_currentConstraint = constraint;
-
+/*
 		// Constraint settings
 		setName (model()->metadata.name() );
 		setColor (model()->metadata.color() );
 		setComments (model()->metadata.comment() );
 		setInspectedObject (m_currentConstraint);
 		changeLabelType ("Constraint");
-
+*/
 		// Constraint interface
 		m_connections.push_back(
 					connect(model(),	&ConstraintModel::processCreated,
@@ -179,7 +187,17 @@ void ConstraintInspectorWidget::createBox()
 				   ObjectPath::pathFromObject(
 					   "BaseConstraintModel",
 					   model()));
-	emit submitCommand(cmd);
+    emit submitCommand(cmd);
+}
+
+void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
+{
+    auto cmd = new AddProcessViewInNewDeck(
+                ObjectPath::pathFromObject(
+                    "BaseConstraintModel",
+                    model()),
+                processName);
+    emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box)
@@ -209,8 +227,15 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
 	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
+	auto widg = InspectorControl::getInspectorWidget(process);
+
+	newProc->addContent(widg);
+
 	m_processesSectionWidgets.push_back (newProc);
 	m_processSection->addContent (newProc);
+
+    connect(widg,   SIGNAL(createViewInNewDeck(QString)),
+            this,   SLOT(createProcessViewInNewDeck(QString)));
 }
 
 void ConstraintInspectorWidget::setupBox(BoxModel* box)

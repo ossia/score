@@ -11,10 +11,8 @@ namespace Scenario
 	namespace Command
 	{
 		/**
- * @brief The AddProcessToConstraintCommand class
- *
- * For now this command creates a new deck in the current constraintcontentmodel with a new processviewmodel inside
- */
+		* @brief The AddProcessToConstraint class
+		*/
 		class AddProcessToConstraint : public iscore::SerializableCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
@@ -27,8 +25,11 @@ namespace Scenario
 				virtual int id() const override;
 				virtual bool mergeWith(const QUndoCommand* other) override;
 
+				id_type<ProcessSharedModelInterface> processId() const
+				{ return m_createdProcessId; }
+
 			protected:
-				virtual void serializeImpl(QDataStream&) override;
+				virtual void serializeImpl(QDataStream&) const override;
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:

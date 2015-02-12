@@ -13,23 +13,49 @@ BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent):
 
 }
 
-id_type<DeckModel> BoxModel::createDeck(id_type<DeckModel> newDeckId)
+BoxModel::BoxModel(BoxModel *source, id_type<BoxModel> id, QObject *parent):
+	IdentifiedObject<BoxModel>{id, "BoxModel", parent}
 {
-	return addDeck(
-				new DeckModel{(int) m_decks.size(),
-								newDeckId,
-								this});
-
+	for(auto& deck : source->m_decks)
+	{
+		addDeck(new DeckModel{deck, deck->id(), this});
+	}
 }
 
-id_type<DeckModel> BoxModel::addDeck(DeckModel* deck)
+ConstraintModel* BoxModel::constraint() const
 {
+	return static_cast<ConstraintModel*>(this->parent());
+}
+
+void BoxModel::addDeck(DeckModel* deck)
+{
+	// Reordering : if deck is inserted at position x, what was at x goes at x+1.
+	int maxpos = 0;
+	for(DeckModel* otherDeck : m_decks)
+	{
+		maxpos = std::max(maxpos, otherDeck->position());
+	}
+
+	if(deck->position() > maxpos)
+		deck->setPosition(maxpos + 1);
+	else
+	{
+		for(DeckModel* otherDeck : m_decks)
+		{
+			if(otherDeck->position() >= deck->position())
+			{
+				otherDeck->setPosition(otherDeck->position() + 1);
+			}
+		}
+	}
+
+
+	// Connection
 	connect(this, &BoxModel::on_deleteSharedProcessModel,
 			deck, &DeckModel::on_deleteSharedProcessModel);
 	m_decks.push_back(deck);
 
 	emit deckCreated(deck->id());
-	return deck->id();
 }
 
 

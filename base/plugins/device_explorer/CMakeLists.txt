@@ -22,6 +22,12 @@ endif()
 
 file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.cpp")
 file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.hpp")
+set(INTERFACE_SRCS ${INTERFACE_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview.h
+${CMAKE_CURRENT_SOURCE_DIR}/QMenuView/qmenuview_p.h
+)
+
 
 set(COMMANDS_SRCS
 ${CMAKE_CURRENT_SOURCE_DIR}/Commands/DeviceExplorerPasteCommand.cpp
@@ -93,7 +99,7 @@ file(GLOB_RECURSE QRC "${CMAKE_CURRENT_SOURCE_DIR}/*.qrc")
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer.qrc")
 
 add_library(device_explorer_plugin 
-                        ${INTERFACE_SRCS} ${INTERFACE_SRCS}
+                        ${INTERFACE_SRCS} ${INTERFACE_HDRS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${PANEL_HDRS} ${PANEL_SRCS}
 			${PLUGIN_FILES} ${EXPLORER_RESOURCES_RCC})
