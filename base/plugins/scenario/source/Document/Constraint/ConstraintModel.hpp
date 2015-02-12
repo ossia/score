@@ -29,6 +29,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
 		Q_OBJECT
 
+		// TODO must go in view model
 		Q_PROPERTY(double heightPercentage
 				   READ heightPercentage
 				   WRITE setHeightPercentage
@@ -114,7 +115,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		TimeValue startDate() const;
 		void setStartDate(TimeValue start);
 		void translate(TimeValue deltaTime);
-		void translate(int msec);
 
 		double heightPercentage() const;
 
@@ -146,12 +146,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		void setDefaultDuration(TimeValue defaultDuration);
 		void setMinDuration(TimeValue arg);
 		void setMaxDuration(TimeValue arg);
-
-		// To remove. In msecs.
-		void setStartDate(int arg);
-		void setDefaultDuration(int defaultDuration);
-		void setMinDuration(int arg);
-		void setMaxDuration(int arg);
 
 	private slots:
 		void on_destroyedViewModel(QObject*);

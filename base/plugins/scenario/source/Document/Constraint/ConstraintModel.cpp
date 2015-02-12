@@ -258,33 +258,3 @@ void ConstraintModel::setMaxDuration(TimeValue arg)
 		emit maxDurationChanged(arg);
 	}
 }
-
-void ConstraintModel::translate(int deltaTime)
-{
-	m_x.addMSecs(deltaTime);
-}
-
-void ConstraintModel::setStartDate(int arg)
-{
-	TimeValue t; t.addMSecs(arg);
-	setStartDate(t);
-}
-
-void ConstraintModel::setDefaultDuration(int arg)
-{
-	TimeValue t; t.addMSecs(arg);
-	setDefaultDuration(t);
-}
-
-void ConstraintModel::setMinDuration(int arg)
-{
-	TimeValue t; t.addMSecs(arg);
-	setMinDuration(t);
-}
-
-void ConstraintModel::setMaxDuration(int arg)
-{
-	TimeValue t; t.addMSecs(arg);
-	setMaxDuration(t);
-}
-
