@@ -77,15 +77,17 @@ void AutomationPresenter::on_modelPointsChanged()
 
 	m_curveModel = new PluginCurveModel{this};
 	m_curveView = new PluginCurveView{m_view};
-	m_curvePresenter = new PluginCurvePresenter{m_curveModel, m_curveView, this};
+	m_curvePresenter = new PluginCurvePresenter{1.0 / m_viewModel->model()->getScale(),
+												m_curveModel,
+												m_curveView,
+												this};
 
 	// Recreate the points in the model
 	auto pts = m_viewModel->model()->points();
 
-
 	m_curveView->scene()->clearSelection();
 	auto keys = pts.keys();
-	for(int i = 0; i <keys.size(); ++i)
+	for(int i = 0; i < keys.size(); ++i)
 	{
 		double x = keys[i];
 		if(i != 0 && i != keys.size() - 1)

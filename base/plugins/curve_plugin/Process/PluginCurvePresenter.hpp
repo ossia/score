@@ -104,7 +104,10 @@ class PluginCurvePresenter : public QObject
 		PluginCurveMap* map() const
 		{ return _pMap; }
 
-		PluginCurvePresenter (PluginCurveModel* model, PluginCurveView* view, QObject* parent);
+		PluginCurvePresenter (double scale,
+							  PluginCurveModel* model,
+							  PluginCurveView* view,
+							  QObject* parent);
 
 		// Add a curve and updates source and dest points
 		PluginCurveSection* addSection (PluginCurvePoint* source, PluginCurvePoint* dest);

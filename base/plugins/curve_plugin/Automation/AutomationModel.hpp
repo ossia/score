@@ -10,7 +10,7 @@
  *	x is between  0 and 1,
  *  y is between -1 and 1.
  *
- *
+ * The duration is the time between x=0 and x=1.
  *
  */
 class AutomationModel : public ProcessSharedModelInterface
@@ -31,6 +31,9 @@ class AutomationModel : public ProcessSharedModelInterface
 		}
 
 		virtual QString processName() const override;
+		virtual void setDurationWithScale(TimeValue newDuration) override;
+		virtual void setDurationWithoutScale(TimeValue newDuration) override;
+
 		virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
@@ -58,6 +61,9 @@ class AutomationModel : public ProcessSharedModelInterface
 		void removePoint(double x);
 		void movePoint(double oldx, double newx, double newy);
 
+		double getScale() const
+		{ return m_scale; }
+
 	signals:
 		void addressChanged(QString arg);
 		void pointsChanged();
@@ -76,4 +82,6 @@ class AutomationModel : public ProcessSharedModelInterface
 	private:
 		QString m_address;
 		QMap<double, double> m_points;
+
+		double m_scale{1.5};
 };

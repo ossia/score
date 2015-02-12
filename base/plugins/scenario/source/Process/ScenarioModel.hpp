@@ -47,6 +47,9 @@ class ScenarioModel : public ProcessSharedModelInterface
 														 const ProcessViewModelInterface* source,
 														 QObject* parent) override;
 
+		virtual void setDurationWithScale(TimeValue newDuration) override;
+		virtual void setDurationWithoutScale(TimeValue newDuration) override;
+
 		virtual QString processName() const override
 		{
 			return "Scenario";
@@ -90,8 +93,8 @@ class ScenarioModel : public ProcessSharedModelInterface
 		void removeEventFromTimeNode(id_type<EventModel> eventId);
 		void removeTimeNode(id_type<TimeNodeModel> timeNodeId );
 
+		//TODO Maybe the command should in fact do this ??
 		void undo_removeConstraint(ConstraintModel* newConstraint);
-
 		void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
 		void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 

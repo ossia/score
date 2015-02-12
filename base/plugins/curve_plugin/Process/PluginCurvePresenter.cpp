@@ -49,7 +49,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QTransform>
 #include <iostream>
 
-PluginCurvePresenter::PluginCurvePresenter (PluginCurveModel* model,
+PluginCurvePresenter::PluginCurvePresenter (double scale,
+											PluginCurveModel* model,
 											PluginCurveView* view,
 											QObject* parent):
 	QObject{parent},
@@ -59,7 +60,7 @@ PluginCurvePresenter::PluginCurvePresenter (PluginCurveModel* model,
 	// ** Initialisation **
 	qreal minXValue = 0;
 	qreal minYValue = -1;
-	qreal maxXValue = 1;
+	qreal maxXValue = scale;
 	qreal maxYValue = 1;
 	// Point's area
 	/// @todo prendre l'echelle en paramètre du constructeur (?)

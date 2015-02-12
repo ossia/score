@@ -73,6 +73,19 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
 	return scen;
 }
 
+void ScenarioModel::setDurationWithScale(TimeValue newDuration)
+{
+	qDebug() << Q_FUNC_INFO << "TODO";
+	// Is it recursive ?? Make a scale() method on the constraint, maybe ?
+}
+
+void ScenarioModel::setDurationWithoutScale(TimeValue newDuration)
+{
+	qDebug() << Q_FUNC_INFO << "TODO";
+	// There should be nothing to do here ?
+	// Maybe with the last event/timenode ? (hence they finally have a meaning)
+}
+
 
 void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {

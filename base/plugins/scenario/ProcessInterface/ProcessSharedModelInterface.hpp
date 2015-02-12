@@ -49,6 +49,12 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 			return m_viewModels;
 		}
 
+		// Used to scale the process.
+		virtual void setDurationWithScale(TimeValue newDuration) = 0;
+		virtual void setDurationWithoutScale(TimeValue newDuration) = 0;
+
+		// TODO might not be useful... put in protected ?
+		// Constructor needs it, too.
 		void setDuration(const TimeValue& other)
 		{ m_duration = other; }
 

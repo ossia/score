@@ -11,7 +11,8 @@ AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
 	addPoint(1, 1);
 }
 
-ProcessSharedModelInterface *AutomationModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
+ProcessSharedModelInterface* AutomationModel::clone(id_type<ProcessSharedModelInterface> newId,
+													QObject *newParent)
 {
 	auto autom = new AutomationModel{newId, newParent};
 	autom->setAddress(address());
@@ -23,6 +24,29 @@ ProcessSharedModelInterface *AutomationModel::clone(id_type<ProcessSharedModelIn
 QString AutomationModel::processName() const
 {
 	return "Automation";
+}
+
+void AutomationModel::setDurationWithScale(TimeValue newDuration)
+{
+	qDebug() << Q_FUNC_INFO << "Todo";
+
+	m_scale = duration().msec() / double(newDuration.msec());
+	setDuration(newDuration);
+
+	// Note : the presenter must draw the points correctly, by taking
+	// into account the seconds <-> pixel ratio, and the zoom.
+}
+
+void AutomationModel::setDurationWithoutScale(TimeValue newDuration)
+{
+	setDuration(newDuration);
+
+	// If the duration increases further than the last point,
+	// we create a new point at the same level than the previous.
+	// If it decreases, nothing happens (the points are kept in memory).
+
+	// Note : we have to keep the "max" duration (i.e. duration from first to
+	// last point.
 }
 
 ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
