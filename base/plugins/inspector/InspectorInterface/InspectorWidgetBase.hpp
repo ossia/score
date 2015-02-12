@@ -82,6 +82,7 @@ class InspectorWidgetBase : public QWidget
 		void changeLabelType (QString type);
 */
 		void setInspectedObject (QObject* object);
+        QObject* inspectedObject() const;
 
 		// getters
 		QVBoxLayout* areaLayout()

@@ -50,6 +50,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
     InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
+    setInspectedObject(object);
 	m_currentConstraint = object;
 
 	QPushButton* setAsDisplayedConstraint = new QPushButton{"Full view", this};
@@ -91,7 +92,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget(&object->model()->metadata);
+    m_metadata = new MetadataWidget(&object->model()->metadata, this);
     m_metadata->setType("Constraint");
     addHeader(m_metadata);
 

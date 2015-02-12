@@ -5,6 +5,10 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 
+#include "Commands/Metadata/ChangeElementLabel.hpp"
+#include "Commands/Metadata/ChangeElementName.hpp"
+#include "Commands/Metadata/ChangeElementComments.hpp"
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QLayout>
@@ -15,12 +19,15 @@
 #include <QApplication>
 #include <QCompleter>
 
+using namespace Scenario::Command;
+
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget* parent) :
 	InspectorWidgetBase{nullptr},
 	m_timeNodeModel{object}
 {
 	setObjectName ("TimeNodeInspectorWidget");
+    setInspectedObject(object);
 	setParent(parent);
 
     // default date
@@ -46,12 +53,21 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 	updateDisplayedValues (object);
 
     // metadata
-    m_metadata = new MetadataWidget(&object->metadata);
+    m_metadata = new MetadataWidget(&object->metadata, this);
     m_metadata->setType("TimeNode");
     addHeader(m_metadata);
 
     connect(object, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
+
+    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
+            this,           &TimeNodeInspectorWidget::on_scriptingNameChanged);
+
+    connect(m_metadata,     &MetadataWidget::labelChanged,
+            this,           &TimeNodeInspectorWidget::on_labelChanged);
+
+    connect(m_metadata,     &MetadataWidget::commentsChanged,
+            this,           &TimeNodeInspectorWidget::on_commentsChanged);
 }
 
 
@@ -80,7 +96,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
             m_eventList->addContent(label);
         }
 
-        setInspectedObject (timeNode);
+//        setInspectedObject (timeNode);
 //		changeLabelType ("TimeNode");
 
     }
@@ -89,5 +105,31 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 
 void TimeNodeInspectorWidget::updateInspector()
 {
-	updateDisplayedValues(m_timeNodeModel);
+    updateDisplayedValues(m_timeNodeModel);
+}
+
+void TimeNodeInspectorWidget::on_scriptingNameChanged(QString newName)
+{
+    auto cmd = new ChangeElementName<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newName);
+
+    submitCommand(cmd);
+}
+
+void TimeNodeInspectorWidget::on_labelChanged(QString newLabel)
+{
+    auto cmd = new ChangeElementLabel<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newLabel);
+
+    submitCommand(cmd);
+}
+
+void TimeNodeInspectorWidget::on_commentsChanged(QString newComments)
+{
+    /*
+    auto cmd = new ChangeElementComments<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newComments);
+
+    submitCommand(cmd);
+    */
 }

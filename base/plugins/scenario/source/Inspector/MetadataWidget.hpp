@@ -23,10 +23,17 @@ public slots:
     void setScriptingName(QString arg);
 
     void setType(QString type);
+
+    void updateAsked();
+
 signals:
     void scriptingNameChanged(QString arg);
+    void labelChanged(QString arg);
+    void commentsChanged(QString arg);
 
 private:
+
+        ModelMetadata* m_metadata;
 
         QLabel* m_typeLb{};
         QLineEdit* m_scriptingNameLine{};

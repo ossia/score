@@ -28,6 +28,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	m_eventModel{object}
 {
 	setObjectName ("EventInspectorWidget");
+    setInspectedObject(object);
 	setParent(parent);
 
 	m_conditionWidget = new QLineEdit{this};
@@ -68,7 +69,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	areaLayout()->addStretch();
 
     // metadata
-    m_metadata = new MetadataWidget(&object->metadata);
+    m_metadata = new MetadataWidget(&object->metadata, this);
     m_metadata->setType("Event");
     addHeader(m_metadata);
 
