@@ -2,18 +2,18 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include <tools/SettableIdentifier.hpp>
 #include <interface/serialization/DataStreamVisitor.hpp>
-class ScenarioProcessSharedModel;
+class ScenarioModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;
 
 class EventModel;
 
-class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
+class AbstractScenarioViewModel : public ProcessViewModelInterface
 {
 		Q_OBJECT
 	public:
-		using model_type = ScenarioProcessSharedModel;
+		using model_type = ScenarioModel;
 
 		virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
 											 id_type<AbstractConstraintViewModel> constraintViewModelId) = 0;
@@ -40,7 +40,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
 
 	protected:
-		AbstractScenarioProcessViewModel(id_type<ProcessViewModelInterface> viewModelId,
+		AbstractScenarioViewModel(id_type<ProcessViewModelInterface> viewModelId,
 										 QString name,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):
@@ -52,7 +52,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		}
 
 		// Copy
-		AbstractScenarioProcessViewModel(const AbstractScenarioProcessViewModel* source,
+		AbstractScenarioViewModel(const AbstractScenarioViewModel* source,
 										 id_type<ProcessViewModelInterface> viewModelId,
 										 QString name,
 										 ProcessSharedModelInterface* sharedProcess,
@@ -65,7 +65,7 @@ class AbstractScenarioProcessViewModel : public ProcessViewModelInterface
 		}
 
 		template<typename Impl>
-		AbstractScenarioProcessViewModel(Deserializer<Impl>& vis,
+		AbstractScenarioViewModel(Deserializer<Impl>& vis,
 										 ProcessSharedModelInterface* sharedProcess,
 										 QObject* parent):
 			ProcessViewModelInterface{vis,

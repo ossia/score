@@ -1,6 +1,6 @@
-#include "ScenarioProcessSharedModel.hpp"
+#include "ScenarioModel.hpp"
 
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
@@ -11,8 +11,8 @@
 
 #include <QDebug>
 
-ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface> id, QObject* parent):
-	ProcessSharedModelInterface{id, "ScenarioProcessSharedModel", parent},
+ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent):
+	ProcessSharedModelInterface{id, "ScenarioModel", parent},
 	//m_scenario{nullptr},
 	m_startEventId{0} // Always
 {
@@ -25,9 +25,9 @@ ScenarioProcessSharedModel::ScenarioProcessSharedModel(id_type<ProcessSharedMode
 	//m_events.push_back(new EventModel(1, this));
 }
 
-ProcessSharedModelInterface *ScenarioProcessSharedModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
+ProcessSharedModelInterface *ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent)
 {
-	auto scenario = new ScenarioProcessSharedModel{newId, newParent};
+	auto scenario = new ScenarioModel{newId, newParent};
 	for(ConstraintModel* constraint : m_constraints)
 	{
 		scenario->addConstraint(new ConstraintModel{constraint, constraint->id(), scenario});
@@ -46,26 +46,26 @@ ProcessSharedModelInterface *ScenarioProcessSharedModel::clone(id_type<ProcessSh
 	return scenario;
 }
 
-ScenarioProcessSharedModel::~ScenarioProcessSharedModel()
+ScenarioModel::~ScenarioModel()
 {
 	//if(m_scenario) delete m_scenario;
 }
 
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 																	 QObject* parent)
 {
-	auto scen = new TemporalScenarioProcessViewModel{viewModelId, this, parent};
+	auto scen = new TemporalScenarioViewModel{viewModelId, this, parent};
 	makeViewModel_impl(scen);
 	return scen;
 }
 
 
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
 																	 const ProcessViewModelInterface* source,
 																	 QObject* parent)
 {
-	auto scen = new TemporalScenarioProcessViewModel{
-			static_cast<const TemporalScenarioProcessViewModel*>(source),
+	auto scen = new TemporalScenarioViewModel{
+			static_cast<const TemporalScenarioViewModel*>(source),
 			newId,
 			this,
 			parent};
@@ -74,33 +74,33 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(id_type<Pro
 }
 
 
-void ScenarioProcessSharedModel::makeViewModel_impl(ScenarioProcessSharedModel::view_model_type* scen)
+void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {
 	addViewModel(scen);
 
-	connect(scen, &TemporalScenarioProcessViewModel::destroyed,
-			this, &ScenarioProcessSharedModel::on_viewModelDestroyed);
+	connect(scen, &TemporalScenarioViewModel::destroyed,
+			this, &ScenarioModel::on_viewModelDestroyed);
 
-	connect(this, &ScenarioProcessSharedModel::constraintRemoved,
+	connect(this, &ScenarioModel::constraintRemoved,
 			scen, &view_model_type::on_constraintRemoved);
 
-	connect(this, &ScenarioProcessSharedModel::eventCreated,
+	connect(this, &ScenarioModel::eventCreated,
 			scen, &view_model_type::eventCreated);
-	connect(this, &ScenarioProcessSharedModel::timeNodeCreated,
+	connect(this, &ScenarioModel::timeNodeCreated,
 			scen, &view_model_type::timeNodeCreated);
-	connect(this, &ScenarioProcessSharedModel::eventRemoved,
+	connect(this, &ScenarioModel::eventRemoved,
 			scen, &view_model_type::eventDeleted);
-	connect(this, &ScenarioProcessSharedModel::timeNodeRemoved,
+	connect(this, &ScenarioModel::timeNodeRemoved,
 			scen, &view_model_type::timeNodeDeleted);
-	connect(this, &ScenarioProcessSharedModel::eventMoved,
+	connect(this, &ScenarioModel::eventMoved,
 			scen, &view_model_type::eventMoved);
-	connect(this, &ScenarioProcessSharedModel::constraintMoved,
+	connect(this, &ScenarioModel::constraintMoved,
 			scen, &view_model_type::constraintMoved);
 }
 
 
 //////// Creation ////////
-void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
+void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
 															   id_type<EventModel> endEventId,
 															   id_type<ConstraintModel> newConstraintModelId,
 															   id_type<AbstractConstraintViewModel> newConstraintFullViewId)
@@ -137,7 +137,7 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 }
 
 void
-ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
+ScenarioModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
 																 TimeValue constraint_duration,
 																 double heightPos,
 																 id_type<ConstraintModel> newConstraintId,
@@ -194,7 +194,7 @@ ScenarioProcessSharedModel::createConstraintAndEndEventFromEvent(id_type<EventMo
 	this->event(startEventId)->addNextConstraint(newConstraintId);
 }
 
-void ScenarioProcessSharedModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
+void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
 												id_type<EventModel> eventId)
 {
 	auto newEvent = event(eventId);
@@ -215,7 +215,7 @@ void ScenarioProcessSharedModel::createTimeNode(id_type<TimeNodeModel> timeNodeI
 
 ///////// DELETION //////////
 #include <tools/utilsCPP11.hpp>
-void ScenarioProcessSharedModel::removeConstraint(id_type<ConstraintModel> constraintId)
+void ScenarioModel::removeConstraint(id_type<ConstraintModel> constraintId)
 {
 	auto cstr = constraint(constraintId);
 	vec_erase_remove_if(m_constraints,
@@ -233,7 +233,7 @@ void ScenarioProcessSharedModel::removeConstraint(id_type<ConstraintModel> const
 	delete cstr;
 }
 
-void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
+void ScenarioModel::removeEvent(id_type<EventModel> eventId)
 {
 	auto ev = event(eventId);
 
@@ -251,7 +251,7 @@ void ScenarioProcessSharedModel::removeEvent(id_type<EventModel> eventId)
 	delete ev;
 }
 
-void ScenarioProcessSharedModel::removeEventFromTimeNode(id_type<EventModel> eventId)
+void ScenarioModel::removeEventFromTimeNode(id_type<EventModel> eventId)
 {
 	for (auto& timeNode : m_timeNodes)
 	{
@@ -263,7 +263,7 @@ void ScenarioProcessSharedModel::removeEventFromTimeNode(id_type<EventModel> eve
 	}
 }
 
-void ScenarioProcessSharedModel::removeTimeNode(id_type<TimeNodeModel> timeNodeId)
+void ScenarioModel::removeTimeNode(id_type<TimeNodeModel> timeNodeId)
 {
 	auto tn = timeNode(timeNodeId);
 	vec_erase_remove_if(m_timeNodes,
@@ -274,7 +274,7 @@ void ScenarioProcessSharedModel::removeTimeNode(id_type<TimeNodeModel> timeNodeI
 	delete tn;
 }
 
-void ScenarioProcessSharedModel::undo_removeConstraint(ConstraintModel *newConstraint)
+void ScenarioModel::undo_removeConstraint(ConstraintModel *newConstraint)
 {
 	addConstraint(newConstraint);
 
@@ -285,62 +285,62 @@ void ScenarioProcessSharedModel::undo_removeConstraint(ConstraintModel *newConst
 	eev->addPreviousConstraint(newConstraint->id());
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId)
+void ScenarioModel::undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId)
 {
 	removeEvent(endEventId);
 }
 
-void ScenarioProcessSharedModel::undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId)
+void ScenarioModel::undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId)
 {
 	removeConstraint(constraintId);
 }
 
 
 /////////////////////////////
-ConstraintModel* ScenarioProcessSharedModel::constraint(id_type<ConstraintModel> constraintId) const
+ConstraintModel* ScenarioModel::constraint(id_type<ConstraintModel> constraintId) const
 {
 	return findById(m_constraints, constraintId);
 }
 
-EventModel* ScenarioProcessSharedModel::event(id_type<EventModel> eventId) const
+EventModel* ScenarioModel::event(id_type<EventModel> eventId) const
 {
 	return findById(m_events, eventId);
 }
 
-TimeNodeModel *ScenarioProcessSharedModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
+TimeNodeModel *ScenarioModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
 {
 	return findById(m_timeNodes, timeNodeId);
 }
 
-EventModel* ScenarioProcessSharedModel::startEvent() const
+EventModel* ScenarioModel::startEvent() const
 {
 	return event(m_startEventId);
 }
 
-EventModel* ScenarioProcessSharedModel::endEvent() const
+EventModel* ScenarioModel::endEvent() const
 {
 	return event(m_endEventId);
 }
 
-std::vector<EventModel*> ScenarioProcessSharedModel::events() const
+std::vector<EventModel*> ScenarioModel::events() const
 {
 	return m_events;
 }
 
-void ScenarioProcessSharedModel::on_viewModelDestroyed(QObject* obj)
+void ScenarioModel::on_viewModelDestroyed(QObject* obj)
 {
 	removeViewModel(static_cast<ProcessViewModelInterface*>(obj));
 }
 
 
 
-void ScenarioProcessSharedModel::addConstraint(ConstraintModel* constraint)
+void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
 	m_constraints.push_back(constraint);
 	emit constraintCreated(constraint->id());
 }
 
-void ScenarioProcessSharedModel::addEvent(EventModel* event)
+void ScenarioModel::addEvent(EventModel* event)
 {
 	m_events.push_back(event);
 	emit eventCreated(event->id());

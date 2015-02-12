@@ -1,17 +1,17 @@
 #include "StandardDisplacementPolicy.hpp"
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 
 
-void translateNextElements(ScenarioProcessSharedModel& scenario,
+void translateNextElements(ScenarioModel& scenario,
 						   id_type<TimeNodeModel> firstTimeNodeMovedId,
 						   TimeValue deltaTime,
 						   QVector<id_type<EventModel>> &movedEvents);
 
-void StandardDisplacementPolicy::setEventPosition(ScenarioProcessSharedModel& scenario,
+void StandardDisplacementPolicy::setEventPosition(ScenarioModel& scenario,
 												  id_type<EventModel> eventId,
 												  TimeValue absolute_time,
 												  double heightPosition)
@@ -49,7 +49,7 @@ void StandardDisplacementPolicy::setEventPosition(ScenarioProcessSharedModel& sc
 	}
 }
 
-void StandardDisplacementPolicy::setConstraintPosition(ScenarioProcessSharedModel& scenario,
+void StandardDisplacementPolicy::setConstraintPosition(ScenarioModel& scenario,
 													   id_type<ConstraintModel> constraintId,
 													   TimeValue absolute_time,
 													   double heightPosition)
@@ -69,7 +69,7 @@ void StandardDisplacementPolicy::setConstraintPosition(ScenarioProcessSharedMode
 	}
 }
 
-void translateNextElements(ScenarioProcessSharedModel& scenario,
+void translateNextElements(ScenarioModel& scenario,
 													   id_type<TimeNodeModel> firstTimeNodeMovedId,
 													   TimeValue deltaTime,
 													   QVector<id_type<EventModel>> &movedEvents)

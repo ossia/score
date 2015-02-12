@@ -146,10 +146,10 @@ void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double ne
 }
 
 // Maybe remove the need for this by passing to the scenario instead ?
-#include "Process/ScenarioProcessSharedModel.hpp"
-ScenarioProcessSharedModel* EventModel::parentScenario() const
+#include "Process/ScenarioModel.hpp"
+ScenarioModel* EventModel::parentScenario() const
 {
-	return dynamic_cast<ScenarioProcessSharedModel*>(parent());
+	return dynamic_cast<ScenarioModel*>(parent());
 }
 
 QString EventModel::condition() const

@@ -1,6 +1,6 @@
 #include "MoveEvent.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
@@ -29,7 +29,7 @@ MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 	m_newHeightPosition{data.relativeY},
 	m_newX{data.dDate}
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 	auto ev = scenar->event(m_eventId);
 	m_oldHeightPosition = ev->heightPercentage();
 	m_oldX = ev->date();
@@ -37,7 +37,7 @@ MoveEvent::MoveEvent(ObjectPath &&scenarioPath, EventData data):
 
 void MoveEvent::undo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	StandardDisplacementPolicy::setEventPosition(*scenar,
 												 m_eventId,
@@ -47,7 +47,7 @@ void MoveEvent::undo()
 
 void MoveEvent::redo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	StandardDisplacementPolicy::setEventPosition(*scenar,
 												 m_eventId,

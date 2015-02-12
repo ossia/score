@@ -20,7 +20,7 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
 		 * @brief FullViewConstraintViewModel
 		 * @param id identifier
 		 * @param model Pointer to the corresponding model object
-		 * @param parent Parent object (most certainly ScenarioProcessViewModel)
+		 * @param parent Parent object (most certainly ScenarioViewModel)
 		 */
 		FullViewConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 									ConstraintModel* model,

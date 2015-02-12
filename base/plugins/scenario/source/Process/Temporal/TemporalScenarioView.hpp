@@ -3,14 +3,14 @@
 
 #include <QAction>
 
-class TemporalScenarioProcessView : public ProcessViewInterface
+class TemporalScenarioView : public ProcessViewInterface
 {
 	Q_OBJECT
 
 	public:
-		TemporalScenarioProcessView(QGraphicsObject* parent);
+		TemporalScenarioView(QGraphicsObject* parent);
 
-		virtual ~TemporalScenarioProcessView() = default;
+		virtual ~TemporalScenarioView() = default;
 
 		virtual QRectF boundingRect() const;
 		virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

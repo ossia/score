@@ -14,7 +14,7 @@ namespace OSSIA
 class State;
 class ConstraintModel;
 class TimeNodeModel;
-class ScenarioProcessSharedModel;
+class ScenarioModel;
 
 class EventModel : public IdentifiedObject<EventModel>
 {
@@ -79,7 +79,7 @@ class EventModel : public IdentifiedObject<EventModel>
 		void setVerticalExtremity(id_type<ConstraintModel>, double);
 		void eventMovedVertically(double);
 
-		ScenarioProcessSharedModel* parentScenario() const;
+		ScenarioModel* parentScenario() const;
 
 		// Should maybe be in the Scenario instead ?
 		QMap<id_type<ConstraintModel>, double> constraintsYPos() const

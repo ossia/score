@@ -1,4 +1,4 @@
-#include "TemporalScenarioProcessView.hpp"
+#include "TemporalScenarioView.hpp"
 
 #include <tools/NamedObject.hpp>
 
@@ -9,7 +9,7 @@
 #include <QMenu>
 #include <QDebug>
 
-TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent):
+TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent):
 	ProcessViewInterface{parent}
 {
 	this->setParentItem(parent);
@@ -20,11 +20,11 @@ TemporalScenarioProcessView::TemporalScenarioProcessView(QGraphicsObject* parent
 
     m_clearAction = new QAction("clear contents", this);
     connect(m_clearAction,  &QAction::triggered,
-            this,           &TemporalScenarioProcessView::clearPressed);
+            this,           &TemporalScenarioView::clearPressed);
 }
 
 
-QRectF TemporalScenarioProcessView::boundingRect() const
+QRectF TemporalScenarioView::boundingRect() const
 {
 	auto pr = parentItem()->boundingRect();
 
@@ -36,7 +36,7 @@ QRectF TemporalScenarioProcessView::boundingRect() const
 }
 
 
-void TemporalScenarioProcessView::paint(QPainter* painter,
+void TemporalScenarioView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,
 								QWidget* widget)
 {
@@ -63,7 +63,7 @@ void TemporalScenarioProcessView::paint(QPainter* painter,
 }
 
 
-void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 	QGraphicsObject::mousePressEvent(event);
 
@@ -80,7 +80,7 @@ void TemporalScenarioProcessView::mousePressEvent(QGraphicsSceneMouseEvent* even
 	}
 }
 
-void TemporalScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsObject::mouseMoveEvent(event);
 
@@ -92,7 +92,7 @@ void TemporalScenarioProcessView::mouseMoveEvent(QGraphicsSceneMouseEvent* event
     this->update();
 }
 
-void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
 	QGraphicsObject::mouseReleaseEvent(event);
 	if(event->modifiers() == Qt::ControlModifier)
@@ -114,7 +114,7 @@ void TemporalScenarioProcessView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev
     }
 }
 
-void TemporalScenarioProcessView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
     QMenu contextMenu{};
     contextMenu.clear();
@@ -122,7 +122,7 @@ void TemporalScenarioProcessView::contextMenuEvent(QGraphicsSceneContextMenuEven
     contextMenu.exec(event->screenPos());
 }
 
-void TemporalScenarioProcessView::keyPressEvent(QKeyEvent* event)
+void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 {
 	if(event->key() == Qt::Key_Delete)
 	{

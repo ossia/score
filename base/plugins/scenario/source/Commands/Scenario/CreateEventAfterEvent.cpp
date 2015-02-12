@@ -1,12 +1,12 @@
 #include "CreateEventAfterEvent.hpp"
 
-#include "source/Process/ScenarioProcessSharedModel.hpp"
+#include "source/Process/ScenarioModel.hpp"
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Event/EventData.hpp"
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 #include "source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -28,7 +28,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 	m_time{data.dDate},
 	m_heightPosition{data.relativeY}
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	m_createdEventId = getStrongId(scenar->events());
 	m_createdConstraintId = getStrongId(scenar->constraints());
@@ -57,14 +57,14 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
 void CreateEventAfterEvent::undo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
     scenar->undo_createConstraintAndEndEventFromEvent(m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
     if (! timeNodeToCreate)
     {

@@ -2,11 +2,11 @@
 
 #include <InspectorInterface/InspectorWidgetBase.hpp>
 
-class ScenarioProcessSharedModel;
+class ScenarioModel;
 class ScenarioInspectorWidget : public InspectorWidgetBase
 {
 		Q_OBJECT
 	public:
-		explicit ScenarioInspectorWidget (ScenarioProcessSharedModel* object,
+		explicit ScenarioInspectorWidget (ScenarioModel* object,
 										  QWidget* parent = 0);
 };

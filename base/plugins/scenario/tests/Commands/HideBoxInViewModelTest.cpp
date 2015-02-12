@@ -15,9 +15,9 @@
 #include "Commands/Scenario/CreateEvent.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
-#include "Process/ScenarioProcessFactory.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
-#include "Process/AbstractScenarioProcessViewModel.hpp"
+#include "Process/ScenarioFactory.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/AbstractScenarioViewModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
 
@@ -36,7 +36,7 @@ class HideBoxInViewModelTest: public QObject
 			// Maybe do a fake process list, with a fake process for unit tests.
 			NamedObject *obj = new NamedObject{"obj", qApp};
 			ProcessList* plist = new ProcessList{obj};
-			plist->addProcess(new ScenarioProcessFactory);
+			plist->addProcess(new ScenarioFactory);
 
 			// Setup
 			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0},
@@ -49,7 +49,7 @@ class HideBoxInViewModelTest: public QObject
 			}, "Scenario");
 			stack.push(cmd_proc);
 			auto scenarioId = cmd_proc->m_createdProcessId;
-			auto scenario = static_cast<ScenarioProcessSharedModel*>(constraint->process(scenarioId));
+			auto scenario = static_cast<ScenarioModel*>(constraint->process(scenarioId));
 
 
 			// Creation of a way to visualize what happens in the original constraint
@@ -70,12 +70,12 @@ class HideBoxInViewModelTest: public QObject
 			 {"BoxModel", boxId},
 			 {"DeckModel", deckId}},
 			{{"ConstraintModel", {}},
-			 {"ScenarioProcessSharedModel", scenarioId}});
+			 {"ScenarioModel", scenarioId}});
 			stack.push(cmd_pvm);
 
 			auto viewmodel = constraint->boxes().front()->decks().front()->processViewModels().front();
-			auto scenario_viewmodel = dynamic_cast<AbstractScenarioProcessViewModel*>(viewmodel);
-			// Put this in the tests for AbstractScenarioProcessViewModel
+			auto scenario_viewmodel = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
+			// Put this in the tests for AbstractScenarioViewModel
 			QVERIFY(scenario_viewmodel != nullptr);
 			QCOMPARE(scenario_viewmodel->constraints().count(), 0);
 
@@ -88,7 +88,7 @@ class HideBoxInViewModelTest: public QObject
 
 			auto cmd_event = new CreateEvent(
 			{
-				{"ScenarioProcessSharedModel", {}},
+				{"ScenarioModel", {}},
             }, data);
 			stack.push(cmd_event);
 
@@ -104,7 +104,7 @@ class HideBoxInViewModelTest: public QObject
 			auto cmd_box2 = new AddBoxToConstraint(
 						ObjectPath{
 									{"ConstraintModel", {}},
-									{"ScenarioProcessSharedModel", scenarioId},
+									{"ScenarioModel", scenarioId},
 									{"ConstraintModel", cmd_event->m_cmd->m_createdConstraintId}
 								  });
 			stack.push(cmd_box2);

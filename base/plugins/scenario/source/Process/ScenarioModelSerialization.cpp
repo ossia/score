@@ -1,11 +1,11 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
-#include "ScenarioProcessSharedModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "ScenarioModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& scenario)
+void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 {
 	m_stream << scenario.m_startEventId;
 	m_stream << scenario.m_endEventId;
@@ -37,7 +37,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioProcessSharedModel& sce
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
+void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 {
 	m_stream >> scenario.m_startEventId;
 	m_stream >> scenario.m_endEventId;
@@ -86,7 +86,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioProcessSharedModel& scenario)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
+void Visitor<Reader<JSON>>::readFrom(const ScenarioModel& scenario)
 {
 	m_obj["StartEventId"] = toJsonObject(scenario.m_startEventId);
 	m_obj["EndEventId"] = toJsonObject(scenario.m_endEventId);
@@ -97,7 +97,7 @@ void Visitor<Reader<JSON>>::readFrom(const ScenarioProcessSharedModel& scenario)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
+void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
 {
 	scenario.m_startEventId = fromJsonObject<id_type<EventModel>>(m_obj["StartEventId"].toObject());
 	scenario.m_endEventId = fromJsonObject<id_type<EventModel>>(m_obj["EndEventId"].toObject());
@@ -138,7 +138,7 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioProcessSharedModel& scenario)
 
 
 
-void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
+void ScenarioModel::serialize(SerializationIdentifier identifier,
 										   void* data) const
 {
 	if(identifier == DataStream::type())
@@ -152,33 +152,33 @@ void ScenarioProcessSharedModel::serialize(SerializationIdentifier identifier,
 		return;
 	}
 
-	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream & JSON serialization");
+	throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
 }
 
-#include "ScenarioProcessFactory.hpp"
-ProcessSharedModelInterface* ScenarioProcessFactory::makeModel(SerializationIdentifier identifier,
+#include "ScenarioFactory.hpp"
+ProcessSharedModelInterface* ScenarioFactory::makeModel(SerializationIdentifier identifier,
 															  void* data,
 															  QObject* parent)
 {
 	if(identifier == DataStream::type())
 	{
-		return new ScenarioProcessSharedModel{*static_cast<Deserializer<DataStream>*>(data), parent};
+		return new ScenarioModel{*static_cast<Deserializer<DataStream>*>(data), parent};
 	}
 	else if(identifier == JSON::type())
 	{
-		return new ScenarioProcessSharedModel{*static_cast<Deserializer<JSON>*>(data), parent};
+		return new ScenarioModel{*static_cast<Deserializer<JSON>*>(data), parent};
 	}
 
-	throw std::runtime_error("ScenarioSharedProcessModel only supports DataStream & JSON serialization");
+	throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
 }
 
-ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(SerializationIdentifier identifier,
+ProcessViewModelInterface* ScenarioModel::makeViewModel(SerializationIdentifier identifier,
 																	 void* data,
 																	 QObject* parent)
 {
 	if(identifier == DataStream::type())
 	{
-		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<DataStream>*>(data),
+		auto scen = new TemporalScenarioViewModel(*static_cast<Deserializer<DataStream>*>(data),
 														 this,
 														 parent);
 		makeViewModel_impl(scen);
@@ -186,12 +186,12 @@ ProcessViewModelInterface* ScenarioProcessSharedModel::makeViewModel(Serializati
 	}
 	else if(identifier == JSON::type())
 	{
-		auto scen = new TemporalScenarioProcessViewModel(*static_cast<Deserializer<JSON>*>(data),
+		auto scen = new TemporalScenarioViewModel(*static_cast<Deserializer<JSON>*>(data),
 														 this,
 														 parent);
 		makeViewModel_impl(scen);
 		return scen;
 	}
 
-	throw std::runtime_error("ScenarioProcessViewModels only supports DataStream & JSON serialization");
+	throw std::runtime_error("ScenarioViewModels only supports DataStream & JSON serialization");
 }

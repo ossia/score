@@ -1,6 +1,6 @@
 #include "CreateEvent.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -27,7 +27,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data):
 						"CreateEvent",
 						QObject::tr("Event creation")}
 {
-	auto scenar = scenarioPath.find<ScenarioProcessSharedModel>();
+	auto scenar = scenarioPath.find<ScenarioModel>();
 
     data.eventClickedId = scenar->startEvent()->id();
 

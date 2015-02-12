@@ -14,32 +14,32 @@ namespace OSSIA
 class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
-class AbstractScenarioProcessViewModel;
+class AbstractScenarioViewModel;
 class AbstractConstraintViewModel;
 
 /**
- * @brief The ScenarioProcessSharedModel class
+ * @brief The ScenarioModel class
  *
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioProcessSharedModel : public ProcessSharedModelInterface
+class ScenarioModel : public ProcessSharedModelInterface
 {
 		Q_OBJECT
 
-		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
-		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
-		friend void Visitor<Reader<JSON>>::readFrom<ScenarioProcessSharedModel>(const ScenarioProcessSharedModel&);
-		friend void Visitor<Writer<JSON>>::writeTo<ScenarioProcessSharedModel>(ScenarioProcessSharedModel&);
-		friend class ScenarioProcessFactory;
+		friend void Visitor<Reader<DataStream>>::readFrom<ScenarioModel>(const ScenarioModel&);
+		friend void Visitor<Writer<DataStream>>::writeTo<ScenarioModel>(ScenarioModel&);
+		friend void Visitor<Reader<JSON>>::readFrom<ScenarioModel>(const ScenarioModel&);
+		friend void Visitor<Writer<JSON>>::writeTo<ScenarioModel>(ScenarioModel&);
+		friend class ScenarioFactory;
 
 	public:
-		using view_model_type = AbstractScenarioProcessViewModel;
+		using view_model_type = AbstractScenarioViewModel;
 
-		ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+		ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
 		ProcessSharedModelInterface *clone(id_type<ProcessSharedModelInterface> newId, QObject *newParent);
 
-		virtual ~ScenarioProcessSharedModel();
+		virtual ~ScenarioModel();
 		virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
 														 QObject* parent) override;
 
@@ -137,7 +137,7 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 
 	protected:
 		template<typename Impl>
-		ScenarioProcessSharedModel(Deserializer<Impl>& vis, QObject* parent):
+		ScenarioModel(Deserializer<Impl>& vis, QObject* parent):
 			ProcessSharedModelInterface{vis, parent}
 		{
 			vis.writeTo(*this);

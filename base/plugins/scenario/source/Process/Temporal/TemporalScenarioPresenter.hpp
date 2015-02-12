@@ -13,8 +13,8 @@ class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 class EventPresenter;
-class TemporalScenarioProcessViewModel;
-class TemporalScenarioProcessView;
+class TemporalScenarioViewModel;
+class TemporalScenarioView;
 class EventModel;
 class TimeNodeModel;
 class TimeNodePresenter;
@@ -22,7 +22,7 @@ class ConstraintModel;
 struct EventData;
 struct ConstraintData;
 
-class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
+class TemporalScenarioPresenter : public ProcessPresenterInterface
 {
 	Q_OBJECT
 
@@ -32,10 +32,10 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
 				   NOTIFY currentlySelectedEventChanged)
 
 	public:
-		TemporalScenarioProcessPresenter(ProcessViewModelInterface* model,
+		TemporalScenarioPresenter(ProcessViewModelInterface* model,
 								 ProcessViewInterface* view,
 								 QObject* parent);
-		virtual ~TemporalScenarioProcessPresenter();
+		virtual ~TemporalScenarioPresenter();
 
 
 		virtual id_type<ProcessViewModelInterface> viewModelId() const;
@@ -95,8 +95,8 @@ class TemporalScenarioProcessPresenter : public ProcessPresenterInterface
         void updateTimeNode(id_type<TimeNodeModel> id);
 
 
-		TemporalScenarioProcessViewModel* m_viewModel;
-		TemporalScenarioProcessView* m_view;
+		TemporalScenarioViewModel* m_viewModel;
+		TemporalScenarioView* m_view;
 
 		// TODO faire passer l'abstract et utiliser des free functions de cast
 		std::vector<TemporalConstraintPresenter*> m_constraints;

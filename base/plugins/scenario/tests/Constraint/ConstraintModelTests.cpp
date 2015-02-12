@@ -2,7 +2,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/Constraint/Box/BoxModel.hpp>
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioModel.hpp>
 
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
@@ -82,7 +82,7 @@ class ConstraintModelTests: public QObject
 			ConstraintModel i0{id_type<ConstraintModel>{0},
 							   id_type<AbstractConstraintViewModel>{0}, qApp};
 			i0.setObjectName("OriginalConstraint");
-			auto s0 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{0}, &i0};
+			auto s0 = new ScenarioModel{id_type<ProcessSharedModelInterface>{0}, &i0};
 
 			auto int_0_id = getStrongId(s0->constraints());
 			auto ev_0_id = getStrongId(s0->events());
@@ -97,22 +97,22 @@ class ConstraintModelTests: public QObject
 			s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), std::chrono::milliseconds{46}, 10, int_2_id, fv_2_id, ev_2_id);
 
 			auto i1 = s0->constraint(int_0_id);
-			auto s1 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{0}, i1}; (void) s1;
-			auto s2 = new ScenarioProcessSharedModel{id_type<ProcessSharedModelInterface>{1}, i1};
+			auto s1 = new ScenarioModel{id_type<ProcessSharedModelInterface>{0}, i1}; (void) s1;
+			auto s2 = new ScenarioModel{id_type<ProcessSharedModelInterface>{1}, i1};
 
 			ObjectPath p{
 							{"OriginalConstraint", {}},
-							{"ScenarioProcessSharedModel", 0},
+							{"ScenarioModel", 0},
 							{"ConstraintModel", int_0_id},
-							{"ScenarioProcessSharedModel", 1}
+							{"ScenarioModel", 1}
 						 };
 			QCOMPARE(p.find<QObject>(), s2);
 
 			ObjectPath p2{
 							{"OriginalConstraint", {}},
-							{"ScenarioProcessSharedModel", 0},
+							{"ScenarioModel", 0},
 							{"ConstraintModel", int_0_id},
-							{"ScenarioProcessSharedModel", 7}
+							{"ScenarioModel", 7}
 						 };
 			try
 			{
@@ -123,9 +123,9 @@ class ConstraintModelTests: public QObject
 
 			ObjectPath p3{
 							{"OriginalConstraint", {}},
-							{"ScenarioProcessSharedModel", 0},
+							{"ScenarioModel", 0},
 							{"ConstraintModel0xBADBAD", int_0_id},
-							{"ScenarioProcessSharedModel", 1}
+							{"ScenarioModel", 1}
 						};
 			try
 			{
@@ -136,10 +136,10 @@ class ConstraintModelTests: public QObject
 
 			ObjectPath p4{
 							{"OriginalConstraint", {}},
-							{"ScenarioProcessSharedModel", 0},
+							{"ScenarioModel", 0},
 							{"ConstraintModel", int_0_id},
-							{"ScenarioProcessSharedModel", 1},
-							{"ScenarioProcessSharedModel", 1}
+							{"ScenarioModel", 1},
+							{"ScenarioModel", 1}
 						};
 			try
 			{

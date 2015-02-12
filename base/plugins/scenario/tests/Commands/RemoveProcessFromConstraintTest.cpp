@@ -3,13 +3,13 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/Constraint/Box/BoxModel.hpp>
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioModel.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-#include <Process/ScenarioProcessFactory.hpp>
+#include <Process/ScenarioFactory.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -23,7 +23,7 @@ class RemoveProcessFromConstraintTest: public QObject
 		{
 			NamedObject *obj = new NamedObject("obj", qApp);
 			ProcessList plist(obj);
-			plist.addProcess(new ScenarioProcessFactory);
+			plist.addProcess(new ScenarioFactory);
 
 			ConstraintModel* int_model  = new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 			int_model->createBox(id_type<BoxModel>{656});
@@ -39,7 +39,7 @@ class RemoveProcessFromConstraintTest: public QObject
 			cmd.redo();
 			QVERIFY(int_model2->processes().size() == 1);
 
-			auto s0 = static_cast<ScenarioProcessSharedModel*>(int_model2->processes().front());
+			auto s0 = static_cast<ScenarioModel*>(int_model2->processes().front());
 
 			auto int_0_id = getStrongId(s0->constraints());
 			auto ev_0_id = getStrongId(s0->events());
@@ -54,7 +54,7 @@ class RemoveProcessFromConstraintTest: public QObject
 			{
 				{"ConstraintModel", {}},
 				{"ConstraintModel", 0},
-				{"ScenarioProcessSharedModel", s0->id()},
+				{"ScenarioModel", s0->id()},
 				{"ConstraintModel", int_0_id}
 			}, "Scenario");
 

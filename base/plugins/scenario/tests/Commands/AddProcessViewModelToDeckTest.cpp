@@ -10,7 +10,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
-#include <Process/ScenarioProcessFactory.hpp>
+#include <Process/ScenarioFactory.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 
 #include <QUndoStack>
@@ -29,7 +29,7 @@ class AddProcessViewModelToDeckTest: public QObject
 			// Maybe do a fake process list, with a fake process for unit tests.
 			NamedObject *obj = new NamedObject{"obj", qApp};
 			ProcessList* plist = new ProcessList{obj};
-			plist->addProcess(new ScenarioProcessFactory);
+			plist->addProcess(new ScenarioFactory);
 
 			// Setup
 			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
@@ -58,7 +58,7 @@ class AddProcessViewModelToDeckTest: public QObject
 			 {"BoxModel", boxId},
 			 {"DeckModel", deckId}},
 			{{"ConstraintModel", {}},
-			 {"ScenarioProcessSharedModel", procId}});
+			 {"ScenarioModel", procId}});
 			stack.push(cmd_pvm);
 
 			for(int i = 4; i --> 0;)

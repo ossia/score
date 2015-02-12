@@ -3,8 +3,8 @@
 #include <interface/serialization/JSONVisitor.hpp>
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
-#include "Process/AbstractScenarioProcessViewModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/AbstractScenarioViewModel.hpp"
+#include "Process/ScenarioModel.hpp"
 
 class AbstractConstraintViewModel;
 

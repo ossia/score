@@ -2,10 +2,10 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 
@@ -33,7 +33,7 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
 
     m_cstrId = constraint->id();
 
-    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    auto scenar = m_path.find<ScenarioModel>();
     for(auto& viewModel : viewModels(scenar))
     {
         // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
@@ -45,7 +45,7 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
 
 void RemoveConstraint::undo()
 {
-    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    auto scenar = m_path.find<ScenarioModel>();
 
     Deserializer<DataStream> s{&m_serializedConstraint};
 
@@ -70,7 +70,7 @@ void RemoveConstraint::undo()
 
 void RemoveConstraint::redo()
 {
-    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    auto scenar = m_path.find<ScenarioModel>();
     scenar->removeConstraint(m_cstrId);
 }
 

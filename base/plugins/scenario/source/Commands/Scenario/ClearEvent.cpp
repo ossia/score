@@ -3,7 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/State/State.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 

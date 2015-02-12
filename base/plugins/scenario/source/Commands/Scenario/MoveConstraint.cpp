@@ -1,6 +1,6 @@
 #include "MoveConstraint.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
 
@@ -33,7 +33,7 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 	m_newHeightPosition{d.relativeY},
 	m_newX{d.dDate}
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 	auto cst = scenar->constraint(m_constraintId);
 	m_oldHeightPosition = cst->heightPercentage();
 	m_oldX = cst->startDate();
@@ -41,7 +41,7 @@ MoveConstraint::MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d):
 
 void MoveConstraint::undo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	StandardDisplacementPolicy::setConstraintPosition(*scenar,
 													  m_constraintId,
@@ -51,7 +51,7 @@ void MoveConstraint::undo()
 
 void MoveConstraint::redo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
 

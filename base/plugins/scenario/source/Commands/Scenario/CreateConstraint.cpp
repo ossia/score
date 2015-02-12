@@ -1,11 +1,11 @@
 #include "CreateConstraint.hpp"
 
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -26,7 +26,7 @@ CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, id_type<EventModel
 	m_startEventId{startEvent},
 	m_endEventId{endEvent}
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 	m_createdConstraintId = getStrongId(scenar->constraints());
 
 	// For each ScenarioViewModel of the scenario we are applying this command in,
@@ -39,14 +39,14 @@ CreateConstraint::CreateConstraint(ObjectPath &&scenarioPath, id_type<EventModel
 
 void CreateConstraint::undo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	scenar->undo_createConstraintBetweenEvent(m_createdConstraintId);
 }
 
 void CreateConstraint::redo()
 {
-	auto scenar = m_path.find<ScenarioProcessSharedModel>();
+	auto scenar = m_path.find<ScenarioModel>();
 
 	scenar->createConstraintBetweenEvents(m_startEventId,
 										  m_endEventId,

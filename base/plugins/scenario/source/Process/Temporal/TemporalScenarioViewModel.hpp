@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QMap>
-#include "source/Process/AbstractScenarioProcessViewModel.hpp"
-class ScenarioProcessSharedModel;
+#include "source/Process/AbstractScenarioViewModel.hpp"
+class ScenarioModel;
 class BoxModel;
 class TemporalConstraintViewModel;
 
@@ -10,35 +10,35 @@ class TemporalConstraintViewModel;
 class ConstraintModel;
 
 
-class TemporalScenarioProcessViewModel : public AbstractScenarioProcessViewModel
+class TemporalScenarioViewModel : public AbstractScenarioViewModel
 {
 	Q_OBJECT
-	friend QDataStream& operator >>(QDataStream& s, TemporalScenarioProcessViewModel& pvm);
+	friend QDataStream& operator >>(QDataStream& s, TemporalScenarioViewModel& pvm);
 
 	public:
-		using model_type = ScenarioProcessSharedModel;
+		using model_type = ScenarioModel;
 		using constraint_view_model_type = TemporalConstraintViewModel;
 		// using event_type = TemporalEventViewModel;
 
-		TemporalScenarioProcessViewModel(id_type<ProcessViewModelInterface> id,
-										 ScenarioProcessSharedModel* model,
+		TemporalScenarioViewModel(id_type<ProcessViewModelInterface> id,
+										 ScenarioModel* model,
 										 QObject* parent);
 
-		TemporalScenarioProcessViewModel(const TemporalScenarioProcessViewModel* source,
+		TemporalScenarioViewModel(const TemporalScenarioViewModel* source,
 										 id_type<ProcessViewModelInterface> id,
-										 ScenarioProcessSharedModel* model,
+										 ScenarioModel* model,
 										 QObject* parent);
 
 		template<typename Impl>
-		TemporalScenarioProcessViewModel(Deserializer<Impl>& vis,
-										 ScenarioProcessSharedModel* model,
+		TemporalScenarioViewModel(Deserializer<Impl>& vis,
+										 ScenarioModel* model,
 										 QObject* parent):
-			AbstractScenarioProcessViewModel{vis, model, parent}
+			AbstractScenarioViewModel{vis, model, parent}
 		{
 			vis.writeTo(*this);
 		}
 
-		virtual ~TemporalScenarioProcessViewModel() = default;
+		virtual ~TemporalScenarioViewModel() = default;
 
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const override;

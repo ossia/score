@@ -7,7 +7,7 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -21,7 +21,7 @@ class MoveConstraintTest: public QObject
 
 		void MoveCommandTest()
 		{
-			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface>{0}, qApp);
+			ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface>{0}, qApp);
 
 			auto int_0_id = getStrongId(scenar->constraints());
 			auto ev_0_id = getStrongId(scenar->events());
@@ -35,7 +35,7 @@ class MoveConstraintTest: public QObject
 			data.relativeY = 0.1;
 			MoveConstraint cmd(
 			{
-				{"ScenarioProcessSharedModel", {}},
+				{"ScenarioModel", {}},
 			}, data );
 
 			cmd.redo();

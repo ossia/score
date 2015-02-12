@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-ScenarioInspectorWidget::ScenarioInspectorWidget (ScenarioProcessSharedModel* object, QWidget* parent) :
+ScenarioInspectorWidget::ScenarioInspectorWidget (ScenarioModel* object, QWidget* parent) :
 	InspectorWidgetBase{nullptr}
 {
 	setObjectName ("ScenarioInspectorWidget");

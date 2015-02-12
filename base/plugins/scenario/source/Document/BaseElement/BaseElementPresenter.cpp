@@ -10,7 +10,7 @@
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 
 #include <QSlider>
 #include <QGraphicsView>

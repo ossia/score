@@ -2,19 +2,19 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <tools/SettableIdentifier.hpp>
 
-class ScenarioProcessSharedModel;
+class ScenarioModel;
 class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
 
 namespace StandardDisplacementPolicy
 {
-	void setEventPosition(ScenarioProcessSharedModel& scenario,
+	void setEventPosition(ScenarioModel& scenario,
 						  id_type<EventModel> eventId,
 						  TimeValue absolute_time,
 						  double heightPosition);
 
-	void setConstraintPosition(ScenarioProcessSharedModel& scenario,
+	void setConstraintPosition(ScenarioModel& scenario,
 							   id_type<ConstraintModel> constraintId,
 							   TimeValue absolute_time,
 							   double heightPosition);

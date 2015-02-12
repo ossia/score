@@ -3,7 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/State/State.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 
@@ -54,7 +54,7 @@ RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event):
 void RemoveEvent::undo()
 {
 
-    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    auto scenar = m_path.find<ScenarioModel>();
 
     Deserializer<DataStream> s{&m_serializedEvent};
     auto event = new EventModel(s, scenar);
@@ -77,7 +77,7 @@ void RemoveEvent::undo()
 
 void RemoveEvent::redo()
 {
-    auto scenar = m_path.find<ScenarioProcessSharedModel>();
+    auto scenar = m_path.find<ScenarioModel>();
     scenar->removeEvent(m_evId);
 }
 

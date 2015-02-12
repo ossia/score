@@ -19,7 +19,7 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 		 * @brief TemporalConstraintViewModel
 		 * @param id identifier
 		 * @param model Pointer to the corresponding model object
-		 * @param parent Parent object (most certainly ScenarioProcessViewModel)
+		 * @param parent Parent object (most certainly ScenarioViewModel)
 		 */
 		TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
 									ConstraintModel* model,

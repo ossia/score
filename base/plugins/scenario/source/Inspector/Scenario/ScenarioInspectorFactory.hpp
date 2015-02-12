@@ -17,6 +17,6 @@ class ScenarioInspectorFactory : public InspectorWidgetFactoryInterface
 
 		virtual QString correspondingObjectName() const override
 		{
-			return "ScenarioProcessSharedModel";
+			return "ScenarioModel";
 		}
 };

@@ -1,10 +1,10 @@
-#include "Process/AbstractScenarioProcessViewModel.hpp"
+#include "Process/AbstractScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
-#include "TemporalScenarioProcessViewModel.hpp"
+#include "TemporalScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewModel& pvm)
+void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& pvm)
 {
 	auto constraints = constraintsViewModels(pvm);
 
@@ -18,7 +18,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioProcessViewMode
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
+void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
 {
 	int count;
 	m_stream >> count;
@@ -35,7 +35,7 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioProcessViewModel& pvm)
+void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioViewModel& pvm)
 {
 	QJsonArray arr;
 	for(auto cstrvm : constraintsViewModels(pvm))
@@ -47,7 +47,7 @@ void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioProcessViewModel& pvm
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(TemporalScenarioProcessViewModel& pvm)
+void Visitor<Writer<JSON>>::writeTo(TemporalScenarioViewModel& pvm)
 {
 	QJsonArray arr = m_obj["Constraints"].toArray();
 
@@ -62,7 +62,7 @@ void Visitor<Writer<JSON>>::writeTo(TemporalScenarioProcessViewModel& pvm)
 
 
 
-void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identifier, void* data) const
+void TemporalScenarioViewModel::serialize(SerializationIdentifier identifier, void* data) const
 {
 	if(identifier == DataStream::type())
 	{
@@ -75,5 +75,5 @@ void TemporalScenarioProcessViewModel::serialize(SerializationIdentifier identif
 		return;
 	}
 
-	throw std::runtime_error("ScenarioProcessViewModel only supports DataStream serialization");
+	throw std::runtime_error("ScenarioViewModel only supports DataStream serialization");
 }

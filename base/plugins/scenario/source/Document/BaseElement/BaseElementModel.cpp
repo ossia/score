@@ -71,7 +71,7 @@ void testInit(FullViewConstraintViewModel* viewmodel)
 		},
 		{
 			{"BaseConstraintModel", {}},
-			{"ScenarioProcessSharedModel", scenarioId}
+			{"ScenarioModel", scenarioId}
 		}
 	};
 	cmd6.redo();

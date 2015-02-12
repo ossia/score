@@ -1,8 +1,8 @@
-#include "TemporalScenarioProcessPresenter.hpp"
+#include "TemporalScenarioPresenter.hpp"
 
-#include "source/Process/ScenarioProcessSharedModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioProcessViewModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioProcessView.hpp"
+#include "source/Process/ScenarioModel.hpp"
+#include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "source/Process/Temporal/TemporalScenarioView.hpp"
 
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
@@ -41,12 +41,12 @@
 #include <QGraphicsScene>
 
 using namespace Scenario;
-TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewModelInterface* process_view_model,
+TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
-	ProcessPresenterInterface{"TemporalScenarioProcessPresenter", parent},
-	m_viewModel{static_cast<TemporalScenarioProcessViewModel*>(process_view_model)},
-	m_view{static_cast<TemporalScenarioProcessView*>(view)}
+	ProcessPresenterInterface{"TemporalScenarioPresenter", parent},
+	m_viewModel{static_cast<TemporalScenarioViewModel*>(process_view_model)},
+	m_view{static_cast<TemporalScenarioView*>(view)}
 {
 	/////// Setup of existing data
 	// For each constraint & event, display' em
@@ -68,45 +68,45 @@ TemporalScenarioProcessPresenter::TemporalScenarioProcessPresenter(ProcessViewMo
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
 
-	connect(m_view, &TemporalScenarioProcessView::deletePressed,
-			this,	&TemporalScenarioProcessPresenter::on_deletePressed);
-    connect(m_view, &TemporalScenarioProcessView::clearPressed,
-            this,	&TemporalScenarioProcessPresenter::on_clearPressed);
-    connect(m_view, &TemporalScenarioProcessView::scenarioPressed,
-			this,	&TemporalScenarioProcessPresenter::on_scenarioPressed);
-	connect(m_view, &TemporalScenarioProcessView::scenarioPressedWithControl,
-			this,	&TemporalScenarioProcessPresenter::on_scenarioPressedWithControl);
-	connect(m_view, &TemporalScenarioProcessView::scenarioReleased,
-			this,	&TemporalScenarioProcessPresenter::on_scenarioReleased);
+	connect(m_view, &TemporalScenarioView::deletePressed,
+			this,	&TemporalScenarioPresenter::on_deletePressed);
+    connect(m_view, &TemporalScenarioView::clearPressed,
+            this,	&TemporalScenarioPresenter::on_clearPressed);
+    connect(m_view, &TemporalScenarioView::scenarioPressed,
+			this,	&TemporalScenarioPresenter::on_scenarioPressed);
+	connect(m_view, &TemporalScenarioView::scenarioPressedWithControl,
+			this,	&TemporalScenarioPresenter::on_scenarioPressedWithControl);
+	connect(m_view, &TemporalScenarioView::scenarioReleased,
+			this,	&TemporalScenarioPresenter::on_scenarioReleased);
 
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventCreated,
-			this,		 &TemporalScenarioProcessPresenter::on_eventCreated);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventDeleted,
-			this,		 &TemporalScenarioProcessPresenter::on_eventDeleted);
+	connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
+			this,		 &TemporalScenarioPresenter::on_eventCreated);
+	connect(m_viewModel, &TemporalScenarioViewModel::eventDeleted,
+			this,		 &TemporalScenarioPresenter::on_eventDeleted);
 
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeCreated,
-			this,        &TemporalScenarioProcessPresenter::on_timeNodeCreated);
-    connect(m_viewModel, &TemporalScenarioProcessViewModel::timeNodeDeleted,
-            this,        &TemporalScenarioProcessPresenter::on_timeNodeDeleted);
+	connect(m_viewModel, &TemporalScenarioViewModel::timeNodeCreated,
+			this,        &TemporalScenarioPresenter::on_timeNodeCreated);
+    connect(m_viewModel, &TemporalScenarioViewModel::timeNodeDeleted,
+            this,        &TemporalScenarioPresenter::on_timeNodeDeleted);
 
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelCreated,
-			this,		 &TemporalScenarioProcessPresenter::on_constraintCreated);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintViewModelRemoved,
-			this,		 &TemporalScenarioProcessPresenter::on_constraintViewModelRemoved);
+	connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelCreated,
+			this,		 &TemporalScenarioPresenter::on_constraintCreated);
+	connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
+			this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::eventMoved,
-			this,		 &TemporalScenarioProcessPresenter::on_eventMoved);
-	connect(m_viewModel, &TemporalScenarioProcessViewModel::constraintMoved,
-			this,		 &TemporalScenarioProcessPresenter::on_constraintMoved);
+	connect(m_viewModel, &TemporalScenarioViewModel::eventMoved,
+			this,		 &TemporalScenarioPresenter::on_eventMoved);
+	connect(m_viewModel, &TemporalScenarioViewModel::constraintMoved,
+			this,		 &TemporalScenarioPresenter::on_constraintMoved);
 
-	connect(model(m_viewModel), &ScenarioProcessSharedModel::locked,
+	connect(model(m_viewModel), &ScenarioModel::locked,
 			[&] () { m_view->lock(); });
-	connect(model(m_viewModel), &ScenarioProcessSharedModel::unlocked,
+	connect(model(m_viewModel), &ScenarioModel::unlocked,
 			[&] () { m_view->unlock(); });
 
 }
 
-TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
+TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
 	if(m_view)
 	{
@@ -116,34 +116,34 @@ TemporalScenarioProcessPresenter::~TemporalScenarioProcessPresenter()
 	}
 }
 
-id_type<ProcessViewModelInterface> TemporalScenarioProcessPresenter::viewModelId() const
+id_type<ProcessViewModelInterface> TemporalScenarioPresenter::viewModelId() const
 {
 	return m_viewModel->id();
 }
 
-id_type<ProcessSharedModelInterface> TemporalScenarioProcessPresenter::modelId() const
+id_type<ProcessSharedModelInterface> TemporalScenarioPresenter::modelId() const
 {
 	return m_viewModel->sharedProcessModel()->id();
 }
 
-void TemporalScenarioProcessPresenter::putToFront()
+void TemporalScenarioPresenter::putToFront()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
 	m_view->setOpacity(1);
 }
 
-void TemporalScenarioProcessPresenter::putBack()
+void TemporalScenarioPresenter::putBack()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 	m_view->setOpacity(0.1);
 }
 
-void TemporalScenarioProcessPresenter::parentGeometryChanged()
+void TemporalScenarioPresenter::parentGeometryChanged()
 {
 	m_view->on_parentGeometryChange();
 }
 
-void TemporalScenarioProcessPresenter::on_horizontalZoomChanged(int val)
+void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
 {
 	m_horizontalZoomSliderVal = val;
 	m_millisecPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
@@ -160,44 +160,44 @@ void TemporalScenarioProcessPresenter::on_horizontalZoomChanged(int val)
 	}
 }
 
-id_type<EventModel> TemporalScenarioProcessPresenter::currentlySelectedEvent() const
+id_type<EventModel> TemporalScenarioPresenter::currentlySelectedEvent() const
 {
 	return m_currentlySelectedEvent;
 }
 
-long TemporalScenarioProcessPresenter::millisecPerPixel() const
+long TemporalScenarioPresenter::millisecPerPixel() const
 {
 	return m_millisecPerPixel;
 }
 
-void TemporalScenarioProcessPresenter::on_eventCreated(id_type<EventModel> eventId)
+void TemporalScenarioPresenter::on_eventCreated(id_type<EventModel> eventId)
 {
 	on_eventCreated_impl(model(m_viewModel)->event(eventId));
 }
 
-void TemporalScenarioProcessPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
+void TemporalScenarioPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
     on_timeNodeCreated_impl(model(m_viewModel)->timeNode(timeNodeId));
 }
 
-void TemporalScenarioProcessPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
+void TemporalScenarioPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
 }
 
-void TemporalScenarioProcessPresenter::on_eventDeleted(id_type<EventModel> eventId)
+void TemporalScenarioPresenter::on_eventDeleted(id_type<EventModel> eventId)
 {
     removeFromVectorWithId(m_events, eventId);
 	m_view->update();
 }
 
-void TemporalScenarioProcessPresenter::on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId)
+void TemporalScenarioPresenter::on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId)
 {
     removeFromVectorWithId(m_timeNodes, timeNodeId);
     m_view->update();
 }
 
-void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
+void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
 	vec_erase_remove_if(m_constraints,
 						[&constraintViewModelId] (TemporalConstraintPresenter* pres)
@@ -213,7 +213,7 @@ void TemporalScenarioProcessPresenter::on_constraintViewModelRemoved(id_type<Abs
 /////////////////////////////////////////////////////////////////////
 // MOVING ELEMENTS
 
-void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId)
+void TemporalScenarioPresenter::on_eventMoved(id_type<EventModel> eventId)
 {
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
@@ -232,7 +232,7 @@ void TemporalScenarioProcessPresenter::on_eventMoved(id_type<EventModel> eventId
 }
 
 
-void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintModel> constraintId)
+void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> constraintId)
 {
 	auto rect = m_view->boundingRect();
 
@@ -262,7 +262,7 @@ void TemporalScenarioProcessPresenter::on_constraintMoved(id_type<ConstraintMode
 	m_view->update();
 }
 
-void TemporalScenarioProcessPresenter::updateTimeNode(id_type<TimeNodeModel> id)
+void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 {
     auto timeNode = findById(m_timeNodes, id);
     auto rect = m_view->boundingRect();
@@ -317,17 +317,17 @@ void TemporalScenarioProcessPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 /////////////////////////////////////////////////////////////////////
 // USER INTERACTIONS
 
-void TemporalScenarioProcessPresenter::on_deletePressed()
+void TemporalScenarioPresenter::on_deletePressed()
 {
     deleteSelection();
 }
 
-void TemporalScenarioProcessPresenter::on_clearPressed()
+void TemporalScenarioPresenter::on_clearPressed()
 {
     clearContentFromSelection();
 }
 
-void TemporalScenarioProcessPresenter::on_scenarioPressed()
+void TemporalScenarioPresenter::on_scenarioPressed()
 {
 	for(auto& event : m_events)
 	{
@@ -344,12 +344,12 @@ void TemporalScenarioProcessPresenter::on_scenarioPressed()
 }
 
 
-void TemporalScenarioProcessPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
+void TemporalScenarioPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
 {
 
 }
 
-void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
+void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
     EventData data{};
     data.eventClickedId = m_events.back()->id();
@@ -381,7 +381,7 @@ void TemporalScenarioProcessPresenter::on_scenarioReleased(QPointF point, QPoint
 
 }
 
-void TemporalScenarioProcessPresenter::on_askUpdate()
+void TemporalScenarioPresenter::on_askUpdate()
 {
 	m_view->update();
 }
@@ -395,7 +395,7 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 				 [] (typename InputVector::value_type c) { return c->isSelected(); });
 }
 
-void TemporalScenarioProcessPresenter::clearContentFromSelection()
+void TemporalScenarioPresenter::clearContentFromSelection()
 {
 	using namespace Scenario::Command;
 	// 1. Select items
@@ -429,7 +429,7 @@ void TemporalScenarioProcessPresenter::clearContentFromSelection()
     emit submitCommand(cmd);
 }
 
-void TemporalScenarioProcessPresenter::deleteSelection()
+void TemporalScenarioPresenter::deleteSelection()
 {
     // TODO quelques comportements bizarres à régler ...
 
@@ -473,7 +473,7 @@ void TemporalScenarioProcessPresenter::deleteSelection()
    // */
 }
 
-void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(id_type<EventModel> arg)
+void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> arg)
 {
 	if (m_currentlySelectedEvent != arg)
 	{
@@ -482,7 +482,7 @@ void TemporalScenarioProcessPresenter::setCurrentlySelectedEvent(id_type<EventMo
 	}
 }
 
-void TemporalScenarioProcessPresenter::createConstraint(EventData data)
+void TemporalScenarioPresenter::createConstraint(EventData data)
 {
 	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
 	data.relativeY = data.y / m_view->boundingRect().height();
@@ -531,7 +531,7 @@ void TemporalScenarioProcessPresenter::createConstraint(EventData data)
 /////////////////////////////////////////////////////////////////////
 // MOVING ELEMENTS COMMANDS
 
-void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
+void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
 {
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
@@ -542,7 +542,7 @@ void TemporalScenarioProcessPresenter::moveEventAndConstraint(EventData data)
 	submitCommand(cmd);
 }
 
-void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
+void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 {
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
@@ -554,7 +554,7 @@ void TemporalScenarioProcessPresenter::moveConstraint(ConstraintData data)
     submitCommand(cmd);
 }
 
-void TemporalScenarioProcessPresenter::moveTimeNode(EventData data)
+void TemporalScenarioPresenter::moveTimeNode(EventData data)
 {
     auto ev = findById(m_events, data.eventClickedId);
     data.y = ev->view()->y();
@@ -564,7 +564,7 @@ void TemporalScenarioProcessPresenter::moveTimeNode(EventData data)
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
 
-void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_model)
+void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 {
 	auto rect = m_view->boundingRect();
 
@@ -577,16 +577,16 @@ void TemporalScenarioProcessPresenter::on_eventCreated_impl(EventModel* event_mo
 
 	m_events.push_back(event_presenter);
 	connect(event_presenter, &EventPresenter::eventSelected,
-			this,			 &TemporalScenarioProcessPresenter::setCurrentlySelectedEvent);
+			this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &TemporalScenarioProcessPresenter::createConstraint);
+			this,			 &TemporalScenarioPresenter::createConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
-			this,			 &TemporalScenarioProcessPresenter::moveEventAndConstraint);
+			this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
-			this,			 &TemporalScenarioProcessPresenter::elementSelected);
+			this,			 &TemporalScenarioPresenter::elementSelected);
 }
 
-void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
+void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
 {
 	auto rect = m_view->boundingRect();
 
@@ -602,13 +602,13 @@ void TemporalScenarioProcessPresenter::on_timeNodeCreated_impl(TimeNodeModel* ti
     updateTimeNode(timeNode_model->id());
 
     connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
-            this,			 &TemporalScenarioProcessPresenter::moveTimeNode);
+            this,			 &TemporalScenarioPresenter::moveTimeNode);
 
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
-            this,			 &TemporalScenarioProcessPresenter::elementSelected);
+            this,			 &TemporalScenarioPresenter::elementSelected);
 }
 
-void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
+void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
 {
 	auto rect = m_view->boundingRect();
 
@@ -626,14 +626,14 @@ void TemporalScenarioProcessPresenter::on_constraintCreated_impl(TemporalConstra
 	m_constraints.push_back(constraint_presenter);
 
 	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
-			this,					&TemporalScenarioProcessPresenter::moveConstraint);
+			this,					&TemporalScenarioPresenter::moveConstraint);
 	connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
-			this,					&TemporalScenarioProcessPresenter::submitCommand);
+			this,					&TemporalScenarioPresenter::submitCommand);
 	connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
-			this,					&TemporalScenarioProcessPresenter::elementSelected);
+			this,					&TemporalScenarioPresenter::elementSelected);
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
-            this,					&TemporalScenarioProcessPresenter::on_askUpdate);
+            this,					&TemporalScenarioPresenter::on_askUpdate);
 
     updateTimeNode( findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     updateTimeNode( findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());

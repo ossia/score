@@ -3,8 +3,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "Process/ScenarioProcessSharedModel.hpp"
-#include "Process/Temporal/TemporalScenarioProcessViewModel.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 
 #include <core/tools/utilsCPP11.hpp>

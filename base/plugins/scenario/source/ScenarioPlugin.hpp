@@ -43,7 +43,7 @@ class ScenarioPlugin :
 		virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
 
 		// Crée les objets correspondant aux factories passées en argument.
-		// ex. si QString = Process, renvoie un vecteur avec ScenarioProcessFactory.
+		// ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
 		virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
 
 	private:

@@ -5,7 +5,7 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
 
-#include <Process/ScenarioProcessSharedModel.hpp>
+#include <Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -20,7 +20,7 @@ class CreateEventTest: public QObject
 
 		void CreateTest()
 		{
-			ScenarioProcessSharedModel* scenar = new ScenarioProcessSharedModel(id_type<ProcessSharedModelInterface>{0}, qApp);
+			ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface>{0}, qApp);
 			EventData data{};
 			// data.id = 0; unused here
 			data.dDate.setMSecs(10);
@@ -28,7 +28,7 @@ class CreateEventTest: public QObject
 
 			CreateEvent cmd(
 			{
-				{"ScenarioProcessSharedModel", {}},
+				{"ScenarioModel", {}},
             }, data);
 
 			cmd.redo();
