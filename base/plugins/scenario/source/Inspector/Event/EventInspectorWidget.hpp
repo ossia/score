@@ -25,6 +25,10 @@ class EventInspectorWidget : public InspectorWidgetBase
 		void on_addAddressClicked();
 		void on_conditionChanged();
 
+        void on_scriptingNameChanged(QString);
+        void on_labelChanged(QString);
+        void on_commentsChanged(QString);
+
 		void updateMessages();
 
 	private:

@@ -5,6 +5,9 @@
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
+#include "Commands/Metadata/ChangeElementLabel.hpp"
+#include "Commands/Metadata/ChangeElementName.hpp"
+#include "Commands/Metadata/ChangeElementComments.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -21,6 +24,8 @@
 
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
+
+// TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 using namespace Scenario;
 
 EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
@@ -75,6 +80,15 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 
 	// display data
     updateDisplayedValues (object);
+
+    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
+            this,           &EventInspectorWidget::on_scriptingNameChanged);
+
+    connect(m_metadata,     &MetadataWidget::labelChanged,
+            this,           &EventInspectorWidget::on_labelChanged);
+
+    connect(m_metadata,     &MetadataWidget::commentsChanged,
+            this,           &EventInspectorWidget::on_commentsChanged);
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -140,6 +154,27 @@ void EventInspectorWidget::on_conditionChanged()
 					txt};
 
 	emit submitCommand(cmd);
+
+}
+
+void EventInspectorWidget::on_scriptingNameChanged(QString newName)
+{
+    auto cmd = new Command::ChangeElementName<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newName);
+
+    submitCommand(cmd);
+}
+
+void EventInspectorWidget::on_labelChanged(QString newLabel)
+{
+    auto cmd = new Command::ChangeElementLabel<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newLabel);
+
+    submitCommand(cmd);
+}
+
+void EventInspectorWidget::on_commentsChanged(QString)
+{
 
 }
 
