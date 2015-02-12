@@ -14,6 +14,9 @@
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
+#include "Commands/Metadata/ChangeElementLabel.hpp"
+#include "Commands/Metadata/ChangeElementName.hpp"
+#include "Commands/Metadata/ChangeElementComments.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
@@ -50,6 +53,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
     InspectorWidgetBase (parent)
 {
 	setObjectName ("Constraint");
+    setInspectedObject(object);
 	m_currentConstraint = object;
 
 	QPushButton* setAsDisplayedConstraint = new QPushButton{"Full view", this};
@@ -91,11 +95,20 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget(&object->model()->metadata);
+    m_metadata = new MetadataWidget(&object->model()->metadata, this);
     m_metadata->setType("Constraint");
     addHeader(m_metadata);
 
 	updateDisplayedValues(object);
+
+    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
+            this,           &ConstraintInspectorWidget::on_scriptingNameChanged);
+
+    connect(m_metadata,     &MetadataWidget::labelChanged,
+            this,           &ConstraintInspectorWidget::on_labelChanged);
+
+    connect(m_metadata,     &MetadataWidget::commentsChanged,
+            this,           &ConstraintInspectorWidget::on_commentsChanged);
 }
 
 TemporalConstraintViewModel*ConstraintInspectorWidget::viewModel() const
@@ -221,7 +234,32 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 			auto cmd = new ShowBoxInViewModel(viewModel(), id);
 			emit submitCommand(cmd);
 		}
-	}
+    }
+}
+
+void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
+{
+    /*
+    auto cmd = new ChangeElementName<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newName);
+
+    submitCommand(cmd);
+    //*/
+}
+
+void ConstraintInspectorWidget::on_labelChanged(QString newLabel)
+{
+    /*
+    auto cmd = new ChangeElementLabel<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+                newLabel);
+
+    submitCommand(cmd);
+    //*/
+}
+
+void ConstraintInspectorWidget::on_commentsChanged(QString)
+{
+
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)

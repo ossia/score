@@ -141,8 +141,14 @@ void InspectorWidgetBase::changeLabelType (QString type)
 	_objectType->setText (type);
 }
 */
+
 void InspectorWidgetBase::setInspectedObject (QObject* object)
 {
-	_inspectedObject = object;
+    _inspectedObject = object;
+}
+
+QObject *InspectorWidgetBase::inspectedObject() const
+{
+    return _inspectedObject;
 }
 

@@ -60,6 +60,7 @@ signals:
 		void commentChanged(QString arg);
 		void colorChanged(QColor arg);        
         void labelChanged(QString arg);
+        void metadataChanged();
 
 public slots:
 		void setName(QString arg);
@@ -71,7 +72,7 @@ public slots:
 private:
         QString m_scriptingName;
         QString m_comment;
-        QColor m_color{Qt::gray};
+        QColor m_color{Qt::black};
         QString m_label;
 };
 

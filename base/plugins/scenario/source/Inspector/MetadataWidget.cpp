@@ -11,7 +11,8 @@
 #include <QVBoxLayout>
 
 MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
-    QWidget (parent)
+    QWidget (parent),
+    m_metadata{metadata}
 {
     QVBoxLayout* metadataLayout = new QVBoxLayout{this};
     setLayout(metadataLayout);
@@ -49,10 +50,26 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     metadataLayout->addWidget(descriptionWidget);
     metadataLayout->addWidget (m_colorButton);
     metadataLayout->addWidget (comments);
-/*
-    connect(m_scriptingNameLine &QLineEdit::textEdited,
-            metadata,           &ModelMetadata::setName);
-            */
+
+    connect(m_scriptingNameLine, &QLineEdit::editingFinished,
+            [=] ()
+    {
+        emit scriptingNameChanged(m_scriptingNameLine->text());
+    });
+    connect(m_labelLine, &QLineEdit::editingFinished,
+            [=] ()
+    {
+        emit labelChanged(m_labelLine->text());
+    });
+    connect(m_comments, &QTextEdit::textChanged,
+            [=] ()
+    {
+        emit commentsChanged(m_comments->toPlainText());
+    });
+
+
+    connect(metadata,   &ModelMetadata::metadataChanged,
+            this,       &MetadataWidget::updateAsked);
 }
 
 QString MetadataWidget::scriptingName() const
@@ -72,4 +89,11 @@ void MetadataWidget::setScriptingName(QString arg)
 void MetadataWidget::setType(QString type)
 {
     m_typeLb->setText(type);
+}
+
+void MetadataWidget::updateAsked()
+{
+    m_scriptingNameLine->setText(m_metadata->name());
+    m_labelLine->setText(m_metadata->label());
+    m_comments->setText(m_metadata->comment());
 }

@@ -32,6 +32,7 @@ void ModelMetadata::setName(QString arg)
 
 	m_scriptingName = arg;
 	emit nameChanged(arg);
+    emit metadataChanged();
 }
 
 void ModelMetadata::setComment(QString arg)
@@ -41,6 +42,7 @@ void ModelMetadata::setComment(QString arg)
 
 	m_comment = arg;
 	emit commentChanged(arg);
+    emit metadataChanged();
 }
 
 void ModelMetadata::setColor(QColor arg)
@@ -50,6 +52,7 @@ void ModelMetadata::setColor(QColor arg)
 
 	m_color = arg;
     emit colorChanged(arg);
+    emit metadataChanged();
 }
 
 void ModelMetadata::setLabel(QString arg)
@@ -59,4 +62,5 @@ void ModelMetadata::setLabel(QString arg)
 
     m_label = arg;
     emit labelChanged(arg);
+    emit metadataChanged();
 }
