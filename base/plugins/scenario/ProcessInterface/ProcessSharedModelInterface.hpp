@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
+#include <ProcessInterface/TimeValue.hpp>
 class QDataStream;
 
 class InspectorSectionWidget;
@@ -48,6 +49,12 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 			return m_viewModels;
 		}
 
+		void setDuration(const TimeValue& other)
+		{ m_duration = other; }
+
+		TimeValue duration() const
+		{ return m_duration; }
+
 		// protected:
 		virtual void serialize(SerializationIdentifier identifier,
 							   void* data) const = 0;
@@ -70,6 +77,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 		// Ownership ? The parent is the Deck. Always.
 		// A process view is never displayed alone, it is always in a view, which is in a box.
 		QVector<ProcessViewModelInterface*> m_viewModels;
+		TimeValue m_duration;
 };
 
 template<typename T>

@@ -41,7 +41,9 @@ void AddProcessToConstraint::redo()
 	auto constraint = m_path.find<ConstraintModel>();
 
 	// Create process model
-	constraint->addProcess(ProcessList::getFactory(m_processName)->makeModel(m_createdProcessId, constraint));
+	auto proc = ProcessList::getFactory(m_processName)->makeModel(m_createdProcessId, constraint);
+	proc->setDuration(constraint->defaultDuration());
+	constraint->addProcess(proc);
 }
 
 int AddProcessToConstraint::id() const
