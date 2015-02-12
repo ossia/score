@@ -9,7 +9,8 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& process)
 {
 	// To allow recration using createProcess
-	m_stream << process.processName();
+	m_stream << process.processName()
+			 << process.duration();
 
 	readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
 
@@ -27,12 +28,17 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 										   QObject* parent)
 {
 	QString processName;
-	deserializer.m_stream >> processName;
+	TimeValue duration;
+	deserializer.m_stream
+			>> processName
+			>> duration;
 
 	auto model = ProcessList::getFactory(processName)
 					->makeModel(DataStream::type(),
 								static_cast<void*>(&deserializer),
 								parent);
+
+	model->setDuration(duration);
 
 	deserializer.checkDelimiter();
 	return model;
@@ -45,6 +51,7 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
 {
 	// To allow recration using createProcess
 	m_obj["ProcessName"] = process.processName();
+	m_obj["Duration"] = toJsonObject(process.duration());
 
 	readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
 
@@ -63,6 +70,8 @@ ProcessSharedModelInterface* createProcess(Deserializer<JSON>& deserializer,
 					->makeModel(JSON::type(),
 								static_cast<void*>(&deserializer),
 								parent);
+
+	model->setDuration(fromJsonObject<TimeValue>(deserializer.m_obj["Duration"].toObject()));
 
 	return model;
 }

@@ -83,21 +83,27 @@ void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
 	m_view->setDefaultWidth(val.msec() / secPerPixel);
-	updateHeight();
+
+	emit askUpdate();
+	m_view->update();
 }
 
 void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
 	m_view->setMinWidth(min.msec() / secPerPixel);
-	updateHeight();
+
+	emit askUpdate();
+	m_view->update();
 }
 
 void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 {
 	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
 	m_view->setMaxWidth(max .msec()/ secPerPixel);
-	updateHeight();
+
+	emit askUpdate();
+	m_view->update();
 }
 
 void AbstractConstraintPresenter::updateHeight()
@@ -160,12 +166,14 @@ void AbstractConstraintPresenter::clearBoxPresenter()
 void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 {
 	auto boxView = new BoxView{m_view};
-	boxView->setPos(5, 50);
+	boxView->setPos(0, 5);
 
 	// Cas par défaut
 	m_box = new BoxPresenter{boxModel,
 							 boxView,
 							 this};
+
+	m_box->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
 	connect(m_box, &BoxPresenter::submitCommand,
 			this,  &AbstractConstraintPresenter::submitCommand);
@@ -174,6 +182,4 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 
 	connect(m_box, &BoxPresenter::askUpdate,
 			this,  &AbstractConstraintPresenter::updateHeight);
-
-	box()->setWidth(m_view->defaultWidth() - 20);
 }

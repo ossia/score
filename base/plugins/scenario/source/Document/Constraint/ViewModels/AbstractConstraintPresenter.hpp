@@ -59,10 +59,6 @@ class AbstractConstraintPresenter : public NamedObject
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
-		void minDurationChanged();
-		void maxDurationChanged();
-		void defaultDurationChanged();
-
 		void askUpdate();
 
 	public slots:

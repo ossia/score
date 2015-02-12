@@ -49,7 +49,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ModelMetadata metadata;
 
 		ConstraintModel(id_type<ConstraintModel>,
-						id_type<AbstractConstraintViewModel> fullViewId,
+						id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
 						QObject* parent);
 		ConstraintModel(id_type<ConstraintModel>,
 						id_type<AbstractConstraintViewModel> fullViewId,
@@ -62,6 +62,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 						QObject* parent);
 		~ConstraintModel();
 
+		// Serialization
 		template<typename DeserializerVisitor>
 		ConstraintModel(DeserializerVisitor&& vis, QObject* parent):
 			IdentifiedObject<ConstraintModel>{vis, parent}
@@ -85,14 +86,14 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		void addProcess(ProcessSharedModelInterface*);
 		void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
-		void createBox(id_type<BoxModel> boxId);
+		void createBox(id_type<BoxModel> boxId); // TODO : Remove this one
 		void addBox(BoxModel*);
 		void removeBox(id_type<BoxModel> boxId);
 
 		id_type<EventModel> startEvent() const;
 		id_type<EventModel> endEvent() const;
-		void setStartEvent(id_type<EventModel> eventId); // Use ScenarioKey
-		void setEndEvent(id_type<EventModel> eventId); // Use ScenarioKey
+		void setStartEvent(id_type<EventModel> eventId); // Use ScenarioKey?
+		void setEndEvent(id_type<EventModel> eventId); // Use ScenarioKey?
 
 
 		BoxModel* box(id_type<BoxModel> id) const;
@@ -167,7 +168,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_startEvent{};
 		id_type<EventModel> m_endEvent{};
 
-		// ___ Use TimeValue instead ___
 		TimeValue m_defaultDuration{200ms};
 		TimeValue m_minDuration{m_defaultDuration};
 		TimeValue m_maxDuration{m_defaultDuration};

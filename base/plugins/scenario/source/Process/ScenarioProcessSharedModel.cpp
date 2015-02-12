@@ -107,7 +107,7 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);
-	auto inter = new ConstraintModel{newConstraintModelId,
+	auto constraint = new ConstraintModel{newConstraintModelId,
 			newConstraintFullViewId,
 			this};
 
@@ -121,22 +121,19 @@ void ScenarioProcessSharedModel::createConstraintBetweenEvents(id_type<EventMode
 */
 	// Error checking if it did not go well ? Rollback ?
 	// Else...
-	inter->setStartEvent(sev->id());
-	inter->setEndEvent(eev->id());
+	constraint->setStartEvent(sev->id());
+	constraint->setEndEvent(eev->id());
 
-	inter->setStartDate(sev->date());
-	inter->setDefaultDuration(eev->date() - sev->date());
-	inter->setHeightPercentage( (sev->heightPercentage() + eev->heightPercentage()) / 2);
+	constraint->setStartDate(sev->date());
+	constraint->setDefaultDuration(eev->date() - sev->date());
+	constraint->setHeightPercentage( (sev->heightPercentage() + eev->heightPercentage()) / 2.);
 
 	sev->addNextConstraint(newConstraintModelId);
 	eev->addPreviousConstraint(newConstraintModelId);
 
 	// From now on everything must be in a valid state.
-	addConstraint(inter);
-	emit constraintCreated(inter->id());
-
-	//    setEventPosition(endEventId, eev->date(), eev->heightPercentage());
-	//    setConstraintPosition(newConstraintModelId, inter->startDate(), inter->heightPercentage());
+	addConstraint(constraint);
+	emit constraintCreated(constraint->id());
 }
 
 void

@@ -52,7 +52,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
 		void deckOrderChanged(id_type<DeckModel> deckId);
 
 		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> processId);
-		void on_parentDurationChanged(TimeValue dur);
+		void on_durationChanged(TimeValue dur);
 
 	private:
 		std::vector<DeckModel*> m_decks;

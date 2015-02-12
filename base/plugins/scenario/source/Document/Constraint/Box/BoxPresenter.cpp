@@ -1,5 +1,6 @@
 #include "BoxPresenter.hpp"
 
+#include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
@@ -24,6 +25,8 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 		on_deckCreated_impl(deckModel);
 	}
 
+	m_duration = model->constraint()->defaultDuration();
+
 	on_askUpdate();
 
 	connect(m_model,	&BoxModel::deckCreated,
@@ -31,8 +34,8 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 	connect(m_model,	&BoxModel::deckRemoved,
 			this,		&BoxPresenter::on_deckRemoved);
 
-	connect(m_model,	&BoxModel::on_parentDurationChanged,
-			this,		&BoxPresenter::setDuration);
+	connect(m_model,	&BoxModel::on_durationChanged,
+			this,		&BoxPresenter::on_durationChanged);
 }
 
 BoxPresenter::~BoxPresenter()
@@ -66,7 +69,7 @@ void BoxPresenter::setWidth(int w)
 
 	for(auto deck : m_decks)
 	{
-		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
+		deck->setWidth(m_view->boundingRect().width());
 	}
 }
 
@@ -75,10 +78,10 @@ id_type<BoxModel> BoxPresenter::id() const
 	return m_model->id();
 }
 
-void BoxPresenter::setDuration(TimeValue duration)
+void BoxPresenter::on_durationChanged(TimeValue duration)
 {
-	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
-	setWidth(duration.msec() / secPerPixel);
+	m_duration = duration;
+	on_askUpdate();
 }
 
 void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
@@ -89,11 +92,13 @@ void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
 void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 {
 	auto deckView = new DeckView{m_view};
-	deckView->setPos(5, 5);
+	deckView->setPos(0, 0);
+
 	auto deckPres = new DeckPresenter{deckModel,
 					  deckView,
 					  this};
 	m_decks.push_back(deckPres);
+	deckPres->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
 
 	connect(deckPres, &DeckPresenter::submitCommand,
@@ -116,6 +121,7 @@ void BoxPresenter::on_deckRemoved(id_type<DeckModel> deckId)
 void BoxPresenter::updateShape()
 {
 	using namespace std;
+	// Vertical shape
 	m_view->setHeight(height());
 
 	// 1. Make an array with the Decks stored by their positions
@@ -133,6 +139,15 @@ void BoxPresenter::updateShape()
 		deck->setVerticalPosition(currentDeckY);
 		currentDeckY += deck->height() + 5;
 	}
+
+	// Horizontal shape
+	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	setWidth(m_duration.msec() / secPerPixel);
+
+	for(DeckPresenter* deck : m_decks)
+	{
+		deck->on_parentGeometryChanged();
+	}
 }
 
 void BoxPresenter::on_askUpdate()
@@ -145,8 +160,7 @@ void BoxPresenter::on_horizontalZoomChanged(int val)
 {
 	m_horizontalZoomSliderVal = val;
 
-	updateShape();
-	emit askUpdate();
+	on_askUpdate();
 
 	// We have to change the width of the decks aftewards
 	// because their width depend on the box width

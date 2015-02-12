@@ -35,7 +35,7 @@ class BoxPresenter : public NamedObject
 		void askUpdate();
 
 	public slots:
-		void setDuration(TimeValue duration);
+		void on_durationChanged(TimeValue duration);
 		void on_deckCreated(id_type<DeckModel> deckId);
 		void on_deckRemoved(id_type<DeckModel> deckId);
 
@@ -54,5 +54,6 @@ class BoxPresenter : public NamedObject
 		std::vector<DeckPresenter*> m_decks;
 
 		int m_horizontalZoomSliderVal{};
+		TimeValue m_duration{};
 };
 

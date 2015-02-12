@@ -18,4 +18,4 @@ namespace StandardDisplacementPolicy
 							   id_type<ConstraintModel> constraintId,
 							   TimeValue absolute_time,
 							   double heightPosition);
-};
+}

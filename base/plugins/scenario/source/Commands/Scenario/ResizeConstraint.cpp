@@ -50,6 +50,7 @@ void ResizeConstraint::undo()
 
 void ResizeConstraint::redo()
 {
+	qDebug(Q_FUNC_INFO);
 	m_cmd->redo();
 }
 

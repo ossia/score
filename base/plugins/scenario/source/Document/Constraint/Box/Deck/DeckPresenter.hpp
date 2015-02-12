@@ -32,7 +32,7 @@ class DeckPresenter : public NamedObject
 		void setWidth(int w);
 
 
-signals:
+	signals:
 		void submitCommand(iscore::SerializableCommand*);
 		void elementSelected(QObject*);
 
@@ -44,6 +44,7 @@ signals:
 		void on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId);
 		void on_processViewModelSelected(id_type<ProcessViewModelInterface> processId);
 		void on_heightChanged(int height);
+		void on_parentGeometryChanged();
 
 		// From View
 		void on_bottomHandleSelected();

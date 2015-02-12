@@ -144,6 +144,14 @@ void DeckPresenter::on_heightChanged(int height)
 	emit askUpdate();
 }
 
+void DeckPresenter::on_parentGeometryChanged()
+{
+	for(auto process : m_processes)
+	{
+		process->parentGeometryChanged();
+	}
+}
+
 void DeckPresenter::on_bottomHandleSelected()
 {
 
@@ -172,7 +180,6 @@ void DeckPresenter::on_horizontalZoomChanged(int val)
 	{
 		proc->on_horizontalZoomChanged(val);
 	}
-
 }
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
@@ -184,6 +191,8 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 	auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
 	proc_view->setPos(5, 5);
 	auto presenter = factory->makePresenter(proc_vm, proc_view, this);
+
+	presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
 	connect(presenter,	&ProcessPresenterInterface::submitCommand,
 			this,		&DeckPresenter::submitCommand);

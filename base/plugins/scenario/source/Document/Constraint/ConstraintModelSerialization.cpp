@@ -6,6 +6,7 @@
 
 
 
+// TODO put them in their own folder.
 QDataStream& operator<<(QDataStream& s, const ModelMetadata& m)
 {
     s << m.name() << m.comment() << m.color() << m.label();
