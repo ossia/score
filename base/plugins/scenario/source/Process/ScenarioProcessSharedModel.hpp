@@ -79,15 +79,6 @@ class ScenarioProcessSharedModel : public ProcessSharedModelInterface
 		void createTimeNode(id_type<TimeNodeModel> timeNodeId,
 							id_type<EventModel> eventId);
 
-		void setEventPosition(id_type<EventModel> eventId,
-							  TimeValue time,
-							  double heightPosition);
-		void setConstraintPosition(id_type<ConstraintModel> constraintId,
-								   TimeValue deltaX,
-								   double heightPosition);
-		void translateNextElements(id_type<TimeNodeModel> firstTimeNodeMovedId,
-								   TimeValue deltaTime,
-								   QVector<id_type<EventModel>>& movedEvent);
 
 
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)

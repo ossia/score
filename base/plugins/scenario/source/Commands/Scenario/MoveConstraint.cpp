@@ -4,6 +4,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
 
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
+
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 
@@ -41,7 +43,10 @@ void MoveConstraint::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->setConstraintPosition(m_constraintId, m_oldX, m_oldHeightPosition);
+	StandardDisplacementPolicy::setConstraintPosition(*scenar,
+													  m_constraintId,
+													  m_oldX,
+													  m_oldHeightPosition);
 }
 
 void MoveConstraint::redo()
@@ -50,7 +55,10 @@ void MoveConstraint::redo()
 
 	m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
 
-	scenar->setConstraintPosition(m_constraintId, m_newX, m_newHeightPosition);
+	StandardDisplacementPolicy::setConstraintPosition(*scenar,
+													  m_constraintId,
+													  m_newX,
+													  m_newHeightPosition);
 }
 
 int MoveConstraint::id() const

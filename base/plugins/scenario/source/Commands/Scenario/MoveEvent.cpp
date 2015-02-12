@@ -3,6 +3,7 @@
 #include "Process/ScenarioProcessSharedModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -38,14 +39,20 @@ void MoveEvent::undo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->setEventPosition(m_eventId, m_oldX, m_oldHeightPosition);
+	StandardDisplacementPolicy::setEventPosition(*scenar,
+												 m_eventId,
+												 m_oldX,
+												 m_oldHeightPosition);
 }
 
 void MoveEvent::redo()
 {
 	auto scenar = m_path.find<ScenarioProcessSharedModel>();
 
-	scenar->setEventPosition(m_eventId, m_newX, m_newHeightPosition);
+	StandardDisplacementPolicy::setEventPosition(*scenar,
+												 m_eventId,
+												 m_newX,
+												 m_newHeightPosition);
 }
 
 int MoveEvent::id() const
