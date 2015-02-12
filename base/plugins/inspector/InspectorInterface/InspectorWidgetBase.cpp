@@ -11,34 +11,16 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QColorDialog>
+#include <QVector>
+
 
 InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent) :
 	QWidget (parent), _inspectedObject {inspectedObj}
 {
-	QVBoxLayout* layout = new QVBoxLayout;
-	layout->setMargin (5);
-	setLayout (layout);
+    _layout = new QVBoxLayout;
+    _layout->setMargin (5);
+    setLayout (_layout);
 
-	// type
-	_objectType = new QLabel ("type");
-
-	// Name : label + lineEdit in a container
-	QWidget* nameLine = new QWidget (this);
-	QHBoxLayout* nameLayout = new QHBoxLayout;
-	_objectName = new QLineEdit(this);
-	nameLine->setObjectName ("ElementName");
-
-	nameLayout->addWidget (_objectName);
-	nameLine->setLayout (nameLayout);
-
-	// color
-	_colorButton = new QPushButton(this);
-	_colorButton->setMaximumSize (QSize (1.5 * m_colorIconSize, 1.5 * m_colorIconSize) );
-	_colorButton->setIconSize (QSize (m_colorIconSize, m_colorIconSize) );
-	setColor (Qt::gray);
-	_colorButton->setIcon (QIcon (_colorButtonPixmap) );
-
-	nameLayout->addWidget (_colorButton);
 
 	// scroll Area
 	_scrollAreaLayout = new QVBoxLayout;
@@ -49,25 +31,12 @@ InspectorWidgetBase::InspectorWidgetBase (QObject* inspectedObj, QWidget* parent
 	scrollAreaContentWidget->setLayout (_scrollAreaLayout);
 	scrollArea->setWidget (scrollAreaContentWidget);
 
-	// comments
-	_comments = new QTextEdit;
-	InspectorSectionWidget* comments = new InspectorSectionWidget ("Comments");
-	comments->setParent(this);
-	comments->addContent (_comments);
-    comments->expand(); // todo à enlever par la suite
+    _sections.push_back (scrollArea);
 
-	_sections.push_back (_objectType);
-	_sections.push_back (nameLine);
-	_sections.push_back (scrollArea);
-	_sections.push_back (comments);
-
-	updateSectionsView (layout, _sections);
+    updateSectionsView (_layout, _sections);
 
 	_scrollAreaLayout->addStretch();
 
-
-	// Connection
-	connect (_colorButton, SIGNAL (clicked() ), this, SLOT (changeColor() ) );
 
 }
 
@@ -117,7 +86,7 @@ void InspectorWidgetBase::removeSection (QString sectionName)
 
 }
 
-void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<QWidget*>& contents)
+void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, QVector<QWidget*>& contents)
 {
 	while (! layout->isEmpty() )
 	{
@@ -130,9 +99,15 @@ void InspectorWidgetBase::updateSectionsView (QVBoxLayout* layout, std::vector<Q
 	for (auto& section : contents)
 	{
 		layout->addWidget (section);
-	}
+    }
 }
 
+void InspectorWidgetBase::addHeader(QWidget *header)
+{
+    _sections.push_front(header);
+    _layout->insertWidget(0, header);
+}
+/*
 void InspectorWidgetBase::changeColor()
 {
 
@@ -165,7 +140,7 @@ void InspectorWidgetBase::changeLabelType (QString type)
 {
 	_objectType->setText (type);
 }
-
+*/
 void InspectorWidgetBase::setInspectedObject (QObject* object)
 {
 	_inspectedObject = object;

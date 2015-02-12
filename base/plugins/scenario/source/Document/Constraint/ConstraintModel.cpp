@@ -68,7 +68,7 @@ ConstraintModel::ConstraintModel(ConstraintModel *source,
 	m_minDuration = source->minDuration();
 	m_maxDuration = source->maxDuration();
 	m_x = source->m_x;
-	m_heightPercentage = source->heightPercentage();
+    m_heightPercentage = source->heightPercentage();
 }
 
 ConstraintModel::~ConstraintModel()

@@ -10,7 +10,7 @@ ScenarioInspectorWidget::ScenarioInspectorWidget (ScenarioProcessSharedModel* ob
 	setObjectName ("ScenarioInspectorWidget");
 	setParent(parent);
 
-	std::vector<QWidget*> vec;
+    QVector<QWidget*> vec;
 	vec.push_back(new QLabel{"TODO"});
 
 	updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);

@@ -7,6 +7,7 @@
 #include "Commands/Event/SetCondition.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include "Inspector/MetadataWidget.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -66,8 +67,13 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	updateSectionsView (areaLayout(), m_properties);
 	areaLayout()->addStretch();
 
+    // metadata
+    m_metadata = new MetadataWidget(&object->metadata);
+    m_metadata->setType("Event");
+    addHeader(m_metadata);
+
 	// display data
-	updateDisplayedValues (object);
+    updateDisplayedValues (object);
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -90,12 +96,12 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 	// DEMO
 	if (event)
 	{
-        setName (event->metadata.name());
+//        setName (event->metadata.name());
 //		setColor (event->metadata.color() );
 //		setComments (event->metadata.comment() );
 
-        setInspectedObject (event);
-		changeLabelType ("Event");
+//        setInspectedObject (event);
+//		changeLabelType ("Event");
 
 
 		for(State* state : event->states())

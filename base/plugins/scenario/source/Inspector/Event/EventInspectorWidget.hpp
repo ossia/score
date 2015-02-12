@@ -4,6 +4,7 @@
 class EventModel;
 
 class QFormLayout;
+class MetadataWidget;
 
 /*!
  * \brief The EventInspectorWidget class
@@ -27,7 +28,7 @@ class EventInspectorWidget : public InspectorWidgetBase
 		void updateMessages();
 
 	private:
-		std::vector<QWidget*> m_properties;
+        QVector<QWidget*> m_properties;
 
 		std::vector<QLabel*> m_addresses;
 
@@ -35,4 +36,5 @@ class EventInspectorWidget : public InspectorWidgetBase
 		QLineEdit* m_addressLineEdit{};
 		EventModel* m_eventModel{};
 
+        MetadataWidget* m_metadata{};
 };

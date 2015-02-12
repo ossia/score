@@ -3,6 +3,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
+#include "Inspector/MetadataWidget.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -44,6 +45,11 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 	// display data
 	updateDisplayedValues (object);
 
+    // metadata
+    m_metadata = new MetadataWidget(&object->metadata);
+    m_metadata->setType("TimeNode");
+    addHeader(m_metadata);
+
     connect(object, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 }
@@ -61,7 +67,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
     // DEMO
     if (timeNode)
 	{
-        setName (timeNode->metadata.name() );
+//        setName (timeNode->metadata.name() );
 //		setColor (timeNode->metadata.color() );
 //		setComments (timeNode->metadata.comment() );
 
@@ -75,7 +81,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
         }
 
         setInspectedObject (timeNode);
-		changeLabelType ("TimeNode");
+//		changeLabelType ("TimeNode");
 
     }
 }

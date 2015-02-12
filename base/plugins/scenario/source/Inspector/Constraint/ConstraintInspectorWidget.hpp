@@ -12,6 +12,7 @@ class ProcessSharedModelInterface;
 class BoxWidget;
 class BoxInspectorSection;
 class QFormLayout;
+class MetadataWidget;
 
 /*!
  * \brief The ConstraintInspectorWidget class
@@ -63,6 +64,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		BoxWidget* m_boxWidget{};
 		std::unordered_map<id_type<BoxModel>, BoxInspectorSection*, id_hash<BoxModel>> m_boxesSectionWidgets;
 
-		std::vector<QWidget*> m_properties;
+        QVector<QWidget*> m_properties;
+
+        MetadataWidget* m_metadata{};
 
 };
