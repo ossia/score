@@ -75,8 +75,29 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
 
 void ScenarioModel::setDurationWithScale(TimeValue newDuration)
 {
-	qDebug() << Q_FUNC_INFO << "TODO";
+	auto scale =  double(newDuration.msec()) / duration().msec();
 	// Is it recursive ?? Make a scale() method on the constraint, maybe ?
+
+	for(TimeNodeModel* timenode : m_timeNodes)
+	{
+		timenode->setDate(timenode->date() * scale);
+	}
+
+	for(EventModel* event : m_events)
+	{
+		event->setDate(event->date() * scale);
+		emit eventMoved(event->id());
+	}
+
+	for(ConstraintModel* constraint : m_constraints)
+	{
+		constraint->setStartDate(constraint->startDate() * scale);
+		// Note : scale the min / max.
+		constraint->setDefaultDuration(constraint->defaultDuration() * scale);
+		emit constraintMoved(constraint->id());
+	}
+
+	this->setDuration(newDuration);
 }
 
 void ScenarioModel::setDurationWithoutScale(TimeValue newDuration)
