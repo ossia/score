@@ -31,4 +31,6 @@ else()
 	set(BUILD_SHARED_LIBS ON)
 endif()
 
+find_package(Boost)
+include_directories("${Boost_INCLUDE_DIRS}")
 add_subdirectory(base)

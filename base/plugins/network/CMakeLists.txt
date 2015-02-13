@@ -7,19 +7,9 @@ add_subdirectory(Repartition)
 # Packages
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network)
 
-find_package(Boost)
-
-if(NOT Boost_FOUND)
-	message("The network plugin requires boost to build")
-	return()
-endif()
 
 # Files & main target
-
 include_directories(.)
-if(APPLE)
-	include_directories(/usr/local/Cellar/boost/1.56.0/include)
-endif()
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
