@@ -3,18 +3,6 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationView.hpp"
 
-constexpr QPointF modelToSceneCoordinates(QPointF pt, const QRectF& rect)
-{
-	return {pt.x() * rect.width() + 1,
-			0.5  * rect.height() * (1 - pt.y())};
-}
-
-constexpr QPointF sceneToModelCoordinates(QPointF pt, const QRectF& rect)
-{
-	return {(pt.x() - 1.0) / rect.width(),
-			1.0 - pt.y() / (0.5 * rect.height())};
-}
-
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
 										 ProcessViewInterface* view,
 										 QObject* parent):
@@ -48,9 +36,10 @@ void AutomationPresenter::putBack()
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
-void AutomationPresenter::on_horizontalZoomChanged(int)
+void AutomationPresenter::on_horizontalZoomChanged(int val)
 {
-	//on_modelPointsChanged();
+	m_zoomLevel = val;
+	on_modelPointsChanged();
 }
 
 void AutomationPresenter::parentGeometryChanged()
@@ -76,6 +65,8 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 #include "../Commands/MovePoint.hpp"
 #include "../Commands/RemovePoint.hpp"
 
+#include <ProcessInterface/ZoomHelper.hpp>
+
 #include <QGraphicsScene>
 void AutomationPresenter::on_modelPointsChanged()
 {
@@ -87,15 +78,24 @@ void AutomationPresenter::on_modelPointsChanged()
 
 	m_curveModel = new PluginCurveModel{this};
 	m_curveView = new PluginCurveView{m_view};
-	m_curvePresenter = new PluginCurvePresenter{1.0 / m_viewModel->model()->getScale(),
+
+	// Compute the scale
+	auto mspp = millisecondsPerPixel(m_zoomLevel);
+	auto duration = m_viewModel->model()->duration();
+	auto width = m_view->parentItem()->boundingRect().width();
+
+	// When duration.msec() == parentDuration.msec(), scale = 1;
+	// Parent duration = width * mspp
+	// scale = duration.msec() / parentduration.msec()
+	double scale = (width * mspp) / duration.msec();
+
+	m_curvePresenter = new PluginCurvePresenter{scale,
 												m_curveModel,
 												m_curveView,
 												this};
 
 	// Recreate the points in the model
 	auto pts = m_viewModel->model()->points();
-
-	m_curveView->scene()->clearSelection();
 	auto keys = pts.keys();
 	for(int i = 0; i < keys.size(); ++i)
 	{

@@ -61,9 +61,6 @@ class AutomationModel : public ProcessSharedModelInterface
 		void removePoint(double x);
 		void movePoint(double oldx, double newx, double newy);
 
-		double getScale() const
-		{ return m_scale; }
-
 	signals:
 		void addressChanged(QString arg);
 		void pointsChanged();
@@ -82,6 +79,4 @@ class AutomationModel : public ProcessSharedModelInterface
 	private:
 		QString m_address;
 		QMap<double, double> m_points;
-
-		double m_scale{1.5};
 };

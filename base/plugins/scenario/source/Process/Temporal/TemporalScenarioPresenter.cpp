@@ -156,7 +156,7 @@ void TemporalScenarioPresenter::parentGeometryChanged()
 void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
 {
 	m_horizontalZoomSliderVal = val;
-	m_millisecPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	m_millisecPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
 
 	for(auto constraint : m_constraints)
 	{

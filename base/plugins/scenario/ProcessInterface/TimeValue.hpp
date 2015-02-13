@@ -49,6 +49,26 @@ class TimeValue_T
 			return other.m_impl != m_impl;
 		}
 
+		bool operator>(const TimeValue_T& other) const
+		{
+			if(isInfinite() && other.isInfinite())
+			{
+				return false;
+			}
+			else if(isInfinite() && !other.isInfinite())
+			{
+				return true;
+			}
+			else if(!isInfinite() && other.isInfinite())
+			{
+				return false;
+			}
+			else
+			{
+				return msec() > other.msec();
+			}
+		}
+
 		TimeValue_T operator+(const TimeValue_T& other)
 		{
 			TimeValue_T res{PositiveInfinity{}};

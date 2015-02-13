@@ -141,7 +141,7 @@ void BoxPresenter::updateShape()
 	}
 
 	// Horizontal shape
-	double secPerPixel = secondsPerPixel(m_horizontalZoomSliderVal);
+	double secPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
 	setWidth(m_duration.msec() / secPerPixel);
 
 	for(DeckPresenter* deck : m_decks)

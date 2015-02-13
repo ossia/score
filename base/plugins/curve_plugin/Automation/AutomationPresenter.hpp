@@ -37,4 +37,6 @@ class AutomationPresenter : public ProcessPresenterInterface
 		PluginCurveModel* m_curveModel{};
 		PluginCurvePresenter* m_curvePresenter{};
 		PluginCurveView* m_curveView{};
+
+		int m_zoomLevel{};
 };
