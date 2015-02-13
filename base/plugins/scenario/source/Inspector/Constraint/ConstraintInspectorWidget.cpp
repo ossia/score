@@ -33,6 +33,7 @@
 #include <QToolButton>
 #include <QPushButton>
 #include <QApplication>
+#include <QLabel>
 
 using namespace Scenario::Command;
 
@@ -64,6 +65,24 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 		base->setDisplayedConstraint(this->model());
 	});
 	m_properties.push_back(setAsDisplayedConstraint);
+
+    // Events
+
+    QWidget* eventWid = new QWidget{};
+    QFormLayout* eventLay = new QFormLayout{eventWid};
+    QLabel* start = new QLabel{};
+    start->setText(QString::number(*object->model()->startEvent().val()));
+    QLabel* end = new QLabel{};
+    end->setText(QString::number(*object->model()->endEvent().val()));
+
+    eventLay->addRow("Start Event", start);
+    eventLay->addRow("End Event", end);
+
+    m_properties.push_back(eventWid);
+
+    // Separator
+    m_properties.push_back(new Separator{this});
+
 
 	m_durationSection = new DurationSectionWidget{this};
 	m_properties.push_back(m_durationSection);

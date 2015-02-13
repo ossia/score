@@ -5,8 +5,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Widgets 5.3 REQUIRED)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")

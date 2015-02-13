@@ -4,9 +4,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5Core 5.3 REQUIRED)
-find_package(Qt5Widgets 5.3 REQUIRED)
-find_package(Qt5Xml 5.3 REQUIRED)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
 
 find_package(Jamoma 0.6)
 if(NOT ${Jamoma_FOUND})
