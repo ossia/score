@@ -13,6 +13,7 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(View* parent):
 	iscore::PanelViewInterface{parent},
 	m_widget{new DeviceExplorerWidget{parent}}
 {
+	setObjectName("Device Explorer");
 }
 
 QWidget* DeviceExplorerPanelView::getWidget()

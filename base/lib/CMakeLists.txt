@@ -13,6 +13,7 @@ if(NOT Boost_FOUND)
         message("The network plugin requires boost to build")
         return()
 endif()
+
 # TODO mieux
 if(APPLE)
         include_directories(/usr/local/Cellar/boost/1.56.0/include)

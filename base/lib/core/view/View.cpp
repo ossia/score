@@ -35,9 +35,10 @@ void View::setupPanelView(PanelViewInterface* v)
 	addSidePanel(v->getWidget(), v->objectName(), v->defaultDock());
 }
 
+#include <QLabel>
 void View::addSidePanel(QWidget *widg, QString name, Qt::DockWidgetArea dock)
 {
-	QDockWidget* dial = new QDockWidget(this);
+	QDockWidget* dial = new QDockWidget{name, this};
 	dial->setWidget(widg);
 
 	QAction* hideDialog = new QAction(name, nullptr);
