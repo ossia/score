@@ -88,7 +88,7 @@ BaseElementModel::BaseElementModel(QObject* parent):
 	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
 	m_baseConstraint{new ConstraintModel{id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, 0, this}}
 {
-	m_baseConstraint->setDefaultDuration(1s);
+	m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
 	m_baseConstraint->setObjectName("BaseConstraintModel");
 	testInit(m_baseConstraint->fullView());
 }

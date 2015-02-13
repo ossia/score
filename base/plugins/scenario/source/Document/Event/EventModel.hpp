@@ -126,5 +126,5 @@ class EventModel : public IdentifiedObject<EventModel>
 		QString m_condition{};
 
 		/// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-		TimeValue m_date{0s}; // Was : m_x
+		TimeValue m_date{std::chrono::seconds{0}}; // Was : m_x
 };

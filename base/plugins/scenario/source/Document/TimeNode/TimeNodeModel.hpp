@@ -53,7 +53,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 	public slots:
 
 	private:
-		TimeValue m_date{0s};
+		TimeValue m_date{std::chrono::seconds{0}};
 		double m_y{0.0};
 
 		QVector<id_type<EventModel>> m_events;

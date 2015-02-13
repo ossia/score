@@ -8,6 +8,6 @@ struct ConstraintData {
    id_type<ConstraintModel> id{0};
    int x{0};
    int y{0};
-   TimeValue dDate{0s};
+   TimeValue dDate{std::chrono::seconds{0}};
    double relativeY{0.0};
 };

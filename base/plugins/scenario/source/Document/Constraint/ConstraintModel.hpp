@@ -168,7 +168,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 		id_type<EventModel> m_startEvent{};
 		id_type<EventModel> m_endEvent{};
 
-		TimeValue m_defaultDuration{200ms};
+		TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
 		TimeValue m_minDuration{m_defaultDuration};
 		TimeValue m_maxDuration{m_defaultDuration};
 

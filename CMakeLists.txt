@@ -20,7 +20,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules")
 if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pipe -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pipe -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas")
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")

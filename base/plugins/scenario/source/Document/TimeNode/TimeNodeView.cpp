@@ -19,7 +19,7 @@ void TimeNodeView::paint(QPainter *painter,
                          const QStyleOptionGraphicsItem *option,
                          QWidget *widget)
 {
-    QColor pen_color = QColor(190, 0, 255);
+	QColor pen_color = QColor(Qt::red);
 
     if(isSelected())
     {
