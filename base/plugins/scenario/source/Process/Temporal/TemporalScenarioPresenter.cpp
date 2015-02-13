@@ -126,6 +126,16 @@ id_type<ProcessSharedModelInterface> TemporalScenarioPresenter::modelId() const
 	return m_viewModel->sharedProcessModel()->id();
 }
 
+void TemporalScenarioPresenter::setWidth(int width)
+{
+	m_view->setWidth(width);
+}
+
+void TemporalScenarioPresenter::setHeight(int height)
+{
+	m_view->setHeight(height);
+}
+
 void TemporalScenarioPresenter::putToFront()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
@@ -140,7 +150,7 @@ void TemporalScenarioPresenter::putBack()
 
 void TemporalScenarioPresenter::parentGeometryChanged()
 {
-	m_view->on_parentGeometryChange();
+
 }
 
 void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)

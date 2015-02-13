@@ -23,7 +23,12 @@ QRectF DeckView::boundingRect() const
 
 void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	painter->drawRect(boundingRect());
+	auto rect = boundingRect();
+	painter->drawRect(rect);
+	painter->setBrush(QBrush{Qt::lightGray});
+
+	painter->drawRect(0, rect.height() - borderHeight(), rect.width(), borderHeight());
+
 }
 
 void DeckView::setHeight(int height)

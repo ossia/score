@@ -15,6 +15,9 @@ class ProcessPresenterInterface : public NamedObject
 		using NamedObject::NamedObject;
 		virtual ~ProcessPresenterInterface() = default;
 
+		virtual void setWidth(int width) = 0;
+		virtual void setHeight(int height) = 0;
+
 		virtual void putToFront() = 0;
 		virtual void putBack() = 0;
 

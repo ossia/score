@@ -28,6 +28,16 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
 	on_modelPointsChanged();
 }
 
+void AutomationPresenter::setWidth(int width)
+{
+	m_view->setWidth(width);
+}
+
+void AutomationPresenter::setHeight(int height)
+{
+	m_view->setHeight(height);
+}
+
 void AutomationPresenter::putToFront()
 {
 	m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);

@@ -14,6 +14,9 @@ class DeckView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
+		static constexpr int borderHeight()
+		{ return 5; }
+
 		void setHeight(int height);
 		int height() const;
 

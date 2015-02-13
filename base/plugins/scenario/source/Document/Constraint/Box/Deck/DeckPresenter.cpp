@@ -26,7 +26,6 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 	m_model{model},
 	m_view{view}
 {
-
 	for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
 	{
 		on_processViewModelCreated_impl(proc_vm);
@@ -49,7 +48,6 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 			this,	&DeckPresenter::on_bottomHandleReleased);
 	connect(m_view, &DeckView::bottomHandleSelected,
 			this,	&DeckPresenter::on_bottomHandleSelected);
-
 
 	m_view->setHeight(m_model->height());
 }
@@ -92,10 +90,7 @@ void DeckPresenter::setVerticalPosition(int pos)
 void DeckPresenter::setWidth(int w)
 {
 	m_view->setWidth(w);
-	for(auto& process : m_processes)
-	{
-		process->parentGeometryChanged();
-	}
+	updateProcessesShape();
 }
 
 void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
@@ -114,6 +109,7 @@ void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface
 						} );
 
 
+	updateProcessesShape();
 	emit askUpdate();
 }
 
@@ -136,20 +132,14 @@ void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterfac
 void DeckPresenter::on_heightChanged(int height)
 {
 	m_view->setHeight(height);
-	for(auto process : m_processes)
-	{
-		process->parentGeometryChanged();
-	}
+	updateProcessesShape();
 
 	emit askUpdate();
 }
 
 void DeckPresenter::on_parentGeometryChanged()
 {
-	for(auto process : m_processes)
-	{
-		process->parentGeometryChanged();
-	}
+	updateProcessesShape();
 }
 
 void DeckPresenter::on_bottomHandleSelected()
@@ -176,10 +166,12 @@ void DeckPresenter::on_horizontalZoomChanged(int val)
 {
 	m_horizontalZoomSliderVal = val;
 
-	for(auto proc : m_processes)
+	for(ProcessPresenterInterface* proc : m_processes)
 	{
 		proc->on_horizontalZoomChanged(val);
 	}
+
+	// Should not be necessary : updateProcessesShape();
 }
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
@@ -200,9 +192,15 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 			this,		&DeckPresenter::elementSelected);
 
 	m_processes.push_back(presenter);
+	updateProcessesShape();
+}
 
-	for(auto& process : m_processes)
+void DeckPresenter::updateProcessesShape()
+{
+	for(ProcessPresenterInterface* proc : m_processes)
 	{
-		process->parentGeometryChanged();
+		proc->setHeight(height() - DeckView::borderHeight());
+		proc->setWidth(m_view->width());
+		proc->parentGeometryChanged();
 	}
 }

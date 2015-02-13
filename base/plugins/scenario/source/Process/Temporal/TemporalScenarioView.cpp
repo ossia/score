@@ -16,27 +16,11 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent):
 	this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 
 	this->setZValue(parent->zValue() + 1);
-	//this->parentItem()->scene()->addItem(this);
 
     m_clearAction = new QAction("clear contents", this);
     connect(m_clearAction,  &QAction::triggered,
             this,           &TemporalScenarioView::clearPressed);
 }
-
-
-QRectF TemporalScenarioView::boundingRect() const
-{
-	// TODO ne plus faire comme ça mais avoir setWidth / setHeight.
-	auto pr = parentItem()->boundingRect();
-
-	if (pr.isValid())
-		return {0, 0,
-			pr.width(),
-			pr.height()};
-    else
-        return {0,0,1,1};
-}
-
 
 void TemporalScenarioView::paint(QPainter* painter,
 								const QStyleOptionGraphicsItem* option,

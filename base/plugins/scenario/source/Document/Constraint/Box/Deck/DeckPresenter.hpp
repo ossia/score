@@ -56,6 +56,8 @@ class DeckPresenter : public NamedObject
 	private:
 		void on_processViewModelCreated_impl(ProcessViewModelInterface*);
 
+		void updateProcessesShape();
+
 		DeckModel* m_model;
 		DeckView* m_view;
 		QVector<ProcessPresenterInterface*> m_processes;

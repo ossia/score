@@ -16,6 +16,9 @@ class AutomationPresenter : public ProcessPresenterInterface
 							ProcessViewInterface* view,
 							QObject* parent);
 
+		virtual void setWidth(int width) override;
+		virtual void setHeight(int height) override;
+
 		virtual void putToFront();
 		virtual void putBack();
 		virtual void on_horizontalZoomChanged(int);
