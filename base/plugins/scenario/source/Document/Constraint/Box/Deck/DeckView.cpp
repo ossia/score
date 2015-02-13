@@ -28,7 +28,6 @@ void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	painter->setBrush(QBrush{Qt::lightGray});
 
 	painter->drawRect(0, rect.height() - borderHeight(), rect.width(), borderHeight());
-
 }
 
 void DeckView::setHeight(int height)

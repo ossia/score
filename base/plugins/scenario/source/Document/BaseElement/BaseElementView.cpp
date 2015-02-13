@@ -49,7 +49,7 @@ BaseElementView::BaseElementView(QObject* parent):
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	// Transport
-	auto transportWidget = new QWidget;
+	auto transportWidget = new QWidget{m_widget};
 	auto transportLayout = new QGridLayout;
 
 	/// Position

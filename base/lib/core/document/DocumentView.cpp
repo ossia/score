@@ -36,6 +36,7 @@ void DocumentView::reset()
 	if(m_view)
 	{
 		layout()->removeWidget(m_view->getWidget());
+		delete m_view->getWidget();
 		m_view->deleteLater();
 		m_view = nullptr;
 	}
