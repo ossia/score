@@ -216,11 +216,11 @@ QString JSONToZeroTwo(QJsonObject base)
     int deltaDuration = 1; // durée de l'intervalle artificiel
 
 
-	//QJsonDocument* json = new QJsonDocument;
-	//loadJSON(json);
-	//QJsonObject base = json->object();
+    QMap<int, QString> expression;
 
-    QJsonArray processes = base["Processes"].toArray();
+    QJsonObject scenar = base["Scenario"].toObject();
+
+    QJsonArray processes = scenar["Processes"].toArray();
     for (auto process : processes)
     {
         auto j_proc = process.toObject();
@@ -239,7 +239,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString id = "j"; // identifiant 0.2 commencent par un j ...
                 id += QString::number(idNode["IdentifierValue"].toInt());
 
-                QString date = QString::number(j_ev["Date"].toInt() * TIMECOEFF + DELTAT);
+                QString date = QString::number(j_ev["Date"].toObject()["Time"].toInt() * TIMECOEFF + DELTAT);
                 date += "u";    // position 0.2 finissent par u ...
 
                 // dans le noeud "Scenario"
@@ -248,6 +248,11 @@ QString JSONToZeroTwo(QJsonObject base)
                 dom_event.setAttribute("date", date);
                 dom_event.setAttribute("mute", "0");
                 dom_scenar.appendChild(dom_event);
+
+//                if (! j_ev["Condition"].toString().isNull())
+//                {
+                    expression[idNode["IdentifierValue"].toInt()] = j_ev["Condition"].toString();
+//                }
 
                 auto states = j_ev["States"].toArray();
                 if(states.size())
@@ -312,6 +317,7 @@ QString JSONToZeroTwo(QJsonObject base)
                             QDomText dom_value = domdoc.createTextNode(value);
                             dom_Command.appendChild(dom_value);
                             dom_event.appendChild(dom_Command);
+
                     }
                 }
                         /*
@@ -351,9 +357,9 @@ QString JSONToZeroTwo(QJsonObject base)
                         boxEnd += QString::number(endEv);
 
 
-                QString min = QString::number(j_cstr["MinDuration"].toInt() * TIMECOEFF - deltaDuration);
+                QString min = QString::number(j_cstr["MinDuration"].toObject()["Time"].toInt() * TIMECOEFF - deltaDuration);
                         min += "u";
-                QString max = QString::number(j_cstr["MaxDuration"].toInt() * TIMECOEFF - deltaDuration);
+                QString max = QString::number(j_cstr["MaxDuration"].toObject()["Time"].toInt() * TIMECOEFF - deltaDuration);
                         max += "u";
 
                 QString y = QString::number( int(j_cstr["HeightPercentage"].toDouble() * YCOEFF) );
@@ -366,7 +372,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString boxStart = interStart;
                         boxStart += QString::number(idIndent);
                         idIndent++;
-                QString date = QString::number(j_cstr["StartDate"].toInt() * TIMECOEFF + DELTAT + deltaDuration);
+                QString date = QString::number(j_cstr["StartDate"].toObject()["Time"].toInt() * TIMECOEFF + DELTAT + deltaDuration);
                         date += "u";
 
                 QDomElement dom_event = domdoc.createElement("event");
@@ -424,7 +430,9 @@ QString JSONToZeroTwo(QJsonObject base)
                 ** Contraintes souples
                 ** **********************************************************************/
 
-                if(min != max)
+                int ev = j_cstr["EndEvent"].toObject()["IdentifierValue"].toInt();
+
+                if(min != max || !expression[ev].isEmpty())
                 {
                     QDomElement TriggerNode = domdoc.createElement("node");
                     TriggerNode.setAttribute("address", "end");
@@ -433,7 +441,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
 
                     QString trigId = "j";
-                            trigId += QString::number(j_cstr["EndEvent"].toInt() + 1);
+                            trigId += QString::number(ev + 1);
 
                     // on regarde si le trigger point à déjà été crée (liste des conditions)
                     auto cond = dom_scenar.firstChildElement("condition");
@@ -444,6 +452,10 @@ QString JSONToZeroTwo(QJsonObject base)
                     // si il n'y est pas, on l'ajoute
                     if(cond.isNull())
                     {
+                        if (expression[ev].isNull())
+                        {
+                            expression[ev] = QString("/" + boxName + "/end");
+                        }
                         QDomElement dom_condition = domdoc.createElement("condition");
                         dom_condition.setAttribute("name", trigId);
                         dom_condition.setAttribute("dispose", "");
@@ -451,7 +463,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
                         QDomElement dom_case = domdoc.createElement("case");
                         dom_case.setAttribute("event", boxEnd);
-                        dom_case.setAttribute("trigger", "/" + boxName + "/end");
+                        dom_case.setAttribute("trigger", expression[ev]);
                         dom_case.setAttribute("default", "1");
                         dom_condition.appendChild(dom_case);
                     }
