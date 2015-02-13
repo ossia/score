@@ -5,9 +5,7 @@ add_subdirectory(Deps)
 add_subdirectory(Repartition)
 
 # Packages
-find_package(Qt5Core 5.2 REQUIRED)
-find_package(Qt5Widgets 5.2 REQUIRED)
-find_package(Qt5Network 5.2 REQUIRED)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network)
 
 find_package(Boost)
 

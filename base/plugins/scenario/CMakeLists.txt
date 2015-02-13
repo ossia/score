@@ -7,9 +7,8 @@ set(CMAKE_AUTOMOC ON)
 set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterface" PARENT_SCOPE)
 
 # Packages
-find_package(Qt5Core 5.2 REQUIRED)
-find_package(Qt5Widgets 5.2 REQUIRED)
-find_package(Qt5Xml 5.2 REQUIRED)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
+
 # TODO mieux
 if(APPLE)
         include_directories(/usr/local/Cellar/boost/1.56.0/include)
