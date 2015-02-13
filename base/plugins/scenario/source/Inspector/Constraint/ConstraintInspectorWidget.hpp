@@ -59,6 +59,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 		TemporalConstraintViewModel* m_currentConstraint{};
 		QVector<QMetaObject::Connection> m_connections;
 
+        InspectorSectionWidget* m_eventsSection{};
 		InspectorSectionWidget* m_durationSection{};
 
 		InspectorSectionWidget* m_processSection{};

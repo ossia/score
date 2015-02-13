@@ -16,6 +16,8 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
 {
     QVBoxLayout* metadataLayout = new QVBoxLayout{this};
     setLayout(metadataLayout);
+
+    QHBoxLayout* typeLay = new QHBoxLayout{};
     // type
     m_typeLb = new QLabel ("type");
 
@@ -34,11 +36,13 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     descriptionWidget->setLayout (descriptionLay);
 
     // color
-    m_colorButton = new QPushButton{this};
+    m_colorButton = new QPushButton{};
     m_colorButton->setMaximumSize (QSize (1.5 * m_colorIconSize, 1.5 * m_colorIconSize) );
     m_colorButton->setIconSize (QSize (m_colorIconSize, m_colorIconSize) );
     m_colorButtonPixmap.fill (metadata->color());
     m_colorButton->setIcon (QIcon (m_colorButtonPixmap) );
+    typeLay->addWidget(m_colorButton);
+    typeLay->addWidget(m_typeLb);
 
     // comments
     m_comments = new QTextEdit{metadata->comment(), this};
@@ -46,9 +50,10 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     comments->addContent (m_comments);
     comments->expand(); // todo à enlever par la suite
 
-    metadataLayout->addWidget(m_typeLb);
+//    metadataLayout->addWidget (m_colorButton);
+//    metadataLayout->addWidget(m_typeLb);
+    metadataLayout->addLayout(typeLay);
     metadataLayout->addWidget(descriptionWidget);
-    metadataLayout->addWidget (m_colorButton);
     metadataLayout->addWidget (comments);
 
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,
