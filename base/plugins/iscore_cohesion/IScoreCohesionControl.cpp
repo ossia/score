@@ -12,6 +12,7 @@
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
 #include <Commands/CreateCurvesFromAddresses.hpp>
+#include "FakeEngine.hpp"
 
 #include <QAction>
 using namespace iscore;
@@ -32,6 +33,15 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
 	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
 									   curvesFromAddresses);
+
+	// If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
+	// We can add an option in the menu to generate curves from the selected addresses
+	// in the current constraint.
+	QAction* play = new QAction{tr("Play in 0.2 engine"), this};
+	connect(play, &QAction::triggered, &FakeEngineExecute);
+
+	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+									   play);
 }
 
 SerializableCommand *IScoreCohesionControl::instantiateUndoCommand(QString name, QByteArray data)

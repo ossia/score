@@ -8,6 +8,7 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
 
 find_package(Jamoma 0.6)
 if(NOT ${Jamoma_FOUND})
+    message("Jamoma not found - won't build iscore cohesion plugin")
     return()
 endif()
 

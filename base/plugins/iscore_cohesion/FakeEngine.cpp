@@ -18,10 +18,30 @@
 
 #include "TTModular.h"
 #include "TTScore.h"
-
+#include <source/Control/OldFormatConversion.hpp>
+#include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <iostream>
 #include <QString>
 #include <string>
+#include <QTemporaryFile>
+#include <QDir>
+#include <QApplication>
+
+void runScore(QString scoreFilePath);
+
+void FakeEngineExecute()
+{
+	auto doc = qApp->findChild<BaseElementModel*>("BaseElementModel");
+	auto data = JSONToZeroTwo(doc->toJson());
+
+	QTemporaryFile f;
+	if(f.open())
+	{
+		f.write(data.toLatin1().constData(), data.size());
+		f.flush();
+		runScore(f.fileName());
+	}
+}
 
 void runScore(QString scoreFilePath)
 {

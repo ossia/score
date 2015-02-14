@@ -1,2 +1,3 @@
 #pragma once
 
+void FakeEngineExecute();
