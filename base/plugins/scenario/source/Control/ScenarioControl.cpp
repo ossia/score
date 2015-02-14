@@ -30,6 +30,7 @@
 #include "Commands/Scenario/MoveEvent.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ResizeConstraint.hpp"
+#include "Commands/ResizeBaseConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
 
@@ -169,6 +170,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "SetMinDuration")					{ cmd = new SetMinDuration;}
 	else if(name == "SetMaxDuration")					{ cmd = new SetMaxDuration;}
 	else if(name == "ResizeConstraint")                 { cmd = new ResizeConstraint;}
+	else if(name == "ResizeBaseConstraint")             { cmd = new ResizeBaseConstraint;}
 	else if(name == "SetRigidity")						{ cmd = new SetRigidity;}
 
 	else
