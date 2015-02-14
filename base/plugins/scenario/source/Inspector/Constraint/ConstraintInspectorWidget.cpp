@@ -222,7 +222,7 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
 	auto cmd = new AddProcessToConstraint{
-			   ObjectPath::pathFromObject("BaseConstraintModel",
+			   ObjectPath::pathFromObject("BaseElementModel",
 										  model()),
 			   processName};
 	emit submitCommand(cmd);

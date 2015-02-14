@@ -25,7 +25,7 @@ HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_v
 	SerializableCommand{"ScenarioControl",
 						"HideBoxInViewModel",
 						QObject::tr("Hide box in constraint view")},
-	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseConstraintModel",
+	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseElementModel",
 														 constraint_vm)}
 {
 	m_constraintPreviousId = constraint_vm->shownBox();

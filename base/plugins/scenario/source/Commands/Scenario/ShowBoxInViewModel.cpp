@@ -28,7 +28,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 	SerializableCommand{"ScenarioControl",
 						"ShowBoxInViewModel",
 						QObject::tr("Show box in constraint view")},
-	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseConstraintModel",
+	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseElementModel",
 														 constraint_vm)},
 	m_boxId{boxId}
 {

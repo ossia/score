@@ -384,7 +384,7 @@ void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scene
         }
     }
 
-    auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+    auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
                                                                  m_viewModel->sharedProcessModel()),
                                         data);
     this->submitCommand(cmd);
@@ -422,7 +422,7 @@ void TemporalScenarioPresenter::clearContentFromSelection()
 	{
 		commands.push_back(
 					new ClearConstraint(
-						ObjectPath::pathFromObject("BaseConstraintModel",
+						ObjectPath::pathFromObject("BaseElementModel",
 												   viewModel(constraint)->model())));
 	}
 
@@ -430,7 +430,7 @@ void TemporalScenarioPresenter::clearContentFromSelection()
 	{
 		commands.push_back(
 					new ClearEvent(
-						ObjectPath::pathFromObject("BaseConstraintModel",
+						ObjectPath::pathFromObject("BaseElementModel",
 												   event->model())));
 	}
 
@@ -459,7 +459,7 @@ void TemporalScenarioPresenter::deleteSelection()
     {
         commands.push_back(
                     new RemoveConstraint(
-                        ObjectPath::pathFromObject("BaseConstraintModel",
+                        ObjectPath::pathFromObject("BaseElementModel",
                                                    m_viewModel->sharedProcessModel()),
 						constraint->abstractConstraintViewModel()->model() ));
     }
@@ -470,7 +470,7 @@ void TemporalScenarioPresenter::deleteSelection()
         {
             commands.push_back(
                         new RemoveEvent(
-                            ObjectPath::pathFromObject("BaseConstraintModel",
+                            ObjectPath::pathFromObject("BaseElementModel",
                                                        m_viewModel->sharedProcessModel()),
                             event->model()) );
         }
@@ -507,7 +507,7 @@ void TemporalScenarioPresenter::createConstraint(EventData data)
 			if(ev->view() == it)
             {
 				endEvent = ev->id();
-				auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
+				auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseElementModel",
 																					m_viewModel->sharedProcessModel()),
 														 data.eventClickedId,
 														 endEvent);
@@ -531,7 +531,7 @@ void TemporalScenarioPresenter::createConstraint(EventData data)
             }
         }
 
-		auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+		auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseElementModel",
 																			   m_viewModel->sharedProcessModel()),
 													data);
 		submitCommand(cmd);
@@ -546,7 +546,7 @@ void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseElementModel",
 															   m_viewModel->sharedProcessModel()),
 									data);
 	submitCommand(cmd);
@@ -557,7 +557,7 @@ void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseConstraintModel",
+	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseElementModel",
 																	m_viewModel->sharedProcessModel()),
 									data);
 

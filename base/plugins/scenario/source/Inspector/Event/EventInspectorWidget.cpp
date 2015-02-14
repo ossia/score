@@ -135,7 +135,7 @@ void EventInspectorWidget::on_addAddressClicked()
 {
 	auto txt = m_addressLineEdit->text();
 	auto cmd = new Command::AddStateToEvent{
-					ObjectPath::pathFromObject("BaseConstraintModel",
+					ObjectPath::pathFromObject("BaseElementModel",
 											   m_eventModel),
 					txt};
 
@@ -149,7 +149,7 @@ void EventInspectorWidget::on_conditionChanged()
 	if(txt == m_eventModel->condition()) return;
 
 	auto cmd = new Command::SetCondition{
-					ObjectPath::pathFromObject("BaseConstraintModel",
+					ObjectPath::pathFromObject("BaseElementModel",
 											   m_eventModel),
 					txt};
 

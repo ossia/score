@@ -32,20 +32,20 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue durati
                         QObject::tr("Set default duration of constraint")}
 {
 
-    auto constraint = constraintPath.find<ConstraintModel>();
-    EventData endEventData{};
+	auto constraint = constraintPath.find<ConstraintModel>();
+	EventData endEventData{};
 	endEventData.dDate = constraint->startDate() + duration;
-    endEventData.relativeY = constraint->heightPercentage();
-    endEventData.eventClickedId = constraint->endEvent();
+	endEventData.relativeY = constraint->heightPercentage();
+	endEventData.eventClickedId = constraint->endEvent();
 
 	m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
 
-    m_cmd = new MoveEvent{ObjectPath::pathFromObject("BaseConstraintModel", constraint->parent()), endEventData};
+	m_cmd = new MoveEvent{ObjectPath::pathFromObject("BaseElementModel", constraint->parent()), endEventData};
 }
 
 void ResizeConstraint::undo()
 {
-    m_cmd->undo();
+	m_cmd->undo();
 }
 
 void ResizeConstraint::redo()

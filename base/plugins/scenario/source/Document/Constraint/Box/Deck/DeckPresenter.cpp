@@ -154,7 +154,7 @@ void DeckPresenter::on_bottomHandleChanged(int newHeight)
 
 void DeckPresenter::on_bottomHandleReleased()
 {
-	auto path = ObjectPath::pathFromObject("BaseConstraintModel",
+	auto path = ObjectPath::pathFromObject("BaseElementModel",
 										   m_model);
 
 	auto cmd = new Command::ResizeDeckVertically{std::move(path),
