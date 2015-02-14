@@ -20,10 +20,12 @@ class TimeNodeView : public QGraphicsObject
 
         void setExtremities(int top, int bottom);
         void mousePressEvent(QGraphicsSceneMouseEvent* m);
+		void mouseMoveEvent(QGraphicsSceneMouseEvent* m);
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* m);
 
     signals:
-        void timeNodeReleased(QPointF);
+		void timeNodeMoved(QPointF);
+		void timeNodeReleased();
         void timeNodeSelected();
 
     private:

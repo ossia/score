@@ -27,7 +27,7 @@ EventPresenter::EventPresenter(EventModel* model,
 			this,	&EventPresenter::on_eventMoved);
 
 	connect(m_view, &EventView::eventReleased,
-			this,	&EventPresenter::on_eventReleased);
+			this,	&EventPresenter::eventReleased);
 }
 
 EventPresenter::~EventPresenter()
@@ -77,11 +77,6 @@ EventData EventPresenter::pointToEventData(QPointF p) const
 void EventPresenter::on_eventMoved(QPointF p)
 {
 	emit eventMoved(pointToEventData(p));
-}
-
-void EventPresenter::on_eventReleased(QPointF p)
-{
-	emit eventReleased(pointToEventData(p));
 }
 
 void EventPresenter::on_eventReleasedWithControl(QPointF p, QPointF pInScene)

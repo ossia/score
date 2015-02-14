@@ -10,27 +10,28 @@ struct EventData;
 
 class TimeNodePresenter :  public NamedObject
 {
-	Q_OBJECT
+		Q_OBJECT
 	public:
 		explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject *parent);
 		~TimeNodePresenter();
 
-	id_type<TimeNodeModel> id() const;
-	int32_t id_val() const
-	{ return *id().val(); }
+		id_type<TimeNodeModel> id() const;
+		int32_t id_val() const
+		{ return *id().val(); }
 
-	TimeNodeModel* model();
-	TimeNodeView* view();
+		TimeNodeModel* model();
+		TimeNodeView* view();
 
-    bool isSelected();
-    void deselect();
+		bool isSelected();
+		void deselect();
 
 	signals:
-        void timeNodeReleased(EventData);
-        void elementSelected(QObject*);
+		void timeNodeMoved(EventData);
+		void timeNodeReleased();
+		void elementSelected(QObject*);
 
 	public slots:
-        void on_timeNodeReleased(QPointF);
+		void on_timeNodeMoved(QPointF);
 
 	private:
 		TimeNodeModel* m_model{};

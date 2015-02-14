@@ -89,9 +89,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 		// Moving
 		void moveEventAndConstraint(EventData data);
-		void finish_moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);
-		void finish_moveConstraint(ConstraintData data);
         void moveTimeNode(EventData data);
 
 	private:

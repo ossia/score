@@ -577,11 +577,6 @@ void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
 	sendOngoingCommand(cmd);
 }
 
-void TemporalScenarioPresenter::finish_moveEventAndConstraint(EventData data)
-{
-	finishOngoingCommand();
-}
-
 void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 {
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
@@ -593,11 +588,6 @@ void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 
 
 	sendOngoingCommand(cmd);
-}
-
-void TemporalScenarioPresenter::finish_moveConstraint(ConstraintData data)
-{
-	finishOngoingCommand();
 }
 
 void TemporalScenarioPresenter::moveTimeNode(EventData data)
@@ -630,7 +620,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 	connect(event_presenter, &EventPresenter::eventMoved,
 			this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
-			this,			 &TemporalScenarioPresenter::finish_moveEventAndConstraint);
+			this,			 &TemporalScenarioPresenter::finishOngoingCommand);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioPresenter::elementSelected);
 }
@@ -650,8 +640,10 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     m_timeNodes.push_back(timeNode_presenter);
     updateTimeNode(timeNode_model->id());
 
-    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
+	connect(timeNode_presenter, &TimeNodePresenter::timeNodeMoved,
 			this,				&TemporalScenarioPresenter::moveTimeNode);
+    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
+			this,				&TemporalScenarioPresenter::finishOngoingCommand);
 
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
 			this,				&TemporalScenarioPresenter::elementSelected);
@@ -677,7 +669,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
 			this,					&TemporalScenarioPresenter::moveConstraint);
 	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
-			this,					&TemporalScenarioPresenter::finish_moveConstraint);
+			this,					&TemporalScenarioPresenter::finishOngoingCommand);
 
 	connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
 			this,					&TemporalScenarioPresenter::submitCommand);

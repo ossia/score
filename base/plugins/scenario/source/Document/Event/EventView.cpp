@@ -68,7 +68,9 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
         emit eventReleasedWithControl(posInScenario, mapToScene(m->pos()));
 	}
     else
-    {   // TODO : aimantation à revoir.
+	{
+		/*
+		// TODO : aimantation à revoir.
         if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
         {
             posInScenario.setX(pos().x());
@@ -78,6 +80,8 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
             posInScenario.setY(pos().y());
         }
         if(m->pos() != m_clickedPoint)  emit eventReleased(posInScenario);
+		*/
+		emit eventReleased();
 	}
 }
 

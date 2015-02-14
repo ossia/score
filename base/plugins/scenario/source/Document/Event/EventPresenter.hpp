@@ -28,14 +28,13 @@ class EventPresenter : public NamedObject
 		void eventSelected(id_type<EventModel>);
 		void eventReleasedWithControl(EventData);
 		void eventMoved(EventData);
-		void eventReleased(EventData);
+		void eventReleased();
         void linesExtremityChange(int, double);
 
 		void elementSelected(QObject*);
 
 	public slots:
 		void on_eventMoved(QPointF);
-		void on_eventReleased(QPointF);
 		void on_eventReleasedWithControl(QPointF, QPointF);
 
 	private:

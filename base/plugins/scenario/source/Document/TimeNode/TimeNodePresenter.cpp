@@ -13,24 +13,26 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 	m_model{model},
 	m_view{view}
 {
-    connect(m_view, &TimeNodeView::timeNodeReleased,
-            this,   &TimeNodePresenter::on_timeNodeReleased);
+	connect(m_view, &TimeNodeView::timeNodeMoved,
+			this,   &TimeNodePresenter::on_timeNodeMoved);
+	connect(m_view, &TimeNodeView::timeNodeReleased,
+			this,   &TimeNodePresenter::timeNodeReleased);
 
-    connect(m_view, &TimeNodeView::timeNodeSelected,
-            [&] ()
-        {
-            emit elementSelected(m_model);
-        });
+	connect(m_view, &TimeNodeView::timeNodeSelected,
+			[&] ()
+	{
+		emit elementSelected(m_model);
+	});
 }
 
 TimeNodePresenter::~TimeNodePresenter()
 {
-    if(m_view)
+	if(m_view)
 	{
 		auto sc = m_view->scene();
 		if(sc) sc->removeItem(m_view);
 		m_view->deleteLater();
-    }
+	}
 }
 
 id_type<TimeNodeModel> TimeNodePresenter::id() const
@@ -45,23 +47,23 @@ TimeNodeModel *TimeNodePresenter::model()
 
 TimeNodeView *TimeNodePresenter::view()
 {
-    return m_view;
+	return m_view;
 }
 
 bool TimeNodePresenter::isSelected()
 {
-    return m_view->isSelected();
+	return m_view->isSelected();
 }
 
 void TimeNodePresenter::deselect()
 {
-    m_view->setSelected(false);
+	m_view->setSelected(false);
 }
 
-void TimeNodePresenter::on_timeNodeReleased(QPointF p)
+void TimeNodePresenter::on_timeNodeMoved(QPointF p)
 {
-    EventData d{};
-    d.eventClickedId = model()->events().first();
-    d.x = p.x();
-    emit timeNodeReleased(d);
+	EventData d{};
+	d.eventClickedId = model()->events().first();
+	d.x = p.x();
+	emit timeNodeMoved(d);
 }

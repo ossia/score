@@ -106,7 +106,7 @@ void TemporalConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
-
+	/*
 	auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
 	if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
@@ -117,5 +117,7 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 	{
 		posInScenario.setY(pos().y());
 	}
-    if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
+	if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
+	*/
+	emit constraintReleased();
 }
