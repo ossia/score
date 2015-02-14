@@ -321,7 +321,31 @@ void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
     min -= timeNode->model()->y();
     max -= timeNode->model()->y();
 
-    timeNode->view()->setExtremities(int(rect.height() * min), int(rect.height() * max));
+	timeNode->view()->setExtremities(int(rect.height() * min), int(rect.height() * max));
+}
+
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentPresenter.hpp>
+void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* cmd)
+{
+	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	if(!m_ongoingCommand)
+	{
+		m_ongoingCommand = true;
+		doc->presenter()->initiateOngoingCommand(cmd, m_viewModel->sharedProcessModel());
+	}
+	else
+	{
+		doc->presenter()->continueOngoingCommand(cmd);
+	}
+}
+
+void TemporalScenarioPresenter::finishOngoingCommand()
+{
+	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	doc->presenter()->validateOngoingCommand();
+	m_ongoingCommand = false;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -549,7 +573,13 @@ void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
 	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseElementModel",
 															   m_viewModel->sharedProcessModel()),
 									data);
-	submitCommand(cmd);
+
+	sendOngoingCommand(cmd);
+}
+
+void TemporalScenarioPresenter::finish_moveEventAndConstraint(EventData data)
+{
+	finishOngoingCommand();
 }
 
 void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
@@ -561,7 +591,13 @@ void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 																	m_viewModel->sharedProcessModel()),
 									data);
 
-    submitCommand(cmd);
+
+	sendOngoingCommand(cmd);
+}
+
+void TemporalScenarioPresenter::finish_moveConstraint(ConstraintData data)
+{
+	finishOngoingCommand();
 }
 
 void TemporalScenarioPresenter::moveTimeNode(EventData data)
@@ -590,8 +626,11 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 			this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
 	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
 			this,			 &TemporalScenarioPresenter::createConstraint);
-	connect(event_presenter, &EventPresenter::eventReleased,
+
+	connect(event_presenter, &EventPresenter::eventMoved,
 			this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
+	connect(event_presenter, &EventPresenter::eventReleased,
+			this,			 &TemporalScenarioPresenter::finish_moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioPresenter::elementSelected);
 }
@@ -612,10 +651,10 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     updateTimeNode(timeNode_model->id());
 
     connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
-            this,			 &TemporalScenarioPresenter::moveTimeNode);
+			this,				&TemporalScenarioPresenter::moveTimeNode);
 
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
-            this,			 &TemporalScenarioPresenter::elementSelected);
+			this,				&TemporalScenarioPresenter::elementSelected);
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -635,8 +674,11 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
 	m_constraints.push_back(constraint_presenter);
 
-	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
+	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
 			this,					&TemporalScenarioPresenter::moveConstraint);
+	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
+			this,					&TemporalScenarioPresenter::finish_moveConstraint);
+
 	connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
 			this,					&TemporalScenarioPresenter::submitCommand);
 	connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,

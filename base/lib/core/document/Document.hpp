@@ -20,6 +20,8 @@ namespace iscore
 			Q_OBJECT
 		public:
 			Document(QWidget* parentview, QObject* parent);
+
+			DocumentModel* model() { return m_model; }
 			DocumentPresenter* presenter() { return m_presenter; }
 			DocumentView* view() { return m_view; }
 
@@ -53,4 +55,6 @@ namespace iscore
 
 			DocumentDelegateFactoryInterface* m_currentDocumentType{};
 	};
+
+	Document* documentFromObject(QObject* obj);
 }

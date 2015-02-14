@@ -74,6 +74,7 @@ void DocumentPresenter::validateOngoingCommand()
 	{
 		unlock_impl();
 		m_ongoingCommand->undo();
+		m_ongoingCommand->disableMerging();
 		m_commandQueue->pushAndEmit(m_ongoingCommand);
 		m_ongoingCommand = nullptr;
 	}

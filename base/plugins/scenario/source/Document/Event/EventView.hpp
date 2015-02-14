@@ -15,13 +15,11 @@ class EventView : public QGraphicsObject
 						   const QStyleOptionGraphicsItem* option,
 						   QWidget* widget);
 
-
-	public slots:
-
 	signals:
 		void eventPressed();
         void eventReleasedWithControl(QPointF, QPointF);
 		void eventReleased(QPointF);
+		void eventMoved(QPointF);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;

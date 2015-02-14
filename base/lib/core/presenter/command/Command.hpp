@@ -34,6 +34,15 @@ namespace iscore
 			QString parentName() const
 			{ return m_parentName; }
 
+			// The realtime command editing mechanism
+			// disables the merging when a command is applied.
+			// Subclasses should implement this by returning
+			// id() == -1 when canMerge() is false
+			bool canMerge() const
+			{ return m_canMerge; }
+			void disableMerging()
+			{ m_canMerge = false; }
+
 
 		protected:
 			quint32 timestamp() const
@@ -42,6 +51,7 @@ namespace iscore
 			{ m_timestamp = std::chrono::duration<quint32>(stmp); }
 
 		private:
+			bool m_canMerge{true};
 			const QString m_name;
 			const QString m_parentName;
 

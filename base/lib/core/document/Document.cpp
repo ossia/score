@@ -82,3 +82,21 @@ void Document::setupDocument()
 	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
 	m_presenter->setPresenterDelegate(pres);
 }
+
+
+Document* iscore::documentFromObject(QObject* obj)
+{
+	QString objName{obj->objectName()};
+	while(obj && obj->objectName() != "Document")
+	{
+		obj = obj->parent();
+	}
+
+	if(!obj)
+		throw std::runtime_error(
+				QString("Object (name: %1) is not part of a Document!")
+					.arg(objName)
+					.toStdString());
+
+	return static_cast<Document*>(obj);
+}

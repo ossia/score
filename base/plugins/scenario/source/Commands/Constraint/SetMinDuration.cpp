@@ -40,7 +40,7 @@ void SetMinDuration::redo()
 
 int SetMinDuration::id() const
 {
-	return CMD_UID;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool SetMinDuration::mergeWith(const QUndoCommand* other)

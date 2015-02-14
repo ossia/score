@@ -40,7 +40,7 @@ void SetMaxDuration::redo()
 
 int SetMaxDuration::id() const
 {
-	return CMD_UID;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool SetMaxDuration::mergeWith(const QUndoCommand* other)

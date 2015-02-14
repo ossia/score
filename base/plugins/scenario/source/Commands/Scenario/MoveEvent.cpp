@@ -9,6 +9,7 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
+#define CMD_UID 1200
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -57,12 +58,20 @@ void MoveEvent::redo()
 
 int MoveEvent::id() const
 {
-	return 1;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool MoveEvent::mergeWith(const QUndoCommand* other)
 {
-	return false;
+	// Maybe set m_mergeable = false at the end ?
+	if(other->id() != id())
+		return false;
+
+	auto cmd = static_cast<const MoveEvent*>(other);
+	m_newX = cmd->m_newX;
+	m_newHeightPosition = cmd->m_newHeightPosition;
+
+	return true;
 }
 
 void MoveEvent::serializeImpl(QDataStream& s) const

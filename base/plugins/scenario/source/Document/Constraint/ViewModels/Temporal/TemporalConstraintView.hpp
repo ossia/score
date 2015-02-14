@@ -18,10 +18,12 @@ class TemporalConstraintView : public AbstractConstraintView
 						   QWidget *widget) override;
 
 	signals:
+		void constraintMoved(QPointF);
 		void constraintReleased(QPointF);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
 	private:

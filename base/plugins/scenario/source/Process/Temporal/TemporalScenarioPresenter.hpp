@@ -86,8 +86,12 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 	private slots:
 		void setCurrentlySelectedEvent(id_type<EventModel> arg);
 		void createConstraint(EventData data);
+
+		// Moving
 		void moveEventAndConstraint(EventData data);
+		void finish_moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);
+		void finish_moveConstraint(ConstraintData data);
         void moveTimeNode(EventData data);
 
 	private:
@@ -95,6 +99,10 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
 		void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
         void updateTimeNode(id_type<TimeNodeModel> id);
+
+		// Helpers
+		void sendOngoingCommand(iscore::SerializableCommand* cmd);
+		void finishOngoingCommand();
 
 
 		TemporalScenarioViewModel* m_viewModel;
@@ -111,4 +119,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		double m_millisecPerPixel{1};
 
 		int m_horizontalZoomSliderVal{};
+
+		// Necessary for the real-time moving of elements
+		bool m_ongoingCommand{};
 };

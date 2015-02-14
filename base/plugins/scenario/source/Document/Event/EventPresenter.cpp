@@ -21,10 +21,13 @@ EventPresenter::EventPresenter(EventModel* model,
 		emit elementSelected(m_model);
 	});
 	connect(m_view, &EventView::eventReleasedWithControl,
-			this, &EventPresenter::on_eventReleasedWithControl);
+			this,	&EventPresenter::on_eventReleasedWithControl);
+
+	connect(m_view, &EventView::eventMoved,
+			this,	&EventPresenter::on_eventMoved);
 
 	connect(m_view, &EventView::eventReleased,
-			this, &EventPresenter::on_eventReleased);
+			this,	&EventPresenter::on_eventReleased);
 }
 
 EventPresenter::~EventPresenter()
@@ -62,21 +65,28 @@ void EventPresenter::deselect()
 	m_view->setSelected(false);
 }
 
-void EventPresenter::on_eventReleased(QPointF p)
+EventData EventPresenter::pointToEventData(QPointF p) const
 {
 	EventData d{};
 	d.eventClickedId = id();
 	d.x = p.x();
 	d.y = p.y();
-	emit eventReleased(d);
+	return d;
+}
+
+void EventPresenter::on_eventMoved(QPointF p)
+{
+	emit eventMoved(pointToEventData(p));
+}
+
+void EventPresenter::on_eventReleased(QPointF p)
+{
+	emit eventReleased(pointToEventData(p));
 }
 
 void EventPresenter::on_eventReleasedWithControl(QPointF p, QPointF pInScene)
 {
-	EventData d{};
-	d.eventClickedId = id();
-	d.x = p.x();
-	d.y = p.y();
+	EventData d{pointToEventData(p)};
 	d.scenePos = pInScene;
 	emit eventReleasedWithControl(d);
 }

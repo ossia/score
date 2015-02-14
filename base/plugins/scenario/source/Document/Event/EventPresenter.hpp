@@ -27,16 +27,20 @@ class EventPresenter : public NamedObject
 	signals:
 		void eventSelected(id_type<EventModel>);
 		void eventReleasedWithControl(EventData);
+		void eventMoved(EventData);
 		void eventReleased(EventData);
         void linesExtremityChange(int, double);
 
 		void elementSelected(QObject*);
 
 	public slots:
+		void on_eventMoved(QPointF);
 		void on_eventReleased(QPointF);
 		void on_eventReleasedWithControl(QPointF, QPointF);
 
 	private:
+		EventData pointToEventData(QPointF p) const;
+
 		EventModel* m_model{};
 		EventView* m_view{};
 };
