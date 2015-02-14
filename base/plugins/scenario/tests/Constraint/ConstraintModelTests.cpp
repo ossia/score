@@ -29,7 +29,7 @@ class ConstraintModelTests: public QObject
 			QVERIFY(box != nullptr);
 
 			auto deck_id = getStrongId(box->decks());
-			box->addDeck(new DeckModel{(int) box->decks().size(),
+			box->addDeck(new DeckModel{
 									   deck_id,
 									   box});
 			auto deck = box->deck(deck_id);
@@ -46,7 +46,7 @@ class ConstraintModelTests: public QObject
 				auto box = model.box(content_id);
 
 				auto deck_id = getStrongId(box->decks());
-				box->addDeck(new DeckModel{(int) box->decks().size(),
+				box->addDeck(new DeckModel{
 										   deck_id,
 										   box});
 				box->removeDeck(deck_id);
@@ -61,15 +61,15 @@ class ConstraintModelTests: public QObject
 				model.createBox(content_id);
 				auto box = model.box(content_id);
 
-				box->addDeck(new DeckModel{(int) box->decks().size(),
+				box->addDeck(new DeckModel{
 										   getStrongId(box->decks()),
 										   box});
 
-				box->addDeck(new DeckModel{(int) box->decks().size(),
+				box->addDeck(new DeckModel{
 										   getStrongId(box->decks()),
 										   box});
 
-				box->addDeck(new DeckModel{(int) box->decks().size(),
+				box->addDeck(new DeckModel{
 										   getStrongId(box->decks()),
 										   box});
 

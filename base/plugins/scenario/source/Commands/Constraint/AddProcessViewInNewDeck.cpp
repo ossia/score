@@ -73,10 +73,10 @@ void AddProcessViewInNewDeck::redo()
             constraint->fullView()->showBox(m_createdBoxId);
         }
     }
+
     //DECK
     auto box = constraint->box(m_createdBoxId);
-	box->addDeck(new DeckModel{(int) box->decks().size(),
-							   m_createdDeckId,
+	box->addDeck(new DeckModel{m_createdDeckId,
 							   box});
 
     // Process View

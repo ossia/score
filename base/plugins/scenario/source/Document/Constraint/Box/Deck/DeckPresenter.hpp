@@ -23,14 +23,8 @@ class DeckPresenter : public NamedObject
 		id_type<DeckModel> id() const;
 		int height() const; // Return the height of the view
 
-		// Position in the Box : 1st, second...
-		int position() const;
-
-		// Vertical position in pixels in the scene
-		void setVerticalPosition(int pos);
-
 		void setWidth(int w);
-
+		void setVerticalPosition(int h);
 
 	signals:
 		void submitCommand(iscore::SerializableCommand*);

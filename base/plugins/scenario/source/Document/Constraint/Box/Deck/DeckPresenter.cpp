@@ -72,9 +72,10 @@ int DeckPresenter::height() const
 	return m_view->height();
 }
 
-int DeckPresenter::position() const
+void DeckPresenter::setWidth(int w)
 {
-	return m_model->position();
+	m_view->setWidth(w);
+	updateProcessesShape();
 }
 
 void DeckPresenter::setVerticalPosition(int pos)
@@ -87,11 +88,6 @@ void DeckPresenter::setVerticalPosition(int pos)
 	}
 }
 
-void DeckPresenter::setWidth(int w)
-{
-	m_view->setWidth(w);
-	updateProcessesShape();
-}
 
 void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
 {

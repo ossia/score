@@ -31,6 +31,7 @@ namespace Scenario
 			private:
 				ObjectPath m_path;
 				id_type<DeckModel> m_deckId{};
+				int m_position{};
 
 				QByteArray m_serializedDeckData; // Should be done in the constructor
 		};

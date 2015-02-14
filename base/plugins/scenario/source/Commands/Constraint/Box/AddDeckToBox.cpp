@@ -32,8 +32,7 @@ void AddDeckToBox::undo()
 void AddDeckToBox::redo()
 {
 	auto box = m_path.find<BoxModel>();
-	box->addDeck(new DeckModel{(int) box->decks().size(),
-							   m_createdDeckId,
+	box->addDeck(new DeckModel{m_createdDeckId,
 							   box});
 }
 

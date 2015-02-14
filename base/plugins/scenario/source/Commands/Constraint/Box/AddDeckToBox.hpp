@@ -11,7 +11,7 @@ namespace Scenario
 		/**
 		 * @brief The AddDeckToBox class
 		 *
-		 * Adds an empty deck to a constraint.
+		 * Adds an empty deck at the end of a Box.
 		 */
 		class AddDeckToBox : public iscore::SerializableCommand
 		{

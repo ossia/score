@@ -42,6 +42,7 @@ class BoxPresenter : public NamedObject
 		void on_askUpdate();
 
 		void on_horizontalZoomChanged(int val);
+		void on_deckPositionsChanged();
 
 	private:
 		void on_deckCreated_impl(DeckModel* m);

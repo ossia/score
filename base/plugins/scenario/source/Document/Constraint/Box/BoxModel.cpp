@@ -18,7 +18,8 @@ BoxModel::BoxModel(BoxModel *source, id_type<BoxModel> id, QObject *parent):
 {
 	for(auto& deck : source->m_decks)
 	{
-		addDeck(new DeckModel{deck, deck->id(), this});
+		addDeck(new DeckModel{deck, deck->id(), this},
+				source->deckPosition(deck->id()));
 	}
 }
 
@@ -27,35 +28,21 @@ ConstraintModel* BoxModel::constraint() const
 	return static_cast<ConstraintModel*>(this->parent());
 }
 
-void BoxModel::addDeck(DeckModel* deck)
+void BoxModel::addDeck(DeckModel* deck, int position)
 {
-	// Reordering : if deck is inserted at position x, what was at x goes at x+1.
-	int maxpos = 0;
-	for(DeckModel* otherDeck : m_decks)
-	{
-		maxpos = std::max(maxpos, otherDeck->position());
-	}
-
-	if(deck->position() > maxpos)
-		deck->setPosition(maxpos + 1);
-	else
-	{
-		for(DeckModel* otherDeck : m_decks)
-		{
-			if(otherDeck->position() >= deck->position())
-			{
-				otherDeck->setPosition(otherDeck->position() + 1);
-			}
-		}
-	}
-
-
 	// Connection
 	connect(this, &BoxModel::on_deleteSharedProcessModel,
 			deck, &DeckModel::on_deleteSharedProcessModel);
 	m_decks.push_back(deck);
+	m_positions.insert(position, deck->id());
 
 	emit deckCreated(deck->id());
+	emit deckPositionsChanged();
+}
+
+void BoxModel::addDeck(DeckModel* m)
+{
+	addDeck(m, m_positions.size());
 }
 
 
@@ -64,12 +51,7 @@ void BoxModel::removeDeck(id_type<DeckModel> deckId)
 	auto removedDeck = deck(deckId);
 
 	// Make the remaining decks decrease their position.
-	for(DeckModel* deck : m_decks)
-	{
-		auto pos = deck->position();
-		if(pos > removedDeck->position())
-			deck->setPosition(pos - 1);
-	}
+	m_positions.removeAll(deckId);
 
 	// Delete
 	vec_erase_remove_if(m_decks,
@@ -77,6 +59,7 @@ void BoxModel::removeDeck(id_type<DeckModel> deckId)
 						{ return model->id() == deckId; });
 
 	emit deckRemoved(deckId);
+	emit deckPositionsChanged();
 	delete removedDeck;
 }
 

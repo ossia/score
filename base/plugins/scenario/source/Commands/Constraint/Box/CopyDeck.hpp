@@ -14,6 +14,7 @@ namespace Scenario
 		 *
 		 * Copy a deck, in any Box of its parent constraint.
 		 * The process view models are recursively copied.
+		 * The Deck is put at the end.
 		 */
 		class CopyDeck : public iscore::SerializableCommand
 		{

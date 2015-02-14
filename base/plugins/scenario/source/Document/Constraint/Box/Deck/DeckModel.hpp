@@ -20,7 +20,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
 				   NOTIFY heightChanged)
 
 	public:
-		DeckModel(int position, id_type<DeckModel> id, BoxModel* parent);
+		DeckModel(id_type<DeckModel> id, BoxModel* parent);
 
 		// Copy
 		DeckModel(DeckModel* source, id_type<DeckModel> id, BoxModel* parent);
@@ -57,7 +57,6 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
 		int height() const;
 		// TODO put the position in the box.
-		int position() const;
 		id_type<ProcessViewModelInterface> editedProcessViewModel() const
 		{ return m_editedProcessViewModelId; }
 
@@ -67,20 +66,17 @@ class DeckModel : public IdentifiedObject<DeckModel>
 		void processViewModelSelected(id_type<ProcessViewModelInterface> processViewModelId);
 
 		void heightChanged(int arg);
-		void positionChanged(int arg);
 
 	public slots:
 		void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> sharedProcessId);
 
 		void setHeight(int arg);
-		void setPosition(int arg);
 
 	private:
 		id_type<ProcessViewModelInterface> m_editedProcessViewModelId{};
 		std::vector<ProcessViewModelInterface*> m_processViewModels;
 
 		int m_height{200};
-		int m_position{};
 };
 
 /**

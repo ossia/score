@@ -10,17 +10,15 @@
 
 #include <QDebug>
 
-DeckModel::DeckModel(int position, id_type<DeckModel> id, BoxModel* parent):
-	IdentifiedObject<DeckModel>{id, "DeckModel", parent},
-	m_position{position}
+DeckModel::DeckModel(id_type<DeckModel> id, BoxModel* parent):
+	IdentifiedObject<DeckModel>{id, "DeckModel", parent}
 {
 }
 
 DeckModel::DeckModel(DeckModel *source, id_type<DeckModel> id, BoxModel *parent):
 	IdentifiedObject<DeckModel>{id, "DeckModel", parent},
 	m_editedProcessViewModelId{source->editedProcessViewModel()}, // Keep the same id.
-	m_height{source->height()},
-	m_position{0}
+	m_height{source->height()}
 {
 	for(ProcessViewModelInterface* pvm : source->processViewModels())
 	{
@@ -109,15 +107,6 @@ void DeckModel::setHeight(int arg)
 	}
 }
 
-void DeckModel::setPosition(int arg)
-{
-	if (m_position == arg)
-		return;
-
-	m_position = arg;
-	emit positionChanged(arg);
-}
-
 ConstraintModel* DeckModel::parentConstraint() const
 {
 	return static_cast<ConstraintModel*>(parent()->parent());
@@ -128,11 +117,6 @@ ConstraintModel* DeckModel::parentConstraint() const
 int DeckModel::height() const
 {
 	return m_height;
-}
-
-int DeckModel::position() const
-{
-	return m_position;
 }
 
 ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm)

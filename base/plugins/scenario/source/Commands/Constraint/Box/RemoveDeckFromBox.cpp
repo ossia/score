@@ -23,6 +23,9 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath &&deckPath):
 	auto lastId = boxPath.takeLast();
 	m_path = ObjectPath{std::move(boxPath)};
 	m_deckId = id_type<DeckModel>(lastId.id());
+
+	auto box = m_path.find<BoxModel>();
+	m_position = box->deckPosition(m_deckId);
 }
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId):
@@ -36,13 +39,14 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> de
 	Serializer<DataStream> s{&m_serializedDeckData};
 
 	s.readFrom(*box->deck(deckId));
+	m_position = box->deckPosition(deckId);
 }
 
 void RemoveDeckFromBox::undo()
 {
 	auto box = m_path.find<BoxModel>();
 	Deserializer<DataStream> s{&m_serializedDeckData};
-	box->addDeck(new DeckModel{s, box});
+	box->addDeck(new DeckModel{s, box}, m_position);
 }
 
 void RemoveDeckFromBox::redo()
@@ -63,10 +67,10 @@ bool RemoveDeckFromBox::mergeWith(const QUndoCommand* other)
 
 void RemoveDeckFromBox::serializeImpl(QDataStream& s) const
 {
-	s << m_path << m_deckId << m_serializedDeckData;
+	s << m_path << m_deckId << m_serializedDeckData << m_position;
 }
 
 void RemoveDeckFromBox::deserializeImpl(QDataStream& s)
 {
-	s >> m_path >> m_deckId >> m_serializedDeckData;
+	s >> m_path >> m_deckId >> m_serializedDeckData >> m_position;
 }

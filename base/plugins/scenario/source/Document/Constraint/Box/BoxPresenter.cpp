@@ -33,6 +33,8 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 			this,		&BoxPresenter::on_deckCreated);
 	connect(m_model,	&BoxModel::deckRemoved,
 			this,		&BoxPresenter::on_deckRemoved);
+	connect(m_model,	&BoxModel::deckPositionsChanged,
+			this,		&BoxPresenter::on_deckPositionsChanged);
 
 	connect(m_model,	&BoxModel::on_durationChanged,
 			this,		&BoxPresenter::on_durationChanged);
@@ -124,20 +126,14 @@ void BoxPresenter::updateShape()
 	// Vertical shape
 	m_view->setHeight(height());
 
-	// 1. Make an array with the Decks stored by their positions
-	vector<DeckPresenter*> sortedDecks(m_decks.size());
-	for(DeckPresenter* deck : m_decks)
-	{
-		sortedDecks[deck->position()] = deck;
-	}
-
-	// 2. Set their position in order.
+	// Set the decks position graphically in order.
 	int currentDeckY = 20;
-	for(auto& deck : sortedDecks)
+	for(auto& deckId : m_model->decksPositions())
 	{
-		deck->setWidth(m_view->boundingRect().width() - 2 * DEMO_PIXEL_SPACING_TEST);
-		deck->setVerticalPosition(currentDeckY);
-		currentDeckY += deck->height() + 5;
+		auto deckPres = findById(m_decks, deckId);
+		deckPres->setWidth(width());
+		deckPres->setVerticalPosition(currentDeckY);
+		currentDeckY += deckPres->height() + 5; // Separation between decks
 	}
 
 	// Horizontal shape
@@ -168,4 +164,9 @@ void BoxPresenter::on_horizontalZoomChanged(int val)
 	{
 		deck->on_horizontalZoomChanged(val);
 	}
+}
+
+void BoxPresenter::on_deckPositionsChanged()
+{
+	updateShape();
 }
