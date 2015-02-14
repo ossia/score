@@ -71,7 +71,7 @@ class AbstractConstraintPresenter : public NamedObject
 		void on_boxRemoved();
 
 		void updateHeight();
-		virtual void on_constraintPressed(QPointF) { }
+		virtual void on_constraintPressed(QPointF);
 
 	private:
 		int m_horizontalZoomSliderVal{};

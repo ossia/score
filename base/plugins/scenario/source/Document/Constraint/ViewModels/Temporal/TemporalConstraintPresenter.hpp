@@ -31,9 +31,6 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
 									QObject* parent);
 		virtual ~TemporalConstraintPresenter();
 
-		// public slot override
-		virtual void on_constraintPressed(QPointF) override;
-
 	signals:
 		void constraintReleased(ConstraintData);
 

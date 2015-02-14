@@ -71,9 +71,24 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
     QWidget* eventWid = new QWidget{};
     QFormLayout* eventLay = new QFormLayout{eventWid};
     QLabel* start = new QLabel{};
-    start->setText(QString::number(*object->model()->startEvent().val()));
+	if(object->model()->startEvent().val())
+	{
+		start->setText(QString::number(*object->model()->startEvent().val()));
+	}
+	else
+	{
+		start->setText(tr("None"));
+	}
+
     QLabel* end = new QLabel{};
-    end->setText(QString::number(*object->model()->endEvent().val()));
+	if(object->model()->startEvent().val())
+	{
+		end->setText(QString::number(*object->model()->endEvent().val()));
+	}
+	else
+	{
+		end->setText(tr("None"));
+	}
 
     eventLay->addRow("Start Event", start);
     eventLay->addRow("End Event", end);

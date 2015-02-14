@@ -9,7 +9,7 @@ InspectorWidgetBase*InspectorControl::getInspectorWidget(QObject* object)
     auto factories = pmgr->factories();
     for(auto factory : factories)
     {
-        if(factory->correspondingObjectName() == object->objectName())
+		if(factory->correspondingObjectsNames().contains(object->objectName()))
         {
             return factory->makeWidget(object); // TODO multiple items.
         }

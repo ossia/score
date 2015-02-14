@@ -47,8 +47,3 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 		view(this)->deleteLater();
 	}
 }
-
-void TemporalConstraintPresenter::on_constraintPressed(QPointF click)
-{
-	emit elementSelected(viewModel(this));
-}

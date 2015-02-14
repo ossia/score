@@ -1,7 +1,9 @@
 #pragma once
 
 #include <interface/customfactory/FactoryInterface.hpp>
+#include <QList>
 class InspectorWidgetBase;
+
 
 /**
 	 * @brief The InspectorWidgetFactoryInterface class
@@ -22,7 +24,7 @@ class InspectorWidgetFactoryInterface : public iscore::FactoryInterface
 		* @brief correspondingObjectName
 		* @return the name of the object for which this inspector is meant to generate a widget.
 		*/
-		virtual QString correspondingObjectName() const = 0;
+		virtual QList<QString> correspondingObjectsNames() const = 0;
 
 		/**
 		* @brief makeWidget Makes a widget for the inspector from an object

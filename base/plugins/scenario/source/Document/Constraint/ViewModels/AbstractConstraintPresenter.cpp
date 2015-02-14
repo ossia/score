@@ -122,6 +122,11 @@ void AbstractConstraintPresenter::updateHeight()
 	m_view->update();
 }
 
+void AbstractConstraintPresenter::on_constraintPressed(QPointF)
+{
+	emit elementSelected(m_viewModel);
+}
+
 bool AbstractConstraintPresenter::isSelected() const
 {
 	return m_view->isSelected();

@@ -102,7 +102,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	auto constraintViewModel = m_displayedConstraint->fullView();
 
 	auto cstrView = new FullViewConstraintView{this->view()->baseObject()};
-	cstrView->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
 	delete m_baseConstraintPresenter;
 	m_baseConstraintPresenter = new FullViewConstraintPresenter{constraintViewModel,

@@ -15,8 +15,8 @@ class AutomationInspectorFactory : public InspectorWidgetFactoryInterface
 		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
 		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QString correspondingObjectName() const override
+		virtual QList<QString> correspondingObjectsNames() const override
 		{
-			return "Automation";
+			return {"Automation"};
 		}
 };
