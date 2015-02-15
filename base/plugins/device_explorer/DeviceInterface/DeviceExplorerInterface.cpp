@@ -1,6 +1,7 @@
 #include "DeviceExplorerInterface.hpp"
 
 #include "../Panel/DeviceExplorerModel.hpp"
+#include "core/document/Document.hpp"
 #include <core/document/DocumentModel.hpp>
 #include <interface/panel/PanelModelInterface.hpp>
 #include "../Panel/Node.hpp"
@@ -18,7 +19,8 @@ QString DeviceExplorer::explorerName()
 
 DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
 {
-	return iscore::getDocumentFromObject(object)
+	return iscore::documentFromObject(object)
+			->model()
 			->panel(DeviceExplorer::panelName())
 			->findChild<DeviceExplorerModel*>(DeviceExplorer::explorerName());
 }

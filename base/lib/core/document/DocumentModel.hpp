@@ -32,12 +32,4 @@ namespace iscore
 			DocumentDelegateModelInterface* m_model{};
 			std::set<PanelModelInterface*> m_panelModels;
 	};
-
-	/**
-	 * @brief getDocumentFromObject
-	 * @param obj an object in the application hierarchy
-	 *
-	 * @return the DocumentModel parent of the object or nullptr.
-	 */
-	DocumentModel* getDocumentFromObject(QObject* obj);
 }

@@ -37,21 +37,3 @@ PanelModelInterface* DocumentModel::panel(QString name) const
 	return it != end(m_panelModels) ? *it : nullptr;
 
 }
-
-namespace iscore
-{
-	DocumentModel* getDocumentFromObject(QObject* obj)
-	{
-		while(obj && obj->objectName() != QString{"DocumentModel"})
-		{
-			obj = obj->parent();
-		}
-
-		if(!obj)
-			qDebug() << Q_FUNC_INFO << obj->objectName();
-		else
-			return static_cast<DocumentModel*>(obj);
-
-		return nullptr;
-	}
-}

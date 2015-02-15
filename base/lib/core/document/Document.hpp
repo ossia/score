@@ -56,5 +56,11 @@ namespace iscore
 			DocumentDelegateFactoryInterface* m_currentDocumentType{};
 	};
 
+	/**
+	 * @brief documentFromObject
+	 * @param obj an object in the application hierarchy
+	 *
+	 * @return the Document parent of the object or nullptr.
+	 */
 	Document* documentFromObject(QObject* obj);
 }

@@ -70,7 +70,7 @@ class QMenuView : public ClickableMenu
 	protected:
 		virtual bool prePopulated();
 		virtual void postPopulated();
-		void createMenu(const QModelIndex &parent, QMenu *parentMenu = 0, QMenu *menu = 0);
+		void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = 0);
 
 	signals:
 		void hovered(const QString &text) const;

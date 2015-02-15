@@ -1557,8 +1557,9 @@ DeviceExplorerModel::dropMimeData(const QMimeData *mimeData,
   }
   */
 
-	if (column != NAME_COLUMN)
-		column = NAME_COLUMN;
+	// Unused:
+//	if (column != NAME_COLUMN)
+//		column = NAME_COLUMN;
 
 	QModelIndex parentIndex; //invalid
 	Node *parentNode = m_rootNode;

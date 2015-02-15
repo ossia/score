@@ -346,6 +346,10 @@ void PluginCurvePresenter::crossByLeft (PluginCurvePoint* point, QPointF& newPos
 	{
 		tmpCurve = next->rightSection();    // else nullptr
 	}
+	else
+	{
+		return;
+	}
 
 	// if no space
 	if (tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceAfter (next) )
@@ -393,6 +397,10 @@ void PluginCurvePresenter::crossByRight (PluginCurvePoint* point, QPointF& newPo
 	if (previous != nullptr)
 	{
 		tmpCurve = previous->leftSection();
+	}
+	else
+	{
+		return;
 	}
 
 	if (tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceBefore (previous) )
@@ -556,7 +564,7 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
 		}
 		else // No curve, a new one need to be created
 		{
-			rightSection = addSection (point, nextPoint);
+			/*rightSection = */addSection (point, nextPoint);
 		}
 	}
 

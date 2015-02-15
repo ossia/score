@@ -71,9 +71,11 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 void AutomationPresenter::on_modelPointsChanged()
 {
 	if(m_curveView)
+	{
 		m_view->scene()->removeItem(m_curveView);
+		m_curveView->deleteLater();
+	}
 	m_curveModel->deleteLater();
-	m_curveView->deleteLater();
 	m_curvePresenter->deleteLater();
 
 	m_curveModel = new PluginCurveModel{this};

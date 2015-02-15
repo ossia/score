@@ -86,7 +86,7 @@ void Document::setupDocument()
 
 Document* iscore::documentFromObject(QObject* obj)
 {
-	QString objName{obj->objectName()};
+	QString objName{obj? obj->objectName() : "INVALID"};
 	while(obj && obj->objectName() != "Document")
 	{
 		obj = obj->parent();

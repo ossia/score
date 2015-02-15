@@ -106,7 +106,7 @@ void QMenuViewPrivate::aboutToShow()
 		if (v.canConvert<QModelIndex>())
 		{
 			QModelIndex idx = qvariant_cast<QModelIndex>(v);
-			_menu->createMenu(idx, menu, menu);
+			_menu->createMenu(idx, *menu, menu);
 			disconnect(menu, SIGNAL(aboutToShow()), this, SLOT(aboutToShow()));
 			return;
 		}
@@ -117,7 +117,7 @@ void QMenuViewPrivate::aboutToShow()
 	if (_menu->prePopulated())
 		_menu->addSeparator();
 
-	_menu->createMenu(m_root, _menu, _menu);
+	_menu->createMenu(m_root, *_menu, _menu);
 
 	_menu->postPopulated();
 }
@@ -228,13 +228,14 @@ void QMenuView::setRootIndex(const QModelIndex & index)
  *
  * Default root index is QModelIndex()
  */
+#include <QGenericMatrix>
 QModelIndex QMenuView::rootIndex() const
 {
 	return d->m_root;
 }
 
 //! Puts all of the children of parent into menu
-void QMenuView::createMenu(const QModelIndex &parent, QMenu *parentMenu, QMenu *menu)
+void QMenuView::createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu)
 {
 	if (! menu)
 	{
@@ -245,7 +246,7 @@ void QMenuView::createMenu(const QModelIndex &parent, QMenu *parentMenu, QMenu *
 
 		menu = new ClickableMenu(parent.data().toString(), this);
 		menu->setIcon(icon);
-		parentMenu->addMenu(menu);
+		parentMenu.addMenu(menu);
 		menu->menuAction()->setData(v);
 
 		auto act = d->makeAction(parent);
@@ -268,7 +269,7 @@ void QMenuView::createMenu(const QModelIndex &parent, QMenu *parentMenu, QMenu *
 		QModelIndex idx = d->m_model->index(i, 0, parent);
 		if (d->m_model->hasChildren(idx))
 		{
-			createMenu(idx, menu);
+			createMenu(idx, *menu);
 		}
 		else
 		{
