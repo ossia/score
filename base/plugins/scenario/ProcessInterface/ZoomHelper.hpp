@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/algorithm/clamp.hpp>
 
 // TODO use TimeValue to provide a mapping ?
 inline double millisecondsPerPixel(int zoomLevel)
