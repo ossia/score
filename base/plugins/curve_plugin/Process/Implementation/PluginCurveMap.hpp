@@ -18,8 +18,8 @@ class PluginCurveMap : public QObject
 
 // Attributes
 	private:
-		QRectF* _pScaleRect; /*!< Define points' area in scale coordinate. */
-		QRectF* _pPaintRect; /*!< Define points' area in paint coordinate. */
+		QRectF _pScaleRect; /*!< Define points' area in scale coordinate. */
+		QRectF _pPaintRect; /*!< Define points' area in paint coordinate. */
 // Methods
 	public:
 		//! Construct a PluginCurveMap.
@@ -28,6 +28,7 @@ class PluginCurveMap : public QObject
 		\param paintRect The rectangle delimitting the points in paint coordinate.
 		*/
 		PluginCurveMap (QRectF scaleRect, QRectF paintRect, QObject* parent);
+
 		/*! Transform a point from scale to paint coordinates. */
 		QPointF scaleToPaint (QPointF val);
 		/*! Transform a rectangle from scale to paint coordinates. */

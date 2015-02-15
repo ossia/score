@@ -546,7 +546,7 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
 	{
 		rightSection = nextPoint->leftSection();
 
-		if (rightSection != nullptr)
+		if (rightSection != nullptr && previousPoint != nullptr)
 		{
 			QPointF oldSourcePoint =  previousPoint->getValue();
 			QPointF oldDestPoint = nextPoint->getValue();

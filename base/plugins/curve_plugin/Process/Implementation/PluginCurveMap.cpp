@@ -2,19 +2,19 @@
 #include <iostream>
 
 PluginCurveMap::PluginCurveMap (QRectF scaleRect, QRectF paintRect, QObject* parent) :
-	QObject(parent) //, _scaleRect(&scaleRect), _paintRect(&paintRect)
+	QObject(parent),
+	_pScaleRect(scaleRect),
+	_pPaintRect(paintRect)
 {
 	setObjectName("PluginCurveMap");
-	_pScaleRect = new QRectF (scaleRect);
-	_pPaintRect = new QRectF (paintRect);
 }
 
 QPointF PluginCurveMap::scaleToPaint (QPointF val)
 {
 	QPointF pos;
-	pos.setX ( (val.x() - _pScaleRect->x() ) *_pPaintRect->width() / _pScaleRect->width() + _pPaintRect->x() );
-//    pos.setY( (val.y()-_pScaleRect->y())*_pPainRect->height() / _pScaleRect->height() + _pPaintRect->y());
-	pos.setY ( _pPaintRect->height() + _pPaintRect->y() - (_pPaintRect->height() * (val.y() - _pScaleRect->y() ) / _pScaleRect->height() ) );
+	pos.setX ( (val.x() - _pScaleRect.x() ) *_pPaintRect.width() / _pScaleRect.width() + _pPaintRect.x() );
+//    pos.setY( (val.y()-_pScaleRect.y())*_pPainRect->height() / _pScaleRect.height() + _pPaintRect.y());
+	pos.setY ( _pPaintRect.height() + _pPaintRect.y() - (_pPaintRect.height() * (val.y() - _pScaleRect.y() ) / _pScaleRect.height() ) );
 	return pos;
 }
 
@@ -31,8 +31,8 @@ QRectF PluginCurveMap::scaleToPaint (QRectF rect)
 QPointF PluginCurveMap::paintToScale (QPointF pos)
 {
 	QPointF val;
-	val.setX ( (pos.x() - _pPaintRect->x() ) *_pScaleRect->width() / _pPaintRect->width() + _pScaleRect->x() );
-	val.setY ( _pScaleRect->y() + qAbs (_pPaintRect->height() + _pPaintRect->y() - pos.y() ) / _pPaintRect->height() * _pScaleRect->height() );
+	val.setX ( (pos.x() - _pPaintRect.x() ) *_pScaleRect.width() / _pPaintRect.width() + _pScaleRect.x() );
+	val.setY ( _pScaleRect.y() + qAbs (_pPaintRect.height() + _pPaintRect.y() - pos.y() ) / _pPaintRect.height() * _pScaleRect.height() );
 	return val;
 }
 
@@ -48,12 +48,12 @@ QRectF PluginCurveMap::paintToScale (QRectF rect)
 
 QRectF PluginCurveMap::paintRect()
 {
-	return *_pPaintRect;
+	return _pPaintRect;
 }
 
 QRectF PluginCurveMap::scaleRect()
 {
-	return *_pScaleRect;
+	return _pScaleRect;
 }
 
 void PluginCurveMap::setPaintRect (QRectF paintRect, bool changeScaleRect)
@@ -64,11 +64,11 @@ void PluginCurveMap::setPaintRect (QRectF paintRect, bool changeScaleRect)
 		setScaleRect (paintToScale (paintRect) );
 	}
 
-	*_pPaintRect = paintRect;
+	_pPaintRect = paintRect;
 }
 
 void PluginCurveMap::setScaleRect (QRectF scaleRect)
 {
-	*_pScaleRect = scaleRect;
+	_pScaleRect = scaleRect;
 	emit (mapChanged() );
 }

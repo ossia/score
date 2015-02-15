@@ -59,11 +59,11 @@ class Node
 	protected:
 		QString m_name;
 		QString m_value;
-		IOType m_ioType;
-		float m_min;
-		float m_max;
-		unsigned int m_priority;
-		Node *m_parent;
+		IOType m_ioType{};
+		float m_min{};
+		float m_max{};
+		unsigned int m_priority{};
+		Node *m_parent{};
 		QList<Node *> m_children;
 
 		QStringList m_deviceSettings;

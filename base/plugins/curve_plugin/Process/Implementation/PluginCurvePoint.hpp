@@ -27,8 +27,8 @@ class PluginCurvePoint : public QGraphicsObject
 
 		//Attributs
 	public:
-		static const int RADIUS = 2; /*!< Point radius. */
-		static const int SHAPERADIUS = 8; /*!< Point's shape radius. */
+		static const constexpr qreal RADIUS{2}; /*!< Point radius. */
+		static const constexpr qreal SHAPERADIUS{8}; /*!< Point's shape radius. */
 	protected:
 		QColor _color; /*!< Point's color. */
 		QColor _selectColor; /*!< Point's color when selected. */

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(simple_process)
+project(scenario_plugin)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -8,11 +8,6 @@ set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source/Proces
 
 # Packages
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
-
-# TODO mieux
-if(APPLE)
-        include_directories(/usr/local/Cellar/boost/1.56.0/include)
-endif()
 
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")

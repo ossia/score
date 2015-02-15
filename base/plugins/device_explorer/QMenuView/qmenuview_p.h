@@ -55,8 +55,8 @@ public:
 
 	QAction *makeAction(const QModelIndex &index);
 
-	QMenuView * _menu;
-	QAbstractItemModel * m_model;
+	QMenuView * _menu{};
+	QAbstractItemModel * m_model{};
 	QPersistentModelIndex m_root;
 public slots:
 	void aboutToShow();

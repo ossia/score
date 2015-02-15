@@ -22,12 +22,12 @@ class PluginCurveSection : public QGraphicsObject
 //Attributes
 	protected:
 		static const int SHAPEHEIGHT = 5; /*!< Defines the height of the setion's shape. */
-		PluginCurvePoint* _pSourcePoint; /*!< Pointer of the source point (left point). */
-		PluginCurvePoint* _pDestPoint; /*!< Pointer of the destination point (right point). */
+		PluginCurvePoint* _pSourcePoint{}; /*!< Pointer of the source point (left point). */
+		PluginCurvePoint* _pDestPoint{}; /*!< Pointer of the destination point (right point). */
 		bool _highlight{}; /*!< Indicates if the points is highlighted. True : highlighted. False : Not Highlighted */
 		QColor _color; /*!< Section's color. */
 		QColor _selectColor; /*!< Section's color when selected */
-		qreal _coef; /*!< Bending coefficient */
+		qreal _coef{}; /*!< Bending coefficient */
 // Signals and slots
 	signals:
 		void doubleClicked (QGraphicsSceneMouseEvent* event); /*!< Notifies that the user double clicked the section. */

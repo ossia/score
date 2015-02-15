@@ -62,7 +62,7 @@ class PluginCurvePresenter : public QObject
 		const int MAGNETDIST = 4; // Distance of magnetism attraction.
 	private:
 // //----> SUPPRIMER
-		QGraphicsTextItem* _pText;
+		QGraphicsTextItem* _pText{};
 // //<---- SUPPRIMER
 		QRectF _limitRect; // Limit if the points' area in View coordinate
 		QRectF _scale; // Indicates the value of the bottom left point and the topleft point.
@@ -76,7 +76,7 @@ class PluginCurvePresenter : public QObject
 		EditionMode _editionMode = AreaSelectionMode; // Selection mode
 		bool _magnetism; // Activate grid magnetism
 		bool _pointCanCross; // Indicates if a point can cross an other one
-		PluginCurvePoint* _lastCreatedPoint; // The last created point
+		PluginCurvePoint* _lastCreatedPoint{}; // The last created point
 		QPoint _originSelectionRectangle; // Start point of selection Rectangle
 
 		/* Adjusts point position after magntetism effect. */
