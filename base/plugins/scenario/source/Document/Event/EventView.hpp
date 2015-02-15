@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 #include <QMouseEvent>
+#include <QKeyEvent>
 
 class EventView : public QGraphicsObject
 {
@@ -20,11 +21,18 @@ class EventView : public QGraphicsObject
         void eventReleasedWithControl(QPointF, QPointF);
 		void eventReleased();
 		void eventMoved(QPointF);
+		void eventMovedWithControl(QPointF, QPointF);
+
+		// True : ctrl is pressed; false : ctrl is not.
+		void ctrlStateChanged(bool);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
+		virtual void keyPressEvent(QKeyEvent* e) override;
+		virtual void keyReleaseEvent(QKeyEvent* e) override;
+
 
 	private:
 		QPointF m_clickedPoint{};

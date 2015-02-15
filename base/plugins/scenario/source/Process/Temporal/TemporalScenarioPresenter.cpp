@@ -41,6 +41,7 @@
 #include <QGraphicsScene>
 
 using namespace Scenario;
+using namespace Command;
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
@@ -329,10 +330,17 @@ void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 #include <core/document/DocumentPresenter.hpp>
 void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* cmd)
 {
+	if(m_ongoingCommand && cmd->id() != m_ongoingCommandId)
+	{
+		rollbackOngoingCommand();
+	}
+
 	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
 	if(!m_ongoingCommand)
 	{
 		m_ongoingCommand = true;
+		m_ongoingCommandId = cmd->id();
+		m_firstCommandName = cmd->name();
 		doc->presenter()->initiateOngoingCommand(cmd, m_viewModel->sharedProcessModel());
 	}
 	else
@@ -346,6 +354,25 @@ void TemporalScenarioPresenter::finishOngoingCommand()
 	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
 	doc->presenter()->validateOngoingCommand();
 	m_ongoingCommand = false;
+	m_ongoingCommandId = -1;
+	m_firstCommandName = "";
+	m_ongoing_createdEvent.setVal({});
+	m_ongoing_createdTimeNode.setVal({});
+	m_ongoing_firstEvent.setVal({});
+	m_ongoing_firstTimeNode.setVal({});
+}
+
+void TemporalScenarioPresenter::rollbackOngoingCommand()
+{
+	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	doc->presenter()->rollbackOngoingCommand();
+	m_ongoingCommand = false;
+	m_ongoingCommandId = -1;
+	m_firstCommandName = "";
+	m_ongoing_createdEvent.setVal({});
+	m_ongoing_createdTimeNode.setVal({});
+	m_ongoing_firstEvent.setVal({});
+	m_ongoing_firstTimeNode.setVal({});
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -408,9 +435,9 @@ void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scene
         }
     }
 
-    auto cmd = new Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
-                                                                 m_viewModel->sharedProcessModel()),
-                                        data);
+	auto cmd = new CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
+														  m_viewModel->sharedProcessModel()),
+							   data);
     this->submitCommand(cmd);
 
 }
@@ -516,50 +543,90 @@ void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> ar
 	}
 }
 
+#include <algorithm>
 void TemporalScenarioPresenter::createConstraint(EventData data)
 {
+	using namespace std;
 	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	EventView* it = dynamic_cast<EventView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
-	id_type<EventModel> endEvent;
+	auto scene = this->m_view->scene();
+	auto itemUnderMouse = scene->itemAt(data.scenePos, QTransform());
+	auto cmdPath = ObjectPath::pathFromObject("BaseElementModel",
+											  m_viewModel->sharedProcessModel());
 
-	if (it)
+	auto makeCreateConstraint = [&] (EventPresenter* ev)
 	{
-		for (auto& ev : m_events)
+		return new CreateConstraint(move(cmdPath), data.eventClickedId, ev->id()); // End event
+	};
+
+	auto makeCreateEventAfterEvent = [&] (TimeNodePresenter* tn)
+	{
+		if (tn)
 		{
-			if(ev->view() == it)
-            {
-				endEvent = ev->id();
-				auto cmd = new Command::CreateConstraint(ObjectPath::pathFromObject("BaseElementModel",
-																					m_viewModel->sharedProcessModel()),
-														 data.eventClickedId,
-														 endEvent);
-				submitCommand(cmd);
-                break;
-			}
+			data.endTimeNodeId = tn->id();
+			data.dDate = tn->model()->date() - model(m_viewModel)->event(data.eventClickedId)->date();
 		}
+
+		return new CreateEventAfterEvent(move(cmdPath), data);
+	};
+
+	iscore::SerializableCommand* cmd{};
+
+	if(!m_ongoingCommand)
+	{
+		auto the_cmd = makeCreateEventAfterEvent(nullptr);
+
+		m_ongoing_firstEvent = data.eventClickedId;
+		m_ongoing_firstTimeNode = model(m_viewModel)->event(m_ongoing_firstEvent)->timeNode();
+		m_ongoing_createdEvent = the_cmd->createdEvent();
+		m_ongoing_createdTimeNode = the_cmd->createdTimeNode();
+		cmd = the_cmd;
 	}
 	else
 	{
-        TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(data.scenePos, QTransform()));
-        if (tnv)
-        {
-            for (auto timeNode : m_timeNodes)
-            {
-                if (timeNode->view() == tnv)
-                {
-                    data.endTimeNodeId = timeNode->id();
-                    data.dDate = timeNode->model()->date() - model(m_viewModel)->event(data.eventClickedId)->date();
-                }
-            }
-        }
+		// We have to check the item under the cursor so that we don't
+		// we don't take into account the items already created
+		// (i.e. nothing, an event, or an event + a timenode ?).
+		QList<EventPresenter*> collidingEvents;
+		for(auto& ev : m_events)
+		{
+			if(ev->view()->isUnderMouse()
+			&& ev->id() != m_ongoing_createdEvent
+			&& ev->id() != m_ongoing_firstEvent)
+			{
+				// TODO sort them by height ?
+				// There should not be an event on top of another...
+				collidingEvents.push_back(ev);
+			}
+		}
 
-		auto cmd = new Command::CreateEventAfterEvent(ObjectPath::pathFromObject("BaseElementModel",
-																			   m_viewModel->sharedProcessModel()),
-													data);
-		submitCommand(cmd);
+		// If we don't collide with another event, we continue
+		// Else we switch to CreateConstraint mode
+		if(collidingEvents.empty())
+		{
+			QList<TimeNodePresenter*> collidingTimeNodes;
+			for(auto tn : m_timeNodes)
+			{
+				if(tn->view()->isUnderMouse()
+				&& tn->id() != m_ongoing_createdTimeNode
+				&& tn->id() != m_ongoing_firstTimeNode)
+				{
+					collidingTimeNodes.append(tn);
+				}
+			}
+
+			cmd = makeCreateEventAfterEvent(nullptr);/*collidingTimeNodes.isEmpty()
+											? nullptr
+											: collidingTimeNodes.first()->view());*/
+		}
+		else
+		{
+			cmd = makeCreateConstraint(collidingEvents.first());
+		}
 	}
+
+	sendOngoingCommand(cmd);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -594,7 +661,20 @@ void TemporalScenarioPresenter::moveTimeNode(EventData data)
 {
     auto ev = findById(m_events, data.eventClickedId);
     data.y = ev->view()->y();
-    moveEventAndConstraint(data);
+	moveEventAndConstraint(data);
+}
+
+void TemporalScenarioPresenter::on_ctrlStateChanged(bool ctrlPressed)
+{
+	if(!m_ongoingCommand)
+		return;
+
+	rollbackOngoingCommand();
+
+	if(ctrlPressed)
+	{ createConstraint(m_lastData); }
+	else
+	{ moveEventAndConstraint(m_lastData); }
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -614,13 +694,19 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 	m_events.push_back(event_presenter);
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
-	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &TemporalScenarioPresenter::createConstraint);
 
 	connect(event_presenter, &EventPresenter::eventMoved,
 			this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
+	connect(event_presenter, &EventPresenter::eventMovedWithControl,
+			this,			 &TemporalScenarioPresenter::createConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
 			this,			 &TemporalScenarioPresenter::finishOngoingCommand);
+	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
+			this,			 &TemporalScenarioPresenter::finishOngoingCommand);
+
+	connect(event_presenter, &EventPresenter::ctrlStateChanged,
+			this,			 &TemporalScenarioPresenter::on_ctrlStateChanged);
+
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioPresenter::elementSelected);
 }

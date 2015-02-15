@@ -69,18 +69,6 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 	}
     else
 	{
-		/*
-		// TODO : aimantation à revoir.
-        if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
-        {
-            posInScenario.setX(pos().x());
-        }
-        if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
-        {
-            posInScenario.setY(pos().y());
-        }
-        if(m->pos() != m_clickedPoint)  emit eventReleased(posInScenario);
-		*/
 		emit eventReleased();
 	}
 }
@@ -89,9 +77,38 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 {
     QGraphicsObject::mouseMoveEvent(m);
 
-	if(m->modifiers() != Qt::ControlModifier)
+	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+	if(m->modifiers() == Qt::ControlModifier)
 	{
-		auto posInScenario = pos() + m->pos() - m_clickedPoint;
-		emit eventMoved(posInScenario);
+		emit eventMovedWithControl(posInScenario, mapToScene(m->pos()));
 	}
+	else
+	{
+		/*
+		 *
+		// TODO : aimantation à revoir.
+		if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
+		{
+			posInScenario.setX(pos().x());
+		}
+		if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
+		{
+			posInScenario.setY(pos().y());
+		}
+		if(m->pos() != m_clickedPoint)
+		*/
+			emit eventMoved(posInScenario);
+	}
+}
+
+void EventView::keyPressEvent(QKeyEvent* e)
+{
+	if(e->key() == Qt::Key_Control)
+		emit ctrlStateChanged(true);
+}
+
+void EventView::keyReleaseEvent(QKeyEvent* e)
+{
+	if(e->key() == Qt::Key_Control)
+		emit ctrlStateChanged(false);
 }

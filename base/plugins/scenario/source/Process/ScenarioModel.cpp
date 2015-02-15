@@ -135,9 +135,9 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 
 //////// Creation ////////
 void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
-															   id_type<EventModel> endEventId,
-															   id_type<ConstraintModel> newConstraintModelId,
-															   id_type<AbstractConstraintViewModel> newConstraintFullViewId)
+												  id_type<EventModel> endEventId,
+												  id_type<ConstraintModel> newConstraintModelId,
+												  id_type<AbstractConstraintViewModel> newConstraintFullViewId)
 {
 	auto sev = this->event(startEventId);
 	auto eev = this->event(endEventId);

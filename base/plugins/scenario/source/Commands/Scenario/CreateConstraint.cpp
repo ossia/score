@@ -9,6 +9,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+#define CMD_UID 1202
 
 
 CreateConstraint::CreateConstraint():
@@ -73,12 +74,19 @@ void CreateConstraint::redo()
 
 int CreateConstraint::id() const
 {
-	return 1;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool CreateConstraint::mergeWith(const QUndoCommand* other)
 {
-	return false;
+	// Maybe set m_mergeable = false at the end ?
+	if(other->id() != id())
+		return false;
+
+	auto cmd = static_cast<const CreateConstraint*>(other);
+	m_endEventId = cmd->m_endEventId;
+
+	return true;
 }
 
 void CreateConstraint::serializeImpl(QDataStream& s) const

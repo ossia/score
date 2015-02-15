@@ -1,6 +1,7 @@
 #pragma once
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include <tools/SettableIdentifier.hpp>
+#include <Document/Event/EventData.hpp>
 
 namespace iscore
 {
@@ -92,6 +93,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		void moveConstraint(ConstraintData data);
         void moveTimeNode(EventData data);
 
+		void on_ctrlStateChanged(bool);
+
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
 		void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
@@ -101,6 +104,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		// Helpers
 		void sendOngoingCommand(iscore::SerializableCommand* cmd);
 		void finishOngoingCommand();
+		void rollbackOngoingCommand();
 
 
 		TemporalScenarioViewModel* m_viewModel;
@@ -118,6 +122,13 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 		int m_horizontalZoomSliderVal{};
 
-		// Necessary for the real-time moving of elements
+		// Necessary for the real-time creation / moving of elements
 		bool m_ongoingCommand{};
+		int m_ongoingCommandId{-1};
+		QString m_firstCommandName;
+		id_type<EventModel> m_ongoing_createdEvent{};
+		id_type<EventModel> m_ongoing_firstEvent{};
+		id_type<TimeNodeModel> m_ongoing_createdTimeNode{};
+		id_type<TimeNodeModel> m_ongoing_firstTimeNode{};
+		EventData m_lastData{};
 };

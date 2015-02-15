@@ -11,6 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+#define CMD_UID 1204
 
 CreateEventAfterEvent::CreateEventAfterEvent():
 	SerializableCommand{"ScenarioControl",
@@ -35,13 +36,13 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath &&scenarioPath, EventDat
 
     if (*data.endTimeNodeId.val() == 0)
     {
-        m_TimeNodeId = getStrongId(scenar->timeNodes());
-        timeNodeToCreate = true;
+		m_timeNodeId = getStrongId(scenar->timeNodes());
+		m_timeNodeToCreate = true;
     }
     else
     {
-        m_TimeNodeId = data.endTimeNodeId ;
-        timeNodeToCreate = false;
+		m_timeNodeId = data.endTimeNodeId ;
+		m_timeNodeToCreate = false;
     }
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
@@ -66,9 +67,9 @@ void CreateEventAfterEvent::redo()
 {
 	auto scenar = m_path.find<ScenarioModel>();
 
-    if (! timeNodeToCreate)
+	if (! m_timeNodeToCreate)
     {
-        scenar->timeNode(m_TimeNodeId)->addEvent(m_createdEventId);
+		scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
     }
 
 	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
@@ -77,14 +78,14 @@ void CreateEventAfterEvent::redo()
 												 m_createdConstraintId,
 												 m_createdConstraintFullViewId,
                                                  m_createdEventId);
-    if (timeNodeToCreate)
+	if (m_timeNodeToCreate)
     {
-        scenar->createTimeNode(m_TimeNodeId, m_createdEventId);
-        scenar->event(m_createdEventId)->changeTimeNode(m_TimeNodeId);
+		scenar->createTimeNode(m_timeNodeId, m_createdEventId);
+		scenar->event(m_createdEventId)->changeTimeNode(m_timeNodeId);
     }
     else
     {
-        scenar->event(m_createdEventId)->changeTimeNode(m_TimeNodeId);
+		scenar->event(m_createdEventId)->changeTimeNode(m_timeNodeId);
     }
 
 	// Creation of all the constraint view models
@@ -107,12 +108,22 @@ void CreateEventAfterEvent::redo()
 
 int CreateEventAfterEvent::id() const
 {
-	return 1;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool CreateEventAfterEvent::mergeWith(const QUndoCommand* other)
 {
-	return false;
+	// Maybe set m_mergeable = false at the end ?
+	if(other->id() != id())
+		return false;
+
+	auto cmd = static_cast<const CreateEventAfterEvent*>(other);
+	m_time = cmd->m_time;
+	m_heightPosition = cmd->m_heightPosition;
+	m_timeNodeId = cmd->m_timeNodeId;
+	m_timeNodeToCreate = cmd->m_timeNodeToCreate;
+
+	return true;
 }
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
@@ -123,6 +134,8 @@ void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
 	  << m_heightPosition
 	  << m_createdEventId
 	  << m_createdConstraintId
+	  << m_timeNodeId
+	  << m_timeNodeToCreate
 	  << m_createdConstraintViewModelIDs
 	  << m_createdConstraintFullViewId;
 }
@@ -135,6 +148,8 @@ void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
 	  >> m_heightPosition
 	  >> m_createdEventId
 	  >> m_createdConstraintId
+	  >> m_timeNodeId
+	  >> m_timeNodeToCreate
 	  >> m_createdConstraintViewModelIDs
 	  >> m_createdConstraintFullViewId;
 }

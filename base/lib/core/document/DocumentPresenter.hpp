@@ -72,7 +72,7 @@ namespace iscore
 			 */
 			void initiateOngoingCommand(iscore::SerializableCommand*, QObject* objectToLock);
 			void continueOngoingCommand(iscore::SerializableCommand*);
-			void undoOngoingCommand();
+			void rollbackOngoingCommand();
 			void validateOngoingCommand();
 
 		private:

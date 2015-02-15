@@ -52,12 +52,13 @@ void DocumentPresenter::initiateOngoingCommand(SerializableCommand* cmd, QObject
 
 void DocumentPresenter::continueOngoingCommand(SerializableCommand* cmd)
 {
-	cmd->redo();
+	m_ongoingCommand->undo();
 	m_ongoingCommand->mergeWith(cmd);
+	m_ongoingCommand->redo();
 	delete cmd;
 }
 
-void DocumentPresenter::undoOngoingCommand()
+void DocumentPresenter::rollbackOngoingCommand()
 {
 	if(m_ongoingCommand)
 	{

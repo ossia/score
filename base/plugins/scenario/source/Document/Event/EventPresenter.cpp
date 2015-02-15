@@ -20,14 +20,35 @@ EventPresenter::EventPresenter(EventModel* model,
 		emit eventSelected(id());
 		emit elementSelected(m_model);
 	});
-	connect(m_view, &EventView::eventReleasedWithControl,
-			this,	&EventPresenter::on_eventReleasedWithControl);
+
 
 	connect(m_view, &EventView::eventMoved,
-			this,	&EventPresenter::on_eventMoved);
+			[this] (QPointF p)
+	{
+		emit eventMoved(pointToEventData(p));
+	});
+
+	connect(m_view, &EventView::eventMovedWithControl,
+			[this] (QPointF p, QPointF pInScene)
+	{
+		EventData d{pointToEventData(p)};
+		d.scenePos = pInScene;
+		emit eventMovedWithControl(d);
+	});
 
 	connect(m_view, &EventView::eventReleased,
 			this,	&EventPresenter::eventReleased);
+
+	connect(m_view, &EventView::eventReleasedWithControl,
+			[this] (QPointF p, QPointF pInScene)
+	{
+		EventData d{pointToEventData(p)};
+		d.scenePos = pInScene;
+		emit eventReleasedWithControl(d);
+	});
+
+	connect(m_view, &EventView::ctrlStateChanged,
+			this,	&EventPresenter::ctrlStateChanged);
 }
 
 EventPresenter::~EventPresenter()
@@ -72,16 +93,4 @@ EventData EventPresenter::pointToEventData(QPointF p) const
 	d.x = p.x();
 	d.y = p.y();
 	return d;
-}
-
-void EventPresenter::on_eventMoved(QPointF p)
-{
-	emit eventMoved(pointToEventData(p));
-}
-
-void EventPresenter::on_eventReleasedWithControl(QPointF p, QPointF pInScene)
-{
-	EventData d{pointToEventData(p)};
-	d.scenePos = pInScene;
-	emit eventReleasedWithControl(d);
 }

@@ -7,6 +7,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+#define CMD_UID 1203
 
 CreateEvent::CreateEvent():
 	SerializableCommand{"ScenarioControl",
@@ -47,12 +48,19 @@ void CreateEvent::redo()
 
 int CreateEvent::id() const
 {
-	return 1;
+	return canMerge() ? CMD_UID : -1;
 }
 
 bool CreateEvent::mergeWith(const QUndoCommand* other)
 {
-	return false;
+	// Maybe set m_mergeable = false at the end ?
+	if(other->id() != id())
+		return false;
+
+	auto cmd = static_cast<const CreateEvent*>(other);
+	m_cmd->mergeWith(cmd->m_cmd);
+
+	return true;
 }
 
 void CreateEvent::serializeImpl(QDataStream& s) const

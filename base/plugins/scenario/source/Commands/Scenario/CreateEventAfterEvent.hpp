@@ -32,6 +32,11 @@ namespace Scenario
                 CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data);
 				CreateEventAfterEvent& operator=(CreateEventAfterEvent&&) = default;
 
+				id_type<TimeNodeModel> createdTimeNode() const
+				{ return m_timeNodeToCreate ? m_timeNodeId : id_type<TimeNodeModel>{}; }
+				id_type<EventModel> createdEvent() const
+				{ return m_createdEventId; }
+
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;
@@ -46,9 +51,8 @@ namespace Scenario
 
 				id_type<ConstraintModel> m_createdConstraintId{};
 				id_type<EventModel> m_createdEventId{};
-                id_type<TimeNodeModel> m_TimeNodeId{0};
-
-                bool timeNodeToCreate;
+				id_type<TimeNodeModel> m_timeNodeId{};
+				bool m_timeNodeToCreate{};
 
 				id_type<EventModel> m_firstEventId{};
 				TimeValue m_time{};

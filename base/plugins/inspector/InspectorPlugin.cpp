@@ -45,7 +45,7 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
 		  "InspectorWidgetBase", SIGNAL(undoOngoingCommand())},
 		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-		  "DocumentPresenter", SLOT(undoOngoingCommand())}},
+		  "DocumentPresenter", SLOT(rollbackOngoingCommand())}},
 		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
 		  "InspectorWidgetBase", SIGNAL(validateOngoingCommand())},
 		  {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
