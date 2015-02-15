@@ -25,11 +25,6 @@ QList<iscore::Autoconnect> ScenarioPlugin::autoconnect_list() const
 {
 	return
 	{
-		/// Events
-		{{iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-		  "EventModel", SIGNAL(messagesChanged())},
-		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-		  "EventInspectorWidget", SLOT(updateMessages())}}
 	};
 }
 

@@ -33,7 +33,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data):
     data.eventClickedId = scenar->startEvent()->id();
 
 
-    m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
+	m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
 }
 
 void CreateEvent::undo()

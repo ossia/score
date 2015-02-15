@@ -36,6 +36,9 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
     setInspectedObject(object);
 	setParent(parent);
 
+	connect(object, &EventModel::messagesChanged,
+			this, &EventInspectorWidget::updateMessages);
+
 	m_conditionWidget = new QLineEdit{this};
 	connect(m_conditionWidget, SIGNAL(editingFinished()),
 			this,			 SLOT(on_conditionChanged()));

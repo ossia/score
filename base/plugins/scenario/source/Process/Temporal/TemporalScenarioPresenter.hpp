@@ -125,10 +125,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		// Necessary for the real-time creation / moving of elements
 		bool m_ongoingCommand{};
 		int m_ongoingCommandId{-1};
-		QString m_firstCommandName;
-		id_type<EventModel> m_ongoing_createdEvent{};
-		id_type<EventModel> m_ongoing_firstEvent{};
-		id_type<TimeNodeModel> m_ongoing_createdTimeNode{};
-		id_type<TimeNodeModel> m_ongoing_firstTimeNode{};
+
 		EventData m_lastData{};
 };

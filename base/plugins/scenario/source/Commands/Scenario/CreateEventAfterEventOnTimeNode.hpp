@@ -24,18 +24,16 @@ namespace Scenario
  * This Command creates a constraint and another event in a scenario,
  * starting from an event selected by the user.
  *
- * The Command doesn't end on another event / timenode
+ * The end event is on a TimeNode
  */
-		class CreateEventAfterEvent : public iscore::SerializableCommand
+		class CreateEventAfterEventOnTimeNode : public iscore::SerializableCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
-				CreateEventAfterEvent();
-				CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data);
-				CreateEventAfterEvent& operator=(CreateEventAfterEvent&&) = default;
+				CreateEventAfterEventOnTimeNode();
+				CreateEventAfterEventOnTimeNode(ObjectPath&& scenarioPath, EventData data);
+				CreateEventAfterEventOnTimeNode& operator=(CreateEventAfterEventOnTimeNode&&) = default;
 
-				id_type<TimeNodeModel> createdTimeNode() const
-				{ return m_createdTimeNodeId; }
 				id_type<EventModel> createdEvent() const
 				{ return m_createdEventId; }
 
@@ -53,7 +51,7 @@ namespace Scenario
 
 				id_type<ConstraintModel> m_createdConstraintId{};
 				id_type<EventModel> m_createdEventId{};
-				id_type<TimeNodeModel> m_createdTimeNodeId{};
+				id_type<TimeNodeModel> m_timeNodeId{};
 
 				id_type<EventModel> m_firstEventId{};
 				TimeValue m_time{};
