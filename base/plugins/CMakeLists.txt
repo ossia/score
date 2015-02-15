@@ -16,8 +16,6 @@ if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scenario")
 endif()
 
 
-# add_subdirectory(examples)
-
 add_subdirectory(plugin_settings)
 
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/inspector")

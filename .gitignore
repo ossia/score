@@ -1,4 +1,5 @@
-# directories
+sonar-project.properties
+nohup.out
 build
 Trash
 Doxygen/html
@@ -20,3 +21,5 @@ Makefile
 /i-scoreRecast.app/
 *.db
 *kde*
+cppcheck-html
+
