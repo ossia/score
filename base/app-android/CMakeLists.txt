@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
  
 project(iscore_app_android)
 
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml Network )
 #~ 
 #~ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/base/app-android/libs/${ARM_TARGET}/)
 #~ SET(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -18,6 +18,13 @@ set_target_properties(iscore_app_android PROPERTIES VERSION 3)
  
 target_link_libraries(iscore_app_android iscore_lib)
 target_link_libraries(iscore_app_android Qt5::Core Qt5::Widgets)
+
+	add_definitions(-DISCORE_STATIC_PLUGINS)
+	target_link_libraries(iscore_app_android 
+		inspector_plugin 
+		scenario_process 
+		pluginsettings_plugin 
+		device_explorer_plugin)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../CMake/Android/qt-android-cmake/AddQtAndroidApk.cmake)
 add_qt_android_apk(iscore_apk iscore_app_android

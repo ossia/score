@@ -7,7 +7,6 @@ Q_IMPORT_PLUGIN(ScenarioPlugin)
 Q_IMPORT_PLUGIN(InspectorPlugin)
 Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin) // static plug-ins should not be displayed.
-Q_IMPORT_PLUGIN(NetworkPlugin)
 #endif
 //void android_main(struct android_app* state)
 int main()
