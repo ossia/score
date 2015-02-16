@@ -9,6 +9,7 @@
 #include <QFormLayout>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QColorDialog>
 
 MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     QWidget (parent),
@@ -71,6 +72,8 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     {
         emit commentsChanged(m_comments->toPlainText());
     });
+    connect(m_colorButton,  &QPushButton::clicked,
+            this,           &MetadataWidget::changeColor);
 
 
     connect(metadata,   &ModelMetadata::metadataChanged,
@@ -91,6 +94,16 @@ void MetadataWidget::setScriptingName(QString arg)
     emit scriptingNameChanged(arg);
 }
 
+void MetadataWidget::changeColor()
+{
+    QColor color = QColorDialog::getColor(m_metadata->color(), this, "Select Color");
+
+    if (color.isValid() )
+    {
+        emit colorChanged(color);
+    }
+}
+
 void MetadataWidget::setType(QString type)
 {
     m_typeLb->setText(type);
@@ -101,4 +114,8 @@ void MetadataWidget::updateAsked()
     m_scriptingNameLine->setText(m_metadata->name());
     m_labelLine->setText(m_metadata->label());
     m_comments->setText(m_metadata->comment());
+
+    m_colorButtonPixmap.fill (m_metadata->color());
+    m_colorButton->setIcon (QIcon (m_colorButtonPixmap) );
+   // m_currentColor = newColor;
 }

@@ -533,6 +533,12 @@ void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> ar
 	}
 }
 
+void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId)
+{
+    auto event = findById(m_events, eventId);
+    event->model()->changeTimeNode(timeNodeId);
+}
+
 #include <algorithm>
 
 // Three cases :
@@ -582,8 +588,9 @@ void TemporalScenarioPresenter::createConstraint(EventData data)
 		sendOngoingCommand(new CreateConstraint(move(cmdPath),
 								   data.eventClickedId,
 								   collidingEvents.first()->id()));
-	}
+    }
 }
+
 
 /////////////////////////////////////////////////////////////////////
 // MOVING ELEMENTS COMMANDS
@@ -665,6 +672,21 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 
 	connect(event_presenter, &EventPresenter::elementSelected,
 			this,			 &TemporalScenarioPresenter::elementSelected);
+
+    connect(event_presenter,    &EventPresenter::constraintSelected,
+            [=] (QString cstrId)
+    {
+        for (TemporalConstraintPresenter* cstr : m_constraints)
+        {
+            if (*viewModel(cstr)->model()->id().val() == cstrId.toInt())
+            {
+                elementSelected( viewModel(cstr));
+                event_presenter->deselect();
+                view(cstr)->setSelected(true);
+                return;
+            }
+        }
+    });
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -689,6 +711,18 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
 
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
 			this,				&TemporalScenarioPresenter::elementSelected);
+
+    connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
+            this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
+
+    connect(timeNode_presenter, &TimeNodePresenter::eventSelected,
+            [=] (QString evId)
+    {
+        auto event = findById(m_events, id_type<EventModel>(evId.toInt()));
+        event->view()->setSelected(true);
+        elementSelected(event->model());
+        timeNode_presenter->deselect();
+    });
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -720,6 +754,15 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
             this,					&TemporalScenarioPresenter::on_askUpdate);
+
+    connect(constraint_presenter,   &TemporalConstraintPresenter::eventSelected,
+            [=] (QString evId)
+    {
+        auto event = findById(m_events, id_type<EventModel>(evId.toInt()));
+        event->view()->setSelected(true);
+        elementSelected(event->model());
+        constraint_presenter->deselect();
+    });
 
     updateTimeNode( findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     updateTimeNode( findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());

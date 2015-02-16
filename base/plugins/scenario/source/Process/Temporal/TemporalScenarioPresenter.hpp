@@ -88,6 +88,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		void setCurrentlySelectedEvent(id_type<EventModel> arg);
 		void createConstraint(EventData data);
 
+        void addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
+
 		// Moving
 		void moveEventAndConstraint(EventData data);
 		void moveConstraint(ConstraintData data);

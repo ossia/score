@@ -13,13 +13,15 @@ TimeNodeView::TimeNodeView(QGraphicsObject *parent):
     this->setZValue(parent->zValue() + 1.5);
     this->setFlag(ItemIsSelectable);
     this->setAcceptHoverEvents(true);
+
+    m_color = Qt::darkRed;
 }
 
 void TimeNodeView::paint(QPainter *painter,
                          const QStyleOptionGraphicsItem *option,
                          QWidget *widget)
 {
-    QColor pen_color = QColor(Qt::darkRed);
+    QColor pen_color = m_color;
 
     if(isSelected())
     {
@@ -69,5 +71,11 @@ void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
-	emit timeNodeReleased();
+    emit timeNodeReleased();
+}
+
+void TimeNodeView::changeColor(QColor newColor)
+{
+    m_color = newColor;
+    this->update();
 }

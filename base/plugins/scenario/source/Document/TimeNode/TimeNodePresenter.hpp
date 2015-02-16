@@ -6,6 +6,7 @@
 
 class TimeNodeView;
 class TimeNodeModel;
+class EventModel;
 struct EventData;
 
 class TimeNodePresenter :  public NamedObject
@@ -29,9 +30,12 @@ class TimeNodePresenter :  public NamedObject
 		void timeNodeMoved(EventData);
 		void timeNodeReleased();
 		void elementSelected(QObject*);
+        void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
+        void eventSelected(QString);
 
 	public slots:
 		void on_timeNodeMoved(QPointF);
+        void on_eventAdded(id_type<EventModel> eventId);
 
 	private:
 		TimeNodeModel* m_model{};

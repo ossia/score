@@ -101,6 +101,9 @@ class EventModel : public IdentifiedObject<EventModel>
 		void messagesChanged();
 		void conditionChanged(QString arg);
 
+        // inspector -> presenter
+        void constraintSelected(QString);
+
 	private:
 		void setTopY(double val);
 		void setBottomY(double val);

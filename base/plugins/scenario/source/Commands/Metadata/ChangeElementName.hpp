@@ -15,8 +15,8 @@ namespace Scenario
             public:
             ChangeElementName(ObjectPath&& path, QString newName) :
                 SerializableCommand{"ScenarioControl",
-                                    "Change Label",
-                                    QObject::tr("Change current objects label")},
+                                    "Change Name",
+                                    QObject::tr("Change current objects name")},
                 m_newName{newName},
                 m_path{std::move(path)}
             {

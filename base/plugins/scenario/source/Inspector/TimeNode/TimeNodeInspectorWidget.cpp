@@ -8,6 +8,7 @@
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"
 #include "Commands/Metadata/ChangeElementComments.hpp"
+#include "Commands/Metadata/ChangeElementColor.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -68,6 +69,9 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 
     connect(m_metadata,     &MetadataWidget::commentsChanged,
             this,           &TimeNodeInspectorWidget::on_commentsChanged);
+
+    connect(m_metadata,     &MetadataWidget::colorChanged,
+            this,           &TimeNodeInspectorWidget::on_colorChanged);
 }
 
 
@@ -90,10 +94,17 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 		m_date->setText(QString::number(m_timeNodeModel->date().msec()));
         for(id_type<EventModel> event : timeNode->events())
         {
-            auto label = new QLabel{QString::number((*event.val())), this};
+            auto eventBtn = new QPushButton{this};
+            eventBtn->setText(QString::number((*event.val())));
+            eventBtn->setFlat(true);
+            m_events.push_back(eventBtn);
+            m_eventList->addContent(eventBtn);
 
-            m_events.push_back(label);
-            m_eventList->addContent(label);
+            connect(eventBtn,   &QPushButton::clicked,
+                    [=] ()
+            {
+                m_timeNodeModel->eventSelected(eventBtn->text());
+            });
         }
 
 //        setInspectedObject (timeNode);
@@ -132,4 +143,12 @@ void TimeNodeInspectorWidget::on_commentsChanged(QString newComments)
 
     submitCommand(cmd);
     */
+}
+
+void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
+{
+    auto cmd = new ChangeElementColor<TimeNodeModel>(ObjectPath::pathFromObject(inspectedObject()),
+                                                           newColor);
+
+    submitCommand(cmd);
 }

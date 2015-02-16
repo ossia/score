@@ -8,6 +8,7 @@
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"
 #include "Commands/Metadata/ChangeElementComments.hpp"
+#include "Commands/Metadata/ChangeElementColor.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -42,7 +43,7 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	m_conditionWidget = new QLineEdit{this};
 	connect(m_conditionWidget, SIGNAL(editingFinished()),
 			this,			 SLOT(on_conditionChanged()));
-    // todo : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
+    // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
 	m_properties.push_back(new QLabel{"Condition"});
 	m_properties.push_back(m_conditionWidget);
 
@@ -73,6 +74,12 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 	m_properties.push_back(addressesWidget);
 	m_properties.push_back(addAddressWidget);
 
+    // Constraint list
+    m_prevConstraints = new InspectorSectionWidget{tr("Previous Constraints")};
+    m_nextConstraints = new InspectorSectionWidget{tr("Next Constraints")};
+    m_properties.push_back(m_prevConstraints);
+    m_properties.push_back(m_nextConstraints);
+
 	updateSectionsView (areaLayout(), m_properties);
 	areaLayout()->addStretch();
 
@@ -92,6 +99,9 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 
     connect(m_metadata,     &MetadataWidget::commentsChanged,
             this,           &EventInspectorWidget::on_commentsChanged);
+
+    connect(m_metadata,     &MetadataWidget::colorChanged,
+            this,           &EventInspectorWidget::on_colorChanged);
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -111,6 +121,9 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 	}
 	m_addresses.clear();
 
+    m_prevConstraints->removeAll();
+    m_nextConstraints->removeAll();
+
 	// DEMO
 	if (event)
 	{
@@ -121,7 +134,6 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 //        setInspectedObject (event);
 //		changeLabelType ("Event");
 
-
 		for(State* state : event->states())
 		{
 			for(auto& msg : state->messages())
@@ -129,6 +141,34 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 				addAddress(msg);
 			}
 		}
+
+        for (auto cstr : event->previousConstraints() )
+        {
+            auto cstrBtn = new QPushButton{};
+            cstrBtn->setText(QString::number(*cstr.val()));
+            cstrBtn->setFlat(true);
+            m_prevConstraints->addContent(cstrBtn);
+
+            connect(cstrBtn, &QPushButton::clicked,
+                    [=] ()
+            {
+                m_eventModel->constraintSelected(cstrBtn->text());
+            });
+        }
+        for (auto cstr : event->nextConstraints() )
+        {
+            auto cstrBtn = new QPushButton{};
+            cstrBtn->setText(QString::number(*cstr.val()));
+            cstrBtn->setFlat(true);
+            m_nextConstraints->addContent(cstrBtn);
+
+            connect(cstrBtn, &QPushButton::clicked,
+                    [=] ()
+            {
+                m_eventModel->constraintSelected(cstrBtn->text());
+            });
+        }
+
 
         m_conditionWidget->setText(event->condition());
 	}
@@ -179,6 +219,14 @@ void EventInspectorWidget::on_labelChanged(QString newLabel)
 void EventInspectorWidget::on_commentsChanged(QString)
 {
 
+}
+
+void EventInspectorWidget::on_colorChanged(QColor newColor)
+{
+    auto cmd = new Command::ChangeElementColor<EventModel>(ObjectPath::pathFromObject(inspectedObject()),
+                                                           newColor);
+
+    submitCommand(cmd);
 }
 
 void EventInspectorWidget::updateMessages()

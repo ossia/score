@@ -8,14 +8,14 @@ namespace Scenario
     namespace Command
     {
     template<class T>
-        class ChangeElementLabel : public iscore::SerializableCommand
+        class ChangeElementColor : public iscore::SerializableCommand
         {
 
             public:
-            ChangeElementLabel(ObjectPath&& path, QColor newLabel) :
+            ChangeElementColor(ObjectPath&& path, QColor newLabel) :
                 SerializableCommand{"ScenarioControl",
-                                    "Change Label",
-                                    QObject::tr("Change current objects label")},
+                                    "Change Color",
+                                    QObject::tr("Change current objects color")},
                 m_newColor{newLabel},
                 m_path{std::move(path)}
             {

@@ -17,6 +17,7 @@
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"
 #include "Commands/Metadata/ChangeElementComments.hpp"
+#include "Commands/Metadata/ChangeElementColor.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
@@ -70,7 +71,8 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 
     QWidget* eventWid = new QWidget{};
     QFormLayout* eventLay = new QFormLayout{eventWid};
-    QLabel* start = new QLabel{};
+    QPushButton* start = new QPushButton{};
+    start->setFlat(true);
 	if(object->model()->startEvent().val())
 	{
 		start->setText(QString::number(*object->model()->startEvent().val()));
@@ -80,7 +82,8 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 		start->setText(tr("None"));
 	}
 
-    QLabel* end = new QLabel{};
+    QPushButton* end = new QPushButton{};
+    end->setFlat(true);
 	if(object->model()->startEvent().val())
 	{
 		end->setText(QString::number(*object->model()->endEvent().val()));
@@ -143,6 +146,22 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 
     connect(m_metadata,     &MetadataWidget::commentsChanged,
             this,           &ConstraintInspectorWidget::on_commentsChanged);
+
+    connect(m_metadata,      &MetadataWidget::colorChanged,
+            this,           &ConstraintInspectorWidget::on_colorChanged);
+
+    connect(end,    &QPushButton::clicked,
+            [=] ()
+    {
+        object->eventSelected(end->text());
+    });
+
+    connect(start, &QPushButton::clicked,
+            [=] ()
+    {
+        object->eventSelected(start->text());
+    });
+
 }
 
 TemporalConstraintViewModel*ConstraintInspectorWidget::viewModel() const
@@ -296,6 +315,14 @@ void ConstraintInspectorWidget::on_commentsChanged(QString)
 
 }
 
+void ConstraintInspectorWidget::on_colorChanged(QColor)
+{
+//    auto cmd = new ChangeElementColor();
+
+//    submitCommand(cmd);
+}
+
+
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
 	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
@@ -351,6 +378,7 @@ void ConstraintInspectorWidget::on_boxRemoved(id_type<BoxModel> boxId)
 	{
 		ptr->deleteLater();
 	}
-	m_boxWidget->updateComboBox();
+    m_boxWidget->updateComboBox();
 }
+
 

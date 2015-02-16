@@ -36,5 +36,7 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
 			AbstractConstraintViewModel{vis, model, parent}
 		{
 			// Nothing to add, no vis.visit(*this);
-		}
+        }
+signals:
+        void eventSelected(QString);
 };

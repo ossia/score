@@ -22,6 +22,8 @@ class MetadataWidget : public QWidget
 public slots:
     void setScriptingName(QString arg);
 
+    void changeColor();
+
     void setType(QString type);
 
     void updateAsked();
@@ -30,6 +32,7 @@ signals:
     void scriptingNameChanged(QString arg);
     void labelChanged(QString arg);
     void commentsChanged(QString arg);
+    void colorChanged(QColor arg);
 
 private:
 

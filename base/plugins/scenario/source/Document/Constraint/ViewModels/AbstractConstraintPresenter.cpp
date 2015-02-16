@@ -114,7 +114,7 @@ void AbstractConstraintPresenter::updateHeight()
 	}
 	else
 	{
-		// faire vue appropriée plus tard
+        // TODO faire vue appropriée plus tard
 		m_view->setHeight(25);
 	}
 

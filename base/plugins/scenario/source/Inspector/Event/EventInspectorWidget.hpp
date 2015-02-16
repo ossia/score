@@ -28,6 +28,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         void on_scriptingNameChanged(QString);
         void on_labelChanged(QString);
         void on_commentsChanged(QString);
+        void on_colorChanged(QColor);
 
 		void updateMessages();
 
@@ -39,6 +40,9 @@ class EventInspectorWidget : public InspectorWidgetBase
 		QLineEdit* m_conditionWidget{};
 		QLineEdit* m_addressLineEdit{};
 		EventModel* m_eventModel{};
+
+        InspectorSectionWidget* m_prevConstraints;
+        InspectorSectionWidget* m_nextConstraints;
 
         MetadataWidget* m_metadata{};
 };

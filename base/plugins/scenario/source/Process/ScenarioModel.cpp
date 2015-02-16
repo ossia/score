@@ -240,9 +240,10 @@ void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
 	timeNode->setY(newEvent->heightPercentage());
 
 	// TODO jm : TimeNode::addEvent devrait faire ça
-	newEvent->changeTimeNode(timeNodeId);
-	m_timeNodes.push_back(timeNode);
-	emit timeNodeCreated(timeNode->id());
+
+    newEvent->changeTimeNode(timeNodeId);
+
+    addTimeNode(timeNode);
 }
 
 
@@ -377,5 +378,11 @@ void ScenarioModel::addConstraint(ConstraintModel* constraint)
 void ScenarioModel::addEvent(EventModel* event)
 {
 	m_events.push_back(event);
-	emit eventCreated(event->id());
+    emit eventCreated(event->id());
+}
+
+void ScenarioModel::addTimeNode(TimeNodeModel *timeNode)
+{
+    m_timeNodes.push_back(timeNode);
+    emit timeNodeCreated(timeNode->id());
 }

@@ -87,6 +87,7 @@ class ScenarioModel : public ProcessSharedModelInterface
 		// Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
 		void addConstraint(ConstraintModel* constraint);
 		void addEvent(EventModel* event);
+        void addTimeNode(TimeNodeModel* timeNode);
 
 		void removeConstraint(id_type<ConstraintModel> constraintId);
 		void removeEvent(id_type<EventModel> eventId);

@@ -43,6 +43,9 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 	});
 	*/
 
+    connect(viewModel(this),    &TemporalConstraintViewModel::eventSelected,
+            this,               &TemporalConstraintPresenter::eventSelected);
+
 
 	if(viewModel(this)->isBoxShown())
 	{

@@ -26,6 +26,9 @@ class EventView : public QGraphicsObject
 		// True : ctrl is pressed; false : ctrl is not.
 		void ctrlStateChanged(bool);
 
+    public slots:
+        void changeColor(QColor);
+
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
 		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
@@ -36,5 +39,6 @@ class EventView : public QGraphicsObject
 
 	private:
 		QPointF m_clickedPoint{};
+        QColor m_color;
 };
 

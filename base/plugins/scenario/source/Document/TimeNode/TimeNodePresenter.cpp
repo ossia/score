@@ -23,6 +23,15 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 	{
 		emit elementSelected(m_model);
 	});
+
+    connect(m_model, &TimeNodeModel::newEvent,
+            this,    &TimeNodePresenter::on_eventAdded);
+
+    connect(m_model,    &TimeNodeModel::eventSelected,
+            this,       &TimeNodePresenter::eventSelected);
+
+    connect(&(m_model->metadata),  &ModelMetadata::colorChanged,
+            m_view,                &TimeNodeView::changeColor);
 }
 
 TimeNodePresenter::~TimeNodePresenter()
@@ -65,5 +74,10 @@ void TimeNodePresenter::on_timeNodeMoved(QPointF p)
 	EventData d{};
 	d.eventClickedId = model()->events().first();
 	d.x = p.x();
-	emit timeNodeMoved(d);
+    emit timeNodeMoved(d);
+}
+
+void TimeNodePresenter::on_eventAdded(id_type<EventModel> eventId)
+{
+    emit eventAdded(eventId, this->model()->id());
 }

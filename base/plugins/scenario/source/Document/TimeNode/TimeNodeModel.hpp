@@ -49,6 +49,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
 	signals:
 		void dateChanged();
+        void newEvent(id_type<EventModel> eventId);
+        void eventSelected(QString);
 
 	public slots:
 

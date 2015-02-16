@@ -15,6 +15,8 @@ EventView::EventView(QGraphicsObject* parent):
 
 	this->setFlag(ItemIsSelectable);
     this->setAcceptHoverEvents(true);
+
+    m_color = Qt::black;
 }
 
 QRectF EventView::boundingRect() const
@@ -26,7 +28,7 @@ void EventView::paint(QPainter* painter,
 					  const QStyleOptionGraphicsItem* option,
 					  QWidget* widget)
 {
-	QColor pen_color = Qt::black;
+    QColor pen_color = m_color;
 	// Rect
 	if(isSelected())
 	{
@@ -46,6 +48,12 @@ void EventView::paint(QPainter* painter,
 
 //	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
 
+}
+
+void EventView::changeColor(QColor newColor)
+{
+    m_color = newColor;
+    this->update();
 }
 
 
