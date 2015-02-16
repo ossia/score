@@ -202,6 +202,9 @@ void EventInspectorWidget::on_conditionChanged()
 
 void EventInspectorWidget::on_scriptingNameChanged(QString newName)
 {
+    if (newName == m_eventModel->metadata.name())
+        return;
+
     auto cmd = new Command::ChangeElementName<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
                 newName);
 
@@ -210,6 +213,9 @@ void EventInspectorWidget::on_scriptingNameChanged(QString newName)
 
 void EventInspectorWidget::on_labelChanged(QString newLabel)
 {
+    if (newLabel== m_eventModel->metadata.label())
+        return;
+
     auto cmd = new Command::ChangeElementLabel<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
                 newLabel);
 
@@ -223,6 +229,9 @@ void EventInspectorWidget::on_commentsChanged(QString)
 
 void EventInspectorWidget::on_colorChanged(QColor newColor)
 {
+    if (newColor == m_eventModel->metadata.color())
+        return;
+
     auto cmd = new Command::ChangeElementColor<EventModel>(ObjectPath::pathFromObject(inspectedObject()),
                                                            newColor);
 

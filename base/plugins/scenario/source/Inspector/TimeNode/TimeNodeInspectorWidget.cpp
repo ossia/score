@@ -121,6 +121,9 @@ void TimeNodeInspectorWidget::updateInspector()
 
 void TimeNodeInspectorWidget::on_scriptingNameChanged(QString newName)
 {
+    if (newName == m_timeNodeModel->metadata.name())
+        return;
+
     auto cmd = new ChangeElementName<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
                 newName);
 
@@ -129,6 +132,9 @@ void TimeNodeInspectorWidget::on_scriptingNameChanged(QString newName)
 
 void TimeNodeInspectorWidget::on_labelChanged(QString newLabel)
 {
+    if (newLabel == m_timeNodeModel->metadata.label())
+        return;
+
     auto cmd = new ChangeElementLabel<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
                 newLabel);
 
@@ -147,6 +153,9 @@ void TimeNodeInspectorWidget::on_commentsChanged(QString newComments)
 
 void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
 {
+    if (newColor == m_timeNodeModel->metadata.color())
+        return;
+
     auto cmd = new ChangeElementColor<TimeNodeModel>(ObjectPath::pathFromObject(inspectedObject()),
                                                            newColor);
 
