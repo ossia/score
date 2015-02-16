@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.0)
  
 project(iscore_app_android)
 
-find_package(Qt5Core 5.2 REQUIRED)
-find_package(Qt5Widgets 5.2 REQUIRED)
- 
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/base/app-android/libs/${ARM_TARGET}/)
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH ".")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+set(ANDROID_ABI "armeabi")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 
@@ -26,7 +26,8 @@ target_link_libraries(iscore_app_android Qt5::Core Qt5::Widgets)
 target_link_libraries(iscore_app_android log "${ANDROID_NDK}/platforms/android-19/arch-arm/usr/lib/libandroid.so")
 
  
-set(ANDROID_DEPLOY_QT /opt/Qt/5.3/android_armv7/bin/androiddeployqt)
+# TODO check if there is a better macro.
+set(ANDROID_DEPLOY_QT "${_qt5_install_prefix}/../../bin/androiddeployqt")
 
 # Look for androiddeployqt program
 if (NOT ANDROID_DEPLOY_QT)

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(network_plugin)
 
+if(ANDROID)
+    message("TODO FIXME ON ANDROID")
+    return()
+endif()
 add_subdirectory(Deps)
 add_subdirectory(Repartition)
 
