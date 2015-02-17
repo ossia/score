@@ -4,12 +4,16 @@ project(iscore_app)
 set(APPNAME "i-score")
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network Xml)
 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 
 
+set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
+set(JAMOMA_PLUGINS "MIDI;Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
 if(ISCORE_STATIC_PLUGINS)
 	add_definitions(-DQT_STATICPLUGIN)
 endif()
@@ -29,10 +33,12 @@ if(ISCORE_STATIC_PLUGINS)
 		networkplugin 
 		scenario_process 
 		pluginsettings_plugin
-		device_explorer_plugin)
+		device_explorer_plugin
+		IScoreCohesion)
 else()
 	if(APPLE AND DEPLOYMENT_BUILD)
-		# Copy into the app bundle
+		if(NOT ISCORE_STATIC_PLUGINS)
+		# Copy iscore plugins into the app bundle
 		add_custom_command(TARGET ${APPNAME} POST_BUILD
 						   COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
 		add_custom_command(TARGET ${APPNAME} POST_BUILD
@@ -44,6 +50,8 @@ else()
 		add_custom_command(TARGET ${APPNAME} POST_BUILD
 						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:scenario_process> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
 		add_custom_command(TARGET ${APPNAME} POST_BUILD
+						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:iscore_cohesion> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
+		add_custom_command(TARGET ${APPNAME} POST_BUILD
 						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pluginsettings_plugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
 		add_custom_command(TARGET ${APPNAME} POST_BUILD
 						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:device_explorer_plugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
@@ -51,8 +59,25 @@ else()
 		# TODO it's not a plugin. It should be copied to the MacOS folder instead.
 		#add_custom_command(TARGET ${APPNAME} POST_BUILD
 		#				   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:process_interface> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-
+		endif()
 	endif()
+endif()
+
+if(APPLE AND DEPLOYMENT_BUILD)
+	set_target_properties(${APPNAME} PROPERTIES
+						  INSTALL_RPATH "@executable_path;@executable_path/../Frameworks/jamoma")
+	add_custom_command(TARGET ${APPNAME} POST_BUILD
+					  COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/Frameworks/jamoma/extensions)
+
+	foreach(library ${JAMOMA_LIBS})
+		add_custom_command(TARGET ${APPNAME} POST_BUILD
+						   COMMAND ${CMAKE_COMMAND} -E copy /usr/local/jamoma/lib/libJamoma${library}.6.dylib ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/Frameworks/jamoma)
+	endforeach()
+	foreach(plugin ${JAMOMA_PLUGINS})
+		add_custom_command(TARGET ${APPNAME} POST_BUILD
+						   COMMAND ${CMAKE_COMMAND} -E copy /usr/local/jamoma/extensions/${plugin}.ttdylib ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/Frameworks/jamoma/extensions)
+	endforeach()
+
 endif()
 
 install(TARGETS ${APPNAME}
@@ -67,7 +92,16 @@ if(APPLE AND DEPLOYMENT_BUILD)
 	include(DeployQt5)
 
 	if(ISCORE_STATIC_PLUGINS) # For now we only take this branch
+		foreach(plugin ${ISCORE_PLUGINS})
+			list(APPEND ISCORE_BUNDLE_INSTALLED_PLUGINS ${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib)
+		endforeach()
 		install_qt5_executable(${APPNAME}.app "" "" "${CMAKE_BINARY_DIR}/base/lib")
+
+		install(CODE "EXECUTE_PROCESS(COMMAND install_name_tool -add_rpath @executable_path/../Frameworks/jamoma ${CMAKE_BINARY_DIR}/bundle/i-score.app/Contents/MacOS/i-score)" )
+
+		foreach(library ${JAMOMA_LIBS})
+			install(CODE "EXECUTE_PROCESS(COMMAND install_name_tool -change @executable_path/../MacOS/libJamoma${library}.6.dylib @executable_path/../Frameworks/jamoma/libJamoma${library}.6.dylib ${CMAKE_BINARY_DIR}/bundle/i-score.app/Contents/MacOS/i-score)" )
+		endforeach()
 	else()
 		# TODO fix this.
 		set(ISCORE_PLUGINS "device_explorer_plugin;inspector_plugin;scenario_process;CurvePlugin;iscore_cohesion;networkplugin;pluginsettings_plugin")
@@ -80,5 +114,6 @@ if(APPLE AND DEPLOYMENT_BUILD)
 							   ""
 							   "${ISCORE_BUNDLE_INSTALLED_PLUGINS}"
 							   "${CMAKE_BINARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/")
+
 	endif()
 endif()

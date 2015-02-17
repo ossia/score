@@ -47,8 +47,13 @@ void runScore(QString scoreFilePath)
 {
 	TTSymbol filepath{scoreFilePath.toLatin1().constData()};    // .score file to load
 
+	QString jamomaFolder = (QCoreApplication::applicationDirPath() + "/../Frameworks/jamoma");
+
+	if (!QDir(jamomaFolder).exists())
+		jamomaFolder = "/usr/local/jamoma";
+
 	// initialisation of Modular environnement (passing the folder path where all the dylibs are)
-	TTModularInit("/usr/local/jamoma");
+	TTModularInit(jamomaFolder.toLatin1().constData());
 
 	// create an application manager
 	TTObject applicationManager("ApplicationManager");
@@ -67,7 +72,7 @@ void runScore(QString scoreFilePath)
 	}
 
 	// initialisation of Score environnement (passing the folder path where all the dylibs are)
-	TTScoreInit("/usr/local/jamoma");
+	TTScoreInit(jamomaFolder.toLatin1().constData());
 
 	// create a scenario
 	TTObject scenario("Scenario");
