@@ -25,6 +25,33 @@ bool loadJSON(QJsonDocument* doc)
     return true;
 }
 
+void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument* doc)
+{
+    for (auto child : children)
+    {
+        QDomElement dom_devNode = doc->createElement("node");
+            dom_devNode.setAttribute("address", child.toObject()["Name"].toString());
+            dom_devNode.setAttribute("object", "Data");
+            dom_devNode.setAttribute("service", "parameter");
+            dom_devNode.setAttribute("dataspace", "none");
+            dom_devNode.setAttribute("type", "generic");
+            dom_devNode.setAttribute("valueStepsize", "0,100000");
+            dom_devNode.setAttribute("priority", "0");
+            dom_devNode.setAttribute("rangeClipmode", "none");
+            dom_devNode.setAttribute("valueDefault", "0,000000");
+            dom_devNode.setAttribute("rangeBounds", "0. 1.");
+            dom_devNode.setAttribute("tags", "0");
+            dom_devNode.setAttribute("repetitionsFilter", "0");
+            dom_devNode.setAttribute("dataspaceUnit", "none");
+            dom_devNode.setAttribute("rampDrive", "none");
+            dom_devNode.setAttribute("active", "1");
+            dom_devNode.setAttribute("rampFunction", "none");
+            parentNode->appendChild(dom_devNode);
+
+            createDeviceTree(child.toObject()["Children"].toArray(), &dom_devNode, doc);
+    }
+}
+
 QString JSONToZeroTwo(QJsonObject base)
 {
     //QCoreApplication a(argc, argv);
@@ -131,11 +158,11 @@ QString JSONToZeroTwo(QJsonObject base)
         QDomElement osc = domdoc.createElement("protocol");
         osc.setAttribute("name", "OSC");
         dom_root.appendChild(osc);
-            QDomElement oscDev = domdoc.createElement("oscDevice");
+/*            QDomElement oscDev = domdoc.createElement("OSCdevice");
             oscDev.setAttribute("ip", "127.0.0.1");
             oscDev.setAttribute("port", "9997u 9996u");
             osc.appendChild(oscDev);
-
+*/
             QDomElement iscore = domdoc.createElement("i-score");
             iscore.setAttribute("ip", "127.0.0.1");
             osc.appendChild(iscore);
@@ -150,7 +177,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
         // application device
         QDomElement dom_devAppli = domdoc.createElement("application");
-        dom_devAppli.setAttribute("name", "oscDevice");
+        dom_devAppli.setAttribute("name", "OSCdevice");
         dom_devAppli.setAttribute("author", "");
         dom_devAppli.setAttribute("version", "");
         dom_devAppli.setAttribute("type", "proxy");
@@ -218,6 +245,40 @@ QString JSONToZeroTwo(QJsonObject base)
 
     QMap<int, QString> expression;
 
+
+    //////////////////////////////////////////////////////////////////////////////
+    // BOUCLE POUR LES DEVICES
+    //////////////////////////////////////////////////////////////////////////////
+
+    QJsonArray j_root = base["DeviceExplorer"].toObject()["Children"].toArray();
+
+    for (auto dev : j_root)
+    {
+        QJsonArray device = dev.toObject()["DeviceSettings"].toArray();
+        QString protocol = device[0].toString();
+        QString devName = device[1].toString();
+        dom_devAppli.setAttribute("name", devName);
+
+        if (protocol == "OSC")
+        {
+            QString port = device[2].toString() + QString("u ") + device[3].toString() + QString("u");
+            QDomElement oscDev = domdoc.createElement(devName);
+            oscDev.setAttribute("ip", device[4].toString());
+            oscDev.setAttribute("port", port);
+            osc.appendChild(oscDev);
+        }
+
+
+        QDomElement parentNode = dom_devAppli;
+        QJsonArray children = dev.toObject()["Children"].toArray();
+
+        createDeviceTree(children, &parentNode, &domdoc);
+
+    }
+
+
+
+
     QJsonObject scenar = base["Scenario"].toObject();
 
     QJsonArray processes = scenar["Processes"].toArray();
@@ -249,10 +310,11 @@ QString JSONToZeroTwo(QJsonObject base)
                 dom_event.setAttribute("mute", "0");
                 dom_scenar.appendChild(dom_event);
 
-//                if (! j_ev["Condition"].toString().isNull())
-//                {
-                    expression[idNode["IdentifierValue"].toInt()] = j_ev["Condition"].toString();
-//                }
+                QString expr = j_ev["Condition"].toString();
+                expr.remove(0,1);
+                expr.insert(expr.indexOf("/"), ":");
+
+                expression[idNode["IdentifierValue"].toInt()] = expr;
 
                 auto states = j_ev["States"].toArray();
                 if(states.size())
@@ -265,6 +327,10 @@ QString JSONToZeroTwo(QJsonObject base)
                         QString msg = j_msg.first().toString();
                         QString address = msg;
                         address.truncate(msg.indexOf(" "));
+                        address.remove(0,1);
+                        address.insert(address.indexOf("/"), ":");
+
+/*
                         QString currentNode;
 
                         // dans le nom application correspondant au device (ici device OSC)
@@ -309,9 +375,12 @@ QString JSONToZeroTwo(QJsonObject base)
                                     prevNode = dom_devNode;
                             }
                         }
+//*/
+
+
                         QString value = msg.remove(0, address.length() + 1);
 
-                        address = "oscDevice:" + address;
+ //                       address = "oscDevice:" + address;
                         QDomElement dom_Command = domdoc.createElement("command");
                         dom_Command.setAttribute("address", address );
                             QDomText dom_value = domdoc.createTextNode(value);
@@ -403,6 +472,49 @@ QString JSONToZeroTwo(QJsonObject base)
                 dom_subscenar.setAttribute("name", "scenar");
                 dom_subscenar.setAttribute("color", "255 255 255");
                 dom_scenar.appendChild(dom_subscenar);
+
+                /* ***********************************************************************
+                 * Courbes
+                 * ***********************************************************************/
+
+                QJsonArray cstrProcesses = j_cstr["Processes"].toArray();
+
+                for (auto cstrProcess : cstrProcesses)
+                {
+                    auto autom = cstrProcess.toObject();
+                    if(autom["ProcessName"].toString() == "Automation")
+                    {
+                        QString automAddress = autom["Address"].toString();
+                        automAddress.remove(0,1);
+                        automAddress.insert(automAddress.indexOf("/"), ":");
+
+                        QString points;
+
+                        for (auto point : autom["Points"].toArray())
+                        {
+                            points += QLocale("fr_FR").toString(point.toObject()["k"].toDouble());
+                            points += " ";
+                            points += QLocale("fr_FR").toString(point.toObject()["v"].toDouble());
+                            points += " ";
+                            points += "1,000000 ";
+
+                        }
+
+                        QDomElement DefaultIndex = domdoc.createElement("indexedCurves");
+                        DefaultIndex.setAttribute("address", automAddress);
+
+                            QDomElement DefaultCurve = domdoc.createElement("curve");
+                            DefaultCurve.setAttribute("active","1");
+                            DefaultCurve.setAttribute("redundancy","0");
+                            DefaultCurve.setAttribute("sampleRate","40u");
+                            DefaultCurve.setAttribute("function", points); // WARNING : virgule comme separateur decimal !!
+
+                            DefaultIndex.appendChild(DefaultCurve);
+                            dom_box.appendChild(DefaultIndex);
+
+                    }
+                }
+
 
                 // pas d'intervalle à partir de l'origine
                 if (startEvent["IdentifierValue"].toInt())
