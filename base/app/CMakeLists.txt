@@ -4,7 +4,6 @@ project(iscore_app)
 set(APPNAME "i-score")
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network Xml)
 
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
@@ -33,8 +32,12 @@ if(ISCORE_STATIC_PLUGINS)
 		networkplugin 
 		scenario_process 
 		pluginsettings_plugin
-		device_explorer_plugin
-		IScoreCohesion)
+		device_explorer_plugin)
+
+	if(TARGET IScoreCohesion)
+		add_definitions(-DISCORE_COHESION)
+		target_link_libraries(${APPNAME} IScoreCohesion)
+	endif()
 else()
 	if(APPLE AND DEPLOYMENT_BUILD)
 		if(NOT ISCORE_STATIC_PLUGINS)
@@ -64,8 +67,6 @@ else()
 endif()
 
 if(APPLE AND DEPLOYMENT_BUILD)
-	set_target_properties(${APPNAME} PROPERTIES
-						  INSTALL_RPATH "@executable_path;@executable_path/../Frameworks/jamoma")
 	add_custom_command(TARGET ${APPNAME} POST_BUILD
 					  COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/Frameworks/jamoma/extensions)
 

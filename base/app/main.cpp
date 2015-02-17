@@ -8,7 +8,9 @@ Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin) // static plug-ins should not be displayed.
 Q_IMPORT_PLUGIN(NetworkPlugin)
 Q_IMPORT_PLUGIN(CurvePlugin)
+#ifdef ISCORE_COHESION
 Q_IMPORT_PLUGIN(IScoreCohesion)
+#endif
 #endif
 
 #include <QStyleFactory>
