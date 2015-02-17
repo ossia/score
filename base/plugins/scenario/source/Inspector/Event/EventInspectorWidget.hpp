@@ -32,10 +32,12 @@ class EventInspectorWidget : public InspectorWidgetBase
 
 		void updateMessages();
 
+        void removeState(QString);
+
 	private:
         QVector<QWidget*> m_properties;
 
-		std::vector<QLabel*> m_addresses;
+        std::vector<QWidget*> m_addresses;
 
 		QLineEdit* m_conditionWidget{};
 		QLineEdit* m_addressLineEdit{};

@@ -22,6 +22,7 @@
 #include <QScrollArea>
 #include <QApplication>
 #include <QCompleter>
+#include <QToolButton>
 
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
@@ -106,10 +107,23 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 
 void EventInspectorWidget::addAddress(const QString& addr)
 {
-	auto lbl = new QLabel{addr, this};
+    auto address = new QWidget{this};
+    auto lay = new QHBoxLayout{address};
+    auto lbl = new QLabel{addr, this};
+    lay->addWidget(lbl);
 
-	m_addresses.push_back(lbl);
-    m_properties[3]->layout()->addWidget(lbl);
+    QToolButton* rmBtn = new QToolButton{};
+    rmBtn->setText("X");
+    lay->addWidget(rmBtn);
+
+    connect(rmBtn, &QToolButton::clicked,
+            [=] ()
+    {
+        removeState(lbl->text());
+    });
+
+    m_addresses.push_back(address);
+    m_properties[3]->layout()->addWidget(address);
 }
 
 void EventInspectorWidget::updateDisplayedValues (EventModel* event)
@@ -240,5 +254,11 @@ void EventInspectorWidget::on_colorChanged(QColor newColor)
 
 void EventInspectorWidget::updateMessages()
 {
-	updateDisplayedValues(m_eventModel);
+    updateDisplayedValues(m_eventModel);
+}
+
+void EventInspectorWidget::removeState(QString state)
+{
+    // TODO command de suppression
+    qDebug() << "remove state" << state;
 }
