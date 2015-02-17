@@ -11,11 +11,6 @@ include_directories("${CMAKE_SOURCE_DIR}")
 include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
-
-# TODO mieux
-if(APPLE)
-        include_directories(/usr/local/Cellar/boost/1.56.0/include)
-endif()
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp
 
@@ -42,6 +37,8 @@ set(SOURCE_FILES
 add_library(pluginsettings_plugin ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
-if(APPLE)
-	 SET_TARGET_PROPERTIES(pluginsettings_plugin PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif()
+
+
+install(TARGETS pluginsettings_plugin
+		LIBRARY DESTINATION plugins/
+		ARCHIVE DESTINATION static_plugins/)

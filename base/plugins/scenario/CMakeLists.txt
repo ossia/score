@@ -31,8 +31,12 @@ add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
                                        iscore_lib APIMock
                                        inspector_plugin process_interface device_explorer_plugin)
-if(APPLE)
-	 SET_TARGET_PROPERTIES(scenario_process PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif()
+
+install(TARGETS process_interface
+		LIBRARY DESTINATION plugins/
+		ARCHIVE DESTINATION static_plugins/)
+install(TARGETS scenario_process
+		LIBRARY DESTINATION plugins/
+		ARCHIVE DESTINATION static_plugins/)
 
 add_subdirectory(tests)

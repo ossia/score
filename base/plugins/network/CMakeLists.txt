@@ -105,3 +105,7 @@ target_link_libraries(networkplugin
 if(NOT APPLE)
 	target_link_libraries(networkplugin dns_sd)
 endif()
+
+install(TARGETS networkplugin
+		LIBRARY DESTINATION plugins/
+		ARCHIVE DESTINATION static_plugins/)

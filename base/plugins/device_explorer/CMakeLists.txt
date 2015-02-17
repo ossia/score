@@ -13,12 +13,6 @@ include_directories("${ISCORE_INTERFACE_FOLDER}")
 include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
 
-# TODO mieux
-if(APPLE)
-        include_directories(/usr/local/Cellar/boost/1.56.0/include)
-endif()
-
-
 file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.cpp")
 file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.hpp")
 set(INTERFACE_SRCS ${INTERFACE_SRCS}
@@ -106,6 +100,8 @@ add_library(device_explorer_plugin
 
 
 target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets iscore_lib)
-if(APPLE)
-	 SET_TARGET_PROPERTIES(device_explorer_plugin PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif()
+
+
+install(TARGETS device_explorer_plugin
+		LIBRARY DESTINATION plugins/
+		ARCHIVE DESTINATION static_plugins/)

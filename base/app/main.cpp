@@ -7,6 +7,7 @@ Q_IMPORT_PLUGIN(InspectorPlugin)
 Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin) // static plug-ins should not be displayed.
 Q_IMPORT_PLUGIN(NetworkPlugin)
+Q_IMPORT_PLUGIN(CurvePlugin)
 #endif
 
 #include <QStyleFactory>
