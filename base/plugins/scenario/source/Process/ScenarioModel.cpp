@@ -276,6 +276,10 @@ void ScenarioModel::removeEvent(id_type<EventModel> eventId)
 	{
 		removeConstraint(constraint);
 	}
+    for (auto constraint : ev->nextConstraints())
+    {
+        removeConstraint(constraint);
+    }
 
 	vec_erase_remove_if(m_events,
 						[&eventId] (EventModel* model)

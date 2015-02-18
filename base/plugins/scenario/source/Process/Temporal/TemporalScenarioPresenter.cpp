@@ -493,34 +493,35 @@ void TemporalScenarioPresenter::deleteSelection()
     copyIfSelected(m_constraints, constraintsToRemove);
     copyIfSelected(m_events, eventsToRemove);
 
-    QVector<iscore::SerializableCommand*> commands;
-
-    // 2. Create a Delete command for each. For now : only emptying.
-    for(auto& constraint : constraintsToRemove)
+    if (constraintsToRemove.size() != 0 || eventsToRemove.size() != 0 )
     {
-        commands.push_back(
-                    new RemoveConstraint(
-                        ObjectPath::pathFromObject("BaseElementModel",
-                                                   m_viewModel->sharedProcessModel()),
-						constraint->abstractConstraintViewModel()->model() ));
-    }
+        QVector<iscore::SerializableCommand*> commands;
 
-    for(auto& event : eventsToRemove)
-    {
-        if (! event->model()->nextConstraints().size() )
+        // 2. Create a Delete command for each. For now : only emptying.
+        for(auto& constraint : constraintsToRemove)
+        {
+            commands.push_back(
+                        new RemoveConstraint(
+                            ObjectPath::pathFromObject("BaseElementModel",
+                                                       m_viewModel->sharedProcessModel()),
+                            constraint->abstractConstraintViewModel()->model() ));
+        }
+
+        for(auto& event : eventsToRemove)
         {
             commands.push_back(
                         new RemoveEvent(
                             ObjectPath::pathFromObject("BaseElementModel",
                                                        m_viewModel->sharedProcessModel()),
                             event->model()) );
+
         }
+
+        // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
+        auto cmd = new RemoveMultipleElements{std::move(commands)};
+
+        if (cmd) emit submitCommand(cmd);
     }
-
-    // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
-    auto cmd = new RemoveMultipleElements{std::move(commands)};
-
-    if (cmd) emit submitCommand(cmd);
    // */
 }
 

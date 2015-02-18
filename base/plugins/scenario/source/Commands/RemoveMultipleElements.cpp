@@ -22,12 +22,13 @@ RemoveMultipleElements::RemoveMultipleElements(
 	for(auto& cmd : deletionCommands)
 	{
 		m_serializedCommands.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        m_serializedCommandsDecreasing.push_front({{cmd->parentName(), cmd->name()}, cmd->serialize()});
 	}
 }
 
 void RemoveMultipleElements::undo()
 {
-	for(auto& cmd_pack : m_serializedCommands)
+    for(auto& cmd_pack : m_serializedCommandsDecreasing)
 	{
 		// Put this in the ctor as an optimization
 		auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
@@ -41,7 +42,7 @@ void RemoveMultipleElements::undo()
 
 void RemoveMultipleElements::redo()
 {
-	for(auto& cmd_pack : m_serializedCommands)
+    for(auto& cmd_pack : m_serializedCommands)
 	{
 		// Put this in the ctor as an optimization
 		auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");

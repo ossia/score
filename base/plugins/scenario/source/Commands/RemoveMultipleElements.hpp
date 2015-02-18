@@ -27,6 +27,10 @@ namespace Scenario
 							QPair<QString, QString>, // Meta-data
 							QByteArray>>
 					m_serializedCommands;
+                QVector<QPair<
+                            QPair<QString, QString>, // Meta-data
+                            QByteArray>>
+                    m_serializedCommandsDecreasing;
 		};
 
 	}

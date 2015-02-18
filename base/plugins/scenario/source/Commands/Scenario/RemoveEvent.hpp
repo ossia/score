@@ -35,6 +35,7 @@ namespace Scenario
 				ObjectPath m_path;
                 id_type<EventModel> m_evId{};
                 QByteArray m_serializedEvent;
+                QByteArray m_serializedTimeNode;
                 QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
 
 		};
