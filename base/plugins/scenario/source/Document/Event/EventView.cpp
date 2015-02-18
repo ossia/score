@@ -61,7 +61,7 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
 	QGraphicsObject::mousePressEvent(m);
 
-	m_clickedPoint = m->pos();
+    m_clickedPoint = m->pos();
 	emit eventPressed();
 }
 
@@ -85,7 +85,7 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 {
     QGraphicsObject::mouseMoveEvent(m);
 
-	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+    auto posInScenario = pos() + m->pos() - m_clickedPoint;
 	if(m->modifiers() == Qt::ControlModifier)
 	{
 		emit eventMovedWithControl(posInScenario, mapToScene(m->pos()));
@@ -105,8 +105,15 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 		}
 		if(m->pos() != m_clickedPoint)
 		*/
-			emit eventMoved(posInScenario);
-	}
+
+        // TODO effet bizarre : un léger déplacement est autorisé la première foirs ... D'où est ce que ça sort ?
+
+        if (m->modifiers() == Qt::ShiftModifier)
+        {
+            posInScenario.setX(pos().x());
+        }
+        emit eventMoved(posInScenario);
+    }
 }
 
 void EventView::keyPressEvent(QKeyEvent* e)
