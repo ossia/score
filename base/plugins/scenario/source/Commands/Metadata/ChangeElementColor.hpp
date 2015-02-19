@@ -16,8 +16,8 @@ namespace Scenario
                 SerializableCommand{"ScenarioControl",
                                     "Change Color",
                                     QObject::tr("Change current objects color")},
-                m_newColor{newLabel},
-                m_path{std::move(path)}
+                m_path{std::move(path)},
+                m_newColor{newLabel}
             {
 
             }
@@ -55,8 +55,8 @@ namespace Scenario
 
             private:
                 ObjectPath m_path{};
-                QColor m_oldColor{};
                 QColor m_newColor;
+                QColor m_oldColor{};
         };
     }
 }

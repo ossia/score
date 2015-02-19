@@ -17,8 +17,8 @@ namespace Scenario
                 SerializableCommand{"ScenarioControl",
                                     "Change Name",
                                     QObject::tr("Change current objects name")},
-                m_newName{newName},
-                m_path{std::move(path)}
+                m_path{std::move(path)},
+                m_newName{newName}
             {
                 auto obj = m_path.find<T>();
                 m_oldName = obj->metadata.name();
@@ -57,8 +57,8 @@ namespace Scenario
 
             private:
                 ObjectPath m_path{};
-                QString m_oldName{};
                 QString m_newName;
+                QString m_oldName{};
         };
     }
 }

@@ -16,8 +16,8 @@ namespace Scenario
                 SerializableCommand{"ScenarioControl",
                                     "Change Comments",
                                     QObject::tr("Change current objects comments")},
-                m_newComments{newComments},
-                m_path{std::move(path)}
+                m_path{std::move(path)},
+                m_newComments{newComments}
             {
 
             }

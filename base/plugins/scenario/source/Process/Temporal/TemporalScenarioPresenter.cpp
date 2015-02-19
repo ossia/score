@@ -459,7 +459,7 @@ void TemporalScenarioPresenter::clearContentFromSelection()
 	QVector<iscore::SerializableCommand*> commands;
 
 	// 3. Create a Delete command for each. For now : only emptying.
-	for(auto& constraint : m_constraints)
+    for(auto& constraint : constraintsToRemove)
 	{
 		commands.push_back(
 					new ClearConstraint(
@@ -467,7 +467,7 @@ void TemporalScenarioPresenter::clearContentFromSelection()
 												   viewModel(constraint)->model())));
 	}
 
-	for(auto& event : m_events)
+    for(auto& event : eventsToRemove)
 	{
 		commands.push_back(
 					new ClearEvent(

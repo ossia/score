@@ -16,8 +16,8 @@ namespace Scenario
                 SerializableCommand{"ScenarioControl",
                                     "Change Label",
                                     QObject::tr("Change current objects label")},
-                m_newLabel{newLabel},
-                m_path{std::move(path)}
+                m_path{std::move(path)},
+                m_newLabel{newLabel}
             {
 
             }
@@ -55,8 +55,8 @@ namespace Scenario
 
             private:
                 ObjectPath m_path{};
-                QString m_oldLabel{};
                 QString m_newLabel;
-		};
+                QString m_oldLabel{};
+        };
 	}
 }
