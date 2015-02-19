@@ -33,6 +33,9 @@ class TimeValue_T
 
 		bool isInfinite() const
 		{ return !bool(m_impl); }
+		
+		bool isZero() const
+		{ return !isInfinite() && (msec() == 0); }
 
 		int msec() const
 		{ return *m_impl; }
@@ -112,6 +115,7 @@ class TimeValue_T
 		boost::optional<T> m_impl{0};
 };
 
+
 /*
 template<>
 class TimeValue_T<QTime>
@@ -139,4 +143,12 @@ class TimeValue_T<QTime>
 };
 */
 
-using TimeValue = TimeValue_T<int>;
+using  = TimeValue_T<int>;
+inline QDebug operator<< (QDebug d, const TimeValue &tv) 
+{
+	if(!tv.isInfinite()) 
+		d << tv.msec() << "ms";
+	else
+		d << "infinite";
+	return d;
+}
