@@ -32,6 +32,7 @@ void TimeNodeView::paint(QPainter *painter,
         pen_color = Qt::cyan;
     }
 */
+    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(1.0));
     painter->setBrush(pen_color);
     painter->setPen(QPen(QBrush(pen_color), 5, Qt::SolidLine));
 
@@ -65,13 +66,20 @@ void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent *m)
 void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 {
 	QGraphicsObject::mouseMoveEvent(m);
+    m_moving = true;
 	if(m->pos() != m_clickedPoint) emit timeNodeMoved( pos() + m->pos() - m_clickedPoint );
 }
 
 void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 {
 	QGraphicsObject::mouseReleaseEvent(m);
+    m_moving = false;
     emit timeNodeReleased();
+}
+
+void TimeNodeView::setMoving(bool arg)
+{
+    m_moving = arg;
 }
 
 void TimeNodeView::changeColor(QColor newColor)

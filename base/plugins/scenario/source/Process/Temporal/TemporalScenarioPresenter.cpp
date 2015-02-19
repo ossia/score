@@ -163,7 +163,7 @@ void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
 	for(auto constraint : m_constraints)
 	{
 		constraint->on_horizontalZoomChanged(val);
-		on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+        on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
 	}
 
 	for(auto event : m_events)
@@ -227,11 +227,17 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 
 void TemporalScenarioPresenter::on_eventMoved(id_type<EventModel> eventId)
 {
+    qDebug() << "on_eventMoved" << eventId;
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
 
 	ev->view()->setPos({qreal(ev->model()->date().msec() / m_millisecPerPixel),
 						rect.height() * ev->model()->heightPercentage()});
+
+    if (m_ongoingCommand)
+        ev->view()->setMoving(true);
+    else
+        ev->view()->setMoving(false);
 
 	// @todo change when multiple event on a same timeNode
 //	qDebug() << ev->model()->timeNode();
@@ -253,18 +259,25 @@ void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> cons
 		ConstraintModel* cstr_model{viewModel(pres)->model()};
 		if(cstr_model->id() == constraintId )
 		{
-			view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_millisecPerPixel,
-									   rect.height() * cstr_model->heightPercentage()});
+            auto delta = (view(pres)->x() - (qreal(cstr_model->startDate().msec()) / m_millisecPerPixel));
+            bool dateChanged = ( delta * delta > 1 );
+            if (dateChanged)
+                view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_millisecPerPixel,
+                                           rect.height() * cstr_model->heightPercentage()});
 
 			view(pres)->setDefaultWidth(cstr_model->defaultDuration().msec() / m_millisecPerPixel);
 			view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_millisecPerPixel);
 			view(pres)->setMaxWidth(cstr_model->maxDuration().msec() / m_millisecPerPixel);
 
+            if (m_ongoingCommand)
+                view(pres)->setMoving(true);
+            else
+                view(pres)->setMoving(false);
 
             auto endTimeNode = findById(m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
 
-			if (cstr_model->startDate().msec() != 0 )
+            if (cstr_model->startDate().msec() != 0 && dateChanged )
             {
                 auto startTimeNode = findById(m_events, cstr_model->startEvent())->model()->timeNode();
                 updateTimeNode(startTimeNode);
@@ -276,6 +289,7 @@ void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> cons
 
 void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 {
+    qDebug() << "update Timenode" << id;
     auto timeNode = findById(m_timeNodes, id);
     auto rect = m_view->boundingRect();
 
@@ -324,6 +338,11 @@ void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
     max -= timeNode->model()->y();
 
 	timeNode->view()->setExtremities(int(rect.height() * min), int(rect.height() * max));
+    if (m_ongoingCommand)
+        timeNode->view()->setMoving(true);
+    else
+        timeNode->view()->setMoving(false);
+
 }
 
 
@@ -352,9 +371,9 @@ void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* 
 void TemporalScenarioPresenter::finishOngoingCommand()
 {
 	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
-	doc->presenter()->validateOngoingCommand();
-	m_ongoingCommand = false;
-	m_ongoingCommandId = -1;
+    m_ongoingCommand = false;
+    doc->presenter()->validateOngoingCommand();
+    m_ongoingCommandId = -1;
 }
 
 void TemporalScenarioPresenter::rollbackOngoingCommand()

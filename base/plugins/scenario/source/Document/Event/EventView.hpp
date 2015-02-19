@@ -28,6 +28,7 @@ class EventView : public QGraphicsObject
 
     public slots:
         void changeColor(QColor);
+        void setMoving(bool arg);
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
@@ -40,5 +41,7 @@ class EventView : public QGraphicsObject
 	private:
 		QPointF m_clickedPoint{};
         QColor m_color;
+
+        bool m_moving{false};
 };
 

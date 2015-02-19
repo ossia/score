@@ -41,6 +41,8 @@ void EventView::paint(QPainter* painter,
 */
 	//painter->drawRect(boundingRect());
 
+    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(1.0));
+
 	// Ball
 	painter->setBrush(pen_color);
 	painter->setPen(pen_color);
@@ -54,6 +56,11 @@ void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
+}
+
+void EventView::setMoving(bool arg)
+{
+    m_moving = arg;
 }
 
 
@@ -79,6 +86,8 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 	{
 		emit eventReleased();
 	}
+
+    m_moving = false;
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
@@ -114,6 +123,9 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
         }
         emit eventMoved(posInScenario);
     }
+
+    m_moving = true;
+    qDebug() << "moving";
 }
 
 void EventView::keyPressEvent(QKeyEvent* e)

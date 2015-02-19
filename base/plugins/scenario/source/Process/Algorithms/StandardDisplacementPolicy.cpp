@@ -21,30 +21,40 @@ void StandardDisplacementPolicy::setEventPosition(ScenarioModel& scenario,
 	if (! ev->previousConstraints().isEmpty() )
 	{
 		TimeValue time = absolute_time - ev->date();
-
 		ev->setHeightPercentage(heightPosition);
 
-		for (auto& prevConstraintId : ev->previousConstraints())
-		{
-			auto prevConstraint = scenario.constraint(prevConstraintId);
-			prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
-			emit scenario.constraintMoved(prevConstraintId);
-		}
+        for (auto& prevConstraintId : ev->previousConstraints())
+        {
+            auto prevConstraint = scenario.constraint(prevConstraintId);
+            prevConstraint->setDefaultDuration(prevConstraint->defaultDuration() + time);
+            emit scenario.constraintMoved(prevConstraintId);
+        }
 
-		QVector<id_type<EventModel>> already_moved_events;
-		translateNextElements(scenario,
-							  ev->timeNode(),
-							  time,
-							  already_moved_events);
+        QVector<id_type<EventModel>> already_moved_events;
+        translateNextElements(scenario,
+                              ev->timeNode(),
+                              time,
+                              already_moved_events);
 
-		// update constraints size
+        // update constraints size
 
-		for (ConstraintModel* constraint : scenario.constraints())
-		{
-			constraint->setStartDate(scenario.event(constraint->startEvent())->date());
-			constraint->setDefaultDuration(scenario.event(constraint->endEvent())->date() - scenario.event(constraint->startEvent())->date());
-			emit scenario.constraintMoved(constraint->id());
-		}
+        for (ConstraintModel* constraint : scenario.constraints())
+        {
+            TimeValue startEventDate = scenario.event(constraint->startEvent())->date();
+            if(constraint->startDate() != startEventDate)
+                constraint->setStartDate(startEventDate);
+
+            TimeValue newDuration = scenario.event(constraint->endEvent())->date() - scenario.event(constraint->startEvent())->date();
+
+            TimeValue delta = constraint->defaultDuration() - newDuration;
+
+           // if ( delta > std::chrono::milliseconds(1) ||  delta < std::chrono::milliseconds(-1) )
+            if (! delta.isZero())
+            {
+                constraint->setDefaultDuration(newDuration);
+                emit scenario.constraintMoved(constraint->id());
+            }
+        }
 
 	}
 }
@@ -75,7 +85,6 @@ void translateNextElements(ScenarioModel& scenario,
 													   QVector<id_type<EventModel>> &movedEvents)
 {
 	auto cur_timeNode = scenario.timeNode(firstTimeNodeMovedId);
-
 	for (id_type<EventModel> cur_eventId : cur_timeNode->events() )
 	{
 		EventModel* cur_event = scenario.event(cur_eventId);

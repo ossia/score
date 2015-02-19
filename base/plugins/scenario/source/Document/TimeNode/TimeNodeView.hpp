@@ -23,6 +23,8 @@ class TimeNodeView : public QGraphicsObject
 		void mouseMoveEvent(QGraphicsSceneMouseEvent* m);
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* m);
 
+        void setMoving(bool);
+
     public slots:
         void changeColor(QColor);
 
@@ -37,4 +39,5 @@ class TimeNodeView : public QGraphicsObject
 
         QPointF m_clickedPoint{};
         QColor m_color;
+        bool m_moving{false};
 };

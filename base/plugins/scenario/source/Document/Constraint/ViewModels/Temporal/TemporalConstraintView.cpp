@@ -41,6 +41,7 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     {
         c = Qt::red;
     }
+    (m_moving ? c.setAlphaF(0.4) : c.setAlphaF(1.0));
 
 	m_solidPen.setColor(c);
 	m_dashPen.setColor(c);
@@ -87,6 +88,11 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 
 }
 
+void TemporalConstraintView::setMoving(bool arg)
+{
+    m_moving = arg;
+}
+
 void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
 	QGraphicsObject::mousePressEvent(m);
@@ -104,7 +110,8 @@ void TemporalConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
     {
         posInScenario.setX(pos().x());
     }
-	emit constraintMoved(posInScenario);
+    m_moving = true;
+    emit constraintMoved(posInScenario);
 }
 
 void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
@@ -124,6 +131,7 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent *m)
 	}
 	if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
 	*/
+    m_moving = false;
 
 	emit constraintReleased();
 }

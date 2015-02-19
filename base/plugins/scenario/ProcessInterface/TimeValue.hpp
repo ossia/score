@@ -76,6 +76,26 @@ class TimeValue_T
 			}
 		}
 
+        bool operator<(const TimeValue_T& other) const
+        {
+            if(isInfinite() && other.isInfinite())
+            {
+                return false;
+            }
+            else if(!isInfinite() && other.isInfinite())
+            {
+                return true;
+            }
+            else if(isInfinite() && !other.isInfinite())
+            {
+                return false;
+            }
+            else
+            {
+                return msec() < other.msec();
+            }
+        }
+
 		TimeValue_T operator+(const TimeValue_T& other)
 		{
 			TimeValue_T res{PositiveInfinity{}};
@@ -142,8 +162,8 @@ class TimeValue_T<QTime>
 		QTime m_impl{0, 0};
 };
 */
-
-using  = TimeValue_T<int>;
+#include <QDebug>
+using TimeValue = TimeValue_T<int>;
 inline QDebug operator<< (QDebug d, const TimeValue &tv) 
 {
 	if(!tv.isInfinite()) 

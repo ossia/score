@@ -17,6 +17,8 @@ class TemporalConstraintView : public AbstractConstraintView
 						   const QStyleOptionGraphicsItem *option,
 						   QWidget *widget) override;
 
+        void setMoving(bool);
+
 	signals:
 		void constraintMoved(QPointF);
 		void constraintReleased();
@@ -28,4 +30,6 @@ class TemporalConstraintView : public AbstractConstraintView
 
 	private:
 		QPointF m_clickedPoint{};
+
+        bool m_moving{false};
 };
