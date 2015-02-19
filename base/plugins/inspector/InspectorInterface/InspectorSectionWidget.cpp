@@ -122,11 +122,12 @@ void InspectorSectionWidget::removeContent(QWidget* toRemove)
 
 void InspectorSectionWidget::removeAll()
 {
-    for (auto obj : _containerLayout-> children())
+    while(QLayoutItem* item = _containerLayout->takeAt(0))
     {
-        auto wid = static_cast<QWidget*>(obj);
-        _containerLayout->removeWidget(wid);
-        delete wid;
+        if(QWidget* wid = item->widget())
+           delete wid;
+
+        delete item;
     }
 }
 
