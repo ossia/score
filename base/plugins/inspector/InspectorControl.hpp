@@ -37,5 +37,5 @@ class InspectorControl : public iscore::PluginControlInterface
 		}
 
 	private:
-		QVector<InspectorWidgetFactoryInterface*> m_factories;
+        QVector<InspectorWidgetFactoryInterface*> m_factories;
 };

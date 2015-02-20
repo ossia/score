@@ -103,6 +103,9 @@ EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent)
 
     connect(m_metadata,     &MetadataWidget::colorChanged,
             this,           &EventInspectorWidget::on_colorChanged);
+
+    connect(m_metadata,     &MetadataWidget::inspectPreviousElement,
+            m_eventModel,   &EventModel::inspectPreviousElement);
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)

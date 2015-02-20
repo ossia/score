@@ -31,4 +31,5 @@ class ProcessPresenterInterface : public NamedObject
 		void submitCommand(iscore::SerializableCommand*);
 
 		void elementSelected(QObject*);
+        void lastElementSelected();
 };

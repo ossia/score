@@ -150,6 +150,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
     connect(m_metadata,      &MetadataWidget::colorChanged,
             this,           &ConstraintInspectorWidget::on_colorChanged);
 
+//    connect(m_metadata,      &MetadataWidget::inspectPreviousElement,
+//            m_currentConstraint,    &TemporalConstraintViewModel::inspectPreviousElement);
+
     connect(end,    &QPushButton::clicked,
             [=] ()
     {

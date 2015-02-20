@@ -28,6 +28,11 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
 		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
 		  "InspectorPanelModel", SLOT(newItemInspected(QObject*))}},
 
+        {{iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+          "Presenter",			 SIGNAL(lastElementSelected())},
+         {iscore::Autoconnect::ObjectRepresentationType::QObjectName,
+          "InspectorPanelModel", SLOT(lastItemInspected())}},
+
 		{{iscore::Autoconnect::ObjectRepresentationType::Inheritance,
 		  "InspectorWidgetBase", SIGNAL(submitCommand(iscore::SerializableCommand*))},
 		 {iscore::Autoconnect::ObjectRepresentationType::QObjectName,

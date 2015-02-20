@@ -60,6 +60,7 @@ namespace iscore
 			//void instantiatedCommand(iscore::SerializableCommand*);
 
 			void elementSelected(QObject* elt);
+            void lastElementSelected();
 
 		public slots:
 			/**
@@ -82,6 +83,8 @@ namespace iscore
 			 *
 			 */
 			void on_elementSelected(QObject* elt);
+
+            void on_lastElementSelected();
 
 
 			void on_lock(QByteArray);

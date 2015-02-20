@@ -38,6 +38,7 @@ class EventPresenter : public NamedObject
 
 		void elementSelected(QObject*);
         void constraintSelected(QString);
+        void inspectPreviousElement();
 
 	private:
 		EventData pointToEventData(QPointF p) const;

@@ -32,6 +32,7 @@ class TimeNodePresenter :  public NamedObject
 		void elementSelected(QObject*);
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
         void eventSelected(QString);
+        void inspectPreviousElement();
 
 	public slots:
 		void on_timeNodeMoved(QPointF);

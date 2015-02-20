@@ -1,7 +1,7 @@
 #include "InspectorPanelModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
-
+#include <QDebug>
 
 InspectorPanelModel::InspectorPanelModel (iscore::DocumentModel* parent) :
 	iscore::PanelModelInterface {"InspectorPanelModel", nullptr}
@@ -15,4 +15,14 @@ void InspectorPanelModel::newItemInspected(QObject* item)
 {
 	//TODO save the path to the item.
 	emit setNewItem(item);
+    m_lastInspectedObjects.push_back(item);
+}
+
+void InspectorPanelModel::lastItemInspected()
+{
+    if (!m_lastInspectedObjects.isEmpty())
+    {
+        m_lastInspectedObjects.removeLast();
+        emit setNewItem(m_lastInspectedObjects.back());
+    }
 }

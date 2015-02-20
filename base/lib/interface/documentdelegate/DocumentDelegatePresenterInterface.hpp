@@ -34,6 +34,7 @@ namespace iscore
 
 		signals:
 			void elementSelected(QObject* obj);
+            void lastElementSelected();
 			void submitCommand(iscore::SerializableCommand* cmd);
 
 		protected:

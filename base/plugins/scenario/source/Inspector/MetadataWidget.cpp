@@ -10,6 +10,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QColorDialog>
+#include <QToolButton>
 
 MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
     QWidget (parent),
@@ -36,12 +37,17 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
 
     descriptionWidget->setLayout (descriptionLay);
 
+    // previous inspector button
+    QToolButton* goPrev = new QToolButton{this};
+    goPrev->setArrowType(Qt::LeftArrow);
+
     // color
     m_colorButton = new QPushButton{};
     m_colorButton->setMaximumSize (QSize (1.5 * m_colorIconSize, 1.5 * m_colorIconSize) );
     m_colorButton->setIconSize (QSize (m_colorIconSize, m_colorIconSize) );
     m_colorButtonPixmap.fill (metadata->color());
     m_colorButton->setIcon (QIcon (m_colorButtonPixmap) );
+    typeLay->addWidget(goPrev);
     typeLay->addWidget(m_colorButton);
     typeLay->addWidget(m_typeLb);
 
@@ -78,6 +84,9 @@ MetadataWidget::MetadataWidget(ModelMetadata *metadata, QWidget *parent) :
 
     connect(metadata,   &ModelMetadata::metadataChanged,
             this,       &MetadataWidget::updateAsked);
+
+    connect(goPrev, &QToolButton::clicked,
+            this,   &MetadataWidget::inspectPreviousElement);
 }
 
 QString MetadataWidget::scriptingName() const

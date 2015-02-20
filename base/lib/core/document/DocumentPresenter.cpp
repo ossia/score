@@ -104,5 +104,8 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
 
 	connect(m_presenter, &DocumentDelegatePresenterInterface::elementSelected,
 			this,		 &DocumentPresenter::on_elementSelected, Qt::QueuedConnection);
+
+    connect(m_presenter, &DocumentDelegatePresenterInterface::lastElementSelected,
+            this,        &DocumentPresenter::on_lastElementSelected, Qt::QueuedConnection);
 }
 

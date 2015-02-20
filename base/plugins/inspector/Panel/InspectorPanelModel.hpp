@@ -20,8 +20,11 @@ class InspectorPanelModel : public iscore::PanelModelInterface
 		void setNewItem(QObject*);
 		
 	public slots:
-		void newItemInspected(QObject*); 
+        void newItemInspected(QObject*);
+        void lastItemInspected();
 		
 	private:
 		QObject* m_selectedObject{}; // TODO get Path instead.
+
+        QVector<QObject*> m_lastInspectedObjects;
 };

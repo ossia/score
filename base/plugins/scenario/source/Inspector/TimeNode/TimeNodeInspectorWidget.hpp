@@ -5,6 +5,7 @@ class TimeNodeModel;
 
 class QFormLayout;
 class MetadataWidget;
+class EventShortCut;
 
 /*!
  * \brief The TimeNodeInspectorWidget class
@@ -28,9 +29,11 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         void on_commentsChanged(QString);
         void on_colorChanged(QColor);
 
+        void on_splitTimeNodeClicked();
+
 	private:
         QVector<QWidget*> m_properties;
-        std::vector<QPushButton*> m_events;
+        std::vector<EventShortCut*> m_events;
 
 		TimeNodeModel* m_timeNodeModel{};
 

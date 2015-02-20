@@ -34,6 +34,8 @@ signals:
     void commentsChanged(QString arg);
     void colorChanged(QColor arg);
 
+    void inspectPreviousElement();
+
 private:
 
         ModelMetadata* m_metadata;

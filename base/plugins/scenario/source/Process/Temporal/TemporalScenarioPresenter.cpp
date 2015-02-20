@@ -69,6 +69,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 	/////// Connections
 	connect(this,	SIGNAL(elementSelected(QObject*)),
 			parent, SIGNAL(elementSelected(QObject*)));
+    connect(this,	SIGNAL(lastElementSelected()),
+            parent, SIGNAL(lastElementSelected()));
 
 	connect(m_view, &TemporalScenarioView::deletePressed,
 			this,	&TemporalScenarioPresenter::on_deletePressed);
@@ -227,7 +229,6 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 
 void TemporalScenarioPresenter::on_eventMoved(id_type<EventModel> eventId)
 {
-    qDebug() << "on_eventMoved" << eventId;
 	auto rect = m_view->boundingRect();
 	auto ev = findById(m_events, eventId);
 
@@ -289,7 +290,6 @@ void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> cons
 
 void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 {
-    qDebug() << "update Timenode" << id;
     auto timeNode = findById(m_timeNodes, id);
     auto rect = m_view->boundingRect();
 
@@ -706,7 +706,11 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
                 return;
             }
         }
+        m_lastInspectedObjects.push_back(event_model);
     });
+
+    connect(event_presenter,    &EventPresenter::inspectPreviousElement,
+            this,               &TemporalScenarioPresenter::lastElementSelected);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -743,6 +747,9 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
         elementSelected(event->model());
         timeNode_presenter->deselect();
     });
+
+    connect(timeNode_presenter, &TimeNodePresenter::inspectPreviousElement,
+            this,               &TemporalScenarioPresenter::lastElementSelected);
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -780,6 +787,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     {
         auto event = findById(m_events, id_type<EventModel>(evId.toInt()));
         event->view()->setSelected(true);
+        m_lastInspectedObjects.push_back(constraint_view_model);
         elementSelected(event->model());
         constraint_presenter->deselect();
     });

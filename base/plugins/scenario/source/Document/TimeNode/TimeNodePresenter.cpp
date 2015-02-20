@@ -30,6 +30,9 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
     connect(m_model,    &TimeNodeModel::eventSelected,
             this,       &TimeNodePresenter::eventSelected);
 
+    connect(m_model,    &TimeNodeModel::inspectPreviousElement,
+            this,       &TimeNodePresenter::inspectPreviousElement);
+
     connect(&(m_model->metadata),  &ModelMetadata::colorChanged,
             m_view,                &TimeNodeView::changeColor);
 }

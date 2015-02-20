@@ -56,7 +56,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 	signals:
 		void currentlySelectedEventChanged(id_type<EventModel> arg);
-		void linesExtremityScaled(int, int);
+		void linesExtremityScaled(int, int);        
 
 	public slots:
 		// Model -> view
@@ -129,4 +129,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		int m_ongoingCommandId{-1};
 
 		EventData m_lastData{};
+
+        QVector<QObject*> m_lastInspectedObjects{};
+        QVector<QObject*> m_undoLastInspectedObjects{};
 };

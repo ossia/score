@@ -42,6 +42,9 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent):
 	connect(m_document, &Document::on_elementSelected,
 			this,		&Presenter::on_elementSelected);
 
+    connect(m_document, &Document::on_lastElementSelected,
+            this,       &Presenter::on_lastElementSelected);
+
 	m_view->addSidePanel(new QUndoView{
 							 m_document->presenter()->commandQueue(),
 							 m_view}, tr("Undo View"), Qt::RightDockWidgetArea);
@@ -104,7 +107,12 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_na
 
 void Presenter::on_elementSelected(QObject* elt)
 {
-	emit elementSelected(elt);
+    emit elementSelected(elt);
+}
+
+void Presenter::on_lastElementSelected()
+{
+    emit lastElementSelected();
 }
 
 void Presenter::setupMenus()

@@ -184,6 +184,8 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 			this,  &AbstractConstraintPresenter::submitCommand);
 	connect(m_box, &BoxPresenter::elementSelected,
 			this,  &AbstractConstraintPresenter::elementSelected);
+    connect(m_box,  &BoxPresenter::lastElementSelected,
+            this,  &AbstractConstraintPresenter::lastElementSelected);
 
 	connect(m_box, &BoxPresenter::askUpdate,
 			this,  &AbstractConstraintPresenter::updateHeight);

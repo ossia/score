@@ -23,6 +23,9 @@ Document::Document(QWidget* parentview, QObject* parent):
 {
 	connect(m_presenter, &DocumentPresenter::on_elementSelected,
 			this,		 &Document::on_elementSelected);
+
+    connect(m_presenter, &DocumentPresenter::on_lastElementSelected,
+            this,        &Document::on_lastElementSelected);
 }
 
 void Document::newDocument()

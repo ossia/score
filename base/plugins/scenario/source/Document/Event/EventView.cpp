@@ -125,7 +125,6 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
     }
 
     m_moving = true;
-    qDebug() << "moving";
 }
 
 void EventView::keyPressEvent(QKeyEvent* e)

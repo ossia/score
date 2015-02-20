@@ -4,6 +4,7 @@
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
+#include "Inspector/Event/EventWidgets/EventShortcut.hpp"
 
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"
@@ -19,6 +20,7 @@
 #include <QScrollArea>
 #include <QApplication>
 #include <QCompleter>
+#include <QCheckBox>
 
 using namespace Scenario::Command;
 
@@ -72,6 +74,17 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 
     connect(m_metadata,     &MetadataWidget::colorChanged,
             this,           &TimeNodeInspectorWidget::on_colorChanged);
+
+    connect(m_metadata,         &MetadataWidget::inspectPreviousElement,
+            m_timeNodeModel,    &TimeNodeModel::inspectPreviousElement);
+
+    auto splitBtn = new QPushButton{this};
+    splitBtn->setText("split timeNode");
+
+    m_eventList->addContent(splitBtn);
+
+    connect(splitBtn,   &QPushButton::clicked,
+            this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
 }
 
 
@@ -94,18 +107,16 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 		m_date->setText(QString::number(m_timeNodeModel->date().msec()));
         for(id_type<EventModel> event : timeNode->events())
         {
-            auto eventBtn = new QPushButton{this};
-            eventBtn->setText(QString::number((*event.val())));
-            eventBtn->setFlat(true);
-            m_events.push_back(eventBtn);
-            m_eventList->addContent(eventBtn);
+            auto eventWid = new EventShortCut(QString::number((*event.val())));
 
-            connect(eventBtn,   &QPushButton::clicked,
-                    [=] ()
-            {
-                m_timeNodeModel->eventSelected(eventBtn->text());
-            });
+            m_events.push_back(eventWid);
+            m_eventList->addContent(eventWid);
+
+            connect(eventWid,           &EventShortCut::eventSelected,
+                    m_timeNodeModel,    &TimeNodeModel::eventSelected);
+
         }
+
 
 //        setInspectedObject (timeNode);
 //		changeLabelType ("TimeNode");
@@ -160,4 +171,15 @@ void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
                                                            newColor);
 
     submitCommand(cmd);
+}
+
+void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
+{
+    std::cout << "create a timenode with ";
+    for (auto ev : m_events)
+    {
+        if (ev->isChecked())
+            std ::cout << ev->eventName().toStdString() << " " ;
+    }
+    std::cout << std::endl;
 }

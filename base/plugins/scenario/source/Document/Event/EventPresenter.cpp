@@ -55,6 +55,9 @@ EventPresenter::EventPresenter(EventModel* model,
 
     connect(m_model,    &EventModel::constraintSelected,
             this,       &EventPresenter::constraintSelected);
+
+    connect(m_model,    &EventModel::inspectPreviousElement,
+            this,       &EventPresenter::inspectPreviousElement);
 }
 
 EventPresenter::~EventPresenter()

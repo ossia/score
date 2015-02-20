@@ -117,6 +117,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
 			this,						&BaseElementPresenter::elementSelected);
 
+    connect(m_baseConstraintPresenter,  &FullViewConstraintPresenter::lastElementSelected,
+            this,                       &BaseElementPresenter::lastElementSelected);
+
 	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
 

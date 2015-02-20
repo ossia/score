@@ -30,6 +30,7 @@ namespace iscore
 
 		signals:
 			void on_elementSelected(QObject* element);
+            void on_lastElementSelected();
 			void lock(QByteArray);
 			void unlock(QByteArray);
 
