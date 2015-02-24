@@ -27,6 +27,7 @@
 #include "Commands/Scenario/CreateConstraint.hpp"
 #include "Commands/Scenario/RemoveConstraint.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
+#include "Commands/Scenario/MoveTimeNode.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
@@ -644,8 +645,15 @@ void TemporalScenarioPresenter::moveTimeNode(EventData data)
 {
     auto ev = findById(m_events, data.eventClickedId);
     data.y = ev->view()->y();
-	moveEventAndConstraint(data);
-}
+    data.dDate.setMSecs(data.x * m_millisecPerPixel);
+    data.relativeY = data.y / m_view->boundingRect().height();
+
+
+    auto cmd = new Command::MoveTimeNode(ObjectPath::pathFromObject("BaseElementModel",
+                                                               m_viewModel->sharedProcessModel()),
+                                    data);
+
+    sendOngoingCommand(cmd);}
 
 void TemporalScenarioPresenter::on_ctrlStateChanged(bool ctrlPressed)
 {

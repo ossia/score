@@ -29,6 +29,7 @@
 #include "Commands/Scenario/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "Commands/Scenario/MoveEvent.hpp"
+#include "Commands/Scenario/MoveTimeNode.hpp"
 #include "Commands/Scenario/MoveConstraint.hpp"
 #include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/ResizeBaseConstraint.hpp"
@@ -167,6 +168,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString nam
 	else if(name == "HideBoxInViewModel")				{ cmd = new HideBoxInViewModel;}
 	else if(name == "MoveConstraint")					{ cmd = new MoveConstraint;}
 	else if(name == "MoveEvent")						{ cmd = new MoveEvent;}
+    else if(name == "MoveTimeNode")                     { cmd = new MoveTimeNode;}
 	else if(name == "ShowBoxInViewModel")				{ cmd = new ShowBoxInViewModel;}
 	else if(name == "RemoveMultipleElements")			{ cmd = new RemoveMultipleElements;}
 	else if(name == "SetMinDuration")					{ cmd = new SetMinDuration;}
