@@ -44,7 +44,6 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
         ev->view()->setMoving(false);
 
     // @todo change when multiple event on a same timeNode
-//	qDebug() << ev->model()->timeNode();
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
     timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_millisecPerPixel),
                               rect.height() * timeNode->model()->y()});

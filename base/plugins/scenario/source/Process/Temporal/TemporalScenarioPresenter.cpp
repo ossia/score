@@ -34,7 +34,7 @@
 #include <QGraphicsScene>
 
 #include <QtMath>
-
+#include "core/presenter/command/SerializableCommand.hpp"
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
@@ -69,15 +69,24 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
             parent, SIGNAL(lastElementSelected()));
 
 	connect(m_view, &TemporalScenarioView::deletePressed,
-			this,	&TemporalScenarioPresenter::on_deletePressed);
+            [=] ()
+    {
+        m_cmdManager->deleteSelection();
+    });
     connect(m_view, &TemporalScenarioView::clearPressed,
-            this,	&TemporalScenarioPresenter::on_clearPressed);
+            [=] ()
+    {
+        m_cmdManager->clearContentFromSelection();
+    });
+
     connect(m_view, &TemporalScenarioView::scenarioPressed,
 			this,	&TemporalScenarioPresenter::on_scenarioPressed);
-	connect(m_view, &TemporalScenarioView::scenarioPressedWithControl,
-			this,	&TemporalScenarioPresenter::on_scenarioPressedWithControl);
-	connect(m_view, &TemporalScenarioView::scenarioReleased,
-			this,	&TemporalScenarioPresenter::on_scenarioReleased);
+
+    connect(m_view, &TemporalScenarioView::scenarioReleased,
+            [=] (QPointF point, QPointF scenePoint)
+    {
+        m_cmdManager->on_scenarioReleased(point, scenePoint);
+    });
 
     connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
 			this,		 &TemporalScenarioPresenter::on_eventCreated);
@@ -159,6 +168,7 @@ void TemporalScenarioPresenter::parentGeometryChanged()
 
 }
 
+// TODO : mettre dans ScenarioViewInterface ?
 void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
 {
 	m_horizontalZoomSliderVal = val;
@@ -229,16 +239,6 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 /////////////////////////////////////////////////////////////////////
 // USER INTERACTIONS
 
-void TemporalScenarioPresenter::on_deletePressed()
-{
-    m_cmdManager->deleteSelection();
-}
-
-void TemporalScenarioPresenter::on_clearPressed()
-{
-    m_cmdManager->clearContentFromSelection();
-}
-
 void TemporalScenarioPresenter::on_scenarioPressed()
 {
 	for(auto& event : m_events)
@@ -253,46 +253,6 @@ void TemporalScenarioPresenter::on_scenarioPressed()
     {
         timeNode->deselect();
     }
-}
-
-
-void TemporalScenarioPresenter::on_scenarioPressedWithControl(QPointF point, QPointF scenePoint)
-{
-
-}
-
-// TODO mettre dans ScenarioCommandManager
-#include "Commands/Scenario/CreateEvent.hpp"
-void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
-{
-    EventData data{};
-    data.eventClickedId = m_events.back()->id();
-    data.x = point.x();
-	data.dDate.setMSecs(point.x() * m_millisecPerPixel);
-    data.y = point.y();
-    data.relativeY = point.y() /  m_view->boundingRect().height();
-    data.scenePos = scenePoint;
-
-    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(this->m_view->scene()->itemAt(scenePoint, QTransform()));
-    if (tnv)
-    {
-        for (auto timeNode : m_timeNodes)
-        {
-            if (timeNode->view() == tnv)
-            {
-                data.endTimeNodeId = timeNode->id();
-                data.dDate = timeNode->model()->date();
-				data.x = data.dDate.msec() / m_millisecPerPixel;
-				break;
-            }
-        }
-    }
-
-    auto cmd = new Scenario::Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
-														  m_viewModel->sharedProcessModel()),
-							   data);
-    this->submitCommand(cmd);
-
 }
 
 void TemporalScenarioPresenter::on_askUpdate()
@@ -322,29 +282,6 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, 
 {
     auto event = findById(m_events, eventId);
     event->model()->changeTimeNode(timeNodeId);
-}
-
-
-// NOTE utile ?
-void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
-{
-    EventPresenter* event = findById(m_events, data->eventClickedId);
-
-    for (TimeNodePresenter* tn : m_timeNodes)
-    {
-        if(event->model()->timeNode() != tn->id() && event->view()->collidesWithItem(tn->view()) )
-        {
-            qreal x = data->x;
-            qreal a = tn->view()->scenePos().x();
-            int dist = qSqrt( qPow(a-x,2));
-
-            if (dist < 50)
-            {
-                data->x = tn->view()->scenePos().x();
-                data->dDate.setMSecs(data->x * m_millisecPerPixel);
-            }
-        }
-    }
 }
 
 bool TemporalScenarioPresenter::ongoingCommand()

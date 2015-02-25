@@ -9,6 +9,7 @@ namespace iscore
 
 struct EventData;
 struct ConstraintData;
+class QPointF;
 
 class ScenarioCommandManager
 {
@@ -16,6 +17,7 @@ class ScenarioCommandManager
         ScenarioCommandManager(TemporalScenarioPresenter *presenter);
 
         void createConstraint(EventData);
+        void on_scenarioReleased(QPointF point, QPointF scenePoint);
 
         void clearContentFromSelection();
         void deleteSelection();

@@ -37,6 +37,9 @@
 #include "Commands/RemoveMultipleElements.hpp"
 
 #include <algorithm>
+#include <QRectF>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 
 using namespace Scenario::Command;
 
@@ -108,6 +111,37 @@ void ScenarioCommandManager::createConstraint(EventData data)
                                    data.eventClickedId,
                                    collidingEvents.first()->id()));
     }
+}
+
+void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoint)
+{
+    EventData data{};
+    data.eventClickedId = m_presenter->m_events.back()->id();
+    data.x = point.x();
+    data.dDate.setMSecs(point.x() * m_presenter->m_millisecPerPixel);
+    data.y = point.y();
+    data.relativeY = point.y() /  m_presenter->m_view->boundingRect().height();
+    data.scenePos = scenePoint;
+
+    TimeNodeView* tnv =  dynamic_cast<TimeNodeView*>(m_presenter->m_view->scene()->itemAt(scenePoint, QTransform()));
+    if (tnv)
+    {
+        for (auto timeNode : m_presenter->m_timeNodes)
+        {
+            if (timeNode->view() == tnv)
+            {
+                data.endTimeNodeId = timeNode->id();
+                data.dDate = timeNode->model()->date();
+                data.x = data.dDate.msec() / m_presenter->m_millisecPerPixel;
+                break;
+            }
+        }
+    }
+
+    auto cmd = new Scenario::Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
+                                                          m_presenter->m_viewModel->sharedProcessModel()),
+                               data);
+    m_presenter->submitCommand(cmd);
 }
 
 void ScenarioCommandManager::clearContentFromSelection()
