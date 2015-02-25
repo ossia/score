@@ -12,6 +12,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -123,10 +124,11 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 	connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
 			this,						&BaseElementPresenter::on_askUpdate);
 
+
 	// Update the address bar
 	view()
 		->addressBar()
-		->setTargetObject(ObjectPath::pathFromObject(displayedConstraint()));
+		->setTargetObject(IDocument::path(displayedConstraint()));
 
 	// Set the new minimum zoom. It should be set such that :
 	// - when the x position is 0

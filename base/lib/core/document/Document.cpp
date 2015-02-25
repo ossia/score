@@ -86,20 +86,3 @@ void Document::setupDocument()
 	m_presenter->setPresenterDelegate(pres);
 }
 
-
-Document* iscore::documentFromObject(QObject* obj)
-{
-	QString objName{obj? obj->objectName() : "INVALID"};
-	while(obj && obj->objectName() != "Document")
-	{
-		obj = obj->parent();
-	}
-
-	if(!obj)
-		throw std::runtime_error(
-				QString("Object (name: %1) is not part of a Document!")
-					.arg(objName)
-					.toStdString());
-
-	return static_cast<Document*>(obj);
-}

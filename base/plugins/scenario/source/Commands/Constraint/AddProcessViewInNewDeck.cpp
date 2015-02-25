@@ -8,6 +8,8 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
+
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -39,8 +41,7 @@ AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath, QS
     m_createdDeckId = id_type<DeckModel>(getNextId());
     m_createdProcessViewId = id_type<ProcessViewModelInterface>(getNextId());
     m_sharedProcessModelId = id_type<ProcessSharedModelInterface>{m_processName.toInt()};
-    m_processPath = ObjectPath::pathFromObject( "BaseConstraintModel",
-                                                constraint->process(m_sharedProcessModelId));
+	m_processPath = IDocument::path(constraint->process(m_sharedProcessModelId));
 }
 
 void AddProcessViewInNewDeck::undo()

@@ -3,6 +3,7 @@
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include "Box/MoveDeck.hpp"
 #include "RemoveBoxFromConstraint.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 namespace Scenario
 {
 	namespace Command
@@ -27,7 +28,7 @@ namespace Scenario
 
 					for(DeckModel* deck : sourcebox->decks())
 					{
-						addCommand(new MoveDeck(ObjectPath::pathFromObject(deck),
+						addCommand(new MoveDeck(iscore::IDocument::path(deck),
 												ObjectPath{mergeTarget}));
 					}
 

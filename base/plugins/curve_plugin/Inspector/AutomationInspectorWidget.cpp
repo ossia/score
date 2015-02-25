@@ -12,8 +12,10 @@
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <core/interface/document/DocumentInterface.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <interface/panel/PanelModelInterface.hpp>
+
 
 #include <QApplication>
 
@@ -97,7 +99,7 @@ void AutomationInspectorWidget::on_addressChange(const QString& newText)
 	if(newText != m_model->address())
 	{
 		auto cmd = new ChangeAddress{
-				   ObjectPath::pathFromObject("BaseElementModel", m_model),
+				   iscore::IDocument::path(m_model),
 				   newText};
 
 		submitCommand(cmd);

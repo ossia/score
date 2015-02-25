@@ -1,5 +1,6 @@
 #include "ShowBoxInViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -28,8 +29,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_v
 	SerializableCommand{"ScenarioControl",
 						"ShowBoxInViewModel",
 						QObject::tr("Show box in constraint view")},
-	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseElementModel",
-														 constraint_vm)},
+	m_constraintViewModelPath{iscore::IDocument::path(constraint_vm)},
 	m_boxId{boxId}
 {
 	m_previousBoxId = constraint_vm->shownBox();

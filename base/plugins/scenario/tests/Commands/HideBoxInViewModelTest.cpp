@@ -20,6 +20,7 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -114,13 +115,13 @@ class HideBoxInViewModelTest: public QObject
 
 
 			// Show the box
-			auto cmd_showbox = new ShowBoxInViewModel(ObjectPath::pathFromObject(constraint_viewmodel), box2Id);
+			auto cmd_showbox = new ShowBoxInViewModel(iscore::IDocument::path(constraint_viewmodel), box2Id);
 			stack.push(cmd_showbox);
 			QCOMPARE(constraint_viewmodel->isBoxShown(), true);
 			QCOMPARE(constraint_viewmodel->shownBox(), box2Id);
 
 			// And hide it
-			auto cmd_hidebox = new HideBoxInViewModel(ObjectPath::pathFromObject(constraint_viewmodel));
+			auto cmd_hidebox = new HideBoxInViewModel(iscore::IDocument::path(constraint_viewmodel));
 			stack.push(cmd_hidebox);
 			QCOMPARE(constraint_viewmodel->isBoxShown(), false);
 			stack.undo();

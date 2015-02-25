@@ -43,6 +43,7 @@ void DocumentPresenter::unlock_impl()
 
 void DocumentPresenter::initiateOngoingCommand(SerializableCommand* cmd, QObject* objectToLock)
 {
+	// TODO optimize with the known document.
 	m_lockedObject = ObjectPath::pathFromObject(objectToLock);
 	lock_impl();
 

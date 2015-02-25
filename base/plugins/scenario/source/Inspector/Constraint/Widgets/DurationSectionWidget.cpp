@@ -10,6 +10,7 @@
 #include "Commands/ResizeBaseConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -107,9 +108,7 @@ using namespace Scenario::Command;
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
 	auto cmd = new SetMinDuration(
-				ObjectPath::pathFromObject(
-					"BaseConstraintModel",
-					m_model),
+				iscore::IDocument::path(m_model),
 				std::chrono::milliseconds{val});
 	if(!m_minSpinboxEditing)
 	{
@@ -126,9 +125,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
 	auto cmd = new SetMaxDuration(
-				ObjectPath::pathFromObject(
-					"BaseConstraintModel",
-					m_model),
+				iscore::IDocument::path(m_model),
 				std::chrono::milliseconds{val});
 	if(!m_maxSpinboxEditing)
 	{
@@ -147,9 +144,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 	if(m_model->objectName() != "BaseConstraintModel")
 	{
 		auto cmd = new ResizeConstraint(
-					   ObjectPath::pathFromObject(
-						   "BaseConstraintModel",
-						   m_model),
+					   iscore::IDocument::path(m_model),
 					   std::chrono::milliseconds{val});
 		if(!m_valueSpinboxEditing)
 		{
@@ -182,9 +177,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 void DurationSectionWidget::rigidCheckboxToggled(bool b)
 {
 	auto cmd = new SetRigidity(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   m_model),
+				   iscore::IDocument::path(m_model),
 				   b);
 
 	emit m_parent->submitCommand(cmd);

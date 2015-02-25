@@ -13,6 +13,7 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <QtWidgets>
 
 using namespace Scenario::Command;
@@ -45,12 +46,8 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessModelId)
 {
 	auto cmd = new AddProcessViewModelToDeck(
-						ObjectPath::pathFromObject(
-							"BaseConstraintModel",
-							m_model),
-						ObjectPath::pathFromObject(
-							"BaseConstraintModel",
-							m_model->parentConstraint()->process(sharedProcessModelId)));
+						iscore::IDocument::path(m_model),
+						iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
 
 	emit submitCommand(cmd);
 }

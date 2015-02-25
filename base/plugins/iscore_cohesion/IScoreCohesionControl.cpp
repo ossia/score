@@ -11,6 +11,7 @@
 #include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include "FakeEngine.hpp"
 
@@ -75,7 +76,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 			l.push_back(DeviceExplorer::addressFromModelIndex(index));
 		}
 
-		auto cmd = new CreateCurvesFromAddresses{ObjectPath::pathFromObject("BaseElementModel", constraint), l};
+		auto cmd = new CreateCurvesFromAddresses{iscore::IDocument::path(constraint), l};
 		submitCommand(cmd);
 	}
 }

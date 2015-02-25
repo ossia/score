@@ -11,6 +11,8 @@
 #include "Commands/Metadata/ChangeElementComments.hpp"
 #include "Commands/Metadata/ChangeElementColor.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QLayout>
@@ -137,7 +139,7 @@ void TimeNodeInspectorWidget::on_scriptingNameChanged(QString newName)
     if (newName == m_timeNodeModel->metadata.name())
         return;
 
-    auto cmd = new ChangeElementName<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementName<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
                 newName);
 
     submitCommand(cmd);
@@ -148,7 +150,7 @@ void TimeNodeInspectorWidget::on_labelChanged(QString newLabel)
     if (newLabel == m_timeNodeModel->metadata.label())
         return;
 
-    auto cmd = new ChangeElementLabel<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementLabel<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
                 newLabel);
 
     submitCommand(cmd);
@@ -157,7 +159,7 @@ void TimeNodeInspectorWidget::on_labelChanged(QString newLabel)
 void TimeNodeInspectorWidget::on_commentsChanged(QString newComments)
 {
     /*
-    auto cmd = new ChangeElementComments<TimeNodeModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementComments<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
                 newComments);
 
     submitCommand(cmd);
@@ -169,7 +171,7 @@ void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
     if (newColor == m_timeNodeModel->metadata.color())
         return;
 
-    auto cmd = new ChangeElementColor<TimeNodeModel>(ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementColor<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
                                                            newColor);
 
     submitCommand(cmd);

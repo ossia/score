@@ -25,6 +25,7 @@
 #include <InspectorControl.hpp>
 
 #include <tools/ObjectPath.hpp>
+#include "core/interface/document/DocumentInterface.hpp"
 
 #include <QFrame>
 #include <QLineEdit>
@@ -244,8 +245,7 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
 	auto cmd = new AddProcessToConstraint{
-			   ObjectPath::pathFromObject("BaseElementModel",
-										  model()),
+			   iscore::IDocument::path(model()),
 			   processName};
 	emit submitCommand(cmd);
 }
@@ -253,18 +253,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 void ConstraintInspectorWidget::createBox()
 {
 	auto cmd = new AddBoxToConstraint(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   model()));
+				   iscore::IDocument::path(model()));
     emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
 {
     auto cmd = new AddProcessViewInNewDeck(
-                ObjectPath::pathFromObject(
-                    "BaseConstraintModel",
-                    model()),
+				iscore::IDocument::path(model()),
                 processName);
     emit submitCommand(cmd);
 }
@@ -296,7 +292,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
 {
     /*
-    auto cmd = new ChangeElementName<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementName<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
                 newName);
 
     submitCommand(cmd);
@@ -306,7 +302,7 @@ void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
 void ConstraintInspectorWidget::on_labelChanged(QString newLabel)
 {
     /*
-    auto cmd = new ChangeElementLabel<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementLabel<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
                 newLabel);
 
     submitCommand(cmd);

@@ -35,6 +35,7 @@
 #include "Commands/RemoveMultipleElements.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <tools/utilsCPP11.hpp>
 
 #include <QDebug>
@@ -353,6 +354,7 @@ void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
+#include <core/interface/document/DocumentInterface.hpp>
 void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* cmd)
 {
 	if(m_ongoingCommand && cmd->id() != m_ongoingCommandId)
@@ -360,7 +362,7 @@ void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* 
 		rollbackOngoingCommand();
 	}
 
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel());
 	if(!m_ongoingCommand)
 	{
 		m_ongoingCommand = true;
@@ -375,7 +377,7 @@ void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* 
 
 void TemporalScenarioPresenter::finishOngoingCommand()
 {
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel());
     m_ongoingCommand = false;
     doc->presenter()->validateOngoingCommand();
     m_ongoingCommandId = -1;
@@ -383,7 +385,7 @@ void TemporalScenarioPresenter::finishOngoingCommand()
 
 void TemporalScenarioPresenter::rollbackOngoingCommand()
 {
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel());
 	doc->presenter()->rollbackOngoingCommand();
 	m_ongoingCommand = false;
 	m_ongoingCommandId = -1;
@@ -449,8 +451,7 @@ void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scene
         }
     }
 
-	auto cmd = new CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
-														  m_viewModel->sharedProcessModel()),
+	auto cmd = new CreateEvent(iscore::IDocument::path(m_viewModel->sharedProcessModel()),
 							   data);
     this->submitCommand(cmd);
 
@@ -487,16 +488,14 @@ void TemporalScenarioPresenter::clearContentFromSelection()
 	{
 		commands.push_back(
 					new ClearConstraint(
-						ObjectPath::pathFromObject("BaseElementModel",
-												   viewModel(constraint)->model())));
+						iscore::IDocument::path(viewModel(constraint)->model())));
 	}
 
     for(auto& event : eventsToRemove)
 	{
 		commands.push_back(
 					new ClearEvent(
-						ObjectPath::pathFromObject("BaseElementModel",
-												   event->model())));
+						iscore::IDocument::path(event->model())));
 	}
 
 	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
@@ -526,8 +525,7 @@ void TemporalScenarioPresenter::deleteSelection()
         {
             commands.push_back(
                         new RemoveConstraint(
-                            ObjectPath::pathFromObject("BaseElementModel",
-                                                       m_viewModel->sharedProcessModel()),
+							iscore::IDocument::path(m_viewModel->sharedProcessModel()),
                             constraint->abstractConstraintViewModel()->model() ));
         }
 
@@ -535,8 +533,7 @@ void TemporalScenarioPresenter::deleteSelection()
         {
             commands.push_back(
                         new RemoveEvent(
-                            ObjectPath::pathFromObject("BaseElementModel",
-                                                       m_viewModel->sharedProcessModel()),
+							iscore::IDocument::path(m_viewModel->sharedProcessModel()),
                             event->model()) );
 
         }
@@ -579,8 +576,7 @@ void TemporalScenarioPresenter::createConstraint(EventData data)
 	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmdPath = ObjectPath::pathFromObject("BaseElementModel",
-											  m_viewModel->sharedProcessModel());
+	auto cmdPath = iscore::IDocument::path(m_viewModel->sharedProcessModel());
 
 	// We rollback so that we don't get polluted
 	// by the "fake" created events / timenodes.
@@ -627,8 +623,7 @@ void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseElementModel",
-															   m_viewModel->sharedProcessModel()),
+	auto cmd = new Command::MoveEvent(iscore::IDocument::path(m_viewModel->sharedProcessModel()),
 									data);
 
 	sendOngoingCommand(cmd);
@@ -639,8 +634,7 @@ void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
 	data.dDate.setMSecs(data.x * m_millisecPerPixel);
 	data.relativeY = data.y / m_view->boundingRect().height();
 
-	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseElementModel",
-																	m_viewModel->sharedProcessModel()),
+	auto cmd = new Command::MoveConstraint(iscore::IDocument::path(m_viewModel->sharedProcessModel()),
 									data);
 
 
@@ -655,8 +649,7 @@ void TemporalScenarioPresenter::moveTimeNode(EventData data)
     data.relativeY = data.y / m_view->boundingRect().height();
 
 
-    auto cmd = new Command::MoveTimeNode(ObjectPath::pathFromObject("BaseElementModel",
-                                                               m_viewModel->sharedProcessModel()),
+	auto cmd = new Command::MoveTimeNode(iscore::IDocument::path(m_viewModel->sharedProcessModel()),
                                     data);
 
     sendOngoingCommand(cmd);}
