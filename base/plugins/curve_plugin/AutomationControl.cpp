@@ -12,7 +12,7 @@ AutomationControl::AutomationControl(QObject* parent):
 }
 
 
-iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(QString name, QByteArray data)
+iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(const QString &name, const QByteArray &data)
 {
 	iscore::SerializableCommand* cmd{};
 		 if(name == "AddPoint")		{ cmd = new AddPoint;}

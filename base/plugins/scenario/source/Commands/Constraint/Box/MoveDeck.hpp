@@ -1,7 +1,7 @@
 #pragma once
 #include "CopyDeck.hpp"
 #include "RemoveDeckFromBox.hpp"
-#include "Commands/Aggregate/AggregateCommand.hpp"
+#include <core/presenter/command/AggregateCommand.hpp>
 
 namespace Scenario
 {
@@ -13,7 +13,7 @@ namespace Scenario
 		 * Moves a Deck from a Box to another (should not be the same :) )
 		 * Note : this must be in the same constraint.
 		 */
-		class MoveDeck : public AggregateCommand
+		class MoveDeck : public iscore::AggregateCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:

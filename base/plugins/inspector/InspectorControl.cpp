@@ -2,7 +2,7 @@
 #include "InspectorInterface/InspectorWidgetBase.hpp"
 #include <QApplication>
 
-InspectorWidgetBase*InspectorControl::getInspectorWidget(QObject* object)
+InspectorWidgetBase*InspectorControl::makeInspectorWidget(QObject* object)
 {
     auto pmgr = qApp->findChild<InspectorControl*>("InspectorControl");
 

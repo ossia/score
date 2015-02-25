@@ -1,5 +1,4 @@
 #include "DeviceExplorerPanelFactory.hpp"
-#include "Panel/MainWindow.hpp"
 #include "Panel/DeviceExplorerModel.hpp"
 #include "Panel/DeviceExplorerWidget.hpp"
 #include "document/DocumentPresenter.hpp"

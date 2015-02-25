@@ -1,5 +1,7 @@
 #include "DocumentInterface.hpp"
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(QObject* obj)
 {
@@ -22,4 +24,16 @@ iscore::Document* iscore::IDocument::documentFromObject(QObject* obj)
 ObjectPath iscore::IDocument::path(QObject *obj)
 {
 	return ObjectPath::pathBetweenObjects(documentFromObject(obj), obj);
+}
+
+
+iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate_generic(const iscore::Document *d)
+{
+	return *d->presenter()->presenterDelegate();
+}
+
+
+iscore::DocumentDelegateModelInterface &iscore::IDocument::modelDelegate_generic(const iscore::Document *d)
+{
+		return *d->model()->modelDelegate();
 }

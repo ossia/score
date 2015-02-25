@@ -11,7 +11,8 @@ class ScenarioControl : public iscore::PluginControlInterface
 		virtual void populateToolbars() override;
 		virtual void setPresenter(iscore::Presenter*) override;
 
-		virtual iscore::SerializableCommand* instantiateUndoCommand(QString name, QByteArray data) override;
+		virtual iscore::SerializableCommand* instantiateUndoCommand(const QString &name,
+																	const QByteArray& data) override;
 
 		ProcessList* processList()
 		{

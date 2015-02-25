@@ -37,7 +37,6 @@ namespace iscore
 			void registerPanel(PanelFactoryInterface*);
 			void setDocumentPanel(DocumentDelegateFactoryInterface*);
 
-
 			/**
 			 * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
 			 * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
@@ -47,12 +46,9 @@ namespace iscore
 			 * Ownership of the command is transferred to the caller, and he must delete it.
 			 */
 			iscore::SerializableCommand*
-				instantiateUndoCommand(QString parent_name,
-									   QString name,
-									   QByteArray data);
-
-
-
+				instantiateUndoCommand(const QString& parent_name,
+									   const QString& name,
+									   const QByteArray& data);
 		signals:
 			/**
 			 * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand

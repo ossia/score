@@ -21,9 +21,14 @@ namespace iscore
 		public:
 			Document(QWidget* parentview, QObject* parent);
 
-			DocumentModel* model() { return m_model; }
-			DocumentPresenter* presenter() { return m_presenter; }
-			DocumentView* view() { return m_view; }
+			DocumentModel* model() const
+			{ return m_model; }
+
+			DocumentPresenter* presenter() const
+			{ return m_presenter; }
+
+			DocumentView* view() const
+			{ return m_view; }
 
 			void newDocument();
 			void setDocumentPanel(DocumentDelegateFactoryInterface* p);

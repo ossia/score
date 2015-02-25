@@ -141,36 +141,29 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
+	iscore::SerializableCommand* cmd{};
 	if(m_model->objectName() != "BaseConstraintModel")
 	{
-		auto cmd = new ResizeConstraint(
-					   iscore::IDocument::path(m_model),
-					   std::chrono::milliseconds{val});
-		if(!m_valueSpinboxEditing)
-		{
-			m_valueSpinboxEditing = true;
-
-			emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-		}
-		else
-		{
-			emit m_parent->continueOngoingCommand(cmd);
-		}
+		cmd = new ResizeConstraint(
+						iscore::IDocument::path(m_model),
+						std::chrono::milliseconds{val});
 	}
 	else
 	{
-		auto cmd = new ResizeBaseConstraint(std::chrono::milliseconds{val});
-		if(!m_valueSpinboxEditing)
-		{
-			m_valueSpinboxEditing = true;
+		cmd = new ResizeBaseConstraint(
+						iscore::IDocument::path(m_model),
+						std::chrono::milliseconds{val});
+	}
 
-			emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-		}
-		else
-		{
-			emit m_parent->continueOngoingCommand(cmd);
-		}
+	if(!m_valueSpinboxEditing)
+	{
+		m_valueSpinboxEditing = true;
 
+		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
+	}
+	else
+	{
+		emit m_parent->continueOngoingCommand(cmd);
 	}
 }
 

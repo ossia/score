@@ -13,7 +13,7 @@ namespace Scenario
 		 *
 		 * Merges a Box into another.
 		 */
-		class MergeBoxes : public AggregateCommand
+		class MergeBoxes : public iscore::AggregateCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:

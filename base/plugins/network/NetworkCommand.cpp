@@ -137,17 +137,16 @@ void NetworkCommand::commandPush(SerializableCommand* cmd)
 
 #include <QApplication>
 #include <core/application/Application.hpp>
-#include <core/presenter/Presenter.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
+#include <core/interface/presenter/PresenterInterface.hpp>
 void NetworkCommand::on_commandReceived(QString par_name,
 										QString cmd_name,
 										QByteArray data)
 {
-	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-
-	auto cmd = presenter->instantiateUndoCommand(par_name,
-												 cmd_name,
-												 data);
+	auto cmd = iscore::IPresenter::instantiateUndoCommand(
+										par_name,
+										cmd_name,
+										data);
 
 	iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*>("CommandQueue");
 	queue->push(cmd);

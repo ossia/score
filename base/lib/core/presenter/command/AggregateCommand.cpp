@@ -1,20 +1,18 @@
 #include "AggregateCommand.hpp"
-#include <core/presenter/Presenter.hpp>
+#include <core/interface/presenter/PresenterInterface.hpp>
 #include <QApplication>
 using namespace iscore;
-using namespace Scenario::Command;
 
-
+// TODO Optimize by putting the instantiation of the commands in
+// the ctor / after deserialization so that it occurs only once.
 void AggregateCommand::undo()
 {
-	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-
-
 	for(int i = m_serializedCommands.size() - 1; i >= 0; --i)
 	{
-		auto cmd = presenter->instantiateUndoCommand(m_serializedCommands[i].first.first,
-													 m_serializedCommands[i].first.second,
-													 m_serializedCommands[i].second);
+		auto cmd = IPresenter::instantiateUndoCommand(
+						m_serializedCommands[i].first.first,
+						m_serializedCommands[i].first.second,
+						m_serializedCommands[i].second);
 
 		cmd->undo();
 	}
@@ -22,12 +20,12 @@ void AggregateCommand::undo()
 
 void AggregateCommand::redo()
 {
-	auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
 	for(auto& cmd_pack : m_serializedCommands)
 	{
-		auto cmd = presenter->instantiateUndoCommand(cmd_pack.first.first,
-													 cmd_pack.first.second,
-													 cmd_pack.second);
+		auto cmd = IPresenter::instantiateUndoCommand(
+						cmd_pack.first.first,
+						cmd_pack.first.second,
+						cmd_pack.second);
 
 		cmd->redo();
 	}

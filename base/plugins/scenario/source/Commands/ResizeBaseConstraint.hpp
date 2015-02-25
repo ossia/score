@@ -24,7 +24,8 @@ namespace Scenario
 			public:
 				ResizeBaseConstraint();
 
-				ResizeBaseConstraint(TimeValue duration);
+				ResizeBaseConstraint(ObjectPath&& constraintPath,
+									 TimeValue duration);
 				virtual void undo() override;
 				virtual void redo() override;
 				virtual int id() const override;
@@ -35,6 +36,7 @@ namespace Scenario
 				virtual void deserializeImpl(QDataStream&) override;
 
 			private:
+				ObjectPath m_path;
 				TimeValue m_oldDuration{};
 				TimeValue m_newDuration{};
 		};

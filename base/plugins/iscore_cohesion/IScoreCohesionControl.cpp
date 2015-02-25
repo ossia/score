@@ -52,8 +52,7 @@ SerializableCommand *IScoreCohesionControl::instantiateUndoCommand(QString name,
 
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
-	// TODO use current document.
-
+	// TODO this should take a document as argument.
 	// Fetch the selected constraints
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 	auto constraints = pres->findChildren<AbstractConstraintPresenter*>();

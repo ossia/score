@@ -15,7 +15,7 @@ namespace Scenario
 		 * This moves all the PVMs of the first deck, the source, into the second, the target,
 		 * and deletes the source.
 		 */
-		class MergeDecks : public AggregateCommand
+		class MergeDecks : public iscore::AggregateCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
