@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TemporalScenarioPresenter.hpp"
+class TemporalScenarioPresenter;
 
 namespace iscore
 {
@@ -32,12 +32,12 @@ class ScenarioCommandManager
 
         void on_ctrlStateChanged(bool);
 
+        // Necessary for the real-time creation / moving of elements
+        bool m_ongoingCommand{};
+        int m_ongoingCommandId{-1};
     private:
 
         TemporalScenarioPresenter* m_presenter;
 
-        // Necessary for the real-time creation / moving of elements
-        bool m_ongoingCommand{};
-        int m_ongoingCommandId{-1};
 
 };

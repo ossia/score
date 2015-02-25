@@ -21,6 +21,7 @@ class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
 class ScenarioCommandManager;
+class ScenarioViewInterface;
 struct EventData;
 struct ConstraintData;
 
@@ -29,6 +30,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 	Q_OBJECT
 
     friend class ScenarioCommandManager;
+    friend class ScenarioViewInterface;
 
             Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
 				   READ currentlySelectedEvent
@@ -63,16 +65,14 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 	public slots:
 		// Model -> view
-		void on_eventCreated(id_type<EventModel> eventId);
-		void on_eventDeleted(id_type<EventModel> eventId);
-		void on_eventMoved(id_type<EventModel> eventId);
+        void on_eventCreated(id_type<EventModel> eventId);
+        void on_eventDeleted(id_type<EventModel> eventId);
 
 		void on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
         void on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
 
 		void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
 		void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
-		void on_constraintMoved(id_type<ConstraintModel> constraintId);
 
 		// View -> Presenter
 		void on_deletePressed();
@@ -98,7 +98,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         std::vector<TimeNodePresenter*> m_timeNodes;
 
         // Necessary for the real-time creation / moving of elements
-        bool m_ongoingCommand{};
+        bool ongoingCommand();
+
         int m_ongoingCommandId{-1};
 
         int m_horizontalZoomSliderVal{};
@@ -125,6 +126,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 
         ScenarioCommandManager* m_cmdManager;
-
+        ScenarioViewInterface* m_viewInterface;
 
 };

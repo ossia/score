@@ -3,6 +3,7 @@
 #include "source/Process/ScenarioModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioView.hpp"
+#include "TemporalScenarioPresenter.hpp"
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>

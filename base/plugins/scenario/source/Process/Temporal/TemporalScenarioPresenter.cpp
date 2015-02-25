@@ -21,21 +21,10 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
-#include "Commands/Scenario/CreateEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/CreateConstraint.hpp"
-#include "Commands/Scenario/RemoveConstraint.hpp"
-#include "Commands/Scenario/MoveEvent.hpp"
-#include "Commands/Scenario/MoveTimeNode.hpp"
-#include "Commands/Scenario/MoveConstraint.hpp"
-#include "Commands/Scenario/ClearConstraint.hpp"
-#include "Commands/Scenario/ClearEvent.hpp"
-#include "Commands/Scenario/RemoveEvent.hpp"
-#include "Commands/RemoveMultipleElements.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 
 #include "ScenarioCommandManager.hpp"
+#include "ScenarioViewInterface.hpp"
 
 #include <tools/utilsCPP11.hpp>
 
@@ -46,8 +35,7 @@
 
 #include <QtMath>
 
-using namespace Scenario;
-using namespace Command;
+
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
 												   ProcessViewInterface* view,
 												   QObject* parent):
@@ -56,6 +44,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 	m_view{static_cast<TemporalScenarioView*>(view)}
 {
     m_cmdManager = new ScenarioCommandManager(this);
+    m_viewInterface = new ScenarioViewInterface(this);
 
 	/////// Setup of existing data
 	// For each constraint & event, display' em
@@ -90,7 +79,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 	connect(m_view, &TemporalScenarioView::scenarioReleased,
 			this,	&TemporalScenarioPresenter::on_scenarioReleased);
 
-	connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
+    connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
 			this,		 &TemporalScenarioPresenter::on_eventCreated);
 	connect(m_viewModel, &TemporalScenarioViewModel::eventDeleted,
 			this,		 &TemporalScenarioPresenter::on_eventDeleted);
@@ -106,9 +95,15 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 			this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
 	connect(m_viewModel, &TemporalScenarioViewModel::eventMoved,
-			this,		 &TemporalScenarioPresenter::on_eventMoved);
+            [=] (id_type<EventModel> eventId)
+    {
+        m_viewInterface->on_eventMoved(eventId);
+    });
 	connect(m_viewModel, &TemporalScenarioViewModel::constraintMoved,
-			this,		 &TemporalScenarioPresenter::on_constraintMoved);
+            [=] (id_type<ConstraintModel> constraintId)
+    {
+        m_viewInterface->on_constraintMoved(constraintId);
+    });
 
 	connect(model(m_viewModel), &ScenarioModel::locked,
 			[&] () { m_view->lock(); });
@@ -172,12 +167,12 @@ void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
 	for(auto constraint : m_constraints)
 	{
 		constraint->on_horizontalZoomChanged(val);
-        on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
 	}
 
 	for(auto event : m_events)
 	{
-		on_eventMoved(event->id());
+        m_viewInterface->on_eventMoved(event->id());
 	}
 }
 
@@ -232,130 +227,6 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 }
 
 /////////////////////////////////////////////////////////////////////
-// MOVING ELEMENTS
-
-void TemporalScenarioPresenter::on_eventMoved(id_type<EventModel> eventId)
-{
-	auto rect = m_view->boundingRect();
-	auto ev = findById(m_events, eventId);
-
-	ev->view()->setPos({qreal(ev->model()->date().msec() / m_millisecPerPixel),
-						rect.height() * ev->model()->heightPercentage()});
-
-    if (m_ongoingCommand)
-        ev->view()->setMoving(true);
-    else
-        ev->view()->setMoving(false);
-
-	// @todo change when multiple event on a same timeNode
-//	qDebug() << ev->model()->timeNode();
-	auto timeNode = findById(m_timeNodes, ev->model()->timeNode());
-	timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_millisecPerPixel),
-							  rect.height() * timeNode->model()->y()});
-
-    updateTimeNode(timeNode->id());
-	m_view->update();
-}
-
-
-void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> constraintId)
-{
-	auto rect = m_view->boundingRect();
-
-	for(TemporalConstraintPresenter* pres : m_constraints)
-	{
-		ConstraintModel* cstr_model{viewModel(pres)->model()};
-		if(cstr_model->id() == constraintId )
-		{
-            auto delta = (view(pres)->x() - (qreal(cstr_model->startDate().msec()) / m_millisecPerPixel));
-            bool dateChanged = ( delta * delta > 1 );
-            if (dateChanged)
-                view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_millisecPerPixel,
-                                           rect.height() * cstr_model->heightPercentage()});
-            else
-                view(pres)->setY(qreal(rect.height() * cstr_model->heightPercentage()));
-
-			view(pres)->setDefaultWidth(cstr_model->defaultDuration().msec() / m_millisecPerPixel);
-			view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_millisecPerPixel);
-			view(pres)->setMaxWidth(cstr_model->maxDuration().msec() / m_millisecPerPixel);
-
-            if (m_ongoingCommand)
-                view(pres)->setMoving(true);
-            else
-                view(pres)->setMoving(false);
-
-            auto endTimeNode = findById(m_events, cstr_model->endEvent())->model()->timeNode();
-            updateTimeNode(endTimeNode);
-
-            if (cstr_model->startDate().msec() != 0)
-            {
-                auto startTimeNode = findById(m_events, cstr_model->startEvent())->model()->timeNode();
-                updateTimeNode(startTimeNode);
-			}
-		}
-	}
-	m_view->update();
-}
-
-void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
-{
-    auto timeNode = findById(m_timeNodes, id);
-    auto rect = m_view->boundingRect();
-
-    double min = 1.0;
-    double max = 0.0;
-
-    for (auto eventId : timeNode->model()->events() )
-    {
-        auto event = findById(m_events, eventId);
-        double y = event->model()->heightPercentage();
-
-        if (y < min)
-            min = y;
-        if (y > max)
-            max = y;
-
-        for(TemporalConstraintPresenter* cstr_pres : m_constraints)
-        {
-			ConstraintModel* cstr_model{cstr_pres->abstractConstraintViewModel()->model()};
-            for (auto cstrId : event->model()->previousConstraints() )
-            {
-                if(cstr_model->id() == cstrId )
-                {
-                    y = cstr_model->heightPercentage();
-                    if (y < min)
-                        min = y;
-                    if (y > max)
-                        max = y;
-                }
-            }
-            for (auto cstrId : event->model()->nextConstraints() )
-            {
-                if(cstr_model->id() == cstrId )
-                {
-                    y = cstr_model->heightPercentage();
-                    if (y < min)
-                        min = y;
-                    if (y > max)
-                        max = y;
-                }
-            }
-        }
-
-    }
-    min -= timeNode->model()->y();
-    max -= timeNode->model()->y();
-
-	timeNode->view()->setExtremities(int(rect.height() * min), int(rect.height() * max));
-    if (m_ongoingCommand)
-        timeNode->view()->setMoving(true);
-    else
-        timeNode->view()->setMoving(false);
-
-}
-
-
-/////////////////////////////////////////////////////////////////////
 // USER INTERACTIONS
 
 void TemporalScenarioPresenter::on_deletePressed()
@@ -390,6 +261,8 @@ void TemporalScenarioPresenter::on_scenarioPressedWithControl(QPointF point, QPo
 
 }
 
+// TODO mettre dans ScenarioCommandManager
+#include "Commands/Scenario/CreateEvent.hpp"
 void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
     EventData data{};
@@ -415,7 +288,7 @@ void TemporalScenarioPresenter::on_scenarioReleased(QPointF point, QPointF scene
         }
     }
 
-	auto cmd = new CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
+    auto cmd = new Scenario::Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
 														  m_viewModel->sharedProcessModel()),
 							   data);
     this->submitCommand(cmd);
@@ -451,9 +324,6 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, 
     event->model()->changeTimeNode(timeNodeId);
 }
 
-/////////////////////////////////////////////////////////////////////
-// MOVING ELEMENTS COMMANDS
-
 
 // NOTE utile ?
 void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
@@ -475,6 +345,11 @@ void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
             }
         }
     }
+}
+
+bool TemporalScenarioPresenter::ongoingCommand()
+{
+    return m_cmdManager->m_ongoingCommand;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -573,7 +448,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
 						   timeNode_model->y() * rect.height()});
 
     m_timeNodes.push_back(timeNode_presenter);
-    updateTimeNode(timeNode_model->id());
+    m_viewInterface->updateTimeNode(timeNode_model->id());
 
     connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
             this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
@@ -668,6 +543,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
         constraint_presenter->deselect();
     });
 
-    updateTimeNode( findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
-    updateTimeNode( findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
+    m_viewInterface->updateTimeNode( findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
+    m_viewInterface->updateTimeNode( findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
 }
