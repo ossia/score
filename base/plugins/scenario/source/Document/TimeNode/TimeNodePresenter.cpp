@@ -35,6 +35,13 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel *model,
 
     connect(&(m_model->metadata),  &ModelMetadata::colorChanged,
             m_view,                &TimeNodeView::changeColor);
+
+    connect(m_model,    &TimeNodeModel::inspectorCreated,
+            [=] ()
+    {
+        if (! m_view->isSelected())
+            m_view->setSelected(true);
+    });
 }
 
 TimeNodePresenter::~TimeNodePresenter()

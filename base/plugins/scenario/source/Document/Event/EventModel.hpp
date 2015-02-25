@@ -104,6 +104,7 @@ class EventModel : public IdentifiedObject<EventModel>
         // inspector -> presenter
         void constraintSelected(QString);
         void inspectPreviousElement();
+        void inspectorCreated();
 
 	private:
 		void setTopY(double val);

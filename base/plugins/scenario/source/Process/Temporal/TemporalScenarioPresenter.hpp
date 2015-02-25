@@ -95,6 +95,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		void moveConstraint(ConstraintData data);
         void moveTimeNode(EventData data);
 
+        void snapEventToTimeNode(EventData* data);
+
 		void on_ctrlStateChanged(bool);
 
 	private:

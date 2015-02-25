@@ -20,7 +20,7 @@ void InspectorPanelModel::newItemInspected(QObject* item)
 
 void InspectorPanelModel::lastItemInspected()
 {
-    if (!m_lastInspectedObjects.isEmpty())
+    if (m_lastInspectedObjects.size() > 1)
     {
         m_lastInspectedObjects.removeLast();
         emit setNewItem(m_lastInspectedObjects.back());

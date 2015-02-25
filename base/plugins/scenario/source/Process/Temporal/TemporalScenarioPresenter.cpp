@@ -42,6 +42,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 
+#include <QtMath>
+
 using namespace Scenario;
 using namespace Command;
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
@@ -266,6 +268,8 @@ void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> cons
             if (dateChanged)
                 view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_millisecPerPixel,
                                            rect.height() * cstr_model->heightPercentage()});
+            else
+                view(pres)->setY(qreal(rect.height() * cstr_model->heightPercentage()));
 
 			view(pres)->setDefaultWidth(cstr_model->defaultDuration().msec() / m_millisecPerPixel);
 			view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_millisecPerPixel);
@@ -279,7 +283,7 @@ void TemporalScenarioPresenter::on_constraintMoved(id_type<ConstraintModel> cons
             auto endTimeNode = findById(m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
 
-            if (cstr_model->startDate().msec() != 0 && dateChanged )
+            if (cstr_model->startDate().msec() != 0)
             {
                 auto startTimeNode = findById(m_events, cstr_model->startEvent())->model()->timeNode();
                 updateTimeNode(startTimeNode);
@@ -569,6 +573,8 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, 
 //  an event and another event -> CreateConstraint
 void TemporalScenarioPresenter::createConstraint(EventData data)
 {
+
+
 	using namespace std;
 	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
 	data.relativeY = data.y / m_view->boundingRect().height();
@@ -655,6 +661,28 @@ void TemporalScenarioPresenter::moveTimeNode(EventData data)
 
     sendOngoingCommand(cmd);}
 
+// NOTE utile ?
+void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
+{
+    EventPresenter* event = findById(m_events, data->eventClickedId);
+
+    for (TimeNodePresenter* tn : m_timeNodes)
+    {
+        if(event->model()->timeNode() != tn->id() && event->view()->collidesWithItem(tn->view()) )
+        {
+            qreal x = data->x;
+            qreal a = tn->view()->scenePos().x();
+            int dist = qSqrt( qPow(a-x,2));
+
+            if (dist < 50)
+            {
+                data->x = tn->view()->scenePos().x();
+                data->dDate.setMSecs(data->x * m_millisecPerPixel);
+            }
+        }
+    }
+}
+
 void TemporalScenarioPresenter::on_ctrlStateChanged(bool ctrlPressed)
 {
 	if(!m_ongoingCommand)
@@ -687,7 +715,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 			this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
 
 	connect(event_presenter, &EventPresenter::eventMoved,
-			this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
+            this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
 	connect(event_presenter, &EventPresenter::eventMovedWithControl,
 			this,			 &TemporalScenarioPresenter::createConstraint);
 	connect(event_presenter, &EventPresenter::eventReleased,
@@ -714,11 +742,15 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
                 return;
             }
         }
-        m_lastInspectedObjects.push_back(event_model);
     });
 
     connect(event_presenter,    &EventPresenter::inspectPreviousElement,
-            this,               &TemporalScenarioPresenter::lastElementSelected);
+            [=] ()
+    {
+        emit lastElementSelected();
+        event_presenter->deselect();
+        event_view->update();
+    });
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -757,7 +789,13 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     });
 
     connect(timeNode_presenter, &TimeNodePresenter::inspectPreviousElement,
-            this,               &TemporalScenarioPresenter::lastElementSelected);
+            [=] ()
+    {
+        emit lastElementSelected();
+        timeNode_presenter->deselect();
+        timeNode_view->update();
+    });
+
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -795,7 +833,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     {
         auto event = findById(m_events, id_type<EventModel>(evId.toInt()));
         event->view()->setSelected(true);
-        m_lastInspectedObjects.push_back(constraint_view_model);
         elementSelected(event->model());
         constraint_presenter->deselect();
     });

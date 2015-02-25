@@ -40,6 +40,8 @@ void TimeNodeView::paint(QPainter *painter,
 
 //    painter->setPen(QPen(QBrush(QColor(0,200,0)), 1, Qt::SolidLine));
 //    painter->drawRect(boundingRect());
+
+    m_moving = false;
 }
 
 QRectF TimeNodeView::boundingRect() const

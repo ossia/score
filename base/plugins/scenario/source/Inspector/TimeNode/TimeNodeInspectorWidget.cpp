@@ -85,6 +85,8 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 
     connect(splitBtn,   &QPushButton::clicked,
             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
+
+    emit m_timeNodeModel->inspectorCreated();
 }
 
 

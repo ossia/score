@@ -115,7 +115,7 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent *m)
 		if(m->pos() != m_clickedPoint)
 		*/
 
-        // TODO effet bizarre : un léger déplacement est autorisé la première foirs ... D'où est ce que ça sort ?
+        // TODO effet bizarre : un léger déplacement est autorisé la première fois ... D'où est ce que ça sort ?
 
         if (m->modifiers() == Qt::ShiftModifier)
         {

@@ -52,6 +52,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void newEvent(id_type<EventModel> eventId);
         void eventSelected(QString);
         void inspectPreviousElement();
+        void inspectorCreated();
 
 	public slots:
 

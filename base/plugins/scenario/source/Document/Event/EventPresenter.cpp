@@ -58,6 +58,13 @@ EventPresenter::EventPresenter(EventModel* model,
 
     connect(m_model,    &EventModel::inspectPreviousElement,
             this,       &EventPresenter::inspectPreviousElement);
+
+    connect(m_model,    &EventModel::inspectorCreated,
+            [this] ()
+    {
+        if (! this->view()->isSelected())
+            this->view()->setSelected(true);
+    });
 }
 
 EventPresenter::~EventPresenter()
@@ -101,5 +108,6 @@ EventData EventPresenter::pointToEventData(QPointF p) const
 	d.eventClickedId = id();
 	d.x = p.x();
 	d.y = p.y();
+    d.scenePos = view()->mapToScene(p);
 	return d;
 }
