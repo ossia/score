@@ -35,6 +35,8 @@
 #include "Commands/RemoveMultipleElements.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 
+#include "ScenarioCommandManager.hpp"
+
 #include <tools/utilsCPP11.hpp>
 
 #include <QDebug>
@@ -50,9 +52,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 												   ProcessViewInterface* view,
 												   QObject* parent):
 	ProcessPresenterInterface{"TemporalScenarioPresenter", parent},
-	m_viewModel{static_cast<TemporalScenarioViewModel*>(process_view_model)},
+    m_viewModel{static_cast<TemporalScenarioViewModel*>(process_view_model)},
 	m_view{static_cast<TemporalScenarioView*>(view)}
 {
+    m_cmdManager = new ScenarioCommandManager(this);
+
 	/////// Setup of existing data
 	// For each constraint & event, display' em
 	for(auto event_model : model(m_viewModel)->events())
@@ -351,55 +355,17 @@ void TemporalScenarioPresenter::updateTimeNode(id_type<TimeNodeModel> id)
 }
 
 
-#include <core/document/Document.hpp>
-#include <core/document/DocumentPresenter.hpp>
-void TemporalScenarioPresenter::sendOngoingCommand(iscore::SerializableCommand* cmd)
-{
-	if(m_ongoingCommand && cmd->id() != m_ongoingCommandId)
-	{
-		rollbackOngoingCommand();
-	}
-
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
-	if(!m_ongoingCommand)
-	{
-		m_ongoingCommand = true;
-		m_ongoingCommandId = cmd->id();
-		doc->presenter()->initiateOngoingCommand(cmd, m_viewModel->sharedProcessModel());
-	}
-	else
-	{
-		doc->presenter()->continueOngoingCommand(cmd);
-	}
-}
-
-void TemporalScenarioPresenter::finishOngoingCommand()
-{
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
-    m_ongoingCommand = false;
-    doc->presenter()->validateOngoingCommand();
-    m_ongoingCommandId = -1;
-}
-
-void TemporalScenarioPresenter::rollbackOngoingCommand()
-{
-	auto doc = iscore::documentFromObject(m_viewModel->sharedProcessModel());
-	doc->presenter()->rollbackOngoingCommand();
-	m_ongoingCommand = false;
-	m_ongoingCommandId = -1;
-}
-
 /////////////////////////////////////////////////////////////////////
 // USER INTERACTIONS
 
 void TemporalScenarioPresenter::on_deletePressed()
 {
-    deleteSelection();
+    m_cmdManager->deleteSelection();
 }
 
 void TemporalScenarioPresenter::on_clearPressed()
 {
-    clearContentFromSelection();
+    m_cmdManager->clearContentFromSelection();
 }
 
 void TemporalScenarioPresenter::on_scenarioPressed()
@@ -470,85 +436,6 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 				 [] (typename InputVector::value_type c) { return c->isSelected(); });
 }
 
-void TemporalScenarioPresenter::clearContentFromSelection()
-{
-	using namespace Scenario::Command;
-	// 1. Select items
-	std::vector<TemporalConstraintPresenter*> constraintsToRemove;
-	std::vector<EventPresenter*> eventsToRemove;
-
-	copyIfSelected(m_constraints, constraintsToRemove);
-	copyIfSelected(m_events, eventsToRemove);
-
-	QVector<iscore::SerializableCommand*> commands;
-
-	// 3. Create a Delete command for each. For now : only emptying.
-    for(auto& constraint : constraintsToRemove)
-	{
-		commands.push_back(
-					new ClearConstraint(
-						ObjectPath::pathFromObject("BaseElementModel",
-												   viewModel(constraint)->model())));
-	}
-
-    for(auto& event : eventsToRemove)
-	{
-		commands.push_back(
-					new ClearEvent(
-						ObjectPath::pathFromObject("BaseElementModel",
-												   event->model())));
-	}
-
-	// 4. Make a meta-command that binds them all and calls undo & redo on the queue.
-	auto cmd = new RemoveMultipleElements{std::move(commands)};
-    emit submitCommand(cmd);
-}
-
-void TemporalScenarioPresenter::deleteSelection()
-{
-    // TODO quelques comportements bizarres à régler ...
-
-   //*
-    using namespace Scenario::Command;
-    // 1. Select items
-    std::vector<TemporalConstraintPresenter*> constraintsToRemove;
-    std::vector<EventPresenter*> eventsToRemove;
-
-    copyIfSelected(m_constraints, constraintsToRemove);
-    copyIfSelected(m_events, eventsToRemove);
-
-    if (constraintsToRemove.size() != 0 || eventsToRemove.size() != 0 )
-    {
-        QVector<iscore::SerializableCommand*> commands;
-
-        // 2. Create a Delete command for each. For now : only emptying.
-        for(auto& constraint : constraintsToRemove)
-        {
-            commands.push_back(
-                        new RemoveConstraint(
-                            ObjectPath::pathFromObject("BaseElementModel",
-                                                       m_viewModel->sharedProcessModel()),
-                            constraint->abstractConstraintViewModel()->model() ));
-        }
-
-        for(auto& event : eventsToRemove)
-        {
-            commands.push_back(
-                        new RemoveEvent(
-                            ObjectPath::pathFromObject("BaseElementModel",
-                                                       m_viewModel->sharedProcessModel()),
-                            event->model()) );
-
-        }
-
-        // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
-        auto cmd = new RemoveMultipleElements{std::move(commands)};
-
-        if (cmd) emit submitCommand(cmd);
-    }
-   // */
-}
-
 void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> arg)
 {
 	if (m_currentlySelectedEvent != arg)
@@ -564,102 +451,9 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, 
     event->model()->changeTimeNode(timeNodeId);
 }
 
-#include <algorithm>
-
-// Three cases :
-// We are between :
-//  an event and nothing -> CreateEventAfterEvent
-//  an event and a timenode -> CreateEventAfterEventOnTimeNode
-//  an event and another event -> CreateConstraint
-void TemporalScenarioPresenter::createConstraint(EventData data)
-{
-
-
-	using namespace std;
-	data.dDate.setMSecs(data.x * m_millisecPerPixel - model(m_viewModel)->event(data.eventClickedId)->date().msec());
-	data.relativeY = data.y / m_view->boundingRect().height();
-
-	auto cmdPath = ObjectPath::pathFromObject("BaseElementModel",
-											  m_viewModel->sharedProcessModel());
-
-	// We rollback so that we don't get polluted
-	// by the "fake" created events / timenodes.
-	if(m_ongoingCommand)
-		rollbackOngoingCommand();
-
-	QList<EventPresenter*> collidingEvents;
-	copy_if(begin(m_events), end(m_events), back_inserter(collidingEvents),
-			[] (EventPresenter* ev) { return ev->view()->isUnderMouse(); });
-
-	QList<TimeNodePresenter*> collidingTimeNodes;
-	copy_if(begin(m_timeNodes), end(m_timeNodes), back_inserter(collidingTimeNodes),
-			[] (TimeNodePresenter* tn) { return tn->view()->isUnderMouse(); });
-
-	if(collidingEvents.empty())
-	{
-		if(collidingTimeNodes.empty())
-		{
-			sendOngoingCommand(new CreateEventAfterEvent(move(cmdPath), data));
-		}
-		else
-		{
-			auto tn = collidingTimeNodes.first();
-			data.endTimeNodeId = tn->id();
-			data.dDate = tn->model()->date() - model(m_viewModel)->event(data.eventClickedId)->date();
-
-			sendOngoingCommand(new CreateEventAfterEventOnTimeNode(move(cmdPath), data));
-		}
-	}
-	else
-	{
-		sendOngoingCommand(new CreateConstraint(move(cmdPath),
-								   data.eventClickedId,
-								   collidingEvents.first()->id()));
-    }
-}
-
-
 /////////////////////////////////////////////////////////////////////
 // MOVING ELEMENTS COMMANDS
 
-void TemporalScenarioPresenter::moveEventAndConstraint(EventData data)
-{
-	data.dDate.setMSecs(data.x * m_millisecPerPixel);
-	data.relativeY = data.y / m_view->boundingRect().height();
-
-	auto cmd = new Command::MoveEvent(ObjectPath::pathFromObject("BaseElementModel",
-															   m_viewModel->sharedProcessModel()),
-									data);
-
-	sendOngoingCommand(cmd);
-}
-
-void TemporalScenarioPresenter::moveConstraint(ConstraintData data)
-{
-	data.dDate.setMSecs(data.x * m_millisecPerPixel);
-	data.relativeY = data.y / m_view->boundingRect().height();
-
-	auto cmd = new Command::MoveConstraint(ObjectPath::pathFromObject("BaseElementModel",
-																	m_viewModel->sharedProcessModel()),
-									data);
-
-
-	sendOngoingCommand(cmd);
-}
-
-void TemporalScenarioPresenter::moveTimeNode(EventData data)
-{
-    auto ev = findById(m_events, data.eventClickedId);
-    data.y = ev->view()->y();
-    data.dDate.setMSecs(data.x * m_millisecPerPixel);
-    data.relativeY = data.y / m_view->boundingRect().height();
-
-
-    auto cmd = new Command::MoveTimeNode(ObjectPath::pathFromObject("BaseElementModel",
-                                                               m_viewModel->sharedProcessModel()),
-                                    data);
-
-    sendOngoingCommand(cmd);}
 
 // NOTE utile ?
 void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
@@ -683,19 +477,6 @@ void TemporalScenarioPresenter::snapEventToTimeNode(EventData* data)
     }
 }
 
-void TemporalScenarioPresenter::on_ctrlStateChanged(bool ctrlPressed)
-{
-	if(!m_ongoingCommand)
-		return;
-
-	rollbackOngoingCommand();
-
-	if(ctrlPressed)
-	{ createConstraint(m_lastData); }
-	else
-	{ moveEventAndConstraint(m_lastData); }
-}
-
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
 
@@ -711,23 +492,15 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 						rect.y() + rect.height() * event_model->heightPercentage()});
 
 	m_events.push_back(event_presenter);
+
+    // ------------------------------------------------------------
+    // selection and inspector management
+
 	connect(event_presenter, &EventPresenter::eventSelected,
 			this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
 
-	connect(event_presenter, &EventPresenter::eventMoved,
-            this,			 &TemporalScenarioPresenter::moveEventAndConstraint);
-	connect(event_presenter, &EventPresenter::eventMovedWithControl,
-			this,			 &TemporalScenarioPresenter::createConstraint);
-	connect(event_presenter, &EventPresenter::eventReleased,
-			this,			 &TemporalScenarioPresenter::finishOngoingCommand);
-	connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-			this,			 &TemporalScenarioPresenter::finishOngoingCommand);
-
-	connect(event_presenter, &EventPresenter::ctrlStateChanged,
-			this,			 &TemporalScenarioPresenter::on_ctrlStateChanged);
-
-	connect(event_presenter, &EventPresenter::elementSelected,
-			this,			 &TemporalScenarioPresenter::elementSelected);
+    connect(event_presenter, &EventPresenter::elementSelected,
+            this,			 &TemporalScenarioPresenter::elementSelected);
 
     connect(event_presenter,    &EventPresenter::constraintSelected,
             [=] (QString cstrId)
@@ -751,6 +524,40 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
         event_presenter->deselect();
         event_view->update();
     });
+
+    // ------------------------------------------------------------
+    // event -> Command Manager
+
+	connect(event_presenter, &EventPresenter::eventMoved,
+            [=] (EventData data)
+    {
+        m_cmdManager->moveEventAndConstraint(data);
+    });
+
+	connect(event_presenter, &EventPresenter::eventMovedWithControl,
+            [=] (EventData data)
+    {
+        m_cmdManager->createConstraint(data);
+    });
+	connect(event_presenter, &EventPresenter::eventReleased,
+            [=] ()
+    {
+        m_cmdManager->finishOngoingCommand();
+    });
+
+    connect(event_presenter, &EventPresenter::eventReleasedWithControl,
+            [=] ()
+    {
+        m_cmdManager->finishOngoingCommand();
+    });
+
+	connect(event_presenter, &EventPresenter::ctrlStateChanged,
+            [=] (bool state)
+    {
+        m_cmdManager->on_ctrlStateChanged(state);
+    });
+
+
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -768,16 +575,27 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     m_timeNodes.push_back(timeNode_presenter);
     updateTimeNode(timeNode_model->id());
 
-	connect(timeNode_presenter, &TimeNodePresenter::timeNodeMoved,
-			this,				&TemporalScenarioPresenter::moveTimeNode);
-    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
-			this,				&TemporalScenarioPresenter::finishOngoingCommand);
+    connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
+            this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
 
+    // ------------------------------------------------------------
+    // timeNode -> command manager
+	connect(timeNode_presenter, &TimeNodePresenter::timeNodeMoved,
+            [=] (EventData data)
+    {
+        m_cmdManager->moveTimeNode(data);
+    });
+    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
+            [=] ()
+    {
+        m_cmdManager->finishOngoingCommand();
+    });
+
+    // ------------------------------------------------------------
+    // selection and inspector management
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
 			this,				&TemporalScenarioPresenter::elementSelected);
 
-    connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
-            this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
 
     connect(timeNode_presenter, &TimeNodePresenter::eventSelected,
             [=] (QString evId)
@@ -795,7 +613,6 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
         timeNode_presenter->deselect();
         timeNode_view->update();
     });
-
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -815,18 +632,32 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
 	m_constraints.push_back(constraint_presenter);
 
-	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
-			this,					&TemporalScenarioPresenter::moveConstraint);
-	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
-			this,					&TemporalScenarioPresenter::finishOngoingCommand);
+    connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
+            this,					&TemporalScenarioPresenter::submitCommand);
 
-	connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
-			this,					&TemporalScenarioPresenter::submitCommand);
-	connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
-			this,					&TemporalScenarioPresenter::elementSelected);
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
             this,					&TemporalScenarioPresenter::on_askUpdate);
+
+    // ------------------------------------------------------------
+    // constraint -> command manager
+
+	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
+            [=] (ConstraintData data)
+    {
+        m_cmdManager->moveConstraint(data);
+    });
+	connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
+            [=] ()
+    {
+        m_cmdManager->finishOngoingCommand();
+    });
+
+    // ------------------------------------------------------------
+    // selection and inspector management
+
+    connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
+            this,					&TemporalScenarioPresenter::elementSelected);
 
     connect(constraint_presenter,   &TemporalConstraintPresenter::eventSelected,
             [=] (QString evId)

@@ -20,6 +20,7 @@ class EventModel;
 class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
+class ScenarioCommandManager;
 struct EventData;
 struct ConstraintData;
 
@@ -27,7 +28,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 {
 	Q_OBJECT
 
-		Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
+    friend class ScenarioCommandManager;
+
+            Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
 				   READ currentlySelectedEvent
 				   WRITE setCurrentlySelectedEvent
 				   NOTIFY currentlySelectedEventChanged)
@@ -81,23 +84,38 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 		void on_askUpdate();
 
-        void clearContentFromSelection();
-        void deleteSelection();
-
 	private slots:
 		void setCurrentlySelectedEvent(id_type<EventModel> arg);
-		void createConstraint(EventData data);
 
         void addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
-		// Moving
-		void moveEventAndConstraint(EventData data);
-		void moveConstraint(ConstraintData data);
-        void moveTimeNode(EventData data);
-
         void snapEventToTimeNode(EventData* data);
 
-		void on_ctrlStateChanged(bool);
+    protected:
+        // TODO faire passer l'abstract et utiliser des free functions de cast
+        std::vector<TemporalConstraintPresenter*> m_constraints;
+        std::vector<EventPresenter*> m_events;
+        std::vector<TimeNodePresenter*> m_timeNodes;
+
+        // Necessary for the real-time creation / moving of elements
+        bool m_ongoingCommand{};
+        int m_ongoingCommandId{-1};
+
+        int m_horizontalZoomSliderVal{};
+        double m_millisecPerPixel{1};
+
+        TemporalScenarioViewModel* m_viewModel;
+        TemporalScenarioView* m_view;
+
+
+        id_type<EventModel> m_currentlySelectedEvent{};
+        int m_pointedEvent{0};
+
+
+        EventData m_lastData{};
+
+        QVector<QObject*> m_lastInspectedObjects{};
+        QVector<QObject*> m_undoLastInspectedObjects{};
 
 	private:
 		void on_eventCreated_impl(EventModel* event_model);
@@ -105,33 +123,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 		void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
         void updateTimeNode(id_type<TimeNodeModel> id);
 
-		// Helpers
-		void sendOngoingCommand(iscore::SerializableCommand* cmd);
-		void finishOngoingCommand();
-		void rollbackOngoingCommand();
+
+        ScenarioCommandManager* m_cmdManager;
 
 
-		TemporalScenarioViewModel* m_viewModel;
-		TemporalScenarioView* m_view;
-
-		// TODO faire passer l'abstract et utiliser des free functions de cast
-		std::vector<TemporalConstraintPresenter*> m_constraints;
-		std::vector<EventPresenter*> m_events;
-		std::vector<TimeNodePresenter*> m_timeNodes;
-
-		id_type<EventModel> m_currentlySelectedEvent{};
-		int m_pointedEvent{0};
-
-		double m_millisecPerPixel{1};
-
-		int m_horizontalZoomSliderVal{};
-
-		// Necessary for the real-time creation / moving of elements
-		bool m_ongoingCommand{};
-		int m_ongoingCommandId{-1};
-
-		EventData m_lastData{};
-
-        QVector<QObject*> m_lastInspectedObjects{};
-        QVector<QObject*> m_undoLastInspectedObjects{};
 };
