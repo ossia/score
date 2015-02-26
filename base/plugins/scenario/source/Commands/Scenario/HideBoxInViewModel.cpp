@@ -1,5 +1,6 @@
 #include "HideBoxInViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -25,8 +26,7 @@ HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_v
 	SerializableCommand{"ScenarioControl",
 						"HideBoxInViewModel",
 						QObject::tr("Hide box in constraint view")},
-	m_constraintViewModelPath{ObjectPath::pathFromObject("BaseElementModel",
-														 constraint_vm)}
+	m_constraintViewModelPath{iscore::IDocument::path(constraint_vm)}
 {
 	m_constraintPreviousId = constraint_vm->shownBox();
 }

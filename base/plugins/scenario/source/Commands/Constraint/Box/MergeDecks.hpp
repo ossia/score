@@ -3,6 +3,7 @@
 #include "Deck/MoveProcessViewModel.hpp"
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
 #include "RemoveDeckFromBox.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 namespace Scenario
 {
 	namespace Command
@@ -14,12 +15,12 @@ namespace Scenario
 		 * This moves all the PVMs of the first deck, the source, into the second, the target,
 		 * and deletes the source.
 		 */
-		class MergeDecks : public AggregateCommand
+		class MergeDecks : public iscore::AggregateCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:
 				MergeDecks(const ObjectPath& mergeSource,
-						  const ObjectPath& mergeTarget):
+						   const ObjectPath& mergeTarget):
 					AggregateCommand{
 						"ScenarioControl",
 						"MergeDeck",
@@ -29,7 +30,7 @@ namespace Scenario
 
 					for(ProcessViewModelInterface* pvm : sourcedeck->processViewModels())
 					{
-						addCommand(new MoveProcessViewModel(ObjectPath::pathFromObject(pvm),
+						addCommand(new MoveProcessViewModel(iscore::IDocument::path(pvm),
 															ObjectPath{mergeTarget}));
 					}
 

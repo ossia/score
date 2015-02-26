@@ -11,6 +11,7 @@
 #include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include "FakeEngine.hpp"
 
@@ -51,8 +52,7 @@ SerializableCommand *IScoreCohesionControl::instantiateUndoCommand(QString name,
 
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
-	// TODO use current document.
-
+	// TODO this should take a document as argument.
 	// Fetch the selected constraints
 	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
 	auto constraints = pres->findChildren<AbstractConstraintPresenter*>();
@@ -75,7 +75,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 			l.push_back(DeviceExplorer::addressFromModelIndex(index));
 		}
 
-		auto cmd = new CreateCurvesFromAddresses{ObjectPath::pathFromObject("BaseElementModel", constraint), l};
+		auto cmd = new CreateCurvesFromAddresses{iscore::IDocument::path(constraint), l};
 		submitCommand(cmd);
 	}
 }

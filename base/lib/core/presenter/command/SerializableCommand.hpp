@@ -15,7 +15,7 @@ namespace iscore
 			using Command::Command;
 
 			QByteArray serialize() const;
-			void deserialize(QByteArray&);
+			void deserialize(const QByteArray &);
 
 		protected:
 			virtual void serializeImpl(QDataStream&) const = 0;

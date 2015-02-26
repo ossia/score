@@ -19,6 +19,7 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 
 
 using namespace iscore;
@@ -114,7 +115,7 @@ class ShowBoxInViewModelTest: public QObject
 
 
 			// Show the box
-			auto cmd_showbox = new ShowBoxInViewModel(ObjectPath::pathFromObject(constraint_viewmodel), box2Id);
+			auto cmd_showbox = new ShowBoxInViewModel(iscore::IDocument::path(constraint_viewmodel), box2Id);
 			stack.push(cmd_showbox);
 			QCOMPARE(constraint_viewmodel->isBoxShown(), true);
 			QCOMPARE(constraint_viewmodel->shownBox(), box2Id);

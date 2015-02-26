@@ -4,6 +4,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "core/interface/document/DocumentInterface.hpp"
 
 // TODO changer gestion de UID
 #define CMD_UID 1002
@@ -40,7 +41,7 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue durati
 
 	m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
 
-	m_cmd = new MoveEvent{ObjectPath::pathFromObject("BaseElementModel", constraint->parent()), endEventData};
+	m_cmd = new MoveEvent{iscore::IDocument::path(constraint->parent()), endEventData};
 }
 
 void ResizeConstraint::undo()

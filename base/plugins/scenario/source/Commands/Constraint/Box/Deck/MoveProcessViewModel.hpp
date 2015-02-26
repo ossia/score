@@ -1,7 +1,7 @@
 #pragma once
 #include "CopyProcessViewModel.hpp"
 #include "RemoveProcessViewModelFromDeck.hpp"
-#include "Commands/Aggregate/AggregateCommand.hpp"
+#include <core/presenter/command/AggregateCommand.hpp>
 
 namespace Scenario
 {
@@ -13,7 +13,7 @@ namespace Scenario
 		 * Moves a process view from a Deck to another.
 		 * Note : this must be in the same constraint.
 		 */
-		class MoveProcessViewModel : public AggregateCommand
+		class MoveProcessViewModel : public iscore::AggregateCommand
 		{
 #include <tests/helpers/FriendDeclaration.hpp>
 			public:

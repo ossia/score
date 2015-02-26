@@ -91,7 +91,7 @@ void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 	m_document->presenter()->applyCommand(cmd);
 }
 
-iscore::SerializableCommand* Presenter::instantiateUndoCommand(QString parent_name, QString name, QByteArray data)
+iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name, const QString& name, const QByteArray& data)
 {
 	for(auto& ccmd : m_customControls)
 	{

@@ -26,7 +26,7 @@ InspectorPanel::~InspectorPanel()
 void InspectorPanel::newItemInspected (QObject* object)
 {
 	delete m_itemInspected;
-	m_itemInspected = InspectorControl::getInspectorWidget(object);
+	m_itemInspected = InspectorControl::makeInspectorWidget(object);
 
 	m_layout->addWidget(m_itemInspected);
 	connect(object, &QObject::destroyed,

@@ -31,6 +31,7 @@ void runScore(QString scoreFilePath);
 
 void FakeEngineExecute()
 {
+	//TODO pass it in argument.
 	auto doc = qApp->findChild<BaseElementModel*>("BaseElementModel");
 	auto data = JSONToZeroTwo(doc->toJson());
 

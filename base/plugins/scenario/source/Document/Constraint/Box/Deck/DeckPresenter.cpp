@@ -12,6 +12,7 @@
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
 
@@ -150,8 +151,7 @@ void DeckPresenter::on_bottomHandleChanged(int newHeight)
 
 void DeckPresenter::on_bottomHandleReleased()
 {
-	auto path = ObjectPath::pathFromObject("BaseElementModel",
-										   m_model);
+	auto path = iscore::IDocument::path(m_model);
 
 	auto cmd = new Command::ResizeDeckVertically{std::move(path),
 												 m_view->height()};

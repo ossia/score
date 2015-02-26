@@ -24,6 +24,7 @@
 #include <QCompleter>
 #include <QToolButton>
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 
@@ -197,8 +198,7 @@ void EventInspectorWidget::on_addAddressClicked()
 {
 	auto txt = m_addressLineEdit->text();
 	auto cmd = new Command::AddStateToEvent{
-					ObjectPath::pathFromObject("BaseElementModel",
-											   m_eventModel),
+					iscore::IDocument::path(m_eventModel),
 					txt};
 
 	emit submitCommand(cmd);
@@ -211,8 +211,7 @@ void EventInspectorWidget::on_conditionChanged()
 	if(txt == m_eventModel->condition()) return;
 
 	auto cmd = new Command::SetCondition{
-					ObjectPath::pathFromObject("BaseElementModel",
-											   m_eventModel),
+					iscore::IDocument::path(m_eventModel),
 					txt};
 
 	emit submitCommand(cmd);
@@ -224,7 +223,7 @@ void EventInspectorWidget::on_scriptingNameChanged(QString newName)
     if (newName == m_eventModel->metadata.name())
         return;
 
-    auto cmd = new Command::ChangeElementName<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new Command::ChangeElementName<EventModel>(iscore::IDocument::path(inspectedObject()),
                 newName);
 
     submitCommand(cmd);
@@ -235,7 +234,7 @@ void EventInspectorWidget::on_labelChanged(QString newLabel)
     if (newLabel== m_eventModel->metadata.label())
         return;
 
-    auto cmd = new Command::ChangeElementLabel<EventModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new Command::ChangeElementLabel<EventModel>(iscore::IDocument::path(inspectedObject()),
                 newLabel);
 
     submitCommand(cmd);
@@ -251,7 +250,7 @@ void EventInspectorWidget::on_colorChanged(QColor newColor)
     if (newColor == m_eventModel->metadata.color())
         return;
 
-    auto cmd = new Command::ChangeElementColor<EventModel>(ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new Command::ChangeElementColor<EventModel>(iscore::IDocument::path(inspectedObject()),
                                                            newColor);
 
     submitCommand(cmd);

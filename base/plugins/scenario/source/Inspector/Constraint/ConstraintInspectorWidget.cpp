@@ -23,8 +23,12 @@
 #include "Inspector/MetadataWidget.hpp"
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include <InspectorControl.hpp>
+#include "Document/BaseElement/BaseElementPresenter.hpp"
 
 #include <tools/ObjectPath.hpp>
+#include "core/interface/document/DocumentInterface.hpp"
+#include "core/document/DocumentModel.hpp"
+#include "core/document/Document.hpp"
 
 #include <QFrame>
 #include <QLineEdit>
@@ -37,6 +41,8 @@
 #include <QLabel>
 
 using namespace Scenario::Command;
+using namespace iscore;
+using namespace iscore::IDocument;
 
 
 class Separator : public QFrame
@@ -50,7 +56,6 @@ class Separator : public QFrame
 		}
 };
 
-#include "Document/BaseElement/BaseElementPresenter.hpp"
 ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent) :
     InspectorWidgetBase (parent)
 {
@@ -62,9 +67,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget (TemporalConstraintViewMode
 	connect(setAsDisplayedConstraint, &QPushButton::clicked,
 			[this] ()
 	{
-		auto base = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
-		base->setDisplayedConstraint(this->model());
+		auto& base = get<BaseElementPresenter>(documentFromObject(m_currentConstraint->model()));
+
+		base.setDisplayedConstraint(this->model());
 	});
+
 	m_properties.push_back(setAsDisplayedConstraint);
 
     // Events
@@ -244,8 +251,7 @@ void ConstraintInspectorWidget::updateDisplayedValues (TemporalConstraintViewMod
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
 	auto cmd = new AddProcessToConstraint{
-			   ObjectPath::pathFromObject("BaseElementModel",
-										  model()),
+			   iscore::IDocument::path(model()),
 			   processName};
 	emit submitCommand(cmd);
 }
@@ -253,18 +259,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 void ConstraintInspectorWidget::createBox()
 {
 	auto cmd = new AddBoxToConstraint(
-				   ObjectPath::pathFromObject(
-					   "BaseConstraintModel",
-					   model()));
+				   iscore::IDocument::path(model()));
     emit submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
 {
     auto cmd = new AddProcessViewInNewDeck(
-                ObjectPath::pathFromObject(
-                    "BaseConstraintModel",
-                    model()),
+				iscore::IDocument::path(model()),
                 processName);
     emit submitCommand(cmd);
 }
@@ -296,7 +298,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
 {
     /*
-    auto cmd = new ChangeElementName<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementName<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
                 newName);
 
     submitCommand(cmd);
@@ -306,7 +308,7 @@ void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
 void ConstraintInspectorWidget::on_labelChanged(QString newLabel)
 {
     /*
-    auto cmd = new ChangeElementLabel<ConstraintModel>( ObjectPath::pathFromObject(inspectedObject()),
+	auto cmd = new ChangeElementLabel<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
                 newLabel);
 
     submitCommand(cmd);
@@ -329,7 +331,7 @@ void ConstraintInspectorWidget::on_colorChanged(QColor)
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
 	InspectorSectionWidget* newProc = new InspectorSectionWidget (process->processName());
-	auto widg = InspectorControl::getInspectorWidget(process);
+	auto widg = InspectorControl::makeInspectorWidget(process);
 
 	newProc->addContent(widg);
 

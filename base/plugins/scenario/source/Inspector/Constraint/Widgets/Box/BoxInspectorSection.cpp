@@ -11,6 +11,7 @@
 
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 
+#include "core/interface/document/DocumentInterface.hpp"
 #include <QtWidgets/QVBoxLayout>
 
 using namespace Scenario::Command;
@@ -43,9 +44,7 @@ BoxInspectorSection::BoxInspectorSection(QString name,
 void BoxInspectorSection::createDeck()
 {
 	auto cmd = new AddDeckToBox(
-						ObjectPath::pathFromObject(
-							"BaseConstraintModel",
-							m_model));
+						iscore::IDocument::path(m_model));
 	emit submitCommand(cmd);
 }
 

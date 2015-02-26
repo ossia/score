@@ -15,7 +15,7 @@ QByteArray SerializableCommand::serialize() const
 	return arr;
 }
 
-void SerializableCommand::deserialize(QByteArray& arr)
+void SerializableCommand::deserialize(const QByteArray& arr)
 {
 	QDataStream s(arr);
 	s.setVersion(QDataStream::Qt_5_3);

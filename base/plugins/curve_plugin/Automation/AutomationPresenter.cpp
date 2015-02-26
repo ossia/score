@@ -3,6 +3,8 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationView.hpp"
 
+#include <core/interface/document/DocumentInterface.hpp>
+
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
 										 ProcessViewInterface* view,
 										 QObject* parent):
@@ -114,7 +116,7 @@ void AutomationPresenter::on_modelPointsChanged()
 			[&] (QPointF pt)
 	{
 		auto cmd = new AddPoint{
-				ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
+				iscore::IDocument::path(m_viewModel->model()),
 				pt.x(), pt.y()};
 
 		submitCommand(cmd);
@@ -124,7 +126,7 @@ void AutomationPresenter::on_modelPointsChanged()
 			[&] (QPointF oldPt, QPointF newPt)
 	{
 		auto cmd = new MovePoint{
-				   ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
+				   iscore::IDocument::path(m_viewModel->model()),
 				   oldPt.x(), newPt.x(), newPt.y()};
 
 		submitCommand(cmd);
@@ -134,7 +136,7 @@ void AutomationPresenter::on_modelPointsChanged()
 			[&] (QPointF pt)
 	{
 		auto cmd = new RemovePoint{
-				   ObjectPath::pathFromObject("BaseElementModel", m_viewModel->model()),
+				   iscore::IDocument::path(m_viewModel->model()),
 				   pt.x()};
 
 		submitCommand(cmd);

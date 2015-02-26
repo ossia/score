@@ -1,7 +1,7 @@
 #include "RemoveMultipleElements.hpp"
 #include <QApplication>
 
-#include "core/presenter/Presenter.hpp"
+#include <core/interface/presenter/PresenterInterface.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -31,8 +31,7 @@ void RemoveMultipleElements::undo()
     for(auto& cmd_pack : m_serializedCommandsDecreasing)
 	{
 		// Put this in the ctor as an optimization
-		auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-		auto cmd = presenter->instantiateUndoCommand(cmd_pack.first.first,
+		auto cmd = IPresenter::instantiateUndoCommand(cmd_pack.first.first,
 													 cmd_pack.first.second,
 													 cmd_pack.second);
 
@@ -45,8 +44,7 @@ void RemoveMultipleElements::redo()
     for(auto& cmd_pack : m_serializedCommands)
 	{
 		// Put this in the ctor as an optimization
-		auto presenter = qApp->findChild<iscore::Presenter*>("Presenter");
-		auto cmd = presenter->instantiateUndoCommand(cmd_pack.first.first,
+		auto cmd = IPresenter::instantiateUndoCommand(cmd_pack.first.first,
 													 cmd_pack.first.second,
 													 cmd_pack.second);
 

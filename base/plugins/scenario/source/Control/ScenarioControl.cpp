@@ -62,7 +62,9 @@ ScenarioControl::ScenarioControl(QObject* parent):
 
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
-	// TODO the stuff here must apply on the current document
+	// TODO the stuff here must apply on the current document.
+	// The Global Presenter should have a pointer to the currently displayed document
+	// (and ways to set it).
 	// We have to chase the findchild<DocumentDelegate.../BaseElement...>.
 	using namespace iscore;
 
@@ -142,7 +144,7 @@ void ScenarioControl::setPresenter(iscore::Presenter*)
 {
 }
 
-iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(QString name, QByteArray data)
+iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
 	using namespace Scenario::Command;
 

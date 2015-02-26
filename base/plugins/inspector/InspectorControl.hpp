@@ -27,7 +27,7 @@ class InspectorControl : public iscore::PluginControlInterface
 		{ return m_factories; }
 
 
-		static InspectorWidgetBase* getInspectorWidget(QObject* object);
+		static InspectorWidgetBase* makeInspectorWidget(QObject* object);
 
 	public slots:
 		void on_newInspectorWidgetFactory(iscore::FactoryInterface *e)
