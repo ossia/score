@@ -58,7 +58,7 @@ namespace iscore
             static std::map<MenuType, QString> map();
 
             template<typename MenuType>
-            static QString name (MenuType elt);
+            static QString name(MenuType elt);
 
         private:
             static const std::map<ToplevelMenuElement, QString> m_map;

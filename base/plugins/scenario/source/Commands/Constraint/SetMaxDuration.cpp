@@ -17,7 +17,7 @@ SetMaxDuration::SetMaxDuration() :
 {
 }
 
-SetMaxDuration::SetMaxDuration (ObjectPath&& constraintPath, TimeValue newDuration) :
+SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration) :
     SerializableCommand {"ScenarioControl",
     CMD_NAME,
     CMD_DESC
@@ -31,13 +31,13 @@ m_newDuration {newDuration}
 void SetMaxDuration::undo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMaxDuration (m_oldDuration);
+    constraint->setMaxDuration(m_oldDuration);
 }
 
 void SetMaxDuration::redo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMaxDuration (m_newDuration);
+    constraint->setMaxDuration(m_newDuration);
 }
 
 int SetMaxDuration::id() const
@@ -45,25 +45,25 @@ int SetMaxDuration::id() const
     return canMerge() ? CMD_UID : -1;
 }
 
-bool SetMaxDuration::mergeWith (const QUndoCommand* other)
+bool SetMaxDuration::mergeWith(const QUndoCommand* other)
 {
-    if (other->id() != id() )
+    if(other->id() != id())
     {
         return false;
     }
 
-    auto cmd = static_cast<const SetMaxDuration*> (other);
+    auto cmd = static_cast<const SetMaxDuration*>(other);
     m_newDuration = cmd->m_newDuration;
 
     return true;
 }
 
-void SetMaxDuration::serializeImpl (QDataStream& s) const
+void SetMaxDuration::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_oldDuration << m_newDuration;
 }
 
-void SetMaxDuration::deserializeImpl (QDataStream& s)
+void SetMaxDuration::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_oldDuration >> m_newDuration;
 }

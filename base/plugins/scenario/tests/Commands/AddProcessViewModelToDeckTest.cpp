@@ -29,33 +29,33 @@ class AddProcessViewModelToDeckTest: public QObject
             // Maybe do a fake process list, with a fake process for unit tests.
             NamedObject* obj = new NamedObject {"obj", qApp};
             ProcessList* plist = new ProcessList {obj};
-            plist->addProcess (new ScenarioFactory);
+            plist->addProcess(new ScenarioFactory);
 
             // Setup
             ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
-            auto cmd_proc = new AddProcessToConstraint (
+            auto cmd_proc = new AddProcessToConstraint(
             {
                 {"ConstraintModel", {}}
             }, "Scenario");
-            stack.push (cmd_proc);
+            stack.push(cmd_proc);
             auto procId = cmd_proc->m_createdProcessId;
 
-            auto cmd_box = new AddBoxToConstraint (
+            auto cmd_box = new AddBoxToConstraint(
             ObjectPath { {"ConstraintModel", {}} });
-            stack.push (cmd_box);
+            stack.push(cmd_box);
             auto boxId = cmd_box->m_createdBoxId;
 
-            auto cmd_deck = new AddDeckToBox (
+            auto cmd_deck = new AddDeckToBox(
                 ObjectPath
             {
                 {"ConstraintModel", {}},
                 {"BoxModel", boxId}
             });
             auto deckId = cmd_deck->m_createdDeckId;
-            stack.push (cmd_deck);
+            stack.push(cmd_deck);
 
-            auto cmd_pvm = new AddProcessViewModelToDeck (
+            auto cmd_pvm = new AddProcessViewModelToDeck(
             {
                 {"ConstraintModel", {}},
                 {"BoxModel", boxId},
@@ -65,16 +65,16 @@ class AddProcessViewModelToDeckTest: public QObject
                 {"ConstraintModel", {}},
                 {"ScenarioModel", procId}
             });
-            stack.push (cmd_pvm);
+            stack.push(cmd_pvm);
 
-            for (int i = 4; i -- > 0;)
+            for(int i = 4; i -- > 0;)
             {
-                while (stack.canUndo() )
+                while(stack.canUndo())
                 {
                     stack.undo();
                 }
 
-                while (stack.canRedo() )
+                while(stack.canRedo())
                 {
                     stack.redo();
                 }
@@ -84,6 +84,6 @@ class AddProcessViewModelToDeckTest: public QObject
         }
 };
 
-QTEST_MAIN (AddProcessViewModelToDeckTest)
+QTEST_MAIN(AddProcessViewModelToDeckTest)
 #include "AddProcessViewModelToDeckTest.moc"
 

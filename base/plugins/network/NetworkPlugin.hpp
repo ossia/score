@@ -15,11 +15,11 @@ class NetworkPlugin :
     public iscore::SettingsDelegateFactoryInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
-        Q_INTERFACES (iscore::Autoconnect_QtInterface
-                      iscore::PluginControlInterface_QtInterface
+        Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
+        Q_INTERFACES(iscore::Autoconnect_QtInterface
+                     iscore::PluginControlInterface_QtInterface
 //					 iscore::PanelFactoryPluginInterface
-                      iscore::SettingsDelegateFactoryInterface_QtInterface)
+                     iscore::SettingsDelegateFactoryInterface_QtInterface)
 
     public:
         NetworkPlugin();
@@ -33,7 +33,7 @@ class NetworkPlugin :
 
         // CustomCommand interface
         virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make (QString) override;
+        virtual iscore::PluginControlInterface* control_make(QString) override;
 
         /* Pour les groupes
         // Panel interface

@@ -22,12 +22,12 @@ class ObjectPath
         friend Deserializer<DataStream>;
         friend Deserializer<JSON>;
 
-        friend ObjectIdentifierVector::iterator begin (ObjectPath& path)
+        friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
         {
             return path.m_objectIdentifiers.begin();
         }
 
-        friend ObjectIdentifierVector::iterator end (ObjectPath& path)
+        friend ObjectIdentifierVector::iterator end(ObjectPath& path)
         {
             return path.m_objectIdentifiers.end();
         }
@@ -41,19 +41,19 @@ class ObjectPath
         ObjectPath() = default;
         QString toString() const;
 
-        ObjectPath (QVector<ObjectIdentifier>&& vec) :
-            m_objectIdentifiers {std::move (vec) }
+        ObjectPath(QVector<ObjectIdentifier>&& vec) :
+            m_objectIdentifiers {std::move(vec) }
         {
         }
 
-        ObjectPath (std::initializer_list<ObjectIdentifier> lst) :
+        ObjectPath(std::initializer_list<ObjectIdentifier> lst) :
             m_objectIdentifiers {lst}
         {
         }
 
-        ObjectPath (const ObjectPath& obj) = default;
-        ObjectPath (ObjectPath&&) = default;
-        ObjectPath& operator= (ObjectPath && ) = default;
+        ObjectPath(const ObjectPath& obj) = default;
+        ObjectPath(ObjectPath&&) = default;
+        ObjectPath& operator= (ObjectPath &&) = default;
         ObjectPath& operator= (const ObjectPath&) = default;
 
         /**
@@ -64,10 +64,10 @@ class ObjectPath
          * @return An object path allowing to find again "obj" in the software object hierarchy
          * (that can be serialized to text, and does not use pointers).
          */
-        static ObjectPath pathFromObject (QString origin, QObject* obj);
+        static ObjectPath pathFromObject(QString origin, QObject* obj);
 
-        static ObjectPath pathBetweenObjects (const QObject* const parent_obj, QObject* target_object);
-        static ObjectPath pathFromObject (QObject* origin_object);
+        static ObjectPath pathBetweenObjects(const QObject* const parent_obj, QObject* target_object);
+        static ObjectPath pathFromObject(QObject* origin_object);
 
         /**
          * @brief find the object described by the ObjectPath
@@ -81,11 +81,11 @@ class ObjectPath
         template<typename T>
         T* find() const
         {
-            auto ptr = dynamic_cast<T*> (find_impl() );
+            auto ptr = dynamic_cast<T*>(find_impl());
 
-            if (!ptr)
+            if(!ptr)
             {
-                throw std::runtime_error ("Invalid cast on ObjectPath::find<T>");
+                throw std::runtime_error("Invalid cast on ObjectPath::find<T>");
             }
 
             return ptr;
@@ -100,4 +100,4 @@ class ObjectPath
         ObjectIdentifierVector m_objectIdentifiers;
 };
 
-Q_DECLARE_METATYPE (ObjectPath)
+Q_DECLARE_METATYPE(ObjectPath)

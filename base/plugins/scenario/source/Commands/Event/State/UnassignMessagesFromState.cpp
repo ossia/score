@@ -17,15 +17,15 @@ int UnassignMessagesFromState::id() const
     return -1;
 }
 
-bool UnassignMessagesFromState::mergeWith (const QUndoCommand* other)
+bool UnassignMessagesFromState::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void UnassignMessagesFromState::serializeImpl (QDataStream&) const
+void UnassignMessagesFromState::serializeImpl(QDataStream&) const
 {
 }
 
-void UnassignMessagesFromState::deserializeImpl (QDataStream&)
+void UnassignMessagesFromState::deserializeImpl(QDataStream&)
 {
 }

@@ -16,7 +16,7 @@ class DeviceEditDialog : public QDialog
 
     public:
 
-        DeviceEditDialog (QWidget* parent);
+        DeviceEditDialog(QWidget* parent);
         ~DeviceEditDialog();
 
         //TODO: use QVariant ???
@@ -25,7 +25,7 @@ class DeviceEditDialog : public QDialog
         */
         QList<QString> getSettings() const;
 
-        void setSettings (QList<QString>& settings);
+        void setSettings(QList<QString>& settings);
 
     protected slots:
 
@@ -42,7 +42,7 @@ class DeviceEditDialog : public QDialog
         QComboBox* m_protocolCBox;
         ProtocolSettingsWidget* m_protocolWidget;
         QGridLayout* m_gLayout;
-        QList<QList<QString> > m_previousSettings;
+        QList<QList<QString>> m_previousSettings;
         int m_index;
 };
 

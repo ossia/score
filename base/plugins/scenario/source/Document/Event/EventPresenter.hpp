@@ -11,7 +11,7 @@ class EventPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        EventPresenter (EventModel* model, EventView* view, QObject* parent);
+        EventPresenter(EventModel* model, EventView* view, QObject* parent);
         virtual ~EventPresenter();
 
         id_type<EventModel> id() const;
@@ -27,24 +27,24 @@ class EventPresenter : public NamedObject
         void deselect();
 
     signals:
-        void eventSelected (id_type<EventModel>);
+        void eventSelected(id_type<EventModel>);
 
-        void eventMoved (EventData);
-        void eventMovedWithControl (EventData);
+        void eventMoved(EventData);
+        void eventMovedWithControl(EventData);
         void eventReleased();
-        void eventReleasedWithControl (EventData);
+        void eventReleasedWithControl(EventData);
 
-        void ctrlStateChanged (bool);
+        void ctrlStateChanged(bool);
 
-        void linesExtremityChange (int, double);
+        void linesExtremityChange(int, double);
 
-        void elementSelected (QObject*);
-        void constraintSelected (QString);
+        void elementSelected(QObject*);
+        void constraintSelected(QString);
         void inspectPreviousElement();
-        void eventInspectorCreated (id_type<EventModel>);
+        void eventInspectorCreated(id_type<EventModel>);
 
     private:
-        EventData pointToEventData (QPointF p) const;
+        EventData pointToEventData(QPointF p) const;
 
         EventModel* m_model {};
         EventView* m_view {};

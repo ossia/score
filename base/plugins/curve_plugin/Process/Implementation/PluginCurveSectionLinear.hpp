@@ -40,7 +40,7 @@ class PluginCurveSectionLinear : public PluginCurveSection
         Q_OBJECT
     public:
         // Constructor. Source and destination points must be modified consequently
-        PluginCurveSectionLinear (QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest); // Parent : PluginCurvePoint ? PluginCurveView ?
+        PluginCurveSectionLinear(QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest);  // Parent : PluginCurvePoint ? PluginCurveView ?
         // Bounding rectangle;
         QRectF boundingRect() const;
         // shape
@@ -48,7 +48,7 @@ class PluginCurveSectionLinear : public PluginCurveSection
         // Section's path
         QPainterPath path() const;
         // Paint the curve
-        void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 };
 
 #endif // PLUGINCURVESECTION_HPP

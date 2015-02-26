@@ -29,20 +29,20 @@ class ObjectIdentifier
         }
     public:
         ObjectIdentifier() = default;
-        ObjectIdentifier (const char* name) :
+        ObjectIdentifier(const char* name) :
             m_objectName {name}
         { }
 
-        ObjectIdentifier (QString name, boost::optional<int32_t> id) :
-            m_objectName {std::move (name) },
-                     m_id {std::move (id) }
+        ObjectIdentifier(QString name, boost::optional<int32_t> id) :
+            m_objectName {std::move(name) },
+                     m_id {std::move(id) }
         { }
 
         template<typename T>
-        ObjectIdentifier (QString name, id_type<T> id) :
-            m_objectName {std::move (name) }
+        ObjectIdentifier(QString name, id_type<T> id) :
+            m_objectName {std::move(name) }
         {
-            if (id.val() )
+            if(id.val())
             {
                 m_id = id.val().get();
             }
@@ -63,7 +63,7 @@ class ObjectIdentifier
         boost::optional<int32_t> m_id;
 };
 
-Q_DECLARE_METATYPE (ObjectIdentifier)
+Q_DECLARE_METATYPE(ObjectIdentifier)
 
 typedef QVector<ObjectIdentifier> ObjectIdentifierVector;
 

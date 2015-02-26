@@ -6,7 +6,7 @@ class AddProcessViewModelWidget : public QWidget
         Q_OBJECT
 
     public:
-        AddProcessViewModelWidget (DeckInspectorSection* parent);
+        AddProcessViewModelWidget(DeckInspectorSection* parent);
 
     private:
 

@@ -36,7 +36,7 @@ class PluginCurveSectionBezier : public PluginCurveSection
 {
         Q_OBJECT
     public:
-        PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest);
+        PluginCurveSectionBezier(PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest);
 };
 
 #endif // PLUGINCURVESECTIONBEZIER_HPP

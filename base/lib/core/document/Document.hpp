@@ -19,7 +19,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Document (QWidget* parentview, QObject* parent);
+            Document(QWidget* parentview, QObject* parent);
 
             DocumentModel* model() const
             {
@@ -37,10 +37,10 @@ namespace iscore
             }
 
             void newDocument();
-            void setDocumentPanel (DocumentDelegateFactoryInterface* p);
+            void setDocumentPanel(DocumentDelegateFactoryInterface* p);
 
-            void setupPanel (PanelPresenterInterface* pres,
-                             PanelFactoryInterface* factory);
+            void setupPanel(PanelPresenterInterface* pres,
+                            PanelFactoryInterface* factory);
             void reset();
 
             QByteArray save();
@@ -53,11 +53,11 @@ namespace iscore
              */
             void newDocument_start();
 
-            void on_elementSelected (QObject*);
+            void on_elementSelected(QObject*);
             void on_lastElementSelected();
 
         public slots:
-            void load (QByteArray data);
+            void load(QByteArray data);
 
         private:
             void setupDocument();

@@ -19,35 +19,35 @@ class CreateEventAfterEventTest: public QObject
     private slots:
         void CreateTest()
         {
-            ScenarioModel* scenar = new ScenarioModel (id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface> {0}, qApp);
             EventData data {};
             data.eventClickedId = scenar->startEvent()->id();
-            data.dDate.setMSecs (10);
+            data.dDate.setMSecs(10);
             data.relativeY = 0.5;
 
-            CreateEventAfterEvent cmd (
+            CreateEventAfterEvent cmd(
             {
                 {"ScenarioModel", {}},
             }, data);
 
             cmd.redo();
-            QCOMPARE ( (int) scenar->events().size(), 2);
-            QCOMPARE (scenar->event (cmd.m_createdEventId)->heightPercentage(), 0.5);
+            QCOMPARE((int) scenar->events().size(), 2);
+            QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
             cmd.undo();
-            QCOMPARE ( (int) scenar->events().size(), 1);
+            QCOMPARE((int) scenar->events().size(), 1);
 
             try
             {
-                scenar->event (cmd.m_createdEventId);
-                QFAIL ("Event call did not throw!");
+                scenar->event(cmd.m_createdEventId);
+                QFAIL("Event call did not throw!");
             }
-            catch (...) { }
+            catch(...) { }
 
             cmd.redo();
 
-            QCOMPARE ( (int) scenar->events().size(), 2);
-            QCOMPARE (scenar->event (cmd.m_createdEventId)->heightPercentage(), 0.5);
+            QCOMPARE((int) scenar->events().size(), 2);
+            QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 
             // Delete them else they stay in qApp !
@@ -56,7 +56,7 @@ class CreateEventAfterEventTest: public QObject
         }
 };
 
-QTEST_MAIN (CreateEventAfterEventTest)
+QTEST_MAIN(CreateEventAfterEventTest)
 #include "CreateEventAfterEventTest.moc"
 
 

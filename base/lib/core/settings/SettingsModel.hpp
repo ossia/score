@@ -17,16 +17,16 @@ namespace iscore
             {
             }
 
-            void addSettingsModel (SettingsDelegateModelInterface* model)
+            void addSettingsModel(SettingsDelegateModelInterface* model)
             {
-                model->setParent (this);
-                m_pluginModels.insert (model);
+                model->setParent(this);
+                m_pluginModels.insert(model);
             }
 
         protected:
-            virtual void childEvent (QChildEvent* ev) override
+            virtual void childEvent(QChildEvent* ev) override
             {
-                QCoreApplication::sendEvent (parent(), ev);
+                QCoreApplication::sendEvent(parent(), ev);
             }
 
         private:

@@ -17,17 +17,17 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         Q_OBJECT
 
     public:
-        BaseElementPresenter (iscore::DocumentPresenter* parent_presenter,
-                              iscore::DocumentDelegateModelInterface* model,
-                              iscore::DocumentDelegateViewInterface* view);
+        BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
+                             iscore::DocumentDelegateModelInterface* model,
+                             iscore::DocumentDelegateViewInterface* view);
         virtual ~BaseElementPresenter() = default;
 
         ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
 
     public slots:
-        void setDisplayedConstraint (ConstraintModel*);
-        void setDisplayedObject (ObjectPath);
+        void setDisplayedConstraint(ConstraintModel*);
+        void setDisplayedObject(ObjectPath);
 
         void on_askUpdate();
 
@@ -40,10 +40,10 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void on_displayedConstraintChanged();
 
     private slots:
-        void on_horizontalZoomChanged (int);
-        void on_positionSliderChanged (int);
+        void on_horizontalZoomChanged(int);
+        void on_positionSliderChanged(int);
 
-        void on_viewWidthChanged (int);
+        void on_viewWidthChanged(int);
 
     private:
         BaseElementView* view() const;

@@ -13,8 +13,8 @@ RemovePoint::RemovePoint() :
 {
 }
 
-RemovePoint::RemovePoint (ObjectPath&& path,
-                          double x) :
+RemovePoint::RemovePoint(ObjectPath&& path,
+                         double x) :
     SerializableCommand {"AutomationControl",
     CMD_NAME,
     CMD_DESC
@@ -29,13 +29,13 @@ m_x {x}
 void RemovePoint::undo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->addPoint (m_x, m_oldY);
+    autom->addPoint(m_x, m_oldY);
 }
 
 void RemovePoint::redo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->removePoint (m_x);
+    autom->removePoint(m_x);
 }
 
 int RemovePoint::id() const
@@ -43,17 +43,17 @@ int RemovePoint::id() const
     return CMD_UID;
 }
 
-bool RemovePoint::mergeWith (const QUndoCommand* other)
+bool RemovePoint::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void RemovePoint::serializeImpl (QDataStream& s) const
+void RemovePoint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_x << m_oldY;
 }
 
-void RemovePoint::deserializeImpl (QDataStream& s)
+void RemovePoint::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_x >> m_oldY;
 }

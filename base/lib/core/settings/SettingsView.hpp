@@ -17,8 +17,8 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            SettingsView (QWidget* parent);
-            void addSettingsView (SettingsDelegateViewInterface* view);
+            SettingsView(QWidget* parent);
+            void addSettingsView(SettingsDelegateViewInterface* view);
 
         private:
             std::set<SettingsDelegateViewInterface*> m_pluginViews;

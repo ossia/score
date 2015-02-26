@@ -13,8 +13,8 @@ MovePoint::MovePoint() :
 {
 }
 
-MovePoint::MovePoint (ObjectPath&& path,
-                      double oldx, double newx, double newy) :
+MovePoint::MovePoint(ObjectPath&& path,
+                     double oldx, double newx, double newy) :
     SerializableCommand {"AutomationControl",
     CMD_NAME,
     CMD_DESC
@@ -31,13 +31,13 @@ m_newY {newy}
 void MovePoint::undo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->movePoint (m_newX, m_oldX, m_oldY);
+    autom->movePoint(m_newX, m_oldX, m_oldY);
 }
 
 void MovePoint::redo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->movePoint (m_oldX, m_newX, m_newY);
+    autom->movePoint(m_oldX, m_newX, m_newY);
 }
 
 int MovePoint::id() const
@@ -45,17 +45,17 @@ int MovePoint::id() const
     return CMD_UID;
 }
 
-bool MovePoint::mergeWith (const QUndoCommand* other)
+bool MovePoint::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void MovePoint::serializeImpl (QDataStream& s) const
+void MovePoint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_oldX << m_oldY << m_newX << m_newY;
 }
 
-void MovePoint::deserializeImpl (QDataStream& s)
+void MovePoint::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_oldX >> m_oldY >> m_newX >> m_newY;
 }

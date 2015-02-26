@@ -28,7 +28,7 @@ namespace iscore
             Q_OBJECT
             friend class Application;
         public:
-            PluginManager (QObject* parent) :
+            PluginManager(QObject* parent) :
                 NamedObject {"PluginManager", parent}
             {
             }
@@ -55,8 +55,8 @@ namespace iscore
             // Else we can't blacklist / unblacklist plug-ins.
             QStringList m_pluginsOnSystem;
 
-            void loadFactories (QObject* plugin);
-            void dispatch (QObject* plugin);
+            void loadFactories(QObject* plugin);
+            void dispatch(QObject* plugin);
             void clearPlugins();
 
             QStringList pluginsBlacklist();

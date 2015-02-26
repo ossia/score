@@ -9,14 +9,14 @@ class AddressBar : public QWidget
 {
         Q_OBJECT
     public:
-        AddressBar (QWidget* parent);
-        void setTargetObject (ObjectPath&&);
+        AddressBar(QWidget* parent);
+        void setTargetObject(ObjectPath&&);
 
     signals:
-        void objectSelected (ObjectPath path);
+        void objectSelected(ObjectPath path);
 
     private slots:
-        void on_elementClicked (ClickableLabel*);
+        void on_elementClicked(ClickableLabel*);
 
     private:
         QHBoxLayout* m_layout {};

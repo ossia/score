@@ -12,16 +12,16 @@ class AutomationPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
     public:
-        AutomationPresenter (ProcessViewModelInterface* model,
-                             ProcessViewInterface* view,
-                             QObject* parent);
+        AutomationPresenter(ProcessViewModelInterface* model,
+                            ProcessViewInterface* view,
+                            QObject* parent);
 
-        virtual void setWidth (int width) override;
-        virtual void setHeight (int height) override;
+        virtual void setWidth(int width) override;
+        virtual void setHeight(int height) override;
 
         virtual void putToFront();
         virtual void putBack();
-        virtual void on_horizontalZoomChanged (int);
+        virtual void on_horizontalZoomChanged(int);
         virtual void parentGeometryChanged();
         virtual id_type<ProcessViewModelInterface> viewModelId() const;
         virtual id_type<ProcessSharedModelInterface> modelId() const;

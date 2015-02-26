@@ -10,22 +10,22 @@ class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT
     public:
-        NetworkSettingsView (QObject* parent);
+        NetworkSettingsView(QObject* parent);
 
-        void setMasterPort (int val);
-        void setClientPort (int val);
-        void setClientName (QString text);
+        void setMasterPort(int val);
+        void setClientPort(int val);
+        void setClientName(QString text);
 
         virtual QWidget* getWidget() override;
         void load();
         void doConnections();
 
     signals:
-        void submitCommand (iscore::Command* cmd);
+        void submitCommand(iscore::Command* cmd);
 
     public slots:
-        void on_masterPortChanged (int);
-        void on_clientPortChanged (int);
+        void on_masterPortChanged(int);
+        void on_clientPortChanged(int);
         void on_clientNameChanged();
 
     private:

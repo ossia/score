@@ -18,8 +18,8 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         Q_OBJECT
 
     public:
-        BaseElementModel (QByteArray data, QObject* parent);
-        BaseElementModel (QObject* parent);
+        BaseElementModel(QByteArray data, QObject* parent);
+        BaseElementModel(QObject* parent);
         virtual ~BaseElementModel() = default;
 
         ConstraintModel* constraintModel() const

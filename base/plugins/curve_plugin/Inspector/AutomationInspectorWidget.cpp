@@ -19,13 +19,13 @@
 
 #include <QApplication>
 
-AutomationInspectorWidget::AutomationInspectorWidget (AutomationModel* automationModel,
+AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automationModel,
         QWidget* parent) :
     InspectorWidgetBase {nullptr},
 m_model {automationModel}
 {
-    setObjectName ("AutomationInspectorWidget");
-    setParent (parent);
+    setObjectName("AutomationInspectorWidget");
+    setParent(parent);
 
     QVector<QWidget*> vec;
 
@@ -33,78 +33,78 @@ m_model {automationModel}
     auto vlay = new QVBoxLayout{widg};
     auto hlay = new QHBoxLayout{};
 
-    vec.push_back (widg);
+    vec.push_back(widg);
 
     // LineEdit (QComplete it?)
     auto m_lineEdit = new QLineEdit;
-    m_lineEdit->setText (m_model->address() );
-    connect (m_model, SIGNAL (addressChanged (QString) ),
-             m_lineEdit,	SLOT (setText (QString) ) );
+    m_lineEdit->setText(m_model->address());
+    connect(m_model, SIGNAL(addressChanged(QString)),
+            m_lineEdit,	SLOT(setText(QString)));
 
-    connect (m_lineEdit, &QLineEdit::editingFinished,
-             [ = ] ()
+    connect(m_lineEdit, &QLineEdit::editingFinished,
+            [ = ]()
     {
-        on_addressChange (m_lineEdit->text() );
+        on_addressChange(m_lineEdit->text());
     });
 
-    vlay->addWidget (m_lineEdit);
+    vlay->addWidget(m_lineEdit);
 
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    auto deviceexplorer = DeviceExplorer::getModel (automationModel);
+    auto deviceexplorer = DeviceExplorer::getModel(automationModel);
 
-    if (deviceexplorer)
+    if(deviceexplorer)
     {
         // LineEdit completion
         auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_lineEdit->setCompleter (completer);
+        m_lineEdit->setCompleter(completer);
 
         // Menu button
         auto pb = new QPushButton {"/"};
 
         auto menuview = new QMenuView {pb};
-        menuview->setModel (deviceexplorer);
+        menuview->setModel(deviceexplorer);
 
-        connect (menuview, &QMenuView::triggered,
-                 [ = ] (const QModelIndex & m)
+        connect(menuview, &QMenuView::triggered,
+                [ = ](const QModelIndex & m)
         {
-            auto addr = DeviceExplorer::addressFromModelIndex (m);
+            auto addr = DeviceExplorer::addressFromModelIndex(m);
 
-            m_lineEdit->setText (addr);
-            on_addressChange (addr);
-        } );
+            m_lineEdit->setText(addr);
+            on_addressChange(addr);
+        });
 
-        pb->setMenu (menuview);
+        pb->setMenu(menuview);
 
-        hlay->addWidget (pb);
+        hlay->addWidget(pb);
     }
 
     // Add it to a new deck
     auto display = new QPushButton{"~"};
-    hlay->addWidget (display);
-    connect (display,    &QPushButton::clicked,
-             [ = ] ()
+    hlay->addWidget(display);
+    connect(display,    &QPushButton::clicked,
+            [ = ]()
     {
-        createViewInNewDeck (QString::number (m_model->id_val() ) );
+        createViewInNewDeck(QString::number(m_model->id_val()));
     });
 
-    vlay->addLayout (hlay);
+    vlay->addLayout(hlay);
 
 
-    updateSectionsView (static_cast<QVBoxLayout*> (layout() ), vec);
+    updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
 // TODO validation
-void AutomationInspectorWidget::on_addressChange (const QString& newText)
+void AutomationInspectorWidget::on_addressChange(const QString& newText)
 {
-    if (newText != m_model->address() )
+    if(newText != m_model->address())
     {
         auto cmd = new ChangeAddress
         {
-            iscore::IDocument::path (m_model),
+            iscore::IDocument::path(m_model),
             newText
         };
 
-        submitCommand (cmd);
+        submitCommand(cmd);
     }
 }

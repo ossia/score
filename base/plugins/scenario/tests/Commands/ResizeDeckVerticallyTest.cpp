@@ -12,11 +12,11 @@ class ResizeDeckVerticallyTest: public QObject
     private slots:
         void test()
         {
-            QFAIL ("TODO");
+            QFAIL("TODO");
         }
 };
 
-QTEST_MAIN (ResizeDeckVerticallyTest)
+QTEST_MAIN(ResizeDeckVerticallyTest)
 #include "ResizeDeckVerticallyTest.moc"
 
 

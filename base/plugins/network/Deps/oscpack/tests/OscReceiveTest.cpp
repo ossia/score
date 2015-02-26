@@ -60,8 +60,8 @@ namespace osc
     {
         protected:
 
-            void ProcessMessage ( const osc::ReceivedMessage& m,
-                                  const IpEndpointName& remoteEndpoint )
+            void ProcessMessage(const osc::ReceivedMessage& m,
+                                const IpEndpointName& remoteEndpoint)
             {
                 (void) remoteEndpoint; // suppress unused parameter warning
 
@@ -78,7 +78,7 @@ namespace osc
                     ReceivedMessageArgumentStream args = m.ArgumentStream();
                     ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 
-                    if ( std::strcmp ( m.AddressPattern(), "/test1" ) == 0 )
+                    if(std::strcmp(m.AddressPattern(), "/test1") == 0)
                     {
 
                         // example #1:
@@ -93,7 +93,7 @@ namespace osc
                                   << a1 << " " << a2 << " " << a3 << " " << a4 << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/test2" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/test2") == 0)
                     {
 
                         // example #2:
@@ -105,7 +105,7 @@ namespace osc
                         float a3 = (arg++)->AsFloat();
                         const char* a4 = (arg++)->AsString();
 
-                        if ( arg != m.ArgumentsEnd() )
+                        if(arg != m.ArgumentsEnd())
                         {
                             throw ExcessArgumentException();
                         }
@@ -114,7 +114,7 @@ namespace osc
                                   << a1 << " " << a2 << " " << a3 << " " << a4 << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/test3" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/test3") == 0)
                     {
 
                         // example #3:
@@ -126,25 +126,25 @@ namespace osc
                         // runtime. this is more flexible that the argument stream
                         // interface, which requires each argument to have a fixed type
 
-                        if ( arg->IsBool() )
+                        if(arg->IsBool())
                         {
                             bool a = (arg++)->AsBoolUnchecked();
                             std::cout << "received '/test3' message with bool argument: "
                                       << a << "\n";
                         }
-                        else if ( arg->IsInt32() )
+                        else if(arg->IsInt32())
                         {
                             int a = (arg++)->AsInt32Unchecked();
                             std::cout << "received '/test3' message with int32 argument: "
                                       << a << "\n";
                         }
-                        else if ( arg->IsFloat() )
+                        else if(arg->IsFloat())
                         {
                             float a = (arg++)->AsFloatUnchecked();
                             std::cout << "received '/test3' message with float argument: "
                                       << a << "\n";
                         }
-                        else if ( arg->IsString() )
+                        else if(arg->IsString())
                         {
                             const char* a = (arg++)->AsStringUnchecked();
                             std::cout << "received '/test3' message with string argument: '"
@@ -155,21 +155,21 @@ namespace osc
                             std::cout << "received '/test3' message with unexpected argument type\n";
                         }
 
-                        if ( arg != m.ArgumentsEnd() )
+                        if(arg != m.ArgumentsEnd())
                         {
                             throw ExcessArgumentException();
                         }
 
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/no_arguments" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/no_arguments") == 0)
                     {
 
                         args >> osc::EndMessage;
                         std::cout << "received '/no_arguments' message\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_bool" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_bool") == 0)
                     {
 
                         bool a;
@@ -177,19 +177,19 @@ namespace osc
                         std::cout << "received '/a_bool' message: " << a << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/nil" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/nil") == 0)
                     {
 
                         std::cout << "received '/nil' message\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/inf" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/inf") == 0)
                     {
 
                         std::cout << "received '/inf' message\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/an_int" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/an_int") == 0)
                     {
 
                         osc::int32 a;
@@ -197,7 +197,7 @@ namespace osc
                         std::cout << "received '/an_int' message: " << a << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_float" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_float") == 0)
                     {
 
                         float a;
@@ -205,7 +205,7 @@ namespace osc
                         std::cout << "received '/a_float' message: " << a << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_char" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_char") == 0)
                     {
 
                         char a;
@@ -215,7 +215,7 @@ namespace osc
                         std::cout << "received '/a_char' message: '" << s << "'\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/an_rgba_color" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/an_rgba_color") == 0)
                     {
 
                         osc::RgbaColor a;
@@ -223,7 +223,7 @@ namespace osc
                         std::cout << "received '/an_rgba_color' message: " << a.value << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_midi_message" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_midi_message") == 0)
                     {
 
                         osc::MidiMessage a;
@@ -231,7 +231,7 @@ namespace osc
                         std::cout << "received '/a_midi_message' message: " << a.value << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/an_int64" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/an_int64") == 0)
                     {
 
                         osc::int64 a;
@@ -239,7 +239,7 @@ namespace osc
                         std::cout << "received '/an_int64' message: " << a << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_time_tag" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_time_tag") == 0)
                     {
 
                         osc::TimeTag a;
@@ -247,7 +247,7 @@ namespace osc
                         std::cout << "received '/a_time_tag' message: " << a.value << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_double" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_double") == 0)
                     {
 
                         double a;
@@ -255,7 +255,7 @@ namespace osc
                         std::cout << "received '/a_double' message: " << a << "\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_string" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_string") == 0)
                     {
 
                         const char* a;
@@ -263,7 +263,7 @@ namespace osc
                         std::cout << "received '/a_string' message: '" << a << "'\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_symbol" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_symbol") == 0)
                     {
 
                         osc::Symbol a;
@@ -271,7 +271,7 @@ namespace osc
                         std::cout << "received '/a_symbol' message: '" << a.value << "'\n";
 
                     }
-                    else if ( std::strcmp ( m.AddressPattern(), "/a_blob" ) == 0 )
+                    else if(std::strcmp(m.AddressPattern(), "/a_blob") == 0)
                     {
 
                         osc::Blob a;
@@ -286,7 +286,7 @@ namespace osc
                     }
 
                 }
-                catch ( Exception& e )
+                catch(Exception& e)
                 {
                     std::cout << "error while parsing message: "
                               << m.AddressPattern() << ": " << e.what() << "\n";
@@ -295,12 +295,12 @@ namespace osc
     };
 
 
-    void RunReceiveTest ( int port )
+    void RunReceiveTest(int port)
     {
         osc::OscReceiveTestPacketListener listener;
-        UdpListeningReceiveSocket s (
-            IpEndpointName ( IpEndpointName::ANY_ADDRESS, port ),
-            &listener );
+        UdpListeningReceiveSocket s(
+            IpEndpointName(IpEndpointName::ANY_ADDRESS, port),
+            &listener);
 
         std::cout << "listening for input on port " << port << "...\n";
         std::cout << "press ctrl-c to end\n";
@@ -314,9 +314,9 @@ namespace osc
 
 #ifndef NO_OSC_TEST_MAIN
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-    if ( argc >= 2 && std::strcmp ( argv[1], "-h" ) == 0 )
+    if(argc >= 2 && std::strcmp(argv[1], "-h") == 0)
     {
         std::cout << "usage: OscReceiveTest [port]\n";
         return 0;
@@ -324,12 +324,12 @@ int main (int argc, char* argv[])
 
     int port = 7000;
 
-    if ( argc >= 2 )
+    if(argc >= 2)
     {
-        port = std::atoi ( argv[1] );
+        port = std::atoi(argv[1]);
     }
 
-    osc::RunReceiveTest ( port );
+    osc::RunReceiveTest(port);
 
     return 0;
 }

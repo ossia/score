@@ -20,15 +20,15 @@ class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
 
-        Q_PROPERTY (double heightPercentage
-                    READ heightPercentage
-                    WRITE setHeightPercentage
-                    NOTIFY heightPercentageChanged)
+        Q_PROPERTY(double heightPercentage
+                   READ heightPercentage
+                   WRITE setHeightPercentage
+                   NOTIFY heightPercentageChanged)
 
-        Q_PROPERTY (QString condition
-                    READ condition
-                    WRITE setCondition
-                    NOTIFY conditionChanged)
+        Q_PROPERTY(QString condition
+                   READ condition
+                   WRITE setCondition
+                   NOTIFY conditionChanged)
 
         friend void Visitor<Writer<DataStream>>::writeTo<EventModel> (EventModel& ev);
         friend void Visitor<Writer<JSON>>::writeTo<EventModel> (EventModel& ev);
@@ -36,37 +36,37 @@ class EventModel : public IdentifiedObject<EventModel>
     public:
         ModelMetadata metadata;
 
-        EventModel (id_type<EventModel>, QObject* parent);
-        EventModel (id_type<EventModel>, double yPos, QObject* parent);
+        EventModel(id_type<EventModel>, QObject* parent);
+        EventModel(id_type<EventModel>, double yPos, QObject* parent);
 
         // Copy
-        EventModel (EventModel* source,
-                    id_type<EventModel>,
-                    QObject* parent);
+        EventModel(EventModel* source,
+                   id_type<EventModel>,
+                   QObject* parent);
         ~EventModel();
 
         template<typename DeserializerVisitor>
-        EventModel (DeserializerVisitor&& vis, QObject* parent) :
+        EventModel(DeserializerVisitor&& vis, QObject* parent) :
             IdentifiedObject<EventModel> {vis, parent}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
         const QVector<id_type<ConstraintModel>>& previousConstraints() const;
         const QVector<id_type<ConstraintModel>>& nextConstraints() const;
 
-        void addNextConstraint (id_type<ConstraintModel>);
-        void addPreviousConstraint (id_type<ConstraintModel>);
+        void addNextConstraint(id_type<ConstraintModel>);
+        void addPreviousConstraint(id_type<ConstraintModel>);
 
-        bool removeNextConstraint (id_type<ConstraintModel>);
-        bool removePreviousConstraint (id_type<ConstraintModel>);
+        bool removeNextConstraint(id_type<ConstraintModel>);
+        bool removePreviousConstraint(id_type<ConstraintModel>);
 
-        void changeTimeNode (id_type<TimeNodeModel>);
+        void changeTimeNode(id_type<TimeNodeModel>);
         id_type<TimeNodeModel> timeNode() const;
 
         const std::vector<State*>& states() const;
-        void addState (State* s);
-        void removeState (id_type<State> stateId);
+        void addState(State* s);
+        void removeState(id_type<State> stateId);
 
         OSSIA::TimeNode* apiObject()
         {
@@ -76,10 +76,10 @@ class EventModel : public IdentifiedObject<EventModel>
         double heightPercentage() const;
         TimeValue date() const;
 
-        void translate (TimeValue deltaTime);
+        void translate(TimeValue deltaTime);
 
-        void setVerticalExtremity (id_type<ConstraintModel>, double);
-        void eventMovedVertically (double);
+        void setVerticalExtremity(id_type<ConstraintModel>, double);
+        void eventMovedVertically(double);
 
         ScenarioModel* parentScenario() const;
 
@@ -100,25 +100,25 @@ class EventModel : public IdentifiedObject<EventModel>
         QString condition() const;
 
     public slots:
-        void setHeightPercentage (double arg);
-        void setDate (TimeValue date);
-        void setCondition (QString arg);
+        void setHeightPercentage(double arg);
+        void setDate(TimeValue date);
+        void setCondition(QString arg);
 
     signals:
-        void heightPercentageChanged (double arg);
+        void heightPercentageChanged(double arg);
         void messagesChanged();
-        void conditionChanged (QString arg);
+        void conditionChanged(QString arg);
 
         // inspector -> presenter
-        void constraintSelected (QString);
+        void constraintSelected(QString);
         void inspectPreviousElement();
         void inspectorCreated();
 
     private:
-        void setTopY (double val);
-        void setBottomY (double val);
+        void setTopY(double val);
+        void setBottomY(double val);
 
-        void setOSSIATimeNode (OSSIA::TimeNode* timeEvent)
+        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
         {
             m_timeEvent = timeEvent;
         }

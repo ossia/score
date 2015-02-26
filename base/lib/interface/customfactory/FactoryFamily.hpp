@@ -17,7 +17,7 @@ namespace iscore
         QString name;
 
         // This function is called whenever a new factory interface is added to this family.
-        std::function<void (iscore::FactoryInterface*) > onInstantiation;
+        std::function<void (iscore::FactoryInterface*)> onInstantiation;
 
         // The factories that correspond to this CustomFactoryInterface, and
         // are registered by subsequent plugins.

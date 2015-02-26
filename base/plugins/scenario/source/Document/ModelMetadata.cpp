@@ -25,50 +25,50 @@ QString ModelMetadata::label() const
 
 
 
-void ModelMetadata::setName (QString arg)
+void ModelMetadata::setName(QString arg)
 {
-    if (m_scriptingName == arg)
+    if(m_scriptingName == arg)
     {
         return;
     }
 
     m_scriptingName = arg;
-    emit nameChanged (arg);
+    emit nameChanged(arg);
     emit metadataChanged();
 }
 
-void ModelMetadata::setComment (QString arg)
+void ModelMetadata::setComment(QString arg)
 {
-    if (m_comment == arg)
+    if(m_comment == arg)
     {
         return;
     }
 
     m_comment = arg;
-    emit commentChanged (arg);
+    emit commentChanged(arg);
     emit metadataChanged();
 }
 
-void ModelMetadata::setColor (QColor arg)
+void ModelMetadata::setColor(QColor arg)
 {
-    if (m_color == arg)
+    if(m_color == arg)
     {
         return;
     }
 
     m_color = arg;
-    emit colorChanged (arg);
+    emit colorChanged(arg);
     emit metadataChanged();
 }
 
-void ModelMetadata::setLabel (QString arg)
+void ModelMetadata::setLabel(QString arg)
 {
-    if (m_label == arg)
+    if(m_label == arg)
     {
         return;
     }
 
     m_label = arg;
-    emit labelChanged (arg);
+    emit labelChanged(arg);
     emit metadataChanged();
 }

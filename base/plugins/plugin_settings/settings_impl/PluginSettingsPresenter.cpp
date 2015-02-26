@@ -11,23 +11,23 @@
 */
 using namespace iscore;
 
-PluginSettingsPresenter::PluginSettingsPresenter (SettingsPresenter* parent,
+PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
         SettingsDelegateModelInterface* model,
         SettingsDelegateViewInterface* view) :
     SettingsDelegatePresenterInterface {parent, model, view}
 {
-    auto ps_model = static_cast<PluginSettingsModel*> (model);
-    auto ps_view  = static_cast<PluginSettingsView*> (view);
+    auto ps_model = static_cast<PluginSettingsModel*>(model);
+    auto ps_view  = static_cast<PluginSettingsView*>(view);
 
-    ps_view->view()->setModel (ps_model->model() );
+    ps_view->view()->setModel(ps_model->model());
 
-    connect (ps_model,	&PluginSettingsModel::blacklistCommand,
+    connect(ps_model,	&PluginSettingsModel::blacklistCommand,
     this,		&PluginSettingsPresenter::setBlacklistCommand);
 }
 
 void PluginSettingsPresenter::on_accept()
 {
-    if (m_blacklistCommand)
+    if(m_blacklistCommand)
     {
         m_blacklistCommand->redo();
     }
@@ -49,23 +49,23 @@ void PluginSettingsPresenter::load()
 
 PluginSettingsModel* PluginSettingsPresenter::model()
 {
-    return static_cast<PluginSettingsModel*> (m_model);
+    return static_cast<PluginSettingsModel*>(m_model);
 }
 
 PluginSettingsView* PluginSettingsPresenter::view()
 {
-    return static_cast<PluginSettingsView*> (m_view);
+    return static_cast<PluginSettingsView*>(m_view);
 }
 
-void PluginSettingsPresenter::setBlacklistCommand (BlacklistCommand* cmd)
+void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 {
-    if (!m_blacklistCommand)
+    if(!m_blacklistCommand)
     {
         m_blacklistCommand = cmd;
     }
     else
     {
-        m_blacklistCommand->mergeWith (cmd);
+        m_blacklistCommand->mergeWith(cmd);
         delete cmd;
     }
 }
@@ -74,5 +74,5 @@ void PluginSettingsPresenter::setBlacklistCommand (BlacklistCommand* cmd)
 #include <QStyle>
 QIcon PluginSettingsPresenter::settingsIcon()
 {
-    return QApplication::style()->standardIcon (QStyle::SP_CommandLink);
+    return QApplication::style()->standardIcon(QStyle::SP_CommandLink);
 }

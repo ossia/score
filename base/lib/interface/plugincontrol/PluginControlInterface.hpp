@@ -27,17 +27,17 @@ namespace iscore
         public:
             using NamedObject::NamedObject;
             virtual ~PluginControlInterface() = default;
-            virtual void populateMenus (iscore::MenubarManager*) = 0;
+            virtual void populateMenus(iscore::MenubarManager*) = 0;
             virtual void populateToolbars() = 0;
-            virtual void setPresenter (Presenter*) = 0;
+            virtual void setPresenter(Presenter*) = 0;
 
-            virtual SerializableCommand* instantiateUndoCommand (const QString& name,
+            virtual SerializableCommand* instantiateUndoCommand(const QString& name,
                     const QByteArray& data)
             {
                 return nullptr;
             }
 
         signals:
-            void submitCommand (SerializableCommand*);
+            void submitCommand(SerializableCommand*);
     };
 }

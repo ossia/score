@@ -11,20 +11,20 @@ class DeviceExplorerRemoveCommand : public iscore::SerializableCommand
 
         DeviceExplorerRemoveCommand();
 
-        void set (const QModelIndex& parentIndex, int row,
-                  const QByteArray& data,
-                  const QString& text,
-                  DeviceExplorerModel* model);
+        void set(const QModelIndex& parentIndex, int row,
+                 const QByteArray& data,
+                 const QString& text,
+                 DeviceExplorerModel* model);
 
 
         virtual void undo() override;
         virtual void redo() override;
         virtual int id() const override;
-        virtual bool mergeWith (const QUndoCommand* other) override;
+        virtual bool mergeWith(const QUndoCommand* other) override;
 
     protected:
-        virtual void serializeImpl (QDataStream&) const override;
-        virtual void deserializeImpl (QDataStream&) override;
+        virtual void serializeImpl(QDataStream&) const override;
+        virtual void deserializeImpl(QDataStream&) override;
 
 
 

@@ -24,8 +24,8 @@ class ExamplePacketListener : public osc::OscPacketListener
 {
     protected:
 
-        virtual void ProcessMessage ( const osc::ReceivedMessage& m,
-                                      const IpEndpointName& remoteEndpoint )
+        virtual void ProcessMessage(const osc::ReceivedMessage& m,
+                                    const IpEndpointName& remoteEndpoint)
         {
             (void) remoteEndpoint; // suppress unused parameter warning
 
@@ -34,7 +34,7 @@ class ExamplePacketListener : public osc::OscPacketListener
                 // example of parsing single messages. osc::OsckPacketListener
                 // handles the bundle traversal.
 
-                if ( std::strcmp ( m.AddressPattern(), "/test1" ) == 0 )
+                if(std::strcmp(m.AddressPattern(), "/test1") == 0)
                 {
                     // example #1 -- argument stream interface
                     osc::ReceivedMessageArgumentStream args = m.ArgumentStream();
@@ -48,7 +48,7 @@ class ExamplePacketListener : public osc::OscPacketListener
                               << a1 << " " << a2 << " " << a3 << " " << a4 << "\n";
 
                 }
-                else if ( std::strcmp ( m.AddressPattern(), "/test2" ) == 0 )
+                else if(std::strcmp(m.AddressPattern(), "/test2") == 0)
                 {
                     // example #2 -- argument iterator interface, supports
                     // reflection for overloaded messages (eg you can call
@@ -59,7 +59,7 @@ class ExamplePacketListener : public osc::OscPacketListener
                     float a3 = (arg++)->AsFloat();
                     const char* a4 = (arg++)->AsString();
 
-                    if ( arg != m.ArgumentsEnd() )
+                    if(arg != m.ArgumentsEnd())
                     {
                         throw osc::ExcessArgumentException();
                     }
@@ -68,7 +68,7 @@ class ExamplePacketListener : public osc::OscPacketListener
                               << a1 << " " << a2 << " " << a3 << " " << a4 << "\n";
                 }
             }
-            catch ( osc::Exception& e )
+            catch(osc::Exception& e)
             {
                 // any parsing errors such as unexpected argument types, or
                 // missing arguments get thrown as exceptions.
@@ -78,15 +78,15 @@ class ExamplePacketListener : public osc::OscPacketListener
         }
 };
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     (void) argc; // suppress unused parameter warnings
     (void) argv; // suppress unused parameter warnings
 
     ExamplePacketListener listener;
-    UdpListeningReceiveSocket s (
-        IpEndpointName ( IpEndpointName::ANY_ADDRESS, PORT ),
-        &listener );
+    UdpListeningReceiveSocket s(
+        IpEndpointName(IpEndpointName::ANY_ADDRESS, PORT),
+        &listener);
 
     std::cout << "press ctrl-c to end\n";
 

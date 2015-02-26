@@ -11,10 +11,10 @@ class DeviceExplorerPlugin :
     public iscore::PanelFactoryInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
-        Q_INTERFACES (iscore::Autoconnect_QtInterface
+        Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
+        Q_INTERFACES(iscore::Autoconnect_QtInterface
 //					 iscore::PluginControlInterface_QtInterface
-                      iscore::PanelFactoryInterface_QtInterface)
+                     iscore::PanelFactoryInterface_QtInterface)
 
     public:
         DeviceExplorerPlugin();
@@ -29,6 +29,6 @@ class DeviceExplorerPlugin :
 
         // Panel interface
         virtual QStringList panel_list() const override;
-        virtual iscore::PanelFactoryInterface* panel_make (QString name) override;
+        virtual iscore::PanelFactoryInterface* panel_make(QString name) override;
 
 };

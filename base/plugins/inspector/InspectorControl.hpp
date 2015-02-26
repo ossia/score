@@ -11,7 +11,7 @@ class InspectorControl : public iscore::PluginControlInterface
 
         }
 
-        virtual void populateMenus (iscore::MenubarManager*) override
+        virtual void populateMenus(iscore::MenubarManager*) override
         {
         }
 
@@ -19,7 +19,7 @@ class InspectorControl : public iscore::PluginControlInterface
         {
         }
 
-        virtual void setPresenter (iscore::Presenter*) override
+        virtual void setPresenter(iscore::Presenter*) override
         {
         }
 
@@ -29,13 +29,13 @@ class InspectorControl : public iscore::PluginControlInterface
         }
 
 
-        static InspectorWidgetBase* makeInspectorWidget (QObject* object);
+        static InspectorWidgetBase* makeInspectorWidget(QObject* object);
 
     public slots:
-        void on_newInspectorWidgetFactory (iscore::FactoryInterface* e)
+        void on_newInspectorWidgetFactory(iscore::FactoryInterface* e)
         {
-            m_factories.push_back (
-                static_cast<InspectorWidgetFactoryInterface*> (e) );
+            m_factories.push_back(
+                static_cast<InspectorWidgetFactoryInterface*>(e));
         }
 
     private:

@@ -18,12 +18,12 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddProcessToConstraint();
-                AddProcessToConstraint (ObjectPath&& constraintPath, QString process);
+                AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual int id() const override;
-                virtual bool mergeWith (const QUndoCommand* other) override;
+                virtual bool mergeWith(const QUndoCommand* other) override;
 
                 id_type<ProcessSharedModelInterface> processId() const
                 {
@@ -31,8 +31,8 @@ namespace Scenario
                 }
 
             protected:
-                virtual void serializeImpl (QDataStream&) const override;
-                virtual void deserializeImpl (QDataStream&) override;
+                virtual void serializeImpl(QDataStream&) const override;
+                virtual void deserializeImpl(QDataStream&) override;
 
             private:
                 ObjectPath m_path;

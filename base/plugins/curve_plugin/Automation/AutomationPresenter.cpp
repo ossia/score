@@ -5,40 +5,40 @@
 
 #include <core/interface/document/DocumentInterface.hpp>
 
-AutomationPresenter::AutomationPresenter (ProcessViewModelInterface* model,
+AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
         ProcessViewInterface* view,
         QObject* parent) :
     ProcessPresenterInterface {"AutomationPresenter", parent},
-                          m_viewModel {static_cast<AutomationViewModel*> (model) },
-m_view {static_cast<AutomationView*> (view) }
+                          m_viewModel {static_cast<AutomationViewModel*>(model) },
+m_view {static_cast<AutomationView*>(view) }
 {
-    connect (m_viewModel->model(), &AutomationModel::pointsChanged,
+    connect(m_viewModel->model(), &AutomationModel::pointsChanged,
     this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
 
     on_modelPointsChanged();
 }
 
-void AutomationPresenter::setWidth (int width)
+void AutomationPresenter::setWidth(int width)
 {
-    m_view->setWidth (width);
+    m_view->setWidth(width);
 }
 
-void AutomationPresenter::setHeight (int height)
+void AutomationPresenter::setHeight(int height)
 {
-    m_view->setHeight (height);
+    m_view->setHeight(height);
 }
 
 void AutomationPresenter::putToFront()
 {
-    m_view->setFlag (QGraphicsItem::ItemStacksBehindParent, false);
+    m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
 }
 
 void AutomationPresenter::putBack()
 {
-    m_view->setFlag (QGraphicsItem::ItemStacksBehindParent, true);
+    m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
-void AutomationPresenter::on_horizontalZoomChanged (int val)
+void AutomationPresenter::on_horizontalZoomChanged(int val)
 {
     m_zoomLevel = val;
     on_modelPointsChanged();
@@ -72,9 +72,9 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 #include <QGraphicsScene>
 void AutomationPresenter::on_modelPointsChanged()
 {
-    if (m_curveView)
+    if(m_curveView)
     {
-        m_view->scene()->removeItem (m_curveView);
+        m_view->scene()->removeItem(m_curveView);
         m_curveView->deleteLater();
     }
 
@@ -85,7 +85,7 @@ void AutomationPresenter::on_modelPointsChanged()
     m_curveView = new PluginCurveView {m_view};
 
     // Compute the scale
-    auto mspp = millisecondsPerPixel (m_zoomLevel);
+    auto mspp = millisecondsPerPixel(m_zoomLevel);
     auto duration = m_viewModel->model()->duration();
     auto width = m_view->parentItem()->boundingRect().width();
 
@@ -104,53 +104,53 @@ void AutomationPresenter::on_modelPointsChanged()
     auto pts = m_viewModel->model()->points();
     auto keys = pts.keys();
 
-    for (int i = 0; i < keys.size(); ++i)
+    for(int i = 0; i < keys.size(); ++i)
     {
         double x = keys[i];
 
-        if (i != 0 && i != keys.size() - 1)
-            m_curvePresenter->addPoint (m_curvePresenter->map()->scaleToPaint ({x, pts[x]}) );
+        if(i != 0 && i != keys.size() - 1)
+            m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}));
         else
-            m_curvePresenter->addPoint (m_curvePresenter->map()->scaleToPaint ({x, pts[x]}), MobilityMode::Vertical);
+            m_curvePresenter->addPoint(m_curvePresenter->map()->scaleToPaint({x, pts[x]}), MobilityMode::Vertical);
     }
 
-    m_curvePresenter->setAllFlags (true);
+    m_curvePresenter->setAllFlags(true);
 
     // Connect required signals and slots.
-    connect (m_curvePresenter, &PluginCurvePresenter::notifyPointCreated,
-             [&] (QPointF pt)
+    connect(m_curvePresenter, &PluginCurvePresenter::notifyPointCreated,
+            [&](QPointF pt)
     {
         auto cmd = new AddPoint
         {
-            iscore::IDocument::path (m_viewModel->model() ),
+            iscore::IDocument::path(m_viewModel->model()),
             pt.x(), pt.y()
         };
 
-        submitCommand (cmd);
+        submitCommand(cmd);
     });
 
-    connect (m_curvePresenter, &PluginCurvePresenter::notifyPointMoved,
-             [&] (QPointF oldPt, QPointF newPt)
+    connect(m_curvePresenter, &PluginCurvePresenter::notifyPointMoved,
+            [&](QPointF oldPt, QPointF newPt)
     {
         auto cmd = new MovePoint
         {
-            iscore::IDocument::path (m_viewModel->model() ),
+            iscore::IDocument::path(m_viewModel->model()),
             oldPt.x(), newPt.x(), newPt.y()
         };
 
-        submitCommand (cmd);
+        submitCommand(cmd);
     });
 
-    connect (m_curvePresenter, &PluginCurvePresenter::notifyPointDeleted,
-             [&] (QPointF pt)
+    connect(m_curvePresenter, &PluginCurvePresenter::notifyPointDeleted,
+            [&](QPointF pt)
     {
         auto cmd = new RemovePoint
         {
-            iscore::IDocument::path (m_viewModel->model() ),
+            iscore::IDocument::path(m_viewModel->model()),
             pt.x()
         };
 
-        submitCommand (cmd);
+        submitCommand(cmd);
     });
 }
 

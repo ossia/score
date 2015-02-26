@@ -26,8 +26,8 @@ namespace iscore
             Q_OBJECT
             friend class ChildEventFilter;
         public:
-            Application (int& argc, char** argv);
-            Application (const Application&) = delete;
+            Application(int& argc, char** argv);
+            Application(const Application&) = delete;
             Application& operator= (const Application&) = delete;
             ~Application();
 
@@ -53,13 +53,13 @@ namespace iscore
              * will be retroactive : if previous objects can been
              * linked by the new connection, they will be.
              */
-            void addAutoconnection (Autoconnect);
+            void addAutoconnection(Autoconnect);
 
         private:
             void loadPluginData();
 
             void doConnections();
-            void doConnections (QObject*);
+            void doConnections(QObject*);
 
             // Base stuff.
             QApplication* m_app;

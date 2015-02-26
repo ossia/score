@@ -21,7 +21,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            DocumentPresenter (DocumentModel*, DocumentView*, QObject* parent);
+            DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
             CommandQueue* commandQueue()
             {
                 return m_commandQueue.get();
@@ -29,17 +29,17 @@ namespace iscore
 
             void newDocument();
             void reset();
-            void setPresenterDelegate (DocumentDelegatePresenterInterface* pres);
+            void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
             DocumentDelegatePresenterInterface* presenterDelegate() const
             {
                 return m_presenter;
             }
 
         signals:
-            void on_elementSelected (QObject* element);
+            void on_elementSelected(QObject* element);
             void on_lastElementSelected();
-            void lock (QByteArray);
-            void unlock (QByteArray);
+            void lock(QByteArray);
+            void unlock(QByteArray);
 
         public slots:
             // Command-relative slots
@@ -49,7 +49,7 @@ namespace iscore
              * This slot is to be used by clients when they want to simply apply a command.
              * A notification is then sent by the CommandQueue.
              */
-            void applyCommand (iscore::SerializableCommand*);
+            void applyCommand(iscore::SerializableCommand*);
 
             /**
              * These slots :
@@ -78,8 +78,8 @@ namespace iscore
              * A signal will be sent in case of validateOngoingCommand, to propagate it to the network.
              *
              */
-            void initiateOngoingCommand (iscore::SerializableCommand*, QObject* objectToLock);
-            void continueOngoingCommand (iscore::SerializableCommand*);
+            void initiateOngoingCommand(iscore::SerializableCommand*, QObject* objectToLock);
+            void continueOngoingCommand(iscore::SerializableCommand*);
             void rollbackOngoingCommand();
             void validateOngoingCommand();
 

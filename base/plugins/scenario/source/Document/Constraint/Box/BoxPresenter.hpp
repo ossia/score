@@ -17,36 +17,36 @@ class BoxPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        BoxPresenter (BoxModel* model,
-                      BoxView* view,
-                      QObject* parent);
+        BoxPresenter(BoxModel* model,
+                     BoxView* view,
+                     QObject* parent);
         virtual ~BoxPresenter();
 
         int height() const;
         int width() const;
-        void setWidth (int);
+        void setWidth(int);
 
         id_type<BoxModel> id() const;
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
-        void elementSelected (QObject*);
+        void submitCommand(iscore::SerializableCommand*);
+        void elementSelected(QObject*);
         void lastElementSelected();
 
         void askUpdate();
 
     public slots:
-        void on_durationChanged (TimeValue duration);
-        void on_deckCreated (id_type<DeckModel> deckId);
-        void on_deckRemoved (id_type<DeckModel> deckId);
+        void on_durationChanged(TimeValue duration);
+        void on_deckCreated(id_type<DeckModel> deckId);
+        void on_deckRemoved(id_type<DeckModel> deckId);
 
         void on_askUpdate();
 
-        void on_horizontalZoomChanged (int val);
+        void on_horizontalZoomChanged(int val);
         void on_deckPositionsChanged();
 
     private:
-        void on_deckCreated_impl (DeckModel* m);
+        void on_deckCreated_impl(DeckModel* m);
 
         // Updates the shape of the view
         void updateShape();

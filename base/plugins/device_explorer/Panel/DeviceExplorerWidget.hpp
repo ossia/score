@@ -21,11 +21,11 @@ class DeviceExplorerWidget : public QWidget
         Q_OBJECT
 
     public:
-        DeviceExplorerWidget (QWidget* parent);
+        DeviceExplorerWidget(QWidget* parent);
 
-        void setModel (DeviceExplorerModel* model);
+        void setModel(DeviceExplorerModel* model);
 
-        bool loadModel (const QString filename);
+        bool loadModel(const QString filename);
 
     public slots:
         void copy();
@@ -56,9 +56,9 @@ class DeviceExplorerWidget : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        void addAddress (int insertType);
+        void addAddress(int insertType);
 
-        virtual void contextMenuEvent (QContextMenuEvent* event) override;
+        virtual void contextMenuEvent(QContextMenuEvent* event) override;
 
     protected:
 

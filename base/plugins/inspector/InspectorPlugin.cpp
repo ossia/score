@@ -11,7 +11,7 @@ InspectorPlugin::InspectorPlugin() :
         iscore::PanelFactoryInterface_QtInterface {},
 m_inspectorControl {new InspectorControl}
 {
-    setObjectName ("InspectorPlugin");
+    setObjectName("InspectorPlugin");
 }
 
 
@@ -25,69 +25,69 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
         /// Common
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "Presenter",			 SIGNAL (elementSelected (QObject*) )
+                "Presenter",			 SIGNAL(elementSelected(QObject*))
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "InspectorPanelModel", SLOT (newItemInspected (QObject*) )
+                "InspectorPanelModel", SLOT(newItemInspected(QObject*))
             }
         },
 
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "Presenter",			 SIGNAL (lastElementSelected() )
+                "Presenter",			 SIGNAL(lastElementSelected())
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "InspectorPanelModel", SLOT (lastItemInspected() )
+                "InspectorPanelModel", SLOT(lastItemInspected())
             }
         },
 
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,
-                "InspectorWidgetBase", SIGNAL (submitCommand (iscore::SerializableCommand*) )
+                "InspectorWidgetBase", SIGNAL(submitCommand(iscore::SerializableCommand*))
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "Presenter", SLOT (applyCommand (iscore::SerializableCommand*) )
+                "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))
             }
         },
 
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,
-                "InspectorWidgetBase", SIGNAL (initiateOngoingCommand (iscore::SerializableCommand*, QObject*) )
+                "InspectorWidgetBase", SIGNAL(initiateOngoingCommand(iscore::SerializableCommand*, QObject*))
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "DocumentPresenter", SLOT (initiateOngoingCommand (iscore::SerializableCommand*, QObject*) )
+                "DocumentPresenter", SLOT(initiateOngoingCommand(iscore::SerializableCommand*, QObject*))
             }
         },
 
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,
-                "InspectorWidgetBase", SIGNAL (continueOngoingCommand (iscore::SerializableCommand*) )
+                "InspectorWidgetBase", SIGNAL(continueOngoingCommand(iscore::SerializableCommand*))
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "DocumentPresenter", SLOT (continueOngoingCommand (iscore::SerializableCommand*) )
+                "DocumentPresenter", SLOT(continueOngoingCommand(iscore::SerializableCommand*))
             }
         },
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,
-                "InspectorWidgetBase", SIGNAL (undoOngoingCommand() )
+                "InspectorWidgetBase", SIGNAL(undoOngoingCommand())
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "DocumentPresenter", SLOT (rollbackOngoingCommand() )
+                "DocumentPresenter", SLOT(rollbackOngoingCommand())
             }
         },
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,
-                "InspectorWidgetBase", SIGNAL (validateOngoingCommand() )
+                "InspectorWidgetBase", SIGNAL(validateOngoingCommand())
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "DocumentPresenter", SLOT (validateOngoingCommand() )
+                "DocumentPresenter", SLOT(validateOngoingCommand())
             }
         },
 
@@ -101,9 +101,9 @@ QStringList InspectorPlugin::panel_list() const
     return {"Inspector Panel"};
 }
 
-PanelFactoryInterface* InspectorPlugin::panel_make (QString name)
+PanelFactoryInterface* InspectorPlugin::panel_make(QString name)
 {
-    if (name == "Inspector Panel")
+    if(name == "Inspector Panel")
     {
         return new InspectorPanelFactory;
     }
@@ -114,7 +114,7 @@ PanelFactoryInterface* InspectorPlugin::panel_make (QString name)
 QVector<FactoryFamily> InspectorPlugin::factoryFamilies_make()
 {
     return {{"Inspector",
-            std::bind (&InspectorControl::on_newInspectorWidgetFactory,
+            std::bind(&InspectorControl::on_newInspectorWidgetFactory,
             m_inspectorControl,
             std::placeholders::_1)
         }
@@ -127,9 +127,9 @@ QStringList InspectorPlugin::control_list() const
     return {"InspectorControl"};
 }
 
-PluginControlInterface* InspectorPlugin::control_make (QString s)
+PluginControlInterface* InspectorPlugin::control_make(QString s)
 {
-    if (s == "InspectorControl")
+    if(s == "InspectorControl")
     {
         return m_inspectorControl;
     }

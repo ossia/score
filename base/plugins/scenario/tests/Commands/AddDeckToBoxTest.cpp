@@ -16,29 +16,29 @@ class AddDeckToBoxTest: public QObject
         {
             BoxModel* box  = new BoxModel {id_type<BoxModel>{0}, qApp};
 
-            QCOMPARE ( (int) box->decks().size(), 0);
-            AddDeckToBox cmd (
+            QCOMPARE((int) box->decks().size(), 0);
+            AddDeckToBox cmd(
             ObjectPath { {"BoxModel", {}} });
             auto deckId = cmd.m_createdDeckId;
 
             cmd.redo();
-            QCOMPARE ( (int) box->decks().size(), 1);
-            QCOMPARE (box->deck (deckId)->parent(), box);
+            QCOMPARE((int) box->decks().size(), 1);
+            QCOMPARE(box->deck(deckId)->parent(), box);
 
             cmd.undo();
-            QCOMPARE ( (int) box->decks().size(), 0);
+            QCOMPARE((int) box->decks().size(), 0);
 
             cmd.redo();
-            QCOMPARE ( (int) box->decks().size(), 1);
-            QCOMPARE (box->deck (deckId)->parent(), box);
+            QCOMPARE((int) box->decks().size(), 1);
+            QCOMPARE(box->deck(deckId)->parent(), box);
 
             try
             {
-                box->deck (deckId);
+                box->deck(deckId);
             }
-            catch (std::runtime_error& e)
+            catch(std::runtime_error& e)
             {
-                QFAIL (e.what() );
+                QFAIL(e.what());
             }
 
             // Delete them else they stay in qApp !
@@ -46,6 +46,6 @@ class AddDeckToBoxTest: public QObject
         }
 };
 
-QTEST_MAIN (AddDeckToBoxTest)
+QTEST_MAIN(AddDeckToBoxTest)
 #include "AddDeckToBoxTest.moc"
 

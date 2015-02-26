@@ -16,4 +16,4 @@ namespace iscore
 
 #define FactoryFamily_QtInterface_iid "org.ossia.i-score.plugins.FactoryFamily_QtInterface"
 
-Q_DECLARE_INTERFACE (iscore::FactoryFamily_QtInterface, FactoryFamily_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::FactoryFamily_QtInterface, FactoryFamily_QtInterface_iid)

@@ -8,28 +8,28 @@ class TimeNodeView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        TimeNodeView (QGraphicsObject* parent);
+        TimeNodeView(QGraphicsObject* parent);
         virtual ~TimeNodeView() = default;
 
-        virtual void paint (QPainter* painter,
-                            const QStyleOptionGraphicsItem* option,
-                            QWidget* widget);
+        virtual void paint(QPainter* painter,
+                           const QStyleOptionGraphicsItem* option,
+                           QWidget* widget);
 
         // QGraphicsItem interface
         QRectF boundingRect() const;
 
-        void setExtremities (int top, int bottom);
-        void mousePressEvent (QGraphicsSceneMouseEvent* m);
-        void mouseMoveEvent (QGraphicsSceneMouseEvent* m);
-        void mouseReleaseEvent (QGraphicsSceneMouseEvent* m);
+        void setExtremities(int top, int bottom);
+        void mousePressEvent(QGraphicsSceneMouseEvent* m);
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* m);
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* m);
 
-        void setMoving (bool);
+        void setMoving(bool);
 
     public slots:
-        void changeColor (QColor);
+        void changeColor(QColor);
 
     signals:
-        void timeNodeMoved (QPointF);
+        void timeNodeMoved(QPointF);
         void timeNodeReleased();
         void timeNodeSelected();
 

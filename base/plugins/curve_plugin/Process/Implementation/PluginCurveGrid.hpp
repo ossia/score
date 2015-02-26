@@ -33,11 +33,11 @@ class PluginCurveGrid : public QGraphicsObject
             \param parent The parent item.
             \param map The map used for transform coordinates.
         */
-        PluginCurveGrid (QGraphicsObject* parent, PluginCurveMap* map);
+        PluginCurveGrid(QGraphicsObject* parent, PluginCurveMap* map);
 
         /*! Return the nearest magnetic point (in paint coordinate) of the point p (in paint coordinate)*/
-        QPointF nearestMagnetPoint (QPointF p);
-        void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        QPointF nearestMagnetPoint(QPointF p);
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
         QRectF boundingRect() const;
 
     private:

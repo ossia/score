@@ -6,5 +6,5 @@ class AddDeckWidget : public QWidget
         Q_OBJECT
 
     public:
-        AddDeckWidget (BoxInspectorSection* parent);
+        AddDeckWidget(BoxInspectorSection* parent);
 };

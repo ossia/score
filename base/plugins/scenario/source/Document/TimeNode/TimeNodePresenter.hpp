@@ -13,7 +13,7 @@ class TimeNodePresenter :  public NamedObject
 {
         Q_OBJECT
     public:
-        explicit TimeNodePresenter (TimeNodeModel* model, TimeNodeView* view, QObject* parent);
+        explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject* parent);
         ~TimeNodePresenter();
 
         id_type<TimeNodeModel> id() const;
@@ -29,16 +29,16 @@ class TimeNodePresenter :  public NamedObject
         void deselect();
 
     signals:
-        void timeNodeMoved (EventData);
+        void timeNodeMoved(EventData);
         void timeNodeReleased();
-        void elementSelected (QObject*);
-        void eventAdded (id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
-        void eventSelected (QString);
+        void elementSelected(QObject*);
+        void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
+        void eventSelected(QString);
         void inspectPreviousElement();
 
     public slots:
-        void on_timeNodeMoved (QPointF);
-        void on_eventAdded (id_type<EventModel> eventId);
+        void on_timeNodeMoved(QPointF);
+        void on_eventAdded(id_type<EventModel> eventId);
 
     private:
         TimeNodeModel* m_model {};

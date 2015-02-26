@@ -8,28 +8,28 @@ using namespace Scenario::Command;
 HideBoxInViewModel::HideBoxInViewModel() :
     SerializableCommand {"ScenarioControl",
     "HideBoxInViewModel",
-    QObject::tr ("Hide box in constraint view")
+    QObject::tr("Hide box in constraint view")
 }
 {
 }
 
-HideBoxInViewModel::HideBoxInViewModel (ObjectPath&& path) :
+HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path) :
     SerializableCommand {"ScenarioControl",
     "HideBoxInViewModel",
-    QObject::tr ("Hide box in constraint view")
+    QObject::tr("Hide box in constraint view")
 },
-m_constraintViewModelPath {std::move (path) }
+m_constraintViewModelPath {std::move(path) }
 {
     auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
     m_constraintPreviousId = constraint_vm->shownBox();
 }
 
-HideBoxInViewModel::HideBoxInViewModel (AbstractConstraintViewModel* constraint_vm) :
+HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_vm) :
     SerializableCommand {"ScenarioControl",
     "HideBoxInViewModel",
-    QObject::tr ("Hide box in constraint view")
+    QObject::tr("Hide box in constraint view")
 },
-m_constraintViewModelPath {iscore::IDocument::path (constraint_vm) }
+m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) }
 {
     m_constraintPreviousId = constraint_vm->shownBox();
 }
@@ -37,7 +37,7 @@ m_constraintViewModelPath {iscore::IDocument::path (constraint_vm) }
 void HideBoxInViewModel::undo()
 {
     auto vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    vm->showBox (m_constraintPreviousId);
+    vm->showBox(m_constraintPreviousId);
 }
 
 void HideBoxInViewModel::redo()
@@ -51,18 +51,18 @@ int HideBoxInViewModel::id() const
     return 1;
 }
 
-bool HideBoxInViewModel::mergeWith (const QUndoCommand* other)
+bool HideBoxInViewModel::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void HideBoxInViewModel::serializeImpl (QDataStream& s) const
+void HideBoxInViewModel::serializeImpl(QDataStream& s) const
 {
     s << m_constraintViewModelPath
       << m_constraintPreviousId;
 }
 
-void HideBoxInViewModel::deserializeImpl (QDataStream& s)
+void HideBoxInViewModel::deserializeImpl(QDataStream& s)
 {
     s >> m_constraintViewModelPath
       >> m_constraintPreviousId;

@@ -39,11 +39,11 @@ class NodeFactory
 
         QList<QString> getAvailableProtocols() const;
 
-        ProtocolSettingsWidget* getProtocolWidget (const QString& protocol) const;
+        ProtocolSettingsWidget* getProtocolWidget(const QString& protocol) const;
 
         QList<QString> getAvailableValueTypes() const;
 
-        AddressSettingsWidget* getValueTypeWidget (const QString& valueType) const;
+        AddressSettingsWidget* getValueTypeWidget(const QString& valueType) const;
 
         QList<QString> getAvailableInputMIDIDevices() const;
         QList<QString> getAvailableOutputMIDIDevices() const;
@@ -56,11 +56,11 @@ class NodeFactory
 
         static NodeFactory m_instance;
 
-        typedef ProtocolSettingsWidget* (ProtocolSettingsWidgetFactoryM) ();
+        typedef ProtocolSettingsWidget* (ProtocolSettingsWidgetFactoryM)();
         typedef QMap<QString, ProtocolSettingsWidgetFactoryMethod*> ProtocolSettingsWidgetFactory;
         ProtocolSettingsWidgetFactory m_protocolSettingsWidgetFactory;
 
-        typedef AddressSettingsWidget* (AddressSettingsWidgetFactoryM) ();
+        typedef AddressSettingsWidget* (AddressSettingsWidgetFactoryM)();
         typedef QMap<QString, AddressSettingsWidgetFactoryMethod*> AddressSettingsWidgetFactory;
         AddressSettingsWidgetFactory m_addressSettingsWidgetFactory;
 
@@ -78,9 +78,9 @@ extern QList<QString> getUnits();
 
 extern QList<QString> getClipModes();
 
-extern void populateIOTypes (QComboBox* cbox);
+extern void populateIOTypes(QComboBox* cbox);
 
-extern void populateUnit (QComboBox* cbox);
+extern void populateUnit(QComboBox* cbox);
 
-extern void populateClipMode (QComboBox* cbox);
+extern void populateClipMode(QComboBox* cbox);
 

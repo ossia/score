@@ -18,13 +18,13 @@ class ProcessList : public NamedObject
 {
         Q_OBJECT
     public:
-        ProcessList (NamedObject* parent);
+        ProcessList(NamedObject* parent);
 
-        ProcessFactoryInterface* getProcess (QString);
-        void addProcess (iscore::FactoryInterface*);
+        ProcessFactoryInterface* getProcess(QString);
+        void addProcess(iscore::FactoryInterface*);
 
         static QStringList getProcessesName();
-        static ProcessFactoryInterface* getFactory (QString processName);
+        static ProcessFactoryInterface* getFactory(QString processName);
 
     private:
         QStringList getProcessesName_impl() const;

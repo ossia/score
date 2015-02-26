@@ -15,10 +15,10 @@ class ScoreGraphicsView : public QGraphicsView
         using QGraphicsView::QGraphicsView;
 
     signals:
-        void widthChanged (int);
+        void widthChanged(int);
 
     protected:
-        virtual void resizeEvent (QResizeEvent* ev);
+        virtual void resizeEvent(QResizeEvent* ev);
 };
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
@@ -26,7 +26,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         Q_OBJECT
 
     public:
-        BaseElementView (QObject* parent);
+        BaseElementView(QObject* parent);
         virtual ~BaseElementView() = default;
 
         virtual QWidget* getWidget();
@@ -64,12 +64,12 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         }
 
     signals:
-        void horizontalZoomChanged (int newZoom);
-        void verticalZoomChanged (int newZoom);
-        void positionSliderChanged (int newPos);
+        void horizontalZoomChanged(int newZoom);
+        void verticalZoomChanged(int newZoom);
+        void positionSliderChanged(int newPos);
 
     private slots:
-        void on_positionSliderReleased (int val);
+        void on_positionSliderReleased(int val);
 
     private:
         QWidget* m_widget {};

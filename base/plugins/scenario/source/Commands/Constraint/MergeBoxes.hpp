@@ -17,24 +17,24 @@ namespace Scenario
         {
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MergeBoxes (const ObjectPath& mergeSource,
-                            const ObjectPath& mergeTarget) :
+                MergeBoxes(const ObjectPath& mergeSource,
+                           const ObjectPath& mergeTarget) :
                     AggregateCommand
                 {
                     "ScenarioControl",
                     "MergeBoxes",
-                    QObject::tr ("Merge decks")
+                    QObject::tr("Merge decks")
                 }
                 {
                     auto sourcebox = mergeSource.find<BoxModel>();
 
-                    for (DeckModel* deck : sourcebox->decks() )
+                    for(DeckModel* deck : sourcebox->decks())
                     {
-                        addCommand (new MoveDeck (iscore::IDocument::path (deck),
-                        ObjectPath {mergeTarget}) );
+                        addCommand(new MoveDeck(iscore::IDocument::path(deck),
+                        ObjectPath {mergeTarget}));
                     }
 
-                    addCommand (new RemoveBoxFromConstraint{ObjectPath{mergeSource}});
+                    addCommand(new RemoveBoxFromConstraint{ObjectPath{mergeSource}});
                 }
         };
     }

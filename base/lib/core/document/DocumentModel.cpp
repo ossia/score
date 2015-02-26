@@ -6,7 +6,7 @@
 
 using namespace iscore;
 
-DocumentModel::DocumentModel (QObject* parent) :
+DocumentModel::DocumentModel(QObject* parent) :
     NamedObject {"DocumentModel", parent}
 {
 
@@ -14,12 +14,12 @@ DocumentModel::DocumentModel (QObject* parent) :
 
 void DocumentModel::reset()
 {
-    setModelDelegate (nullptr);
+    setModelDelegate(nullptr);
 }
 
-void DocumentModel::setModelDelegate (DocumentDelegateModelInterface* m)
+void DocumentModel::setModelDelegate(DocumentDelegateModelInterface* m)
 {
-    if (m_model)
+    if(m_model)
     {
         delete m_model;
     }
@@ -27,16 +27,16 @@ void DocumentModel::setModelDelegate (DocumentDelegateModelInterface* m)
     m_model = m;
 }
 
-PanelModelInterface* DocumentModel::panel (QString name) const
+PanelModelInterface* DocumentModel::panel(QString name) const
 {
     using namespace std;
-    auto it = find_if (begin (m_panelModels),
-                       end (m_panelModels),
-                       [&] (PanelModelInterface * pm)
+    auto it = find_if(begin(m_panelModels),
+                      end(m_panelModels),
+                      [&](PanelModelInterface * pm)
     {
         return pm->objectName() == name;
     });
 
-    return it != end (m_panelModels) ? *it : nullptr;
+    return it != end(m_panelModels) ? *it : nullptr;
 
 }

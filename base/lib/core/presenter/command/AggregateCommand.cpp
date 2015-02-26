@@ -7,9 +7,9 @@ using namespace iscore;
 // the ctor / after deserialization so that it occurs only once.
 void AggregateCommand::undo()
 {
-    for (int i = m_serializedCommands.size() - 1; i >= 0; --i)
+    for(int i = m_serializedCommands.size() - 1; i >= 0; --i)
     {
-        auto cmd = IPresenter::instantiateUndoCommand (
+        auto cmd = IPresenter::instantiateUndoCommand(
                        m_serializedCommands[i].first.first,
                        m_serializedCommands[i].first.second,
                        m_serializedCommands[i].second);
@@ -20,9 +20,9 @@ void AggregateCommand::undo()
 
 void AggregateCommand::redo()
 {
-    for (auto& cmd_pack : m_serializedCommands)
+    for(auto& cmd_pack : m_serializedCommands)
     {
-        auto cmd = IPresenter::instantiateUndoCommand (
+        auto cmd = IPresenter::instantiateUndoCommand(
                        cmd_pack.first.first,
                        cmd_pack.first.second,
                        cmd_pack.second);
@@ -37,17 +37,17 @@ int AggregateCommand::id() const
     return -1;
 }
 
-bool AggregateCommand::mergeWith (const QUndoCommand* other)
+bool AggregateCommand::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void AggregateCommand::serializeImpl (QDataStream& s) const
+void AggregateCommand::serializeImpl(QDataStream& s) const
 {
     s << m_serializedCommands;
 }
 
-void AggregateCommand::deserializeImpl (QDataStream& s)
+void AggregateCommand::deserializeImpl(QDataStream& s)
 {
     s >> m_serializedCommands;
 }

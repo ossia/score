@@ -18,25 +18,25 @@ class NetworkCommand : public iscore::PluginControlInterface
 
     public:
         NetworkCommand();
-        virtual void populateMenus (iscore::MenubarManager*) override;
+        virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
-        virtual void setPresenter (iscore::Presenter*) override;
+        virtual void setPresenter(iscore::Presenter*) override;
 
         // @todo PUT SOMEWHERE ELSE
-        void handle__document_ask (osc::ReceivedMessageArgumentStream);
-        void handle__document_receive (osc::ReceivedMessageArgumentStream);
+        void handle__document_ask(osc::ReceivedMessageArgumentStream);
+        void handle__document_receive(osc::ReceivedMessageArgumentStream);
     signals:
-        void loadFromNetwork (QByteArray);
+        void loadFromNetwork(QByteArray);
 
     public slots:
         void setupMasterSession();
-        void setupClientSession (ConnectionData d);
+        void setupClientSession(ConnectionData d);
 
         void createZeroconfSelectionDialog();
 
-        void commandPush (iscore::SerializableCommand*);
+        void commandPush(iscore::SerializableCommand*);
 
-        void on_commandReceived (QString, QString, QByteArray);
+        void on_commandReceived(QString, QString, QByteArray);
 
     private:
         iscore::Presenter* m_presenter {};

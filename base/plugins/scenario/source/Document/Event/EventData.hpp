@@ -17,7 +17,7 @@ struct EventData
     int y {0}; // use for : position of the mouse realeased point in event coordinates
     double relativeY {0.0}; // y scaled with current scenario
 
-    QPointF scenePos {QPointF (0, 0) }; // position of mouse in scene Coordinates
+    QPointF scenePos {QPointF(0, 0) };  // position of mouse in scene Coordinates
 
     id_type<TimeNodeModel> endTimeNodeId {0};
 };

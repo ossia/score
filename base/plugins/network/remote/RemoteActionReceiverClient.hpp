@@ -8,7 +8,7 @@ class RemoteActionReceiverClient : public RemoteActionReceiver
 {
         Q_OBJECT
     public:
-        RemoteActionReceiverClient (QObject* parent, ClientSession*);
+        RemoteActionReceiverClient(QObject* parent, ClientSession*);
 
     protected:
         virtual Session* session() override

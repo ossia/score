@@ -27,10 +27,10 @@ namespace iscore
     class Settings : public QObject
     {
         public:
-            Settings (QObject* parent);
+            Settings(QObject* parent);
             ~Settings();
 
-            void setupSettingsPlugin (SettingsDelegateFactoryInterface* plugin);
+            void setupSettingsPlugin(SettingsDelegateFactoryInterface* plugin);
             SettingsView*  view()
             {
                 return m_settingsView;

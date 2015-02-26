@@ -4,14 +4,14 @@
 
 //using namespace iscore;
 
-InspectorWidgetBase* AutomationInspectorFactory::makeWidget (QObject* sourceElement)
+InspectorWidgetBase* AutomationInspectorFactory::makeWidget(QObject* sourceElement)
 {
-    return new AutomationInspectorWidget (static_cast<AutomationModel*> (sourceElement) );
+    return new AutomationInspectorWidget(static_cast<AutomationModel*>(sourceElement));
 
 }
 
-InspectorWidgetBase* AutomationInspectorFactory::makeWidget (QList<QObject*> sourceElements)
+InspectorWidgetBase* AutomationInspectorFactory::makeWidget(QList<QObject*> sourceElements)
 {
     // @todo make a tabbed view when there is a list.
-    return new AutomationInspectorWidget (static_cast<AutomationModel*> (sourceElements.at (0) ) );
+    return new AutomationInspectorWidget(static_cast<AutomationModel*>(sourceElements.at(0)));
 }

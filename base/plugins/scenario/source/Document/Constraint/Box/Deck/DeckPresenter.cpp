@@ -20,48 +20,48 @@
 
 using namespace Scenario;
 
-DeckPresenter::DeckPresenter (DeckModel* model,
-                              DeckView* view,
-                              QObject* parent) :
+DeckPresenter::DeckPresenter(DeckModel* model,
+                             DeckView* view,
+                             QObject* parent) :
     NamedObject {"DeckPresenter", parent},
             m_model {model},
 m_view {view}
 {
-    for (ProcessViewModelInterface* proc_vm : m_model->processViewModels() )
+    for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {
-        on_processViewModelCreated_impl (proc_vm);
+        on_processViewModelCreated_impl(proc_vm);
     }
 
-    connect (m_model, &DeckModel::processViewModelCreated,
+    connect(m_model, &DeckModel::processViewModelCreated,
     this,	 &DeckPresenter::on_processViewModelCreated);
-    connect (m_model, &DeckModel::processViewModelRemoved,
+    connect(m_model, &DeckModel::processViewModelRemoved,
     this,	 &DeckPresenter::on_processViewModelDeleted);
 
-    connect (m_model, &DeckModel::processViewModelSelected,
+    connect(m_model, &DeckModel::processViewModelSelected,
     this,	 &DeckPresenter::on_processViewModelSelected);
 
-    connect (m_model, &DeckModel::heightChanged,
+    connect(m_model, &DeckModel::heightChanged,
     this,	 &DeckPresenter::on_heightChanged);
 
-    connect (m_view, &DeckView::bottomHandleChanged,
+    connect(m_view, &DeckView::bottomHandleChanged,
     this,	&DeckPresenter::on_bottomHandleChanged);
-    connect (m_view, &DeckView::bottomHandleReleased,
+    connect(m_view, &DeckView::bottomHandleReleased,
     this,	&DeckPresenter::on_bottomHandleReleased);
-    connect (m_view, &DeckView::bottomHandleSelected,
+    connect(m_view, &DeckView::bottomHandleSelected,
     this,	&DeckPresenter::on_bottomHandleSelected);
 
-    m_view->setHeight (m_model->height() );
+    m_view->setHeight(m_model->height());
 }
 
 DeckPresenter::~DeckPresenter()
 {
-    if (m_view)
+    if(m_view)
     {
         auto sc = m_view->scene();
 
-        if (sc)
+        if(sc)
         {
-            sc->removeItem (m_view);
+            sc->removeItem(m_view);
         }
 
         m_view->deleteLater();
@@ -78,55 +78,55 @@ int DeckPresenter::height() const
     return m_view->height();
 }
 
-void DeckPresenter::setWidth (int w)
+void DeckPresenter::setWidth(int w)
 {
-    m_view->setWidth (w);
+    m_view->setWidth(w);
     updateProcessesShape();
 }
 
-void DeckPresenter::setVerticalPosition (int pos)
+void DeckPresenter::setVerticalPosition(int pos)
 {
     auto view_pos = m_view->pos();
 
-    if (view_pos.y() != pos)
+    if(view_pos.y() != pos)
     {
-        m_view->setPos (view_pos.x(), pos);
+        m_view->setPos(view_pos.x(), pos);
         m_view->update();
     }
 }
 
 
-void DeckPresenter::on_processViewModelCreated (id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
 {
-    on_processViewModelCreated_impl (m_model->processViewModel (processId) );
+    on_processViewModelCreated_impl(m_model->processViewModel(processId));
 }
 
-void DeckPresenter::on_processViewModelDeleted (id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
 {
-    vec_erase_remove_if (m_processes,
-                         [&processId] (ProcessPresenterInterface * pres)
+    vec_erase_remove_if(m_processes,
+                        [&processId](ProcessPresenterInterface * pres)
     {
         bool to_delete = pres->viewModelId() == processId;
 
-        if (to_delete)
+        if(to_delete)
         {
             delete pres;
         }
 
         return to_delete;
-    } );
+    });
 
 
     updateProcessesShape();
     emit askUpdate();
 }
 
-void DeckPresenter::on_processViewModelSelected (id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterface> processId)
 {
     // Put the selected one at z+1 and the others at z+2; set "disabled" graphics mode.
-    for (auto& pvm : m_processes)
+    for(auto& pvm : m_processes)
     {
-        if (pvm->viewModelId() == processId)
+        if(pvm->viewModelId() == processId)
         {
             pvm->putToFront();
         }
@@ -137,9 +137,9 @@ void DeckPresenter::on_processViewModelSelected (id_type<ProcessViewModelInterfa
     }
 }
 
-void DeckPresenter::on_heightChanged (int height)
+void DeckPresenter::on_heightChanged(int height)
 {
-    m_view->setHeight (height);
+    m_view->setHeight(height);
     updateProcessesShape();
 
     emit askUpdate();
@@ -155,62 +155,62 @@ void DeckPresenter::on_bottomHandleSelected()
 
 }
 
-void DeckPresenter::on_bottomHandleChanged (int newHeight)
+void DeckPresenter::on_bottomHandleChanged(int newHeight)
 {
-    on_heightChanged (newHeight);
+    on_heightChanged(newHeight);
 }
 
 void DeckPresenter::on_bottomHandleReleased()
 {
-    auto path = iscore::IDocument::path (m_model);
+    auto path = iscore::IDocument::path(m_model);
 
-    auto cmd = new Command::ResizeDeckVertically {std::move (path),
+    auto cmd = new Command::ResizeDeckVertically {std::move(path),
             m_view->height()
                                                  };
-    emit submitCommand (cmd);
+    emit submitCommand(cmd);
 }
 
-void DeckPresenter::on_horizontalZoomChanged (int val)
+void DeckPresenter::on_horizontalZoomChanged(int val)
 {
     m_horizontalZoomSliderVal = val;
 
-    for (ProcessPresenterInterface* proc : m_processes)
+    for(ProcessPresenterInterface* proc : m_processes)
     {
-        proc->on_horizontalZoomChanged (val);
+        proc->on_horizontalZoomChanged(val);
     }
 
     // Should not be necessary : updateProcessesShape();
 }
 
-void DeckPresenter::on_processViewModelCreated_impl (ProcessViewModelInterface* proc_vm)
+void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
     auto procname = proc_vm->sharedProcessModel()->processName();
 
-    auto factory = ProcessList::getFactory (procname);
+    auto factory = ProcessList::getFactory(procname);
 
-    auto proc_view = factory->makeView (factory->availableViews().first(), m_view);
-    proc_view->setPos (0, 0);
-    auto presenter = factory->makePresenter (proc_vm, proc_view, this);
+    auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
+    proc_view->setPos(0, 0);
+    auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
-    presenter->on_horizontalZoomChanged (m_horizontalZoomSliderVal);
+    presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
-    connect (presenter,	&ProcessPresenterInterface::submitCommand,
-             this,		&DeckPresenter::submitCommand);
-    connect (presenter,	&ProcessPresenterInterface::elementSelected,
-             this,		&DeckPresenter::elementSelected);
-    connect (presenter,	&ProcessPresenterInterface::lastElementSelected,
-             this,		&DeckPresenter::lastElementSelected);
+    connect(presenter,	&ProcessPresenterInterface::submitCommand,
+            this,		&DeckPresenter::submitCommand);
+    connect(presenter,	&ProcessPresenterInterface::elementSelected,
+            this,		&DeckPresenter::elementSelected);
+    connect(presenter,	&ProcessPresenterInterface::lastElementSelected,
+            this,		&DeckPresenter::lastElementSelected);
 
-    m_processes.push_back (presenter);
+    m_processes.push_back(presenter);
     updateProcessesShape();
 }
 
 void DeckPresenter::updateProcessesShape()
 {
-    for (ProcessPresenterInterface* proc : m_processes)
+    for(ProcessPresenterInterface* proc : m_processes)
     {
-        proc->setHeight (height() - DeckView::borderHeight() );
-        proc->setWidth (m_view->width() );
+        proc->setHeight(height() - DeckView::borderHeight());
+        proc->setWidth(m_view->width());
         proc->parentGeometryChanged();
     }
 }

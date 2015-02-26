@@ -11,21 +11,21 @@ class TimeValue_T
 {
     public:
         TimeValue_T() = default;
-        TimeValue_T (PositiveInfinity) :
+        TimeValue_T(PositiveInfinity) :
             m_impl {}
         { }
 
         // These two overloads are here to please coverity...
-        TimeValue_T (std::chrono::seconds&& dur) :
+        TimeValue_T(std::chrono::seconds&& dur) :
             m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
         { }
-        TimeValue_T (std::chrono::milliseconds&& dur) :
+        TimeValue_T(std::chrono::milliseconds&& dur) :
             m_impl {dur.count() }
         { }
 
         template<typename Duration,
-                 typename std::enable_if<std::is_class<Duration>::value>::type* = nullptr >
-        TimeValue_T (Duration && dur) :
+                 typename std::enable_if<std::is_class<Duration>::value>::type* = nullptr>
+        TimeValue_T(Duration && dur) :
             m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
         { }
 
@@ -46,15 +46,15 @@ class TimeValue_T
             return *m_impl;
         }
 
-        void addMSecs (int msecs)
+        void addMSecs(int msecs)
         {
-            if (m_impl)
+            if(m_impl)
             {
                 *m_impl += msecs;
             }
         }
 
-        void setMSecs (int msecs)
+        void setMSecs(int msecs)
         {
             m_impl = msecs;
         }
@@ -71,15 +71,15 @@ class TimeValue_T
 
         bool operator> (const TimeValue_T& other) const
         {
-            if (isInfinite() && other.isInfinite() )
+            if(isInfinite() && other.isInfinite())
             {
                 return false;
             }
-            else if (isInfinite() && !other.isInfinite() )
+            else if(isInfinite() && !other.isInfinite())
             {
                 return true;
             }
-            else if (!isInfinite() && other.isInfinite() )
+            else if(!isInfinite() && other.isInfinite())
             {
                 return false;
             }
@@ -91,15 +91,15 @@ class TimeValue_T
 
         bool operator< (const TimeValue_T& other) const
         {
-            if (isInfinite() && other.isInfinite() )
+            if(isInfinite() && other.isInfinite())
             {
                 return false;
             }
-            else if (!isInfinite() && other.isInfinite() )
+            else if(!isInfinite() && other.isInfinite())
             {
                 return true;
             }
-            else if (isInfinite() && !other.isInfinite() )
+            else if(isInfinite() && !other.isInfinite())
             {
                 return false;
             }
@@ -113,7 +113,7 @@ class TimeValue_T
         {
             TimeValue_T res {PositiveInfinity{}};
 
-            if (isInfinite() || other.isInfinite() )
+            if(isInfinite() || other.isInfinite())
             {
                 return res;
             }
@@ -126,7 +126,7 @@ class TimeValue_T
         {
             TimeValue_T res {PositiveInfinity{}};
 
-            if (isInfinite() )
+            if(isInfinite())
             {
                 return res;
             }
@@ -139,7 +139,7 @@ class TimeValue_T
         {
             TimeValue_T res {PositiveInfinity{}};
 
-            if (isInfinite() || other.isInfinite() )
+            if(isInfinite() || other.isInfinite())
             {
                 return res;
             }
@@ -185,7 +185,7 @@ class TimeValue_T<QTime>
 using TimeValue = TimeValue_T<int>;
 inline QDebug operator<< (QDebug d, const TimeValue& tv)
 {
-    if (!tv.isInfinite() )
+    if(!tv.isInfinite())
     {
         d << tv.msec() << "ms";
     }

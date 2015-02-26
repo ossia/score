@@ -19,13 +19,13 @@ namespace iscore
     {
         public:
             virtual ~DocumentDelegateFactoryInterface() = default;
-            virtual DocumentDelegateViewInterface* makeView (DocumentView* parent) = 0;
-            virtual DocumentDelegatePresenterInterface* makePresenter (DocumentPresenter* parent_presenter,
+            virtual DocumentDelegateViewInterface* makeView(DocumentView* parent) = 0;
+            virtual DocumentDelegatePresenterInterface* makePresenter(DocumentPresenter* parent_presenter,
                     DocumentDelegateModelInterface* model,
                     DocumentDelegateViewInterface* view) = 0;
 
-            virtual DocumentDelegateModelInterface* makeModel (DocumentModel* parent) = 0;
-            virtual DocumentDelegateModelInterface* makeModel (DocumentModel* parent, QByteArray data) = 0;
+            virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
+            virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent, QByteArray data) = 0;
     };
 
 }

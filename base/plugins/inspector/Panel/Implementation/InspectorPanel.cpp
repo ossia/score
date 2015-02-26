@@ -10,38 +10,38 @@
 
 #include <core/plugin/PluginManager.hpp>
 #include "InspectorControl.hpp"
-InspectorPanel::InspectorPanel (QWidget* parent) :
+InspectorPanel::InspectorPanel(QWidget* parent) :
     QWidget {parent},
 m_layout {new QVBoxLayout{this}}
 {
-    m_layout->setMargin (8);
+    m_layout->setMargin(8);
 
-    setMinimumWidth (300);
+    setMinimumWidth(300);
 }
 
 InspectorPanel::~InspectorPanel()
 {
 }
 
-void InspectorPanel::newItemInspected (QObject* object)
+void InspectorPanel::newItemInspected(QObject* object)
 {
     delete m_itemInspected;
-    m_itemInspected = InspectorControl::makeInspectorWidget (object);
+    m_itemInspected = InspectorControl::makeInspectorWidget(object);
 
-    m_layout->addWidget (m_itemInspected);
-    connect (object, &QObject::destroyed,
-             this,	&InspectorPanel::on_itemRemoved);
+    m_layout->addWidget(m_itemInspected);
+    connect(object, &QObject::destroyed,
+            this,	&InspectorPanel::on_itemRemoved);
 }
 
 void InspectorPanel::on_itemRemoved()
 {
-    if (m_itemInspected)
+    if(m_itemInspected)
     {
-        m_layout->removeWidget (m_itemInspected);
+        m_layout->removeWidget(m_itemInspected);
         m_itemInspected->deleteLater();
     }
 
-    if (qApp)
+    if(qApp)
     {
         m_itemInspected = new InspectorWidgetBase {};
     }

@@ -17,12 +17,12 @@ namespace Scenario
         {
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveDeck (const ObjectPath& deckToMove,
-                          ObjectPath&& targetBox) :
+                MoveDeck(const ObjectPath& deckToMove,
+                         ObjectPath&& targetBox) :
                     AggregateCommand
                 {
-                    "ScenarioControl", "MoveDeck", QObject::tr ("Move a deck"),
-                    new CopyDeck{ObjectPath{deckToMove}, std::move (targetBox) },
+                    "ScenarioControl", "MoveDeck", QObject::tr("Move a deck"),
+                    new CopyDeck{ObjectPath{deckToMove}, std::move(targetBox) },
                     new RemoveDeckFromBox{ObjectPath{deckToMove}}
                 }
                 {

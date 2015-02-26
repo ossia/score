@@ -10,25 +10,25 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-TemporalConstraintView::TemporalConstraintView (QGraphicsObject* parent) :
+TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent) :
     AbstractConstraintView {parent}
 {
-    this->setParentItem (parent);
-    this->setFlag (ItemIsSelectable);
+    this->setParentItem(parent);
+    this->setFlag(ItemIsSelectable);
 
-    this->setZValue (parent->zValue() + 1);
+    this->setZValue(parent->zValue() + 1);
 }
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-    return {0, -18, qreal (maxWidth() ), qreal (constraintHeight() ) };
+    return {0, -18, qreal(maxWidth()), qreal(constraintHeight()) };
 }
 
-void TemporalConstraintView::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     QColor c = Qt::black;
 
-    if (isSelected() )
+    if(isSelected())
     {
         c = Qt::blue;
     }
@@ -38,90 +38,90 @@ void TemporalConstraintView::paint (QPainter* painter, const QStyleOptionGraphic
     		c = Qt::cyan;
     	}
     */
-    if (defaultWidth() < 0)
+    if(defaultWidth() < 0)
     {
         c = Qt::red;
     }
 
-    (m_moving ? c.setAlphaF (0.4) : c.setAlphaF (1.0) );
+    (m_moving ? c.setAlphaF(0.4) : c.setAlphaF(1.0));
 
-    m_solidPen.setColor (c);
-    m_dashPen.setColor (c);
+    m_solidPen.setColor(c);
+    m_dashPen.setColor(c);
 
-    if (minWidth() == maxWidth() )
+    if(minWidth() == maxWidth())
     {
-        painter->setPen (m_solidPen);
-        painter->drawLine (0,
-                           0,
-                           defaultWidth(),
-                           0);
+        painter->setPen(m_solidPen);
+        painter->drawLine(0,
+                          0,
+                          defaultWidth(),
+                          0);
     }
     else
     {
         // Firs the line going from 0 to the min
-        painter->setPen (m_solidPen);
-        painter->drawLine (0,
-                           0,
-                           minWidth(),
-                           0);
+        painter->setPen(m_solidPen);
+        painter->drawLine(0,
+                          0,
+                          minWidth(),
+                          0);
 
         // The little hat
-        painter->drawLine (minWidth(),
-                           -5,
-                           minWidth(),
-                           -15);
-        painter->drawLine (minWidth(),
-                           -15,
-                           maxWidth(),
-                           -15);
-        painter->drawLine (maxWidth(),
-                           -5,
-                           maxWidth(),
-                           -15);
+        painter->drawLine(minWidth(),
+                          -5,
+                          minWidth(),
+                          -15);
+        painter->drawLine(minWidth(),
+                          -15,
+                          maxWidth(),
+                          -15);
+        painter->drawLine(maxWidth(),
+                          -5,
+                          maxWidth(),
+                          -15);
 
         // Finally the dashed line
-        painter->setPen (m_dashPen);
-        painter->drawLine (minWidth(),
-                           0,
-                           maxWidth(),
-                           0);
+        painter->setPen(m_dashPen);
+        painter->drawLine(minWidth(),
+                          0,
+                          maxWidth(),
+                          0);
     }
 
     // TODO max -> +inf
 
 }
 
-void TemporalConstraintView::setMoving (bool arg)
+void TemporalConstraintView::setMoving(bool arg)
 {
     m_moving = arg;
 }
 
-void TemporalConstraintView::mousePressEvent (QGraphicsSceneMouseEvent* m)
+void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-    QGraphicsObject::mousePressEvent (m);
+    QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
-    emit constraintPressed (pos() + m->pos() );
+    emit constraintPressed(pos() + m->pos());
 }
 
-void TemporalConstraintView::mouseMoveEvent (QGraphicsSceneMouseEvent* m)
+void TemporalConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 {
-    QGraphicsObject::mouseMoveEvent (m);
+    QGraphicsObject::mouseMoveEvent(m);
 
     auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
-    if (m->modifiers() == Qt::ShiftModifier)
+    if(m->modifiers() == Qt::ShiftModifier)
     {
-        posInScenario.setX (pos().x() );
+        posInScenario.setX(pos().x());
     }
 
     m_moving = true;
-    emit constraintMoved (posInScenario);
+    emit constraintMoved(posInScenario);
 }
 
-void TemporalConstraintView::mouseReleaseEvent (QGraphicsSceneMouseEvent* m)
+void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
-    QGraphicsObject::mouseReleaseEvent (m);
+    QGraphicsObject::mouseReleaseEvent(m);
     /*
         // dans event, ceci est dans mouseMoveEvent.
     	auto posInScenario = pos() + m->pos() - m_clickedPoint;

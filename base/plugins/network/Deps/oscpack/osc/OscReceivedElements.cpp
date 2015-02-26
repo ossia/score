@@ -47,16 +47,16 @@ namespace osc
 // return the first 4 byte boundary after the end of a str4
 // be careful about calling this version if you don't know whether
 // the string is terminated correctly.
-    static inline const char* FindStr4End ( const char* p )
+    static inline const char* FindStr4End(const char* p)
     {
-        if ( p[0] == '\0' )   // special case for SuperCollider integer address pattern
+        if(p[0] == '\0')      // special case for SuperCollider integer address pattern
         {
             return p + 4;
         }
 
         p += 3;
 
-        while ( *p )
+        while(*p)
         {
             p += 4;
         }
@@ -67,14 +67,14 @@ namespace osc
 
 // return the first 4 byte boundary after the end of a str4
 // returns 0 if p == end or if the string is unterminated
-    static inline const char* FindStr4End ( const char* p, const char* end )
+    static inline const char* FindStr4End(const char* p, const char* end)
     {
-        if ( p >= end )
+        if(p >= end)
         {
             return 0;
         }
 
-        if ( p[0] == '\0' )   // special case for SuperCollider integer address pattern
+        if(p[0] == '\0')      // special case for SuperCollider integer address pattern
         {
             return p + 4;
         }
@@ -82,12 +82,12 @@ namespace osc
         p += 3;
         end -= 1;
 
-        while ( p < end && *p )
+        while(p < end && *p)
         {
             p += 4;
         }
 
-        if ( *p )
+        if(*p)
         {
             return 0;
         }
@@ -99,13 +99,13 @@ namespace osc
 
 
 // round up to the next highest multiple of 4. unless x is already a multiple of 4
-    static inline uint32 RoundUp4 ( uint32 x )
+    static inline uint32 RoundUp4(uint32 x)
     {
-        return (x + 3) & ~ ( (uint32) 0x03);
+        return (x + 3) & ~((uint32) 0x03);
     }
 
 
-    static inline int32 ToInt32 ( const char* p )
+    static inline int32 ToInt32(const char* p)
     {
         #ifdef OSC_HOST_LITTLE_ENDIAN
         union
@@ -126,7 +126,7 @@ namespace osc
     }
 
 
-    static inline uint32 ToUInt32 ( const char* p )
+    static inline uint32 ToUInt32(const char* p)
     {
         #ifdef OSC_HOST_LITTLE_ENDIAN
         union
@@ -147,7 +147,7 @@ namespace osc
     }
 
 
-    static inline int64 ToInt64 ( const char* p )
+    static inline int64 ToInt64(const char* p)
     {
         #ifdef OSC_HOST_LITTLE_ENDIAN
         union
@@ -172,7 +172,7 @@ namespace osc
     }
 
 
-    static inline uint64 ToUInt64 ( const char* p )
+    static inline uint64 ToUInt64(const char* p)
     {
         #ifdef OSC_HOST_LITTLE_ENDIAN
         union
@@ -213,22 +213,22 @@ namespace osc
 
     osc_bundle_element_size_t ReceivedBundleElement::Size() const
     {
-        return ToInt32 ( sizePtr_ );
+        return ToInt32(sizePtr_);
     }
 
 //------------------------------------------------------------------------------
 
     bool ReceivedMessageArgument::AsBool() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == TRUE_TYPE_TAG )
+        else if(*typeTagPtr_ == TRUE_TYPE_TAG)
         {
             return true;
         }
-        else if ( *typeTagPtr_ == FALSE_TYPE_TAG )
+        else if(*typeTagPtr_ == FALSE_TYPE_TAG)
         {
             return false;
         }
@@ -241,11 +241,11 @@ namespace osc
 
     bool ReceivedMessageArgument::AsBoolUnchecked() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == TRUE_TYPE_TAG )
+        else if(*typeTagPtr_ == TRUE_TYPE_TAG)
         {
             return true;
         }
@@ -258,11 +258,11 @@ namespace osc
 
     int32 ReceivedMessageArgument::AsInt32() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == INT32_TYPE_TAG )
+        else if(*typeTagPtr_ == INT32_TYPE_TAG)
         {
             return AsInt32Unchecked();
         }
@@ -296,11 +296,11 @@ namespace osc
 
     float ReceivedMessageArgument::AsFloat() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == FLOAT_TYPE_TAG )
+        else if(*typeTagPtr_ == FLOAT_TYPE_TAG)
         {
             return AsFloatUnchecked();
         }
@@ -334,11 +334,11 @@ namespace osc
 
     char ReceivedMessageArgument::AsChar() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == CHAR_TYPE_TAG )
+        else if(*typeTagPtr_ == CHAR_TYPE_TAG)
         {
             return AsCharUnchecked();
         }
@@ -351,17 +351,17 @@ namespace osc
 
     char ReceivedMessageArgument::AsCharUnchecked() const
     {
-        return (char) ToInt32 ( argumentPtr_ );
+        return (char) ToInt32(argumentPtr_);
     }
 
 
     uint32 ReceivedMessageArgument::AsRgbaColor() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == RGBA_COLOR_TYPE_TAG )
+        else if(*typeTagPtr_ == RGBA_COLOR_TYPE_TAG)
         {
             return AsRgbaColorUnchecked();
         }
@@ -374,17 +374,17 @@ namespace osc
 
     uint32 ReceivedMessageArgument::AsRgbaColorUnchecked() const
     {
-        return ToUInt32 ( argumentPtr_ );
+        return ToUInt32(argumentPtr_);
     }
 
 
     uint32 ReceivedMessageArgument::AsMidiMessage() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == MIDI_MESSAGE_TYPE_TAG )
+        else if(*typeTagPtr_ == MIDI_MESSAGE_TYPE_TAG)
         {
             return AsMidiMessageUnchecked();
         }
@@ -397,17 +397,17 @@ namespace osc
 
     uint32 ReceivedMessageArgument::AsMidiMessageUnchecked() const
     {
-        return ToUInt32 ( argumentPtr_ );
+        return ToUInt32(argumentPtr_);
     }
 
 
     int64 ReceivedMessageArgument::AsInt64() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == INT64_TYPE_TAG )
+        else if(*typeTagPtr_ == INT64_TYPE_TAG)
         {
             return AsInt64Unchecked();
         }
@@ -420,17 +420,17 @@ namespace osc
 
     int64 ReceivedMessageArgument::AsInt64Unchecked() const
     {
-        return ToInt64 ( argumentPtr_ );
+        return ToInt64(argumentPtr_);
     }
 
 
     uint64 ReceivedMessageArgument::AsTimeTag() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == TIME_TAG_TYPE_TAG )
+        else if(*typeTagPtr_ == TIME_TAG_TYPE_TAG)
         {
             return AsTimeTagUnchecked();
         }
@@ -443,17 +443,17 @@ namespace osc
 
     uint64 ReceivedMessageArgument::AsTimeTagUnchecked() const
     {
-        return ToUInt64 ( argumentPtr_ );
+        return ToUInt64(argumentPtr_);
     }
 
 
     double ReceivedMessageArgument::AsDouble() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == DOUBLE_TYPE_TAG )
+        else if(*typeTagPtr_ == DOUBLE_TYPE_TAG)
         {
             return AsDoubleUnchecked();
         }
@@ -491,11 +491,11 @@ namespace osc
 
     const char* ReceivedMessageArgument::AsString() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == STRING_TYPE_TAG )
+        else if(*typeTagPtr_ == STRING_TYPE_TAG)
         {
             return argumentPtr_;
         }
@@ -508,11 +508,11 @@ namespace osc
 
     const char* ReceivedMessageArgument::AsSymbol() const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == SYMBOL_TYPE_TAG )
+        else if(*typeTagPtr_ == SYMBOL_TYPE_TAG)
         {
             return argumentPtr_;
         }
@@ -523,15 +523,15 @@ namespace osc
     }
 
 
-    void ReceivedMessageArgument::AsBlob ( const void*& data, osc_bundle_element_size_t& size ) const
+    void ReceivedMessageArgument::AsBlob(const void*& data, osc_bundle_element_size_t& size) const
     {
-        if ( !typeTagPtr_ )
+        if(!typeTagPtr_)
         {
             throw MissingArgumentException();
         }
-        else if ( *typeTagPtr_ == BLOB_TYPE_TAG )
+        else if(*typeTagPtr_ == BLOB_TYPE_TAG)
         {
-            AsBlobUnchecked ( data, size );
+            AsBlobUnchecked(data, size);
         }
         else
         {
@@ -540,24 +540,24 @@ namespace osc
     }
 
 
-    void ReceivedMessageArgument::AsBlobUnchecked ( const void*& data, osc_bundle_element_size_t& size ) const
+    void ReceivedMessageArgument::AsBlobUnchecked(const void*& data, osc_bundle_element_size_t& size) const
     {
         // read blob size as an unsigned int then validate
-        osc_bundle_element_size_t sizeResult = (osc_bundle_element_size_t) ToUInt32 ( argumentPtr_ );
+        osc_bundle_element_size_t sizeResult = (osc_bundle_element_size_t) ToUInt32(argumentPtr_);
 
-        if ( !IsValidElementSizeValue (sizeResult) )
+        if(!IsValidElementSizeValue(sizeResult))
         {
-            throw MalformedMessageException ("invalid blob size");
+            throw MalformedMessageException("invalid blob size");
         }
 
         size = sizeResult;
-        data = (void*) (argumentPtr_ + osc::OSC_SIZEOF_INT32);
+        data = (void*)(argumentPtr_ + osc::OSC_SIZEOF_INT32);
     }
 
     std::size_t ReceivedMessageArgument::ComputeArrayItemCount() const
     {
         // it is only valid to call ComputeArrayItemCount when the argument is the array start marker
-        if ( !IsArrayBegin() )
+        if(!IsArrayBegin())
         {
             throw WrongArgumentTypeException();
         }
@@ -568,16 +568,16 @@ namespace osc
 
         // iterate through all type tags. note that ReceivedMessage::Init
         // has already checked that the message is well formed.
-        while ( *typeTag )
+        while(*typeTag)
         {
-            switch ( *typeTag++ )
+            switch(*typeTag++)
             {
                 case ARRAY_BEGIN_TYPE_TAG:
                     level += 1;
                     break;
 
                 case ARRAY_END_TYPE_TAG:
-                    if (level == 0)
+                    if(level == 0)
                     {
                         return result;
                     }
@@ -586,7 +586,7 @@ namespace osc
                     break;
 
                 default:
-                    if ( level == 0 ) // only count items at level 0
+                    if(level == 0)    // only count items at level 0
                     {
                         ++result;
                     }
@@ -600,12 +600,12 @@ namespace osc
 
     void ReceivedMessageArgumentIterator::Advance()
     {
-        if ( !value_.typeTagPtr_ )
+        if(!value_.typeTagPtr_)
         {
             return;
         }
 
-        switch ( *value_.typeTagPtr_++ )
+        switch(*value_.typeTagPtr_++)
         {
             case '\0':
                 // don't advance past end
@@ -643,14 +643,14 @@ namespace osc
                 // the arguments have already been validated in
                 // ReceivedMessage::Init() below.
 
-                value_.argumentPtr_ = FindStr4End ( value_.argumentPtr_ );
+                value_.argumentPtr_ = FindStr4End(value_.argumentPtr_);
                 break;
 
             case BLOB_TYPE_TAG:
             {
                 // treat blob size as an unsigned int for the purposes of this calculation
-                uint32 blobSize = ToUInt32 ( value_.argumentPtr_ );
-                value_.argumentPtr_ = value_.argumentPtr_ + osc::OSC_SIZEOF_INT32 + RoundUp4 ( blobSize );
+                uint32 blobSize = ToUInt32(value_.argumentPtr_);
+                value_.argumentPtr_ = value_.argumentPtr_ + osc::OSC_SIZEOF_INT32 + RoundUp4(blobSize);
             }
             break;
 
@@ -673,17 +673,17 @@ namespace osc
 
 //------------------------------------------------------------------------------
 
-    ReceivedMessage::ReceivedMessage ( const ReceivedPacket& packet )
-        : addressPattern_ ( packet.Contents() )
+    ReceivedMessage::ReceivedMessage(const ReceivedPacket& packet)
+        : addressPattern_(packet.Contents())
     {
-        Init ( packet.Contents(), packet.Size() );
+        Init(packet.Contents(), packet.Size());
     }
 
 
-    ReceivedMessage::ReceivedMessage ( const ReceivedBundleElement& bundleElement )
-        : addressPattern_ ( bundleElement.Contents() )
+    ReceivedMessage::ReceivedMessage(const ReceivedBundleElement& bundleElement)
+        : addressPattern_(bundleElement.Contents())
     {
-        Init ( bundleElement.Contents(), bundleElement.Size() );
+        Init(bundleElement.Contents(), bundleElement.Size());
     }
 
 
@@ -695,38 +695,38 @@ namespace osc
 
     uint32 ReceivedMessage::AddressPatternAsUInt32() const
     {
-        return ToUInt32 ( addressPattern_ );
+        return ToUInt32(addressPattern_);
     }
 
 
-    void ReceivedMessage::Init ( const char* message, osc_bundle_element_size_t size )
+    void ReceivedMessage::Init(const char* message, osc_bundle_element_size_t size)
     {
-        if ( !IsValidElementSizeValue (size) )
+        if(!IsValidElementSizeValue(size))
         {
-            throw MalformedMessageException ( "invalid message size" );
+            throw MalformedMessageException("invalid message size");
         }
 
-        if ( size == 0 )
+        if(size == 0)
         {
-            throw MalformedMessageException ( "zero length messages not permitted" );
+            throw MalformedMessageException("zero length messages not permitted");
         }
 
-        if ( !IsMultipleOf4 (size) )
+        if(!IsMultipleOf4(size))
         {
-            throw MalformedMessageException ( "message size must be multiple of four" );
+            throw MalformedMessageException("message size must be multiple of four");
         }
 
         const char* end = message + size;
 
-        typeTagsBegin_ = FindStr4End ( addressPattern_, end );
+        typeTagsBegin_ = FindStr4End(addressPattern_, end);
 
-        if ( typeTagsBegin_ == 0 )
+        if(typeTagsBegin_ == 0)
         {
             // address pattern was not terminated before end
-            throw MalformedMessageException ( "unterminated address pattern" );
+            throw MalformedMessageException("unterminated address pattern");
         }
 
-        if ( typeTagsBegin_ == end )
+        if(typeTagsBegin_ == end)
         {
             // message consists of only the address pattern - no arguments or type tags.
             typeTagsBegin_ = 0;
@@ -736,12 +736,12 @@ namespace osc
         }
         else
         {
-            if ( *typeTagsBegin_ != ',' )
+            if(*typeTagsBegin_ != ',')
             {
-                throw MalformedMessageException ( "type tags not present" );
+                throw MalformedMessageException("type tags not present");
             }
 
-            if ( * (typeTagsBegin_ + 1) == '\0' )
+            if(* (typeTagsBegin_ + 1) == '\0')
             {
                 // zero length type tags
                 typeTagsBegin_ = 0;
@@ -753,11 +753,11 @@ namespace osc
             {
                 // check that all arguments are present and well formed
 
-                arguments_ = FindStr4End ( typeTagsBegin_, end );
+                arguments_ = FindStr4End(typeTagsBegin_, end);
 
-                if ( arguments_ == 0 )
+                if(arguments_ == 0)
                 {
-                    throw MalformedMessageException ( "type tags were not terminated before end of message" );
+                    throw MalformedMessageException("type tags were not terminated before end of message");
                 }
 
                 ++typeTagsBegin_; // advance past initial ','
@@ -768,7 +768,7 @@ namespace osc
 
                 do
                 {
-                    switch ( *typeTag )
+                    switch(*typeTag)
                     {
                         case TRUE_TYPE_TAG:
                         case FALSE_TYPE_TAG:
@@ -796,16 +796,16 @@ namespace osc
                         case RGBA_COLOR_TYPE_TAG:
                         case MIDI_MESSAGE_TYPE_TAG:
 
-                            if ( argument == end )
+                            if(argument == end)
                             {
-                                throw MalformedMessageException ( "arguments exceed message size" );
+                                throw MalformedMessageException("arguments exceed message size");
                             }
 
                             argument += 4;
 
-                            if ( argument > end )
+                            if(argument > end)
                             {
-                                throw MalformedMessageException ( "arguments exceed message size" );
+                                throw MalformedMessageException("arguments exceed message size");
                             }
 
                             break;
@@ -814,16 +814,16 @@ namespace osc
                         case TIME_TAG_TYPE_TAG:
                         case DOUBLE_TYPE_TAG:
 
-                            if ( argument == end )
+                            if(argument == end)
                             {
-                                throw MalformedMessageException ( "arguments exceed message size" );
+                                throw MalformedMessageException("arguments exceed message size");
                             }
 
                             argument += 8;
 
-                            if ( argument > end )
+                            if(argument > end)
                             {
-                                throw MalformedMessageException ( "arguments exceed message size" );
+                                throw MalformedMessageException("arguments exceed message size");
                             }
 
                             break;
@@ -831,50 +831,50 @@ namespace osc
                         case STRING_TYPE_TAG:
                         case SYMBOL_TYPE_TAG:
 
-                            if ( argument == end )
+                            if(argument == end)
                             {
-                                throw MalformedMessageException ( "arguments exceed message size" );
+                                throw MalformedMessageException("arguments exceed message size");
                             }
 
-                            argument = FindStr4End ( argument, end );
+                            argument = FindStr4End(argument, end);
 
-                            if ( argument == 0 )
+                            if(argument == 0)
                             {
-                                throw MalformedMessageException ( "unterminated string argument" );
+                                throw MalformedMessageException("unterminated string argument");
                             }
 
                             break;
 
                         case BLOB_TYPE_TAG:
                         {
-                            if ( argument + osc::OSC_SIZEOF_INT32 > end )
+                            if(argument + osc::OSC_SIZEOF_INT32 > end)
                             {
-                                MalformedMessageException ( "arguments exceed message size" );
+                                MalformedMessageException("arguments exceed message size");
                             }
 
                             // treat blob size as an unsigned int for the purposes of this calculation
-                            uint32 blobSize = ToUInt32 ( argument );
-                            argument = argument + osc::OSC_SIZEOF_INT32 + RoundUp4 ( blobSize );
+                            uint32 blobSize = ToUInt32(argument);
+                            argument = argument + osc::OSC_SIZEOF_INT32 + RoundUp4(blobSize);
 
-                            if ( argument > end )
+                            if(argument > end)
                             {
-                                MalformedMessageException ( "arguments exceed message size" );
+                                MalformedMessageException("arguments exceed message size");
                             }
                         }
                         break;
 
                         default:
-                            throw MalformedMessageException ( "unknown type tag" );
+                            throw MalformedMessageException("unknown type tag");
                     }
 
                 }
-                while ( *++typeTag != '\0' );
+                while(*++typeTag != '\0');
 
                 typeTagsEnd_ = typeTag;
 
-                if ( arrayLevel !=  0 )
+                if(arrayLevel !=  0)
                 {
-                    throw MalformedMessageException ( "array was not terminated before end of message (expected ']' end of array tag)" );
+                    throw MalformedMessageException("array was not terminated before end of message (expected ']' end of array tag)");
                 }
             }
 
@@ -882,56 +882,56 @@ namespace osc
             // we depend on them in the implementation of ArgumentCount()
             #ifndef NDEBUG
             std::ptrdiff_t argumentCount = typeTagsEnd_ - typeTagsBegin_;
-            assert ( argumentCount >= 0 );
-            assert ( argumentCount <= OSC_INT32_MAX );
+            assert(argumentCount >= 0);
+            assert(argumentCount <= OSC_INT32_MAX);
             #endif
         }
     }
 
 //------------------------------------------------------------------------------
 
-    ReceivedBundle::ReceivedBundle ( const ReceivedPacket& packet )
-        : elementCount_ ( 0 )
+    ReceivedBundle::ReceivedBundle(const ReceivedPacket& packet)
+        : elementCount_(0)
     {
-        Init ( packet.Contents(), packet.Size() );
+        Init(packet.Contents(), packet.Size());
     }
 
 
-    ReceivedBundle::ReceivedBundle ( const ReceivedBundleElement& bundleElement )
-        : elementCount_ ( 0 )
+    ReceivedBundle::ReceivedBundle(const ReceivedBundleElement& bundleElement)
+        : elementCount_(0)
     {
-        Init ( bundleElement.Contents(), bundleElement.Size() );
+        Init(bundleElement.Contents(), bundleElement.Size());
     }
 
 
-    void ReceivedBundle::Init ( const char* bundle, osc_bundle_element_size_t size )
+    void ReceivedBundle::Init(const char* bundle, osc_bundle_element_size_t size)
     {
 
-        if ( !IsValidElementSizeValue (size) )
+        if(!IsValidElementSizeValue(size))
         {
-            throw MalformedBundleException ( "invalid bundle size" );
+            throw MalformedBundleException("invalid bundle size");
         }
 
-        if ( size < 16 )
+        if(size < 16)
         {
-            throw MalformedBundleException ( "packet too short for bundle" );
+            throw MalformedBundleException("packet too short for bundle");
         }
 
-        if ( !IsMultipleOf4 (size) )
+        if(!IsMultipleOf4(size))
         {
-            throw MalformedBundleException ( "bundle size must be multiple of four" );
+            throw MalformedBundleException("bundle size must be multiple of four");
         }
 
-        if ( bundle[0] != '#'
+        if(bundle[0] != '#'
                 || bundle[1] != 'b'
                 || bundle[2] != 'u'
                 || bundle[3] != 'n'
                 || bundle[4] != 'd'
                 || bundle[5] != 'l'
                 || bundle[6] != 'e'
-                || bundle[7] != '\0' )
+                || bundle[7] != '\0')
         {
-            throw MalformedBundleException ( "bad bundle address pattern" );
+            throw MalformedBundleException("bad bundle address pattern");
         }
 
         end_ = bundle + size;
@@ -940,41 +940,41 @@ namespace osc
 
         const char* p = timeTag_ + 8;
 
-        while ( p < end_ )
+        while(p < end_)
         {
-            if ( p + osc::OSC_SIZEOF_INT32 > end_ )
+            if(p + osc::OSC_SIZEOF_INT32 > end_)
             {
-                throw MalformedBundleException ( "packet too short for elementSize" );
+                throw MalformedBundleException("packet too short for elementSize");
             }
 
             // treat element size as an unsigned int for the purposes of this calculation
-            uint32 elementSize = ToUInt32 ( p );
+            uint32 elementSize = ToUInt32(p);
 
-            if ( (elementSize & ( (uint32) 0x03) ) != 0 )
+            if((elementSize & ((uint32) 0x03)) != 0)
             {
-                throw MalformedBundleException ( "bundle element size must be multiple of four" );
+                throw MalformedBundleException("bundle element size must be multiple of four");
             }
 
             p += osc::OSC_SIZEOF_INT32 + elementSize;
 
-            if ( p > end_ )
+            if(p > end_)
             {
-                throw MalformedBundleException ( "packet too short for bundle element" );
+                throw MalformedBundleException("packet too short for bundle element");
             }
 
             ++elementCount_;
         }
 
-        if ( p != end_ )
+        if(p != end_)
         {
-            throw MalformedBundleException ( "bundle contents " );
+            throw MalformedBundleException("bundle contents ");
         }
     }
 
 
     uint64 ReceivedBundle::TimeTag() const
     {
-        return ToUInt64 ( timeTag_ );
+        return ToUInt64(timeTag_);
     }
 
 

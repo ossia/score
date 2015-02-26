@@ -10,12 +10,12 @@ namespace iscore
     {
         public:
             virtual ~FactoryInterface_QtInterface() = default;
-            virtual QVector<FactoryInterface*> factories_make (QString factoryName) = 0;
+            virtual QVector<FactoryInterface*> factories_make(QString factoryName) = 0;
     };
 }
 
 
 #define FactoryInterface_QtInterface_iid "org.ossia.i-score.plugins.FactoryInterface_QtInterface"
 
-Q_DECLARE_INTERFACE (iscore::FactoryInterface_QtInterface, FactoryInterface_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::FactoryInterface_QtInterface, FactoryInterface_QtInterface_iid)
 

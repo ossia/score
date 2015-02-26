@@ -8,7 +8,7 @@ class InspectorPanel;
 class InspectorPanelView : public iscore::PanelViewInterface
 {
     public:
-        InspectorPanelView (iscore::View* parent);
+        InspectorPanelView(iscore::View* parent);
         virtual QWidget* getWidget() override;
 
         virtual Qt::DockWidgetArea defaultDock() const
@@ -17,7 +17,7 @@ class InspectorPanelView : public iscore::PanelViewInterface
         }
 
     public slots:
-        void on_setNewItem (QObject*);
+        void on_setNewItem(QObject*);
 
     private:
         InspectorPanel* m_panelWidget {};

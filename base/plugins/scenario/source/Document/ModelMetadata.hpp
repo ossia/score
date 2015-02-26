@@ -11,41 +11,41 @@
 class ModelMetadata : public QObject
 {
         Q_OBJECT
-        Q_PROPERTY (QString name
-                    READ name
-                    WRITE setName
-                    NOTIFY nameChanged)
+        Q_PROPERTY(QString name
+                   READ name
+                   WRITE setName
+                   NOTIFY nameChanged)
 
-        Q_PROPERTY (QString comment
-                    READ comment
-                    WRITE setComment
-                    NOTIFY commentChanged)
+        Q_PROPERTY(QString comment
+                   READ comment
+                   WRITE setComment
+                   NOTIFY commentChanged)
 
-        Q_PROPERTY (QColor color
-                    READ color
-                    WRITE setColor
-                    NOTIFY colorChanged)
+        Q_PROPERTY(QColor color
+                   READ color
+                   WRITE setColor
+                   NOTIFY colorChanged)
 
-        Q_PROPERTY (QString label
-                    READ label
-                    WRITE setLabel
-                    NOTIFY labelChanged)
+        Q_PROPERTY(QString label
+                   READ label
+                   WRITE setLabel
+                   NOTIFY labelChanged)
 
     public:
         ModelMetadata() = default;
-        ModelMetadata (const ModelMetadata& other) :
+        ModelMetadata(const ModelMetadata& other) :
             QObject {}
         {
-            setName (other.name() );
-            setComment (other.comment() );
-            setColor (other.color() );
+            setName(other.name());
+            setComment(other.comment());
+            setColor(other.color());
         }
 
         ModelMetadata& operator= (const ModelMetadata& other)
         {
-            setName (other.name() );
-            setComment (other.comment() );
-            setColor (other.color() );
+            setName(other.name());
+            setComment(other.comment());
+            setColor(other.color());
 
             return *this;
         }
@@ -56,17 +56,17 @@ class ModelMetadata : public QObject
         QString label() const;
 
     signals:
-        void nameChanged (QString arg);
-        void commentChanged (QString arg);
-        void colorChanged (QColor arg);
-        void labelChanged (QString arg);
+        void nameChanged(QString arg);
+        void commentChanged(QString arg);
+        void colorChanged(QColor arg);
+        void labelChanged(QString arg);
         void metadataChanged();
 
     public slots:
-        void setName (QString arg);
-        void setComment (QString arg);
-        void setColor (QColor arg);
-        void setLabel (QString arg);
+        void setName(QString arg);
+        void setComment(QString arg);
+        void setColor(QColor arg);
+        void setLabel(QString arg);
 
 
     private:
@@ -76,4 +76,4 @@ class ModelMetadata : public QObject
         QString m_label;
 };
 
-Q_DECLARE_METATYPE (ModelMetadata)
+Q_DECLARE_METATYPE(ModelMetadata)

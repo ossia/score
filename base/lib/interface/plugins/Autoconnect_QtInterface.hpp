@@ -15,4 +15,4 @@ namespace iscore
 
 #define Autoconnect_QtInterface_iid "org.ossia.i-score.plugins.Autoconnect_QtInterface"
 
-Q_DECLARE_INTERFACE (iscore::Autoconnect_QtInterface, Autoconnect_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::Autoconnect_QtInterface, Autoconnect_QtInterface_iid)

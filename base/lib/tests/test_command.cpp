@@ -12,7 +12,7 @@ class FakeParent : public QObject
 
 struct FakeModel : public QNamedObject
 {
-    FakeModel (QObject* parent) : QNamedObject {parent, "FakeModel"}
+    FakeModel(QObject* parent) : QNamedObject {parent, "FakeModel"}
     {
     }
 
@@ -23,7 +23,7 @@ struct FakeModel : public QNamedObject
 class FakeCommand : public SerializableCommand
 {
     public:
-        FakeCommand (int modelId) :
+        FakeCommand(int modelId) :
             SerializableCommand {"", "FakeCommand", "" },
         m_modelId {modelId}
         {
@@ -34,9 +34,9 @@ class FakeCommand : public SerializableCommand
         {
             auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
 
-            for (auto& model : children)
+            for(auto& model : children)
             {
-                if (model->modelId == m_modelId)
+                if(model->modelId == m_modelId)
                 {
                     model->value--;
                 }
@@ -47,9 +47,9 @@ class FakeCommand : public SerializableCommand
         {
             auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
 
-            for (auto& model : children)
+            for(auto& model : children)
             {
-                if (model->modelId == m_modelId)
+                if(model->modelId == m_modelId)
                 {
                     model->value++;
                 }
@@ -66,10 +66,10 @@ class FakeCommand : public SerializableCommand
 
         // SerializableCommand interface
     protected:
-        virtual void serializeImpl (QDataStream&) override
+        virtual void serializeImpl(QDataStream&) override
         {
         }
-        virtual void deserializeImpl (QDataStream&) override
+        virtual void deserializeImpl(QDataStream&) override
         {
         }
 };
@@ -86,14 +86,14 @@ class TestCommand: public QObject
     private slots:
         void CommandTest()
         {
-            QVERIFY (m_model->value == 0);
+            QVERIFY(m_model->value == 0);
             auto cmd = new FakeCommand {0};
-            m_commandQueue.push (cmd);
-            QVERIFY (m_model->value == 1);
+            m_commandQueue.push(cmd);
+            QVERIFY(m_model->value == 1);
             m_commandQueue.undo();
-            QVERIFY (m_model->value == 0);
+            QVERIFY(m_model->value == 0);
             m_commandQueue.redo();
-            QVERIFY (m_model->value == 1);
+            QVERIFY(m_model->value == 1);
         }
 
     private:
@@ -101,6 +101,6 @@ class TestCommand: public QObject
         FakeModel* m_model {};
 };
 
-QTEST_MAIN (TestCommand)
+QTEST_MAIN(TestCommand)
 #include "test_command.moc"
 

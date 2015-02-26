@@ -8,11 +8,11 @@ class QSpinBox;
 class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
 {
     public:
-        MinuitProtocolSettingsWidget (QWidget* parent = nullptr);
+        MinuitProtocolSettingsWidget(QWidget* parent = nullptr);
 
         virtual QList<QString> getSettings() const override;
 
-        virtual void setSettings (const QList<QString>& settings);
+        virtual void setSettings(const QList<QString>& settings);
 
     protected:
         void buildGUI();

@@ -15,27 +15,27 @@ using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint() :
     SerializableCommand {"ScenarioControl",
     "AddProcessToConstraint",
-    QObject::tr ("Add process")
+    QObject::tr("Add process")
 }
 {
 }
 
-AddProcessToConstraint::AddProcessToConstraint (ObjectPath&& constraintPath, QString process) :
+AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process) :
     SerializableCommand {"ScenarioControl",
     "AddProcessToConstraint",
-    QObject::tr ("Add process")
+    QObject::tr("Add process")
 },
-m_path {std::move (constraintPath) },
+m_path {std::move(constraintPath) },
 m_processName {process}
 {
     auto constraint = m_path.find<ConstraintModel>();
-    m_createdProcessId = getStrongId (constraint->processes() );
+    m_createdProcessId = getStrongId(constraint->processes());
 }
 
 void AddProcessToConstraint::undo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    constraint->removeProcess (m_createdProcessId);
+    constraint->removeProcess(m_createdProcessId);
 }
 
 void AddProcessToConstraint::redo()
@@ -43,9 +43,9 @@ void AddProcessToConstraint::redo()
     auto constraint = m_path.find<ConstraintModel>();
 
     // Create process model
-    auto proc = ProcessList::getFactory (m_processName)->makeModel (m_createdProcessId, constraint);
-    proc->setDuration (constraint->defaultDuration() );
-    constraint->addProcess (proc);
+    auto proc = ProcessList::getFactory(m_processName)->makeModel(m_createdProcessId, constraint);
+    proc->setDuration(constraint->defaultDuration());
+    constraint->addProcess(proc);
 }
 
 int AddProcessToConstraint::id() const
@@ -53,17 +53,17 @@ int AddProcessToConstraint::id() const
     return 1;
 }
 
-bool AddProcessToConstraint::mergeWith (const QUndoCommand* other)
+bool AddProcessToConstraint::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void AddProcessToConstraint::serializeImpl (QDataStream& s) const
+void AddProcessToConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_processName << m_createdProcessId;
 }
 
-void AddProcessToConstraint::deserializeImpl (QDataStream& s)
+void AddProcessToConstraint::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_processName >> m_createdProcessId;
 }

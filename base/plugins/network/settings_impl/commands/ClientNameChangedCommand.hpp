@@ -7,10 +7,10 @@ class ClientNameChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
     public:
-        ClientNameChangedCommand (QString oldval, QString newval) :
-            Command {QString (""),
-                    QString (""),
-                    QString ("")
+        ClientNameChangedCommand(QString oldval, QString newval) :
+            Command {QString(""),
+                    QString(""),
+                    QString("")
         },
         m_oldval {oldval},
         m_newval {newval}
@@ -18,9 +18,9 @@ class ClientNameChangedCommand : public iscore::Command
 
         }
 
-        virtual bool mergeWith (const QUndoCommand* other) override
+        virtual bool mergeWith(const QUndoCommand* other) override
         {
-            auto cmd = static_cast<const ClientNameChangedCommand*> (other);
+            auto cmd = static_cast<const ClientNameChangedCommand*>(other);
             m_newval = cmd->m_newval;
             return true;
         }
@@ -28,13 +28,13 @@ class ClientNameChangedCommand : public iscore::Command
         virtual void undo() override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
-            target->setClientName (m_oldval);
+            target->setClientName(m_oldval);
         }
 
         virtual void redo() override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
-            target->setClientName (m_newval);
+            target->setClientName(m_newval);
         }
 
     private:

@@ -6,19 +6,19 @@
 using namespace iscore;
 
 
-iscore::PanelViewInterface* InspectorPanelFactory::makeView (iscore::View* parent)
+iscore::PanelViewInterface* InspectorPanelFactory::makeView(iscore::View* parent)
 {
     return new InspectorPanelView {parent};
 }
 
-iscore::PanelPresenterInterface* InspectorPanelFactory::makePresenter (
+iscore::PanelPresenterInterface* InspectorPanelFactory::makePresenter(
     iscore::Presenter* parent_presenter,
     iscore::PanelViewInterface* view)
 {
     return new InspectorPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModelInterface* InspectorPanelFactory::makeModel (iscore::DocumentModel* parent)
+iscore::PanelModelInterface* InspectorPanelFactory::makeModel(iscore::DocumentModel* parent)
 {
     return new InspectorPanelModel {parent};
 }

@@ -5,30 +5,30 @@
 #include "Commands/MovePoint.hpp"
 #include "Commands/ChangeAddress.hpp"
 
-AutomationControl::AutomationControl (QObject* parent) :
+AutomationControl::AutomationControl(QObject* parent) :
     PluginControlInterface {"AutomationControl", parent}
 {
 
 }
 
 
-iscore::SerializableCommand* AutomationControl::instantiateUndoCommand (const QString& name, const QByteArray& data)
+iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
     iscore::SerializableCommand* cmd {};
 
-    if (name == "AddPoint")
+    if(name == "AddPoint")
     {
         cmd = new AddPoint;
     }
-    else if (name == "RemovePoint")
+    else if(name == "RemovePoint")
     {
         cmd = new RemovePoint;
     }
-    else if (name == "MovePoint")
+    else if(name == "MovePoint")
     {
         cmd = new MovePoint;
     }
-    else if (name == "ChangeAddress")
+    else if(name == "ChangeAddress")
     {
         cmd = new ChangeAddress;
     }
@@ -39,7 +39,7 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand (const QS
         return nullptr;
     }
 
-    cmd->deserialize (data);
+    cmd->deserialize(data);
     return cmd;
 
 }

@@ -5,13 +5,13 @@
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
-        ScenarioControl (QObject* parent);
+        ScenarioControl(QObject* parent);
 
-        virtual void populateMenus (iscore::MenubarManager*) override;
+        virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
-        virtual void setPresenter (iscore::Presenter*) override;
+        virtual void setPresenter(iscore::Presenter*) override;
 
-        virtual iscore::SerializableCommand* instantiateUndoCommand (const QString& name,
+        virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;
 
         ProcessList* processList()

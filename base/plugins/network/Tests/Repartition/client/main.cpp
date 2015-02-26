@@ -11,23 +11,23 @@ class Test
             auto vec = ClientSessionBuilder::list();
             std::cerr << vec.size();
 
-            ClientSessionBuilder builder (vec[0].remote_ip, vec[0].remote_port, "JeanMi", 7888);
+            ClientSessionBuilder builder(vec[0].remote_ip, vec[0].remote_port, "JeanMi", 7888);
             builder.join();
-            sleep (2);
+            sleep(2);
             auto session = builder.getBuiltSession();
 
-            auto& g = *begin (session->groups() );
-            session->changePermission (session->getLocalClient(),
-                                       g,
-                                       Permission::Category::Write,
-                                       Permission::Enablement::Enabled);
+            auto& g = *begin(session->groups());
+            session->changePermission(session->getLocalClient(),
+                                      g,
+                                      Permission::Category::Write,
+                                      Permission::Enablement::Enabled);
         }
 };
 
 using namespace std;
-int main (int argc, char** argv)
+int main(int argc, char** argv)
 {
-    QCoreApplication app (argc, argv);
+    QCoreApplication app(argc, argv);
     Test t;
     std::cerr << "Test ok" << std::endl;
 

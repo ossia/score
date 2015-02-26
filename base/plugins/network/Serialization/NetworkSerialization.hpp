@@ -10,7 +10,7 @@ class NetworkSerializationSocket : public QObject
 {
         Q_OBJECT
     public:
-        NetworkSerializationSocket (QString ip, int port, QObject* parent);
+        NetworkSerializationSocket(QString ip, int port, QObject* parent);
 
         void doConnect();
 
@@ -19,7 +19,7 @@ class NetworkSerializationSocket : public QObject
     public slots:
         void connected();
         void disconnected();
-        void bytesWritten (qint64 bytes);
+        void bytesWritten(qint64 bytes);
         void readyRead();
 
     private:
@@ -31,7 +31,7 @@ class NetworkSerializationSocket : public QObject
 class NetworkSerializationServer : public QObject
 {
     public:
-        NetworkSerializationServer (int port, QObject* parent);
+        NetworkSerializationServer(int port, QObject* parent);
 
     private:
         QTcpServer* m_tcpServer;

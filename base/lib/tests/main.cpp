@@ -6,9 +6,9 @@ class TestExample: public QObject
     private slots:
         void SomeTest()
         {
-            QVERIFY (1 < 2);
+            QVERIFY(1 < 2);
         }
 };
 
-QTEST_MAIN (TestExample)
+QTEST_MAIN(TestExample)
 #include "main.moc"

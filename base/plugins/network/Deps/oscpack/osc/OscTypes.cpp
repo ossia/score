@@ -39,7 +39,7 @@
 namespace osc
 {
 
-    BundleInitiator BeginBundleImmediate (1);
+    BundleInitiator BeginBundleImmediate(1);
     BundleTerminator EndBundle;
     MessageTerminator EndMessage;
     NilType OscNil;

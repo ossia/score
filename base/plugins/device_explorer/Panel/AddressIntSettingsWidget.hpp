@@ -10,7 +10,7 @@ class QSpinBox;
 class AddressIntSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressIntSettingsWidget (QWidget* parent = nullptr);
+        AddressIntSettingsWidget(QWidget* parent = nullptr);
 
         //TODO: use QVariant instead ???
         /*
@@ -19,7 +19,7 @@ class AddressIntSettingsWidget : public AddressSettingsWidget
          */
         virtual QList<QString> getSettings() const override;
 
-        virtual void setSettings (const QList<QString>& settings) override;
+        virtual void setSettings(const QList<QString>& settings) override;
 
     protected:
 

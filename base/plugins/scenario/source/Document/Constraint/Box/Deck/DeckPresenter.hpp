@@ -15,41 +15,41 @@ class DeckPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        DeckPresenter (DeckModel* model,
-                       DeckView* view,
-                       QObject* parent);
+        DeckPresenter(DeckModel* model,
+                      DeckView* view,
+                      QObject* parent);
         virtual ~DeckPresenter();
 
         id_type<DeckModel> id() const;
         int height() const; // Return the height of the view
 
-        void setWidth (int w);
-        void setVerticalPosition (int h);
+        void setWidth(int w);
+        void setVerticalPosition(int h);
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
-        void elementSelected (QObject*);
+        void submitCommand(iscore::SerializableCommand*);
+        void elementSelected(QObject*);
         void lastElementSelected();
 
         void askUpdate();
 
     public slots:
         // From Model
-        void on_processViewModelCreated (id_type<ProcessViewModelInterface> processId);
-        void on_processViewModelDeleted (id_type<ProcessViewModelInterface> processId);
-        void on_processViewModelSelected (id_type<ProcessViewModelInterface> processId);
-        void on_heightChanged (int height);
+        void on_processViewModelCreated(id_type<ProcessViewModelInterface> processId);
+        void on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId);
+        void on_processViewModelSelected(id_type<ProcessViewModelInterface> processId);
+        void on_heightChanged(int height);
         void on_parentGeometryChanged();
 
         // From View
         void on_bottomHandleSelected();
-        void on_bottomHandleChanged (int newHeight);
+        void on_bottomHandleChanged(int newHeight);
         void on_bottomHandleReleased();
 
-        void on_horizontalZoomChanged (int);
+        void on_horizontalZoomChanged(int);
 
     private:
-        void on_processViewModelCreated_impl (ProcessViewModelInterface*);
+        void on_processViewModelCreated_impl(ProcessViewModelInterface*);
 
         void updateProcessesShape();
 

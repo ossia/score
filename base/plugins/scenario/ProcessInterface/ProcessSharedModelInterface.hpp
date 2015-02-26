@@ -14,7 +14,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 {
     public:
         using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
-        virtual ProcessSharedModelInterface* clone (id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
+        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
 
         /**
          * @brief processName
@@ -30,16 +30,16 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         //// View models interface
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                 QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.
-        virtual ProcessViewModelInterface* makeViewModel (SerializationIdentifier identifier,
+        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
                 void* data,
                 QObject* parent) = 0;
 
         // "Copy" factory. TODO replace by clone methode on PVM ?
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> newId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
                 const ProcessViewModelInterface* source,
                 QObject* parent) = 0;
 
@@ -50,12 +50,12 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         }
 
         // Used to scale the process.
-        virtual void setDurationWithScale (TimeValue newDuration) = 0;
-        virtual void setDurationWithoutScale (TimeValue newDuration) = 0;
+        virtual void setDurationWithScale(TimeValue newDuration) = 0;
+        virtual void setDurationWithoutScale(TimeValue newDuration) = 0;
 
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.
-        void setDuration (const TimeValue& other)
+        void setDuration(const TimeValue& other)
         {
             m_duration = other;
         }
@@ -66,22 +66,22 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         }
 
         // protected:
-        virtual void serialize (SerializationIdentifier identifier,
-                                void* data) const = 0;
+        virtual void serialize(SerializationIdentifier identifier,
+                               void* data) const = 0;
 
     protected:
-        void addViewModel (ProcessViewModelInterface* m)
+        void addViewModel(ProcessViewModelInterface* m)
         {
-            m_viewModels.push_back (m);
+            m_viewModels.push_back(m);
         }
 
-        void removeViewModel (ProcessViewModelInterface* m)
+        void removeViewModel(ProcessViewModelInterface* m)
         {
-            int index = m_viewModels.indexOf (m);
+            int index = m_viewModels.indexOf(m);
 
-            if (index != -1)
+            if(index != -1)
             {
-                m_viewModels.remove (index);
+                m_viewModels.remove(index);
             }
         }
 
@@ -93,13 +93,13 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 };
 
 template<typename T>
-QVector<typename T::view_model_type*> viewModels (T* processViewModel)
+QVector<typename T::view_model_type*> viewModels(T* processViewModel)
 {
     QVector<typename T::view_model_type*> v;
 
-    for (auto& elt : processViewModel->viewModels() )
+    for(auto& elt : processViewModel->viewModels())
     {
-        v.push_back (static_cast<typename T::view_model_type*> (elt) );
+        v.push_back(static_cast<typename T::view_model_type*>(elt));
     }
 
     return v;

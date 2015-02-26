@@ -16,15 +16,15 @@ int SwitchStatePosition::id() const
     return 1;
 }
 
-bool SwitchStatePosition::mergeWith (const QUndoCommand* other)
+bool SwitchStatePosition::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void SwitchStatePosition::serializeImpl (QDataStream&) const
+void SwitchStatePosition::serializeImpl(QDataStream&) const
 {
 }
 
-void SwitchStatePosition::deserializeImpl (QDataStream&)
+void SwitchStatePosition::deserializeImpl(QDataStream&)
 {
 }

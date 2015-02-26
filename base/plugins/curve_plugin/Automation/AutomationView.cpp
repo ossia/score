@@ -2,15 +2,15 @@
 
 #include <QPainter>
 
-AutomationView::AutomationView (QGraphicsObject* parent) :
+AutomationView::AutomationView(QGraphicsObject* parent) :
     ProcessViewInterface {parent}
 {
-    setZValue (parent->zValue() + 1);
+    setZValue(parent->zValue() + 1);
 }
 
-void AutomationView::paint (QPainter* painter,
-                            const QStyleOptionGraphicsItem* option,
-                            QWidget* widget)
+void AutomationView::paint(QPainter* painter,
+                           const QStyleOptionGraphicsItem* option,
+                           QWidget* widget)
 {
 
 }

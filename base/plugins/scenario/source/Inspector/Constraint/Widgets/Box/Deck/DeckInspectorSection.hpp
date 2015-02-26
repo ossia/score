@@ -14,12 +14,12 @@ class ProcessSharedModelInterface;
 class DeckInspectorSection : public InspectorSectionWidget
 {
     public:
-        DeckInspectorSection (QString name,
-                              DeckModel* deck,
-                              BoxInspectorSection* parentBox);
+        DeckInspectorSection(QString name,
+                             DeckModel* deck,
+                             BoxInspectorSection* parentBox);
 
-        void displayProcessViewModel (ProcessViewModelInterface*);
-        void createProcessViewModel (id_type<ProcessSharedModelInterface> sharedProcessId);
+        void displayProcessViewModel(ProcessViewModelInterface*);
+        void createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessId);
 
         DeckModel* model() const
         {
@@ -27,8 +27,8 @@ class DeckInspectorSection : public InspectorSectionWidget
         }
 
     public slots:
-        void on_processViewModelCreated (id_type<ProcessViewModelInterface> id);
-        void on_processViewModelRemoved (id_type<ProcessViewModelInterface> id);
+        void on_processViewModelCreated(id_type<ProcessViewModelInterface> id);
+        void on_processViewModelRemoved(id_type<ProcessViewModelInterface> id);
 
     private:
         DeckModel* m_model {};

@@ -11,14 +11,14 @@ class AbstractConstraintView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        AbstractConstraintView (QGraphicsObject* parent);
+        AbstractConstraintView(QGraphicsObject* parent);
 
         virtual ~AbstractConstraintView() = default;
 
-        void setDefaultWidth (int width);
-        void setMaxWidth (int max);
-        void setMinWidth (int min);
-        void setHeight (int height);
+        void setDefaultWidth(int width);
+        void setMaxWidth(int max);
+        void setMinWidth(int min);
+        void setHeight(int height);
 
         int defaultWidth() const
         {
@@ -41,7 +41,7 @@ class AbstractConstraintView : public QGraphicsObject
         }
 
     signals:
-        void constraintPressed (QPointF);
+        void constraintPressed(QPointF);
 
     protected:
         QPen m_solidPen

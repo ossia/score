@@ -13,8 +13,8 @@ ChangeAddress::ChangeAddress() :
 {
 }
 
-ChangeAddress::ChangeAddress (ObjectPath&& path,
-                              QString addr) :
+ChangeAddress::ChangeAddress(ObjectPath&& path,
+                             QString addr) :
     SerializableCommand {"AutomationControl",
     CMD_NAME,
     CMD_DESC
@@ -29,13 +29,13 @@ m_newAddr {addr}
 void ChangeAddress::undo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->setAddress (m_oldAddr);
+    autom->setAddress(m_oldAddr);
 }
 
 void ChangeAddress::redo()
 {
     auto autom = m_path.find<AutomationModel>();
-    autom->setAddress (m_newAddr);
+    autom->setAddress(m_newAddr);
 }
 
 int ChangeAddress::id() const
@@ -43,17 +43,17 @@ int ChangeAddress::id() const
     return CMD_UID;
 }
 
-bool ChangeAddress::mergeWith (const QUndoCommand* other)
+bool ChangeAddress::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void ChangeAddress::serializeImpl (QDataStream& s) const
+void ChangeAddress::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_oldAddr << m_newAddr;
 }
 
-void ChangeAddress::deserializeImpl (QDataStream& s)
+void ChangeAddress::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_oldAddr >> m_newAddr;
 }

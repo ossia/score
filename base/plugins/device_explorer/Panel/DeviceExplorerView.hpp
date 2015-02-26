@@ -11,11 +11,11 @@ class DeviceExplorerView : public QTreeView
 
     public:
 
-        DeviceExplorerView (QWidget* parent = 0);
+        DeviceExplorerView(QWidget* parent = 0);
         ~DeviceExplorerView();
 
-        void setModel (DeviceExplorerModel* model);
-        void setModel (DeviceExplorerFilterProxyModel* model);
+        void setModel(DeviceExplorerModel* model);
+        void setModel(DeviceExplorerFilterProxyModel* model);
 
         DeviceExplorerModel* model();
         const DeviceExplorerModel* model() const;
@@ -38,17 +38,17 @@ class DeviceExplorerView : public QTreeView
         void selectionChanged();
 
     protected slots:
-        virtual void selectionChanged (const QItemSelection& selected, const QItemSelection& deselected) override;
+        virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 
-        void headerMenuRequested (const QPoint& pos);
-        void columnVisibilityChanged (bool shown);
+        void headerMenuRequested(const QPoint& pos);
+        void columnVisibilityChanged(bool shown);
 
     protected:
 
         //virtual void closeEvent(QCloseEvent *event) override;
 
         QModelIndex selectedIndex() const;
-        void setSelectedIndex (const QModelIndex& index);
+        void setSelectedIndex(const QModelIndex& index);
 
         void installStyleSheet();
 

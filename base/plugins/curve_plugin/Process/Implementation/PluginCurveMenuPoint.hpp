@@ -19,7 +19,7 @@ class PluginCurveMenuPoint : public QMenu
             MENUPOINT_FIX_HORIZONTAL_TEXT
         };
 
-        PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent = 0);
+        PluginCurveMenuPoint(PluginCurvePoint* point, QWidget* parent = 0);
         virtual ~PluginCurveMenuPoint() = default;
 
 };

@@ -17,39 +17,39 @@
 
 namespace
 {
-    const QString GeometrySetting ("DeviceExplorerView/Geometry");
-    const QString HeaderViewSetting ("DeviceExplorerView/HeaderView");
+    const QString GeometrySetting("DeviceExplorerView/Geometry");
+    const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 }
 
-DeviceExplorerView::DeviceExplorerView (QWidget* parent)
-    : QTreeView (parent),
-      m_hasProxy (false)
+DeviceExplorerView::DeviceExplorerView(QWidget* parent)
+    : QTreeView(parent),
+      m_hasProxy(false)
 {
 
-    setAllColumnsShowFocus (true);
+    setAllColumnsShowFocus(true);
 
-    setSelectionBehavior (QAbstractItemView::SelectRows);
-    setSelectionMode (QAbstractItemView::ExtendedSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
     //cf http://qt-project.org/doc/qt-5/qabstractitemview.html#SelectionBehavior-enum
 
 
-    header()->setContextMenuPolicy (Qt::CustomContextMenu); //header will emit the signal customContextMenuRequested()
-    connect (header(), SIGNAL (customContextMenuRequested (const QPoint&) ), this, SLOT (headerMenuRequested (const QPoint&) ) );
+    header()->setContextMenuPolicy(Qt::CustomContextMenu);  //header will emit the signal customContextMenuRequested()
+    connect(header(), SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(headerMenuRequested(const QPoint&)));
 
 
     //- Drag'n Drop.
 
-    setDragEnabled (true);
-    setAcceptDrops (true);
+    setDragEnabled(true);
+    setAcceptDrops(true);
 
     //setDragDropMode(QAbstractItemView::InternalMove); //The view accepts move (not copy) operations only from itself.
-    setDragDropMode (QAbstractItemView::DragDrop);
+    setDragDropMode(QAbstractItemView::DragDrop);
 
-    setDropIndicatorShown (true);
+    setDropIndicatorShown(true);
 
-    setDefaultDropAction (Qt::MoveAction); //default DefaultDropAction is CopyAction
+    setDefaultDropAction(Qt::MoveAction);  //default DefaultDropAction is CopyAction
 
-    setDragDropOverwriteMode (false);
+    setDragDropOverwriteMode(false);
 
     /*
       - if setDragDropMode(QAbstractItemView::InternalMove); : it is impossible to have copyAction in model::dropMimeData().
@@ -77,15 +77,15 @@ DeviceExplorerView::~DeviceExplorerView() //void DeviceExplorerView::closeEvent(
 void
 DeviceExplorerView::setInitialColumnsSizes()
 {
-    Q_ASSERT (model() );
+    Q_ASSERT(model());
 
-    header()->resizeSection (this->model()->getNameColumn(), 220);
-    header()->resizeSection (this->model()->getIOTypeColumn(), 36);
+    header()->resizeSection(this->model()->getNameColumn(), 220);
+    header()->resizeSection(this->model()->getIOTypeColumn(), 36);
     //TODO:UGLY : give proper access to columns in DeviceExplorerModel
-    header()->resizeSection (1, 50);
-    header()->resizeSection (3, 50);
-    header()->resizeSection (4, 50);
-    header()->resizeSection (6, 70);
+    header()->resizeSection(1, 50);
+    header()->resizeSection(3, 50);
+    header()->resizeSection(4, 50);
+    header()->resizeSection(6, 70);
 
 }
 
@@ -94,22 +94,22 @@ void
 DeviceExplorerView::saveSettings()
 {
     QSettings settings;
-    settings.setValue (GeometrySetting, saveGeometry() );
-    settings.setValue (HeaderViewSetting, header()->saveState() );
+    settings.setValue(GeometrySetting, saveGeometry());
+    settings.setValue(HeaderViewSetting, header()->saveState());
 }
 
 void
 DeviceExplorerView::restoreSettings()
 {
     QSettings settings;
-    restoreGeometry (settings.value (GeometrySetting).toByteArray() );
-    header()->restoreState (settings.value (HeaderViewSetting).toByteArray() );
+    restoreGeometry(settings.value(GeometrySetting).toByteArray());
+    header()->restoreState(settings.value(HeaderViewSetting).toByteArray());
 }
 
 void
 DeviceExplorerView::installStyleSheet()
 {
-    setStyleSheet (
+    setStyleSheet(
         "QTreeView {"
         "show-decoration-selected: 1;"
         "background-color: #bababa;"
@@ -158,13 +158,13 @@ DeviceExplorerView::installStyleSheet()
 }
 
 void
-DeviceExplorerView::setModel (DeviceExplorerModel* model)
+DeviceExplorerView::setModel(DeviceExplorerModel* model)
 {
-    QTreeView::setModel (static_cast<QAbstractItemModel*> (model) );
+    QTreeView::setModel(static_cast<QAbstractItemModel*>(model));
     m_hasProxy = false;
     #ifdef MODEL_TEST
     qDebug() << "*** ADD MODEL_TEST\n";
-    (void) new ModelTest (model, this);
+    (void) new ModelTest(model, this);
     #endif
 
     setInitialColumnsSizes();
@@ -173,13 +173,13 @@ DeviceExplorerView::setModel (DeviceExplorerModel* model)
 }
 
 void
-DeviceExplorerView::setModel (DeviceExplorerFilterProxyModel* model)
+DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
 {
-    QTreeView::setModel (static_cast<QAbstractItemModel*> (model) );
+    QTreeView::setModel(static_cast<QAbstractItemModel*>(model));
     m_hasProxy = true;
     #ifdef MODEL_TEST
     qDebug() << "*** ADD MODEL_TEST\n";
-    (void) new ModelTest (model->sourceModel(), this);
+    (void) new ModelTest(model->sourceModel(), this);
     #endif
 
     setInitialColumnsSizes();
@@ -190,26 +190,26 @@ DeviceExplorerView::setModel (DeviceExplorerFilterProxyModel* model)
 DeviceExplorerModel*
 DeviceExplorerView::model()
 {
-    if (! m_hasProxy)
+    if(! m_hasProxy)
     {
-        return static_cast<DeviceExplorerModel*> (QTreeView::model() );
+        return static_cast<DeviceExplorerModel*>(QTreeView::model());
     }
     else
     {
-        return static_cast<DeviceExplorerModel*> (static_cast<QAbstractProxyModel*> (QTreeView::model() )->sourceModel() );
+        return static_cast<DeviceExplorerModel*>(static_cast<QAbstractProxyModel*>(QTreeView::model())->sourceModel());
     }
 }
 
 const DeviceExplorerModel*
 DeviceExplorerView::model() const
 {
-    if (! m_hasProxy)
+    if(! m_hasProxy)
     {
-        return static_cast<const DeviceExplorerModel*> (QTreeView::model() );
+        return static_cast<const DeviceExplorerModel*>(QTreeView::model());
     }
     else
     {
-        return static_cast<const DeviceExplorerModel*> (static_cast<const QAbstractProxyModel*> (QTreeView::model() )->sourceModel() );
+        return static_cast<const DeviceExplorerModel*>(static_cast<const QAbstractProxyModel*>(QTreeView::model())->sourceModel());
     }
 }
 
@@ -217,52 +217,52 @@ DeviceExplorerView::model() const
 void
 DeviceExplorerView::initActions()
 {
-    Q_ASSERT (model() );
+    Q_ASSERT(model());
     const int n = model()->columnCount();
-    m_actions.reserve (n);
+    m_actions.reserve(n);
 
-    for (int i = 0; i < n; ++i)
+    for(int i = 0; i < n; ++i)
     {
-        QAction* a = new QAction (model()->headerData (i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
-        a->setCheckable (true);
+        QAction* a = new QAction(model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
+        a->setCheckable(true);
 
-        if (isColumnHidden (i) )
+        if(isColumnHidden(i))
         {
-            a->setChecked (false);
+            a->setChecked(false);
         }
         else
         {
-            a->setChecked (true);
+            a->setChecked(true);
         }
 
-        connect (a, SIGNAL (toggled (bool) ), this, SLOT (columnVisibilityChanged (bool) ) );
-        m_actions.append (a);
+        connect(a, SIGNAL(toggled(bool)), this, SLOT(columnVisibilityChanged(bool)));
+        m_actions.append(a);
     }
 
 }
 
 void
-DeviceExplorerView::columnVisibilityChanged (bool shown)
+DeviceExplorerView::columnVisibilityChanged(bool shown)
 {
-    QAction* a = qobject_cast<QAction*> (sender() );
-    Q_ASSERT (a);
-    const int ind = m_actions.indexOf (a);
-    Q_ASSERT (ind != -1);
-    setColumnHidden (ind, !shown);
+    QAction* a = qobject_cast<QAction*> (sender());
+    Q_ASSERT(a);
+    const int ind = m_actions.indexOf(a);
+    Q_ASSERT(ind != -1);
+    setColumnHidden(ind, !shown);
 }
 
 void
-DeviceExplorerView::headerMenuRequested (const QPoint& pos)
+DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 {
-    QMenu contextMenu (this);
+    QMenu contextMenu(this);
     const int n = m_actions.size();
 
-    for (int i = 0; i < n; ++i)
+    for(int i = 0; i < n; ++i)
     {
-        contextMenu.addAction (m_actions.at (i) );
+        contextMenu.addAction(m_actions.at(i));
     }
 
-    contextMenu.exec (pos);
+    contextMenu.exec(pos);
 }
 
 
@@ -272,9 +272,9 @@ DeviceExplorerView::getIOTypeColumn() const
 
     //TODO: how do we get the view/displayed column number & not the model column number ???
 
-    const DeviceExplorerModel* m = const_cast<DeviceExplorerView*> (this)->model();
+    const DeviceExplorerModel* m = const_cast<DeviceExplorerView*>(this)->model();
 
-    if (m)
+    if(m)
     {
         return m->getIOTypeColumn();
     }
@@ -288,9 +288,9 @@ DeviceExplorerView::getIOTypeColumn() const
 }
 
 void
-DeviceExplorerView::selectionChanged (const QItemSelection& selected, const QItemSelection& deselected)
+DeviceExplorerView::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
-    QTreeView::selectionChanged (selected, deselected);
+    QTreeView::selectionChanged(selected, deselected);
 
     /*
     {//DEBUG
@@ -329,17 +329,17 @@ DeviceExplorerView::selectedIndexes() const
     QModelIndexList l = QTreeView::selectedIndexes();
 
     QModelIndexList l0;
-    foreach (const QModelIndex & index, l)
+    foreach(const QModelIndex & index, l)
     {
-        if (index.column() == col)
+        if(index.column() == col)
         {
 
-            if (!index.isValid() )
+            if(!index.isValid())
             {
                 std::cerr << " !!! invalid index in selection !!!\n";
             }
 
-            l0.append (index);
+            l0.append(index);
             //REM: we append index in ProxyModel if m_hasProxy
             // it is necesary because drag'n drop will automatically call selectedIndexes() & mapToSource().
         }
@@ -351,8 +351,8 @@ DeviceExplorerView::selectedIndexes() const
 bool
 DeviceExplorerView::hasCut() const
 {
-    Q_ASSERT (const_cast<DeviceExplorerView*> (this)->model() );
-    return const_cast<DeviceExplorerView*> (this)->model()->hasCut();
+    Q_ASSERT(const_cast<DeviceExplorerView*>(this)->model());
+    return const_cast<DeviceExplorerView*>(this)->model()->hasCut();
 }
 
 //REM: use selectedIndex() & setSelectedIndex()
@@ -362,72 +362,72 @@ DeviceExplorerView::hasCut() const
 QModelIndex
 DeviceExplorerView::selectedIndex() const
 {
-    if (! m_hasProxy)
+    if(! m_hasProxy)
     {
         return currentIndex();
     }
     else
     {
-        return static_cast<const QAbstractProxyModel*> (QTreeView::model() )->mapToSource (currentIndex() );
+        return static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapToSource(currentIndex());
     }
 }
 
 void
-DeviceExplorerView::setSelectedIndex (const QModelIndex& index)
+DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
 {
-    if (! m_hasProxy)
+    if(! m_hasProxy)
     {
-        return setCurrentIndex (index);
+        return setCurrentIndex(index);
     }
     else
     {
-        return setCurrentIndex (static_cast<const QAbstractProxyModel*> (QTreeView::model() )->mapFromSource (index) );
+        return setCurrentIndex(static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapFromSource(index));
     }
 }
 
 void
 DeviceExplorerView::copy()
 {
-    Q_ASSERT (model() );
-    setSelectedIndex (model()->copy (selectedIndex() ) );
+    Q_ASSERT(model());
+    setSelectedIndex(model()->copy(selectedIndex()));
 }
 
 void
 DeviceExplorerView::cut()
 {
-    Q_ASSERT (model() );
-    setSelectedIndex (model()->cut (selectedIndex() ) );
+    Q_ASSERT(model());
+    setSelectedIndex(model()->cut(selectedIndex()));
 }
 
 void
 DeviceExplorerView::paste()
 {
-    Q_ASSERT (model() );
-    setSelectedIndex (model()->paste (selectedIndex() ) );
+    Q_ASSERT(model());
+    setSelectedIndex(model()->paste(selectedIndex()));
 }
 
 void
 DeviceExplorerView::moveUp()
 {
-    setSelectedIndex (model()->moveUp (selectedIndex() ) );
+    setSelectedIndex(model()->moveUp(selectedIndex()));
     //model()->moveUp(selectedIndex());
 }
 
 void
 DeviceExplorerView::moveDown()
 {
-    setSelectedIndex (model()->moveDown (selectedIndex() ) );
+    setSelectedIndex(model()->moveDown(selectedIndex()));
 }
 
 void
 DeviceExplorerView::promote()
 {
-    setSelectedIndex (model()->promote (selectedIndex() ) );
+    setSelectedIndex(model()->promote(selectedIndex()));
 }
 
 void
 DeviceExplorerView::demote()
 {
-    setSelectedIndex (model()->demote (selectedIndex() ) );
+    setSelectedIndex(model()->demote(selectedIndex()));
 }
 

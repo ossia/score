@@ -8,8 +8,8 @@ class ReorderWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit ReorderWidget (QWidget* parent = 0);
-        ReorderWidget (std::vector<QWidget*> widgets, QWidget* parent = 0 );
+        explicit ReorderWidget(QWidget* parent = 0);
+        ReorderWidget(std::vector<QWidget*> widgets, QWidget* parent = 0);
 
     signals:
 

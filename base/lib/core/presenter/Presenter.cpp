@@ -22,7 +22,7 @@
 
 using namespace iscore;
 
-Presenter::Presenter (Model* model, View* view, QObject* arg_parent) :
+Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
             m_model {model},
             m_view {view},
@@ -33,53 +33,53 @@ m_menubar {new QMenuBar, this},
             #endif
 m_document {new Document{view, this}}
 {
-    m_view->setCentralView (m_document->view() );
+    m_view->setCentralView(m_document->view());
     setupMenus();
 
-    connect (m_view,		&View::insertActionIntoMenubar,
+    connect(m_view,		&View::insertActionIntoMenubar,
     &m_menubar, &MenubarManager::insertActionIntoMenubar);
 
-    connect (m_document, &Document::on_elementSelected,
+    connect(m_document, &Document::on_elementSelected,
     this,		&Presenter::on_elementSelected);
 
-    connect (m_document, &Document::on_lastElementSelected,
+    connect(m_document, &Document::on_lastElementSelected,
     this,       &Presenter::on_lastElementSelected);
 
-    m_view->addSidePanel (new QUndoView{
+    m_view->addSidePanel(new QUndoView{
         m_document->presenter()->commandQueue(),
         m_view
-    }, tr ("Undo View"), Qt::RightDockWidgetArea);
+    }, tr("Undo View"), Qt::RightDockWidgetArea);
 }
 
-void Presenter::registerPluginControl (PluginControlInterface* cmd)
+void Presenter::registerPluginControl(PluginControlInterface* cmd)
 {
-    cmd->setParent (this); // Ownership transfer
-    cmd->setPresenter (this);
-    connect (cmd,  &PluginControlInterface::submitCommand,
-             this, &Presenter::applyCommand, Qt::QueuedConnection);
+    cmd->setParent(this);  // Ownership transfer
+    cmd->setPresenter(this);
+    connect(cmd,  &PluginControlInterface::submitCommand,
+            this, &Presenter::applyCommand, Qt::QueuedConnection);
 
-    cmd->populateMenus (&m_menubar);
+    cmd->populateMenus(&m_menubar);
     cmd->populateToolbars();
 
-    m_customControls.push_back (cmd);
+    m_customControls.push_back(cmd);
 }
 
-void Presenter::registerPanel (PanelFactoryInterface* p)
+void Presenter::registerPanel(PanelFactoryInterface* p)
 {
-    auto view = p->makeView (m_view);
-    auto pres = p->makePresenter (this, view);
+    auto view = p->makeView(m_view);
+    auto pres = p->makePresenter(this, view);
 
-    connect (pres, &PanelPresenterInterface::submitCommand,
-             this, &Presenter::applyCommand, Qt::QueuedConnection);
+    connect(pres, &PanelPresenterInterface::submitCommand,
+            this, &Presenter::applyCommand, Qt::QueuedConnection);
 
-    m_view->setupPanelView (view);
+    m_view->setupPanelView(view);
 
-    m_document->setupPanel (pres, p);
+    m_document->setupPanel(pres, p);
 }
 
-void Presenter::setDocumentPanel (DocumentDelegateFactoryInterface* docpanel)
+void Presenter::setDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
 {
-    m_document->setDocumentPanel (docpanel);
+    m_document->setDocumentPanel(docpanel);
 }
 
 void Presenter::newDocument()
@@ -87,18 +87,18 @@ void Presenter::newDocument()
     m_document->newDocument();
 }
 
-void Presenter::applyCommand (iscore::SerializableCommand* cmd)
+void Presenter::applyCommand(iscore::SerializableCommand* cmd)
 {
-    m_document->presenter()->applyCommand (cmd);
+    m_document->presenter()->applyCommand(cmd);
 }
 
-iscore::SerializableCommand* Presenter::instantiateUndoCommand (const QString& parent_name, const QString& name, const QByteArray& data)
+iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name, const QString& name, const QByteArray& data)
 {
-    for (auto& ccmd : m_customControls)
+    for(auto& ccmd : m_customControls)
     {
-        if (ccmd->objectName() == parent_name)
+        if(ccmd->objectName() == parent_name)
         {
-            return ccmd->instantiateUndoCommand (name, data);
+            return ccmd->instantiateUndoCommand(name, data);
         }
     }
 
@@ -106,9 +106,9 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand (const QString& p
     return nullptr;
 }
 
-void Presenter::on_elementSelected (QObject* elt)
+void Presenter::on_elementSelected(QObject* elt)
 {
-    emit elementSelected (elt);
+    emit elementSelected(elt);
 }
 
 void Presenter::on_lastElementSelected()
@@ -119,29 +119,29 @@ void Presenter::on_lastElementSelected()
 void Presenter::setupMenus()
 {
     ////// File //////
-    auto newAct = m_menubar.addActionIntoToplevelMenu (ToplevelMenuElement::FileMenu,
+    auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                   FileMenuElement::New,
-                  std::bind (&Presenter::newDocument, this) );
+                  std::bind(&Presenter::newDocument, this));
 
-    newAct->setShortcut (QKeySequence::New);
+    newAct->setShortcut(QKeySequence::New);
 
     // ----------
-    m_menubar.addSeparatorIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                            FileMenuElement::Separator_Load);
+    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                           FileMenuElement::Separator_Load);
 
-    m_menubar.addActionIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                         FileMenuElement::Load,
-                                         [this] ()
+    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                        FileMenuElement::Load,
+                                        [this]()
     {
-        auto loadname = QFileDialog::getOpenFileName (nullptr, tr ("Open") );
+        auto loadname = QFileDialog::getOpenFileName(nullptr, tr("Open"));
 
-        if (!loadname.isEmpty() )
+        if(!loadname.isEmpty())
         {
             QFile f {loadname};
 
-            if (f.open (QIODevice::ReadOnly) )
+            if(f.open(QIODevice::ReadOnly))
             {
-                m_document->load (f.readAll() );
+                m_document->load(f.readAll());
             }
         }
     });
@@ -149,17 +149,17 @@ void Presenter::setupMenus()
 
 
     // Load & save
-    m_menubar.addActionIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                         FileMenuElement::Save,
-                                         [this] ()
+    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                        FileMenuElement::Save,
+                                        [this]()
     {
-        auto savename = QFileDialog::getSaveFileName (nullptr, tr ("Save") );
+        auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
 
-        if (!savename.isEmpty() )
+        if(!savename.isEmpty())
         {
-            QFile f (savename);
-            f.open (QIODevice::WriteOnly);
-            f.write (m_document->save() );
+            QFile f(savename);
+            f.open(QIODevice::WriteOnly);
+            f.write(m_document->save());
         }
     });
 
@@ -169,64 +169,64 @@ void Presenter::setupMenus()
 //										notyet);
 
     // ----------
-    m_menubar.addSeparatorIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                            FileMenuElement::Separator_Export);
+    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                           FileMenuElement::Separator_Export);
 
     // ----------
-    m_menubar.addSeparatorIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                            FileMenuElement::Separator_Quit);
+    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                           FileMenuElement::Separator_Quit);
 
 
-    m_menubar.addActionIntoToplevelMenu (ToplevelMenuElement::FileMenu,
-                                         FileMenuElement::Quit,
-                                         &QApplication::quit);
+    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                        FileMenuElement::Quit,
+                                        &QApplication::quit);
 
     ////// Edit //////
     // Undo / redo
-    auto undoAct = m_document->presenter()->commandQueue()->createUndoAction (this);
-    undoAct->setShortcut (QKeySequence::Undo);
-    connect (undoAct,								 &QAction::triggered,
-             m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
-    m_menubar.insertActionIntoToplevelMenu (ToplevelMenuElement::EditMenu,
-                                            undoAct);
+    auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
+    undoAct->setShortcut(QKeySequence::Undo);
+    connect(undoAct,								 &QAction::triggered,
+            m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
+    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                           undoAct);
 
-    auto redoAct = m_document->presenter()->commandQueue()->createRedoAction (this);
-    redoAct->setShortcut (QKeySequence::Redo);
-    connect (redoAct,								 &QAction::triggered,
-             m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
-    m_menubar.insertActionIntoToplevelMenu (ToplevelMenuElement::EditMenu,
-                                            redoAct);
+    auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
+    redoAct->setShortcut(QKeySequence::Redo);
+    connect(redoAct,								 &QAction::triggered,
+            m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
+    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                           redoAct);
 
     ////// View //////
-    m_menubar.addMenuIntoToplevelMenu (ToplevelMenuElement::ViewMenu,
-                                       ViewMenuElement::Windows);
+    m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
+                                      ViewMenuElement::Windows);
 
     ////// Settings //////
-    m_menubar.addActionIntoToplevelMenu (ToplevelMenuElement::SettingsMenu,
-                                         SettingsMenuElement::Settings,
-                                         std::bind (&SettingsView::exec,
-                                                 qobject_cast<Application*> (parent() )->settings()->view() ) );
+    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
+                                        SettingsMenuElement::Settings,
+                                        std::bind(&SettingsView::exec,
+                                                qobject_cast<Application*> (parent())->settings()->view()));
 }
 
 
-void Presenter::on_lock (QByteArray arr)
+void Presenter::on_lock(QByteArray arr)
 {
     ObjectPath objectToLock;
 
     Deserializer<DataStream> s {&arr};
-    s.writeTo (objectToLock);
+    s.writeTo(objectToLock);
 
     auto obj = objectToLock.find<QObject>();
-    QMetaObject::invokeMethod (obj, "lock");
+    QMetaObject::invokeMethod(obj, "lock");
 }
 
-void Presenter::on_unlock (QByteArray arr)
+void Presenter::on_unlock(QByteArray arr)
 {
     ObjectPath objectToUnlock;
 
     Deserializer<DataStream> s {&arr};
-    s.writeTo (objectToUnlock);
+    s.writeTo(objectToUnlock);
 
     auto obj = objectToUnlock.find<QObject>();
-    QMetaObject::invokeMethod (obj, "unlock");
+    QMetaObject::invokeMethod(obj, "unlock");
 }

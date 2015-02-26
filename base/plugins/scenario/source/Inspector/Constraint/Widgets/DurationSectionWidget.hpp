@@ -8,16 +8,16 @@ class DurationSectionWidget : public InspectorSectionWidget
 {
         Q_OBJECT
     public:
-        DurationSectionWidget (ConstraintInspectorWidget* parent);
+        DurationSectionWidget(ConstraintInspectorWidget* parent);
 
     private slots:
 
-        void minDurationSpinboxChanged (int val);
-        void maxDurationSpinboxChanged (int val);
-        void defaultDurationSpinboxChanged (int val);
-        void rigidCheckboxToggled (bool b);
+        void minDurationSpinboxChanged(int val);
+        void maxDurationSpinboxChanged(int val);
+        void defaultDurationSpinboxChanged(int val);
+        void rigidCheckboxToggled(bool b);
 
-        void on_defaultDurationChanged (TimeValue dur);
+        void on_defaultDurationChanged(TimeValue dur);
 
 
     private:

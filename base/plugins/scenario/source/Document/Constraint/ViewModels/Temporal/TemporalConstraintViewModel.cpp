@@ -1,6 +1,6 @@
 #include "TemporalConstraintViewModel.hpp"
 
-TemporalConstraintViewModel::TemporalConstraintViewModel (id_type<AbstractConstraintViewModel> id,
+TemporalConstraintViewModel::TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
         ConstraintModel* model,
         QObject* parent) :
     AbstractConstraintViewModel {id,
@@ -12,12 +12,12 @@ TemporalConstraintViewModel::TemporalConstraintViewModel (id_type<AbstractConstr
 
 }
 
-TemporalConstraintViewModel* TemporalConstraintViewModel::clone (id_type<AbstractConstraintViewModel> id,
+TemporalConstraintViewModel* TemporalConstraintViewModel::clone(id_type<AbstractConstraintViewModel> id,
         ConstraintModel* cm,
         QObject* parent)
 {
     auto cstr = new TemporalConstraintViewModel {id, cm, parent};
-    cstr->showBox (this->shownBox() );
+    cstr->showBox(this->shownBox());
 
     return cstr;
 }

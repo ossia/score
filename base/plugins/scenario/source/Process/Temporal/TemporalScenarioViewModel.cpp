@@ -5,7 +5,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
-TemporalScenarioViewModel::TemporalScenarioViewModel (id_type<ProcessViewModelInterface> viewModelId,
+TemporalScenarioViewModel::TemporalScenarioViewModel(id_type<ProcessViewModelInterface> viewModelId,
         ScenarioModel* model,
         QObject* parent) :
     AbstractScenarioViewModel {viewModelId,
@@ -16,7 +16,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel (id_type<ProcessViewModelIn
 {
 }
 
-TemporalScenarioViewModel::TemporalScenarioViewModel (const TemporalScenarioViewModel* source,
+TemporalScenarioViewModel::TemporalScenarioViewModel(const TemporalScenarioViewModel* source,
         id_type<ProcessViewModelInterface> id,
         ScenarioModel* model,
         QObject* parent) :
@@ -27,43 +27,43 @@ TemporalScenarioViewModel::TemporalScenarioViewModel (const TemporalScenarioView
                               parent
 }
 {
-    for (TemporalConstraintViewModel* constraint : constraintsViewModels (*source) )
+    for(TemporalConstraintViewModel* constraint : constraintsViewModels(*source))
     {
         // TODO some room for optimization here
-        addConstraintViewModel (constraint->clone (constraint->id(),
+        addConstraintViewModel(constraint->clone(constraint->id(),
         constraint->model(),
-        this) );
+        this));
     }
 }
 
 
-void TemporalScenarioViewModel::makeConstraintViewModel (id_type<ConstraintModel> constraintModelId,
+void TemporalScenarioViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
         id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
-    auto constraint_model = model (this)->constraint (constraintModelId);
+    auto constraint_model = model(this)->constraint(constraintModelId);
 
     auto constraint_view_model =
         constraint_model->makeConstraintViewModel<constraint_view_model_type> (
             constraintViewModelId,
             this);
 
-    addConstraintViewModel (constraint_view_model);
+    addConstraintViewModel(constraint_view_model);
 }
 
-void TemporalScenarioViewModel::addConstraintViewModel (constraint_view_model_type* constraint_view_model)
+void TemporalScenarioViewModel::addConstraintViewModel(constraint_view_model_type* constraint_view_model)
 {
-    m_constraints.push_back (constraint_view_model);
+    m_constraints.push_back(constraint_view_model);
 
-    emit constraintViewModelCreated (constraint_view_model->id() );
+    emit constraintViewModelCreated(constraint_view_model->id());
 }
 
-void TemporalScenarioViewModel::on_constraintRemoved (id_type<ConstraintModel> constraintSharedModelId)
+void TemporalScenarioViewModel::on_constraintRemoved(id_type<ConstraintModel> constraintSharedModelId)
 {
-    for (auto& constraint_view_model : constraintsViewModels (*this) )
+    for(auto& constraint_view_model : constraintsViewModels(*this))
     {
-        if (constraint_view_model->model()->id() == constraintSharedModelId)
+        if(constraint_view_model->model()->id() == constraintSharedModelId)
         {
-            removeConstraintViewModel (constraint_view_model->id() );
+            removeConstraintViewModel(constraint_view_model->id());
             return;
         }
     }

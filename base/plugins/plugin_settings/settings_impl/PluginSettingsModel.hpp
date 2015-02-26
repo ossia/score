@@ -23,9 +23,9 @@ class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
         virtual void setFirstTimeSettings() override;
 
     signals:
-        void blacklistCommand (BlacklistCommand*);
+        void blacklistCommand(BlacklistCommand*);
     public slots:
-        void on_itemChanged (QStandardItem*);
+        void on_itemChanged(QStandardItem*);
 
     private:
         QStandardItemModel* m_plugins {};

@@ -14,23 +14,23 @@
 #include <QGraphicsScene>
 #include <iostream>
 #include <QDebug>
-PluginCurvePoint::PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility, bool removable) :
-    QGraphicsObject (parent), _pPresenter (presenter)
+PluginCurvePoint::PluginCurvePoint(QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility, bool removable) :
+    QGraphicsObject(parent), _pPresenter(presenter)
 {
     _color = Qt::gray; // Point's color
     _selectColor = Qt::red; // Point's color when selected
-    setRemovable (removable);
-    setAcceptHoverEvents (true);
-    setCacheMode (DeviceCoordinateCache);
-    setFlag (ItemIsFocusable, false);
-    setFlag (QGraphicsItem::ItemIgnoresTransformations);
-    setZValue (parent->zValue() + 10);
-    setValue (value);
-    setPos (point);
-    setMobility (mobility); // Warning ! setMobility after setPos();
+    setRemovable(removable);
+    setAcceptHoverEvents(true);
+    setCacheMode(DeviceCoordinateCache);
+    setFlag(ItemIsFocusable, false);
+    setFlag(QGraphicsItem::ItemIgnoresTransformations);
+    setZValue(parent->zValue() + 10);
+    setValue(value);
+    setPos(point);
+    setMobility(mobility);  // Warning ! setMobility after setPos();
 }
 
-void PluginCurvePoint::setValue (QPointF value)
+void PluginCurvePoint::setValue(QPointF value)
 {
     _value = value;
 }
@@ -45,11 +45,11 @@ MobilityMode PluginCurvePoint::mobility()
     return _mobility;
 }
 
-void PluginCurvePoint::setMobility (MobilityMode mode)
+void PluginCurvePoint::setMobility(MobilityMode mode)
 {
     _mobility = mode;
 
-    if (mode == Vertical)
+    if(mode == Vertical)
     {
         _fixedCoordinate = pos().x();
     }
@@ -60,7 +60,7 @@ qreal PluginCurvePoint::fixedCoordinate()
     return _fixedCoordinate;
 }
 
-void PluginCurvePoint::highlight (bool b = true)
+void PluginCurvePoint::highlight(bool b = true)
 {
     _highlight = b;
 }
@@ -77,15 +77,15 @@ QColor PluginCurvePoint::selectColor()
 
 QPointF PluginCurvePoint::globalPos()
 {
-    Q_ASSERT (scene() != NULL); // the focus item belongs to a scene
-    Q_ASSERT (!scene()->views().isEmpty() ); // that scene is displayed in a view...
+    Q_ASSERT(scene() != NULL);  // the focus item belongs to a scene
+    Q_ASSERT(!scene()->views().isEmpty());   // that scene is displayed in a view...
     // TODO jm : this views().first() will bite us
-    Q_ASSERT (scene()->views().first() != NULL); // ... which is not null...
-    Q_ASSERT (scene()->views().first()->viewport() != NULL); // ... and has a viewport
+    Q_ASSERT(scene()->views().first() != NULL);  // ... which is not null...
+    Q_ASSERT(scene()->views().first()->viewport() != NULL);  // ... and has a viewport
     QGraphicsView* v = scene()->views().first();
     QPointF sceneP = scenePos();
-    QPoint viewP = v->mapFromScene (sceneP);
-    return v->viewport()->mapToGlobal (viewP);
+    QPoint viewP = v->mapFromScene(sceneP);
+    return v->viewport()->mapToGlobal(viewP);
 }
 
 bool PluginCurvePoint::removable()
@@ -93,56 +93,56 @@ bool PluginCurvePoint::removable()
     return _removable;
 }
 
-void PluginCurvePoint::setRemovable (bool b)
+void PluginCurvePoint::setRemovable(bool b)
 {
     _removable = b;
 }
 
-void PluginCurvePoint::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void PluginCurvePoint::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    Q_UNUSED (option)
-    Q_UNUSED (widget)
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
     QColor stdColor = color();
     QColor slctColor = selectColor();
-    QRadialGradient gradientExt (0, 0, SHAPERADIUS);
-    QRadialGradient gradientNoSelection (2, 2, SHAPERADIUS);
-    QRadialGradient gradientSelection (2, 2, SHAPERADIUS);
-    gradientExt.setColorAt (RADIUS / SHAPERADIUS, QColor (slctColor).light (120) );
-    gradientExt.setColorAt (0.8, Qt::transparent);
-    gradientNoSelection.setColorAt (0, QColor (stdColor).light (100) );
-    gradientNoSelection.setColorAt (1, Qt::black);
-    gradientSelection.setColorAt (0, QColor (slctColor).light (120) );
-    gradientSelection.setColorAt (1, Qt::black);
+    QRadialGradient gradientExt(0, 0, SHAPERADIUS);
+    QRadialGradient gradientNoSelection(2, 2, SHAPERADIUS);
+    QRadialGradient gradientSelection(2, 2, SHAPERADIUS);
+    gradientExt.setColorAt(RADIUS / SHAPERADIUS, QColor(slctColor).light(120));
+    gradientExt.setColorAt(0.8, Qt::transparent);
+    gradientNoSelection.setColorAt(0, QColor(stdColor).light(100));
+    gradientNoSelection.setColorAt(1, Qt::black);
+    gradientSelection.setColorAt(0, QColor(slctColor).light(120));
+    gradientSelection.setColorAt(1, Qt::black);
 
-    if (_highlight )
+    if(_highlight)
     {
-        painter->setPen (Qt::NoPen);
-        painter->setBrush (gradientExt);
-        painter->drawEllipse (boundingRect() );
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(gradientExt);
+        painter->drawEllipse(boundingRect());
     }
 
-    if (isSelected() )
+    if(isSelected())
     {
-        painter->setBrush (gradientSelection);
+        painter->setBrush(gradientSelection);
     }
     else
     {
-        painter->setBrush (gradientNoSelection);
+        painter->setBrush(gradientNoSelection);
     }
 
     //painter->setPen(Qt::NoPen);
-    painter->setPen (QPen (Qt::black, 0) );
-    painter->drawEllipse (-RADIUS, -RADIUS, 2 * RADIUS, 2 * RADIUS);
+    painter->setPen(QPen(Qt::black, 0));
+    painter->drawEllipse(-RADIUS, -RADIUS, 2 * RADIUS, 2 * RADIUS);
 
 
 }
 
-void PluginCurvePoint::setRightSection (PluginCurveSection* section)
+void PluginCurvePoint::setRightSection(PluginCurveSection* section)
 {
     _pRightSection = section;
 }
 
-void PluginCurvePoint::setLeftSection (PluginCurveSection* section)
+void PluginCurvePoint::setLeftSection(PluginCurveSection* section)
 {
     _pLeftSection = section;
 }
@@ -162,129 +162,129 @@ void PluginCurvePoint::adjust()
     PluginCurveSection* lSection = leftSection();
     PluginCurveSection* rSection = rightSection();
 
-    if (lSection != nullptr)
+    if(lSection != nullptr)
     {
         lSection->adjust();
     }
 
-    if (rSection != nullptr)
+    if(rSection != nullptr)
     {
         rSection->adjust();
     }
 }
 
-bool PluginCurvePoint::compareXSup (const QPointF& other) const
+bool PluginCurvePoint::compareXSup(const QPointF& other) const
 {
     return this->x() >= other.x();
 }
 
-bool PluginCurvePoint::compareXInf (const QPointF& other) const
+bool PluginCurvePoint::compareXInf(const QPointF& other) const
 {
     return this->x() <= other.x();
 }
 
-bool PluginCurvePoint::compareYSup (const QPointF& other) const
+bool PluginCurvePoint::compareYSup(const QPointF& other) const
 {
     return this->y() >= other.y();
 }
 
-bool PluginCurvePoint::compareYInf (const QPointF& other) const
+bool PluginCurvePoint::compareYInf(const QPointF& other) const
 {
     return this->y() <= other.y();
 }
 
 bool PluginCurvePoint::operator>= (const QPointF& other) const
 {
-    return (this->x() >= other.x() );
+    return (this->x() >= other.x());
 }
 
 bool PluginCurvePoint::operator<= (const QPointF& other) const
 {
-    return (this->x() <= other.x() );
+    return (this->x() <= other.x());
 }
 
 QRectF PluginCurvePoint::boundingRect() const
 {
-    return QRectF (-SHAPERADIUS, -SHAPERADIUS, 2 * SHAPERADIUS, 2 * SHAPERADIUS);
+    return QRectF(-SHAPERADIUS, -SHAPERADIUS, 2 * SHAPERADIUS, 2 * SHAPERADIUS);
 }
 
 QPainterPath PluginCurvePoint::shape() const
 {
     QPainterPath circle;
-    circle.addEllipse (boundingRect() );
+    circle.addEllipse(boundingRect());
     return circle;
 }
 
 #include <QDebug>
-void PluginCurvePoint::mousePressEvent (QGraphicsSceneMouseEvent* event)
+void PluginCurvePoint::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->button() == Qt::RightButton)
+    if(event->button() == Qt::RightButton)
     {
-        emit (rightClicked (this) );
+        emit(rightClicked(this));
     }
     else
     {
-        QGraphicsItem::mousePressEvent (event);
+        QGraphicsItem::mousePressEvent(event);
     }
 }
 
-void PluginCurvePoint::mouseReleaseEvent (QGraphicsSceneMouseEvent* event)
+void PluginCurvePoint::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->buttonDownScenePos (Qt::LeftButton) != event->scenePos() ) // If the point has been moved.
+    if(event->buttonDownScenePos(Qt::LeftButton) != event->scenePos())    // If the point has been moved.
     {
-        emit (pointPositionHasChanged() );
+        emit(pointPositionHasChanged());
     }
 
-    QGraphicsItem::mouseReleaseEvent (event);
+    QGraphicsItem::mouseReleaseEvent(event);
 }
 
-void PluginCurvePoint::mouseMoveEvent (QGraphicsSceneMouseEvent* event)
+void PluginCurvePoint::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    QGraphicsItem::mouseMoveEvent (event);
+    QGraphicsItem::mouseMoveEvent(event);
 }
 
-void PluginCurvePoint::keyPressEvent (QKeyEvent* event)
+void PluginCurvePoint::keyPressEvent(QKeyEvent* event)
 {
-    QGraphicsItem::keyPressEvent (event);
+    QGraphicsItem::keyPressEvent(event);
 }
 
-void PluginCurvePoint::hoverEnterEvent (QGraphicsSceneHoverEvent* event)
+void PluginCurvePoint::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     highlight();
-    QGraphicsItem::hoverEnterEvent (event);
+    QGraphicsItem::hoverEnterEvent(event);
 }
 
-void PluginCurvePoint::hoverLeaveEvent (QGraphicsSceneHoverEvent* event)
+void PluginCurvePoint::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    highlight (false);
-    QGraphicsItem::hoverLeaveEvent (event);
+    highlight(false);
+    QGraphicsItem::hoverLeaveEvent(event);
 }
 
-QVariant PluginCurvePoint::itemChange (GraphicsItemChange change, const QVariant& value)
+QVariant PluginCurvePoint::itemChange(GraphicsItemChange change, const QVariant& value)
 {
-    if (change == ItemPositionHasChanged)
+    if(change == ItemPositionHasChanged)
     {
         // The point moved, the sections must be adjusted.
         adjust();
         //emit (pointPositionIsChanging(this)); //MODIFICATION
     }
 
-    if (change == ItemPositionChange)
+    if(change == ItemPositionChange)
     {
         QPointF newPos = value.toPointF();
-        _pPresenter->adjustPoint (this, newPos);
-        return QVariant (newPos);
+        _pPresenter->adjustPoint(this, newPos);
+        return QVariant(newPos);
         //emit (pointPositionIsChanging(this));
         // emit (pointSelectedChange(this));
         // update();
     }
 
-    return QGraphicsItem::itemChange (change, value);
+    return QGraphicsItem::itemChange(change, value);
 }
 
-void PluginCurvePoint::setAllFlags (bool b)
+void PluginCurvePoint::setAllFlags(bool b)
 {
-    setFlag (QGraphicsItem::ItemIsMovable, b);
-    setFlag (QGraphicsItem::ItemIsSelectable, b);
-    setFlag (QGraphicsItem::ItemSendsGeometryChanges, b);
+    setFlag(QGraphicsItem::ItemIsMovable, b);
+    setFlag(QGraphicsItem::ItemIsSelectable, b);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges, b);
 }

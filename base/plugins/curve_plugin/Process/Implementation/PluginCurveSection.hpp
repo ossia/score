@@ -30,10 +30,10 @@ class PluginCurveSection : public QGraphicsObject
         qreal _coef {}; /*!< Bending coefficient */
 // Signals and slots
     signals:
-        void doubleClicked (QGraphicsSceneMouseEvent* event); /*!< Notifies that the user double clicked the section. */
-        void rightClicked (PluginCurveSection* section, QPointF scenePos); /*!< Notifies that the user right clicked the button. */
+        void doubleClicked(QGraphicsSceneMouseEvent* event);  /*!< Notifies that the user double clicked the section. */
+        void rightClicked(PluginCurveSection* section, QPointF scenePos);  /*!< Notifies that the user right clicked the button. */
     public slots:
-        void setAllFlags (bool b); /*! Changes the flags.*/
+        void setAllFlags(bool b);  /*! Changes the flags.*/
 
 //Methods
 
@@ -44,22 +44,22 @@ class PluginCurveSection : public QGraphicsObject
           \param source The left point. It musn't be null.
           \param dest The right point. It musn't be null.
         */
-        PluginCurveSection (QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest); // Parent : PluginCurvePoint ? GraphicsCurveView ?
+        PluginCurveSection(QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest);  // Parent : PluginCurvePoint ? GraphicsCurveView ?
         ~PluginCurveSection();
         /*! Returns the source point. The function transform().map() should be used for obtain the point posistion in paint coordinates. */
         PluginCurvePoint* sourcePoint();
         /*! Returns the destination point. The function transform().map() should be used for obtain the point posistion in paint coordinates. */
         PluginCurvePoint* destPoint();
         /*! Modifies the source point and adjust the section. The point must be modified consequently. */
-        void setSourcePoint (PluginCurvePoint* autoPoint);
+        void setSourcePoint(PluginCurvePoint* autoPoint);
         /*! Modifies the destination point and adjust the destination. The point must be modified consequently. */
-        void setDestPoint (PluginCurvePoint* autoPoint);
+        void setDestPoint(PluginCurvePoint* autoPoint);
         /*! Returns the bending coefficient. */
         qreal bendingCoef();
         /*! Sets the bending coefficient. */
-        void setBendingCoef (qreal coef);
+        void setBendingCoef(qreal coef);
         /*! Highlights the section. */
-        void highlight (bool b);
+        void highlight(bool b);
         /*! Returns the point's color. */
         QColor color();
         /*! Returns the point's color when selected. */
@@ -73,14 +73,14 @@ class PluginCurveSection : public QGraphicsObject
         /*! Returns the section's path. */
         virtual QPainterPath path() const = 0;
         /*! Paints the curve. */
-        virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) = 0;
+        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) = 0;
 
     protected:
-        void mousePressEvent (QGraphicsSceneMouseEvent* event);
-        void mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event);
-        virtual void hoverEnterEvent (QGraphicsSceneHoverEvent* event);
-        virtual void hoverLeaveEvent (QGraphicsSceneHoverEvent* event);
-        QVariant itemChange (GraphicsItemChange change, const QVariant& value);
+        void mousePressEvent(QGraphicsSceneMouseEvent* event);
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+        QVariant itemChange(GraphicsItemChange change, const QVariant& value);
 
 
 

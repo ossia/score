@@ -21,8 +21,8 @@ class IScoreCohesion:
     private Dummy
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
-        Q_INTERFACES (
+        Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
+        Q_INTERFACES(
             iscore::Autoconnect_QtInterface
             iscore::PluginControlInterface_QtInterface
         )
@@ -38,7 +38,7 @@ class IScoreCohesion:
 
 
         virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make (QString) override;
+        virtual iscore::PluginControlInterface* control_make(QString) override;
 
 };
 

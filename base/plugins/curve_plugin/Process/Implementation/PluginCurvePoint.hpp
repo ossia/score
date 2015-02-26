@@ -51,11 +51,11 @@ class PluginCurvePoint : public QGraphicsObject
         // Signals
     signals:
         void pointPositionHasChanged(); /*!< Notifies that the points selected has been released. */
-        void pointPositionIsChanging (PluginCurvePoint*); /*!< Notifies that the point is moving. */
-        void rightClicked (PluginCurvePoint* point); /*!< Notifies that the user right clicked the point. */
+        void pointPositionIsChanging(PluginCurvePoint*);  /*!< Notifies that the point is moving. */
+        void rightClicked(PluginCurvePoint* point);  /*!< Notifies that the user right clicked the point. */
         // Slots
     public slots :
-        void setAllFlags (bool b);
+        void setAllFlags(bool b);
 
         // Methods
     public:
@@ -68,11 +68,11 @@ class PluginCurvePoint : public QGraphicsObject
           \param mobility Point's mobility.
           \param removable Indicates if the point can be removed.
         */
-        PluginCurvePoint (QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility = Normal, bool removable = true);
+        PluginCurvePoint(QGraphicsObject* parent, PluginCurvePresenter* presenter, QPointF point, QPointF value, MobilityMode mobility = Normal, bool removable = true);
 
         /*! Sets the point's value to value.
         */
-        void setValue (QPointF value);
+        void setValue(QPointF value);
         /*! Returns the point's value.
         */
         QPointF getValue();
@@ -84,13 +84,13 @@ class PluginCurvePoint : public QGraphicsObject
         /*! Sets the point's mobility to mode. If mode value is Vertical, the fixed coordinate is fixed to point's x actual value.
         \sa mobility() , fixedCoordinate()
         */
-        void setMobility (MobilityMode mode);
+        void setMobility(MobilityMode mode);
         /*! Returns de fixed coordinate. Used for restrict the mobility of a Vertical point.
          \sa mobility() , setMobility()
         */
         qreal fixedCoordinate();
         /*! Highlights the point. If b value is true, the point is hilihgted. In the other case, the point is print normaly. */
-        void highlight (bool b);
+        void highlight(bool b);
         /*! Indicates if the point can be cancelled. A point can not be removed  if this function returns false.
         \sa setRemovable();
         */
@@ -104,21 +104,21 @@ class PluginCurvePoint : public QGraphicsObject
         /*! Set point's removability to.
         \sa removable()
         */
-        void setRemovable (bool b);
+        void setRemovable(bool b);
         /*! Returns the point's bounding rectangle. */
         QRectF boundingRect() const;
         /*! Returns the point's shape. */
         QPainterPath shape() const;
         /*! Paint the point. */
-        void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
         /*! Modifies point's right section. The section must be modified consequently.
         \sa setLeftSection(), rightSection() , leftSection()
         */
-        void setRightSection (PluginCurveSection* section);
+        void setRightSection(PluginCurveSection* section);
         /*! Modifies point's left section. The section must be modified consequently.
         \sa setRightSection(), leftSection() , rightSection()
         */
-        void setLeftSection (PluginCurveSection* section);
+        void setLeftSection(PluginCurveSection* section);
         /*! Returns point's right section.
         \sa setRightSection(), setLeftSection(), leftSection()
         */
@@ -130,26 +130,26 @@ class PluginCurvePoint : public QGraphicsObject
         /*! Adjust the left and right section position. */
         void adjust();
         /*! Returns true if the point's x value is superior or egal to the other's one. */
-        bool compareXSup (const QPointF& other) const;
+        bool compareXSup(const QPointF& other) const;
         /*! Returns true if the point's x value is inferior or egal to the other's one. */
-        bool compareXInf (const QPointF& other) const;
+        bool compareXInf(const QPointF& other) const;
         /*! Returns true if the point's y value is superior or egal to the other's one. */
-        bool compareYSup (const QPointF& other) const;
+        bool compareYSup(const QPointF& other) const;
         /*! Returns true if the point's y value is inferior or egal to the other's one. */
-        bool compareYInf (const QPointF& other) const;
+        bool compareYInf(const QPointF& other) const;
         /*! Returns true if the point's x value is superior or egal to the other's one. Equivalent to compareXSup */
         bool operator>= (const QPointF& other) const;
         /*! Returns true if the point's x value is superior or egal to the other's one. Equivalent to compareXInf */
         bool operator<= (const QPointF& other) const;
 
     protected:
-        void mousePressEvent (QGraphicsSceneMouseEvent* event);
-        void mouseReleaseEvent (QGraphicsSceneMouseEvent* event);
-        void mouseMoveEvent (QGraphicsSceneMouseEvent* event);
-        void keyPressEvent (QKeyEvent* event);
-        void hoverEnterEvent (QGraphicsSceneHoverEvent* event);
-        void hoverLeaveEvent (QGraphicsSceneHoverEvent* event);
-        QVariant itemChange (GraphicsItemChange change, const QVariant& value);
+        void mousePressEvent(QGraphicsSceneMouseEvent* event);
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+        void keyPressEvent(QKeyEvent* event);
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+        QVariant itemChange(GraphicsItemChange change, const QVariant& value);
 
 
 };

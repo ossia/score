@@ -11,11 +11,11 @@ PanelView* NetworkPanel::makeView()
     return new NetworkPanelView;
 }
 
-PanelPresenter* NetworkPanel::makePresenter (Presenter* parent_presenter,
+PanelPresenter* NetworkPanel::makePresenter(Presenter* parent_presenter,
         PanelModel* model,
         PanelView* view)
 {
-    return new NetworkPanelPresenter (parent_presenter, model, view);
+    return new NetworkPanelPresenter(parent_presenter, model, view);
 }
 
 iscore::PanelModel* NetworkPanel::makeModel()

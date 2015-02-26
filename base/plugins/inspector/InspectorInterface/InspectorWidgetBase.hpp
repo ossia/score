@@ -30,12 +30,12 @@ class InspectorWidgetBase : public QWidget
          * \param inspectedObj The selected object
          * \param parent The parent Widget
          */
-        explicit InspectorWidgetBase (QObject* inspectedObj = 0, QWidget* parent = 0);
+        explicit InspectorWidgetBase(QObject* inspectedObj = 0, QWidget* parent = 0);
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
-        void initiateOngoingCommand (iscore::SerializableCommand* cmd, QObject* objectToLock);
-        void continueOngoingCommand (iscore::SerializableCommand*);
+        void submitCommand(iscore::SerializableCommand*);
+        void initiateOngoingCommand(iscore::SerializableCommand* cmd, QObject* objectToLock);
+        void continueOngoingCommand(iscore::SerializableCommand*);
         void undoOngoingCommand();
         void validateOngoingCommand();
 
@@ -48,7 +48,7 @@ class InspectorWidgetBase : public QWidget
          * \param sectionName The name of this new section.
          * \param content The Widget.
          */
-        void addNewSection (QString sectionName, QWidget* content = 0);
+        void addNewSection(QString sectionName, QWidget* content = 0);
 
         /*!
          * \brief addSubSection Add an InspectorSectionWidget in the choose InspectorSectionWidget
@@ -57,7 +57,7 @@ class InspectorWidgetBase : public QWidget
          * \param subSection The name of the new InspectorSectionWidget
          * \param content The InspectorSectionWidget
          */
-        void addSubSection (QString parentSection, QString subSection, InspectorSectionWidget* content);
+        void addSubSection(QString parentSection, QString subSection, InspectorSectionWidget* content);
 
         /*!
          * \brief insertSection Insert a InspectorSectionWidget in the main widget
@@ -66,12 +66,12 @@ class InspectorWidgetBase : public QWidget
          * \param name The name of the new Widget
          * \param content The widget
          */
-        void insertSection (int index, QString name, QWidget* content = 0);
+        void insertSection(int index, QString name, QWidget* content = 0);
 
-        void removeSection (QString sectionName); //todo
-        void updateSectionsView (QVBoxLayout* layout, QVector<QWidget*>& contents);
+        void removeSection(QString sectionName);  //todo
+        void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
 
-        void addHeader (QWidget* header);
+        void addHeader(QWidget* header);
 
         // Manage Values
         /*
@@ -81,7 +81,7 @@ class InspectorWidgetBase : public QWidget
         		void setColor (QColor newColor);
         		void changeLabelType (QString type);
         */
-        void setInspectedObject (QObject* object);
+        void setInspectedObject(QObject* object);
         QObject* inspectedObject() const;
 
         // getters

@@ -1,6 +1,6 @@
 #include "FullViewConstraintViewModel.hpp"
 
-FullViewConstraintViewModel::FullViewConstraintViewModel (id_type<AbstractConstraintViewModel> id,
+FullViewConstraintViewModel::FullViewConstraintViewModel(id_type<AbstractConstraintViewModel> id,
         ConstraintModel* model,
         QObject* parent) :
     AbstractConstraintViewModel {id,
@@ -12,12 +12,12 @@ FullViewConstraintViewModel::FullViewConstraintViewModel (id_type<AbstractConstr
 
 }
 
-FullViewConstraintViewModel* FullViewConstraintViewModel::clone (id_type<AbstractConstraintViewModel> id,
+FullViewConstraintViewModel* FullViewConstraintViewModel::clone(id_type<AbstractConstraintViewModel> id,
         ConstraintModel* cm,
         QObject* parent)
 {
     auto cstr = new FullViewConstraintViewModel {id, cm, parent};
-    cstr->showBox (this->shownBox() );
+    cstr->showBox(this->shownBox());
 
     return cstr;
 }

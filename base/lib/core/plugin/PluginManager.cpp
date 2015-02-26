@@ -25,27 +25,27 @@ using namespace iscore;
 void PluginManager::reloadPlugins()
 {
     clearPlugins();
-    auto pluginsDir = QDir (qApp->applicationDirPath() + "/plugins");
+    auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
 
     auto blacklist = pluginsBlacklist();
 
-    for (QString fileName : pluginsDir.entryList (QDir::Files) )
+    for(QString fileName : pluginsDir.entryList(QDir::Files))
     {
-        QPluginLoader loader {pluginsDir.absoluteFilePath (fileName) };
+        QPluginLoader loader {pluginsDir.absoluteFilePath(fileName) };
 
-        if (QObject* plugin = loader.instance() )
+        if(QObject* plugin = loader.instance())
         {
-            if (!blacklist.contains (fileName) )
+            if(!blacklist.contains(fileName))
             {
                 m_availablePlugins[plugin->objectName()] = plugin;
-                plugin->setParent (this);
+                plugin->setParent(this);
             }
             else
             {
                 plugin->deleteLater();
             }
 
-            m_pluginsOnSystem.push_back (fileName);
+            m_pluginsOnSystem.push_back(fileName);
         }
         else
         {
@@ -54,21 +54,21 @@ void PluginManager::reloadPlugins()
     }
 
     // Load static plug-ins
-    for (QObject* plugin : QPluginLoader::staticInstances() )
+    for(QObject* plugin : QPluginLoader::staticInstances())
     {
         m_availablePlugins[plugin->objectName()] = plugin;
     }
 
     // Load all the factories.
-    for (QObject* plugin : m_availablePlugins)
+    for(QObject* plugin : m_availablePlugins)
     {
-        loadFactories (plugin);
+        loadFactories(plugin);
     }
 
     // Load what the plug-ins have to offer.
-    for (QObject* plugin : m_availablePlugins)
+    for(QObject* plugin : m_availablePlugins)
     {
-        dispatch (plugin);
+        dispatch(plugin);
     }
 }
 
@@ -76,32 +76,32 @@ void PluginManager::reloadPlugins()
 
 void PluginManager::clearPlugins()
 {
-    for (auto& elt : m_availablePlugins)
-        if (elt)
+    for(auto& elt : m_availablePlugins)
+        if(elt)
         {
             elt->deleteLater();
         }
 
     m_availablePlugins.clear();
 
-    for (auto& elt : m_settingsList)
+    for(auto& elt : m_settingsList)
     {
         delete elt;
     }
 
-    for (auto& elt : m_panelList)
+    for(auto& elt : m_panelList)
     {
         delete elt;
     }
 
-    for (auto& elt : m_documentPanelList)
+    for(auto& elt : m_documentPanelList)
     {
         delete elt;
     }
 
-    for (auto& vec : m_factoriesInterfaces)
+    for(auto& vec : m_factoriesInterfaces)
     {
-        for (auto& elt : vec)
+        for(auto& elt : vec)
         {
             delete elt;
         }
@@ -119,21 +119,21 @@ void PluginManager::clearPlugins()
 QStringList PluginManager::pluginsBlacklist()
 {
     QSettings s;
-    return s.value ("PluginSettings/Blacklist", QStringList {}).toStringList();
+    return s.value("PluginSettings/Blacklist", QStringList {}).toStringList();
 }
 
 
-void PluginManager::loadFactories (QObject* plugin)
+void PluginManager::loadFactories(QObject* plugin)
 {
     auto facfam_interface = qobject_cast<FactoryFamily_QtInterface*> (plugin);
 
-    if (facfam_interface)
+    if(facfam_interface)
     {
         m_customFamilies += facfam_interface->factoryFamilies_make();
     }
 }
 
-void PluginManager::dispatch (QObject* plugin)
+void PluginManager::dispatch(QObject* plugin)
 {
     auto autoconn_plugin = qobject_cast<Autoconnect_QtInterface*> (plugin);
     auto cmd_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
@@ -142,55 +142,55 @@ void PluginManager::dispatch (QObject* plugin)
     auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
     auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
 
-    if (autoconn_plugin)
+    if(autoconn_plugin)
     {
-        for (const auto& connection : autoconn_plugin->autoconnect_list() )
+        for(const auto& connection : autoconn_plugin->autoconnect_list())
         {
-            m_autoconnections.push_back (connection);
+            m_autoconnections.push_back(connection);
         }
     }
 
-    if (cmd_plugin)
+    if(cmd_plugin)
     {
-        for (const auto& cmd : cmd_plugin->control_list() )
+        for(const auto& cmd : cmd_plugin->control_list())
         {
-            m_commandList.push_back (cmd_plugin->control_make (cmd) );
+            m_commandList.push_back(cmd_plugin->control_make(cmd));
         }
     }
 
-    if (settings_plugin)
+    if(settings_plugin)
     {
-        m_settingsList.push_back (settings_plugin->settings_make() );
+        m_settingsList.push_back(settings_plugin->settings_make());
     }
 
-    if (panel_plugin)
+    if(panel_plugin)
     {
-        for (auto name : panel_plugin->panel_list() )
+        for(auto name : panel_plugin->panel_list())
         {
-            m_panelList.push_back (panel_plugin->panel_make (name) );
+            m_panelList.push_back(panel_plugin->panel_make(name));
         }
     }
 
-    if (docpanel_plugin)
+    if(docpanel_plugin)
     {
-        for (auto name : docpanel_plugin->document_list() )
+        for(auto name : docpanel_plugin->document_list())
         {
-            m_documentPanelList.push_back (docpanel_plugin->document_make (name) );
+            m_documentPanelList.push_back(docpanel_plugin->document_make(name));
         }
     }
 
-    if (factories_plugin)
+    if(factories_plugin)
     {
-        for (FactoryFamily& factory_family : m_customFamilies)
+        for(FactoryFamily& factory_family : m_customFamilies)
         {
-            auto new_factories = factories_plugin->factories_make (factory_family.name);
+            auto new_factories = factories_plugin->factories_make(factory_family.name);
 
-            for (auto new_factory : new_factories)
+            for(auto new_factory : new_factories)
             {
-                factory_family.onInstantiation (new_factory);
+                factory_family.onInstantiation(new_factory);
             }
 
-            m_factoriesInterfaces.push_back (new_factories);
+            m_factoriesInterfaces.push_back(new_factories);
         }
     }
 }

@@ -4,23 +4,23 @@
 
 #include <iostream>//DEBUG
 
-IOTypeDelegate::IOTypeDelegate (QObject* parent)
-    : QStyledItemDelegate (parent)
+IOTypeDelegate::IOTypeDelegate(QObject* parent)
+    : QStyledItemDelegate(parent)
 {
 
 }
 
 QWidget*
-IOTypeDelegate::createEditor (QWidget* parent,
-                              const QStyleOptionViewItem& /*option*/,
-                              const QModelIndex& /*index*/) const
+IOTypeDelegate::createEditor(QWidget* parent,
+                             const QStyleOptionViewItem& /*option*/,
+                             const QModelIndex& /*index*/) const
 {
-    QComboBox* comboBox = new QComboBox (parent);
+    QComboBox* comboBox = new QComboBox(parent);
     //TODO: use an enum inside QVariant !?!
-    comboBox->addItem (QString ("<- "), QVariant ("<-") );
-    comboBox->addItem (QString (" ->"), QVariant ("->") );
-    comboBox->addItem (QString ("<->"), QVariant ("<->") );
-    comboBox->setFrame (false);
+    comboBox->addItem(QString("<- "), QVariant("<-"));
+    comboBox->addItem(QString(" ->"), QVariant("->"));
+    comboBox->addItem(QString("<->"), QVariant("<->"));
+    comboBox->setFrame(false);
 
     std::cerr << "IOTypeDelegate::createEditor comboBox: " << comboBox->currentIndex() << "\n";
 
@@ -28,15 +28,15 @@ IOTypeDelegate::createEditor (QWidget* parent,
 }
 
 void
-IOTypeDelegate::setEditorData (QWidget* editor, const QModelIndex& index) const
+IOTypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-    QString value = index.model()->data (index, Qt::EditRole).toString();
-    QComboBox* comboBox = static_cast<QComboBox*> (editor);
-    const int i = comboBox->findData (value); //or findText with Qt::MatchContains);
+    QString value = index.model()->data(index, Qt::EditRole).toString();
+    QComboBox* comboBox = static_cast<QComboBox*>(editor);
+    const int i = comboBox->findData(value);  //or findText with Qt::MatchContains);
 
-    if (i != -1)
+    if(i != -1)
     {
-        comboBox->setCurrentIndex (i);
+        comboBox->setCurrentIndex(i);
     }
 
     std::cerr << "IOTypeDelegate::setEditorData comboBox: " << comboBox->currentIndex() << "\n";
@@ -44,19 +44,19 @@ IOTypeDelegate::setEditorData (QWidget* editor, const QModelIndex& index) const
 }
 
 void
-IOTypeDelegate::setModelData (QWidget* editor,
-                              QAbstractItemModel* model,
-                              const QModelIndex& index) const
+IOTypeDelegate::setModelData(QWidget* editor,
+                             QAbstractItemModel* model,
+                             const QModelIndex& index) const
 {
-    QComboBox* comboBox = static_cast<QComboBox*> (editor);
+    QComboBox* comboBox = static_cast<QComboBox*>(editor);
     QString value = comboBox->currentText();
-    model->setData (index, value, Qt::EditRole);
+    model->setData(index, value, Qt::EditRole);
 }
 
 void
-IOTypeDelegate::updateEditorGeometry (QWidget* editor,
-                                      const QStyleOptionViewItem& option,
-                                      const QModelIndex& /*index*/) const
+IOTypeDelegate::updateEditorGeometry(QWidget* editor,
+                                     const QStyleOptionViewItem& option,
+                                     const QModelIndex& /*index*/) const
 {
-    editor->setGeometry (option.rect);
+    editor->setGeometry(option.rect);
 }

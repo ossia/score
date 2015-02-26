@@ -36,19 +36,19 @@ class ScenarioModel : public ProcessSharedModelInterface
     public:
         using view_model_type = AbstractScenarioViewModel;
 
-        ScenarioModel (id_type<ProcessSharedModelInterface> id, QObject* parent);
-        ProcessSharedModelInterface* clone (id_type<ProcessSharedModelInterface> newId, QObject* newParent);
+        ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent);
 
         virtual ~ScenarioModel();
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                 QObject* parent) override;
 
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> newId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
                 const ProcessViewModelInterface* source,
                 QObject* parent) override;
 
-        virtual void setDurationWithScale (TimeValue newDuration) override;
-        virtual void setDurationWithoutScale (TimeValue newDuration) override;
+        virtual void setDurationWithScale(TimeValue newDuration) override;
+        virtual void setDurationWithoutScale(TimeValue newDuration) override;
 
         virtual QString processName() const override
         {
@@ -61,10 +61,10 @@ class ScenarioModel : public ProcessSharedModelInterface
          *
          * Creates a new constraint between two existing events
          */
-        void createConstraintBetweenEvents (id_type<EventModel> startEventId,
-                                            id_type<EventModel> endEventId,
-                                            id_type<ConstraintModel> newConstraintModelId,
-                                            id_type<AbstractConstraintViewModel> newConstraintFullViewId);
+        void createConstraintBetweenEvents(id_type<EventModel> startEventId,
+                                           id_type<EventModel> endEventId,
+                                           id_type<ConstraintModel> newConstraintModelId,
+                                           id_type<AbstractConstraintViewModel> newConstraintFullViewId);
 
         /**
          * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
@@ -72,38 +72,38 @@ class ScenarioModel : public ProcessSharedModelInterface
          * Given a starting event and a duration, creates an constraint and an event where
          * the constraint is linked to both events.
          */
-        void createConstraintAndEndEventFromEvent (id_type<EventModel> startEventId,
+        void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
                 TimeValue duration,
                 double heightPos,
                 id_type<ConstraintModel> newConstraintId,
                 id_type<AbstractConstraintViewModel> newConstraintFullViewId,
                 id_type<EventModel> newEventId);
 
-        void createTimeNode (id_type<TimeNodeModel> timeNodeId,
-                             id_type<EventModel> eventId);
+        void createTimeNode(id_type<TimeNodeModel> timeNodeId,
+                            id_type<EventModel> eventId);
 
 
 
         // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
-        void addConstraint (ConstraintModel* constraint);
-        void addEvent (EventModel* event);
-        void addTimeNode (TimeNodeModel* timeNode);
+        void addConstraint(ConstraintModel* constraint);
+        void addEvent(EventModel* event);
+        void addTimeNode(TimeNodeModel* timeNode);
 
-        void removeConstraint (id_type<ConstraintModel> constraintId);
-        void removeEvent (id_type<EventModel> eventId);
-        void removeEventFromTimeNode (id_type<EventModel> eventId);
-        void removeTimeNode (id_type<TimeNodeModel> timeNodeId );
+        void removeConstraint(id_type<ConstraintModel> constraintId);
+        void removeEvent(id_type<EventModel> eventId);
+        void removeEventFromTimeNode(id_type<EventModel> eventId);
+        void removeTimeNode(id_type<TimeNodeModel> timeNodeId);
 
         //TODO Maybe the command should in fact do this ??
-        void undo_removeConstraint (ConstraintModel* newConstraint);
-        void undo_createConstraintAndEndEventFromEvent (id_type<EventModel> endEventId);
-        void undo_createConstraintBetweenEvent (id_type<ConstraintModel> constraintId);
+        void undo_removeConstraint(ConstraintModel* newConstraint);
+        void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
+        void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
 
 
         // Accessors
-        ConstraintModel* constraint (id_type<ConstraintModel> constraintId) const;
-        EventModel* event (id_type<EventModel> eventId) const;
-        TimeNodeModel* timeNode (id_type<TimeNodeModel> timeNodeId) const;
+        ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;
+        EventModel* event(id_type<EventModel> eventId) const;
+        TimeNodeModel* timeNode(id_type<TimeNodeModel> timeNodeId) const;
 
         EventModel* startEvent() const;
         EventModel* endEvent() const;
@@ -123,14 +123,14 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
     signals:
-        void eventCreated (id_type<EventModel> eventId);
-        void constraintCreated (id_type<ConstraintModel> constraintId);
-        void timeNodeCreated (id_type<TimeNodeModel> timeNodeId);
-        void eventRemoved (id_type<EventModel> eventId);
-        void constraintRemoved (id_type<ConstraintModel> constraintId);
-        void timeNodeRemoved (id_type<TimeNodeModel> timeNodeId);
-        void eventMoved (id_type<EventModel> eventId);
-        void constraintMoved (id_type<ConstraintModel> constraintId);
+        void eventCreated(id_type<EventModel> eventId);
+        void constraintCreated(id_type<ConstraintModel> constraintId);
+        void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+        void eventRemoved(id_type<EventModel> eventId);
+        void constraintRemoved(id_type<ConstraintModel> constraintId);
+        void timeNodeRemoved(id_type<TimeNodeModel> timeNodeId);
+        void eventMoved(id_type<EventModel> eventId);
+        void constraintMoved(id_type<ConstraintModel> constraintId);
 
         void locked();
         void unlocked();
@@ -145,30 +145,30 @@ class ScenarioModel : public ProcessSharedModelInterface
             emit unlocked();
         }
 
-        void on_viewModelDestroyed (QObject*);
+        void on_viewModelDestroyed(QObject*);
 
     protected:
         template<typename Impl>
-        ScenarioModel (Deserializer<Impl>& vis, QObject* parent) :
+        ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
             ProcessSharedModelInterface {vis, parent}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelInterface* makeViewModel (SerializationIdentifier identifier,
+        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
                 void* data,
                 QObject* parent) override;
 
-        virtual void serialize (SerializationIdentifier identifier,
-                                void* data) const override;
+        virtual void serialize(SerializationIdentifier identifier,
+                               void* data) const override;
 
         // To prevent warnings in Clang
-        virtual bool event (QEvent* e) override
+        virtual bool event(QEvent* e) override
         {
-            return QObject::event (e);
+            return QObject::event(e);
         }
     private:
-        void makeViewModel_impl (view_model_type*);
+        void makeViewModel_impl(view_model_type*);
 
         //OSSIA::Scenario* m_scenario;
 

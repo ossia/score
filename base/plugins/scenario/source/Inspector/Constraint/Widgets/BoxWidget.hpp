@@ -9,18 +9,18 @@ class BoxWidget : public QWidget
         Q_OBJECT
 
     public:
-        BoxWidget (ConstraintInspectorWidget* parent);
+        BoxWidget(ConstraintInspectorWidget* parent);
 
         void updateComboBox();
-        void setModel (ConstraintModel*);
+        void setModel(ConstraintModel*);
 
         const QString hiddenText
         {
-            tr ("Hide")
+            tr("Hide")
         };
 
     public slots:
-        void on_comboBoxActivated (QString);
+        void on_comboBoxActivated(QString);
 
     private:
         QComboBox* m_boxList {};

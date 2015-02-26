@@ -31,112 +31,112 @@
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 using namespace Scenario;
 
-EventInspectorWidget::EventInspectorWidget (EventModel* object, QWidget* parent) :
+EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
     InspectorWidgetBase {nullptr},
 m_eventModel {object}
 {
-    setObjectName ("EventInspectorWidget");
-    setInspectedObject (object);
-    setParent (parent);
+    setObjectName("EventInspectorWidget");
+    setInspectedObject(object);
+    setParent(parent);
 
-    connect (object, &EventModel::messagesChanged,
+    connect(object, &EventModel::messagesChanged,
     this, &EventInspectorWidget::updateMessages);
 
     m_conditionWidget = new QLineEdit{this};
-    connect (m_conditionWidget, SIGNAL (editingFinished() ),
-             this,			 SLOT (on_conditionChanged() ) );
+    connect(m_conditionWidget, SIGNAL(editingFinished()),
+            this,			 SLOT(on_conditionChanged()));
     // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
-    m_properties.push_back (new QLabel{"Condition"});
-    m_properties.push_back (m_conditionWidget);
+    m_properties.push_back(new QLabel{"Condition"});
+    m_properties.push_back(m_conditionWidget);
 
     QWidget* addressesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{addressesWidget};
-    addressesWidget->setLayout (dispLayout);
+    addressesWidget->setLayout(dispLayout);
 
     QWidget* addAddressWidget = new QWidget{this};
     auto addLayout = new QHBoxLayout{addAddressWidget};
 
     m_addressLineEdit = new QLineEdit{addAddressWidget};
 
-    auto deviceexplorer = DeviceExplorer::getModel (object);
+    auto deviceexplorer = DeviceExplorer::getModel(object);
 
-    if (deviceexplorer)
+    if(deviceexplorer)
     {
         auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_addressLineEdit->setCompleter (completer);
+        m_addressLineEdit->setCompleter(completer);
     }
 
 
     auto ok_button = new QPushButton{"Add", addAddressWidget};
-    connect (ok_button, &QPushButton::clicked,
-             this,	   &EventInspectorWidget::on_addAddressClicked);
-    addLayout->addWidget (m_addressLineEdit);
-    addLayout->addWidget (ok_button);
+    connect(ok_button, &QPushButton::clicked,
+            this,	   &EventInspectorWidget::on_addAddressClicked);
+    addLayout->addWidget(m_addressLineEdit);
+    addLayout->addWidget(ok_button);
 
-    m_properties.push_back (new QLabel{"States"});
-    m_properties.push_back (addressesWidget);
-    m_properties.push_back (addAddressWidget);
+    m_properties.push_back(new QLabel{"States"});
+    m_properties.push_back(addressesWidget);
+    m_properties.push_back(addAddressWidget);
 
     // Constraint list
-    m_prevConstraints = new InspectorSectionWidget{tr ("Previous Constraints") };
-    m_nextConstraints = new InspectorSectionWidget{tr ("Next Constraints") };
-    m_properties.push_back (m_prevConstraints);
-    m_properties.push_back (m_nextConstraints);
+    m_prevConstraints = new InspectorSectionWidget{tr("Previous Constraints") };
+    m_nextConstraints = new InspectorSectionWidget{tr("Next Constraints") };
+    m_properties.push_back(m_prevConstraints);
+    m_properties.push_back(m_nextConstraints);
 
-    updateSectionsView (areaLayout(), m_properties);
+    updateSectionsView(areaLayout(), m_properties);
     areaLayout()->addStretch();
 
     // metadata
-    m_metadata = new MetadataWidget (&object->metadata, this);
-    m_metadata->setType ("Event");
-    addHeader (m_metadata);
+    m_metadata = new MetadataWidget(&object->metadata, this);
+    m_metadata->setType("Event");
+    addHeader(m_metadata);
 
     // display data
-    updateDisplayedValues (object);
+    updateDisplayedValues(object);
 
-    connect (m_metadata,     &MetadataWidget::scriptingNameChanged,
-             this,           &EventInspectorWidget::on_scriptingNameChanged);
+    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
+            this,           &EventInspectorWidget::on_scriptingNameChanged);
 
-    connect (m_metadata,     &MetadataWidget::labelChanged,
-             this,           &EventInspectorWidget::on_labelChanged);
+    connect(m_metadata,     &MetadataWidget::labelChanged,
+            this,           &EventInspectorWidget::on_labelChanged);
 
-    connect (m_metadata,     &MetadataWidget::commentsChanged,
-             this,           &EventInspectorWidget::on_commentsChanged);
+    connect(m_metadata,     &MetadataWidget::commentsChanged,
+            this,           &EventInspectorWidget::on_commentsChanged);
 
-    connect (m_metadata,     &MetadataWidget::colorChanged,
-             this,           &EventInspectorWidget::on_colorChanged);
+    connect(m_metadata,     &MetadataWidget::colorChanged,
+            this,           &EventInspectorWidget::on_colorChanged);
 
-    connect (m_metadata,     &MetadataWidget::inspectPreviousElement,
-             m_eventModel,   &EventModel::inspectPreviousElement);
+    connect(m_metadata,     &MetadataWidget::inspectPreviousElement,
+            m_eventModel,   &EventModel::inspectPreviousElement);
 
     emit m_eventModel->inspectorCreated();
 }
 
-void EventInspectorWidget::addAddress (const QString& addr)
+void EventInspectorWidget::addAddress(const QString& addr)
 {
     auto address = new QWidget {this};
     auto lay = new QHBoxLayout {address};
     auto lbl = new QLabel {addr, this};
-    lay->addWidget (lbl);
+    lay->addWidget(lbl);
 
     QToolButton* rmBtn = new QToolButton {};
-    rmBtn->setText ("X");
-    lay->addWidget (rmBtn);
+    rmBtn->setText("X");
+    lay->addWidget(rmBtn);
 
-    connect (rmBtn, &QToolButton::clicked,
-             [ = ] ()
+    connect(rmBtn, &QToolButton::clicked,
+            [ = ]()
     {
-        removeState (lbl->text() );
+        removeState(lbl->text());
     });
 
-    m_addresses.push_back (address);
-    m_properties[3]->layout()->addWidget (address);
+    m_addresses.push_back(address);
+    m_properties[3]->layout()->addWidget(address);
 }
 
-void EventInspectorWidget::updateDisplayedValues (EventModel* event)
+void EventInspectorWidget::updateDisplayedValues(EventModel* event)
 {
     // Cleanup
-    for (auto& elt : m_addresses)
+    for(auto& elt : m_addresses)
     {
         delete elt;
     }
@@ -147,7 +147,7 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
     m_nextConstraints->removeAll();
 
     // DEMO
-    if (event)
+    if(event)
     {
 //        setName (event->metadata.name());
 //		setColor (event->metadata.color() );
@@ -156,44 +156,44 @@ void EventInspectorWidget::updateDisplayedValues (EventModel* event)
 //        setInspectedObject (event);
 //		changeLabelType ("Event");
 
-        for (State* state : event->states() )
+        for(State* state : event->states())
         {
-            for (auto& msg : state->messages() )
+            for(auto& msg : state->messages())
             {
-                addAddress (msg);
+                addAddress(msg);
             }
         }
 
-        for (auto cstr : event->previousConstraints() )
+        for(auto cstr : event->previousConstraints())
         {
             auto cstrBtn = new QPushButton {};
-            cstrBtn->setText (QString::number (*cstr.val() ) );
-            cstrBtn->setFlat (true);
-            m_prevConstraints->addContent (cstrBtn);
+            cstrBtn->setText(QString::number(*cstr.val()));
+            cstrBtn->setFlat(true);
+            m_prevConstraints->addContent(cstrBtn);
 
-            connect (cstrBtn, &QPushButton::clicked,
-                     [ = ] ()
+            connect(cstrBtn, &QPushButton::clicked,
+                    [ = ]()
             {
-                m_eventModel->constraintSelected (cstrBtn->text() );
+                m_eventModel->constraintSelected(cstrBtn->text());
             });
         }
 
-        for (auto cstr : event->nextConstraints() )
+        for(auto cstr : event->nextConstraints())
         {
             auto cstrBtn = new QPushButton {};
-            cstrBtn->setText (QString::number (*cstr.val() ) );
-            cstrBtn->setFlat (true);
-            m_nextConstraints->addContent (cstrBtn);
+            cstrBtn->setText(QString::number(*cstr.val()));
+            cstrBtn->setFlat(true);
+            m_nextConstraints->addContent(cstrBtn);
 
-            connect (cstrBtn, &QPushButton::clicked,
-                     [ = ] ()
+            connect(cstrBtn, &QPushButton::clicked,
+                    [ = ]()
             {
-                m_eventModel->constraintSelected (cstrBtn->text() );
+                m_eventModel->constraintSelected(cstrBtn->text());
             });
         }
 
 
-        m_conditionWidget->setText (event->condition() );
+        m_conditionWidget->setText(event->condition());
     }
 }
 
@@ -202,11 +202,11 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_addressLineEdit->text();
     auto cmd = new Command::AddStateToEvent
     {
-        iscore::IDocument::path (m_eventModel),
+        iscore::IDocument::path(m_eventModel),
         txt
     };
 
-    emit submitCommand (cmd);
+    emit submitCommand(cmd);
     m_addressLineEdit->clear();
 }
 
@@ -214,71 +214,71 @@ void EventInspectorWidget::on_conditionChanged()
 {
     auto txt = m_conditionWidget->text();
 
-    if (txt == m_eventModel->condition() )
+    if(txt == m_eventModel->condition())
     {
         return;
     }
 
     auto cmd = new Command::SetCondition
     {
-        iscore::IDocument::path (m_eventModel),
+        iscore::IDocument::path(m_eventModel),
         txt
     };
 
-    emit submitCommand (cmd);
+    emit submitCommand(cmd);
 
 }
 
-void EventInspectorWidget::on_scriptingNameChanged (QString newName)
+void EventInspectorWidget::on_scriptingNameChanged(QString newName)
 {
-    if (newName == m_eventModel->metadata.name() )
+    if(newName == m_eventModel->metadata.name())
     {
         return;
     }
 
-    auto cmd = new Command::ChangeElementName<EventModel> (iscore::IDocument::path (inspectedObject() ),
+    auto cmd = new Command::ChangeElementName<EventModel> (iscore::IDocument::path(inspectedObject()),
             newName);
 
-    submitCommand (cmd);
+    submitCommand(cmd);
 }
 
-void EventInspectorWidget::on_labelChanged (QString newLabel)
+void EventInspectorWidget::on_labelChanged(QString newLabel)
 {
-    if (newLabel == m_eventModel->metadata.label() )
+    if(newLabel == m_eventModel->metadata.label())
     {
         return;
     }
 
-    auto cmd = new Command::ChangeElementLabel<EventModel> (iscore::IDocument::path (inspectedObject() ),
+    auto cmd = new Command::ChangeElementLabel<EventModel> (iscore::IDocument::path(inspectedObject()),
             newLabel);
 
-    submitCommand (cmd);
+    submitCommand(cmd);
 }
 
-void EventInspectorWidget::on_commentsChanged (QString)
+void EventInspectorWidget::on_commentsChanged(QString)
 {
 
 }
 
-void EventInspectorWidget::on_colorChanged (QColor newColor)
+void EventInspectorWidget::on_colorChanged(QColor newColor)
 {
-    if (newColor == m_eventModel->metadata.color() )
+    if(newColor == m_eventModel->metadata.color())
     {
         return;
     }
 
-    auto cmd = new Command::ChangeElementColor<EventModel> (iscore::IDocument::path (inspectedObject() ),
+    auto cmd = new Command::ChangeElementColor<EventModel> (iscore::IDocument::path(inspectedObject()),
             newColor);
 
-    submitCommand (cmd);
+    submitCommand(cmd);
 }
 
 void EventInspectorWidget::updateMessages()
 {
-    updateDisplayedValues (m_eventModel);
+    updateDisplayedValues(m_eventModel);
 }
 
-void EventInspectorWidget::removeState (QString state)
+void EventInspectorWidget::removeState(QString state)
 {
     // TODO command de suppression
     qDebug() << "remove state" << state;

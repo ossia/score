@@ -22,7 +22,7 @@ class InspectorPanel : public QWidget
         Q_OBJECT
 
     public:
-        explicit InspectorPanel (QWidget* parent);
+        explicit InspectorPanel(QWidget* parent);
         ~InspectorPanel();
 
     public slots:
@@ -32,7 +32,7 @@ class InspectorPanel : public QWidget
          *  It's called when the user selects a new item
          * \param object The selected objet.
          */
-        void newItemInspected (QObject*);
+        void newItemInspected(QObject*);
         void on_itemRemoved();
 
     private:

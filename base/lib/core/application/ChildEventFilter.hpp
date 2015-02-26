@@ -30,21 +30,21 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            ChildEventFilter (Application* app) :
+            ChildEventFilter(Application* app) :
                 m_app {app}
             {}
 
         protected:
-            virtual bool eventFilter (QObject* obj, QEvent* ev) override
+            virtual bool eventFilter(QObject* obj, QEvent* ev) override
             {
-                if (ev->type() == QEvent::ChildAdded)
+                if(ev->type() == QEvent::ChildAdded)
                 {
-                    m_app->doConnections (static_cast<QChildEvent*> (ev)->child() );
+                    m_app->doConnections(static_cast<QChildEvent*>(ev)->child());
                     return true;
                 }
                 else
                 {
-                    return QObject::eventFilter (obj, ev);
+                    return QObject::eventFilter(obj, ev);
                 }
             }
 

@@ -4,19 +4,19 @@
 #include "AutomationPresenter.hpp"
 
 
-ProcessSharedModelInterface* AutomationFactory::makeModel (id_type<ProcessSharedModelInterface> id,
+ProcessSharedModelInterface* AutomationFactory::makeModel(id_type<ProcessSharedModelInterface> id,
         QObject* parent)
 {
     return new AutomationModel {id, parent};
 }
 
-ProcessViewInterface* AutomationFactory::makeView (QString view, QObject* parent)
+ProcessViewInterface* AutomationFactory::makeView(QString view, QObject* parent)
 {
-    return new AutomationView {static_cast<QGraphicsObject*> (parent) };
+    return new AutomationView {static_cast<QGraphicsObject*>(parent) };
 }
 
 
-ProcessPresenterInterface* AutomationFactory::makePresenter (ProcessViewModelInterface* viewModel,
+ProcessPresenterInterface* AutomationFactory::makePresenter(ProcessViewModelInterface* viewModel,
         ProcessViewInterface* view,
         QObject* parent)
 {

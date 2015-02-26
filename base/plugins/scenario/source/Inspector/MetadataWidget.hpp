@@ -15,24 +15,24 @@ class MetadataWidget : public QWidget
         Q_OBJECT
 
     public:
-        explicit MetadataWidget (ModelMetadata* metadata = 0, QWidget* parent = 0);
+        explicit MetadataWidget(ModelMetadata* metadata = 0, QWidget* parent = 0);
 
         QString scriptingName() const;
 
     public slots:
-        void setScriptingName (QString arg);
+        void setScriptingName(QString arg);
 
         void changeColor();
 
-        void setType (QString type);
+        void setType(QString type);
 
         void updateAsked();
 
     signals:
-        void scriptingNameChanged (QString arg);
-        void labelChanged (QString arg);
-        void commentsChanged (QString arg);
-        void colorChanged (QColor arg);
+        void scriptingNameChanged(QString arg);
+        void labelChanged(QString arg);
+        void commentsChanged(QString arg);
+        void colorChanged(QColor arg);
 
         void inspectPreviousElement();
 

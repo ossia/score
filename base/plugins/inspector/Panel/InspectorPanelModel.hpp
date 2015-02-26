@@ -14,13 +14,13 @@ class InspectorPanelModel : public iscore::PanelModelInterface
 {
         Q_OBJECT
     public:
-        InspectorPanelModel (iscore::DocumentModel* parent);
+        InspectorPanelModel(iscore::DocumentModel* parent);
 
     signals:
-        void setNewItem (QObject*);
+        void setNewItem(QObject*);
 
     public slots:
-        void newItemInspected (QObject*);
+        void newItemInspected(QObject*);
         void lastItemInspected();
 
     private:

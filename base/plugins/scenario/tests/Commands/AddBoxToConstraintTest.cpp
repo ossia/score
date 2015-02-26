@@ -19,22 +19,22 @@ class AddBoxToConstraintTest: public QObject
                                                                 qApp
                                                                };
 
-            QCOMPARE ( (int) constraint->boxes().size(), 0);
-            AddBoxToConstraint cmd (
+            QCOMPARE((int) constraint->boxes().size(), 0);
+            AddBoxToConstraint cmd(
             ObjectPath { {"ConstraintModel", {}} });
 
             auto id = cmd.m_createdBoxId;
 
             cmd.redo();
-            QCOMPARE ( (int) constraint->boxes().size(), 1);
-            QCOMPARE (constraint->box (id)->parent(), constraint);
+            QCOMPARE((int) constraint->boxes().size(), 1);
+            QCOMPARE(constraint->box(id)->parent(), constraint);
 
             cmd.undo();
-            QCOMPARE ( (int) constraint->boxes().size(), 0);
+            QCOMPARE((int) constraint->boxes().size(), 0);
 
             cmd.redo();
-            QCOMPARE ( (int) constraint->boxes().size(), 1);
-            QCOMPARE (constraint->box (id)->parent(), constraint);
+            QCOMPARE((int) constraint->boxes().size(), 1);
+            QCOMPARE(constraint->box(id)->parent(), constraint);
 
             // Delete them else they stay in qApp !
             delete constraint;
@@ -43,6 +43,6 @@ class AddBoxToConstraintTest: public QObject
 
 };
 
-QTEST_MAIN (AddBoxToConstraintTest)
+QTEST_MAIN(AddBoxToConstraintTest)
 #include "AddBoxToConstraintTest.moc"
 

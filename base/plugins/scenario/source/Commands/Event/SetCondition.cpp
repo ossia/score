@@ -21,13 +21,13 @@ SetCondition::SetCondition() :
 
 }
 
-SetCondition::SetCondition (ObjectPath&& eventPath, QString message) :
+SetCondition::SetCondition(ObjectPath&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
     CMD_NAME,
     CMD_DESC
 },
-m_path {std::move (eventPath) },
-m_condition (message)
+m_path {std::move(eventPath) },
+m_condition(message)
 {
     auto event = m_path.find<EventModel>();
     m_previousCondition = event->condition();
@@ -36,13 +36,13 @@ m_condition (message)
 void SetCondition::undo()
 {
     auto event = m_path.find<EventModel>();
-    event->setCondition (m_previousCondition);
+    event->setCondition(m_previousCondition);
 }
 
 void SetCondition::redo()
 {
     auto event = m_path.find<EventModel>();
-    event->setCondition (m_condition);
+    event->setCondition(m_condition);
 }
 
 int SetCondition::id() const
@@ -50,17 +50,17 @@ int SetCondition::id() const
     return CMD_UID;
 }
 
-bool SetCondition::mergeWith (const QUndoCommand* other)
+bool SetCondition::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void SetCondition::serializeImpl (QDataStream& s) const
+void SetCondition::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_condition << m_previousCondition;
 }
 
-void SetCondition::deserializeImpl (QDataStream& s)
+void SetCondition::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_condition >> m_previousCondition;
 }

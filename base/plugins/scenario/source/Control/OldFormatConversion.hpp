@@ -2,4 +2,4 @@
 #include <QString>
 #include <QJsonObject>
 
-QString JSONToZeroTwo (QJsonObject base);
+QString JSONToZeroTwo(QJsonObject base);

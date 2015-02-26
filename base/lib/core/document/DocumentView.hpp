@@ -14,13 +14,13 @@ namespace iscore
     class DocumentView : public QWidget
     {
         public:
-            DocumentView (QWidget* parent);
-            void setViewDelegate (DocumentDelegateViewInterface*);
+            DocumentView(QWidget* parent);
+            void setViewDelegate(DocumentDelegateViewInterface*);
 
             void reset();
 
 
-            void addPanel (PanelViewInterface*);
+            void addPanel(PanelViewInterface*);
 
         private:
             DocumentDelegateViewInterface* m_view {};

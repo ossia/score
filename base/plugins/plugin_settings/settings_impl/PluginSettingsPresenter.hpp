@@ -9,16 +9,16 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
 {
         Q_OBJECT
     public:
-        PluginSettingsPresenter (iscore::SettingsPresenter* parent,
-                                 iscore::SettingsDelegateModelInterface* model,
-                                 iscore::SettingsDelegateViewInterface* view);
+        PluginSettingsPresenter(iscore::SettingsPresenter* parent,
+                                iscore::SettingsDelegateModelInterface* model,
+                                iscore::SettingsDelegateViewInterface* view);
 
         virtual void on_accept() override;
         virtual void on_reject() override;
 
         virtual QString settingsName() override
         {
-            return tr ("Plugin");
+            return tr("Plugin");
         }
 
         virtual QIcon settingsIcon() override;
@@ -28,7 +28,7 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
         PluginSettingsView* view();
 
     public slots:
-        void setBlacklistCommand (BlacklistCommand* cmd);
+        void setBlacklistCommand(BlacklistCommand* cmd);
 
     private:
 

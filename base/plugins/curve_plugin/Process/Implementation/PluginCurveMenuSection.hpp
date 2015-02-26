@@ -9,7 +9,7 @@ class PluginCurveMenuSection : public QMenu
         Q_OBJECT
     public:
         static const QString DELETE;
-        explicit PluginCurveMenuSection (PluginCurveSection* section, QWidget* parent = 0);
+        explicit PluginCurveMenuSection(PluginCurveSection* section, QWidget* parent = 0);
 
     signals:
 

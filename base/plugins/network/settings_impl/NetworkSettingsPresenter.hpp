@@ -11,16 +11,16 @@ class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterfa
 {
         Q_OBJECT
     public:
-        NetworkSettingsPresenter (iscore::SettingsPresenter* parent,
-                                  iscore::SettingsDelegateModelInterface* model,
-                                  iscore::SettingsDelegateViewInterface* view);
+        NetworkSettingsPresenter(iscore::SettingsPresenter* parent,
+                                 iscore::SettingsDelegateModelInterface* model,
+                                 iscore::SettingsDelegateViewInterface* view);
 
         virtual void on_accept() override;
         virtual void on_reject() override;
 
         virtual QString settingsName() override
         {
-            return tr ("Network");
+            return tr("Network");
         }
 
         virtual QIcon settingsIcon() override;
@@ -34,9 +34,9 @@ class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterfa
         void updateClientPort();
         void updateClientName();
 
-        void setMasterPortCommand (MasterPortChangedCommand* cmd);
-        void setClientPortCommand (ClientPortChangedCommand* cmd);
-        void setClientNameCommand (ClientNameChangedCommand* cmd);
+        void setMasterPortCommand(MasterPortChangedCommand* cmd);
+        void setClientPortCommand(ClientPortChangedCommand* cmd);
+        void setClientNameCommand(ClientNameChangedCommand* cmd);
 
     private:
         // S'il y avait plusieurs contrôles chaque contrôle devrait avoir sa "commande".

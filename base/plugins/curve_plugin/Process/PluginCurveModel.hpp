@@ -52,37 +52,37 @@ class PluginCurveModel : public QObject
 
     public:
         // Constructor
-        PluginCurveModel (QObject* parentObject);
+        PluginCurveModel(QObject* parentObject);
         // Returns the list of points
         QList<PluginCurvePoint*> points();
         // Returns the points area
         QRectF limitRect();
         // Gives the position of a point in the list
-        int pointIndexOf (PluginCurvePoint* point);
+        int pointIndexOf(PluginCurvePoint* point);
         // Returns the point at the index position index in the list
-        PluginCurvePoint* pointAt (int index);
+        PluginCurvePoint* pointAt(int index);
         // Returns the size of the list
         int pointSize();
         // Returns the index of the point which would precede a point at position point.
-        int pointSearchIndex (QPointF point);
+        int pointSearchIndex(QPointF point);
         // Returns point's previous point
-        PluginCurvePoint* previousPoint (PluginCurvePoint* point);
+        PluginCurvePoint* previousPoint(PluginCurvePoint* point);
         // Return point's next point
-        PluginCurvePoint* nextPoint (PluginCurvePoint* point);
+        PluginCurvePoint* nextPoint(PluginCurvePoint* point);
 
     public slots:
         // Changes the state (Activ/Inactiv) of the curve
-        void setState (bool b);
+        void setState(bool b);
         // Inserts a point at the index index
-        void pointInsert (int index, PluginCurvePoint* point);
+        void pointInsert(int index, PluginCurvePoint* point);
         // Remove a point from the list
-        void pointRemoveOne (PluginCurvePoint* point);
+        void pointRemoveOne(PluginCurvePoint* point);
         // Swap the points at index index1 and index2
-        void pointSwap (int index1, int index2);
+        void pointSwap(int index1, int index2);
         // Append a section
-        void sectionAppend (PluginCurveSection* section);
+        void sectionAppend(PluginCurveSection* section);
         // Remove a section from the list
-        void sectionRemoveOne (PluginCurveSection* section);
+        void sectionRemoveOne(PluginCurveSection* section);
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

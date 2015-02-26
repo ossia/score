@@ -8,22 +8,22 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
         Q_OBJECT
 
     public:
-        AbstractConstraintViewModel (id_type<AbstractConstraintViewModel> id,
-                                     QString name,
-                                     ConstraintModel* model,
-                                     QObject* parent);
+        AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
+                                    QString name,
+                                    ConstraintModel* model,
+                                    QObject* parent);
 
         template<typename DeserializerVisitor>
-        AbstractConstraintViewModel (DeserializerVisitor&& vis,
-                                     ConstraintModel* model,
-                                     QObject* parent) :
+        AbstractConstraintViewModel(DeserializerVisitor&& vis,
+                                    ConstraintModel* model,
+                                    QObject* parent) :
             IdentifiedObject<AbstractConstraintViewModel> {vis, parent},
         m_model {model}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
-        virtual AbstractConstraintViewModel* clone (id_type<AbstractConstraintViewModel> id,
+        virtual AbstractConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
                 ConstraintModel* cm,
                 QObject* parent) = 0;
 
@@ -36,15 +36,15 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
         id_type<BoxModel> shownBox() const;
 
         void hideBox();
-        void showBox (id_type<BoxModel> boxId);
+        void showBox(id_type<BoxModel> boxId);
 
     signals:
         void boxRemoved();
         void boxHidden();
-        void boxShown (id_type<BoxModel> boxId);
+        void boxShown(id_type<BoxModel> boxId);
 
     public slots:
-        virtual void on_boxRemoved (id_type<BoxModel> boxId);
+        virtual void on_boxRemoved(id_type<BoxModel> boxId);
 
 
     private:

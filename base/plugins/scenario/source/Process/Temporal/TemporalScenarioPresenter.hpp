@@ -32,47 +32,47 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         friend class ScenarioCommandManager;
         friend class ScenarioViewInterface;
 
-        Q_PROPERTY (id_type<EventModel> currentlySelectedEvent
-                    READ currentlySelectedEvent
-                    WRITE setCurrentlySelectedEvent
-                    NOTIFY currentlySelectedEventChanged)
+        Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
+                   READ currentlySelectedEvent
+                   WRITE setCurrentlySelectedEvent
+                   NOTIFY currentlySelectedEventChanged)
 
     public:
-        TemporalScenarioPresenter (ProcessViewModelInterface* model,
-                                   ProcessViewInterface* view,
-                                   QObject* parent);
+        TemporalScenarioPresenter(ProcessViewModelInterface* model,
+                                  ProcessViewInterface* view,
+                                  QObject* parent);
         virtual ~TemporalScenarioPresenter();
 
 
         virtual id_type<ProcessViewModelInterface> viewModelId() const;
         virtual id_type<ProcessSharedModelInterface> modelId() const;
 
-        virtual void setWidth (int width) override;
-        virtual void setHeight (int height) override;
+        virtual void setWidth(int width) override;
+        virtual void setHeight(int height) override;
         virtual void putToFront() override;
         virtual void putBack() override;
 
         virtual void parentGeometryChanged() override;
 
-        virtual void on_horizontalZoomChanged (int val) override;
+        virtual void on_horizontalZoomChanged(int val) override;
 
         id_type<EventModel> currentlySelectedEvent() const;
         long millisecPerPixel() const;
 
     signals:
-        void currentlySelectedEventChanged (id_type<EventModel> arg);
-        void linesExtremityScaled (int, int);
+        void currentlySelectedEventChanged(id_type<EventModel> arg);
+        void linesExtremityScaled(int, int);
 
     public slots:
         // Model -> view
-        void on_eventCreated (id_type<EventModel> eventId);
-        void on_eventDeleted (id_type<EventModel> eventId);
+        void on_eventCreated(id_type<EventModel> eventId);
+        void on_eventDeleted(id_type<EventModel> eventId);
 
-        void on_timeNodeCreated (id_type<TimeNodeModel> timeNodeId);
-        void on_timeNodeDeleted (id_type<TimeNodeModel> timeNodeId);
+        void on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+        void on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
 
-        void on_constraintCreated (id_type<AbstractConstraintViewModel> constraintId);
-        void on_constraintViewModelRemoved (id_type<AbstractConstraintViewModel> constraintId);
+        void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
+        void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
 
         // View -> Presenter
         void on_scenarioPressed();
@@ -80,9 +80,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_askUpdate();
 
     private slots:
-        void setCurrentlySelectedEvent (id_type<EventModel> arg);
+        void setCurrentlySelectedEvent(id_type<EventModel> arg);
 
-        void addTimeNodeToEvent (id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
+        void addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
     protected:
         // TODO faire passer l'abstract et utiliser des free functions de cast
@@ -107,9 +107,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         EventData m_lastData {};
 
     private:
-        void on_eventCreated_impl (EventModel* event_model);
-        void on_constraintCreated_impl (TemporalConstraintViewModel* constraint_view_model);
-        void on_timeNodeCreated_impl (TimeNodeModel* timeNode_model);
+        void on_eventCreated_impl(EventModel* event_model);
+        void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
+        void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
 
         ScenarioCommandManager* m_cmdManager;

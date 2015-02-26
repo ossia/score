@@ -17,12 +17,12 @@ namespace Scenario
         {
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveProcessViewModel (const ObjectPath& pvmToMove,
-                                      ObjectPath&& targetDeck) :
+                MoveProcessViewModel(const ObjectPath& pvmToMove,
+                                     ObjectPath&& targetDeck) :
                     AggregateCommand
                 {
-                    "ScenarioControl", "MoveProcessViewModel", QObject::tr ("Move a process view model"),
-                    new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move (targetDeck) },
+                    "ScenarioControl", "MoveProcessViewModel", QObject::tr("Move a process view model"),
+                    new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetDeck) },
                     new RemoveProcessViewModelFromDeck{ObjectPath{pvmToMove}}
                 }
                 {

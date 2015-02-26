@@ -8,7 +8,7 @@ DeviceExplorerPlugin::DeviceExplorerPlugin() :
 //	iscore::PluginControlInterface_QtInterface{},
 iscore::PanelFactoryInterface_QtInterface {}
 {
-    setObjectName ("DeviceExplorerPlugin");
+    setObjectName("DeviceExplorerPlugin");
 }
 
 
@@ -42,9 +42,9 @@ QStringList DeviceExplorerPlugin::panel_list() const
     return {"DeviceExplorer Panel"};
 }
 
-PanelFactoryInterface* DeviceExplorerPlugin::panel_make (QString name)
+PanelFactoryInterface* DeviceExplorerPlugin::panel_make(QString name)
 {
-    if (name == "DeviceExplorer Panel")
+    if(name == "DeviceExplorer Panel")
     {
         return new DeviceExplorerPanelFactory;
     }

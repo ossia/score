@@ -23,12 +23,12 @@ class AddProcessToConstraintTest: public QObject
         {
             NamedObject* obj = new NamedObject {"obj", qApp};
             ProcessList* plist = new ProcessList {obj};
-            plist->addProcess (new ScenarioFactory);
+            plist->addProcess(new ScenarioFactory);
 
             ConstraintModel* int_model  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
-            int_model->createBox (id_type<BoxModel> {421}); // TODO use command instead.
-            AddProcessToConstraint cmd (
+            int_model->createBox(id_type<BoxModel> {421});  // TODO use command instead.
+            AddProcessToConstraint cmd(
             {
                 {"ConstraintModel", {}}
             }, "Scenario");
@@ -43,6 +43,6 @@ class AddProcessToConstraintTest: public QObject
 
 };
 
-QTEST_MAIN (AddProcessToConstraintTest)
+QTEST_MAIN(AddProcessToConstraintTest)
 #include "AddProcessToConstraintTest.moc"
 

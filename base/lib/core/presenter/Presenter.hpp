@@ -28,7 +28,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Presenter (iscore::Model* model, iscore::View* view, QObject* parent);
+            Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
 
             View* view()
             {
@@ -39,9 +39,9 @@ namespace iscore
                 return m_document;
             }
 
-            void registerPluginControl (PluginControlInterface*);
-            void registerPanel (PanelFactoryInterface*);
-            void setDocumentPanel (DocumentDelegateFactoryInterface*);
+            void registerPluginControl(PluginControlInterface*);
+            void registerPanel(PanelFactoryInterface*);
+            void setDocumentPanel(DocumentDelegateFactoryInterface*);
 
             /**
              * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
@@ -52,16 +52,16 @@ namespace iscore
              * Ownership of the command is transferred to the caller, and he must delete it.
              */
             iscore::SerializableCommand*
-            instantiateUndoCommand (const QString& parent_name,
-                                    const QString& name,
-                                    const QByteArray& data);
+            instantiateUndoCommand(const QString& parent_name,
+                                   const QString& name,
+                                   const QByteArray& data);
         signals:
             /**
              * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
              */
             //void instantiatedCommand(iscore::SerializableCommand*);
 
-            void elementSelected (QObject* elt);
+            void elementSelected(QObject* elt);
             void lastElementSelected();
 
         public slots:
@@ -77,20 +77,20 @@ namespace iscore
              * of the currently displayed Document.
              *
              */
-            void applyCommand (iscore::SerializableCommand*);
+            void applyCommand(iscore::SerializableCommand*);
 
             /**
              * @brief on_elementSelected Called when an object is selected on the Document.
              * @param elt
              *
              */
-            void on_elementSelected (QObject* elt);
+            void on_elementSelected(QObject* elt);
 
             void on_lastElementSelected();
 
 
-            void on_lock (QByteArray);
-            void on_unlock (QByteArray);
+            void on_lock(QByteArray);
+            void on_unlock(QByteArray);
         private:
             void setupMenus();
 

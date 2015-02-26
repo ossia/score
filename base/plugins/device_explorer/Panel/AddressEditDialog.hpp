@@ -16,7 +16,7 @@ class AddressEditDialog : public QDialog
 
     public:
 
-        AddressEditDialog (QWidget* parent);
+        AddressEditDialog(QWidget* parent);
         ~AddressEditDialog();
 
         //TODO: use QVariant ???
@@ -25,7 +25,7 @@ class AddressEditDialog : public QDialog
         */
         QList<QString> getSettings() const;
 
-        void setSettings (QList<QString>& settings);
+        void setSettings(QList<QString>& settings);
 
     protected slots:
 
@@ -42,7 +42,7 @@ class AddressEditDialog : public QDialog
         QComboBox* m_valueTypeCBox;
         AddressSettingsWidget* m_addressWidget;
         QGridLayout* m_gLayout;
-        QList<QList<QString> > m_previousSettings;
+        QList<QList<QString>> m_previousSettings;
         int m_index;
 };
 

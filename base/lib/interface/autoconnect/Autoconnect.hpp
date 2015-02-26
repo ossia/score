@@ -19,25 +19,25 @@ namespace iscore
             };
             struct HalfOfConnection
             {
-                HalfOfConnection (const HalfOfConnection&) = default;
+                HalfOfConnection(const HalfOfConnection&) = default;
                 HalfOfConnection& operator= (const HalfOfConnection&) = default;
                 ObjectRepresentationType type;
                 const char* name;
                 const char* method;
             };
 
-            Autoconnect (const Autoconnect&) = default;
+            Autoconnect(const Autoconnect&) = default;
             Autoconnect& operator= (const Autoconnect&) = default;
 
             HalfOfConnection source;
             HalfOfConnection target;
 
-            QList<QObject*> getMatchingChildren (const HalfOfConnection& obj_repr,
-                                                 const QObject* obj) const
+            QList<QObject*> getMatchingChildren(const HalfOfConnection& obj_repr,
+                                                const QObject* obj) const
             {
                 QList<QObject*> children;
 
-                switch (obj_repr.type)
+                switch(obj_repr.type)
                 {
                     case ObjectRepresentationType::QObjectName:
                     {
@@ -47,11 +47,11 @@ namespace iscore
 
                     case ObjectRepresentationType::Inheritance:
                     {
-                        for (auto& elt : obj->findChildren<QObject*>() )
+                        for(auto& elt : obj->findChildren<QObject*>())
                         {
-                            if (elt->inherits (obj_repr.name) )
+                            if(elt->inherits(obj_repr.name))
                             {
-                                children.append (elt);
+                                children.append(elt);
                             }
                         }
 
@@ -67,29 +67,29 @@ namespace iscore
             QList<QObject*> getMatchingChildrenForTarget() const = delete;
 
             template<typename Arg>
-            QList<QObject*> getMatchingChildrenForSource (Arg&& obj) const
+            QList<QObject*> getMatchingChildrenForSource(Arg&& obj) const
             {
-                return getMatchingChildren (source, obj);
+                return getMatchingChildren(source, obj);
             }
 
             template<typename Arg, typename... ObjectType>
-            QList<QObject*> getMatchingChildrenForSource (Arg obj, ObjectType&& ... further_objs) const
+            QList<QObject*> getMatchingChildrenForSource(Arg obj, ObjectType&& ... further_objs) const
             {
-                return getMatchingChildrenForSource (obj) +
-                       getMatchingChildrenForSource (std::forward<ObjectType> (further_objs)...);
+                return getMatchingChildrenForSource(obj) +
+                       getMatchingChildrenForSource(std::forward<ObjectType> (further_objs)...);
             }
 
             template<typename Arg>
-            QList<QObject*> getMatchingChildrenForTarget (Arg&& obj) const
+            QList<QObject*> getMatchingChildrenForTarget(Arg&& obj) const
             {
-                return getMatchingChildren (target, obj);
+                return getMatchingChildren(target, obj);
             }
 
             template<typename Arg, typename... ObjectType>
-            QList<QObject*> getMatchingChildrenForTarget (Arg obj, ObjectType&& ... further_objs) const
+            QList<QObject*> getMatchingChildrenForTarget(Arg obj, ObjectType&& ... further_objs) const
             {
-                return getMatchingChildrenForTarget (obj) +
-                       getMatchingChildrenForTarget (std::forward<ObjectType> (further_objs)...);
+                return getMatchingChildrenForTarget(obj) +
+                       getMatchingChildrenForTarget(std::forward<ObjectType> (further_objs)...);
             }
 
 

@@ -12,46 +12,46 @@
 
 using namespace iscore;
 
-View::View (QObject* parent) :
+View::View(QObject* parent) :
     QMainWindow {}
 {
-    setObjectName ("View");
-    setUnifiedTitleAndToolBarOnMac (true);
+    setObjectName("View");
+    setUnifiedTitleAndToolBarOnMac(true);
 }
 
-void View::setCentralView (DocumentView* doc)
+void View::setCentralView(DocumentView* doc)
 {
     QDesktopWidget w;
     auto rect = w.availableGeometry();
-    doc->setParent (this);
-    this->setCentralWidget (doc);
+    doc->setParent(this);
+    this->setCentralWidget(doc);
 
-    this->resize (rect.width() * 0.75, rect.height() * 0.75);
+    this->resize(rect.width() * 0.75, rect.height() * 0.75);
 }
 
 
-void View::setupPanelView (PanelViewInterface* v)
+void View::setupPanelView(PanelViewInterface* v)
 {
-    addSidePanel (v->getWidget(), v->objectName(), v->defaultDock() );
+    addSidePanel(v->getWidget(), v->objectName(), v->defaultDock());
 }
 
 #include <QLabel>
-void View::addSidePanel (QWidget* widg, QString name, Qt::DockWidgetArea dock)
+void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
 {
     QDockWidget* dial = new QDockWidget {name, this};
-    dial->setWidget (widg);
+    dial->setWidget(widg);
 
-    QAction* hideDialog = new QAction (name, nullptr);
-    hideDialog->setCheckable (true);
-    hideDialog->setChecked (true);
+    QAction* hideDialog = new QAction(name, nullptr);
+    hideDialog->setCheckable(true);
+    hideDialog->setChecked(true);
 
-    connect (hideDialog, &QAction::triggered,
-             dial,		&QDockWidget::setVisible);
+    connect(hideDialog, &QAction::triggered,
+            dial,		&QDockWidget::setVisible);
 
-    emit insertActionIntoMenubar ({MenuInterface::name (ToplevelMenuElement::ViewMenu) + "/" +
-                                   MenuInterface::name (ViewMenuElement::Windows),
-                                   hideDialog
-                                  });
+    emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
+                                  MenuInterface::name(ViewMenuElement::Windows),
+                                  hideDialog
+                                 });
 
-    this->addDockWidget (dock, dial);
+    this->addDockWidget(dock, dial);
 }

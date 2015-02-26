@@ -21,7 +21,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 HideBoxInViewModel();
-                HideBoxInViewModel (ObjectPath&& path);
+                HideBoxInViewModel(ObjectPath&& path);
 
                 /**
                  * @brief HideBoxInViewModel
@@ -30,16 +30,16 @@ namespace Scenario
                  * Note : this will search it and make a path from an object named "BaseConstraintModel"
                  * Hence this constructor has to be used in a Scenario.
                  */
-                HideBoxInViewModel (AbstractConstraintViewModel* constraint);
+                HideBoxInViewModel(AbstractConstraintViewModel* constraint);
 
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual int id() const override;
-                virtual bool mergeWith (const QUndoCommand* other) override;
+                virtual bool mergeWith(const QUndoCommand* other) override;
 
             protected:
-                virtual void serializeImpl (QDataStream&) const override;
-                virtual void deserializeImpl (QDataStream&) override;
+                virtual void serializeImpl(QDataStream&) const override;
+                virtual void deserializeImpl(QDataStream&) override;
 
             private:
                 ObjectPath m_constraintViewModelPath;

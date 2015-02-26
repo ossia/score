@@ -16,15 +16,15 @@ int Paste::id() const
     return 1;
 }
 
-bool Paste::mergeWith (const QUndoCommand* other)
+bool Paste::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void Paste::serializeImpl (QDataStream&) const
+void Paste::serializeImpl(QDataStream&) const
 {
 }
 
-void Paste::deserializeImpl (QDataStream&)
+void Paste::deserializeImpl(QDataStream&)
 {
 }

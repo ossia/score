@@ -16,15 +16,15 @@ int Cut::id() const
     return 1;
 }
 
-bool Cut::mergeWith (const QUndoCommand* other)
+bool Cut::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void Cut::serializeImpl (QDataStream&) const
+void Cut::serializeImpl(QDataStream&) const
 {
 }
 
-void Cut::deserializeImpl (QDataStream&)
+void Cut::deserializeImpl(QDataStream&)
 {
 }

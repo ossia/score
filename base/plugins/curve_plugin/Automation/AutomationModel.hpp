@@ -16,32 +16,32 @@
 class AutomationModel : public ProcessSharedModelInterface
 {
         Q_OBJECT
-        Q_PROPERTY (QString address READ address WRITE setAddress NOTIFY addressChanged)
+        Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
 
     public:
-        AutomationModel (id_type<ProcessSharedModelInterface> id, QObject* parent);
-        virtual ProcessSharedModelInterface* clone (id_type<ProcessSharedModelInterface> newId,
+        AutomationModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
                 QObject* newParent) override;
 
         template<typename Impl>
-        AutomationModel (Deserializer<Impl>& vis, QObject* parent) :
+        AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
             ProcessSharedModelInterface {vis, parent}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
         virtual QString processName() const override;
-        virtual void setDurationWithScale (TimeValue newDuration) override;
-        virtual void setDurationWithoutScale (TimeValue newDuration) override;
+        virtual void setDurationWithScale(TimeValue newDuration) override;
+        virtual void setDurationWithoutScale(TimeValue newDuration) override;
 
-        virtual void serialize (SerializationIdentifier identifier, void* data) const override;
+        virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> viewModelId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                 QObject* parent) override;
-        virtual ProcessViewModelInterface* makeViewModel (SerializationIdentifier identifier,
+        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
                 void* data,
                 QObject* parent) override;
-        virtual ProcessViewModelInterface* makeViewModel (id_type<ProcessViewModelInterface> newId,
+        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
                 const ProcessViewModelInterface* source,
                 QObject* parent) override;
 
@@ -56,29 +56,29 @@ class AutomationModel : public ProcessSharedModelInterface
             return m_points;
         }
 
-        void setPoints (QMap<double, double>&& points)
+        void setPoints(QMap<double, double>&& points)
         {
-            m_points = std::move (points);
+            m_points = std::move(points);
         }
 
-        void addPoint (double x, double y);
-        void removePoint (double x);
-        void movePoint (double oldx, double newx, double newy);
+        void addPoint(double x, double y);
+        void removePoint(double x);
+        void movePoint(double oldx, double newx, double newy);
 
     signals:
-        void addressChanged (QString arg);
+        void addressChanged(QString arg);
         void pointsChanged();
 
     public slots:
-        void setAddress (QString arg)
+        void setAddress(QString arg)
         {
-            if (m_address == arg)
+            if(m_address == arg)
             {
                 return;
             }
 
             m_address = arg;
-            emit addressChanged (arg);
+            emit addressChanged(arg);
         }
 
 

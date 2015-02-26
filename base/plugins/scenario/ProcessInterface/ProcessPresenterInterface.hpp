@@ -15,21 +15,21 @@ class ProcessPresenterInterface : public NamedObject
         using NamedObject::NamedObject;
         virtual ~ProcessPresenterInterface() = default;
 
-        virtual void setWidth (int width) = 0;
-        virtual void setHeight (int height) = 0;
+        virtual void setWidth(int width) = 0;
+        virtual void setHeight(int height) = 0;
 
         virtual void putToFront() = 0;
         virtual void putBack() = 0;
 
-        virtual void on_horizontalZoomChanged (int) = 0;
+        virtual void on_horizontalZoomChanged(int) = 0;
         virtual void parentGeometryChanged() = 0;
 
         virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
         virtual id_type<ProcessSharedModelInterface> modelId() const = 0;
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
+        void submitCommand(iscore::SerializableCommand*);
 
-        void elementSelected (QObject*);
+        void elementSelected(QObject*);
         void lastElementSelected();
 };

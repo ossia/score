@@ -14,19 +14,19 @@ class NamedType : public QType
 {
     public:
         template<typename... Args>
-        NamedType (QString name, QObject* parent, Args&& ... args) :
+        NamedType(QString name, QObject* parent, Args&& ... args) :
             QType {std::forward<Args> (args)...}
         {
-            QType::setObjectName (name);
-            QType::setParent (parent);
+            QType::setObjectName(name);
+            QType::setParent(parent);
         }
 
         template<typename ReaderImpl, typename... Args>
-        NamedType (Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
+        NamedType(Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
             QType {std::forward<Args> (args)...}
         {
-            v.writeTo (*this);
-            QType::setParent (parent);
+            v.writeTo(*this);
+            QType::setParent(parent);
         }
 };
 
@@ -34,9 +34,9 @@ class NamedType : public QType
 using NamedObject = NamedType<QObject>;
 
 
-inline void debug_parentHierarchy (QObject* obj)
+inline void debug_parentHierarchy(QObject* obj)
 {
-    while (obj)
+    while(obj)
     {
         qDebug() << obj->objectName();
         obj = obj->parent();

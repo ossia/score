@@ -16,14 +16,14 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            CommandQueue (QObject* parent);
+            CommandQueue(QObject* parent);
 
         signals:
             /**
              * @brief push_start Is emitted when a command was pushed on the stack
              * @param cmd the command that was pushed
              */
-            void push_start (iscore::SerializableCommand* cmd);
+            void push_start(iscore::SerializableCommand* cmd);
 
             /**
              * @brief onUndo Is emitted when the user calls "Undo"
@@ -42,12 +42,12 @@ namespace iscore
              *
              * Calls QUndoStack::push
              */
-            void push (iscore::SerializableCommand* cmd);
+            void push(iscore::SerializableCommand* cmd);
 
             /**
              * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
              * @param cmd The command
              */
-            void pushAndEmit (iscore::SerializableCommand* cmd);
+            void pushAndEmit(iscore::SerializableCommand* cmd);
     };
 }

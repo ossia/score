@@ -11,7 +11,7 @@ class QSpinBox;
 class AddressFloatSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressFloatSettingsWidget (QWidget* parent = nullptr);
+        AddressFloatSettingsWidget(QWidget* parent = nullptr);
 
         //TODO: use QVariant instead ???
         /*
@@ -20,7 +20,7 @@ class AddressFloatSettingsWidget : public AddressSettingsWidget
          */
         virtual QList<QString> getSettings() const override;
 
-        virtual void setSettings (const QList<QString>& settings) override;
+        virtual void setSettings(const QList<QString>& settings) override;
 
     protected:
 

@@ -18,30 +18,30 @@ QString DeviceExplorer::explorerName()
 }
 
 
-DeviceExplorerModel* DeviceExplorer::getModel (QObject* object)
+DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
 {
-    return iscore::IDocument::documentFromObject (object)
+    return iscore::IDocument::documentFromObject(object)
            ->model()
-           ->panel (DeviceExplorer::panelName() )
-           ->findChild<DeviceExplorerModel*> (DeviceExplorer::explorerName() );
+           ->panel(DeviceExplorer::panelName())
+           ->findChild<DeviceExplorerModel*> (DeviceExplorer::explorerName());
 }
 
 
-QJsonObject DeviceExplorer::toJson (DeviceExplorerModel* deviceExplorer)
+QJsonObject DeviceExplorer::toJson(DeviceExplorerModel* deviceExplorer)
 {
-    return nodeToJson (deviceExplorer->rootNode() );
+    return nodeToJson(deviceExplorer->rootNode());
 }
 
 
-QString DeviceExplorer::addressFromModelIndex (const QModelIndex& m)
+QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 {
     QModelIndex index = m;
     QString txt;
 
-    while (index.isValid() )
+    while(index.isValid())
     {
-        txt.prepend (QString ("/%1")
-                     .arg (index.data (0).toString() ) );
+        txt.prepend(QString("/%1")
+                    .arg(index.data(0).toString()));
         index = index.parent();
     }
 

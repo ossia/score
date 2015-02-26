@@ -8,26 +8,26 @@
 #include <core/document/DocumentView.hpp>
 
 iscore::DocumentDelegateViewInterface*
-ScenarioDocument::makeView (iscore::DocumentView* parent)
+ScenarioDocument::makeView(iscore::DocumentView* parent)
 {
     return new BaseElementView {parent};
 }
 
 iscore::DocumentDelegatePresenterInterface*
-ScenarioDocument::makePresenter (iscore::DocumentPresenter* parent_presenter,
-                                 iscore::DocumentDelegateModelInterface* model,
-                                 iscore::DocumentDelegateViewInterface* view)
+ScenarioDocument::makePresenter(iscore::DocumentPresenter* parent_presenter,
+                                iscore::DocumentDelegateModelInterface* model,
+                                iscore::DocumentDelegateViewInterface* view)
 {
     return new BaseElementPresenter {parent_presenter, model, view};
 }
 
 iscore::DocumentDelegateModelInterface*
-ScenarioDocument::makeModel (iscore::DocumentModel* parent)
+ScenarioDocument::makeModel(iscore::DocumentModel* parent)
 {
     return new BaseElementModel {parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocument::makeModel (iscore::DocumentModel* parent, QByteArray data)
+iscore::DocumentDelegateModelInterface* ScenarioDocument::makeModel(iscore::DocumentModel* parent, QByteArray data)
 {
     return new BaseElementModel {data, parent};
 }

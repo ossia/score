@@ -24,15 +24,15 @@ namespace Scenario
             public:
                 CreateEvent();
                 ~CreateEvent();
-                CreateEvent (ObjectPath&& scenarioPath, EventData data);
+                CreateEvent(ObjectPath&& scenarioPath, EventData data);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual int id() const override;
-                virtual bool mergeWith (const QUndoCommand* other) override;
+                virtual bool mergeWith(const QUndoCommand* other) override;
 
             protected:
-                virtual void serializeImpl (QDataStream&) const override;
-                virtual void deserializeImpl (QDataStream&) override;
+                virtual void serializeImpl(QDataStream&) const override;
+                virtual void deserializeImpl(QDataStream&) override;
 
             private:
                 CreateEventAfterEvent* m_cmd {};

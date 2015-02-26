@@ -8,7 +8,7 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT
     public:
-        PluginSettingsView (QObject* parent);
+        PluginSettingsView(QObject* parent);
 
         QListView* view()
         {
@@ -20,7 +20,7 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
         void doConnections();
 
     signals:
-        void submitCommand (iscore::Command* cmd);
+        void submitCommand(iscore::Command* cmd);
 
     public slots:
 

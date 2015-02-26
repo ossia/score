@@ -8,7 +8,7 @@
 CurvePlugin::CurvePlugin() :
     QObject {}
 {
-    setObjectName ("CurvePlugin");
+    setObjectName("CurvePlugin");
 }
 
 QStringList CurvePlugin::control_list() const
@@ -16,9 +16,9 @@ QStringList CurvePlugin::control_list() const
     return {"AutomationControl"};
 }
 
-iscore::PluginControlInterface* CurvePlugin::control_make (QString name)
+iscore::PluginControlInterface* CurvePlugin::control_make(QString name)
 {
-    if (name == "AutomationControl")
+    if(name == "AutomationControl")
     {
         return new AutomationControl {nullptr};
     }
@@ -26,14 +26,14 @@ iscore::PluginControlInterface* CurvePlugin::control_make (QString name)
     return nullptr;
 }
 
-QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryName)
+QVector<iscore::FactoryInterface*> CurvePlugin::factories_make(QString factoryName)
 {
-    if (factoryName == "Process")
+    if(factoryName == "Process")
     {
         return {new AutomationFactory};
     }
 
-    if (factoryName == "Inspector")
+    if(factoryName == "Inspector")
     {
         return {new AutomationInspectorFactory};
     }

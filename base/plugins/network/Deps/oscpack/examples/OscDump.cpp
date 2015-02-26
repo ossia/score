@@ -63,18 +63,18 @@ namespace std
 class OscDumpPacketListener : public PacketListener
 {
     public:
-        virtual void ProcessPacket ( const char* data, int size,
-                                     const IpEndpointName& remoteEndpoint )
+        virtual void ProcessPacket(const char* data, int size,
+                                   const IpEndpointName& remoteEndpoint)
         {
             (void) remoteEndpoint; // suppress unused parameter warning
 
-            std::cout << osc::ReceivedPacket ( data, size );
+            std::cout << osc::ReceivedPacket(data, size);
         }
 };
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-    if ( argc >= 2 && std::strcmp ( argv[1], "-h" ) == 0 )
+    if(argc >= 2 && std::strcmp(argv[1], "-h") == 0)
     {
         std::cout << "usage: OscDump [port]\n";
         return 0;
@@ -82,15 +82,15 @@ int main (int argc, char* argv[])
 
     int port = 7000;
 
-    if ( argc >= 2 )
+    if(argc >= 2)
     {
-        port = std::atoi ( argv[1] );
+        port = std::atoi(argv[1]);
     }
 
     OscDumpPacketListener listener;
-    UdpListeningReceiveSocket s (
-        IpEndpointName ( IpEndpointName::ANY_ADDRESS, port ),
-        &listener );
+    UdpListeningReceiveSocket s(
+        IpEndpointName(IpEndpointName::ANY_ADDRESS, port),
+        &listener);
 
     std::cout << "listening for input on port " << port << "...\n";
     std::cout << "press ctrl-c to end\n";

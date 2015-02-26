@@ -8,7 +8,7 @@
 class AddressSettingsWidget : public QWidget
 {
     public:
-        AddressSettingsWidget (QWidget* parent = nullptr) : QWidget (parent) {}
+        AddressSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
         //TODO: use QVariant instead ???
         /*
@@ -17,7 +17,7 @@ class AddressSettingsWidget : public QWidget
          */
         virtual QList<QString> getSettings() const = 0;
 
-        virtual void setSettings (const QList<QString>& settings) = 0;
+        virtual void setSettings(const QList<QString>& settings) = 0;
 
 };
 

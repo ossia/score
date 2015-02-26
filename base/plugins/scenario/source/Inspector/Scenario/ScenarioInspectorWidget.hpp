@@ -7,6 +7,6 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit ScenarioInspectorWidget (ScenarioModel* object,
-                                          QWidget* parent = 0);
+        explicit ScenarioInspectorWidget(ScenarioModel* object,
+                                         QWidget* parent = 0);
 };

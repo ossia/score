@@ -30,15 +30,15 @@ class AbstractConstraintPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        AbstractConstraintPresenter (QString name,
-                                     AbstractConstraintViewModel* model,
-                                     AbstractConstraintView* view,
-                                     QObject* parent);
+        AbstractConstraintPresenter(QString name,
+                                    AbstractConstraintViewModel* model,
+                                    AbstractConstraintView* view,
+                                    QObject* parent);
         virtual ~AbstractConstraintPresenter() = default;
 
         int zoomSlider() const;
 
-        virtual void updateScaling (double scaling);
+        virtual void updateScaling(double scaling);
 
         bool isSelected() const;
         void deselect();
@@ -59,30 +59,30 @@ class AbstractConstraintPresenter : public NamedObject
             return m_view;
         }
 
-        void on_horizontalZoomChanged (int val);
+        void on_horizontalZoomChanged(int val);
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
-        void elementSelected (QObject*);
+        void submitCommand(iscore::SerializableCommand*);
+        void elementSelected(QObject*);
         void lastElementSelected();
 
         void askUpdate();
 
     public slots:
-        void on_defaultDurationChanged (TimeValue val);
-        void on_minDurationChanged (TimeValue min);
-        void on_maxDurationChanged (TimeValue max);
+        void on_defaultDurationChanged(TimeValue val);
+        void on_minDurationChanged(TimeValue min);
+        void on_maxDurationChanged(TimeValue max);
 
-        void on_boxShown (id_type<BoxModel> boxId);
+        void on_boxShown(id_type<BoxModel> boxId);
         void on_boxHidden();
         void on_boxRemoved();
 
         void updateHeight();
-        virtual void on_constraintPressed (QPointF);
+        virtual void on_constraintPressed(QPointF);
 
     private:
         int m_horizontalZoomSliderVal {};
-        void createBoxPresenter (BoxModel*);
+        void createBoxPresenter(BoxModel*);
         void clearBoxPresenter();
 
         BoxPresenter* m_box {};
@@ -94,13 +94,13 @@ class AbstractConstraintPresenter : public NamedObject
 
 // TODO concept: constraint view model.
 template<typename T>
-typename T::view_model_type* viewModel (T* obj)
+typename T::view_model_type* viewModel(T* obj)
 {
-    return static_cast<typename T::view_model_type*> (obj->abstractConstraintViewModel() );
+    return static_cast<typename T::view_model_type*>(obj->abstractConstraintViewModel());
 }
 
 template<typename T>
-typename T::view_type* view (T* obj)
+typename T::view_type* view(T* obj)
 {
-    return static_cast<typename T::view_type*> (obj->abstractConstraintView() );
+    return static_cast<typename T::view_type*>(obj->abstractConstraintView());
 }

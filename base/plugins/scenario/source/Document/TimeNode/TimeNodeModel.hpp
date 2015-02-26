@@ -19,38 +19,38 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
     public:
         ModelMetadata metadata;
 
-        TimeNodeModel (id_type<TimeNodeModel> id, QObject* parent);
-        TimeNodeModel (id_type<TimeNodeModel> id, TimeValue date, QObject* parent);
+        TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
+        TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent);
         ~TimeNodeModel();
 
         template<typename DeserializerVisitor>
-        TimeNodeModel (DeserializerVisitor&& vis, QObject* parent) :
+        TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :
             IdentifiedObject<TimeNodeModel> {vis, parent}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
-        void addEvent (id_type<EventModel>);
-        bool removeEvent (id_type<EventModel>);
+        void addEvent(id_type<EventModel>);
+        bool removeEvent(id_type<EventModel>);
 
         double top() const;
         double bottom() const;
         TimeValue date() const;
 
-        void setDate (TimeValue);
+        void setDate(TimeValue);
 
         bool isEmpty();
 
         double y() const;
-        void setY (double y);
+        void setY(double y);
 
-        QVector<id_type<EventModel> > events() const;
-        void setEvents (const QVector<id_type<EventModel> >& events);
+        QVector<id_type<EventModel>> events() const;
+        void setEvents(const QVector<id_type<EventModel>>& events);
 
     signals:
         void dateChanged();
-        void newEvent (id_type<EventModel> eventId);
-        void eventSelected (QString);
+        void newEvent(id_type<EventModel> eventId);
+        void eventSelected(QString);
         void inspectPreviousElement();
         void inspectorCreated();
 

@@ -19,24 +19,24 @@ namespace Scenario
         {
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MergeDecks (const ObjectPath& mergeSource,
-                            const ObjectPath& mergeTarget) :
+                MergeDecks(const ObjectPath& mergeSource,
+                           const ObjectPath& mergeTarget) :
                     AggregateCommand
                 {
                     "ScenarioControl",
                     "MergeDeck",
-                    QObject::tr ("Merge decks")
+                    QObject::tr("Merge decks")
                 }
                 {
                     auto sourcedeck = mergeSource.find<DeckModel>();
 
-                    for (ProcessViewModelInterface* pvm : sourcedeck->processViewModels() )
+                    for(ProcessViewModelInterface* pvm : sourcedeck->processViewModels())
                     {
-                        addCommand (new MoveProcessViewModel (iscore::IDocument::path (pvm),
-                        ObjectPath {mergeTarget}) );
+                        addCommand(new MoveProcessViewModel(iscore::IDocument::path(pvm),
+                        ObjectPath {mergeTarget}));
                     }
 
-                    addCommand (new RemoveDeckFromBox{ObjectPath{mergeSource}});
+                    addCommand(new RemoveDeckFromBox{ObjectPath{mergeSource}});
                 }
         };
     }

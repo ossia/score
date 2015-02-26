@@ -3,29 +3,29 @@
 #include "NamedObject.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom (const NamedObject& namedObject)
+void Visitor<Reader<DataStream>>::readFrom(const NamedObject& namedObject)
 {
     m_stream << namedObject.objectName();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo (NamedObject& namedObject)
+void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
 {
     QString objectName;
     m_stream >> objectName;
-    namedObject.setObjectName (objectName);
+    namedObject.setObjectName(objectName);
 }
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom (const NamedObject& namedObject)
+void Visitor<Reader<JSON>>::readFrom(const NamedObject& namedObject)
 {
     m_obj["ObjectName"] = namedObject.objectName();
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo (NamedObject& namedObject)
+void Visitor<Writer<JSON>>::writeTo(NamedObject& namedObject)
 {
-    namedObject.setObjectName (m_obj["ObjectName"].toString() );
+    namedObject.setObjectName(m_obj["ObjectName"].toString());
 
 }

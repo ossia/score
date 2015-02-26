@@ -27,76 +27,76 @@
 #include <QDir>
 #include <QApplication>
 
-void runScore (QString scoreFilePath);
+void runScore(QString scoreFilePath);
 
 void FakeEngineExecute()
 {
     //TODO pass it in argument.
     auto doc = qApp->findChild<BaseElementModel*> ("BaseElementModel");
-    auto data = JSONToZeroTwo (doc->toJson() );
+    auto data = JSONToZeroTwo(doc->toJson());
 
     QTemporaryFile f;
 
-    if (f.open() )
+    if(f.open())
     {
-        f.write (data.toLatin1().constData(), data.size() );
+        f.write(data.toLatin1().constData(), data.size());
         f.flush();
-        runScore (f.fileName() );
+        runScore(f.fileName());
     }
 }
 
-void runScore (QString scoreFilePath)
+void runScore(QString scoreFilePath)
 {
     TTSymbol filepath {scoreFilePath.toLatin1().constData() };  // .score file to load
 
     QString jamomaFolder = (QCoreApplication::applicationDirPath() + "/../Frameworks/jamoma");
 
-    if (!QDir (jamomaFolder).exists() )
+    if(!QDir(jamomaFolder).exists())
     {
         jamomaFolder = "/usr/local/jamoma";
     }
 
     // initialisation of Modular environnement (passing the folder path where all the dylibs are)
-    TTModularInit (jamomaFolder.toLatin1().constData() );
+    TTModularInit(jamomaFolder.toLatin1().constData());
 
     // create an application manager
-    TTObject applicationManager ("ApplicationManager");
+    TTObject applicationManager("ApplicationManager");
 
     // create a local application named i-score
-    TTObject applicationLocal = applicationManager.send ("ApplicationInstantiateLocal", "i-score");
+    TTObject applicationLocal = applicationManager.send("ApplicationInstantiateLocal", "i-score");
 
     // loads protocol unit
     // TODO : when parsing project file
     {
         // create Minuit protocol unit
-        TTObject protocolMinuit = applicationManager.send ("ProtocolInstantiate", "Minuit");
+        TTObject protocolMinuit = applicationManager.send("ProtocolInstantiate", "Minuit");
 
         // create OSC protocol unit
-        TTObject protocolOSC = applicationManager.send ("ProtocolInstantiate", "OSC");
+        TTObject protocolOSC = applicationManager.send("ProtocolInstantiate", "OSC");
     }
 
     // initialisation of Score environnement (passing the folder path where all the dylibs are)
-    TTScoreInit (jamomaFolder.toLatin1().constData() );
+    TTScoreInit(jamomaFolder.toLatin1().constData());
 
     // create a scenario
-    TTObject scenario ("Scenario");
+    TTObject scenario("Scenario");
 
     // load project file
-    TTObject xmlHandler ("XmlHandler");
-    xmlHandler.set ("object", TTValue (applicationManager, scenario) );
-    xmlHandler.send ("Read", filepath);
+    TTObject xmlHandler("XmlHandler");
+    xmlHandler.set("object", TTValue(applicationManager, scenario));
+    xmlHandler.send("Read", filepath);
 
     // run scenario
-    scenario.send ("Start");
+    scenario.send("Start");
 
     // wait for scenario
     TTBoolean running;
 
     do
     {
-        sleep (1);
-        scenario.get ("running", running);
+        sleep(1);
+        scenario.get("running", running);
     }
-    while (running);
+    while(running);
 }
 

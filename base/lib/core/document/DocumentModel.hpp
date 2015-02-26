@@ -14,17 +14,17 @@ namespace iscore
     class DocumentModel : public NamedObject
     {
         public:
-            DocumentModel (QObject* parent);
+            DocumentModel(QObject* parent);
             void reset();
-            void setModelDelegate (DocumentDelegateModelInterface* m);
+            void setModelDelegate(DocumentDelegateModelInterface* m);
             DocumentDelegateModelInterface* modelDelegate() const
             {
                 return m_model;
             }
 
-            void addPanel (PanelModelInterface* m)
+            void addPanel(PanelModelInterface* m)
             {
-                m_panelModels.insert (m);
+                m_panelModels.insert(m);
             }
             const std::set<PanelModelInterface*>& panels() const
             {
@@ -32,7 +32,7 @@ namespace iscore
             }
 
             // Returns a Panel by name.
-            PanelModelInterface* panel (QString name) const;
+            PanelModelInterface* panel(QString name) const;
 
         private:
             DocumentDelegateModelInterface* m_model {};

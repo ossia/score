@@ -17,12 +17,12 @@ class ScenarioPlugin :
     public iscore::FactoryInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA (IID DocumentDelegateFactoryInterface_QtInterface_iid)
-        Q_INTERFACES (iscore::Autoconnect_QtInterface
-                      iscore::PluginControlInterface_QtInterface
-                      iscore::DocumentDelegateFactoryInterface_QtInterface
-                      iscore::FactoryFamily_QtInterface
-                      iscore::FactoryInterface_QtInterface)
+        Q_PLUGIN_METADATA(IID DocumentDelegateFactoryInterface_QtInterface_iid)
+        Q_INTERFACES(iscore::Autoconnect_QtInterface
+                     iscore::PluginControlInterface_QtInterface
+                     iscore::DocumentDelegateFactoryInterface_QtInterface
+                     iscore::FactoryFamily_QtInterface
+                     iscore::FactoryInterface_QtInterface)
 
     public:
         ScenarioPlugin();
@@ -33,18 +33,18 @@ class ScenarioPlugin :
 
         // Docpanel interface
         virtual QStringList document_list() const override;
-        virtual iscore::DocumentDelegateFactoryInterface* document_make (QString name) override;
+        virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
 
         // Plugin control interface
         virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make (QString) override;
+        virtual iscore::PluginControlInterface* control_make(QString) override;
 
         // Offre la factory de Process
         virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-        virtual QVector<iscore::FactoryInterface*> factories_make (QString factoryName) override;
+        virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
 
     private:
         ScenarioControl* m_control;

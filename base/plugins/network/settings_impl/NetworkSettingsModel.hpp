@@ -18,14 +18,14 @@ class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
     public:
         NetworkSettingsModel();
 
-        void setClientName (QString txt);
+        void setClientName(QString txt);
         QString getClientName() const;
-        void setClientPort (int val);
+        void setClientPort(int val);
         int getClientPort() const;
-        void setMasterPort (int val);
+        void setMasterPort(int val);
         int getMasterPort() const;
 
-        virtual void setPresenter (iscore::SettingsDelegatePresenterInterface* presenter) ; // @todo remove this and the same for view
+        virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) ;  // @todo remove this and the same for view
         virtual void setFirstTimeSettings() override;
 
     signals:

@@ -6,5 +6,5 @@ class AddSharedProcessWidget : public QWidget
         Q_OBJECT
 
     public:
-        AddSharedProcessWidget (ConstraintInspectorWidget* parent);
+        AddSharedProcessWidget(ConstraintInspectorWidget* parent);
 };

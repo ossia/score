@@ -27,24 +27,24 @@ class PluginCurveMap : public QObject
         \param scaleRect The rectangle delimitting the points in scale coordinate.
         \param paintRect The rectangle delimitting the points in paint coordinate.
         */
-        PluginCurveMap (QRectF scaleRect, QRectF paintRect, QObject* parent);
+        PluginCurveMap(QRectF scaleRect, QRectF paintRect, QObject* parent);
 
         /*! Transform a point from scale to paint coordinates. */
-        QPointF scaleToPaint (QPointF val);
+        QPointF scaleToPaint(QPointF val);
         /*! Transform a rectangle from scale to paint coordinates. */
-        QRectF scaleToPaint (QRectF rect);
+        QRectF scaleToPaint(QRectF rect);
         /*! Transform a point from paint to scale coordinates. */
-        QPointF paintToScale (QPointF pos);
+        QPointF paintToScale(QPointF pos);
         /*! Transform a rectangle from paint to scale coordinates. */
-        QRectF paintToScale (QRectF rect);
+        QRectF paintToScale(QRectF rect);
         /*! Returns the point's area in paint coordinate */
         QRectF paintRect();
         /*! Returns the point's area in scale coordinate */
         QRectF scaleRect();
         /*! Set the point's area in paint coordinate. */
-        void setScaleRect (QRectF scaleRect);
+        void setScaleRect(QRectF scaleRect);
         /*! Set the point's area in scale coordinate. If changeScaleRect is true, the scale rect will be modifie consequently. */
-        void setPaintRect (QRectF paintRect, bool changeScaleRect = true);
+        void setPaintRect(QRectF paintRect, bool changeScaleRect = true);
     signals:
         void mapChanged(); //! Indicates if a a cange occured.
     public slots:

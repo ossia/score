@@ -34,11 +34,11 @@ class RemoveBoxFromConstraintTest: public QObject
                 id
             };
             cmd2.redo();
-            QCOMPARE ( (int) constraint->boxes().size(), 0);
+            QCOMPARE((int) constraint->boxes().size(), 0);
             cmd2.undo();
-            QCOMPARE ( (int) constraint->boxes().size(), 1);
+            QCOMPARE((int) constraint->boxes().size(), 1);
             cmd.undo();
-            QCOMPARE ( (int) constraint->boxes().size(), 0);
+            QCOMPARE((int) constraint->boxes().size(), 0);
             cmd.redo();
             cmd2.redo();
 
@@ -47,7 +47,7 @@ class RemoveBoxFromConstraintTest: public QObject
         }
 };
 
-QTEST_MAIN (RemoveBoxFromConstraintTest)
+QTEST_MAIN(RemoveBoxFromConstraintTest)
 #include "RemoveBoxFromConstraintTest.moc"
 
 

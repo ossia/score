@@ -11,16 +11,16 @@ PluginSettings::PluginSettings()
 
 SettingsDelegateViewInterface* PluginSettings::makeView()
 {
-    return new PluginSettingsView (nullptr);
+    return new PluginSettingsView(nullptr);
 }
 
-SettingsDelegatePresenterInterface* PluginSettings::makePresenter (SettingsPresenter* p,
+SettingsDelegatePresenterInterface* PluginSettings::makePresenter(SettingsPresenter* p,
         SettingsDelegateModelInterface* m,
         SettingsDelegateViewInterface* v)
 {
-    auto pres = new PluginSettingsPresenter (p, m, v);
+    auto pres = new PluginSettingsPresenter(p, m, v);
 
-    v->setPresenter (pres);
+    v->setPresenter(pres);
 
     pres->load();
     pres->view()->doConnections();

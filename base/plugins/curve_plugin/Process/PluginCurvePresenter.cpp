@@ -49,7 +49,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <QTransform>
 #include <iostream>
 
-PluginCurvePresenter::PluginCurvePresenter (double scale,
+PluginCurvePresenter::PluginCurvePresenter(double scale,
         PluginCurveModel* model,
         PluginCurveView* view,
         QObject* parent) :
@@ -65,35 +65,35 @@ _pView {view}
     // Point's area
     /// @todo prendre l'echelle en paramètre du constructeur (?)
     // Point's area in scale coordinate
-    _scale = QRectF (minXValue, minYValue, maxXValue - minXValue, maxYValue - minYValue);
+    _scale = QRectF(minXValue, minYValue, maxXValue - minXValue, maxYValue - minYValue);
     updateLimitRect();
-    _pMap = new PluginCurveMap (_scale, _limitRect, this);
-    _pGrid = new PluginCurveGrid (_pView->zoomer(), _pMap);
+    _pMap = new PluginCurveMap(_scale, _limitRect, this);
+    _pGrid = new PluginCurveGrid(_pView->zoomer(), _pMap);
     // Points behavior
     //_pointCanCross = mainWindow()->pointCanCross();
     _pointCanCross = true;
     _magnetism = true;
     // ** Connections **
     // Presenter --> Model
-    connect (this, SIGNAL (stateChanged (bool) ), _pModel, SLOT (setState (bool) ) );
-    connect (this, SIGNAL (pointAdded (int, PluginCurvePoint*) ), _pModel, SLOT (pointInsert (int, PluginCurvePoint*) ) );
-    connect (this, SIGNAL (pointRemoved (PluginCurvePoint*) ), _pModel, SLOT (pointRemoveOne (PluginCurvePoint*) ) );
-    connect (this, SIGNAL (pointSwapped (int, int) ), _pModel, SLOT (pointSwap (int, int) ) );
-    connect (this, SIGNAL (sectionAdded (PluginCurveSection*) ), _pModel, SLOT (sectionAppend (PluginCurveSection*) ) );
-    connect (this, SIGNAL (sectionRemoved (PluginCurveSection*) ), _pModel, SLOT (sectionRemoveOne (PluginCurveSection*) ) );
+    connect(this, SIGNAL(stateChanged(bool)), _pModel, SLOT(setState(bool)));
+    connect(this, SIGNAL(pointAdded(int, PluginCurvePoint*)), _pModel, SLOT(pointInsert(int, PluginCurvePoint*)));
+    connect(this, SIGNAL(pointRemoved(PluginCurvePoint*)), _pModel, SLOT(pointRemoveOne(PluginCurvePoint*)));
+    connect(this, SIGNAL(pointSwapped(int, int)), _pModel, SLOT(pointSwap(int, int)));
+    connect(this, SIGNAL(sectionAdded(PluginCurveSection*)), _pModel, SLOT(sectionAppend(PluginCurveSection*)));
+    connect(this, SIGNAL(sectionRemoved(PluginCurveSection*)), _pModel, SLOT(sectionRemoveOne(PluginCurveSection*)));
     // Presenter --> view
-    connect (this, SIGNAL (selectionStarted (QPoint) ), _pView, SLOT (startDrawSelectionRectangle (QPoint) ) );
-    connect (this, SIGNAL (selectionMoved (QPoint, QPoint) ), _pView, SLOT (drawSelectionrectangle (QPoint, QPoint) ) );
-    connect (this, SIGNAL (selectItems() ), _pView, SLOT (selectItems() ) );
-    connect (this, SIGNAL (changeCursor (QCursor) ), _pView, SLOT (changeCursor (QCursor) ) );
+    connect(this, SIGNAL(selectionStarted(QPoint)), _pView, SLOT(startDrawSelectionRectangle(QPoint)));
+    connect(this, SIGNAL(selectionMoved(QPoint, QPoint)), _pView, SLOT(drawSelectionrectangle(QPoint, QPoint)));
+    connect(this, SIGNAL(selectItems()), _pView, SLOT(selectItems()));
+    connect(this, SIGNAL(changeCursor(QCursor)), _pView, SLOT(changeCursor(QCursor)));
     // View --> Presenter
-    connect (_pView, SIGNAL (doubleClicked (QGraphicsSceneMouseEvent*) ), this, SLOT (doubleClick (QGraphicsSceneMouseEvent*) ) );
-    connect (_pView, SIGNAL (mousePressed (QGraphicsSceneMouseEvent*) ), this, SLOT (mousePress (QGraphicsSceneMouseEvent*) ) );
-    connect (_pView, SIGNAL (mouseMoved (QGraphicsSceneMouseEvent*) ), this, SLOT (mouseMove (QGraphicsSceneMouseEvent*) ) );
-    connect (_pView, SIGNAL (mouseReleased (QGraphicsSceneMouseEvent*) ), this, SLOT (mouseRelease (QGraphicsSceneMouseEvent*) ) );
-    connect (_pView, SIGNAL (keyPressed (QKeyEvent*) ), this, SLOT (keyPress (QKeyEvent*) ) );
-    connect (_pView, SIGNAL (keyReleased (QKeyEvent*) ), this, SLOT (keyRelease (QKeyEvent*) ) );
-    connect (_pView, SIGNAL (viewSceneChanged (QGraphicsScene*) ), this, SLOT (viewSceneChanged (QGraphicsScene*) ) );
+    connect(_pView, SIGNAL(doubleClicked(QGraphicsSceneMouseEvent*)), this, SLOT(doubleClick(QGraphicsSceneMouseEvent*)));
+    connect(_pView, SIGNAL(mousePressed(QGraphicsSceneMouseEvent*)), this, SLOT(mousePress(QGraphicsSceneMouseEvent*)));
+    connect(_pView, SIGNAL(mouseMoved(QGraphicsSceneMouseEvent*)), this, SLOT(mouseMove(QGraphicsSceneMouseEvent*)));
+    connect(_pView, SIGNAL(mouseReleased(QGraphicsSceneMouseEvent*)), this, SLOT(mouseRelease(QGraphicsSceneMouseEvent*)));
+    connect(_pView, SIGNAL(keyPressed(QKeyEvent*)), this, SLOT(keyPress(QKeyEvent*)));
+    connect(_pView, SIGNAL(keyReleased(QKeyEvent*)), this, SLOT(keyRelease(QKeyEvent*)));
+    connect(_pView, SIGNAL(viewSceneChanged(QGraphicsScene*)), this, SLOT(viewSceneChanged(QGraphicsScene*)));
 
 
     // NOTE : Uncomment for zooming on wheel
@@ -113,31 +113,31 @@ _pView {view}
 }
 
 ///@todo customize cursors !!!
-void PluginCurvePresenter::setEditionMode (EditionMode editionMode)
+void PluginCurvePresenter::setEditionMode(EditionMode editionMode)
 {
     QPoint origin;
     QPoint dest;
 
-    switch (editionMode)
+    switch(editionMode)
     {
         case CreationMode:
         case PenMode:
-            emit (changeCursor (Qt::CrossCursor) );
-            emit (setAllFlags (false) );
+            emit(changeCursor(Qt::CrossCursor));
+            emit(setAllFlags(false));
             break;
 
         case AreaSelectionMode:
-            emit (changeCursor (Qt::ArrowCursor) );
-            emit (setAllFlags (true) );
+            emit(changeCursor(Qt::ArrowCursor));
+            emit(setAllFlags(true));
             break;
 
         case LinearSelectionMode:
-            origin = QPoint (_originSelectionRectangle.x(), _pView->boundingRect().y() );
+            origin = QPoint(_originSelectionRectangle.x(), _pView->boundingRect().y());
 
             //dest = QPoint(_pView->mapFromGlobal(QCursor::pos()).x(),_pView->boundingRect().y() +_pView->boundingRect().height());
-            emit (changeCursor (Qt::IBeamCursor) );
-            emit (selectionMoved (origin, dest) ); // If selection already start, change its size.
-            emit (setAllFlags (true) );
+            emit(changeCursor(Qt::IBeamCursor));
+            emit(selectionMoved(origin, dest));    // If selection already start, change its size.
+            emit(setAllFlags(true));
 
         default:
             break;
@@ -146,35 +146,35 @@ void PluginCurvePresenter::setEditionMode (EditionMode editionMode)
     _editionMode = editionMode;
 }
 
-void PluginCurvePresenter::setGridVisible (bool b)
+void PluginCurvePresenter::setGridVisible(bool b)
 {
-    _pGrid->setVisible (b);
+    _pGrid->setVisible(b);
 }
 
-void PluginCurvePresenter::setMagnetism (bool b)
+void PluginCurvePresenter::setMagnetism(bool b)
 {
     _magnetism = b;
 }
 
-void PluginCurvePresenter::setPointCanCross (bool b)
+void PluginCurvePresenter::setPointCanCross(bool b)
 {
     _pointCanCross = b;
 }
 
-void PluginCurvePresenter::adjustPoint (PluginCurvePoint* point, QPointF& newPos)
+void PluginCurvePresenter::adjustPoint(PluginCurvePoint* point, QPointF& newPos)
 {
-    Q_ASSERT (point != nullptr);
+    Q_ASSERT(point != nullptr);
     PluginCurveSection* lSection = point->leftSection();
     PluginCurveSection* rSection = point->rightSection();
     PluginCurvePoint* previous = nullptr;
     PluginCurvePoint* next = nullptr;
 
-    if (lSection != nullptr)
+    if(lSection != nullptr)
     {
         previous = lSection->sourcePoint();    // else nullptr
     }
 
-    if (rSection != nullptr)
+    if(rSection != nullptr)
     {
         next = rSection->destPoint();    // else nullptr
     }
@@ -183,82 +183,82 @@ void PluginCurvePresenter::adjustPoint (PluginCurvePoint* point, QPointF& newPos
     // (point)Previous -- (curve)lSection -- (point)This -- (curve)rSection -- (point)Next
 
     // Magnetism
-    adjustPointMagnetism (newPos);
+    adjustPointMagnetism(newPos);
     // if the point is out the limits
-    adjustPointLimit (newPos);
+    adjustPointLimit(newPos);
     //if the point can't move horizontally
-    adjustPointMobility (point, newPos);
+    adjustPointMobility(point, newPos);
 // ---->    point->setPos(newPos);
 
     // When the point reach another one
     // 3 curve must be modified.
-    if (_pointCanCross)
+    if(_pointCanCross)
     {
-        if (next != nullptr && newPos.x() > next->x() )
+        if(next != nullptr && newPos.x() > next->x())
         {
-            crossByLeft (point, newPos);
+            crossByLeft(point, newPos);
         }
 
-        if (previous != nullptr && newPos.x() < previous->x() )
+        if(previous != nullptr && newPos.x() < previous->x())
         {
-            crossByRight (point, newPos);
+            crossByRight(point, newPos);
         }
     }
 
     //Respect the minimum distance between points
-    adjustPointMinDist (point, newPos);
+    adjustPointMinDist(point, newPos);
 }
 
-void PluginCurvePresenter::adjustPointMagnetism (QPointF& newPos)
+void PluginCurvePresenter::adjustPointMagnetism(QPointF& newPos)
 {
     // NewPos : Zommer Coordinate
-    if (_magnetism == true)
+    if(_magnetism == true)
     {
         PluginCurveZoomer* zoomer = _pView->zoomer();
-        QPointF magnetPoint = _pGrid->nearestMagnetPoint (newPos);
-        QPointF magnetPointMap = _pView->mapFromItem (zoomer, magnetPoint);
-        QPointF mapPos = _pView->mapFromItem (zoomer, newPos);
+        QPointF magnetPoint = _pGrid->nearestMagnetPoint(newPos);
+        QPointF magnetPointMap = _pView->mapFromItem(zoomer, magnetPoint);
+        QPointF mapPos = _pView->mapFromItem(zoomer, newPos);
 
-        if (qAbs (mapPos.x() - magnetPointMap.x() ) <= MAGNETDIST) // If the point is near th grid
+        if(qAbs(mapPos.x() - magnetPointMap.x()) <= MAGNETDIST)    // If the point is near th grid
         {
-            newPos.setX (magnetPoint.x() );
+            newPos.setX(magnetPoint.x());
         }
 
-        if (qAbs (mapPos.y() - magnetPointMap.y() ) <= MAGNETDIST)
+        if(qAbs(mapPos.y() - magnetPointMap.y()) <= MAGNETDIST)
         {
-            newPos.setY (magnetPoint.y() );
+            newPos.setY(magnetPoint.y());
         }
     }
 }
 
-void PluginCurvePresenter::adjustPointMinDist (PluginCurvePoint* previousPoint, PluginCurvePoint* nextPoint, QPointF& newPos)
+void PluginCurvePresenter::adjustPointMinDist(PluginCurvePoint* previousPoint, PluginCurvePoint* nextPoint, QPointF& newPos)
 {
-    QPointF nextMap (0, 0);
-    QPointF previousMap (0, 0);
+    QPointF nextMap(0, 0);
+    QPointF previousMap(0, 0);
     PluginCurveZoomer* zoomer = _pView->zoomer();
 
-    if (nextPoint != nullptr)
+    if(nextPoint != nullptr)
     {
-        nextMap = zoomer->mapToItem (_pView, nextPoint->pos() );
+        nextMap = zoomer->mapToItem(_pView, nextPoint->pos());
     }
 
-    if (previousPoint != nullptr)
+    if(previousPoint != nullptr)
     {
-        previousMap = zoomer->mapToItem (_pView, previousPoint->pos() );
+        previousMap = zoomer->mapToItem(_pView, previousPoint->pos());
     }
 
-    QPointF newPosMap = zoomer->mapToItem (_pView, newPos);
+    QPointF newPosMap = zoomer->mapToItem(_pView, newPos);
 
-    if (previousPoint != nullptr && newPosMap.x() < previousMap.x() + POINTMINDIST)
+    if(previousPoint != nullptr && newPosMap.x() < previousMap.x() + POINTMINDIST)
     {
-        previousMap.setX (previousMap.x() + POINTMINDIST);
-        newPos.setX (zoomer->mapFromItem (_pView, previousMap).x() );
+        previousMap.setX(previousMap.x() + POINTMINDIST);
+        newPos.setX(zoomer->mapFromItem(_pView, previousMap).x());
     }
 
-    if (nextPoint != nullptr && newPosMap.x() > nextMap.x() - POINTMINDIST)
+    if(nextPoint != nullptr && newPosMap.x() > nextMap.x() - POINTMINDIST)
     {
-        nextMap.setX (nextMap.x() - POINTMINDIST);
-        newPos.setX (zoomer->mapFromItem (_pView, nextMap).x() );
+        nextMap.setX(nextMap.x() - POINTMINDIST);
+        newPos.setX(zoomer->mapFromItem(_pView, nextMap).x());
     }
 
 //    if (previousPoint != nullptr && newPos.x() < previousPoint->x() + POINTMINDIST)
@@ -268,7 +268,7 @@ void PluginCurvePresenter::adjustPointMinDist (PluginCurvePoint* previousPoint, 
 }
 
 
-void PluginCurvePresenter::adjustPointMinDist (PluginCurvePoint* point, QPointF& newPos)
+void PluginCurvePresenter::adjustPointMinDist(PluginCurvePoint* point, QPointF& newPos)
 {
     PluginCurvePoint* previous = nullptr;
     PluginCurvePoint* next = nullptr;
@@ -276,58 +276,58 @@ void PluginCurvePresenter::adjustPointMinDist (PluginCurvePoint* point, QPointF&
     PluginCurveSection* lSection = point->leftSection();
     PluginCurveSection* rSection = point->rightSection();
 
-    if (lSection != nullptr)
+    if(lSection != nullptr)
     {
         previous = lSection->sourcePoint();    // else nullptr
     }
 
-    if (rSection != nullptr)
+    if(rSection != nullptr)
     {
         next = rSection->destPoint();    // else nullptr
     }
 
-    adjustPointMinDist (previous, next, newPos);
+    adjustPointMinDist(previous, next, newPos);
 }
 
-void PluginCurvePresenter::adjustPointLimit (QPointF& newPos)
+void PluginCurvePresenter::adjustPointLimit(QPointF& newPos)
 {
 //    QRectF limitRect = _limitRect();
 //    QRectF rect2 = _pView->mapRectFromItem(_limitRect,_limitRect); // define limit points positions
 //    QRectF rect3 = _pView->transform().mapRect(_limitRect);
-    QRectF rect = _pView->zoomer()->mapRectFromItem (_pView, _limitRect);
+    QRectF rect = _pView->zoomer()->mapRectFromItem(_pView, _limitRect);
 
 //    QRectF rectScene = _pView->mapRectFromScene(_limitRect->mapRectToScene(_limitRect));
-    if (rect.x() > newPos.x() )
+    if(rect.x() > newPos.x())
     {
-        newPos.setX (rect.x() );
+        newPos.setX(rect.x());
     }
 
-    if (rect.y() > newPos.y() )
+    if(rect.y() > newPos.y())
     {
-        newPos.setY (rect.y() );
+        newPos.setY(rect.y());
     }
 
-    if (rect.x() + rect.width() < newPos.x() )
+    if(rect.x() + rect.width() < newPos.x())
     {
-        newPos.setX (rect.x() + rect.width() );
+        newPos.setX(rect.x() + rect.width());
     }
 
-    if (rect.y() + rect.height() < newPos.y() )
+    if(rect.y() + rect.height() < newPos.y())
     {
-        newPos.setY (rect.y() + rect.height() );
+        newPos.setY(rect.y() + rect.height());
     }
 }
 
-void PluginCurvePresenter::adjustPointMobility (PluginCurvePoint* point, QPointF& newPos)
+void PluginCurvePresenter::adjustPointMobility(PluginCurvePoint* point, QPointF& newPos)
 {
-    if (point->mobility() == Vertical && point->fixedCoordinate() != newPos.x() )
+    if(point->mobility() == Vertical && point->fixedCoordinate() != newPos.x())
     {
         //oldPos.setX(point->fixedCoordinate());
-        newPos.setX (point->fixedCoordinate() );
+        newPos.setX(point->fixedCoordinate());
     }
 }
 
-void PluginCurvePresenter::crossByLeft (PluginCurvePoint* point, QPointF& newPos)
+void PluginCurvePresenter::crossByLeft(PluginCurvePoint* point, QPointF& newPos)
 {
     PluginCurveSection* lSection = point->leftSection();
     PluginCurveSection* rSection = point->rightSection();
@@ -337,12 +337,12 @@ void PluginCurvePresenter::crossByLeft (PluginCurvePoint* point, QPointF& newPos
 
     // Schema :
     // (point)Previous -- (curve)lSection -- (point)This -- (curve)rSection -- (point)Next -- (curve)tmpCurve
-    if (rSection != nullptr)
+    if(rSection != nullptr)
     {
         next = rSection->destPoint();    // else nullptr
     }
 
-    if (next != nullptr)
+    if(next != nullptr)
     {
         tmpCurve = next->rightSection();    // else nullptr
     }
@@ -352,34 +352,34 @@ void PluginCurvePresenter::crossByLeft (PluginCurvePoint* point, QPointF& newPos
     }
 
     // if no space
-    if (tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceAfter (next) )
+    if(tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceAfter(next))
     {
-        newPos.setX (next->x() - POINTMINDIST);
+        newPos.setX(next->x() - POINTMINDIST);
     }
     else
     {
         //Modifie tmpCurve
-        tmpCurve->setSourcePoint (point);
-        point->setRightSection (tmpCurve);
+        tmpCurve->setSourcePoint(point);
+        point->setRightSection(tmpCurve);
         //Modifie lSection
-        lSection->setDestPoint (next);
-        next->setLeftSection (lSection);
+        lSection->setDestPoint(next);
+        next->setLeftSection(lSection);
         //Modifie rSection
-        rSection->setSourcePoint (next);
-        next->setRightSection (rSection);
-        rSection->setDestPoint (point);
-        point->setLeftSection (rSection);
+        rSection->setSourcePoint(next);
+        next->setRightSection(rSection);
+        rSection->setDestPoint(point);
+        point->setLeftSection(rSection);
         // Swap points in the list
-        index = _pModel->pointIndexOf (point);
-        emit (pointSwapped (index, index + 1) );
+        index = _pModel->pointIndexOf(point);
+        emit(pointSwapped(index, index + 1));
         // Set the point in the other side
-        newPos.setX (next->x() + POINTMINDIST);
+        newPos.setX(next->x() + POINTMINDIST);
     }
 
     //point->adjust();
 }
 
-void PluginCurvePresenter::crossByRight (PluginCurvePoint* point, QPointF& newPos)
+void PluginCurvePresenter::crossByRight(PluginCurvePoint* point, QPointF& newPos)
 {
     PluginCurveSection* lSection = point->leftSection();
     PluginCurveSection* rSection = point->rightSection();
@@ -389,12 +389,12 @@ void PluginCurvePresenter::crossByRight (PluginCurvePoint* point, QPointF& newPo
 
     // Schema :
     // (curve)tmpCurve -- (point)Previous -- (curve)lSection -- (point)This -- (curve)rSection -- (point)Next
-    if (lSection != nullptr)
+    if(lSection != nullptr)
     {
         previous = lSection->sourcePoint();    // else nullptr
     }
 
-    if (previous != nullptr)
+    if(previous != nullptr)
     {
         tmpCurve = previous->leftSection();
     }
@@ -403,42 +403,42 @@ void PluginCurvePresenter::crossByRight (PluginCurvePoint* point, QPointF& newPo
         return;
     }
 
-    if (tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceBefore (previous) )
+    if(tmpCurve == nullptr || rSection == nullptr || lSection == nullptr || !enoughSpaceBefore(previous))
     {
-        newPos.setX (previous->x() + POINTMINDIST);
+        newPos.setX(previous->x() + POINTMINDIST);
     }
     else
     {
         //Modifie rSection
-        rSection->setSourcePoint (previous);
-        previous->setRightSection (rSection);
+        rSection->setSourcePoint(previous);
+        previous->setRightSection(rSection);
         //Modifie tmpCurve
-        tmpCurve->setDestPoint (point);
-        point->setLeftSection (tmpCurve);
+        tmpCurve->setDestPoint(point);
+        point->setLeftSection(tmpCurve);
         //Modifie lSection
-        lSection->setSourcePoint (point);
-        point->setRightSection (lSection);
-        lSection->setDestPoint (previous);
-        previous->setLeftSection (lSection);
+        lSection->setSourcePoint(point);
+        point->setRightSection(lSection);
+        lSection->setDestPoint(previous);
+        previous->setLeftSection(lSection);
         // Swap points in the list
-        index = _pModel->pointIndexOf (point);
-        emit (pointSwapped (index, index - 1) );
+        index = _pModel->pointIndexOf(point);
+        emit(pointSwapped(index, index - 1));
         // Set the point in the other side
-        newPos.setX (previous->x() - POINTMINDIST);
+        newPos.setX(previous->x() - POINTMINDIST);
     }
 
     //point->adjust();
 }
 
-bool PluginCurvePresenter::enoughSpaceBefore (PluginCurvePoint* point)
+bool PluginCurvePresenter::enoughSpaceBefore(PluginCurvePoint* point)
 {
     PluginCurveZoomer* zoomer = _pView->zoomer();
-    PluginCurvePoint* previous = _pModel->previousPoint (point);
-    qreal pointX = _pView->mapFromItem (zoomer, point->pos() ).x();
+    PluginCurvePoint* previous = _pModel->previousPoint(point);
+    qreal pointX = _pView->mapFromItem(zoomer, point->pos()).x();
 
-    if (previous != NULL)
+    if(previous != NULL)
     {
-        qreal previousX = _pView->mapFromItem (zoomer, previous->pos() ).x();
+        qreal previousX = _pView->mapFromItem(zoomer, previous->pos()).x();
         return (pointX - previousX >= 2 * POINTMINDIST);
     }
     else
@@ -447,15 +447,15 @@ bool PluginCurvePresenter::enoughSpaceBefore (PluginCurvePoint* point)
     }
 }
 
-bool PluginCurvePresenter::enoughSpaceAfter (PluginCurvePoint* point)
+bool PluginCurvePresenter::enoughSpaceAfter(PluginCurvePoint* point)
 {
     PluginCurveZoomer* zoomer = _pView->zoomer();
-    PluginCurvePoint* next = _pModel->nextPoint (point);
-    qreal pointX = _pView->mapFromItem (zoomer, point->pos() ).x();
+    PluginCurvePoint* next = _pModel->nextPoint(point);
+    qreal pointX = _pView->mapFromItem(zoomer, point->pos()).x();
 
-    if (next != NULL)
+    if(next != NULL)
     {
-        qreal nextX = _pView->mapFromItem (zoomer, next->pos() ).x();
+        qreal nextX = _pView->mapFromItem(zoomer, next->pos()).x();
         return (nextX - pointX >= 2 * POINTMINDIST);
     }
     else
@@ -466,31 +466,31 @@ bool PluginCurvePresenter::enoughSpaceAfter (PluginCurvePoint* point)
 
 void PluginCurvePresenter::updateLimitRect()
 {
-    _limitRect = QRectF (0 + PluginCurvePoint::SHAPERADIUS,
-                         0 + PluginCurvePoint::SHAPERADIUS,
-                         _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
-                         _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
+    _limitRect = QRectF(0 + PluginCurvePoint::SHAPERADIUS,
+                        0 + PluginCurvePoint::SHAPERADIUS,
+                        _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
+                        _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
 }
 
-PluginCurveSection* PluginCurvePresenter::addSection (PluginCurvePoint* source, PluginCurvePoint* dest)
+PluginCurveSection* PluginCurvePresenter::addSection(PluginCurvePoint* source, PluginCurvePoint* dest)
 {
     // Create the curve in the view
-    PluginCurveSection* section = new PluginCurveSectionLinear (_pView->zoomer(), source, dest);
-    source->setRightSection (section);
-    dest->setLeftSection (section);
+    PluginCurveSection* section = new PluginCurveSectionLinear(_pView->zoomer(), source, dest);
+    source->setRightSection(section);
+    dest->setLeftSection(section);
     // Emit signal for modifie model
-    emit (sectionAdded (section) );
-    emit (notifySectionCreated (section->sourcePoint()->getValue(), section->destPoint()->getValue(), section->bendingCoef() ) );
-    connect (this, SIGNAL (setAllFlags (bool) ), section, SLOT (setAllFlags (bool) ) );
-    connect (section, SIGNAL (doubleClicked (QGraphicsSceneMouseEvent*) ), this, SLOT (doubleClick (QGraphicsSceneMouseEvent*) ) );
-    connect (section, SIGNAL (rightClicked (PluginCurveSection*, QPointF) ), this, SLOT (sectionRightClicked (PluginCurveSection*, QPointF) ) );
+    emit(sectionAdded(section));
+    emit(notifySectionCreated(section->sourcePoint()->getValue(), section->destPoint()->getValue(), section->bendingCoef()));
+    connect(this, SIGNAL(setAllFlags(bool)), section, SLOT(setAllFlags(bool)));
+    connect(section, SIGNAL(doubleClicked(QGraphicsSceneMouseEvent*)), this, SLOT(doubleClick(QGraphicsSceneMouseEvent*)));
+    connect(section, SIGNAL(rightClicked(PluginCurveSection*, QPointF)), this, SLOT(sectionRightClicked(PluginCurveSection*, QPointF)));
     return section;
 }
 
 #include <QDebug>
 /// @todo Utiliser fonction déjà faites.
 /// qpoint : view coordinates
-PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode mobility, bool removable)
+PluginCurvePoint* PluginCurvePresenter::addPoint(QPointF qpoint, MobilityMode mobility, bool removable)
 {
     QPointF newPos = qpoint;
     PluginCurvePoint* point = nullptr;
@@ -508,78 +508,78 @@ PluginCurvePoint* PluginCurvePresenter::addPoint (QPointF qpoint, MobilityMode m
     }
     */
 
-    newPos = zoomer->mapFromItem (_pView, newPos); // Map the new position in zoomer's coordinates (paint coordinates).
+    newPos = zoomer->mapFromItem(_pView, newPos);  // Map the new position in zoomer's coordinates (paint coordinates).
 
     // Magnetism
-    adjustPointMagnetism (newPos);
+    adjustPointMagnetism(newPos);
     // Where place the point in the list
-    int index = _pModel->pointSearchIndex (newPos);
+    int index = _pModel->pointSearchIndex(newPos);
 
     // Determine the previous point
-    if (index >= 0) // There is a previous point
+    if(index >= 0)  // There is a previous point
     {
-        previousPoint = _pModel->pointAt (index); // else nullptr
+        previousPoint = _pModel->pointAt(index);  // else nullptr
     }
 
     // Determine the next point
-    if (index < _pModel->pointSize() - 1) // There is a next point
+    if(index < _pModel->pointSize() - 1)  // There is a next point
     {
-        nextPoint = _pModel->pointAt (index + 1); // else nullptr
+        nextPoint = _pModel->pointAt(index + 1);  // else nullptr
     }
 
     // No point added if not enough space
-    if ( (previousPoint != nullptr && !enoughSpaceAfter (previousPoint) ) || // if there is a previous point and not enough space
-            (nextPoint != nullptr && !enoughSpaceBefore (nextPoint) ) || //  or if there is a next point and not enough space
-            (_limitRect.width() < 0) ) // or there is no points and no space at all
+    if((previousPoint != nullptr && !enoughSpaceAfter(previousPoint)) ||     // if there is a previous point and not enough space
+            (nextPoint != nullptr && !enoughSpaceBefore(nextPoint)) ||   //  or if there is a next point and not enough space
+            (_limitRect.width() < 0))  // or there is no points and no space at all
     {
         return nullptr;
     }
 
     // Correct the point position if too close of another one
-    adjustPointMinDist (previousPoint, nextPoint, newPos);
+    adjustPointMinDist(previousPoint, nextPoint, newPos);
     // Create the point
-    point = new PluginCurvePoint (zoomer, this, newPos, _pMap->paintToScale (newPos), mobility, removable);
-    emit (notifyPointCreated (_pMap->paintToScale (newPos) ) ); // Notify the user
+    point = new PluginCurvePoint(zoomer, this, newPos, _pMap->paintToScale(newPos), mobility, removable);
+    emit(notifyPointCreated(_pMap->paintToScale(newPos)));      // Notify the user
 //	emit (notifyPointCreated ( newPos ) ); // Notify the user
 
     //Create a new curve, update previousPoint and point.
-    if (previousPoint != nullptr)
+    if(previousPoint != nullptr)
     {
-        addSection (previousPoint, point);
+        addSection(previousPoint, point);
     }
 
     /// @todo Creer une fonction setSourcePoint / setDestPoint (pour regrouper ces trois lignes) ???
     //Modifie the old one and updates the points.
-    if (nextPoint != nullptr)
+    if(nextPoint != nullptr)
     {
         rightSection = nextPoint->leftSection();
 
-        if (rightSection != nullptr && previousPoint != nullptr)
+        if(rightSection != nullptr && previousPoint != nullptr)
         {
             QPointF oldSourcePoint =  previousPoint->getValue();
             QPointF oldDestPoint = nextPoint->getValue();
-            rightSection->setSourcePoint (point);
-            point->setRightSection (rightSection);
-            emit (notifySectionMoved (oldSourcePoint, oldDestPoint, point->getValue(), oldDestPoint) );
+            rightSection->setSourcePoint(point);
+            point->setRightSection(rightSection);
+            emit(notifySectionMoved(oldSourcePoint, oldDestPoint, point->getValue(), oldDestPoint));
         }
         else // No curve, a new one need to be created
         {
-            /*rightSection = */addSection (point, nextPoint);
+            /*rightSection = */addSection(point, nextPoint);
         }
     }
 
     // Add points and curves in the view
 
-    emit (pointAdded (index + 1, point) );
-    connect (point, SIGNAL (rightClicked (PluginCurvePoint*) ), this, SLOT (pointRightClicked (PluginCurvePoint*) ) );
-    connect (point, SIGNAL (pointPositionHasChanged() ), this, SLOT (pointPositionHasChanged() ) );
-    connect (this, SIGNAL (setAllFlags (bool) ), point, SLOT (setAllFlags (bool) ) );
+    emit(pointAdded(index + 1, point));
+    connect(point, SIGNAL(rightClicked(PluginCurvePoint*)), this, SLOT(pointRightClicked(PluginCurvePoint*)));
+    connect(point, SIGNAL(pointPositionHasChanged()), this, SLOT(pointPositionHasChanged()));
+    connect(this, SIGNAL(setAllFlags(bool)), point, SLOT(setAllFlags(bool)));
     return point;
 }
 
-void PluginCurvePresenter::removeSection (PluginCurveSection* section)
+void PluginCurvePresenter::removeSection(PluginCurveSection* section)
 {
-    if (section == nullptr)
+    if(section == nullptr)
     {
         return;
     }
@@ -587,97 +587,97 @@ void PluginCurvePresenter::removeSection (PluginCurveSection* section)
     PluginCurvePoint* source = section->sourcePoint();
     PluginCurvePoint* dest = section->destPoint();
 
-    if (source != nullptr)
+    if(source != nullptr)
     {
-        source->setRightSection (nullptr);
+        source->setRightSection(nullptr);
     }
 
-    if (source != nullptr)
+    if(source != nullptr)
     {
-        dest->setLeftSection (nullptr);
+        dest->setLeftSection(nullptr);
     }
 
     //section->scene()->removeItem(section);
-    emit (sectionRemoved (section) );
-    emit (notifySectionDeleted (section->sourcePoint()->getValue(), section->destPoint()->getValue() ) );
+    emit(sectionRemoved(section));
+    emit(notifySectionDeleted(section->sourcePoint()->getValue(), section->destPoint()->getValue()));
     //section->hide();
     section->deleteLater();
 }
 
-void PluginCurvePresenter::removePoint (PluginCurvePoint* point)
+void PluginCurvePresenter::removePoint(PluginCurvePoint* point)
 {
-    if (point == nullptr)
+    if(point == nullptr)
     {
         return;
     }
 
-    point->setSelected (false);
+    point->setSelected(false);
     PluginCurvePoint* previous = nullptr;
     PluginCurveSection* leftSection = point->leftSection();
     PluginCurveSection* rightSection = point->rightSection();
 
 //  point->setRightSection(nullptr);
 //  point->setLeftSection(nullptr);
-    if (leftSection != nullptr) // There is a previous point
+    if(leftSection != nullptr)  // There is a previous point
     {
         previous = leftSection->sourcePoint(); // else NULL
-        removeSection (leftSection); // Delete the left curve
+        removeSection(leftSection);  // Delete the left curve
         leftSection = nullptr; // Pointer useless now
     }
 
-    if (rightSection != nullptr)
+    if(rightSection != nullptr)
     {
         //next = rightSection->destPoint(); // else Null
-        if (previous != nullptr) // There is a previous point
+        if(previous != nullptr)  // There is a previous point
         {
-            rightSection->setSourcePoint (previous); // Keep the right curve, change its source point
+            rightSection->setSourcePoint(previous);  // Keep the right curve, change its source point
             rightSection->adjust();
         }
         else // No previous point
         {
-            removeSection (rightSection);
+            removeSection(rightSection);
             rightSection = nullptr; // Pointer useless now
         }
     }
 
-    if (previous != nullptr)
+    if(previous != nullptr)
     {
-        previous->setRightSection (rightSection);
+        previous->setRightSection(rightSection);
     }
 
 //  if (next != nullptr)
 //    {
 //      next->setLeftSection(rightSection);
 //    }
-    emit (pointRemoved (point) );
-    emit (notifyPointDeleted (point->getValue() ) );
+    emit(pointRemoved(point));
+    emit(notifyPointDeleted(point->getValue()));
     //point->scene()->removeItem(point);
     //point->hide();
     point->deleteLater();
 }
 
-void PluginCurvePresenter::doubleClick (QGraphicsSceneMouseEvent* mouseEvent)
+void PluginCurvePresenter::doubleClick(QGraphicsSceneMouseEvent* mouseEvent)
 {
-    if (mouseEvent->button() == Qt::LeftButton)
+    if(mouseEvent->button() == Qt::LeftButton)
     {
         _pView->scene()->clearSelection();
 //      addPoint(_pView->mapFromScene(QPointF(10,10)));
-        _lastCreatedPoint = addPoint (_pView->mapFromScene (mouseEvent->scenePos() ) ); // ->pos() isn't correct here
-        emit (setAllFlags (true) );
+        _lastCreatedPoint = addPoint(_pView->mapFromScene(mouseEvent->scenePos()));     // ->pos() isn't correct here
+        emit(setAllFlags(true));
     }
 }
 
-void PluginCurvePresenter::mousePress (QGraphicsSceneMouseEvent* mouseEvent)
+void PluginCurvePresenter::mousePress(QGraphicsSceneMouseEvent* mouseEvent)
 {
-    switch (_editionMode)
+    switch(_editionMode)
     {
         case CreationMode :
         case PenMode :
-            if (mouseEvent->button() == Qt::LeftButton)
+            if(mouseEvent->button() == Qt::LeftButton)
             {
                 _pView->scene()->clearSelection();
-                _lastCreatedPoint = addPoint (mouseEvent->pos() );
-                emit (setAllFlags (true) );
+                _lastCreatedPoint = addPoint(mouseEvent->pos());
+                emit(setAllFlags(true));
             }
 
             break;
@@ -685,11 +685,11 @@ void PluginCurvePresenter::mousePress (QGraphicsSceneMouseEvent* mouseEvent)
         case AreaSelectionMode :
             mouseEvent->accept();
 
-            if (mouseEvent->button() == Qt::LeftButton)
+            if(mouseEvent->button() == Qt::LeftButton)
             {
                 _originSelectionRectangle = mouseEvent->pos().toPoint();
                 _pView->scene()->clearSelection();
-                emit (selectionStarted (_originSelectionRectangle) );
+                emit(selectionStarted(_originSelectionRectangle));
             }
 
             break;
@@ -697,11 +697,11 @@ void PluginCurvePresenter::mousePress (QGraphicsSceneMouseEvent* mouseEvent)
         case LinearSelectionMode :
             mouseEvent->accept();
 
-            if (mouseEvent->button() == Qt::LeftButton)
+            if(mouseEvent->button() == Qt::LeftButton)
             {
                 _originSelectionRectangle = mouseEvent->pos().toPoint();
                 _pView->scene()->clearSelection();
-                emit (selectionStarted (QPoint (_originSelectionRectangle.x(), _pView->boundingRect().y() ) ) );
+                emit(selectionStarted(QPoint(_originSelectionRectangle.x(), _pView->boundingRect().y())));
             }
 
             break;
@@ -711,33 +711,33 @@ void PluginCurvePresenter::mousePress (QGraphicsSceneMouseEvent* mouseEvent)
     }
 }
 
-void PluginCurvePresenter::mouseMove (QGraphicsSceneMouseEvent* mouseEvent)
+void PluginCurvePresenter::mouseMove(QGraphicsSceneMouseEvent* mouseEvent)
 {
     QPoint destinationSelectionRectangle;
     QRect boundingRect = _pView->boundingRect().toRect();
 
-    switch (_editionMode)
+    switch(_editionMode)
     {
         case CreationMode :
-            if (_lastCreatedPoint != nullptr)
+            if(_lastCreatedPoint != nullptr)
             {
-                _lastCreatedPoint->setPos (mouseEvent->pos() );
+                _lastCreatedPoint->setPos(mouseEvent->pos());
             }
 
             break;
 
         case PenMode :
-            addPoint (mouseEvent->pos() );
+            addPoint(mouseEvent->pos());
             break;
 
         case AreaSelectionMode :
             destinationSelectionRectangle = mouseEvent->pos().toPoint();
-            emit (selectionMoved (_originSelectionRectangle, destinationSelectionRectangle) );
+            emit(selectionMoved(_originSelectionRectangle, destinationSelectionRectangle));
             break;
 
         case LinearSelectionMode :
-            destinationSelectionRectangle = QPoint (mouseEvent->pos().x(), boundingRect.y() + boundingRect.height() );
-            emit (selectionMoved (QPoint (_originSelectionRectangle.x(), boundingRect.y() ), destinationSelectionRectangle) );
+            destinationSelectionRectangle = QPoint(mouseEvent->pos().x(), boundingRect.y() + boundingRect.height());
+            emit(selectionMoved(QPoint(_originSelectionRectangle.x(), boundingRect.y()), destinationSelectionRectangle));
             break;
 
         default :
@@ -745,12 +745,12 @@ void PluginCurvePresenter::mouseMove (QGraphicsSceneMouseEvent* mouseEvent)
     }
 }
 
-void PluginCurvePresenter::mouseRelease (QGraphicsSceneMouseEvent* mouseEvent)
+void PluginCurvePresenter::mouseRelease(QGraphicsSceneMouseEvent* mouseEvent)
 {
-    switch (_editionMode)
+    switch(_editionMode)
     {
         case CreationMode :
-            if (mouseEvent->button() == Qt::LeftButton)
+            if(mouseEvent->button() == Qt::LeftButton)
             {
                 _lastCreatedPoint = nullptr;
             }
@@ -759,9 +759,9 @@ void PluginCurvePresenter::mouseRelease (QGraphicsSceneMouseEvent* mouseEvent)
 
         case AreaSelectionMode :
         case LinearSelectionMode :
-            if (mouseEvent->button() == Qt::LeftButton)
+            if(mouseEvent->button() == Qt::LeftButton)
             {
-                emit (selectItems() );
+                emit(selectItems());
             }
 
             break;
@@ -771,35 +771,35 @@ void PluginCurvePresenter::mouseRelease (QGraphicsSceneMouseEvent* mouseEvent)
     }
 }
 
-void PluginCurvePresenter::keyPress (QKeyEvent* keyEvent)
+void PluginCurvePresenter::keyPress(QKeyEvent* keyEvent)
 {
-    switch (keyEvent->key() )
+    switch(keyEvent->key())
     {
         case Qt::Key_Shift:
         {
-            setEditionMode (LinearSelectionMode);
+            setEditionMode(LinearSelectionMode);
             break;
         }
 
         case Qt::Key_Alt :
         {
-            setEditionMode (PenMode);
+            setEditionMode(PenMode);
             break;
         }
 
         case Qt::Key_Backspace :
         {
-            QListIterator<PluginCurvePoint*> iterator (_pModel->points() );
+            QListIterator<PluginCurvePoint*> iterator(_pModel->points());
             PluginCurvePoint* point;
 
             //QGraphicsItem *item;
-            while (iterator.hasNext() )
+            while(iterator.hasNext())
             {
                 point = iterator.next();
 
-                if (point != nullptr && point->removable() && point->isSelected() )
+                if(point != nullptr && point->removable() && point->isSelected())
                 {
-                    removePoint (point);
+                    removePoint(point);
                 }
             }
 
@@ -808,29 +808,29 @@ void PluginCurvePresenter::keyPress (QKeyEvent* keyEvent)
 
         case Qt::Key_Right:
         {
-            _pView->zoomer()->translateX (-5);
-            _pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect) );
+            _pView->zoomer()->translateX(-5);
+            _pMap->setPaintRect(_pView->zoomer()->mapRectFromItem(_pView, _limitRect));
             break;
         }
 
         case Qt::Key_Left:
         {
-            _pView->zoomer()->translateX (+5);
-            _pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect) );
+            _pView->zoomer()->translateX(+5);
+            _pMap->setPaintRect(_pView->zoomer()->mapRectFromItem(_pView, _limitRect));
             break;
         }
 
         case Qt::Key_Up:
         {
-            _pView->zoomer()->translateY (+5);
-            _pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect) );
+            _pView->zoomer()->translateY(+5);
+            _pMap->setPaintRect(_pView->zoomer()->mapRectFromItem(_pView, _limitRect));
             break;
         }
 
         case Qt::Key_Down:
         {
-            _pView->zoomer()->translateY (-5);
-            _pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect) );
+            _pView->zoomer()->translateY(-5);
+            _pMap->setPaintRect(_pView->zoomer()->mapRectFromItem(_pView, _limitRect));
             break;
         }
 
@@ -841,14 +841,14 @@ void PluginCurvePresenter::keyPress (QKeyEvent* keyEvent)
     //QGraphicsObject::keyPressEvent(keyEvent);
 }
 
-void PluginCurvePresenter::keyRelease (QKeyEvent* keyEvent)
+void PluginCurvePresenter::keyRelease(QKeyEvent* keyEvent)
 {
-    switch (keyEvent->key() )
+    switch(keyEvent->key())
     {
         case Qt::Key_Alt:
         case Qt::Key_Shift:
             //setEditionMode(mainwindow()->editionMode());
-            setEditionMode (AreaSelectionMode);
+            setEditionMode(AreaSelectionMode);
             break;
 
         default :
@@ -858,72 +858,72 @@ void PluginCurvePresenter::keyRelease (QKeyEvent* keyEvent)
     // QGraphicsObject::keyReleaseEvent(keyEvent);
 }
 
-void PluginCurvePresenter::wheelTurned (QGraphicsSceneWheelEvent* event)
+void PluginCurvePresenter::wheelTurned(QGraphicsSceneWheelEvent* event)
 {
     PluginCurveZoomer* zoomer = _pView->zoomer();
-    QPointF origin = _pView->zoomer()->mapFromItem (_pView, event->pos() );
-    _pView->zoomer()->zoom (origin, event->delta() );
+    QPointF origin = _pView->zoomer()->mapFromItem(_pView, event->pos());
+    _pView->zoomer()->zoom(origin, event->delta());
     // Limit rect coordinate have changed in zoomer's coordinate system
-    _pMap->setPaintRect (zoomer->mapRectFromItem (_pView, _limitRect) ); // Update map and grid
+    _pMap->setPaintRect(zoomer->mapRectFromItem(_pView, _limitRect));    // Update map and grid
 }
 
-void PluginCurvePresenter::viewSceneChanged (QGraphicsScene* scene)
+void PluginCurvePresenter::viewSceneChanged(QGraphicsScene* scene)
 {
-    Q_UNUSED (scene);
-    _limitRect = QRectF (0 + PluginCurvePoint::SHAPERADIUS,
-                         0 + PluginCurvePoint::SHAPERADIUS,
-                         _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
-                         _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
-    _pMap->setPaintRect (_pView->zoomer()->mapRectFromItem (_pView, _limitRect), false); // No scale rect change
+    Q_UNUSED(scene);
+    _limitRect = QRectF(0 + PluginCurvePoint::SHAPERADIUS,
+                        0 + PluginCurvePoint::SHAPERADIUS,
+                        _pView->boundingRect().width() - 2 * PluginCurvePoint::SHAPERADIUS - 2,
+                        _pView->boundingRect().height() - 2 * PluginCurvePoint::SHAPERADIUS);
+    _pMap->setPaintRect(_pView->zoomer()->mapRectFromItem(_pView, _limitRect), false);   // No scale rect change
 }
 
 void PluginCurvePresenter::pointPositionHasChanged()
 {
-    QListIterator<PluginCurvePoint*> iterator (_pModel->points() );
+    QListIterator<PluginCurvePoint*> iterator(_pModel->points());
     PluginCurvePoint* point;
 
     //QGraphicsItem *item;
-    while (iterator.hasNext() )
+    while(iterator.hasNext())
     {
         point = iterator.next();
 
-        if (point != nullptr && point->isSelected() )
+        if(point != nullptr && point->isSelected())
         {
             // Update the point value
             QPointF oldvalue = point->getValue();
-            point->setValue (_pMap->paintToScale (point->pos() ) );
+            point->setValue(_pMap->paintToScale(point->pos()));
             // Notify the plugin users
-            emit (notifyPointMoved (oldvalue, point->getValue() ) );
+            emit(notifyPointMoved(oldvalue, point->getValue()));
             //emit(notifySectionMoved());
         }
     }
 
 }
 
-void PluginCurvePresenter::pointRightClicked (PluginCurvePoint* point)
+void PluginCurvePresenter::pointRightClicked(PluginCurvePoint* point)
 {
-    PluginCurveMenuPoint menu (point);
-    QAction* selectedItem = menu.exec (point->globalPos().toPoint() );
+    PluginCurveMenuPoint menu(point);
+    QAction* selectedItem = menu.exec(point->globalPos().toPoint());
 
-    if (selectedItem)
+    if(selectedItem)
     {
-        if (selectedItem->text() == MENUPOINT_DELETE_TEXT)
+        if(selectedItem->text() == MENUPOINT_DELETE_TEXT)
         {
-            removePoint (point);
+            removePoint(point);
         }
 
-        if (selectedItem->text() == MENUPOINT_FIX_HORIZONTAL_TEXT)
+        if(selectedItem->text() == MENUPOINT_FIX_HORIZONTAL_TEXT)
         {
-            if (!selectedItem->isChecked() )
+            if(!selectedItem->isChecked())
             {
-                point->setMobility (Normal);
+                point->setMobility(Normal);
             }
             else
             {
-                point->setMobility (Vertical);
+                point->setMobility(Vertical);
             }
 
-            selectedItem->setChecked (!selectedItem->isChecked() );
+            selectedItem->setChecked(!selectedItem->isChecked());
         }
     }
     else
@@ -932,21 +932,21 @@ void PluginCurvePresenter::pointRightClicked (PluginCurvePoint* point)
     }
 }
 
-void PluginCurvePresenter::sectionRightClicked (PluginCurveSection* section, QPointF scenePos)
+void PluginCurvePresenter::sectionRightClicked(PluginCurveSection* section, QPointF scenePos)
 {
     // Get the global pos of the Cursor
-    Q_ASSERT (section->scene() != NULL); // the focus item belongs to a scene
-    Q_ASSERT (!section->scene()->views().isEmpty() ); // that scene is displayed in a view...
-    Q_ASSERT (section->scene()->views().first() != NULL); // ... which is not null...
-    Q_ASSERT (section->scene()->views().first()->viewport() != NULL); // ... and has a viewport
+    Q_ASSERT(section->scene() != NULL);  // the focus item belongs to a scene
+    Q_ASSERT(!section->scene()->views().isEmpty());   // that scene is displayed in a view...
+    Q_ASSERT(section->scene()->views().first() != NULL);  // ... which is not null...
+    Q_ASSERT(section->scene()->views().first()->viewport() != NULL);  // ... and has a viewport
     QGraphicsView* v = section->scene()->views().first();
-    QPointF globalPos = v->viewport()->mapToGlobal (v->mapFromScene (scenePos) );
-    PluginCurveMenuSection menu (section);
-    QAction* action = menu.exec (globalPos.toPoint() );
+    QPointF globalPos = v->viewport()->mapToGlobal(v->mapFromScene(scenePos));
+    PluginCurveMenuSection menu(section);
+    QAction* action = menu.exec(globalPos.toPoint());
 
-    if (action->text() == PluginCurveMenuSection::DELETE)
+    if(action->text() == PluginCurveMenuSection::DELETE)
     {
-        removePoint (section->sourcePoint() );
-        removePoint (section->destPoint() );
+        removePoint(section->sourcePoint());
+        removePoint(section->destPoint());
     }
 }

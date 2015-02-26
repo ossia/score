@@ -11,16 +11,16 @@ NetworkSettings::NetworkSettings()
 
 SettingsDelegateViewInterface* NetworkSettings::makeView()
 {
-    return new NetworkSettingsView (nullptr);
+    return new NetworkSettingsView(nullptr);
 }
 
-SettingsDelegatePresenterInterface* NetworkSettings::makePresenter (SettingsPresenter* p,
+SettingsDelegatePresenterInterface* NetworkSettings::makePresenter(SettingsPresenter* p,
         SettingsDelegateModelInterface* m,
         SettingsDelegateViewInterface* v)
 {
-    auto pres = new NetworkSettingsPresenter (p, m, v);
+    auto pres = new NetworkSettingsPresenter(p, m, v);
 
-    v->setPresenter (pres);
+    v->setPresenter(pres);
 
     pres->load();
     pres->view()->doConnections();

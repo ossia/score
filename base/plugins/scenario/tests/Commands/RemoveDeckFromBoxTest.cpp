@@ -27,7 +27,7 @@ class RemoveDeckFromBoxTest: public QObject
             };
 
             cmd.redo();
-            auto box = constraint->box (cmd.m_createdBoxId);
+            auto box = constraint->box(cmd.m_createdBoxId);
 
             AddDeckToBox cmd2
             {
@@ -47,18 +47,18 @@ class RemoveDeckFromBoxTest: public QObject
                 deckId
             };
 
-            QCOMPARE ( (int) box->decks().size(), 1);
+            QCOMPARE((int) box->decks().size(), 1);
             cmd3.redo();
-            QCOMPARE ( (int) box->decks().size(), 0);
+            QCOMPARE((int) box->decks().size(), 0);
             cmd3.undo();
-            QCOMPARE ( (int) box->decks().size(), 1);
+            QCOMPARE((int) box->decks().size(), 1);
             cmd2.undo();
             cmd.undo();
             cmd.redo();
             cmd2.redo();
             cmd3.redo();
 
-            QCOMPARE ( (int) box->decks().size(), 0);
+            QCOMPARE((int) box->decks().size(), 0);
 
 
 
@@ -68,7 +68,7 @@ class RemoveDeckFromBoxTest: public QObject
         }
 };
 
-QTEST_MAIN (RemoveDeckFromBoxTest)
+QTEST_MAIN(RemoveDeckFromBoxTest)
 #include "RemoveDeckFromBoxTest.moc"
 
 

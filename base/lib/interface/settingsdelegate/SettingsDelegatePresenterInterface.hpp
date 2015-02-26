@@ -11,9 +11,9 @@ namespace iscore
     class SettingsDelegatePresenterInterface : public QObject
     {
         public:
-            SettingsDelegatePresenterInterface (SettingsPresenter* parent_presenter,
-                                                SettingsDelegateModelInterface* model,
-                                                SettingsDelegateViewInterface* view) :
+            SettingsDelegatePresenterInterface(SettingsPresenter* parent_presenter,
+                                               SettingsDelegateModelInterface* model,
+                                               SettingsDelegateViewInterface* view) :
                 QObject {parent_presenter},
                     m_model {model},
                     m_view {view},

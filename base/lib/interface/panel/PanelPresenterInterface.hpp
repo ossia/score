@@ -11,7 +11,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            PanelPresenterInterface (Presenter* parent_presenter, PanelViewInterface* view) :
+            PanelPresenterInterface(Presenter* parent_presenter, PanelViewInterface* view) :
                 QObject {parent_presenter},
                     m_view {view},
             m_parentPresenter {parent_presenter}
@@ -19,7 +19,7 @@ namespace iscore
 
             }
 
-            void setModel (PanelModelInterface* model)
+            void setModel(PanelModelInterface* model)
             {
                 m_model = model;
                 on_modelChanged();
@@ -30,7 +30,7 @@ namespace iscore
             virtual ~PanelPresenterInterface() = default;
 
         signals:
-            void submitCommand (SerializableCommand* cmd);
+            void submitCommand(SerializableCommand* cmd);
 
         protected:
             PanelModelInterface* m_model {};

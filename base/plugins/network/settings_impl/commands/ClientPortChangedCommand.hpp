@@ -7,10 +7,10 @@ class ClientPortChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
     public:
-        ClientPortChangedCommand (int oldval, int newval) :
-            Command {QString (""),
-                    QString (""),
-                    QString ("")
+        ClientPortChangedCommand(int oldval, int newval) :
+            Command {QString(""),
+                    QString(""),
+                    QString("")
         },
         m_oldval {oldval},
         m_newval {newval}
@@ -18,9 +18,9 @@ class ClientPortChangedCommand : public iscore::Command
 
         }
 
-        virtual bool mergeWith (const QUndoCommand* other) override
+        virtual bool mergeWith(const QUndoCommand* other) override
         {
-            auto cmd = static_cast<const ClientPortChangedCommand*> (other);
+            auto cmd = static_cast<const ClientPortChangedCommand*>(other);
             m_newval = cmd->m_newval;
             return true;
         }
@@ -28,13 +28,13 @@ class ClientPortChangedCommand : public iscore::Command
         virtual void undo() override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
-            target->setClientPort (m_oldval);
+            target->setClientPort(m_oldval);
         }
 
         virtual void redo() override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
-            target->setClientPort (m_newval);
+            target->setClientPort(m_newval);
         }
 
     private:

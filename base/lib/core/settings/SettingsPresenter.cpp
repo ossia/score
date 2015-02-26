@@ -6,25 +6,25 @@
 
 using namespace iscore;
 
-SettingsPresenter::SettingsPresenter (SettingsModel* model, SettingsView* view, QObject* parent) :
+SettingsPresenter::SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent) :
     QObject {parent},
         m_model {model},
 m_view {view}
 {
-    connect (m_view, &SettingsView::accepted,
+    connect(m_view, &SettingsView::accepted,
     this,   &SettingsPresenter::on_accept);
-    connect (m_view, &SettingsView::rejected,
+    connect(m_view, &SettingsView::rejected,
     this,   &SettingsPresenter::on_reject);
 }
 
-void SettingsPresenter::addSettingsPresenter (SettingsDelegatePresenterInterface* presenter)
+void SettingsPresenter::addSettingsPresenter(SettingsDelegatePresenterInterface* presenter)
 {
-    m_pluginPresenters.insert (presenter);
+    m_pluginPresenters.insert(presenter);
 }
 
 void SettingsPresenter::on_accept()
 {
-    for (auto& presenter : m_pluginPresenters)
+    for(auto& presenter : m_pluginPresenters)
     {
         presenter->on_accept();
     }
@@ -32,7 +32,7 @@ void SettingsPresenter::on_accept()
 
 void SettingsPresenter::on_reject()
 {
-    for (auto& presenter : m_pluginPresenters)
+    for(auto& presenter : m_pluginPresenters)
     {
         presenter->on_reject();
     }

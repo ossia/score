@@ -19,7 +19,7 @@ class PluginSettings : public iscore::SettingsDelegateFactoryInterface
         // SettingsGroup interface
     public:
         virtual iscore::SettingsDelegateViewInterface* makeView() override;
-        virtual iscore::SettingsDelegatePresenterInterface* makePresenter (iscore::SettingsPresenter*,
+        virtual iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
                 iscore::SettingsDelegateModelInterface* m,
                 iscore::SettingsDelegateViewInterface* v) override;
         virtual iscore::SettingsDelegateModelInterface* makeModel() override;

@@ -57,153 +57,153 @@ namespace std
 namespace osc
 {
 
-    void RunSendTests ( const IpEndpointName& host )
+    void RunSendTests(const IpEndpointName& host)
     {
         char buffer[IP_MTU_SIZE];
-        osc::OutboundPacketStream p ( buffer, IP_MTU_SIZE );
-        UdpTransmitSocket socket ( host );
+        osc::OutboundPacketStream p(buffer, IP_MTU_SIZE);
+        UdpTransmitSocket socket(host);
 
         p.Clear();
-        p << osc::BeginMessage ( "/test1" )
+        p << osc::BeginMessage("/test1")
           << true << 23 << (float) 3.1415 << "hello" << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         std::cout << "NOTE: sending /test1 message with too few arguments\n"\
                   "(expect an exception if receiving with OscReceiveTest)\n\n";
         p.Clear();
-        p << osc::BeginMessage ( "/test1" )
+        p << osc::BeginMessage("/test1")
           << true << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         std::cout << "NOTE: sending /test1 message with too many arguments\n"\
                   "(expect an exception if receiving with OscReceiveTest)\n\n";
         p.Clear();
-        p << osc::BeginMessage ( "/test1" )
+        p << osc::BeginMessage("/test1")
           << true << 23 << (float) 3.1415 << "hello" << 42 << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         std::cout << "NOTE: sending /test1 message with wrong argument type\n"\
                   "(expect an exception if receiving with OscReceiveTest)\n\n";
         p.Clear();
-        p << osc::BeginMessage ( "/test1" )
+        p << osc::BeginMessage("/test1")
           << true << 1.0 << (float) 3.1415 << "hello" << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         p.Clear();
-        p << osc::BeginMessage ( "/test2" )
+        p << osc::BeginMessage("/test2")
           << true << 23 << (float) 3.1415 << "hello" << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         // send four /test3 messages, each with a different type of argument
         p.Clear();
-        p << osc::BeginMessage ( "/test3" )
+        p << osc::BeginMessage("/test3")
           << true << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         p.Clear();
-        p << osc::BeginMessage ( "/test3" )
+        p << osc::BeginMessage("/test3")
           << 23 << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         p.Clear();
-        p << osc::BeginMessage ( "/test3" )
+        p << osc::BeginMessage("/test3")
           << (float) 3.1415 << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
         p.Clear();
-        p << osc::BeginMessage ( "/test3" )
+        p << osc::BeginMessage("/test3")
           << "hello" << osc::EndMessage;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
 
         // send a bundle
         p.Clear();
         p << osc::BeginBundle();
 
-        p << osc::BeginMessage ( "/no_arguments" )
+        p << osc::BeginMessage("/no_arguments")
           << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_bool" )
+        p << osc::BeginMessage("/a_bool")
           << true << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_bool" )
+        p << osc::BeginMessage("/a_bool")
           << false << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_bool" )
+        p << osc::BeginMessage("/a_bool")
           << (bool) 1234 << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/nil" )
+        p << osc::BeginMessage("/nil")
           << osc::Nil << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/inf" )
+        p << osc::BeginMessage("/inf")
           << osc::Infinitum << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/an_int" ) << 1234 << osc::EndMessage;
+        p << osc::BeginMessage("/an_int") << 1234 << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_float" )
+        p << osc::BeginMessage("/a_float")
           << 3.1415926f << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_char" )
+        p << osc::BeginMessage("/a_char")
           << 'c' << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/an_rgba_color" )
-          << osc::RgbaColor (0x22334455) << osc::EndMessage;
+        p << osc::BeginMessage("/an_rgba_color")
+          << osc::RgbaColor(0x22334455) << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_midi_message" )
-          << MidiMessage (0x7F) << osc::EndMessage;
+        p << osc::BeginMessage("/a_midi_message")
+          << MidiMessage(0x7F) << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/an_int64" )
-          << (int64) (0xFFFFFFF) << osc::EndMessage;
+        p << osc::BeginMessage("/an_int64")
+          << (int64)(0xFFFFFFF) << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_time_tag" )
-          << osc::TimeTag (0xFFFFFFFUL) << osc::EndMessage;
+        p << osc::BeginMessage("/a_time_tag")
+          << osc::TimeTag(0xFFFFFFFUL) << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_double" )
+        p << osc::BeginMessage("/a_double")
           << (double) 3.1415926 << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_string" )
+        p << osc::BeginMessage("/a_string")
           << "hello world" << osc::EndMessage;
 
-        p << osc::BeginMessage ( "/a_symbol" )
-          << osc::Symbol ("foobar") << osc::EndMessage;
+        p << osc::BeginMessage("/a_symbol")
+          << osc::Symbol("foobar") << osc::EndMessage;
 
         // blob
         {
             char blobData[] = "abcd";
 
-            p << osc::BeginMessage ( "/a_blob" )
-              << osc::Blob ( blobData, 4 )
+            p << osc::BeginMessage("/a_blob")
+              << osc::Blob(blobData, 4)
               << osc::EndMessage;
         }
 
         p << osc::EndBundle;
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
 
 
 
         // nested bundles, and multiple messages in bundles...
         p.Clear();
-        p << osc::BeginBundle ( 1234 )
-          << osc::BeginMessage ( "/an_int" ) << 1 << osc::EndMessage
-          << osc::BeginMessage ( "/an_int" ) << 2 << osc::EndMessage
-          << osc::BeginMessage ( "/an_int" ) << 3 << osc::EndMessage
-          << osc::BeginMessage ( "/an_int" ) << 4 << osc::EndMessage
-          << osc::BeginBundle ( 12345 )
-          << osc::BeginMessage ( "/an_int" ) << 5 << osc::EndMessage
-          << osc::BeginMessage ( "/an_int" ) << 6 << osc::EndMessage
+        p << osc::BeginBundle(1234)
+          << osc::BeginMessage("/an_int") << 1 << osc::EndMessage
+          << osc::BeginMessage("/an_int") << 2 << osc::EndMessage
+          << osc::BeginMessage("/an_int") << 3 << osc::EndMessage
+          << osc::BeginMessage("/an_int") << 4 << osc::EndMessage
+          << osc::BeginBundle(12345)
+          << osc::BeginMessage("/an_int") << 5 << osc::EndMessage
+          << osc::BeginMessage("/an_int") << 6 << osc::EndMessage
           << osc::EndBundle
           << osc::EndBundle;
 
-        socket.Send ( p.Data(), p.Size() );
+        socket.Send(p.Data(), p.Size());
     }
 
 } // namespace osc
 
 #ifndef NO_OSC_TEST_MAIN
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-    if ( argc >= 2 && std::strcmp ( argv[1], "-h" ) == 0 )
+    if(argc >= 2 && std::strcmp(argv[1], "-h") == 0)
     {
         std::cout << "usage: OscSendTests [hostname [port]]\n";
         return 0;
@@ -212,26 +212,26 @@ int main (int argc, char* argv[])
     const char* hostName = "localhost";
     int port = 7000;
 
-    if ( argc >= 2 )
+    if(argc >= 2)
     {
         hostName = argv[1];
     }
 
-    if ( argc >= 3 )
+    if(argc >= 3)
     {
-        port = std::atoi ( argv[2] );
+        port = std::atoi(argv[2]);
     }
 
 
-    IpEndpointName host ( hostName, port );
+    IpEndpointName host(hostName, port);
 
     char hostIpAddress[ IpEndpointName::ADDRESS_STRING_LENGTH ];
-    host.AddressAsString ( hostIpAddress );
+    host.AddressAsString(hostIpAddress);
 
     std::cout << "sending test messages to " << hostName
               << " (" << hostIpAddress << ") on port " << port << "...\n\n";
 
-    osc::RunSendTests ( host );
+    osc::RunSendTests(host);
 }
 
 #endif /* NO_OSC_TEST_MAIN */

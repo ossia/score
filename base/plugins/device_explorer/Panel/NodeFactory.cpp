@@ -51,14 +51,14 @@ T* factoryMethod()
 NodeFactory::NodeFactory()
 {
     //TODO: retrieve from loaded plugins ?
-    m_protocolSettingsWidgetFactory.insert (QObject::tr ("Minuit"), new ProtocolSettingsWidgetFactoryMethodT<MinuitProtocolSettingsWidget>);
-    m_protocolSettingsWidgetFactory.insert (QObject::tr ("OSC"), new ProtocolSettingsWidgetFactoryMethodT<OSCProtocolSettingsWidget>);
-    m_protocolSettingsWidgetFactory.insert (QObject::tr ("MIDI"), new ProtocolSettingsWidgetFactoryMethodT<MIDIProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(QObject::tr("Minuit"), new ProtocolSettingsWidgetFactoryMethodT<MinuitProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(QObject::tr("OSC"), new ProtocolSettingsWidgetFactoryMethodT<OSCProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(QObject::tr("MIDI"), new ProtocolSettingsWidgetFactoryMethodT<MIDIProtocolSettingsWidget>);
 
     //TODO: retrieve from loaded plugins ?
-    m_addressSettingsWidgetFactory.insert (QObject::tr ("Int"), new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
-    m_addressSettingsWidgetFactory.insert (QObject::tr ("Float"), new AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>);
-    m_addressSettingsWidgetFactory.insert (QObject::tr ("String"), new AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Int"), new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Float"), new AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("String"), new AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>);
 
 }
 
@@ -69,17 +69,17 @@ NodeFactory::getAvailableProtocols() const
 }
 
 ProtocolSettingsWidget*
-NodeFactory::getProtocolWidget (const QString& protocol) const
+NodeFactory::getProtocolWidget(const QString& protocol) const
 {
-    ProtocolSettingsWidgetFactory::const_iterator it = m_protocolSettingsWidgetFactory.find (protocol);
+    ProtocolSettingsWidgetFactory::const_iterator it = m_protocolSettingsWidgetFactory.find(protocol);
 
-    if (it != m_protocolSettingsWidgetFactory.end() )
+    if(it != m_protocolSettingsWidgetFactory.end())
     {
         return it.value()->create();
     }
     else
     {
-        qDebug() << QObject::tr ("Unknown protocol: %1").arg (protocol) << "\n";
+        qDebug() << QObject::tr("Unknown protocol: %1").arg(protocol) << "\n";
         return nullptr;
     }
 }
@@ -91,11 +91,11 @@ NodeFactory::getAvailableValueTypes() const
 }
 
 AddressSettingsWidget*
-NodeFactory::getValueTypeWidget (const QString& valueType) const
+NodeFactory::getValueTypeWidget(const QString& valueType) const
 {
-    AddressSettingsWidgetFactory::const_iterator it = m_addressSettingsWidgetFactory.find (valueType);
+    AddressSettingsWidgetFactory::const_iterator it = m_addressSettingsWidgetFactory.find(valueType);
 
-    if (it != m_addressSettingsWidgetFactory.end() )
+    if(it != m_addressSettingsWidgetFactory.end())
     {
         return it.value()->create();
     }
@@ -110,9 +110,9 @@ NodeFactory::getAvailableInputMIDIDevices() const
 {
     //TODO: ask hardware...
     QList<QString> list;
-    list.append (QObject::tr ("MIDI.1") );
-    list.append (QObject::tr ("MIDI.5") );
-    list.append (QObject::tr ("MIDI.Z") );
+    list.append(QObject::tr("MIDI.1"));
+    list.append(QObject::tr("MIDI.5"));
+    list.append(QObject::tr("MIDI.Z"));
     return list;
 }
 
@@ -121,10 +121,10 @@ NodeFactory::getAvailableOutputMIDIDevices() const
 {
     //TODO: ask hardware...
     QList<QString> list;
-    list.append (QObject::tr ("MIDI.out.2") );
-    list.append (QObject::tr ("MIDI.7") );
-    list.append (QObject::tr ("MIDI.AB") );
-    list.append (QObject::tr ("MIDI.Abcdef") );
+    list.append(QObject::tr("MIDI.out.2"));
+    list.append(QObject::tr("MIDI.7"));
+    list.append(QObject::tr("MIDI.AB"));
+    list.append(QObject::tr("MIDI.Abcdef"));
     return list;
 }
 
@@ -134,51 +134,51 @@ NodeFactory::getAvailableOutputMIDIDevices() const
 QList<QString> getIOTypes()
 {
     QList<QString> list;
-    list.append (QObject::tr ("In") );
-    list.append (QObject::tr ("Out") );
-    list.append (QObject::tr ("In/Out") );
+    list.append(QObject::tr("In"));
+    list.append(QObject::tr("Out"));
+    list.append(QObject::tr("In/Out"));
     return list;
 }
 
 QList<QString> getUnits()
 {
     QList<QString> list;
-    list.append (QObject::tr ("--") );
-    list.append (QObject::tr ("Hz") );
-    list.append (QObject::tr ("dB") );
-    list.append (QObject::tr ("s") );
-    list.append (QObject::tr ("ms") );
-    list.append (QObject::tr ("m") );
-    list.append (QObject::tr ("mm") );
+    list.append(QObject::tr("--"));
+    list.append(QObject::tr("Hz"));
+    list.append(QObject::tr("dB"));
+    list.append(QObject::tr("s"));
+    list.append(QObject::tr("ms"));
+    list.append(QObject::tr("m"));
+    list.append(QObject::tr("mm"));
     return list;
 }
 
 QList<QString> getClipModes()
 {
     QList<QString> list;
-    list.append (QObject::tr ("none") );
-    list.append (QObject::tr ("low") );
-    list.append (QObject::tr ("high") );
-    list.append (QObject::tr ("both") );
+    list.append(QObject::tr("none"));
+    list.append(QObject::tr("low"));
+    list.append(QObject::tr("high"));
+    list.append(QObject::tr("both"));
     return list;
 }
 
 #include <QComboBox>
 
-void populateIOTypes (QComboBox* cbox)
+void populateIOTypes(QComboBox* cbox)
 {
-    Q_ASSERT (cbox);
-    cbox->addItems (getIOTypes() );
+    Q_ASSERT(cbox);
+    cbox->addItems(getIOTypes());
 }
 
-void populateUnit (QComboBox* cbox)
+void populateUnit(QComboBox* cbox)
 {
-    Q_ASSERT (cbox);
-    cbox->addItems (getUnits() );
+    Q_ASSERT(cbox);
+    cbox->addItems(getUnits());
 }
 
-void populateClipMode (QComboBox* cbox)
+void populateClipMode(QComboBox* cbox)
 {
-    Q_ASSERT (cbox);
-    cbox->addItems (getClipModes() );
+    Q_ASSERT(cbox);
+    cbox->addItems(getClipModes());
 }

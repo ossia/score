@@ -12,8 +12,8 @@ class EventInspectorFactory : public InspectorWidgetFactoryInterface
 
         }
 
-        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget(QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget(QList<QObject*> sourceElements) override;
 
         virtual QList<QString> correspondingObjectsNames() const override
         {

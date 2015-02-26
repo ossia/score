@@ -23,7 +23,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit ConstraintInspectorWidget (TemporalConstraintViewModel* object, QWidget* parent = 0);
+        explicit ConstraintInspectorWidget(TemporalConstraintViewModel* object, QWidget* parent = 0);
 
         TemporalConstraintViewModel* viewModel() const;
         ConstraintModel* model() const;
@@ -31,32 +31,32 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
     public slots:
         void reloadDisplayedValues()
         {
-            updateDisplayedValues (m_currentConstraint);
+            updateDisplayedValues(m_currentConstraint);
         }
-        void updateDisplayedValues (TemporalConstraintViewModel* obj);
+        void updateDisplayedValues(TemporalConstraintViewModel* obj);
 
         // These methods ask for creation and the signals originate from other parts of the inspector
-        void createProcess (QString processName);
+        void createProcess(QString processName);
         void createBox();
-        void createProcessViewInNewDeck (QString processName);
+        void createProcessViewInNewDeck(QString processName);
 
-        void activeBoxChanged (QString box);
+        void activeBoxChanged(QString box);
 
-        void on_scriptingNameChanged (QString);
-        void on_labelChanged (QString);
-        void on_commentsChanged (QString);
-        void on_colorChanged (QColor);
+        void on_scriptingNameChanged(QString);
+        void on_labelChanged(QString);
+        void on_commentsChanged(QString);
+        void on_colorChanged(QColor);
 
         // Interface of Constraint
-        void on_processCreated (QString processName, id_type<ProcessSharedModelInterface> processId);
-        void on_processRemoved (id_type<ProcessSharedModelInterface> processId);
+        void on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+        void on_processRemoved(id_type<ProcessSharedModelInterface> processId);
 
-        void on_boxCreated (id_type<BoxModel> boxId);
-        void on_boxRemoved (id_type<BoxModel> boxId);
+        void on_boxCreated(id_type<BoxModel> boxId);
+        void on_boxRemoved(id_type<BoxModel> boxId);
 
         // These methods are used to display created things
-        void displaySharedProcess (ProcessSharedModelInterface*);
-        void setupBox (BoxModel*);
+        void displaySharedProcess(ProcessSharedModelInterface*);
+        void setupBox(BoxModel*);
 
     private:
         TemporalConstraintViewModel* m_currentConstraint {};

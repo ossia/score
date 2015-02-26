@@ -9,33 +9,33 @@
 namespace std
 {
     template<typename T, typename... Args>
-    std::unique_ptr<T> make_unique (Args&& ... args)
+    std::unique_ptr<T> make_unique(Args&& ... args)
     {
-        return std::unique_ptr<T> (new T (std::forward<Args> (args)...) );
+        return std::unique_ptr<T> (new T(std::forward<Args> (args)...));
     }
 }
 #endif
 
 #include <algorithm>
 template <typename Vector, typename Functor>
-void vec_erase_remove_if (Vector& v, Functor&& f )
+void vec_erase_remove_if(Vector& v, Functor&& f)
 {
-    v.erase (std::remove_if (std::begin (v), std::end (v), f), std::end (v) );
+    v.erase(std::remove_if(std::begin(v), std::end(v), f), std::end(v));
 }
 
 #include <QByteArray>
 #include <QDataStream>
 template<typename InputVector, typename OutputVector>
-void serializeVectorOfPointers (const InputVector& in, OutputVector& out)
+void serializeVectorOfPointers(const InputVector& in, OutputVector& out)
 {
-    for (const auto& elt : in)
+    for(const auto& elt : in)
     {
         QByteArray arr;
 
-        QDataStream s (&arr, QIODevice::WriteOnly);
-        s.setVersion (QDataStream::Qt_5_3);
+        QDataStream s(&arr, QIODevice::WriteOnly);
+        s.setVersion(QDataStream::Qt_5_3);
         s << *elt;
 
-        out.push_back (arr);
+        out.push_back(arr);
     }
 }

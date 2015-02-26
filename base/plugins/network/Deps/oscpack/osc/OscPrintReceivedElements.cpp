@@ -52,10 +52,10 @@ namespace osc
 {
 
 
-    std::ostream& operator<< ( std::ostream& os,
-                               const ReceivedMessageArgument& arg )
+    std::ostream& operator<< (std::ostream& os,
+                              const ReceivedMessageArgument& arg)
     {
-        switch ( arg.TypeTag() )
+        switch(arg.TypeTag())
         {
             case TRUE_TYPE_TAG:
                 os << "bool:true";
@@ -94,13 +94,13 @@ namespace osc
                 uint32 color = arg.AsRgbaColorUnchecked();
 
                 os << "RGBA:0x"
-                   << std::hex << std::setfill ('0')
-                   << std::setw (2) << (int) ( (color >> 24) & 0xFF)
-                   << std::setw (2) << (int) ( (color >> 16) & 0xFF)
-                   << std::setw (2) << (int) ( (color >> 8) & 0xFF)
-                   << std::setw (2) << (int) (color & 0xFF)
-                   << std::setfill (' ');
-                os.unsetf (std::ios::basefield);
+                   << std::hex << std::setfill('0')
+                   << std::setw(2) << (int)((color >> 24) & 0xFF)
+                   << std::setw(2) << (int)((color >> 16) & 0xFF)
+                   << std::setw(2) << (int)((color >> 8) & 0xFF)
+                   << std::setw(2) << (int)(color & 0xFF)
+                   << std::setfill(' ');
+                os.unsetf(std::ios::basefield);
             }
             break;
 
@@ -108,13 +108,13 @@ namespace osc
             {
                 uint32 m = arg.AsMidiMessageUnchecked();
                 os << "midi (port, status, data1, data2):<<"
-                   << std::hex << std::setfill ('0')
-                   << "0x" << std::setw (2) << (int) ( (m >> 24) & 0xFF)
-                   << " 0x" << std::setw (2) << (int) ( (m >> 16) & 0xFF)
-                   << " 0x" << std::setw (2) << (int) ( (m >> 8) & 0xFF)
-                   << " 0x" << std::setw (2) << (int) (m & 0xFF)
-                   << std::setfill (' ') << ">>";
-                os.unsetf (std::ios::basefield);
+                   << std::hex << std::setfill('0')
+                   << "0x" << std::setw(2) << (int)((m >> 24) & 0xFF)
+                   << " 0x" << std::setw(2) << (int)((m >> 16) & 0xFF)
+                   << " 0x" << std::setw(2) << (int)((m >> 8) & 0xFF)
+                   << " 0x" << std::setw(2) << (int)(m & 0xFF)
+                   << std::setfill(' ') << ">>";
+                os.unsetf(std::ios::basefield);
             }
             break;
 
@@ -127,15 +127,15 @@ namespace osc
                 os << "OSC-timetag:" << arg.AsTimeTagUnchecked() << " ";
 
                 std::time_t t =
-                    (unsigned long) ( arg.AsTimeTagUnchecked() >> 32 );
+                    (unsigned long)(arg.AsTimeTagUnchecked() >> 32);
 
-                const char* timeString = std::ctime ( &t );
-                size_t len = std::strlen ( timeString );
+                const char* timeString = std::ctime(&t);
+                size_t len = std::strlen(timeString);
 
                 // -1 to omit trailing newline from string returned by ctime()
-                if ( len > 1 )
+                if(len > 1)
                 {
-                    os.write ( timeString, len - 1 );
+                    os.write(timeString, len - 1);
                 }
             }
             break;
@@ -156,22 +156,22 @@ namespace osc
             {
                 const void* data;
                 osc_bundle_element_size_t size;
-                arg.AsBlobUnchecked ( data, size );
-                os << "OSC-blob:<<" << std::hex << std::setfill ('0');
+                arg.AsBlobUnchecked(data, size);
+                os << "OSC-blob:<<" << std::hex << std::setfill('0');
                 unsigned char* p = (unsigned char*) data;
 
-                for ( osc_bundle_element_size_t i = 0; i < size; ++i )
+                for(osc_bundle_element_size_t i = 0; i < size; ++i)
                 {
-                    os << "0x" << std::setw (2) << int (p[i]);
+                    os << "0x" << std::setw(2) << int (p[i]);
 
-                    if ( i != size - 1 )
+                    if(i != size - 1)
                     {
                         os << ' ';
                     }
                 }
 
-                os.unsetf (std::ios::basefield);
-                os << ">>" << std::setfill (' ');
+                os.unsetf(std::ios::basefield);
+                os << ">>" << std::setfill(' ');
             }
             break;
 
@@ -191,11 +191,11 @@ namespace osc
     }
 
 
-    std::ostream& operator<< ( std::ostream& os, const ReceivedMessage& m )
+    std::ostream& operator<< (std::ostream& os, const ReceivedMessage& m)
     {
         os << "[";
 
-        if ( m.AddressPatternIsUInt32() )
+        if(m.AddressPatternIsUInt32())
         {
             os << m.AddressPatternAsUInt32();
         }
@@ -206,10 +206,10 @@ namespace osc
 
         bool first = true;
 
-        for ( ReceivedMessage::const_iterator i = m.ArgumentsBegin();
-                i != m.ArgumentsEnd(); ++i )
+        for(ReceivedMessage::const_iterator i = m.ArgumentsBegin();
+                i != m.ArgumentsEnd(); ++i)
         {
-            if ( first )
+            if(first)
             {
                 os << " ";
                 first = false;
@@ -228,18 +228,18 @@ namespace osc
     }
 
 
-    std::ostream& operator<< ( std::ostream& os, const ReceivedBundle& b )
+    std::ostream& operator<< (std::ostream& os, const ReceivedBundle& b)
     {
         static int indent = 0;
 
-        for ( int j = 0; j < indent; ++j )
+        for(int j = 0; j < indent; ++j)
         {
             os << "  ";
         }
 
         os << "{ ( ";
 
-        if ( b.TimeTag() == 1 )
+        if(b.TimeTag() == 1)
         {
             os << "immediate";
         }
@@ -252,19 +252,19 @@ namespace osc
 
         ++indent;
 
-        for ( ReceivedBundle::const_iterator i = b.ElementsBegin();
-                i != b.ElementsEnd(); ++i )
+        for(ReceivedBundle::const_iterator i = b.ElementsBegin();
+                i != b.ElementsEnd(); ++i)
         {
-            if ( i->IsBundle() )
+            if(i->IsBundle())
             {
-                ReceivedBundle b (*i);
+                ReceivedBundle b(*i);
                 os << b << "\n";
             }
             else
             {
-                ReceivedMessage m (*i);
+                ReceivedMessage m(*i);
 
-                for ( int j = 0; j < indent; ++j )
+                for(int j = 0; j < indent; ++j)
                 {
                     os << "  ";
                 }
@@ -275,7 +275,7 @@ namespace osc
 
         --indent;
 
-        for ( int j = 0; j < indent; ++j )
+        for(int j = 0; j < indent; ++j)
         {
             os << "  ";
         }
@@ -286,16 +286,16 @@ namespace osc
     }
 
 
-    std::ostream& operator<< ( std::ostream& os, const ReceivedPacket& p )
+    std::ostream& operator<< (std::ostream& os, const ReceivedPacket& p)
     {
-        if ( p.IsBundle() )
+        if(p.IsBundle())
         {
-            ReceivedBundle b (p);
+            ReceivedBundle b(p);
             os << b << "\n";
         }
         else
         {
-            ReceivedMessage m (p);
+            ReceivedMessage m(p);
             os << m << "\n";
         }
 

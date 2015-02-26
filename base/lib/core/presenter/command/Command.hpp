@@ -22,7 +22,7 @@ namespace iscore
     class Command : public QUndoCommand
     {
         public:
-            Command (QString parname, QString cmdname, QString text) :
+            Command(QString parname, QString cmdname, QString text) :
                 QUndoCommand {text},
                          m_name {cmdname},
             m_parentName {parname}
@@ -57,7 +57,7 @@ namespace iscore
             {
                 return m_timestamp.count();
             }
-            void setTimestamp (quint32 stmp)
+            void setTimestamp(quint32 stmp)
             {
                 m_timestamp = std::chrono::duration<quint32> (stmp);
             }

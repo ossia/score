@@ -26,15 +26,15 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
         using view_model_type = TemporalConstraintViewModel;
         using view_type = TemporalConstraintView;
 
-        TemporalConstraintPresenter (TemporalConstraintViewModel* viewModel,
-                                     TemporalConstraintView* view,
-                                     QObject* parent);
+        TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
+                                    TemporalConstraintView* view,
+                                    QObject* parent);
         virtual ~TemporalConstraintPresenter();
 
     signals:
-        void constraintMoved (ConstraintData);
+        void constraintMoved(ConstraintData);
         void constraintReleased();
-        void eventSelected (QString);
+        void eventSelected(QString);
 
 };
 

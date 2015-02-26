@@ -8,7 +8,7 @@ class id
     public:
 
         explicit id() = default;
-        explicit id (value_type val) : m_id {val} { }
+        explicit id(value_type val) : m_id {val} { }
 
         friend bool operator== (const id& lhs, const id& rhs)
         {
@@ -35,7 +35,7 @@ class id
             return m_id;
         }
 
-        void setVal (value_type&& val)
+        void setVal(value_type&& val)
         {
             m_id = val;
         }
@@ -56,16 +56,16 @@ using id_type = optional_tagged_int32_id<tag>;
 template<typename tag>
 struct id_hash
 {
-    std::size_t operator() (const id_type<tag>& id) const
+    std::size_t operator()(const id_type<tag>& id) const
     {
-        return std::hash<int32_t>() (*id.val() );
+        return std::hash<int32_t>()(*id.val());
     }
 };
 
 template<typename tag>
 QDebug operator<< (QDebug dbg, const id_type<tag>& c)
 {
-    if (c.val() )
+    if(c.val())
     {
         dbg.nospace() << *c.val();
     }

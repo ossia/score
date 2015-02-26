@@ -8,16 +8,16 @@ using namespace Scenario::Command;
 ResizeDeckVertically::ResizeDeckVertically() :
     SerializableCommand {"ScenarioControl",
     "ResizeDeckVertically",
-    QObject::tr ("Resize Deck")
+    QObject::tr("Resize Deck")
 }
 {
 }
 
-ResizeDeckVertically::ResizeDeckVertically (ObjectPath&& deckPath,
+ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
         int newSize) :
     SerializableCommand {"ScenarioControl",
     "ResizeDeckVertically",
-    QObject::tr ("Resize Deck")
+    QObject::tr("Resize Deck")
 },
 m_path {deckPath},
 m_newSize {newSize}
@@ -29,13 +29,13 @@ m_newSize {newSize}
 void ResizeDeckVertically::undo()
 {
     auto deck = m_path.find<DeckModel>();
-    deck->setHeight (m_originalSize);
+    deck->setHeight(m_originalSize);
 }
 
 void ResizeDeckVertically::redo()
 {
     auto deck = m_path.find<DeckModel>();
-    deck->setHeight (m_newSize);
+    deck->setHeight(m_newSize);
 }
 
 int ResizeDeckVertically::id() const
@@ -43,18 +43,18 @@ int ResizeDeckVertically::id() const
     return 1;
 }
 
-bool ResizeDeckVertically::mergeWith (const QUndoCommand* other)
+bool ResizeDeckVertically::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void ResizeDeckVertically::serializeImpl (QDataStream& s) const
+void ResizeDeckVertically::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_originalSize << m_newSize;
 }
 
 // Would be better in a ctor ?
-void ResizeDeckVertically::deserializeImpl (QDataStream& s)
+void ResizeDeckVertically::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_originalSize >> m_newSize;
 }

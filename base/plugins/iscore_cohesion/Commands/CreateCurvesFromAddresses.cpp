@@ -20,7 +20,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses() :
 {
 }
 
-CreateCurvesFromAddresses::CreateCurvesFromAddresses (ObjectPath&& constraint,
+CreateCurvesFromAddresses::CreateCurvesFromAddresses(ObjectPath&& constraint,
         QStringList addresses) :
     SerializableCommand {"IScoreCohesionControl",
     CMD_NAME,
@@ -29,23 +29,23 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses (ObjectPath&& constraint,
 m_path {constraint},
 m_addresses {addresses}
 {
-    for (int i = 0; i < m_addresses.size(); ++i)
+    for(int i = 0; i < m_addresses.size(); ++i)
     {
         auto cmd = new Scenario::Command::AddProcessToConstraint
         {
             ObjectPath{m_path},
             "Automation"
         };
-        m_serializedCommands.push_back (cmd->serialize() );
+        m_serializedCommands.push_back(cmd->serialize());
         delete cmd;
     }
 }
 
 void CreateCurvesFromAddresses::undo()
 {
-    for (auto& cmd_pack : m_serializedCommands)
+    for(auto& cmd_pack : m_serializedCommands)
     {
-        auto cmd = IPresenter::instantiateUndoCommand ("ScenarioControl",
+        auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
                    "AddProcessToConstraint",
                    cmd_pack);
         cmd->undo();
@@ -58,10 +58,10 @@ void CreateCurvesFromAddresses::redo()
 {
     auto constraint = m_path.find<ConstraintModel>();
 
-    for (int i = 0; i < m_addresses.size(); ++i)
+    for(int i = 0; i < m_addresses.size(); ++i)
     {
         // Creation
-        auto cmd = IPresenter::instantiateUndoCommand ("ScenarioControl",
+        auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
                    "AddProcessToConstraint",
                    m_serializedCommands[i]);
 
@@ -69,11 +69,11 @@ void CreateCurvesFromAddresses::redo()
 
         // Change the address
         // TODO maybe pass parameters to AddProcessToConstraint?
-        auto addProcessCmd = static_cast<Scenario::Command::AddProcessToConstraint*> (cmd);
+        auto addProcessCmd = static_cast<Scenario::Command::AddProcessToConstraint*>(cmd);
         auto id = addProcessCmd->processId();
 
-        auto curve = static_cast<AutomationModel*> (constraint->process (id) );
-        curve->setAddress (m_addresses[i]);
+        auto curve = static_cast<AutomationModel*>(constraint->process(id));
+        curve->setAddress(m_addresses[i]);
 
         delete cmd;
     }
@@ -84,17 +84,17 @@ int CreateCurvesFromAddresses::id() const
     return CMD_UID;
 }
 
-bool CreateCurvesFromAddresses::mergeWith (const QUndoCommand* other)
+bool CreateCurvesFromAddresses::mergeWith(const QUndoCommand* other)
 {
     return false;
 }
 
-void CreateCurvesFromAddresses::serializeImpl (QDataStream& s) const
+void CreateCurvesFromAddresses::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_addresses << m_serializedCommands;
 }
 
-void CreateCurvesFromAddresses::deserializeImpl (QDataStream& s)
+void CreateCurvesFromAddresses::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_addresses >> m_serializedCommands;
 }

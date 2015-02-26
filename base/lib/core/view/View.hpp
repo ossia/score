@@ -18,12 +18,12 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            View (QObject* parent);
+            View(QObject* parent);
 
-            void setCentralView (iscore::DocumentView*);
-            void setupPanelView (PanelViewInterface* v);
+            void setCentralView(iscore::DocumentView*);
+            void setupPanelView(PanelViewInterface* v);
 
-            void addSidePanel (QWidget* widg, QString name, Qt::DockWidgetArea);
+            void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
 
         signals:
             /**
@@ -32,6 +32,6 @@ namespace iscore
              * A quick signal to add an action.
              * Especially considering that we already know the presenter.
              */
-            void insertActionIntoMenubar (PositionedMenuAction);
+            void insertActionIntoMenubar(PositionedMenuAction);
     };
 }

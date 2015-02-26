@@ -12,14 +12,14 @@ class DeckInspectorSection;
 class BoxInspectorSection : public InspectorSectionWidget
 {
     public:
-        BoxInspectorSection (QString name, BoxModel* model, ConstraintInspectorWidget* parent);
+        BoxInspectorSection(QString name, BoxModel* model, ConstraintInspectorWidget* parent);
 
-        void addDeckInspectorSection (DeckModel*);
+        void addDeckInspectorSection(DeckModel*);
         void createDeck();
 
     public slots:
-        void on_deckCreated (id_type<DeckModel> deckId);
-        void on_deckRemoved (id_type<DeckModel> deckId);
+        void on_deckCreated(id_type<DeckModel> deckId);
+        void on_deckRemoved(id_type<DeckModel> deckId);
 
     private:
         BoxModel* m_model {};

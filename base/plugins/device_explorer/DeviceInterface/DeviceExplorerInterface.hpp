@@ -11,9 +11,9 @@ namespace DeviceExplorer
     QString explorerName();
 
     // Object inside a document.
-    DeviceExplorerModel* getModel (QObject* object);
+    DeviceExplorerModel* getModel(QObject* object);
 
-    QJsonObject toJson (DeviceExplorerModel* deviceExplorer);
+    QJsonObject toJson(DeviceExplorerModel* deviceExplorer);
 
-    QString addressFromModelIndex (const QModelIndex& index);
+    QString addressFromModelIndex(const QModelIndex& index);
 }

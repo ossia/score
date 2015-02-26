@@ -21,15 +21,15 @@ class PluginCurveZoomer : public QGraphicsObject
         /*!
            \param parent The parent item.
         */
-        explicit PluginCurveZoomer (QGraphicsObject* parent = 0);
-        void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        explicit PluginCurveZoomer(QGraphicsObject* parent = 0);
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
         QRectF boundingRect() const;
         /*! Change the zoomer scale (and move all others graphics item consequently). Origin is the origin of the transformation in zoomer coordinates. The real delta if the zoom factor value. */
-        void zoom (QPointF origin, qreal delta);
+        void zoom(QPointF origin, qreal delta);
         /*! Translate the zoomer position (+ dx) (and all others graphics items) horizontally. */
-        void translateX (qreal dx);
+        void translateX(qreal dx);
         /*! Translate the zoomer position (+ dy) (and all others graphics items) vertically. */
-        void translateY (qreal dy);
+        void translateY(qreal dy);
     signals:
 
     public slots:

@@ -8,16 +8,16 @@ class TemporalScenarioView : public ProcessViewInterface
         Q_OBJECT
 
     public:
-        TemporalScenarioView (QGraphicsObject* parent);
+        TemporalScenarioView(QGraphicsObject* parent);
 
         virtual ~TemporalScenarioView() = default;
 
-        virtual void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
     signals:
         void scenarioPressed();
-        void scenarioPressedWithControl (QPointF, QPointF);
-        void scenarioReleased (QPointF, QPointF);
+        void scenarioPressedWithControl(QPointF, QPointF);
+        void scenarioReleased(QPointF, QPointF);
 
         void deletePressed();
         void clearPressed();
@@ -35,12 +35,12 @@ class TemporalScenarioView : public ProcessViewInterface
         }
 
     protected:
-        virtual void mousePressEvent (QGraphicsSceneMouseEvent* event) override;
-        virtual void mouseMoveEvent (QGraphicsSceneMouseEvent* event) override;
-        virtual void mouseReleaseEvent (QGraphicsSceneMouseEvent* event) override;
-        virtual void contextMenuEvent (QGraphicsSceneContextMenuEvent* event) override;
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-        virtual void keyPressEvent (QKeyEvent* event) override;
+        virtual void keyPressEvent(QKeyEvent* event) override;
 
     private:
         QPointF m_clickedPoint {};

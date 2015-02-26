@@ -14,9 +14,9 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            SettingsPresenter (SettingsModel* model, SettingsView* view, QObject* parent);
+            SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent);
 
-            void addSettingsPresenter (SettingsDelegatePresenterInterface* presenter);
+            void addSettingsPresenter(SettingsDelegatePresenterInterface* presenter);
 
         private slots:
             void on_accept();

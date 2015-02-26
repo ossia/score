@@ -21,31 +21,31 @@ class MoveConstraintTest: public QObject
 
         void MoveCommandTest()
         {
-            ScenarioModel* scenar = new ScenarioModel (id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface> {0}, qApp);
 
-            auto int_0_id = getStrongId (scenar->constraints() );
-            auto ev_0_id = getStrongId (scenar->events() );
+            auto int_0_id = getStrongId(scenar->constraints());
+            auto ev_0_id = getStrongId(scenar->events());
 
             auto fv_0_id = id_type<AbstractConstraintViewModel> {234};
-            auto tb_0_id = getStrongId (scenar->timeNodes() );
-            scenar->createConstraintAndEndEventFromEvent (scenar->startEvent()->id(), std::chrono::milliseconds {34}, 0.5, int_0_id, fv_0_id, ev_0_id);
+            auto tb_0_id = getStrongId(scenar->timeNodes());
+            scenar->createConstraintAndEndEventFromEvent(scenar->startEvent()->id(), std::chrono::milliseconds {34}, 0.5, int_0_id, fv_0_id, ev_0_id);
 
             ConstraintData data {};
             data.id = int_0_id;
             data.relativeY = 0.1;
-            MoveConstraint cmd (
+            MoveConstraint cmd(
             {
                 {"ScenarioModel", {}},
-            }, data );
+            }, data);
 
             cmd.redo();
-            QCOMPARE (scenar->constraint (int_0_id)->heightPercentage(), 0.1);
+            QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.1);
 
             cmd.undo();
-            QCOMPARE (scenar->constraint (int_0_id)->heightPercentage(), 0.5);
+            QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.5);
 
             cmd.redo();
-            QCOMPARE (scenar->constraint (int_0_id)->heightPercentage(), 0.1);
+            QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.1);
 
 
             // Delete them else they stay in qApp !
@@ -54,7 +54,7 @@ class MoveConstraintTest: public QObject
         }
 };
 
-QTEST_MAIN (MoveConstraintTest)
+QTEST_MAIN(MoveConstraintTest)
 #include "MoveConstraintTest.moc"
 
 

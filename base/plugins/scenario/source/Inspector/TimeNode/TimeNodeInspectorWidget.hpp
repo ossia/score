@@ -15,19 +15,19 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit TimeNodeInspectorWidget (TimeNodeModel* object, QWidget* parent = 0);
+        explicit TimeNodeInspectorWidget(TimeNodeModel* object, QWidget* parent = 0);
 
     signals:
 
     public slots:
-        void updateDisplayedValues (TimeNodeModel* obj);
+        void updateDisplayedValues(TimeNodeModel* obj);
 
         void updateInspector();
 
-        void on_scriptingNameChanged (QString);
-        void on_labelChanged (QString);
-        void on_commentsChanged (QString);
-        void on_colorChanged (QColor);
+        void on_scriptingNameChanged(QString);
+        void on_labelChanged(QString);
+        void on_commentsChanged(QString);
+        void on_colorChanged(QColor);
 
         void on_splitTimeNodeClicked();
 

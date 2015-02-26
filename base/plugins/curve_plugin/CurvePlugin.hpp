@@ -9,8 +9,8 @@ class CurvePlugin:
     public iscore::PluginControlInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA (IID FactoryInterface_QtInterface_iid)
-        Q_INTERFACES (
+        Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
+        Q_INTERFACES(
             iscore::FactoryInterface_QtInterface
             iscore::PluginControlInterface_QtInterface
         )
@@ -21,9 +21,9 @@ class CurvePlugin:
 
         // Plugin control interface
         virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make (QString) override;
+        virtual iscore::PluginControlInterface* control_make(QString) override;
 
         // Process & inspector
-        virtual QVector<iscore::FactoryInterface*> factories_make (QString factoryName) override;
+        virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
 };
 

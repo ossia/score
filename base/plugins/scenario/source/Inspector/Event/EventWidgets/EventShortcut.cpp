@@ -5,26 +5,26 @@
 #include <QHBoxLayout>
 
 
-EventShortCut::EventShortCut (QString eventId, QWidget* parent) :
+EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
     QWidget {parent}
 {
     auto groupLay = new QHBoxLayout{};
-    this->setLayout (groupLay);
+    this->setLayout(groupLay);
 
     // browser button
     m_eventBtn = new QPushButton{this};
-    m_eventBtn->setText (eventId);
-    m_eventBtn->setFlat (true);
+    m_eventBtn->setText(eventId);
+    m_eventBtn->setFlat(true);
 
     m_box = new QCheckBox{};
 
-    groupLay->addWidget (m_eventBtn);
-    groupLay->addWidget (m_box);
+    groupLay->addWidget(m_eventBtn);
+    groupLay->addWidget(m_box);
 
-    connect (m_eventBtn,   &QPushButton::clicked,
-             [ = ] ()
+    connect(m_eventBtn,   &QPushButton::clicked,
+            [ = ]()
     {
-        emit eventSelected (m_eventBtn->text() );
+        emit eventSelected(m_eventBtn->text());
     });
 
 }

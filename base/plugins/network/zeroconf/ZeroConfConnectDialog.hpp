@@ -44,18 +44,18 @@ class ZeroconfConnectDialog : public QDialog
         Q_OBJECT
 
     public:
-        ZeroconfConnectDialog (QWidget* parent = 0);
+        ZeroconfConnectDialog(QWidget* parent = 0);
 
     signals:
-        void setLocalAddress (QHostAddress);
-        void connectedTo (ConnectionData);
+        void setLocalAddress(QHostAddress);
+        void connectedTo(ConnectionData);
 
     private slots:
-        void updateRecords (const QList<BonjourRecord>& list);
+        void updateRecords(const QList<BonjourRecord>& list);
         void connectTo();
         void readConnectionData();
-        void displayError (QAbstractSocket::SocketError socketError);
-        void connectToServer (const QHostInfo& hostInfo, int);
+        void displayError(QAbstractSocket::SocketError socketError);
+        void connectToServer(const QHostInfo& hostInfo, int);
 
     private:
         QLabel* statusLabel = nullptr;

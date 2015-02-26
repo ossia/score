@@ -6,55 +6,55 @@
 
 #include "Document/Event/EventData.hpp"
 
-TimeNodePresenter::TimeNodePresenter (TimeNodeModel* model,
-                                      TimeNodeView* view,
-                                      QObject* parent) :
+TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
+                                     TimeNodeView* view,
+                                     QObject* parent) :
     NamedObject {"TimeNodePresenter", parent},
             m_model {model},
 m_view {view}
 {
-    connect (m_view, &TimeNodeView::timeNodeMoved,
+    connect(m_view, &TimeNodeView::timeNodeMoved,
     this,   &TimeNodePresenter::on_timeNodeMoved);
-    connect (m_view, &TimeNodeView::timeNodeReleased,
+    connect(m_view, &TimeNodeView::timeNodeReleased,
     this,   &TimeNodePresenter::timeNodeReleased);
 
-    connect (m_view, &TimeNodeView::timeNodeSelected,
-    [&] ()
+    connect(m_view, &TimeNodeView::timeNodeSelected,
+    [&]()
     {
-        emit elementSelected (m_model);
+        emit elementSelected(m_model);
     });
 
-    connect (m_model, &TimeNodeModel::newEvent,
+    connect(m_model, &TimeNodeModel::newEvent,
     this,    &TimeNodePresenter::on_eventAdded);
 
-    connect (m_model,    &TimeNodeModel::eventSelected,
+    connect(m_model,    &TimeNodeModel::eventSelected,
     this,       &TimeNodePresenter::eventSelected);
 
-    connect (m_model,    &TimeNodeModel::inspectPreviousElement,
+    connect(m_model,    &TimeNodeModel::inspectPreviousElement,
     this,       &TimeNodePresenter::inspectPreviousElement);
 
-    connect (& (m_model->metadata),  &ModelMetadata::colorChanged,
+    connect(& (m_model->metadata),  &ModelMetadata::colorChanged,
     m_view,                &TimeNodeView::changeColor);
 
-    connect (m_model,    &TimeNodeModel::inspectorCreated,
-    [ = ] ()
+    connect(m_model,    &TimeNodeModel::inspectorCreated,
+    [ = ]()
     {
-        if (! m_view->isSelected() )
+        if(! m_view->isSelected())
         {
-            m_view->setSelected (true);
+            m_view->setSelected(true);
         }
     });
 }
 
 TimeNodePresenter::~TimeNodePresenter()
 {
-    if (m_view)
+    if(m_view)
     {
         auto sc = m_view->scene();
 
-        if (sc)
+        if(sc)
         {
-            sc->removeItem (m_view);
+            sc->removeItem(m_view);
         }
 
         m_view->deleteLater();
@@ -83,18 +83,18 @@ bool TimeNodePresenter::isSelected()
 
 void TimeNodePresenter::deselect()
 {
-    m_view->setSelected (false);
+    m_view->setSelected(false);
 }
 
-void TimeNodePresenter::on_timeNodeMoved (QPointF p)
+void TimeNodePresenter::on_timeNodeMoved(QPointF p)
 {
     EventData d {};
     d.eventClickedId = model()->events().first();
     d.x = p.x();
-    emit timeNodeMoved (d);
+    emit timeNodeMoved(d);
 }
 
-void TimeNodePresenter::on_eventAdded (id_type<EventModel> eventId)
+void TimeNodePresenter::on_eventAdded(id_type<EventModel> eventId)
 {
-    emit eventAdded (eventId, this->model()->id() );
+    emit eventAdded(eventId, this->model()->id());
 }

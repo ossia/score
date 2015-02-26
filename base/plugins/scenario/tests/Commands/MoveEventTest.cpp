@@ -20,34 +20,34 @@ class MoveEventTest: public QObject
 
         void MoveCommandTest()
         {
-            ScenarioModel* scenar = new ScenarioModel (id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface> {0}, qApp);
             // 1. Create a new event (the first one cannot move since it does not have
             // predecessors ?)
 
             EventData data {};
-            data.dDate.setMSecs (56);
+            data.dDate.setMSecs(56);
             data.relativeY = 0.1;
 
-            CreateEvent create_ev_cmd (
+            CreateEvent create_ev_cmd(
             {{"ScenarioModel", {}}},
             data);
 
             create_ev_cmd.redo();
             auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
 
-            MoveEvent cmd (
+            MoveEvent cmd(
             {
                 {"ScenarioModel", {}},
-            }, data );
+            }, data);
 
             cmd.redo();
-            QCOMPARE (scenar->event (eventid)->heightPercentage(), 0.1);
+            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
             cmd.undo();
-            QCOMPARE (scenar->event (eventid)->heightPercentage(), 0.5);
+            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.5);
 
             cmd.redo();
-            QCOMPARE (scenar->event (eventid)->heightPercentage(), 0.1);
+            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
             // TODO test an horizontal displacement.
 
@@ -57,7 +57,7 @@ class MoveEventTest: public QObject
         }
 };
 
-QTEST_MAIN (MoveEventTest)
+QTEST_MAIN(MoveEventTest)
 #include "MoveEventTest.moc"
 
 

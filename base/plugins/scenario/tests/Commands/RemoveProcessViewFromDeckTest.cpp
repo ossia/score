@@ -12,11 +12,11 @@ class RemoveProcessViewModelFromDeckTest: public QObject
     private slots:
         void test()
         {
-            QFAIL ("TODO");
+            QFAIL("TODO");
         }
 };
 
-QTEST_MAIN (RemoveProcessViewModelFromDeckTest)
+QTEST_MAIN(RemoveProcessViewModelFromDeckTest)
 #include "RemoveProcessViewFromDeckTest.moc"
 
 

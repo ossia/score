@@ -32,7 +32,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurveSectionBezier.hpp"
 
 
-PluginCurveSectionBezier::PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest) :
-    PluginCurveSection (parent, source, dest)
+PluginCurveSectionBezier::PluginCurveSectionBezier(PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest) :
+    PluginCurveSection(parent, source, dest)
 {
 }

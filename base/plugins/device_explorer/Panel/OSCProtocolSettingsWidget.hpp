@@ -10,11 +10,11 @@ class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
         Q_OBJECT
 
     public:
-        OSCProtocolSettingsWidget (QWidget* parent = nullptr);
+        OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
         virtual QList<QString> getSettings() const override;
 
-        virtual void setSettings (const QList<QString>& settings) override;
+        virtual void setSettings(const QList<QString>& settings) override;
 
     protected slots:
         void openFileDialog();

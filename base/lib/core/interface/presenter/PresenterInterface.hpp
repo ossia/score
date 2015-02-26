@@ -16,8 +16,8 @@ namespace iscore
          * Ownership of the command is transferred to the caller, and he must delete it.
          */
         iscore::SerializableCommand*
-        instantiateUndoCommand (const QString& parent_name,
-                                const QString& name,
-                                const QByteArray& data);
+        instantiateUndoCommand(const QString& parent_name,
+                               const QString& name,
+                               const QByteArray& data);
     }
 }

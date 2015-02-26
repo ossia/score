@@ -30,74 +30,74 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         Q_OBJECT
 
         // TODO must go in view model
-        Q_PROPERTY (double heightPercentage
-                    READ heightPercentage
-                    WRITE setHeightPercentage
-                    NOTIFY heightPercentageChanged)
+        Q_PROPERTY(double heightPercentage
+                   READ heightPercentage
+                   WRITE setHeightPercentage
+                   NOTIFY heightPercentageChanged)
 
         // These dates are relative to the beginning of the constraint.
-        Q_PROPERTY (TimeValue minDuration
-                    READ minDuration
-                    WRITE setMinDuration
-                    NOTIFY minDurationChanged)
-        Q_PROPERTY (TimeValue maxDuration
-                    READ maxDuration
-                    WRITE setMaxDuration
-                    NOTIFY maxDurationChanged)
+        Q_PROPERTY(TimeValue minDuration
+                   READ minDuration
+                   WRITE setMinDuration
+                   NOTIFY minDurationChanged)
+        Q_PROPERTY(TimeValue maxDuration
+                   READ maxDuration
+                   WRITE setMaxDuration
+                   NOTIFY maxDurationChanged)
 
     public:
         ModelMetadata metadata;
 
-        ConstraintModel (id_type<ConstraintModel>,
-                         id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
-                         QObject* parent);
-        ConstraintModel (id_type<ConstraintModel>,
-                         id_type<AbstractConstraintViewModel> fullViewId,
-                         double yPos,
-                         QObject* parent);
+        ConstraintModel(id_type<ConstraintModel>,
+                        id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
+                        QObject* parent);
+        ConstraintModel(id_type<ConstraintModel>,
+                        id_type<AbstractConstraintViewModel> fullViewId,
+                        double yPos,
+                        QObject* parent);
 
         // Copy
-        ConstraintModel (ConstraintModel* source,
-                         id_type<ConstraintModel> id,
-                         QObject* parent);
+        ConstraintModel(ConstraintModel* source,
+                        id_type<ConstraintModel> id,
+                        QObject* parent);
         ~ConstraintModel();
 
         // Serialization
         template<typename DeserializerVisitor>
-        ConstraintModel (DeserializerVisitor&& vis, QObject* parent) :
+        ConstraintModel(DeserializerVisitor&& vis, QObject* parent) :
             IdentifiedObject<ConstraintModel> {vis, parent}
         {
-            vis.writeTo (*this);
+            vis.writeTo(*this);
         }
 
         // Factories for the view models.
         template<typename ViewModelType> // Arg might be an id or a datastream [
-        ViewModelType* makeConstraintViewModel (id_type<AbstractConstraintViewModel> id, QObject* parent)
+        ViewModelType* makeConstraintViewModel(id_type<AbstractConstraintViewModel> id, QObject* parent)
         {
             auto viewmodel =  new ViewModelType {id, this, parent};
-            setupConstraintViewModel (viewmodel);
+            setupConstraintViewModel(viewmodel);
             return viewmodel;
         }
 
         // Note : the Constraint does not have ownership (it's generally the Deck)
-        void setupConstraintViewModel (AbstractConstraintViewModel* viewmodel);
+        void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
         // Sub-element creation
-        void addProcess (ProcessSharedModelInterface*);
-        void removeProcess (id_type<ProcessSharedModelInterface> processId);
+        void addProcess(ProcessSharedModelInterface*);
+        void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
-        void createBox (id_type<BoxModel> boxId); // TODO : Remove this one
-        void addBox (BoxModel*);
-        void removeBox (id_type<BoxModel> boxId);
+        void createBox(id_type<BoxModel> boxId);  // TODO : Remove this one
+        void addBox(BoxModel*);
+        void removeBox(id_type<BoxModel> boxId);
 
         id_type<EventModel> startEvent() const;
         id_type<EventModel> endEvent() const;
-        void setStartEvent (id_type<EventModel> eventId); // Use ScenarioKey?
-        void setEndEvent (id_type<EventModel> eventId); // Use ScenarioKey?
+        void setStartEvent(id_type<EventModel> eventId);  // Use ScenarioKey?
+        void setEndEvent(id_type<EventModel> eventId);  // Use ScenarioKey?
 
 
-        BoxModel* box (id_type<BoxModel> id) const;
-        ProcessSharedModelInterface* process (id_type<ProcessSharedModelInterface> processId) const;
+        BoxModel* box(id_type<BoxModel> id) const;
+        ProcessSharedModelInterface* process(id_type<ProcessSharedModelInterface> processId) const;
 
         OSSIA::TimeBox* apiObject()
         {
@@ -122,8 +122,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         }
 
         TimeValue startDate() const;
-        void setStartDate (TimeValue start);
-        void translate (TimeValue deltaTime);
+        void setStartDate(TimeValue start);
+        void translate(TimeValue deltaTime);
 
         double heightPercentage() const;
 
@@ -136,30 +136,30 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_fullViewModel;
         }
 
-        void setFullView (FullViewConstraintViewModel* fv);
+        void setFullView(FullViewConstraintViewModel* fv);
 
     signals:
-        void processCreated (QString processName, id_type<ProcessSharedModelInterface> processId);
-        void processRemoved (id_type<ProcessSharedModelInterface> processId);
+        void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
+        void processRemoved(id_type<ProcessSharedModelInterface> processId);
 
-        void boxCreated (id_type<BoxModel> boxId);
-        void boxRemoved (id_type<BoxModel> boxId);
+        void boxCreated(id_type<BoxModel> boxId);
+        void boxRemoved(id_type<BoxModel> boxId);
 
-        void heightPercentageChanged (double arg);
+        void heightPercentageChanged(double arg);
 
-        void defaultDurationChanged (TimeValue arg);
-        void minDurationChanged (TimeValue arg);
-        void maxDurationChanged (TimeValue arg);
+        void defaultDurationChanged(TimeValue arg);
+        void minDurationChanged(TimeValue arg);
+        void maxDurationChanged(TimeValue arg);
 
     public slots:
-        void setHeightPercentage (double arg);
+        void setHeightPercentage(double arg);
 
-        void setDefaultDuration (TimeValue defaultDuration);
-        void setMinDuration (TimeValue arg);
-        void setMaxDuration (TimeValue arg);
+        void setDefaultDuration(TimeValue defaultDuration);
+        void setMinDuration(TimeValue arg);
+        void setMaxDuration(TimeValue arg);
 
     private slots:
-        void on_destroyedViewModel (QObject*);
+        void on_destroyedViewModel(QObject*);
 
     private:
         OSSIA::TimeBox* m_timeBox {}; // Manages the duration

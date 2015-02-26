@@ -5,11 +5,11 @@
 
 
 template<>
-void Visitor<Reader<DataStream> >::readFrom (const TimeValue& tv)
+void Visitor<Reader<DataStream>>::readFrom(const TimeValue& tv)
 {
     m_stream << tv.isInfinite();
 
-    if (!tv.isInfinite() )
+    if(!tv.isInfinite())
     {
         m_stream << tv.msec();
     }
@@ -18,16 +18,16 @@ void Visitor<Reader<DataStream> >::readFrom (const TimeValue& tv)
 }
 
 template<>
-void Visitor<Writer<DataStream> >::writeTo (TimeValue& tv)
+void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 {
     bool inf;
     int msec;
     m_stream >> inf;
 
-    if (!inf)
+    if(!inf)
     {
         m_stream >> msec;
-        tv.setMSecs (msec);
+        tv.setMSecs(msec);
     }
     else
     {
@@ -38,25 +38,25 @@ void Visitor<Writer<DataStream> >::writeTo (TimeValue& tv)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom (const TimeValue& tv)
+void Visitor<Reader<JSON>>::readFrom(const TimeValue& tv)
 {
     m_obj["Infinite"] = tv.isInfinite();
 
-    if (!tv.isInfinite() )
+    if(!tv.isInfinite())
     {
         m_obj["Time"] = tv.msec();
     }
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo (TimeValue& tv)
+void Visitor<Writer<JSON>>::writeTo(TimeValue& tv)
 {
-    if (m_obj["Infinite"].toBool() )
+    if(m_obj["Infinite"].toBool())
     {
         tv = TimeValue {PositiveInfinity{}};
     }
     else
     {
-        tv.setMSecs (m_obj["Time"].toInt() );
+        tv.setMSecs(m_obj["Time"].toInt());
     }
 }

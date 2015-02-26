@@ -21,12 +21,12 @@ class InspectorSectionWidget : public QWidget
 {
         Q_OBJECT
     public:
-        explicit InspectorSectionWidget (QWidget* parent = 0);
-        InspectorSectionWidget (QString name, QWidget* parent = 0);
+        explicit InspectorSectionWidget(QWidget* parent = 0);
+        InspectorSectionWidget(QString name, QWidget* parent = 0);
         ~InspectorSectionWidget();
 
     signals:
-        void submitCommand (iscore::SerializableCommand*);
+        void submitCommand(iscore::SerializableCommand*);
 
     public slots:
 
@@ -39,18 +39,18 @@ class InspectorSectionWidget : public QWidget
         void clear();
 
         //! change the name in the header
-        void renameSection (QString newName);
+        void renameSection(QString newName);
 
         //! add the widget newWidget in the main layout
-        void addContent (QWidget* newWidget);
+        void addContent(QWidget* newWidget);
 
         //! removes the widget from the main layout
-        void removeContent (QWidget* toRemove);
+        void removeContent(QWidget* toRemove);
 
         void removeAll();
 
         //! insert newWidget at the index rank in the main layout
-        void insertInSection (int index, QWidget* newWidget);
+        void insertInSection(int index, QWidget* newWidget);
 
         void nameEditEnable();
         void nameEditDisable();

@@ -6,25 +6,25 @@
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom (const ProcessSharedModelInterface& process)
+void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& process)
 {
     // To allow recration using createProcess
     m_stream << process.processName()
              << process.duration();
 
-    readFrom (static_cast<const IdentifiedObject<ProcessSharedModelInterface>&> (process) );
+    readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
 
     // ProcessSharedModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    process.serialize (DataStream::type(),
-                       static_cast<void*> (this) );
+    process.serialize(DataStream::type(),
+                      static_cast<void*>(this));
 
     insertDelimiter();
 }
 
 template<>
-ProcessSharedModelInterface* createProcess (Deserializer<DataStream>& deserializer,
+ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     QString processName;
@@ -33,12 +33,12 @@ ProcessSharedModelInterface* createProcess (Deserializer<DataStream>& deserializ
             >> processName
             >> duration;
 
-    auto model = ProcessList::getFactory (processName)
-                 ->makeModel (DataStream::type(),
-                              static_cast<void*> (&deserializer),
-                              parent);
+    auto model = ProcessList::getFactory(processName)
+                 ->makeModel(DataStream::type(),
+                             static_cast<void*>(&deserializer),
+                             parent);
 
-    model->setDuration (duration);
+    model->setDuration(duration);
 
     deserializer.checkDelimiter();
     return model;
@@ -47,31 +47,31 @@ ProcessSharedModelInterface* createProcess (Deserializer<DataStream>& deserializ
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom (const ProcessSharedModelInterface& process)
+void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = process.processName();
-    m_obj["Duration"] = toJsonObject (process.duration() );
+    m_obj["Duration"] = toJsonObject(process.duration());
 
-    readFrom (static_cast<const IdentifiedObject<ProcessSharedModelInterface>&> (process) );
+    readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
 
     // ProcessSharedModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    process.serialize (JSON::type(),
-                       static_cast<void*> (this) );
+    process.serialize(JSON::type(),
+                      static_cast<void*>(this));
 }
 
 template<>
-ProcessSharedModelInterface* createProcess (Deserializer<JSON>& deserializer,
+ProcessSharedModelInterface* createProcess(Deserializer<JSON>& deserializer,
         QObject* parent)
 {
-    auto model = ProcessList::getFactory (deserializer.m_obj["ProcessName"].toString() )
-                 ->makeModel (JSON::type(),
-                              static_cast<void*> (&deserializer),
-                              parent);
+    auto model = ProcessList::getFactory(deserializer.m_obj["ProcessName"].toString())
+                 ->makeModel(JSON::type(),
+                             static_cast<void*>(&deserializer),
+                             parent);
 
-    model->setDuration (fromJsonObject<TimeValue> (deserializer.m_obj["Duration"].toObject() ) );
+    model->setDuration(fromJsonObject<TimeValue> (deserializer.m_obj["Duration"].toObject()));
 
     return model;
 }

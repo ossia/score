@@ -14,16 +14,16 @@ class AutomationFactory : public ProcessFactoryInterface
             return {"Curve"};
         }
 
-        virtual ProcessSharedModelInterface* makeModel (id_type<ProcessSharedModelInterface> id,
+        virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id,
                 QObject* parent) override;
 
-        virtual ProcessSharedModelInterface* makeModel (SerializationIdentifier identifier,
+        virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,
                 void* data,
                 QObject* parent) override;
 
-        virtual ProcessViewInterface* makeView (QString view,
-                                                QObject* parent) override;
-        virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*,
+        virtual ProcessViewInterface* makeView(QString view,
+                                               QObject* parent) override;
+        virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
                 ProcessViewInterface*,
                 QObject* parent) override;
 };

@@ -24,16 +24,16 @@ namespace Scenario
             public:
                 ResizeBaseConstraint();
 
-                ResizeBaseConstraint (ObjectPath&& constraintPath,
-                                      TimeValue duration);
+                ResizeBaseConstraint(ObjectPath&& constraintPath,
+                                     TimeValue duration);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual int id() const override;
-                virtual bool mergeWith (const QUndoCommand* other) override;
+                virtual bool mergeWith(const QUndoCommand* other) override;
 
             protected:
-                virtual void serializeImpl (QDataStream&) const override;
-                virtual void deserializeImpl (QDataStream&) override;
+                virtual void serializeImpl(QDataStream&) const override;
+                virtual void deserializeImpl(QDataStream&) override;
 
             private:
                 ObjectPath m_path;
