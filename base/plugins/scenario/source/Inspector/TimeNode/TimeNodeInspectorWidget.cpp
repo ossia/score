@@ -11,6 +11,8 @@
 #include "Commands/Metadata/ChangeElementComments.hpp"
 #include "Commands/Metadata/ChangeElementColor.hpp"
 
+#include "Commands/TimeNode/SplitTimeNode.hpp"
+
 #include "core/interface/document/DocumentInterface.hpp"
 
 #include <iostream>
@@ -188,15 +190,26 @@ void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
-    std::cout << "create a timenode with ";
+    QString info = "create a timenode with ";
+
+    QVector<id_type<EventModel> > eventGroup;
 
     for(auto ev : m_events)
     {
         if(ev->isChecked())
         {
-            std ::cout << ev->eventName().toStdString() << " " ;
+            info += ev->eventName(); info += QString(" ") ;
+            eventGroup.push_back( id_type<EventModel>(ev->eventName().toInt()));
         }
     }
 
-    std::cout << std::endl;
+    if (eventGroup.size() < int(m_events.size()))
+    {
+        auto cmd = new SplitTimeNode(iscore::IDocument::path(inspectedObject()),
+                                     eventGroup);
+
+        submitCommand(cmd);
+
+        qDebug() << info;
+    }
 }

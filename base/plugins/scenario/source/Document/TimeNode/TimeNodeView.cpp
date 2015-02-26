@@ -33,7 +33,7 @@ void TimeNodeView::paint(QPainter* painter,
             pen_color = Qt::cyan;
         }
     */
-    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(1.0));
+    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(0.7));
     painter->setBrush(pen_color);
     painter->setPen(QPen(QBrush(pen_color), 5, Qt::SolidLine));
 
