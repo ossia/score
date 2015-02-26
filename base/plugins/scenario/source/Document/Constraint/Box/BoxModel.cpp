@@ -7,68 +7,70 @@
 
 #include <QDebug>
 
-BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent):
-	IdentifiedObject<BoxModel>{id, "BoxModel", parent}
+BoxModel::BoxModel (id_type<BoxModel> id, QObject* parent) :
+    IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
 
 }
 
-BoxModel::BoxModel(BoxModel *source, id_type<BoxModel> id, QObject *parent):
-	IdentifiedObject<BoxModel>{id, "BoxModel", parent}
+BoxModel::BoxModel (BoxModel* source, id_type<BoxModel> id, QObject* parent) :
+    IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
-	for(auto& deck : source->m_decks)
-	{
-		addDeck(new DeckModel{deck, deck->id(), this},
-				source->deckPosition(deck->id()));
-	}
+    for (auto& deck : source->m_decks)
+    {
+        addDeck (new DeckModel {deck, deck->id(), this},
+        source->deckPosition (deck->id() ) );
+    }
 }
 
 ConstraintModel* BoxModel::constraint() const
 {
-	return static_cast<ConstraintModel*>(this->parent());
+    return static_cast<ConstraintModel*> (this->parent() );
 }
 
-void BoxModel::addDeck(DeckModel* deck, int position)
+void BoxModel::addDeck (DeckModel* deck, int position)
 {
-	// Connection
-	connect(this, &BoxModel::on_deleteSharedProcessModel,
-			deck, &DeckModel::on_deleteSharedProcessModel);
-	m_decks.push_back(deck);
-	m_positions.insert(position, deck->id());
+    // Connection
+    connect (this, &BoxModel::on_deleteSharedProcessModel,
+             deck, &DeckModel::on_deleteSharedProcessModel);
+    m_decks.push_back (deck);
+    m_positions.insert (position, deck->id() );
 
-	emit deckCreated(deck->id());
-	emit deckPositionsChanged();
+    emit deckCreated (deck->id() );
+    emit deckPositionsChanged();
 }
 
-void BoxModel::addDeck(DeckModel* m)
+void BoxModel::addDeck (DeckModel* m)
 {
-	addDeck(m, m_positions.size());
+    addDeck (m, m_positions.size() );
 }
 
 
-void BoxModel::removeDeck(id_type<DeckModel> deckId)
+void BoxModel::removeDeck (id_type<DeckModel> deckId)
 {
-	auto removedDeck = deck(deckId);
+    auto removedDeck = deck (deckId);
 
-	// Make the remaining decks decrease their position.
-	m_positions.removeAll(deckId);
+    // Make the remaining decks decrease their position.
+    m_positions.removeAll (deckId);
 
-	// Delete
-	vec_erase_remove_if(m_decks,
-						[&deckId] (DeckModel* model)
-						{ return model->id() == deckId; });
+    // Delete
+    vec_erase_remove_if (m_decks,
+                         [&deckId] (DeckModel * model)
+    {
+        return model->id() == deckId;
+    });
 
-	emit deckRemoved(deckId);
-	emit deckPositionsChanged();
-	delete removedDeck;
+    emit deckRemoved (deckId);
+    emit deckPositionsChanged();
+    delete removedDeck;
 }
 
-void BoxModel::changeDeckOrder(id_type<DeckModel> deckId, int position)
+void BoxModel::changeDeckOrder (id_type<DeckModel> deckId, int position)
 {
-	qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+    qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
 }
 
-DeckModel* BoxModel::deck(id_type<DeckModel> deckId) const
+DeckModel* BoxModel::deck (id_type<DeckModel> deckId) const
 {
-	return findById(m_decks, deckId);
+    return findById (m_decks, deckId);
 }

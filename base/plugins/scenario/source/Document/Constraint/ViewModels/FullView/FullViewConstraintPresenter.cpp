@@ -13,26 +13,31 @@
 #include <QDebug>
 #include <QGraphicsScene>
 
-FullViewConstraintPresenter::FullViewConstraintPresenter(
-		FullViewConstraintViewModel* cstr_model,
-		FullViewConstraintView* cstr_view,
-		QObject* parent):
-	AbstractConstraintPresenter{"FullViewConstraintPresenter", cstr_model, cstr_view, parent}
+FullViewConstraintPresenter::FullViewConstraintPresenter (
+    FullViewConstraintViewModel* cstr_model,
+    FullViewConstraintView* cstr_view,
+    QObject* parent) :
+    AbstractConstraintPresenter {"FullViewConstraintPresenter", cstr_model, cstr_view, parent}
 {
-	if(viewModel(this)->isBoxShown())
-	{
-		on_boxShown(viewModel(this)->shownBox());
-	}
+    if (viewModel (this)->isBoxShown() )
+    {
+        on_boxShown (viewModel (this)->shownBox() );
+    }
 
-	updateHeight();
+    updateHeight();
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
 {
-	if(view(this))
-	{
-		auto sc = view(this)->scene();
-		if(sc && sc->items().contains(view(this))) sc->removeItem(view(this));
-		view(this)->deleteLater();
-	}
+    if (view (this) )
+    {
+        auto sc = view (this)->scene();
+
+        if (sc && sc->items().contains (view (this) ) )
+        {
+            sc->removeItem (view (this) );
+        }
+
+        view (this)->deleteLater();
+    }
 }

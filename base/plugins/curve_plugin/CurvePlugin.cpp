@@ -6,37 +6,37 @@
 #include <QVector>
 
 CurvePlugin::CurvePlugin() :
-	QObject{}
+    QObject {}
 {
-	setObjectName("CurvePlugin");
+    setObjectName ("CurvePlugin");
 }
 
 QStringList CurvePlugin::control_list() const
 {
-	return {"AutomationControl"};
+    return {"AutomationControl"};
 }
 
-iscore::PluginControlInterface*CurvePlugin::control_make(QString name)
+iscore::PluginControlInterface* CurvePlugin::control_make (QString name)
 {
-	if(name == "AutomationControl")
-	{
-		return new AutomationControl{nullptr};
-	}
+    if (name == "AutomationControl")
+    {
+        return new AutomationControl {nullptr};
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 QVector<iscore::FactoryInterface*> CurvePlugin::factories_make (QString factoryName)
 {
-	if (factoryName == "Process")
-	{
-		return {new AutomationFactory};
-	}
+    if (factoryName == "Process")
+    {
+        return {new AutomationFactory};
+    }
 
-	if(factoryName == "Inspector")
-	{
-		return {new AutomationInspectorFactory};
-	}
+    if (factoryName == "Inspector")
+    {
+        return {new AutomationInspectorFactory};
+    }
 
-	return {};
+    return {};
 }

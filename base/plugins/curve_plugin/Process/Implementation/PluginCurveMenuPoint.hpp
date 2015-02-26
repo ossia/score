@@ -9,12 +9,18 @@ class PluginCurvePoint;
 
 class PluginCurveMenuPoint : public QMenu
 {
-	public:
-                const QString DELETE{MENUPOINT_DELETE_TEXT};
-                const QString FIX_HORIZONTAL{MENUPOINT_FIX_HORIZONTAL_TEXT};
+    public:
+        const QString DELETE
+        {
+            MENUPOINT_DELETE_TEXT
+        };
+        const QString FIX_HORIZONTAL
+        {
+            MENUPOINT_FIX_HORIZONTAL_TEXT
+        };
 
-		PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent = 0);
-                virtual ~PluginCurveMenuPoint() = default;
+        PluginCurveMenuPoint (PluginCurvePoint* point, QWidget* parent = 0);
+        virtual ~PluginCurveMenuPoint() = default;
 
 };
 

@@ -11,31 +11,31 @@ class EventModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
-	namespace Command
-	{
+    namespace Command
+    {
         class MoveTimeNode : public iscore::SerializableCommand
-		{
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
+            public:
                 MoveTimeNode();
-                MoveTimeNode(ObjectPath &&scenarioPath, EventData data);
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
-				TimeValue m_oldX{}; // TODO : bof bof !
+                MoveTimeNode (ObjectPath&& scenarioPath, EventData data);
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
+                TimeValue m_oldX {}; // TODO : bof bof !
 
             protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
+            private:
                 ObjectPath m_path;
-                id_type<EventModel> m_eventId{};
+                id_type<EventModel> m_eventId {};
 
-                double m_oldHeightPosition{};
-                double m_newHeightPosition{};
-                TimeValue m_newX{};
-		};
-	}
+                double m_oldHeightPosition {};
+                double m_newHeightPosition {};
+                TimeValue m_newX {};
+        };
+    }
 }

@@ -33,6 +33,6 @@ knowledge of the CeCILL license and that you accept its terms.
 
 
 PluginCurveSectionBezier::PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest) :
-	PluginCurveSection (parent, source, dest)
+    PluginCurveSection (parent, source, dest)
 {
 }

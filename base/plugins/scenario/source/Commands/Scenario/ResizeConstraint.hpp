@@ -10,33 +10,33 @@
 
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
- * @brief The ResizeConstraintCommand class
- *
- * This command creates an Event, which is linked to the first event in the
- * scenario.
- */
+    namespace Command
+    {
+        /**
+        * @brief The ResizeConstraintCommand class
+        *
+        * This command creates an Event, which is linked to the first event in the
+        * scenario.
+        */
         class ResizeConstraint : public iscore::SerializableCommand
-		{
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
+            public:
                 ResizeConstraint();
                 ~ResizeConstraint();
-				ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration);
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+                ResizeConstraint (ObjectPath&& constraintPath, TimeValue duration);
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-                MoveEvent* m_cmd{};
-				TimeValue m_oldEndDate{};
+            private:
+                MoveEvent* m_cmd {};
+                TimeValue m_oldEndDate {};
         };
-	}
+    }
 }

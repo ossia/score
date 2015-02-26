@@ -9,34 +9,34 @@ class QSpinBox;
 
 class AddressIntSettingsWidget : public AddressSettingsWidget
 {
-public:
-  AddressIntSettingsWidget(QWidget *parent = nullptr);
+    public:
+        AddressIntSettingsWidget (QWidget* parent = nullptr);
 
-  //TODO: use QVariant instead ???
-  /*
-    
-    The first element in returned list must be the name of the device.
-   */
-  virtual QList<QString> getSettings() const override;
+        //TODO: use QVariant instead ???
+        /*
 
-  virtual void setSettings(const QList<QString> &settings) override;
+          The first element in returned list must be the name of the device.
+         */
+        virtual QList<QString> getSettings() const override;
 
-protected:
+        virtual void setSettings (const QList<QString>& settings) override;
 
-  void buildGUI();
+    protected:
 
-  void setDefaults();
+        void buildGUI();
 
-protected:
+        void setDefaults();
 
-  QComboBox *m_ioTypeCBox;
-  QSpinBox *m_valueSBox;
-  QSpinBox *m_minSBox;
-  QSpinBox *m_maxSBox;
-  QComboBox *m_unitCBox;
-  QComboBox *m_clipModeCBox;
-  QSpinBox *m_prioritySBox;
-  QLineEdit *m_tagsEdit;
+    protected:
+
+        QComboBox* m_ioTypeCBox;
+        QSpinBox* m_valueSBox;
+        QSpinBox* m_minSBox;
+        QSpinBox* m_maxSBox;
+        QComboBox* m_unitCBox;
+        QComboBox* m_clipModeCBox;
+        QSpinBox* m_prioritySBox;
+        QLineEdit* m_tagsEdit;
 
 };
 

@@ -13,18 +13,18 @@ void AssignMessagesToState::redo()
 
 int AssignMessagesToState::id() const
 {
-	return -1;
+    return -1;
 }
 
-bool AssignMessagesToState::mergeWith(const QUndoCommand* other)
+bool AssignMessagesToState::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void AssignMessagesToState::serializeImpl(QDataStream&) const
+void AssignMessagesToState::serializeImpl (QDataStream&) const
 {
 }
 
-void AssignMessagesToState::deserializeImpl(QDataStream&)
+void AssignMessagesToState::deserializeImpl (QDataStream&)
 {
 }

@@ -8,7 +8,7 @@ class TemporalConstraintView;
 
 namespace iscore
 {
-	class SerializableCommand;
+    class SerializableCommand;
 }
 class ProcessPresenterInterface;
 
@@ -20,21 +20,21 @@ class ProcessPresenterInterface;
  */
 class TemporalConstraintPresenter : public AbstractConstraintPresenter
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		using view_model_type = TemporalConstraintViewModel;
-		using view_type = TemporalConstraintView;
+    public:
+        using view_model_type = TemporalConstraintViewModel;
+        using view_type = TemporalConstraintView;
 
-		TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
-									TemporalConstraintView* view,
-									QObject* parent);
-		virtual ~TemporalConstraintPresenter();
+        TemporalConstraintPresenter (TemporalConstraintViewModel* viewModel,
+                                     TemporalConstraintView* view,
+                                     QObject* parent);
+        virtual ~TemporalConstraintPresenter();
 
-	signals:
-		void constraintMoved(ConstraintData);
-		void constraintReleased();
-        void eventSelected(QString);
+    signals:
+        void constraintMoved (ConstraintData);
+        void constraintReleased();
+        void eventSelected (QString);
 
 };
 

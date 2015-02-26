@@ -1,8 +1,12 @@
 #pragma once
 
 // TODO use TimeValue to provide a mapping ?
-inline double millisecondsPerPixel(int zoomLevel)
+inline double millisecondsPerPixel (int zoomLevel)
 {
-	if(zoomLevel < 10) zoomLevel = 10;
-	return 100.0 / zoomLevel;
+    if (zoomLevel < 10)
+    {
+        zoomLevel = 10;
+    }
+
+    return 100.0 / zoomLevel;
 }

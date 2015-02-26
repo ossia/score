@@ -10,32 +10,32 @@ struct EventModelData;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
- * @brief The CreateEventCommand class
- *
- * This command creates an Event, which is linked to the first event in the
- * scenario.
- */
-		class CreateEvent : public iscore::SerializableCommand
-		{
+    namespace Command
+    {
+        /**
+        * @brief The CreateEventCommand class
+        *
+        * This command creates an Event, which is linked to the first event in the
+        * scenario.
+        */
+        class CreateEvent : public iscore::SerializableCommand
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
-				CreateEvent();
-				~CreateEvent();
-                CreateEvent(ObjectPath&& scenarioPath, EventData data);
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+            public:
+                CreateEvent();
+                ~CreateEvent();
+                CreateEvent (ObjectPath&& scenarioPath, EventData data);
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-				CreateEventAfterEvent* m_cmd{};
-		};
-	}
+            private:
+                CreateEventAfterEvent* m_cmd {};
+        };
+    }
 }

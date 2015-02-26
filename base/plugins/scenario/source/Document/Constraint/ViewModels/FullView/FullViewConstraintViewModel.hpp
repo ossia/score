@@ -12,30 +12,30 @@ class ConstraintModel;
  */
 class FullViewConstraintViewModel : public AbstractConstraintViewModel
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
+    public:
 
-		/**
-		 * @brief FullViewConstraintViewModel
-		 * @param id identifier
-		 * @param model Pointer to the corresponding model object
-		 * @param parent Parent object (most certainly ScenarioViewModel)
-		 */
-		FullViewConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-									ConstraintModel* model,
-									QObject* parent);
+        /**
+         * @brief FullViewConstraintViewModel
+         * @param id identifier
+         * @param model Pointer to the corresponding model object
+         * @param parent Parent object (most certainly ScenarioViewModel)
+         */
+        FullViewConstraintViewModel (id_type<AbstractConstraintViewModel> id,
+                                     ConstraintModel* model,
+                                     QObject* parent);
 
-		virtual FullViewConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
-												   ConstraintModel* cm,
-												   QObject* parent) override;
+        virtual FullViewConstraintViewModel* clone (id_type<AbstractConstraintViewModel> id,
+                ConstraintModel* cm,
+                QObject* parent) override;
 
-		template<typename DeserializerVisitor>
-		FullViewConstraintViewModel(DeserializerVisitor&& vis,
-									ConstraintModel* model,
-									QObject* parent):
-			AbstractConstraintViewModel{vis, model, parent}
-		{
-			// Nothing to add, no vis.visit(*this);
-		}
+        template<typename DeserializerVisitor>
+        FullViewConstraintViewModel (DeserializerVisitor&& vis,
+                                     ConstraintModel* model,
+                                     QObject* parent) :
+            AbstractConstraintViewModel {vis, model, parent}
+        {
+            // Nothing to add, no vis.visit(*this);
+        }
 };

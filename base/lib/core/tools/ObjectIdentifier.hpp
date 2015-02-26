@@ -18,46 +18,52 @@
  */
 class ObjectIdentifier
 {
-		friend Serializer<DataStream>;
-		friend Serializer<JSON>;
-		friend Deserializer<DataStream>;
-		friend Deserializer<JSON>;
+        friend Serializer<DataStream>;
+        friend Serializer<JSON>;
+        friend Deserializer<DataStream>;
+        friend Deserializer<JSON>;
 
-		friend bool operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
-		{
-			return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
-		}
-	public:
-		ObjectIdentifier() = default;
-		ObjectIdentifier(const char* name):
-			m_objectName{name}
-		{ }
+        friend bool operator== (const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
+        {
+            return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
+        }
+    public:
+        ObjectIdentifier() = default;
+        ObjectIdentifier (const char* name) :
+            m_objectName {name}
+        { }
 
-		ObjectIdentifier(QString name, boost::optional<int32_t> id):
-			m_objectName{std::move(name)},
-			m_id{std::move(id)}
-		{ }
+        ObjectIdentifier (QString name, boost::optional<int32_t> id) :
+            m_objectName {std::move (name) },
+                     m_id {std::move (id) }
+        { }
 
-		template<typename T>
-		ObjectIdentifier(QString name, id_type<T> id):
-			m_objectName{std::move(name)}
-		{
-			if(id.val())
-				m_id = id.val().get();
-		}
+        template<typename T>
+        ObjectIdentifier (QString name, id_type<T> id) :
+            m_objectName {std::move (name) }
+        {
+            if (id.val() )
+            {
+                m_id = id.val().get();
+            }
+        }
 
-		const QString& objectName() const
-		{ return m_objectName; }
+        const QString& objectName() const
+        {
+            return m_objectName;
+        }
 
-		const boost::optional<int32_t>& id() const
-		{ return m_id; }
+        const boost::optional<int32_t>& id() const
+        {
+            return m_id;
+        }
 
-	private:
-		QString m_objectName;
-		boost::optional<int32_t> m_id;
+    private:
+        QString m_objectName;
+        boost::optional<int32_t> m_id;
 };
 
-Q_DECLARE_METATYPE(ObjectIdentifier)
+Q_DECLARE_METATYPE (ObjectIdentifier)
 
 typedef QVector<ObjectIdentifier> ObjectIdentifierVector;
 

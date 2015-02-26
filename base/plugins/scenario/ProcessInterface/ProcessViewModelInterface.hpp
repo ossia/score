@@ -11,39 +11,41 @@ class ProcessSharedModelInterface;
  */
 class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterface>
 {
-	public:
-		virtual ~ProcessViewModelInterface() = default;
+    public:
+        virtual ~ProcessViewModelInterface() = default;
 
-		ProcessSharedModelInterface* sharedProcessModel() const
-		{ return m_sharedProcessModel; }
+        ProcessSharedModelInterface* sharedProcessModel() const
+        {
+            return m_sharedProcessModel;
+        }
 
-		// protected:
-		virtual void serialize(SerializationIdentifier identifier,
-							   void* data) const = 0;
+        // protected:
+        virtual void serialize (SerializationIdentifier identifier,
+                                void* data) const = 0;
 
-	protected:
-		ProcessViewModelInterface(id_type<ProcessViewModelInterface> viewModelId,
-								  QString name,
-								  ProcessSharedModelInterface* sharedProcess,
-								  QObject* parent):
-			IdentifiedObject<ProcessViewModelInterface>{viewModelId, name, parent},
-			m_sharedProcessModel{sharedProcess}
-		{
+    protected:
+        ProcessViewModelInterface (id_type<ProcessViewModelInterface> viewModelId,
+                                   QString name,
+                                   ProcessSharedModelInterface* sharedProcess,
+                                   QObject* parent) :
+            IdentifiedObject<ProcessViewModelInterface> {viewModelId, name, parent},
+        m_sharedProcessModel {sharedProcess}
+        {
 
-		}
+        }
 
-		template<typename Impl>
-		ProcessViewModelInterface(Deserializer<Impl>& vis,
-								  ProcessSharedModelInterface* sharedProcess,
-								  QObject* parent):
-			IdentifiedObject<ProcessViewModelInterface>{vis, parent},
-			m_sharedProcessModel{sharedProcess}
-		{
-			// Nothing else to load
-		}
+        template<typename Impl>
+        ProcessViewModelInterface (Deserializer<Impl>& vis,
+                                   ProcessSharedModelInterface* sharedProcess,
+                                   QObject* parent) :
+            IdentifiedObject<ProcessViewModelInterface> {vis, parent},
+        m_sharedProcessModel {sharedProcess}
+        {
+            // Nothing else to load
+        }
 
-	private:
-		ProcessSharedModelInterface* m_sharedProcessModel{};
+    private:
+        ProcessSharedModelInterface* m_sharedProcessModel {};
 };
 
 
@@ -54,9 +56,9 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
  * @return a pointer of the correct type.
  */
 template<typename T>
-typename T::model_type* model(T* viewModel)
+typename T::model_type* model (T* viewModel)
 {
-	return static_cast<typename T::model_type*>(viewModel->sharedProcessModel());
+    return static_cast<typename T::model_type*> (viewModel->sharedProcessModel() );
 }
 
 
@@ -70,24 +72,26 @@ typename T::model_type* model(T* viewModel)
  *  * The deck identifier
  *  * The view model identifier
  */
-inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessViewModelInterface* pvm)
+inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel (ProcessViewModelInterface* pvm)
 {
-	// TODO - this only works by sheer luck
-	auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());
-	auto boxModel = static_cast<IdentifiedObjectAbstract*>(deckModel->parent());
-	return std::tuple<int,int,int>{
-				boxModel->id_val(),
-				deckModel->id_val(),
-				pvm->id_val()};
+    // TODO - this only works by sheer luck
+    auto deckModel = static_cast<IdentifiedObjectAbstract*> (pvm->parent() );
+    auto boxModel = static_cast<IdentifiedObjectAbstract*> (deckModel->parent() );
+    return std::tuple<int, int, int>
+    {
+        boxModel->id_val(),
+        deckModel->id_val(),
+        pvm->id_val()
+    };
 }
 
-inline QDataStream& operator<<(QDataStream& s, const std::tuple<int,int,int>& tuple)
+inline QDataStream& operator<< (QDataStream& s, const std::tuple<int, int, int>& tuple)
 {
-	s << std::get<0>(tuple) << std::get<1>(tuple) << std::get<2>(tuple);
-	return s;
+    s << std::get<0> (tuple) << std::get<1> (tuple) << std::get<2> (tuple);
+    return s;
 }
-inline QDataStream& operator>>(QDataStream& s, std::tuple<int,int,int>& tuple)
+inline QDataStream& operator>> (QDataStream& s, std::tuple<int, int, int>& tuple)
 {
-	s >> std::get<0>(tuple) >> std::get<1>(tuple) >> std::get<2>(tuple);
-	return s;
+    s >> std::get<0> (tuple) >> std::get<1> (tuple) >> std::get<2> (tuple);
+    return s;
 }

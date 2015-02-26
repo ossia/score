@@ -6,24 +6,27 @@
 class PluginSettingsPresenter;
 class PluginSettingsView : public iscore::SettingsDelegateViewInterface
 {
-		Q_OBJECT
-	public:
-		PluginSettingsView(QObject* parent);
+        Q_OBJECT
+    public:
+        PluginSettingsView (QObject* parent);
 
-		QListView* view() { return m_listView; }
+        QListView* view()
+        {
+            return m_listView;
+        }
 
-		virtual QWidget* getWidget() override;
-		void load();
-		void doConnections();
+        virtual QWidget* getWidget() override;
+        void load();
+        void doConnections();
 
-	signals:
-		void submitCommand(iscore::Command* cmd);
+    signals:
+        void submitCommand (iscore::Command* cmd);
 
-	public slots:
+    public slots:
 
-	private:
-		PluginSettingsPresenter* presenter();
+    private:
+        PluginSettingsPresenter* presenter();
 
-		QWidget* m_widget{new QWidget};
-		QListView* m_listView{new QListView{m_widget}};
+        QWidget* m_widget {new QWidget};
+        QListView* m_listView {new QListView{m_widget}};
 };

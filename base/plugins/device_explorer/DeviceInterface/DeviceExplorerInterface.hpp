@@ -7,13 +7,13 @@ class DeviceExplorerModel;
 
 namespace DeviceExplorer
 {
-	QString panelName();
-	QString explorerName();
+    QString panelName();
+    QString explorerName();
 
-	// Object inside a document.
-	DeviceExplorerModel* getModel(QObject* object);
+    // Object inside a document.
+    DeviceExplorerModel* getModel (QObject* object);
 
-	QJsonObject toJson(DeviceExplorerModel* deviceExplorer);
+    QJsonObject toJson (DeviceExplorerModel* deviceExplorer);
 
-	QString addressFromModelIndex(const QModelIndex& index);
+    QString addressFromModelIndex (const QModelIndex& index);
 }

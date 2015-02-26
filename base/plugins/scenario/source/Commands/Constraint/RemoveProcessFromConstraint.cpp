@@ -10,57 +10,59 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessFromConstraint::RemoveProcessFromConstraint():
-	SerializableCommand{"ScenarioControl",
-						"RemoveProcessFromConstraint",
-						QObject::tr("Delete process")}
+RemoveProcessFromConstraint::RemoveProcessFromConstraint() :
+    SerializableCommand {"ScenarioControl",
+    "RemoveProcessFromConstraint",
+    QObject::tr ("Delete process")
+}
 {
 }
 
-RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath,
-														 id_type<ProcessSharedModelInterface> processId):
-	SerializableCommand{"ScenarioControl",
-						"RemoveProcessFromConstraint",
-						QObject::tr("Delete process")},
-	m_path{std::move(constraintPath)},
-	m_processId{processId}
+RemoveProcessFromConstraint::RemoveProcessFromConstraint (ObjectPath&& constraintPath,
+        id_type<ProcessSharedModelInterface> processId) :
+    SerializableCommand {"ScenarioControl",
+    "RemoveProcessFromConstraint",
+    QObject::tr ("Delete process")
+},
+m_path {std::move (constraintPath) },
+m_processId {processId}
 {
-	auto constraint = m_path.find<ConstraintModel>();
+    auto constraint = m_path.find<ConstraintModel>();
 
-	Serializer<DataStream> s{&m_serializedProcessData};
+    Serializer<DataStream> s{&m_serializedProcessData};
 
-	s.readFrom(*constraint->process(m_processId));
+    s.readFrom (*constraint->process (m_processId) );
 }
 
 void RemoveProcessFromConstraint::undo()
 {
-	auto constraint = m_path.find<ConstraintModel>();
-	Deserializer<DataStream> s{&m_serializedProcessData};
-	constraint->addProcess(createProcess(s, constraint));
+    auto constraint = m_path.find<ConstraintModel>();
+    Deserializer<DataStream> s {&m_serializedProcessData};
+    constraint->addProcess (createProcess (s, constraint) );
 }
 
 void RemoveProcessFromConstraint::redo()
 {
-	auto constraint = m_path.find<ConstraintModel>();
-	constraint->removeProcess(m_processId);
+    auto constraint = m_path.find<ConstraintModel>();
+    constraint->removeProcess (m_processId);
 }
 
 int RemoveProcessFromConstraint::id() const
 {
-	return 1;
+    return 1;
 }
 
-bool RemoveProcessFromConstraint::mergeWith(const QUndoCommand* other)
+bool RemoveProcessFromConstraint::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void RemoveProcessFromConstraint::serializeImpl(QDataStream& s) const
+void RemoveProcessFromConstraint::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_processId << m_serializedProcessData;
+    s << m_path << m_processId << m_serializedProcessData;
 }
 
-void RemoveProcessFromConstraint::deserializeImpl(QDataStream& s)
+void RemoveProcessFromConstraint::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_processId >> m_serializedProcessData;
+    s >> m_path >> m_processId >> m_serializedProcessData;
 }

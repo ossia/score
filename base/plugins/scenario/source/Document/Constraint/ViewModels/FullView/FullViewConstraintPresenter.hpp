@@ -9,7 +9,7 @@ class BoxModel;
 
 namespace iscore
 {
-	class SerializableCommand;
+    class SerializableCommand;
 }
 class ProcessPresenterInterface;
 
@@ -21,16 +21,16 @@ class ProcessPresenterInterface;
  */
 class FullViewConstraintPresenter : public AbstractConstraintPresenter
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		using view_model_type = FullViewConstraintViewModel;
-		using view_type = FullViewConstraintView;
+    public:
+        using view_model_type = FullViewConstraintViewModel;
+        using view_type = FullViewConstraintView;
 
-		FullViewConstraintPresenter(FullViewConstraintViewModel* viewModel,
-									FullViewConstraintView* view,
-									QObject* parent);
-		virtual ~FullViewConstraintPresenter();
+        FullViewConstraintPresenter (FullViewConstraintViewModel* viewModel,
+                                     FullViewConstraintView* view,
+                                     QObject* parent);
+        virtual ~FullViewConstraintPresenter();
 
 };
 

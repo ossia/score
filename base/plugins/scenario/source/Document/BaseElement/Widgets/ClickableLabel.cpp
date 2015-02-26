@@ -1,21 +1,21 @@
 #include "ClickableLabel.hpp"
 
-ClickableLabel::ClickableLabel(QString text, QWidget* parent):
-	QLabel{text, parent}
+ClickableLabel::ClickableLabel (QString text, QWidget* parent) :
+    QLabel {text, parent}
 {
 }
 
-void ClickableLabel::enterEvent(QEvent*)
+void ClickableLabel::enterEvent (QEvent*)
 {
-	setStyleSheet("QLabel { text-decoration: underline; }");
+    setStyleSheet ("QLabel { text-decoration: underline; }");
 }
 
-void ClickableLabel::leaveEvent(QEvent*)
+void ClickableLabel::leaveEvent (QEvent*)
 {
-	setStyleSheet("QLabel { }");
+    setStyleSheet ("QLabel { }");
 }
 
-void ClickableLabel::mousePressEvent(QMouseEvent* event)
+void ClickableLabel::mousePressEvent (QMouseEvent* event)
 {
-	emit clicked(this);
+    emit clicked (this);
 }

@@ -3,7 +3,7 @@
 #include <interface/panel/PanelModelInterface.hpp>
 namespace iscore
 {
-	class DocumentModel;
+    class DocumentModel;
 }
 /**
  * @brief The InspectorPanelModel class
@@ -12,19 +12,19 @@ namespace iscore
  */
 class InspectorPanelModel : public iscore::PanelModelInterface
 {
-		Q_OBJECT
-	public:
-		InspectorPanelModel(iscore::DocumentModel* parent);
-		
-	signals:
-		void setNewItem(QObject*);
-		
-	public slots:
-        void newItemInspected(QObject*);
+        Q_OBJECT
+    public:
+        InspectorPanelModel (iscore::DocumentModel* parent);
+
+    signals:
+        void setNewItem (QObject*);
+
+    public slots:
+        void newItemInspected (QObject*);
         void lastItemInspected();
-		
-	private:
-		QObject* m_selectedObject{}; // TODO get Path instead.
+
+    private:
+        QObject* m_selectedObject {}; // TODO get Path instead.
 
         QVector<QObject*> m_lastInspectedObjects;
 };

@@ -34,9 +34,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "PluginCurveSection.hpp"
 class PluginCurveSectionBezier : public PluginCurveSection
 {
-		Q_OBJECT
-	public:
-		PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest);
+        Q_OBJECT
+    public:
+        PluginCurveSectionBezier (PluginCurveView* parent, PluginCurvePoint* source, PluginCurvePoint* dest);
 };
 
 #endif // PLUGINCURVESECTIONBEZIER_HPP

@@ -6,33 +6,33 @@
 class DeckModel;
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
-		 * @brief The AddDeckToBox class
-		 *
-		 * Adds an empty deck at the end of a Box.
-		 */
-		class AddDeckToBox : public iscore::SerializableCommand
-		{
+    namespace Command
+    {
+        /**
+         * @brief The AddDeckToBox class
+         *
+         * Adds an empty deck at the end of a Box.
+         */
+        class AddDeckToBox : public iscore::SerializableCommand
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
-				AddDeckToBox();
-				AddDeckToBox(ObjectPath&& boxPath);
+            public:
+                AddDeckToBox();
+                AddDeckToBox (ObjectPath&& boxPath);
 
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-				ObjectPath m_path;
+            private:
+                ObjectPath m_path;
 
-				id_type<DeckModel> m_createdDeckId{};
-		};
-	}
+                id_type<DeckModel> m_createdDeckId {};
+        };
+    }
 }

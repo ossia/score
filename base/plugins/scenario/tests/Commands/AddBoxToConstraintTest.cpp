@@ -9,39 +9,40 @@ using namespace Scenario::Command;
 
 class AddBoxToConstraintTest: public QObject
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	private slots:
-		void CreateBoxTest()
-		{
-			ConstraintModel* constraint  = new ConstraintModel{id_type<ConstraintModel>{0},
-															   id_type<AbstractConstraintViewModel>{0},
-															   qApp};
+    private slots:
+        void CreateBoxTest()
+        {
+            ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0},
+                                                                id_type<AbstractConstraintViewModel>{0},
+                                                                qApp
+                                                               };
 
-			QCOMPARE((int)constraint->boxes().size(), 0);
-			AddBoxToConstraint cmd(
-			ObjectPath{ {"ConstraintModel", {}} });
+            QCOMPARE ( (int) constraint->boxes().size(), 0);
+            AddBoxToConstraint cmd (
+            ObjectPath { {"ConstraintModel", {}} });
 
-			auto id = cmd.m_createdBoxId;
+            auto id = cmd.m_createdBoxId;
 
-			cmd.redo();
-			QCOMPARE((int)constraint->boxes().size(), 1);
-			QCOMPARE(constraint->box(id)->parent(), constraint);
+            cmd.redo();
+            QCOMPARE ( (int) constraint->boxes().size(), 1);
+            QCOMPARE (constraint->box (id)->parent(), constraint);
 
-			cmd.undo();
-			QCOMPARE((int)constraint->boxes().size(), 0);
+            cmd.undo();
+            QCOMPARE ( (int) constraint->boxes().size(), 0);
 
-			cmd.redo();
-			QCOMPARE((int)constraint->boxes().size(), 1);
-			QCOMPARE(constraint->box(id)->parent(), constraint);
+            cmd.redo();
+            QCOMPARE ( (int) constraint->boxes().size(), 1);
+            QCOMPARE (constraint->box (id)->parent(), constraint);
 
-			// Delete them else they stay in qApp !
-			delete constraint;
-		}
+            // Delete them else they stay in qApp !
+            delete constraint;
+        }
 
 
 };
 
-QTEST_MAIN(AddBoxToConstraintTest)
+QTEST_MAIN (AddBoxToConstraintTest)
 #include "AddBoxToConstraintTest.moc"
 

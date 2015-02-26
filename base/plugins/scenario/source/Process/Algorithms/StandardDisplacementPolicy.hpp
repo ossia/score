@@ -9,13 +9,13 @@ class TimeNodeModel;
 
 namespace StandardDisplacementPolicy
 {
-	void setEventPosition(ScenarioModel& scenario,
-						  id_type<EventModel> eventId,
-						  TimeValue absolute_time,
-						  double heightPosition);
+    void setEventPosition (ScenarioModel& scenario,
+                           id_type<EventModel> eventId,
+                           TimeValue absolute_time,
+                           double heightPosition);
 
-	void setConstraintPosition(ScenarioModel& scenario,
-							   id_type<ConstraintModel> constraintId,
-							   TimeValue absolute_time,
-							   double heightPosition);
+    void setConstraintPosition (ScenarioModel& scenario,
+                                id_type<ConstraintModel> constraintId,
+                                TimeValue absolute_time,
+                                double heightPosition);
 }

@@ -3,13 +3,13 @@
 
 class EventEditorWidget : public QWidget
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
+    public:
 
-		virtual ~EventEditorWidget() = default;
+        virtual ~EventEditorWidget() = default;
 
-	private:
+    private:
 
 };
 

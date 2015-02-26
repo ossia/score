@@ -12,93 +12,95 @@ class FakeParent : public QObject
 
 struct FakeModel : public QNamedObject
 {
-	FakeModel(QObject* parent): QNamedObject{parent, "FakeModel"}
-	{
-	}
+    FakeModel (QObject* parent) : QNamedObject {parent, "FakeModel"}
+    {
+    }
 
-	int modelId{};
-	int value{};
+    int modelId {};
+    int value {};
 };
 
 class FakeCommand : public SerializableCommand
 {
-	public:
-		FakeCommand(int modelId):
-			SerializableCommand{"", "FakeCommand", "" },
-			m_modelId{modelId}
-		{
+    public:
+        FakeCommand (int modelId) :
+            SerializableCommand {"", "FakeCommand", "" },
+        m_modelId {modelId}
+        {
 
-		}
+        }
 
-		virtual void undo()
-		{
-			auto children = m_globalParent.findChildren<FakeModel*>("FakeModel");
-			for(auto& model : children)
-			{
-				if(model->modelId == m_modelId)
-				{
-					model->value--;
-				}
-			}
-		}
+        virtual void undo()
+        {
+            auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
 
-		virtual void redo()
-		{
-			auto children = m_globalParent.findChildren<FakeModel*>("FakeModel");
-			for(auto& model : children)
-			{
-				if(model->modelId == m_modelId)
-				{
-					model->value++;
-				}
-			}
-		}
+            for (auto& model : children)
+            {
+                if (model->modelId == m_modelId)
+                {
+                    model->value--;
+                }
+            }
+        }
 
-		virtual int id() const
-		{
-			return 1;
-		}
+        virtual void redo()
+        {
+            auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
 
-	private:
-		int m_modelId{};
+            for (auto& model : children)
+            {
+                if (model->modelId == m_modelId)
+                {
+                    model->value++;
+                }
+            }
+        }
 
-		// SerializableCommand interface
-	protected:
-		virtual void serializeImpl(QDataStream&) override
-		{
-		}
-		virtual void deserializeImpl(QDataStream&) override
-		{
-		}
+        virtual int id() const
+        {
+            return 1;
+        }
+
+    private:
+        int m_modelId {};
+
+        // SerializableCommand interface
+    protected:
+        virtual void serializeImpl (QDataStream&) override
+        {
+        }
+        virtual void deserializeImpl (QDataStream&) override
+        {
+        }
 };
 
 class TestCommand: public QObject
 {
-		Q_OBJECT
-	public:
-		TestCommand() : QObject{}
-		{
-			m_model = new FakeModel{&m_globalParent};
-		}
+        Q_OBJECT
+    public:
+        TestCommand() : QObject {}
+        {
+            m_model = new FakeModel{&m_globalParent};
+        }
 
-	private slots:
-		void CommandTest()
-		{
-			QVERIFY(m_model->value == 0);
-			auto cmd = new FakeCommand{0};
-			m_commandQueue.push(cmd);
-			QVERIFY(m_model->value == 1);
-			m_commandQueue.undo();
-			QVERIFY(m_model->value == 0);
-			m_commandQueue.redo();
-			QVERIFY(m_model->value == 1);
-		}
+    private slots:
+        void CommandTest()
+        {
+            QVERIFY (m_model->value == 0);
+            auto cmd = new FakeCommand {0};
+            m_commandQueue.push (cmd);
+            QVERIFY (m_model->value == 1);
+            m_commandQueue.undo();
+            QVERIFY (m_model->value == 0);
+            m_commandQueue.redo();
+            QVERIFY (m_model->value == 1);
+        }
 
-	private:
-		CommandQueue m_commandQueue;
-		FakeModel* m_model{};
+    private:
+        CommandQueue m_commandQueue;
+        FakeModel* m_model {};
 };
 
-QTEST_MAIN(TestCommand)
+QTEST_MAIN (TestCommand)
 #include "test_command.moc"
 

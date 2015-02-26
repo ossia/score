@@ -12,37 +12,37 @@ class ProtocolSettingsWidget;
 
 class DeviceEditDialog : public QDialog
 {
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+    public:
 
-  DeviceEditDialog(QWidget *parent);
-  ~DeviceEditDialog();
+        DeviceEditDialog (QWidget* parent);
+        ~DeviceEditDialog();
 
-  //TODO: use QVariant ???
-  /*
-    first element is protocol name, second element (if present) is node name.
-  */
-  QList<QString> getSettings() const;
+        //TODO: use QVariant ???
+        /*
+          first element is protocol name, second element (if present) is node name.
+        */
+        QList<QString> getSettings() const;
 
-  void setSettings(QList<QString> &settings);
+        void setSettings (QList<QString>& settings);
 
-protected slots:
+    protected slots:
 
-  void updateProtocolWidget();
+        void updateProtocolWidget();
 
-protected:
+    protected:
 
-  void buildGUI();
+        void buildGUI();
 
-  void initAvailableProtocols();
+        void initAvailableProtocols();
 
-protected:
+    protected:
 
-  QComboBox *m_protocolCBox;
-  ProtocolSettingsWidget *m_protocolWidget;
-  QGridLayout *m_gLayout;
-  QList<QList<QString> > m_previousSettings;
-  int m_index;
+        QComboBox* m_protocolCBox;
+        ProtocolSettingsWidget* m_protocolWidget;
+        QGridLayout* m_gLayout;
+        QList<QList<QString> > m_previousSettings;
+        int m_index;
 };
 

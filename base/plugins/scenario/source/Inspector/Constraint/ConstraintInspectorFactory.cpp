@@ -5,12 +5,12 @@
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget (QObject* sourceElement)
 {
-	auto constraint = static_cast<TemporalConstraintViewModel*>(sourceElement);
-	return new ConstraintInspectorWidget(constraint);
+    auto constraint = static_cast<TemporalConstraintViewModel*> (sourceElement);
+    return new ConstraintInspectorWidget (constraint);
 
 }
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget (QList<QObject*> sourceElements)
 {
-	return new ConstraintInspectorWidget (static_cast<TemporalConstraintViewModel*> (sourceElements.at (0) ) );
+    return new ConstraintInspectorWidget (static_cast<TemporalConstraintViewModel*> (sourceElements.at (0) ) );
 }

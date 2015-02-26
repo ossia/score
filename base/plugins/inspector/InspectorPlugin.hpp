@@ -7,36 +7,36 @@
 
 class InspectorControl;
 class InspectorPlugin :
-	public QObject,
-	public iscore::Autoconnect_QtInterface,
-	public iscore::PanelFactoryInterface_QtInterface,
-	public iscore::PluginControlInterface_QtInterface,
-	public iscore::FactoryFamily_QtInterface
+    public QObject,
+    public iscore::Autoconnect_QtInterface,
+    public iscore::PanelFactoryInterface_QtInterface,
+    public iscore::PluginControlInterface_QtInterface,
+    public iscore::FactoryFamily_QtInterface
 {
-		Q_OBJECT
-		Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
-		Q_INTERFACES (iscore::Autoconnect_QtInterface
-					  iscore::PanelFactoryInterface_QtInterface
-					  iscore::FactoryFamily_QtInterface
-					  iscore::PluginControlInterface_QtInterface)
+        Q_OBJECT
+        Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
+        Q_INTERFACES (iscore::Autoconnect_QtInterface
+                      iscore::PanelFactoryInterface_QtInterface
+                      iscore::FactoryFamily_QtInterface
+                      iscore::PluginControlInterface_QtInterface)
 
-	public:
-		InspectorPlugin();
-		virtual ~InspectorPlugin() = default;
+    public:
+        InspectorPlugin();
+        virtual ~InspectorPlugin() = default;
 
-		// Autoconnect interface
-		virtual QList<iscore::Autoconnect> autoconnect_list() const override;
+        // Autoconnect interface
+        virtual QList<iscore::Autoconnect> autoconnect_list() const override;
 
-		// Panel interface
-		virtual QStringList panel_list() const override;
-		virtual iscore::PanelFactoryInterface* panel_make (QString name) override;
+        // Panel interface
+        virtual QStringList panel_list() const override;
+        virtual iscore::PanelFactoryInterface* panel_make (QString name) override;
 
-		// Offre la factory de Inspector
-		virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+        // Offre la factory de Inspector
+        virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
 
-		virtual QStringList control_list() const;
-		virtual iscore::PluginControlInterface*control_make(QString);
+        virtual QStringList control_list() const;
+        virtual iscore::PluginControlInterface* control_make (QString);
 
-	private:
-		InspectorControl* m_inspectorControl;
+    private:
+        InspectorControl* m_inspectorControl;
 };

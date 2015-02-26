@@ -10,17 +10,23 @@ class String  : public DataType { }; // QVariant = std::string
 class Tuple   : public DataType { }; // QVariant = std::tuple ou struct...
 
 class Domain { };
-enum class AccessMode { Get, Set, Both };
-enum class BoundingMode { Free, Clip, Wrap, Fold };
+enum class AccessMode
+{
+    Get, Set, Both
+};
+enum class BoundingMode
+{
+    Free, Clip, Wrap, Fold
+};
 struct Message
 {
-		QString address;
-		QVariant value; // On peut utiliser val.type() et val.canConvert() directement...
-		DataType type; // ?
+    QString address;
+    QVariant value; // On peut utiliser val.type() et val.canConvert() directement...
+    DataType type; // ?
 
-		AccessMode mode{AccessMode::Both};
-		BoundingMode minBoundingMode;
-		BoundingMode maxBoundingMode;
+    AccessMode mode {AccessMode::Both};
+    BoundingMode minBoundingMode;
+    BoundingMode maxBoundingMode;
 
-		Domain domain;
+    Domain domain;
 };

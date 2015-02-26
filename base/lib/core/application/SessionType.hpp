@@ -1,3 +1,6 @@
 #pragma once
 
-enum class SessionType { Client, Master };
+enum class SessionType
+{
+    Client, Master
+};

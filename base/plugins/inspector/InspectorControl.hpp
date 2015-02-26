@@ -4,38 +4,40 @@
 
 class InspectorControl : public iscore::PluginControlInterface
 {
-	public:
-		InspectorControl():
-			iscore::PluginControlInterface{"InspectorControl", nullptr}
-		{
+    public:
+        InspectorControl() :
+            iscore::PluginControlInterface {"InspectorControl", nullptr}
+        {
 
-		}
+        }
 
-		virtual void populateMenus(iscore::MenubarManager*) override
-		{
-		}
+        virtual void populateMenus (iscore::MenubarManager*) override
+        {
+        }
 
-		virtual void populateToolbars() override
-		{
-		}
+        virtual void populateToolbars() override
+        {
+        }
 
-		virtual void setPresenter(iscore::Presenter*) override
-		{
-		}
+        virtual void setPresenter (iscore::Presenter*) override
+        {
+        }
 
-		const QVector<InspectorWidgetFactoryInterface*>& factories() const
-		{ return m_factories; }
+        const QVector<InspectorWidgetFactoryInterface*>& factories() const
+        {
+            return m_factories;
+        }
 
 
-		static InspectorWidgetBase* makeInspectorWidget(QObject* object);
+        static InspectorWidgetBase* makeInspectorWidget (QObject* object);
 
-	public slots:
-		void on_newInspectorWidgetFactory(iscore::FactoryInterface *e)
-		{
-			m_factories.push_back(
-						static_cast<InspectorWidgetFactoryInterface*>(e));
-		}
+    public slots:
+        void on_newInspectorWidgetFactory (iscore::FactoryInterface* e)
+        {
+            m_factories.push_back (
+                static_cast<InspectorWidgetFactoryInterface*> (e) );
+        }
 
-	private:
+    private:
         QVector<InspectorWidgetFactoryInterface*> m_factories;
 };

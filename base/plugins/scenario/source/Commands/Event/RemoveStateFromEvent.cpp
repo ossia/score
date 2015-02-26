@@ -13,18 +13,18 @@ void RemoveStateFromEvent::redo()
 
 int RemoveStateFromEvent::id() const
 {
-	return -1;
+    return -1;
 }
 
-bool RemoveStateFromEvent::mergeWith(const QUndoCommand* other)
+bool RemoveStateFromEvent::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void RemoveStateFromEvent::serializeImpl(QDataStream&) const
+void RemoveStateFromEvent::serializeImpl (QDataStream&) const
 {
 }
 
-void RemoveStateFromEvent::deserializeImpl(QDataStream&)
+void RemoveStateFromEvent::deserializeImpl (QDataStream&)
 {
 }

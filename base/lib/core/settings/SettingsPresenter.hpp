@@ -8,24 +8,24 @@
 
 namespace iscore
 {
-	class SettingsModel;
-	class SettingsView;
-	class SettingsPresenter : public QObject
-	{
-			Q_OBJECT
-		public:
-			SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent);
+    class SettingsModel;
+    class SettingsView;
+    class SettingsPresenter : public QObject
+    {
+            Q_OBJECT
+        public:
+            SettingsPresenter (SettingsModel* model, SettingsView* view, QObject* parent);
 
-			void addSettingsPresenter(SettingsDelegatePresenterInterface* presenter);
+            void addSettingsPresenter (SettingsDelegatePresenterInterface* presenter);
 
-		private slots:
-			void on_accept();
-			void on_reject();
+        private slots:
+            void on_accept();
+            void on_reject();
 
-		private:
-			SettingsModel* m_model;
-			SettingsView* m_view;
+        private:
+            SettingsModel* m_model;
+            SettingsView* m_view;
 
-			std::set<SettingsDelegatePresenterInterface*> m_pluginPresenters;
-	};
+            std::set<SettingsDelegatePresenterInterface*> m_pluginPresenters;
+    };
 }

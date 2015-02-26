@@ -5,37 +5,43 @@
 template<typename tag, typename value_type>
 class id
 {
-	public:
+    public:
 
-		explicit id() = default;
-		explicit id(value_type val) : m_id{val} { }
+        explicit id() = default;
+        explicit id (value_type val) : m_id {val} { }
 
-		friend bool operator==(const id& lhs, const id& rhs)
-		{
-			return lhs.m_id == rhs.m_id;
-		}
+        friend bool operator== (const id& lhs, const id& rhs)
+        {
+            return lhs.m_id == rhs.m_id;
+        }
 
-		friend bool operator!=(const id& lhs, const id& rhs)
-		{
-			return lhs.m_id != rhs.m_id;
-		}
+        friend bool operator!= (const id& lhs, const id& rhs)
+        {
+            return lhs.m_id != rhs.m_id;
+        }
 
-		friend bool operator<(const id& lhs, const id& rhs)
-		{
-			return *lhs.val() < *rhs.val();
-		}
+        friend bool operator< (const id& lhs, const id& rhs)
+        {
+            return *lhs.val() < *rhs.val();
+        }
 
-		explicit operator value_type() const
-		{ return m_id; }
+        explicit operator value_type() const
+        {
+            return m_id;
+        }
 
-		const value_type& val() const
-		{ return m_id; }
+        const value_type& val() const
+        {
+            return m_id;
+        }
 
-		void setVal(value_type&& val)
-		{ m_id = val; }
+        void setVal (value_type&& val)
+        {
+            m_id = val;
+        }
 
-	private:
-		value_type m_id{};
+    private:
+        value_type m_id {};
 };
 
 template<typename tag, typename impl>
@@ -50,23 +56,23 @@ using id_type = optional_tagged_int32_id<tag>;
 template<typename tag>
 struct id_hash
 {
-		std::size_t operator()(const id_type<tag>& id) const
-		{
-			return std::hash<int32_t>()(*id.val());
-		}
+    std::size_t operator() (const id_type<tag>& id) const
+    {
+        return std::hash<int32_t>() (*id.val() );
+    }
 };
 
 template<typename tag>
-QDebug operator<<(QDebug dbg, const id_type<tag> &c)
+QDebug operator<< (QDebug dbg, const id_type<tag>& c)
 {
-	if(c.val())
-	{
-		dbg.nospace() << *c.val();
-	}
-	else
-	{
-		dbg.nospace() << "Not set";
-	}
+    if (c.val() )
+    {
+        dbg.nospace() << *c.val();
+    }
+    else
+    {
+        dbg.nospace() << "Not set";
+    }
 
-	return dbg.space();
+    return dbg.space();
 }

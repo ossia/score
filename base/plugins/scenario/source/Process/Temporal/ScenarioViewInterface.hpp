@@ -10,11 +10,11 @@ class TimeNodeModel;
 class ScenarioViewInterface
 {
     public:
-        ScenarioViewInterface(TemporalScenarioPresenter* presenter);
+        ScenarioViewInterface (TemporalScenarioPresenter* presenter);
 
-        void on_eventMoved(id_type<EventModel> eventId);
-        void on_constraintMoved(id_type<ConstraintModel> constraintId);
-        void updateTimeNode(id_type<TimeNodeModel> timeNodeId);
+        void on_eventMoved (id_type<EventModel> eventId);
+        void on_constraintMoved (id_type<ConstraintModel> constraintId);
+        void updateTimeNode (id_type<TimeNodeModel> timeNodeId);
 
     private:
         TemporalScenarioPresenter* m_presenter;

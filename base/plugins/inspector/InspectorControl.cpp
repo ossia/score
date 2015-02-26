@@ -2,19 +2,20 @@
 #include "InspectorInterface/InspectorWidgetBase.hpp"
 #include <QApplication>
 
-InspectorWidgetBase*InspectorControl::makeInspectorWidget(QObject* object)
+InspectorWidgetBase* InspectorControl::makeInspectorWidget (QObject* object)
 {
-    auto pmgr = qApp->findChild<InspectorControl*>("InspectorControl");
+    auto pmgr = qApp->findChild<InspectorControl*> ("InspectorControl");
 
     auto factories = pmgr->factories();
-    for(auto factory : factories)
+
+    for (auto factory : factories)
     {
-		if(factory->correspondingObjectsNames().contains(object->objectName()))
+        if (factory->correspondingObjectsNames().contains (object->objectName() ) )
         {
-            return factory->makeWidget(object); // TODO multiple items.
+            return factory->makeWidget (object); // TODO multiple items.
         }
     }
 
     // When no factory is found.
-    return new InspectorWidgetBase(object);
+    return new InspectorWidgetBase (object);
 }

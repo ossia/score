@@ -9,31 +9,31 @@ class ConstraintModel;
 #include <ProcessInterface/TimeValue.hpp>
 namespace Scenario
 {
-	namespace Command
-	{
-		class MoveConstraint : public iscore::SerializableCommand
-		{
+    namespace Command
+    {
+        class MoveConstraint : public iscore::SerializableCommand
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
-				MoveConstraint();
-                MoveConstraint(ObjectPath &&scenarioPath, ConstraintData d);
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+            public:
+                MoveConstraint();
+                MoveConstraint (ObjectPath&& scenarioPath, ConstraintData d);
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-				ObjectPath m_path;
-				id_type<ConstraintModel> m_constraintId{};
+            private:
+                ObjectPath m_path;
+                id_type<ConstraintModel> m_constraintId {};
 
-				double m_oldHeightPosition{};
-				double m_newHeightPosition{};
-				TimeValue m_oldX{};
-				TimeValue m_newX{};
-		};
-	}
+                double m_oldHeightPosition {};
+                double m_newHeightPosition {};
+                TimeValue m_oldX {};
+                TimeValue m_newX {};
+        };
+    }
 }

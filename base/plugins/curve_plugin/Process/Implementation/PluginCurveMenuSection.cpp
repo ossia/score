@@ -4,9 +4,9 @@
 const QString PluginCurveMenuSection::DELETE = "Delete";
 
 PluginCurveMenuSection::PluginCurveMenuSection (PluginCurveSection* section, QWidget* parent) :
-	QMenu (parent)
+    QMenu (parent)
 {
-	Q_UNUSED (section);
-	addAction (DELETE);
-	addSeparator();
+    Q_UNUSED (section);
+    addAction (DELETE);
+    addSeparator();
 }

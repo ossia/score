@@ -3,42 +3,42 @@
 #include "State.hpp"
 
 template<>
-void Visitor<Reader<DataStream> >::readFrom(const State& state)
+void Visitor<Reader<DataStream> >::readFrom (const State& state)
 {
-	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+    readFrom (static_cast<const IdentifiedObject<State>&> (state) );
 
-	m_stream << state.messages();
+    m_stream << state.messages();
 
-	insertDelimiter();
+    insertDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const State& state)
+void Visitor<Reader<JSON>>::readFrom (const State& state)
 {
-	readFrom(static_cast<const IdentifiedObject<State>&>(state));
+    readFrom (static_cast<const IdentifiedObject<State>&> (state) );
 
-	m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
+    m_obj["Messages"] = QJsonArray::fromStringList (state.messages() );
 }
 
 template<>
-void Visitor<Writer<DataStream> >::writeTo(State& state)
+void Visitor<Writer<DataStream> >::writeTo (State& state)
 {
-	QStringList messages;
-	m_stream >> messages;
+    QStringList messages;
+    m_stream >> messages;
 
-	for(auto& message : messages)
-	{
-		state.addMessage(message);
-	}
+    for (auto& message : messages)
+    {
+        state.addMessage (message);
+    }
 
-	checkDelimiter();
+    checkDelimiter();
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(State& state)
+void Visitor<Writer<JSON>>::writeTo (State& state)
 {
-	for(auto& message : m_obj["Messages"].toArray().toVariantList())
-	{
-		state.addMessage(message.toString());
-	}
+    for (auto& message : m_obj["Messages"].toArray().toVariantList() )
+    {
+        state.addMessage (message.toString() );
+    }
 }

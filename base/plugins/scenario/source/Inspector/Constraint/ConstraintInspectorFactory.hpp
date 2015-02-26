@@ -5,18 +5,18 @@
 
 class ConstraintInspectorFactory : public InspectorWidgetFactoryInterface
 {
-	public:
-		ConstraintInspectorFactory() :
-			InspectorWidgetFactoryInterface {}
-		{
+    public:
+        ConstraintInspectorFactory() :
+            InspectorWidgetFactoryInterface {}
+        {
 
-		}
+        }
 
-		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QList<QString> correspondingObjectsNames() const override
-		{
-			return {"TemporalConstraintViewModel", "FullViewConstraintViewModel"};
-		}
+        virtual QList<QString> correspondingObjectsNames() const override
+        {
+            return {"TemporalConstraintViewModel", "FullViewConstraintViewModel"};
+        }
 };

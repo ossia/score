@@ -6,34 +6,36 @@
 #include "core/interface/document/DocumentInterface.hpp"
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
-		 * @brief The MergeBoxes class
-		 *
-		 * Merges a Box into another.
-		 */
-		class MergeBoxes : public iscore::AggregateCommand
-		{
+    namespace Command
+    {
+        /**
+         * @brief The MergeBoxes class
+         *
+         * Merges a Box into another.
+         */
+        class MergeBoxes : public iscore::AggregateCommand
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
-			public:
-				MergeBoxes(const ObjectPath& mergeSource,
-						   const ObjectPath& mergeTarget):
-					AggregateCommand{
-						"ScenarioControl",
-						"MergeBoxes",
-						QObject::tr("Merge decks")}
-				{
-					auto sourcebox = mergeSource.find<BoxModel>();
+            public:
+                MergeBoxes (const ObjectPath& mergeSource,
+                            const ObjectPath& mergeTarget) :
+                    AggregateCommand
+                {
+                    "ScenarioControl",
+                    "MergeBoxes",
+                    QObject::tr ("Merge decks")
+                }
+                {
+                    auto sourcebox = mergeSource.find<BoxModel>();
 
-					for(DeckModel* deck : sourcebox->decks())
-					{
-						addCommand(new MoveDeck(iscore::IDocument::path(deck),
-												ObjectPath{mergeTarget}));
-					}
+                    for (DeckModel* deck : sourcebox->decks() )
+                    {
+                        addCommand (new MoveDeck (iscore::IDocument::path (deck),
+                        ObjectPath {mergeTarget}) );
+                    }
 
-					addCommand(new RemoveBoxFromConstraint{ObjectPath{mergeSource}});
-				}
-		};
-	}
+                    addCommand (new RemoveBoxFromConstraint{ObjectPath{mergeSource}});
+                }
+        };
+    }
 }

@@ -2,12 +2,12 @@
 #include <QListWidget>
 
 ReorderWidget::ReorderWidget (QWidget* parent) :
-	QWidget (parent)
+    QWidget (parent)
 {
 }
 
 ReorderWidget::ReorderWidget (std::vector<QWidget*> widgets, QWidget* parent) :
-	QWidget (parent)
+    QWidget (parent)
 {
 
 }

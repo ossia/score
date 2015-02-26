@@ -4,5 +4,5 @@
 class ProcessSharedModelInterface;
 
 template<typename T>
-ProcessSharedModelInterface* createProcess(Deserializer<T>& deserializer,
-										   QObject* parent);
+ProcessSharedModelInterface* createProcess (Deserializer<T>& deserializer,
+        QObject* parent);

@@ -29,65 +29,65 @@ using namespace Scenario::Command;
 
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget* parent) :
-	InspectorWidgetBase{nullptr},
-	m_timeNodeModel{object}
+    InspectorWidgetBase {nullptr},
+m_timeNodeModel {object}
 {
-	setObjectName ("TimeNodeInspectorWidget");
-    setInspectedObject(object);
-	setParent(parent);
+    setObjectName ("TimeNodeInspectorWidget");
+    setInspectedObject (object);
+    setParent (parent);
 
     // default date
     QWidget* dateWid = new QWidget{this};
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"default date : "};
-	m_date = new QLabel{QString::number(object->date().msec())};
+    m_date = new QLabel{QString::number (object->date().msec() ) };
 
-    dateLay->addWidget(dateTitle);
-    dateLay->addWidget(m_date);
+    dateLay->addWidget (dateTitle);
+    dateLay->addWidget (m_date);
 
     // Events ids list
     m_eventList = new InspectorSectionWidget{"Events", this};
 
-    m_properties.push_back(dateWid);
-    m_properties.push_back(m_eventList);
+    m_properties.push_back (dateWid);
+    m_properties.push_back (m_eventList);
 
     updateSectionsView (areaLayout(), m_properties);
-	areaLayout()->addStretch();
+    areaLayout()->addStretch();
 
-	// display data
-	updateDisplayedValues (object);
+    // display data
+    updateDisplayedValues (object);
 
     // metadata
-    m_metadata = new MetadataWidget(&object->metadata, this);
-    m_metadata->setType("TimeNode");
-    addHeader(m_metadata);
+    m_metadata = new MetadataWidget (&object->metadata, this);
+    m_metadata->setType ("TimeNode");
+    addHeader (m_metadata);
 
-    connect(object, &TimeNodeModel::dateChanged,
-            this,   &TimeNodeInspectorWidget::updateInspector);
+    connect (object, &TimeNodeModel::dateChanged,
+             this,   &TimeNodeInspectorWidget::updateInspector);
 
-    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
-            this,           &TimeNodeInspectorWidget::on_scriptingNameChanged);
+    connect (m_metadata,     &MetadataWidget::scriptingNameChanged,
+             this,           &TimeNodeInspectorWidget::on_scriptingNameChanged);
 
-    connect(m_metadata,     &MetadataWidget::labelChanged,
-            this,           &TimeNodeInspectorWidget::on_labelChanged);
+    connect (m_metadata,     &MetadataWidget::labelChanged,
+             this,           &TimeNodeInspectorWidget::on_labelChanged);
 
-    connect(m_metadata,     &MetadataWidget::commentsChanged,
-            this,           &TimeNodeInspectorWidget::on_commentsChanged);
+    connect (m_metadata,     &MetadataWidget::commentsChanged,
+             this,           &TimeNodeInspectorWidget::on_commentsChanged);
 
-    connect(m_metadata,     &MetadataWidget::colorChanged,
-            this,           &TimeNodeInspectorWidget::on_colorChanged);
+    connect (m_metadata,     &MetadataWidget::colorChanged,
+             this,           &TimeNodeInspectorWidget::on_colorChanged);
 
-    connect(m_metadata,         &MetadataWidget::inspectPreviousElement,
-            m_timeNodeModel,    &TimeNodeModel::inspectPreviousElement);
+    connect (m_metadata,         &MetadataWidget::inspectPreviousElement,
+             m_timeNodeModel,    &TimeNodeModel::inspectPreviousElement);
 
     auto splitBtn = new QPushButton{this};
-    splitBtn->setText("split timeNode");
+    splitBtn->setText ("split timeNode");
 
-    m_eventList->addContent(splitBtn);
+    m_eventList->addContent (splitBtn);
 
-    connect(splitBtn,   &QPushButton::clicked,
-            this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
+    connect (splitBtn,   &QPushButton::clicked,
+             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
 
     emit m_timeNodeModel->inspectorCreated();
 }
@@ -95,30 +95,32 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget (TimeNodeModel* object, QWidget
 
 void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 {
-	// Cleanup
-    for(auto& elt : m_events)
-	{
-		delete elt;
-	}
+    // Cleanup
+    for (auto& elt : m_events)
+    {
+        delete elt;
+    }
+
     m_events.clear();
 
     // DEMO
     if (timeNode)
-	{
+    {
 //        setName (timeNode->metadata.name() );
 //		setColor (timeNode->metadata.color() );
 //		setComments (timeNode->metadata.comment() );
 
-		m_date->setText(QString::number(m_timeNodeModel->date().msec()));
-        for(id_type<EventModel> event : timeNode->events())
+        m_date->setText (QString::number (m_timeNodeModel->date().msec() ) );
+
+        for (id_type<EventModel> event : timeNode->events() )
         {
-            auto eventWid = new EventShortCut(QString::number((*event.val())));
+            auto eventWid = new EventShortCut (QString::number ( (*event.val() ) ) );
 
-            m_events.push_back(eventWid);
-            m_eventList->addContent(eventWid);
+            m_events.push_back (eventWid);
+            m_eventList->addContent (eventWid);
 
-            connect(eventWid,           &EventShortCut::eventSelected,
-                    m_timeNodeModel,    &TimeNodeModel::eventSelected);
+            connect (eventWid,           &EventShortCut::eventSelected,
+                     m_timeNodeModel,    &TimeNodeModel::eventSelected);
 
         }
 
@@ -132,59 +134,69 @@ void TimeNodeInspectorWidget::updateDisplayedValues (TimeNodeModel* timeNode)
 
 void TimeNodeInspectorWidget::updateInspector()
 {
-    updateDisplayedValues(m_timeNodeModel);
+    updateDisplayedValues (m_timeNodeModel);
 }
 
-void TimeNodeInspectorWidget::on_scriptingNameChanged(QString newName)
+void TimeNodeInspectorWidget::on_scriptingNameChanged (QString newName)
 {
-    if (newName == m_timeNodeModel->metadata.name())
+    if (newName == m_timeNodeModel->metadata.name() )
+    {
         return;
+    }
 
-	auto cmd = new ChangeElementName<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
-                newName);
+    auto cmd = new ChangeElementName<TimeNodeModel> (iscore::IDocument::path (inspectedObject() ),
+            newName);
 
-    submitCommand(cmd);
+    submitCommand (cmd);
 }
 
-void TimeNodeInspectorWidget::on_labelChanged(QString newLabel)
+void TimeNodeInspectorWidget::on_labelChanged (QString newLabel)
 {
-    if (newLabel == m_timeNodeModel->metadata.label())
+    if (newLabel == m_timeNodeModel->metadata.label() )
+    {
         return;
+    }
 
-	auto cmd = new ChangeElementLabel<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
-                newLabel);
+    auto cmd = new ChangeElementLabel<TimeNodeModel> (iscore::IDocument::path (inspectedObject() ),
+            newLabel);
 
-    submitCommand(cmd);
+    submitCommand (cmd);
 }
 
-void TimeNodeInspectorWidget::on_commentsChanged(QString newComments)
+void TimeNodeInspectorWidget::on_commentsChanged (QString newComments)
 {
     /*
-	auto cmd = new ChangeElementComments<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
+    auto cmd = new ChangeElementComments<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
                 newComments);
 
     submitCommand(cmd);
     */
 }
 
-void TimeNodeInspectorWidget::on_colorChanged(QColor newColor)
+void TimeNodeInspectorWidget::on_colorChanged (QColor newColor)
 {
-    if (newColor == m_timeNodeModel->metadata.color())
+    if (newColor == m_timeNodeModel->metadata.color() )
+    {
         return;
+    }
 
-	auto cmd = new ChangeElementColor<TimeNodeModel>(iscore::IDocument::path(inspectedObject()),
-                                                           newColor);
+    auto cmd = new ChangeElementColor<TimeNodeModel> (iscore::IDocument::path (inspectedObject() ),
+            newColor);
 
-    submitCommand(cmd);
+    submitCommand (cmd);
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
     std::cout << "create a timenode with ";
+
     for (auto ev : m_events)
     {
-        if (ev->isChecked())
+        if (ev->isChecked() )
+        {
             std ::cout << ev->eventName().toStdString() << " " ;
+        }
     }
+
     std::cout << std::endl;
 }

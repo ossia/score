@@ -10,64 +10,76 @@ class AddressBar;
 
 class ScoreGraphicsView : public QGraphicsView
 {
-		Q_OBJECT
-	public:
-		using QGraphicsView::QGraphicsView;
+        Q_OBJECT
+    public:
+        using QGraphicsView::QGraphicsView;
 
-	signals:
-		void widthChanged(int);
+    signals:
+        void widthChanged (int);
 
-	protected:
-		virtual void resizeEvent(QResizeEvent* ev);
+    protected:
+        virtual void resizeEvent (QResizeEvent* ev);
 };
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		BaseElementView(QObject* parent);
-		virtual ~BaseElementView() = default;
+    public:
+        BaseElementView (QObject* parent);
+        virtual ~BaseElementView() = default;
 
-		virtual QWidget*getWidget();
+        virtual QWidget* getWidget();
 
-		QGraphicsObject* baseObject()
-		{ return m_baseObject; }
+        QGraphicsObject* baseObject()
+        {
+            return m_baseObject;
+        }
 
-		void update();
+        void update();
 
-		QGraphicsScene* scene()
-		{ return m_scene; }
+        QGraphicsScene* scene()
+        {
+            return m_scene;
+        }
 
-		ScoreGraphicsView* view()
-		{ return m_view; }
+        ScoreGraphicsView* view()
+        {
+            return m_view;
+        }
 
-		AddressBar* addressBar()
-		{ return m_addressBar; }
+        AddressBar* addressBar()
+        {
+            return m_addressBar;
+        }
 
-		QSlider* positionSlider()
-		{ return m_positionSlider; }
+        QSlider* positionSlider()
+        {
+            return m_positionSlider;
+        }
 
-		QSlider* zoomSlider()
-		{ return m_zoomSlider; }
+        QSlider* zoomSlider()
+        {
+            return m_zoomSlider;
+        }
 
-	signals:
-		void horizontalZoomChanged(int newZoom);
-		void verticalZoomChanged(int newZoom);
-		void positionSliderChanged(int newPos);
+    signals:
+        void horizontalZoomChanged (int newZoom);
+        void verticalZoomChanged (int newZoom);
+        void positionSliderChanged (int newPos);
 
-	private slots:
-		void on_positionSliderReleased(int val);
+    private slots:
+        void on_positionSliderReleased (int val);
 
-	private:
-		QWidget* m_widget{};
-		QGraphicsScene* m_scene{};
-		ScoreGraphicsView* m_view{};
-		QGraphicsObject* m_baseObject{};
-		TemporalConstraintView* m_constraint{};
-		AddressBar* m_addressBar{};
+    private:
+        QWidget* m_widget {};
+        QGraphicsScene* m_scene {};
+        ScoreGraphicsView* m_view {};
+        QGraphicsObject* m_baseObject {};
+        TemporalConstraintView* m_constraint {};
+        AddressBar* m_addressBar {};
 
-		QSlider* m_positionSlider{};
-		QSlider* m_zoomSlider{};
+        QSlider* m_positionSlider {};
+        QSlider* m_zoomSlider {};
 };
 

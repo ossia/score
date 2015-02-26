@@ -2,13 +2,13 @@
 #include "DeviceExplorerPanelFactory.hpp"
 using namespace iscore;
 
-DeviceExplorerPlugin::DeviceExplorerPlugin():
-	QObject{},
-	iscore::Autoconnect_QtInterface{},
+DeviceExplorerPlugin::DeviceExplorerPlugin() :
+    QObject {},
+        iscore::Autoconnect_QtInterface {},
 //	iscore::PluginControlInterface_QtInterface{},
-	iscore::PanelFactoryInterface_QtInterface{}
+iscore::PanelFactoryInterface_QtInterface {}
 {
-	setObjectName("DeviceExplorerPlugin");
+    setObjectName ("DeviceExplorerPlugin");
 }
 
 
@@ -17,10 +17,10 @@ DeviceExplorerPlugin::DeviceExplorerPlugin():
 
 QList<Autoconnect> DeviceExplorerPlugin::autoconnect_list() const
 {
-	return
-	{
-		
-	};
+    return
+    {
+
+    };
 }
 
 
@@ -39,13 +39,15 @@ PluginControlInterface* DeviceExplorerPlugin::control_make(QString)
 
 QStringList DeviceExplorerPlugin::panel_list() const
 {
-	return {"DeviceExplorer Panel"};
+    return {"DeviceExplorer Panel"};
 }
 
-PanelFactoryInterface* DeviceExplorerPlugin::panel_make(QString name)
+PanelFactoryInterface* DeviceExplorerPlugin::panel_make (QString name)
 {
-	if(name == "DeviceExplorer Panel")
-		return new DeviceExplorerPanelFactory;
-	
-	return nullptr;
+    if (name == "DeviceExplorer Panel")
+    {
+        return new DeviceExplorerPanelFactory;
+    }
+
+    return nullptr;
 }

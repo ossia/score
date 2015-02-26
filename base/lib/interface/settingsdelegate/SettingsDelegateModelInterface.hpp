@@ -3,13 +3,13 @@
 
 namespace iscore
 {
-	class SettingsDelegatePresenterInterface;
-	class SettingsDelegateModelInterface : public QObject
-	{
-		public:
-			using QObject::QObject;
-			virtual ~SettingsDelegateModelInterface() = default;
+    class SettingsDelegatePresenterInterface;
+    class SettingsDelegateModelInterface : public QObject
+    {
+        public:
+            using QObject::QObject;
+            virtual ~SettingsDelegateModelInterface() = default;
 
-			virtual void setFirstTimeSettings() = 0;
-	};
+            virtual void setFirstTimeSettings() = 0;
+    };
 }

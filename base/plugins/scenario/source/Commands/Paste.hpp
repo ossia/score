@@ -3,19 +3,19 @@
 
 namespace Scenario
 {
-	namespace Command
-	{
-		class Paste : public iscore::SerializableCommand
-		{
-			public:
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+    namespace Command
+    {
+        class Paste : public iscore::SerializableCommand
+        {
+            public:
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
-		};
-	}
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
+        };
+    }
 }

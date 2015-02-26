@@ -5,17 +5,17 @@
 #include <QString>
 class BlacklistCommand : public iscore::SerializableCommand
 {
-		// QUndoCommand interface
-	public:
-		BlacklistCommand(QString name, bool value);
+        // QUndoCommand interface
+    public:
+        BlacklistCommand (QString name, bool value);
 
-		virtual void undo();
-		virtual void redo();
-		virtual bool mergeWith(const QUndoCommand* other);
+        virtual void undo();
+        virtual void redo();
+        virtual bool mergeWith (const QUndoCommand* other);
 
-	protected:
-		virtual void serializeImpl(QDataStream&) const override { }
-		virtual void deserializeImpl(QDataStream&) override { }
+    protected:
+        virtual void serializeImpl (QDataStream&) const override { }
+        virtual void deserializeImpl (QDataStream&) override { }
 
-		QMap<QString, bool> m_blacklistedState;
+        QMap<QString, bool> m_blacklistedState;
 };

@@ -8,17 +8,17 @@ using namespace iscore;
 
 PanelView* NetworkPanel::makeView()
 {
-	return new NetworkPanelView;
+    return new NetworkPanelView;
 }
 
-PanelPresenter* NetworkPanel::makePresenter(Presenter* parent_presenter, 
-											   PanelModel* model, 
-											   PanelView* view)
+PanelPresenter* NetworkPanel::makePresenter (Presenter* parent_presenter,
+        PanelModel* model,
+        PanelView* view)
 {
-	return new NetworkPanelPresenter(parent_presenter, model, view);
+    return new NetworkPanelPresenter (parent_presenter, model, view);
 }
 
 iscore::PanelModel* NetworkPanel::makeModel()
 {
-	return new NetworkPanelModel;
+    return new NetworkPanelModel;
 }

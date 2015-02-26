@@ -37,18 +37,18 @@ knowledge of the CeCILL license and that you accept its terms.
 
 class PluginCurveSectionLinear : public PluginCurveSection
 {
-		Q_OBJECT
-	public:
-		// Constructor. Source and destination points must be modified consequently
-		PluginCurveSectionLinear (QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest); // Parent : PluginCurvePoint ? PluginCurveView ?
-		// Bounding rectangle;
-		QRectF boundingRect() const;
-		// shape
-		QPainterPath shape() const;
-		// Section's path
-		QPainterPath path() const;
-		// Paint the curve
-		void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        Q_OBJECT
+    public:
+        // Constructor. Source and destination points must be modified consequently
+        PluginCurveSectionLinear (QGraphicsObject* parent, PluginCurvePoint* source, PluginCurvePoint* dest); // Parent : PluginCurvePoint ? PluginCurveView ?
+        // Bounding rectangle;
+        QRectF boundingRect() const;
+        // shape
+        QPainterPath shape() const;
+        // Section's path
+        QPainterPath path() const;
+        // Paint the curve
+        void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 };
 
 #endif // PLUGINCURVESECTION_HPP

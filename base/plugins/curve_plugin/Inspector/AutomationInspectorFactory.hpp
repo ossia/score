@@ -5,18 +5,18 @@
 
 class AutomationInspectorFactory : public InspectorWidgetFactoryInterface
 {
-	public:
-		AutomationInspectorFactory() :
-			InspectorWidgetFactoryInterface {}
-		{
+    public:
+        AutomationInspectorFactory() :
+            InspectorWidgetFactoryInterface {}
+        {
 
-		}
+        }
 
-		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QList<QString> correspondingObjectsNames() const override
-		{
-			return {"Automation"};
-		}
+        virtual QList<QString> correspondingObjectsNames() const override
+        {
+            return {"Automation"};
+        }
 };

@@ -13,120 +13,125 @@ using namespace Scenario::Command;
 
 #define CMD_UID 1204
 
-CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode():
-	SerializableCommand{"ScenarioControl",
-						"CreateEventAfterEvent",
-						QObject::tr("Event creation")}
+CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode() :
+    SerializableCommand {"ScenarioControl",
+    "CreateEventAfterEvent",
+    QObject::tr ("Event creation")
+}
 {
 }
 
-CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath &&scenarioPath, EventData data):
-	SerializableCommand{"ScenarioControl",
-						"CreateEventAfterEvent",
-						QObject::tr("Event creation")},
-	m_path{std::move(scenarioPath)},
-	m_timeNodeId{data.endTimeNodeId},
-	m_firstEventId{data.eventClickedId},
-	m_time{data.dDate},
-	m_heightPosition{data.relativeY}
+CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode (ObjectPath&& scenarioPath, EventData data) :
+    SerializableCommand {"ScenarioControl",
+    "CreateEventAfterEvent",
+    QObject::tr ("Event creation")
+},
+m_path {std::move (scenarioPath) },
+m_timeNodeId {data.endTimeNodeId},
+m_firstEventId {data.eventClickedId},
+m_time {data.dDate},
+m_heightPosition {data.relativeY}
 {
-	auto scenar = m_path.find<ScenarioModel>();
+    auto scenar = m_path.find<ScenarioModel>();
 
-	m_createdEventId = getStrongId(scenar->events());
-	m_createdConstraintId = getStrongId(scenar->constraints());
+    m_createdEventId = getStrongId (scenar->events() );
+    m_createdConstraintId = getStrongId (scenar->constraints() );
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
-	// we have to generate ConstraintViewModels, too
-	for(auto& viewModel : viewModels(scenar))
-	{
-		m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel(viewModel)] = getStrongId(viewModel->constraints());
-	}
+    // we have to generate ConstraintViewModels, too
+    for (auto& viewModel : viewModels (scenar) )
+    {
+        m_createdConstraintViewModelIDs[identifierOfViewModelFromSharedModel (viewModel)] = getStrongId (viewModel->constraints() );
+    }
 
-	// Finally, the id of the full view
-	m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
+    // Finally, the id of the full view
+    m_createdConstraintFullViewId = getStrongId (m_createdConstraintViewModelIDs.values().toVector().toStdVector() );
 }
 
 void CreateEventAfterEventOnTimeNode::undo()
 {
-	auto scenar = m_path.find<ScenarioModel>();
+    auto scenar = m_path.find<ScenarioModel>();
 
-	// TODO enlever event de la timenode?
-    scenar->undo_createConstraintAndEndEventFromEvent(m_createdEventId);
+    // TODO enlever event de la timenode?
+    scenar->undo_createConstraintAndEndEventFromEvent (m_createdEventId);
 }
 
 void CreateEventAfterEventOnTimeNode::redo()
 {
-	auto scenar = m_path.find<ScenarioModel>();
+    auto scenar = m_path.find<ScenarioModel>();
 
-	scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
+    scenar->timeNode (m_timeNodeId)->addEvent (m_createdEventId);
 
-	scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
-												 m_time,
-												 m_heightPosition,
-												 m_createdConstraintId,
-												 m_createdConstraintFullViewId,
-                                                 m_createdEventId);
+    scenar->createConstraintAndEndEventFromEvent (m_firstEventId,
+            m_time,
+            m_heightPosition,
+            m_createdConstraintId,
+            m_createdConstraintFullViewId,
+            m_createdEventId);
 
-	scenar->event(m_createdEventId)->changeTimeNode(m_timeNodeId);
+    scenar->event (m_createdEventId)->changeTimeNode (m_timeNodeId);
 
-	// Creation of all the constraint view models
-	for(auto& viewModel : viewModels(scenar))
-	{
-		auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-		if(m_createdConstraintViewModelIDs.contains(cvm_id))
-		{
-			viewModel->makeConstraintViewModel(m_createdConstraintId,
-											   m_createdConstraintViewModelIDs[cvm_id]);
-		}
-		else
-		{
-			throw std::runtime_error("CreateEvent : missing identifier.");
-		}
-	}
+    // Creation of all the constraint view models
+    for (auto& viewModel : viewModels (scenar) )
+    {
+        auto cvm_id = identifierOfViewModelFromSharedModel (viewModel);
 
-	// @todo Creation of all the event view models
+        if (m_createdConstraintViewModelIDs.contains (cvm_id) )
+        {
+            viewModel->makeConstraintViewModel (m_createdConstraintId,
+                                                m_createdConstraintViewModelIDs[cvm_id]);
+        }
+        else
+        {
+            throw std::runtime_error ("CreateEvent : missing identifier.");
+        }
+    }
+
+    // @todo Creation of all the event view models
 }
 
 int CreateEventAfterEventOnTimeNode::id() const
 {
-	return canMerge() ? CMD_UID : -1;
+    return canMerge() ? CMD_UID : -1;
 }
 
-bool CreateEventAfterEventOnTimeNode::mergeWith(const QUndoCommand* other)
+bool CreateEventAfterEventOnTimeNode::mergeWith (const QUndoCommand* other)
 {
-	// Maybe set m_mergeable = false at the end ?
-	if(other->id() != id())
-		return false;
+    // Maybe set m_mergeable = false at the end ?
+    if (other->id() != id() )
+    {
+        return false;
+    }
 
-	auto cmd = static_cast<const CreateEventAfterEventOnTimeNode*>(other);
-	m_time = cmd->m_time;
-	m_heightPosition = cmd->m_heightPosition;
+    auto cmd = static_cast<const CreateEventAfterEventOnTimeNode*> (other);
+    m_time = cmd->m_time;
+    m_heightPosition = cmd->m_heightPosition;
 
-	return true;
+    return true;
 }
 
-void CreateEventAfterEventOnTimeNode::serializeImpl(QDataStream& s) const
+void CreateEventAfterEventOnTimeNode::serializeImpl (QDataStream& s) const
 {
-	s << m_path
-	  << m_firstEventId
-	  << m_time
-	  << m_heightPosition
-	  << m_createdEventId
-	  << m_createdConstraintId
-	  << m_timeNodeId
-	  << m_createdConstraintViewModelIDs
-	  << m_createdConstraintFullViewId;
+    s << m_path
+      << m_firstEventId
+      << m_time
+      << m_heightPosition
+      << m_createdEventId
+      << m_createdConstraintId
+      << m_timeNodeId
+      << m_createdConstraintViewModelIDs
+      << m_createdConstraintFullViewId;
 }
 
-void CreateEventAfterEventOnTimeNode::deserializeImpl(QDataStream& s)
+void CreateEventAfterEventOnTimeNode::deserializeImpl (QDataStream& s)
 {
-	s >> m_path
-	  >> m_firstEventId
-	  >> m_time
-	  >> m_heightPosition
-	  >> m_createdEventId
-	  >> m_createdConstraintId
-	  >> m_timeNodeId
-	  >> m_createdConstraintViewModelIDs
-	  >> m_createdConstraintFullViewId;
+    s >> m_path
+      >> m_firstEventId
+      >> m_time
+      >> m_heightPosition
+      >> m_createdEventId
+      >> m_createdConstraintId
+      >> m_timeNodeId
+      >> m_createdConstraintViewModelIDs
+      >> m_createdConstraintFullViewId;
 }

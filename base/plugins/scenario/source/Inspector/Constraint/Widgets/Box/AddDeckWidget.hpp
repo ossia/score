@@ -3,8 +3,8 @@
 class BoxInspectorSection;
 class AddDeckWidget : public QWidget
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
-		AddDeckWidget(BoxInspectorSection* parent);
+    public:
+        AddDeckWidget (BoxInspectorSection* parent);
 };

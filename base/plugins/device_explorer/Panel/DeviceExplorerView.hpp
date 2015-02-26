@@ -7,61 +7,61 @@ class DeviceExplorerFilterProxyModel;
 
 class DeviceExplorerView : public QTreeView
 {
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+    public:
 
-  DeviceExplorerView(QWidget *parent = 0);
-  ~DeviceExplorerView();
+        DeviceExplorerView (QWidget* parent = 0);
+        ~DeviceExplorerView();
 
-  void setModel(DeviceExplorerModel *model);
-  void setModel(DeviceExplorerFilterProxyModel *model);
+        void setModel (DeviceExplorerModel* model);
+        void setModel (DeviceExplorerFilterProxyModel* model);
 
-  DeviceExplorerModel *model();
-  const DeviceExplorerModel *model() const;
+        DeviceExplorerModel* model();
+        const DeviceExplorerModel* model() const;
 
-  int getIOTypeColumn() const;
+        int getIOTypeColumn() const;
 
-  bool hasCut() const;
-  void copy();
-  void cut();
-  void paste();
-  
-  void moveUp();
-  void moveDown();
-  void promote();
-  void demote();
+        bool hasCut() const;
+        void copy();
+        void cut();
+        void paste();
 
-  QModelIndexList selectedIndexes() const;
+        void moveUp();
+        void moveDown();
+        void promote();
+        void demote();
 
-signals:
-  void selectionChanged();
+        QModelIndexList selectedIndexes() const;
 
-protected slots:
-  virtual void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+    signals:
+        void selectionChanged();
 
-  void headerMenuRequested(const QPoint &pos);
-  void columnVisibilityChanged(bool shown);
+    protected slots:
+        virtual void selectionChanged (const QItemSelection& selected, const QItemSelection& deselected) override;
 
-protected:
+        void headerMenuRequested (const QPoint& pos);
+        void columnVisibilityChanged (bool shown);
 
-  //virtual void closeEvent(QCloseEvent *event) override;
+    protected:
 
-  QModelIndex selectedIndex() const;
-  void setSelectedIndex(const QModelIndex &index);
+        //virtual void closeEvent(QCloseEvent *event) override;
 
-  void installStyleSheet();
+        QModelIndex selectedIndex() const;
+        void setSelectedIndex (const QModelIndex& index);
 
-  void saveSettings();
-  void restoreSettings();
-  void setInitialColumnsSizes();
+        void installStyleSheet();
 
-  void initActions();
+        void saveSettings();
+        void restoreSettings();
+        void setInitialColumnsSizes();
 
-protected:
-  QList<QAction *> m_actions;
+        void initActions();
 
-  bool m_hasProxy;
+    protected:
+        QList<QAction*> m_actions;
+
+        bool m_hasProxy;
 
 };
 

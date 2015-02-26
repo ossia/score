@@ -5,31 +5,31 @@ class TemporalConstraintViewModel;
 
 class TemporalConstraintView : public AbstractConstraintView
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		TemporalConstraintView(QGraphicsObject* parent);
+    public:
+        TemporalConstraintView (QGraphicsObject* parent);
 
-		virtual ~TemporalConstraintView() = default;
+        virtual ~TemporalConstraintView() = default;
 
-		virtual QRectF boundingRect() const override;
-		virtual void paint(QPainter *painter,
-						   const QStyleOptionGraphicsItem *option,
-						   QWidget *widget) override;
+        virtual QRectF boundingRect() const override;
+        virtual void paint (QPainter* painter,
+                            const QStyleOptionGraphicsItem* option,
+                            QWidget* widget) override;
 
-        void setMoving(bool);
+        void setMoving (bool);
 
-	signals:
-		void constraintMoved(QPointF);
-		void constraintReleased();
+    signals:
+        void constraintMoved (QPointF);
+        void constraintReleased();
 
-	protected:
-		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
-		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
+    protected:
+        virtual void mousePressEvent (QGraphicsSceneMouseEvent* m) override;
+        virtual void mouseMoveEvent (QGraphicsSceneMouseEvent* m) override;
+        virtual void mouseReleaseEvent (QGraphicsSceneMouseEvent* m) override;
 
-	private:
-		QPointF m_clickedPoint{};
+    private:
+        QPointF m_clickedPoint {};
 
-        bool m_moving{false};
+        bool m_moving {false};
 };

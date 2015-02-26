@@ -7,6 +7,6 @@ class ConstraintModel;
 
 
 template<typename T>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<T>& deserializer,
-												  ConstraintModel* constraint,
-												  QObject* parent);
+ProcessViewModelInterface* createProcessViewModel (Deserializer<T>& deserializer,
+        ConstraintModel* constraint,
+        QObject* parent);

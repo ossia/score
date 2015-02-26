@@ -14,43 +14,43 @@ class ConstraintModel;
  */
 class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
-							 iscore::DocumentDelegateModelInterface* model,
-							 iscore::DocumentDelegateViewInterface* view);
-		virtual ~BaseElementPresenter() = default;
+    public:
+        BaseElementPresenter (iscore::DocumentPresenter* parent_presenter,
+                              iscore::DocumentDelegateModelInterface* model,
+                              iscore::DocumentDelegateViewInterface* view);
+        virtual ~BaseElementPresenter() = default;
 
-		ConstraintModel* displayedConstraint() const;
-		BaseElementModel* model() const;
+        ConstraintModel* displayedConstraint() const;
+        BaseElementModel* model() const;
 
-	public slots:
-		void setDisplayedConstraint(ConstraintModel* );
-		void setDisplayedObject(ObjectPath);
+    public slots:
+        void setDisplayedConstraint (ConstraintModel*);
+        void setDisplayedObject (ObjectPath);
 
-		void on_askUpdate();
+        void on_askUpdate();
 
-		void selectAll();
-		void deselectAll();
-		QList<QGraphicsItem*> selectedItems() const;
+        void selectAll();
+        void deselectAll();
+        QList<QGraphicsItem*> selectedItems() const;
 
-		void deleteSelection();
+        void deleteSelection();
 
-		void on_displayedConstraintChanged();
+        void on_displayedConstraintChanged();
 
-	private slots:
-		void on_horizontalZoomChanged(int);
-		void on_positionSliderChanged(int);
+    private slots:
+        void on_horizontalZoomChanged (int);
+        void on_positionSliderChanged (int);
 
-		void on_viewWidthChanged(int);
+        void on_viewWidthChanged (int);
 
-	private:
-		BaseElementView* view() const;
-		FullViewConstraintPresenter* m_baseConstraintPresenter{};
+    private:
+        BaseElementView* view() const;
+        FullViewConstraintPresenter* m_baseConstraintPresenter {};
 
-		ConstraintModel* m_displayedConstraint{};
+        ConstraintModel* m_displayedConstraint {};
 
-		int m_horizontalZoomValue{50};
+        int m_horizontalZoomValue {50};
 
 };

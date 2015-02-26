@@ -13,32 +13,32 @@ class EventShortCut;
  */
 class TimeNodeInspectorWidget : public InspectorWidgetBase
 {
-		Q_OBJECT
-	public:
-		explicit TimeNodeInspectorWidget (TimeNodeModel* object, QWidget* parent = 0);
+        Q_OBJECT
+    public:
+        explicit TimeNodeInspectorWidget (TimeNodeModel* object, QWidget* parent = 0);
 
-	signals:
+    signals:
 
-	public slots:
-		void updateDisplayedValues (TimeNodeModel* obj);
+    public slots:
+        void updateDisplayedValues (TimeNodeModel* obj);
 
         void updateInspector();
 
-        void on_scriptingNameChanged(QString);
-        void on_labelChanged(QString);
-        void on_commentsChanged(QString);
-        void on_colorChanged(QColor);
+        void on_scriptingNameChanged (QString);
+        void on_labelChanged (QString);
+        void on_commentsChanged (QString);
+        void on_colorChanged (QColor);
 
         void on_splitTimeNodeClicked();
 
-	private:
+    private:
         QVector<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 
-		TimeNodeModel* m_timeNodeModel{};
+        TimeNodeModel* m_timeNodeModel {};
 
-        InspectorSectionWidget* m_eventList{};
-        QLabel* m_date{};
+        InspectorSectionWidget* m_eventList {};
+        QLabel* m_date {};
 
-        MetadataWidget* m_metadata{};
+        MetadataWidget* m_metadata {};
 };

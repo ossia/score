@@ -5,161 +5,228 @@ QString Node::INVALID_STR = "-_-";
 float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
 
-Node::Node(const QString& name, Node* parent)
-	: m_name(name),
-	  m_ioType(Invalid),
-	  m_min(INVALID_FLOAT),
-	  m_max(INVALID_FLOAT),
-	  m_parent(parent)
+Node::Node (const QString& name, Node* parent)
+    : m_name (name),
+      m_ioType (Invalid),
+      m_min (INVALID_FLOAT),
+      m_max (INVALID_FLOAT),
+      m_parent (parent)
 {
-	if (m_parent)
-		m_parent->addChild(this);
+    if (m_parent)
+    {
+        m_parent->addChild (this);
+    }
 }
 
-Node::Node(const QList<QString>& devices,
-		   const QString& name,
-		   Node* parent):
-	Node{name, parent}
+Node::Node (const QList<QString>& devices,
+            const QString& name,
+            Node* parent) :
+    Node {name, parent}
 {
-	m_deviceSettings = devices;
+    m_deviceSettings = devices;
 }
 
 
 Node::~Node()
 {
-	qDeleteAll(m_children); //calls delete on each children
+    qDeleteAll (m_children); //calls delete on each children
 }
 
-Node*Node::parent() const { return m_parent; }
-
-Node*Node::childAt(int index) const { return m_children.value(index); }
-
-int Node::indexOfChild(Node* child) const { return m_children.indexOf(child); }
-
-int Node::childCount() const { return m_children.count(); }
-
-bool Node::hasChildren() const { return ! m_children.empty(); }
-
-QList<Node*> Node::children() const { return m_children; }
-
-void Node::insertChild(int index, Node* n)
+Node* Node::parent() const
 {
-	Q_ASSERT(n);
-	n->m_parent = this;
-	m_children.insert(index, n);
-
-	//TODO: change corresponding API::Address ?
+    return m_parent;
 }
 
-void Node::addChild(Node* n)
+Node* Node::childAt (int index) const
 {
-	Q_ASSERT(n);
-	n->m_parent = this;
-	m_children.append(n);
-
-	//TODO: change corresponding API::Address ?
+    return m_children.value (index);
 }
 
-void Node::swapChildren(int oldIndex, int newIndex)
+int Node::indexOfChild (Node* child) const
 {
-	Q_ASSERT(oldIndex < m_children.count());
-	Q_ASSERT(newIndex < m_children.count());
-
-	m_children.swap(oldIndex, newIndex);
+    return m_children.indexOf (child);
 }
 
-Node*Node::takeChild(int index)
+int Node::childCount() const
 {
-	Node *n = m_children.takeAt(index);
-	Q_ASSERT(n);
-	n->m_parent = 0;
-	return n;
+    return m_children.count();
 }
 
-QString Node::name() const { return m_name; }
+bool Node::hasChildren() const
+{
+    return ! m_children.empty();
+}
 
-QString Node::value() const { return m_value; }
+QList<Node*> Node::children() const
+{
+    return m_children;
+}
 
-Node::IOType Node::ioType() const { return m_ioType; }
+void Node::insertChild (int index, Node* n)
+{
+    Q_ASSERT (n);
+    n->m_parent = this;
+    m_children.insert (index, n);
 
-float Node::minValue() const { return m_min; }
+    //TODO: change corresponding API::Address ?
+}
 
-float Node::maxValue() const { return m_max; }
+void Node::addChild (Node* n)
+{
+    Q_ASSERT (n);
+    n->m_parent = this;
+    m_children.append (n);
 
-unsigned int Node::priority() const { return m_priority; }
+    //TODO: change corresponding API::Address ?
+}
 
-void Node::setName(const QString& name) { m_name = name; }
+void Node::swapChildren (int oldIndex, int newIndex)
+{
+    Q_ASSERT (oldIndex < m_children.count() );
+    Q_ASSERT (newIndex < m_children.count() );
 
-void Node::setValue(const QString& value) { m_value = value; }
+    m_children.swap (oldIndex, newIndex);
+}
 
-void Node::setIOType(const Node::IOType ioType) { m_ioType = ioType; }
+Node* Node::takeChild (int index)
+{
+    Node* n = m_children.takeAt (index);
+    Q_ASSERT (n);
+    n->m_parent = 0;
+    return n;
+}
 
-void Node::setMinValue(float minV) { m_min = minV; }
+QString Node::name() const
+{
+    return m_name;
+}
 
-void Node::setMaxValue(float maxV) { m_max = maxV; }
+QString Node::value() const
+{
+    return m_value;
+}
 
-void Node::setPriority(unsigned int priority) { m_priority = priority; }
+Node::IOType Node::ioType() const
+{
+    return m_ioType;
+}
+
+float Node::minValue() const
+{
+    return m_min;
+}
+
+float Node::maxValue() const
+{
+    return m_max;
+}
+
+unsigned int Node::priority() const
+{
+    return m_priority;
+}
+
+void Node::setName (const QString& name)
+{
+    m_name = name;
+}
+
+void Node::setValue (const QString& value)
+{
+    m_value = value;
+}
+
+void Node::setIOType (const Node::IOType ioType)
+{
+    m_ioType = ioType;
+}
+
+void Node::setMinValue (float minV)
+{
+    m_min = minV;
+}
+
+void Node::setMaxValue (float maxV)
+{
+    m_max = maxV;
+}
+
+void Node::setPriority (unsigned int priority)
+{
+    m_priority = priority;
+}
 
 bool Node::isSelectable() const
 {
-	return true;
-	//return m_ioType != Node::In;
+    return true;
+    //return m_ioType != Node::In;
 }
 
 bool Node::isEditable() const
 {
-	return m_ioType == Node::Out || m_ioType == Node::Invalid;
+    return m_ioType == Node::Out || m_ioType == Node::Invalid;
 }
 
 bool Node::isDevice() const
 {
-	if (parent()) {
-		return parent()->parent() == nullptr;
-	}
-	return false;
+    if (parent() )
+    {
+        return parent()->parent() == nullptr;
+    }
+
+    return false;
 }
 
 const QStringList& Node::deviceSettings() const
 {
-	return m_deviceSettings;
+    return m_deviceSettings;
 }
 
-Node*Node::clone() const
+Node* Node::clone() const
 {
-	Node *n = new Node(*this);
-	const int numChildren = n->childCount();
-	n->m_children.clear();
-	n->m_children.reserve(numChildren);
-	for (int i=0; i<numChildren; ++i) {
-		n->m_children.append( m_children.at(i)->clone() );
-	}
-	return n;
+    Node* n = new Node (*this);
+    const int numChildren = n->childCount();
+    n->m_children.clear();
+    n->m_children.reserve (numChildren);
+
+    for (int i = 0; i < numChildren; ++i)
+    {
+        n->m_children.append ( m_children.at (i)->clone() );
+    }
+
+    return n;
 }
 
 
-QJsonObject nodeToJson(const Node* n)
+QJsonObject nodeToJson (const Node* n)
 {
-	QJsonObject obj;
-	if(!n) return obj;
-	obj["Name"] = n->name();
-	obj["Value"] = n->value();
-	obj["IOType"] = n->ioType();
-	obj["MinValue"] = n->minValue();
-	obj["MaxValue"] = n->maxValue();
-	obj["Priority"] = (int)n->priority();
+    QJsonObject obj;
 
-	if(n->isDevice())
-	{
-		obj["DeviceSettings"] = QJsonArray::fromStringList(n->deviceSettings());
-	}
+    if (!n)
+    {
+        return obj;
+    }
 
-	QJsonArray arr;
-	for(const Node* child : n->children())
-	{
-		arr.append(nodeToJson(child));
-	}
+    obj["Name"] = n->name();
+    obj["Value"] = n->value();
+    obj["IOType"] = n->ioType();
+    obj["MinValue"] = n->minValue();
+    obj["MaxValue"] = n->maxValue();
+    obj["Priority"] = (int) n->priority();
 
-	obj["Children"] = arr;
+    if (n->isDevice() )
+    {
+        obj["DeviceSettings"] = QJsonArray::fromStringList (n->deviceSettings() );
+    }
 
-	return obj;
+    QJsonArray arr;
+
+    for (const Node* child : n->children() )
+    {
+        arr.append (nodeToJson (child) );
+    }
+
+    obj["Children"] = arr;
+
+    return obj;
 }

@@ -17,166 +17,171 @@
 #include <QGridLayout>
 
 
-DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
-	InspectorSectionWidget{"Durations", parent},
-	m_model{parent->model()},
-	m_parent{parent}
+DurationSectionWidget::DurationSectionWidget (ConstraintInspectorWidget* parent) :
+    InspectorSectionWidget {"Durations", parent},
+                       m_model {parent->model() },
+m_parent {parent}
 {
-	QWidget* widg{new QWidget{this}};
-	QGridLayout* lay = new QGridLayout{widg};
-	lay->setContentsMargins(0, 0, 0 ,0);
-	widg->setLayout(lay);
+    QWidget* widg{new QWidget{this}};
+    QGridLayout* lay = new QGridLayout{widg};
+    lay->setContentsMargins (0, 0, 0 , 0);
+    widg->setLayout (lay);
 
     m_valueLabel = new QLabel{"Default: "};
-	auto checkbox = new QCheckBox{"Rigid"};
-	auto minSpin = new QSpinBox{};
-	auto maxSpin = new QSpinBox{};
+    auto checkbox = new QCheckBox{"Rigid"};
+    auto minSpin = new QSpinBox{};
+    auto maxSpin = new QSpinBox{};
     auto valueSpin = new QSpinBox{};
 
-	// TODO these need to be updated when the default duration changes
-	connect(m_model, &ConstraintModel::defaultDurationChanged,
-			this,	 &DurationSectionWidget::on_defaultDurationChanged);
+    // TODO these need to be updated when the default duration changes
+    connect (m_model, &ConstraintModel::defaultDurationChanged,
+             this,	 &DurationSectionWidget::on_defaultDurationChanged);
 
 
-	minSpin->setMinimum(0);
-	minSpin->setMaximum(m_model->defaultDuration().msec());
-	maxSpin->setMinimum(m_model->defaultDuration().msec() + 1);
-    maxSpin->setMaximum(std::numeric_limits<int>::max());
-    valueSpin->setMinimum(std::numeric_limits<int>::min());
-    valueSpin->setMaximum(std::numeric_limits<int>::max());
+    minSpin->setMinimum (0);
+    minSpin->setMaximum (m_model->defaultDuration().msec() );
+    maxSpin->setMinimum (m_model->defaultDuration().msec() + 1);
+    maxSpin->setMaximum (std::numeric_limits<int>::max() );
+    valueSpin->setMinimum (std::numeric_limits<int>::min() );
+    valueSpin->setMaximum (std::numeric_limits<int>::max() );
 
-	connect(checkbox, &QCheckBox::toggled,
-			[=] (bool val)
-	{
-		minSpin->setEnabled(!val);
-		maxSpin->setEnabled(!val);
-	});
+    connect (checkbox, &QCheckBox::toggled,
+             [ = ] (bool val)
+    {
+        minSpin->setEnabled (!val);
+        maxSpin->setEnabled (!val);
+    });
 
-	minSpin->setValue(m_model->minDuration().msec());
-	maxSpin->setValue(m_model->maxDuration().msec());
-	if(m_model->minDuration() == m_model->maxDuration())
-	{
-		checkbox->setChecked(true);
-	}
-	valueSpin->setValue(m_model->defaultDuration().msec());
+    minSpin->setValue (m_model->minDuration().msec() );
+    maxSpin->setValue (m_model->maxDuration().msec() );
 
-	lay->addWidget(checkbox, 0, 0);
-	lay->addWidget(new QLabel{tr("Min duration")}, 1, 0);
-	lay->addWidget(minSpin, 1, 1);
-	lay->addWidget(new QLabel{tr("Max duration")}, 2, 0);
-	lay->addWidget(maxSpin, 2, 1);
+    if (m_model->minDuration() == m_model->maxDuration() )
+    {
+        checkbox->setChecked (true);
+    }
 
-	lay->addWidget(m_valueLabel, 3, 0);
-    lay->addWidget(valueSpin, 3, 1);
+    valueSpin->setValue (m_model->defaultDuration().msec() );
 
-	connect(minSpin,	SIGNAL(valueChanged(int)),
-			this,		SLOT(minDurationSpinboxChanged(int)));
-	connect(minSpin,	&QSpinBox::editingFinished,
-			[&] ()
-	{
-		emit m_parent->validateOngoingCommand();
-		m_minSpinboxEditing = false;
-	});
-	connect(maxSpin,	SIGNAL(valueChanged(int)),
-			this,		SLOT(maxDurationSpinboxChanged(int)));
-	connect(maxSpin,	&QSpinBox::editingFinished,
-			[&] ()
-	{
-		emit m_parent->validateOngoingCommand();
-		m_maxSpinboxEditing = false;
-	});
+    lay->addWidget (checkbox, 0, 0);
+    lay->addWidget (new QLabel{tr ("Min duration") }, 1, 0);
+    lay->addWidget (minSpin, 1, 1);
+    lay->addWidget (new QLabel{tr ("Max duration") }, 2, 0);
+    lay->addWidget (maxSpin, 2, 1);
 
-    connect(valueSpin,  SIGNAL(valueChanged(int)),
-            this,       SLOT(defaultDurationSpinboxChanged(int)));
-    connect(valueSpin,  &QSpinBox::editingFinished,
-            [&] ()
+    lay->addWidget (m_valueLabel, 3, 0);
+    lay->addWidget (valueSpin, 3, 1);
+
+    connect (minSpin,	SIGNAL (valueChanged (int) ),
+             this,		SLOT (minDurationSpinboxChanged (int) ) );
+    connect (minSpin,	&QSpinBox::editingFinished,
+             [&] ()
+    {
+        emit m_parent->validateOngoingCommand();
+        m_minSpinboxEditing = false;
+    });
+    connect (maxSpin,	SIGNAL (valueChanged (int) ),
+             this,		SLOT (maxDurationSpinboxChanged (int) ) );
+    connect (maxSpin,	&QSpinBox::editingFinished,
+             [&] ()
+    {
+        emit m_parent->validateOngoingCommand();
+        m_maxSpinboxEditing = false;
+    });
+
+    connect (valueSpin,  SIGNAL (valueChanged (int) ),
+             this,       SLOT (defaultDurationSpinboxChanged (int) ) );
+    connect (valueSpin,  &QSpinBox::editingFinished,
+             [&] ()
     {
         emit m_parent->validateOngoingCommand();
         m_valueSpinboxEditing = false;
     });
 
-	connect(checkbox,	&QCheckBox::toggled,
-			this,		&DurationSectionWidget::rigidCheckboxToggled);
+    connect (checkbox,	&QCheckBox::toggled,
+             this,		&DurationSectionWidget::rigidCheckboxToggled);
 
 
 
-	addContent(widg);
+    addContent (widg);
 }
 
 using namespace Scenario::Command;
 
-void DurationSectionWidget::minDurationSpinboxChanged(int val)
+void DurationSectionWidget::minDurationSpinboxChanged (int val)
 {
-	auto cmd = new SetMinDuration(
-				iscore::IDocument::path(m_model),
-				std::chrono::milliseconds{val});
-	if(!m_minSpinboxEditing)
-	{
-		m_minSpinboxEditing = true;
+    auto cmd = new SetMinDuration (
+        iscore::IDocument::path (m_model),
+        std::chrono::milliseconds {val});
 
-		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-	}
-	else
-	{
-		emit m_parent->continueOngoingCommand(cmd);
-	}
-}
+    if (!m_minSpinboxEditing)
+    {
+        m_minSpinboxEditing = true;
 
-void DurationSectionWidget::maxDurationSpinboxChanged(int val)
-{
-	auto cmd = new SetMaxDuration(
-				iscore::IDocument::path(m_model),
-				std::chrono::milliseconds{val});
-	if(!m_maxSpinboxEditing)
-	{
-		m_maxSpinboxEditing = true;
-
-		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-	}
-	else
-	{
-		emit m_parent->continueOngoingCommand(cmd);
+        emit m_parent->initiateOngoingCommand (cmd, m_model->parent() );
+    }
+    else
+    {
+        emit m_parent->continueOngoingCommand (cmd);
     }
 }
 
-void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
+void DurationSectionWidget::maxDurationSpinboxChanged (int val)
 {
-	iscore::SerializableCommand* cmd{};
-	if(m_model->objectName() != "BaseConstraintModel")
-	{
-		cmd = new ResizeConstraint(
-						iscore::IDocument::path(m_model),
-						std::chrono::milliseconds{val});
-	}
-	else
-	{
-		cmd = new ResizeBaseConstraint(
-						iscore::IDocument::path(m_model),
-						std::chrono::milliseconds{val});
-	}
+    auto cmd = new SetMaxDuration (
+        iscore::IDocument::path (m_model),
+        std::chrono::milliseconds {val});
 
-	if(!m_valueSpinboxEditing)
-	{
-		m_valueSpinboxEditing = true;
+    if (!m_maxSpinboxEditing)
+    {
+        m_maxSpinboxEditing = true;
 
-		emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-	}
-	else
-	{
-		emit m_parent->continueOngoingCommand(cmd);
-	}
+        emit m_parent->initiateOngoingCommand (cmd, m_model->parent() );
+    }
+    else
+    {
+        emit m_parent->continueOngoingCommand (cmd);
+    }
 }
 
-void DurationSectionWidget::rigidCheckboxToggled(bool b)
+void DurationSectionWidget::defaultDurationSpinboxChanged (int val)
 {
-	auto cmd = new SetRigidity(
-				   iscore::IDocument::path(m_model),
-				   b);
+    iscore::SerializableCommand* cmd {};
 
-	emit m_parent->submitCommand(cmd);
+    if (m_model->objectName() != "BaseConstraintModel")
+    {
+        cmd = new ResizeConstraint (
+            iscore::IDocument::path (m_model),
+            std::chrono::milliseconds {val});
+    }
+    else
+    {
+        cmd = new ResizeBaseConstraint (
+            iscore::IDocument::path (m_model),
+            std::chrono::milliseconds {val});
+    }
+
+    if (!m_valueSpinboxEditing)
+    {
+        m_valueSpinboxEditing = true;
+
+        emit m_parent->initiateOngoingCommand (cmd, m_model->parent() );
+    }
+    else
+    {
+        emit m_parent->continueOngoingCommand (cmd);
+    }
 }
 
-void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)
+void DurationSectionWidget::rigidCheckboxToggled (bool b)
+{
+    auto cmd = new SetRigidity (
+        iscore::IDocument::path (m_model),
+        b);
+
+    emit m_parent->submitCommand (cmd);
+}
+
+void DurationSectionWidget::on_defaultDurationChanged (TimeValue dur)
 {
 //	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
 }

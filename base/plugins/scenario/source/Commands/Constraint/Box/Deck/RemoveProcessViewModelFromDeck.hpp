@@ -5,35 +5,35 @@
 class ProcessViewModelInterface;
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
-		 * @brief The RemoveProcessViewFromDeck class
-		 *
-		 * Removes a process view from a deck.
-		 */
-		class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
-		{
-			public:
-				RemoveProcessViewModelFromDeck();
+    namespace Command
+    {
+        /**
+         * @brief The RemoveProcessViewFromDeck class
+         *
+         * Removes a process view from a deck.
+         */
+        class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
+        {
+            public:
+                RemoveProcessViewModelFromDeck();
 
-				RemoveProcessViewModelFromDeck(ObjectPath&& pvmPath);
-				RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);
+                RemoveProcessViewModelFromDeck (ObjectPath&& pvmPath);
+                RemoveProcessViewModelFromDeck (ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);
 
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-				ObjectPath m_path;
-				id_type<ProcessViewModelInterface> m_processViewId{};
+            private:
+                ObjectPath m_path;
+                id_type<ProcessViewModelInterface> m_processViewId {};
 
-				QByteArray m_serializedProcessViewData;
-		};
-	}
+                QByteArray m_serializedProcessViewData;
+        };
+    }
 }

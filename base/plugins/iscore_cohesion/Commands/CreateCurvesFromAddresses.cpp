@@ -12,85 +12,89 @@ using namespace iscore;
 #define CMD_NAME "CreateCurvesFromAddresses"
 #define CMD_DESC QObject::tr("Create curves from addresses")
 
-CreateCurvesFromAddresses::CreateCurvesFromAddresses():
-	SerializableCommand{"IScoreCohesionControl",
-						CMD_NAME,
-						CMD_DESC}
+CreateCurvesFromAddresses::CreateCurvesFromAddresses() :
+    SerializableCommand {"IScoreCohesionControl",
+    CMD_NAME,
+    CMD_DESC
+}
 {
 }
 
-CreateCurvesFromAddresses::CreateCurvesFromAddresses(ObjectPath&& constraint,
-													 QStringList addresses):
-	SerializableCommand{"IScoreCohesionControl",
-						CMD_NAME,
-						CMD_DESC},
-	m_path{constraint},
-	m_addresses{addresses}
+CreateCurvesFromAddresses::CreateCurvesFromAddresses (ObjectPath&& constraint,
+        QStringList addresses) :
+    SerializableCommand {"IScoreCohesionControl",
+    CMD_NAME,
+    CMD_DESC
+},
+m_path {constraint},
+m_addresses {addresses}
 {
-	for(int i = 0; i < m_addresses.size(); ++i)
-	{
-		auto cmd = new Scenario::Command::AddProcessToConstraint{
-								ObjectPath{m_path},
-								"Automation"};
-		m_serializedCommands.push_back(cmd->serialize());
-		delete cmd;
-	}
+    for (int i = 0; i < m_addresses.size(); ++i)
+    {
+        auto cmd = new Scenario::Command::AddProcessToConstraint
+        {
+            ObjectPath{m_path},
+            "Automation"
+        };
+        m_serializedCommands.push_back (cmd->serialize() );
+        delete cmd;
+    }
 }
 
 void CreateCurvesFromAddresses::undo()
 {
-	for(auto& cmd_pack : m_serializedCommands)
-	{
-		auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
-													 "AddProcessToConstraint",
-													 cmd_pack);
-		cmd->undo();
+    for (auto& cmd_pack : m_serializedCommands)
+    {
+        auto cmd = IPresenter::instantiateUndoCommand ("ScenarioControl",
+                   "AddProcessToConstraint",
+                   cmd_pack);
+        cmd->undo();
 
-		delete cmd;
-	}
+        delete cmd;
+    }
 }
 
 void CreateCurvesFromAddresses::redo()
 {
-	auto constraint = m_path.find<ConstraintModel>();
+    auto constraint = m_path.find<ConstraintModel>();
 
-	for(int i = 0; i < m_addresses.size(); ++i)
-	{
-		// Creation
-		auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
-													  "AddProcessToConstraint",
-													   m_serializedCommands[i]);
+    for (int i = 0; i < m_addresses.size(); ++i)
+    {
+        // Creation
+        auto cmd = IPresenter::instantiateUndoCommand ("ScenarioControl",
+                   "AddProcessToConstraint",
+                   m_serializedCommands[i]);
 
-		cmd->redo();
+        cmd->redo();
 
-		// Change the address
-		// TODO maybe pass parameters to AddProcessToConstraint?
-		auto addProcessCmd = static_cast<Scenario::Command::AddProcessToConstraint*>(cmd);
-		auto id = addProcessCmd->processId();
+        // Change the address
+        // TODO maybe pass parameters to AddProcessToConstraint?
+        auto addProcessCmd = static_cast<Scenario::Command::AddProcessToConstraint*> (cmd);
+        auto id = addProcessCmd->processId();
 
-		auto curve = static_cast<AutomationModel*>(constraint->process(id));
-		curve->setAddress(m_addresses[i]);
+        auto curve = static_cast<AutomationModel*> (constraint->process (id) );
+        curve->setAddress (m_addresses[i]);
 
-		delete cmd;
-	}
+        delete cmd;
+    }
 }
 
 int CreateCurvesFromAddresses::id() const
 {
-	return CMD_UID;
+    return CMD_UID;
 }
 
-bool CreateCurvesFromAddresses::mergeWith(const QUndoCommand* other)
+bool CreateCurvesFromAddresses::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void CreateCurvesFromAddresses::serializeImpl(QDataStream& s) const
+void CreateCurvesFromAddresses::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_addresses << m_serializedCommands;
+    s << m_path << m_addresses << m_serializedCommands;
 }
 
-void CreateCurvesFromAddresses::deserializeImpl(QDataStream& s)
+void CreateCurvesFromAddresses::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_addresses >> m_serializedCommands;
+    s >> m_path >> m_addresses >> m_serializedCommands;
 }

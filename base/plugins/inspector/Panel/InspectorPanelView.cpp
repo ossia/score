@@ -3,10 +3,10 @@
 
 #include "Implementation/InspectorPanel.hpp"
 InspectorPanelView::InspectorPanelView (iscore::View* parent) :
-	iscore::PanelViewInterface{parent}
+    iscore::PanelViewInterface {parent}
 {
-	this->setObjectName(tr("Inspector"));
-	m_panelWidget = new InspectorPanel{parent};
+    this->setObjectName (tr ("Inspector") );
+    m_panelWidget = new InspectorPanel{parent};
 }
 
 QWidget* InspectorPanelView::getWidget()
@@ -16,10 +16,10 @@ QWidget* InspectorPanelView::getWidget()
 
 //	ptr->newItemInspected (test1);
 
-	return m_panelWidget;
+    return m_panelWidget;
 }
 
-void InspectorPanelView::on_setNewItem(QObject* obj)
+void InspectorPanelView::on_setNewItem (QObject* obj)
 {
-	m_panelWidget->newItemInspected(obj);
+    m_panelWidget->newItemInspected (obj);
 }

@@ -7,13 +7,13 @@
 
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget (QObject* sourceElement)
 {
-	auto timeNode = static_cast<TimeNodeModel*>(sourceElement);
-	return new TimeNodeInspectorWidget(timeNode);
+    auto timeNode = static_cast<TimeNodeModel*> (sourceElement);
+    return new TimeNodeInspectorWidget (timeNode);
 
 }
 
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget (QList<QObject*> sourceElements)
 {
-	// @todo make a tabbed view when there is a list.
-	return new TimeNodeInspectorWidget (static_cast<TimeNodeModel*> (sourceElements.at (0) ) );
+    // @todo make a tabbed view when there is a list.
+    return new TimeNodeInspectorWidget (static_cast<TimeNodeModel*> (sourceElements.at (0) ) );
 }

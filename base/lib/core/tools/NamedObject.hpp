@@ -12,42 +12,42 @@
 template<typename QType>
 class NamedType : public QType
 {
-	public:
-		template<typename... Args>
-		NamedType(QString name, QObject* parent, Args&&... args):
-			QType{std::forward<Args>(args)...}
-		{
-			QType::setObjectName(name);
-			QType::setParent(parent);
-		}
+    public:
+        template<typename... Args>
+        NamedType (QString name, QObject* parent, Args&& ... args) :
+            QType {std::forward<Args> (args)...}
+        {
+            QType::setObjectName (name);
+            QType::setParent (parent);
+        }
 
-		template<typename ReaderImpl,typename... Args>
-		NamedType(Deserializer<ReaderImpl>& v, QObject* parent, Args&&... args):
-			QType{std::forward<Args>(args)...}
-		{
-			v.writeTo(*this);
-			QType::setParent(parent);
-		}
+        template<typename ReaderImpl, typename... Args>
+        NamedType (Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
+            QType {std::forward<Args> (args)...}
+        {
+            v.writeTo (*this);
+            QType::setParent (parent);
+        }
 };
 
 
 using NamedObject = NamedType<QObject>;
 
 
-inline void debug_parentHierarchy(QObject* obj)
+inline void debug_parentHierarchy (QObject* obj)
 {
-	while(obj)
-	{
-		qDebug() << obj->objectName();
-		obj = obj->parent();
-	}
+    while (obj)
+    {
+        qDebug() << obj->objectName();
+        obj = obj->parent();
+    }
 }
 
 class IdentifiedObjectAbstract : public NamedObject
 {
-	public:
-		using NamedObject::NamedObject;
-		virtual int32_t id_val() const = 0;
+    public:
+        using NamedObject::NamedObject;
+        virtual int32_t id_val() const = 0;
 };
 
 #define DEMO_PIXEL_SPACING_TEST 5

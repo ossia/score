@@ -41,33 +41,33 @@ class QTreeWidget;
 class QHostInfo;
 class ZeroconfConnectDialog : public QDialog
 {
-	Q_OBJECT
+        Q_OBJECT
 
-public:
-	ZeroconfConnectDialog(QWidget *parent = 0);
+    public:
+        ZeroconfConnectDialog (QWidget* parent = 0);
 
-	signals:
-	void setLocalAddress(QHostAddress);
-	void connectedTo(ConnectionData);
+    signals:
+        void setLocalAddress (QHostAddress);
+        void connectedTo (ConnectionData);
 
-private slots:
-	void updateRecords(const QList<BonjourRecord> &list);
-	void connectTo();
-	void readConnectionData();
-	void displayError(QAbstractSocket::SocketError socketError);
-	void connectToServer(const QHostInfo &hostInfo, int);
+    private slots:
+        void updateRecords (const QList<BonjourRecord>& list);
+        void connectTo();
+        void readConnectionData();
+        void displayError (QAbstractSocket::SocketError socketError);
+        void connectToServer (const QHostInfo& hostInfo, int);
 
-private:
-	QLabel *statusLabel = nullptr;
-	QPushButton *connectButton = nullptr;
-	QPushButton *quitButton = nullptr;
-	QDialogButtonBox *buttonBox = nullptr;
+    private:
+        QLabel* statusLabel = nullptr;
+        QPushButton* connectButton = nullptr;
+        QPushButton* quitButton = nullptr;
+        QDialogButtonBox* buttonBox = nullptr;
 
-	QTcpSocket *tcpSocket = nullptr;
-	quint16 blockSize{};
-	BonjourServiceBrowser *bonjourBrowser = nullptr;
-	BonjourServiceResolver *bonjourResolver = nullptr;
-	QTreeWidget *treeWidget = nullptr;
+        QTcpSocket* tcpSocket = nullptr;
+        quint16 blockSize {};
+        BonjourServiceBrowser* bonjourBrowser = nullptr;
+        BonjourServiceResolver* bonjourResolver = nullptr;
+        QTreeWidget* treeWidget = nullptr;
 };
 
 #endif

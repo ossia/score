@@ -8,36 +8,36 @@
 class NetworkSettings;
 
 class NetworkPlugin :
-		public QObject,
-		public iscore::Autoconnect_QtInterface,
-		public iscore::PluginControlInterface_QtInterface,
+    public QObject,
+    public iscore::Autoconnect_QtInterface,
+    public iscore::PluginControlInterface_QtInterface,
 //		public iscore::PanelFactoryPluginInterface,
-		public iscore::SettingsDelegateFactoryInterface_QtInterface
+    public iscore::SettingsDelegateFactoryInterface_QtInterface
 {
-		Q_OBJECT
-		Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
-		Q_INTERFACES(iscore::Autoconnect_QtInterface
-					 iscore::PluginControlInterface_QtInterface
+        Q_OBJECT
+        Q_PLUGIN_METADATA (IID Autoconnect_QtInterface_iid)
+        Q_INTERFACES (iscore::Autoconnect_QtInterface
+                      iscore::PluginControlInterface_QtInterface
 //					 iscore::PanelFactoryPluginInterface
-					 iscore::SettingsDelegateFactoryInterface_QtInterface)
+                      iscore::SettingsDelegateFactoryInterface_QtInterface)
 
-	public:
-		NetworkPlugin();
-		virtual ~NetworkPlugin() = default;
+    public:
+        NetworkPlugin();
+        virtual ~NetworkPlugin() = default;
 
-		// Autoconnect interface
-		virtual QList<iscore::Autoconnect> autoconnect_list() const override;
+        // Autoconnect interface
+        virtual QList<iscore::Autoconnect> autoconnect_list() const override;
 
-		// Settings interface
-		virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
+        // Settings interface
+        virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-		// CustomCommand interface
-		virtual QStringList control_list() const override;
-		virtual iscore::PluginControlInterface* control_make(QString) override;
+        // CustomCommand interface
+        virtual QStringList control_list() const override;
+        virtual iscore::PluginControlInterface* control_make (QString) override;
 
-		/* Pour les groupes
-		// Panel interface
-		virtual QStringList panel_list() const override;
-		virtual iscore::Panel* panel_make(QString name) override;
-		*/
+        /* Pour les groupes
+        // Panel interface
+        virtual QStringList panel_list() const override;
+        virtual iscore::Panel* panel_make(QString name) override;
+        */
 };

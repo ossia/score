@@ -44,142 +44,143 @@
 #include <QDebug>
 
 PluginCurveView::PluginCurveView (QGraphicsObject* parent)
-	: QGraphicsObject (parent)
+    : QGraphicsObject (parent)
 {
 
-	this->setZValue(parent->zValue() + 1);
-	_pZoomer = new PluginCurveZoomer (this);
-	_pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);
-	_pSelectionRectangle->setFlag (ItemIgnoresTransformations);
-	_pSelectionRectangle->hide();
-	//setFlag (ItemIsFocusable); // For board entries
-	setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
-	//setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
+    this->setZValue (parent->zValue() + 1);
+    _pZoomer = new PluginCurveZoomer (this);
+    _pSelectionRectangle = new QGraphicsRectItem (QRect (QPoint(), QSize() ), this);
+    _pSelectionRectangle->setFlag (ItemIgnoresTransformations);
+    _pSelectionRectangle->hide();
+    //setFlag (ItemIsFocusable); // For board entries
+    setFlag (ItemClipsChildrenToShape); // Children can't be drawn outside this item's shape
+    //setFocus(); /// @todo get focus ? Good idea ? Create fonctions for get / release focus ?
 
 }
 
 PluginCurveZoomer* PluginCurveView::zoomer()
 {
-	return _pZoomer;
+    return _pZoomer;
 }
 
 QGraphicsRectItem* PluginCurveView::selectionRectangle()
 {
-	return _pSelectionRectangle;
+    return _pSelectionRectangle;
 }
 
 void PluginCurveView::paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	Q_UNUSED (option)
-	Q_UNUSED (widget)
+    Q_UNUSED (option)
+    Q_UNUSED (widget)
 
-	//painter->drawText(boundingRect(), "Curve");
-	//painter->drawRect(boundingRect());
+    //painter->drawText(boundingRect(), "Curve");
+    //painter->drawRect(boundingRect());
 }
 
 /// @todo corriger si scene rect non défini !
 QRectF PluginCurveView::boundingRect() const
 {
-	if (parentItem() == nullptr)
-	{
-		if (scene() == nullptr)
-		{
-			return QRectF (0, 0, 0, 0);
-		}
-		else
-		{
-			return mapFromScene (scene()->sceneRect() ).boundingRect();
-		}
-	}
-	else
-	{
-		auto p_rect = parentItem()->boundingRect();
-		QRectF rect = { p_rect.x(), p_rect.y(),
-						p_rect.width(), p_rect.height()};
-		return mapFromParent ( rect ).boundingRect();
-	}
+    if (parentItem() == nullptr)
+    {
+        if (scene() == nullptr)
+        {
+            return QRectF (0, 0, 0, 0);
+        }
+        else
+        {
+            return mapFromScene (scene()->sceneRect() ).boundingRect();
+        }
+    }
+    else
+    {
+        auto p_rect = parentItem()->boundingRect();
+        QRectF rect = { p_rect.x(), p_rect.y(),
+                        p_rect.width(), p_rect.height()
+                      };
+        return mapFromParent ( rect ).boundingRect();
+    }
 }
 
 void PluginCurveView::mouseDoubleClickEvent (QGraphicsSceneMouseEvent* event)
 {
-	emit (doubleClicked (event) );
+    emit (doubleClicked (event) );
 }
 
 void PluginCurveView::mousePressEvent (QGraphicsSceneMouseEvent* mouseEvent)
 {
-	emit (mousePressed (mouseEvent) );
+    emit (mousePressed (mouseEvent) );
 }
 
 void PluginCurveView::mouseMoveEvent (QGraphicsSceneMouseEvent* moveEvent)
 {
-	emit (mouseMoved (moveEvent) );
+    emit (mouseMoved (moveEvent) );
 }
 
 void PluginCurveView::mouseReleaseEvent (QGraphicsSceneMouseEvent* releaseEvent)
 {
-	emit (mouseReleased (releaseEvent) );
+    emit (mouseReleased (releaseEvent) );
 }
 
 void PluginCurveView::keyPressEvent (QKeyEvent* keyEvent)
 {
-	emit (keyPressed (keyEvent) );
+    emit (keyPressed (keyEvent) );
 }
 
 void PluginCurveView::keyReleaseEvent (QKeyEvent* keyEvent)
 {
-	emit (keyReleased (keyEvent) );
+    emit (keyReleased (keyEvent) );
 }
 
 void PluginCurveView::wheelEvent (QGraphicsSceneWheelEvent* event)
 {
-	emit (wheelTurned (event) );
+    emit (wheelTurned (event) );
 }
 
 QVariant PluginCurveView::itemChange (GraphicsItemChange change, const QVariant& value)
 {
-	switch (change)
-	{
-		case ItemSceneHasChanged:
-			//_pZoomer->prepareGeometryChange();
-			emit (viewSceneChanged (scene() ) ); // The new scene is emitted
-			break;
+    switch (change)
+    {
+        case ItemSceneHasChanged:
+            //_pZoomer->prepareGeometryChange();
+            emit (viewSceneChanged (scene() ) ); // The new scene is emitted
+            break;
 
-		default:
-			return QGraphicsItem::itemChange (change, value);
-	}
+        default:
+            return QGraphicsItem::itemChange (change, value);
+    }
 
-	return QGraphicsItem::itemChange (change, value);
+    return QGraphicsItem::itemChange (change, value);
 }
 
 void PluginCurveView::startDrawSelectionRectangle (QPoint originSelectionRectangle)
 {
-	QRect rect;
-	rect = QRect (originSelectionRectangle, originSelectionRectangle).normalized().intersected (boundingRect().toRect() );
-	//Q_ASSERT(transform().isInvertible());
-	rect = transform().mapRect (rect);
-	_pSelectionRectangle->setRect (rect);
-	_pSelectionRectangle->show();
+    QRect rect;
+    rect = QRect (originSelectionRectangle, originSelectionRectangle).normalized().intersected (boundingRect().toRect() );
+    //Q_ASSERT(transform().isInvertible());
+    rect = transform().mapRect (rect);
+    _pSelectionRectangle->setRect (rect);
+    _pSelectionRectangle->show();
 }
 
 void PluginCurveView::drawSelectionrectangle (QPoint originSelectionRectangle, QPoint destinationSelectionRectangle)
 {
-	QRect rect;
-	QPainterPath painterPath;
-	rect = QRect (originSelectionRectangle, destinationSelectionRectangle).normalized().intersected (boundingRect().toRect() );
-	rect = transform().mapRect (rect); // Map the rectangle in the correct scale
-	_pSelectionRectangle->setRect (rect);
-	painterPath.addPolygon (mapToScene (transform().mapRect (rect) ).toPolygon() );
-	//Select the items
-	scene()->setSelectionArea (painterPath, Qt::IntersectsItemShape);
+    QRect rect;
+    QPainterPath painterPath;
+    rect = QRect (originSelectionRectangle, destinationSelectionRectangle).normalized().intersected (boundingRect().toRect() );
+    rect = transform().mapRect (rect); // Map the rectangle in the correct scale
+    _pSelectionRectangle->setRect (rect);
+    painterPath.addPolygon (mapToScene (transform().mapRect (rect) ).toPolygon() );
+    //Select the items
+    scene()->setSelectionArea (painterPath, Qt::IntersectsItemShape);
 }
 
 ///@todo Changer Nom methode
 void PluginCurveView::selectItems()
 {
-	_pSelectionRectangle->hide();
+    _pSelectionRectangle->hide();
 }
 
 void PluginCurveView::changeCursor (QCursor cursor)
 {
-	setCursor (cursor);
+    setCursor (cursor);
 }

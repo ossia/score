@@ -13,43 +13,43 @@ using namespace Scenario::Command;
 
 class CreateEventTest: public QObject
 {
-		Q_OBJECT
-	public:
+        Q_OBJECT
+    public:
 
-	private slots:
+    private slots:
 
-		void CreateTest()
-		{
-			ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface>{0}, qApp);
-			EventData data{};
-			// data.id = 0; unused here
-			data.dDate.setMSecs(10);
-			data.relativeY = 0.5;
+        void CreateTest()
+        {
+            ScenarioModel* scenar = new ScenarioModel (id_type<ProcessSharedModelInterface> {0}, qApp);
+            EventData data {};
+            // data.id = 0; unused here
+            data.dDate.setMSecs (10);
+            data.relativeY = 0.5;
 
-			CreateEvent cmd(
-			{
-				{"ScenarioModel", {}},
+            CreateEvent cmd (
+            {
+                {"ScenarioModel", {}},
             }, data);
 
-			cmd.redo();
-			QCOMPARE((int)scenar->events().size(), 2); // TODO 3 if endEvent
-			QCOMPARE(scenar->event(cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.5);
+            cmd.redo();
+            QCOMPARE ( (int) scenar->events().size(), 2); // TODO 3 if endEvent
+            QCOMPARE (scenar->event (cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.5);
 
-			cmd.undo();
-			QCOMPARE((int)scenar->events().size(), 1); // TODO 2 if endEvent
-			cmd.redo();
+            cmd.undo();
+            QCOMPARE ( (int) scenar->events().size(), 1); // TODO 2 if endEvent
+            cmd.redo();
 
-			QCOMPARE((int)scenar->events().size(), 2);
-			QCOMPARE(scenar->event(cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.5);
+            QCOMPARE ( (int) scenar->events().size(), 2);
+            QCOMPARE (scenar->event (cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.5);
 
 
-			// Delete them else they stay in qApp !
+            // Delete them else they stay in qApp !
 
-			delete scenar;
-		}
+            delete scenar;
+        }
 };
 
-QTEST_MAIN(CreateEventTest)
+QTEST_MAIN (CreateEventTest)
 #include "CreateEventTest.moc"
 
 

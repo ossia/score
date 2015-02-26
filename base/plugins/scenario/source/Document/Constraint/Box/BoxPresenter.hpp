@@ -9,53 +9,53 @@ class DeckModel;
 
 namespace iscore
 {
-	class SerializableCommand;
+    class SerializableCommand;
 }
 
 class BoxPresenter : public NamedObject
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		BoxPresenter(BoxModel* model,
-					 BoxView* view,
-					 QObject* parent);
-		virtual ~BoxPresenter();
+    public:
+        BoxPresenter (BoxModel* model,
+                      BoxView* view,
+                      QObject* parent);
+        virtual ~BoxPresenter();
 
-		int height() const;
-		int width() const;
-		void setWidth(int);
+        int height() const;
+        int width() const;
+        void setWidth (int);
 
-		id_type<BoxModel> id() const;
+        id_type<BoxModel> id() const;
 
-	signals:
-		void submitCommand(iscore::SerializableCommand*);
-		void elementSelected(QObject*);
+    signals:
+        void submitCommand (iscore::SerializableCommand*);
+        void elementSelected (QObject*);
         void lastElementSelected();
 
-		void askUpdate();
+        void askUpdate();
 
-	public slots:
-		void on_durationChanged(TimeValue duration);
-		void on_deckCreated(id_type<DeckModel> deckId);
-		void on_deckRemoved(id_type<DeckModel> deckId);
+    public slots:
+        void on_durationChanged (TimeValue duration);
+        void on_deckCreated (id_type<DeckModel> deckId);
+        void on_deckRemoved (id_type<DeckModel> deckId);
 
-		void on_askUpdate();
+        void on_askUpdate();
 
-		void on_horizontalZoomChanged(int val);
-		void on_deckPositionsChanged();
+        void on_horizontalZoomChanged (int val);
+        void on_deckPositionsChanged();
 
-	private:
-		void on_deckCreated_impl(DeckModel* m);
+    private:
+        void on_deckCreated_impl (DeckModel* m);
 
-		// Updates the shape of the view
-		void updateShape();
+        // Updates the shape of the view
+        void updateShape();
 
-		BoxModel* m_model;
-		BoxView* m_view;
-		std::vector<DeckPresenter*> m_decks;
+        BoxModel* m_model;
+        BoxView* m_view;
+        std::vector<DeckPresenter*> m_decks;
 
-		int m_horizontalZoomSliderVal{};
-		TimeValue m_duration{};
+        int m_horizontalZoomSliderVal {};
+        TimeValue m_duration {};
 };
 

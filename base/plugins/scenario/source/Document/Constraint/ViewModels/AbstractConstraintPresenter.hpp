@@ -15,7 +15,7 @@ class BoxModel;
 
 namespace iscore
 {
-	class SerializableCommand;
+    class SerializableCommand;
 }
 class ProcessPresenterInterface;
 
@@ -27,74 +27,80 @@ class ProcessPresenterInterface;
  */
 class AbstractConstraintPresenter : public NamedObject
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		AbstractConstraintPresenter(QString name,
-									AbstractConstraintViewModel *model,
-									AbstractConstraintView *view,
-									QObject *parent);
-		virtual ~AbstractConstraintPresenter() = default;
+    public:
+        AbstractConstraintPresenter (QString name,
+                                     AbstractConstraintViewModel* model,
+                                     AbstractConstraintView* view,
+                                     QObject* parent);
+        virtual ~AbstractConstraintPresenter() = default;
 
-		int zoomSlider() const;
+        int zoomSlider() const;
 
-		virtual void updateScaling(double scaling);
+        virtual void updateScaling (double scaling);
 
-		bool isSelected() const;
-		void deselect();
+        bool isSelected() const;
+        void deselect();
 
 
-		BoxPresenter* box() const
-		{ return m_box; }
+        BoxPresenter* box() const
+        {
+            return m_box;
+        }
 
-		AbstractConstraintViewModel* abstractConstraintViewModel() const
-		{ return m_viewModel; }
+        AbstractConstraintViewModel* abstractConstraintViewModel() const
+        {
+            return m_viewModel;
+        }
 
-		AbstractConstraintView* abstractConstraintView() const
-		{ return m_view; }
+        AbstractConstraintView* abstractConstraintView() const
+        {
+            return m_view;
+        }
 
-		void on_horizontalZoomChanged(int val);
+        void on_horizontalZoomChanged (int val);
 
-	signals:
-		void submitCommand(iscore::SerializableCommand*);
-		void elementSelected(QObject*);
+    signals:
+        void submitCommand (iscore::SerializableCommand*);
+        void elementSelected (QObject*);
         void lastElementSelected();
 
-		void askUpdate();
+        void askUpdate();
 
-	public slots:
-		void on_defaultDurationChanged(TimeValue val);
-		void on_minDurationChanged(TimeValue min);
-		void on_maxDurationChanged(TimeValue max);
+    public slots:
+        void on_defaultDurationChanged (TimeValue val);
+        void on_minDurationChanged (TimeValue min);
+        void on_maxDurationChanged (TimeValue max);
 
-		void on_boxShown(id_type<BoxModel> boxId);
-		void on_boxHidden();
-		void on_boxRemoved();
+        void on_boxShown (id_type<BoxModel> boxId);
+        void on_boxHidden();
+        void on_boxRemoved();
 
-		void updateHeight();
-		virtual void on_constraintPressed(QPointF);
+        void updateHeight();
+        virtual void on_constraintPressed (QPointF);
 
-	private:
-		int m_horizontalZoomSliderVal{};
-		void createBoxPresenter(BoxModel*);
-		void clearBoxPresenter();
+    private:
+        int m_horizontalZoomSliderVal {};
+        void createBoxPresenter (BoxModel*);
+        void clearBoxPresenter();
 
-		BoxPresenter* m_box{};
+        BoxPresenter* m_box {};
 
-		// Process presenters are in the deck presenters.
-		AbstractConstraintViewModel* m_viewModel{};
-		AbstractConstraintView* m_view{};
+        // Process presenters are in the deck presenters.
+        AbstractConstraintViewModel* m_viewModel {};
+        AbstractConstraintView* m_view {};
 };
 
 // TODO concept: constraint view model.
 template<typename T>
-typename T::view_model_type* viewModel(T* obj)
+typename T::view_model_type* viewModel (T* obj)
 {
-	return static_cast<typename T::view_model_type*>(obj->abstractConstraintViewModel());
+    return static_cast<typename T::view_model_type*> (obj->abstractConstraintViewModel() );
 }
 
 template<typename T>
-typename T::view_type* view(T* obj)
+typename T::view_type* view (T* obj)
 {
-	return static_cast<typename T::view_type*>(obj->abstractConstraintView());
+    return static_cast<typename T::view_type*> (obj->abstractConstraintView() );
 }

@@ -4,23 +4,23 @@
 
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
-	public:
-		CreateCurvesFromAddresses();
-		CreateCurvesFromAddresses(ObjectPath&& constraint,
-								  QStringList addresses);
+    public:
+        CreateCurvesFromAddresses();
+        CreateCurvesFromAddresses (ObjectPath&& constraint,
+                                   QStringList addresses);
 
-		virtual void undo() override;
-		virtual void redo() override;
-		virtual int id() const override;
-		virtual bool mergeWith(const QUndoCommand* other) override;
+        virtual void undo() override;
+        virtual void redo() override;
+        virtual int id() const override;
+        virtual bool mergeWith (const QUndoCommand* other) override;
 
-	protected:
-		virtual void serializeImpl(QDataStream&) const override;
-		virtual void deserializeImpl(QDataStream&) override;
+    protected:
+        virtual void serializeImpl (QDataStream&) const override;
+        virtual void deserializeImpl (QDataStream&) override;
 
-	private:
-		ObjectPath m_path;
-		QStringList m_addresses;
+    private:
+        ObjectPath m_path;
+        QStringList m_addresses;
 
-		QVector<QByteArray> m_serializedCommands;
+        QVector<QByteArray> m_serializedCommands;
 };

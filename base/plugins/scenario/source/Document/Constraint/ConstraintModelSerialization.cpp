@@ -7,187 +7,198 @@
 
 
 // TODO put them in their own folder.
-QDataStream& operator<<(QDataStream& s, const ModelMetadata& m)
+QDataStream& operator<< (QDataStream& s, const ModelMetadata& m)
 {
     s << m.name() << m.comment() << m.color() << m.label();
 
-	return s;
+    return s;
 }
 
-QDataStream& operator>>(QDataStream& s, ModelMetadata& m)
+QDataStream& operator>> (QDataStream& s, ModelMetadata& m)
 {
     QString name, comment, label;
-	QColor color;
+    QColor color;
     s >> name >> comment >> color >> label;
 
-	m.setName(name);
-    m.setComment(comment);
-	m.setColor(color);
-    m.setLabel(label);
+    m.setName (name);
+    m.setComment (comment);
+    m.setColor (color);
+    m.setLabel (label);
 
-	return s;
+    return s;
 }
 
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<DataStream>>::readFrom (const ConstraintModel& constraint)
 {
-	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
+    readFrom (static_cast<const IdentifiedObject<ConstraintModel>&> (constraint) );
 
-	// Metadata
-	m_stream	<< constraint.metadata
-				<< constraint.heightPercentage();
+    // Metadata
+    m_stream	<< constraint.metadata
+                << constraint.heightPercentage();
 
-	// Processes
-	auto processes = constraint.processes();
-	m_stream	<< (int) processes.size();
-	for(auto process : processes)
-	{
-		readFrom(*process);
-	}
+    // Processes
+    auto processes = constraint.processes();
+    m_stream	<< (int) processes.size();
 
-	// Boxes
-	auto boxes = constraint.boxes();
-	m_stream	<<  (int) boxes.size();
-	for(auto box : boxes)
-	{
-		readFrom(*box);
-	}
+    for (auto process : processes)
+    {
+        readFrom (*process);
+    }
 
-	readFrom(*constraint.fullView());
+    // Boxes
+    auto boxes = constraint.boxes();
+    m_stream	<<  (int) boxes.size();
 
-	// Events
-	m_stream	<< constraint.startEvent();
-	m_stream	<< constraint.endEvent();
+    for (auto box : boxes)
+    {
+        readFrom (*box);
+    }
 
-	// API Object
-	// s << i.apiObject()->save();
-	// Things that should be queried from the API :
-	m_stream << constraint.defaultDuration()
-			 << constraint.startDate()
-			 << constraint.minDuration()
-			 << constraint.maxDuration();
+    readFrom (*constraint.fullView() );
 
-	insertDelimiter();
+    // Events
+    m_stream	<< constraint.startEvent();
+    m_stream	<< constraint.endEvent();
+
+    // API Object
+    // s << i.apiObject()->save();
+    // Things that should be queried from the API :
+    m_stream << constraint.defaultDuration()
+             << constraint.startDate()
+             << constraint.minDuration()
+             << constraint.maxDuration();
+
+    insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<DataStream>>::writeTo (ConstraintModel& constraint)
 {
-	double heightPercentage;
-	m_stream >> constraint.metadata >> heightPercentage;
+    double heightPercentage;
+    m_stream >> constraint.metadata >> heightPercentage;
 
-	constraint.setHeightPercentage(heightPercentage);
+    constraint.setHeightPercentage (heightPercentage);
 
-	// Processes
-	int process_count;
-	m_stream >> process_count;
-	for(; process_count --> 0;)
-	{
-		constraint.addProcess(createProcess(*this, &constraint));
-	}
+    // Processes
+    int process_count;
+    m_stream >> process_count;
 
-	// Boxes
-	int box_count;
-	m_stream >> box_count;
-	for(; box_count --> 0;)
-	{
-		constraint.addBox(new BoxModel(*this, &constraint));
-	}
+    for (; process_count -- > 0;)
+    {
+        constraint.addProcess (createProcess (*this, &constraint) );
+    }
 
-	id_type<ConstraintModel> savedConstraintId;
-	m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
-	constraint.setFullView(new FullViewConstraintViewModel{*this, &constraint, &constraint});
+    // Boxes
+    int box_count;
+    m_stream >> box_count;
 
-	// Events
-	id_type<EventModel> startId{}, endId{};
-	m_stream >> startId;
-	m_stream >> endId;
-	constraint.setStartEvent(startId);
-	constraint.setEndEvent(endId);
+    for (; box_count -- > 0;)
+    {
+        constraint.addBox (new BoxModel (*this, &constraint) );
+    }
 
-	// Things that should be queried from the API :
-	TimeValue width{}, startDate{}, minDur{}, maxDur{};
-	m_stream >> width
-			 >> startDate
-			 >> minDur
-			 >> maxDur;
-	constraint.setDefaultDuration(width);
-	constraint.setStartDate(startDate);
-	constraint.setMinDuration(minDur);
-	constraint.setMaxDuration(maxDur);
+    id_type<ConstraintModel> savedConstraintId;
+    m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
+    constraint.setFullView (new FullViewConstraintViewModel {*this, &constraint, &constraint});
 
-	checkDelimiter();
+    // Events
+    id_type<EventModel> startId {}, endId {};
+    m_stream >> startId;
+    m_stream >> endId;
+    constraint.setStartEvent (startId);
+    constraint.setEndEvent (endId);
+
+    // Things that should be queried from the API :
+    TimeValue width {}, startDate {}, minDur {}, maxDur {};
+    m_stream >> width
+             >> startDate
+             >> minDur
+             >> maxDur;
+    constraint.setDefaultDuration (width);
+    constraint.setStartDate (startDate);
+    constraint.setMinDuration (minDur);
+    constraint.setMaxDuration (maxDur);
+
+    checkDelimiter();
 }
 
 
 
 
 
-template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<JSON>>::readFrom (const ConstraintModel& constraint)
 {
-	readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
-	m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
-	m_obj["HeightPercentage"] = constraint.heightPercentage();
-	m_obj["StartEvent"] = toJsonObject(constraint.startEvent());
-	m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
+    readFrom (static_cast<const IdentifiedObject<ConstraintModel>&> (constraint) );
+    m_obj["Metadata"] = QVariant::fromValue (constraint.metadata).toJsonObject();
+    m_obj["HeightPercentage"] = constraint.heightPercentage();
+    m_obj["StartEvent"] = toJsonObject (constraint.startEvent() );
+    m_obj["EndEvent"] = toJsonObject (constraint.endEvent() );
 
-	// Processes
-	QJsonArray process_array;
-	for(auto process : constraint.processes())
-	{
-		process_array.push_back(toJsonObject(*process));
-	}
-	m_obj["Processes"] = process_array;
+    // Processes
+    QJsonArray process_array;
 
-	// Boxes
-	QJsonArray box_array;
-	for(auto box : constraint.boxes())
-	{
-		box_array.push_back(toJsonObject(*box));
-	}
-	m_obj["Boxes"] = box_array;
+    for (auto process : constraint.processes() )
+    {
+        process_array.push_back (toJsonObject (*process) );
+    }
 
-	m_obj["FullView"] = toJsonObject(*constraint.fullView());
+    m_obj["Processes"] = process_array;
 
-	// API Object
-	// s << i.apiObject()->save();
-	// Things that should be queried from the API :
-	m_obj["DefaultDuration"] = toJsonObject(constraint.defaultDuration());
-	m_obj["StartDate"] = toJsonObject(constraint.startDate());
-	m_obj["MinDuration"] = toJsonObject(constraint.minDuration());
-	m_obj["MaxDuration"] = toJsonObject(constraint.maxDuration());
+    // Boxes
+    QJsonArray box_array;
+
+    for (auto box : constraint.boxes() )
+    {
+        box_array.push_back (toJsonObject (*box) );
+    }
+
+    m_obj["Boxes"] = box_array;
+
+    m_obj["FullView"] = toJsonObject (*constraint.fullView() );
+
+    // API Object
+    // s << i.apiObject()->save();
+    // Things that should be queried from the API :
+    m_obj["DefaultDuration"] = toJsonObject (constraint.defaultDuration() );
+    m_obj["StartDate"] = toJsonObject (constraint.startDate() );
+    m_obj["MinDuration"] = toJsonObject (constraint.minDuration() );
+    m_obj["MaxDuration"] = toJsonObject (constraint.maxDuration() );
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<JSON>>::writeTo (ConstraintModel& constraint)
 {
-    constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ModelMetadata>();
-	constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-	constraint.setStartEvent(fromJsonObject<id_type<EventModel>>(m_obj["StartEvent"].toObject()));
-	constraint.setEndEvent(fromJsonObject<id_type<EventModel>>(m_obj["EndEvent"].toObject()));
+    constraint.metadata = QJsonValue (m_obj["Metadata"]).toVariant().value<ModelMetadata>();
+    constraint.setHeightPercentage (m_obj["HeightPercentage"].toDouble() );
+    constraint.setStartEvent (fromJsonObject<id_type<EventModel>> (m_obj["StartEvent"].toObject() ) );
+    constraint.setEndEvent (fromJsonObject<id_type<EventModel>> (m_obj["EndEvent"].toObject() ) );
 
-	QJsonArray process_array = m_obj["Processes"].toArray();
-	for(auto json_vref : process_array)
-	{
-		Deserializer<JSON> deserializer{json_vref.toObject()};
-		constraint.addProcess(createProcess(deserializer, &constraint));
-	}
+    QJsonArray process_array = m_obj["Processes"].toArray();
 
-	QJsonArray box_array = m_obj["Boxes"].toArray();
-	for(auto json_vref : box_array)
-	{
-		Deserializer<JSON> deserializer{json_vref.toObject()};
-		constraint.addBox(new BoxModel(deserializer, &constraint));
-	}
+    for (auto json_vref : process_array)
+    {
+        Deserializer<JSON> deserializer {json_vref.toObject() };
+        constraint.addProcess (createProcess (deserializer, &constraint) );
+    }
 
-	constraint.setFullView(new FullViewConstraintViewModel{Deserializer<JSON>{m_obj["FullView"].toObject()},
-																			  &constraint,
-																			  &constraint});
+    QJsonArray box_array = m_obj["Boxes"].toArray();
 
-	// Things that should be queried from the API :
-	constraint.setDefaultDuration(fromJsonObject<TimeValue>(m_obj["DefaultDuration"].toObject()));
-	constraint.setStartDate(fromJsonObject<TimeValue>(m_obj["StartDate"].toObject()));
-	constraint.setMinDuration(fromJsonObject<TimeValue>(m_obj["MinDuration"].toObject()));
-	constraint.setMaxDuration(fromJsonObject<TimeValue>(m_obj["MaxDuration"].toObject()));
+    for (auto json_vref : box_array)
+    {
+        Deserializer<JSON> deserializer {json_vref.toObject() };
+        constraint.addBox (new BoxModel (deserializer, &constraint) );
+    }
+
+    constraint.setFullView (new FullViewConstraintViewModel {Deserializer<JSON>{m_obj["FullView"].toObject() },
+                            &constraint,
+                            &constraint
+                                                            });
+
+    // Things that should be queried from the API :
+    constraint.setDefaultDuration (fromJsonObject<TimeValue> (m_obj["DefaultDuration"].toObject() ) );
+    constraint.setStartDate (fromJsonObject<TimeValue> (m_obj["StartDate"].toObject() ) );
+    constraint.setMinDuration (fromJsonObject<TimeValue> (m_obj["MinDuration"].toObject() ) );
+    constraint.setMaxDuration (fromJsonObject<TimeValue> (m_obj["MaxDuration"].toObject() ) );
 }

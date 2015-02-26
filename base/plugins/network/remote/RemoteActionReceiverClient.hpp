@@ -6,14 +6,16 @@
 class ClientSession;
 class RemoteActionReceiverClient : public RemoteActionReceiver
 {
-		Q_OBJECT
-	public:
-		RemoteActionReceiverClient(QObject* parent, ClientSession*);
+        Q_OBJECT
+    public:
+        RemoteActionReceiverClient (QObject* parent, ClientSession*);
 
-	protected:
-		virtual Session* session() override
-		{ return m_session; }
+    protected:
+        virtual Session* session() override
+        {
+            return m_session;
+        }
 
-	private:
-		ClientSession* m_session;
+    private:
+        ClientSession* m_session;
 };

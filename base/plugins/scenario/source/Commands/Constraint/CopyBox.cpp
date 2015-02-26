@@ -6,56 +6,58 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyBox::CopyBox():
-	SerializableCommand{"ScenarioControl",
-						"CopyBox",
-						QObject::tr("Copy a box")}
+CopyBox::CopyBox() :
+    SerializableCommand {"ScenarioControl",
+    "CopyBox",
+    QObject::tr ("Copy a box")
+}
 {
 }
 
-CopyBox::CopyBox(ObjectPath&& boxToCopy):
-	SerializableCommand{"ScenarioControl",
-						"CopyBox",
-						QObject::tr("Copy a box")},
-	m_boxPath{boxToCopy}
+CopyBox::CopyBox (ObjectPath&& boxToCopy) :
+    SerializableCommand {"ScenarioControl",
+    "CopyBox",
+    QObject::tr ("Copy a box")
+},
+m_boxPath {boxToCopy}
 {
-	auto box = m_boxPath.find<BoxModel>();
-	auto constraint = box->constraint();
+    auto box = m_boxPath.find<BoxModel>();
+    auto constraint = box->constraint();
 
-	m_newBoxId = getStrongId(constraint->boxes());
+    m_newBoxId = getStrongId (constraint->boxes() );
 }
 
 void CopyBox::undo()
 {
-	auto box = m_boxPath.find<BoxModel>();
-	auto constraint = box->constraint();
+    auto box = m_boxPath.find<BoxModel>();
+    auto constraint = box->constraint();
 
-	constraint->removeBox(m_newBoxId);
+    constraint->removeBox (m_newBoxId);
 }
 
 void CopyBox::redo()
 {
-	auto box = m_boxPath.find<BoxModel>();
-	auto constraint = box->constraint();
-	constraint->addBox(new BoxModel{box, m_newBoxId, constraint});
+    auto box = m_boxPath.find<BoxModel>();
+    auto constraint = box->constraint();
+    constraint->addBox (new BoxModel {box, m_newBoxId, constraint});
 }
 
 int CopyBox::id() const
 {
-	return 1;
+    return 1;
 }
 
-bool CopyBox::mergeWith(const QUndoCommand* other)
+bool CopyBox::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void CopyBox::serializeImpl(QDataStream& s) const
+void CopyBox::serializeImpl (QDataStream& s) const
 {
-	s << m_boxPath << m_newBoxId;
+    s << m_boxPath << m_newBoxId;
 }
 
-void CopyBox::deserializeImpl(QDataStream& s)
+void CopyBox::deserializeImpl (QDataStream& s)
 {
-	s >> m_boxPath >> m_newBoxId;
+    s >> m_boxPath >> m_newBoxId;
 }

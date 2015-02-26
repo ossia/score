@@ -15,23 +15,23 @@ class ConstraintModel;
 
 class BaseElementModel : public iscore::DocumentDelegateModelInterface
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		BaseElementModel(QByteArray data, QObject* parent);
-		BaseElementModel(QObject* parent);
-		virtual ~BaseElementModel() = default;
+    public:
+        BaseElementModel (QByteArray data, QObject* parent);
+        BaseElementModel (QObject* parent);
+        virtual ~BaseElementModel() = default;
 
-		ConstraintModel* constraintModel() const
-		{
-			return m_baseConstraint;
-		}
+        ConstraintModel* constraintModel() const
+        {
+            return m_baseConstraint;
+        }
 
-		virtual QByteArray save() override;
-		virtual QJsonObject toJson() override;
+        virtual QByteArray save() override;
+        virtual QJsonObject toJson() override;
 
 
-	private:
-		ConstraintModel* m_baseConstraint{};
+    private:
+        ConstraintModel* m_baseConstraint {};
 };
 

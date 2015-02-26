@@ -5,18 +5,18 @@
 
 class ScenarioInspectorFactory : public InspectorWidgetFactoryInterface
 {
-	public:
-		ScenarioInspectorFactory() :
-			InspectorWidgetFactoryInterface {}
-		{
+    public:
+        ScenarioInspectorFactory() :
+            InspectorWidgetFactoryInterface {}
+        {
 
-		}
+        }
 
-		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QList<QString> correspondingObjectsNames() const override
-		{
-			return {"ScenarioModel"};
-		}
+        virtual QList<QString> correspondingObjectsNames() const override
+        {
+            return {"ScenarioModel"};
+        }
 };

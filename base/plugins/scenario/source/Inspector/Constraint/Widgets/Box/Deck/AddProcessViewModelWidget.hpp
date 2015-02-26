@@ -3,11 +3,11 @@
 class DeckInspectorSection;
 class AddProcessViewModelWidget : public QWidget
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
-		AddProcessViewModelWidget(DeckInspectorSection* parent);
+    public:
+        AddProcessViewModelWidget (DeckInspectorSection* parent);
 
-	private:
+    private:
 
 };

@@ -4,76 +4,78 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& pvm)
+void Visitor<Reader<DataStream>>::readFrom (const TemporalScenarioViewModel& pvm)
 {
-	auto constraints = constraintsViewModels(pvm);
+    auto constraints = constraintsViewModels (pvm);
 
-	m_stream << (int) constraints.size();
-	for(auto constraint : constraints)
-	{
-		readFrom(*constraint);
-	}
+    m_stream << (int) constraints.size();
 
-	insertDelimiter();
+    for (auto constraint : constraints)
+    {
+        readFrom (*constraint);
+    }
+
+    insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
+void Visitor<Writer<DataStream>>::writeTo (TemporalScenarioViewModel& pvm)
 {
-	int count;
-	m_stream >> count;
+    int count;
+    m_stream >> count;
 
-	for(; count --> 0;)
-	{
-		auto cstr = createConstraintViewModel(*this, &pvm);
-		pvm.addConstraintViewModel(cstr);
-	}
+    for (; count -- > 0;)
+    {
+        auto cstr = createConstraintViewModel (*this, &pvm);
+        pvm.addConstraintViewModel (cstr);
+    }
 
-	checkDelimiter();
+    checkDelimiter();
 }
 
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioViewModel& pvm)
+void Visitor<Reader<JSON>>::readFrom (const TemporalScenarioViewModel& pvm)
 {
-	QJsonArray arr;
-	for(auto cstrvm : constraintsViewModels(pvm))
-	{
-		arr.push_back(toJsonObject(*cstrvm));
-	}
+    QJsonArray arr;
 
-	m_obj["Constraints"] = arr;
+    for (auto cstrvm : constraintsViewModels (pvm) )
+    {
+        arr.push_back (toJsonObject (*cstrvm) );
+    }
+
+    m_obj["Constraints"] = arr;
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(TemporalScenarioViewModel& pvm)
+void Visitor<Writer<JSON>>::writeTo (TemporalScenarioViewModel& pvm)
 {
-	QJsonArray arr = m_obj["Constraints"].toArray();
+    QJsonArray arr = m_obj["Constraints"].toArray();
 
-	for(auto json_vref : arr)
-	{
-		Deserializer<JSON> deserializer{json_vref.toObject()};
-		auto cstrvm = createConstraintViewModel(deserializer,
-												&pvm);
-		pvm.addConstraintViewModel(cstrvm);
-	}
+    for (auto json_vref : arr)
+    {
+        Deserializer<JSON> deserializer {json_vref.toObject() };
+        auto cstrvm = createConstraintViewModel (deserializer,
+                      &pvm);
+        pvm.addConstraintViewModel (cstrvm);
+    }
 }
 
 
 
-void TemporalScenarioViewModel::serialize(SerializationIdentifier identifier, void* data) const
+void TemporalScenarioViewModel::serialize (SerializationIdentifier identifier, void* data) const
 {
-	if(identifier == DataStream::type())
-	{
-		static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
-		return;
-	}
-	else if(identifier == JSON::type())
-	{
-		static_cast<Serializer<JSON>*>(data)->readFrom(*this);
-		return;
-	}
+    if (identifier == DataStream::type() )
+    {
+        static_cast<Serializer<DataStream>*> (data)->readFrom (*this);
+        return;
+    }
+    else if (identifier == JSON::type() )
+    {
+        static_cast<Serializer<JSON>*> (data)->readFrom (*this);
+        return;
+    }
 
-	throw std::runtime_error("ScenarioViewModel only supports DataStream serialization");
+    throw std::runtime_error ("ScenarioViewModel only supports DataStream serialization");
 }

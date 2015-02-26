@@ -9,43 +9,43 @@ using namespace Scenario::Command;
 
 class AddDeckToBoxTest: public QObject
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	private slots:
-		void CreateDeckTest()
-		{
-			BoxModel* box  = new BoxModel{id_type<BoxModel>{0}, qApp};
+    private slots:
+        void CreateDeckTest()
+        {
+            BoxModel* box  = new BoxModel {id_type<BoxModel>{0}, qApp};
 
-			QCOMPARE((int)box->decks().size(), 0);
-			AddDeckToBox cmd(
-			ObjectPath{ {"BoxModel", {}} });
-			auto deckId = cmd.m_createdDeckId;
+            QCOMPARE ( (int) box->decks().size(), 0);
+            AddDeckToBox cmd (
+            ObjectPath { {"BoxModel", {}} });
+            auto deckId = cmd.m_createdDeckId;
 
-			cmd.redo();
-			QCOMPARE((int)box->decks().size(), 1);
-			QCOMPARE(box->deck(deckId)->parent(), box);
+            cmd.redo();
+            QCOMPARE ( (int) box->decks().size(), 1);
+            QCOMPARE (box->deck (deckId)->parent(), box);
 
-			cmd.undo();
-			QCOMPARE((int)box->decks().size(), 0);
+            cmd.undo();
+            QCOMPARE ( (int) box->decks().size(), 0);
 
-			cmd.redo();
-			QCOMPARE((int)box->decks().size(), 1);
-			QCOMPARE(box->deck(deckId)->parent(), box);
+            cmd.redo();
+            QCOMPARE ( (int) box->decks().size(), 1);
+            QCOMPARE (box->deck (deckId)->parent(), box);
 
-			try
-			{
-				box->deck(deckId);
-			}
-			catch(std::runtime_error& e)
-			{
-				QFAIL(e.what());
-			}
+            try
+            {
+                box->deck (deckId);
+            }
+            catch (std::runtime_error& e)
+            {
+                QFAIL (e.what() );
+            }
 
-			// Delete them else they stay in qApp !
-			delete box;
-		}
+            // Delete them else they stay in qApp !
+            delete box;
+        }
 };
 
-QTEST_MAIN(AddDeckToBoxTest)
+QTEST_MAIN (AddDeckToBoxTest)
 #include "AddDeckToBoxTest.moc"
 

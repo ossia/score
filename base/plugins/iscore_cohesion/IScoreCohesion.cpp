@@ -1,25 +1,25 @@
 #include "IScoreCohesion.hpp"
 #include "IScoreCohesionControl.hpp"
 IScoreCohesion::IScoreCohesion() :
-	QObject{}
+    QObject {}
 {
 }
 
 QList<iscore::Autoconnect> IScoreCohesion::autoconnect_list() const
 {
-	return
-	{
-	};
+    return
+    {
+    };
 }
 
 QStringList IScoreCohesion::control_list() const
 {
-	return {"IScoreCohesionControl"};
+    return {"IScoreCohesionControl"};
 }
 
-iscore::PluginControlInterface* IScoreCohesion::control_make(QString name)
+iscore::PluginControlInterface* IScoreCohesion::control_make (QString name)
 {
-	return new IScoreCohesionControl{nullptr};
+    return new IScoreCohesionControl {nullptr};
 }
 
 

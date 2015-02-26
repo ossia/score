@@ -11,32 +11,32 @@ class ConstraintModel;
  */
 class TemporalConstraintViewModel : public AbstractConstraintViewModel
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
+    public:
 
-		/**
-		 * @brief TemporalConstraintViewModel
-		 * @param id identifier
-		 * @param model Pointer to the corresponding model object
-		 * @param parent Parent object (most certainly ScenarioViewModel)
-		 */
-		TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-									ConstraintModel* model,
-									QObject* parent);
+        /**
+         * @brief TemporalConstraintViewModel
+         * @param id identifier
+         * @param model Pointer to the corresponding model object
+         * @param parent Parent object (most certainly ScenarioViewModel)
+         */
+        TemporalConstraintViewModel (id_type<AbstractConstraintViewModel> id,
+                                     ConstraintModel* model,
+                                     QObject* parent);
 
-		virtual TemporalConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
-												   ConstraintModel* cm,
-												   QObject* parent) override;
+        virtual TemporalConstraintViewModel* clone (id_type<AbstractConstraintViewModel> id,
+                ConstraintModel* cm,
+                QObject* parent) override;
 
-		template<typename DeserializerVisitor>
-		TemporalConstraintViewModel(DeserializerVisitor&& vis,
-									ConstraintModel* model,
-									QObject* parent):
-			AbstractConstraintViewModel{vis, model, parent}
-		{
-			// Nothing to add, no vis.visit(*this);
+        template<typename DeserializerVisitor>
+        TemporalConstraintViewModel (DeserializerVisitor&& vis,
+                                     ConstraintModel* model,
+                                     QObject* parent) :
+            AbstractConstraintViewModel {vis, model, parent}
+        {
+            // Nothing to add, no vis.visit(*this);
         }
-signals:
-        void eventSelected(QString);
+    signals:
+        void eventSelected (QString);
 };

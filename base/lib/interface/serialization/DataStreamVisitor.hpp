@@ -5,112 +5,123 @@
 
 class DataStream
 {
-	public:
-		static SerializationIdentifier type()
-		{ return 2; }
+    public:
+        static SerializationIdentifier type()
+        {
+            return 2;
+        }
 };
 
 
 template<>
 class Visitor<Reader<DataStream>>
 {
-	public:
-		Visitor<Reader<DataStream>>(QByteArray* array):
-			m_stream{array, QIODevice::WriteOnly}
-		{
-			m_stream.setVersion(QDataStream::Qt_5_3);
-		}
+    public:
+        Visitor<Reader<DataStream>> (QByteArray* array) :
+                                     m_stream {array, QIODevice::WriteOnly}
+        {
+            m_stream.setVersion (QDataStream::Qt_5_3);
+        }
 
-		template<typename T>
-		void readFrom(const id_type<T>& obj)
-		{
-			m_stream << bool(obj.val());
-			if(obj.val())
-				m_stream << *obj.val();
-		}
+        template<typename T>
+        void readFrom (const id_type<T>& obj)
+        {
+            m_stream << bool (obj.val() );
 
-		template<typename T>
-		void readFrom(const IdentifiedObject<T>& obj)
-		{
-			readFrom(static_cast<const NamedObject&>(obj));
-			readFrom(obj.id());
-		}
+            if (obj.val() )
+            {
+                m_stream << *obj.val();
+            }
+        }
 
-		template<typename T>
-		void readFrom(const T&);
+        template<typename T>
+        void readFrom (const IdentifiedObject<T>& obj)
+        {
+            readFrom (static_cast<const NamedObject&> (obj) );
+            readFrom (obj.id() );
+        }
 
-		void insertDelimiter()
-		{
-			m_stream << int32_t(0xDEADBEEF);
-		}
+        template<typename T>
+        void readFrom (const T&);
 
-		QDataStream m_stream;
+        void insertDelimiter()
+        {
+            m_stream << int32_t (0xDEADBEEF);
+        }
+
+        QDataStream m_stream;
 };
 
 template<>
 class Visitor<Writer<DataStream>>
 {
-	public:
-		Visitor<Writer<DataStream>>(QByteArray* array):
-			m_stream{array, QIODevice::ReadOnly}
-		{
-			m_stream.setVersion(QDataStream::Qt_5_3);
-		}
+    public:
+        Visitor<Writer<DataStream>> (QByteArray* array) :
+                                     m_stream {array, QIODevice::ReadOnly}
+        {
+            m_stream.setVersion (QDataStream::Qt_5_3);
+        }
 
-		template<typename T>
-		void writeTo(id_type<T>& obj)
-		{
-			bool init{};
-			int32_t val{};
-			m_stream >> init;
-			if(init)
-				m_stream >> val;
+        template<typename T>
+        void writeTo (id_type<T>& obj)
+        {
+            bool init {};
+            int32_t val {};
+            m_stream >> init;
 
-			obj.setVal(boost::optional<int32_t>{init, val});
-		}
+            if (init)
+            {
+                m_stream >> val;
+            }
 
-		template<typename T>
-		void writeTo(IdentifiedObject<T>& obj)
-		{
-			id_type<T> id;
-			writeTo(id);
-			obj.setId(std::move(id));
-		}
+            obj.setVal (boost::optional<int32_t> {init, val});
+        }
 
-		template<typename T>
-		void writeTo(T&);
+        template<typename T>
+        void writeTo (IdentifiedObject<T>& obj)
+        {
+            id_type<T> id;
+            writeTo (id);
+            obj.setId (std::move (id) );
+        }
 
-		void checkDelimiter()
-		{
-			int val{};
-			m_stream >> val;
-			if(val != int32_t(0xDEADBEEF))
-				throw std::runtime_error("Corrupt QDataStream");
-		}
+        template<typename T>
+        void writeTo (T&);
+
+        void checkDelimiter()
+        {
+            int val {};
+            m_stream >> val;
+
+            if (val != int32_t (0xDEADBEEF) )
+            {
+                throw std::runtime_error ("Corrupt QDataStream");
+            }
+        }
 
 
 
-		QDataStream m_stream;
+        QDataStream m_stream;
 };
 
 template<typename T>
-QDataStream& operator<<(QDataStream& stream, const T& obj)
+QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
-	QByteArray ar;
-	Visitor<Reader<DataStream>> reader(&ar);
-	reader.readFrom(obj);
+    QByteArray ar;
+    Visitor<Reader<DataStream>> reader (&ar);
+    reader.readFrom (obj);
 
-	stream << ar;
-	return stream;
+    stream << ar;
+    return stream;
 }
 
 template<typename T>
-QDataStream& operator>>(QDataStream& stream, T& obj)
+QDataStream& operator>> (QDataStream& stream, T& obj)
 {
-	QByteArray ar;
-	stream >> ar;
-	Visitor<Writer<DataStream>> writer(&ar);
-	writer.writeTo(obj);
+    QByteArray ar;
+    stream >> ar;
+    Visitor<Writer<DataStream>> writer (&ar);
+    writer.writeTo (obj);
 
-	return stream;
+    return stream;
 }

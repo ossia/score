@@ -7,22 +7,22 @@ class QSpinBox;
 
 class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
 {
-public:
-  MinuitProtocolSettingsWidget(QWidget *parent = nullptr);
+    public:
+        MinuitProtocolSettingsWidget (QWidget* parent = nullptr);
 
-  virtual QList<QString> getSettings() const override;
+        virtual QList<QString> getSettings() const override;
 
-  virtual void setSettings(const QList<QString> &settings);
+        virtual void setSettings (const QList<QString>& settings);
 
-protected:
-  void buildGUI();
-  
-  void setDefaults();
+    protected:
+        void buildGUI();
 
-protected:
-  QLineEdit *m_deviceNameEdit;
-  QSpinBox *m_portOutputSBox;
-  QLineEdit *m_localHostEdit;
+        void setDefaults();
+
+    protected:
+        QLineEdit* m_deviceNameEdit;
+        QSpinBox* m_portOutputSBox;
+        QLineEdit* m_localHostEdit;
 
 };
 

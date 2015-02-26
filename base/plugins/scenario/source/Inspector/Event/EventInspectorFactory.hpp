@@ -5,18 +5,18 @@
 
 class EventInspectorFactory : public InspectorWidgetFactoryInterface
 {
-	public:
-		EventInspectorFactory() :
-			InspectorWidgetFactoryInterface {}
-		{
+    public:
+        EventInspectorFactory() :
+            InspectorWidgetFactoryInterface {}
+        {
 
-		}
+        }
 
-		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QList<QString> correspondingObjectsNames() const override
-		{
-			return {"EventModel"};
-		}
+        virtual QList<QString> correspondingObjectsNames() const override
+        {
+            return {"EventModel"};
+        }
 };

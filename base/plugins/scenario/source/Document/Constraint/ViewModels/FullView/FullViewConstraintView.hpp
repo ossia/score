@@ -5,23 +5,23 @@ class FullViewConstraintViewModel;
 
 class FullViewConstraintView : public AbstractConstraintView
 {
-	Q_OBJECT
+        Q_OBJECT
 
-	public:
-		FullViewConstraintView(QGraphicsObject* parent);
+    public:
+        FullViewConstraintView (QGraphicsObject* parent);
 
-		virtual ~FullViewConstraintView() = default;
+        virtual ~FullViewConstraintView() = default;
 
-		virtual QRectF boundingRect() const override;
-		virtual void paint(QPainter *painter,
-						   const QStyleOptionGraphicsItem *option,
-						   QWidget *widget) override;
+        virtual QRectF boundingRect() const override;
+        virtual void paint (QPainter* painter,
+                            const QStyleOptionGraphicsItem* option,
+                            QWidget* widget) override;
 
-	protected:
-		virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
+    protected:
+        virtual void mousePressEvent (QGraphicsSceneMouseEvent* m) override;
 
-	private:
-		QPointF m_clickedPoint{};
+    private:
+        QPointF m_clickedPoint {};
 
-		FullViewConstraintViewModel* m_viewModel{};
+        FullViewConstraintViewModel* m_viewModel {};
 };

@@ -8,31 +8,31 @@
 // et le serveur écrit dedans avec le NetworkSerializationSocket
 class NetworkSerializationSocket : public QObject
 {
-		Q_OBJECT
-	public:
-		NetworkSerializationSocket(QString ip, int port, QObject *parent);
+        Q_OBJECT
+    public:
+        NetworkSerializationSocket (QString ip, int port, QObject* parent);
 
-		void doConnect();
+        void doConnect();
 
-	signals:
+    signals:
 
-	public slots:
-		void connected();
-		void disconnected();
-		void bytesWritten(qint64 bytes);
-		void readyRead();
+    public slots:
+        void connected();
+        void disconnected();
+        void bytesWritten (qint64 bytes);
+        void readyRead();
 
-	private:
-		QTcpSocket *socket;
+    private:
+        QTcpSocket* socket;
 
 };
 
 
 class NetworkSerializationServer : public QObject
 {
-	public:
-		NetworkSerializationServer(int port, QObject* parent);
+    public:
+        NetworkSerializationServer (int port, QObject* parent);
 
-	private:
-		QTcpServer* m_tcpServer;
+    private:
+        QTcpServer* m_tcpServer;
 };

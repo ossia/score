@@ -6,33 +6,33 @@
 
 QString ScenarioFactory::name() const
 {
-	return "Scenario";
+    return "Scenario";
 }
 
 QStringList ScenarioFactory::availableViews()
 {
-	return {"Temporal"};
+    return {"Temporal"};
 }
 
-ProcessViewInterface* ScenarioFactory::makeView(QString view, QObject* parent)
+ProcessViewInterface* ScenarioFactory::makeView (QString view, QObject* parent)
 {
-	if(view == "Temporal")
-		return new TemporalScenarioView{static_cast<QGraphicsObject*>(parent)};
+    if (view == "Temporal")
+        return new TemporalScenarioView {static_cast<QGraphicsObject*> (parent) };
 
-	return nullptr;
+    return nullptr;
 }
 
 ProcessPresenterInterface*
-ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
-									  ProcessViewInterface* view,
-									  QObject* parent)
+ScenarioFactory::makePresenter (ProcessViewModelInterface* pvm,
+                                ProcessViewInterface* view,
+                                QObject* parent)
 {
-	return new TemporalScenarioPresenter{pvm, view, parent};
+    return new TemporalScenarioPresenter {pvm, view, parent};
 }
 
-ProcessSharedModelInterface* ScenarioFactory::makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)
+ProcessSharedModelInterface* ScenarioFactory::makeModel (id_type<ProcessSharedModelInterface> id, QObject* parent)
 {
-	return new ScenarioModel{id, parent};
+    return new ScenarioModel {id, parent};
 }
 
 #include <interface/serialization/DataStreamVisitor.hpp>

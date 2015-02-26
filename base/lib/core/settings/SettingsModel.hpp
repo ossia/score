@@ -9,27 +9,27 @@
 #include <QCoreApplication>
 namespace iscore
 {
-	class SettingsModel : public QObject
-	{
-		public:
-			using QObject::QObject;
-			virtual ~SettingsModel()
-			{
-			}
+    class SettingsModel : public QObject
+    {
+        public:
+            using QObject::QObject;
+            virtual ~SettingsModel()
+            {
+            }
 
-			void addSettingsModel(SettingsDelegateModelInterface* model)
-			{
-				model->setParent(this);
-				m_pluginModels.insert(model);
-			}
+            void addSettingsModel (SettingsDelegateModelInterface* model)
+            {
+                model->setParent (this);
+                m_pluginModels.insert (model);
+            }
 
-		protected:
-			virtual void childEvent(QChildEvent* ev) override
-			{
-				QCoreApplication::sendEvent(parent(), ev);
-			}
+        protected:
+            virtual void childEvent (QChildEvent* ev) override
+            {
+                QCoreApplication::sendEvent (parent(), ev);
+            }
 
-		private:
-			std::set<SettingsDelegateModelInterface*> m_pluginModels;
-	};
+        private:
+            std::set<SettingsDelegateModelInterface*> m_pluginModels;
+    };
 }

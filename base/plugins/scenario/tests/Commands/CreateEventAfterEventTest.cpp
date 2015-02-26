@@ -13,49 +13,50 @@ using namespace Scenario::Command;
 
 class CreateEventAfterEventTest: public QObject
 {
-		Q_OBJECT
-	public:
+        Q_OBJECT
+    public:
 
-	private slots:
-		void CreateTest()
-		{
-			ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface>{0}, qApp);
-			EventData data{};
-			data.eventClickedId = scenar->startEvent()->id();
-			data.dDate.setMSecs(10);
-			data.relativeY = 0.5;
+    private slots:
+        void CreateTest()
+        {
+            ScenarioModel* scenar = new ScenarioModel (id_type<ProcessSharedModelInterface> {0}, qApp);
+            EventData data {};
+            data.eventClickedId = scenar->startEvent()->id();
+            data.dDate.setMSecs (10);
+            data.relativeY = 0.5;
 
-			CreateEventAfterEvent cmd(
-			{
-				{"ScenarioModel", {}},
-			}, data);
+            CreateEventAfterEvent cmd (
+            {
+                {"ScenarioModel", {}},
+            }, data);
 
-			cmd.redo();
-			QCOMPARE((int)scenar->events().size(), 2);
-			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
+            cmd.redo();
+            QCOMPARE ( (int) scenar->events().size(), 2);
+            QCOMPARE (scenar->event (cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-			cmd.undo();
-			QCOMPARE((int)scenar->events().size(), 1);
-			try
-			{
-				scenar->event(cmd.m_createdEventId);
-				QFAIL("Event call did not throw!");
-			}
-			catch(...) { }
+            cmd.undo();
+            QCOMPARE ( (int) scenar->events().size(), 1);
 
-			cmd.redo();
+            try
+            {
+                scenar->event (cmd.m_createdEventId);
+                QFAIL ("Event call did not throw!");
+            }
+            catch (...) { }
 
-			QCOMPARE((int)scenar->events().size(), 2);
-			QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
+            cmd.redo();
+
+            QCOMPARE ( (int) scenar->events().size(), 2);
+            QCOMPARE (scenar->event (cmd.m_createdEventId)->heightPercentage(), 0.5);
 
 
-			// Delete them else they stay in qApp !
+            // Delete them else they stay in qApp !
 
-			delete scenar;
-		}
+            delete scenar;
+        }
 };
 
-QTEST_MAIN(CreateEventAfterEventTest)
+QTEST_MAIN (CreateEventAfterEventTest)
 #include "CreateEventAfterEventTest.moc"
 
 

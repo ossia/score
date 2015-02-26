@@ -5,13 +5,13 @@
 #include <QVBoxLayout>
 
 ScenarioInspectorWidget::ScenarioInspectorWidget (ScenarioModel* object, QWidget* parent) :
-	InspectorWidgetBase{nullptr}
+    InspectorWidgetBase {nullptr}
 {
-	setObjectName ("ScenarioInspectorWidget");
-	setParent(parent);
+    setObjectName ("ScenarioInspectorWidget");
+    setParent (parent);
 
     QVector<QWidget*> vec;
-	vec.push_back(new QLabel{"TODO"});
+    vec.push_back (new QLabel{"TODO"});
 
-	updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
+    updateSectionsView (static_cast<QVBoxLayout*> (layout() ), vec);
 }

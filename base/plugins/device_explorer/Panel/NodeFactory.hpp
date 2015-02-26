@@ -10,51 +10,60 @@ class AddressSettingsWidget;
 
 class ProtocolSettingsWidgetFactoryMethod
 {
-public:
-  virtual ProtocolSettingsWidget *create() const { return nullptr; }
+    public:
+        virtual ProtocolSettingsWidget* create() const
+        {
+            return nullptr;
+        }
 };
 
 class AddressSettingsWidgetFactoryMethod
 {
-public:
-  virtual AddressSettingsWidget *create() const { return nullptr; }
+    public:
+        virtual AddressSettingsWidget* create() const
+        {
+            return nullptr;
+        }
 };
 
 
 class NodeFactory
 {
-public:
-  
-  static NodeFactory &instance() { return m_instance; }
+    public:
+
+        static NodeFactory& instance()
+        {
+            return m_instance;
+        }
 
 
-  QList<QString> getAvailableProtocols() const;
+        QList<QString> getAvailableProtocols() const;
 
-  ProtocolSettingsWidget *getProtocolWidget(const QString &protocol) const;
-  
-  QList<QString> getAvailableValueTypes() const;
+        ProtocolSettingsWidget* getProtocolWidget (const QString& protocol) const;
 
-  AddressSettingsWidget *getValueTypeWidget(const QString &valueType) const;
+        QList<QString> getAvailableValueTypes() const;
 
-  QList<QString> getAvailableInputMIDIDevices() const;
-  QList<QString> getAvailableOutputMIDIDevices() const;
+        AddressSettingsWidget* getValueTypeWidget (const QString& valueType) const;
 
-private:
+        QList<QString> getAvailableInputMIDIDevices() const;
+        QList<QString> getAvailableOutputMIDIDevices() const;
 
-  NodeFactory();
+    private:
 
-private:
+        NodeFactory();
 
-  static NodeFactory m_instance;
+    private:
 
-  typedef ProtocolSettingsWidget *(ProtocolSettingsWidgetFactoryM)();
-  typedef QMap<QString, ProtocolSettingsWidgetFactoryMethod*> ProtocolSettingsWidgetFactory;
-  ProtocolSettingsWidgetFactory m_protocolSettingsWidgetFactory;
+        static NodeFactory m_instance;
 
-  typedef AddressSettingsWidget *(AddressSettingsWidgetFactoryM)();
-  typedef QMap<QString, AddressSettingsWidgetFactoryMethod*> AddressSettingsWidgetFactory;
-  AddressSettingsWidgetFactory m_addressSettingsWidgetFactory;
-  
+        typedef ProtocolSettingsWidget* (ProtocolSettingsWidgetFactoryM) ();
+        typedef QMap<QString, ProtocolSettingsWidgetFactoryMethod*> ProtocolSettingsWidgetFactory;
+        ProtocolSettingsWidgetFactory m_protocolSettingsWidgetFactory;
+
+        typedef AddressSettingsWidget* (AddressSettingsWidgetFactoryM) ();
+        typedef QMap<QString, AddressSettingsWidgetFactoryMethod*> AddressSettingsWidgetFactory;
+        AddressSettingsWidgetFactory m_addressSettingsWidgetFactory;
+
 
 };
 
@@ -69,9 +78,9 @@ extern QList<QString> getUnits();
 
 extern QList<QString> getClipModes();
 
-extern void populateIOTypes(QComboBox *cbox);
+extern void populateIOTypes (QComboBox* cbox);
 
-extern void populateUnit(QComboBox *cbox);
+extern void populateUnit (QComboBox* cbox);
 
-extern void populateClipMode(QComboBox *cbox);
+extern void populateClipMode (QComboBox* cbox);
 

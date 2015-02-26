@@ -7,8 +7,9 @@ class DeviceExplorerModel;
 class DeviceExplorerFilterProxyModel;
 class DeviceEditDialog;
 class AddressEditDialog;
-namespace iscore {
-  class CommandQueue;
+namespace iscore
+{
+    class CommandQueue;
 }
 
 class QComboBox;
@@ -17,72 +18,72 @@ class QLineEdit;
 
 class DeviceExplorerWidget : public QWidget
 {
-  Q_OBJECT
+        Q_OBJECT
 
-public:
-  DeviceExplorerWidget(QWidget *parent);
+    public:
+        DeviceExplorerWidget (QWidget* parent);
 
-  void setModel(DeviceExplorerModel *model);
+        void setModel (DeviceExplorerModel* model);
 
-  bool loadModel(const QString filename);
+        bool loadModel (const QString filename);
 
-public slots:
-  void copy();
-  void cut();
-  void paste();
+    public slots:
+        void copy();
+        void cut();
+        void paste();
 
-  void moveUp();
-  void moveDown();
-  void promote();
-  void demote();
-  
+        void moveUp();
+        void moveDown();
+        void promote();
+        void demote();
 
-protected slots:
-  void addDevice();
-  void addChild();
-  void addSibling();
 
-  void filterChanged();
+    protected slots:
+        void addDevice();
+        void addChild();
+        void addSibling();
 
-  void updateActions();
+        void filterChanged();
 
-protected:
+        void updateActions();
 
-  DeviceExplorerModel *model();
-  DeviceExplorerFilterProxyModel *proxyModel();
+    protected:
 
-  void buildGUI();
-  void installStyleSheet();
-  void populateColumnCBox();
+        DeviceExplorerModel* model();
+        DeviceExplorerFilterProxyModel* proxyModel();
 
-  void addAddress(int insertType);
+        void buildGUI();
+        void installStyleSheet();
+        void populateColumnCBox();
 
-  virtual void contextMenuEvent(QContextMenuEvent * event) override;
+        void addAddress (int insertType);
 
-protected:
+        virtual void contextMenuEvent (QContextMenuEvent* event) override;
 
-  DeviceExplorerView *m_ntView;
-  DeviceExplorerFilterProxyModel *m_proxyModel;
-  DeviceEditDialog *m_deviceDialog;
-  AddressEditDialog *m_addressDialog;
-  //iscore::CommandQueue *m_cmdQ;
+    protected:
+
+        DeviceExplorerView* m_ntView;
+        DeviceExplorerFilterProxyModel* m_proxyModel;
+        DeviceEditDialog* m_deviceDialog;
+        AddressEditDialog* m_addressDialog;
+        //iscore::CommandQueue *m_cmdQ;
 //  QAction *m_undoAction;
 //  QAction *m_redoAction;
 
-  QAction *m_addDeviceAction;
-  QAction *m_addSiblingAction;
-  QAction *m_addChildAction;
+        QAction* m_addDeviceAction;
+        QAction* m_addSiblingAction;
+        QAction* m_addChildAction;
 
-  QAction *m_copyAction;
-  QAction *m_cutAction;
-  QAction *m_pasteAction;
-  QAction *m_moveUpAction;
-  QAction *m_moveDownAction;
-  QAction *m_promoteAction;
-  QAction *m_demoteAction;
+        QAction* m_copyAction;
+        QAction* m_cutAction;
+        QAction* m_pasteAction;
+        QAction* m_moveUpAction;
+        QAction* m_moveDownAction;
+        QAction* m_promoteAction;
+        QAction* m_demoteAction;
 
-  QComboBox *m_columnCBox;
-  QLineEdit *m_nameLEdit;
+        QComboBox* m_columnCBox;
+        QLineEdit* m_nameLEdit;
 
 };
 

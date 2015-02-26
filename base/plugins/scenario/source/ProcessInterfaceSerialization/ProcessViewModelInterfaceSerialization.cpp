@@ -7,69 +7,69 @@
 #include <interface/serialization/JSONVisitor.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<DataStream>>::readFrom (const ProcessViewModelInterface& processViewModel)
 {
-	// To allow recration using createProcessViewModel.
-	// This supposes that the process is stored inside a Constraint.
-	m_stream << processViewModel.sharedProcessModel()->id();
+    // To allow recration using createProcessViewModel.
+    // This supposes that the process is stored inside a Constraint.
+    m_stream << processViewModel.sharedProcessModel()->id();
 
-	readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
+    readFrom (static_cast<const IdentifiedObject<ProcessViewModelInterface>&> (processViewModel) );
 
-	// ProcessViewModelInterface doesn't have any particular data to save
+    // ProcessViewModelInterface doesn't have any particular data to save
 
-	// Save the subclass
-	processViewModel.serialize(DataStream::type(),
-							   static_cast<void*>(this));
+    // Save the subclass
+    processViewModel.serialize (DataStream::type(),
+                                static_cast<void*> (this) );
 
-	insertDelimiter();
+    insertDelimiter();
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
-												  ConstraintModel* constraint,
-												  QObject* parent)
+ProcessViewModelInterface* createProcessViewModel (Deserializer<DataStream>& deserializer,
+        ConstraintModel* constraint,
+        QObject* parent)
 {
-	id_type<ProcessSharedModelInterface> sharedProcessId;
-	deserializer.m_stream >> sharedProcessId;
+    id_type<ProcessSharedModelInterface> sharedProcessId;
+    deserializer.m_stream >> sharedProcessId;
 
-	auto process = constraint->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(DataStream::type(),
-											static_cast<void*>(&deserializer),
-											parent);
+    auto process = constraint->process (sharedProcessId);
+    auto viewmodel = process->makeViewModel (DataStream::type(),
+                     static_cast<void*> (&deserializer),
+                     parent);
 
-	deserializer.checkDelimiter();
+    deserializer.checkDelimiter();
 
-	return viewmodel;
+    return viewmodel;
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<JSON>>::readFrom (const ProcessViewModelInterface& processViewModel)
 {
-	// To allow recration using createProcessViewModel.
-	// This supposes that the process is stored inside a Constraint.
-	m_obj["SharedProcessId"] = toJsonObject(processViewModel.sharedProcessModel()->id());
+    // To allow recration using createProcessViewModel.
+    // This supposes that the process is stored inside a Constraint.
+    m_obj["SharedProcessId"] = toJsonObject (processViewModel.sharedProcessModel()->id() );
 
-	readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
+    readFrom (static_cast<const IdentifiedObject<ProcessViewModelInterface>&> (processViewModel) );
 
-	// ProcessViewModelInterface doesn't have any particular data to save
+    // ProcessViewModelInterface doesn't have any particular data to save
 
-	// Save the subclass
-	processViewModel.serialize(JSON::type(),
-							   static_cast<void*>(this));
+    // Save the subclass
+    processViewModel.serialize (JSON::type(),
+                                static_cast<void*> (this) );
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<JSON>& deserializer,
-												  ConstraintModel* constraint,
-												  QObject* parent)
+ProcessViewModelInterface* createProcessViewModel (Deserializer<JSON>& deserializer,
+        ConstraintModel* constraint,
+        QObject* parent)
 {
-	id_type<ProcessSharedModelInterface> sharedProcessId;
-	fromJsonObject(deserializer.m_obj["SharedProcessId"].toObject(), sharedProcessId);
+    id_type<ProcessSharedModelInterface> sharedProcessId;
+    fromJsonObject (deserializer.m_obj["SharedProcessId"].toObject(), sharedProcessId);
 
-	auto process = constraint->process(sharedProcessId);
-	auto viewmodel = process->makeViewModel(JSON::type(),
-											static_cast<void*>(&deserializer),
-											parent);
+    auto process = constraint->process (sharedProcessId);
+    auto viewmodel = process->makeViewModel (JSON::type(),
+                     static_cast<void*> (&deserializer),
+                     parent);
 
-	return viewmodel;
+    return viewmodel;
 }

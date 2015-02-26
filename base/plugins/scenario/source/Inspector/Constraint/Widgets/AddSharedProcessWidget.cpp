@@ -10,41 +10,41 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
-AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent):
-	QWidget{parent}
+AddSharedProcessWidget::AddSharedProcessWidget (ConstraintInspectorWidget* parent) :
+    QWidget {parent}
 {
-	QHBoxLayout* addAutomLayout = new QHBoxLayout;
-	addAutomLayout->setContentsMargins(0, 0, 0 ,0);
-	this->setLayout(addAutomLayout);
+    QHBoxLayout* addAutomLayout = new QHBoxLayout;
+    addAutomLayout->setContentsMargins (0, 0, 0 , 0);
+    this->setLayout (addAutomLayout);
 
-	// Button
-	QToolButton* addAutomButton = new QToolButton;
-	addAutomButton->setText ("+");
-	addAutomButton->setObjectName ("addAutom");
+    // Button
+    QToolButton* addAutomButton = new QToolButton;
+    addAutomButton->setText ("+");
+    addAutomButton->setObjectName ("addAutom");
 
-	// Text
-    auto addAutomText = new QLabel("Add Process");
-	addAutomText->setStyleSheet (QString ("text-align : left;") );
+    // Text
+    auto addAutomText = new QLabel ("Add Process");
+    addAutomText->setStyleSheet (QString ("text-align : left;") );
 
-	addAutomLayout->addWidget(addAutomButton);
-	addAutomLayout->addWidget(addAutomText);
+    addAutomLayout->addWidget (addAutomButton);
+    addAutomLayout->addWidget (addAutomText);
 
-	connect (addAutomButton, &QToolButton::pressed,
-			 [=] () // Lambda to create a process.
-	{
-		bool ok = false;
-		auto process_list = ProcessList::getProcessesName();
-		auto process_name = QInputDialog::getItem(this,
-												  tr("Choose a process"),
-												  tr("Choose a process"),
-												  process_list,
-												  0,
-												  false,
-												  &ok);
+    connect (addAutomButton, &QToolButton::pressed,
+    [ = ] () // Lambda to create a process.
+    {
+        bool ok = false;
+        auto process_list = ProcessList::getProcessesName();
+        auto process_name = QInputDialog::getItem (this,
+        tr ("Choose a process"),
+        tr ("Choose a process"),
+        process_list,
+        0,
+        false,
+        &ok);
 
-		if(ok)
+        if (ok)
         {
-			parent->createProcess(process_name);
+            parent->createProcess (process_name);
         }
-	} );
+    } );
 }

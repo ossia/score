@@ -3,12 +3,12 @@
 
 namespace iscore
 {
-	class PanelPresenterInterface;
-	class PanelModelInterface : public NamedObject
-	{
-			Q_OBJECT
-		public:
-			using NamedObject::NamedObject;
-			virtual ~PanelModelInterface() = default;
-	};
+    class PanelPresenterInterface;
+    class PanelModelInterface : public NamedObject
+    {
+            Q_OBJECT
+        public:
+            using NamedObject::NamedObject;
+            virtual ~PanelModelInterface() = default;
+    };
 }

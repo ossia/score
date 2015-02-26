@@ -3,27 +3,27 @@
 
 class AutomationFactory : public ProcessFactoryInterface
 {
-	public:
-		virtual QString name() const
-		{
-			return "Automation";
-		}
+    public:
+        virtual QString name() const
+        {
+            return "Automation";
+        }
 
-		virtual QStringList availableViews()
-		{
-			return {"Curve"};
-		}
+        virtual QStringList availableViews()
+        {
+            return {"Curve"};
+        }
 
-		virtual ProcessSharedModelInterface* makeModel (id_type<ProcessSharedModelInterface> id,
-														QObject* parent) override;
+        virtual ProcessSharedModelInterface* makeModel (id_type<ProcessSharedModelInterface> id,
+                QObject* parent) override;
 
-		virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,
-													   void* data,
-													   QObject* parent) override;
+        virtual ProcessSharedModelInterface* makeModel (SerializationIdentifier identifier,
+                void* data,
+                QObject* parent) override;
 
-		virtual ProcessViewInterface* makeView (QString view,
-												QObject* parent) override;
-		virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*,
-														  ProcessViewInterface*,
-														  QObject* parent) override;
+        virtual ProcessViewInterface* makeView (QString view,
+                                                QObject* parent) override;
+        virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*,
+                ProcessViewInterface*,
+                QObject* parent) override;
 };

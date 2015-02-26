@@ -9,68 +9,72 @@ using namespace iscore;
 using namespace Scenario::Command;
 #define CMD_UID 1203
 
-CreateEvent::CreateEvent():
-	SerializableCommand{"ScenarioControl",
-						"CreateEvent",
-						QObject::tr("Event creation")},
-	m_cmd{new CreateEventAfterEvent}
+CreateEvent::CreateEvent() :
+    SerializableCommand {"ScenarioControl",
+    "CreateEvent",
+    QObject::tr ("Event creation")
+},
+m_cmd {new CreateEventAfterEvent}
 {
 
 }
 
 CreateEvent::~CreateEvent()
 {
-	delete m_cmd;
+    delete m_cmd;
 }
 
-CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data):
-	SerializableCommand{"ScenarioControl",
-						"CreateEvent",
-						QObject::tr("Event creation")}
+CreateEvent::CreateEvent (ObjectPath&& scenarioPath, EventData data) :
+    SerializableCommand {"ScenarioControl",
+    "CreateEvent",
+    QObject::tr ("Event creation")
+}
 {
-	auto scenar = scenarioPath.find<ScenarioModel>();
+    auto scenar = scenarioPath.find<ScenarioModel>();
 
     data.eventClickedId = scenar->startEvent()->id();
 
 
-	m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
+    m_cmd = new CreateEventAfterEvent{std::move (scenarioPath), data};
 }
 
 void CreateEvent::undo()
 {
-	m_cmd->undo();
+    m_cmd->undo();
 }
 
 void CreateEvent::redo()
 {
-	m_cmd->redo();
+    m_cmd->redo();
 }
 
 int CreateEvent::id() const
 {
-	return canMerge() ? CMD_UID : -1;
+    return canMerge() ? CMD_UID : -1;
 }
 
-bool CreateEvent::mergeWith(const QUndoCommand* other)
+bool CreateEvent::mergeWith (const QUndoCommand* other)
 {
-	// Maybe set m_mergeable = false at the end ?
-	if(other->id() != id())
-		return false;
+    // Maybe set m_mergeable = false at the end ?
+    if (other->id() != id() )
+    {
+        return false;
+    }
 
-	auto cmd = static_cast<const CreateEvent*>(other);
-	m_cmd->mergeWith(cmd->m_cmd);
+    auto cmd = static_cast<const CreateEvent*> (other);
+    m_cmd->mergeWith (cmd->m_cmd);
 
-	return true;
+    return true;
 }
 
-void CreateEvent::serializeImpl(QDataStream& s) const
+void CreateEvent::serializeImpl (QDataStream& s) const
 {
-	s << m_cmd->serialize();
+    s << m_cmd->serialize();
 }
 
-void CreateEvent::deserializeImpl(QDataStream& s)
+void CreateEvent::deserializeImpl (QDataStream& s)
 {
-	QByteArray b;
-	s >> b;
-	m_cmd->deserialize(b);
+    QByteArray b;
+    s >> b;
+    m_cmd->deserialize (b);
 }

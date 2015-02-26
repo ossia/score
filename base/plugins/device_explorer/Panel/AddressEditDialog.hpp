@@ -12,38 +12,38 @@ class AddressSettingsWidget;
 
 class AddressEditDialog : public QDialog
 {
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+    public:
 
-  AddressEditDialog(QWidget *parent);
-  ~AddressEditDialog();
+        AddressEditDialog (QWidget* parent);
+        ~AddressEditDialog();
 
-  //TODO: use QVariant ???
-  /*
-    first element is node name, second element is node value type.
-  */
-  QList<QString> getSettings() const;
+        //TODO: use QVariant ???
+        /*
+          first element is node name, second element is node value type.
+        */
+        QList<QString> getSettings() const;
 
-  void setSettings(QList<QString> &settings);
+        void setSettings (QList<QString>& settings);
 
-protected slots:
+    protected slots:
 
-  void updateNodeWidget();
+        void updateNodeWidget();
 
-protected:
-  
-  void buildGUI();
+    protected:
 
-  void initAvailableValueTypes();
+        void buildGUI();
 
-protected:
-  QLineEdit *m_nameEdit;
-  QComboBox *m_valueTypeCBox;
-  AddressSettingsWidget *m_addressWidget;
-  QGridLayout *m_gLayout;
-  QList<QList<QString> > m_previousSettings;
-  int m_index;
+        void initAvailableValueTypes();
+
+    protected:
+        QLineEdit* m_nameEdit;
+        QComboBox* m_valueTypeCBox;
+        AddressSettingsWidget* m_addressWidget;
+        QGridLayout* m_gLayout;
+        QList<QList<QString> > m_previousSettings;
+        int m_index;
 };
-  
-  
+
+

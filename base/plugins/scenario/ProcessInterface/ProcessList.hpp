@@ -3,8 +3,9 @@
 #include <tools/NamedObject.hpp>
 #include <vector>
 
-namespace iscore{
-	class FactoryInterface;
+namespace iscore
+{
+    class FactoryInterface;
 }
 
 class ProcessFactoryInterface;
@@ -15,17 +16,17 @@ class ProcessFactoryInterface;
  */
 class ProcessList : public NamedObject
 {
-		Q_OBJECT
-	public:
-		ProcessList(NamedObject* parent);
+        Q_OBJECT
+    public:
+        ProcessList (NamedObject* parent);
 
-		ProcessFactoryInterface* getProcess(QString);
-		void addProcess(iscore::FactoryInterface*);
+        ProcessFactoryInterface* getProcess (QString);
+        void addProcess (iscore::FactoryInterface*);
 
-		static QStringList getProcessesName();
-		static ProcessFactoryInterface* getFactory(QString processName);
+        static QStringList getProcessesName();
+        static ProcessFactoryInterface* getFactory (QString processName);
 
-	private:
-		QStringList getProcessesName_impl() const;
-		std::vector<ProcessFactoryInterface*> m_processes;
+    private:
+        QStringList getProcessesName_impl() const;
+        std::vector<ProcessFactoryInterface*> m_processes;
 };

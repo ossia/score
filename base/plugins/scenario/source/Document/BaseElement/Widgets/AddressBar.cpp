@@ -1,50 +1,54 @@
 #include "AddressBar.hpp"
 #include "ClickableLabel.hpp"
 
-AddressBar::AddressBar(QWidget* parent):
-	QWidget{parent},
-	m_layout{new QHBoxLayout{this}}
+AddressBar::AddressBar (QWidget* parent) :
+    QWidget {parent},
+m_layout {new QHBoxLayout{this}}
 {
-    setLayout(m_layout);
+    setLayout (m_layout);
 }
 
 
-void AddressBar::setTargetObject(ObjectPath&& path)
+void AddressBar::setTargetObject (ObjectPath&& path)
 {
-	QLayoutItem *child;
-	while ((child = m_layout->takeAt(0)) != 0)
-	{
-		child->widget()->deleteLater();
-		delete child;
-	}
+    QLayoutItem* child;
 
-	m_currentPath = path;
-	for(auto& identifier : m_currentPath)
-	{
-		auto lab = new ClickableLabel{QString{"%1%2"}.arg(identifier.objectName())
-													 .arg(identifier.id() ? "." + QString::number(*identifier.id()) :
-																			""),
-									  this};
-		connect(lab, SIGNAL(clicked(ClickableLabel*)),
-				this, SLOT(on_elementClicked(ClickableLabel*)));
+    while ( (child = m_layout->takeAt (0) ) != 0)
+    {
+        child->widget()->deleteLater();
+        delete child;
+    }
 
-		m_layout->addWidget(lab);
-		m_layout->addWidget(new QLabel{"/"});
-	}
+    m_currentPath = path;
 
-	m_layout->addStretch();
+    for (auto& identifier : m_currentPath)
+    {
+        auto lab = new ClickableLabel {QString{"%1%2"} .arg (identifier.objectName() )
+                                       .arg (identifier.id() ? "." + QString::number (*identifier.id() ) :
+                                             ""),
+                                       this
+                                      };
+        connect (lab, SIGNAL (clicked (ClickableLabel*) ),
+                 this, SLOT (on_elementClicked (ClickableLabel*) ) );
+
+        m_layout->addWidget (lab);
+        m_layout->addWidget (new QLabel {"/"});
+    }
+
+    m_layout->addStretch();
 }
 
-void AddressBar::on_elementClicked(ClickableLabel* clicked)
+void AddressBar::on_elementClicked (ClickableLabel* clicked)
 {
-	int index = m_layout->indexOf(clicked) / 2;
-	if(index < m_currentPath.vec().size())
-	{
-		auto vec = m_currentPath.vec();
-		vec.resize(index + 1);
+    int index = m_layout->indexOf (clicked) / 2;
 
-		ObjectPath newPath{std::move(vec)};
+    if (index < m_currentPath.vec().size() )
+    {
+        auto vec = m_currentPath.vec();
+        vec.resize (index + 1);
 
-		emit objectSelected(newPath);
-	}
+        ObjectPath newPath {std::move (vec) };
+
+        emit objectSelected (newPath);
+    }
 }

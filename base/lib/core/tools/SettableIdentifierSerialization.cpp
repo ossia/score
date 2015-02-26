@@ -5,51 +5,55 @@
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
+void Visitor<Reader<DataStream>>::readFrom (const boost::optional<int32_t>& obj)
 {
-	m_stream << bool(obj);
+    m_stream << bool (obj);
 
-	if(obj)
-		m_stream << get(obj);
+    if (obj)
+    {
+        m_stream << get (obj);
+    }
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
+void Visitor<Writer<DataStream>>::writeTo (boost::optional<int32_t>& obj)
 {
-	bool b{};
-	m_stream >> b;
+    bool b {};
+    m_stream >> b;
 
-	if(b)
-	{
-		int32_t val;
-		m_stream >> val;
+    if (b)
+    {
+        int32_t val;
+        m_stream >> val;
 
-		obj = val;
-	}
-	else
-	{
-		obj = boost::none_t{};
-	}
+        obj = val;
+    }
+    else
+    {
+        obj = boost::none_t {};
+    }
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const boost::optional<int32_t>& obj)
+void Visitor<Reader<JSON>>::readFrom (const boost::optional<int32_t>& obj)
 {
-	m_obj["IdentifierSet"] = bool(obj);
+    m_obj["IdentifierSet"] = bool (obj);
 
-	if(obj)
-		m_obj["Identifier"] = get(obj);
+    if (obj)
+    {
+        m_obj["Identifier"] = get (obj);
+    }
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(boost::optional<int32_t>& obj)
+void Visitor<Writer<JSON>>::writeTo (boost::optional<int32_t>& obj)
 {
-	if(m_obj["IdentifierSet"].toBool())
-	{
-		obj = m_obj["Identifier"].toInt();
-	}
-	else
-	{
-		obj = boost::none_t{};
-	}
+    if (m_obj["IdentifierSet"].toBool() )
+    {
+        obj = m_obj["Identifier"].toInt();
+    }
+    else
+    {
+        obj = boost::none_t {};
+    }
 }

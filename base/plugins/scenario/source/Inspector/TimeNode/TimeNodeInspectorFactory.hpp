@@ -5,18 +5,18 @@
 
 class TimeNodeInspectorFactory : public InspectorWidgetFactoryInterface
 {
-	public:
-		TimeNodeInspectorFactory() :
-			InspectorWidgetFactoryInterface {}
-		{
+    public:
+        TimeNodeInspectorFactory() :
+            InspectorWidgetFactoryInterface {}
+        {
 
-		}
+        }
 
-		virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
-		virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
+        virtual InspectorWidgetBase* makeWidget (QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget (QList<QObject*> sourceElements) override;
 
-		virtual QList<QString> correspondingObjectsNames() const override
-		{
-			return {"TimeNodeModel"};
-		}
+        virtual QList<QString> correspondingObjectsNames() const override
+        {
+            return {"TimeNodeModel"};
+        }
 };

@@ -18,65 +18,71 @@
 
 using namespace Scenario::Command;
 
-DeckInspectorSection::DeckInspectorSection(QString name,
-										   DeckModel* deck,
-										   BoxInspectorSection* parentBox):
-	InspectorSectionWidget{name, parentBox},
-	m_model{deck}
+DeckInspectorSection::DeckInspectorSection (QString name,
+        DeckModel* deck,
+        BoxInspectorSection* parentBox) :
+    InspectorSectionWidget {name, parentBox},
+m_model {deck}
 {
-	m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
-	m_pvmSection->setObjectName("ProcessViewModels");
+    m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
+    m_pvmSection->setObjectName ("ProcessViewModels");
 
-	connect(m_model,	&DeckModel::processViewModelCreated,
-			this,		&DeckInspectorSection::on_processViewModelCreated);
+    connect (m_model,	&DeckModel::processViewModelCreated,
+             this,		&DeckInspectorSection::on_processViewModelCreated);
 
-	connect(m_model,	&DeckModel::processViewModelRemoved,
-			this,		&DeckInspectorSection::on_processViewModelRemoved);
+    connect (m_model,	&DeckModel::processViewModelRemoved,
+             this,		&DeckInspectorSection::on_processViewModelRemoved);
 
-	for(auto& pvm : m_model->processViewModels())
-	{
-		displayProcessViewModel(pvm);
-	}
+    for (auto& pvm : m_model->processViewModels() )
+    {
+        displayProcessViewModel (pvm);
+    }
 
-	m_addPvmWidget = new AddProcessViewModelWidget{this};
-	addContent(m_pvmSection);
-	addContent(m_addPvmWidget);
+    m_addPvmWidget = new AddProcessViewModelWidget{this};
+    addContent (m_pvmSection);
+    addContent (m_addPvmWidget);
 }
 
-void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessModelId)
+void DeckInspectorSection::createProcessViewModel (id_type<ProcessSharedModelInterface> sharedProcessModelId)
 {
-	auto cmd = new AddProcessViewModelToDeck(
-						iscore::IDocument::path(m_model),
-						iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
+    auto cmd = new AddProcessViewModelToDeck (
+        iscore::IDocument::path (m_model),
+        iscore::IDocument::path (m_model->parentConstraint()->process (sharedProcessModelId) ) );
 
-	emit submitCommand(cmd);
+    emit submitCommand (cmd);
 }
 
-void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pvm)
+void DeckInspectorSection::displayProcessViewModel (ProcessViewModelInterface* pvm)
 {
-	if(!pvm) return;
+    if (!pvm)
+    {
+        return;
+    }
 
-	auto widg = new QWidget{this};
-	auto lay = new QHBoxLayout;
-	widg->setLayout(lay);
-	auto pb = new QPushButton{"Front"};
-	connect(pb, &QPushButton::clicked,
-			[=] () { m_model->selectForEdition(pvm->id()); });
+    auto widg = new QWidget {this};
+    auto lay = new QHBoxLayout;
+    widg->setLayout (lay);
+    auto pb = new QPushButton {"Front"};
+    connect (pb, &QPushButton::clicked,
+             [ = ] ()
+    {
+        m_model->selectForEdition (pvm->id() );
+    });
 
-	lay->addWidget(pb);
-	lay->addWidget(new QLabel{QString{"ViewModel.%1"}.arg(*pvm->id().val())});
+    lay->addWidget (pb);
+    lay->addWidget (new QLabel {QString{"ViewModel.%1"} .arg (*pvm->id().val() ) });
 
 
-	addContent(widg);
+    addContent (widg);
 }
 
 
-void DeckInspectorSection::on_processViewModelCreated(id_type<ProcessViewModelInterface> pvmId)
+void DeckInspectorSection::on_processViewModelCreated (id_type<ProcessViewModelInterface> pvmId)
 {
-	displayProcessViewModel(m_model->processViewModel(pvmId));
+    displayProcessViewModel (m_model->processViewModel (pvmId) );
 }
 
-void DeckInspectorSection::on_processViewModelRemoved(id_type<ProcessViewModelInterface> pvmId)
+void DeckInspectorSection::on_processViewModelRemoved (id_type<ProcessViewModelInterface> pvmId)
 {
-	// TODO
+    // TODO
 }

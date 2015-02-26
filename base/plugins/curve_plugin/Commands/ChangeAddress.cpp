@@ -5,53 +5,55 @@ using namespace iscore;
 #define CMD_NAME "ChangeAddress"
 #define CMD_DESC QObject::tr("Change Curve address")
 
-ChangeAddress::ChangeAddress():
-	SerializableCommand{"AutomationControl",
-						CMD_NAME,
-						CMD_DESC}
+ChangeAddress::ChangeAddress() :
+    SerializableCommand {"AutomationControl",
+    CMD_NAME,
+    CMD_DESC
+}
 {
 }
 
-ChangeAddress::ChangeAddress(ObjectPath&& path,
-							 QString addr):
-	SerializableCommand{"AutomationControl",
-						CMD_NAME,
-						CMD_DESC},
-	m_path{path},
-	m_newAddr{addr}
+ChangeAddress::ChangeAddress (ObjectPath&& path,
+                              QString addr) :
+    SerializableCommand {"AutomationControl",
+    CMD_NAME,
+    CMD_DESC
+},
+m_path {path},
+m_newAddr {addr}
 {
-	auto autom = m_path.find<AutomationModel>();
-	m_oldAddr = autom->address();
+    auto autom = m_path.find<AutomationModel>();
+    m_oldAddr = autom->address();
 }
 
 void ChangeAddress::undo()
 {
-	auto autom = m_path.find<AutomationModel>();
-	autom->setAddress(m_oldAddr);
+    auto autom = m_path.find<AutomationModel>();
+    autom->setAddress (m_oldAddr);
 }
 
 void ChangeAddress::redo()
 {
-	auto autom = m_path.find<AutomationModel>();
-	autom->setAddress(m_newAddr);
+    auto autom = m_path.find<AutomationModel>();
+    autom->setAddress (m_newAddr);
 }
 
 int ChangeAddress::id() const
 {
-	return CMD_UID;
+    return CMD_UID;
 }
 
-bool ChangeAddress::mergeWith(const QUndoCommand* other)
+bool ChangeAddress::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void ChangeAddress::serializeImpl(QDataStream& s) const
+void ChangeAddress::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_oldAddr << m_newAddr;
+    s << m_path << m_oldAddr << m_newAddr;
 }
 
-void ChangeAddress::deserializeImpl(QDataStream& s)
+void ChangeAddress::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_oldAddr >> m_newAddr;
+    s >> m_path >> m_oldAddr >> m_newAddr;
 }

@@ -7,7 +7,7 @@ class InspectorWidgetBase;
 
 namespace Ui
 {
-	class InspectorPanel;
+    class InspectorPanel;
 }
 
 /*!
@@ -19,23 +19,23 @@ namespace Ui
 
 class InspectorPanel : public QWidget
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
-		explicit InspectorPanel (QWidget* parent);
-		~InspectorPanel();
+    public:
+        explicit InspectorPanel (QWidget* parent);
+        ~InspectorPanel();
 
-	public slots:
-		/*!
-		 * \brief newItemInspected load the view for the selected object
-		 *
-		 *  It's called when the user selects a new item
-		 * \param object The selected objet.
-		 */
-		void newItemInspected (QObject*);
-		void on_itemRemoved();
+    public slots:
+        /*!
+         * \brief newItemInspected load the view for the selected object
+         *
+         *  It's called when the user selects a new item
+         * \param object The selected objet.
+         */
+        void newItemInspected (QObject*);
+        void on_itemRemoved();
 
-	private:
-		QVBoxLayout* m_layout;
-		InspectorWidgetBase* m_itemInspected{};
+    private:
+        QVBoxLayout* m_layout;
+        InspectorWidgetBase* m_itemInspected {};
 };

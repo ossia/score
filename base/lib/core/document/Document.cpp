@@ -15,74 +15,74 @@
 #include <QLayout>
 
 using namespace iscore;
-Document::Document(QWidget* parentview, QObject* parent):
-	NamedObject{"Document", parent},
-	m_model{new DocumentModel{this}},
-	m_view{new DocumentView{parentview}},
-	m_presenter{new DocumentPresenter{m_model, m_view, this}}
+Document::Document (QWidget* parentview, QObject* parent) :
+    NamedObject {"Document", parent},
+m_model {new DocumentModel{this}},
+m_view {new DocumentView{parentview}},
+m_presenter {new DocumentPresenter{m_model, m_view, this}}
 {
-	connect(m_presenter, &DocumentPresenter::on_elementSelected,
-			this,		 &Document::on_elementSelected);
+    connect (m_presenter, &DocumentPresenter::on_elementSelected,
+    this,		 &Document::on_elementSelected);
 
-    connect(m_presenter, &DocumentPresenter::on_lastElementSelected,
-            this,        &Document::on_lastElementSelected);
+    connect (m_presenter, &DocumentPresenter::on_lastElementSelected,
+    this,        &Document::on_lastElementSelected);
 }
 
 void Document::newDocument()
 {
-	reset();
+    reset();
 
-	// Model setup
-	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model));
-	setupDocument();
+    // Model setup
+    m_model->setModelDelegate (m_currentDocumentType->makeModel (m_model) );
+    setupDocument();
 
-	emit newDocument_start();
+    emit newDocument_start();
 }
 
-void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
+void Document::setDocumentPanel (DocumentDelegateFactoryInterface* p)
 {
-	m_currentDocumentType = p;
+    m_currentDocumentType = p;
 }
 
-void Document::setupPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
+void Document::setupPanel (PanelPresenterInterface* pres, PanelFactoryInterface* factory)
 {
-	auto model = factory->makeModel(m_model);
-	m_model->addPanel(model);
+    auto model = factory->makeModel (m_model);
+    m_model->addPanel (model);
 
-	pres->setModel(model);
+    pres->setModel (model);
 }
 
 
 void Document::reset()
 {
-	m_model->reset();
-	m_presenter->reset();
+    m_model->reset();
+    m_presenter->reset();
 }
 
-void Document::load(QByteArray data)
+void Document::load (QByteArray data)
 {
-	reset();
+    reset();
 
-	// Model setup
-	m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
+    // Model setup
+    m_model->setModelDelegate (m_currentDocumentType->makeModel (m_model, data) );
 
-	// TODO call newDocument_start if loaded from this computer, not if serialized from network.
-	setupDocument();
+    // TODO call newDocument_start if loaded from this computer, not if serialized from network.
+    setupDocument();
 }
 
 QByteArray Document::save()
 {
-	return m_model->modelDelegate()->save();
+    return m_model->modelDelegate()->save();
 }
 
 void Document::setupDocument()
 {
-	// View setup
-	auto view = m_currentDocumentType->makeView(m_view);
-	m_view->setViewDelegate(view);
+    // View setup
+    auto view = m_currentDocumentType->makeView (m_view);
+    m_view->setViewDelegate (view);
 
-	// Presenter setup
-	auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
-	m_presenter->setPresenterDelegate(pres);
+    // Presenter setup
+    auto pres = m_currentDocumentType->makePresenter (m_presenter, m_model->modelDelegate(), view);
+    m_presenter->setPresenterDelegate (pres);
 }
 

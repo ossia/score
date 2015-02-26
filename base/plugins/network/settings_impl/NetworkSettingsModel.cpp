@@ -4,67 +4,70 @@
 
 using namespace iscore;
 
-NetworkSettingsModel::NetworkSettingsModel():
-	iscore::SettingsDelegateModelInterface{}
+NetworkSettingsModel::NetworkSettingsModel() :
+    iscore::SettingsDelegateModelInterface {}
 {
-	this->setObjectName("NetworkSettingsModel");
+    this->setObjectName ("NetworkSettingsModel");
 
-	QSettings s;
-	if(!s.contains(SETTINGS_CLIENTPORT))
-		setFirstTimeSettings();
+    QSettings s;
 
-	setClientPort(s.value(SETTINGS_CLIENTPORT).toInt());
-	setMasterPort(s.value(SETTINGS_MASTERPORT).toInt());
-	setClientName(s.value(SETTINGS_CLIENTNAME).toString());
+    if (!s.contains (SETTINGS_CLIENTPORT) )
+    {
+        setFirstTimeSettings();
+    }
+
+    setClientPort (s.value (SETTINGS_CLIENTPORT).toInt() );
+    setMasterPort (s.value (SETTINGS_MASTERPORT).toInt() );
+    setClientName (s.value (SETTINGS_CLIENTNAME).toString() );
 }
 
-void NetworkSettingsModel::setClientName(QString txt)
+void NetworkSettingsModel::setClientName (QString txt)
 {
-	clientName = txt;
-	QSettings s;
-	s.setValue(SETTINGS_CLIENTNAME, txt);
-	emit clientNameChanged();
+    clientName = txt;
+    QSettings s;
+    s.setValue (SETTINGS_CLIENTNAME, txt);
+    emit clientNameChanged();
 }
 
 QString NetworkSettingsModel::getClientName() const
 {
-	return clientName;
+    return clientName;
 }
 
-void NetworkSettingsModel::setClientPort(int val)
+void NetworkSettingsModel::setClientPort (int val)
 {
-	clientPort = val;
-	QSettings s;
-	s.setValue(SETTINGS_CLIENTPORT, val);
-	emit clientPortChanged();
+    clientPort = val;
+    QSettings s;
+    s.setValue (SETTINGS_CLIENTPORT, val);
+    emit clientPortChanged();
 }
 
 int NetworkSettingsModel::getClientPort() const
 {
-	return clientPort;
+    return clientPort;
 }
 
-void NetworkSettingsModel::setMasterPort(int val)
+void NetworkSettingsModel::setMasterPort (int val)
 {
-	masterPort = val;
-	QSettings s;
-	s.setValue(SETTINGS_MASTERPORT, val);
-	emit masterPortChanged();
+    masterPort = val;
+    QSettings s;
+    s.setValue (SETTINGS_MASTERPORT, val);
+    emit masterPortChanged();
 }
 
 int NetworkSettingsModel::getMasterPort() const
 {
-	return masterPort;
+    return masterPort;
 }
 
-void NetworkSettingsModel::setPresenter(SettingsDelegatePresenterInterface* presenter)
+void NetworkSettingsModel::setPresenter (SettingsDelegatePresenterInterface* presenter)
 {
 }
 
 void NetworkSettingsModel::setFirstTimeSettings()
 {
-	QSettings s;
-	s.setValue(SETTINGS_CLIENTNAME, "i-score client");
-	s.setValue(SETTINGS_CLIENTPORT, 7888);
-	s.setValue(SETTINGS_MASTERPORT, 5678);
+    QSettings s;
+    s.setValue (SETTINGS_CLIENTNAME, "i-score client");
+    s.setValue (SETTINGS_CLIENTPORT, 7888);
+    s.setValue (SETTINGS_MASTERPORT, 5678);
 }

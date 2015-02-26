@@ -17,65 +17,69 @@
 
 #include <QAction>
 using namespace iscore;
-IScoreCohesionControl::IScoreCohesionControl(QObject *parent):
-	iscore::PluginControlInterface{"IScoreCohesionControl", parent}
+IScoreCohesionControl::IScoreCohesionControl (QObject* parent) :
+    iscore::PluginControlInterface {"IScoreCohesionControl", parent}
 {
 
 }
 
-void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
+void IScoreCohesionControl::populateMenus (iscore::MenubarManager* menu)
 {
-	// If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
-	// We can add an option in the menu to generate curves from the selected addresses
-	// in the current constraint.
-	QAction* curvesFromAddresses = new QAction{tr("Create Curves"), this};
-	connect(curvesFromAddresses, &QAction::triggered,
-			this,				 &IScoreCohesionControl::createCurvesFromAddresses);
+    // If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
+    // We can add an option in the menu to generate curves from the selected addresses
+    // in the current constraint.
+    QAction* curvesFromAddresses = new QAction {tr ("Create Curves"), this};
+    connect (curvesFromAddresses, &QAction::triggered,
+             this,				 &IScoreCohesionControl::createCurvesFromAddresses);
 
-	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-									   curvesFromAddresses);
+    menu->insertActionIntoToplevelMenu (ToplevelMenuElement::EditMenu,
+                                        curvesFromAddresses);
 
-	// If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
-	// We can add an option in the menu to generate curves from the selected addresses
-	// in the current constraint.
-	QAction* play = new QAction{tr("Play in 0.2 engine"), this};
-	connect(play, &QAction::triggered, &FakeEngineExecute);
+    // If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
+    // We can add an option in the menu to generate curves from the selected addresses
+    // in the current constraint.
+    QAction* play = new QAction {tr ("Play in 0.2 engine"), this};
+    connect (play, &QAction::triggered, &FakeEngineExecute);
 
-	menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-									   play);
+    menu->insertActionIntoToplevelMenu (ToplevelMenuElement::EditMenu,
+                                        play);
 }
 
-SerializableCommand *IScoreCohesionControl::instantiateUndoCommand(QString name, QByteArray data)
+SerializableCommand* IScoreCohesionControl::instantiateUndoCommand (QString name, QByteArray data)
 {
-	return nullptr;
+    return nullptr;
 }
 
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
-	// TODO this should take a document as argument.
-	// Fetch the selected constraints
-	auto pres = qApp->findChild<BaseElementPresenter*>("BaseElementPresenter");
-	auto constraints = pres->findChildren<AbstractConstraintPresenter*>();
-	QList<ConstraintModel*> selected_constraints;
-	for(AbstractConstraintPresenter* constraint : constraints)
-	{
-		if(constraint->isSelected())
-			selected_constraints.push_back(constraint->abstractConstraintViewModel()->model());
-	}
+    // TODO this should take a document as argument.
+    // Fetch the selected constraints
+    auto pres = qApp->findChild<BaseElementPresenter*> ("BaseElementPresenter");
+    auto constraints = pres->findChildren<AbstractConstraintPresenter*>();
+    QList<ConstraintModel*> selected_constraints;
 
-	// Fetch the selected DeviceExplorer elements
-	auto device_explorer = DeviceExplorer::getModel(pres->model());
-	auto addresses = device_explorer->selectedIndexes();
+    for (AbstractConstraintPresenter* constraint : constraints)
+    {
+        if (constraint->isSelected() )
+        {
+            selected_constraints.push_back (constraint->abstractConstraintViewModel()->model() );
+        }
+    }
 
-	for(auto& constraint : selected_constraints)
-	{
-		QStringList l;
-		for(auto& index : addresses)
-		{
-			l.push_back(DeviceExplorer::addressFromModelIndex(index));
-		}
+    // Fetch the selected DeviceExplorer elements
+    auto device_explorer = DeviceExplorer::getModel (pres->model() );
+    auto addresses = device_explorer->selectedIndexes();
 
-		auto cmd = new CreateCurvesFromAddresses{iscore::IDocument::path(constraint), l};
-		submitCommand(cmd);
-	}
+    for (auto& constraint : selected_constraints)
+    {
+        QStringList l;
+
+        for (auto& index : addresses)
+        {
+            l.push_back (DeviceExplorer::addressFromModelIndex (index) );
+        }
+
+        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path (constraint), l};
+        submitCommand (cmd);
+    }
 }

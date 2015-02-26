@@ -5,58 +5,59 @@
 
 namespace Scenario
 {
-	namespace Command
-	{
-    template<class T>
+    namespace Command
+    {
+        template<class T>
         class ChangeElementLabel : public iscore::SerializableCommand
-		{
+        {
 
-			public:
-            ChangeElementLabel(ObjectPath&& path, QString newLabel) :
-                SerializableCommand{"ScenarioControl",
-                                    "Change Label",
-                                    QObject::tr("Change current objects label")},
-                m_path{std::move(path)},
-                m_newLabel{newLabel}
-            {
+            public:
+                ChangeElementLabel (ObjectPath&& path, QString newLabel) :
+                    SerializableCommand {"ScenarioControl",
+                    "Change Label",
+                    QObject::tr ("Change current objects label")
+                },
+                m_path {std::move (path) },
+                m_newLabel {newLabel}
+                {
 
-            }
+                }
 
                 virtual void undo() override
-            {
-                auto obj = m_path.find<T>();
-                obj->metadata.setLabel(m_oldLabel);
-            }
+                {
+                    auto obj = m_path.find<T>();
+                    obj->metadata.setLabel (m_oldLabel);
+                }
                 virtual void redo() override
-            {
-                auto obj = m_path.find<T>();
-                obj->metadata.setLabel(m_newLabel);
-            }
+                {
+                    auto obj = m_path.find<T>();
+                    obj->metadata.setLabel (m_newLabel);
+                }
                 virtual int id() const override
-            {
-                return 1;
-            }
+                {
+                    return 1;
+                }
 
-                virtual bool mergeWith(const QUndoCommand* other) override
-            {
-                return false;
-            }
+                virtual bool mergeWith (const QUndoCommand* other) override
+                {
+                    return false;
+                }
 
-			protected:
-                virtual void serializeImpl(QDataStream& s) const override
-            {
-                s << m_path << m_oldLabel << m_newLabel;
-            }
+            protected:
+                virtual void serializeImpl (QDataStream& s) const override
+                {
+                    s << m_path << m_oldLabel << m_newLabel;
+                }
 
-                virtual void deserializeImpl(QDataStream& s) override
-            {
-                s >> m_path >> m_oldLabel >> m_newLabel;
-            }
+                virtual void deserializeImpl (QDataStream& s) override
+                {
+                    s >> m_path >> m_oldLabel >> m_newLabel;
+                }
 
             private:
-                ObjectPath m_path{};
+                ObjectPath m_path {};
                 QString m_newLabel;
-                QString m_oldLabel{};
+                QString m_oldLabel {};
         };
-	}
+    }
 }

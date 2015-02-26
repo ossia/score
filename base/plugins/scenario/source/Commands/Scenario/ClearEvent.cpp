@@ -10,67 +10,72 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearEvent::ClearEvent():
-	SerializableCommand{"ScenarioControl",
-						"ClearEvent",
-						QObject::tr("Remove event and pre-constraints")}
+ClearEvent::ClearEvent() :
+    SerializableCommand {"ScenarioControl",
+    "ClearEvent",
+    QObject::tr ("Remove event and pre-constraints")
+}
 {
 }
 
 
-ClearEvent::ClearEvent(ObjectPath&& eventPath):
-	SerializableCommand{"ScenarioControl",
-						"ClearEvent",
-						QObject::tr("Remove event and pre-constraints")},
-	m_path{std::move(eventPath)}
+ClearEvent::ClearEvent (ObjectPath&& eventPath) :
+    SerializableCommand {"ScenarioControl",
+    "ClearEvent",
+    QObject::tr ("Remove event and pre-constraints")
+},
+m_path {std::move (eventPath) }
 {
 
-	auto event = m_path.find<EventModel>();
-	for(const State* state: event->states())
-	{
-		QByteArray arr;
-		Serializer<DataStream> s{&arr};
-		s.readFrom(*state);
-		m_serializedStates.push_back(arr);
-	}
+    auto event = m_path.find<EventModel>();
+
+    for (const State* state : event->states() )
+    {
+        QByteArray arr;
+        Serializer<DataStream> s {&arr};
+        s.readFrom (*state);
+        m_serializedStates.push_back (arr);
+    }
 }
 
 void ClearEvent::undo()
 {
-	auto event = m_path.find<EventModel>();
-	for(auto& serializedState : m_serializedStates)
-	{
-		Deserializer<DataStream> s{&serializedState};
-		event->addState(new FakeState{s, event});
-	}
+    auto event = m_path.find<EventModel>();
+
+    for (auto& serializedState : m_serializedStates)
+    {
+        Deserializer<DataStream> s {&serializedState};
+        event->addState (new FakeState {s, event});
+    }
 }
 
 void ClearEvent::redo()
 {
-	auto event = m_path.find<EventModel>();
-	for(auto& state : event->states())
-	{
-		event->removeState(state->id());
-	}
+    auto event = m_path.find<EventModel>();
+
+    for (auto& state : event->states() )
+    {
+        event->removeState (state->id() );
+    }
 
 }
 
 int ClearEvent::id() const
 {
-	return 1;
+    return 1;
 }
 
-bool ClearEvent::mergeWith(const QUndoCommand* other)
+bool ClearEvent::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void ClearEvent::serializeImpl(QDataStream& s) const
+void ClearEvent::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_serializedStates;
+    s << m_path << m_serializedStates;
 }
 
-void ClearEvent::deserializeImpl(QDataStream& s)
+void ClearEvent::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_serializedStates;
+    s >> m_path >> m_serializedStates;
 }

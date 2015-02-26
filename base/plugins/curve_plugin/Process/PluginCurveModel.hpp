@@ -39,50 +39,50 @@ class PluginCurveSection;
 
 class PluginCurveModel : public QObject
 {
-		Q_OBJECT
-	private:
-		bool _state; // Active or Inactive
-		// QGraphicsObject* _pParent; // Deck for get bounding rect, width and height
-		QList<PluginCurvePoint*> _points;  // Sort list of user's points
-		QList<PluginCurveSection*> _sections;  // List of sections (not sort)
-		const QRectF _limitRect;//=QRectF(0 + PluginCurvePoint::SHAPERADIUS,
-		//       0 + PluginCurvePoint::SHAPERADIUS,
-		//       _pParent->boundingRect().width() - 2*PluginCurvePoint::SHAPERADIUS - 2,
-		//       _pParent->boundingRect().height() - 2*PluginCurvePoint::SHAPERADIUS); // Define the points area
+        Q_OBJECT
+    private:
+        bool _state; // Active or Inactive
+        // QGraphicsObject* _pParent; // Deck for get bounding rect, width and height
+        QList<PluginCurvePoint*> _points;  // Sort list of user's points
+        QList<PluginCurveSection*> _sections;  // List of sections (not sort)
+        const QRectF _limitRect;//=QRectF(0 + PluginCurvePoint::SHAPERADIUS,
+        //       0 + PluginCurvePoint::SHAPERADIUS,
+        //       _pParent->boundingRect().width() - 2*PluginCurvePoint::SHAPERADIUS - 2,
+        //       _pParent->boundingRect().height() - 2*PluginCurvePoint::SHAPERADIUS); // Define the points area
 
-	public:
-		// Constructor
-		PluginCurveModel (QObject* parentObject);
-		// Returns the list of points
-		QList<PluginCurvePoint*> points();
-		// Returns the points area
-		QRectF limitRect();
-		// Gives the position of a point in the list
-		int pointIndexOf (PluginCurvePoint* point);
-		// Returns the point at the index position index in the list
-		PluginCurvePoint* pointAt (int index);
-		// Returns the size of the list
-		int pointSize();
-		// Returns the index of the point which would precede a point at position point.
-		int pointSearchIndex (QPointF point);
-		// Returns point's previous point
-		PluginCurvePoint* previousPoint (PluginCurvePoint* point);
-		// Return point's next point
-		PluginCurvePoint* nextPoint (PluginCurvePoint* point);
+    public:
+        // Constructor
+        PluginCurveModel (QObject* parentObject);
+        // Returns the list of points
+        QList<PluginCurvePoint*> points();
+        // Returns the points area
+        QRectF limitRect();
+        // Gives the position of a point in the list
+        int pointIndexOf (PluginCurvePoint* point);
+        // Returns the point at the index position index in the list
+        PluginCurvePoint* pointAt (int index);
+        // Returns the size of the list
+        int pointSize();
+        // Returns the index of the point which would precede a point at position point.
+        int pointSearchIndex (QPointF point);
+        // Returns point's previous point
+        PluginCurvePoint* previousPoint (PluginCurvePoint* point);
+        // Return point's next point
+        PluginCurvePoint* nextPoint (PluginCurvePoint* point);
 
-	public slots:
-		// Changes the state (Activ/Inactiv) of the curve
-		void setState (bool b);
-		// Inserts a point at the index index
-		void pointInsert (int index, PluginCurvePoint* point);
-		// Remove a point from the list
-		void pointRemoveOne (PluginCurvePoint* point);
-		// Swap the points at index index1 and index2
-		void pointSwap (int index1, int index2);
-		// Append a section
-		void sectionAppend (PluginCurveSection* section);
-		// Remove a section from the list
-		void sectionRemoveOne (PluginCurveSection* section);
+    public slots:
+        // Changes the state (Activ/Inactiv) of the curve
+        void setState (bool b);
+        // Inserts a point at the index index
+        void pointInsert (int index, PluginCurvePoint* point);
+        // Remove a point from the list
+        void pointRemoveOne (PluginCurvePoint* point);
+        // Swap the points at index index1 and index2
+        void pointSwap (int index1, int index2);
+        // Append a section
+        void sectionAppend (PluginCurveSection* section);
+        // Remove a section from the list
+        void sectionRemoveOne (PluginCurveSection* section);
 };
 
 #endif // PLUGINCURVEMODEL_HPP*/

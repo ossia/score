@@ -7,59 +7,61 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyProcessViewModel::CopyProcessViewModel():
-	SerializableCommand{"ScenarioControl",
-						"CopyProcessViewModel",
-						QObject::tr("Copy process view")}
+CopyProcessViewModel::CopyProcessViewModel() :
+    SerializableCommand {"ScenarioControl",
+    "CopyProcessViewModel",
+    QObject::tr ("Copy process view")
+}
 {
 }
 
-CopyProcessViewModel::CopyProcessViewModel(ObjectPath&& pvmPath,
-										   ObjectPath&& targetDeckPath):
-	SerializableCommand{"ScenarioControl",
-						"CopyProcessViewModel",
-						QObject::tr("Copy process view")},
-	m_pvmPath{pvmPath},
-	m_targetDeckPath{targetDeckPath}
+CopyProcessViewModel::CopyProcessViewModel (ObjectPath&& pvmPath,
+        ObjectPath&& targetDeckPath) :
+    SerializableCommand {"ScenarioControl",
+    "CopyProcessViewModel",
+    QObject::tr ("Copy process view")
+},
+m_pvmPath {pvmPath},
+m_targetDeckPath {targetDeckPath}
 {
-	auto deck = m_targetDeckPath.find<DeckModel>();
-	m_newProcessViewModelId = getStrongId(deck->processViewModels());
+    auto deck = m_targetDeckPath.find<DeckModel>();
+    m_newProcessViewModelId = getStrongId (deck->processViewModels() );
 }
 
 void CopyProcessViewModel::undo()
 {
-	auto deck = m_targetDeckPath.find<DeckModel>();
-	deck->deleteProcessViewModel(m_newProcessViewModelId);
+    auto deck = m_targetDeckPath.find<DeckModel>();
+    deck->deleteProcessViewModel (m_newProcessViewModelId);
 }
 
 void CopyProcessViewModel::redo()
 {
-	auto sourcePVM = m_pvmPath.find<ProcessViewModelInterface>();
-	auto targetDeck = m_targetDeckPath.find<DeckModel>();
+    auto sourcePVM = m_pvmPath.find<ProcessViewModelInterface>();
+    auto targetDeck = m_targetDeckPath.find<DeckModel>();
 
-	auto proc = sourcePVM->sharedProcessModel();
-	targetDeck->addProcessViewModel(
-					proc->makeViewModel(m_newProcessViewModelId,
-										sourcePVM,
-										targetDeck));
+    auto proc = sourcePVM->sharedProcessModel();
+    targetDeck->addProcessViewModel (
+        proc->makeViewModel (m_newProcessViewModelId,
+                             sourcePVM,
+                             targetDeck) );
 }
 
 int CopyProcessViewModel::id() const
 {
-	return 1;
+    return 1;
 }
 
-bool CopyProcessViewModel::mergeWith(const QUndoCommand* other)
+bool CopyProcessViewModel::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void CopyProcessViewModel::serializeImpl(QDataStream& s) const
+void CopyProcessViewModel::serializeImpl (QDataStream& s) const
 {
-	s << m_pvmPath << m_targetDeckPath << m_newProcessViewModelId;
+    s << m_pvmPath << m_targetDeckPath << m_newProcessViewModelId;
 }
 
-void CopyProcessViewModel::deserializeImpl(QDataStream& s)
+void CopyProcessViewModel::deserializeImpl (QDataStream& s)
 {
-	s >> m_pvmPath >> m_targetDeckPath >> m_newProcessViewModelId;
+    s >> m_pvmPath >> m_targetDeckPath >> m_newProcessViewModelId;
 }

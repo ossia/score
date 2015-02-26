@@ -12,16 +12,16 @@
  */
 class PluginSettings : public iscore::SettingsDelegateFactoryInterface
 {
-	public:
-		PluginSettings();
-		virtual ~PluginSettings() = default;
+    public:
+        PluginSettings();
+        virtual ~PluginSettings() = default;
 
-		// SettingsGroup interface
-	public:
-		virtual iscore::SettingsDelegateViewInterface* makeView() override;
-		virtual iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
-															  iscore::SettingsDelegateModelInterface* m,
-															  iscore::SettingsDelegateViewInterface* v) override;
-		virtual iscore::SettingsDelegateModelInterface* makeModel() override;
+        // SettingsGroup interface
+    public:
+        virtual iscore::SettingsDelegateViewInterface* makeView() override;
+        virtual iscore::SettingsDelegatePresenterInterface* makePresenter (iscore::SettingsPresenter*,
+                iscore::SettingsDelegateModelInterface* m,
+                iscore::SettingsDelegateViewInterface* v) override;
+        virtual iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 

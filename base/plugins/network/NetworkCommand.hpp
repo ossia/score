@@ -14,35 +14,35 @@
 
 class NetworkCommand : public iscore::PluginControlInterface
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
-		NetworkCommand();
-		virtual void populateMenus(iscore::MenubarManager*) override;
-		virtual void populateToolbars() override;
-		virtual void setPresenter(iscore::Presenter*) override;
+    public:
+        NetworkCommand();
+        virtual void populateMenus (iscore::MenubarManager*) override;
+        virtual void populateToolbars() override;
+        virtual void setPresenter (iscore::Presenter*) override;
 
-		// @todo PUT SOMEWHERE ELSE
-		void handle__document_ask(osc::ReceivedMessageArgumentStream);
-		void handle__document_receive(osc::ReceivedMessageArgumentStream);
-	signals:
-		void loadFromNetwork(QByteArray);
+        // @todo PUT SOMEWHERE ELSE
+        void handle__document_ask (osc::ReceivedMessageArgumentStream);
+        void handle__document_receive (osc::ReceivedMessageArgumentStream);
+    signals:
+        void loadFromNetwork (QByteArray);
 
-	public slots:
-		void setupMasterSession();
-		void setupClientSession(ConnectionData d);
+    public slots:
+        void setupMasterSession();
+        void setupClientSession (ConnectionData d);
 
-		void createZeroconfSelectionDialog();
+        void createZeroconfSelectionDialog();
 
-		void commandPush(iscore::SerializableCommand*);
+        void commandPush (iscore::SerializableCommand*);
 
-		void on_commandReceived(QString, QString, QByteArray);
+        void on_commandReceived (QString, QString, QByteArray);
 
-	private:
-		iscore::Presenter* m_presenter{};
-		std::unique_ptr<Session> m_networkSession;
+    private:
+        iscore::Presenter* m_presenter {};
+        std::unique_ptr<Session> m_networkSession;
 
-	private:
-		std::unique_ptr<RemoteActionEmitter> m_emitter;
-		std::unique_ptr<RemoteActionReceiver> m_receiver;
+    private:
+        std::unique_ptr<RemoteActionEmitter> m_emitter;
+        std::unique_ptr<RemoteActionReceiver> m_receiver;
 };

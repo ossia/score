@@ -22,106 +22,117 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 using namespace Scenario;
-void testInit(FullViewConstraintViewModel* viewmodel)
+void testInit (FullViewConstraintViewModel* viewmodel)
 {
-	using namespace Scenario::Command;
-	auto constraint_model = viewmodel->model();
+    using namespace Scenario::Command;
+    auto constraint_model = viewmodel->model();
 
-	AddProcessToConstraint cmd1{
-		{
-			{"BaseConstraintModel", {}}
-		},
-		"Scenario"};
-	cmd1.redo();
-	auto scenarioId = constraint_model->processes().front()->id();
+    AddProcessToConstraint cmd1
+    {
+        {
+            {"BaseConstraintModel", {}}
+        },
+        "Scenario"
+    };
+    cmd1.redo();
+    auto scenarioId = constraint_model->processes().front()->id();
 
-	AddBoxToConstraint cmd2{
-		ObjectPath{
-			{"BaseConstraintModel", {}}
-		}};
-	cmd2.redo();
-	auto box = constraint_model->boxes().front();
+    AddBoxToConstraint cmd2
+    {
+        ObjectPath{
+            {"BaseConstraintModel", {}}
+        }
+    };
+    cmd2.redo();
+    auto box = constraint_model->boxes().front();
 
-	ShowBoxInViewModel cmd3{viewmodel, box->id()};
-	cmd3.redo();
+    ShowBoxInViewModel cmd3 {viewmodel, box->id() };
+    cmd3.redo();
 
-	AddDeckToBox cmd4{
-		ObjectPath{
-			{"BaseConstraintModel", {}},
-			{"BoxModel", box->id()}
-		}};
-	cmd4.redo();
-	auto deckId = box->decks().front()->id();
+    AddDeckToBox cmd4
+    {
+        ObjectPath{
+            {"BaseConstraintModel", {}},
+            {"BoxModel", box->id() }
+        }
+    };
+    cmd4.redo();
+    auto deckId = box->decks().front()->id();
 
-	ResizeDeckVertically cmd5{
-		ObjectPath{
-			{"BaseConstraintModel", {}},
-			{"BoxModel", box->id()},
-			{"DeckModel", deckId}
-		},
-		1500
-	};
-	cmd5.redo();
+    ResizeDeckVertically cmd5
+    {
+        ObjectPath{
+            {"BaseConstraintModel", {}},
+            {"BoxModel", box->id() },
+            {"DeckModel", deckId}
+        },
+        1500
+    };
+    cmd5.redo();
 
-	AddProcessViewModelToDeck cmd6{
-		{
-			{"BaseConstraintModel", {}},
-			{"BoxModel", box->id()},
-			{"DeckModel", deckId}
-		},
-		{
-			{"BaseConstraintModel", {}},
-			{"ScenarioModel", scenarioId}
-		}
-	};
-	cmd6.redo();
+    AddProcessViewModelToDeck cmd6
+    {
+        {
+            {"BaseConstraintModel", {}},
+            {"BoxModel", box->id() },
+            {"DeckModel", deckId}
+        },
+        {
+            {"BaseConstraintModel", {}},
+            {"ScenarioModel", scenarioId}
+        }
+    };
+    cmd6.redo();
 }
 
-BaseElementModel::BaseElementModel(QByteArray data, QObject* parent):
-	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseConstraint{new ConstraintModel{Deserializer<DataStream>{&data}, this}}
+BaseElementModel::BaseElementModel (QByteArray data, QObject* parent) :
+    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
-	m_baseConstraint->setObjectName("BaseConstraintModel");
+    m_baseConstraint->setObjectName ("BaseConstraintModel");
 }
 
-BaseElementModel::BaseElementModel(QObject* parent):
-	iscore::DocumentDelegateModelInterface{"BaseElementModel", parent},
-	m_baseConstraint{new ConstraintModel{id_type<ConstraintModel>{0},
-										 id_type<AbstractConstraintViewModel>{0},
-										 0,
-										 this}}
+BaseElementModel::BaseElementModel (QObject* parent) :
+    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+m_baseConstraint {new ConstraintModel{id_type<ConstraintModel>{0},
+                                          id_type<AbstractConstraintViewModel>{0},
+                                          0,
+                                          this
+                                         }
+}
 {
-	m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
-	m_baseConstraint->setObjectName("BaseConstraintModel");
-	testInit(m_baseConstraint->fullView());
+    m_baseConstraint->setDefaultDuration (std::chrono::seconds{1});
+    m_baseConstraint->setObjectName ("BaseConstraintModel");
+    testInit (m_baseConstraint->fullView() );
 }
 
 QByteArray BaseElementModel::save()
 {
-	QByteArray arr;
-	Serializer<DataStream> s{&arr};
-	s.readFrom(*constraintModel());
+    QByteArray arr;
+    Serializer<DataStream> s {&arr};
+    s.readFrom (*constraintModel() );
 
-	return arr;
+    return arr;
 }
 
 #include <QApplication>
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 QJsonObject BaseElementModel::toJson()
 {
-	QJsonObject complete;
-	// TODO : save all panels from the iscore_lib::Document
-	// Device explorer
-	auto deviceExplorerModel = DeviceExplorer::getModel(this);
-	if(deviceExplorerModel)
-	{
-		complete["DeviceExplorer"] = DeviceExplorer::toJson(deviceExplorerModel);
-	}
+    QJsonObject complete;
+    // TODO : save all panels from the iscore_lib::Document
+    // Device explorer
+    auto deviceExplorerModel = DeviceExplorer::getModel (this);
 
-	// Document
-	Serializer<JSON> s;
-	s.readFrom(*constraintModel());
+    if (deviceExplorerModel)
+    {
+        complete["DeviceExplorer"] = DeviceExplorer::toJson (deviceExplorerModel);
+    }
 
-	complete["Scenario"] = s.m_obj;
-	return complete;
+    // Document
+    Serializer<JSON> s;
+    s.readFrom (*constraintModel() );
+
+    complete["Scenario"] = s.m_obj;
+    return complete;
 }

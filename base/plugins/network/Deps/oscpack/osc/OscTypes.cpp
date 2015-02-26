@@ -25,28 +25,29 @@
 */
 
 /*
-	The text above constitutes the entire oscpack license; however, 
+	The text above constitutes the entire oscpack license; however,
 	the oscpack developer(s) also make the following non-binding requests:
 
 	Any person wishing to distribute modifications to the Software is
 	requested to send the modifications to the original developer so that
-	they can be incorporated into the canonical version. It is also 
+	they can be incorporated into the canonical version. It is also
 	requested that these non-binding requests be included whenever the
 	above license is reproduced.
 */
 #include "OscTypes.h"
 
-namespace osc{
+namespace osc
+{
 
-BundleInitiator BeginBundleImmediate(1);
-BundleTerminator EndBundle;
-MessageTerminator EndMessage;
-NilType OscNil;
-#ifndef _OBJC_OBJC_H_
-NilType Nil; // Objective-C defines Nil. so our Nil is deprecated. use OscNil instead
-#endif
-InfinitumType Infinitum;
-ArrayInitiator BeginArray;
-ArrayTerminator EndArray;
+    BundleInitiator BeginBundleImmediate (1);
+    BundleTerminator EndBundle;
+    MessageTerminator EndMessage;
+    NilType OscNil;
+    #ifndef _OBJC_OBJC_H_
+    NilType Nil; // Objective-C defines Nil. so our Nil is deprecated. use OscNil instead
+    #endif
+    InfinitumType Infinitum;
+    ArrayInitiator BeginArray;
+    ArrayTerminator EndArray;
 
 } // namespace osc

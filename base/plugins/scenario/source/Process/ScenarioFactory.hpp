@@ -3,18 +3,18 @@
 
 class ScenarioFactory : public ProcessFactoryInterface
 {
-	public:
-		virtual QString name() const override;
-		virtual QStringList availableViews();
-		virtual ProcessViewInterface* makeView(QString view, QObject* parent) override;
-		virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
-														 ProcessViewInterface*,
-														 QObject* parent) override;
+    public:
+        virtual QString name() const override;
+        virtual QStringList availableViews();
+        virtual ProcessViewInterface* makeView (QString view, QObject* parent) override;
+        virtual ProcessPresenterInterface* makePresenter (ProcessViewModelInterface*,
+                ProcessViewInterface*,
+                QObject* parent) override;
 
-		virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id,
-													   QObject* parent) override;
+        virtual ProcessSharedModelInterface* makeModel (id_type<ProcessSharedModelInterface> id,
+                QObject* parent) override;
 
-		virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,
-													   void* data,
-													   QObject* parent) override;
+        virtual ProcessSharedModelInterface* makeModel (SerializationIdentifier identifier,
+                void* data,
+                QObject* parent) override;
 };

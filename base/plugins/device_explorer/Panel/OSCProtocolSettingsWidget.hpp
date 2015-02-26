@@ -7,28 +7,28 @@ class QSpinBox;
 
 class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
 {
- Q_OBJECT
+        Q_OBJECT
 
-public:
-  OSCProtocolSettingsWidget(QWidget *parent = nullptr);
+    public:
+        OSCProtocolSettingsWidget (QWidget* parent = nullptr);
 
-  virtual QList<QString> getSettings() const override;
+        virtual QList<QString> getSettings() const override;
 
-  virtual void setSettings(const QList<QString> &settings) override;
+        virtual void setSettings (const QList<QString>& settings) override;
 
-protected slots:
-  void openFileDialog();
+    protected slots:
+        void openFileDialog();
 
-protected:
-  void buildGUI();
+    protected:
+        void buildGUI();
 
-  void setDefaults();
+        void setDefaults();
 
-protected:
-  QLineEdit *m_deviceNameEdit;
-  QSpinBox *m_portOutputSBox;
-  QSpinBox *m_portInputSBox;
-  QLineEdit *m_localHostEdit;
-  QLineEdit *m_namespaceFilePathEdit;
+    protected:
+        QLineEdit* m_deviceNameEdit;
+        QSpinBox* m_portOutputSBox;
+        QSpinBox* m_portInputSBox;
+        QLineEdit* m_localHostEdit;
+        QLineEdit* m_namespaceFilePathEdit;
 };
 

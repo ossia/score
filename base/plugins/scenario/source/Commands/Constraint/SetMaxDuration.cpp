@@ -9,57 +9,61 @@ using namespace Scenario::Command;
 #define CMD_NAME "SetMaxDuration"
 #define CMD_DESC QObject::tr("Set max duration of constraint")
 
-SetMaxDuration::SetMaxDuration():
-	SerializableCommand{"ScenarioControl",
-						CMD_NAME,
-						CMD_DESC}
+SetMaxDuration::SetMaxDuration() :
+    SerializableCommand {"ScenarioControl",
+    CMD_NAME,
+    CMD_DESC
+}
 {
 }
 
-SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration):
-	SerializableCommand{"ScenarioControl",
-						CMD_NAME,
-						CMD_DESC},
-	m_path{constraintPath},
-	m_oldDuration{m_path.find<ConstraintModel>()->maxDuration()},
-	m_newDuration{newDuration}
+SetMaxDuration::SetMaxDuration (ObjectPath&& constraintPath, TimeValue newDuration) :
+    SerializableCommand {"ScenarioControl",
+    CMD_NAME,
+    CMD_DESC
+},
+m_path {constraintPath},
+m_oldDuration {m_path.find<ConstraintModel>()->maxDuration() },
+m_newDuration {newDuration}
 {
 }
 
 void SetMaxDuration::undo()
 {
-	auto constraint = m_path.find<ConstraintModel>();
-	constraint->setMaxDuration(m_oldDuration);
+    auto constraint = m_path.find<ConstraintModel>();
+    constraint->setMaxDuration (m_oldDuration);
 }
 
 void SetMaxDuration::redo()
 {
-	auto constraint = m_path.find<ConstraintModel>();
-	constraint->setMaxDuration(m_newDuration);
+    auto constraint = m_path.find<ConstraintModel>();
+    constraint->setMaxDuration (m_newDuration);
 }
 
 int SetMaxDuration::id() const
 {
-	return canMerge() ? CMD_UID : -1;
+    return canMerge() ? CMD_UID : -1;
 }
 
-bool SetMaxDuration::mergeWith(const QUndoCommand* other)
+bool SetMaxDuration::mergeWith (const QUndoCommand* other)
 {
-	if(other->id() != id())
-		return false;
+    if (other->id() != id() )
+    {
+        return false;
+    }
 
-	auto cmd = static_cast<const SetMaxDuration*>(other);
-	m_newDuration = cmd->m_newDuration;
+    auto cmd = static_cast<const SetMaxDuration*> (other);
+    m_newDuration = cmd->m_newDuration;
 
-	return true;
+    return true;
 }
 
-void SetMaxDuration::serializeImpl(QDataStream& s) const
+void SetMaxDuration::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_oldDuration << m_newDuration;
+    s << m_path << m_oldDuration << m_newDuration;
 }
 
-void SetMaxDuration::deserializeImpl(QDataStream& s)
+void SetMaxDuration::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_oldDuration >> m_newDuration;
+    s >> m_path >> m_oldDuration >> m_newDuration;
 }

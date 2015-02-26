@@ -6,35 +6,35 @@
 #include <ProcessInterface/TimeValue.hpp>
 namespace Scenario
 {
-	namespace Command
-	{
-		/**
-		 * @brief The SetMinDuration class
-		 *
-		 * Sets the Min duration of a Constraint
-		 */
-		class SetMinDuration : public iscore::SerializableCommand
-		{
+    namespace Command
+    {
+        /**
+         * @brief The SetMinDuration class
+         *
+         * Sets the Min duration of a Constraint
+         */
+        class SetMinDuration : public iscore::SerializableCommand
+        {
 #include <tests/helpers/FriendDeclaration.hpp>
 
-			public:
-				SetMinDuration();
-				SetMinDuration(ObjectPath&& constraintPath, TimeValue duration);
+            public:
+                SetMinDuration();
+                SetMinDuration (ObjectPath&& constraintPath, TimeValue duration);
 
-				virtual void undo() override;
-				virtual void redo() override;
-				virtual int id() const override;
-				virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual void undo() override;
+                virtual void redo() override;
+                virtual int id() const override;
+                virtual bool mergeWith (const QUndoCommand* other) override;
 
-			protected:
-				virtual void serializeImpl(QDataStream&) const override;
-				virtual void deserializeImpl(QDataStream&) override;
+            protected:
+                virtual void serializeImpl (QDataStream&) const override;
+                virtual void deserializeImpl (QDataStream&) override;
 
-			private:
-				ObjectPath m_path;
+            private:
+                ObjectPath m_path;
 
-				TimeValue m_oldDuration{};
-				TimeValue m_newDuration{};
-		};
-	}
+                TimeValue m_oldDuration {};
+                TimeValue m_newDuration {};
+        };
+    }
 }

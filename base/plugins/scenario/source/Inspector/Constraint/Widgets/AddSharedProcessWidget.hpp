@@ -3,8 +3,8 @@
 class ConstraintInspectorWidget;
 class AddSharedProcessWidget : public QWidget
 {
-		Q_OBJECT
+        Q_OBJECT
 
-	public:
-		AddSharedProcessWidget(ConstraintInspectorWidget* parent);
+    public:
+        AddSharedProcessWidget (ConstraintInspectorWidget* parent);
 };

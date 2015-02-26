@@ -25,12 +25,12 @@
 */
 
 /*
-	The text above constitutes the entire oscpack license; however, 
+	The text above constitutes the entire oscpack license; however,
 	the oscpack developer(s) also make the following non-binding requests:
 
 	Any person wishing to distribute modifications to the Software is
 	requested to send the modifications to the original developer so that
-	they can be incorporated into the canonical version. It is also 
+	they can be incorporated into the canonical version. It is also
 	requested that these non-binding requests be included whenever the
 	above license is reproduced.
 */
@@ -41,48 +41,60 @@
 #include "NetworkingUtils.h"
 
 
-unsigned long IpEndpointName::GetHostByName( const char *s )
+unsigned long IpEndpointName::GetHostByName ( const char* s )
 {
-	return ::GetHostByName(s);
+    return ::GetHostByName (s);
 }
 
 
-void IpEndpointName::AddressAsString( char *s ) const
+void IpEndpointName::AddressAsString ( char* s ) const
 {
-	if( address == ANY_ADDRESS ){
-		std::sprintf( s, "<any>" );
-	}else{
-		std::sprintf( s, "%d.%d.%d.%d",
-				(int)((address >> 24) & 0xFF),
-				(int)((address >> 16) & 0xFF),
-				(int)((address >> 8) & 0xFF),
-				(int)(address & 0xFF) );
-	}
+    if ( address == ANY_ADDRESS )
+    {
+        std::sprintf ( s, "<any>" );
+    }
+    else
+    {
+        std::sprintf ( s, "%d.%d.%d.%d",
+                       (int) ( (address >> 24) & 0xFF),
+                       (int) ( (address >> 16) & 0xFF),
+                       (int) ( (address >> 8) & 0xFF),
+                       (int) (address & 0xFF) );
+    }
 }
 
 
-void IpEndpointName::AddressAndPortAsString( char *s ) const
+void IpEndpointName::AddressAndPortAsString ( char* s ) const
 {
-	if( port == ANY_PORT ){
-		if( address == ANY_ADDRESS ){
-			std::sprintf( s, "<any>:<any>" );
-		}else{
-			std::sprintf( s, "%d.%d.%d.%d:<any>",
-				(int)((address >> 24) & 0xFF),
-				(int)((address >> 16) & 0xFF),
-				(int)((address >> 8) & 0xFF),
-				(int)(address & 0xFF) );
-		}
-	}else{
-		if( address == ANY_ADDRESS ){
-			std::sprintf( s, "<any>:%d", port );
-		}else{
-			std::sprintf( s, "%d.%d.%d.%d:%d",
-				(int)((address >> 24) & 0xFF),
-				(int)((address >> 16) & 0xFF),
-				(int)((address >> 8) & 0xFF),
-				(int)(address & 0xFF),
-				(int)port );
-		}
-	}	
+    if ( port == ANY_PORT )
+    {
+        if ( address == ANY_ADDRESS )
+        {
+            std::sprintf ( s, "<any>:<any>" );
+        }
+        else
+        {
+            std::sprintf ( s, "%d.%d.%d.%d:<any>",
+                           (int) ( (address >> 24) & 0xFF),
+                           (int) ( (address >> 16) & 0xFF),
+                           (int) ( (address >> 8) & 0xFF),
+                           (int) (address & 0xFF) );
+        }
+    }
+    else
+    {
+        if ( address == ANY_ADDRESS )
+        {
+            std::sprintf ( s, "<any>:%d", port );
+        }
+        else
+        {
+            std::sprintf ( s, "%d.%d.%d.%d:%d",
+                           (int) ( (address >> 24) & 0xFF),
+                           (int) ( (address >> 16) & 0xFF),
+                           (int) ( (address >> 8) & 0xFF),
+                           (int) (address & 0xFF),
+                           (int) port );
+        }
+    }
 }

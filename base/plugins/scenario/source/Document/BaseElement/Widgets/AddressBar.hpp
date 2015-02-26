@@ -7,18 +7,18 @@
 class ClickableLabel;
 class AddressBar : public QWidget
 {
-		Q_OBJECT
-	public:
-		AddressBar(QWidget* parent);
-		void setTargetObject(ObjectPath&&);
+        Q_OBJECT
+    public:
+        AddressBar (QWidget* parent);
+        void setTargetObject (ObjectPath&&);
 
-	signals:
-		void objectSelected(ObjectPath path);
+    signals:
+        void objectSelected (ObjectPath path);
 
-	private slots:
-		void on_elementClicked(ClickableLabel*);
+    private slots:
+        void on_elementClicked (ClickableLabel*);
 
-	private:
-		QHBoxLayout* m_layout{};
-		ObjectPath m_currentPath;
+    private:
+        QHBoxLayout* m_layout {};
+        ObjectPath m_currentPath;
 };

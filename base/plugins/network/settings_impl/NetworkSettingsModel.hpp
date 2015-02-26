@@ -5,7 +5,7 @@
 
 namespace iscore
 {
-	class SettingsDelegatePresenterInterface;
+    class SettingsDelegatePresenterInterface;
 }
 // TODO find a better way...
 #define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
@@ -14,27 +14,27 @@ namespace iscore
 
 class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
 {
-		Q_OBJECT
-	public:
-		NetworkSettingsModel();
+        Q_OBJECT
+    public:
+        NetworkSettingsModel();
 
-		void setClientName(QString txt);
-		QString getClientName() const;
-		void setClientPort(int val);
-		int getClientPort() const;
-		void setMasterPort(int val);
-		int getMasterPort() const;
+        void setClientName (QString txt);
+        QString getClientName() const;
+        void setClientPort (int val);
+        int getClientPort() const;
+        void setMasterPort (int val);
+        int getMasterPort() const;
 
-		virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) ; // @todo remove this and the same for view
-		virtual void setFirstTimeSettings() override;
+        virtual void setPresenter (iscore::SettingsDelegatePresenterInterface* presenter) ; // @todo remove this and the same for view
+        virtual void setFirstTimeSettings() override;
 
-	signals:
-		void clientNameChanged();
-		void clientPortChanged();
-		void masterPortChanged();
+    signals:
+        void clientNameChanged();
+        void clientPortChanged();
+        void masterPortChanged();
 
-	private:
-		int masterPort;
-		int clientPort;
-		QString clientName;
+    private:
+        int masterPort;
+        int clientPort;
+        QString clientName;
 };

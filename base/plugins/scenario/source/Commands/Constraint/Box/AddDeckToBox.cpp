@@ -6,52 +6,55 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddDeckToBox::AddDeckToBox():
-	SerializableCommand{"ScenarioControl",
-						"AddDeckToBox",
-						QObject::tr("Add empty deck")}
+AddDeckToBox::AddDeckToBox() :
+    SerializableCommand {"ScenarioControl",
+    "AddDeckToBox",
+    QObject::tr ("Add empty deck")
+}
 {
 }
 
-AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath):
-	SerializableCommand{"ScenarioControl",
-						"AddDeckToBox",
-						QObject::tr("Add empty deck")},
-	m_path{boxPath}
+AddDeckToBox::AddDeckToBox (ObjectPath&& boxPath) :
+    SerializableCommand {"ScenarioControl",
+    "AddDeckToBox",
+    QObject::tr ("Add empty deck")
+},
+m_path {boxPath}
 {
-	auto box = m_path.find<BoxModel>();
-	m_createdDeckId = getStrongId(box->decks());
+    auto box = m_path.find<BoxModel>();
+    m_createdDeckId = getStrongId (box->decks() );
 }
 
 void AddDeckToBox::undo()
 {
-	auto box = m_path.find<BoxModel>();
-	box->removeDeck(m_createdDeckId);
+    auto box = m_path.find<BoxModel>();
+    box->removeDeck (m_createdDeckId);
 }
 
 void AddDeckToBox::redo()
 {
-	auto box = m_path.find<BoxModel>();
-	box->addDeck(new DeckModel{m_createdDeckId,
-							   box});
+    auto box = m_path.find<BoxModel>();
+    box->addDeck (new DeckModel {m_createdDeckId,
+                                 box
+                                });
 }
 
 int AddDeckToBox::id() const
 {
-	return 1;
+    return 1;
 }
 
-bool AddDeckToBox::mergeWith(const QUndoCommand* other)
+bool AddDeckToBox::mergeWith (const QUndoCommand* other)
 {
-	return false;
+    return false;
 }
 
-void AddDeckToBox::serializeImpl(QDataStream& s) const
+void AddDeckToBox::serializeImpl (QDataStream& s) const
 {
-	s << m_path << m_createdDeckId;
+    s << m_path << m_createdDeckId;
 }
 
-void AddDeckToBox::deserializeImpl(QDataStream& s)
+void AddDeckToBox::deserializeImpl (QDataStream& s)
 {
-	s >> m_path >> m_createdDeckId;
+    s >> m_path >> m_createdDeckId;
 }

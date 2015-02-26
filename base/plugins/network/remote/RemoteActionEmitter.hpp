@@ -3,7 +3,7 @@
 #include <QDebug>
 namespace iscore
 {
-	class SerializableCommand;
+    class SerializableCommand;
 }
 class Session;
 // Pour l'instant, envoyer les actions à tous ?
@@ -13,19 +13,19 @@ class Session;
 // envoyer au master qui se charge de répercuter ?
 class RemoteActionEmitter : public QObject
 {
-		Q_OBJECT
-	public:
-		using QObject::QObject;
-		RemoteActionEmitter(Session* session);
-		void sendCommand(iscore::SerializableCommand*);
+        Q_OBJECT
+    public:
+        using QObject::QObject;
+        RemoteActionEmitter (Session* session);
+        void sendCommand (iscore::SerializableCommand*);
 
-	public slots:
-		void undo();
-		void redo();
+    public slots:
+        void undo();
+        void redo();
 
-		void on_lock(QByteArray);
-		void on_unlock(QByteArray);
+        void on_lock (QByteArray);
+        void on_unlock (QByteArray);
 
-	private:
-		Session* m_session;
+    private:
+        Session* m_session;
 };
