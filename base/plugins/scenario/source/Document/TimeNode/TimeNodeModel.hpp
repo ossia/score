@@ -6,6 +6,7 @@
 #include "Document/ModelMetadata.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 
+#include <Document/Properties/Selectable.hpp>
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
@@ -17,16 +18,20 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         friend void Visitor<Writer<JSON>>::writeTo<TimeNodeModel> (TimeNodeModel& ev);
 
     public:
+        /** Properties of the class **/
+        Selectable selection;
         ModelMetadata metadata;
-
-        TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
-        TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent);
-        ~TimeNodeModel();
 
         static constexpr const char * className()
         { return "TimeNodeModel"; }
         static QString prettyName()
         { return QObject::tr("Time Node"); }
+
+
+        /** The class **/
+        TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent);
+        TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent);
+        ~TimeNodeModel();
 
         template<typename DeserializerVisitor>
         TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :

@@ -22,7 +22,30 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 using namespace Scenario;
-void testInit(FullViewConstraintViewModel* viewmodel)
+
+BaseElementModel::BaseElementModel(QByteArray data, QObject* parent) :
+    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
+{
+    m_baseConstraint->setObjectName("BaseConstraintModel");
+}
+
+BaseElementModel::BaseElementModel(QObject* parent) :
+    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+m_baseConstraint {new ConstraintModel{id_type<ConstraintModel>{0},
+                                          id_type<AbstractConstraintViewModel>{0},
+                                          0,
+                                          this
+                                         }
+}
+{
+    m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
+    m_baseConstraint->setObjectName("BaseConstraintModel");
+    initializeNewDocument(m_baseConstraint->fullView());
+    on_processSelected(findChild<ProcessSharedModelInterface*>("ScenarioProcessSharedModel"));
+}
+
+void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
 {
     using namespace Scenario::Command;
     auto constraint_model = viewmodel->model();
@@ -85,27 +108,6 @@ void testInit(FullViewConstraintViewModel* viewmodel)
     cmd6.redo();
 }
 
-BaseElementModel::BaseElementModel(QByteArray data, QObject* parent) :
-    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
-m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
-{
-    m_baseConstraint->setObjectName("BaseConstraintModel");
-}
-
-BaseElementModel::BaseElementModel(QObject* parent) :
-    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
-m_baseConstraint {new ConstraintModel{id_type<ConstraintModel>{0},
-                                          id_type<AbstractConstraintViewModel>{0},
-                                          0,
-                                          this
-                                         }
-}
-{
-    m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
-    m_baseConstraint->setObjectName("BaseConstraintModel");
-    testInit(m_baseConstraint->fullView());
-}
-
 QByteArray BaseElementModel::save()
 {
     QByteArray arr;
@@ -135,4 +137,9 @@ QJsonObject BaseElementModel::toJson()
 
     complete["Scenario"] = s.m_obj;
     return complete;
+}
+
+void BaseElementModel::on_processSelected(ProcessSharedModelInterface *proc)
+{
+    qDebug() << "=== TODO ===" << Q_FUNC_INFO;
 }

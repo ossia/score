@@ -110,6 +110,28 @@ void ScenarioModel::setDurationWithoutScale(TimeValue newDuration)
     // Maybe with the last event/timenode ? (hence they finally have a meaning)
 }
 
+// Since we don't have c++14 & auto in lambdas..
+template<typename InputVec, typename OutputVec>
+void copySelected(const InputVec& in, OutputVec& out)
+{
+    using namespace std;
+    copy_if(begin(in), end(in), back_inserter(out),
+            [](typename InputVec::value_type m)
+    {
+        return m->selection.get();
+    });
+}
+
+QList<QObject *> ScenarioModel::selectedChildren() const
+{
+    QList<QObject*> objects;
+    copySelected(m_events, objects);
+    copySelected(m_timeNodes, objects);
+    copySelected(m_constraints, objects);
+
+    return objects;
+}
+
 
 void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {
@@ -154,8 +176,8 @@ void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEvent
     auto ossia_tb = inter->apiObject();
 
     m_scenario->addTimeBox(*ossia_tb,
-    					   *ossia_tn0,
-    					   *ossia_tn1);
+                           *ossia_tn0,
+                           *ossia_tn1);
     */
     // Error checking if it did not go well ? Rollback ?
     // Else...

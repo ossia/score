@@ -4,6 +4,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
 #include "Document/ModelMetadata.hpp"
+#include <Document/Properties/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <unordered_map>
@@ -34,15 +35,20 @@ class EventModel : public IdentifiedObject<EventModel>
         friend void Visitor<Writer<JSON>>::writeTo<EventModel> (EventModel& ev);
 
     public:
+        /** Public properties of the class **/
+        Selectable selection;
         ModelMetadata metadata;
-
-        EventModel(id_type<EventModel>, QObject* parent);
-        EventModel(id_type<EventModel>, double yPos, QObject* parent);
 
         static constexpr const char * className()
         { return "EventModel"; }
         static QString prettyName()
         { return QObject::tr("Event"); }
+
+
+        /** The class **/
+        EventModel(id_type<EventModel>, QObject* parent);
+        EventModel(id_type<EventModel>, double yPos, QObject* parent);
+
 
         // Copy
         EventModel(EventModel* source,
@@ -110,6 +116,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void setCondition(QString arg);
 
     signals:
+        void selectionChanged(bool);
         void heightPercentageChanged(double arg);
         void messagesChanged();
         void conditionChanged(QString arg);

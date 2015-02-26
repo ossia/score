@@ -26,7 +26,7 @@ m_boxId {boxId}
     m_previousBoxId = constraint_vm->shownBox();
 }
 
-ShowBoxInViewModel::ShowBoxInViewModel(AbstractConstraintViewModel* constraint_vm,
+ShowBoxInViewModel::ShowBoxInViewModel(const AbstractConstraintViewModel *constraint_vm,
                                        id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
     "ShowBoxInViewModel",

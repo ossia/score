@@ -30,11 +30,8 @@ class AutomationModel : public ProcessSharedModelInterface
             vis.writeTo(*this);
         }
 
+        //// ProcessSharedModelInterface ////
         virtual QString processName() const override;
-        virtual void setDurationWithScale(TimeValue newDuration) override;
-        virtual void setDurationWithoutScale(TimeValue newDuration) override;
-
-        virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                 QObject* parent) override;
@@ -45,7 +42,16 @@ class AutomationModel : public ProcessSharedModelInterface
                 const ProcessViewModelInterface* source,
                 QObject* parent) override;
 
+        virtual void setDurationWithScale(TimeValue newDuration) override;
+        virtual void setDurationWithoutScale(TimeValue newDuration) override;
 
+        virtual QList<QObject*> selectedChildren() const override
+        { return {}; }
+        virtual void serialize(SerializationIdentifier identifier, void* data) const override;
+
+
+
+        //// AutomationModel specifics ////
         QString address() const
         {
             return m_address;

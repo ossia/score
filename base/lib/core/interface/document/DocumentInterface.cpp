@@ -3,7 +3,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
-iscore::Document* iscore::IDocument::documentFromObject(QObject* obj)
+iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {
     QString objName {obj ? obj->objectName() : "INVALID"};
 
@@ -18,11 +18,11 @@ iscore::Document* iscore::IDocument::documentFromObject(QObject* obj)
             .arg(objName)
             .toStdString());
 
-    return static_cast<Document*>(obj);
+    return static_cast<Document*>(const_cast<QObject*>(obj));
 }
 
 
-ObjectPath iscore::IDocument::path(QObject* obj)
+ObjectPath iscore::IDocument::path(const QObject* obj)
 {
     return ObjectPath::pathBetweenObjects(documentFromObject(obj), obj);
 }

@@ -2,14 +2,14 @@
 #include <core/tools/IdentifiedObject.hpp>
 #include <core/tools/ObjectPath.hpp>
 
-ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, QObject* target_object)
+ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object)
 {
     QVector<ObjectIdentifier> v;
 
     auto current_obj = target_object;
-    auto add_parent_to_vector = [&v](QObject * ptr)
+    auto add_parent_to_vector = [&v](const QObject * ptr)
     {
-        if(auto id_obj = dynamic_cast<IdentifiedObjectAbstract*>(ptr))
+        if(auto id_obj = dynamic_cast<const IdentifiedObjectAbstract*>(ptr))
             v.push_back({id_obj->objectName(), id_obj->id_val() });
         else
             v.push_back({ptr->objectName(), {}});

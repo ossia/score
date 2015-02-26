@@ -66,7 +66,7 @@ class ObjectPath
          */
         static ObjectPath pathFromObject(QString origin, QObject* obj);
 
-        static ObjectPath pathBetweenObjects(const QObject* const parent_obj, QObject* target_object);
+        static ObjectPath pathBetweenObjects(const QObject* const parent_obj, const QObject *target_object);
         static ObjectPath pathFromObject(QObject* origin_object);
 
         /**

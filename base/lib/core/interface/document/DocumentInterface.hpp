@@ -15,7 +15,7 @@ namespace iscore
         *
         * @return the Document parent of the object or nullptr.
         */
-        Document* documentFromObject(QObject* obj);
+        Document* documentFromObject(const QObject *obj);
 
         /**
         * @brief pathFromDocument
@@ -23,7 +23,7 @@ namespace iscore
         *
         * @return The path between a Document and this object.
         */
-        ObjectPath path(QObject* obj);
+        ObjectPath path(const QObject *obj);
 
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document* d);
 

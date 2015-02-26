@@ -5,6 +5,7 @@
 #include <interface/serialization/VisitorInterface.hpp>
 #include "ProcessInterface/TimeValue.hpp"
 
+#include <Document/Properties/Selectable.hpp>
 #include <QColor>
 #include <vector>
 
@@ -46,8 +47,17 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                    NOTIFY maxDurationChanged)
 
     public:
+        /** Properties of the class **/
+        Selectable selection;
         ModelMetadata metadata;
 
+        static constexpr const char * className()
+        { return "ConstraintModel"; }
+        static QString prettyName()
+        { return QObject::tr("Constraint"); }
+
+
+        /** The class **/
         ConstraintModel(id_type<ConstraintModel>,
                         id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
                         QObject* parent);
@@ -56,10 +66,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                         double yPos,
                         QObject* parent);
 
-        static constexpr const char * className()
-        { return "ConstraintModel"; }
-        static QString prettyName()
-        { return QObject::tr("Constraint"); }
 
         // Copy
         ConstraintModel(ConstraintModel* source,

@@ -22,7 +22,7 @@ namespace Scenario
                 ShowBoxInViewModel();
                 ShowBoxInViewModel(ObjectPath&& constraint_path,
                                    id_type<BoxModel> boxId);
-                ShowBoxInViewModel(AbstractConstraintViewModel* constraint,
+                ShowBoxInViewModel(const AbstractConstraintViewModel* constraint,
                                    id_type<BoxModel> boxId);
 
                 virtual void undo() override;

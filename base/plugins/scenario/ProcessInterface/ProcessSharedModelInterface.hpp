@@ -1,15 +1,16 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+
 class QDataStream;
 
 class InspectorSectionWidget;
 class ProcessViewModelInterface;
 /**
-	 * @brief The ProcessSharedModelInterface class
-	 *
-	 * Interface to implement to make a process.
-	 */
+     * @brief The ProcessSharedModelInterface class
+     *
+     * Interface to implement to make a process.
+     */
 class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
     public:
@@ -49,6 +50,9 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
             return m_viewModels;
         }
 
+
+        //// Features of a process
+        /// Duration
         // Used to scale the process.
         virtual void setDurationWithScale(TimeValue newDuration) = 0;
         virtual void setDurationWithoutScale(TimeValue newDuration) = 0;
@@ -64,6 +68,9 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         {
             return m_duration;
         }
+
+        /// Selection
+        virtual QList<QObject*> selectedChildren() const = 0;
 
         // protected:
         virtual void serialize(SerializationIdentifier identifier,

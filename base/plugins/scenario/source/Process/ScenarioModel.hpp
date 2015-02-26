@@ -40,6 +40,8 @@ class ScenarioModel : public ProcessSharedModelInterface
         ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) override;
 
         virtual ~ScenarioModel();
+
+        //// ProcessSharedModelInterface specifics ////
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                 QObject* parent) override;
 
@@ -50,11 +52,13 @@ class ScenarioModel : public ProcessSharedModelInterface
         virtual void setDurationWithScale(TimeValue newDuration) override;
         virtual void setDurationWithoutScale(TimeValue newDuration) override;
 
+        virtual QList<QObject*> selectedChildren() const override;
         virtual QString processName() const override
         {
             return "Scenario";
         }
 
+        //// ScenarioModel specifics ////
         // High-level operations (maintaining consistency)
         /**
          * @brief createConstraintBetweenEvents

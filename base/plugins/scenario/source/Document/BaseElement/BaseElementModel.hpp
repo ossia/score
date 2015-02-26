@@ -5,6 +5,7 @@
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
 class ConstraintModel;
+class ProcessSharedModelInterface;
 
 /**
  * @brief The BaseElementModel class
@@ -20,6 +21,9 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
     public:
         BaseElementModel(QByteArray data, QObject* parent);
         BaseElementModel(QObject* parent);
+
+        void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
+
         virtual ~BaseElementModel() = default;
 
         ConstraintModel* constraintModel() const
@@ -30,6 +34,8 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         virtual QByteArray save() override;
         virtual QJsonObject toJson() override;
 
+    public slots:
+        void on_processSelected(ProcessSharedModelInterface* proc);
 
     private:
         ConstraintModel* m_baseConstraint {};
