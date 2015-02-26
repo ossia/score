@@ -79,8 +79,7 @@ void ScenarioCommandManager::createConstraint(EventData data)
     data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel - model(m_presenter->m_viewModel)->event(data.eventClickedId)->date().msec());
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
-    auto cmdPath = ObjectPath::pathFromObject("BaseElementModel",
-                   m_presenter->m_viewModel->sharedProcessModel());
+    auto cmdPath = iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel());
 
     // We rollback so that we don't get polluted
     // by the "fake" created events / timenodes.
@@ -152,8 +151,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
         }
     }
 
-    auto cmd = new Scenario::Command::CreateEvent(ObjectPath::pathFromObject("BaseElementModel",
-            m_presenter->m_viewModel->sharedProcessModel()),
+    auto cmd = new Scenario::Command::CreateEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
             data);
     m_presenter->submitCommand(cmd);
 }
@@ -174,16 +172,14 @@ void ScenarioCommandManager::clearContentFromSelection()
     {
         commands.push_back(
             new ClearConstraint(
-                ObjectPath::pathFromObject("BaseElementModel",
-                                           viewModel(constraint)->model())));
+                iscore::IDocument::path(viewModel(constraint)->model())));
     }
 
     for(auto& event : eventsToRemove)
     {
         commands.push_back(
             new ClearEvent(
-                ObjectPath::pathFromObject("BaseElementModel",
-                                           event->model())));
+                iscore::IDocument::path(event->model())));
     }
 
     // 4. Make a meta-command that binds them all and calls undo & redo on the queue.
@@ -212,8 +208,7 @@ void ScenarioCommandManager::deleteSelection()
         {
             commands.push_back(
                 new RemoveConstraint(
-                    ObjectPath::pathFromObject("BaseElementModel",
-                                               m_presenter->m_viewModel->sharedProcessModel()),
+                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                     constraint->abstractConstraintViewModel()->model()));
         }
 
@@ -221,8 +216,7 @@ void ScenarioCommandManager::deleteSelection()
         {
             commands.push_back(
                 new RemoveEvent(
-                    ObjectPath::pathFromObject("BaseElementModel",
-                                               m_presenter->m_viewModel->sharedProcessModel()),
+                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                     event->model()));
 
         }
@@ -244,8 +238,7 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
-    auto cmd = new MoveEvent(ObjectPath::pathFromObject("BaseElementModel",
-                             m_presenter->m_viewModel->sharedProcessModel()),
+    auto cmd = new MoveEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                              data);
 
     sendOngoingCommand(cmd);
@@ -256,8 +249,7 @@ void ScenarioCommandManager::moveConstraint(ConstraintData data)
     data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
-    auto cmd = new MoveConstraint(ObjectPath::pathFromObject("BaseElementModel",
-                                  m_presenter->m_viewModel->sharedProcessModel()),
+    auto cmd = new MoveConstraint(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                   data);
 
 
@@ -272,8 +264,7 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
 
-    auto cmd = new MoveTimeNode(ObjectPath::pathFromObject("BaseElementModel",
-                                m_presenter->m_viewModel->sharedProcessModel()),
+    auto cmd = new MoveTimeNode(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                 data);
 
     sendOngoingCommand(cmd);
