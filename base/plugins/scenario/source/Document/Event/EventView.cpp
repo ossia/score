@@ -37,9 +37,9 @@ void EventView::paint(QPainter* painter,
     }
 
     /*	else if(parentItem()->isSelected())
-    	{
+        {
             pen_color = Qt::cyan;
-    	}
+        }
     */
     //painter->drawRect(boundingRect());
 
@@ -104,20 +104,6 @@ void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
     }
     else
     {
-        /*
-         *
-        // TODO : aimantation à revoir.
-        if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
-        {
-        	posInScenario.setX(pos().x());
-        }
-        if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
-        {
-        	posInScenario.setY(pos().y());
-        }
-        if(m->pos() != m_clickedPoint)
-        */
-
         // TODO effet bizarre : un léger déplacement est autorisé la première fois ... D'où est ce que ça sort ?
 
         if(m->modifiers() == Qt::ShiftModifier)

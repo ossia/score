@@ -35,6 +35,7 @@
 #include "Commands/Scenario/ClearConstraint.hpp"
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
+#include "Commands/TimeNode/MergeTimeNodes.hpp"
 
 #include <core/interface/document/DocumentInterface.hpp>
 
@@ -237,11 +238,41 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 {
     data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
+    auto eventTN = findById(m_presenter->m_events, data.eventClickedId)->model()->timeNode();
 
-    auto cmd = new MoveEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
-                             data);
+    if(m_ongoingCommand)
+    {
+        rollbackOngoingCommand();
+    }
 
-    sendOngoingCommand(cmd);
+    QList<TimeNodePresenter*> collidingTimeNodes;
+    copy_if(begin(m_presenter->m_timeNodes), end(m_presenter->m_timeNodes), std::back_inserter(collidingTimeNodes),
+            [=](TimeNodePresenter * tn)
+    {
+        if (eventTN != tn->id())
+            return tn->view()->isUnderMouse();
+        return false;
+    });
+
+    if (collidingTimeNodes.isEmpty())
+    {
+        auto cmd = new MoveEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+                                 data);
+
+        sendOngoingCommand(cmd);
+    }
+    else
+    {
+        // TODO ça foire, surement à cause de mergewith des commandes
+        /*
+        auto cmd = new MergeTimeNodes(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+                                      collidingTimeNodes.first()->id(),
+                                      eventTN);
+
+        sendOngoingCommand(cmd);
+        */
+    }
+
 }
 
 void ScenarioCommandManager::moveConstraint(ConstraintData data)

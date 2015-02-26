@@ -5,7 +5,11 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-Scenario::Command::SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > eventsInNewTimeNode):
+using namespace iscore;
+using namespace Scenario::Command;
+
+
+SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > eventsInNewTimeNode):
     SerializableCommand {"ScenarioControl",
         "Split TimeNode in two",
          QObject::tr("Split TimeNode in two")},
@@ -19,7 +23,7 @@ Scenario::Command::SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_ty
     m_newTimeNodeId = getStrongId(scenar->timeNodes());
 }
 
-void Scenario::Command::SplitTimeNode::undo()
+void SplitTimeNode::undo()
 {
     auto scenar = static_cast<ScenarioModel*>(m_path.find<TimeNodeModel>()->parent());
     auto originalTN = scenar->timeNode(m_originalTimeNodeId);
@@ -34,7 +38,7 @@ void Scenario::Command::SplitTimeNode::undo()
     scenar->removeTimeNode(m_newTimeNodeId);
 }
 
-void Scenario::Command::SplitTimeNode::redo()
+void SplitTimeNode::redo()
 {
     auto scenar = static_cast<ScenarioModel*>(m_path.find<TimeNodeModel>()->parent());
     auto originalTN = scenar->timeNode(m_originalTimeNodeId);
@@ -52,22 +56,22 @@ void Scenario::Command::SplitTimeNode::redo()
 
 }
 
-int Scenario::Command::SplitTimeNode::id() const
+int SplitTimeNode::id() const
 {
     return 1;
 }
 
-bool Scenario::Command::SplitTimeNode::mergeWith(const QUndoCommand *other)
+bool SplitTimeNode::mergeWith(const QUndoCommand *other)
 {
     return false;
 }
 
-void Scenario::Command::SplitTimeNode::serializeImpl(QDataStream & s) const
+void SplitTimeNode::serializeImpl(QDataStream & s) const
 {
     s << m_path << m_originalTimeNodeId << m_eventsInNewTimeNode << m_newTimeNodeId ;
 }
 
-void Scenario::Command::SplitTimeNode::deserializeImpl(QDataStream & s)
+void SplitTimeNode::deserializeImpl(QDataStream & s)
 {
     s >> m_path >> m_originalTimeNodeId >> m_eventsInNewTimeNode << m_newTimeNodeId ;
 }
