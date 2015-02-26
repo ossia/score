@@ -36,6 +36,8 @@
 #include "Commands/Scenario/ClearEvent.hpp"
 #include "Commands/RemoveMultipleElements.hpp"
 
+#include <core/interface/document/DocumentInterface.hpp>
+
 #include <algorithm>
 #include <QRectF>
 #include <QGraphicsItem>
@@ -268,7 +270,7 @@ void ScenarioCommandManager::sendOngoingCommand(iscore::SerializableCommand *cmd
         rollbackOngoingCommand();
     }
 
-    auto doc = iscore::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
     if(!m_ongoingCommand)
     {
         m_ongoingCommand = true;
@@ -283,7 +285,7 @@ void ScenarioCommandManager::sendOngoingCommand(iscore::SerializableCommand *cmd
 
 void ScenarioCommandManager::finishOngoingCommand()
 {
-    auto doc = iscore::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
     m_ongoingCommand = false;
     doc->presenter()->validateOngoingCommand();
     m_ongoingCommandId = -1;
@@ -291,7 +293,7 @@ void ScenarioCommandManager::finishOngoingCommand()
 
 void ScenarioCommandManager::rollbackOngoingCommand()
 {
-    auto doc = iscore::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
+	auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
     doc->presenter()->rollbackOngoingCommand();
     m_ongoingCommand = false;
     m_ongoingCommandId = -1;
