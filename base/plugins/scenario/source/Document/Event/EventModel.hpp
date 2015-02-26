@@ -39,6 +39,11 @@ class EventModel : public IdentifiedObject<EventModel>
         EventModel(id_type<EventModel>, QObject* parent);
         EventModel(id_type<EventModel>, double yPos, QObject* parent);
 
+        static constexpr const char * className()
+        { return "EventModel"; }
+        static QString prettyName()
+        { return QObject::tr("Event"); }
+
         // Copy
         EventModel(EventModel* source,
                    id_type<EventModel>,

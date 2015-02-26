@@ -37,7 +37,7 @@ class ScenarioModel : public ProcessSharedModelInterface
         using view_model_type = AbstractScenarioViewModel;
 
         ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
-        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent);
+        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) override;
 
         virtual ~ScenarioModel();
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,

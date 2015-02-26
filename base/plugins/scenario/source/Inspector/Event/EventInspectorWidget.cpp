@@ -5,10 +5,6 @@
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
-#include "Commands/Metadata/ChangeElementLabel.hpp"
-#include "Commands/Metadata/ChangeElementName.hpp"
-#include "Commands/Metadata/ChangeElementComments.hpp"
-#include "Commands/Metadata/ChangeElementColor.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -29,18 +25,16 @@
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
-using namespace Scenario;
-
 EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
     InspectorWidgetBase {nullptr},
-m_eventModel {object}
+    m_model {object}
 {
     setObjectName("EventInspectorWidget");
-    setInspectedObject(object);
+    setInspectedObject(m_model);
     setParent(parent);
 
-    connect(object, &EventModel::messagesChanged,
-    this, &EventInspectorWidget::updateMessages);
+    connect(m_model, &EventModel::messagesChanged,
+            this, &EventInspectorWidget::updateMessages);
 
     m_conditionWidget = new QLineEdit{this};
     connect(m_conditionWidget, SIGNAL(editingFinished()),
@@ -58,7 +52,7 @@ m_eventModel {object}
 
     m_addressLineEdit = new QLineEdit{addAddressWidget};
 
-    auto deviceexplorer = DeviceExplorer::getModel(object);
+    auto deviceexplorer = DeviceExplorer::getModel(m_model);
 
     if(deviceexplorer)
     {
@@ -87,29 +81,22 @@ m_eventModel {object}
     areaLayout()->addStretch();
 
     // metadata
-    m_metadata = new MetadataWidget(&object->metadata, this);
-    m_metadata->setType("Event");
+    m_metadata = new MetadataWidget{&object->metadata, this};
+    m_metadata->setType(EventModel::prettyName()); // TODO le faire automatiquement avec T::className
+    connect(m_metadata, &MetadataWidget::submitCommand,
+            this,       &InspectorWidgetBase::submitCommand);
+    m_metadata->setupConnections(m_model);
+
     addHeader(m_metadata);
 
     // display data
     updateDisplayedValues(object);
 
-    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
-            this,           &EventInspectorWidget::on_scriptingNameChanged);
 
-    connect(m_metadata,     &MetadataWidget::labelChanged,
-            this,           &EventInspectorWidget::on_labelChanged);
+    connect(m_metadata, &MetadataWidget::inspectPreviousElement,
+            m_model,    &EventModel::inspectPreviousElement);
 
-    connect(m_metadata,     &MetadataWidget::commentsChanged,
-            this,           &EventInspectorWidget::on_commentsChanged);
-
-    connect(m_metadata,     &MetadataWidget::colorChanged,
-            this,           &EventInspectorWidget::on_colorChanged);
-
-    connect(m_metadata,     &MetadataWidget::inspectPreviousElement,
-            m_eventModel,   &EventModel::inspectPreviousElement);
-
-    emit m_eventModel->inspectorCreated();
+    emit m_model->inspectorCreated();
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -149,12 +136,12 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
     // DEMO
     if(event)
     {
-//        setName (event->metadata.name());
-//		setColor (event->metadata.color() );
-//		setComments (event->metadata.comment() );
+        //        setName (event->metadata.name());
+        //		setColor (event->metadata.color() );
+        //		setComments (event->metadata.comment() );
 
-//        setInspectedObject (event);
-//		changeLabelType ("Event");
+        //        setInspectedObject (event);
+        //		changeLabelType ("Event");
 
         for(State* state : event->states())
         {
@@ -174,7 +161,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                m_eventModel->constraintSelected(cstrBtn->text());
+                m_model->constraintSelected(cstrBtn->text());
             });
         }
 
@@ -188,7 +175,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                m_eventModel->constraintSelected(cstrBtn->text());
+                m_model->constraintSelected(cstrBtn->text());
             });
         }
 
@@ -197,14 +184,13 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
     }
 }
 
+
+using namespace iscore::IDocument;
+using namespace Scenario;
 void EventInspectorWidget::on_addAddressClicked()
 {
     auto txt = m_addressLineEdit->text();
-    auto cmd = new Command::AddStateToEvent
-    {
-        iscore::IDocument::path(m_eventModel),
-        txt
-    };
+    auto cmd = new Command::AddStateToEvent{path(m_model), txt};
 
     emit submitCommand(cmd);
     m_addressLineEdit->clear();
@@ -214,68 +200,18 @@ void EventInspectorWidget::on_conditionChanged()
 {
     auto txt = m_conditionWidget->text();
 
-    if(txt == m_eventModel->condition())
+    if(txt == m_model->condition())
     {
         return;
     }
 
-    auto cmd = new Command::SetCondition
-    {
-        iscore::IDocument::path(m_eventModel),
-        txt
-    };
-
+    auto cmd = new Command::SetCondition{path(m_model), txt};
     emit submitCommand(cmd);
-
-}
-
-void EventInspectorWidget::on_scriptingNameChanged(QString newName)
-{
-    if(newName == m_eventModel->metadata.name())
-    {
-        return;
-    }
-
-    auto cmd = new Command::ChangeElementName<EventModel> (iscore::IDocument::path(inspectedObject()),
-            newName);
-
-    submitCommand(cmd);
-}
-
-void EventInspectorWidget::on_labelChanged(QString newLabel)
-{
-    if(newLabel == m_eventModel->metadata.label())
-    {
-        return;
-    }
-
-    auto cmd = new Command::ChangeElementLabel<EventModel> (iscore::IDocument::path(inspectedObject()),
-            newLabel);
-
-    submitCommand(cmd);
-}
-
-void EventInspectorWidget::on_commentsChanged(QString)
-{
-
-}
-
-void EventInspectorWidget::on_colorChanged(QColor newColor)
-{
-    if(newColor == m_eventModel->metadata.color())
-    {
-        return;
-    }
-
-    auto cmd = new Command::ChangeElementColor<EventModel> (iscore::IDocument::path(inspectedObject()),
-            newColor);
-
-    submitCommand(cmd);
 }
 
 void EventInspectorWidget::updateMessages()
 {
-    updateDisplayedValues(m_eventModel);
+    updateDisplayedValues(m_model);
 }
 
 void EventInspectorWidget::removeState(QString state)

@@ -24,18 +24,13 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
 
         void updateInspector();
 
-        void on_scriptingNameChanged(QString);
-        void on_labelChanged(QString);
-        void on_commentsChanged(QString);
-        void on_colorChanged(QColor);
-
         void on_splitTimeNodeClicked();
 
     private:
         QVector<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 
-        TimeNodeModel* m_timeNodeModel {};
+        TimeNodeModel* m_model {};
 
         InspectorSectionWidget* m_eventList {};
         QLabel* m_date {};

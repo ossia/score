@@ -56,6 +56,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                         double yPos,
                         QObject* parent);
 
+        static constexpr const char * className()
+        { return "ConstraintModel"; }
+        static QString prettyName()
+        { return QObject::tr("Constraint"); }
+
         // Copy
         ConstraintModel(ConstraintModel* source,
                         id_type<ConstraintModel> id,

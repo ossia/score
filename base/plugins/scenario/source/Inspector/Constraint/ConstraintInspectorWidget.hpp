@@ -42,11 +42,6 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
         void activeBoxChanged(QString box);
 
-        void on_scriptingNameChanged(QString);
-        void on_labelChanged(QString);
-        void on_commentsChanged(QString);
-        void on_colorChanged(QColor);
-
         // Interface of Constraint
         void on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
         void on_processRemoved(id_type<ProcessSharedModelInterface> processId);

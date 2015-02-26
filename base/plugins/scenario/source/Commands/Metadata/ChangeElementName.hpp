@@ -11,15 +11,13 @@ namespace Scenario
         template<class T>
         class ChangeElementName : public iscore::SerializableCommand
         {
-
             public:
                 ChangeElementName(ObjectPath&& path, QString newName) :
                     SerializableCommand {"ScenarioControl",
-                    "Change Name",
-                    QObject::tr("Change current objects name")
-                },
-                m_path {std::move(path) },
-                m_newName {newName}
+                                         QString{"ChangeElementName_%1"}.arg(T::className()),
+                                         QObject::tr("Change current objects name")},
+                    m_path {std::move(path) },
+                    m_newName {newName}
                 {
                     auto obj = m_path.find<T>();
                     m_oldName = obj->metadata.name();
@@ -30,14 +28,16 @@ namespace Scenario
                     auto obj = m_path.find<T>();
                     obj->metadata.setName(m_oldName);
                 }
+
                 virtual void redo() override
                 {
                     auto obj = m_path.find<T>();
                     obj->metadata.setName(m_newName);
                 }
+
                 virtual int id() const override
                 {
-                    return 1;
+                    return -1;
                 }
 
                 virtual bool mergeWith(const QUndoCommand* other) override
@@ -57,9 +57,9 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path {};
+                ObjectPath m_path;
                 QString m_newName;
-                QString m_oldName {};
+                QString m_oldName;
         };
     }
 }

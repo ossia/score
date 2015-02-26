@@ -2,15 +2,17 @@
 
 #include "Document/ModelMetadata.hpp"
 #include "InspectorInterface/InspectorSectionWidget.hpp"
+#include "CommentEdit.hpp"
 
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QFormLayout>
-#include <QTextEdit>
+
 #include <QVBoxLayout>
 #include <QColorDialog>
 #include <QToolButton>
+
 
 MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
     QWidget(parent),
@@ -52,7 +54,7 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
     typeLay->addWidget(m_typeLb);
 
     // comments
-    m_comments = new QTextEdit{metadata->comment(), this};
+    m_comments = new CommentEdit{metadata->comment(), this};
     InspectorSectionWidget* comments = new InspectorSectionWidget("Comments");
     comments->addContent(m_comments);
     comments->expand(); // todo à enlever par la suite
@@ -68,16 +70,19 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
     {
         emit scriptingNameChanged(m_scriptingNameLine->text());
     });
+
     connect(m_labelLine, &QLineEdit::editingFinished,
             [ = ]()
     {
         emit labelChanged(m_labelLine->text());
     });
-    connect(m_comments, &QTextEdit::textChanged,
+
+    connect(m_comments, &CommentEdit::editingFinished,
             [ = ]()
     {
         emit commentsChanged(m_comments->toPlainText());
     });
+
     connect(m_colorButton,  &QPushButton::clicked,
             this,           &MetadataWidget::changeColor);
 

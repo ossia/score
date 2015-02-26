@@ -14,10 +14,6 @@
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
-#include "Commands/Metadata/ChangeElementLabel.hpp"
-#include "Commands/Metadata/ChangeElementName.hpp"
-#include "Commands/Metadata/ChangeElementComments.hpp"
-#include "Commands/Metadata/ChangeElementColor.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
@@ -141,23 +137,15 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget(&object->model()->metadata, this);
-    m_metadata->setType("Constraint");
+    m_metadata = new MetadataWidget{&object->model()->metadata, this};
+    m_metadata->setType(ConstraintModel::prettyName()); // TODO le faire automatiquement avec T::className
+    connect(m_metadata, &MetadataWidget::submitCommand,
+            this,       &InspectorWidgetBase::submitCommand);
+    m_metadata->setupConnections(object->model());
+
     addHeader(m_metadata);
 
     updateDisplayedValues(object);
-
-    connect(m_metadata,     &MetadataWidget::scriptingNameChanged,
-            this,           &ConstraintInspectorWidget::on_scriptingNameChanged);
-
-    connect(m_metadata,     &MetadataWidget::labelChanged,
-            this,           &ConstraintInspectorWidget::on_labelChanged);
-
-    connect(m_metadata,     &MetadataWidget::commentsChanged,
-            this,           &ConstraintInspectorWidget::on_commentsChanged);
-
-    connect(m_metadata,      &MetadataWidget::colorChanged,
-            this,           &ConstraintInspectorWidget::on_colorChanged);
 
 //    connect(m_metadata,      &MetadataWidget::inspectPreviousElement,
 //            m_currentConstraint,    &TemporalConstraintViewModel::inspectPreviousElement);
@@ -216,12 +204,12 @@ void ConstraintInspectorWidget::updateDisplayedValues(TemporalConstraintViewMode
     {
         m_currentConstraint = constraint;
         /*
-        		// Constraint settings
-        		setName (model()->metadata.name() );
-        		setColor (model()->metadata.color() );
-        		setComments (model()->metadata.comment() );
-        		setInspectedObject (m_currentConstraint);
-        		changeLabelType ("Constraint");
+                // Constraint settings
+                setName (model()->metadata.name() );
+                setColor (model()->metadata.color() );
+                setComments (model()->metadata.comment() );
+                setInspectedObject (m_currentConstraint);
+                changeLabelType ("Constraint");
         */
         // Constraint interface
         m_connections.push_back(
@@ -307,39 +295,6 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
         }
     }
 }
-
-void ConstraintInspectorWidget::on_scriptingNameChanged(QString newName)
-{
-    /*
-    auto cmd = new ChangeElementName<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
-                newName);
-
-    submitCommand(cmd);
-    //*/
-}
-
-void ConstraintInspectorWidget::on_labelChanged(QString newLabel)
-{
-    /*
-    auto cmd = new ChangeElementLabel<ConstraintModel>(iscore::IDocument::path(inspectedObject()),
-                newLabel);
-
-    submitCommand(cmd);
-    //*/
-}
-
-void ConstraintInspectorWidget::on_commentsChanged(QString)
-{
-
-}
-
-void ConstraintInspectorWidget::on_colorChanged(QColor)
-{
-//    auto cmd = new ChangeElementColor();
-
-//    submitCommand(cmd);
-}
-
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {

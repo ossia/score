@@ -23,6 +23,11 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent);
         ~TimeNodeModel();
 
+        static constexpr const char * className()
+        { return "TimeNodeModel"; }
+        static QString prettyName()
+        { return QObject::tr("Time Node"); }
+
         template<typename DeserializerVisitor>
         TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :
             IdentifiedObject<TimeNodeModel> {vis, parent}

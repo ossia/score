@@ -14,13 +14,13 @@ namespace Scenario
             public:
                 ChangeElementLabel(ObjectPath&& path, QString newLabel) :
                     SerializableCommand {"ScenarioControl",
-                    "Change Label",
-                    QObject::tr("Change current objects label")
-                },
-                m_path {std::move(path) },
-                m_newLabel {newLabel}
+                                         QString{"ChangeElementLabel_%1"}.arg(T::className()),
+                                         QObject::tr("Change current objects label")},
+                    m_path {std::move(path) },
+                    m_newLabel {newLabel}
                 {
-
+                    auto obj = m_path.find<T>();
+                    m_oldLabel = obj->metadata.label();
                 }
 
                 virtual void undo() override
@@ -28,14 +28,16 @@ namespace Scenario
                     auto obj = m_path.find<T>();
                     obj->metadata.setLabel(m_oldLabel);
                 }
+
                 virtual void redo() override
                 {
                     auto obj = m_path.find<T>();
                     obj->metadata.setLabel(m_newLabel);
                 }
+
                 virtual int id() const override
                 {
-                    return 1;
+                    return -1;
                 }
 
                 virtual bool mergeWith(const QUndoCommand* other) override
@@ -55,9 +57,9 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path {};
+                ObjectPath m_path;
                 QString m_newLabel;
-                QString m_oldLabel {};
+                QString m_oldLabel;
         };
     }
 }

@@ -44,8 +44,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         virtual ~TemporalScenarioPresenter();
 
 
-        virtual id_type<ProcessViewModelInterface> viewModelId() const;
-        virtual id_type<ProcessSharedModelInterface> modelId() const;
+        virtual id_type<ProcessViewModelInterface> viewModelId() const override;
+        virtual id_type<ProcessSharedModelInterface> modelId() const override;
 
         virtual void setWidth(int width) override;
         virtual void setHeight(int height) override;
