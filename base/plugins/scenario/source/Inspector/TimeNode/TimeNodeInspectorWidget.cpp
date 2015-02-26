@@ -13,6 +13,7 @@
 
 #include "core/interface/document/DocumentInterface.hpp"
 
+#include <iostream>
 #include <QLabel>
 #include <QLineEdit>
 #include <QLayout>
