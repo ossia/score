@@ -35,12 +35,13 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         virtual QByteArray save() override;
         virtual QJsonObject toJson() override;
 
+    signals:
+        void deselectAll();
+
     public slots:
-        void on_processSelected(ProcessSharedModelInterface* proc);
-        void on_selectedChildrenChanged();
+        void on_selectedChildrenChanged(ProcessSharedModelInterface* proc);
 
     private:
         ConstraintModel* m_baseConstraint {};
-        ProcessSharedModelInterface* m_selectedProcess{};
 };
 

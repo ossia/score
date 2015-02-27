@@ -77,13 +77,12 @@ class AbstractConstraintPresenter : public NamedObject
         void on_boxRemoved();
 
         void updateHeight();
-        virtual void on_constraintPressed(QPointF);
 
     private:
-        int m_horizontalZoomSliderVal {};
         void createBoxPresenter(BoxModel*);
         void clearBoxPresenter();
 
+        int m_horizontalZoomSliderVal {};
         BoxPresenter* m_box {};
 
         // Process presenters are in the deck presenters.

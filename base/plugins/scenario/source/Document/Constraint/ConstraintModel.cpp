@@ -105,6 +105,8 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
 {
     m_processes.push_back(model);
+    connect(model, &ProcessSharedModelInterface::selectedChildrenChanged,
+            this,  &ConstraintModel::selectedChildrenChanged);
     emit processCreated(model->processName(), model->id());
 }
 

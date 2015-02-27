@@ -30,22 +30,22 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
             m_viewModel {model},
 m_view {view}
 {
+    connect(m_view, &AbstractConstraintView::constraintSelectionChanged,
+            [&](bool b) { m_viewModel->model()->selection.set(b); });
+
     connect(m_viewModel->model(),   &ConstraintModel::minDurationChanged,
-    this,					&AbstractConstraintPresenter::on_minDurationChanged);
+    this,                           &AbstractConstraintPresenter::on_minDurationChanged);
     connect(m_viewModel->model(),   &ConstraintModel::defaultDurationChanged,
-    this,					&AbstractConstraintPresenter::on_defaultDurationChanged);
+    this,                           &AbstractConstraintPresenter::on_defaultDurationChanged);
     connect(m_viewModel->model(),   &ConstraintModel::maxDurationChanged,
-    this,					&AbstractConstraintPresenter::on_maxDurationChanged);
+    this,                           &AbstractConstraintPresenter::on_maxDurationChanged);
 
     connect(m_viewModel, &AbstractConstraintViewModel::boxShown,
-    this,		 &AbstractConstraintPresenter::on_boxShown);
+    this,                &AbstractConstraintPresenter::on_boxShown);
     connect(m_viewModel, &AbstractConstraintViewModel::boxHidden,
-    this,		 &AbstractConstraintPresenter::on_boxHidden);
+    this,                &AbstractConstraintPresenter::on_boxHidden);
     connect(m_viewModel, &AbstractConstraintViewModel::boxRemoved,
-    this,		 &AbstractConstraintPresenter::on_boxRemoved);
-
-    connect(m_view, &AbstractConstraintView::constraintPressed,
-    this,	&AbstractConstraintPresenter::on_constraintPressed);
+    this,                &AbstractConstraintPresenter::on_boxRemoved);
 }
 
 int AbstractConstraintPresenter::zoomSlider() const
@@ -122,11 +122,7 @@ void AbstractConstraintPresenter::updateHeight()
     m_view->update();
 }
 
-void AbstractConstraintPresenter::on_constraintPressed(QPointF)
-{
-    emit elementSelected(m_viewModel);
-}
-
+// TODO Change this to use the model instead.
 bool AbstractConstraintPresenter::isSelected() const
 {
     return m_view->isSelected();
@@ -176,15 +172,16 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
     // Cas par défaut
     m_box = new BoxPresenter {boxModel,
                               boxView,
-                              this
-                             };
+                              this};
 
     m_box->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
     connect(m_box, &BoxPresenter::submitCommand,
             this,  &AbstractConstraintPresenter::submitCommand);
-    connect(m_box, &BoxPresenter::elementSelected,
-            this,  &AbstractConstraintPresenter::elementSelected);
+    // TODO Bof. Peut-être faire remonter juste si un process est sélectionné ??
+    // Même pas : la sélection fait partie du modèle.
+    //connect(m_box, &BoxPresenter::elementSelected,
+    //        this,  &AbstractConstraintPresenter::elementSelected);
 
     connect(m_box, &BoxPresenter::askUpdate,
             this,  &AbstractConstraintPresenter::updateHeight);

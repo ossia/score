@@ -34,7 +34,5 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
     signals:
         void constraintMoved(ConstraintData);
         void constraintReleased();
-        void eventSelected(QString);
-
 };
 

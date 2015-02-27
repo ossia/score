@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <core/interface/selection/Selection.hpp>
 #include <set>
 
 namespace iscore
@@ -10,12 +11,15 @@ namespace iscore
      * @brief The DocumentDelegateModelInterface class
      *
      * Drawbridge between the application and a model given by a plugin.
+     *
+     * TODO this is now eligible to be an identified object.
      */
     class DocumentModel : public NamedObject
     {
+            Q_OBJECT
         public:
             DocumentModel(QObject* parent);
-            void reset();
+
             void setModelDelegate(DocumentDelegateModelInterface* m);
             DocumentDelegateModelInterface* modelDelegate() const
             {
@@ -34,6 +38,9 @@ namespace iscore
 
             // Returns a Panel by name.
             PanelModelInterface* panel(QString name) const;
+
+        signals:
+            void selectionChanged(Selection s);
 
         private:
             DocumentDelegateModelInterface* m_model {};

@@ -9,19 +9,19 @@ class TimeNodeView : public QGraphicsObject
 
     public:
         TimeNodeView(QGraphicsObject* parent);
-        virtual ~TimeNodeView() = default;
+        ~TimeNodeView() override = default ;
 
-        virtual void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget);
+        void paint(QPainter* painter,
+                   const QStyleOptionGraphicsItem* option,
+                   QWidget* widget) override;
 
         // QGraphicsItem interface
-        QRectF boundingRect() const;
+        QRectF boundingRect() const override;
 
         void setExtremities(int top, int bottom);
-        void mousePressEvent(QGraphicsSceneMouseEvent* m);
-        void mouseMoveEvent(QGraphicsSceneMouseEvent* m);
-        void mouseReleaseEvent(QGraphicsSceneMouseEvent* m);
+        void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
         void setMoving(bool);
 
@@ -31,7 +31,10 @@ class TimeNodeView : public QGraphicsObject
     signals:
         void timeNodeMoved(QPointF);
         void timeNodeReleased();
-        void timeNodeSelected();
+        void timeNodeSelectionChanged(bool);
+
+    protected:
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     private:
         int m_top {0};

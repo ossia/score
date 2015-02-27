@@ -1,8 +1,8 @@
 #pragma once
-#include <QObject>
+#include <core/interface/selection/Selection.hpp>
 #include <QStack>
 #include <QDebug>
-using Selection = QObjectList;
+
 class SelectionStack : public QObject
 {
         Q_OBJECT

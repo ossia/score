@@ -54,7 +54,7 @@ class Separator : public QFrame
         }
 };
 
-ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel* object, QWidget* parent) :
+ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent) :
     InspectorWidgetBase(parent)
 {
     setObjectName("Constraint");
@@ -65,7 +65,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
-        auto& base = get<BaseElementPresenter> (documentFromObject(m_currentConstraint->model()));
+        auto& base = get<BaseElementPresenter> (documentFromObject(m_currentConstraint));
 
         base.setDisplayedConstraint(this->model());
     });
@@ -73,7 +73,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     m_properties.push_back(setAsDisplayedConstraint);
 
     // Events
-    if(auto scenario = qobject_cast<ScenarioModel*>(m_currentConstraint->model()->parent()))
+    if(auto scenario = qobject_cast<ScenarioModel*>(m_currentConstraint->parent()))
     {
         m_properties.push_back(makeEventWidget(scenario));
     }
@@ -111,11 +111,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->model()->metadata, this};
+    m_metadata = new MetadataWidget{&object->metadata, this};
     m_metadata->setType(ConstraintModel::prettyName()); // TODO le faire automatiquement avec T::className
     connect(m_metadata, &MetadataWidget::submitCommand,
             this,       &InspectorWidgetBase::submitCommand);
-    m_metadata->setupConnections(object->model());
+    m_metadata->setupConnections(object);
 
     addHeader(m_metadata);
 
@@ -123,17 +123,12 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
 
 }
 
-TemporalConstraintViewModel* ConstraintInspectorWidget::viewModel() const
+ConstraintModel* ConstraintInspectorWidget::model() const
 {
     return m_currentConstraint;
 }
 
-ConstraintModel* ConstraintInspectorWidget::model() const
-{
-    return m_currentConstraint ? m_currentConstraint->model() : nullptr;
-}
-
-void ConstraintInspectorWidget::updateDisplayedValues(TemporalConstraintViewModel* constraint)
+void ConstraintInspectorWidget::updateDisplayedValues(ConstraintModel* constraint)
 {
     // Cleanup the widgets
     for(auto& process : m_processesSectionWidgets)
@@ -225,7 +220,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box)
-{
+{/* TODO
     // TODO mettre à jour l'inspecteur si la box affichée change (i.e. via une commande réseau).
     if(box == m_boxWidget->hiddenText)
     {
@@ -246,6 +241,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
             emit submitCommand(cmd);
         }
     }
+*/
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
@@ -286,12 +282,11 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     start->setFlat(true);
     end->setFlat(true);
 
-    auto sev = m_currentConstraint->model()->startEvent();
-    auto eev = m_currentConstraint->model()->endEvent();
+    auto sev = m_currentConstraint->startEvent();
+    auto eev = m_currentConstraint->endEvent();
     if(sev)
     {
         start->setText(QString::number(*sev.val()));
-
         connect(start, &QPushButton::clicked,
                 [=]() { emit objectsSelected(Selection{scenar->event(sev)}); });
     }
@@ -299,7 +294,6 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     if(eev)
     {
         end->setText(QString::number(*eev.val()));
-
         connect(end, &QPushButton::clicked,
                 [=]() { emit objectsSelected(Selection{scenar->event(sev)}); });
     }

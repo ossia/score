@@ -129,6 +129,8 @@ QList<QObject *> ScenarioModel::selectedChildren() const
     copySelected(m_timeNodes, objects);
     copySelected(m_constraints, objects);
 
+    qDebug() << objects;
+
     return objects;
 }
 
@@ -140,6 +142,7 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
     connect(scen, &TemporalScenarioViewModel::destroyed,
             this, &ScenarioModel::on_viewModelDestroyed);
 
+    // TODO why no ConstraintCreated ?
     connect(this, &ScenarioModel::constraintRemoved,
             scen, &view_model_type::on_constraintRemoved);
 
@@ -168,8 +171,7 @@ void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEvent
     auto eev = this->event(endEventId);
     auto constraint = new ConstraintModel {newConstraintModelId,
                       newConstraintFullViewId,
-                      this
-};
+                      this};
 
     /*	auto ossia_tn0 = sev->apiObject();
     auto ossia_tn1 = eev->apiObject();
@@ -193,7 +195,6 @@ void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEvent
 
     // From now on everything must be in a valid state.
     addConstraint(constraint);
-    emit constraintCreated(constraint->id());
 }
 
 void
@@ -243,11 +244,8 @@ ScenarioModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEve
     constraint->setEndEvent(event->id());
 
     // From now on everything must be in a valid state.
-    m_events.push_back(event);
-    m_constraints.push_back(constraint);
-
-    emit eventCreated(event->id());
-    emit constraintCreated(constraint->id());
+    addEvent(event);
+    addConstraint(constraint);
 
     // link constraint with event
     event->addPreviousConstraint(newConstraintId);
@@ -261,8 +259,7 @@ void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
 
     auto timeNode = new TimeNodeModel {timeNodeId,
                     newEvent->date(),
-                    this
-};
+                    this};
     timeNode->addEvent(eventId);
     timeNode->setY(newEvent->heightPercentage());
 
@@ -414,17 +411,34 @@ void ScenarioModel::on_viewModelDestroyed(QObject* obj)
 void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
     m_constraints.push_back(constraint);
+
+    connect(&constraint->selection, &Selectable::changed,
+            [&] (bool) { selectedChildrenChanged(this); } );
+    connect(constraint, &ConstraintModel::selectedChildrenChanged,
+            this,       &ProcessSharedModelInterface::selectedChildrenChanged);
+
     emit constraintCreated(constraint->id());
 }
 
 void ScenarioModel::addEvent(EventModel* event)
 {
     m_events.push_back(event);
+
+    connect(&event->selection, &Selectable::changed,
+            [&] (bool)
+    {
+        selectedChildrenChanged(this);
+    } );
+
     emit eventCreated(event->id());
 }
 
 void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 {
     m_timeNodes.push_back(timeNode);
+
+    connect(&timeNode->selection, &Selectable::changed,
+            [&] (bool) { selectedChildrenChanged(this); } );
+
     emit timeNodeCreated(timeNode->id());
 }

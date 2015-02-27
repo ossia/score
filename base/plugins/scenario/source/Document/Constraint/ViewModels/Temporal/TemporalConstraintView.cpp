@@ -34,9 +34,9 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     }
 
     /*	else if(parentItem()->isSelected())
-    	{
-    		c = Qt::cyan;
-    	}
+        {
+            c = Qt::cyan;
+        }
     */
     if(defaultWidth() < 0)
     {
@@ -101,7 +101,7 @@ void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
-    emit constraintPressed(pos() + m->pos());
+    //emit constraintPressed(pos() + m->pos());
 }
 
 void TemporalConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
@@ -124,18 +124,18 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mouseReleaseEvent(m);
     /*
         // dans event, ceci est dans mouseMoveEvent.
-    	auto posInScenario = pos() + m->pos() - m_clickedPoint;
+        auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
-    	if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
-    	{
-    		posInScenario.setX(pos().x());
-    	}
-    	if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
-    	{
-    		posInScenario.setY(pos().y());
-    	}
-    	if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
-    	*/
+        if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
+        {
+            posInScenario.setX(pos().x());
+        }
+        if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
+        {
+            posInScenario.setY(pos().y());
+        }
+        if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
+        */
     m_moving = false;
 
     emit constraintReleased();

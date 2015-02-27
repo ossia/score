@@ -10,25 +10,22 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
                                      TimeNodeView* view,
                                      QObject* parent) :
     NamedObject {"TimeNodePresenter", parent},
-            m_model {model},
-m_view {view}
+    m_model {model},
+    m_view {view}
 {
     connect(m_view, &TimeNodeView::timeNodeMoved,
-    this,   &TimeNodePresenter::on_timeNodeMoved);
+            this,   &TimeNodePresenter::on_timeNodeMoved);
     connect(m_view, &TimeNodeView::timeNodeReleased,
-    this,   &TimeNodePresenter::timeNodeReleased);
+            this,   &TimeNodePresenter::timeNodeReleased);
 
-    connect(m_view, &TimeNodeView::timeNodeSelected,
-    [&]()
-    {
-        emit elementSelected(m_model);
-    });
+    connect(m_view, &TimeNodeView::timeNodeSelectionChanged,
+            [&](bool b) { m_model->selection.set(b); });
 
     connect(m_model, &TimeNodeModel::newEvent,
-    this,    &TimeNodePresenter::on_eventAdded);
+            this,    &TimeNodePresenter::on_eventAdded);
 
-    connect(& (m_model->metadata),  &ModelMetadata::colorChanged,
-    m_view,                &TimeNodeView::changeColor);
+    connect(&(m_model->metadata),  &ModelMetadata::colorChanged,
+            m_view,                &TimeNodeView::changeColor);
 
 }
 

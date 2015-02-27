@@ -162,6 +162,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void minDurationChanged(TimeValue arg);
         void maxDurationChanged(TimeValue arg);
 
+        void selectedChildrenChanged(ProcessSharedModelInterface* proc);
+
     public slots:
         void setHeightPercentage(double arg);
 

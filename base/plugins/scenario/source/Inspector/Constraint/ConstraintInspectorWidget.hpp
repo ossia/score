@@ -24,9 +24,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit ConstraintInspectorWidget(TemporalConstraintViewModel* object, QWidget* parent = 0);
+        explicit ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent = 0);
 
-        TemporalConstraintViewModel* viewModel() const;
         ConstraintModel* model() const;
 
     public slots:
@@ -34,7 +33,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         {
             updateDisplayedValues(m_currentConstraint);
         }
-        void updateDisplayedValues(TemporalConstraintViewModel* obj);
+
+        void updateDisplayedValues(ConstraintModel* obj);
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(QString processName);
@@ -56,7 +56,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
     private:
         QWidget* makeEventWidget(ScenarioModel*);
-        TemporalConstraintViewModel* m_currentConstraint {};
+        ConstraintModel* m_currentConstraint {};
         QVector<QMetaObject::Connection> m_connections;
 
         InspectorSectionWidget* m_eventsSection {};

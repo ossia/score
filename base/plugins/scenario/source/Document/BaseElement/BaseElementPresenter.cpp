@@ -16,27 +16,32 @@
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QApplication>
+
 using namespace iscore;
 
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
-        DocumentDelegateModelInterface* delegate_model,
-        DocumentDelegateViewInterface* delegate_view) :
+                                           DocumentDelegateModelInterface* delegate_model,
+                                           DocumentDelegateViewInterface* delegate_view) :
     DocumentDelegatePresenterInterface {parent_presenter,
-                                       "BaseElementPresenter",
-                                       delegate_model,
-                                       delegate_view
-}
+                                        "BaseElementPresenter",
+                                        delegate_model,
+                                        delegate_view
+                                        }
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
-    this,				  &BaseElementPresenter::setDisplayedObject);
+            this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
-    this,	&BaseElementPresenter::on_horizontalZoomChanged);
+            this,	&BaseElementPresenter::on_horizontalZoomChanged);
     connect(view(), &BaseElementView::positionSliderChanged,
-    this,	&BaseElementPresenter::on_positionSliderChanged);
+            this,	&BaseElementPresenter::on_positionSliderChanged);
+
+    connect(model(), &BaseElementModel::deselectAll,
+            this,    &BaseElementPresenter::deselectAll);
 
     connect(view()->view(), SIGNAL(widthChanged(int)),
-    this, SLOT(on_viewWidthChanged(int)));
+            this, SLOT(on_viewWidthChanged(int)));
 
 
     setDisplayedConstraint(model()->constraintModel());
@@ -107,9 +112,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     delete m_baseConstraintPresenter;
     m_baseConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-                                                                 cstrView,
-                                                                 this
-                                                                };
+                                cstrView,
+                                this
+};
 
     m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
     on_askUpdate();
@@ -117,17 +122,14 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::submitCommand,
             this,						&BaseElementPresenter::submitCommand);
 
-    connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
-            [&] (QObject* elt) { emit newSelection(Selection{elt}); });
-
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
 
 
     // Update the address bar
     view()
-    ->addressBar()
-    ->setTargetObject(IDocument::path(displayedConstraint()));
+            ->addressBar()
+            ->setTargetObject(IDocument::path(displayedConstraint()));
 
     // Clear the selection stack.
     qDebug() << "=== TODO ===" << Q_FUNC_INFO;
@@ -140,7 +142,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     // minSlider = viewportwidth * 100 * 0.97 / constraintDuration
 
-//    view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
+    //    view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
 }
 
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
@@ -190,8 +192,29 @@ BaseElementModel* BaseElementPresenter::model() const
     return static_cast<BaseElementModel*>(m_model);
 }
 
+#include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Event/EventModel.hpp>
+#include <Document/TimeNode/TimeNodeModel.hpp>
 void BaseElementPresenter::newItemsSelected(Selection s)
 {
+    disconnect(model()->constraintModel(), &ConstraintModel::selectedChildrenChanged,
+               model(),                    &BaseElementModel::on_selectedChildrenChanged);
+
+    deselectAll();
+    for(auto item : s)
+    {
+        // TODO HUGE SADNESS
+        if(ConstraintModel* cm = dynamic_cast<ConstraintModel*>(item))
+            cm->selection.set(true);
+        else if(EventModel* ev = dynamic_cast<EventModel*>(item))
+            ev->selection.set(true);
+        else if(TimeNodeModel* tn = dynamic_cast<TimeNodeModel*>(item))
+            tn->selection.set(true);
+    }
+    qApp->processEvents();
+
+    connect(model()->constraintModel(), &ConstraintModel::selectedChildrenChanged,
+            model(),                    &BaseElementModel::on_selectedChildrenChanged);
 
 }
 

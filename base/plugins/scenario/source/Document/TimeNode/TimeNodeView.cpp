@@ -63,7 +63,7 @@ void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 
     m_clickedPoint =  m->pos();
 
-    emit timeNodeSelected();
+    //emit timeNodeSelectionChanged();
 }
 
 void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
@@ -93,4 +93,14 @@ void TimeNodeView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
+}
+
+QVariant TimeNodeView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+    if(change == ItemSelectedHasChanged)
+    {
+        emit timeNodeSelectionChanged(value.toBool());
+    }
+
+    return value;
 }

@@ -71,7 +71,7 @@ void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
-    emit eventPressed();
+    //emit eventSelectionChanged();
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
@@ -132,3 +132,14 @@ void EventView::keyReleaseEvent(QKeyEvent* e)
         emit ctrlStateChanged(false);
     }
 }
+
+QVariant EventView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+    if(change == ItemSelectedHasChanged)
+    {
+        emit eventSelectionChanged(value.toBool());
+    }
+
+    return value;
+}
+

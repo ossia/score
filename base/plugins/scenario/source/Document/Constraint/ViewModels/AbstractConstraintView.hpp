@@ -41,9 +41,12 @@ class AbstractConstraintView : public QGraphicsObject
         }
 
     signals:
-        void constraintPressed(QPointF);
+        //void constraintPressed(QPointF);
+        void constraintSelectionChanged(bool);
 
     protected:
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+
         QPen m_solidPen
         {
             QBrush{Qt::black},

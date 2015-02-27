@@ -17,7 +17,7 @@ class EventView : public QGraphicsObject
                            QWidget* widget);
 
     signals:
-        void eventPressed();
+        void eventSelectionChanged(bool);
         void eventReleasedWithControl(QPointF, QPointF);
         void eventReleased();
         void eventMoved(QPointF);
@@ -36,6 +36,8 @@ class EventView : public QGraphicsObject
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void keyPressEvent(QKeyEvent* e) override;
         virtual void keyReleaseEvent(QKeyEvent* e) override;
+
+        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 
     private:

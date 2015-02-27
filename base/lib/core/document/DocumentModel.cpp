@@ -12,19 +12,17 @@ DocumentModel::DocumentModel(QObject* parent) :
 
 }
 
-void DocumentModel::reset()
-{
-    setModelDelegate(nullptr);
-}
-
 void DocumentModel::setModelDelegate(DocumentDelegateModelInterface* m)
 {
+    // TODO do this at construction.
     if(m_model)
     {
         delete m_model;
     }
 
     m_model = m;
+    connect(m_model, &DocumentDelegateModelInterface::selectionChanged,
+            this,    &DocumentModel::selectionChanged);
 }
 
 PanelModelInterface* DocumentModel::panel(QString name) const

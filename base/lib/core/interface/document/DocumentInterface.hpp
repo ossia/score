@@ -62,9 +62,5 @@ namespace iscore
         {
             return modelDelegate<T> (d);
         }
-
-
-
     }
-
 }

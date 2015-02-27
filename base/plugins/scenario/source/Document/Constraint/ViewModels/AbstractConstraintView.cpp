@@ -29,3 +29,13 @@ void AbstractConstraintView::setHeight(int height)
     prepareGeometryChange();
     m_height = height;
 }
+
+QVariant AbstractConstraintView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+    if(change == ItemSelectedHasChanged)
+    {
+        emit constraintSelectionChanged(value.toBool());
+    }
+
+    return value;
+}

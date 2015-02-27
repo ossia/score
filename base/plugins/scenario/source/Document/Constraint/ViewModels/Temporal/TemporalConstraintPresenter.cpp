@@ -31,21 +31,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
     connect(view(this), &TemporalConstraintView::constraintReleased,
             this,		&TemporalConstraintPresenter::constraintReleased);
-    /*
-    connect(view(this), &TemporalConstraintView::constraintReleased,
-    		[&] (QPointF p)
-    {
-    	ConstraintData data{};
-    	data.id = viewModel(this)->model()->id();
-    	data.y = p.y();
-    	data.x = p.x();
-    	emit constraintReleased(data);
-    });
-    */
-
-    connect(viewModel(this),    &TemporalConstraintViewModel::eventSelected,
-            this,               &TemporalConstraintPresenter::eventSelected);
-
 
     if(viewModel(this)->isBoxShown())
     {

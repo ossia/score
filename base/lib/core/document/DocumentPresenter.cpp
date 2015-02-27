@@ -12,18 +12,41 @@ using namespace iscore;
 DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject* parent) :
     NamedObject {"DocumentPresenter", parent},
             m_commandQueue {std::make_unique<CommandQueue> (this) },
-            m_view {v},
-            m_model {m}
+            m_view{v},
+            m_model{m}
 {
     connect(&m_selection, &SelectionStack::currentSelectionChanged,
             this,         &DocumentPresenter::currentSelectionChanged);
+    connect(m_model,     &DocumentModel::selectionChanged,
+            this,        &DocumentPresenter::newSelection);
 }
 
-void DocumentPresenter::applyCommand(SerializableCommand* cmd)
+void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)
 {
-    m_commandQueue->pushAndEmit(cmd);
+    if(m_presenter)
+    {
+        m_presenter->deleteLater();
+    }
+
+    m_presenter = pres;
+
+    // Commands
+    connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
+            this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
+
+    // Selection
+    connect(this,        &DocumentPresenter::currentSelectionChanged,
+            m_presenter, &DocumentDelegatePresenterInterface::newItemsSelected);
 }
 
+//// Selection ////
+void DocumentPresenter::newSelection(Selection s)
+{
+    m_selection.push(s);
+}
+
+
+//// Locking / unlocking ////
 void DocumentPresenter::lock_impl()
 {
     QByteArray arr;
@@ -39,6 +62,13 @@ void DocumentPresenter::unlock_impl()
     ser.readFrom(m_lockedObject);
     emit unlock(arr);
     m_lockedObject = ObjectPath();
+}
+
+
+//// Commands ////
+void DocumentPresenter::applyCommand(SerializableCommand* cmd)
+{
+    m_commandQueue->pushAndEmit(cmd);
 }
 
 void DocumentPresenter::initiateOngoingCommand(SerializableCommand* cmd, QObject* objectToLock)
@@ -81,30 +111,3 @@ void DocumentPresenter::validateOngoingCommand()
         m_ongoingCommand = nullptr;
     }
 }
-
-void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)
-{
-    if(m_presenter)
-    {
-        m_presenter->deleteLater();
-    }
-
-    m_presenter = pres;
-
-    // Commands
-    connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
-            this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
-
-    // Selection
-    connect(m_presenter, &DocumentDelegatePresenterInterface::newSelection,
-            this,        &DocumentPresenter::newSelection);
-
-    connect(this,        &DocumentPresenter::currentSelectionChanged,
-            m_presenter, &DocumentDelegatePresenterInterface::newItemsSelected);
-}
-
-void DocumentPresenter::newSelection(Selection s)
-{
-    m_selection.push(s);
-}
-

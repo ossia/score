@@ -10,25 +10,22 @@ EventPresenter::EventPresenter(EventModel* model,
                                EventView* view,
                                QObject* parent) :
     NamedObject {"EventPresenter", parent},
-            m_model {model},
-m_view {view}
+    m_model {model},
+    m_view {view}
 {
     // The scenario catches this :
-    connect(m_view, &EventView::eventPressed,
-    [&]()
-    {
-        emit elementSelected(m_model);
-    });
+    connect(m_view, &EventView::eventSelectionChanged,
+            [&](bool b) { m_model->selection.set(b); });
 
 
     connect(m_view, &EventView::eventMoved,
-    [this](QPointF p)
+            [this](QPointF p)
     {
         emit eventMoved(pointToEventData(p));
     });
 
     connect(m_view, &EventView::eventMovedWithControl,
-    [this](QPointF p, QPointF pInScene)
+            [this](QPointF p, QPointF pInScene)
     {
         EventData d {pointToEventData(p) };
         d.scenePos = pInScene;

@@ -41,20 +41,11 @@ BaseElementModel::BaseElementModel(QObject* parent) :
 {
     m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
     m_baseConstraint->setObjectName("BaseConstraintModel");
+
     initializeNewDocument(m_baseConstraint->fullView());
-    on_processSelected(findChild<ProcessSharedModelInterface*>("ScenarioProcessSharedModel"));
 
-    using namespace iscore::IDocument;
-    auto inspector = panel("InspectorWidgetModel", documentFromObject(this));
-    if(inspector)
-    {
-        qDebug() << "yay";
-    }
-
-    // TODO : this document -> current inspector model
-    //auto inspector = qApp->findChild<Inspecto
-    //connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
-    //        this, )
+    connect(m_baseConstraint, &ConstraintModel::selectedChildrenChanged,
+            this,             &BaseElementModel::on_selectedChildrenChanged);
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
@@ -151,22 +142,7 @@ QJsonObject BaseElementModel::toJson()
     return complete;
 }
 
-void BaseElementModel::on_processSelected(ProcessSharedModelInterface *proc)
+void BaseElementModel::on_selectedChildrenChanged(ProcessSharedModelInterface *proc)
 {
-    if(m_selectedProcess)
-        disconnect(m_selectedProcess, &ProcessSharedModelInterface::selectedChildrenChanged,
-                   this,			  &BaseElementModel::on_selectedChildrenChanged);
-
-    m_selectedProcess = proc;
-
-    if(m_selectedProcess)
-        connect(m_selectedProcess, &ProcessSharedModelInterface::selectedChildrenChanged,
-                this,			   &BaseElementModel::on_selectedChildrenChanged);
+    emit selectionChanged(proc->selectedChildren());
 }
-
-void BaseElementModel::on_selectedChildrenChanged()
-{
-    emit selectionChanged(m_selectedProcess->selectedChildren());
-}
-
-

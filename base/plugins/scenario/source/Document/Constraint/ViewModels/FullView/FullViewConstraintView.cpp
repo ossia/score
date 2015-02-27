@@ -102,5 +102,5 @@ void FullViewConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
-    emit constraintPressed(pos() + m->pos());
+    //emit constraintPressed(pos() + m->pos());
 }
