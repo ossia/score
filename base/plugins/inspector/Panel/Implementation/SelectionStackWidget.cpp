@@ -32,7 +32,6 @@ SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
     connect(s, &SelectionStack::currentSelectionChanged,
             [&] (Selection)
     {
-        qDebug() << "le plop";
         m_prev->setEnabled(m_stack->canUnselect());
         m_next->setEnabled(m_stack->canReselect());
     });

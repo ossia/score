@@ -29,8 +29,11 @@ namespace iscore
             virtual ~DocumentDelegatePresenterInterface() = default;
 
         signals:
-            void selectionChanged(Selection s);
+            void newSelection(Selection s);
             void submitCommand(iscore::SerializableCommand* cmd);
+
+        public slots:
+            virtual void newItemsSelected(Selection s) = 0;
 
         protected:
             DocumentDelegateModelInterface* m_model;

@@ -34,10 +34,10 @@ class InspectorPanel : public QWidget
         void submitCommand(iscore::SerializableCommand*);
 
         /**
-         * @brief selectedObjects
+         * @brief objectsSelected
          * This signal is sent when objects are selected FROM the inspector.
          */
-        void selectedObjects(Selection);
+        void newSelection(Selection);
 
     public slots:
         /*!

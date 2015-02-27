@@ -293,7 +293,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
         start->setText(QString::number(*sev.val()));
 
         connect(start, &QPushButton::clicked,
-                [=]() { emit selectedObjects(Selection{scenar->event(sev)}); });
+                [=]() { emit objectsSelected(Selection{scenar->event(sev)}); });
     }
 
     if(eev)
@@ -301,7 +301,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
         end->setText(QString::number(*eev.val()));
 
         connect(end, &QPushButton::clicked,
-                [=]() { emit selectedObjects(Selection{scenar->event(sev)}); });
+                [=]() { emit objectsSelected(Selection{scenar->event(sev)}); });
     }
 
     eventLay->addRow("Start Event", start);

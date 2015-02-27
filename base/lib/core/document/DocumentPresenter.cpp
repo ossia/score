@@ -91,15 +91,16 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
 
     m_presenter = pres;
 
+    // Commands
     connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
             this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
 
-    //connect(m_model->modelDelegate(), &DocumentDelegateModelInterface::selectionChanged,
-    //        m_presenter,              &DocumentDelegatePresenterInterface::selectionChanged);
-
-    // TODO Multi selection here. And put this in model instead.
-    connect(m_presenter, &DocumentDelegatePresenterInterface::selectionChanged,
+    // Selection
+    connect(m_presenter, &DocumentDelegatePresenterInterface::newSelection,
             this,        &DocumentPresenter::newSelection);
+
+    connect(this,        &DocumentPresenter::currentSelectionChanged,
+            m_presenter, &DocumentDelegatePresenterInterface::newItemsSelected);
 }
 
 void DocumentPresenter::newSelection(Selection s)

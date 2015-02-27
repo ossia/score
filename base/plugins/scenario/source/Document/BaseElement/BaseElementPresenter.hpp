@@ -25,6 +25,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
 
+        virtual void newItemsSelected(Selection s) override;
     public slots:
         void setDisplayedConstraint(ConstraintModel*);
         void setDisplayedObject(ObjectPath);

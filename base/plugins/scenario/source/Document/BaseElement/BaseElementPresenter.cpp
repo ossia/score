@@ -118,7 +118,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
             this,						&BaseElementPresenter::submitCommand);
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
-            [&] (QObject* elt) { emit selectionChanged(Selection{elt}); });
+            [&] (QObject* elt) { emit newSelection(Selection{elt}); });
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
@@ -128,6 +128,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()
     ->addressBar()
     ->setTargetObject(IDocument::path(displayedConstraint()));
+
+    // Clear the selection stack.
+    qDebug() << "=== TODO ===" << Q_FUNC_INFO;
 
     // Set the new minimum zoom. It should be set such that :
     // - when the x position is 0
@@ -185,6 +188,11 @@ void BaseElementPresenter::on_viewWidthChanged(int w)
 BaseElementModel* BaseElementPresenter::model() const
 {
     return static_cast<BaseElementModel*>(m_model);
+}
+
+void BaseElementPresenter::newItemsSelected(Selection s)
+{
+
 }
 
 BaseElementView* BaseElementPresenter::view() const

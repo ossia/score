@@ -52,8 +52,6 @@ namespace iscore
              */
             void newDocument_start();
 
-            void on_elementSelected(QObject*);
-
         public slots:
             void load(QByteArray data);
 
