@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
+#include <core/interface/selection/SelectionStack.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;
@@ -39,6 +40,8 @@ class InspectorWidgetBase : public QWidget
         void undoOngoingCommand();
         void validateOngoingCommand();
 
+        void selectedObjects(Selection);
+
     public slots:
 
         // Manage Sections
@@ -74,13 +77,6 @@ class InspectorWidgetBase : public QWidget
         void addHeader(QWidget* header);
 
         // Manage Values
-        /*
-        		void changeColor();
-        		void setName (QString newName);
-        		void setComments (QString newComments);
-        		void setColor (QColor newColor);
-        		void changeLabelType (QString type);
-        */
         void setInspectedObject(QObject* object);
         QObject* inspectedObject() const;
 
@@ -92,14 +88,7 @@ class InspectorWidgetBase : public QWidget
 
     private:
         QVBoxLayout* _scrollAreaLayout {};
-        /*
-        QLabel* _objectType{};
-        QLineEdit* _objectName{};
-        QPushButton* _colorButton{};
-        QPixmap _colorButtonPixmap{4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};
-        QScrollArea* _scrollArea{};
-        QTextEdit* _comments{};
-        */
+
         QVector<QWidget*> _sections {};
         QColor _currentColor {Qt::gray};
 

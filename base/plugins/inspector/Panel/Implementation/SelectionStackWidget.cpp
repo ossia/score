@@ -1,9 +1,11 @@
 #include "SelectionStackWidget.hpp"
 #include <core/interface/selection/SelectionStack.hpp>
 #include <QToolButton>
-#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QDebug>
 
 SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
+    QWidget{parent},
     m_stack{s}
 {
     m_prev = new QToolButton{this};
@@ -13,7 +15,7 @@ SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
     m_next->setArrowType(Qt::RightArrow);
     m_next->setEnabled(false);
 
-    auto lay = new QVBoxLayout{this};
+    auto lay = new QHBoxLayout{this};
     lay->addWidget(m_prev);
     lay->addWidget(m_next);
     setLayout(lay);
@@ -30,6 +32,7 @@ SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
     connect(s, &SelectionStack::currentSelectionChanged,
             [&] (Selection)
     {
+        qDebug() << "le plop";
         m_prev->setEnabled(m_stack->canUnselect());
         m_next->setEnabled(m_stack->canReselect());
     });

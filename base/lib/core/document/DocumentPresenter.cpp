@@ -1,8 +1,10 @@
-#include <core/document/DocumentPresenter.hpp>
+#include "DocumentPresenter.hpp"
+
+#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <core/tools/utilsCPP11.hpp>
 #include <core/document/DocumentView.hpp>
-
+#include <core/document/DocumentModel.hpp>
 
 
 using namespace iscore;
@@ -11,12 +13,10 @@ DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject*
     NamedObject {"DocumentPresenter", parent},
             m_commandQueue {std::make_unique<CommandQueue> (this) },
             m_view {v},
-m_model {m}
+            m_model {m}
 {
-}
-
-void DocumentPresenter::newDocument()
-{
+    connect(&m_selection, &SelectionStack::currentSelectionChanged,
+            this,         &DocumentPresenter::currentSelectionChanged);
 }
 
 void DocumentPresenter::applyCommand(SerializableCommand* cmd)
@@ -82,19 +82,6 @@ void DocumentPresenter::validateOngoingCommand()
     }
 }
 
-void DocumentPresenter::reset()
-{
-    m_commandQueue->clear();
-
-    if(m_presenter)
-    {
-        m_presenter->deleteLater();
-        m_presenter = nullptr;
-    }
-
-    m_view->reset();
-}
-
 void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)
 {
     if(m_presenter)
@@ -107,9 +94,16 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
     connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
             this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
 
+    //connect(m_model->modelDelegate(), &DocumentDelegateModelInterface::selectionChanged,
+    //        m_presenter,              &DocumentDelegatePresenterInterface::selectionChanged);
+
     // TODO Multi selection here. And put this in model instead.
     connect(m_presenter, &DocumentDelegatePresenterInterface::selectionChanged,
-            this, [this] (Selection s) { if(!s.empty()) emit elementSelected(s.first()); },
-            Qt::QueuedConnection);
+            this,        &DocumentPresenter::newSelection);
+}
+
+void DocumentPresenter::newSelection(Selection s)
+{
+    m_selection.push(s);
 }
 

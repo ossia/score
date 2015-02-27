@@ -19,7 +19,9 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Document(QWidget* parentview, QObject* parent);
+            Document(DocumentDelegateFactoryInterface* type,
+                     QWidget* parentview,
+                     QObject* parent);
 
             DocumentModel* model() const
             {
@@ -36,12 +38,9 @@ namespace iscore
                 return m_view;
             }
 
-            void newDocument();
-            void setDocumentPanel(DocumentDelegateFactoryInterface* p);
+            void setupNewPanel(PanelPresenterInterface* pres,
+                               PanelFactoryInterface* factory);
 
-            void setupPanel(PanelPresenterInterface* pres,
-                            PanelFactoryInterface* factory);
-            void reset();
 
             QByteArray save();
 
@@ -59,12 +58,9 @@ namespace iscore
             void load(QByteArray data);
 
         private:
-            void setupDocument();
             DocumentModel* m_model {};
             DocumentView* m_view {};
             DocumentPresenter* m_presenter {};
-
-            DocumentDelegateFactoryInterface* m_currentDocumentType {};
     };
 
 }

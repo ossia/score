@@ -10,7 +10,7 @@ InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
 {
     this->setParent(parent);
 }
-
+/*
 void InspectorPanelModel::newItemInspected(QObject* item)
 {
     //TODO save the path to the item.
@@ -26,3 +26,4 @@ void InspectorPanelModel::lastItemInspected()
         emit setNewItem(m_lastInspectedObjects.back());
     }
 }
+*/

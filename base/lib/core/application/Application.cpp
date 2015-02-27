@@ -40,10 +40,10 @@ Application::Application(int& argc, char** argv) :
     m_pluginManager.reloadPlugins();
     loadPluginData();
 
-    m_presenter->newDocument();
-
     // View
     m_view->show();
+
+    m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
 }
 
 Application::~Application()
@@ -70,9 +70,9 @@ void Application::loadPluginData()
         m_presenter->registerPanel(pnl);
     }
 
-    if(!m_pluginManager.m_documentPanelList.empty())
+    for(auto& pnl : m_pluginManager.m_documentPanelList)
     {
-        m_presenter->setDocumentPanel(m_pluginManager.m_documentPanelList.front());
+        m_presenter->registerDocumentPanel(pnl);
     }
 }
 

@@ -24,33 +24,32 @@ using namespace iscore;
 
 Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
-            m_model {model},
-            m_view {view},
-            #ifdef __APPLE__
-m_menubar {new QMenuBar, this},
-            #else
-            m_menubar {view->menuBar(), this},
-            #endif
-m_document {new Document{view, this}}
+    m_model {model},
+    m_view {view},
+    #ifdef __APPLE__
+    m_menubar {new QMenuBar, this}
+  #else
+    m_menubar {view->menuBar(), this}
+  #endif
 {
-    m_view->setCentralView(m_document->view());
     setupMenus();
-
     connect(m_view,		&View::insertActionIntoMenubar,
-    &m_menubar, &MenubarManager::insertActionIntoMenubar);
-
+            &m_menubar, &MenubarManager::insertActionIntoMenubar);
+/*
     m_view->addSidePanel(new QUndoView{
-        m_document->presenter()->commandQueue(),
-        m_view
-    }, tr("Undo View"), Qt::RightDockWidgetArea);
+                             m_document->presenter()->commandQueue(),
+                             m_view}, tr("Undo View"), Qt::LeftDockWidgetArea);
+*/
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* cmd)
 {
     cmd->setParent(this);  // Ownership transfer
     cmd->setPresenter(this);
-    connect(cmd,  &PluginControlInterface::submitCommand,
-            this, &Presenter::applyCommand, Qt::QueuedConnection);
+
+    // TODO in DocumentPresenter
+    //connect(cmd,  &PluginControlInterface::submitCommand,
+    //        this, &Presenter::applyCommand, Qt::QueuedConnection);
 
     cmd->populateMenus(&m_menubar);
     cmd->populateToolbars();
@@ -58,32 +57,40 @@ void Presenter::registerPluginControl(PluginControlInterface* cmd)
     m_customControls.push_back(cmd);
 }
 
-void Presenter::registerPanel(PanelFactoryInterface* p)
+void Presenter::registerPanel(PanelFactoryInterface* factory)
 {
-    auto view = p->makeView(m_view);
-    auto pres = p->makePresenter(this, view);
+    auto view = factory->makeView(m_view);
+    auto pres = factory->makePresenter(this, view);
 
-    connect(pres, &PanelPresenterInterface::submitCommand,
-            this, &Presenter::applyCommand, Qt::QueuedConnection);
+    m_panelPresenters.push_back({pres, factory});
+
+    // TODO in DocumentPresenter
+    //connect(pres, &PanelPresenterInterface::submitCommand,
+    //        this, &Presenter::applyCommand, Qt::QueuedConnection);
 
     m_view->setupPanelView(view);
 
-    m_document->setupPanel(pres, p);
+    for(auto doc : m_documents)
+        doc->setupNewPanel(pres, factory);
 }
 
-void Presenter::setDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
+void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
 {
-    m_document->setDocumentPanel(docpanel);
+    m_availableDocuments.push_back(docpanel);
 }
 
-void Presenter::newDocument()
+void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 {
-    m_document->newDocument();
-}
+    auto doc = new Document{doctype, m_view, this};
+    m_documents.push_back(doc);
+    m_currentDocument = doc;
 
-void Presenter::applyCommand(iscore::SerializableCommand* cmd)
-{
-    m_document->presenter()->applyCommand(cmd);
+    m_view->setCentralView(m_currentDocument->view());
+
+    for(auto& panel : m_panelPresenters)
+    {
+        doc->setupNewPanel(panel.first, panel.second);
+    }
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name, const QString& name, const QByteArray& data)
@@ -100,27 +107,16 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
     return nullptr;
 }
 
-/*
-void Presenter::on_elementSelected(QObject* elt)
-{
-    emit elementSelected(elt);
-}
-
-void Presenter::on_lastElementSelected()
-{
-    emit lastElementSelected();
-}
-*/
-
 void Presenter::setupMenus()
 {
     ////// File //////
     auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                  FileMenuElement::New,
-                  std::bind(&Presenter::newDocument, this));
+                                                      FileMenuElement::New,
+                                 [&] () { newDocument(m_availableDocuments.front()); });
+
 
     newAct->setShortcut(QKeySequence::New);
-
+/*
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                            FileMenuElement::Separator_Load);
@@ -160,9 +156,9 @@ void Presenter::setupMenus()
     });
 
 
-//	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-//										FileMenuElement::SaveAs,
-//										notyet);
+    //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+    //										FileMenuElement::SaveAs,
+    //										notyet);
 
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -192,7 +188,7 @@ void Presenter::setupMenus()
             m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
     m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                            redoAct);
-
+*/
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                       ViewMenuElement::Windows);
@@ -201,7 +197,7 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::SettingsMenu,
                                         SettingsMenuElement::Settings,
                                         std::bind(&SettingsView::exec,
-                                                qobject_cast<Application*> (parent())->settings()->view()));
+                                                  qobject_cast<Application*> (parent())->settings()->view()));
 }
 
 

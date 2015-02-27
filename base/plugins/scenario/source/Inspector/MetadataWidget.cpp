@@ -86,12 +86,8 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
     connect(m_colorButton,  &QPushButton::clicked,
             this,           &MetadataWidget::changeColor);
 
-
     connect(metadata,   &ModelMetadata::metadataChanged,
             this,       &MetadataWidget::updateAsked);
-
-    connect(goPrev, &QToolButton::clicked,
-            this,   &MetadataWidget::inspectPreviousElement);
 }
 
 QString MetadataWidget::scriptingName() const

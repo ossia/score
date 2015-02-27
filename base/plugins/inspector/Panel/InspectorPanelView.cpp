@@ -1,25 +1,45 @@
 #include "InspectorPanelView.hpp"
 #include <core/view/View.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <QVBoxLayout>
 
 #include "Implementation/InspectorPanel.hpp"
+#include <Panel/Implementation/SelectionStackWidget.hpp>
+
 InspectorPanelView::InspectorPanelView(iscore::View* parent) :
-    iscore::PanelViewInterface {parent}
+    iscore::PanelViewInterface {parent},
+    m_widget{new QWidget}
 {
     this->setObjectName(tr("Inspector"));
-    m_panelWidget = new InspectorPanel{parent};
 }
 
 QWidget* InspectorPanelView::getWidget()
 {
-
-//	ObjectInterval* test1 = new ObjectInterval ("MonNom", "remarques diverses", Qt::red );
-
-//	ptr->newItemInspected (test1);
-
-    return m_panelWidget;
+    return m_widget;
 }
 
-void InspectorPanelView::on_setNewItem(QObject* obj)
+void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
 {
-    m_panelWidget->newItemInspected(obj);
+    using namespace iscore;
+
+    delete m_stack;
+    delete m_inspectorPanel;
+    m_stack = new SelectionStackWidget{&pres->selectionStack(), m_widget};
+    m_inspectorPanel = new InspectorPanel{m_widget};
+
+    // Selection
+    connect(pres,             &DocumentPresenter::currentSelectionChanged,
+            m_inspectorPanel, &InspectorPanel::newItemsInspected);
+
+    connect(m_inspectorPanel, &InspectorPanel::selectedObjects,
+            pres,             &DocumentPresenter::newSelection);
+
+    // Commands
+    connect(m_inspectorPanel, &InspectorPanel::submitCommand,
+            pres,             &DocumentPresenter::applyCommand);
+
+
+    auto lay = new QVBoxLayout{m_widget};
+    lay->addWidget(m_stack);
+    lay->addWidget(m_inspectorPanel);
 }

@@ -15,31 +15,33 @@
 #include <QLayout>
 
 using namespace iscore;
-Document::Document(QWidget* parentview, QObject* parent) :
+Document::Document(DocumentDelegateFactoryInterface* type, QWidget* parentview, QObject* parent) :
     NamedObject {"Document", parent},
     m_model {new DocumentModel{this}},
     m_view {new DocumentView{parentview}},
     m_presenter {new DocumentPresenter{m_model, m_view, this}}
 {
-}
-
-void Document::newDocument()
-{
-    reset();
-
+    // TODO Do this in the initialization list.
     // Model setup
-    m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model));
-    setupDocument();
+    m_model->setModelDelegate(type->makeModel(m_model));
 
+    // View setup
+    auto view = type->makeView(m_view);
+    m_view->setViewDelegate(view);
+
+    // Presenter setup
+    auto pres = type->makePresenter(m_presenter, m_model->modelDelegate(), view);
+    m_presenter->setPresenterDelegate(pres);
     emit newDocument_start();
 }
 
-void Document::setDocumentPanel(DocumentDelegateFactoryInterface* p)
-{
-    m_currentDocumentType = p;
-}
-
-void Document::setupPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
+// TODO the Document should receive the list of the current panels.
+// If a panel is closed or so, its model is deleted in all documents.
+// If a panel is opened, its model should be created in all documents,
+// and if a new document is created, it should be created with models for all panels.
+// When the current document changes, the global Presenter should
+// setup the correct links between the Panels ({presenter,view}) and the displayed document.
+void Document::setupNewPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
 {
     auto model = factory->makeModel(m_model);
     m_model->addPanel(model);
@@ -47,37 +49,20 @@ void Document::setupPanel(PanelPresenterInterface* pres, PanelFactoryInterface* 
     pres->setModel(model);
 }
 
-
-void Document::reset()
-{
-    m_model->reset();
-    m_presenter->reset();
-}
-
+// TODO Load should go in the global presenter.
 void Document::load(QByteArray data)
 {
-    reset();
-
+    /*
     // Model setup
     m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
 
     // TODO call newDocument_start if loaded from this computer, not if serialized from network.
     setupDocument();
+    */
 }
 
 QByteArray Document::save()
 {
     return m_model->modelDelegate()->save();
-}
-
-void Document::setupDocument()
-{
-    // View setup
-    auto view = m_currentDocumentType->makeView(m_view);
-    m_view->setViewDelegate(view);
-
-    // Presenter setup
-    auto pres = m_currentDocumentType->makePresenter(m_presenter, m_model->modelDelegate(), view);
-    m_presenter->setPresenterDelegate(pres);
 }
 

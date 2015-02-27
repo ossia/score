@@ -1,10 +1,16 @@
 #pragma once
 
 #include <QWidget>
+#include <core/interface/selection/SelectionStack.hpp>
 class SelectionStackWidget;
 class QVBoxLayout;
 class InspectorWidgetBase;
+class QTabWidget;
 
+namespace iscore
+{
+    class SerializableCommand;
+}
 namespace Ui
 {
     class InspectorPanel;
@@ -23,7 +29,15 @@ class InspectorPanel : public QWidget
 
     public:
         explicit InspectorPanel(QWidget* parent);
-        ~InspectorPanel();
+
+    signals:
+        void submitCommand(iscore::SerializableCommand*);
+
+        /**
+         * @brief selectedObjects
+         * This signal is sent when objects are selected FROM the inspector.
+         */
+        void selectedObjects(Selection);
 
     public slots:
         /*!
@@ -32,11 +46,10 @@ class InspectorPanel : public QWidget
          *  It's called when the user selects a new item
          * \param object The selected objet.
          */
-        void newItemInspected(QObject*);
-        void on_itemRemoved();
+        void newItemsInspected(Selection);
 
     private:
         QVBoxLayout* m_layout{};
-        SelectionStackWidget* m_stack{};
-        InspectorWidgetBase* m_itemInspected {};
+
+        QTabWidget* m_tabWidget{};
 };

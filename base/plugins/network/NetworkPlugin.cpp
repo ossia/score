@@ -24,7 +24,7 @@ iscore::SettingsDelegateFactoryInterface_QtInterface {}
 QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
 {
     return
-    {
+    {/*
         {   {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Document",				SIGNAL(newDocument_start()) },
             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "NetworkCommand",			SLOT(setupMasterSession()) }
         },
@@ -65,7 +65,7 @@ QList<iscore::Autoconnect> NetworkPlugin::autoconnect_list() const
         {   {iscore::Autoconnect::ObjectRepresentationType::Inheritance, "RemoteActionReceiver",	SIGNAL(unlock(QByteArray)) },
             {iscore::Autoconnect::ObjectRepresentationType::QObjectName, "Presenter",				SLOT(on_unlock(QByteArray)) }
         },
-    };
+    */};
 }
 
 //////////////////////////
@@ -93,16 +93,16 @@ iscore::PluginControlInterface* NetworkPlugin::control_make(QString name)
 /*
 QStringList NetworkPlugin::panel_list() const
 {
-	return {SECONDARY_PANEL_NAME};
+    return {SECONDARY_PANEL_NAME};
 }
 
 iscore::Panel* NetworkPlugin::panel_make(QString name)
 {
-	if(name == QString(SECONDARY_PANEL_NAME))
-	{
-		return new NetworkPanel;
-	}
+    if(name == QString(SECONDARY_PANEL_NAME))
+    {
+        return new NetworkPanel;
+    }
 
-	return nullptr;
+    return nullptr;
 }
 */

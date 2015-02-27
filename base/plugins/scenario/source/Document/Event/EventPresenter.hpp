@@ -27,8 +27,6 @@ class EventPresenter : public NamedObject
         void deselect();
 
     signals:
-        void eventSelected(id_type<EventModel>);
-
         void eventMoved(EventData);
         void eventMovedWithControl(EventData);
         void eventReleased();

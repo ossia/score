@@ -23,7 +23,7 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
     return
     {
         /// Common
-        {   {
+        /*{   {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
                 "DocumentPresenter", SIGNAL(elementSelected(QObject*))
             },
@@ -41,7 +41,7 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
                 "Presenter", SLOT(applyCommand(iscore::SerializableCommand*))
             }
-        },
+        },*/
 
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::Inheritance,

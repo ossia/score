@@ -1,7 +1,8 @@
 #include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelView.hpp"
-
+#include <core/interface/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
         iscore::PanelViewInterface* view) :
     iscore::PanelPresenterInterface {parent, view}
@@ -11,13 +12,7 @@ InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
 
 void InspectorPanelPresenter::on_modelChanged()
 {
-    auto i_model = static_cast<InspectorPanelModel*>(m_model);
-    auto i_view  = static_cast<InspectorPanelView*>(m_view);
-
-    i_view->disconnect(m_mvConnection);
-    m_mvConnection = connect(
-                         i_model, &InspectorPanelModel::setNewItem,
-                         i_view , &InspectorPanelView::on_setNewItem);
-
-    //i_view->setSelectionStack(i_model->parent())
+    using namespace iscore;
+    auto doc = IDocument::documentFromObject(m_model);
+    static_cast<InspectorPanelView*>(m_view)->setCurrentDocument(doc->presenter());
 }

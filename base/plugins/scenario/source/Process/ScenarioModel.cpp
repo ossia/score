@@ -13,8 +13,8 @@
 
 ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent) :
     ProcessSharedModelInterface {id, "ScenarioModel", parent},
-                            //m_scenario{nullptr},
-m_startEventId {0} // Always
+    //m_scenario{nullptr},
+    m_startEventId {0} // Always
 {
     auto event = new EventModel{m_startEventId, this};
     addEvent(event);
@@ -53,7 +53,7 @@ ScenarioModel::~ScenarioModel()
 }
 
 ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-        QObject* parent)
+                                                        QObject* parent)
 {
     auto scen = new TemporalScenarioViewModel {viewModelId, this, parent};
     makeViewModel_impl(scen);
@@ -62,16 +62,16 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
 
 
 ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
-        const ProcessViewModelInterface* source,
-        QObject* parent)
+                                                        const ProcessViewModelInterface* source,
+                                                        QObject* parent)
 {
     auto scen = new TemporalScenarioViewModel
     {
-        static_cast<const TemporalScenarioViewModel*>(source),
-        newId,
-        this,
-        parent
-    };
+                static_cast<const TemporalScenarioViewModel*>(source),
+                newId,
+                this,
+                parent
+};
     makeViewModel_impl(scen);
     return scen;
 }
@@ -160,16 +160,16 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 
 //////// Creation ////////
 void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
-        id_type<EventModel> endEventId,
-        id_type<ConstraintModel> newConstraintModelId,
-        id_type<AbstractConstraintViewModel> newConstraintFullViewId)
+                                                  id_type<EventModel> endEventId,
+                                                  id_type<ConstraintModel> newConstraintModelId,
+                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId)
 {
     auto sev = this->event(startEventId);
     auto eev = this->event(endEventId);
     auto constraint = new ConstraintModel {newConstraintModelId,
-                                           newConstraintFullViewId,
-                                           this
-                                          };
+                      newConstraintFullViewId,
+                      this
+};
 
     /*	auto ossia_tn0 = sev->apiObject();
     auto ossia_tn1 = eev->apiObject();
@@ -198,23 +198,21 @@ void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEvent
 
 void
 ScenarioModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-        TimeValue constraint_duration,
-        double heightPos,
-        id_type<ConstraintModel> newConstraintId,
-        id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-        id_type<EventModel> newEventId)
+                                                    TimeValue constraint_duration,
+                                                    double heightPos,
+                                                    id_type<ConstraintModel> newConstraintId,
+                                                    id_type<AbstractConstraintViewModel> newConstraintFullViewId,
+                                                    id_type<EventModel> newEventId)
 {
     auto startEvent = this->event(startEventId);
 
     auto constraint = new ConstraintModel {newConstraintId,
-                                           newConstraintFullViewId,
-                                           this->event(startEventId)->heightPercentage(),
-                                           this
-                                          };
+                      newConstraintFullViewId,
+                      this->event(startEventId)->heightPercentage(),
+                      this};
     auto event = new EventModel {newEventId,
-                                 heightPos,
-                                 this
-                                };
+                 heightPos,
+                 this};
 
 
     if(startEventId == m_startEventId)
@@ -262,9 +260,9 @@ void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
     auto newEvent = event(eventId);
 
     auto timeNode = new TimeNodeModel {timeNodeId,
-                                       newEvent->date(),
-                                       this
-                                      };
+                    newEvent->date(),
+                    this
+};
     timeNode->addEvent(eventId);
     timeNode->setY(newEvent->heightPercentage());
 

@@ -28,20 +28,26 @@ namespace iscore
                 return m_commandQueue.get();
             }
 
-            void newDocument();
-            void reset();
             void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
             DocumentDelegatePresenterInterface* presenterDelegate() const
             {
                 return m_presenter;
             }
 
+            SelectionStack& selectionStack()
+            {
+                return m_selection;
+            }
+
         signals:
-            void elementSelected(QObject* element);
+            void currentSelectionChanged(Selection);
             void lock(QByteArray);
             void unlock(QByteArray);
 
         public slots:
+            // Selection-relative slots
+            void newSelection(Selection);
+
             // Command-relative slots
             /**
              * @brief applyCommand
@@ -94,5 +100,7 @@ namespace iscore
             DocumentDelegatePresenterInterface* m_presenter {};
             DocumentView* m_view {};
             DocumentModel* m_model {};
+
+            SelectionStack m_selection;
     };
 }

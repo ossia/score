@@ -117,7 +117,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::submitCommand,
             this,						&BaseElementPresenter::submitCommand);
 
-    // TODO : remove this. This has to go through the model now.
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
             [&] (QObject* elt) { emit selectionChanged(Selection{elt}); });
 

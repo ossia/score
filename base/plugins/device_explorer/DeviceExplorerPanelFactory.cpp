@@ -3,6 +3,7 @@
 #include "Panel/DeviceExplorerWidget.hpp"
 #include "document/DocumentPresenter.hpp"
 #include <core/document/DocumentModel.hpp>
+#include <core/interface/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>
 using namespace iscore;
 
@@ -41,7 +42,8 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
     auto m = static_cast<DeviceExplorerPanelModel*>(m_model);
 
     // TODO make a function to get the document here
-    m->m_model->setCommandQueue(m_parentPresenter->document()->presenter()->commandQueue());
+    auto doc = IDocument::documentFromObject(m_model);
+    m->m_model->setCommandQueue(doc->presenter()->commandQueue());
     v->m_widget->setModel(m->m_model);
 }
 

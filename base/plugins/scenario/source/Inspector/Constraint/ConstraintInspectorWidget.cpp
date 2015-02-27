@@ -12,6 +12,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddProcessViewInNewDeck.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
+#include "Document/Event/EventModel.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -20,6 +21,7 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include <InspectorControl.hpp>
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Process/ScenarioModel.hpp"
 
 #include <tools/ObjectPath.hpp>
 #include "core/interface/document/DocumentInterface.hpp"
@@ -71,41 +73,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     m_properties.push_back(setAsDisplayedConstraint);
 
     // Events
-
-    QWidget* eventWid = new QWidget {};
-    QFormLayout* eventLay = new QFormLayout {eventWid};
-    QPushButton* start = new QPushButton {};
-    start->setFlat(true);
-
-    if(object->model()->startEvent().val())
+    if(auto scenario = qobject_cast<ScenarioModel*>(m_currentConstraint->model()->parent()))
     {
-        start->setText(QString::number(*object->model()->startEvent().val()));
+        m_properties.push_back(makeEventWidget(scenario));
     }
-    else
-    {
-        start->setText(tr("None"));
-    }
-
-    QPushButton* end = new QPushButton {};
-    end->setFlat(true);
-
-    if(object->model()->startEvent().val())
-    {
-        end->setText(QString::number(*object->model()->endEvent().val()));
-    }
-    else
-    {
-        end->setText(tr("None"));
-    }
-
-    eventLay->addRow("Start Event", start);
-    eventLay->addRow("End Event", end);
-
-    m_properties.push_back(eventWid);
 
     // Separator
     m_properties.push_back(new Separator {this});
-
 
     m_durationSection = new DurationSectionWidget {this};
     m_properties.push_back(m_durationSection);
@@ -146,21 +120,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(TemporalConstraintViewModel
     addHeader(m_metadata);
 
     updateDisplayedValues(object);
-
-//    connect(m_metadata,      &MetadataWidget::inspectPreviousElement,
-//            m_currentConstraint,    &TemporalConstraintViewModel::inspectPreviousElement);
-
-    connect(end,    &QPushButton::clicked,
-            [ = ]()
-    {
-        object->eventSelected(end->text());
-    });
-
-    connect(start, &QPushButton::clicked,
-            [ = ]()
-    {
-        object->eventSelected(start->text());
-    });
 
 }
 
@@ -203,14 +162,7 @@ void ConstraintInspectorWidget::updateDisplayedValues(TemporalConstraintViewMode
     if(constraint != nullptr)
     {
         m_currentConstraint = constraint;
-        /*
-                // Constraint settings
-                setName (model()->metadata.name() );
-                setColor (model()->metadata.color() );
-                setComments (model()->metadata.comment() );
-                setInspectedObject (m_currentConstraint);
-                changeLabelType ("Constraint");
-        */
+
         // Constraint interface
         m_connections.push_back(
             connect(model(),	&ConstraintModel::processCreated,
@@ -323,6 +275,39 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
 
     m_boxesSectionWidgets[box->id()] = newBox;
     m_boxSection->addContent(newBox);
+}
+
+QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
+{
+    QWidget* eventWid = new QWidget{this};
+    QFormLayout* eventLay = new QFormLayout {eventWid};
+    QPushButton* start = new QPushButton{tr("None"), eventWid};
+    QPushButton* end = new QPushButton {tr("None"), eventWid};
+    start->setFlat(true);
+    end->setFlat(true);
+
+    auto sev = m_currentConstraint->model()->startEvent();
+    auto eev = m_currentConstraint->model()->endEvent();
+    if(sev)
+    {
+        start->setText(QString::number(*sev.val()));
+
+        connect(start, &QPushButton::clicked,
+                [=]() { emit selectedObjects(Selection{scenar->event(sev)}); });
+    }
+
+    if(eev)
+    {
+        end->setText(QString::number(*eev.val()));
+
+        connect(end, &QPushButton::clicked,
+                [=]() { emit selectedObjects(Selection{scenar->event(sev)}); });
+    }
+
+    eventLay->addRow("Start Event", start);
+    eventLay->addRow("End Event", end);
+
+    return eventWid;
 }
 
 

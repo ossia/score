@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QStack>
-
+#include <QDebug>
 using Selection = QObjectList;
 class SelectionStack : public QObject
 {
@@ -22,10 +22,14 @@ class SelectionStack : public QObject
         // Select new objects
         void push(const Selection& s)
         {
-            m_unselectable.push(s);
-            m_reselectable.clear();
+            if(m_unselectable.empty() ||
+               s.toSet() != m_unselectable.top().toSet())
+            {
+                m_unselectable.push(s);
+                m_reselectable.clear();
 
-            emit currentSelectionChanged(s);
+                emit currentSelectionChanged(s);
+            }
         }
 
         // Go to the previous set of selections
@@ -33,7 +37,7 @@ class SelectionStack : public QObject
         {
             m_reselectable.push(m_unselectable.pop());
 
-            emit currentSelectionChanged(m_unselectable.top());
+            emit currentSelectionChanged(m_unselectable.empty() ? Selection{} : m_unselectable.top());
         }
 
         // Go to the next set of selections
@@ -41,7 +45,7 @@ class SelectionStack : public QObject
         {
             m_unselectable.push(m_reselectable.pop());
 
-            emit currentSelectionChanged(m_unselectable.top());
+            emit currentSelectionChanged(m_unselectable.empty() ? Selection{} : m_unselectable.top());
         }
 
         // Push a new set of empty selection.

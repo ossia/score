@@ -1,48 +1,44 @@
 #include "InspectorPanel.hpp"
-#include "QPushButton"
-#include <QLayout>
-#include <QDebug>
-#include <QScrollArea>
 #include "InspectorInterface/InspectorWidgetBase.hpp"
 #include "InspectorInterface/InspectorSectionWidget.hpp"
 
-#include <QApplication>
-
-#include <core/plugin/PluginManager.hpp>
 #include "InspectorControl.hpp"
+
+#include <core/interface/selection/SelectionStack.hpp>
+
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QScrollArea>
+#include <QTabWidget>
+
 InspectorPanel::InspectorPanel(QWidget* parent) :
     QWidget {parent},
-m_layout {new QVBoxLayout{this}}
+    m_layout{new QVBoxLayout{this}}
 {
     m_layout->setMargin(8);
-
     setMinimumWidth(300);
 }
 
-InspectorPanel::~InspectorPanel()
+void InspectorPanel::newItemsInspected(Selection objects)
 {
-}
+    delete m_tabWidget;
 
-void InspectorPanel::newItemInspected(QObject* object)
-{
-    delete m_itemInspected;
-    m_itemInspected = InspectorControl::makeInspectorWidget(object);
-
-    m_layout->addWidget(m_itemInspected);
-    connect(object, &QObject::destroyed,
-            this,	&InspectorPanel::on_itemRemoved);
-}
-
-void InspectorPanel::on_itemRemoved()
-{
-    if(m_itemInspected)
+    m_tabWidget = new QTabWidget{this};
+    for(auto object : objects)
     {
-        m_layout->removeWidget(m_itemInspected);
-        m_itemInspected->deleteLater();
+        auto widget = InspectorControl::makeInspectorWidget(object);
+
+        m_tabWidget->addTab(widget, object->objectName());
+
+        connect(widget, SIGNAL(submitCommand(iscore::SerializableCommand*)),
+                this,   SIGNAL(submitCommand(iscore::SerializableCommand*)));
+        connect(widget, SIGNAL(selectedObjects(Selection)),
+                this,   SIGNAL(selectedObjects(Selection)));
+
     }
 
-    if(qApp)
-    {
-        m_itemInspected = new InspectorWidgetBase {};
-    }
+    m_layout->addWidget(m_tabWidget);
+    // TODO put this at the selection level instead.
+    //connect(object, &QObject::destroyed,
+    //        this,	&InspectorPanel::on_itemRemoved);
 }

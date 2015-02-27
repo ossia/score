@@ -8,7 +8,6 @@ class SelectionStackWidget : public QWidget
     public:
         SelectionStackWidget(SelectionStack* s, QWidget* parent);
 
-
     private:
         QToolButton* m_prev{};
         QToolButton* m_next{};

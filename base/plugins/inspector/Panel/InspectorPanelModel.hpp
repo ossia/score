@@ -16,6 +16,7 @@ class InspectorPanelModel : public iscore::PanelModelInterface
     public:
         InspectorPanelModel(iscore::DocumentModel* parent);
 
+        /*
     signals:
         void setNewItem(QObject*);
 
@@ -27,4 +28,5 @@ class InspectorPanelModel : public iscore::PanelModelInterface
         QObject* m_selectedObject {}; // TODO get Path instead.
 
         QVector<QObject*> m_lastInspectedObjects;
+        */
 };

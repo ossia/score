@@ -30,18 +30,9 @@ namespace iscore
         public:
             Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
 
-            View* view()
-            {
-                return m_view;
-            }
-            Document* document()
-            {
-                return m_document;
-            }
-
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
-            void setDocumentPanel(DocumentDelegateFactoryInterface*);
+            void registerDocumentPanel(DocumentDelegateFactoryInterface*);
 
             /**
              * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
@@ -60,16 +51,7 @@ namespace iscore
             /**
              * @brief newDocument Create a new document.
              */
-            void newDocument();
-
-            /**
-             * @brief applyCommand
-             *
-             * Forwards a command to the undo/redo stack
-             * of the currently displayed Document.
-             *
-             */
-            void applyCommand(iscore::SerializableCommand*);
+            void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
 
             void on_lock(QByteArray);
             void on_unlock(QByteArray);
@@ -79,8 +61,13 @@ namespace iscore
             Model* m_model {};
             View* m_view {};
             MenubarManager m_menubar;
-            Document* m_document {};
+            QList<Document*> m_documents{};
+            Document* m_currentDocument{};
 
             std::vector<PluginControlInterface*> m_customControls;
+            std::vector<DocumentDelegateFactoryInterface*> m_availableDocuments;
+
+            QList<QPair<PanelPresenterInterface*,
+                        PanelFactoryInterface*>> m_panelPresenters;
     };
 }

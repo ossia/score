@@ -2,8 +2,10 @@
 #include <interface/panel/PanelViewInterface.hpp>
 namespace iscore
 {
+    class DocumentPresenter;
     class View;
 }
+class SelectionStackWidget;
 class InspectorPanel;
 class InspectorPanelView : public iscore::PanelViewInterface
 {
@@ -17,8 +19,14 @@ class InspectorPanelView : public iscore::PanelViewInterface
         }
 
     public slots:
-        void on_setNewItem(QObject*);
+        //void on_setNewItem(QObject*);
+        void setCurrentDocument(iscore::DocumentPresenter*);
 
     private:
-        InspectorPanel* m_panelWidget {};
+        QWidget* m_widget{};
+        SelectionStackWidget* m_stack{};
+        InspectorPanel* m_inspectorPanel {};
+
+        QMetaObject::Connection m_selectionConnection,
+                                m_commandConnection;
 };

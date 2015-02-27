@@ -67,9 +67,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
     connect(object, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 
-//    connect(m_metadata, &MetadataWidget::inspectPreviousElement,
-//           m_model,    &TimeNodeModel::inspectPreviousElement);
-
     auto splitBtn = new QPushButton{this};
     splitBtn->setText("split timeNode");
 

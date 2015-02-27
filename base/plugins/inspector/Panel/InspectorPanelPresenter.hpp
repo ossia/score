@@ -11,7 +11,5 @@ class InspectorPanelPresenter : public iscore::PanelPresenterInterface
         virtual void on_modelChanged() override;
 
     private:
-        // Connection between the model and the view.
-        QMetaObject::Connection m_mvConnection;
 
 };

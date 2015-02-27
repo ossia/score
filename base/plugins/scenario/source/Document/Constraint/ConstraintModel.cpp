@@ -1,5 +1,6 @@
 #include "ConstraintModel.hpp"
 
+#include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
@@ -20,8 +21,8 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-m_timeBox {new OSSIA::TimeBox},
-m_fullViewModel
+    m_timeBox {new OSSIA::TimeBox},
+    m_fullViewModel
 {
     new FullViewConstraintViewModel{fullViewId, this, this}
 }

@@ -7,6 +7,7 @@ class ConstraintModel;
 class TemporalConstraintViewModel;
 class BoxModel;
 class DeckModel;
+class ScenarioModel;
 class ProcessSharedModelInterface;
 
 class BoxWidget;
@@ -54,6 +55,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void setupBox(BoxModel*);
 
     private:
+        QWidget* makeEventWidget(ScenarioModel*);
         TemporalConstraintViewModel* m_currentConstraint {};
         QVector<QMetaObject::Connection> m_connections;
 

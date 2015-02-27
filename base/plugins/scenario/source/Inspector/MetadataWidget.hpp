@@ -75,7 +75,6 @@ class MetadataWidget : public QWidget
         void commentsChanged(QString arg);
         void colorChanged(QColor arg);
 
-        void inspectPreviousElement();
         void submitCommand(iscore::SerializableCommand*);
 
     private:

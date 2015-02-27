@@ -17,7 +17,6 @@ m_view {view}
     connect(m_view, &EventView::eventPressed,
     [&]()
     {
-        emit eventSelected(id());
         emit elementSelected(m_model);
     });
 
