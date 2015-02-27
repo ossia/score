@@ -64,7 +64,6 @@ class AbstractConstraintPresenter : public NamedObject
     signals:
         void submitCommand(iscore::SerializableCommand*);
         void elementSelected(QObject*);
-        void lastElementSelected();
 
         void askUpdate();
 

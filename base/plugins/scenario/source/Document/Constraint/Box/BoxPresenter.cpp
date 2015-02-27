@@ -116,9 +116,6 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
     connect(deckPres, &DeckPresenter::elementSelected,
             this,		&BoxPresenter::elementSelected);
 
-    connect(deckPres,   &DeckPresenter::lastElementSelected,
-            this,       &BoxPresenter::lastElementSelected);
-
     connect(deckPres, &DeckPresenter::askUpdate,
             this,		&BoxPresenter::on_askUpdate);
 

@@ -55,14 +55,6 @@ namespace iscore
             instantiateUndoCommand(const QString& parent_name,
                                    const QString& name,
                                    const QByteArray& data);
-        signals:
-            /**
-             * @brief instantiatedCommand Is emitted when a command was requested using Presenter::instantiateUndoCommand
-             */
-            //void instantiatedCommand(iscore::SerializableCommand*);
-
-            void elementSelected(QObject* elt);
-            void lastElementSelected();
 
         public slots:
             /**
@@ -78,16 +70,6 @@ namespace iscore
              *
              */
             void applyCommand(iscore::SerializableCommand*);
-
-            /**
-             * @brief on_elementSelected Called when an object is selected on the Document.
-             * @param elt
-             *
-             */
-            void on_elementSelected(QObject* elt);
-
-            void on_lastElementSelected();
-
 
             void on_lock(QByteArray);
             void on_unlock(QByteArray);

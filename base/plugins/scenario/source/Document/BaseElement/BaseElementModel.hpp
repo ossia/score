@@ -1,6 +1,7 @@
 #pragma once
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <tools/ObjectPath.hpp>
+#include <core/interface/selection/SelectionStack.hpp>
 
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
@@ -36,8 +37,12 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     public slots:
         void on_processSelected(ProcessSharedModelInterface* proc);
+        void on_selectedChildrenChanged();
 
     private:
         ConstraintModel* m_baseConstraint {};
+        ProcessSharedModelInterface* m_selectedProcess{};
+
+        SelectionStack m_selectionStack;
 };
 

@@ -79,6 +79,3 @@ void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
 }
-
-
-

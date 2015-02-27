@@ -67,8 +67,8 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
     connect(object, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 
-    connect(m_metadata,         &MetadataWidget::inspectPreviousElement,
-            m_model,    &TimeNodeModel::inspectPreviousElement);
+//    connect(m_metadata, &MetadataWidget::inspectPreviousElement,
+//           m_model,    &TimeNodeModel::inspectPreviousElement);
 
     auto splitBtn = new QPushButton{this};
     splitBtn->setText("split timeNode");
@@ -77,8 +77,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
 
     connect(splitBtn,   &QPushButton::clicked,
             this,       &TimeNodeInspectorWidget::on_splitTimeNodeClicked);
-
-    emit m_model->inspectorCreated();
 }
 
 
@@ -108,8 +106,9 @@ void TimeNodeInspectorWidget::updateDisplayedValues(TimeNodeModel* timeNode)
             m_events.push_back(eventWid);
             m_eventList->addContent(eventWid);
 
-            connect(eventWid,           &EventShortCut::eventSelected,
-                    m_model,    &TimeNodeModel::eventSelected);
+            // TODO
+//            connect(eventWid,           &EventShortCut::eventSelected,
+//                    m_model,    &TimeNodeModel::eventSelected);
 
         }
 

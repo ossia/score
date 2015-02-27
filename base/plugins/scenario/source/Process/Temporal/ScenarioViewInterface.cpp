@@ -22,7 +22,6 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
-
 ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presenter) :
     m_presenter(presenter)
 {
@@ -107,6 +106,13 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
     m_presenter->m_view->update();
 }
 
+template<typename T>
+void update_min_max(const T& val, T& min, T& max)
+{
+    min = val < min ? val : min;
+    max = val > max ? val : max;
+}
+
 void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 {
     auto timeNode = findById(m_presenter->m_timeNodes, timeNodeId);
@@ -120,53 +126,19 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
         auto event = findById(m_presenter->m_events, eventId);
         double y = event->model()->heightPercentage();
 
-        if(y < min)
-        {
-            min = y;
-        }
-
-        if(y > max)
-        {
-            max = y;
-        }
+        update_min_max(y, min, max);
 
         for(TemporalConstraintPresenter* cstr_pres : m_presenter->m_constraints)
         {
             ConstraintModel* cstr_model {cstr_pres->abstractConstraintViewModel()->model() };
 
-            for(auto cstrId : event->model()->previousConstraints())
+            auto constraints = event->model()->previousConstraints() + event->model()->nextConstraints();
+            for(auto cstrId : constraints)
             {
                 if(cstr_model->id() == cstrId)
                 {
                     y = cstr_model->heightPercentage();
-
-                    if(y < min)
-                    {
-                        min = y;
-                    }
-
-                    if(y > max)
-                    {
-                        max = y;
-                    }
-                }
-            }
-
-            for(auto cstrId : event->model()->nextConstraints())
-            {
-                if(cstr_model->id() == cstrId)
-                {
-                    y = cstr_model->heightPercentage();
-
-                    if(y < min)
-                    {
-                        min = y;
-                    }
-
-                    if(y > max)
-                    {
-                        max = y;
-                    }
+                    update_min_max(y, min, max);
                 }
             }
         }
@@ -178,12 +150,5 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 
-    if(m_presenter->ongoingCommand())
-    {
-        timeNode->view()->setMoving(true);
-    }
-    else
-    {
-        timeNode->view()->setMoving(false);
-    }
+    timeNode->view()->setMoving(m_presenter->ongoingCommand());
 }

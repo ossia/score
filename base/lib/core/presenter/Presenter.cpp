@@ -39,12 +39,6 @@ m_document {new Document{view, this}}
     connect(m_view,		&View::insertActionIntoMenubar,
     &m_menubar, &MenubarManager::insertActionIntoMenubar);
 
-    connect(m_document, &Document::on_elementSelected,
-    this,		&Presenter::on_elementSelected);
-
-    connect(m_document, &Document::on_lastElementSelected,
-    this,       &Presenter::on_lastElementSelected);
-
     m_view->addSidePanel(new QUndoView{
         m_document->presenter()->commandQueue(),
         m_view
@@ -106,6 +100,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
     return nullptr;
 }
 
+/*
 void Presenter::on_elementSelected(QObject* elt)
 {
     emit elementSelected(elt);
@@ -115,6 +110,7 @@ void Presenter::on_lastElementSelected()
 {
     emit lastElementSelected();
 }
+*/
 
 void Presenter::setupMenus()
 {

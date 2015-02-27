@@ -91,12 +91,6 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
 
     // display data
     updateDisplayedValues(object);
-
-
-    connect(m_metadata, &MetadataWidget::inspectPreviousElement,
-            m_model,    &EventModel::inspectPreviousElement);
-
-    emit m_model->inspectorCreated();
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -161,7 +155,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                m_model->constraintSelected(cstrBtn->text());
+                //TODO m_model->constraintSelected(cstrBtn->text());
             });
         }
 
@@ -175,7 +169,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                m_model->constraintSelected(cstrBtn->text());
+                //TODO m_model->constraintSelected(cstrBtn->text());
             });
         }
 

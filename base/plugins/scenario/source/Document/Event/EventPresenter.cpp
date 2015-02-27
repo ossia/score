@@ -51,22 +51,7 @@ m_view {view}
             this,	&EventPresenter::ctrlStateChanged);
 
     connect(& (m_model->metadata),  &ModelMetadata::colorChanged,
-            m_view,             &EventView::changeColor);
-
-    connect(m_model,    &EventModel::constraintSelected,
-            this,       &EventPresenter::constraintSelected);
-
-    connect(m_model,    &EventModel::inspectPreviousElement,
-            this,       &EventPresenter::inspectPreviousElement);
-
-    connect(m_model,    &EventModel::inspectorCreated,
-            [this]()
-    {
-        if(! this->view()->isSelected())
-        {
-            this->view()->setSelected(true);
-        }
-    });
+            m_view,                 &EventView::changeColor);
 }
 
 EventPresenter::~EventPresenter()

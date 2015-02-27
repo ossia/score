@@ -2,6 +2,7 @@
 #include <memory>
 #include <tools/NamedObject.hpp>
 
+#include <core/interface/selection/SelectionStack.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
 #include <core/tools/ObjectPath.hpp>
 
@@ -36,8 +37,7 @@ namespace iscore
             }
 
         signals:
-            void on_elementSelected(QObject* element);
-            void on_lastElementSelected();
+            void elementSelected(QObject* element);
             void lock(QByteArray);
             void unlock(QByteArray);
 

@@ -37,11 +37,11 @@
 #include "core/presenter/command/SerializableCommand.hpp"
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
-        ProcessViewInterface* view,
-        QObject* parent) :
+                                                     ProcessViewInterface* view,
+                                                     QObject* parent) :
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
-                          m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
-m_view {static_cast<TemporalScenarioView*>(view) }
+    m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
+    m_view {static_cast<TemporalScenarioView*>(view) }
 {
     m_cmdManager = new ScenarioCommandManager(this);
     m_viewInterface = new ScenarioViewInterface(this);
@@ -65,63 +65,61 @@ m_view {static_cast<TemporalScenarioView*>(view) }
 
     /////// Connections
     connect(this,	SIGNAL(elementSelected(QObject*)),
-    parent, SIGNAL(elementSelected(QObject*)));
-    connect(this,	SIGNAL(lastElementSelected()),
-    parent, SIGNAL(lastElementSelected()));
+            parent, SIGNAL(elementSelected(QObject*)));
 
     connect(m_view, &TemporalScenarioView::deletePressed,
-    [ = ]()
+            [ = ]()
     {
         m_cmdManager->deleteSelection();
     });
     connect(m_view, &TemporalScenarioView::clearPressed,
-    [ = ]()
+            [ = ]()
     {
         m_cmdManager->clearContentFromSelection();
     });
 
     connect(m_view, &TemporalScenarioView::scenarioPressed,
-    this,	&TemporalScenarioPresenter::on_scenarioPressed);
+            this,	&TemporalScenarioPresenter::on_scenarioPressed);
 
     connect(m_view, &TemporalScenarioView::scenarioReleased,
-    [ = ](QPointF point, QPointF scenePoint)
+            [ = ](QPointF point, QPointF scenePoint)
     {
         m_cmdManager->on_scenarioReleased(point, scenePoint);
     });
 
     connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
-    this,		 &TemporalScenarioPresenter::on_eventCreated);
+            this,		 &TemporalScenarioPresenter::on_eventCreated);
     connect(m_viewModel, &TemporalScenarioViewModel::eventDeleted,
-    this,		 &TemporalScenarioPresenter::on_eventDeleted);
+            this,		 &TemporalScenarioPresenter::on_eventDeleted);
 
     connect(m_viewModel, &TemporalScenarioViewModel::timeNodeCreated,
-    this,        &TemporalScenarioPresenter::on_timeNodeCreated);
+            this,        &TemporalScenarioPresenter::on_timeNodeCreated);
     connect(m_viewModel, &TemporalScenarioViewModel::timeNodeDeleted,
-    this,        &TemporalScenarioPresenter::on_timeNodeDeleted);
+            this,        &TemporalScenarioPresenter::on_timeNodeDeleted);
 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelCreated,
-    this,		 &TemporalScenarioPresenter::on_constraintCreated);
+            this,		 &TemporalScenarioPresenter::on_constraintCreated);
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
-    this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
+            this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_viewModel, &TemporalScenarioViewModel::eventMoved,
-    [ = ](id_type<EventModel> eventId)
+            [ = ](id_type<EventModel> eventId)
     {
         m_viewInterface->on_eventMoved(eventId);
     });
     connect(m_viewModel, &TemporalScenarioViewModel::constraintMoved,
-    [ = ](id_type<ConstraintModel> constraintId)
+            [ = ](id_type<ConstraintModel> constraintId)
     {
         m_viewInterface->on_constraintMoved(constraintId);
     });
 
     connect(model(m_viewModel), &ScenarioModel::locked,
-    [&]()
+            [&]()
     {
         m_view->lock();
     });
     connect(model(m_viewModel), &ScenarioModel::unlocked,
-    [&]()
+            [&]()
     {
         m_view->unlock();
     });
@@ -300,7 +298,8 @@ void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> ar
     }
 }
 
-void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId)
+void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
+                                                   id_type<TimeNodeModel> timeNodeId)
 {
     auto event = findById(m_events, eventId);
     event->model()->changeTimeNode(timeNodeId);
@@ -320,46 +319,15 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 
     auto event_view = new EventView {m_view};
     auto event_presenter = new EventPresenter {event_model,
-                                               event_view,
-                                               this
-                                              };
+                           event_view,
+                           this
+};
     event_view->setPos({qreal(rect.x() + event_model->date().msec() / m_millisecPerPixel),
                         rect.y() + rect.height() * event_model->heightPercentage()
                        });
 
     m_events.push_back(event_presenter);
 
-    // ------------------------------------------------------------
-    // selection and inspector management
-
-    connect(event_presenter, &EventPresenter::eventSelected,
-            this,			 &TemporalScenarioPresenter::setCurrentlySelectedEvent);
-
-    connect(event_presenter, &EventPresenter::elementSelected,
-            this,			 &TemporalScenarioPresenter::elementSelected);
-
-    connect(event_presenter,    &EventPresenter::constraintSelected,
-            [ = ](QString cstrId)
-    {
-        for(TemporalConstraintPresenter* cstr : m_constraints)
-        {
-            if(*viewModel(cstr)->model()->id().val() == cstrId.toInt())
-            {
-                elementSelected(viewModel(cstr));
-                event_presenter->deselect();
-                view(cstr)->setSelected(true);
-                return;
-            }
-        }
-    });
-
-    connect(event_presenter,    &EventPresenter::inspectPreviousElement,
-            [ = ]()
-    {
-        emit lastElementSelected();
-        event_presenter->deselect();
-        event_view->update();
-    });
 
     // ------------------------------------------------------------
     // event -> Command Manager
@@ -393,6 +361,9 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
         m_cmdManager->on_ctrlStateChanged(state);
     });
 
+    // Selection
+    connect(event_presenter,	&EventPresenter::elementSelected,
+            this,				&TemporalScenarioPresenter::elementSelected);
 
 }
 
@@ -402,9 +373,9 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
 
     auto timeNode_view = new TimeNodeView {m_view};
     auto timeNode_presenter = new TimeNodePresenter {timeNode_model,
-                                                     timeNode_view,
-                                                     this
-                                                    };
+                              timeNode_view,
+                              this
+};
 
     timeNode_view->setPos({ (qreal)(timeNode_model->date().msec() / m_millisecPerPixel),
                             timeNode_model->y() * rect.height()
@@ -433,24 +404,6 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     // selection and inspector management
     connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
             this,				&TemporalScenarioPresenter::elementSelected);
-
-
-    connect(timeNode_presenter, &TimeNodePresenter::eventSelected,
-            [ = ](QString evId)
-    {
-        auto event = findById(m_events, id_type<EventModel> (evId.toInt()));
-        event->view()->setSelected(true);
-        elementSelected(event->model());
-        timeNode_presenter->deselect();
-    });
-
-    connect(timeNode_presenter, &TimeNodePresenter::inspectPreviousElement,
-            [ = ]()
-    {
-        emit lastElementSelected();
-        timeNode_presenter->deselect();
-        timeNode_view->update();
-    });
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -460,10 +413,10 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     auto constraint_view = new TemporalConstraintView {m_view};
     auto constraint_presenter = new TemporalConstraintPresenter
     {
-        constraint_view_model,
-        constraint_view,
-        this
-    };
+                                constraint_view_model,
+                                constraint_view,
+                                this
+};
 
     constraint_view->setPos({qreal(rect.x() + constraint_view_model->model()->startDate().msec() / m_millisecPerPixel),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()
@@ -499,15 +452,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
             this,					&TemporalScenarioPresenter::elementSelected);
-
-    connect(constraint_presenter,   &TemporalConstraintPresenter::eventSelected,
-            [ = ](QString evId)
-    {
-        auto event = findById(m_events, id_type<EventModel> (evId.toInt()));
-        event->view()->setSelected(true);
-        elementSelected(event->model());
-        constraint_presenter->deselect();
-    });
 
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());

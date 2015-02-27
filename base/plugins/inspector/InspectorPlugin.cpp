@@ -25,21 +25,11 @@ QList<Autoconnect> InspectorPlugin::autoconnect_list() const
         /// Common
         {   {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "Presenter",			 SIGNAL(elementSelected(QObject*))
+                "DocumentPresenter", SIGNAL(elementSelected(QObject*))
             },
             {
                 iscore::Autoconnect::ObjectRepresentationType::QObjectName,
                 "InspectorPanelModel", SLOT(newItemInspected(QObject*))
-            }
-        },
-
-        {   {
-                iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "Presenter",			 SIGNAL(lastElementSelected())
-            },
-            {
-                iscore::Autoconnect::ObjectRepresentationType::QObjectName,
-                "InspectorPanelModel", SLOT(lastItemInspected())
             }
         },
 

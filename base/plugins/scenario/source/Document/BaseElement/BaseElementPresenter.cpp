@@ -118,10 +118,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
             this,						&BaseElementPresenter::submitCommand);
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::elementSelected,
-            this,						&BaseElementPresenter::elementSelected);
-
-    connect(m_baseConstraintPresenter,  &FullViewConstraintPresenter::lastElementSelected,
-            this,                       &BaseElementPresenter::lastElementSelected);
+            [&] (QObject* elt) { emit selectionChanged(Selection{elt}); });
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);

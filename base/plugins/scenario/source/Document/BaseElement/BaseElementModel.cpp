@@ -6,6 +6,7 @@
 #include <interface/serialization/JSONVisitor.hpp>
 
 #include <iostream>
+#include <core/interface/document/DocumentInterface.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
@@ -25,24 +26,35 @@ using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent) :
     iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
-m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
+    m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
     m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
-m_baseConstraint {new ConstraintModel{id_type<ConstraintModel>{0},
-                                          id_type<AbstractConstraintViewModel>{0},
-                                          0,
-                                          this
-                                         }
-}
+    m_baseConstraint {new ConstraintModel{
+                            id_type<ConstraintModel>{0},
+                            id_type<AbstractConstraintViewModel>{0},
+                            0,
+                            this}}
 {
     m_baseConstraint->setDefaultDuration(std::chrono::seconds{1});
     m_baseConstraint->setObjectName("BaseConstraintModel");
     initializeNewDocument(m_baseConstraint->fullView());
     on_processSelected(findChild<ProcessSharedModelInterface*>("ScenarioProcessSharedModel"));
+
+    using namespace iscore::IDocument;
+    auto inspector = panel("InspectorWidgetModel", documentFromObject(this));
+    if(inspector)
+    {
+        qDebug() << "yay";
+    }
+
+    // TODO : this document -> current inspector model
+    //auto inspector = qApp->findChild<Inspecto
+    //connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
+    //        this, )
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
@@ -141,5 +153,20 @@ QJsonObject BaseElementModel::toJson()
 
 void BaseElementModel::on_processSelected(ProcessSharedModelInterface *proc)
 {
-    qDebug() << "=== TODO ===" << Q_FUNC_INFO;
+    if(m_selectedProcess)
+        disconnect(m_selectedProcess, &ProcessSharedModelInterface::selectedChildrenChanged,
+                   this,			  &BaseElementModel::on_selectedChildrenChanged);
+
+    m_selectedProcess = proc;
+
+    if(m_selectedProcess)
+        connect(m_selectedProcess, &ProcessSharedModelInterface::selectedChildrenChanged,
+                this,			   &BaseElementModel::on_selectedChildrenChanged);
 }
+
+void BaseElementModel::on_selectedChildrenChanged()
+{
+    m_selectionStack.push(m_selectedProcess->selectedChildren());
+}
+
+

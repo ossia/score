@@ -198,8 +198,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
             this,		&DeckPresenter::submitCommand);
     connect(presenter,	&ProcessPresenterInterface::elementSelected,
             this,		&DeckPresenter::elementSelected);
-    connect(presenter,	&ProcessPresenterInterface::lastElementSelected,
-            this,		&DeckPresenter::lastElementSelected);
 
     m_processes.push_back(presenter);
     updateProcessesShape();

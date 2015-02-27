@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <core/document/DocumentPresenter.hpp>
+#include <core/interface/selection/SelectionStack.hpp>
 
 namespace iscore
 {
@@ -37,7 +38,7 @@ namespace iscore
             }
 
         signals:
-            void elementSelected(QObject* obj);
+            void selectionChanged(Selection s);
             void lastElementSelected();
             void submitCommand(iscore::SerializableCommand* cmd);
 

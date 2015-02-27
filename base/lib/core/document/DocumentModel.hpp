@@ -24,9 +24,9 @@ namespace iscore
 
             void addPanel(PanelModelInterface* m)
             {
-                m_panelModels.insert(m);
+                m_panelModels.append(m);
             }
-            const std::set<PanelModelInterface*>& panels() const
+            const QList<PanelModelInterface*>& panels() const
             {
                 return m_panelModels;
             }
@@ -36,6 +36,6 @@ namespace iscore
 
         private:
             DocumentDelegateModelInterface* m_model {};
-            std::set<PanelModelInterface*> m_panelModels;
+            QList<PanelModelInterface*> m_panelModels;
     };
 }

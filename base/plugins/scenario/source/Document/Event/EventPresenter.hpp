@@ -39,9 +39,6 @@ class EventPresenter : public NamedObject
         void linesExtremityChange(int, double);
 
         void elementSelected(QObject*);
-        void constraintSelected(QString);
-        void inspectPreviousElement();
-        void eventInspectorCreated(id_type<EventModel>);
 
     private:
         EventData pointToEventData(QPointF p) const;

@@ -60,11 +60,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
     signals:
         void dateChanged();
         void newEvent(id_type<EventModel> eventId);
-        void eventSelected(QString);
-        void inspectPreviousElement();
-        void inspectorCreated();
-
-    public slots:
 
     private:
         TimeValue m_date {std::chrono::seconds{0}};

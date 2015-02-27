@@ -27,23 +27,9 @@ m_view {view}
     connect(m_model, &TimeNodeModel::newEvent,
     this,    &TimeNodePresenter::on_eventAdded);
 
-    connect(m_model,    &TimeNodeModel::eventSelected,
-    this,       &TimeNodePresenter::eventSelected);
-
-    connect(m_model,    &TimeNodeModel::inspectPreviousElement,
-    this,       &TimeNodePresenter::inspectPreviousElement);
-
     connect(& (m_model->metadata),  &ModelMetadata::colorChanged,
     m_view,                &TimeNodeView::changeColor);
 
-    connect(m_model,    &TimeNodeModel::inspectorCreated,
-    [ = ]()
-    {
-        if(! m_view->isSelected())
-        {
-            m_view->setSelected(true);
-        }
-    });
 }
 
 TimeNodePresenter::~TimeNodePresenter()
