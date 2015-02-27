@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-
+class SelectionStackWidget;
 class QVBoxLayout;
 class InspectorWidgetBase;
 
@@ -36,6 +36,7 @@ class InspectorPanel : public QWidget
         void on_itemRemoved();
 
     private:
-        QVBoxLayout* m_layout;
+        QVBoxLayout* m_layout{};
+        SelectionStackWidget* m_stack{};
         InspectorWidgetBase* m_itemInspected {};
 };

@@ -166,7 +166,7 @@ void BaseElementModel::on_processSelected(ProcessSharedModelInterface *proc)
 
 void BaseElementModel::on_selectedChildrenChanged()
 {
-    m_selectionStack.push(m_selectedProcess->selectedChildren());
+    emit selectionChanged(m_selectedProcess->selectedChildren());
 }
 
 

@@ -18,4 +18,6 @@ void InspectorPanelPresenter::on_modelChanged()
     m_mvConnection = connect(
                          i_model, &InspectorPanelModel::setNewItem,
                          i_view , &InspectorPanelView::on_setNewItem);
+
+    //i_view->setSelectionStack(i_model->parent())
 }

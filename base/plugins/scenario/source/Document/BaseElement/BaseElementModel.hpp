@@ -42,7 +42,5 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
     private:
         ConstraintModel* m_baseConstraint {};
         ProcessSharedModelInterface* m_selectedProcess{};
-
-        SelectionStack m_selectionStack;
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <QJsonObject>
+#include <core/interface/selection/SelectionStack.hpp>
 namespace iscore
 {
     class DocumentDelegatePresenterInterface;
@@ -16,5 +17,8 @@ namespace iscore
             {
                 return {};
             }
+
+        signals:
+            void selectionChanged(Selection s);
     };
 }

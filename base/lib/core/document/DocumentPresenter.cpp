@@ -107,7 +107,7 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
     connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
             this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
 
-    // TODO Multi selection here.
+    // TODO Multi selection here. And put this in model instead.
     connect(m_presenter, &DocumentDelegatePresenterInterface::selectionChanged,
             this, [this] (Selection s) { if(!s.empty()) emit elementSelected(s.first()); },
             Qt::QueuedConnection);

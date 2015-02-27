@@ -26,6 +26,7 @@ namespace iscore
             {
                 m_panelModels.append(m);
             }
+
             const QList<PanelModelInterface*>& panels() const
             {
                 return m_panelModels;

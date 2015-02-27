@@ -39,7 +39,6 @@ namespace iscore
 
         signals:
             void selectionChanged(Selection s);
-            void lastElementSelected();
             void submitCommand(iscore::SerializableCommand* cmd);
 
         protected:
