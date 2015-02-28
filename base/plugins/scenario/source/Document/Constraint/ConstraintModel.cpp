@@ -89,15 +89,18 @@ void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* view
             this,	   &ConstraintModel::on_destroyedViewModel);
 
     m_constraintViewModels.push_back(viewmodel);
+    emit viewModelCreated(viewmodel->id());
 }
 
 void ConstraintModel::on_destroyedViewModel(QObject* obj)
 {
-    int index = m_constraintViewModels.indexOf(static_cast<AbstractConstraintViewModel*>(obj));
+    auto cvm = static_cast<AbstractConstraintViewModel*>(obj);
+    int index = m_constraintViewModels.indexOf(cvm);
 
     if(index != -1)
     {
         m_constraintViewModels.remove(index);
+        emit viewModelRemoved(cvm->id());
     }
 }
 

@@ -156,6 +156,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void boxCreated(id_type<BoxModel> boxId);
         void boxRemoved(id_type<BoxModel> boxId);
 
+        void viewModelCreated(id_type<AbstractConstraintViewModel>);
+        void viewModelRemoved(id_type<AbstractConstraintViewModel>);
+
         void heightPercentageChanged(double arg);
 
         void defaultDurationChanged(TimeValue arg);

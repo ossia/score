@@ -172,6 +172,13 @@ void ConstraintInspectorWidget::updateDisplayedValues(ConstraintModel* constrain
             connect(model(),	&ConstraintModel::boxRemoved,
                     this,		&ConstraintInspectorWidget::on_boxRemoved));
 
+        m_connections.push_back(
+            connect(model(), &ConstraintModel::viewModelCreated,
+                    this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
+        m_connections.push_back(
+            connect(model(), &ConstraintModel::viewModelRemoved,
+                    this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
+
         // Processes
         for(ProcessSharedModelInterface* process : model()->processes())
         {
@@ -180,7 +187,6 @@ void ConstraintInspectorWidget::updateDisplayedValues(ConstraintModel* constrain
 
         // Box
         m_boxWidget->setModel(model());
-        m_boxWidget->updateComboBox();
 
         for(BoxModel* box : model()->boxes())
         {
@@ -219,14 +225,14 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     emit submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::activeBoxChanged(QString box)
-{/* TODO
+void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
+{
     // TODO mettre à jour l'inspecteur si la box affichée change (i.e. via une commande réseau).
     if(box == m_boxWidget->hiddenText)
     {
-        if(viewModel()->isBoxShown())
+        if(vm->isBoxShown())
         {
-            auto cmd = new HideBoxInViewModel(viewModel());
+            auto cmd = new HideBoxInViewModel(vm);
             emit submitCommand(cmd);
         }
     }
@@ -237,11 +243,11 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box)
 
         if(ok)
         {
-            auto cmd = new ShowBoxInViewModel(viewModel(), id);
+            auto cmd = new ShowBoxInViewModel(vm, id);
             emit submitCommand(cmd);
         }
     }
-*/
+
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
@@ -304,7 +310,6 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     return eventWid;
 }
 
-
 void ConstraintInspectorWidget::on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId)
 {
     reloadDisplayedValues();
@@ -319,7 +324,7 @@ void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessSharedModelInte
 void ConstraintInspectorWidget::on_boxCreated(id_type<BoxModel> boxId)
 {
     setupBox(model()->box(boxId));
-    m_boxWidget->updateComboBox();
+    m_boxWidget->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_boxRemoved(id_type<BoxModel> boxId)
@@ -332,7 +337,17 @@ void ConstraintInspectorWidget::on_boxRemoved(id_type<BoxModel> boxId)
         ptr->deleteLater();
     }
 
-    m_boxWidget->updateComboBox();
+    m_boxWidget->viewModelsChanged();
 }
 
+void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId)
+{
+    qDebug() << "Created";
+    m_boxWidget->viewModelsChanged();
+}
 
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId)
+{
+    qDebug() << "Removed";
+    m_boxWidget->viewModelsChanged();
+}
