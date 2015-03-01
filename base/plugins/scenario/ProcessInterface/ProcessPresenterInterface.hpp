@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
+#include <core/interface/selection/Selection.hpp>
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
@@ -19,7 +20,7 @@ class ProcessPresenterInterface : public NamedObject
         virtual void setHeight(int height) = 0;
 
         virtual void putToFront() = 0;
-        virtual void putBack() = 0;
+        virtual void putBehind() = 0;
 
         virtual void on_horizontalZoomChanged(int) = 0;
         virtual void parentGeometryChanged() = 0;
@@ -30,5 +31,6 @@ class ProcessPresenterInterface : public NamedObject
     signals:
         void submitCommand(iscore::SerializableCommand*);
 
-        void elementSelected(QObject*);
+        //void elementSelected(QObject*);
+        void newSelection(Selection);
 };

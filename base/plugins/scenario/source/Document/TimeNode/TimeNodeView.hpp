@@ -24,17 +24,24 @@ class TimeNodeView : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
         void setMoving(bool);
+        void setSelected(bool selected)
+        {
+            m_selected = selected;
+            update();
+        }
+
+        bool isSelected() const
+        {
+            return m_selected;
+        }
 
     public slots:
         void changeColor(QColor);
 
     signals:
+        void timeNodePressed();
         void timeNodeMoved(QPointF);
         void timeNodeReleased();
-        void timeNodeSelectionChanged(bool);
-
-    protected:
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     private:
         int m_top {0};
@@ -43,4 +50,5 @@ class TimeNodeView : public QGraphicsObject
         QPointF m_clickedPoint {};
         QColor m_color;
         bool m_moving {false};
+        bool m_selected{};
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <core/document/DocumentPresenter.hpp>
-#include <core/interface/selection/SelectionStack.hpp>
+#include <core/interface/selection/Selection.hpp>
 
 namespace iscore
 {
@@ -30,9 +30,7 @@ namespace iscore
 
         signals:
             void submitCommand(iscore::SerializableCommand* cmd);
-
-        public slots:
-            virtual void newItemsSelected(Selection s) = 0;
+            void newSelection(Selection s);
 
         protected:
             DocumentDelegateModelInterface* m_model;

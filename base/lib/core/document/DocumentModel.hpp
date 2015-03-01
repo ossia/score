@@ -39,8 +39,8 @@ namespace iscore
             // Returns a Panel by name.
             PanelModelInterface* panel(QString name) const;
 
-        signals:
-            void selectionChanged(Selection s);
+        public slots:
+            void setNewSelection(Selection);
 
         private:
             DocumentDelegateModelInterface* m_model {};

@@ -20,7 +20,7 @@ class AutomationPresenter : public ProcessPresenterInterface
         virtual void setHeight(int height) override;
 
         virtual void putToFront();
-        virtual void putBack();
+        virtual void putBehind();
         virtual void on_horizontalZoomChanged(int);
         virtual void parentGeometryChanged();
         virtual id_type<ProcessViewModelInterface> viewModelId() const;

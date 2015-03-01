@@ -8,6 +8,7 @@
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
+#include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <core/presenter/command/SerializableCommand.hpp>
 
@@ -28,10 +29,12 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
     QObject* parent) :
     NamedObject {name, parent},
             m_viewModel {model},
-m_view {view}
+            m_view {view}
 {
-    connect(m_view, &AbstractConstraintView::constraintSelectionChanged,
-            [&](bool b) { m_viewModel->model()->selection.set(b); });
+    connect(m_view, &AbstractConstraintView::constraintPressed,
+            this,   &AbstractConstraintPresenter::constraintPressed);
+    connect(&m_viewModel->model()->selection, &Selectable::changed,
+            m_view, &AbstractConstraintView::setSelected);
 
     connect(m_viewModel->model(),   &ConstraintModel::minDurationChanged,
     this,                           &AbstractConstraintPresenter::on_minDurationChanged);
@@ -125,12 +128,7 @@ void AbstractConstraintPresenter::updateHeight()
 // TODO Change this to use the model instead.
 bool AbstractConstraintPresenter::isSelected() const
 {
-    return m_view->isSelected();
-}
-
-void AbstractConstraintPresenter::deselect()
-{
-    m_view->setSelected(false);
+    return m_viewModel->model()->selection.get();
 }
 
 void AbstractConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
@@ -185,4 +183,6 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 
     connect(m_box, &BoxPresenter::askUpdate,
             this,  &AbstractConstraintPresenter::updateHeight);
+    connect(m_box, &BoxPresenter::newSelection,
+            this,  &AbstractConstraintPresenter::newSelection);
 }

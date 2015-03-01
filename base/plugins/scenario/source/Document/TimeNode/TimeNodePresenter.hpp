@@ -25,13 +25,10 @@ class TimeNodePresenter :  public NamedObject
         TimeNodeModel* model();
         TimeNodeView* view();
 
-        bool isSelected();
-        void deselect();
-
     signals:
+        void timeNodePressed();
         void timeNodeMoved(EventData);
         void timeNodeReleased();
-        void elementSelected(QObject*);
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
     public slots:

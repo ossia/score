@@ -5,6 +5,8 @@
 #include <QDebug>
 #include "interface/serialization/VisitorInterface.hpp"
 
+
+// TODO : QDomainObject qui contient le document en membre ?
 ////////////////////////////////////////////////
 // This file contains utility algorithms & classes that can be used
 // everywhere (core, plugins...)

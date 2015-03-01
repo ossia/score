@@ -18,7 +18,7 @@ namespace iscore
                 return {};
             }
 
-        signals:
-            void selectionChanged(Selection s);
+        public slots:
+            virtual void setNewSelection(Selection s) = 0;
     };
 }

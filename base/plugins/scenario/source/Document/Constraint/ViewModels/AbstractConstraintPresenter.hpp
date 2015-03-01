@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/SettableIdentifier.hpp>
 #include <tools/NamedObject.hpp>
-
+#include <core/interface/selection/Selection.hpp>
 #include <vector>
 
 #include "Document/Constraint/ConstraintData.hpp"
@@ -11,7 +11,7 @@ class AbstractConstraintViewModel;
 class AbstractConstraintView;
 class BoxPresenter;
 class BoxModel;
-
+class ProcessSharedModelInterface;
 
 namespace iscore
 {
@@ -41,8 +41,6 @@ class AbstractConstraintPresenter : public NamedObject
         virtual void updateScaling(double scaling);
 
         bool isSelected() const;
-        void deselect();
-
 
         BoxPresenter* box() const
         {
@@ -62,9 +60,10 @@ class AbstractConstraintPresenter : public NamedObject
         void on_horizontalZoomChanged(int val);
 
     signals:
+        void constraintPressed();
         void submitCommand(iscore::SerializableCommand*);
-        void elementSelected(QObject*);
 
+        void newSelection(Selection);
         void askUpdate();
 
     public slots:

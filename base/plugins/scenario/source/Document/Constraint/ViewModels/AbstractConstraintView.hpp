@@ -20,6 +20,19 @@ class AbstractConstraintView : public QGraphicsObject
         void setMinWidth(int min);
         void setHeight(int height);
 
+
+        void setSelected(bool selected)
+        {
+            m_selected = selected;
+            update();
+        }
+
+        bool isSelected() const
+        {
+            return m_selected;
+        }
+
+
         int defaultWidth() const
         {
             return m_defaultWidth;
@@ -41,12 +54,9 @@ class AbstractConstraintView : public QGraphicsObject
         }
 
     signals:
-        //void constraintPressed(QPointF);
-        void constraintSelectionChanged(bool);
+        void constraintPressed();
 
     protected:
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-
         QPen m_solidPen
         {
             QBrush{Qt::black},
@@ -70,4 +80,6 @@ class AbstractConstraintView : public QGraphicsObject
         int m_minWidth {};
 
         int m_height {};
+
+        bool m_selected{};
 };

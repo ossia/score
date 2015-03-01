@@ -2,6 +2,8 @@
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include <core/interface/selection/Selection.hpp>
+class ProcessSharedModelInterface;
 class DeckPresenter;
 class BoxModel;
 class BoxView;
@@ -30,7 +32,7 @@ class BoxPresenter : public NamedObject
 
     signals:
         void submitCommand(iscore::SerializableCommand*);
-        void elementSelected(QObject*);
+        void newSelection(Selection);
 
         void askUpdate();
 

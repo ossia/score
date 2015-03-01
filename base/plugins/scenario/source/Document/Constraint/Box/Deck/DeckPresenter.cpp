@@ -132,7 +132,7 @@ void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterfac
         }
         else
         {
-            pvm->putBack();
+            pvm->putBehind();
         }
     }
 }
@@ -196,8 +196,8 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 
     connect(presenter,	&ProcessPresenterInterface::submitCommand,
             this,		&DeckPresenter::submitCommand);
-    connect(presenter,	&ProcessPresenterInterface::elementSelected,
-            this,		&DeckPresenter::elementSelected);
+    connect(presenter,	&ProcessPresenterInterface::newSelection,
+            this,		&DeckPresenter::newSelection);
 
     m_processes.push_back(presenter);
     updateProcessesShape();

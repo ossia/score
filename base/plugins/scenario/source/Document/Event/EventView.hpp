@@ -16,8 +16,19 @@ class EventView : public QGraphicsObject
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget);
 
+        void setSelected(bool selected)
+        {
+            m_selected = selected;
+            update();
+        }
+
+        bool isSelected() const
+        {
+            return m_selected;
+        }
+
     signals:
-        void eventSelectionChanged(bool);
+        void eventPressed();
         void eventReleasedWithControl(QPointF, QPointF);
         void eventReleased();
         void eventMoved(QPointF);
@@ -37,13 +48,11 @@ class EventView : public QGraphicsObject
         virtual void keyPressEvent(QKeyEvent* e) override;
         virtual void keyReleaseEvent(QKeyEvent* e) override;
 
-        virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-
-
     private:
         QPointF m_clickedPoint {};
         QColor m_color;
 
         bool m_moving {false};
+        bool m_selected{};
 };
 

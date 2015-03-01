@@ -13,13 +13,15 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
     m_model {model},
     m_view {view}
 {
+    connect(&m_model->selection, &Selectable::changed,
+            m_view, &TimeNodeView::setSelected);
+
+    connect(m_view, &TimeNodeView::timeNodePressed,
+            this,   &TimeNodePresenter::timeNodePressed);
     connect(m_view, &TimeNodeView::timeNodeMoved,
             this,   &TimeNodePresenter::on_timeNodeMoved);
     connect(m_view, &TimeNodeView::timeNodeReleased,
             this,   &TimeNodePresenter::timeNodeReleased);
-
-    connect(m_view, &TimeNodeView::timeNodeSelectionChanged,
-            [&](bool b) { m_model->selection.set(b); });
 
     connect(m_model, &TimeNodeModel::newEvent,
             this,    &TimeNodePresenter::on_eventAdded);
@@ -57,16 +59,6 @@ TimeNodeModel* TimeNodePresenter::model()
 TimeNodeView* TimeNodePresenter::view()
 {
     return m_view;
-}
-
-bool TimeNodePresenter::isSelected()
-{
-    return m_view->isSelected();
-}
-
-void TimeNodePresenter::deselect()
-{
-    m_view->setSelected(false);
 }
 
 void TimeNodePresenter::on_timeNodeMoved(QPointF p)

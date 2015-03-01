@@ -33,7 +33,7 @@ void AutomationPresenter::putToFront()
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
 }
 
-void AutomationPresenter::putBack()
+void AutomationPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }

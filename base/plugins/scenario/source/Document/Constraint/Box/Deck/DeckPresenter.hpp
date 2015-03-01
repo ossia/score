@@ -1,6 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
+#include <core/interface/selection/Selection.hpp>
 
 class DeckModel;
 class DeckView;
@@ -9,6 +10,7 @@ namespace iscore
     class SerializableCommand;
 }
 class ProcessPresenterInterface;
+class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
 class DeckPresenter : public NamedObject
 {
@@ -28,7 +30,7 @@ class DeckPresenter : public NamedObject
 
     signals:
         void submitCommand(iscore::SerializableCommand*);
-        void elementSelected(QObject*);
+        void newSelection(Selection);
 
         void askUpdate();
 

@@ -37,9 +37,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(view(), &BaseElementView::positionSliderChanged,
             this,	&BaseElementPresenter::on_positionSliderChanged);
 
-    connect(model(), &BaseElementModel::deselectAll,
-            this,    &BaseElementPresenter::deselectAll);
-
     connect(view()->view(), SIGNAL(widthChanged(int)),
             this, SLOT(on_viewWidthChanged(int)));
 
@@ -76,16 +73,6 @@ void BaseElementPresenter::deselectAll()
     }
 }
 
-QList<QGraphicsItem*> BaseElementPresenter::selectedItems() const
-{
-    return view()->scene()->selectedItems();
-}
-
-void BaseElementPresenter::deleteSelection()
-{
-}
-
-
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
@@ -113,8 +100,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     delete m_baseConstraintPresenter;
     m_baseConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
                                 cstrView,
-                                this
-};
+                                this};
+
 
     m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
     on_askUpdate();
@@ -125,11 +112,13 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
 
+    connect(m_baseConstraintPresenter, &FullViewConstraintPresenter::newSelection,
+            this,                      &BaseElementPresenter::newSelection);
+
 
     // Update the address bar
-    view()
-            ->addressBar()
-            ->setTargetObject(IDocument::path(displayedConstraint()));
+    view()->addressBar()
+          ->setTargetObject(IDocument::path(displayedConstraint()));
 
     // Clear the selection stack.
     qDebug() << "=== TODO ===" << Q_FUNC_INFO;
@@ -190,32 +179,6 @@ void BaseElementPresenter::on_viewWidthChanged(int w)
 BaseElementModel* BaseElementPresenter::model() const
 {
     return static_cast<BaseElementModel*>(m_model);
-}
-
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
-void BaseElementPresenter::newItemsSelected(Selection s)
-{
-    disconnect(model()->constraintModel(), &ConstraintModel::selectedChildrenChanged,
-               model(),                    &BaseElementModel::on_selectedChildrenChanged);
-
-    deselectAll();
-    for(auto item : s)
-    {
-        // TODO HUGE SADNESS
-        if(ConstraintModel* cm = dynamic_cast<ConstraintModel*>(item))
-            cm->selection.set(true);
-        else if(EventModel* ev = dynamic_cast<EventModel*>(item))
-            ev->selection.set(true);
-        else if(TimeNodeModel* tn = dynamic_cast<TimeNodeModel*>(item))
-            tn->selection.set(true);
-    }
-    qApp->processEvents();
-
-    connect(model()->constraintModel(), &ConstraintModel::selectedChildrenChanged,
-            model(),                    &BaseElementModel::on_selectedChildrenChanged);
-
 }
 
 BaseElementView* BaseElementPresenter::view() const

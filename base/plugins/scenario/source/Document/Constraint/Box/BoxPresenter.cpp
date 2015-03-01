@@ -11,6 +11,7 @@
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
 
+#include <ProcessInterface/ProcessSharedModelInterface.hpp>
 #include <QGraphicsScene>
 
 BoxPresenter::BoxPresenter(BoxModel* model,
@@ -112,12 +113,12 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 
 
     connect(deckPres, &DeckPresenter::submitCommand,
-            this,		&BoxPresenter::submitCommand);
-    connect(deckPres, &DeckPresenter::elementSelected,
-            this,		&BoxPresenter::elementSelected);
+            this,     &BoxPresenter::submitCommand);
+    connect(deckPres, &DeckPresenter::newSelection,
+            this,     &BoxPresenter::newSelection);
 
     connect(deckPres, &DeckPresenter::askUpdate,
-            this,		&BoxPresenter::on_askUpdate);
+            this,     &BoxPresenter::on_askUpdate);
 
     on_askUpdate();
 }

@@ -24,9 +24,9 @@ class EventPresenter : public NamedObject
         EventModel* model() const;
 
         bool isSelected() const;
-        void deselect();
 
     signals:
+        void eventPressed();
         void eventMoved(EventData);
         void eventMovedWithControl(EventData);
         void eventReleased();
@@ -35,8 +35,6 @@ class EventPresenter : public NamedObject
         void ctrlStateChanged(bool);
 
         void linesExtremityChange(int, double);
-
-        void elementSelected(QObject*);
 
     private:
         EventData pointToEventData(QPointF p) const;

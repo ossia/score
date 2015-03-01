@@ -14,8 +14,11 @@ EventPresenter::EventPresenter(EventModel* model,
     m_view {view}
 {
     // The scenario catches this :
-    connect(m_view, &EventView::eventSelectionChanged,
-            [&](bool b) { m_model->selection.set(b); });
+    connect(m_view, &EventView::eventPressed,
+            this,   &EventPresenter::eventPressed);
+
+    connect(&m_model->selection, &Selectable::changed,
+            m_view, &EventView::setSelected);
 
 
     connect(m_view, &EventView::eventMoved,
@@ -82,12 +85,7 @@ EventModel* EventPresenter::model() const
 
 bool EventPresenter::isSelected() const
 {
-    return m_view->isSelected();
-}
-
-void EventPresenter::deselect()
-{
-    m_view->setSelected(false);
+    return m_model->selection.get();
 }
 
 EventData EventPresenter::pointToEventData(QPointF p) const

@@ -129,8 +129,6 @@ QList<QObject *> ScenarioModel::selectedChildren() const
     copySelected(m_timeNodes, objects);
     copySelected(m_constraints, objects);
 
-    qDebug() << objects;
-
     return objects;
 }
 
@@ -425,10 +423,7 @@ void ScenarioModel::addEvent(EventModel* event)
     m_events.push_back(event);
 
     connect(&event->selection, &Selectable::changed,
-            [&] (bool)
-    {
-        selectedChildrenChanged(this);
-    } );
+            [&] (bool) { selectedChildrenChanged(this); } );
 
     emit eventCreated(event->id());
 }

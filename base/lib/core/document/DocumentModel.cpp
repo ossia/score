@@ -21,8 +21,6 @@ void DocumentModel::setModelDelegate(DocumentDelegateModelInterface* m)
     }
 
     m_model = m;
-    connect(m_model, &DocumentDelegateModelInterface::selectionChanged,
-            this,    &DocumentModel::selectionChanged);
 }
 
 PanelModelInterface* DocumentModel::panel(QString name) const
@@ -37,4 +35,11 @@ PanelModelInterface* DocumentModel::panel(QString name) const
 
     return it != end(m_panelModels) ? *it : nullptr;
 
+}
+
+void DocumentModel::setNewSelection(Selection s)
+{
+    m_model->setNewSelection(s);
+    // TODO are the panels opt-in or opt-out ?
+    // Inspector is opt-in.
 }

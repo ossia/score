@@ -16,13 +16,12 @@ DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject*
             m_model{m}
 {
     connect(&m_selection, &SelectionStack::currentSelectionChanged,
-            this,         &DocumentPresenter::currentSelectionChanged);
-    connect(m_model,     &DocumentModel::selectionChanged,
-            this,        &DocumentPresenter::newSelection);
+            m_model,      &DocumentModel::setNewSelection);
 }
 
 void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)
 {
+    // TODO put in ctor instead
     if(m_presenter)
     {
         m_presenter->deleteLater();
@@ -35,16 +34,9 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
             this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
 
     // Selection
-    connect(this,        &DocumentPresenter::currentSelectionChanged,
-            m_presenter, &DocumentDelegatePresenterInterface::newItemsSelected);
+    connect(m_presenter,  &DocumentDelegatePresenterInterface::newSelection,
+            &m_selection, &SelectionStack::push, Qt::QueuedConnection);
 }
-
-//// Selection ////
-void DocumentPresenter::newSelection(Selection s)
-{
-    m_selection.push(s);
-}
-
 
 //// Locking / unlocking ////
 void DocumentPresenter::lock_impl()

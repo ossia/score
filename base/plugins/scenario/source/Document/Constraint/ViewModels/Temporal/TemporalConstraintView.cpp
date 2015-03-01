@@ -33,11 +33,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
         c = Qt::blue;
     }
 
-    /*	else if(parentItem()->isSelected())
-        {
-            c = Qt::cyan;
-        }
-    */
     if(defaultWidth() < 0)
     {
         c = Qt::red;
@@ -101,6 +96,7 @@ void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
+    emit constraintPressed();
     //emit constraintPressed(pos() + m->pos());
 }
 

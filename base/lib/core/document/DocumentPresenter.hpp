@@ -40,14 +40,10 @@ namespace iscore
             }
 
         signals:
-            void currentSelectionChanged(Selection);
             void lock(QByteArray);
             void unlock(QByteArray);
 
         public slots:
-            // Selection-relative slots
-            void newSelection(Selection);
-
             // Command-relative slots
             /**
              * @brief applyCommand

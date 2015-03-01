@@ -43,9 +43,6 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     m_baseConstraint->setObjectName("BaseConstraintModel");
 
     initializeNewDocument(m_baseConstraint->fullView());
-
-    connect(m_baseConstraint, &ConstraintModel::selectedChildrenChanged,
-            this,             &BaseElementModel::on_selectedChildrenChanged);
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
@@ -142,11 +139,30 @@ QJsonObject BaseElementModel::toJson()
     return complete;
 }
 
-// TODO this is completely backwards.
-// The Presenter should catch the change in selection,
-// send a signal, and the effective change should then be applied to the model.
-// How to make it so that the selection has some "logic" in the presenter ? i.e. only select in a single process...
-void BaseElementModel::on_selectedChildrenChanged(ProcessSharedModelInterface *proc)
+
+#include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Event/EventModel.hpp>
+#include <Document/TimeNode/TimeNodeModel.hpp>
+void BaseElementModel::setNewSelection(Selection s)
 {
-    emit selectionChanged(proc->selectedChildren());
+    auto constraints = this->findChildren<ConstraintModel*>("ConstraintModel");
+    auto events = this->findChildren<EventModel*>("EventModel");
+    auto timenodes = this->findChildren<TimeNodeModel*>("TimeNodeModel");
+    for(auto elt : constraints)
+        elt->selection.set(false);
+    for(auto elt : events)
+        elt->selection.set(false);
+    for(auto elt : timenodes)
+        elt->selection.set(false);
+
+    for(auto item : s)
+    {
+        // TODO HUGE SADNESS
+        if(ConstraintModel* cm = dynamic_cast<ConstraintModel*>(item))
+            cm->selection.set(true);
+        else if(EventModel* ev = dynamic_cast<EventModel*>(item))
+            ev->selection.set(true);
+        else if(TimeNodeModel* tn = dynamic_cast<TimeNodeModel*>(item))
+            tn->selection.set(true);
+    }
 }

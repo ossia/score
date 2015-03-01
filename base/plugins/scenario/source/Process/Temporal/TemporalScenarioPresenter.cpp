@@ -26,13 +26,16 @@
 #include "ScenarioCommandManager.hpp"
 #include "ScenarioViewInterface.hpp"
 
+#include <core/interface/selection/Selection.hpp>
 #include <tools/utilsCPP11.hpp>
 
 #include <QDebug>
 #include <QRectF>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-
+#include <QStateMachine>
+// TODO use state machine for selection (ctrl / not ctrl)
+#include <QApplication>
 #include <QtMath>
 #include "core/presenter/command/SerializableCommand.hpp"
 
@@ -64,9 +67,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
     }
 
     /////// Connections
-    connect(this,	SIGNAL(elementSelected(QObject*)),
-            parent, SIGNAL(elementSelected(QObject*)));
-
+    // TODO make it more generic (maybe with a QAction ?)
     connect(m_view, &TemporalScenarioView::deletePressed,
             [ = ]()
     {
@@ -167,7 +168,7 @@ void TemporalScenarioPresenter::putToFront()
     m_view->setOpacity(1);
 }
 
-void TemporalScenarioPresenter::putBack()
+void TemporalScenarioPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_view->setOpacity(0.1);
@@ -194,11 +195,6 @@ void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
     {
         m_viewInterface->on_eventMoved(event->id());
     }
-}
-
-id_type<EventModel> TemporalScenarioPresenter::currentlySelectedEvent() const
-{
-    return m_currentlySelectedEvent;
 }
 
 long TemporalScenarioPresenter::millisecPerPixel() const
@@ -256,6 +252,8 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 
 void TemporalScenarioPresenter::on_scenarioPressed()
 {
+    // TODO Redo this correctly
+    /*
     for(auto& event : m_events)
     {
         event->deselect();
@@ -269,7 +267,7 @@ void TemporalScenarioPresenter::on_scenarioPressed()
     for(auto& timeNode : m_timeNodes)
     {
         timeNode->deselect();
-    }
+    }*/
 }
 
 void TemporalScenarioPresenter::on_askUpdate()
@@ -289,15 +287,6 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
     });
 }
 
-void TemporalScenarioPresenter::setCurrentlySelectedEvent(id_type<EventModel> arg)
-{
-    if(m_currentlySelectedEvent != arg)
-    {
-        m_currentlySelectedEvent = arg;
-        emit currentlySelectedEventChanged(arg);
-    }
-}
-
 void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
                                                    id_type<TimeNodeModel> timeNodeId)
 {
@@ -312,6 +301,34 @@ bool TemporalScenarioPresenter::ongoingCommand()
 
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
+template<typename T>
+Selection filterSelections(T* pressedModel, Selection sel)
+{
+    auto cumulation = QApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+    if(!cumulation)
+    {
+        sel.clear();
+    }
+
+    // If the pressed element is selected
+    if(pressedModel->selection.get())
+    {
+        if(cumulation)
+        {
+            sel.removeAll(pressedModel);
+        }
+        else
+        {
+            sel.push_back(pressedModel);
+        }
+    }
+    else
+    {
+        sel.push_back(pressedModel);
+    }
+
+    return sel;
+}
 
 void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 {
@@ -320,51 +337,38 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     auto event_view = new EventView {m_view};
     auto event_presenter = new EventPresenter {event_model,
                            event_view,
-                           this
-};
+                           this};
     event_view->setPos({qreal(rect.x() + event_model->date().msec() / m_millisecPerPixel),
-                        rect.y() + rect.height() * event_model->heightPercentage()
-                       });
+                        rect.y() + rect.height() * event_model->heightPercentage() });
 
     m_events.push_back(event_presenter);
 
 
     // ------------------------------------------------------------
     // event -> Command Manager
-
     connect(event_presenter, &EventPresenter::eventMoved,
-            [ = ](EventData data)
-    {
-        m_cmdManager->moveEventAndConstraint(data);
-    });
+            [=](EventData data) { m_cmdManager->moveEventAndConstraint(data); });
 
     connect(event_presenter, &EventPresenter::eventMovedWithControl,
-            [ = ](EventData data)
-    {
-        m_cmdManager->createConstraint(data);
-    });
+            [=](EventData data) { m_cmdManager->createConstraint(data); });
     connect(event_presenter, &EventPresenter::eventReleased,
-            [ = ]()
-    {
-        m_cmdManager->finishOngoingCommand();
-    });
+            [=]() { m_cmdManager->finishOngoingCommand(); });
 
     connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-            [ = ]()
-    {
-        m_cmdManager->finishOngoingCommand();
-    });
+            [=]() { m_cmdManager->finishOngoingCommand(); });
 
     connect(event_presenter, &EventPresenter::ctrlStateChanged,
-            [ = ](bool state)
-    {
-        m_cmdManager->on_ctrlStateChanged(state);
-    });
+            [=](bool state) { m_cmdManager->on_ctrlStateChanged(state); });
 
+    // ------------------------------------------------------------
     // Selection
-    connect(event_presenter,	&EventPresenter::elementSelected,
-            this,				&TemporalScenarioPresenter::elementSelected);
-
+    connect(event_presenter, &EventPresenter::eventPressed,
+            [=]()
+    {
+        auto scenar  = static_cast<ScenarioModel*>(this->m_viewModel->sharedProcessModel());
+        emit newSelection(filterSelections(event_presenter->model(),
+                                           scenar->selectedChildren()));
+    });
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -390,20 +394,19 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     // ------------------------------------------------------------
     // timeNode -> command manager
     connect(timeNode_presenter, &TimeNodePresenter::timeNodeMoved,
-            [ = ](EventData data)
-    {
-        m_cmdManager->moveTimeNode(data);
-    });
+            [=](EventData data) { m_cmdManager->moveTimeNode(data); });
     connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
-            [ = ]()
-    {
-        m_cmdManager->finishOngoingCommand();
-    });
+            [=]() { m_cmdManager->finishOngoingCommand(); });
 
     // ------------------------------------------------------------
-    // selection and inspector management
-    connect(timeNode_presenter, &TimeNodePresenter::elementSelected,
-            this,				&TemporalScenarioPresenter::elementSelected);
+    // Selection
+    connect(timeNode_presenter, &TimeNodePresenter::timeNodePressed,
+            [=]()
+    {
+        auto scenar  = static_cast<ScenarioModel*>(this->m_viewModel->sharedProcessModel());
+        emit newSelection(filterSelections(timeNode_presenter->model(),
+                                           scenar->selectedChildren()));
+    });
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -411,16 +414,13 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     auto rect = m_view->boundingRect();
 
     auto constraint_view = new TemporalConstraintView {m_view};
-    auto constraint_presenter = new TemporalConstraintPresenter
-    {
+    auto constraint_presenter = new TemporalConstraintPresenter{
                                 constraint_view_model,
                                 constraint_view,
-                                this
-};
+                                this};
 
     constraint_view->setPos({qreal(rect.x() + constraint_view_model->model()->startDate().msec() / m_millisecPerPixel),
-                             rect.y() + rect.height() * constraint_view_model->model()->heightPercentage()
-                            });
+                             rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
 
     constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
@@ -437,21 +437,19 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     // constraint -> command manager
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
-            [ = ](ConstraintData data)
-    {
-        m_cmdManager->moveConstraint(data);
-    });
+            [=](ConstraintData data) { m_cmdManager->moveConstraint(data); });
     connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
-            [ = ]()
-    {
-        m_cmdManager->finishOngoingCommand();
-    });
+            [=]() { m_cmdManager->finishOngoingCommand(); });
 
     // ------------------------------------------------------------
     // selection and inspector management
-
-    connect(constraint_presenter,	&TemporalConstraintPresenter::elementSelected,
-            this,					&TemporalScenarioPresenter::elementSelected);
+    connect(constraint_presenter, &TemporalConstraintPresenter::constraintPressed,
+            [=]()
+    {
+        auto scenar  = static_cast<ScenarioModel*>(this->m_viewModel->sharedProcessModel());
+        emit newSelection(filterSelections(viewModel(constraint_presenter)->model(),
+                                           scenar->selectedChildren()));
+    });
 
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());

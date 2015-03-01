@@ -25,7 +25,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
 
-        virtual void newItemsSelected(Selection s) override;
     public slots:
         void setDisplayedConstraint(ConstraintModel*);
         void setDisplayedObject(ObjectPath);
@@ -34,9 +33,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void selectAll();
         void deselectAll();
-        QList<QGraphicsItem*> selectedItems() const;
-
-        void deleteSelection();
 
         void on_displayedConstraintChanged();
 

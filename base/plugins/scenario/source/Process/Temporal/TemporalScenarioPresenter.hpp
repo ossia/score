@@ -32,11 +32,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         friend class ScenarioCommandManager;
         friend class ScenarioViewInterface;
 
-        Q_PROPERTY(id_type<EventModel> currentlySelectedEvent
-                   READ currentlySelectedEvent
-                   WRITE setCurrentlySelectedEvent
-                   NOTIFY currentlySelectedEventChanged)
-
     public:
         TemporalScenarioPresenter(ProcessViewModelInterface* model,
                                   ProcessViewInterface* view,
@@ -50,17 +45,15 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         virtual void setWidth(int width) override;
         virtual void setHeight(int height) override;
         virtual void putToFront() override;
-        virtual void putBack() override;
+        virtual void putBehind() override;
 
         virtual void parentGeometryChanged() override;
 
         virtual void on_horizontalZoomChanged(int val) override;
 
-        id_type<EventModel> currentlySelectedEvent() const;
         long millisecPerPixel() const;
 
     signals:
-        void currentlySelectedEventChanged(id_type<EventModel> arg);
         void linesExtremityScaled(int, int);
 
     public slots:
@@ -80,8 +73,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_askUpdate();
 
     private slots:
-        void setCurrentlySelectedEvent(id_type<EventModel> arg);
-
         void addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
     protected:
@@ -98,11 +89,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         TemporalScenarioViewModel* m_viewModel;
         TemporalScenarioView* m_view;
-
-
-        id_type<EventModel> m_currentlySelectedEvent {};
-        int m_pointedEvent {0};
-
 
         EventData m_lastData {};
 

@@ -60,10 +60,9 @@ void TimeNodeView::setExtremities(int top, int bottom)
 void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
     QGraphicsObject::mousePressEvent(m);
-
     m_clickedPoint =  m->pos();
 
-    //emit timeNodeSelectionChanged();
+    emit timeNodePressed();
 }
 
 void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
@@ -93,14 +92,4 @@ void TimeNodeView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
-}
-
-QVariant TimeNodeView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
-{
-    if(change == ItemSelectedHasChanged)
-    {
-        emit timeNodeSelectionChanged(value.toBool());
-    }
-
-    return value;
 }
