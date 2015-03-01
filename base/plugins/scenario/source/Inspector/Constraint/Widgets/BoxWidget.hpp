@@ -5,6 +5,7 @@ class QComboBox;
 class ConstraintInspectorWidget;
 class ConstraintModel;
 class AbstractConstraintViewModel;
+class LambdaFriendlyQComboBox;
 class BoxWidget : public QWidget
 {
         Q_OBJECT
@@ -13,7 +14,7 @@ class BoxWidget : public QWidget
         BoxWidget(ConstraintInspectorWidget* parent);
 
         void viewModelsChanged();
-        void updateComboBox(QComboBox*, AbstractConstraintViewModel* vm);
+        void updateComboBox(LambdaFriendlyQComboBox*, AbstractConstraintViewModel* vm);
         void setModel(ConstraintModel*);
 
         const QString hiddenText

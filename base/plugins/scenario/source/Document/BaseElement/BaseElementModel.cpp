@@ -142,6 +142,10 @@ QJsonObject BaseElementModel::toJson()
     return complete;
 }
 
+// TODO this is completely backwards.
+// The Presenter should catch the change in selection,
+// send a signal, and the effective change should then be applied to the model.
+// How to make it so that the selection has some "logic" in the presenter ? i.e. only select in a single process...
 void BaseElementModel::on_selectedChildrenChanged(ProcessSharedModelInterface *proc)
 {
     emit selectionChanged(proc->selectedChildren());

@@ -7,11 +7,13 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
+#include "LambdaFriendlyQComboBox.hpp"
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
-#include <QtWidgets/QComboBox>
+
+
 
 BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
     QWidget {parent},
@@ -34,12 +36,6 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
 
     // For each view model, a box chooser.
     viewModelsChanged();
-
-    // Current box chooser
-    //m_boxList = new QComboBox{this};
-    //connect(m_boxList, SIGNAL(activated(QString)),
-    //        this, SLOT(on_comboBoxActivated(QString)));
-
 
     // Layout setup
     lay->addWidget(addButton, 0, 0);
@@ -67,7 +63,7 @@ void BoxWidget::viewModelsChanged()
         {
             label = new QLabel{QString::number(vm->id()), m_comboBoxesWidget};
         }
-        auto box = new QComboBox{m_comboBoxesWidget};
+        auto box = new LambdaFriendlyQComboBox{m_comboBoxesWidget};
         updateComboBox(box, vm);
 
         lay->addWidget(label, i, 0);
@@ -79,7 +75,7 @@ void BoxWidget::viewModelsChanged()
     this->layout()->addWidget(m_comboBoxesWidget);
 }
 
-void BoxWidget::updateComboBox(QComboBox* combobox, AbstractConstraintViewModel* vm)
+void BoxWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstraintViewModel* vm)
 {
     combobox->clear();
     combobox->addItem(hiddenText);
@@ -93,6 +89,14 @@ void BoxWidget::updateComboBox(QComboBox* combobox, AbstractConstraintViewModel*
             combobox->setCurrentIndex(combobox->count() - 1);
         }
     }
+
+    connect(combobox, &LambdaFriendlyQComboBox::activated,
+            [=] (QString s)
+    {
+        m_parent->activeBoxChanged(s, vm);
+    });
+//    connect(combobox, SIGNAL(activated(QString)),
+//            this,     SLOT(on_comboBoxActivated(QString)));
 }
 
 void BoxWidget::setModel(ConstraintModel* m)

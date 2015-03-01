@@ -24,7 +24,7 @@ class Selectable : public QObject
 
         void set(bool v)
         {
-            qDebug() << Q_FUNC_INFO << v;
+            //qDebug() << Q_FUNC_INFO << v;
             if(m_val != v)
             {
                 m_val = v;
