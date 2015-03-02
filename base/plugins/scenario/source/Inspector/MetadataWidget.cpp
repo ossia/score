@@ -39,17 +39,13 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
 
     descriptionWidget->setLayout(descriptionLay);
 
-    // previous inspector button
-    QToolButton* goPrev = new QToolButton{this};
-    goPrev->setArrowType(Qt::LeftArrow);
-
-    // color
+     // color
     m_colorButton = new QPushButton{};
     m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
     m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
     m_colorButtonPixmap.fill(metadata->color());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
-    typeLay->addWidget(goPrev);
+
     typeLay->addWidget(m_colorButton);
     typeLay->addWidget(m_typeLb);
 
@@ -59,8 +55,6 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, QWidget* parent) :
     comments->addContent(m_comments);
     comments->expand(); // todo à enlever par la suite
 
-//    metadataLayout->addWidget (m_colorButton);
-//    metadataLayout->addWidget(m_typeLb);
     metadataLayout->addLayout(typeLay);
     metadataLayout->addWidget(descriptionWidget);
     metadataLayout->addWidget(comments);

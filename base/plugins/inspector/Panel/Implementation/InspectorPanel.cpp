@@ -30,6 +30,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     m_tabWidget = new QTabWidget{this};
     m_layout->addWidget(m_tabWidget);
 
+    m_tabWidget->setTabsClosable(true);
     for(auto object : objects)
     {
         auto widget = InspectorControl::makeInspectorWidget(object);
@@ -41,4 +42,12 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
         connect(widget, &InspectorWidgetBase::objectsSelected,
                 this,   &InspectorPanel::newSelection);
     }
+    connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
+            [=] (int index)
+    {
+        // need m_tabWidget.movable() = false !
+        Selection sel = objects;
+        sel.removeAt(index);
+        this->newSelection(sel);
+    });
 }

@@ -22,6 +22,11 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include "QRectF"
+#include "QPainterPath"
+#include "QGraphicsScene"
+#include <core/interface/selection/Selection.hpp>
+
 ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presenter) :
     m_presenter(presenter)
 {
@@ -151,4 +156,54 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 
     timeNode->view()->setMoving(m_presenter->ongoingCommand());
+}
+
+void ScenarioViewInterface::setSelectionArea(QRectF area)
+{
+    QPainterPath path{};
+    path.addRect(area);
+    Selection sel{};
+    for (auto item : m_presenter->m_view->scene()->items(path))
+    {
+        EventView* itemEv = dynamic_cast<EventView*>(item);
+        auto itemCstr = dynamic_cast<TemporalConstraintView*>(item);
+        auto itemTn = dynamic_cast<TimeNodeView*>(item);
+
+        if (itemEv)
+        {
+            for (EventPresenter* event : m_presenter->m_events)
+            {
+                if (event->view() == itemEv)
+                {
+                    sel.push_back(event->model());
+                    break;
+                }
+            }
+        }
+
+        else if (itemCstr)
+        {
+            for (TemporalConstraintPresenter* cstr : m_presenter->m_constraints)
+            {
+                if (view(cstr) == itemCstr)
+                {
+                    sel.push_back(viewModel(cstr)->model());
+                    break;
+                }
+            }
+        }
+
+        else if (itemTn)
+        {
+            for (TimeNodePresenter* tn : m_presenter->m_timeNodes)
+            {
+                if (tn->view() == item)
+                {
+                    sel.push_back(tn->model());
+                    break;
+                }
+            }
+        }
+    }
+    emit m_presenter->newSelection(sel);
 }

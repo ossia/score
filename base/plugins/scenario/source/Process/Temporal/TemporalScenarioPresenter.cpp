@@ -88,6 +88,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
         m_cmdManager->on_scenarioReleased(point, scenePoint);
     });
 
+    connect(m_view, &TemporalScenarioView::newSelectionArea,
+            [ = ](QRectF area)
+    {
+        m_viewInterface->setSelectionArea(area);
+    });
+
     connect(m_viewModel, &TemporalScenarioViewModel::eventCreated,
             this,		 &TemporalScenarioPresenter::on_eventCreated);
     connect(m_viewModel, &TemporalScenarioViewModel::eventDeleted,

@@ -19,6 +19,8 @@ class TemporalScenarioView : public ProcessViewInterface
         void scenarioPressedWithControl(QPointF, QPointF);
         void scenarioReleased(QPointF, QPointF);
 
+        void newSelectionArea(QRectF area);
+
         void deletePressed();
         void clearPressed();
 

@@ -92,11 +92,10 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         rect.setTopLeft(this->mapToScene(m_clickedPoint));
         rect.setBottomRight(event->scenePos());
 
-        path.addRect(rect);
-        this->scene()->setSelectionArea(path, QTransform());
         delete m_selectArea;
         this->update();
         m_clicked = false;
+        emit newSelectionArea(rect);
     }
 }
 
@@ -115,5 +114,3 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
         emit deletePressed();
     }
 }
-
-
