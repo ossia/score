@@ -60,6 +60,4 @@ void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
         if(m_rightWidgets.size() > 1)
             tabifyDockWidget(m_rightWidgets.first(), dial);
     }
-
-
 }

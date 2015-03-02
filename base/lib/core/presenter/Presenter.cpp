@@ -102,6 +102,7 @@ void Presenter::setCurrentDocument(Document* doc)
 
     m_view->setCentralView(m_currentDocument->view());
 
+    // TODO put this in the UndoView.
     m_connections.push_back(
                 connect(m_currentDocument->presenter()->commandQueue(), &QUndoStack::canUndoChanged,
                         [&] (bool b) { m_undoAction->setEnabled(b); }));
