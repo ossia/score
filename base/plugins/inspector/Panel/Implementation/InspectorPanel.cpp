@@ -18,7 +18,8 @@ InspectorPanel::InspectorPanel(QWidget* parent) :
     m_tabWidget{new QTabWidget{this}}
 {
     m_layout->setMargin(8);
-    setMinimumWidth(350);
+    setMinimumWidth(500);
+    setMaximumWidth(500);
     m_layout->addWidget(m_tabWidget);
 }
 
@@ -39,10 +40,5 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
                 this,   &InspectorPanel::submitCommand);
         connect(widget, &InspectorWidgetBase::objectsSelected,
                 this,   &InspectorPanel::newSelection);
-
     }
-
-    // TODO put this at the selection level instead.
-    //connect(object, &QObject::destroyed,
-    //        this,	&InspectorPanel::on_itemRemoved);
 }

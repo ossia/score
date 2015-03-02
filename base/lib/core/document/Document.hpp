@@ -23,6 +23,8 @@ namespace iscore
                      QWidget* parentview,
                      QObject* parent);
 
+            ~Document();
+
             DocumentModel* model() const
             {
                 return m_model;

@@ -36,6 +36,16 @@ Document::Document(DocumentDelegateFactoryInterface* type, QWidget* parentview, 
     emit newDocument_start();
 }
 
+Document::~Document()
+{
+    // We need a custom destructor because
+    // for the sake of simplicity, we want the view and the presenter
+    // to be deleted before the model.
+    // (Else we would have to fine-grain the deletion of the selection stack).
+
+    delete m_presenter;
+}
+
 // TODO the Document should receive the list of the current panels.
 // If a panel is closed or so, its model is deleted in all documents.
 // If a panel is opened, its model should be created in all documents,
