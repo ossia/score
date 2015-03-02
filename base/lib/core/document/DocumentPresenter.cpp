@@ -5,6 +5,7 @@
 #include <core/tools/utilsCPP11.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <interface/panel/PanelModelInterface.hpp>
 
 
 using namespace iscore;
@@ -16,7 +17,14 @@ DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject*
             m_model{m}
 {
     connect(&m_selection, &SelectionStack::currentSelectionChanged,
-            m_model,      &DocumentModel::setNewSelection);
+            [&] (Selection s)
+            {
+                m_model->setNewSelection(s);
+                for(auto& panel : m_model->panels())
+                {
+                    panel->setNewSelection(s);
+                }
+            });
 }
 
 void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface* pres)

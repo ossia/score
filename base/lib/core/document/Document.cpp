@@ -5,6 +5,7 @@
 
 #include <interface/panel/PanelFactoryInterface.hpp>
 #include <interface/panel/PanelPresenterInterface.hpp>
+#include <interface/panel/PanelModelInterface.hpp>
 
 #include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
@@ -45,8 +46,19 @@ void Document::setupNewPanel(PanelPresenterInterface* pres, PanelFactoryInterfac
 {
     auto model = factory->makeModel(m_model);
     m_model->addPanel(model);
+}
 
-    pres->setModel(model);
+void Document::bindPanelPresenter(PanelPresenterInterface* pres)
+{
+    using namespace std;
+    auto localmodel = std::find_if(begin(model()->panels()),
+                                   end(model()->panels()),
+                                   [&] (PanelModelInterface* model)
+    {
+        return model->objectName() == pres->modelObjectName();
+    });
+
+    pres->setModel(*localmodel);
 }
 
 // TODO Load should go in the global presenter.

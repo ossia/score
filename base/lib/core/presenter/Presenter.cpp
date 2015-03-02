@@ -79,18 +79,28 @@ void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel
     m_availableDocuments.push_back(docpanel);
 }
 
+void Presenter::setCurrentDocument(Document* doc)
+{
+    m_currentDocument = doc;
+    for(auto& pair : m_panelPresenters)
+    {
+        m_currentDocument->bindPanelPresenter(pair.first);
+    }
+
+    m_view->setCentralView(m_currentDocument->view());
+}
+
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 {
     auto doc = new Document{doctype, m_view, this};
     m_documents.push_back(doc);
-    m_currentDocument = doc;
-
-    m_view->setCentralView(m_currentDocument->view());
 
     for(auto& panel : m_panelPresenters)
     {
         doc->setupNewPanel(panel.first, panel.second);
     }
+
+    setCurrentDocument(doc);
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name, const QString& name, const QByteArray& data)

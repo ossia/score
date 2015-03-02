@@ -40,6 +40,7 @@ namespace iscore
 
             void setupNewPanel(PanelPresenterInterface* pres,
                                PanelFactoryInterface* factory);
+            void bindPanelPresenter(PanelPresenterInterface*);
 
 
             QByteArray save();

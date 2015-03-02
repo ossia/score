@@ -11,6 +11,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
+
             PanelPresenterInterface(Presenter* parent_presenter, PanelViewInterface* view) :
                 QObject {parent_presenter},
                     m_view {view},
@@ -19,10 +20,18 @@ namespace iscore
 
             }
 
+            // The name of the model.
+            virtual QString modelObjectName() const = 0;
+
             void setModel(PanelModelInterface* model)
             {
                 m_model = model;
                 on_modelChanged();
+            }
+
+            PanelModelInterface* model() const
+            {
+                return m_model;
             }
 
             virtual void on_modelChanged() = 0;

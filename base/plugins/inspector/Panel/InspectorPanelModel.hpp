@@ -16,6 +16,12 @@ class InspectorPanelModel : public iscore::PanelModelInterface
     public:
         InspectorPanelModel(iscore::DocumentModel* parent);
 
+    signals:
+        void selectionChanged(Selection s);
+
+    public slots:
+        virtual void setNewSelection(Selection s) override;
+
         /*
     signals:
         void setNewItem(QObject*);

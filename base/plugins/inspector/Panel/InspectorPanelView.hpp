@@ -1,5 +1,6 @@
 #pragma once
 #include <interface/panel/PanelViewInterface.hpp>
+#include <core/interface/selection/Selection.hpp>
 namespace iscore
 {
     class DocumentPresenter;
@@ -9,6 +10,7 @@ class SelectionStackWidget;
 class InspectorPanel;
 class InspectorPanelView : public iscore::PanelViewInterface
 {
+        Q_OBJECT
     public:
         InspectorPanelView(iscore::View* parent);
         virtual QWidget* getWidget() override;
@@ -18,9 +20,12 @@ class InspectorPanelView : public iscore::PanelViewInterface
             return Qt::RightDockWidgetArea;
         }
 
+    signals:
+        void newSelection(Selection s);
+
     public slots:
-        //void on_setNewItem(QObject*);
         void setCurrentDocument(iscore::DocumentPresenter*);
+        void setNewSelection(Selection s);
 
     private:
         QWidget* m_widget{};

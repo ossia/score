@@ -28,14 +28,9 @@ void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
     m_inspectorPanel = new InspectorPanel{m_widget};
 
     // Selection
-    // TODO instead it's the model that should send the new selection.
-/*
-    connect(pres,             &DocumentPresenter::currentSelectionChanged,
-            m_inspectorPanel, &InspectorPanel::newItemsInspected);
+    connect(m_inspectorPanel, &InspectorPanel::newSelection,
+            this,             &InspectorPanelView::newSelection);
 
-    connect(m_inspectorPanel,       &InspectorPanel::newSelection,
-            pres->selectionStack(), &SelectionStack::push);
-*/
     // Commands
     connect(m_inspectorPanel, &InspectorPanel::submitCommand,
             pres,             &DocumentPresenter::applyCommand, Qt::QueuedConnection);
@@ -44,4 +39,9 @@ void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
     auto lay = new QVBoxLayout{m_widget};
     lay->addWidget(m_stack);
     lay->addWidget(m_inspectorPanel);
+}
+
+void InspectorPanelView::setNewSelection(Selection s)
+{
+    m_inspectorPanel->newItemsInspected(s);
 }

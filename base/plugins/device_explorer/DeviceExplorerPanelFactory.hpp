@@ -13,6 +13,10 @@ class DeviceExplorerPanelPresenter : public iscore::PanelPresenterInterface
                                      iscore::PanelViewInterface* view);
 
         virtual void on_modelChanged() override;
+        QString modelObjectName() const override
+        {
+            return "DeviceExplorerPanelModel";
+        }
 
 };
 
