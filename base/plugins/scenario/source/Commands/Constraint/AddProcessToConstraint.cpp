@@ -13,9 +13,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process) :
     SerializableCommand {"ScenarioControl",
-    "AddProcessToConstraint",
-    QObject::tr("Add process")
-},
+                         className(),
+                         description()},
 m_path {std::move(constraintPath) },
 m_processName {process}
 {

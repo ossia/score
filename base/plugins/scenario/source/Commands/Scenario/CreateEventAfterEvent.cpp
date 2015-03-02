@@ -11,23 +11,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CreateEventAfterEvent::CreateEventAfterEvent() :
-    SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-}
-{
-}
-
 CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-},
-m_path {std::move(scenarioPath) },
-m_firstEventId {data.eventClickedId},
-m_time {data.dDate},
-m_heightPosition {data.relativeY}
+                         className(),
+                         description()},
+    m_path {std::move(scenarioPath) },
+    m_firstEventId {data.eventClickedId},
+    m_time {data.dDate},
+    m_heightPosition {data.relativeY}
 {
     auto scenar = m_path.find<ScenarioModel>();
 
@@ -59,11 +50,11 @@ void CreateEventAfterEvent::redo()
     auto scenar = m_path.find<ScenarioModel>();
 
     scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
-            m_time,
-            m_heightPosition,
-            m_createdConstraintId,
-            m_createdConstraintFullViewId,
-            m_createdEventId);
+                                                 m_time,
+                                                 m_heightPosition,
+                                                 m_createdConstraintId,
+                                                 m_createdConstraintFullViewId,
+                                                 m_createdEventId);
 
     scenar->createTimeNode(m_createdTimeNodeId, m_createdEventId);
     // this does not work : why scenar->timeNode(m_createdTimeNodeId)->addEvent(m_createdEventId);
@@ -125,12 +116,12 @@ void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
 void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
 {
     s >> m_path
-      >> m_firstEventId
-      >> m_time
-      >> m_heightPosition
-      >> m_createdEventId
-      >> m_createdConstraintId
-      >> m_createdTimeNodeId
-      >> m_createdConstraintViewModelIDs
-      >> m_createdConstraintFullViewId;
+            >> m_firstEventId
+            >> m_time
+            >> m_heightPosition
+            >> m_createdEventId
+            >> m_createdConstraintId
+            >> m_createdTimeNodeId
+            >> m_createdConstraintViewModelIDs
+            >> m_createdConstraintFullViewId;
 }

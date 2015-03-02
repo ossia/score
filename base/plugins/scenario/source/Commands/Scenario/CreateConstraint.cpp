@@ -10,22 +10,15 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CreateConstraint::CreateConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-}
-{
-}
-
-CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent) :
-    SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-},
-m_path {std::move(scenarioPath) },
-m_startEventId {startEvent},
-m_endEventId {endEvent}
+CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
+                                   id_type<EventModel> startEvent,
+                                   id_type<EventModel> endEvent) :
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
+    m_path {std::move(scenarioPath) },
+    m_startEventId {startEvent},
+    m_endEventId {endEvent}
 {
     auto scenar = m_path.find<ScenarioModel>();
     m_createdConstraintId = getStrongId(scenar->constraints());
@@ -105,9 +98,9 @@ void CreateConstraint::serializeImpl(QDataStream& s) const
 void CreateConstraint::deserializeImpl(QDataStream& s)
 {
     s >> m_path
-      >> m_startEventId
-      >> m_endEventId
-      >> m_createdConstraintId
-      >> m_createdConstraintViewModelIDs
-      >> m_createdConstraintFullViewId;
+            >> m_startEventId
+            >> m_endEventId
+            >> m_createdConstraintId
+            >> m_createdConstraintViewModelIDs
+            >> m_createdConstraintFullViewId;
 }

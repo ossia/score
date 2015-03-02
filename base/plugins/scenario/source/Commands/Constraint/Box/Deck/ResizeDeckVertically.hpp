@@ -17,7 +17,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ResizeDeckVertically();
+                ISCORE_COMMAND_DEFAULT_CTOR(ResizeDeckVertically, "ScenarioControl")
                 ResizeDeckVertically(ObjectPath&& deckPath,
                                      int newSize);
 

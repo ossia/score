@@ -11,19 +11,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode() :
-    SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-}
-{
-}
-
 CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-},
+                         className(),
+                         description()},
 m_path {std::move(scenarioPath) },
 m_timeNodeId {data.endTimeNodeId},
 m_firstEventId {data.eventClickedId},

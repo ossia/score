@@ -6,20 +6,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveMultipleElements::RemoveMultipleElements() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveMultipleElements",
-    QObject::tr("Group deletion")
-}
-{
-}
-
 RemoveMultipleElements::RemoveMultipleElements(
     QVector<SerializableCommand*> deletionCommands) :
     SerializableCommand {"ScenarioControl",
-    "RemoveMultipleElements",
-    QObject::tr("Group deletion")
-}
+                         className(),
+                         description()}
 {
     for(auto& cmd : deletionCommands)
     {

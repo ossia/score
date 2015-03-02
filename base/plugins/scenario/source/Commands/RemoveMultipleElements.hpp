@@ -12,7 +12,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                RemoveMultipleElements();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveMultipleElements, "ScenarioControl")
                 RemoveMultipleElements(QVector<SerializableCommand*> elementsToDelete);
                 virtual void undo() override;
                 virtual void redo() override;

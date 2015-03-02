@@ -13,7 +13,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                RemoveProcessFromConstraint();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint, "ScenarioControl")
                 RemoveProcessFromConstraint(ObjectPath&& constraintPath, id_type<ProcessSharedModelInterface> processId);
                 virtual void undo() override;
                 virtual void redo() override;

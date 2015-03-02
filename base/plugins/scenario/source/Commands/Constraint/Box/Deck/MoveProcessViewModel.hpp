@@ -18,6 +18,11 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
+                MoveProcessViewModel():
+                    AggregateCommand{"ScenarioControl",
+                                     className(),
+                                     description()} { }
+
                 MoveProcessViewModel(const ObjectPath& pvmToMove,
                                      ObjectPath&& targetDeck) :
                     AggregateCommand{"ScenarioControl",

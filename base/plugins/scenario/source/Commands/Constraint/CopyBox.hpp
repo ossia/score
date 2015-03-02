@@ -19,7 +19,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                CopyBox();
+                ISCORE_COMMAND_DEFAULT_CTOR(CopyBox, "ScenarioControl")
                 CopyBox(ObjectPath&& boxToCopy);
 
                 virtual void undo() override;

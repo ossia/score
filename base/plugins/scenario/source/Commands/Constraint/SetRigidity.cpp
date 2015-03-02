@@ -5,19 +5,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-SetRigidity::SetRigidity() :
-    SerializableCommand {"ScenarioControl",
-    "SetRigidity",
-    QObject::tr("Set rigidity of constraint")
-}
-{
-}
-
 SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     SerializableCommand {"ScenarioControl",
-    "SetRigidity",
-    QObject::tr("Set rigidity of constraint")
-},
+                         className(),
+                         description()},
 m_path {constraintPath},
 m_rigidity {rigid}
 {

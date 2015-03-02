@@ -5,20 +5,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ShowBoxInViewModel::ShowBoxInViewModel() :
-    SerializableCommand {"ScenarioControl",
-    "ShowBoxInViewModel",
-    QObject::tr("Show box in constraint view")
-}
-{
-}
-
 ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
                                        id_type<BoxModel> boxId) :
-    SerializableCommand {"ScenarioControl",
-    "ShowBoxInViewModel",
-    QObject::tr("Show box in constraint view")
-},
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
 m_constraintViewModelPath {std::move(constraint_path) },
 m_boxId {boxId}
 {
@@ -29,9 +20,8 @@ m_boxId {boxId}
 ShowBoxInViewModel::ShowBoxInViewModel(const AbstractConstraintViewModel *constraint_vm,
                                        id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
-    "ShowBoxInViewModel",
-    QObject::tr("Show box in constraint view")
-},
+                         className(),
+                         description()},
 m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) },
 m_boxId {boxId}
 {

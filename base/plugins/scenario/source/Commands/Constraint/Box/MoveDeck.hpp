@@ -18,14 +18,18 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
+                MoveDeck():
+                      AggregateCommand{"ScenarioControl",
+                                       className(),
+                                       description()} { }
+
                 MoveDeck(const ObjectPath& deckToMove,
                          ObjectPath&& targetBox) :
-                    AggregateCommand
-                {
-                    "ScenarioControl", "MoveDeck", QObject::tr("Move a deck"),
-                    new CopyDeck{ObjectPath{deckToMove}, std::move(targetBox) },
-                    new RemoveDeckFromBox{ObjectPath{deckToMove}}
-                }
+                    AggregateCommand {"ScenarioControl",
+                                      className(),
+                                      description(),
+                                      new CopyDeck{ObjectPath{deckToMove}, std::move(targetBox) },
+                                      new RemoveDeckFromBox{ObjectPath{deckToMove}}}
                 {
 
                 }

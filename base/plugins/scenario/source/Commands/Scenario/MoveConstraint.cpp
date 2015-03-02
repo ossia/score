@@ -17,19 +17,10 @@ using namespace Scenario::Command;
 // @todo : maybe should we use deplacement value and not absolute ending point.
 // @todo : don't allow too small translation on t axis, so user can move a constraint only on vertical, without changing any duration.
 
-MoveConstraint::MoveConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "MoveConstraint",
-    QObject::tr("Constraint move")
-}
-{
-}
-
 MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath, ConstraintData d) :
     SerializableCommand {"ScenarioControl",
-    "MoveConstraint",
-    QObject::tr("Constraint move")
-},
+                         className(),
+                         description()},
 m_path {std::move(scenarioPath) },
 m_constraintId {d.id},
 m_newHeightPosition {d.relativeY},

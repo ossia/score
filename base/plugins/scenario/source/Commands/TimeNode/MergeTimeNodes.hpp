@@ -16,6 +16,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
+                ISCORE_COMMAND_DEFAULT_CTOR(MergeTimeNodes, "ScenarioControl")
                 MergeTimeNodes(ObjectPath&& path, id_type<TimeNodeModel> aimedTimeNode, id_type<TimeNodeModel> movingTimeNode);
                 virtual void undo() override;
                 virtual void redo() override;

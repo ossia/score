@@ -9,6 +9,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
+                ISCORE_COMMAND_DEFAULT_CTOR(UnassignMessagesFromState, "ScenarioControl")
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual int id() const override;

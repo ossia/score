@@ -18,7 +18,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                AddDeckToBox();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddDeckToBox, "ScenarioControl")
                 AddDeckToBox(ObjectPath&& boxPath);
 
                 virtual void undo() override;

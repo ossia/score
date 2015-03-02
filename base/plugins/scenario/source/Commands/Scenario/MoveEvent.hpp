@@ -16,7 +16,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveEvent();
+                ISCORE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
                 MoveEvent(ObjectPath&& scenarioPath, EventData data);
                 virtual void undo() override;
                 virtual void redo() override;

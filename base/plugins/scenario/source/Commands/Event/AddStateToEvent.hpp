@@ -11,7 +11,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                AddStateToEvent();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddStateToEvent, "ScenarioControl")
                 AddStateToEvent(ObjectPath&& eventPath, QString message);
                 virtual void undo() override;
                 virtual void redo() override;

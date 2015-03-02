@@ -16,7 +16,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                RemoveDeckFromBox();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveDeckFromBox, "ScenarioControl")
                 RemoveDeckFromBox(ObjectPath&& deckPath);
                 RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId);
 

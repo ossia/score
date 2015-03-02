@@ -7,19 +7,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveDeckFromBox::RemoveDeckFromBox() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveDeckFromBox",
-    QObject::tr("Remove deck")
-}
-{
-}
-
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& deckPath) :
     SerializableCommand {"ScenarioControl",
-    "RemoveProcessViewModelFromDeck",
-    QObject::tr("Remove process view")
-}
+                         className(),
+                         description()}
 {
     auto boxPath = deckPath.vec();
     auto lastId = boxPath.takeLast();

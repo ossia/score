@@ -18,14 +18,16 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
+                MergeBoxes():
+                      AggregateCommand{"ScenarioControl",
+                                       className(),
+                                       description()} { }
+
                 MergeBoxes(const ObjectPath& mergeSource,
                            const ObjectPath& mergeTarget) :
-                    AggregateCommand
-                {
-                    "ScenarioControl",
-                    "MergeBoxes",
-                    QObject::tr("Merge decks")
-                }
+                    AggregateCommand{"ScenarioControl",
+                                     className(),
+                                     description()}
                 {
                     auto sourcebox = mergeSource.find<BoxModel>();
 

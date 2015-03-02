@@ -11,11 +11,10 @@ using namespace Scenario::Command;
 
 #include <ProcessInterface/TimeValue.hpp>
 ResizeConstraint::ResizeConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "ResizeConstraint",
-    QObject::tr("Set default duration of constraint")
-},
-m_cmd {new MoveEvent}
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
+    m_cmd {new MoveEvent}
 {
 
 }
@@ -28,9 +27,8 @@ ResizeConstraint::~ResizeConstraint()
 
 ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration) :
     SerializableCommand {"ScenarioControl",
-    "ResizeConstraint",
-    QObject::tr("Set default duration of constraint")
-}
+                         className(),
+                         description()}
 {
 
     auto constraint = constraintPath.find<ConstraintModel>();

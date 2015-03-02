@@ -25,7 +25,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                CopyProcessViewModel();
+                ISCORE_COMMAND_DEFAULT_CTOR(CopyProcessViewModel, "ScenarioControl")
                 CopyProcessViewModel(ObjectPath&& pvmToCopy,
                                      ObjectPath&& targetDeck);
 

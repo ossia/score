@@ -2,7 +2,7 @@
 #include <core/presenter/command/Command.hpp>
 #include <QHash>
 
-#define ISCORE_COMMAND_DEFAULT_CTOR(ClassName, ParentName) ClassName(): iscore::SerializableCommand{ParentName, className(), description()} { }
+#define ISCORE_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , className(), description()} { }
 namespace iscore
 {
     /**

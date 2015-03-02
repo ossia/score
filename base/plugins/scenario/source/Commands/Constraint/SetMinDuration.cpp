@@ -4,21 +4,11 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
-// TODO changer gestion de UID
-#define CMD_NAME "SetMinDuration"
-#define CMD_DESC QObject::tr("Set min duration of constraint")
-
-SetMinDuration::SetMinDuration() :
-    SerializableCommand {"ScenarioControl",
-                         CMD_NAME,
-                         CMD_DESC}
-{
-}
 
 SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, TimeValue newDuration) :
     SerializableCommand {"ScenarioControl",
-                         CMD_NAME,
-                         CMD_DESC},
+                         className(),
+                         description()},
     m_path {constraintPath},
     m_oldDuration {m_path.find<ConstraintModel>()->minDuration() },
     m_newDuration {newDuration}

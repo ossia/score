@@ -21,7 +21,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                RemoveEvent();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveEvent, "ScenarioControl")
                 RemoveEvent(ObjectPath&& scenarioPath, EventModel* event);
                 virtual void undo() override;
                 virtual void redo() override;

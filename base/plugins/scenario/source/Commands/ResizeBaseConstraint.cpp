@@ -9,23 +9,13 @@ using namespace iscore;
 using namespace Scenario::Command;
 using namespace iscore::IDocument;
 
-ResizeBaseConstraint::ResizeBaseConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "ResizeBaseConstraint",
-    QObject::tr("Set default duration of constraint")
-}
-{
-
-}
-
 ResizeBaseConstraint::ResizeBaseConstraint(ObjectPath&& constraintPath,
         TimeValue duration) :
     SerializableCommand {"ScenarioControl",
-    "ResizeBaseConstraint",
-    QObject::tr("Set default duration of constraint")
-},
-m_path {constraintPath},
-m_newDuration {duration}
+                         className(),
+                         description()},
+    m_path {constraintPath},
+    m_newDuration {duration}
 {
     auto constraint = m_path.find<ConstraintModel>();
     m_oldDuration = constraint->defaultDuration();

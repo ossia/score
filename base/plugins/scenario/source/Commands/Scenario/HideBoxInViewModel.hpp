@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                HideBoxInViewModel();
+                ISCORE_COMMAND_DEFAULT_CTOR(HideBoxInViewModel, "ScenarioControl")
                 HideBoxInViewModel(ObjectPath&& path);
 
                 /**

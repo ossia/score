@@ -8,20 +8,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToEvent::AddStateToEvent() :
-    SerializableCommand {"ScenarioControl",
-    "AddStateToEvent",
-    QObject::tr("State and message creation")
-}
-{
-
-}
-
 AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
-    "AddStateToEvent",
-    QObject::tr("State and message creation")
-},
+                         className(),
+                         description()},
 m_path {std::move(eventPath) },
 m_message(message)
 {

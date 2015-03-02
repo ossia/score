@@ -5,22 +5,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-#define CMD_NAME "SetMaxDuration"
-#define CMD_DESC QObject::tr("Set max duration of constraint")
-
-SetMaxDuration::SetMaxDuration() :
-    SerializableCommand {"ScenarioControl",
-    CMD_NAME,
-    CMD_DESC
-}
-{
-}
-
 SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration) :
     SerializableCommand {"ScenarioControl",
-    CMD_NAME,
-    CMD_DESC
-},
+                         className(),
+                         description()},
 m_path {constraintPath},
 m_oldDuration {m_path.find<ConstraintModel>()->maxDuration() },
 m_newDuration {newDuration}
