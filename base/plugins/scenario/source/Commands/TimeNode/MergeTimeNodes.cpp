@@ -12,8 +12,8 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
                                 id_type<TimeNodeModel> aimedTimeNode,
                                 id_type<TimeNodeModel> movingTimeNode):
     SerializableCommand {"ScenarioControl",
-        "Merge two TimeNodes",
-         QObject::tr("Merge two TimeNodes")},
+                         className(),
+                         description()},
     m_path {std::move(path) },
     m_aimedTimeNodeId{aimedTimeNode},
     m_movingTimeNodeId{movingTimeNode}

@@ -16,9 +16,10 @@ namespace Scenario
          */
         class AddProcessViewModelToDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                AddProcessViewModelToDeck();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewModelToDeck, "ScenarioControl")
                 AddProcessViewModelToDeck(ObjectPath&& deck, ObjectPath&& process);
 
                 virtual void undo() override;

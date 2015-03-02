@@ -20,10 +20,10 @@ namespace Scenario
         */
         class ResizeBaseConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ResizeBaseConstraint();
-
+                ISCORE_COMMAND_DEFAULT_CTOR(ResizeBaseConstraint, "ScenarioControl")
                 ResizeBaseConstraint(ObjectPath&& constraintPath,
                                      TimeValue duration);
                 virtual void undo() override;

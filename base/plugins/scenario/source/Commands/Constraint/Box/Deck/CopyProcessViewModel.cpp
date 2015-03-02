@@ -7,22 +7,13 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyProcessViewModel::CopyProcessViewModel() :
-    SerializableCommand {"ScenarioControl",
-    "CopyProcessViewModel",
-    QObject::tr("Copy process view")
-}
-{
-}
-
 CopyProcessViewModel::CopyProcessViewModel(ObjectPath&& pvmPath,
         ObjectPath&& targetDeckPath) :
     SerializableCommand {"ScenarioControl",
-    "CopyProcessViewModel",
-    QObject::tr("Copy process view")
-},
-m_pvmPath {pvmPath},
-m_targetDeckPath {targetDeckPath}
+                         className(),
+                         description()},
+    m_pvmPath {pvmPath},
+    m_targetDeckPath {targetDeckPath}
 {
     auto deck = m_targetDeckPath.find<DeckModel>();
     m_newProcessViewModelId = getStrongId(deck->processViewModels());

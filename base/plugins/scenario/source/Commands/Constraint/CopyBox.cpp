@@ -6,19 +6,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyBox::CopyBox() :
-    SerializableCommand {"ScenarioControl",
-    "CopyBox",
-    QObject::tr("Copy a box")
-}
-{
-}
-
 CopyBox::CopyBox(ObjectPath&& boxToCopy) :
     SerializableCommand {"ScenarioControl",
-    "CopyBox",
-    QObject::tr("Copy a box")
-},
+                         className(),
+                         description()},
 m_boxPath {boxToCopy}
 {
     auto box = m_boxPath.find<BoxModel>();

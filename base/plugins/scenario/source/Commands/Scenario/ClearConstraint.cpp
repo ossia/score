@@ -12,20 +12,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearConstraint::ClearConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "ClearConstraint",
-    QObject::tr("Clear a box")
-}
-{
-
-}
-
 ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
     SerializableCommand {"ScenarioControl",
-    "ClearConstraint",
-    QObject::tr("Clear a box")
-},
+                         className(),
+                         description()},
 m_path {std::move(constraintPath) }
 {
     auto constraint = m_path.find<ConstraintModel>();

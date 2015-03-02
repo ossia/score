@@ -6,20 +6,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddDeckToBox::AddDeckToBox() :
-    SerializableCommand {"ScenarioControl",
-    "AddDeckToBox",
-    QObject::tr("Add empty deck")
-}
-{
-}
-
 AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath) :
     SerializableCommand {"ScenarioControl",
-    "AddDeckToBox",
-    QObject::tr("Add empty deck")
-},
-m_path {boxPath}
+                         className(),
+                         description()},
+    m_path {boxPath}
 {
     auto box = m_path.find<BoxModel>();
     m_createdDeckId = getStrongId(box->decks());

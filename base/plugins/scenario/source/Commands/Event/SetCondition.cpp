@@ -5,27 +5,14 @@
 
 #include <QDebug>
 
-#define CMD_UID 1001
-#define CMD_NAME "SetCondition"
-#define CMD_DESC QObject::tr("Set condition of event")
-
 using namespace iscore;
 using namespace Scenario::Command;
 
-SetCondition::SetCondition() :
-    SerializableCommand {"ScenarioControl",
-    CMD_NAME,
-    CMD_DESC
-}
-{
-
-}
 
 SetCondition::SetCondition(ObjectPath&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
-    CMD_NAME,
-    CMD_DESC
-},
+                         className(),
+                         description()},
 m_path {std::move(eventPath) },
 m_condition(message)
 {
@@ -47,7 +34,7 @@ void SetCondition::redo()
 
 int SetCondition::id() const
 {
-    return CMD_UID;
+    return uid();
 }
 
 bool SetCondition::mergeWith(const QUndoCommand* other)

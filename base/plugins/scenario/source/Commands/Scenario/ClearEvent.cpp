@@ -10,20 +10,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearEvent::ClearEvent() :
-    SerializableCommand {"ScenarioControl",
-    "ClearEvent",
-    QObject::tr("Remove event and pre-constraints")
-}
-{
-}
-
-
 ClearEvent::ClearEvent(ObjectPath&& eventPath) :
     SerializableCommand {"ScenarioControl",
-    "ClearEvent",
-    QObject::tr("Remove event and pre-constraints")
-},
+                         className(),
+                         description()},
 m_path {std::move(eventPath) }
 {
 

@@ -12,20 +12,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveConstraint::RemoveConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveConstraint",
-    QObject::tr("Remove event and pre-constraints")
-}
-{
-}
-
-
 RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint) :
-    SerializableCommand {"ScenarioControl",
-    "RemoveConstraint",
-    QObject::tr("Remove event and pre-constraints")
-},
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
 m_path {std::move(scenarioPath) }
 {
     QByteArray arr;

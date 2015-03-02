@@ -10,7 +10,6 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
-#define CMD_UID 1201
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -18,19 +17,10 @@ using namespace Scenario::Command;
 // @todo : maybe should we use deplacement value and not absolute ending point.
 // @todo : don't allow too small translation on t axis, so user can move a constraint only on vertical, without changing any duration.
 
-MoveConstraint::MoveConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "MoveConstraint",
-    QObject::tr("Constraint move")
-}
-{
-}
-
 MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath, ConstraintData d) :
     SerializableCommand {"ScenarioControl",
-    "MoveConstraint",
-    QObject::tr("Constraint move")
-},
+                         className(),
+                         description()},
 m_path {std::move(scenarioPath) },
 m_constraintId {d.id},
 m_newHeightPosition {d.relativeY},
@@ -66,7 +56,7 @@ void MoveConstraint::redo()
 
 int MoveConstraint::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool MoveConstraint::mergeWith(const QUndoCommand* other)

@@ -13,20 +13,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveEvent::RemoveEvent() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveEvent",
-    QObject::tr("Remove event and pre-constraints")
-}
-{
-}
-
-
 RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event) :
-    SerializableCommand {"ScenarioControl",
-    "RemoveEvent",
-    QObject::tr("Remove event and pre-constraints")
-},
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
 m_path {std::move(scenarioPath) }
 {
     QByteArray arr;

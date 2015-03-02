@@ -11,21 +11,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-#define CMD_UID 1204
-
-CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode() :
-    SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-}
-{
-}
-
 CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
-    "CreateEventAfterEvent",
-    QObject::tr("Event creation")
-},
+                         className(),
+                         description()},
 m_path {std::move(scenarioPath) },
 m_timeNodeId {data.endTimeNodeId},
 m_firstEventId {data.eventClickedId},
@@ -92,7 +81,7 @@ void CreateEventAfterEventOnTimeNode::redo()
 
 int CreateEventAfterEventOnTimeNode::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool CreateEventAfterEventOnTimeNode::mergeWith(const QUndoCommand* other)

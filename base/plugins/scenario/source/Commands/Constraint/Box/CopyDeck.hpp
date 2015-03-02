@@ -18,9 +18,10 @@ namespace Scenario
          */
         class CopyDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                CopyDeck();
+                ISCORE_COMMAND_DEFAULT_CTOR(CopyDeck, "ScenarioControl")
                 CopyDeck(ObjectPath&& deckToCopy,
                          ObjectPath&& targetBoxPath);
 

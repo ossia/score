@@ -28,9 +28,10 @@ namespace Scenario
         */
         class CreateEventAfterEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                CreateEventAfterEvent();
+                ISCORE_COMMAND_DEFAULT_CTOR(CreateEventAfterEvent, "ScenarioControl")
                 CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data);
                 CreateEventAfterEvent& operator= (CreateEventAfterEvent &&) = default;
 

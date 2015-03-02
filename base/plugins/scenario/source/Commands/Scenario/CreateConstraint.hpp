@@ -23,9 +23,10 @@ namespace Scenario
         */
         class CreateConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                CreateConstraint();
+                ISCORE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
                 CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 

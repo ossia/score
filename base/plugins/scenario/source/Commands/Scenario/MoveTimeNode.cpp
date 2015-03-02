@@ -9,24 +9,14 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
-#define CMD_UID 1300
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveTimeNode::MoveTimeNode() :
-    SerializableCommand {"ScenarioControl",
-    "MoveTimeNode",
-    QObject::tr("TimeNode move")
-}
-{
-}
-
 MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath, EventData data) :
-    SerializableCommand {"ScenarioControl",
-    "MoveTimeNode",
-    QObject::tr("TimeNode move")
-},
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
 m_path {std::move(scenarioPath) },
 m_eventId {data.eventClickedId},
 m_newHeightPosition {data.relativeY},
@@ -60,7 +50,7 @@ void MoveTimeNode::redo()
 
 int MoveTimeNode::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool MoveTimeNode::mergeWith(const QUndoCommand* other)

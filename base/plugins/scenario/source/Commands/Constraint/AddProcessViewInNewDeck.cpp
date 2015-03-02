@@ -13,19 +13,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddProcessViewInNewDeck::AddProcessViewInNewDeck() :
-    SerializableCommand {"ScenarioControl",
-    "AddProcessViewInNewDeck",
-    QObject::tr("Add process view in new deck")
-}
-{
-}
-
 AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath, QString process) :
     SerializableCommand {"ScenarioControl",
-    "AddProcessViewInNewDeck",
-    QObject::tr("Add process view in new deck")
-},
+                         className(),
+                         description()},
 m_path {std::move(constraintPath) },
 m_processName {process}
 {

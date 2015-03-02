@@ -7,14 +7,12 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
-#define CMD_UID 1203
 
 CreateEvent::CreateEvent() :
     SerializableCommand {"ScenarioControl",
-    "CreateEvent",
-    QObject::tr("Event creation")
-},
-m_cmd {new CreateEventAfterEvent}
+                         className(),
+                         description()},
+    m_cmd {new CreateEventAfterEvent}
 {
 
 }
@@ -26,9 +24,8 @@ CreateEvent::~CreateEvent()
 
 CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
-    "CreateEvent",
-    QObject::tr("Event creation")
-}
+                         className(),
+                         description()}
 {
     auto scenar = scenarioPath.find<ScenarioModel>();
 
@@ -50,7 +47,7 @@ void CreateEvent::redo()
 
 int CreateEvent::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool CreateEvent::mergeWith(const QUndoCommand* other)

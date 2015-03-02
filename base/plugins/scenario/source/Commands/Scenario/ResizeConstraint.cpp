@@ -6,19 +6,15 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "core/interface/document/DocumentInterface.hpp"
 
-// TODO changer gestion de UID
-#define CMD_UID 1002
-
 using namespace iscore;
 using namespace Scenario::Command;
 
 #include <ProcessInterface/TimeValue.hpp>
 ResizeConstraint::ResizeConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "ResizeConstraint",
-    QObject::tr("Set default duration of constraint")
-},
-m_cmd {new MoveEvent}
+    SerializableCommand{"ScenarioControl",
+                        className(),
+                        description()},
+    m_cmd {new MoveEvent}
 {
 
 }
@@ -31,9 +27,8 @@ ResizeConstraint::~ResizeConstraint()
 
 ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration) :
     SerializableCommand {"ScenarioControl",
-    "ResizeConstraint",
-    QObject::tr("Set default duration of constraint")
-}
+                         className(),
+                         description()}
 {
 
     auto constraint = constraintPath.find<ConstraintModel>();
@@ -59,7 +54,7 @@ void ResizeConstraint::redo()
 
 int ResizeConstraint::id() const
 {
-    return CMD_UID;
+    return uid();
 }
 
 bool ResizeConstraint::mergeWith(const QUndoCommand* other)

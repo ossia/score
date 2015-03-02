@@ -6,22 +6,13 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyDeck::CopyDeck() :
-    SerializableCommand {"ScenarioControl",
-    "CopyDeck",
-    QObject::tr("Copy a deck")
-}
-{
-}
-
 CopyDeck::CopyDeck(ObjectPath&& deckToCopy,
                    ObjectPath&& targetBoxPath) :
     SerializableCommand {"ScenarioControl",
-    "CopyDeck",
-    QObject::tr("Copy a deck")
-},
-m_deckPath {deckToCopy},
-m_targetBoxPath {targetBoxPath}
+                         className(),
+                         description()},
+    m_deckPath {deckToCopy},
+    m_targetBoxPath {targetBoxPath}
 {
     auto box = m_targetBoxPath.find<BoxModel>();
     m_newDeckId = getStrongId(box->decks());
@@ -40,8 +31,7 @@ void CopyDeck::redo()
 
     targetBox->addDeck(new DeckModel {sourceDeck,
                                       m_newDeckId,
-                                      targetBox
-                                     });
+                                      targetBox});
 }
 
 int CopyDeck::id() const

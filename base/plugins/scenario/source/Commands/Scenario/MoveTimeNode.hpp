@@ -15,9 +15,10 @@ namespace Scenario
     {
         class MoveTimeNode : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveTimeNode();
+                ISCORE_COMMAND_DEFAULT_CTOR(MoveTimeNode, "ScenarioControl")
                 MoveTimeNode(ObjectPath&& scenarioPath, EventData data);
                 virtual void undo() override;
                 virtual void redo() override;

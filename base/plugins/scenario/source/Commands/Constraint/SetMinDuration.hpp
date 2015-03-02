@@ -15,10 +15,11 @@ namespace Scenario
          */
         class SetMinDuration : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                SetMinDuration();
+                ISCORE_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
                 SetMinDuration(ObjectPath&& constraintPath, TimeValue duration);
 
                 virtual void undo() override;

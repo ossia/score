@@ -8,19 +8,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveBoxFromConstraint::RemoveBoxFromConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveBoxFromConstraint",
-    QObject::tr("Remove box")
-}
-{
-}
-
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& boxPath) :
     SerializableCommand {"ScenarioControl",
-    "RemoveBoxFromConstraint",
-    QObject::tr("Remove box")
-}
+                         className(),
+                         description()}
 {
     auto constraintPath = boxPath.vec();
     auto lastId = constraintPath.takeLast();
@@ -30,9 +21,8 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& boxPath) :
 
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
-    "RemoveBoxFromConstraint",
-    QObject::tr("Remove box")
-},
+                         className(),
+                         description()},
 m_path {constraintPath},
 m_boxId {boxId}
 {

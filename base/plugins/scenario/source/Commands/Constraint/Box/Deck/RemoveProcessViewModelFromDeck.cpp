@@ -8,19 +8,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck() :
-    SerializableCommand {"ScenarioControl",
-    "RemoveProcessViewModelFromDeck",
-    QObject::tr("Remove process view")
-}
-{
-}
-
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& pvmPath) :
     SerializableCommand {"ScenarioControl",
-    "RemoveProcessViewModelFromDeck",
-    QObject::tr("Remove process view")
-}
+                         className(),
+                         description()}
 {
     auto deckPath = pvmPath.vec();
     auto lastId = deckPath.takeLast();

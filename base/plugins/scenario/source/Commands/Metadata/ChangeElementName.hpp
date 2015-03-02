@@ -11,11 +11,22 @@ namespace Scenario
         template<class T>
         class ChangeElementName : public iscore::SerializableCommand
         {
+                // No ISCORE_COMMAND here since it's a template.
             public:
+                static const char * className()
+                {
+                    return QString{"ChangeElementName_%1"}.arg(T::className()).toLatin1();
+                }
+                static QString description()
+                {
+                    return QObject::tr("Change %1 name").arg(T::prettyName());
+                }
+
+                ISCORE_COMMAND_DEFAULT_CTOR(ChangeElementName, "ScenarioControl")
                 ChangeElementName(ObjectPath&& path, QString newName) :
-                    SerializableCommand {"ScenarioControl",
-                                         QString{"ChangeElementName_%1"}.arg(T::className()),
-                                         QObject::tr("Change current objects name")},
+                    SerializableCommand{"ScenarioControl",
+                                        className(),
+                                        description()},
                     m_path {std::move(path) },
                     m_newName {newName}
                 {

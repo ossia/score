@@ -14,8 +14,9 @@ namespace Scenario
          */
         class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
-                RemoveProcessViewModelFromDeck();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveProcessViewModelFromDeck, "ScenarioControl")
 
                 RemoveProcessViewModelFromDeck(ObjectPath&& pvmPath);
                 RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);

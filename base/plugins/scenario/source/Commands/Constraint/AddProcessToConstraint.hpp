@@ -15,9 +15,10 @@ namespace Scenario
         */
         class AddProcessToConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                AddProcessToConstraint();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
                 AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 
                 virtual void undo() override;

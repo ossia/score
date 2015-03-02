@@ -7,6 +7,7 @@ namespace Scenario
     {
         class Paste : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 virtual void undo() override;
                 virtual void redo() override;

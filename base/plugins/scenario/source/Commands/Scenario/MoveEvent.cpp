@@ -9,28 +9,19 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
-#define CMD_UID 1200
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveEvent::MoveEvent() :
-    SerializableCommand {"ScenarioControl",
-    "MoveEvent",
-    QObject::tr("Event move")
-}
-{
-}
-
 MoveEvent::MoveEvent(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
-    "MoveEvent",
-    QObject::tr("Event move")
-},
-m_path {std::move(scenarioPath) },
-m_eventId {data.eventClickedId},
-m_newHeightPosition {data.relativeY},
-m_newX {data.dDate}
+                         "MoveEvent",
+                         QObject::tr("Event move")
+                         },
+    m_path {std::move(scenarioPath) },
+    m_eventId {data.eventClickedId},
+    m_newHeightPosition {data.relativeY},
+    m_newX {data.dDate}
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto ev = scenar->event(m_eventId);
@@ -43,9 +34,9 @@ void MoveEvent::undo()
     auto scenar = m_path.find<ScenarioModel>();
 
     StandardDisplacementPolicy::setEventPosition(*scenar,
-            m_eventId,
-            m_oldX,
-            m_oldHeightPosition);
+                                                 m_eventId,
+                                                 m_oldX,
+                                                 m_oldHeightPosition);
 }
 
 void MoveEvent::redo()
@@ -53,14 +44,14 @@ void MoveEvent::redo()
     auto scenar = m_path.find<ScenarioModel>();
 
     StandardDisplacementPolicy::setEventPosition(*scenar,
-            m_eventId,
-            m_newX,
-            m_newHeightPosition);
+                                                 m_eventId,
+                                                 m_newX,
+                                                 m_newHeightPosition);
 }
 
 int MoveEvent::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool MoveEvent::mergeWith(const QUndoCommand* other)
@@ -87,5 +78,5 @@ void MoveEvent::serializeImpl(QDataStream& s) const
 void MoveEvent::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_eventId
-      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
+            >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
 }

@@ -15,10 +15,11 @@ namespace Scenario
          */
         class SetRigidity : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                SetRigidity();
+                ISCORE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
                 SetRigidity(ObjectPath&& constraintPath, bool rigid);
 
                 virtual void undo() override;

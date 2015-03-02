@@ -20,8 +20,9 @@ namespace Scenario
         */
         class RemoveConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
-                RemoveConstraint();
+                ISCORE_COMMAND_DEFAULT_CTOR(RemoveConstraint, "ScenarioControl")
                 RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint);
                 virtual void undo() override;
                 virtual void redo() override;

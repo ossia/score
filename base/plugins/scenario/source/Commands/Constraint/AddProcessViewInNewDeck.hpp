@@ -19,9 +19,10 @@ namespace Scenario
         */
         class AddProcessViewInNewDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                AddProcessViewInNewDeck();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewDeck, "ScenarioControl")
                 AddProcessViewInNewDeck(ObjectPath&& constraintPath, QString process);
 
                 virtual void undo() override;

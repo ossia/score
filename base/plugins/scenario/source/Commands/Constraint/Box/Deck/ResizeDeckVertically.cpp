@@ -5,22 +5,13 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ResizeDeckVertically::ResizeDeckVertically() :
-    SerializableCommand {"ScenarioControl",
-    "ResizeDeckVertically",
-    QObject::tr("Resize Deck")
-}
-{
-}
-
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
-        int newSize) :
+                                           int newSize) :
     SerializableCommand {"ScenarioControl",
-    "ResizeDeckVertically",
-    QObject::tr("Resize Deck")
-},
-m_path {deckPath},
-m_newSize {newSize}
+                         className(),
+                         description()},
+    m_path {deckPath},
+    m_newSize {newSize}
 {
     auto deck = m_path.find<DeckModel>();
     m_originalSize = deck->height();

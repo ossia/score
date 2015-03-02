@@ -7,20 +7,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddBoxToConstraint::AddBoxToConstraint() :
-    SerializableCommand {"ScenarioControl",
-    "AddBoxToConstraint",
-    QObject::tr("Add empty box")
-}
-{
-}
-
 AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath) :
     SerializableCommand {"ScenarioControl",
-    "AddBoxToConstraint",
-    QObject::tr("Add empty box")
-},
-m_path {constraintPath}
+                         className(),
+                         description()},
+    m_path {constraintPath}
 {
     auto constraint = m_path.find<ConstraintModel>();
     m_createdBoxId = getStrongId(constraint->boxes());

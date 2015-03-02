@@ -15,10 +15,11 @@ namespace Scenario
          */
         class AddBoxToConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                AddBoxToConstraint();
+                ISCORE_COMMAND_DEFAULT_CTOR(AddBoxToConstraint, "ScenarioControl")
                 AddBoxToConstraint(ObjectPath&& constraintPath);
 
                 virtual void undo() override;
