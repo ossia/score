@@ -62,7 +62,7 @@ class SelectionStack : public QObject
         }
 
     signals:
-        void currentSelectionChanged(Selection);
+        void currentSelectionChanged(const Selection&);
 
     private slots:
         void prune(QObject* p)
@@ -78,7 +78,6 @@ class SelectionStack : public QObject
             }
 
             emit currentSelectionChanged(m_unselectable.top());
-
         }
 
     private:

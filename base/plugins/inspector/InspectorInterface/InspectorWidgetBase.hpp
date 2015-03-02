@@ -40,7 +40,7 @@ class InspectorWidgetBase : public QWidget
         void undoOngoingCommand();
         void validateOngoingCommand();
 
-        void objectsSelected(Selection);
+        void objectsSelected(const Selection&);
 
     public slots:
 

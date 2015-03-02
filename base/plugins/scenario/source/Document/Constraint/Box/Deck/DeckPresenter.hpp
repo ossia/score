@@ -30,7 +30,7 @@ class DeckPresenter : public NamedObject
 
     signals:
         void submitCommand(iscore::SerializableCommand*);
-        void newSelection(Selection);
+        void newSelection(const Selection&);
 
         void askUpdate();
 

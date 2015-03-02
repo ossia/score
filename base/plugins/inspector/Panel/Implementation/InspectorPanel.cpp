@@ -5,6 +5,7 @@
 #include "InspectorControl.hpp"
 
 #include <core/interface/selection/SelectionStack.hpp>
+#include <core/presenter/command/SerializableCommand.hpp>
 
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -21,7 +22,7 @@ InspectorPanel::InspectorPanel(QWidget* parent) :
     m_layout->addWidget(m_tabWidget);
 }
 
-void InspectorPanel::newItemsInspected(Selection objects)
+void InspectorPanel::newItemsInspected(const Selection& objects)
 {
     delete m_tabWidget;
 
@@ -34,10 +35,10 @@ void InspectorPanel::newItemsInspected(Selection objects)
 
         m_tabWidget->addTab(widget, object->objectName());
 
-        connect(widget, SIGNAL(submitCommand(iscore::SerializableCommand*)),
-                this,   SIGNAL(submitCommand(iscore::SerializableCommand*)));
-        connect(widget, SIGNAL(objectsSelected(Selection)),
-                this,   SIGNAL(newSelection(Selection)));
+        connect(widget, &InspectorWidgetBase::submitCommand,
+                this,   &InspectorPanel::submitCommand);
+        connect(widget, &InspectorWidgetBase::objectsSelected,
+                this,   &InspectorPanel::newSelection);
 
     }
 

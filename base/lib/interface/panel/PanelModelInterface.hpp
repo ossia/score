@@ -12,6 +12,6 @@ namespace iscore
             virtual ~PanelModelInterface() = default;
 
         public slots:
-            virtual void setNewSelection(Selection) { }
+            virtual void setNewSelection(const Selection&) { }
     };
 }

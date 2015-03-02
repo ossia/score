@@ -2,6 +2,7 @@
 #include <tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <source/Document/Properties/Selectable.hpp>
+#include <core/interface/selection/Selection.hpp>
 
 class QDataStream;
 
@@ -77,6 +78,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 
         /// Selection
         virtual QList<QObject*> selectedChildren() const = 0;
+        virtual void setSelection(const Selection& s) = 0;
 
         // protected:
         virtual void serialize(SerializationIdentifier identifier,

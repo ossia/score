@@ -30,7 +30,7 @@ namespace iscore
 
         signals:
             void submitCommand(iscore::SerializableCommand* cmd);
-            void newSelection(Selection s);
+            void newSelection(const Selection& s);
 
         protected:
             DocumentDelegateModelInterface* m_model;

@@ -37,7 +37,7 @@ PanelModelInterface* DocumentModel::panel(QString name) const
 
 }
 
-void DocumentModel::setNewSelection(Selection s)
+void DocumentModel::setNewSelection(const Selection& s)
 {
     m_model->setNewSelection(s);
     // TODO are the panels opt-in or opt-out ?

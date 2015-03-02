@@ -30,7 +30,5 @@ class ProcessPresenterInterface : public NamedObject
 
     signals:
         void submitCommand(iscore::SerializableCommand*);
-
-        //void elementSelected(QObject*);
-        void newSelection(Selection);
+        void newSelection(const Selection&);
 };

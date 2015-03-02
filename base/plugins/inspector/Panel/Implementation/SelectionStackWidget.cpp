@@ -30,7 +30,7 @@ SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
             [&] () { m_stack->reselect(); });
 
     connect(s, &SelectionStack::currentSelectionChanged,
-            [&] (Selection)
+            [&] (const Selection&)
     {
         m_prev->setEnabled(m_stack->canUnselect());
         m_next->setEnabled(m_stack->canReselect());

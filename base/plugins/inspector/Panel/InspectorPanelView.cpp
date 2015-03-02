@@ -41,7 +41,7 @@ void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
     lay->addWidget(m_inspectorPanel);
 }
 
-void InspectorPanelView::setNewSelection(Selection s)
+void InspectorPanelView::setNewSelection(const Selection& s)
 {
     m_inspectorPanel->newItemsInspected(s);
 }

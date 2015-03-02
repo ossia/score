@@ -21,11 +21,11 @@ class InspectorPanelView : public iscore::PanelViewInterface
         }
 
     signals:
-        void newSelection(Selection s);
+        void newSelection(const Selection& s);
 
     public slots:
         void setCurrentDocument(iscore::DocumentPresenter*);
-        void setNewSelection(Selection s);
+        void setNewSelection(const Selection& s);
 
     private:
         QWidget* m_widget{};

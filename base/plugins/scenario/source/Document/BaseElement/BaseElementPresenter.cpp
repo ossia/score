@@ -76,7 +76,7 @@ void BaseElementPresenter::deselectAll()
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
-            || path.vec().last().objectName() == "BaseConstraintModel")
+    || path.vec().last().objectName() == "BaseConstraintModel")
     {
         setDisplayedConstraint(path.find<ConstraintModel>());
     }
@@ -120,9 +120,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    // Clear the selection stack.
-    qDebug() << "=== TODO ===" << Q_FUNC_INFO;
-
     // Set the new minimum zoom. It should be set such that :
     // - when the x position is 0
     // - when the zoom is minimal (minZ)
@@ -131,7 +128,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     // minSlider = viewportwidth * 100 * 0.97 / constraintDuration
 
-    //    view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration());
+    view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration().msec());
 }
 
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)

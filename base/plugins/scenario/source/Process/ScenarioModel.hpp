@@ -52,7 +52,8 @@ class ScenarioModel : public ProcessSharedModelInterface
         virtual void setDurationWithScale(TimeValue newDuration) override;
         virtual void setDurationWithoutScale(TimeValue newDuration) override;
 
-        virtual QList<QObject*> selectedChildren() const override;
+        virtual Selection selectedChildren() const override;
+        void setSelection(const Selection& s) override;
         virtual QString processName() const override
         {
             return "Scenario";

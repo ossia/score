@@ -11,7 +11,7 @@ InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
     this->setParent(parent);
 }
 
-void InspectorPanelModel::setNewSelection(Selection s)
+void InspectorPanelModel::setNewSelection(const Selection& s)
 {
     emit selectionChanged(s);
 }

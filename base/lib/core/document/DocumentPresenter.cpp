@@ -17,7 +17,7 @@ DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject*
             m_model{m}
 {
     connect(&m_selection, &SelectionStack::currentSelectionChanged,
-            [&] (Selection s)
+            [&] (const Selection& s)
             {
                 m_model->setNewSelection(s);
                 for(auto& panel : m_model->panels())

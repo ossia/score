@@ -122,14 +122,24 @@ void copySelected(const InputVec& in, OutputVec& out)
     });
 }
 
-QList<QObject *> ScenarioModel::selectedChildren() const
+Selection ScenarioModel::selectedChildren() const
 {
-    QList<QObject*> objects;
+    Selection objects;
     copySelected(m_events, objects);
     copySelected(m_timeNodes, objects);
     copySelected(m_constraints, objects);
 
     return objects;
+}
+
+void ScenarioModel::setSelection(const Selection& s)
+{
+    for(auto elt : m_constraints)
+        elt->selection.set(s.contains(elt));
+    for(auto elt : m_events)
+        elt->selection.set(s.contains(elt));
+    for(auto elt : m_timeNodes)
+        elt->selection.set(s.contains(elt));
 }
 
 

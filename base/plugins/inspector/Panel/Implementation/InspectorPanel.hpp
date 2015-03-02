@@ -34,10 +34,10 @@ class InspectorPanel : public QWidget
         void submitCommand(iscore::SerializableCommand*);
 
         /**
-         * @brief objectsSelected
+         * @brief newSelection
          * This signal is sent when objects are selected FROM the inspector.
          */
-        void newSelection(Selection);
+        void newSelection(const Selection&);
 
     public slots:
         /*!
@@ -46,7 +46,7 @@ class InspectorPanel : public QWidget
          *  It's called when the user selects a new item
          * \param object The selected objet.
          */
-        void newItemsInspected(Selection);
+        void newItemsInspected(const Selection&);
 
     private:
         QVBoxLayout* m_layout{};

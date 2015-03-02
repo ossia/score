@@ -19,6 +19,6 @@ namespace iscore
             }
 
         public slots:
-            virtual void setNewSelection(Selection s) = 0;
+            virtual void setNewSelection(const Selection& s) = 0;
     };
 }

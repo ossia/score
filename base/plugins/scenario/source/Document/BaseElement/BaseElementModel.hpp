@@ -35,9 +35,12 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         virtual QByteArray save() override;
         virtual QJsonObject toJson() override;
 
-        void setNewSelection(Selection s) override;
+        void setNewSelection(const Selection& s) override;
 
     private:
         ConstraintModel* m_baseConstraint {};
+
+        // The process that contains the current selection.
+        ProcessSharedModelInterface* m_focusedProcess{};
 };
 

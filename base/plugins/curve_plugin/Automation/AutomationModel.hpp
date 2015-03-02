@@ -47,6 +47,9 @@ class AutomationModel : public ProcessSharedModelInterface
 
         virtual QList<QObject*> selectedChildren() const override
         { return {}; }
+        void setSelection(const Selection& s) override
+        { }
+
         virtual void serialize(SerializationIdentifier identifier, void* data) const override;
 
 

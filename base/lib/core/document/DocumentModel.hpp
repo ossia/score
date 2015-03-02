@@ -40,7 +40,7 @@ namespace iscore
             PanelModelInterface* panel(QString name) const;
 
         public slots:
-            void setNewSelection(Selection);
+            void setNewSelection(const Selection&);
 
         private:
             DocumentDelegateModelInterface* m_model {};

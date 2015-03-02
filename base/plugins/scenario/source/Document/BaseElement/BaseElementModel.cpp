@@ -139,30 +139,27 @@ QJsonObject BaseElementModel::toJson()
     return complete;
 }
 
-
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
-void BaseElementModel::setNewSelection(Selection s)
+void BaseElementModel::setNewSelection(const Selection& s)
 {
-    auto constraints = this->findChildren<ConstraintModel*>("ConstraintModel");
-    auto events = this->findChildren<EventModel*>("EventModel");
-    auto timenodes = this->findChildren<TimeNodeModel*>("TimeNodeModel");
-    for(auto elt : constraints)
-        elt->selection.set(false);
-    for(auto elt : events)
-        elt->selection.set(false);
-    for(auto elt : timenodes)
-        elt->selection.set(false);
-
-    for(auto item : s)
+    if(s.empty())
     {
-        // TODO HUGE SADNESS
-        if(ConstraintModel* cm = dynamic_cast<ConstraintModel*>(item))
-            cm->selection.set(true);
-        else if(EventModel* ev = dynamic_cast<EventModel*>(item))
-            ev->selection.set(true);
-        else if(TimeNodeModel* tn = dynamic_cast<TimeNodeModel*>(item))
-            tn->selection.set(true);
+        if(m_focusedProcess)
+        {
+            m_focusedProcess->setSelection({});
+            m_focusedProcess = nullptr;
+        }
+    }
+    else
+    {
+        // We know by the presenter that all objects
+        // in a given selection are in the same Process.
+        auto newProc = parentProcess(s.first());
+        if(m_focusedProcess && newProc != m_focusedProcess)
+        {
+            m_focusedProcess->setSelection({});
+        }
+
+        m_focusedProcess = newProc;
+        m_focusedProcess->setSelection(s);
     }
 }

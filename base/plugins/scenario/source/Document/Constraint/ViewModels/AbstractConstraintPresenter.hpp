@@ -63,7 +63,7 @@ class AbstractConstraintPresenter : public NamedObject
         void constraintPressed();
         void submitCommand(iscore::SerializableCommand*);
 
-        void newSelection(Selection);
+        void newSelection(const Selection&);
         void askUpdate();
 
     public slots:
