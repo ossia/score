@@ -20,9 +20,11 @@
 #include <QCompleter>
 #include <QToolButton>
 
+#include "Process/ScenarioModel.hpp"
 #include "core/interface/document/DocumentInterface.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
@@ -130,12 +132,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
     // DEMO
     if(event)
     {
-        //        setName (event->metadata.name());
-        //		setColor (event->metadata.color() );
-        //		setComments (event->metadata.comment() );
-
-        //        setInspectedObject (event);
-        //		changeLabelType ("Event");
+        auto scenar = event->parentScenario();
 
         for(State* state : event->states())
         {
@@ -155,7 +152,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                //TODO m_model->constraintSelected(cstrBtn->text());
+                emit objectsSelected(Selection{scenar->constraint(cstr)});
             });
         }
 
@@ -169,7 +166,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                //TODO m_model->constraintSelected(cstrBtn->text());
+                emit objectsSelected(Selection{scenar->constraint(cstr)});
             });
         }
 

@@ -451,6 +451,10 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
                                            scenar->selectedChildren()));
     });
 
+    // TODO this could be Abstract'ed...
+    connect(constraint_presenter, &TemporalConstraintPresenter::newSelection,
+            this, &TemporalScenarioPresenter::newSelection);
+
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
 }
