@@ -12,10 +12,11 @@ namespace iscore
             Q_OBJECT
         public:
 
-            PanelPresenterInterface(Presenter* parent_presenter, PanelViewInterface* view) :
+            PanelPresenterInterface(Presenter* parent_presenter,
+                                    PanelViewInterface* view) :
                 QObject {parent_presenter},
-                    m_view {view},
-            m_parentPresenter {parent_presenter}
+                m_view {view},
+                m_parentPresenter {parent_presenter}
             {
 
             }

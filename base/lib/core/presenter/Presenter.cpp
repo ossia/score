@@ -13,6 +13,7 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
+#include <core/panels/UndoView.hpp>
 #include <functional>
 
 #include <QKeySequence>
@@ -48,11 +49,8 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     {
         m_currentDocument->presenter()->commandQueue()->redoAndEmit();
     });
-/*
-    m_view->addSidePanel(new QUndoView{
-                             m_document->presenter()->commandQueue(),
-                             m_view}, tr("Undo View"), Qt::LeftDockWidgetArea);
-*/
+
+    registerPanel(new UndoPanelFactory);
 }
 
 Presenter::~Presenter()
