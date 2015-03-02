@@ -17,6 +17,8 @@ View::View(QObject* parent) :
 {
     setObjectName("View");
     setUnifiedTitleAndToolBarOnMac(true);
+
+    this->setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
 }
 
 void View::setCentralView(DocumentView* doc)
@@ -54,4 +56,19 @@ void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
                                  });
 
     this->addDockWidget(dock, dial);
+    if(dock == Qt::LeftDockWidgetArea)
+    {
+        m_leftWidgets.push_back(dial);
+        if(m_leftWidgets.size() > 1)
+            tabifyDockWidget(m_leftWidgets.first(), dial);
+    }
+    else if(dock == Qt::RightDockWidgetArea)
+    {
+        m_rightWidgets.push_back(dial);
+
+        if(m_rightWidgets.size() > 1)
+            tabifyDockWidget(m_rightWidgets.first(), dial);
+    }
+
+
 }

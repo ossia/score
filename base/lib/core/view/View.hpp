@@ -33,5 +33,10 @@ namespace iscore
              * Especially considering that we already know the presenter.
              */
             void insertActionIntoMenubar(PositionedMenuAction);
+
+
+        private:
+            QList<QDockWidget*> m_leftWidgets;
+            QList<QDockWidget*> m_rightWidgets;
     };
 }
