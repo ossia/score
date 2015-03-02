@@ -6,7 +6,7 @@
 #include "Document/ModelMetadata.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 
-#include <Document/Properties/Selectable.hpp>
+#include <core/interface/selection/Selectable.hpp>
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {

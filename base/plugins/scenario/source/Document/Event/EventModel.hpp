@@ -4,7 +4,7 @@
 #include <interface/serialization/DataStreamVisitor.hpp>
 #include <interface/serialization/JSONVisitor.hpp>
 #include "Document/ModelMetadata.hpp"
-#include <Document/Properties/Selectable.hpp>
+#include <core/interface/selection/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <unordered_map>

@@ -5,7 +5,7 @@
 #include <interface/serialization/VisitorInterface.hpp>
 #include "ProcessInterface/TimeValue.hpp"
 
-#include <Document/Properties/Selectable.hpp>
+#include <core/interface/selection/Selectable.hpp>
 #include <QColor>
 #include <vector>
 
