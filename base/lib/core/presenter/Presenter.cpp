@@ -55,6 +55,12 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
 */
 }
 
+Presenter::~Presenter()
+{
+    for(auto& conn : m_connections)
+        disconnect(conn);
+}
+
 void Presenter::registerPluginControl(PluginControlInterface* cmd)
 {
     cmd->setParent(this);  // Ownership transfer

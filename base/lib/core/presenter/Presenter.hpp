@@ -29,6 +29,7 @@ namespace iscore
             Q_OBJECT
         public:
             Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
+            ~Presenter();
 
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
