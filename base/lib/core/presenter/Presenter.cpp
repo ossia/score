@@ -36,7 +36,8 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
 
-
+    m_undoAction->setShortcut(QKeySequence::Undo);
+    m_redoAction->setShortcut(QKeySequence::Redo);
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
@@ -220,20 +221,7 @@ void Presenter::setupMenus()
     m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                         EditMenuElement::Redo,
                                         m_redoAction);
-    /*auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
-    undoAct->setShortcut(QKeySequence::Undo);
-    connect(undoAct,								 &QAction::triggered,
-            m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                           [] () );
 
-    auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
-    redoAct->setShortcut(QKeySequence::Redo);
-    connect(redoAct,								 &QAction::triggered,
-            m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                           redoAct);
-    */
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                       ViewMenuElement::Windows);
