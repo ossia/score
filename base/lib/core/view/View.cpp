@@ -37,23 +37,14 @@ void View::setupPanelView(PanelViewInterface* v)
     addSidePanel(v->getWidget(), v->objectName(), v->defaultDock());
 }
 
-#include <QLabel>
 void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
 {
     QDockWidget* dial = new QDockWidget {name, this};
     dial->setWidget(widg);
 
-    QAction* hideDialog = new QAction(name, nullptr);
-    hideDialog->setCheckable(true);
-    hideDialog->setChecked(true);
-
-    connect(hideDialog, &QAction::triggered,
-            dial,		&QDockWidget::setVisible);
-
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
                                   MenuInterface::name(ViewMenuElement::Windows),
-                                  hideDialog
-                                 });
+                                  dial->toggleViewAction()});
 
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
