@@ -35,6 +35,18 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
+
+
+    connect(m_undoAction, &QAction::triggered,
+            [&] ()
+    {
+        m_currentDocument->presenter()->commandQueue()->undoAndEmit();
+    });
+    connect(m_redoAction, &QAction::triggered,
+            [&] ()
+    {
+        m_currentDocument->presenter()->commandQueue()->redoAndEmit();
+    });
 /*
     m_view->addSidePanel(new QUndoView{
                              m_document->presenter()->commandQueue(),
@@ -81,6 +93,10 @@ void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel
 
 void Presenter::setCurrentDocument(Document* doc)
 {
+    // Disconnect previously registered connections.
+    for(auto& conn : m_connections)
+        disconnect(conn);
+
     m_currentDocument = doc;
     for(auto& pair : m_panelPresenters)
     {
@@ -88,6 +104,20 @@ void Presenter::setCurrentDocument(Document* doc)
     }
 
     m_view->setCentralView(m_currentDocument->view());
+
+    m_connections.push_back(
+                connect(m_currentDocument->presenter()->commandQueue(), &QUndoStack::canUndoChanged,
+                        [&] (bool b) { m_undoAction->setEnabled(b); }));
+    m_connections.push_back(
+                connect(m_currentDocument->presenter()->commandQueue(), &QUndoStack::canRedoChanged,
+                        [&] (bool b) { m_redoAction->setEnabled(b); }));
+
+    m_connections.push_back(
+                connect(m_currentDocument->presenter()->commandQueue(), &QUndoStack::undoTextChanged,
+                        [&] (const QString& s) { m_undoAction->setText(tr("Undo ") + s);}));
+    m_connections.push_back(
+                connect(m_currentDocument->presenter()->commandQueue(), &QUndoStack::redoTextChanged,
+                        [&] (const QString& s) { m_redoAction->setText(tr("Redo ") + s);}));
 }
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
@@ -182,15 +212,20 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
                                         &QApplication::quit);
-
+*/
     ////// Edit //////
-    // Undo / redo
-    auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
+    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                        EditMenuElement::Undo,
+                                        m_undoAction);
+    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                        EditMenuElement::Redo,
+                                        m_redoAction);
+    /*auto undoAct = m_document->presenter()->commandQueue()->createUndoAction(this);
     undoAct->setShortcut(QKeySequence::Undo);
     connect(undoAct,								 &QAction::triggered,
             m_document->presenter()->commandQueue(), &CommandQueue::onUndo);
     m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                           undoAct);
+                                           [] () );
 
     auto redoAct = m_document->presenter()->commandQueue()->createRedoAction(this);
     redoAct->setShortcut(QKeySequence::Redo);
@@ -198,7 +233,7 @@ void Presenter::setupMenus()
             m_document->presenter()->commandQueue(), &CommandQueue::onRedo);
     m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                            redoAct);
-*/
+    */
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                       ViewMenuElement::Windows);

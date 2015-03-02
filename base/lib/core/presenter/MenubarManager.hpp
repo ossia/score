@@ -58,6 +58,10 @@ namespace iscore
                 {
                     m_menusMap[tl]->insertAction(*beforeact_it, act);
                 }
+                else
+                {
+                    m_menusMap[tl]->addAction(act);
+                }
             }
 
             template<typename MenuElement>

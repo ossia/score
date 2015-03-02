@@ -49,5 +49,17 @@ namespace iscore
              * @param cmd The command
              */
             void pushAndEmit(iscore::SerializableCommand* cmd);
+
+            void undoAndEmit()
+            {
+                undo();
+                onUndo();
+            }
+
+            void redoAndEmit()
+            {
+                redo();
+                onRedo();
+            }
     };
 }

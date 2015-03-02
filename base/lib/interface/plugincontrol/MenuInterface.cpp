@@ -16,6 +16,12 @@ namespace iscore
     }
 
     template<>
+    std::map<EditMenuElement, QString> MenuInterface::map()
+    {
+        return m_editMap;
+    }
+
+    template<>
     std::map<ViewMenuElement, QString> MenuInterface::map()
     {
         return m_viewMap;
@@ -39,6 +45,12 @@ namespace iscore
     QString MenuInterface::name(FileMenuElement elt)
     {
         return m_fileMap.at(elt);
+    }
+
+    template<>
+    QString MenuInterface::name(EditMenuElement elt)
+    {
+        return m_editMap.at(elt);
     }
 
     template<>
@@ -75,6 +87,12 @@ const std::map<FileMenuElement, QString> MenuInterface::m_fileMap
     {FileMenuElement::Export, QObject::tr("Export") },
     {FileMenuElement::Separator_Quit, QObject::tr("Separator_Quit") },
     {FileMenuElement::Quit, QObject::tr("Quit") }
+};
+
+const std::map<EditMenuElement, QString> MenuInterface::m_editMap
+{
+    {EditMenuElement::Undo, QObject::tr("Undo") },
+    {EditMenuElement::Redo, QObject::tr("Redo") }
 };
 
 const std::map<ViewMenuElement, QString> MenuInterface::m_viewMap

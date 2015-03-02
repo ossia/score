@@ -30,7 +30,8 @@ namespace iscore
 
     enum class EditMenuElement
     {
-
+        Undo,
+        Redo
     };
 
     enum class ViewMenuElement
@@ -63,6 +64,7 @@ namespace iscore
         private:
             static const std::map<ToplevelMenuElement, QString> m_map;
             static const std::map<FileMenuElement, QString> m_fileMap;
+            static const std::map<EditMenuElement, QString> m_editMap;
             static const std::map<ViewMenuElement, QString> m_viewMap;
             static const std::map<SettingsMenuElement, QString> m_settingsMap;
     };

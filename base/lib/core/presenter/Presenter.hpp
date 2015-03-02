@@ -72,5 +72,12 @@ namespace iscore
             // TODO instead put the factory as a member function?
             QList<QPair<PanelPresenterInterface*,
                         PanelFactoryInterface*>> m_panelPresenters;
+
+
+            QAction* m_undoAction{new QAction{this}};
+            QAction* m_redoAction{new QAction{this}};
+
+            // Connections to keep for the running document.
+            QList<QMetaObject::Connection> m_connections;
     };
 }
