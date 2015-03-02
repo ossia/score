@@ -144,130 +144,15 @@ void ScenarioControl::setPresenter(iscore::Presenter*)
 {
 }
 
+// Defined in CommandNames.cpp
+iscore::SerializableCommand* makeCommandByName(const QString& name);
+
 iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
     using namespace Scenario::Command;
 
-    iscore::SerializableCommand* cmd {};
-
-    if(name == "AddProcessViewModelToDeck")
-    {
-        cmd = new AddProcessViewModelToDeck;
-    }
-    else if(name == "RemoveProcessViewModelFromDeck")
-    {
-        cmd = new RemoveProcessViewModelFromDeck;
-    }
-    else if(name == "ResizeDeckVertically")
-    {
-        cmd = new ResizeDeckVertically;
-    }
-    else if(name == "AddDeckToBox")
-    {
-        cmd = new AddDeckToBox;
-    }
-    else if(name == "RemoveDeckFromBox")
-    {
-        cmd = new RemoveDeckFromBox;
-    }
-    else if(name == "AddBoxToConstraint")
-    {
-        cmd = new AddBoxToConstraint;
-    }
-    else if(name == "AddProcessToConstraint")
-    {
-        cmd = new AddProcessToConstraint;
-    }
-    else if(name == "RemoveBoxFromConstraint")
-    {
-        cmd = new RemoveBoxFromConstraint;
-    }
-    else if(name == "RemoveProcessFromConstraint")
-    {
-        cmd = new RemoveProcessFromConstraint;
-    }
-    else if(name == "AddStateToEvent")
-    {
-        cmd = new AddStateToEvent;
-    }
-    else if(name == "SetCondition")
-    {
-        cmd = new SetCondition;
-    }
-    else if(name == "ClearConstraint")
-    {
-        cmd = new ClearConstraint;
-    }
-    else if(name == "ClearEvent")
-    {
-        cmd = new ClearEvent;
-    }
-    else if(name == "CreateEvent")
-    {
-        cmd = new CreateEvent;
-    }
-    else if(name == "RemoveEvent")
-    {
-        cmd = new RemoveEvent;
-    }
-    else if(name == "RemoveConstraint")
-    {
-        cmd = new RemoveConstraint;
-    }
-    else if(name == "CreateEventAfterEvent")
-    {
-        cmd = new CreateEventAfterEvent;
-    }
-    else if(name == "CreateEventAfterEventOnTimeNode")
-    {
-        cmd = new CreateEventAfterEventOnTimeNode;
-    }
-    else if(name == "HideBoxInViewModel")
-    {
-        cmd = new HideBoxInViewModel;
-    }
-    else if(name == "MoveConstraint")
-    {
-        cmd = new MoveConstraint;
-    }
-    else if(name == "MoveEvent")
-    {
-        cmd = new MoveEvent;
-    }
-    else if(name == "MoveTimeNode")
-    {
-        cmd = new MoveTimeNode;
-    }
-    else if(name == "ShowBoxInViewModel")
-    {
-        cmd = new ShowBoxInViewModel;
-    }
-    else if(name == "RemoveMultipleElements")
-    {
-        cmd = new RemoveMultipleElements;
-    }
-    else if(name == "SetMinDuration")
-    {
-        cmd = new SetMinDuration;
-    }
-    else if(name == "SetMaxDuration")
-    {
-        cmd = new SetMaxDuration;
-    }
-    else if(name == "ResizeConstraint")
-    {
-        cmd = new ResizeConstraint;
-    }
-    else if(name == "ResizeBaseConstraint")
-    {
-        cmd = new ResizeBaseConstraint;
-    }
-    else if(name == "SetRigidity")
-    {
-        cmd = new SetRigidity;
-    }
-
-    else
+    iscore::SerializableCommand* cmd  = makeCommandByName(name);
+    if(!cmd)
     {
         qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
         return nullptr;

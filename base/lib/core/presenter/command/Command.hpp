@@ -5,6 +5,12 @@
 #include <QBuffer>
 #include <chrono>
 
+#define ISCORE_COMMAND \
+    public: \
+        static const char* className(); \
+        static QString description(); \
+    private:
+
 namespace iscore
 {
     /**

@@ -9,6 +9,7 @@ namespace Scenario
     {
         class SetCondition : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 SetCondition();
                 SetCondition(ObjectPath&& eventPath, QString condition);

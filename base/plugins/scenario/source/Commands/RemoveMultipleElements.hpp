@@ -10,6 +10,7 @@ namespace Scenario
         // TODO generalize this into a generic GroupCommand (maybe it already exists in qt?)
         class RemoveMultipleElements : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 RemoveMultipleElements();
                 RemoveMultipleElements(QVector<SerializableCommand*> elementsToDelete);

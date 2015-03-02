@@ -14,6 +14,7 @@ namespace Scenario
     {
         class MergeTimeNodes : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 MergeTimeNodes(ObjectPath&& path, id_type<TimeNodeModel> aimedTimeNode, id_type<TimeNodeModel> movingTimeNode);
                 virtual void undo() override;

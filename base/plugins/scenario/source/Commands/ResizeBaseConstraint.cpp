@@ -5,9 +5,6 @@
 #include <core/interface/document/DocumentInterface.hpp>
 #include <QApplication>
 
-// TODO changer gestion de UID
-#define CMD_UID 1025
-
 using namespace iscore;
 using namespace Scenario::Command;
 using namespace iscore::IDocument;
@@ -48,7 +45,7 @@ void ResizeBaseConstraint::redo()
 
 int ResizeBaseConstraint::id() const
 {
-    return CMD_UID;
+    return uid();
 }
 
 bool ResizeBaseConstraint::mergeWith(const QUndoCommand* other)

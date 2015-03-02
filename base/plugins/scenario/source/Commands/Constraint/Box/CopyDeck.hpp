@@ -18,6 +18,7 @@ namespace Scenario
          */
         class CopyDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CopyDeck();

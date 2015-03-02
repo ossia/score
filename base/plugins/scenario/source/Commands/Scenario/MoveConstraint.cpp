@@ -10,7 +10,6 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
-#define CMD_UID 1201
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -66,7 +65,7 @@ void MoveConstraint::redo()
 
 int MoveConstraint::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool MoveConstraint::mergeWith(const QUndoCommand* other)

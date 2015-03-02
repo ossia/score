@@ -14,6 +14,7 @@ namespace Scenario
          */
         class RemoveDeckFromBox : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 RemoveDeckFromBox();
                 RemoveDeckFromBox(ObjectPath&& deckPath);

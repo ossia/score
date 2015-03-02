@@ -17,6 +17,7 @@ namespace Scenario
          */
         class MergeDecks : public iscore::AggregateCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MergeDecks(const ObjectPath& mergeSource,

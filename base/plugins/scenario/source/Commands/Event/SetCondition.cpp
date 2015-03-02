@@ -5,7 +5,6 @@
 
 #include <QDebug>
 
-#define CMD_UID 1001
 #define CMD_NAME "SetCondition"
 #define CMD_DESC QObject::tr("Set condition of event")
 
@@ -47,7 +46,7 @@ void SetCondition::redo()
 
 int SetCondition::id() const
 {
-    return CMD_UID;
+    return uid();
 }
 
 bool SetCondition::mergeWith(const QUndoCommand* other)

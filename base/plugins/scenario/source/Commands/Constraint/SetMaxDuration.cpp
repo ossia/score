@@ -4,8 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
-// TODO changer gestion de UID
-#define CMD_UID 1001
+
 #define CMD_NAME "SetMaxDuration"
 #define CMD_DESC QObject::tr("Set max duration of constraint")
 
@@ -42,7 +41,7 @@ void SetMaxDuration::redo()
 
 int SetMaxDuration::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool SetMaxDuration::mergeWith(const QUndoCommand* other)

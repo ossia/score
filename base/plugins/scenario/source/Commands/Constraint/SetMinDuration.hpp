@@ -15,6 +15,7 @@ namespace Scenario
          */
         class SetMinDuration : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:

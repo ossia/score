@@ -14,6 +14,7 @@ namespace Scenario
          */
         class RemoveProcessViewModelFromDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 RemoveProcessViewModelFromDeck();
 

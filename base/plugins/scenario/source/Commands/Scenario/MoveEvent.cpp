@@ -9,7 +9,6 @@
 #include <core/view/View.hpp>
 
 #include <QApplication>
-#define CMD_UID 1200
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -60,7 +59,7 @@ void MoveEvent::redo()
 
 int MoveEvent::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool MoveEvent::mergeWith(const QUndoCommand* other)

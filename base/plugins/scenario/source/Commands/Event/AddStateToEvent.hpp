@@ -9,6 +9,7 @@ namespace Scenario
     {
         class AddStateToEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 AddStateToEvent();
                 AddStateToEvent(ObjectPath&& eventPath, QString message);

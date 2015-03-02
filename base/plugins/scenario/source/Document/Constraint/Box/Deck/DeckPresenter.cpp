@@ -25,7 +25,7 @@ DeckPresenter::DeckPresenter(DeckModel* model,
                              QObject* parent) :
     NamedObject {"DeckPresenter", parent},
             m_model {model},
-m_view {view}
+            m_view {view}
 {
     for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {

@@ -13,6 +13,7 @@ namespace Scenario
     {
         class MoveEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveEvent();

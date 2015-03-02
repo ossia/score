@@ -19,6 +19,7 @@ namespace Scenario
         */
         class AddProcessViewInNewDeck : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddProcessViewInNewDeck();

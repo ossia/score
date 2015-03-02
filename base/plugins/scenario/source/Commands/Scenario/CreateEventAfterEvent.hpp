@@ -28,6 +28,7 @@ namespace Scenario
         */
         class CreateEventAfterEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateEventAfterEvent();

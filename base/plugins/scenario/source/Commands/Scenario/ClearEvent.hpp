@@ -22,6 +22,7 @@ namespace Scenario
         */
         class ClearEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 ClearEvent();
                 ClearEvent(ObjectPath&& path);

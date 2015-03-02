@@ -20,6 +20,7 @@ namespace Scenario
         */
         class CreateEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateEvent();

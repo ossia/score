@@ -66,10 +66,6 @@ void Presenter::registerPluginControl(PluginControlInterface* cmd)
     cmd->setParent(this);  // Ownership transfer
     cmd->setPresenter(this);
 
-    // TODO in DocumentPresenter
-    //connect(cmd,  &PluginControlInterface::submitCommand,
-    //        this, &Presenter::applyCommand, Qt::QueuedConnection);
-
     cmd->populateMenus(&m_menubar);
     cmd->populateToolbars();
 
@@ -82,10 +78,6 @@ void Presenter::registerPanel(PanelFactoryInterface* factory)
     auto pres = factory->makePresenter(this, view);
 
     m_panelPresenters.push_back({pres, factory});
-
-    // TODO in DocumentPresenter
-    //connect(pres, &PanelPresenterInterface::submitCommand,
-    //        this, &Presenter::applyCommand, Qt::QueuedConnection);
 
     m_view->setupPanelView(view);
 

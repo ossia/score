@@ -15,6 +15,7 @@ namespace Scenario
          */
         class ResizeDeckVertically : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 ResizeDeckVertically();
                 ResizeDeckVertically(ObjectPath&& deckPath,

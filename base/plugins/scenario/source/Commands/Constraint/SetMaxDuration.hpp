@@ -15,6 +15,7 @@ namespace Scenario
          */
         class SetMaxDuration : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:

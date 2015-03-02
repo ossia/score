@@ -15,16 +15,16 @@ namespace Scenario
          */
         class MoveProcessViewModel : public iscore::AggregateCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveProcessViewModel(const ObjectPath& pvmToMove,
                                      ObjectPath&& targetDeck) :
-                    AggregateCommand
-                {
-                    "ScenarioControl", "MoveProcessViewModel", QObject::tr("Move a process view model"),
-                    new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetDeck) },
-                    new RemoveProcessViewModelFromDeck{ObjectPath{pvmToMove}}
-                }
+                    AggregateCommand{"ScenarioControl",
+                                     "MoveProcessViewModel",
+                                     QObject::tr("Move a process view model"),
+                        new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetDeck) },
+                        new RemoveProcessViewModelFromDeck{ObjectPath{pvmToMove}}}
                 {
 
                 }

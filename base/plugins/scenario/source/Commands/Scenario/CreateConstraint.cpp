@@ -9,8 +9,6 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
-#define CMD_UID 1202
-
 
 CreateConstraint::CreateConstraint() :
     SerializableCommand {"ScenarioControl",
@@ -77,7 +75,7 @@ void CreateConstraint::redo()
 
 int CreateConstraint::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool CreateConstraint::mergeWith(const QUndoCommand* other)

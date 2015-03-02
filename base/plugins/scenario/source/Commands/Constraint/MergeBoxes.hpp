@@ -15,6 +15,7 @@ namespace Scenario
          */
         class MergeBoxes : public iscore::AggregateCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MergeBoxes(const ObjectPath& mergeSource,

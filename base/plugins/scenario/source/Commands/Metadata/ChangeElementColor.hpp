@@ -10,10 +10,28 @@ namespace Scenario
         template<class T>
         class ChangeElementColor : public iscore::SerializableCommand
         {
+                // No ISCORE_COMMAND here since it's a template.
             public:
+                static const char * className()
+                {
+                    return QString{"ChangeElementColor_%1"}.arg(T::className()).toLatin1();
+                }
+                static QString description()
+                {
+                    return QObject::tr("Change %1 color").arg(T::prettyName());
+                }
+
+                ChangeElementColor():
+                    SerializableCommand {"ScenarioControl",
+                                         className(),
+                                         description()}
+                {
+
+                }
+
                 ChangeElementColor(ObjectPath&& path, QColor newLabel) :
                     SerializableCommand {"ScenarioControl",
-                                         QString{"ChangeElementColor_%1"}.arg(T::className()),
+                                         className(),
                                          QObject::tr("Change current object color")},
                     m_path {std::move(path) },
                     m_newColor {newLabel}

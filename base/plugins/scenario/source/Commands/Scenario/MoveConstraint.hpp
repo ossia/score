@@ -13,6 +13,7 @@ namespace Scenario
     {
         class MoveConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveConstraint();

@@ -20,6 +20,7 @@ namespace Scenario
         */
         class RemoveConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 RemoveConstraint();
                 RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint);

@@ -11,10 +11,10 @@ class EventView : public QGraphicsObject
         EventView(QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        virtual QRectF boundingRect() const;
-        virtual void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter* painter,
+                   const QStyleOptionGraphicsItem* option,
+                   QWidget* widget) override;
 
         void setSelected(bool selected)
         {

@@ -15,6 +15,7 @@ namespace Scenario
          */
         class AddDeckToBox : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddDeckToBox();

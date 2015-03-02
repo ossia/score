@@ -11,8 +11,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-#define CMD_UID 1204
-
 CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode() :
     SerializableCommand {"ScenarioControl",
     "CreateEventAfterEvent",
@@ -92,7 +90,7 @@ void CreateEventAfterEventOnTimeNode::redo()
 
 int CreateEventAfterEventOnTimeNode::id() const
 {
-    return canMerge() ? CMD_UID : -1;
+    return canMerge() ? uid() : -1;
 }
 
 bool CreateEventAfterEventOnTimeNode::mergeWith(const QUndoCommand* other)

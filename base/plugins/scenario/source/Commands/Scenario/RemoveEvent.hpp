@@ -19,6 +19,7 @@ namespace Scenario
         */
         class RemoveEvent : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 RemoveEvent();
                 RemoveEvent(ObjectPath&& scenarioPath, EventModel* event);

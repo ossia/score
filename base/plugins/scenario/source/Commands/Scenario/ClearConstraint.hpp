@@ -16,6 +16,7 @@ namespace Scenario
          */
         class ClearConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 ClearConstraint();
                 ClearConstraint(ObjectPath&& constraintPath);

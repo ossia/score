@@ -8,23 +8,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddProcessViewModelToDeck::AddProcessViewModelToDeck() :
-    SerializableCommand {"ScenarioControl",
-    "AddProcessViewModelToDeck",
-    QObject::tr("Add process view")
-}
-{
-}
-
 AddProcessViewModelToDeck::AddProcessViewModelToDeck(
-    ObjectPath&& deckPath,
-    ObjectPath&& processPath) :
+        ObjectPath&& deckPath,
+        ObjectPath&& processPath) :
     SerializableCommand {"ScenarioControl",
-    "AddProcessViewModelToDeck",
-    QObject::tr("Add process view")
-},
-m_deckPath {deckPath},
-m_processPath {processPath}
+                         className(),
+                         description()},
+    m_deckPath {deckPath},
+    m_processPath {processPath}
 {
     auto deck = m_deckPath.find<DeckModel>();
     m_createdProcessViewId = getStrongId(deck->processViewModels());
@@ -46,7 +37,7 @@ void AddProcessViewModelToDeck::redo()
 
 int AddProcessViewModelToDeck::id() const
 {
-    return 1;
+    return uid();
 }
 
 bool AddProcessViewModelToDeck::mergeWith(const QUndoCommand* other)

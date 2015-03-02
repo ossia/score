@@ -23,6 +23,7 @@ namespace Scenario
         */
         class CreateConstraint : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateConstraint();

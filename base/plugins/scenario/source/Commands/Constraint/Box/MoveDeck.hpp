@@ -15,6 +15,7 @@ namespace Scenario
          */
         class MoveDeck : public iscore::AggregateCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveDeck(const ObjectPath& deckToMove,

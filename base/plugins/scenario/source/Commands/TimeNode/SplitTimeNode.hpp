@@ -13,6 +13,7 @@ namespace Scenario
     {
         class SplitTimeNode : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
             public:
                 SplitTimeNode(ObjectPath&& path, QVector<id_type<EventModel> > eventsInNewTimeNode);
                 virtual void undo() override;

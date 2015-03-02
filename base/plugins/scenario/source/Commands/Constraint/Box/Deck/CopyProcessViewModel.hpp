@@ -22,6 +22,7 @@ namespace Scenario
          */
         class CopyProcessViewModel : public iscore::SerializableCommand
         {
+                ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CopyProcessViewModel();
