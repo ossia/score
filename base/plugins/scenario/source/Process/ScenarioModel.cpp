@@ -110,6 +110,17 @@ void ScenarioModel::setDurationWithoutScale(TimeValue newDuration)
     // Maybe with the last event/timenode ? (hence they finally have a meaning)
 }
 
+Selection ScenarioModel::selectableChildren() const
+{
+    using namespace std;
+    Selection objects;
+    copy(begin(m_constraints), end(m_constraints), back_inserter(objects));
+    copy(begin(m_events), end(m_events), back_inserter(objects));
+    copy(begin(m_timeNodes), end(m_timeNodes), back_inserter(objects));
+
+    return objects;
+}
+
 // Since we don't have c++14 & auto in lambdas..
 template<typename InputVec, typename OutputVec>
 void copySelected(const InputVec& in, OutputVec& out)

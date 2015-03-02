@@ -20,8 +20,8 @@ class AutomationModel : public ProcessSharedModelInterface
 
     public:
         AutomationModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
-        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
-                QObject* newParent) override;
+        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+                                           QObject* newParent) override;
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -31,26 +31,25 @@ class AutomationModel : public ProcessSharedModelInterface
         }
 
         //// ProcessSharedModelInterface ////
-        virtual QString processName() const override;
+        QString processName() const override;
 
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                QObject* parent) override;
-        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                void* data,
-                QObject* parent) override;
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
-                const ProcessViewModelInterface* source,
-                QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+                                                 QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
+                                                 void* data,
+                                                 QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+                                                 const ProcessViewModelInterface* source,
+                                                 QObject* parent) override;
 
-        virtual void setDurationWithScale(TimeValue newDuration) override;
-        virtual void setDurationWithoutScale(TimeValue newDuration) override;
+        void setDurationWithScale(TimeValue newDuration) override;
+        void setDurationWithoutScale(TimeValue newDuration) override;
 
-        virtual QList<QObject*> selectedChildren() const override
-        { return {}; }
-        void setSelection(const Selection& s) override
-        { }
+        Selection selectableChildren() const override { return {}; }
+        QList<QObject*> selectedChildren() const override { return {}; }
+        void setSelection(const Selection&) override { }
 
-        virtual void serialize(SerializationIdentifier identifier, void* data) const override;
+        void serialize(SerializationIdentifier identifier, void* data) const override;
 
 
 

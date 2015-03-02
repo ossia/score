@@ -28,9 +28,10 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         virtual ~BaseElementModel() = default;
 
         ConstraintModel* constraintModel() const
-        {
-            return m_baseConstraint;
-        }
+        { return m_baseConstraint; }
+
+        ProcessSharedModelInterface* focusedProcess() const
+        { return m_focusedProcess; }
 
         virtual QByteArray save() override;
         virtual QJsonObject toJson() override;

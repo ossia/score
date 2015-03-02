@@ -39,7 +39,7 @@ Document::Document(DocumentDelegateFactoryInterface* type, QWidget* parentview, 
 Document::~Document()
 {
     // We need a custom destructor because
-    // for the sake of simplicity, we want the view and the presenter
+    // for the sake of simplicity, we want the presenter
     // to be deleted before the model.
     // (Else we would have to fine-grain the deletion of the selection stack).
 

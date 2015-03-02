@@ -37,27 +37,28 @@ class ScenarioModel : public ProcessSharedModelInterface
         using view_model_type = AbstractScenarioViewModel;
 
         ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
-        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) override;
+        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+                                           QObject* newParent) override;
 
-        virtual ~ScenarioModel();
+        ~ScenarioModel();
 
         //// ProcessSharedModelInterface specifics ////
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+                                                 QObject* parent) override;
 
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
-                const ProcessViewModelInterface* source,
-                QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+                                                 const ProcessViewModelInterface* source,
+                                                 QObject* parent) override;
 
-        virtual void setDurationWithScale(TimeValue newDuration) override;
-        virtual void setDurationWithoutScale(TimeValue newDuration) override;
+        void setDurationWithScale(TimeValue newDuration) override;
+        void setDurationWithoutScale(TimeValue newDuration) override;
 
-        virtual Selection selectedChildren() const override;
+        Selection selectableChildren() const override;
+        Selection selectedChildren() const override;
         void setSelection(const Selection& s) override;
-        virtual QString processName() const override
-        {
-            return "Scenario";
-        }
+
+        QString processName() const override
+        { return "Scenario"; }
 
         //// ScenarioModel specifics ////
         // High-level operations (maintaining consistency)
@@ -78,11 +79,11 @@ class ScenarioModel : public ProcessSharedModelInterface
          * the constraint is linked to both events.
          */
         void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-                TimeValue duration,
-                double heightPos,
-                id_type<ConstraintModel> newConstraintId,
-                id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-                id_type<EventModel> newEventId);
+                                                  TimeValue duration,
+                                                  double heightPos,
+                                                  id_type<ConstraintModel> newConstraintId,
+                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
+                                                  id_type<EventModel> newEventId);
 
         void createTimeNode(id_type<TimeNodeModel> timeNodeId,
                             id_type<EventModel> eventId);
@@ -161,8 +162,8 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
         virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                void* data,
-                QObject* parent) override;
+                                                         void* data,
+                                                         QObject* parent) override;
 
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const override;

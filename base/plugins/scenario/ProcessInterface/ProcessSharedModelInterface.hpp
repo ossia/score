@@ -77,7 +77,8 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         }
 
         /// Selection
-        virtual QList<QObject*> selectedChildren() const = 0;
+        virtual Selection selectableChildren() const = 0;
+        virtual Selection selectedChildren() const = 0;
         virtual void setSelection(const Selection& s) = 0;
 
         // protected:

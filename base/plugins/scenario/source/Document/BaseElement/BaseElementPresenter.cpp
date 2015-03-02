@@ -59,18 +59,15 @@ void BaseElementPresenter::on_askUpdate()
 
 void BaseElementPresenter::selectAll()
 {
-    for(auto item : view()->scene()->items())
+    if(model()->focusedProcess())
     {
-        item->setSelected(true);
+        emit newSelection(model()->focusedProcess()->selectableChildren());
     }
 }
 
 void BaseElementPresenter::deselectAll()
 {
-    for(auto item : view()->scene()->items())
-    {
-        item->setSelected(false);
-    }
+    emit newSelection({});
 }
 
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
