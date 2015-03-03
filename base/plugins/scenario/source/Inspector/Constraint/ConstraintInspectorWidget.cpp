@@ -16,6 +16,7 @@
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "core/interface/selection/SelectionDispatcher.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
 #include <InspectorInterface/InspectorSectionWidget.hpp>
@@ -290,14 +291,14 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     {
         start->setText(QString::number(*sev.val()));
         connect(start, &QPushButton::clicked,
-                [=]() { emit objectsSelected(Selection{scenar->event(sev)}); });
+                [=]() { selectionDispatcher()->send(Selection{scenar->event(sev)}); });
     }
 
     if(eev)
     {
         end->setText(QString::number(*eev.val()));
         connect(end, &QPushButton::clicked,
-                [=]() { emit objectsSelected(Selection{scenar->event(eev)}); });
+                [=]() { selectionDispatcher()->send(Selection{scenar->event(eev)}); });
     }
 
     eventLay->addRow("Start Event", start);

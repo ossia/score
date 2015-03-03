@@ -27,7 +27,4 @@ class ProcessPresenterInterface : public NamedObject
 
         virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
         virtual id_type<ProcessSharedModelInterface> modelId() const = 0;
-
-    signals:
-        void newSelection(const Selection&);
 };

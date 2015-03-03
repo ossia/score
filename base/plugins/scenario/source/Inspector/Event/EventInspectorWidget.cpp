@@ -22,6 +22,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "core/interface/document/DocumentInterface.hpp"
+#include "core/interface/selection/SelectionDispatcher.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -151,7 +152,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                emit objectsSelected(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
             });
         }
 
@@ -165,7 +166,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                emit objectsSelected(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
             });
         }
 

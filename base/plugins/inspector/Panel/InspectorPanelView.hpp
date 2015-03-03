@@ -20,9 +20,6 @@ class InspectorPanelView : public iscore::PanelViewInterface
             return Qt::RightDockWidgetArea;
         }
 
-    signals:
-        void newSelection(const Selection& s);
-
     public slots:
         void setCurrentDocument(iscore::DocumentPresenter*);
         void setNewSelection(const Selection& s);
@@ -31,6 +28,7 @@ class InspectorPanelView : public iscore::PanelViewInterface
         QWidget* m_widget{};
         SelectionStackWidget* m_stack{};
         InspectorPanel* m_inspectorPanel {};
+        iscore::DocumentPresenter* m_currentDocument{};
 
         QMetaObject::Connection m_selectionConnection,
                                 m_commandConnection;

@@ -24,14 +24,11 @@ void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
 
     delete m_stack;
     delete m_inspectorPanel;
+
+    m_currentDocument = pres;
     m_stack = new SelectionStackWidget{&pres->selectionStack(), m_widget};
-    m_inspectorPanel = new InspectorPanel{m_widget};
+    m_inspectorPanel = new InspectorPanel{pres->selectionStack(), m_widget};
 
-    // Selection
-    connect(m_inspectorPanel, &InspectorPanel::newSelection,
-            this,             &InspectorPanelView::newSelection);
-
-    // Commands
     auto lay = new QVBoxLayout{m_widget};
     lay->addWidget(m_stack);
     lay->addWidget(m_inspectorPanel);

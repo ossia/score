@@ -20,13 +20,8 @@ void InspectorPanelPresenter::on_modelChanged()
     auto view = static_cast<InspectorPanelView*>(m_view);
     auto model = static_cast<InspectorPanelModel*>(m_model);
     view->setCurrentDocument(doc->presenter());
-   // connect(m_model...
 
     disconnect(m_mvConnection);
-    disconnect(m_vpConnection);
-
     m_mvConnection = connect(model, &InspectorPanelModel::selectionChanged,
                              view,  &InspectorPanelView::setNewSelection);
-    m_vpConnection = connect(view, &InspectorPanelView::newSelection,
-                             &doc->presenter()->selectionStack(), &SelectionStack::push);
 }

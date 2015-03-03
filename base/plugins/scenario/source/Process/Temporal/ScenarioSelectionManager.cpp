@@ -102,5 +102,5 @@ void ScenarioSelectionManager::setSelectionArea(const QRectF& area)
             }
         }
     }
-    emit m_presenter->newSelection(sel);
+    m_selectionDispatcher->send(sel);
 }

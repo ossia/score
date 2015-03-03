@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <core/interface/selection/SelectionStack.hpp>
+#include <core/interface/selection/SelectionDispatcher.hpp>
 class SelectionStackWidget;
 class QVBoxLayout;
 class InspectorWidgetBase;
@@ -28,14 +29,7 @@ class InspectorPanel : public QWidget
         Q_OBJECT
 
     public:
-        explicit InspectorPanel(QWidget* parent);
-
-    signals:
-        /**
-         * @brief newSelection
-         * This signal is sent when objects are selected FROM the inspector.
-         */
-        void newSelection(const Selection&);
+        explicit InspectorPanel(SelectionStack& s, QWidget* parent);
 
     public slots:
         /*!
@@ -48,6 +42,7 @@ class InspectorPanel : public QWidget
 
     private:
         QVBoxLayout* m_layout{};
-
         QTabWidget* m_tabWidget{};
+
+        SelectionDispatcher* m_selectionDispatcher{};
 };

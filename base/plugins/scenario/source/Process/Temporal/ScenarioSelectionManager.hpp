@@ -59,7 +59,7 @@ class ScenarioSelectionManager : public QObject
 
         void setSelectionArea(const QRectF& area);
     private:
-        SelectionDispatcher* m_selectionDispatcher{};
         TemporalScenarioPresenter* m_presenter{};
+        SelectionDispatcher* m_selectionDispatcher{};
         ScenarioModel* m_scenario{};
 };

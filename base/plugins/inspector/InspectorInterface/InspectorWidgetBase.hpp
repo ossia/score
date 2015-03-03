@@ -9,6 +9,7 @@ class QLineEdit;
 class QLabel;
 class QTextEdit;
 class QPushButton;
+class SelectionDispatcher;
 class InspectorSectionWidget;
 class QScrollArea;
 
@@ -33,9 +34,6 @@ class InspectorWidgetBase : public QWidget
          * \param parent The parent Widget
          */
         explicit InspectorWidgetBase(QObject* inspectedObj = 0, QWidget* parent = 0);
-
-    signals:
-        void objectsSelected(const Selection&);
 
     public slots:
 
@@ -82,9 +80,14 @@ class InspectorWidgetBase : public QWidget
         }
 
         CommandDispatcher* commandDispatcher() const
-        { return m_commandQueue; }
+        { return m_commandDispatcher; }
+
+        SelectionDispatcher* selectionDispatcher() const
+        { return m_selectionDispatcher; }
+
     private:
-        CommandDispatcher* m_commandQueue{};
+        CommandDispatcher* m_commandDispatcher{};
+        SelectionDispatcher* m_selectionDispatcher{};
         QVBoxLayout* _scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};
