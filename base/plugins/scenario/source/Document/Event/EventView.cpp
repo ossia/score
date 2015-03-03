@@ -63,6 +63,7 @@ void EventView::changeColor(QColor newColor)
 void EventView::setMoving(bool arg)
 {
     m_moving = arg;
+    update();
 }
 
 

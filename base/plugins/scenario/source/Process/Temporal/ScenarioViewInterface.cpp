@@ -43,20 +43,12 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
                        });
 
     // TODO a revoir
-    if(m_presenter->ongoingCommand())
-    {
-        ev->view()->setMoving(true);
-    }
-    else
-    {
-        ev->view()->setMoving(false);
-    }
+    ev->view()->setMoving(m_presenter->ongoingCommand());
 
     // @todo change when multiple event on a same timeNode
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
     timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_millisecPerPixel),
-                              rect.height() * timeNode->model()->y()
-                             });
+                              rect.height() * timeNode->model()->y()});
 
     updateTimeNode(timeNode->id());
     m_presenter->m_view->update();
@@ -88,14 +80,7 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
             view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_presenter->m_millisecPerPixel);
             view(pres)->setMaxWidth(cstr_model->maxDuration().msec() / m_presenter->m_millisecPerPixel);
 
-            if(m_presenter->ongoingCommand())
-            {
-                view(pres)->setMoving(true);
-            }
-            else
-            {
-                view(pres)->setMoving(false);
-            }
+            view(pres)->setMoving(m_presenter->ongoingCommand());
 
             auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
@@ -180,7 +165,6 @@ void ScenarioViewInterface::setSelectionArea(QRectF area)
                 }
             }
         }
-
         else if (itemCstr)
         {
             for (TemporalConstraintPresenter* cstr : m_presenter->m_constraints)

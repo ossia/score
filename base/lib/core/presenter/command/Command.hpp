@@ -52,6 +52,11 @@ namespace iscore
             {
                 return m_canMerge;
             }
+            void enableMerging()
+            {
+                m_canMerge = true;
+            }
+
             void disableMerging()
             {
                 m_canMerge = false;
@@ -69,7 +74,7 @@ namespace iscore
             }
 
         private:
-            bool m_canMerge {true};
+            bool m_canMerge {false};
             const QString m_name;
             const QString m_parentName;
 

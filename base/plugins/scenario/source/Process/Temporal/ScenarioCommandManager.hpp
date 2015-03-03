@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QObject>
 class TemporalScenarioPresenter;
 
 namespace iscore
@@ -9,12 +9,20 @@ namespace iscore
 
 struct EventData;
 struct ConstraintData;
+class EventPresenter;
+class TimeNodePresenter;
+class TemporalConstraintPresenter;
 class QPointF;
+class OngoingCommandManager;
 
-class ScenarioCommandManager
+class ScenarioCommandManager : public QObject
 {
     public:
         ScenarioCommandManager(TemporalScenarioPresenter* presenter);
+
+        void setupEventPresenter(EventPresenter* e);
+        void setupTimeNodePresenter(TimeNodePresenter* t);
+        void setupConstraintPresenter(TemporalConstraintPresenter* c);
 
         void createConstraint(EventData);
         void on_scenarioReleased(QPointF point, QPointF scenePoint);
@@ -27,19 +35,12 @@ class ScenarioCommandManager
         void moveConstraint(ConstraintData data);
         void moveTimeNode(EventData data);
 
-        // Helpers
-        void sendOngoingCommand(iscore::SerializableCommand* cmd);
-        void finishOngoingCommand();
-        void rollbackOngoingCommand();
-
         void on_ctrlStateChanged(bool);
 
-        // Necessary for the real-time creation / moving of elements
-        bool m_ongoingCommand {};
-        int m_ongoingCommandId { -1};
+        // Utility
+        bool ongoingCommand();
+
     private:
-
-        TemporalScenarioPresenter* m_presenter;
-
-
+        TemporalScenarioPresenter* m_presenter{};
+        OngoingCommandManager* m_commandManager{};
 };

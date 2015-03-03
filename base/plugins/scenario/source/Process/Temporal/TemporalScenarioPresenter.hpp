@@ -98,7 +98,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
 
-        ScenarioCommandManager* m_cmdManager;
-        ScenarioViewInterface* m_viewInterface;
+        ScenarioCommandManager* m_cmdManager{};
+        ScenarioViewInterface* m_viewInterface{};
 
 };

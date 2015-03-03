@@ -15,10 +15,6 @@ class EventPresenter : public NamedObject
         virtual ~EventPresenter();
 
         id_type<EventModel> id() const;
-        int32_t id_val() const
-        {
-            return *id().val();
-        }
 
         EventView* view() const;
         EventModel* model() const;

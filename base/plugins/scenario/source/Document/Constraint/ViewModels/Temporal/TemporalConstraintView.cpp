@@ -89,6 +89,7 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 void TemporalConstraintView::setMoving(bool arg)
 {
     m_moving = arg;
+    update();
 }
 
 void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)

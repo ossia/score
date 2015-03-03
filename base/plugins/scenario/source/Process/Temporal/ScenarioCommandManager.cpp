@@ -38,11 +38,16 @@
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
 #include <core/interface/document/DocumentInterface.hpp>
+#include <core/presenter/command/OngoingCommandManager.hpp>
 
 #include <algorithm>
 #include <QRectF>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+
+
+
+
 
 using namespace Scenario::Command;
 
@@ -62,9 +67,49 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 
 
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
-    m_presenter(presenter)
+    QObject{presenter},
+    m_presenter{presenter},
+    m_commandManager{new OngoingCommandManager{
+       iscore::IDocument::documentFromObject(presenter)->presenter()->commandQueue(), this}}
 {
 
+}
+
+void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
+{
+    connect(e,    &EventPresenter::eventMoved,
+            this, &ScenarioCommandManager::moveEventAndConstraint);
+
+    connect(e,    &EventPresenter::eventMovedWithControl,
+            this, &ScenarioCommandManager::createConstraint);
+
+    connect(e,                &EventPresenter::eventReleased,
+            m_commandManager, &OngoingCommandManager::finish);
+
+    connect(e,                &EventPresenter::eventReleasedWithControl,
+            m_commandManager, &OngoingCommandManager::finish);
+
+    // TODO manage ctrl being pressed / released globally.
+    connect(e,    &EventPresenter::ctrlStateChanged,
+            this, &ScenarioCommandManager::on_ctrlStateChanged);
+
+}
+
+void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
+{
+    connect(t,    &TimeNodePresenter::timeNodeMoved,
+            this, &ScenarioCommandManager::moveTimeNode);
+
+    connect(t,                &TimeNodePresenter::timeNodeReleased,
+            m_commandManager, &OngoingCommandManager::finish);
+}
+
+void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
+{
+    connect(c,	  &TemporalConstraintPresenter::constraintMoved,
+            this, &ScenarioCommandManager::moveConstraint);
+    connect(c,                &TemporalConstraintPresenter::constraintReleased,
+            m_commandManager, &OngoingCommandManager::finish);
 }
 
 
@@ -73,7 +118,6 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presen
 //  an event and nothing -> CreateEventAfterEvent
 //  an event and a timenode -> CreateEventAfterEventOnTimeNode
 //  an event and another event -> CreateConstraint
-
 void ScenarioCommandManager::createConstraint(EventData data)
 {
     using namespace std;
@@ -84,9 +128,9 @@ void ScenarioCommandManager::createConstraint(EventData data)
 
     // We rollback so that we don't get polluted
     // by the "fake" created events / timenodes.
-    if(m_ongoingCommand)
+    if(ongoingCommand())
     {
-        rollbackOngoingCommand();
+        m_commandManager->rollback();
     }
 
     QList<EventPresenter*> collidingEvents;
@@ -107,7 +151,7 @@ void ScenarioCommandManager::createConstraint(EventData data)
     {
         if(collidingTimeNodes.empty())
         {
-            sendOngoingCommand(new CreateEventAfterEvent(move(cmdPath), data));
+            m_commandManager->send(new CreateEventAfterEvent(move(cmdPath), data));
         }
         else
         {
@@ -115,12 +159,12 @@ void ScenarioCommandManager::createConstraint(EventData data)
             data.endTimeNodeId = tn->id();
             data.dDate = tn->model()->date() - model(m_presenter->m_viewModel)->event(data.eventClickedId)->date();
 
-            sendOngoingCommand(new CreateEventAfterEventOnTimeNode(move(cmdPath), data));
+            m_commandManager->send(new CreateEventAfterEventOnTimeNode(move(cmdPath), data));
         }
     }
     else
     {
-        sendOngoingCommand(new CreateConstraint(move(cmdPath),
+        m_commandManager->send(new CreateConstraint(move(cmdPath),
                                                 data.eventClickedId,
                                                 collidingEvents.first()->id()));
     }
@@ -240,9 +284,9 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
     auto eventTN = findById(m_presenter->m_events, data.eventClickedId)->model()->timeNode();
 
-    if(m_ongoingCommand)
+    if(ongoingCommand())
     {
-        rollbackOngoingCommand();
+        m_commandManager->rollback();
     }
 
     QList<TimeNodePresenter*> collidingTimeNodes;
@@ -259,7 +303,7 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
         auto cmd = new MoveEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                  data);
 
-        sendOngoingCommand(cmd);
+        m_commandManager->send(cmd);
     }
     else
     {
@@ -283,8 +327,7 @@ void ScenarioCommandManager::moveConstraint(ConstraintData data)
     auto cmd = new MoveConstraint(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                   data);
 
-
-    sendOngoingCommand(cmd);
+    m_commandManager->send(cmd);
 }
 
 void ScenarioCommandManager::moveTimeNode(EventData data)
@@ -298,54 +341,19 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
     auto cmd = new MoveTimeNode(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                 data);
 
-    sendOngoingCommand(cmd);
+    m_commandManager->send(cmd);
 }
 
-void ScenarioCommandManager::sendOngoingCommand(iscore::SerializableCommand* cmd)
-{
-    if(m_ongoingCommand && cmd->id() != m_ongoingCommandId)
-    {
-        rollbackOngoingCommand();
-    }
 
-    auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
-
-    if(!m_ongoingCommand)
-    {
-        m_ongoingCommand = true;
-        m_ongoingCommandId = cmd->id();
-        doc->presenter()->initiateOngoingCommand(cmd, m_presenter->m_viewModel->sharedProcessModel());
-    }
-    else
-    {
-        doc->presenter()->continueOngoingCommand(cmd);
-    }
-}
-
-void ScenarioCommandManager::finishOngoingCommand()
-{
-    auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
-    m_ongoingCommand = false;
-    doc->presenter()->validateOngoingCommand();
-    m_ongoingCommandId = -1;
-}
-
-void ScenarioCommandManager::rollbackOngoingCommand()
-{
-    auto doc = iscore::IDocument::documentFromObject(m_presenter->m_viewModel->sharedProcessModel());
-    doc->presenter()->rollbackOngoingCommand();
-    m_ongoingCommand = false;
-    m_ongoingCommandId = -1;
-}
 
 void ScenarioCommandManager::on_ctrlStateChanged(bool ctrlPressed)
 {
-    if(!m_ongoingCommand)
+    if(!ongoingCommand())
     {
         return;
     }
 
-    rollbackOngoingCommand();
+    m_commandManager->rollback();
 
     if(ctrlPressed)
     {
@@ -355,4 +363,9 @@ void ScenarioCommandManager::on_ctrlStateChanged(bool ctrlPressed)
     {
         moveEventAndConstraint(m_presenter->m_lastData);
     }
+}
+
+bool ScenarioCommandManager::ongoingCommand()
+{
+    return m_commandManager->ongoing();
 }

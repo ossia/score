@@ -86,6 +86,7 @@ void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 void TimeNodeView::setMoving(bool arg)
 {
     m_moving = arg;
+    update();
 }
 
 void TimeNodeView::changeColor(QColor newColor)

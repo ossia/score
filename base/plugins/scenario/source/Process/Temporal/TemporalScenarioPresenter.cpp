@@ -46,8 +46,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
     m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
     m_view {static_cast<TemporalScenarioView*>(view) }
 {
-    m_cmdManager = new ScenarioCommandManager(this);
-    m_viewInterface = new ScenarioViewInterface(this);
+    m_cmdManager = new ScenarioCommandManager{this};
+    m_viewInterface = new ScenarioViewInterface{this};
 
     /////// Setup of existing data
     // For each constraint & event, display' em
@@ -135,6 +135,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
+    delete m_cmdManager;
+    delete m_viewInterface;
+
     if(m_view)
     {
         auto sc = m_view->scene();
@@ -302,7 +305,7 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
 
 bool TemporalScenarioPresenter::ongoingCommand()
 {
-    return m_cmdManager->m_ongoingCommand;
+    return m_cmdManager->ongoingCommand();
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -349,22 +352,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 
     m_events.push_back(event_presenter);
 
-
-    // ------------------------------------------------------------
-    // event -> Command Manager
-    connect(event_presenter, &EventPresenter::eventMoved,
-            [=](EventData data) { m_cmdManager->moveEventAndConstraint(data); });
-
-    connect(event_presenter, &EventPresenter::eventMovedWithControl,
-            [=](EventData data) { m_cmdManager->createConstraint(data); });
-    connect(event_presenter, &EventPresenter::eventReleased,
-            [=]() { m_cmdManager->finishOngoingCommand(); });
-
-    connect(event_presenter, &EventPresenter::eventReleasedWithControl,
-            [=]() { m_cmdManager->finishOngoingCommand(); });
-
-    connect(event_presenter, &EventPresenter::ctrlStateChanged,
-            [=](bool state) { m_cmdManager->on_ctrlStateChanged(state); });
+    m_cmdManager->setupEventPresenter(event_presenter);
 
     // ------------------------------------------------------------
     // Selection
@@ -397,12 +385,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
             this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
 
-    // ------------------------------------------------------------
-    // timeNode -> command manager
-    connect(timeNode_presenter, &TimeNodePresenter::timeNodeMoved,
-            [=](EventData data) { m_cmdManager->moveTimeNode(data); });
-    connect(timeNode_presenter, &TimeNodePresenter::timeNodeReleased,
-            [=]() { m_cmdManager->finishOngoingCommand(); });
+    m_cmdManager->setupTimeNodePresenter(timeNode_presenter);
 
     // ------------------------------------------------------------
     // Selection
@@ -439,13 +422,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
             this,					&TemporalScenarioPresenter::on_askUpdate);
 
-    // ------------------------------------------------------------
-    // constraint -> command manager
-
-    connect(constraint_presenter,	&TemporalConstraintPresenter::constraintMoved,
-            [=](ConstraintData data) { m_cmdManager->moveConstraint(data); });
-    connect(constraint_presenter,	&TemporalConstraintPresenter::constraintReleased,
-            [=]() { m_cmdManager->finishOngoingCommand(); });
+    m_cmdManager->setupConstraintPresenter(constraint_presenter);
 
     // ------------------------------------------------------------
     // selection and inspector management
