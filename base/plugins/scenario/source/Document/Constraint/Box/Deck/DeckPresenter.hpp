@@ -5,6 +5,7 @@
 
 class DeckModel;
 class DeckView;
+class CommandDispatcher;
 namespace iscore
 {
     class SerializableCommand;
@@ -29,7 +30,6 @@ class DeckPresenter : public NamedObject
         void setVerticalPosition(int h);
 
     signals:
-        void submitCommand(iscore::SerializableCommand*);
         void newSelection(const Selection&);
 
         void askUpdate();
@@ -54,9 +54,11 @@ class DeckPresenter : public NamedObject
 
         void updateProcessesShape();
 
-        DeckModel* m_model;
-        DeckView* m_view;
+        DeckModel* m_model{};
+        DeckView* m_view{};
         QVector<ProcessPresenterInterface*> m_processes;
+
+        CommandDispatcher* m_commandDispatcher{};
 
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the deckView is being resized.

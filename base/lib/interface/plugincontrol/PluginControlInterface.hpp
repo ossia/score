@@ -36,8 +36,5 @@ namespace iscore
             {
                 return nullptr;
             }
-
-        signals:
-            void submitCommand(SerializableCommand*);
     };
 }

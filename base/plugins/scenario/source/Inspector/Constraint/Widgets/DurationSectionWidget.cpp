@@ -21,7 +21,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent},
-    m_cmdManager{new OngoingCommandManager{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
+    m_cmdManager{new OngoingCommandDispatcher{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
                                            this}}
 {
 
@@ -142,7 +142,7 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
                    iscore::IDocument::path(m_model),
                    b);
 
-    emit m_parent->commandBroker()->send(cmd);
+    emit m_parent->commandDispatcher()->send(cmd);
 }
 
 void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)

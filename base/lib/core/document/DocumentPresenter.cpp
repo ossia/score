@@ -38,8 +38,7 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
     m_presenter = pres;
 
     // Commands
-    connect(m_presenter, &DocumentDelegatePresenterInterface::submitCommand,
-            this,		 &DocumentPresenter::applyCommand, Qt::QueuedConnection);
+    // TODO put the QueuedConnection in the OngoingCommandManager.
 
     // Selection
     connect(m_presenter,  &DocumentDelegatePresenterInterface::newSelection,

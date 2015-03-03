@@ -37,8 +37,6 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
 
         m_tabWidget->addTab(widget, object->objectName());
 
-        connect(widget, &InspectorWidgetBase::submitCommand,
-                this,   &InspectorPanel::submitCommand);
         connect(widget, &InspectorWidgetBase::objectsSelected,
                 this,   &InspectorPanel::newSelection);
     }

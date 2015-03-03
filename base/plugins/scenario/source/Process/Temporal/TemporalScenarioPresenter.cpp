@@ -415,9 +415,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     m_constraints.push_back(constraint_presenter);
 
-    connect(constraint_presenter,	&TemporalConstraintPresenter::submitCommand,
-            this,					&TemporalScenarioPresenter::submitCommand);
-
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
             this,					&TemporalScenarioPresenter::on_askUpdate);

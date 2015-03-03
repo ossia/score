@@ -35,8 +35,6 @@ class InspectorWidgetBase : public QWidget
         explicit InspectorWidgetBase(QObject* inspectedObj = 0, QWidget* parent = 0);
 
     signals:
-        void submitCommand(iscore::SerializableCommand*);
-
         void objectsSelected(const Selection&);
 
     public slots:
@@ -83,10 +81,10 @@ class InspectorWidgetBase : public QWidget
             return _scrollAreaLayout;
         }
 
-        CommandManager* commandBroker() const
+        CommandDispatcher* commandDispatcher() const
         { return m_commandQueue; }
     private:
-        CommandManager* m_commandQueue{};
+        CommandDispatcher* m_commandQueue{};
         QVBoxLayout* _scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};

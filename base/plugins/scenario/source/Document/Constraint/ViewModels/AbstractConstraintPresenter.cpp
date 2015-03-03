@@ -174,8 +174,6 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 
     m_box->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
-    connect(m_box, &BoxPresenter::submitCommand,
-            this,  &AbstractConstraintPresenter::submitCommand);
     // TODO Bof. Peut-être faire remonter juste si un process est sélectionné ??
     // Même pas : la sélection fait partie du modèle.
     //connect(m_box, &BoxPresenter::elementSelected,

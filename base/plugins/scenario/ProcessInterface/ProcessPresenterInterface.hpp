@@ -29,6 +29,5 @@ class ProcessPresenterInterface : public NamedObject
         virtual id_type<ProcessSharedModelInterface> modelId() const = 0;
 
     signals:
-        void submitCommand(iscore::SerializableCommand*);
         void newSelection(const Selection&);
 };

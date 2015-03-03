@@ -19,11 +19,6 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
         void load();
         void doConnections();
 
-    signals:
-        void submitCommand(iscore::Command* cmd);
-
-    public slots:
-
     private:
         PluginSettingsPresenter* presenter();
 

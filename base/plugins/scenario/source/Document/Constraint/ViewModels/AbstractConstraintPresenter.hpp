@@ -61,7 +61,6 @@ class AbstractConstraintPresenter : public NamedObject
 
     signals:
         void constraintPressed();
-        void submitCommand(iscore::SerializableCommand*);
 
         void newSelection(const Selection&);
         void askUpdate();

@@ -36,11 +36,7 @@ namespace iscore
             }
 
             virtual void on_modelChanged() = 0;
-
             virtual ~PanelPresenterInterface() = default;
-
-        signals:
-            void submitCommand(SerializableCommand* cmd);
 
         protected:
             PanelModelInterface* m_model {};

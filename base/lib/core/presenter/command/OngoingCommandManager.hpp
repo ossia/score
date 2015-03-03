@@ -1,11 +1,11 @@
 #pragma once
 #include <core/presenter/command/CommandQueue.hpp>
 
-class CommandManager : public QObject
+class CommandDispatcher : public QObject
 {
     public:
-        CommandManager(QObject* parent);
-        CommandManager(iscore::CommandQueue* queue, QObject* parent):
+        CommandDispatcher(QObject* parent);
+        CommandDispatcher(iscore::CommandQueue* queue, QObject* parent):
             QObject{parent},
             m_commandQueue{queue}
         {
@@ -22,13 +22,13 @@ class CommandManager : public QObject
 
 };
 
-class OngoingCommandManager : public CommandManager
+class OngoingCommandDispatcher : public CommandDispatcher
 {
         Q_OBJECT
     public:
-        using CommandManager::CommandManager;
+        using CommandDispatcher::CommandDispatcher;
 
-        ~OngoingCommandManager();
+        ~OngoingCommandDispatcher();
 
         // True if there is an ongoing command.
         bool ongoing() const

@@ -103,9 +103,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
     on_askUpdate();
 
-    connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::submitCommand,
-            this,						&BaseElementPresenter::submitCommand);
-
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
 

@@ -18,7 +18,7 @@
 InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
     QWidget(parent),
     _inspectedObject {inspectedObj},
-    m_commandQueue{inspectedObj ? new CommandManager{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(inspectedObj)),
+    m_commandQueue{inspectedObj ? new CommandDispatcher{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(inspectedObj)),
                    this} : nullptr}
 {
     _layout = new QVBoxLayout;

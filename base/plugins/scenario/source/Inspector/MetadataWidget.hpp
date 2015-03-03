@@ -17,7 +17,7 @@ class QLineEdit;
 class QLabel;
 class CommentEdit;
 class QPushButton;
-class CommandManager;
+class CommandDispatcher;
 class ModelMetadata;
 
 class MetadataWidget : public QWidget
@@ -25,7 +25,7 @@ class MetadataWidget : public QWidget
         Q_OBJECT
 
     public:
-        explicit MetadataWidget(ModelMetadata* metadata, CommandManager* m, QWidget* parent = 0);
+        explicit MetadataWidget(ModelMetadata* metadata, CommandDispatcher* m, QWidget* parent = 0);
 
         QString scriptingName() const;
 
@@ -38,28 +38,28 @@ class MetadataWidget : public QWidget
                     [=](QString newName)
             {
                 if(newName != model->metadata.name())
-                    m_commandManager->send(new ChangeElementName<T>{path(model), newName});
+                    m_commandDispatcher->send(new ChangeElementName<T>{path(model), newName});
             });
 
             connect(this, &MetadataWidget::labelChanged,
                     [=](QString newLabel)
             {
                 if(newLabel != model->metadata.label())
-                    m_commandManager->send(new ChangeElementLabel<T>{path(model), newLabel});
+                    m_commandDispatcher->send(new ChangeElementLabel<T>{path(model), newLabel});
             });
 
             connect(this, &MetadataWidget::commentsChanged,
                     [=](QString newComments)
             {
                 if(newComments != model->metadata.comment())
-                    m_commandManager->send(new ChangeElementComments<T>{path(model), newComments});
+                    m_commandDispatcher->send(new ChangeElementComments<T>{path(model), newComments});
             });
 
             connect(this, &MetadataWidget::colorChanged,
                     [=](QColor newColor)
             {
                 if(newColor != model->metadata.color())
-                    m_commandManager->send(new ChangeElementColor<T>{path(model), newColor});
+                    m_commandDispatcher->send(new ChangeElementColor<T>{path(model), newColor});
             });
         }
 
@@ -78,12 +78,9 @@ class MetadataWidget : public QWidget
         void commentsChanged(QString arg);
         void colorChanged(QColor arg);
 
-        void submitCommand(iscore::SerializableCommand*);
-
     private:
-
         ModelMetadata* m_metadata;
-        CommandManager* m_commandManager;
+        CommandDispatcher* m_commandDispatcher;
 
         QLabel* m_typeLb {};
         QLineEdit* m_scriptingNameLine {};

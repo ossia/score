@@ -4,16 +4,18 @@
 #include "AutomationView.hpp"
 
 #include <core/interface/document/DocumentInterface.hpp>
+#include <core/presenter/command/OngoingCommandManager.hpp>
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
-        ProcessViewInterface* view,
-        QObject* parent) :
+                                         ProcessViewInterface* view,
+                                         QObject* parent) :
     ProcessPresenterInterface {"AutomationPresenter", parent},
-                          m_viewModel {static_cast<AutomationViewModel*>(model) },
-m_view {static_cast<AutomationView*>(view) }
+    m_viewModel {static_cast<AutomationViewModel*>(model) },
+    m_view {static_cast<AutomationView*>(view) },
+    m_commandDispatcher{new CommandDispatcher{this}}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
-    this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
+            this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
 
     on_modelPointsChanged();
 }
@@ -95,10 +97,10 @@ void AutomationPresenter::on_modelPointsChanged()
     double scale = (width * mspp) / duration.msec();
 
     m_curvePresenter = new PluginCurvePresenter {scale,
-                                                 m_curveModel,
-                                                 m_curveView,
-                                                 this
-                                                };
+                       m_curveModel,
+                       m_curveView,
+                       this
+};
 
     // Recreate the points in the model
     auto pts = m_viewModel->model()->points();
@@ -120,37 +122,30 @@ void AutomationPresenter::on_modelPointsChanged()
     connect(m_curvePresenter, &PluginCurvePresenter::notifyPointCreated,
             [&](QPointF pt)
     {
-        auto cmd = new AddPoint
-        {
-            iscore::IDocument::path(m_viewModel->model()),
-            pt.x(), pt.y()
-        };
+        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel->model()),
+                   pt.x(),
+                   pt.y()};
 
-        submitCommand(cmd);
+        m_commandDispatcher->send(cmd);
     });
 
     connect(m_curvePresenter, &PluginCurvePresenter::notifyPointMoved,
             [&](QPointF oldPt, QPointF newPt)
     {
-        auto cmd = new MovePoint
-        {
-            iscore::IDocument::path(m_viewModel->model()),
-            oldPt.x(), newPt.x(), newPt.y()
-        };
+        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel->model()),
+                   oldPt.x(), newPt.x(), newPt.y()
+    };
 
-        submitCommand(cmd);
+        m_commandDispatcher->send(cmd);
     });
 
     connect(m_curvePresenter, &PluginCurvePresenter::notifyPointDeleted,
             [&](QPointF pt)
     {
-        auto cmd = new RemovePoint
-        {
-            iscore::IDocument::path(m_viewModel->model()),
-            pt.x()
-        };
+        auto cmd = new RemovePoint{iscore::IDocument::path(m_viewModel->model()),
+                   pt.x()};
 
-        submitCommand(cmd);
+        m_commandDispatcher->send(cmd);
     });
 }
 

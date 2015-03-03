@@ -111,9 +111,6 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
     m_decks.push_back(deckPres);
     deckPres->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
-
-    connect(deckPres, &DeckPresenter::submitCommand,
-            this,     &BoxPresenter::submitCommand);
     connect(deckPres, &DeckPresenter::newSelection,
             this,     &BoxPresenter::newSelection);
 

@@ -83,7 +83,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     areaLayout()->addStretch();
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandBroker(), this};
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
     m_metadata->setType(EventModel::prettyName()); // TODO le faire automatiquement avec T::className
 
     m_metadata->setupConnections(m_model);
@@ -182,7 +182,7 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_addressLineEdit->text();
     auto cmd = new Command::AddStateToEvent{path(m_model), txt};
 
-    emit commandBroker()->send(cmd);
+    emit commandDispatcher()->send(cmd);
     m_addressLineEdit->clear();
 }
 
@@ -196,7 +196,7 @@ void EventInspectorWidget::on_conditionChanged()
     }
 
     auto cmd = new Command::SetCondition{path(m_model), txt};
-    emit commandBroker()->send(cmd);
+    emit commandDispatcher()->send(cmd);
 }
 
 void EventInspectorWidget::updateMessages()

@@ -5,14 +5,14 @@
 
 using namespace iscore;
 // TODO this should be in the iscore namespace ?
-CommandManager::CommandManager(QObject* parent):
+CommandDispatcher::CommandDispatcher(QObject* parent):
     QObject{parent},
     m_commandQueue{IDocument::commandQueue(IDocument::documentFromObject(parent))}
 {
 
 }
 
-void CommandManager::send(SerializableCommand *cmd)
+void CommandDispatcher::send(SerializableCommand *cmd)
 {
     commandQueue()->pushAndEmit(cmd);
 }
@@ -52,7 +52,7 @@ void continueOngoingCommand(iscore::SerializableCommand*);
 void rollbackOngoingCommand();
 void validateOngoingCommand();*/
 
-void OngoingCommandManager::send(iscore::SerializableCommand* cmd)
+void OngoingCommandDispatcher::send(iscore::SerializableCommand* cmd)
 {
     if(m_ongoingCommand && cmd->id() != m_ongoingCommand->uid())
     {
@@ -76,7 +76,7 @@ void OngoingCommandManager::send(iscore::SerializableCommand* cmd)
     }
 }
 
-void OngoingCommandManager::commit()
+void OngoingCommandDispatcher::commit()
 {
     if(m_ongoingCommand)
     {
@@ -92,7 +92,7 @@ void OngoingCommandManager::commit()
 }
 
 
-void OngoingCommandManager::rollback()
+void OngoingCommandDispatcher::rollback()
 {
     if(m_ongoingCommand)
     {
@@ -106,7 +106,7 @@ void OngoingCommandManager::rollback()
 }
 
 
-OngoingCommandManager::~OngoingCommandManager()
+OngoingCommandDispatcher::~OngoingCommandDispatcher()
 {
     delete m_ongoingCommand;
 }

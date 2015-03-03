@@ -103,6 +103,6 @@ void AutomationInspectorWidget::on_addressChange(const QString& newText)
                     iscore::IDocument::path(m_model),
                     newText };
 
-        commandBroker()->send(cmd);
+        commandDispatcher()->send(cmd);
     }
 }

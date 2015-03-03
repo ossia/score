@@ -111,7 +111,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandBroker(), this};
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
     m_metadata->setType(ConstraintModel::prettyName()); // TODO le faire automatiquement avec T::className
 
     m_metadata->setupConnections(object);
@@ -206,14 +206,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
         iscore::IDocument::path(model()),
         processName
     };
-    emit commandBroker()->send(cmd);
+    emit commandDispatcher()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
     auto cmd = new AddBoxToConstraint(
         iscore::IDocument::path(model()));
-    emit commandBroker()->send(cmd);
+    emit commandDispatcher()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
@@ -221,7 +221,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
         processName);
-    emit commandBroker()->send(cmd);
+    emit commandDispatcher()->send(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
@@ -232,7 +232,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(vm->isBoxShown())
         {
             auto cmd = new HideBoxInViewModel(vm);
-            emit commandBroker()->send(cmd);
+            emit commandDispatcher()->send(cmd);
         }
     }
     else
@@ -243,7 +243,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(ok)
         {
             auto cmd = new ShowBoxInViewModel(vm, id);
-            emit commandBroker()->send(cmd);
+            emit commandDispatcher()->send(cmd);
         }
     }
 

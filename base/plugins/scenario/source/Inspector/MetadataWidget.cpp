@@ -14,10 +14,10 @@
 #include <QToolButton>
 
 
-MetadataWidget::MetadataWidget(ModelMetadata* metadata, CommandManager* m, QWidget* parent) :
+MetadataWidget::MetadataWidget(ModelMetadata* metadata, CommandDispatcher* m, QWidget* parent) :
     QWidget(parent),
     m_metadata {metadata},
-    m_commandManager{m}
+    m_commandDispatcher{m}
 {
     QVBoxLayout* metadataLayout = new QVBoxLayout{this};
     setLayout(metadataLayout);

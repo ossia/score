@@ -31,8 +31,6 @@ class InspectorPanel : public QWidget
         explicit InspectorPanel(QWidget* parent);
 
     signals:
-        void submitCommand(iscore::SerializableCommand*);
-
         /**
          * @brief newSelection
          * This signal is sent when objects are selected FROM the inspector.

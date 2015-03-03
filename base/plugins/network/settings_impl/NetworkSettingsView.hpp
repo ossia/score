@@ -20,9 +20,6 @@ class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
         void load();
         void doConnections();
 
-    signals:
-        void submitCommand(iscore::Command* cmd);
-
     public slots:
         void on_masterPortChanged(int);
         void on_clientPortChanged(int);

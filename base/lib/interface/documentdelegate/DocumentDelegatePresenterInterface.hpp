@@ -29,7 +29,6 @@ namespace iscore
             virtual ~DocumentDelegatePresenterInterface() = default;
 
         signals:
-            void submitCommand(iscore::SerializableCommand* cmd);
             void newSelection(const Selection& s);
 
         protected:

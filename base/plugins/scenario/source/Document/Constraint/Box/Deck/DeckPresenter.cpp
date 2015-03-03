@@ -13,6 +13,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "core/interface/document/DocumentInterface.hpp"
+#include <core/presenter/command/OngoingCommandManager.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
 
@@ -24,8 +25,9 @@ DeckPresenter::DeckPresenter(DeckModel* model,
                              DeckView* view,
                              QObject* parent) :
     NamedObject {"DeckPresenter", parent},
-            m_model {model},
-            m_view {view}
+    m_model {model},
+    m_view {view},
+    m_commandDispatcher{new CommandDispatcher{this}}
 {
     for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {
@@ -165,9 +167,8 @@ void DeckPresenter::on_bottomHandleReleased()
     auto path = iscore::IDocument::path(m_model);
 
     auto cmd = new Command::ResizeDeckVertically {std::move(path),
-            m_view->height()
-                                                 };
-    emit submitCommand(cmd);
+               m_view->height()};
+    m_commandDispatcher->send(cmd);
 }
 
 void DeckPresenter::on_horizontalZoomChanged(int val)
@@ -194,8 +195,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 
     presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
-    connect(presenter,	&ProcessPresenterInterface::submitCommand,
-            this,		&DeckPresenter::submitCommand);
     connect(presenter,	&ProcessPresenterInterface::newSelection,
             this,		&DeckPresenter::newSelection);
 

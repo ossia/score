@@ -31,7 +31,6 @@ class BoxPresenter : public NamedObject
         id_type<BoxModel> id() const;
 
     signals:
-        void submitCommand(iscore::SerializableCommand*);
         void newSelection(const Selection&);
 
         void askUpdate();

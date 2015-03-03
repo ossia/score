@@ -32,10 +32,6 @@ void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
             this,             &InspectorPanelView::newSelection);
 
     // Commands
-    connect(m_inspectorPanel, &InspectorPanel::submitCommand,
-            pres,             &DocumentPresenter::applyCommand, Qt::QueuedConnection);
-
-
     auto lay = new QVBoxLayout{m_widget};
     lay->addWidget(m_stack);
     lay->addWidget(m_inspectorPanel);
