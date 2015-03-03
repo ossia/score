@@ -83,7 +83,7 @@ class InspectorWidgetBase : public QWidget
             return _scrollAreaLayout;
         }
 
-        CommandManager* commandQueue() const
+        CommandManager* commandBroker() const
         { return m_commandQueue; }
     private:
         CommandManager* m_commandQueue{};

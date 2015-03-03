@@ -111,10 +111,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, this};
+    m_metadata = new MetadataWidget{&object->metadata, commandBroker(), this};
     m_metadata->setType(ConstraintModel::prettyName()); // TODO le faire automatiquement avec T::className
-    connect(m_metadata, &MetadataWidget::submitCommand,
-            this,       &InspectorWidgetBase::submitCommand);
+
     m_metadata->setupConnections(object);
 
     addHeader(m_metadata);
@@ -207,14 +206,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
         iscore::IDocument::path(model()),
         processName
     };
-    emit commandQueue()->send(cmd);
+    emit commandBroker()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
     auto cmd = new AddBoxToConstraint(
         iscore::IDocument::path(model()));
-    emit commandQueue()->send(cmd);
+    emit commandBroker()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
@@ -222,7 +221,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
         processName);
-    emit commandQueue()->send(cmd);
+    emit commandBroker()->send(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
@@ -233,7 +232,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(vm->isBoxShown())
         {
             auto cmd = new HideBoxInViewModel(vm);
-            emit commandQueue()->send(cmd);
+            emit commandBroker()->send(cmd);
         }
     }
     else
@@ -244,7 +243,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(ok)
         {
             auto cmd = new ShowBoxInViewModel(vm, id);
-            emit commandQueue()->send(cmd);
+            emit commandBroker()->send(cmd);
         }
     }
 

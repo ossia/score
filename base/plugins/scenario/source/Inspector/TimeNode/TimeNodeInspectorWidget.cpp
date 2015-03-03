@@ -56,10 +56,9 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
     updateDisplayedValues(object);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, this};
+    m_metadata = new MetadataWidget{&object->metadata, commandBroker(), this};
     m_metadata->setType(TimeNodeModel::prettyName()); // TODO le faire automatiquement avec T::className
-    connect(m_metadata, &MetadataWidget::submitCommand,
-            this,       &InspectorWidgetBase::submitCommand);
+
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
@@ -142,7 +141,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
         auto cmd = new SplitTimeNode(iscore::IDocument::path(inspectedObject()),
                                      eventGroup);
 
-        commandQueue()->send(cmd);
+        commandBroker()->send(cmd);
 
         qDebug() << info;
     }

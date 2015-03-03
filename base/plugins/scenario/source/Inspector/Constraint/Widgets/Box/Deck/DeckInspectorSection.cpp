@@ -51,7 +51,7 @@ void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInte
                    iscore::IDocument::path(m_model),
                    iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
 
-    m_parent->commandQueue()->send(cmd);
+    m_parent->commandBroker()->send(cmd);
 }
 
 void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pvm)

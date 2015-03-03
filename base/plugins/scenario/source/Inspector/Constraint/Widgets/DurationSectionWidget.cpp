@@ -142,7 +142,7 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
                    iscore::IDocument::path(m_model),
                    b);
 
-    emit m_parent->commandQueue()->send(cmd);
+    emit m_parent->commandBroker()->send(cmd);
 }
 
 void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)

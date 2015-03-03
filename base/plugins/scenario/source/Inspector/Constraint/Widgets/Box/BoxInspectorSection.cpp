@@ -47,7 +47,7 @@ void BoxInspectorSection::createDeck()
     auto cmd = new AddDeckToBox(
                    iscore::IDocument::path(m_model));
 
-    m_parent->commandQueue()->send(cmd);
+    m_parent->commandBroker()->send(cmd);
 }
 
 void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
