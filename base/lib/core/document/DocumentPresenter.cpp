@@ -62,10 +62,3 @@ void DocumentPresenter::unlock_impl()
     emit unlock(arr);
     m_lockedObject = ObjectPath();
 }
-
-
-//// Commands ////
-void DocumentPresenter::applyCommand(SerializableCommand* cmd)
-{
-    m_commandQueue->pushAndEmit(cmd);
-}

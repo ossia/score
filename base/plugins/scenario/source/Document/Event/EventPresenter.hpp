@@ -22,7 +22,7 @@ class EventPresenter : public NamedObject
         bool isSelected() const;
 
     signals:
-        void eventPressed();
+        void pressed();
         void eventMoved(EventData);
         void eventMovedWithControl(EventData);
         void eventReleased();

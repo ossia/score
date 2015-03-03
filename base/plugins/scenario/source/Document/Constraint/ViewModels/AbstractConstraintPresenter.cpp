@@ -32,7 +32,7 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
             m_view {view}
 {
     connect(m_view, &AbstractConstraintView::constraintPressed,
-            this,   &AbstractConstraintPresenter::constraintPressed);
+            this,   &AbstractConstraintPresenter::pressed);
     connect(&m_viewModel->model()->selection, &Selectable::changed,
             m_view, &AbstractConstraintView::setSelected);
 
@@ -129,6 +129,11 @@ void AbstractConstraintPresenter::updateHeight()
 bool AbstractConstraintPresenter::isSelected() const
 {
     return m_viewModel->model()->selection.get();
+}
+
+ConstraintModel* AbstractConstraintPresenter::model() const
+{
+    return m_viewModel->model();
 }
 
 void AbstractConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)

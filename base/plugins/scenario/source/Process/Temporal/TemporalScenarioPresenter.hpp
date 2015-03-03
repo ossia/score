@@ -21,9 +21,11 @@ class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
 class ScenarioCommandManager;
+class ScenarioSelectionManager;
 class ScenarioViewInterface;
 struct EventData;
 struct ConstraintData;
+class SelectionDispatcher;
 
 class TemporalScenarioPresenter : public ProcessPresenterInterface
 {
@@ -31,6 +33,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         friend class ScenarioCommandManager;
         friend class ScenarioViewInterface;
+        friend class ScenarioSelectionManager;
 
     public:
         TemporalScenarioPresenter(ProcessViewModelInterface* model,
@@ -67,9 +70,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
         void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
 
-        // View -> Presenter
-        void on_scenarioPressed();
-
         void on_askUpdate();
 
     private slots:
@@ -99,6 +99,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 
         ScenarioCommandManager* m_cmdManager{};
+        ScenarioSelectionManager* m_selManager{};
         ScenarioViewInterface* m_viewInterface{};
 
 };

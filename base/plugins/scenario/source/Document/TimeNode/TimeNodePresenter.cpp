@@ -17,7 +17,7 @@ TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
             m_view, &TimeNodeView::setSelected);
 
     connect(m_view, &TimeNodeView::timeNodePressed,
-            this,   &TimeNodePresenter::timeNodePressed);
+            this,   &TimeNodePresenter::pressed);
     connect(m_view, &TimeNodeView::timeNodeMoved,
             this,   &TimeNodePresenter::on_timeNodeMoved);
     connect(m_view, &TimeNodeView::timeNodeReleased,

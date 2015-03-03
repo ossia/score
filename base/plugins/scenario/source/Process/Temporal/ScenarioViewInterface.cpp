@@ -28,9 +28,19 @@
 #include <core/interface/selection/Selection.hpp>
 
 ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presenter) :
+    QObject{presenter},
     m_presenter(presenter)
 {
-
+    connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::eventMoved,
+            [ = ](id_type<EventModel> eventId)
+    {
+        on_eventMoved(eventId);
+    });
+    connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::constraintMoved,
+            [ = ](id_type<ConstraintModel> constraintId)
+    {
+        on_constraintMoved(constraintId);
+    });
 }
 
 void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
@@ -141,53 +151,4 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 
     timeNode->view()->setMoving(m_presenter->ongoingCommand());
-}
-
-void ScenarioViewInterface::setSelectionArea(QRectF area)
-{
-    QPainterPath path{};
-    path.addRect(area);
-    Selection sel{};
-    for (auto item : m_presenter->m_view->scene()->items(path))
-    {
-        EventView* itemEv = dynamic_cast<EventView*>(item);
-        auto itemCstr = dynamic_cast<TemporalConstraintView*>(item);
-        auto itemTn = dynamic_cast<TimeNodeView*>(item);
-
-        if (itemEv)
-        {
-            for (EventPresenter* event : m_presenter->m_events)
-            {
-                if (event->view() == itemEv)
-                {
-                    sel.push_back(event->model());
-                    break;
-                }
-            }
-        }
-        else if (itemCstr)
-        {
-            for (TemporalConstraintPresenter* cstr : m_presenter->m_constraints)
-            {
-                if (view(cstr) == itemCstr)
-                {
-                    sel.push_back(viewModel(cstr)->model());
-                    break;
-                }
-            }
-        }
-
-        else if (itemTn)
-        {
-            for (TimeNodePresenter* tn : m_presenter->m_timeNodes)
-            {
-                if (tn->view() == item)
-                {
-                    sel.push_back(tn->model());
-                    break;
-                }
-            }
-        }
-    }
-    emit m_presenter->newSelection(sel);
 }

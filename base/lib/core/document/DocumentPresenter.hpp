@@ -43,16 +43,6 @@ namespace iscore
             void lock(QByteArray);
             void unlock(QByteArray);
 
-        public slots:
-            // Command-relative slots
-            /**
-             * @brief applyCommand
-             *
-             * This slot is to be used by clients when they want to simply apply a command.
-             * A notification is then sent by the CommandQueue.
-             */
-            void applyCommand(iscore::SerializableCommand*);
-
         private:
             void lock_impl();
             void unlock_impl();

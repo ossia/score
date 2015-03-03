@@ -71,6 +71,15 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presen
     m_commandDispatcher{new OngoingCommandDispatcher{this}}
 {
 
+    // TODO make it more generic (maybe with a QAction ?)
+    connect(presenter->m_view, &TemporalScenarioView::deletePressed,
+            this, &ScenarioCommandManager::deleteSelection);
+
+    connect(presenter->m_view, &TemporalScenarioView::clearPressed,
+            this, &ScenarioCommandManager::clearContentFromSelection);
+
+    connect(presenter->m_view, &TemporalScenarioView::scenarioReleased,
+            this, &ScenarioCommandManager::on_scenarioReleased);
 }
 
 void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)

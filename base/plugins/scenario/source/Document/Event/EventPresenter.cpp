@@ -15,7 +15,7 @@ EventPresenter::EventPresenter(EventModel* model,
 {
     // The scenario catches this :
     connect(m_view, &EventView::eventPressed,
-            this,   &EventPresenter::eventPressed);
+            this,   &EventPresenter::pressed);
 
     connect(&m_model->selection, &Selectable::changed,
             m_view, &EventView::setSelected);

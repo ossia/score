@@ -47,6 +47,8 @@ class AbstractConstraintPresenter : public NamedObject
             return m_box;
         }
 
+        ConstraintModel* model() const;
+
         AbstractConstraintViewModel* abstractConstraintViewModel() const
         {
             return m_viewModel;
@@ -60,7 +62,7 @@ class AbstractConstraintPresenter : public NamedObject
         void on_horizontalZoomChanged(int val);
 
     signals:
-        void constraintPressed();
+        void pressed();
 
         void newSelection(const Selection&);
         void askUpdate();

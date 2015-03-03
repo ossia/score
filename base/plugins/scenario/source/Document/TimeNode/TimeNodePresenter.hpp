@@ -26,7 +26,7 @@ class TimeNodePresenter :  public NamedObject
         TimeNodeView* view();
 
     signals:
-        void timeNodePressed();
+        void pressed();
         void timeNodeMoved(EventData);
         void timeNodeReleased();
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
