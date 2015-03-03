@@ -64,13 +64,11 @@ void copyIfSelected(const InputVector& in, OutputVector& out)
 }
 
 
-
-
+using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_commandManager{new OngoingCommandManager{
-       iscore::IDocument::documentFromObject(presenter)->presenter()->commandQueue(), this}}
+    m_commandManager{new OngoingCommandManager{this}}
 {
 
 }
@@ -84,10 +82,10 @@ void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
             this, &ScenarioCommandManager::createConstraint);
 
     connect(e,                &EventPresenter::eventReleased,
-            m_commandManager, &OngoingCommandManager::finish);
+            m_commandManager, &OngoingCommandManager::commit);
 
     connect(e,                &EventPresenter::eventReleasedWithControl,
-            m_commandManager, &OngoingCommandManager::finish);
+            m_commandManager, &OngoingCommandManager::commit);
 
     // TODO manage ctrl being pressed / released globally.
     connect(e,    &EventPresenter::ctrlStateChanged,
@@ -101,7 +99,7 @@ void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
             this, &ScenarioCommandManager::moveTimeNode);
 
     connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_commandManager, &OngoingCommandManager::finish);
+            m_commandManager, &OngoingCommandManager::commit);
 }
 
 void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
@@ -109,7 +107,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
     connect(c,	  &TemporalConstraintPresenter::constraintMoved,
             this, &ScenarioCommandManager::moveConstraint);
     connect(c,                &TemporalConstraintPresenter::constraintReleased,
-            m_commandManager, &OngoingCommandManager::finish);
+            m_commandManager, &OngoingCommandManager::commit);
 }
 
 

@@ -37,8 +37,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(view(), &BaseElementView::positionSliderChanged,
             this,	&BaseElementPresenter::on_positionSliderChanged);
 
-    connect(view()->view(), SIGNAL(widthChanged(int)),
-            this, SLOT(on_viewWidthChanged(int)));
+    connect(view()->view(), &ScoreGraphicsView::widthChanged,
+            this,           &BaseElementPresenter::on_viewWidthChanged);
 
 
     setDisplayedConstraint(model()->constraintModel());

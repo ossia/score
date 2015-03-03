@@ -1,6 +1,7 @@
 #include "InspectorSectionWidget.hpp"
 #include "InspectorWidgetBase.hpp"
 
+#include <core/interface/document/DocumentInterface.hpp>
 #include <QLayout>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -15,7 +16,10 @@
 
 
 InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
-    QWidget(parent), _inspectedObject {inspectedObj}
+    QWidget(parent),
+    _inspectedObject {inspectedObj},
+    m_commandQueue{inspectedObj ? new CommandManager{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(inspectedObj)),
+                   this} : nullptr}
 {
     _layout = new QVBoxLayout;
     _layout->setMargin(5);
@@ -111,34 +115,34 @@ void InspectorWidgetBase::addHeader(QWidget* header)
 void InspectorWidgetBase::changeColor()
 {
 
-	QColor color = QColorDialog::getColor (_currentColor, this, "Select Color");
+    QColor color = QColorDialog::getColor (_currentColor, this, "Select Color");
 
-	if (color.isValid() )
-	{
-		setColor (color);
-	}
+    if (color.isValid() )
+    {
+        setColor (color);
+    }
 }
 
 void InspectorWidgetBase::setName (QString newName)
 {
-	_objectName->setText (newName);
+    _objectName->setText (newName);
 }
 
 void InspectorWidgetBase::setComments (QString newComments)
 {
-	_comments->setText (newComments);
+    _comments->setText (newComments);
 }
 
 void InspectorWidgetBase::setColor (QColor newColor)
 {
-	_colorButtonPixmap.fill (newColor);
-	_colorButton->setIcon (QIcon (_colorButtonPixmap) );
-	_currentColor = newColor;
+    _colorButtonPixmap.fill (newColor);
+    _colorButton->setIcon (QIcon (_colorButtonPixmap) );
+    _currentColor = newColor;
 }
 
 void InspectorWidgetBase::changeLabelType (QString type)
 {
-	_objectType->setText (type);
+    _objectType->setText (type);
 }
 */
 

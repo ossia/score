@@ -26,7 +26,7 @@ using namespace Scenario::Command;
 
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget* parent) :
-    InspectorWidgetBase {nullptr},
+    InspectorWidgetBase {object, parent},
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");
@@ -142,7 +142,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
         auto cmd = new SplitTimeNode(iscore::IDocument::path(inspectedObject()),
                                      eventGroup);
 
-        submitCommand(cmd);
+        commandQueue()->send(cmd);
 
         qDebug() << info;
     }

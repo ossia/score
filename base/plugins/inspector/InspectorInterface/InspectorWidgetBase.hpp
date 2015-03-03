@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
 #include <core/interface/selection/SelectionStack.hpp>
+#include <core/presenter/command/OngoingCommandManager.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;
@@ -35,10 +36,6 @@ class InspectorWidgetBase : public QWidget
 
     signals:
         void submitCommand(iscore::SerializableCommand*);
-        void initiateOngoingCommand(iscore::SerializableCommand* cmd, QObject* objectToLock);
-        void continueOngoingCommand(iscore::SerializableCommand*);
-        void undoOngoingCommand();
-        void validateOngoingCommand();
 
         void objectsSelected(const Selection&);
 
@@ -86,7 +83,10 @@ class InspectorWidgetBase : public QWidget
             return _scrollAreaLayout;
         }
 
+        CommandManager* commandQueue() const
+        { return m_commandQueue; }
     private:
+        CommandManager* m_commandQueue{};
         QVBoxLayout* _scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};

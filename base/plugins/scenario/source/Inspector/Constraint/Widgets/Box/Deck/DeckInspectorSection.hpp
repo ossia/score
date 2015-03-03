@@ -33,6 +33,7 @@ class DeckInspectorSection : public InspectorSectionWidget
     private:
         DeckModel* m_model {};
 
+        ConstraintInspectorWidget* m_parent{};
         InspectorSectionWidget* m_pvmSection {};
         AddProcessViewModelWidget* m_addPvmWidget {};
         //std::vector<InspectorSectionWidget*> m_pvmsSectionWidgets;

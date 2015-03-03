@@ -26,6 +26,9 @@ class BoxInspectorSection : public InspectorSectionWidget
 
         InspectorSectionWidget* m_deckSection {};
         AddDeckWidget* m_deckWidget {};
+    public:
+        ConstraintInspectorWidget* m_parent{};
+    private:
 
         std::unordered_map<id_type<DeckModel>, DeckInspectorSection*, id_hash<DeckModel>> m_decksSectionWidgets;
         //std::vector<DeckInspectorSection*> m_decksSectionWidgets;

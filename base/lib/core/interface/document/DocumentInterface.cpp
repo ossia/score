@@ -61,3 +61,9 @@ iscore::PanelModelInterface* iscore::IDocument::panel(const QString& name, const
 
     return (it != end(panels) ? *it : nullptr);
 }
+
+
+iscore::CommandQueue* iscore::IDocument::commandQueue(const iscore::Document* d)
+{
+    return d->presenter()->commandQueue();
+}

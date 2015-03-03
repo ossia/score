@@ -28,7 +28,7 @@
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
-    InspectorWidgetBase {nullptr},
+    InspectorWidgetBase {object, parent},
     m_model {object}
 {
     setObjectName("EventInspectorWidget");
@@ -183,7 +183,7 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_addressLineEdit->text();
     auto cmd = new Command::AddStateToEvent{path(m_model), txt};
 
-    emit submitCommand(cmd);
+    emit commandQueue()->send(cmd);
     m_addressLineEdit->clear();
 }
 
@@ -197,7 +197,7 @@ void EventInspectorWidget::on_conditionChanged()
     }
 
     auto cmd = new Command::SetCondition{path(m_model), txt};
-    emit submitCommand(cmd);
+    emit commandQueue()->send(cmd);
 }
 
 void EventInspectorWidget::updateMessages()

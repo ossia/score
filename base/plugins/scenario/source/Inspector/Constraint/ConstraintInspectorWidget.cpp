@@ -55,7 +55,7 @@ class Separator : public QFrame
 };
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent) :
-    InspectorWidgetBase(parent)
+    InspectorWidgetBase(object, parent)
 {
     setObjectName("Constraint");
     setInspectedObject(object);
@@ -207,14 +207,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
         iscore::IDocument::path(model()),
         processName
     };
-    emit submitCommand(cmd);
+    emit commandQueue()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
     auto cmd = new AddBoxToConstraint(
         iscore::IDocument::path(model()));
-    emit submitCommand(cmd);
+    emit commandQueue()->send(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
@@ -222,7 +222,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
         processName);
-    emit submitCommand(cmd);
+    emit commandQueue()->send(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
@@ -233,7 +233,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(vm->isBoxShown())
         {
             auto cmd = new HideBoxInViewModel(vm);
-            emit submitCommand(cmd);
+            emit commandQueue()->send(cmd);
         }
     }
     else
@@ -244,7 +244,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(ok)
         {
             auto cmd = new ShowBoxInViewModel(vm, id);
-            emit submitCommand(cmd);
+            emit commandQueue()->send(cmd);
         }
     }
 
@@ -271,9 +271,6 @@ void ConstraintInspectorWidget::setupBox(BoxModel* box)
                                                            box,
                                                            this
                                                           };
-
-    connect(newBox, &BoxInspectorSection::submitCommand,
-            this,	&ConstraintInspectorWidget::submitCommand);
 
     m_boxesSectionWidgets[box->id()] = newBox;
     m_boxSection->addContent(newBox);

@@ -6,7 +6,7 @@ namespace iscore
     class Document;
     class DocumentDelegatePresenterInterface;
     class DocumentDelegateModelInterface;
-
+    class CommandQueue;
     class PanelModelInterface;
 
     namespace IDocument
@@ -31,6 +31,9 @@ namespace iscore
         // Panel models
         const QList<PanelModelInterface*>& panels(const Document* d);
         PanelModelInterface* panel(const QString& name, const Document* d);
+
+        // Command queue
+        CommandQueue* commandQueue(const Document* d);
 
         // Presenter of a document plugin.
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document* d);

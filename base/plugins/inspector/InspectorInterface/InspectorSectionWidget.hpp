@@ -25,9 +25,6 @@ class InspectorSectionWidget : public QWidget
         InspectorSectionWidget(QString name, QWidget* parent = 0);
         ~InspectorSectionWidget();
 
-    signals:
-        void submitCommand(iscore::SerializableCommand*);
-
     public slots:
 
         // Display tool

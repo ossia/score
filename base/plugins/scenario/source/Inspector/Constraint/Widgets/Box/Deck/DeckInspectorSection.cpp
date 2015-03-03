@@ -2,6 +2,7 @@
 
 #include "AddProcessViewModelWidget.hpp"
 
+#include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 #include "Inspector/Constraint/Widgets/Box/BoxInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -19,10 +20,11 @@
 using namespace Scenario::Command;
 
 DeckInspectorSection::DeckInspectorSection(QString name,
-        DeckModel* deck,
-        BoxInspectorSection* parentBox) :
+                                           DeckModel* deck,
+                                           BoxInspectorSection* parentBox) :
     InspectorSectionWidget {name, parentBox},
-m_model {deck}
+    m_model {deck},
+    m_parent{parentBox->m_parent}
 {
     m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
     m_pvmSection->setObjectName("ProcessViewModels");
@@ -46,10 +48,10 @@ m_model {deck}
 void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessModelId)
 {
     auto cmd = new AddProcessViewModelToDeck(
-        iscore::IDocument::path(m_model),
-        iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
+                   iscore::IDocument::path(m_model),
+                   iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
 
-    emit submitCommand(cmd);
+    m_parent->commandQueue()->send(cmd);
 }
 
 void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pvm)

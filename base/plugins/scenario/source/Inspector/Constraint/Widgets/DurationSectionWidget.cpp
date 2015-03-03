@@ -19,9 +19,12 @@
 
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) :
     InspectorSectionWidget {"Durations", parent},
-                       m_model {parent->model() },
-m_parent {parent}
+    m_model {parent->model()},
+    m_parent {parent},
+    m_cmdManager{new OngoingCommandManager{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
+                                           this}}
 {
+
     QWidget* widg{new QWidget{this}};
     QGridLayout* lay = new QGridLayout{widg};
     lay->setContentsMargins(0, 0, 0 , 0);
@@ -74,28 +77,16 @@ m_parent {parent}
     connect(minSpin,	SIGNAL(valueChanged(int)),
             this,		SLOT(minDurationSpinboxChanged(int)));
     connect(minSpin,	&QSpinBox::editingFinished,
-            [&]()
-    {
-        emit m_parent->validateOngoingCommand();
-        m_minSpinboxEditing = false;
-    });
+            [&]() { m_cmdManager->commit(); });
     connect(maxSpin,	SIGNAL(valueChanged(int)),
             this,		SLOT(maxDurationSpinboxChanged(int)));
     connect(maxSpin,	&QSpinBox::editingFinished,
-            [&]()
-    {
-        emit m_parent->validateOngoingCommand();
-        m_maxSpinboxEditing = false;
-    });
+            [&]() { m_cmdManager->commit(); });
 
     connect(valueSpin,  SIGNAL(valueChanged(int)),
             this,       SLOT(defaultDurationSpinboxChanged(int)));
     connect(valueSpin,  &QSpinBox::editingFinished,
-            [&]()
-    {
-        emit m_parent->validateOngoingCommand();
-        m_valueSpinboxEditing = false;
-    });
+            [&]() { m_cmdManager->commit(); });
 
     connect(checkbox,	&QCheckBox::toggled,
             this,		&DurationSectionWidget::rigidCheckboxToggled);
@@ -110,37 +101,19 @@ using namespace Scenario::Command;
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
     auto cmd = new SetMinDuration(
-        iscore::IDocument::path(m_model),
-        std::chrono::milliseconds {val});
+                   iscore::IDocument::path(m_model),
+                   std::chrono::milliseconds {val});
 
-    if(!m_minSpinboxEditing)
-    {
-        m_minSpinboxEditing = true;
-
-        emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-    }
-    else
-    {
-        emit m_parent->continueOngoingCommand(cmd);
-    }
+    m_cmdManager->send(cmd);
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
     auto cmd = new SetMaxDuration(
-        iscore::IDocument::path(m_model),
-        std::chrono::milliseconds {val});
+                   iscore::IDocument::path(m_model),
+                   std::chrono::milliseconds {val});
 
-    if(!m_maxSpinboxEditing)
-    {
-        m_maxSpinboxEditing = true;
-
-        emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-    }
-    else
-    {
-        emit m_parent->continueOngoingCommand(cmd);
-    }
+    m_cmdManager->send(cmd);
 }
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
@@ -150,38 +123,29 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     if(m_model->objectName() != "BaseConstraintModel")
     {
         cmd = new ResizeConstraint(
-            iscore::IDocument::path(m_model),
-            std::chrono::milliseconds {val});
+                  iscore::IDocument::path(m_model),
+                  std::chrono::milliseconds {val});
     }
     else
     {
         cmd = new ResizeBaseConstraint(
-            iscore::IDocument::path(m_model),
-            std::chrono::milliseconds {val});
+                  iscore::IDocument::path(m_model),
+                  std::chrono::milliseconds {val});
     }
 
-    if(!m_valueSpinboxEditing)
-    {
-        m_valueSpinboxEditing = true;
-
-        emit m_parent->initiateOngoingCommand(cmd, m_model->parent());
-    }
-    else
-    {
-        emit m_parent->continueOngoingCommand(cmd);
-    }
+    m_cmdManager->send(cmd);
 }
 
 void DurationSectionWidget::rigidCheckboxToggled(bool b)
 {
     auto cmd = new SetRigidity(
-        iscore::IDocument::path(m_model),
-        b);
+                   iscore::IDocument::path(m_model),
+                   b);
 
-    emit m_parent->submitCommand(cmd);
+    emit m_parent->commandQueue()->send(cmd);
 }
 
 void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)
 {
-//	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
+    //	m_valueLabel->setText(QString{"Default: %1 s"}.arg(dur));
 }

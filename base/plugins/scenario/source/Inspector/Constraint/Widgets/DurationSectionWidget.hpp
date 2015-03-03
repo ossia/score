@@ -1,5 +1,6 @@
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include <core/presenter/command/OngoingCommandManager.hpp>
 
 class QLabel;
 class ConstraintModel;
@@ -25,7 +26,5 @@ class DurationSectionWidget : public InspectorSectionWidget
         ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
 
-        bool m_minSpinboxEditing {};
-        bool m_maxSpinboxEditing {};
-        bool m_valueSpinboxEditing {};
+        OngoingCommandManager* m_cmdManager{};
 };

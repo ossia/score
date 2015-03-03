@@ -17,10 +17,11 @@
 using namespace Scenario::Command;
 
 BoxInspectorSection::BoxInspectorSection(QString name,
-        BoxModel* box,
-        ConstraintInspectorWidget* parentConstraint) :
+                                         BoxModel* box,
+                                         ConstraintInspectorWidget* parentConstraint) :
     InspectorSectionWidget {name, parentConstraint},
-m_model {box}
+    m_model {box},
+    m_parent{parentConstraint}
 {
     m_deckSection = new InspectorSectionWidget{"Decks", this};  // TODO Make a custom widget.
     m_deckSection->setObjectName("Decks");
@@ -44,19 +45,17 @@ m_model {box}
 void BoxInspectorSection::createDeck()
 {
     auto cmd = new AddDeckToBox(
-        iscore::IDocument::path(m_model));
-    emit submitCommand(cmd);
+                   iscore::IDocument::path(m_model));
+
+    m_parent->commandQueue()->send(cmd);
 }
 
 void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 {
     DeckInspectorSection* newDeck = new DeckInspectorSection {QString{"Deck.%1"} .arg(*deck->id().val()),
-                                                              deck,
-                                                              this
-                                                             };
+                                    deck,
+                                    this};
 
-    connect(newDeck, &DeckInspectorSection::submitCommand,
-            this,	 &BoxInspectorSection::submitCommand);
     m_deckSection->addContent(newDeck);
 
     m_decksSectionWidgets[deck->id()] = newDeck;

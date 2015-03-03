@@ -20,9 +20,9 @@
 #include <QApplication>
 
 AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automationModel,
-        QWidget* parent) :
+                                                     QWidget* parent) :
     InspectorWidgetBase {nullptr},
-m_model {automationModel}
+    m_model {automationModel}
 {
     setObjectName("AutomationInspectorWidget");
     setParent(parent);
@@ -94,17 +94,15 @@ m_model {automationModel}
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
-// TODO validation
+// TODO validation (voir dans capacités de QLineEdit)
 void AutomationInspectorWidget::on_addressChange(const QString& newText)
 {
     if(newText != m_model->address())
     {
-        auto cmd = new ChangeAddress
-        {
-            iscore::IDocument::path(m_model),
-            newText
-        };
+        auto cmd = new ChangeAddress{
+                    iscore::IDocument::path(m_model),
+                    newText };
 
-        submitCommand(cmd);
+        commandQueue()->send(cmd);
     }
 }
