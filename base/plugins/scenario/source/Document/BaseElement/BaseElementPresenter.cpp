@@ -10,9 +10,10 @@
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioModel.hpp"
 
-#include "core/interface/document/DocumentInterface.hpp"
+#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <core/interface/selection/SelectionDispatcher.hpp>
+#include <core/interface/document/DocumentInterface.hpp>
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -27,8 +28,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     DocumentDelegatePresenterInterface {parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
-                                        delegate_view
-                                        }
+                                        delegate_view},
+    m_selectionDispatcher{new SelectionDispatcher{this}}
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
@@ -61,13 +62,13 @@ void BaseElementPresenter::selectAll()
 {
     if(model()->focusedProcess())
     {
-        emit newSelection(model()->focusedProcess()->selectableChildren());
+        m_selectionDispatcher->send(model()->focusedProcess()->selectableChildren());
     }
 }
 
 void BaseElementPresenter::deselectAll()
 {
-    emit newSelection({});
+    m_selectionDispatcher->send({});
 }
 
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
@@ -99,16 +100,11 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                 cstrView,
                                 this};
 
-
     m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
     on_askUpdate();
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
-
-    connect(m_baseConstraintPresenter, &FullViewConstraintPresenter::newSelection,
-            this,                      &BaseElementPresenter::newSelection);
-
 
     // Update the address bar
     view()->addressBar()

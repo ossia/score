@@ -28,9 +28,6 @@ namespace iscore
 
             virtual ~DocumentDelegatePresenterInterface() = default;
 
-        signals:
-            void newSelection(const Selection& s);
-
         protected:
             DocumentDelegateModelInterface* m_model;
             DocumentDelegateViewInterface* m_view;

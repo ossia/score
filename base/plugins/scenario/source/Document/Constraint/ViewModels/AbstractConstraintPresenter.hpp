@@ -63,8 +63,6 @@ class AbstractConstraintPresenter : public NamedObject
 
     signals:
         void pressed();
-
-        void newSelection(const Selection&);
         void askUpdate();
 
     public slots:

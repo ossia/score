@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-
+class SelectionDispatcher;
 class BaseElementModel;
 class BaseElementView;
 class FullViewConstraintPresenter;
@@ -47,6 +47,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         FullViewConstraintPresenter* m_baseConstraintPresenter {};
 
         ConstraintModel* m_displayedConstraint {};
+        SelectionDispatcher* m_selectionDispatcher{};
+
 
         int m_horizontalZoomValue {50};
 

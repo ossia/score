@@ -30,8 +30,6 @@ class DeckPresenter : public NamedObject
         void setVerticalPosition(int h);
 
     signals:
-        void newSelection(const Selection&);
-
         void askUpdate();
 
     public slots:

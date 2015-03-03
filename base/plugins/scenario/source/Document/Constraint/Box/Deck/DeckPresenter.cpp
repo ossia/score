@@ -195,9 +195,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 
     presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
 
-    connect(presenter,	&ProcessPresenterInterface::newSelection,
-            this,		&DeckPresenter::newSelection);
-
     m_processes.push_back(presenter);
     updateProcessesShape();
 }

@@ -41,8 +41,7 @@ void DocumentPresenter::setPresenterDelegate(DocumentDelegatePresenterInterface*
     // TODO put the QueuedConnection in the OngoingCommandManager.
 
     // Selection
-    connect(m_presenter,  &DocumentDelegatePresenterInterface::newSelection,
-            &m_selection, &SelectionStack::push, Qt::QueuedConnection);
+    // TODO same for SelectionDispatcher
 }
 
 //// Locking / unlocking ////
