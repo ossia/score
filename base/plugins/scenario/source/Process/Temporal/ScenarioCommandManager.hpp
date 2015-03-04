@@ -13,7 +13,7 @@ class EventPresenter;
 class TimeNodePresenter;
 class TemporalConstraintPresenter;
 class QPointF;
-class OngoingCommandDispatcher;
+class AbsoluteOngoingCommandDispatcher;
 
 class ScenarioCommandManager : public QObject
 {
@@ -42,5 +42,5 @@ class ScenarioCommandManager : public QObject
 
     private:
         TemporalScenarioPresenter* m_presenter{};
-        OngoingCommandDispatcher* m_commandDispatcher{};
+        AbsoluteOngoingCommandDispatcher* m_commandDispatcher{};
 };

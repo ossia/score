@@ -36,7 +36,8 @@ void MoveEvent::undo()
     StandardDisplacementPolicy::setEventPosition(*scenar,
                                                  m_eventId,
                                                  m_oldX,
-                                                 m_oldHeightPosition);
+                                                 m_oldHeightPosition,
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithoutScale(t); });
 }
 
 void MoveEvent::redo()
@@ -46,7 +47,8 @@ void MoveEvent::redo()
     StandardDisplacementPolicy::setEventPosition(*scenar,
                                                  m_eventId,
                                                  m_newX,
-                                                 m_newHeightPosition);
+                                                 m_newHeightPosition,
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithoutScale(t); });
 }
 
 int MoveEvent::id() const

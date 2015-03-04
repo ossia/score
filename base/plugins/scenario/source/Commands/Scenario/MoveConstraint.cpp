@@ -39,7 +39,8 @@ void MoveConstraint::undo()
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
             m_constraintId,
             m_oldX,
-            m_oldHeightPosition);
+            m_oldHeightPosition,
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
 }
 
 void MoveConstraint::redo()
@@ -51,7 +52,8 @@ void MoveConstraint::redo()
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
             m_constraintId,
             m_newX,
-            m_newHeightPosition);
+            m_newHeightPosition,
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
 }
 
 int MoveConstraint::id() const

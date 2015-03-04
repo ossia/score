@@ -80,8 +80,10 @@ void AutomationPresenter::on_modelPointsChanged()
         m_curveView->deleteLater();
     }
 
-    m_curveModel->deleteLater();
-    m_curvePresenter->deleteLater();
+    if(m_curveModel)
+        m_curveModel->deleteLater();
+    if(m_curvePresenter)
+        m_curvePresenter->deleteLater();
 
     m_curveModel = new PluginCurveModel {this};
     m_curveView = new PluginCurveView {m_view};

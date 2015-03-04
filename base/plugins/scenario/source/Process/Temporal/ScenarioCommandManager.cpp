@@ -68,7 +68,7 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_commandDispatcher{new OngoingCommandDispatcher{this}}
+    m_commandDispatcher{new AbsoluteOngoingCommandDispatcher{this}}
 {
 
     // TODO make it more generic (maybe with a QAction ?)
@@ -91,10 +91,10 @@ void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
             this, &ScenarioCommandManager::createConstraint);
 
     connect(e,                &EventPresenter::eventReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher::commit);
+            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
 
     connect(e,                &EventPresenter::eventReleasedWithControl,
-            m_commandDispatcher, &OngoingCommandDispatcher::commit);
+            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
 
     // TODO manage ctrl being pressed / released globally.
     connect(e,    &EventPresenter::ctrlStateChanged,
@@ -108,7 +108,7 @@ void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
             this, &ScenarioCommandManager::moveTimeNode);
 
     connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher::commit);
+            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
 }
 
 void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
@@ -116,7 +116,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
     connect(c,	  &TemporalConstraintPresenter::constraintMoved,
             this, &ScenarioCommandManager::moveConstraint);
     connect(c,                &TemporalConstraintPresenter::constraintReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher::commit);
+            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
 }
 
 
@@ -203,7 +203,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
         }
     }
 
-    auto cmd = new Scenario::Command::CreateEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+    auto cmd = new CreateEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
             data);
 
     m_commandDispatcher->CommandDispatcher::send(cmd);
@@ -276,11 +276,7 @@ void ScenarioCommandManager::deleteSelection()
 
         // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
         auto cmd = new RemoveMultipleElements {std::move(commands) };
-
-        if(cmd)
-        {
-            m_commandDispatcher->CommandDispatcher::send(cmd);
-        }
+        m_commandDispatcher->CommandDispatcher::send(cmd);
     }
 
     // */

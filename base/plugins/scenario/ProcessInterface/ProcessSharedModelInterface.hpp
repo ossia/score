@@ -8,11 +8,13 @@ class QDataStream;
 
 class InspectorSectionWidget;
 class ProcessViewModelInterface;
+
+enum class ProcessDurationScaling { Scale, NoScale };
 /**
-     * @brief The ProcessSharedModelInterface class
-     *
-     * Interface to implement to make a process.
-     */
+ * @brief The ProcessSharedModelInterface class
+ *
+ * Interface to implement to make a process.
+ */
 class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
 {
         Q_OBJECT
@@ -39,17 +41,17 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                QObject* parent) = 0;
+                                                         QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.
         virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                void* data,
-                QObject* parent) = 0;
+                                                         void* data,
+                                                         QObject* parent) = 0;
 
         // "Copy" factory. TODO replace by clone methode on PVM ?
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
-                const ProcessViewModelInterface* source,
-                QObject* parent) = 0;
+                                                         const ProcessViewModelInterface* source,
+                                                         QObject* parent) = 0;
 
         // Do a copy.
         QVector<ProcessViewModelInterface*> viewModels()
@@ -57,11 +59,18 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
             return m_viewModels;
         }
 
-
         //// Features of a process
         /// Duration
         // Used to scale the process.
+        // This should be associative :
+        //   setDurationWithScale(2); setDurationWithScale(3);
+        // yields the same result as :
+        //   setDurationWithScale(3); setDurationWithScale(2);
         virtual void setDurationWithScale(TimeValue newDuration) = 0;
+
+        // This cannot be associative, because the duration of the process can
+        // increase.
+        // Hence, a "undo" method is required.
         virtual void setDurationWithoutScale(TimeValue newDuration) = 0;
 
         // TODO might not be useful... put in protected ?
@@ -127,16 +136,16 @@ QVector<typename T::view_model_type*> viewModels(T* processViewModel)
 inline ProcessSharedModelInterface* parentProcess(QObject* obj)
 {
     QString objName {obj ? obj->objectName() : "INVALID"};
-    while(obj && !obj->inherits("ProcessSharedModelInterface"))
-    {
-        obj = obj->parent();
-    }
+                     while(obj && !obj->inherits("ProcessSharedModelInterface"))
+                     {
+                         obj = obj->parent();
+                     }
 
-    if(!obj)
-         throw std::runtime_error(
-                         QString("Object (name: %1) is not child of a Process!")
-                         .arg(objName)
-                         .toStdString());
+                                  if(!obj)
+                                      throw std::runtime_error(
+                                              QString("Object (name: %1) is not child of a Process!")
+                                              .arg(objName)
+                                              .toStdString());
 
-    return static_cast<ProcessSharedModelInterface*>(obj);
-}
+                                  return static_cast<ProcessSharedModelInterface*>(obj);
+                    }

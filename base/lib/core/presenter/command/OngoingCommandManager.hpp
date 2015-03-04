@@ -44,3 +44,25 @@ class OngoingCommandDispatcher : public CommandDispatcher
         iscore::SerializableCommand* m_ongoingCommand {};
         //ObjectPath m_lockedObject;
 };
+
+
+class AbsoluteOngoingCommandDispatcher : public CommandDispatcher
+{
+        Q_OBJECT
+    public:
+        using CommandDispatcher::CommandDispatcher;
+
+        ~AbsoluteOngoingCommandDispatcher();
+
+        // True if there is an ongoing command.
+        bool ongoing() const
+        { return m_ongoingCommand != nullptr; }
+
+        void send(iscore::SerializableCommand* cmd) override;
+        void commit();
+        void rollback();
+
+    private:
+        iscore::SerializableCommand* m_ongoingCommand {};
+        //ObjectPath m_lockedObject;
+};

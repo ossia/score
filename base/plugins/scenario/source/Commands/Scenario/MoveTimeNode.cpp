@@ -35,7 +35,8 @@ void MoveTimeNode::undo()
     StandardDisplacementPolicy::setEventPosition(*scenar,
             m_eventId,
             m_oldX,
-            m_oldHeightPosition);
+            m_oldHeightPosition,
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
 }
 
 void MoveTimeNode::redo()
@@ -45,7 +46,8 @@ void MoveTimeNode::redo()
     StandardDisplacementPolicy::setEventPosition(*scenar,
             m_eventId,
             m_newX,
-            m_newHeightPosition);
+            m_newHeightPosition,
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
 }
 
 int MoveTimeNode::id() const

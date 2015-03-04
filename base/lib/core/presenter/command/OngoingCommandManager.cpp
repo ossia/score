@@ -110,3 +110,66 @@ OngoingCommandDispatcher::~OngoingCommandDispatcher()
 {
     delete m_ongoingCommand;
 }
+
+
+
+
+
+
+
+
+void AbsoluteOngoingCommandDispatcher::send(iscore::SerializableCommand* cmd)
+{
+    if(m_ongoingCommand && cmd->id() != m_ongoingCommand->uid())
+    {
+        rollback();
+    }
+
+    if(!m_ongoingCommand)
+    {
+        cmd->enableMerging();
+        //m_lockedObject = ObjectPath::pathFromObject(objectToLock);
+        //lock_impl();
+        m_ongoingCommand = cmd;
+        m_ongoingCommand->redo();
+    }
+    else
+    {
+        m_ongoingCommand->mergeWith(cmd);
+        m_ongoingCommand->redo();
+        delete cmd;
+    }
+}
+
+void AbsoluteOngoingCommandDispatcher::commit()
+{
+    if(m_ongoingCommand)
+    {
+        //unlock_impl();
+        m_ongoingCommand->disableMerging();
+
+        auto cmd = m_ongoingCommand;
+        m_ongoingCommand = nullptr;
+        commandQueue()->pushAndEmit(cmd);
+    }
+}
+
+
+void AbsoluteOngoingCommandDispatcher::rollback()
+{
+    if(m_ongoingCommand)
+    {
+        //unlock_impl();
+        auto cmd = m_ongoingCommand;
+        m_ongoingCommand = nullptr;
+
+        cmd->undo();
+        delete cmd;
+    }
+}
+
+
+AbsoluteOngoingCommandDispatcher::~AbsoluteOngoingCommandDispatcher()
+{
+    delete m_ongoingCommand;
+}
