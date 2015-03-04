@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <ProcessInterface/ZoomHelper.hpp>
 
 class DeckModel;
 class DeckView;
@@ -45,7 +45,7 @@ class DeckPresenter : public NamedObject
         void on_bottomHandleChanged(int newHeight);
         void on_bottomHandleReleased();
 
-        void on_horizontalZoomChanged(int);
+        void on_zoomRatioChanged(ZoomRatio);
 
     private:
         void on_processViewModelCreated_impl(ProcessViewModelInterface*);
@@ -61,6 +61,6 @@ class DeckPresenter : public NamedObject
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the deckView is being resized.
 
-        int m_horizontalZoomSliderVal {};
+        ZoomRatio m_zoomRatio {};
 };
 

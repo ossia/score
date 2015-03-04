@@ -6,6 +6,7 @@
 
 #include "Document/Constraint/ConstraintData.hpp"
 #include "ProcessInterface/TimeValue.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
 
 class AbstractConstraintViewModel;
 class AbstractConstraintView;
@@ -35,31 +36,22 @@ class AbstractConstraintPresenter : public NamedObject
                                     AbstractConstraintView* view,
                                     QObject* parent);
         virtual ~AbstractConstraintPresenter() = default;
-
-        int zoomSlider() const;
-
         virtual void updateScaling(double msPerPixels);
 
         bool isSelected() const;
 
         BoxPresenter* box() const
-        {
-            return m_box;
-        }
+        { return m_box; }
 
         ConstraintModel* model() const;
 
         AbstractConstraintViewModel* abstractConstraintViewModel() const
-        {
-            return m_viewModel;
-        }
+        { return m_viewModel; }
 
         AbstractConstraintView* abstractConstraintView() const
-        {
-            return m_view;
-        }
+        { return m_view; }
 
-        void on_horizontalZoomChanged(int val);
+        void on_zoomRatioChanged(ZoomRatio val);
 
     signals:
         void pressed();
@@ -80,7 +72,7 @@ class AbstractConstraintPresenter : public NamedObject
         void createBoxPresenter(BoxModel*);
         void clearBoxPresenter();
 
-        int m_horizontalZoomSliderVal {};
+        ZoomRatio m_zoomRatio {};
         BoxPresenter* m_box {};
 
         // Process presenters are in the deck presenters.

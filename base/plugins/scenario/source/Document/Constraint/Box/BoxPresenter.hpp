@@ -2,7 +2,8 @@
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <ProcessInterface/ZoomHelper.hpp>
+
 class ProcessSharedModelInterface;
 class DeckPresenter;
 class BoxModel;
@@ -40,7 +41,7 @@ class BoxPresenter : public NamedObject
 
         void on_askUpdate();
 
-        void on_horizontalZoomChanged(int val);
+        void on_zoomRatioChanged(ZoomRatio val);
         void on_deckPositionsChanged();
 
     private:
@@ -53,7 +54,7 @@ class BoxPresenter : public NamedObject
         BoxView* m_view;
         std::vector<DeckPresenter*> m_decks;
 
-        int m_horizontalZoomSliderVal {};
+        ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};
 };
 

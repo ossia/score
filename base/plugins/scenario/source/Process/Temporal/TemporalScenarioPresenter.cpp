@@ -152,14 +152,13 @@ void TemporalScenarioPresenter::parentGeometryChanged()
 }
 
 // TODO : mettre dans ScenarioViewInterface ?
-void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
+void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_horizontalZoomSliderVal = val;
-    m_millisecPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
+    m_zoomRatio = val;
 
     for(auto constraint : m_constraints)
     {
-        constraint->on_horizontalZoomChanged(val);
+        constraint->on_zoomRatioChanged(m_zoomRatio);
         m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
     }
 
@@ -167,11 +166,6 @@ void TemporalScenarioPresenter::on_horizontalZoomChanged(int val)
     {
         m_viewInterface->on_eventMoved(event->id());
     }
-}
-
-long TemporalScenarioPresenter::millisecPerPixel() const
-{
-    return m_millisecPerPixel;
 }
 
 void TemporalScenarioPresenter::on_eventCreated(id_type<EventModel> eventId)
@@ -248,7 +242,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     auto event_presenter = new EventPresenter {event_model,
                            event_view,
                            this};
-    event_view->setPos({rect.x() + event_model->date().toPixels(m_millisecPerPixel),
+    event_view->setPos({rect.x() + event_model->date().toPixels(m_zoomRatio),
                         rect.y() + rect.height() * event_model->heightPercentage() });
 
     m_events.push_back(event_presenter);
@@ -266,7 +260,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
                               timeNode_view,
                               this};
 
-    timeNode_view->setPos({timeNode_model->date().toPixels(m_millisecPerPixel),
+    timeNode_view->setPos({timeNode_model->date().toPixels(m_zoomRatio),
                            timeNode_model->y() * rect.height()});
 
     m_timeNodes.push_back(timeNode_presenter);
@@ -289,10 +283,10 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
                                 constraint_view,
                                 this};
 
-    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_millisecPerPixel),
+    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
 
-    constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
+    constraint_presenter->on_zoomRatioChanged(m_zoomRatio);
 
     m_constraints.push_back(constraint_presenter);
 

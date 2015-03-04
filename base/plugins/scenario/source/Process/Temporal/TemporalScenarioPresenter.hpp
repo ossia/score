@@ -52,9 +52,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         virtual void parentGeometryChanged() override;
 
-        virtual void on_horizontalZoomChanged(int val) override;
-
-        long millisecPerPixel() const;
+        virtual void on_zoomRatioChanged(ZoomRatio val) override;
 
     signals:
         void linesExtremityScaled(int, int);
@@ -84,8 +82,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         // Necessary for the real-time creation / moving of elements
         bool ongoingCommand();
 
-        int m_horizontalZoomSliderVal {};
-        double m_millisecPerPixel {1};
+        ZoomRatio m_zoomRatio {1};
 
         TemporalScenarioViewModel* m_viewModel;
         TemporalScenarioView* m_view;

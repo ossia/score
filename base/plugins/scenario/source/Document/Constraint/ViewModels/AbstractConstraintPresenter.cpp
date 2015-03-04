@@ -51,11 +51,6 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
     this,                &AbstractConstraintPresenter::on_boxRemoved);
 }
 
-int AbstractConstraintPresenter::zoomSlider() const
-{
-    return m_horizontalZoomSliderVal;
-}
-
 void AbstractConstraintPresenter::updateScaling(double msPerPixels)
 {
     auto cm = m_viewModel->model();
@@ -72,21 +67,20 @@ void AbstractConstraintPresenter::updateScaling(double msPerPixels)
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_horizontalZoomChanged(int val)
+void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_horizontalZoomSliderVal = val;
-    updateScaling(millisecondsPerPixel(m_horizontalZoomSliderVal));
+    m_zoomRatio = val;
+    updateScaling(m_zoomRatio);
 
     if(box())
     {
-        box()->on_horizontalZoomChanged(val);
+        box()->on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
 void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 {
-    double secPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
-    m_view->setDefaultWidth(val.msec() / secPerPixel);
+    m_view->setDefaultWidth(val.toPixels(m_zoomRatio));
 
     emit askUpdate();
     m_view->update();
@@ -94,8 +88,7 @@ void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 
 void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 {
-    double secPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
-    m_view->setMinWidth(min.msec() / secPerPixel);
+    m_view->setMinWidth(min.toPixels(m_zoomRatio));
 
     emit askUpdate();
     m_view->update();
@@ -103,8 +96,7 @@ void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 
 void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 {
-    double secPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
-    m_view->setMaxWidth(max .msec() / secPerPixel);
+    m_view->setMaxWidth(max.toPixels(m_zoomRatio));
 
     emit askUpdate();
     m_view->update();
@@ -178,7 +170,7 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
                               boxView,
                               this};
 
-    m_box->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
+    m_box->on_zoomRatioChanged(m_zoomRatio);
 
     // TODO Bof. Peut-être faire remonter juste si un process est sélectionné ??
     // Même pas : la sélection fait partie du modèle.

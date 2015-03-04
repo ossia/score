@@ -100,7 +100,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                 cstrView,
                                 this};
 
-    m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
+    m_baseConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
     on_askUpdate();
 
     connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
@@ -126,14 +126,16 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
     m_horizontalZoomValue = newzoom;
 
     // Maybe translate
-    m_baseConstraintPresenter->on_horizontalZoomChanged(m_horizontalZoomValue);
+    m_baseConstraintPresenter->on_zoomRatioChanged(millisecondsPerPixel(m_horizontalZoomValue));
 
     // Change the min & max of position slider, & current value
     // If zoom = min, positionSliderMax = 0.
     // Else positionSliderMax is such that max = 3% more.
 
     int val = view()->positionSlider()->value();
-    auto newMax = model()->constraintModel()->defaultDuration().msec() / millisecondsPerPixel(view()->zoomSlider()->value())
+    auto newMax = model()->constraintModel()
+                    ->defaultDuration().toPixels(
+                        millisecondsPerPixel(view()->zoomSlider()->value()))
                   - 0.97 * view()->view()->width();
     view()->positionSlider()->setMaximum(newMax);
 

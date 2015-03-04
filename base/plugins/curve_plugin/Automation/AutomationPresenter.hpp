@@ -22,7 +22,7 @@ class AutomationPresenter : public ProcessPresenterInterface
 
         virtual void putToFront();
         virtual void putBehind();
-        virtual void on_horizontalZoomChanged(int);
+        virtual void on_zoomRatioChanged(ZoomRatio);
         virtual void parentGeometryChanged();
         virtual id_type<ProcessViewModelInterface> viewModelId() const;
         virtual id_type<ProcessSharedModelInterface> modelId() const;
@@ -41,5 +41,5 @@ class AutomationPresenter : public ProcessPresenterInterface
 
         CommandDispatcher* m_commandDispatcher{};
 
-        int m_zoomLevel {};
+        ZoomRatio m_zoomRatio {};
 };

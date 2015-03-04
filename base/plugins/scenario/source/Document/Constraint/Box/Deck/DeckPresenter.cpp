@@ -171,13 +171,13 @@ void DeckPresenter::on_bottomHandleReleased()
     m_commandDispatcher->send(cmd);
 }
 
-void DeckPresenter::on_horizontalZoomChanged(int val)
+void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_horizontalZoomSliderVal = val;
+    m_zoomRatio = val;
 
     for(ProcessPresenterInterface* proc : m_processes)
     {
-        proc->on_horizontalZoomChanged(val);
+        proc->on_zoomRatioChanged(m_zoomRatio);
     }
 
     // Should not be necessary : updateProcessesShape();
@@ -193,7 +193,7 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     proc_view->setPos(0, 0);
     auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
-    presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
+    presenter->on_zoomRatioChanged(m_zoomRatio);
 
     m_processes.push_back(presenter);
     updateProcessesShape();

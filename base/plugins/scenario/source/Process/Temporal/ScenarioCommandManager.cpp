@@ -128,7 +128,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
 void ScenarioCommandManager::createConstraint(EventData data)
 {
     using namespace std;
-    data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel - model(m_presenter->m_viewModel)->event(data.eventClickedId)->date().msec());
+    data.dDate.setMSecs(data.x * m_presenter->m_zoomRatio - model(m_presenter->m_viewModel)->event(data.eventClickedId)->date().msec());
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
     auto cmdPath = iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel());
@@ -182,7 +182,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
     EventData data {};
     data.eventClickedId = m_presenter->m_events.back()->id();
     data.x = point.x();
-    data.dDate.setMSecs(point.x() * m_presenter->m_millisecPerPixel);
+    data.dDate.setMSecs(point.x() * m_presenter->m_zoomRatio);
     data.y = point.y();
     data.relativeY = point.y() /  m_presenter->m_view->boundingRect().height();
     data.scenePos = scenePoint;
@@ -197,7 +197,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
             {
                 data.endTimeNodeId = timeNode->id();
                 data.dDate = timeNode->model()->date();
-                data.x = data.dDate.toPixels(m_presenter->m_millisecPerPixel);
+                data.x = data.dDate.toPixels(m_presenter->m_zoomRatio);
                 break;
             }
         }
@@ -288,7 +288,7 @@ void ScenarioCommandManager::deleteSelection()
 
 void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 {
-    data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
+    data.dDate.setMSecs(data.x * m_presenter->m_zoomRatio);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
     auto eventTN = findById(m_presenter->m_events, data.eventClickedId)->model()->timeNode();
 
@@ -329,7 +329,7 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 
 void ScenarioCommandManager::moveConstraint(ConstraintData data)
 {
-    data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
+    data.dDate.setMSecs(data.x * m_presenter->m_zoomRatio);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
     auto cmd = new MoveConstraint(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
@@ -342,7 +342,7 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
 {
     auto ev = findById(m_presenter->m_events, data.eventClickedId);
     data.y = ev->view()->y();
-    data.dDate.setMSecs(data.x * m_presenter->m_millisecPerPixel);
+    data.dDate.setMSecs(data.x * m_presenter->m_zoomRatio);
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
 
 

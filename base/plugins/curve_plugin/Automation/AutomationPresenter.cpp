@@ -40,9 +40,9 @@ void AutomationPresenter::putBehind()
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
-void AutomationPresenter::on_horizontalZoomChanged(int val)
+void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_zoomLevel = val;
+    m_zoomRatio = val;
     on_modelPointsChanged();
 }
 
@@ -87,20 +87,15 @@ void AutomationPresenter::on_modelPointsChanged()
     m_curveView = new PluginCurveView {m_view};
 
     // Compute the scale
-    auto mspp = millisecondsPerPixel(m_zoomLevel);
     auto duration = m_viewModel->model()->duration();
     auto width = m_view->parentItem()->boundingRect().width();
 
-    // When duration.msec() == parentDuration.msec(), scale = 1;
-    // Parent duration = width * mspp
-    // scale = duration.msec() / parentduration.msec()
-    double scale = (width * mspp) / duration.msec();
+    double scale =  1.0 / duration.toPixels(width * m_zoomRatio);
 
     m_curvePresenter = new PluginCurvePresenter {scale,
                        m_curveModel,
                        m_curveView,
-                       this
-};
+                       this};
 
     // Recreate the points in the model
     auto pts = m_viewModel->model()->points();

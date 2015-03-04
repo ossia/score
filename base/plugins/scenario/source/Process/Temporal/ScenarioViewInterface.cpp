@@ -48,7 +48,7 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
     auto rect = m_presenter->m_view->boundingRect();
     auto ev = findById(m_presenter->m_events, eventId);
 
-    ev->view()->setPos({qreal(ev->model()->date().msec() / m_presenter->m_millisecPerPixel),
+    ev->view()->setPos({qreal(ev->model()->date().msec() / m_presenter->m_zoomRatio),
                         rect.height() * ev->model()->heightPercentage()
                        });
 
@@ -57,7 +57,7 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
 
     // @todo change when multiple event on a same timeNode
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
-    timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_millisecPerPixel),
+    timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
                               rect.height() * timeNode->model()->y()});
 
     updateTimeNode(timeNode->id());
@@ -67,7 +67,7 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
 void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constraintId)
 {
     auto rect = m_presenter->m_view->boundingRect();
-    auto msPerPixel = m_presenter->m_millisecPerPixel;
+    auto msPerPixel = m_presenter->m_zoomRatio;
 
     for(TemporalConstraintPresenter* pres : m_presenter->m_constraints)
     {
@@ -133,7 +133,7 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
         for(TemporalConstraintPresenter* cstr_pres : m_presenter->m_constraints)
         {
-            ConstraintModel* cstr_model {cstr_pres->abstractConstraintViewModel()->model() };
+            ConstraintModel* cstr_model{cstr_pres->model()};
 
             auto constraints = event->model()->previousConstraints() + event->model()->nextConstraints();
             for(auto cstrId : constraints)

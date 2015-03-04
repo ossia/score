@@ -2,6 +2,7 @@
 #include <QTime>
 #include <boost/optional.hpp>
 #include <chrono>
+#include "ZoomHelper.hpp"
 
 //using namespace std::literals::chrono_literals;
 
@@ -46,7 +47,7 @@ class TimeValue_T
             return *m_impl;
         }
 
-        double toPixels(double millisecondsPerPixel)
+        double toPixels(ZoomRatio millisecondsPerPixel)
         {
             return *m_impl / millisecondsPerPixel;
         }

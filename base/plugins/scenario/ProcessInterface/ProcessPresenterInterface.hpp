@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <ProcessInterface/ZoomHelper.hpp>
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
@@ -22,7 +22,7 @@ class ProcessPresenterInterface : public NamedObject
         virtual void putToFront() = 0;
         virtual void putBehind() = 0;
 
-        virtual void on_horizontalZoomChanged(int) = 0;
+        virtual void on_zoomRatioChanged(ZoomRatio) = 0;
         virtual void parentGeometryChanged() = 0;
 
         virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;

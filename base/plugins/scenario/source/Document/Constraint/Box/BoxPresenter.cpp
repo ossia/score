@@ -109,7 +109,7 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
                                        this
                                       };
     m_decks.push_back(deckPres);
-    deckPres->on_horizontalZoomChanged(m_horizontalZoomSliderVal);
+    deckPres->on_zoomRatioChanged(m_zoomRatio);
 
     connect(deckPres, &DeckPresenter::askUpdate,
             this,     &BoxPresenter::on_askUpdate);
@@ -141,8 +141,7 @@ void BoxPresenter::updateShape()
     }
 
     // Horizontal shape
-    double secPerPixel = millisecondsPerPixel(m_horizontalZoomSliderVal);
-    setWidth(m_duration.msec() / secPerPixel);
+    setWidth(m_duration.toPixels(m_zoomRatio));
 
     for(DeckPresenter* deck : m_decks)
     {
@@ -156,17 +155,18 @@ void BoxPresenter::on_askUpdate()
     emit askUpdate();
 }
 
-void BoxPresenter::on_horizontalZoomChanged(int val)
+void BoxPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_horizontalZoomSliderVal = val;
+    m_zoomRatio = val;
 
     on_askUpdate();
 
     // We have to change the width of the decks aftewards
     // because their width depend on the box width
-    for(auto deck : m_decks)
+    // TODO this smells.
+    for(DeckPresenter* deck : m_decks)
     {
-        deck->on_horizontalZoomChanged(val);
+        deck->on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
