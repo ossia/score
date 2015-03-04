@@ -78,9 +78,9 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
 
 void ScenarioModel::setDurationWithScale(TimeValue newDuration)
 {
-    auto scale =  double(newDuration.msec()) / duration().msec();
-    // Is it recursive ?? Make a scale() method on the constraint, maybe ?
+    double scale =  newDuration / duration();
 
+    // Is it recursive ?? Make a scale() method on the constraint, maybe ?
     for(TimeNodeModel* timenode : m_timeNodes)
     {
         timenode->setDate(timenode->date() * scale);

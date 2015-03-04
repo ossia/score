@@ -248,7 +248,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     auto event_presenter = new EventPresenter {event_model,
                            event_view,
                            this};
-    event_view->setPos({qreal(rect.x() + event_model->date().msec() / m_millisecPerPixel),
+    event_view->setPos({rect.x() + event_model->date().toPixels(m_millisecPerPixel),
                         rect.y() + rect.height() * event_model->heightPercentage() });
 
     m_events.push_back(event_presenter);
@@ -264,12 +264,10 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     auto timeNode_view = new TimeNodeView {m_view};
     auto timeNode_presenter = new TimeNodePresenter {timeNode_model,
                               timeNode_view,
-                              this
-};
+                              this};
 
-    timeNode_view->setPos({ (qreal)(timeNode_model->date().msec() / m_millisecPerPixel),
-                            timeNode_model->y() * rect.height()
-                          });
+    timeNode_view->setPos({timeNode_model->date().toPixels(m_millisecPerPixel),
+                           timeNode_model->y() * rect.height()});
 
     m_timeNodes.push_back(timeNode_presenter);
     m_viewInterface->updateTimeNode(timeNode_model->id());
@@ -291,7 +289,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
                                 constraint_view,
                                 this};
 
-    constraint_view->setPos({qreal(rect.x() + constraint_view_model->model()->startDate().msec() / m_millisecPerPixel),
+    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_millisecPerPixel),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
 
     constraint_presenter->on_horizontalZoomChanged(m_horizontalZoomSliderVal);

@@ -67,6 +67,7 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
 void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constraintId)
 {
     auto rect = m_presenter->m_view->boundingRect();
+    auto msPerPixel = m_presenter->m_millisecPerPixel;
 
     for(TemporalConstraintPresenter* pres : m_presenter->m_constraints)
     {
@@ -74,28 +75,30 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
 
         if(cstr_model->id() == constraintId)
         {
-            auto delta = (view(pres)->x() - (qreal(cstr_model->startDate().msec()) / m_presenter->m_millisecPerPixel));
-            bool dateChanged = (delta * delta > 1);
+            auto startPos = cstr_model->startDate().toPixels(msPerPixel);
+            auto delta = view(pres)->x() - startPos;
+            bool dateChanged = (delta * delta > 1); // TODO : jm : what????
 
             if(dateChanged)
-                view(pres)->setPos({qreal(cstr_model->startDate().msec()) / m_presenter->m_millisecPerPixel,
-                                    rect.height() * cstr_model->heightPercentage()
-                                   });
+            {
+                view(pres)->setPos({startPos,
+                                    rect.height() * cstr_model->heightPercentage()});
+            }
             else
             {
                 view(pres)->setY(qreal(rect.height() * cstr_model->heightPercentage()));
             }
 
-            view(pres)->setDefaultWidth(cstr_model->defaultDuration().msec() / m_presenter->m_millisecPerPixel);
-            view(pres)->setMinWidth(cstr_model->minDuration().msec() / m_presenter->m_millisecPerPixel);
-            view(pres)->setMaxWidth(cstr_model->maxDuration().msec() / m_presenter->m_millisecPerPixel);
+            view(pres)->setDefaultWidth(cstr_model->defaultDuration().toPixels(msPerPixel));
+            view(pres)->setMinWidth(cstr_model->minDuration().toPixels(msPerPixel));
+            view(pres)->setMaxWidth(cstr_model->maxDuration().toPixels(msPerPixel));
 
             view(pres)->setMoving(m_presenter->ongoingCommand());
 
             auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
 
-            if(cstr_model->startDate().msec() != 0)
+            if(cstr_model->startDate().isZero())
             {
                 auto startTimeNode = findById(m_presenter->m_events, cstr_model->startEvent())->model()->timeNode();
                 updateTimeNode(startTimeNode);

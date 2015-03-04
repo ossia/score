@@ -56,12 +56,13 @@ int AbstractConstraintPresenter::zoomSlider() const
     return m_horizontalZoomSliderVal;
 }
 
-void AbstractConstraintPresenter::updateScaling(double secPerPixel)
+void AbstractConstraintPresenter::updateScaling(double msPerPixels)
 {
+    auto cm = m_viewModel->model();
     // prendre en compte la distance du clic à chaque côté
-    m_view->setDefaultWidth(m_viewModel->model()->defaultDuration().msec() / secPerPixel);
-    m_view->setMinWidth(m_viewModel->model()->minDuration().msec() / secPerPixel);
-    m_view->setMaxWidth(m_viewModel->model()->maxDuration().msec() / secPerPixel);
+    m_view->setDefaultWidth(cm->defaultDuration().toPixels(msPerPixels));
+    m_view->setMinWidth(cm->minDuration().toPixels(msPerPixels));
+    m_view->setMaxWidth(cm->maxDuration().toPixels(msPerPixels));
 
     if(box())
     {

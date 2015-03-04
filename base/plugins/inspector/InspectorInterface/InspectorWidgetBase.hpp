@@ -86,6 +86,7 @@ class InspectorWidgetBase : public QWidget
         { return m_selectionDispatcher; }
 
     private:
+        QObject* _inspectedObject {};
         CommandDispatcher* m_commandDispatcher{};
         SelectionDispatcher* m_selectionDispatcher{};
         QVBoxLayout* _scrollAreaLayout {};
@@ -93,7 +94,6 @@ class InspectorWidgetBase : public QWidget
         QVector<QWidget*> _sections {};
         QColor _currentColor {Qt::gray};
 
-        QObject* _inspectedObject {};
 
         static const int m_colorIconSize
         {

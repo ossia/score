@@ -47,7 +47,7 @@ void AutomationModel::setDurationWithoutScale(TimeValue newDuration)
 
     if(newDuration > duration())
     {
-        double scale = duration().msec() / double(newDuration.msec());
+        double scale = duration() / newDuration;
         auto points = m_points;
         auto keys = m_points.keys();
         m_points.clear();

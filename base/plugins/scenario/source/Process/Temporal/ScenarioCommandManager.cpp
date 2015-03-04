@@ -197,7 +197,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
             {
                 data.endTimeNodeId = timeNode->id();
                 data.dDate = timeNode->model()->date();
-                data.x = data.dDate.msec() / m_presenter->m_millisecPerPixel;
+                data.x = data.dDate.toPixels(m_presenter->m_millisecPerPixel);
                 break;
             }
         }

@@ -38,7 +38,7 @@ class AbstractConstraintPresenter : public NamedObject
 
         int zoomSlider() const;
 
-        virtual void updateScaling(double scaling);
+        virtual void updateScaling(double msPerPixels);
 
         bool isSelected() const;
 

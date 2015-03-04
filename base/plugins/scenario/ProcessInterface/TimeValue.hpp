@@ -46,6 +46,11 @@ class TimeValue_T
             return *m_impl;
         }
 
+        double toPixels(double millisecondsPerPixel)
+        {
+            return *m_impl / millisecondsPerPixel;
+        }
+
         void addMSecs(int msecs)
         {
             if(m_impl)
@@ -135,6 +140,11 @@ class TimeValue_T
             return res;
         }
 
+        double operator/ (TimeValue_T other)
+        {
+            return m_impl.get() / other.m_impl.get();
+        }
+
         TimeValue_T operator- (const TimeValue_T& other)
         {
             TimeValue_T res {PositiveInfinity{}};
@@ -159,30 +169,30 @@ class TimeValue_T
 template<>
 class TimeValue_T<QTime>
 {
-	public:
-		TimeValue_T<QTime>() = default;
-		TimeValue_T<QTime>(int msec):
-			TimeValue_T{}
-		{ m_impl.addMSecs(msec); }
+    public:
+        TimeValue_T<QTime>() = default;
+        TimeValue_T<QTime>(int msec):
+            TimeValue_T{}
+        { m_impl.addMSecs(msec); }
 
-		int msec() const
-		{ return m_impl.msec(); }
+        int msec() const
+        { return m_impl.msec(); }
 
-		void addMSecs(int msecs)
-		{ m_impl.addMSecs(msecs); }
+        void addMSecs(int msecs)
+        { m_impl.addMSecs(msecs); }
 
-		bool operator==(const TimeValue_T& other) const
-		{ return other.m_impl == m_impl; }
+        bool operator==(const TimeValue_T& other) const
+        { return other.m_impl == m_impl; }
 
-		bool operator!=(const TimeValue_T& other) const
-		{ return other.m_impl != m_impl; }
+        bool operator!=(const TimeValue_T& other) const
+        { return other.m_impl != m_impl; }
 
-	private:
-		QTime m_impl{0, 0};
+    private:
+        QTime m_impl{0, 0};
 };
 */
 #include <QDebug>
-using TimeValue = TimeValue_T<int>;
+using TimeValue = TimeValue_T<double>;
 inline QDebug operator<< (QDebug d, const TimeValue& tv)
 {
     if(!tv.isInfinite())

@@ -22,6 +22,8 @@ class CommandDispatcher : public QObject
 
 };
 
+// TODO specialize for commands that work in absolute mode
+// vs relative mode (absolute : no need to call Undo() prior to merge)
 class OngoingCommandDispatcher : public CommandDispatcher
 {
         Q_OBJECT
