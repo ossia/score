@@ -260,7 +260,7 @@ void ConstraintModel::setDefaultDuration(TimeValue arg)
         //TODO put this somewhere else :
         for(ProcessSharedModelInterface* process : m_processes)
         {
-            process->setDurationWithScale(arg);
+            process->setDurationWithoutScale(arg);
         }
     }
 }
