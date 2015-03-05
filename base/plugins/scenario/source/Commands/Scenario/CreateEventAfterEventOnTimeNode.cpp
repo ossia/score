@@ -49,7 +49,6 @@ void CreateEventAfterEventOnTimeNode::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
 
     scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
             m_time,
@@ -58,7 +57,7 @@ void CreateEventAfterEventOnTimeNode::redo()
             m_createdConstraintFullViewId,
             m_createdEventId);
 
-    scenar->event(m_createdEventId)->changeTimeNode(m_timeNodeId);
+    scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
 
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenar))

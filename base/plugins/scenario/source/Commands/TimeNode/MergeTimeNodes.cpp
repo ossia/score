@@ -54,7 +54,6 @@ void MergeTimeNodes::redo()
     {
         StandardDisplacementPolicy::setEventPosition(*scenar, event, aimedTimeNode->date(), scenar->event(event)->heightPercentage());
         aimedTimeNode->addEvent(event);
-        scenar->event(event)->changeTimeNode(m_aimedTimeNodeId);
         movingTimeNode->removeEvent(event);
     }
     scenar->removeTimeNode(m_movingTimeNodeId);

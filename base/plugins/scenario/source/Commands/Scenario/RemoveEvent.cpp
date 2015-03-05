@@ -71,7 +71,6 @@ void RemoveEvent::undo()
     scenar->addEvent(event);
 
     timeNode->addEvent(event->id());
-    event->changeTimeNode(timeNode->id());
 
 
     // todo : recréer les contraintes. En attendant, on les supprimes de EventModel pour eviter les crashs.
