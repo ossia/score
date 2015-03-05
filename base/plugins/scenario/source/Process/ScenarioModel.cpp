@@ -20,6 +20,7 @@ ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* p
     addEvent(event);
 
     createTimeNode(id_type<TimeNodeModel> (0), m_startEventId);
+    event->changeTimeNode(id_type<TimeNodeModel> (0));
 
     //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
     //m_events.push_back(new EventModel(1, this));
@@ -286,10 +287,6 @@ void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
                     this};
     timeNode->addEvent(eventId);
     timeNode->setY(newEvent->heightPercentage());
-
-    // TODO jm : TimeNode::addEvent devrait faire ça
-
-    newEvent->changeTimeNode(timeNodeId);
 
     addTimeNode(timeNode);
 }

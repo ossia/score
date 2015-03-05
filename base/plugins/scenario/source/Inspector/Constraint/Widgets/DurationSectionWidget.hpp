@@ -5,6 +5,8 @@
 class QLabel;
 class ConstraintModel;
 class ConstraintInspectorWidget;
+class QTimeEdit;
+
 class DurationSectionWidget : public InspectorSectionWidget
 {
         Q_OBJECT
@@ -18,13 +20,19 @@ class DurationSectionWidget : public InspectorSectionWidget
         void defaultDurationSpinboxChanged(int val);
         void rigidCheckboxToggled(bool b);
 
-        void on_defaultDurationChanged(TimeValue dur);
+        void on_modelDefaultDurationChanged(TimeValue dur);
+        void on_modelMinDurationChanged(TimeValue dur);
+        void on_modelMaxDurationChanged(TimeValue dur);
 
 
     private:
         QLabel* m_valueLabel {};
         ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
+
+        QTimeEdit* m_minSpin{};
+        QTimeEdit* m_valueSpin{};
+        QTimeEdit* m_maxSpin{};
 
         OngoingCommandDispatcher<MergeStrategy::Simple>* m_cmdManager{};
 };

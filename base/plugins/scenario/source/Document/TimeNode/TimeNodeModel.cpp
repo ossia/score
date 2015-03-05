@@ -22,7 +22,7 @@ TimeNodeModel::~TimeNodeModel()
 void TimeNodeModel::addEvent(id_type<EventModel> eventId)
 {
     m_events.push_back(eventId);
-//    emit newEvent(eventId);
+    emit newEvent(eventId);
 }
 
 bool TimeNodeModel::removeEvent(id_type<EventModel> eventId)

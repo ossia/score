@@ -32,7 +32,6 @@ void SplitTimeNode::undo()
     for (auto eventId : newTN->events())
     {
         originalTN->addEvent(eventId);
-        scenar->event(eventId)->changeTimeNode(m_originalTimeNodeId);
         newTN->removeEvent(eventId);
     }
     scenar->removeTimeNode(m_newTimeNodeId);
@@ -50,8 +49,6 @@ void SplitTimeNode::redo()
     {
         newTimeNode->addEvent(eventId);
         originalTN->removeEvent(eventId);
-        auto event = scenar->event(eventId);
-        event->changeTimeNode(m_newTimeNodeId);
     }
 
 }

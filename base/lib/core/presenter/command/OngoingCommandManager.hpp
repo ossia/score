@@ -94,7 +94,7 @@ class CommandDispatcher : public ICommandDispatcher
         {
             connect(this, &CommandDispatcher::submitCommand, this,
                     [&] (iscore::SerializableCommand* cmd) { SendStrategy::send(stack(), cmd); },
-                    Qt::QueuedConnection);
+                    Qt::DirectConnection);
         }
 };
 
