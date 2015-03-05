@@ -13,71 +13,61 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+MoveTimeNode::MoveTimeNode():
+    iscore::SerializableCommand{
+        "ScenarioControl",
+        className(),
+        description()} ,
+    m_cmd{new MoveEvent}
+{
+}
+
 MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand{"ScenarioControl",
                         className(),
                         description()},
-m_path {std::move(scenarioPath) },
-m_eventId {data.eventClickedId},
-m_newHeightPosition {data.relativeY},
-m_newX {data.dDate}
+    m_cmd{new MoveEvent{std::move(scenarioPath), data}}
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    auto ev = scenar->event(m_eventId);
-    m_oldHeightPosition = ev->heightPercentage();
-    m_oldX = ev->date();
+}
+
+MoveTimeNode::~MoveTimeNode()
+{
+    delete m_cmd;
 }
 
 void MoveTimeNode::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-
-    StandardDisplacementPolicy::setEventPosition(*scenar,
-            m_eventId,
-            m_oldX,
-            m_oldHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
+    m_cmd->undo();
 }
 
 void MoveTimeNode::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-
-    StandardDisplacementPolicy::setEventPosition(*scenar,
-            m_eventId,
-            m_newX,
-            m_newHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
+    m_cmd->redo();
 }
 
-int MoveTimeNode::id() const
-{
-    return canMerge() ? uid() : -1;
-}
-
-bool MoveTimeNode::mergeWith(const QUndoCommand* other)
+bool MoveTimeNode::mergeWith(const Command* other)
 {
     // Maybe set m_mergeable = false at the end ?
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }
 
-    auto cmd = static_cast<const MoveTimeNode*>(other);
-    m_newX = cmd->m_newX;
-    m_newHeightPosition = cmd->m_newHeightPosition;
+    auto otherMove = static_cast<const MoveTimeNode*>(other);
+    m_cmd->mergeWith(otherMove->m_cmd);
 
     return true;
 }
 
 void MoveTimeNode::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_eventId
-      << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;
+    s << m_cmd->serialize();
 }
 
 void MoveTimeNode::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_eventId
-      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
+    QByteArray a;
+    s >> a;
+
+    m_cmd->deserialize(a);
 }

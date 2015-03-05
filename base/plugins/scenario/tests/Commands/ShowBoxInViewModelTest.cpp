@@ -20,6 +20,7 @@
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "core/interface/document/DocumentInterface.hpp"
+#include <core/presenter/command/CommandQueue.hpp>
 
 
 using namespace iscore;
@@ -33,7 +34,7 @@ class ShowBoxInViewModelTest: public QObject
     private slots:
         void test()
         {
-            QUndoStack stack;
+            CommandStack stack;
             // Maybe do a fake process list, with a fake process for unit tests.
             NamedObject* obj = new NamedObject {"obj", qApp};
             ProcessList* plist = new ProcessList {obj};

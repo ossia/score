@@ -31,13 +31,7 @@ void AggregateCommand::redo()
     }
 }
 
-
-int AggregateCommand::id() const
-{
-    return -1;
-}
-
-bool AggregateCommand::mergeWith(const QUndoCommand* other)
+bool AggregateCommand::mergeWith(const Command* other)
 {
     return false;
 }

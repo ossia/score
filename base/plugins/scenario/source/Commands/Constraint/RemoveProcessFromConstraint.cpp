@@ -38,12 +38,7 @@ void RemoveProcessFromConstraint::redo()
     constraint->removeProcess(m_processId);
 }
 
-int RemoveProcessFromConstraint::id() const
-{
-    return 1;
-}
-
-bool RemoveProcessFromConstraint::mergeWith(const QUndoCommand* other)
+bool RemoveProcessFromConstraint::mergeWith(const Command* other)
 {
     return false;
 }

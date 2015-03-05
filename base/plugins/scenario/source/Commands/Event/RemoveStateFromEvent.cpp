@@ -11,12 +11,7 @@ void RemoveStateFromEvent::redo()
 {
 }
 
-int RemoveStateFromEvent::id() const
-{
-    return -1;
-}
-
-bool RemoveStateFromEvent::mergeWith(const QUndoCommand* other)
+bool RemoveStateFromEvent::mergeWith(const Command* other)
 {
     return false;
 }

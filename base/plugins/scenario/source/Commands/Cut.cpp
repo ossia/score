@@ -11,12 +11,7 @@ void Cut::redo()
 {
 }
 
-int Cut::id() const
-{
-    return 1;
-}
-
-bool Cut::mergeWith(const QUndoCommand* other)
+bool Cut::mergeWith(const Command* other)
 {
     return false;
 }

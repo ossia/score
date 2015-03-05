@@ -50,8 +50,9 @@ class ScenarioModel : public ProcessSharedModelInterface
                                                  const ProcessViewModelInterface* source,
                                                  QObject* parent) override;
 
-        void setDurationWithScale(TimeValue newDuration) override;
-        void setDurationWithoutScale(TimeValue newDuration) override;
+        void setDurationAndScale(TimeValue newDuration) override;
+        void setDurationAndGrow(TimeValue newDuration) override;
+        void setDurationAndShrink(TimeValue newDuration) override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
@@ -97,6 +98,7 @@ class ScenarioModel : public ProcessSharedModelInterface
 
         void removeConstraint(id_type<ConstraintModel> constraintId);
         void removeEvent(id_type<EventModel> eventId);
+        // TODO should maybe not be in the scenario?
         void removeEventFromTimeNode(id_type<EventModel> eventId);
         void removeTimeNode(id_type<TimeNodeModel> timeNodeId);
 

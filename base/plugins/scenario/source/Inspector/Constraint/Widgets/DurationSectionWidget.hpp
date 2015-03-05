@@ -26,5 +26,5 @@ class DurationSectionWidget : public InspectorSectionWidget
         ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
 
-        OngoingCommandDispatcher* m_cmdManager{};
+        OngoingCommandDispatcher<MergeStrategy::Simple>* m_cmdManager{};
 };

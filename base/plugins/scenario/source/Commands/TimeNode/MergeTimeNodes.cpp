@@ -62,12 +62,7 @@ void MergeTimeNodes::redo()
     scenar->removeTimeNode(m_movingTimeNodeId);
 }
 
-int MergeTimeNodes::id() const
-{
-    return 1;
-}
-
-bool MergeTimeNodes::mergeWith(const QUndoCommand *other)
+bool MergeTimeNodes::mergeWith(const Command *other)
 {
     return false;
 }

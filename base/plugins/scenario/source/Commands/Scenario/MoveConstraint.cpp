@@ -40,7 +40,7 @@ void MoveConstraint::undo()
             m_constraintId,
             m_oldX,
             m_oldHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
 }
 
 void MoveConstraint::redo()
@@ -53,18 +53,13 @@ void MoveConstraint::redo()
             m_constraintId,
             m_newX,
             m_newHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithScale(t); });
+            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
 }
 
-int MoveConstraint::id() const
-{
-    return canMerge() ? uid() : -1;
-}
-
-bool MoveConstraint::mergeWith(const QUndoCommand* other)
+bool MoveConstraint::mergeWith(const Command* other)
 {
     // Maybe set m_mergeable = false at the end ?
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

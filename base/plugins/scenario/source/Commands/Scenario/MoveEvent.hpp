@@ -20,8 +20,7 @@ namespace Scenario
                 MoveEvent(ObjectPath&& scenarioPath, EventData data);
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual int id() const override;
-                virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual bool mergeWith(const Command* other) override;
                 TimeValue m_oldX {}; // TODO : bof bof !
 
             protected:

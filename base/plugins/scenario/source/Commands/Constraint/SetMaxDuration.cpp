@@ -27,14 +27,9 @@ void SetMaxDuration::redo()
     constraint->setMaxDuration(m_newDuration);
 }
 
-int SetMaxDuration::id() const
+bool SetMaxDuration::mergeWith(const Command* other)
 {
-    return canMerge() ? uid() : -1;
-}
-
-bool SetMaxDuration::mergeWith(const QUndoCommand* other)
-{
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

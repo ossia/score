@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <core/presenter/command/OngoingCommandManager.hpp>
 class TemporalScenarioPresenter;
 
 namespace iscore
@@ -13,7 +14,6 @@ class EventPresenter;
 class TimeNodePresenter;
 class TemporalConstraintPresenter;
 class QPointF;
-class AbsoluteOngoingCommandDispatcher;
 
 class ScenarioCommandManager : public QObject
 {
@@ -42,5 +42,5 @@ class ScenarioCommandManager : public QObject
 
     private:
         TemporalScenarioPresenter* m_presenter{};
-        AbsoluteOngoingCommandDispatcher* m_commandDispatcher{};
+        OngoingCommandDispatcher<MergeStrategy::Undo>* m_commandDispatcher{};
 };

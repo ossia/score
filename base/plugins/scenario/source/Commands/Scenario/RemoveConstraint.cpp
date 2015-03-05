@@ -69,12 +69,7 @@ void RemoveConstraint::redo()
     scenar->removeConstraint(m_cstrId);
 }
 
-int RemoveConstraint::id() const
-{
-    return 1;
-}
-
-bool RemoveConstraint::mergeWith(const QUndoCommand* other)
+bool RemoveConstraint::mergeWith(const Command* other)
 {
     return false;
 }

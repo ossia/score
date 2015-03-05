@@ -66,12 +66,13 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         //   setDurationWithScale(2); setDurationWithScale(3);
         // yields the same result as :
         //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationWithScale(TimeValue newDuration) = 0;
+        virtual void setDurationAndScale(TimeValue newDuration) = 0;
 
-        // This cannot be associative, because the duration of the process can
-        // increase.
-        // Hence, a "undo" method is required.
-        virtual void setDurationWithoutScale(TimeValue newDuration) = 0;
+        // Does nothing if newDuration < currentDuration
+        virtual void setDurationAndGrow(TimeValue newDuration) = 0;
+
+        // Does nothing if newDuration > currentDuration
+        virtual void setDurationAndShrink(TimeValue newDuration) = 0;
 
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.

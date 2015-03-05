@@ -16,8 +16,7 @@ using namespace Scenario::Command;
 MoveEvent::MoveEvent(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand {"ScenarioControl",
                          "MoveEvent",
-                         QObject::tr("Event move")
-                         },
+                         QObject::tr("Event move") },
     m_path {std::move(scenarioPath) },
     m_eventId {data.eventClickedId},
     m_newHeightPosition {data.relativeY},
@@ -37,7 +36,7 @@ void MoveEvent::undo()
                                                  m_eventId,
                                                  m_oldX,
                                                  m_oldHeightPosition,
-                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithoutScale(t); });
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndShrink(t); });
 }
 
 void MoveEvent::redo()
@@ -48,18 +47,13 @@ void MoveEvent::redo()
                                                  m_eventId,
                                                  m_newX,
                                                  m_newHeightPosition,
-                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationWithoutScale(t); });
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndGrow(t); });
 }
 
-int MoveEvent::id() const
-{
-    return canMerge() ? uid() : -1;
-}
-
-bool MoveEvent::mergeWith(const QUndoCommand* other)
+bool MoveEvent::mergeWith(const Command* other)
 {
     // Maybe set m_mergeable = false at the end ?
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }
@@ -80,5 +74,5 @@ void MoveEvent::serializeImpl(QDataStream& s) const
 void MoveEvent::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_eventId
-            >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
+      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
 }

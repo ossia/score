@@ -52,12 +52,7 @@ void RemoveProcessViewModelFromDeck::redo()
     deck->deleteProcessViewModel(m_processViewId);
 }
 
-int RemoveProcessViewModelFromDeck::id() const
-{
-    return 1;
-}
-
-bool RemoveProcessViewModelFromDeck::mergeWith(const QUndoCommand* other)
+bool RemoveProcessViewModelFromDeck::mergeWith(const Command* other)
 {
     return false;
 }

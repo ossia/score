@@ -159,6 +159,6 @@ void NetworkCommand::on_commandReceived(QString par_name,
                    cmd_name,
                    data);
 
-    iscore::CommandQueue* queue = qApp->findChild<iscore::CommandQueue*> ("CommandQueue");
+    iscore::CommandStack* queue = qApp->findChild<iscore::CommandStack*> ("CommandStack");
     queue->push(cmd);
 }

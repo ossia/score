@@ -71,12 +71,7 @@ void ClearConstraint::redo()
     }
 }
 
-int ClearConstraint::id() const
-{
-    return 1;
-}
-
-bool ClearConstraint::mergeWith(const QUndoCommand* other)
+bool ClearConstraint::mergeWith(const Command* other)
 {
     return false;
 }

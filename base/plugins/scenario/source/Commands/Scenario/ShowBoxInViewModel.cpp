@@ -48,12 +48,7 @@ void ShowBoxInViewModel::redo()
     constraint_vm->showBox(m_boxId);
 }
 
-int ShowBoxInViewModel::id() const
-{
-    return 1;
-}
-
-bool ShowBoxInViewModel::mergeWith(const QUndoCommand* other)
+bool ShowBoxInViewModel::mergeWith(const Command* other)
 {
     return false;
 }

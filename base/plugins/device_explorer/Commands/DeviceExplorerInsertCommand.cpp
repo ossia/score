@@ -47,14 +47,8 @@ DeviceExplorerInsertCommand::redo()
     m_model->setCachedResult(result);
 }
 
-int
-DeviceExplorerInsertCommand::id() const
-{
-    return -1;
-}
-
 bool
-DeviceExplorerInsertCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerInsertCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }

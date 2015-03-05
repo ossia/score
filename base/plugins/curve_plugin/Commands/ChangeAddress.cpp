@@ -38,12 +38,7 @@ void ChangeAddress::redo()
     autom->setAddress(m_newAddr);
 }
 
-int ChangeAddress::id() const
-{
-    return CMD_UID;
-}
-
-bool ChangeAddress::mergeWith(const QUndoCommand* other)
+bool ChangeAddress::mergeWith(const Command* other)
 {
     return false;
 }

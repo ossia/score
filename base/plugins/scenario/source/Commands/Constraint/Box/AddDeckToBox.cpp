@@ -30,12 +30,7 @@ void AddDeckToBox::redo()
                                });
 }
 
-int AddDeckToBox::id() const
-{
-    return 1;
-}
-
-bool AddDeckToBox::mergeWith(const QUndoCommand* other)
+bool AddDeckToBox::mergeWith(const Command* other)
 {
     return false;
 }

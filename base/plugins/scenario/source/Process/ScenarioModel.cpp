@@ -76,7 +76,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
     return scen;
 }
 
-void ScenarioModel::setDurationWithScale(TimeValue newDuration)
+void ScenarioModel::setDurationAndScale(TimeValue newDuration)
 {
     double scale =  newDuration / duration();
 
@@ -103,11 +103,16 @@ void ScenarioModel::setDurationWithScale(TimeValue newDuration)
     this->setDuration(newDuration);
 }
 
-void ScenarioModel::setDurationWithoutScale(TimeValue newDuration)
+void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
     // There should be nothing to do here ?
     // Maybe with the last event/timenode ? (hence they finally have a meaning)
+}
+
+void ScenarioModel::setDurationAndShrink(TimeValue newDuration)
+{
+
 }
 
 Selection ScenarioModel::selectableChildren() const

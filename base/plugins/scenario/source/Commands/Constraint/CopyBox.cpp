@@ -33,12 +33,7 @@ void CopyBox::redo()
     constraint->addBox(new BoxModel {box, m_newBoxId, constraint});
 }
 
-int CopyBox::id() const
-{
-    return 1;
-}
-
-bool CopyBox::mergeWith(const QUndoCommand* other)
+bool CopyBox::mergeWith(const Command* other)
 {
     return false;
 }

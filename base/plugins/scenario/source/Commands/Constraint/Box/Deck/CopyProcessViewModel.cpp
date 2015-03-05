@@ -37,12 +37,7 @@ void CopyProcessViewModel::redo()
                             targetDeck));
 }
 
-int CopyProcessViewModel::id() const
-{
-    return 1;
-}
-
-bool CopyProcessViewModel::mergeWith(const QUndoCommand* other)
+bool CopyProcessViewModel::mergeWith(const Command* other)
 {
     return false;
 }

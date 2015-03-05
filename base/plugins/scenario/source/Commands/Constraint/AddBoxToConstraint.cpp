@@ -36,12 +36,7 @@ void AddBoxToConstraint::redo()
     }
 }
 
-int AddBoxToConstraint::id() const
-{
-    return 1;
-}
-
-bool AddBoxToConstraint::mergeWith(const QUndoCommand* other)
+bool AddBoxToConstraint::mergeWith(const Command* other)
 {
     return false;
 }

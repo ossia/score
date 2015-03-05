@@ -49,12 +49,7 @@ void RemoveDeckFromBox::redo()
     box->removeDeck(m_deckId);
 }
 
-int RemoveDeckFromBox::id() const
-{
-    return 1;
-}
-
-bool RemoveDeckFromBox::mergeWith(const QUndoCommand* other)
+bool RemoveDeckFromBox::mergeWith(const Command* other)
 {
     return false;
 }

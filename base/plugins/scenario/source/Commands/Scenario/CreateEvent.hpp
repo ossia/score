@@ -28,8 +28,7 @@ namespace Scenario
                 CreateEvent(ObjectPath&& scenarioPath, EventData data);
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual int id() const override;
-                virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual bool mergeWith(const Command* other) override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

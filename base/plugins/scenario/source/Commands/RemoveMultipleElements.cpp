@@ -45,12 +45,7 @@ void RemoveMultipleElements::redo()
     }
 }
 
-int RemoveMultipleElements::id() const
-{
-    return 1;
-}
-
-bool RemoveMultipleElements::mergeWith(const QUndoCommand* other)
+bool RemoveMultipleElements::mergeWith(const Command* other)
 {
     return false;
 }

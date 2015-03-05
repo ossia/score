@@ -14,7 +14,7 @@ class DeviceExplorerView : public QTreeView
         DeviceExplorerView(QWidget* parent = 0);
         ~DeviceExplorerView();
 
-        void setModel(DeviceExplorerModel* model);
+        void setModel(QAbstractItemModel* model);
         void setModel(DeviceExplorerFilterProxyModel* model);
 
         DeviceExplorerModel* model();

@@ -35,12 +35,7 @@ void AddProcessViewModelToDeck::redo()
     deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, deck));
 }
 
-int AddProcessViewModelToDeck::id() const
-{
-    return uid();
-}
-
-bool AddProcessViewModelToDeck::mergeWith(const QUndoCommand* other)
+bool AddProcessViewModelToDeck::mergeWith(const Command* other)
 {
     return false;
 }

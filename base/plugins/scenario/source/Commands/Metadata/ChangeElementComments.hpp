@@ -45,12 +45,7 @@ namespace Scenario
                     obj->metadata.setComment(m_newComments);
                 }
 
-                virtual int id() const override
-                {
-                    return -1;
-                }
-
-                virtual bool mergeWith(const QUndoCommand* other) override
+                virtual bool mergeWith(const Command* other) override
                 {
                     return false;
                 }

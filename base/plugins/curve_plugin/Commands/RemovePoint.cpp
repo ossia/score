@@ -38,12 +38,7 @@ void RemovePoint::redo()
     autom->removePoint(m_x);
 }
 
-int RemovePoint::id() const
-{
-    return CMD_UID;
-}
-
-bool RemovePoint::mergeWith(const QUndoCommand* other)
+bool RemovePoint::mergeWith(const Command* other)
 {
     return false;
 }

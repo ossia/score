@@ -52,14 +52,9 @@ void ResizeConstraint::redo()
     m_cmd->redo();
 }
 
-int ResizeConstraint::id() const
+bool ResizeConstraint::mergeWith(const Command* other)
 {
-    return uid();
-}
-
-bool ResizeConstraint::mergeWith(const QUndoCommand* other)
-{
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

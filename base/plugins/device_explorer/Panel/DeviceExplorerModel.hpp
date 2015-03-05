@@ -5,7 +5,7 @@
 
 namespace iscore
 {
-    class CommandQueue;
+    class CommandStack;
 }
 
 class Node;
@@ -44,7 +44,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         QModelIndexList selectedIndexes() const;
 
 
-        void setCommandQueue(iscore::CommandQueue* q);
+        void setCommandQueue(iscore::CommandStack* q);
 
         bool load(const QString& filename);
 
@@ -194,7 +194,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         QStack<CutElt> m_cutNodes;
         bool m_lastCutNodeIsCopied;
 
-        iscore::CommandQueue* m_cmdQ;
+        iscore::CommandStack* m_cmdQ;
         Result m_cachedResult;
 
         DeviceExplorerView* m_view {};

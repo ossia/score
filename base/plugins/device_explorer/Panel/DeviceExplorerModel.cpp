@@ -311,7 +311,7 @@ DeviceExplorerModel::load(const QString& filename)
 }
 
 void
-DeviceExplorerModel::setCommandQueue(iscore::CommandQueue* q)
+DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
 {
     m_cmdQ = q;
 }

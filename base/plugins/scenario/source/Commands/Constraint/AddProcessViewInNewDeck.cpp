@@ -86,12 +86,7 @@ void AddProcessViewInNewDeck::redo()
     deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, deck));
 }
 
-int AddProcessViewInNewDeck::id() const
-{
-    return 1;
-}
-
-bool AddProcessViewInNewDeck::mergeWith(const QUndoCommand* other)
+bool AddProcessViewInNewDeck::mergeWith(const Command* other)
 {
     return false;
 }

@@ -1,9 +1,9 @@
 #pragma once
-#include <QUndoStack>
+#include <QStack>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <memory>
 
-class Session;
+
 namespace iscore
 {
     /**
@@ -12,11 +12,16 @@ namespace iscore
      * Mostly equivalent to QUndoStack, but has added signals / slots.
      * They are used to send & receive the commands to the network, for instance.
      */
-    class CommandQueue : public QUndoStack
+    class CommandStack : public QObject
     {
             Q_OBJECT
         public:
-            CommandQueue(QObject* parent);
+            CommandStack(QObject* parent = nullptr);
+
+            bool canUndo();
+            bool canRedo();
+
+            iscore::SerializableCommand* command(int index);
 
         signals:
             /**
@@ -24,6 +29,7 @@ namespace iscore
              * @param cmd the command that was pushed
              */
             void push_start(iscore::SerializableCommand* cmd);
+
 
             /**
              * @brief onUndo Is emitted when the user calls "Undo"
@@ -35,14 +41,35 @@ namespace iscore
              */
             void onRedo();
 
+            void canUndoChanged(bool);
+            void canRedoChanged(bool);
+
+            void undoTextChanged(QString);
+            void redoTextChanged(QString);
+
+            void indexChanged(int);
+
         public slots:
+
+            void undo();
+            void redo();
+
             /**
              * @brief push Pushes a command on the stack
              * @param cmd The command
              *
-             * Calls QUndoStack::push
+             * Calls cmd::redo()
              */
             void push(iscore::SerializableCommand* cmd);
+
+
+            /**
+             * @brief quietPush Pushes a command on the stack
+             * @param cmd The command
+             *
+             * Does NOT call cmd::redo()
+             */
+            void quietPush(iscore::SerializableCommand* cmd);
 
             /**
              * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
@@ -50,16 +77,49 @@ namespace iscore
              */
             void pushAndEmit(iscore::SerializableCommand* cmd);
 
-            void undoAndEmit()
+            void undoAndNotify()
             {
                 undo();
                 onUndo();
             }
 
-            void redoAndEmit()
+            void redoAndNotify()
             {
                 redo();
                 onRedo();
             }
+
+        private:
+
+            // c is of type void(void)
+            template<typename Callable>
+            void updateStack(Callable&& c)
+            {
+                bool pre_canUndo{canUndo()},
+                     pre_canRedo{canRedo()};
+
+                c();
+
+                if(pre_canUndo != canUndo())
+                    emit canUndoChanged(canUndo());
+
+                if(pre_canRedo != canRedo())
+                    emit canRedoChanged(canRedo());
+
+                if(canUndo())
+                    emit undoTextChanged(m_undoable.top()->text());
+                else
+                    emit undoTextChanged("");
+
+                if(canRedo())
+                    emit redoTextChanged(m_redoable.top()->text());
+                else
+                    emit redoTextChanged("");
+
+                emit indexChanged(m_undoable.size() - 1);
+            }
+
+            QStack<SerializableCommand*> m_undoable;
+            QStack<SerializableCommand*> m_redoable;
     };
 }

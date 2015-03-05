@@ -56,12 +56,7 @@ void SplitTimeNode::redo()
 
 }
 
-int SplitTimeNode::id() const
-{
-    return 1;
-}
-
-bool SplitTimeNode::mergeWith(const QUndoCommand *other)
+bool SplitTimeNode::mergeWith(const Command *other)
 {
     return false;
 }

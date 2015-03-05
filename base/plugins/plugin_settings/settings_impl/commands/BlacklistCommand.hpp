@@ -11,7 +11,7 @@ class BlacklistCommand : public iscore::SerializableCommand
 
         virtual void undo();
         virtual void redo();
-        virtual bool mergeWith(const QUndoCommand* other);
+        virtual bool mergeWith(const Command* other);
 
     protected:
         virtual void serializeImpl(QDataStream&) const override { }

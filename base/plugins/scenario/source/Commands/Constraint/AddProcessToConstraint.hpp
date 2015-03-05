@@ -23,8 +23,7 @@ namespace Scenario
 
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual int id() const override;
-                virtual bool mergeWith(const QUndoCommand* other) override;
+                virtual bool mergeWith(const Command* other) override;
 
                 id_type<ProcessSharedModelInterface> processId() const
                 {

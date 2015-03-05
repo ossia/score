@@ -34,12 +34,7 @@ void CopyDeck::redo()
                                       targetBox});
 }
 
-int CopyDeck::id() const
-{
-    return 1;
-}
-
-bool CopyDeck::mergeWith(const QUndoCommand* other)
+bool CopyDeck::mergeWith(const Command* other)
 {
     return false;
 }

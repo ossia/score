@@ -42,8 +42,9 @@ class AutomationModel : public ProcessSharedModelInterface
                                                  const ProcessViewModelInterface* source,
                                                  QObject* parent) override;
 
-        void setDurationWithScale(TimeValue newDuration) override;
-        void setDurationWithoutScale(TimeValue newDuration) override;
+        void setDurationAndScale(TimeValue newDuration) override;
+        void setDurationAndGrow(TimeValue newDuration) override;
+        void setDurationAndShrink(TimeValue newDuration) override;
 
         Selection selectableChildren() const override { return {}; }
         QList<QObject*> selectedChildren() const override { return {}; }

@@ -51,14 +51,8 @@ DeviceExplorerMoveCommand::redo()
     m_model->setCachedResult(result);
 }
 
-int
-DeviceExplorerMoveCommand::id() const
-{
-    return -1;
-}
-
 bool
-DeviceExplorerMoveCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerMoveCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }

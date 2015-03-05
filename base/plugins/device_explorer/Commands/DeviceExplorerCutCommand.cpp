@@ -61,14 +61,8 @@ DeviceExplorerCutCommand::redo()
 
 }
 
-int
-DeviceExplorerCutCommand::id() const
-{
-    return -1;
-}
-
 bool
-DeviceExplorerCutCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerCutCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }

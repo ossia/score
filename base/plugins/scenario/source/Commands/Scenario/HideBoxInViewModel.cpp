@@ -36,12 +36,7 @@ void HideBoxInViewModel::redo()
     vm->hideBox();
 }
 
-int HideBoxInViewModel::id() const
-{
-    return 1;
-}
-
-bool HideBoxInViewModel::mergeWith(const QUndoCommand* other)
+bool HideBoxInViewModel::mergeWith(const Command* other)
 {
     return false;
 }

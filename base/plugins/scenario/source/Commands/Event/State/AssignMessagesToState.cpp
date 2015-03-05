@@ -11,12 +11,7 @@ void AssignMessagesToState::redo()
 {
 }
 
-int AssignMessagesToState::id() const
-{
-    return -1;
-}
-
-bool AssignMessagesToState::mergeWith(const QUndoCommand* other)
+bool AssignMessagesToState::mergeWith(const Command* other)
 {
     return false;
 }

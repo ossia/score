@@ -55,12 +55,7 @@ void SetRigidity::redo()
     }
 }
 
-int SetRigidity::id() const
-{
-    return 1;
-}
-
-bool SetRigidity::mergeWith(const QUndoCommand* other)
+bool SetRigidity::mergeWith(const Command* other)
 {
     return false;
 }

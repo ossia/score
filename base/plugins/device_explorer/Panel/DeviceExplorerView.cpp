@@ -158,9 +158,9 @@ DeviceExplorerView::installStyleSheet()
 }
 
 void
-DeviceExplorerView::setModel(DeviceExplorerModel* model)
+DeviceExplorerView::setModel(QAbstractItemModel* model)
 {
-    QTreeView::setModel(static_cast<QAbstractItemModel*>(model));
+    QTreeView::setModel(model);
     m_hasProxy = false;
     #ifdef MODEL_TEST
     qDebug() << "*** ADD MODEL_TEST\n";

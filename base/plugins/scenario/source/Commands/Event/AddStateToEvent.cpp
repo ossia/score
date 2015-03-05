@@ -35,12 +35,7 @@ void AddStateToEvent::redo()
     event->addState(state);
 }
 
-int AddStateToEvent::id() const
-{
-    return 1;
-}
-
-bool AddStateToEvent::mergeWith(const QUndoCommand* other)
+bool AddStateToEvent::mergeWith(const Command* other)
 {
     return false;
 }

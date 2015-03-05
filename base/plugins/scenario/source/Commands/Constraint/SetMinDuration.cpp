@@ -27,14 +27,9 @@ void SetMinDuration::redo()
     constraint->setMinDuration(m_newDuration);
 }
 
-int SetMinDuration::id() const
+bool SetMinDuration::mergeWith(const Command* other)
 {
-    return canMerge() ? uid() : -1;
-}
-
-bool SetMinDuration::mergeWith(const QUndoCommand* other)
-{
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

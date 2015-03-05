@@ -47,18 +47,11 @@ DeviceExplorerPasteCommand::redo()
 
 }
 
-int
-DeviceExplorerPasteCommand::id() const
-{
-    return -1;
-}
-
 bool
-DeviceExplorerPasteCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerPasteCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }
-
 
 void
 DeviceExplorerPasteCommand::serializeImpl(QDataStream& d) const

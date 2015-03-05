@@ -9,7 +9,7 @@ class DeviceEditDialog;
 class AddressEditDialog;
 namespace iscore
 {
-    class CommandQueue;
+    class CommandStack;
 }
 
 class QComboBox;

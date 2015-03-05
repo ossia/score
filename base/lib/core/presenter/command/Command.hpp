@@ -5,10 +5,14 @@
 #include <QBuffer>
 #include <chrono>
 
+
+#include <QHash>
+#include <numeric>
+
 #define ISCORE_COMMAND \
     public: \
-        static const char* className(); \
-        static QString description(); \
+    static const char* className(); \
+    static QString description(); \
     private:
 
 namespace iscore
@@ -25,33 +29,45 @@ namespace iscore
      * Note: for mergeWith put two timestamps, one for the initial command (5 sec) and one for each
      * new command merged.
      */
-    class Command : public QUndoCommand
+    class Command
     {
         public:
             Command(QString parname, QString cmdname, QString text) :
-                QUndoCommand {text},
-                         m_name {cmdname},
-            m_parentName {parname}
+                m_name {cmdname},
+                m_parentName {parname},
+                m_text{text}
             {
             }
+
+            virtual ~Command() = default;
 
             QString name() const
             {
                 return m_name;
             }
+
             QString parentName() const
             {
                 return m_parentName;
             }
 
-            // The realtime command editing mechanism
-            // disables the merging when a command is applied.
-            // Subclasses should implement this by returning
-            // id() == -1 when canMerge() is false
+            const QString& text() const
+            {
+                return m_text;
+            }
+
+            void setText(const QString& t)
+            {
+                m_text = t;
+            }
+
+            // A facility for commands that should not be merged.
+            // Merging should be explicitely enabled.
             bool canMerge() const
             {
                 return m_canMerge;
             }
+
             void enableMerging()
             {
                 m_canMerge = true;
@@ -62,12 +78,29 @@ namespace iscore
                 m_canMerge = false;
             }
 
+            virtual void undo() = 0;
+            virtual void redo() = 0;
+            virtual bool mergeWith(const Command*) = 0;
+
+
+            int32_t uid() const
+            {
+                using namespace std;
+                auto hash = qHash(this->name());
+                int32_t theUid =
+                    hash <= numeric_limits<int32_t>::max() ?
+                        (int32_t) hash :
+                        (int32_t) (hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min();
+                return theUid;
+            }
+
 
         protected:
             quint32 timestamp() const
             {
                 return m_timestamp.count();
             }
+
             void setTimestamp(quint32 stmp)
             {
                 m_timestamp = std::chrono::duration<quint32> (stmp);
@@ -77,14 +110,15 @@ namespace iscore
             bool m_canMerge {false};
             const QString m_name;
             const QString m_parentName;
+            QString m_text;
 
             //TODO check if this is UTC
             std::chrono::milliseconds m_timestamp
             {
                 std::chrono::duration_cast<std::chrono::milliseconds>
-                (
-                    std::chrono::high_resolution_clock::now().time_since_epoch()
-                )
+                        (
+                            std::chrono::high_resolution_clock::now().time_since_epoch()
+                            )
             };
     };
 }

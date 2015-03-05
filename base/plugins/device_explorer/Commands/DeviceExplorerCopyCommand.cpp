@@ -65,7 +65,7 @@ DeviceExplorerCopyCommand::id() const
 }
 
 bool
-DeviceExplorerCopyCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerCopyCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }

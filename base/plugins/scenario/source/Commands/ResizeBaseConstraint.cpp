@@ -33,14 +33,9 @@ void ResizeBaseConstraint::redo()
     constraint->setDefaultDuration(m_newDuration);
 }
 
-int ResizeBaseConstraint::id() const
+bool ResizeBaseConstraint::mergeWith(const Command* other)
 {
-    return uid();
-}
-
-bool ResizeBaseConstraint::mergeWith(const QUndoCommand* other)
-{
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

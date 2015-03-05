@@ -12,12 +12,7 @@ void UnassignMessagesFromState::redo()
 {
 }
 
-int UnassignMessagesFromState::id() const
-{
-    return -1;
-}
-
-bool UnassignMessagesFromState::mergeWith(const QUndoCommand* other)
+bool UnassignMessagesFromState::mergeWith(const Command* other)
 {
     return false;
 }

@@ -40,12 +40,7 @@ void MovePoint::redo()
     autom->movePoint(m_oldX, m_newX, m_newY);
 }
 
-int MovePoint::id() const
-{
-    return CMD_UID;
-}
-
-bool MovePoint::mergeWith(const QUndoCommand* other)
+bool MovePoint::mergeWith(const Command* other)
 {
     return false;
 }

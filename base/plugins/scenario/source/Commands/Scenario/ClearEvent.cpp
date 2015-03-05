@@ -50,12 +50,7 @@ void ClearEvent::redo()
 
 }
 
-int ClearEvent::id() const
-{
-    return 1;
-}
-
-bool ClearEvent::mergeWith(const QUndoCommand* other)
+bool ClearEvent::mergeWith(const Command* other)
 {
     return false;
 }

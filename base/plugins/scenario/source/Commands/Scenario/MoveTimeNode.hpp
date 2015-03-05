@@ -18,25 +18,19 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(MoveTimeNode, "ScenarioControl")
+                MoveTimeNode();
                 MoveTimeNode(ObjectPath&& scenarioPath, EventData data);
+                ~MoveTimeNode();
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual int id() const override;
-                virtual bool mergeWith(const QUndoCommand* other) override;
-                TimeValue m_oldX {}; // TODO : bof bof !
+                virtual bool mergeWith(const Command* other) override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                id_type<EventModel> m_eventId {};
-
-                double m_oldHeightPosition {};
-                double m_newHeightPosition {};
-                TimeValue m_newX {};
+                MoveEvent* m_cmd{};
         };
     }
 }

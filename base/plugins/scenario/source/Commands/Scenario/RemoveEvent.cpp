@@ -100,12 +100,7 @@ void RemoveEvent::redo()
     scenar->removeEvent(m_evId);
 }
 
-int RemoveEvent::id() const
-{
-    return 1;
-}
-
-bool RemoveEvent::mergeWith(const QUndoCommand* other)
+bool RemoveEvent::mergeWith(const Command* other)
 {
     return false;
 }

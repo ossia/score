@@ -32,12 +32,7 @@ void SetCondition::redo()
     event->setCondition(m_condition);
 }
 
-int SetCondition::id() const
-{
-    return uid();
-}
-
-bool SetCondition::mergeWith(const QUndoCommand* other)
+bool SetCondition::mergeWith(const Command* other)
 {
     return false;
 }

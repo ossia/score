@@ -68,7 +68,7 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_commandDispatcher{new AbsoluteOngoingCommandDispatcher{this}}
+    m_commandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{this}}
 {
 
     // TODO make it more generic (maybe with a QAction ?)
@@ -91,10 +91,10 @@ void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
             this, &ScenarioCommandManager::createConstraint);
 
     connect(e,                &EventPresenter::eventReleased,
-            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
+            m_commandDispatcher, &OngoingCommandDispatcher<MergeStrategy::Undo>::commit);
 
     connect(e,                &EventPresenter::eventReleasedWithControl,
-            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
+            m_commandDispatcher, &OngoingCommandDispatcher<MergeStrategy::Undo>::commit);
 
     // TODO manage ctrl being pressed / released globally.
     connect(e,    &EventPresenter::ctrlStateChanged,
@@ -108,7 +108,7 @@ void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
             this, &ScenarioCommandManager::moveTimeNode);
 
     connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
+            m_commandDispatcher, &OngoingCommandDispatcher<MergeStrategy::Undo>::commit);
 }
 
 void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
@@ -116,7 +116,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
     connect(c,	  &TemporalConstraintPresenter::constraintMoved,
             this, &ScenarioCommandManager::moveConstraint);
     connect(c,                &TemporalConstraintPresenter::constraintReleased,
-            m_commandDispatcher, &AbsoluteOngoingCommandDispatcher::commit);
+            m_commandDispatcher, &OngoingCommandDispatcher<MergeStrategy::Undo>::commit);
 }
 
 
@@ -344,6 +344,7 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
 
     auto cmd = new MoveTimeNode(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                 data);
+    cmd->enableMerging();
 
     m_commandDispatcher->send(cmd);
 }

@@ -79,12 +79,7 @@ void CreateCurvesFromAddresses::redo()
     }
 }
 
-int CreateCurvesFromAddresses::id() const
-{
-    return CMD_UID;
-}
-
-bool CreateCurvesFromAddresses::mergeWith(const QUndoCommand* other)
+bool CreateCurvesFromAddresses::mergeWith(const Command* other)
 {
     return false;
 }

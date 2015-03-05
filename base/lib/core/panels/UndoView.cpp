@@ -64,7 +64,7 @@ class UndoPanelPresenter : public iscore::PanelPresenterInterface
             using namespace iscore;
             auto doc = IDocument::documentFromObject(m_model);
             // TODO put the commandQueue getter directly in IDocument.
-            static_cast<UndoPanelView*>(m_view)->setStack(doc->presenter()->commandQueue());
+            //static_cast<UndoPanelView*>(m_view)->setStack(doc->presenter()->commandQueue());
         }
 };
 

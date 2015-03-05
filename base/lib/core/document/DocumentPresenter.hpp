@@ -23,7 +23,7 @@ namespace iscore
             Q_OBJECT
         public:
             DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
-            CommandQueue* commandQueue()
+            CommandStack* commandQueue()
             {
                 return m_commandQueue.get();
             }
@@ -47,7 +47,7 @@ namespace iscore
             void lock_impl();
             void unlock_impl();
 
-            std::unique_ptr<CommandQueue> m_commandQueue;
+            std::unique_ptr<CommandStack> m_commandQueue;
             SerializableCommand* m_ongoingCommand {};
             ObjectPath m_lockedObject;
 

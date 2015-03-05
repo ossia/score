@@ -79,15 +79,10 @@ void CreateEventAfterEventOnTimeNode::redo()
     // @todo Creation of all the event view models
 }
 
-int CreateEventAfterEventOnTimeNode::id() const
-{
-    return canMerge() ? uid() : -1;
-}
-
-bool CreateEventAfterEventOnTimeNode::mergeWith(const QUndoCommand* other)
+bool CreateEventAfterEventOnTimeNode::mergeWith(const Command* other)
 {
     // Maybe set m_mergeable = false at the end ?
-    if(other->id() != id())
+    if(other->uid() != uid())
     {
         return false;
     }

@@ -45,12 +45,7 @@ namespace Scenario
                     obj->metadata.setLabel(m_newLabel);
                 }
 
-                virtual int id() const override
-                {
-                    return -1;
-                }
-
-                virtual bool mergeWith(const QUndoCommand* other) override
+                virtual bool mergeWith(const Command* other) override
                 {
                     return false;
                 }

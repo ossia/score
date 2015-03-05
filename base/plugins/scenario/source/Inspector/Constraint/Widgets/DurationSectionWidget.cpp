@@ -21,7 +21,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent},
-    m_cmdManager{new OngoingCommandDispatcher{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
+    m_cmdManager{new OngoingCommandDispatcher<MergeStrategy::Simple>{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
                                            this}}
 {
 

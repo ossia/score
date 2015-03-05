@@ -45,12 +45,7 @@ void RemoveBoxFromConstraint::redo()
     constraint->removeBox(m_boxId);
 }
 
-int RemoveBoxFromConstraint::id() const
-{
-    return 1;
-}
-
-bool RemoveBoxFromConstraint::mergeWith(const QUndoCommand* other)
+bool RemoveBoxFromConstraint::mergeWith(const Command* other)
 {
     return false;
 }

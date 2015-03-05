@@ -11,12 +11,7 @@ void Paste::redo()
 {
 }
 
-int Paste::id() const
-{
-    return 1;
-}
-
-bool Paste::mergeWith(const QUndoCommand* other)
+bool Paste::mergeWith(const Command* other)
 {
     return false;
 }

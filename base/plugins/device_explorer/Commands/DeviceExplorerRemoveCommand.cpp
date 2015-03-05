@@ -55,14 +55,8 @@ DeviceExplorerRemoveCommand::redo()
     m_model->setCachedResult(result);
 }
 
-int
-DeviceExplorerRemoveCommand::id() const
-{
-    return -1;
-}
-
 bool
-DeviceExplorerRemoveCommand::mergeWith(const QUndoCommand* /*other*/)
+DeviceExplorerRemoveCommand::mergeWith(const Command* /*other*/)
 {
     return false;
 }

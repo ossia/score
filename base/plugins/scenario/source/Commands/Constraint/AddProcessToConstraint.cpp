@@ -38,12 +38,7 @@ void AddProcessToConstraint::redo()
     constraint->addProcess(proc);
 }
 
-int AddProcessToConstraint::id() const
-{
-    return 1;
-}
-
-bool AddProcessToConstraint::mergeWith(const QUndoCommand* other)
+bool AddProcessToConstraint::mergeWith(const Command* other)
 {
     return false;
 }

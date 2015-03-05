@@ -13,7 +13,7 @@
 #include <Process/ScenarioFactory.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 
-#include <QUndoStack>
+#include <core/presenter/command/CommandQueue.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -25,7 +25,7 @@ class AddProcessViewModelToDeckTest: public QObject
     private slots:
         void CreateViewModelTest()
         {
-            QUndoStack stack;
+            CommandStack stack;
             // Maybe do a fake process list, with a fake process for unit tests.
             NamedObject* obj = new NamedObject {"obj", qApp};
             ProcessList* plist = new ProcessList {obj};

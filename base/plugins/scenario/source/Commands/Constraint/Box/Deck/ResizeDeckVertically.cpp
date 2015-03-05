@@ -29,12 +29,7 @@ void ResizeDeckVertically::redo()
     deck->setHeight(m_newSize);
 }
 
-int ResizeDeckVertically::id() const
-{
-    return 1;
-}
-
-bool ResizeDeckVertically::mergeWith(const QUndoCommand* other)
+bool ResizeDeckVertically::mergeWith(const Command* other)
 {
     return false;
 }
