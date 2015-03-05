@@ -20,7 +20,7 @@ class Visitor<Reader<DataStream>>
         Visitor<Reader<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::WriteOnly}
         {
-            m_stream.setVersion(QDataStream::Qt_5_2);
+            m_stream.setVersion(QDataStream::Qt_5_4);
         }
 
         template<typename T>
@@ -59,7 +59,7 @@ class Visitor<Writer<DataStream>>
         Visitor<Writer<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::ReadOnly}
         {
-            m_stream.setVersion(QDataStream::Qt_5_2);
+            m_stream.setVersion(QDataStream::Qt_5_4);
         }
 
         template<typename T>

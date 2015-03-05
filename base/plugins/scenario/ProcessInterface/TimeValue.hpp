@@ -52,6 +52,11 @@ class TimeValue_T
             return *m_impl / millisecondsPerPixel;
         }
 
+        QTime toQTime()
+        {
+            return QTime(0,0,0,0).addMSecs(*m_impl);
+        }
+
         void addMSecs(int msecs)
         {
             if(m_impl)
