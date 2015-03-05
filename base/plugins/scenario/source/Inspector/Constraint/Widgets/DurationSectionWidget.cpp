@@ -15,7 +15,7 @@
 #include <QSpinBox>
 #include <QLabel>
 #include <QGridLayout>
-
+#include <QTimeEdit>
 
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) :
     InspectorSectionWidget {"Durations", parent},
@@ -32,21 +32,27 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
     m_valueLabel = new QLabel{"Default: "};
     auto checkbox = new QCheckBox{"Rigid"};
-    auto minSpin = new QSpinBox{};
-    auto maxSpin = new QSpinBox{};
-    auto valueSpin = new QSpinBox{};
+    auto minSpin = new QTimeEdit{};
+    auto maxSpin = new QTimeEdit{};
+    auto valueSpin = new QTimeEdit{};
 
     // TODO these need to be updated when the default duration changes
     connect(m_model, &ConstraintModel::defaultDurationChanged,
             this,	 &DurationSectionWidget::on_defaultDurationChanged);
 
+    valueSpin->setDisplayFormat(QString("mm.ss.zzz"));
+    minSpin->setDisplayFormat(QString("mm.ss.zzz"));
+    maxSpin->setDisplayFormat(QString("mm.ss.zzz"));
 
-    minSpin->setMinimum(0);
-    minSpin->setMaximum(m_model->defaultDuration().msec());
-    maxSpin->setMinimum(m_model->defaultDuration().msec() + 1);
-    maxSpin->setMaximum(std::numeric_limits<int>::max());
-    valueSpin->setMinimum(std::numeric_limits<int>::min());
-    valueSpin->setMaximum(std::numeric_limits<int>::max());
+    QTime msDuration = QTime(0,0,0,0).addMSecs(m_model->defaultDuration().msec());
+
+//    minSpin->setMinimumTime(QTime(0,0,0,0));
+    minSpin->setMaximumTime(msDuration);
+    maxSpin->setMinimumTime(msDuration.addMSecs(1));
+//    maxSpin->setMaximumTime(std::numeric_limits<int>::max());
+
+//    valueSpin->setMinimum(std::numeric_limits<int>::min());
+//    valueSpin->setMaximum(std::numeric_limits<int>::max());
 
     connect(checkbox, &QCheckBox::toggled,
             [ = ](bool val)
@@ -55,15 +61,15 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
         maxSpin->setEnabled(!val);
     });
 
-    minSpin->setValue(m_model->minDuration().msec());
-    maxSpin->setValue(m_model->maxDuration().msec());
+    minSpin->setTime(QTime(0,0,0,0).addMSecs(m_model->minDuration().msec()));
+    maxSpin->setTime(QTime(0,0,0,0).addMSecs(m_model->maxDuration().msec()));
 
     if(m_model->minDuration() == m_model->maxDuration())
     {
         checkbox->setChecked(true);
     }
 
-    valueSpin->setValue(m_model->defaultDuration().msec());
+    valueSpin->setTime(msDuration);
 
     lay->addWidget(checkbox, 0, 0);
     lay->addWidget(new QLabel{tr("Min duration") }, 1, 0);
@@ -74,23 +80,27 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     lay->addWidget(m_valueLabel, 3, 0);
     lay->addWidget(valueSpin, 3, 1);
 
-    connect(minSpin,	SIGNAL(valueChanged(int)),
-            this,		SLOT(minDurationSpinboxChanged(int)));
-    connect(minSpin,	&QSpinBox::editingFinished,
-            [&]() { m_cmdManager->commit(); });
-    connect(maxSpin,	SIGNAL(valueChanged(int)),
-            this,		SLOT(maxDurationSpinboxChanged(int)));
-    connect(maxSpin,	&QSpinBox::editingFinished,
+
+    connect(minSpin,	&QTimeEdit::timeChanged,
+            [=] (QTime val) { emit minDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
+
+    connect(minSpin,	&QTimeEdit::editingFinished,
             [&]() { m_cmdManager->commit(); });
 
-    connect(valueSpin,  SIGNAL(valueChanged(int)),
-            this,       SLOT(defaultDurationSpinboxChanged(int)));
-    connect(valueSpin,  &QSpinBox::editingFinished,
+    connect(maxSpin,	&QTimeEdit::timeChanged,
+            [=] (QTime val) { emit maxDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
+
+    connect(maxSpin,	&QTimeEdit::editingFinished,
+            [&]() { m_cmdManager->commit(); });
+
+    connect(valueSpin,  &QTimeEdit::timeChanged,
+            [=] (QTime val) { emit defaultDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
+
+    connect(valueSpin,  &QTimeEdit::editingFinished,
             [&]() { m_cmdManager->commit(); });
 
     connect(checkbox,	&QCheckBox::toggled,
             this,		&DurationSectionWidget::rigidCheckboxToggled);
-
 
 
     addContent(widg);
