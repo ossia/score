@@ -315,14 +315,15 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     }
     else
     {
-        // TODO ça foire, surement à cause de mergewith des commandes
-        /*
+        //*
+        m_commandDispatcher->rollback();
         auto cmd = new MergeTimeNodes(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                       collidingTimeNodes.first()->id(),
                                       eventTN);
 
-        sendOngoingCommand(cmd);
-        */
+        CommandDispatcher dispatch{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(this)), this};
+                dispatch.send(cmd);
+        //*/
     }
 
 }

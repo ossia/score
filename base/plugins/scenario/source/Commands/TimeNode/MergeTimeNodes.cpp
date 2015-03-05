@@ -1,6 +1,7 @@
 #include "MergeTimeNodes.hpp"
 
 #include "source/Process/ScenarioModel.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
@@ -33,15 +34,12 @@ void MergeTimeNodes::undo()
 
     Deserializer<DataStream> s {&m_serializedTimeNode};
     auto movingTimeNode = new TimeNodeModel(s, scenar);
-
     scenar->addTimeNode(movingTimeNode);
-
     for (auto event : movingTimeNode->events())
     {
-        movingTimeNode->addEvent(event);
-        scenar->event(event)->setDate(movingTimeNode->date());
-        scenar->event(event)->changeTimeNode(m_aimedTimeNodeId);
         aimedTimeNode->removeEvent(event);
+        scenar->event(event)->changeTimeNode(movingTimeNode->id());
+        StandardDisplacementPolicy::setEventPosition(*scenar, event, movingTimeNode->date(), scenar->event(event)->heightPercentage());
     }
 }
 
@@ -54,7 +52,7 @@ void MergeTimeNodes::redo()
 
     for (auto event : movingTimeNode->events())
     {
-        scenar->event(event)->setDate(aimedTimeNode->date());
+        StandardDisplacementPolicy::setEventPosition(*scenar, event, aimedTimeNode->date(), scenar->event(event)->heightPercentage());
         aimedTimeNode->addEvent(event);
         scenar->event(event)->changeTimeNode(m_aimedTimeNodeId);
         movingTimeNode->removeEvent(event);
