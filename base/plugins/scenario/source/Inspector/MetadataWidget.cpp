@@ -14,7 +14,7 @@
 #include <QToolButton>
 
 
-MetadataWidget::MetadataWidget(ModelMetadata* metadata, CommandDispatcher* m, QWidget* parent) :
+MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QWidget* parent) :
     QWidget(parent),
     m_metadata {metadata},
     m_commandDispatcher{m}

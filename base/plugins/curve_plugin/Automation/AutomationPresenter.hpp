@@ -8,7 +8,7 @@ class PluginCurveModel;
 class ProcessViewInterface;
 class AutomationViewModel;
 class AutomationView;
-class CommandDispatcher;
+class ICommandDispatcher;
 class AutomationPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
@@ -39,7 +39,7 @@ class AutomationPresenter : public ProcessPresenterInterface
         PluginCurvePresenter* m_curvePresenter {};
         PluginCurveView* m_curveView {};
 
-        CommandDispatcher* m_commandDispatcher{};
+        ICommandDispatcher* m_commandDispatcher{};
 
         ZoomRatio m_zoomRatio {};
 };

@@ -12,7 +12,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     ProcessPresenterInterface {"AutomationPresenter", parent},
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
-    m_commandDispatcher{new CommandDispatcher{this}}
+    m_commandDispatcher{new CommandDispatcher<>{this}}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
@@ -123,7 +123,7 @@ void AutomationPresenter::on_modelPointsChanged()
                    pt.x(),
                    pt.y()};
 
-        m_commandDispatcher->send(cmd);
+        m_commandDispatcher->submitCommand(cmd);
     });
 
     connect(m_curvePresenter, &PluginCurvePresenter::notifyPointMoved,
@@ -133,7 +133,7 @@ void AutomationPresenter::on_modelPointsChanged()
                    oldPt.x(), newPt.x(), newPt.y()
     };
 
-        m_commandDispatcher->send(cmd);
+        m_commandDispatcher->submitCommand(cmd);
     });
 
     connect(m_curvePresenter, &PluginCurvePresenter::notifyPointDeleted,
@@ -142,7 +142,7 @@ void AutomationPresenter::on_modelPointsChanged()
         auto cmd = new RemovePoint{iscore::IDocument::path(m_viewModel->model()),
                    pt.x()};
 
-        m_commandDispatcher->send(cmd);
+        m_commandDispatcher->submitCommand(cmd);
     });
 }
 

@@ -79,7 +79,7 @@ class InspectorWidgetBase : public QWidget
             return _scrollAreaLayout;
         }
 
-        CommandDispatcher* commandDispatcher() const
+        ICommandDispatcher* commandDispatcher() const
         { return m_commandDispatcher; }
 
         SelectionDispatcher* selectionDispatcher() const
@@ -87,7 +87,7 @@ class InspectorWidgetBase : public QWidget
 
     private:
         QObject* _inspectedObject {};
-        CommandDispatcher* m_commandDispatcher{};
+        ICommandDispatcher* m_commandDispatcher{};
         SelectionDispatcher* m_selectionDispatcher{};
         QVBoxLayout* _scrollAreaLayout {};
 

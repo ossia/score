@@ -47,12 +47,9 @@ void AutomationModel::setDurationAndGrow(TimeValue newDuration)
     {
         return;
     }
+
     // The duration can only grow from the outside (constraint scaling), not shrink
-    // TODO, shrink (cut) the process.
-
-
-
-    if(scale <= 1)
+    if(scale < 1)
     {
         auto points = m_points;
         auto keys = m_points.keys();
@@ -86,7 +83,12 @@ void AutomationModel::setDurationAndGrow(TimeValue newDuration)
         setDuration(newDuration);
         emit pointsChanged();
     }
-    else
+}
+
+void AutomationModel::setDurationAndShrink(TimeValue newDuration)
+{
+    double scale = duration() / newDuration;
+    if(scale > 1)
     {
         auto points = m_points;
         auto keys = m_points.keys();

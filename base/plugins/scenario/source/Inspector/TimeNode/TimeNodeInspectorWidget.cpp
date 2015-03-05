@@ -141,7 +141,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
         auto cmd = new SplitTimeNode(iscore::IDocument::path(inspectedObject()),
                                      eventGroup);
 
-        commandDispatcher()->send(cmd);
+        commandDispatcher()->submitCommand(cmd);
 
         qDebug() << info;
     }

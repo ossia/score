@@ -77,16 +77,16 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     connect(minSpin,	SIGNAL(valueChanged(int)),
             this,		SLOT(minDurationSpinboxChanged(int)));
     connect(minSpin,	&QSpinBox::editingFinished,
-            [&]() { m_cmdManager->commit(); });
+            [&]() { emit  m_cmdManager->commit(); });
     connect(maxSpin,	SIGNAL(valueChanged(int)),
             this,		SLOT(maxDurationSpinboxChanged(int)));
     connect(maxSpin,	&QSpinBox::editingFinished,
-            [&]() { m_cmdManager->commit(); });
+            [&]() { emit  m_cmdManager->commit(); });
 
     connect(valueSpin,  SIGNAL(valueChanged(int)),
             this,       SLOT(defaultDurationSpinboxChanged(int)));
     connect(valueSpin,  &QSpinBox::editingFinished,
-            [&]() { m_cmdManager->commit(); });
+            [&]() { emit  m_cmdManager->commit(); });
 
     connect(checkbox,	&QCheckBox::toggled,
             this,		&DurationSectionWidget::rigidCheckboxToggled);
@@ -104,7 +104,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
                    iscore::IDocument::path(m_model),
                    std::chrono::milliseconds {val});
 
-    m_cmdManager->send(cmd);
+    emit m_cmdManager->submitCommand(cmd);
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
@@ -113,7 +113,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
                    iscore::IDocument::path(m_model),
                    std::chrono::milliseconds {val});
 
-    m_cmdManager->send(cmd);
+    emit m_cmdManager->submitCommand(cmd);
 }
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
@@ -133,7 +133,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
                   std::chrono::milliseconds {val});
     }
 
-    m_cmdManager->send(cmd);
+    emit m_cmdManager->submitCommand(cmd);
 }
 
 void DurationSectionWidget::rigidCheckboxToggled(bool b)
@@ -142,7 +142,7 @@ void DurationSectionWidget::rigidCheckboxToggled(bool b)
                    iscore::IDocument::path(m_model),
                    b);
 
-    emit m_parent->commandDispatcher()->send(cmd);
+    emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void DurationSectionWidget::on_defaultDurationChanged(TimeValue dur)

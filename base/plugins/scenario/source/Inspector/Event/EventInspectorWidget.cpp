@@ -183,7 +183,7 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_addressLineEdit->text();
     auto cmd = new Command::AddStateToEvent{path(m_model), txt};
 
-    emit commandDispatcher()->send(cmd);
+    emit commandDispatcher()->submitCommand(cmd);
     m_addressLineEdit->clear();
 }
 
@@ -197,7 +197,7 @@ void EventInspectorWidget::on_conditionChanged()
     }
 
     auto cmd = new Command::SetCondition{path(m_model), txt};
-    emit commandDispatcher()->send(cmd);
+    emit commandDispatcher()->submitCommand(cmd);
 }
 
 void EventInspectorWidget::updateMessages()

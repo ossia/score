@@ -5,7 +5,7 @@
 
 class DeckModel;
 class DeckView;
-class CommandDispatcher;
+class ICommandDispatcher;
 namespace iscore
 {
     class SerializableCommand;
@@ -56,7 +56,7 @@ class DeckPresenter : public NamedObject
         DeckView* m_view{};
         QVector<ProcessPresenterInterface*> m_processes;
 
-        CommandDispatcher* m_commandDispatcher{};
+        ICommandDispatcher* m_commandDispatcher{};
 
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the deckView is being resized.

@@ -27,7 +27,7 @@ DeckPresenter::DeckPresenter(DeckModel* model,
     NamedObject {"DeckPresenter", parent},
     m_model {model},
     m_view {view},
-    m_commandDispatcher{new CommandDispatcher{this}}
+    m_commandDispatcher{new CommandDispatcher<>{this}}
 {
     for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {
@@ -168,7 +168,7 @@ void DeckPresenter::on_bottomHandleReleased()
 
     auto cmd = new Command::ResizeDeckVertically {std::move(path),
                m_view->height()};
-    m_commandDispatcher->send(cmd);
+    emit m_commandDispatcher->submitCommand(cmd);
 }
 
 void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)

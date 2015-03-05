@@ -18,6 +18,7 @@ int main(int argc, char** argv)
 {
     iscore::Application app(argc, argv);
 
+    qDebug() << app.thread();
     /* Theming
     qApp->setStyle(QStyleFactory::create("Fusion"));
     QPalette darkPalette;

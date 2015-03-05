@@ -18,10 +18,10 @@ namespace iscore
         public:
             CommandStack(QObject* parent = nullptr);
 
-            bool canUndo();
-            bool canRedo();
+            bool canUndo() const;
+            bool canRedo() const;
 
-            iscore::SerializableCommand* command(int index);
+            const iscore::SerializableCommand* command(int index) const;
 
         signals:
             /**

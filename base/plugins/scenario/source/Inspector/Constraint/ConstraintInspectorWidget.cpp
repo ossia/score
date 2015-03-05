@@ -207,14 +207,14 @@ void ConstraintInspectorWidget::createProcess(QString processName)
         iscore::IDocument::path(model()),
         processName
     };
-    emit commandDispatcher()->send(cmd);
+    emit commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createBox()
 {
     auto cmd = new AddBoxToConstraint(
         iscore::IDocument::path(model()));
-    emit commandDispatcher()->send(cmd);
+    emit commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
@@ -222,7 +222,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
         processName);
-    emit commandDispatcher()->send(cmd);
+    emit commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
@@ -233,7 +233,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(vm->isBoxShown())
         {
             auto cmd = new HideBoxInViewModel(vm);
-            emit commandDispatcher()->send(cmd);
+            emit commandDispatcher()->submitCommand(cmd);
         }
     }
     else
@@ -244,7 +244,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
         if(ok)
         {
             auto cmd = new ShowBoxInViewModel(vm, id);
-            emit commandDispatcher()->send(cmd);
+            emit commandDispatcher()->submitCommand(cmd);
         }
     }
 

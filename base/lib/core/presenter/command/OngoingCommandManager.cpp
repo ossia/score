@@ -1,21 +1,10 @@
 #include "OngoingCommandManager.hpp"
 #include <QDebug>
-#include <core/interface/document/DocumentInterface.hpp>
 
 
 using namespace iscore;
 // TODO this should be in the iscore namespace ?
-CommandDispatcher::CommandDispatcher(QObject* parent):
-    QObject{parent},
-    m_commandQueue{IDocument::commandQueue(IDocument::documentFromObject(parent))}
-{
 
-}
-
-void CommandDispatcher::send(SerializableCommand *cmd)
-{
-    commandQueue()->pushAndEmit(cmd);
-}
 
 
 // Old documentation. TODO Update it :
