@@ -8,7 +8,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void populateMenus(iscore::MenubarManager*) override;
         void populateToolbars() override { }
         void setPresenter(iscore::Presenter*) override { }
-        iscore::SerializableCommand* instantiateUndoCommand(QString name, QByteArray data);
+        iscore::SerializableCommand* instantiateUndoCommand(const QString& name, const QByteArray& data) override;
 
     public slots:
         void createCurvesFromAddresses();
