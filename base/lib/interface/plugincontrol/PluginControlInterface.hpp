@@ -54,6 +54,8 @@ namespace iscore
                 return m_presenter->currentDocument();
             }
 
+            virtual void on_newDocument(iscore::Document* doc) {}
+
         protected:
             virtual void on_presenterChanged() {}
 

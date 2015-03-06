@@ -2,11 +2,13 @@
 #include <tools/NamedObject.hpp>
 #include <core/interface/selection/Selection.hpp>
 #include <set>
+#include <interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore
 {
     class DocumentDelegateFactoryInterface;
     class DocumentDelegateModelInterface;
+    class DocumentDelegatePluginModel;
     class PanelModelInterface;
     /**
      * @brief The DocumentDelegateModelInterface class
@@ -35,6 +37,11 @@ namespace iscore
                 m_panelModels.append(m);
             }
 
+            void addPluginModel(DocumentDelegatePluginModel* m)
+            {
+                m_pluginModels.append(m);
+            }
+
             const QList<PanelModelInterface*>& panels() const
             {
                 return m_panelModels;
@@ -43,11 +50,14 @@ namespace iscore
             // Returns a Panel by name.
             PanelModelInterface* panel(QString name) const;
 
+            DocumentDelegatePluginModel* pluginModel(QString name) const;
+
         public slots:
             void setNewSelection(const Selection&);
 
         private:
             DocumentDelegateModelInterface* m_model{};
             QList<PanelModelInterface*> m_panelModels;
+            QList<DocumentDelegatePluginModel*> m_pluginModels;
     };
 }

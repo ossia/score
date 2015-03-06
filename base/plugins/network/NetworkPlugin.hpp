@@ -25,6 +25,9 @@ class NetworkPlugin :
         virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
         // CustomCommand interface
+        // TODO a single Control is sufficient.
         virtual QStringList control_list() const override;
         virtual iscore::PluginControlInterface* control_make(QString) override;
+
+
 };

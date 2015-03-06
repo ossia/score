@@ -107,6 +107,11 @@ void Presenter::addDocument(Document* doc)
         doc->setupNewPanel(panel.first, panel.second);
     }
 
+    for(auto& control : m_customControls)
+    {
+        control->on_newDocument(doc);
+    }
+
     m_view->addDocumentView(doc->view());
 
     if(!currentDocument())
@@ -203,28 +208,3 @@ void Presenter::setupMenus()
                                         std::bind(&SettingsView::exec,
                                                   qobject_cast<Application*> (parent())->settings()->view()));
 }
-
-
-// TODO this goes somewhere elses
-void Presenter::on_lock(QByteArray arr)
-{
-    ObjectPath objectToLock;
-
-    Deserializer<DataStream> s {&arr};
-    s.writeTo(objectToLock);
-
-    auto obj = objectToLock.find<QObject>();
-    QMetaObject::invokeMethod(obj, "lock");
-}
-
-void Presenter::on_unlock(QByteArray arr)
-{
-    ObjectPath objectToUnlock;
-
-    Deserializer<DataStream> s {&arr};
-    s.writeTo(objectToUnlock);
-
-    auto obj = objectToUnlock.find<QObject>();
-    QMetaObject::invokeMethod(obj, "unlock");
-}
-

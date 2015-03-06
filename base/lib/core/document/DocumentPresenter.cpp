@@ -25,6 +25,31 @@ DocumentPresenter::DocumentPresenter(DocumentDelegateFactoryInterface* fact,
 }
 
 //// Locking / unlocking ////
+
+void DocumentPresenter::on_lock(QByteArray arr)
+{
+    ObjectPath objectToLock;
+
+    Deserializer<DataStream> s {&arr};
+    s.writeTo(objectToLock);
+
+    auto obj = objectToLock.find<QObject>();
+    // TODO it would be better to have a "lockable" concept / mixin to cast to.
+    QMetaObject::invokeMethod(obj, "lock");
+}
+
+void DocumentPresenter::on_unlock(QByteArray arr)
+{
+    ObjectPath objectToUnlock;
+
+    Deserializer<DataStream> s {&arr};
+    s.writeTo(objectToUnlock);
+
+    auto obj = objectToUnlock.find<QObject>();
+    QMetaObject::invokeMethod(obj, "unlock");
+}
+
+
 void DocumentPresenter::lock_impl()
 {
     QByteArray arr;

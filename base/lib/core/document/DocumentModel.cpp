@@ -1,6 +1,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <interface/panel/PanelModelInterface.hpp>
 #include <exception>
 
@@ -35,6 +36,19 @@ PanelModelInterface* DocumentModel::panel(QString name) const
     });
 
     return it != end(m_panelModels) ? *it : nullptr;
+}
+
+DocumentDelegatePluginModel*DocumentModel::pluginModel(QString name) const
+{
+    using namespace std;
+    auto it = find_if(begin(m_pluginModels),
+                      end(m_pluginModels),
+                      [&](DocumentDelegatePluginModel * pm)
+    {
+        return pm->objectName() == name;
+    });
+
+    return it != end(m_pluginModels) ? *it : nullptr;
 }
 
 void DocumentModel::setNewSelection(const Selection& s)

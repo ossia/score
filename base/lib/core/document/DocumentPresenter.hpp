@@ -30,10 +30,17 @@ namespace iscore
             { return m_presenter; }
 
         signals:
+            // To the network
             void lock(QByteArray);
             void unlock(QByteArray);
 
+        public slots:
+            // From the network
+            void on_lock(QByteArray);
+            void on_unlock(QByteArray);
+
         private:
+            // In the commands
             void lock_impl();
             void unlock_impl();
 

@@ -58,10 +58,6 @@ namespace iscore
         signals:
             void currentDocumentChanged(Document* newDoc);
 
-        public slots:
-            void on_lock(QByteArray);
-            void on_unlock(QByteArray);
-
         private:
             void addDocument(Document* doc);
             void setupMenus();
