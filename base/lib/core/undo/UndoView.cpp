@@ -50,31 +50,6 @@ class UndoPanelPresenter : public iscore::PanelPresenterInterface
                            iscore::PanelViewInterface* view):
             iscore::PanelPresenterInterface{parent_presenter, view}
         {
-            m_undoAction->setShortcut(QKeySequence::Undo);
-            m_undoAction->setEnabled(false);
-            m_undoAction->setText(tr("Undo"));
-            connect(m_undoAction, &QAction::triggered,
-                    [&] ()
-            {
-                presenter()->currentDocument()->commandStack()->undoAndNotify();
-            });
-
-            m_redoAction->setShortcut(QKeySequence::Redo);
-            m_redoAction->setEnabled(false);
-            m_redoAction->setText(tr("Redo"));
-            connect(m_redoAction, &QAction::triggered,
-                    [&] ()
-            {
-                presenter()->currentDocument()->commandStack()->redoAndNotify();
-            });
-        }
-
-        ~UndoPanelPresenter()
-        {
-            for(auto& connection : m_connections)
-            {
-                disconnect(connection);
-            }
         }
 
         QString modelObjectName() const
@@ -82,35 +57,11 @@ class UndoPanelPresenter : public iscore::PanelPresenterInterface
             return "UndoPanelModel";
         }
 
-        void on_modelChanged()
+        void on_modelChanged() override
         {
-            using namespace iscore;
-            for(auto& connection : m_connections)
-                disconnect(connection);
 
-            m_connections.clear();
-
-            m_connections.push_back(
-                        connect(presenter()->currentDocument()->commandStack(), &CommandStack::canUndoChanged,
-                                [&] (bool b) { m_undoAction->setEnabled(b); }));
-            m_connections.push_back(
-                        connect(presenter()->currentDocument()->commandStack(), &CommandStack::canRedoChanged,
-                                [&] (bool b) { m_redoAction->setEnabled(b); }));
-
-            m_connections.push_back(
-                        connect(presenter()->currentDocument()->commandStack(), &CommandStack::undoTextChanged,
-                                [&] (const QString& s) { m_undoAction->setText(tr("Undo ") + s);}));
-            m_connections.push_back(
-                        connect(presenter()->currentDocument()->commandStack(), &CommandStack::redoTextChanged,
-                                [&] (const QString& s) { m_redoAction->setText(tr("Redo ") + s);}));
         }
 
-    private:
-        // Connections to keep for the running document.
-        QList<QMetaObject::Connection> m_connections;
-
-        QAction* m_undoAction{new QAction{this}};
-        QAction* m_redoAction{new QAction{this}};
 };
 
 iscore::PanelViewInterface*UndoPanelFactory::makeView(iscore::View* v)

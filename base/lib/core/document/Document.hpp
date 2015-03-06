@@ -33,8 +33,8 @@ namespace iscore
             ~Document();
 
 
-            CommandStack* commandStack()
-            { return &m_commandStack; }
+            CommandStack& commandStack()
+            { return m_commandStack; }
 
             SelectionStack& selectionStack()
             { return m_selectionStack; }

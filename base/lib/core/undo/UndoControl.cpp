@@ -12,7 +12,7 @@ iscore::UndoControl::UndoControl(QObject* parent):
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->currentDocument()->commandStack()->undoAndNotify();
+        presenter()->currentDocument()->commandStack().undoAndNotify();
     });
 
     m_redoAction->setShortcut(QKeySequence::Redo);
@@ -21,7 +21,7 @@ iscore::UndoControl::UndoControl(QObject* parent):
     connect(m_redoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->currentDocument()->commandStack()->redoAndNotify();
+        presenter()->currentDocument()->commandStack().redoAndNotify();
     });
 }
 
@@ -64,24 +64,25 @@ void iscore::UndoControl::on_documentChanged(Document* newDoc)
     m_connections.clear();
 
     // Redo the connections
+    auto stack = &newDoc->commandStack();
     m_connections.push_back(
-                connect(newDoc->commandStack(), &CommandStack::canUndoChanged,
+                connect(stack, &CommandStack::canUndoChanged,
                         [&] (bool b) { m_undoAction->setEnabled(b); }));
     m_connections.push_back(
-                connect(newDoc->commandStack(), &CommandStack::canRedoChanged,
+                connect(stack, &CommandStack::canRedoChanged,
                         [&] (bool b) { m_redoAction->setEnabled(b); }));
 
     m_connections.push_back(
-                connect(newDoc->commandStack(), &CommandStack::undoTextChanged,
+                connect(stack, &CommandStack::undoTextChanged,
                         [&] (const QString& s) { m_undoAction->setText(tr("Undo ") + s);}));
     m_connections.push_back(
-                connect(newDoc->commandStack(), &CommandStack::redoTextChanged,
+                connect(stack, &CommandStack::redoTextChanged,
                         [&] (const QString& s) { m_redoAction->setText(tr("Redo ") + s);}));
 
     // Set the correct values for the current document.
-    m_undoAction->setEnabled(newDoc->commandStack()->canUndo());
-    m_redoAction->setEnabled(newDoc->commandStack()->canRedo());
+    m_undoAction->setEnabled(stack->canUndo());
+    m_redoAction->setEnabled(stack->canRedo());
 
-    m_undoAction->setText(newDoc->commandStack()->undoText());
-    m_redoAction->setText(newDoc->commandStack()->redoText());
+    m_undoAction->setText(stack->undoText());
+    m_redoAction->setText(stack->redoText());
 }

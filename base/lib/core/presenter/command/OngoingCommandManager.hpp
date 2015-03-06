@@ -35,19 +35,19 @@ namespace SendStrategy
 {
     struct Simple
     {
-        static void send(iscore::CommandStack* cmd,
+        static void send(iscore::CommandStack& cmd,
                          iscore::SerializableCommand* other)
         {
-            cmd->push(other);
+            cmd.push(other);
         }
     };
 
     struct Quiet
     {
-        static void send(iscore::CommandStack* cmd,
+        static void send(iscore::CommandStack& cmd,
                          iscore::SerializableCommand* other)
         {
-            cmd->quietPush(other);
+            cmd.quietPush(other);
         }
     };
 }
@@ -56,7 +56,7 @@ namespace CommitStrategy
 {
     struct Quiet
     {
-            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
             {
                 SendStrategy::Quiet::send(stack, cmd);
             }
@@ -64,7 +64,7 @@ namespace CommitStrategy
 
     struct Redo
     {
-            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
             {
                 SendStrategy::Simple::send(stack, cmd);
             }
@@ -72,7 +72,7 @@ namespace CommitStrategy
 
     struct UndoRedo
     {
-            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
             {
                 cmd->undo();
                 SendStrategy::Simple::send(stack, cmd);
@@ -92,7 +92,7 @@ class ICommandDispatcher : public QObject
 
         }
 
-        ICommandDispatcher(iscore::CommandStack* queue,
+        ICommandDispatcher(iscore::CommandStack& queue,
                            QObject* parent):
             QObject{parent},
             m_stack{queue}
@@ -100,14 +100,14 @@ class ICommandDispatcher : public QObject
 
         }
 
-        iscore::CommandStack* stack() const
+        iscore::CommandStack& stack() const
         { return m_stack; }
 
     signals:
         void submitCommand(iscore::SerializableCommand* cmd);
 
     private:
-        iscore::CommandStack* m_stack{};
+        iscore::CommandStack& m_stack;
 };
 
 template<typename SendStrategy = SendStrategy::Simple>
