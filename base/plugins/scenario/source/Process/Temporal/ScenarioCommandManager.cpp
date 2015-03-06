@@ -119,15 +119,15 @@ void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
             this, &ScenarioCommandManager::moveTimeNode);
 
     connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_creationCommandDispatcher, &OngoingCommandDispatcher<>::commit);
+            m_moveCommandDispatcher, &OngoingCommandDispatcher<>::commit);
 }
 
 void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
 {
     connect(c,	  &TemporalConstraintPresenter::constraintMoved,
             this, &ScenarioCommandManager::moveConstraint);
-    connect(c,                &TemporalConstraintPresenter::constraintReleased,
-            m_creationCommandDispatcher, &OngoingCommandDispatcher<>::commit);
+    connect(c,                       &TemporalConstraintPresenter::constraintReleased,
+            m_moveCommandDispatcher, &OngoingCommandDispatcher<>::commit);
 }
 
 

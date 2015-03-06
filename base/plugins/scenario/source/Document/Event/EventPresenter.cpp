@@ -41,7 +41,7 @@ EventPresenter::EventPresenter(EventModel* model,
     connect(m_view, &EventView::eventReleasedWithControl,
             [this](QPointF p, QPointF pInScene)
     {
-        EventData d {pointToEventData(p) };
+        EventData d {pointToEventData(p)};
         d.scenePos = pInScene;
         emit eventReleasedWithControl(d);
     });
