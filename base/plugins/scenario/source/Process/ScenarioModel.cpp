@@ -319,10 +319,13 @@ void ScenarioModel::removeEvent(id_type<EventModel> eventId)
 {
     auto ev = event(eventId);
 
-    for(auto constraint : ev->previousConstraints())
+    auto constraints = ev->previousConstraints();
+    for(auto constraint : constraints)
     {
         removeConstraint(constraint);
     }
+
+    constraints = ev->nextConstraints();
 
     for(auto constraint : ev->nextConstraints())
     {

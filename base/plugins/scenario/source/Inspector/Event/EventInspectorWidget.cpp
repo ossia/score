@@ -208,7 +208,6 @@ void EventInspectorWidget::updateMessages()
 
 void EventInspectorWidget::removeState(QString state)
 {
-    // TODO command de suppression
     auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);
 }
