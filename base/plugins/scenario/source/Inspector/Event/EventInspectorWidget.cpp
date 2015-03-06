@@ -5,6 +5,7 @@
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
+#include "Commands/Event/RemoveStateFromEvent.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -207,6 +208,6 @@ void EventInspectorWidget::updateMessages()
 
 void EventInspectorWidget::removeState(QString state)
 {
-    // TODO command de suppression
-    qDebug() << "remove state" << state;
+    auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
+    emit commandDispatcher()->submitCommand(cmd);
 }

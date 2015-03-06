@@ -7,6 +7,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 #include <core/tools/utilsCPP11.hpp>
 
@@ -34,23 +35,40 @@ m_path {std::move(scenarioPath) }
     s2.readFrom(*timeNode);
     m_serializedTimeNode = arr2;
 
-    /*
-        for (auto cstr : event->previousConstraints())
-        {
-            QByteArray arr;
-            Serializer<DataStream> s{&arr};
-            s.readFrom(cstr);
-            m_serializedConstraints.push_back(arr);
-        }
-        for (auto cstr : event->nextConstraints())
-        {
-            QByteArray arr;
-            Serializer<DataStream> s{&arr};
-            s.readFrom(cstr);
-            m_serializedConstraints.push_back(arr);
-        }
-    */
+    for (auto cstr : event->previousConstraints())
+    {
+        ConstraintModel* constraint = scenar->constraint(cstr);
 
+        QByteArray arr;
+        Serializer<DataStream> s{&arr};
+        s.readFrom(*constraint);
+        m_serializedConstraints.push_back(arr);
+
+        for(auto& viewModel : viewModels(scenar))
+        {
+            // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
+            auto cstrVM = constraint->viewModels().first();
+            auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+            m_constraintViewModelIDs[cvm_id] = cstrVM->id();
+        }
+    }
+    for (auto cstr : event->nextConstraints())
+    {
+        ConstraintModel* constraint = scenar->constraint(cstr);
+
+        QByteArray arr;
+        Serializer<DataStream> s{&arr};
+        s.readFrom(*constraint);
+        m_serializedConstraints.push_back(arr);
+
+        for(auto& viewModel : viewModels(scenar))
+        {
+            // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
+            auto cstrVM = constraint->viewModels().first();
+            auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+            m_constraintViewModelIDs[cvm_id] = cstrVM->id();
+        }
+    }
 }
 
 void RemoveEvent::undo()
@@ -65,32 +83,41 @@ void RemoveEvent::undo()
     auto event = new EventModel(s, scenar);
 
     timeNode->removeEvent(event->id());
-    event->changeTimeNode(id_type<TimeNodeModel> (0));
 
     scenar->addTimeNode(timeNode);
     scenar->addEvent(event);
 
     timeNode->addEvent(event->id());
 
-
-    // todo : recréer les contraintes. En attendant, on les supprimes de EventModel pour eviter les crashs.
-    for(auto cstr : event->previousConstraints())
+    // re-create constraints
+    for (auto scstr : m_serializedConstraints)
     {
-        event->removePreviousConstraint(cstr);
-    }
+        Deserializer<DataStream> s{&scstr};
+        auto cstr = new ConstraintModel(s, scenar);
+        scenar->addConstraint(cstr);
 
-    for(auto cstr : event->nextConstraints())
-    {
-        event->removeNextConstraint(cstr);
-    }
+        // adding constraint to second extremity event
+        if (m_evId == cstr->endEvent())
+            scenar->event(cstr->startEvent())->addNextConstraint(cstr->id());
+        else
+            scenar->event(cstr->endEvent())->addPreviousConstraint(cstr->id());
 
-    /*
-        for (auto scstr : m_serializedConstraints)
+        // view model creation
+        for(auto& viewModel : viewModels(scenar))
         {
-            Deserializer<DataStream> s{&scstr};
-            scenar->addConstraint(new ConstraintModel(s, scenar));
+            auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
+
+            if(m_constraintViewModelIDs.contains(cvm_id))
+            {
+                viewModel->makeConstraintViewModel(cstr->id(),
+                                                   m_constraintViewModelIDs[cvm_id]);
+            }
+            else
+            {
+                throw std::runtime_error("undo RemoveEvent : missing identifier.");
+            }
         }
-    */
+    }
 }
 
 void RemoveEvent::redo()
@@ -106,10 +133,10 @@ bool RemoveEvent::mergeWith(const Command* other)
 
 void RemoveEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_evId << m_serializedEvent << m_serializedConstraints << m_serializedTimeNode ;
+    s << m_path << m_evId << m_serializedEvent << m_serializedConstraints << m_serializedTimeNode << m_constraintViewModelIDs ;
 }
 
 void RemoveEvent::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_evId >> m_serializedEvent >> m_serializedConstraints >> m_serializedTimeNode ;
+    s >> m_path >> m_evId >> m_serializedEvent >> m_serializedConstraints >> m_serializedTimeNode >> m_constraintViewModelIDs ;
 }

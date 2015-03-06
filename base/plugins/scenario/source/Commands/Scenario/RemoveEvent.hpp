@@ -38,6 +38,7 @@ namespace Scenario
                 QByteArray m_serializedTimeNode;
                 QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
 
+                QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>> m_constraintViewModelIDs;
         };
     }
 }
