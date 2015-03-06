@@ -11,6 +11,8 @@ InspectorPanelView::InspectorPanelView(iscore::View* parent) :
     m_widget{new QWidget}
 {
     this->setObjectName(tr("Inspector"));
+    auto lay = new QVBoxLayout{m_widget};
+    m_widget->setLayout(lay);
 }
 
 QWidget* InspectorPanelView::getWidget()
@@ -22,16 +24,19 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
 {
     using namespace iscore;
 
+    m_widget->layout()->removeWidget(m_stack);
+    m_widget->layout()->removeWidget(m_inspectorPanel);
+
     delete m_stack;
     delete m_inspectorPanel;
 
     m_currentDocument = doc;
-    m_stack = new SelectionStackWidget{&doc->selectionStack(), m_widget};
+    m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
     m_inspectorPanel = new InspectorPanel{doc->selectionStack(), m_widget};
 
-    auto lay = new QVBoxLayout{m_widget};
-    lay->addWidget(m_stack);
-    lay->addWidget(m_inspectorPanel);
+
+    m_widget->layout()->addWidget(m_stack);
+    m_widget->layout()->addWidget(m_inspectorPanel);
 }
 
 void InspectorPanelView::setNewSelection(const Selection& s)

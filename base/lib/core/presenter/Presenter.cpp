@@ -88,7 +88,17 @@ void Presenter::setCurrentDocument(Document* doc)
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 {
-    auto doc = new Document{doctype, m_view, this};
+    addDocument(new Document{doctype, m_view, this});
+}
+
+void Presenter::loadDocument(const QByteArray& data,
+                             DocumentDelegateFactoryInterface* doctype)
+{
+    addDocument(new Document{data, doctype, m_view, this});
+}
+
+void Presenter::addDocument(Document* doc)
+{
     m_documents.push_back(doc);
 
     for(auto& panel : m_panelPresenters)
@@ -98,7 +108,6 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 
     setCurrentDocument(doc);
 }
-
 
 // TODO make a class whose purpose is to instantiate commands.
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name,
@@ -130,7 +139,6 @@ void Presenter::setupMenus()
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                            FileMenuElement::Separator_Load);
 
-    /*
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Load,
                                         [this]()
@@ -143,11 +151,10 @@ void Presenter::setupMenus()
 
             if(f.open(QIODevice::ReadOnly))
             {
-                ->load(f.readAll());
+                loadDocument(f.readAll(), m_availableDocuments.front());
             }
         }
     });
-
 
 
     // Load & save
@@ -161,10 +168,9 @@ void Presenter::setupMenus()
         {
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
-            f.write(m_document->save());
+            f.write(currentDocument()->save());
         }
     });
-*/
 
     //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
     //										FileMenuElement::SaveAs,
@@ -217,3 +223,4 @@ void Presenter::on_unlock(QByteArray arr)
     auto obj = objectToUnlock.find<QObject>();
     QMetaObject::invokeMethod(obj, "unlock");
 }
+

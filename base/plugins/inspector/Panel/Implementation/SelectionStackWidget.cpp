@@ -4,7 +4,7 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack* s, QWidget* parent):
+SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack& s, QWidget* parent):
     QWidget{parent},
     m_stack{s}
 {
@@ -20,22 +20,19 @@ SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack* s, QWidget* p
     lay->addWidget(m_next);
     setLayout(lay);
 
-    if(!m_stack)
-    { return; }
-
     connect(m_prev, &QToolButton::pressed,
-            [&] () { m_stack->unselect(); });
+            [&] () { m_stack.unselect(); });
 
     connect(m_next, &QToolButton::pressed,
-            [&] () { m_stack->reselect(); });
+            [&] () { m_stack.reselect(); });
 
-    connect(s, &iscore::SelectionStack::currentSelectionChanged,
+    connect(&m_stack, &iscore::SelectionStack::currentSelectionChanged,
             [&] (const Selection&)
     {
-        m_prev->setEnabled(m_stack->canUnselect());
-        m_next->setEnabled(m_stack->canReselect());
+        m_prev->setEnabled(m_stack.canUnselect());
+        m_next->setEnabled(m_stack.canReselect());
     });
 
-    m_prev->setEnabled(m_stack->canUnselect());
-    m_next->setEnabled(m_stack->canReselect());
+    m_prev->setEnabled(m_stack.canUnselect());
+    m_next->setEnabled(m_stack.canReselect());
 }

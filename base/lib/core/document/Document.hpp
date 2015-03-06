@@ -63,6 +63,8 @@ namespace iscore
             QByteArray save();
 
         private:
+            void init();
+
             CommandStack m_commandStack;
             SelectionStack m_selectionStack;
 

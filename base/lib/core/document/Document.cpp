@@ -25,25 +25,22 @@ Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentvie
                                        m_view,
                                        this}}
 {
-
-    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
-            [&] (const Selection& s)
-            {
-                m_model->setNewSelection(s);
-                for(auto& panel : m_model->panels())
-                {
-                    panel->setNewSelection(s);
-                }
-            });
+    init();
 }
 
 Document::Document(const QByteArray& data,
-                   DocumentDelegateFactoryInterface* type,
+                   DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
                    QObject* parent):
-    NamedObject{"Document", parent}
+    NamedObject {"Document", parent},
+    m_model {new DocumentModel{data, factory, this}},
+    m_view {new DocumentView{factory, parentview}},
+    m_presenter {new DocumentPresenter{factory,
+                                       m_model,
+                                       m_view,
+                                       this}}
 {
-
+    init();
 }
 
 Document::~Document()
@@ -84,5 +81,18 @@ void Document::bindPanelPresenter(PanelPresenterInterface* pres)
 QByteArray Document::save()
 {
     return m_model->modelDelegate()->save();
+}
+
+void Document::init()
+{
+    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
+            [&] (const Selection& s)
+            {
+                m_model->setNewSelection(s);
+                for(auto& panel : m_model->panels())
+                {
+                    panel->setNewSelection(s);
+                }
+            });
 }
 

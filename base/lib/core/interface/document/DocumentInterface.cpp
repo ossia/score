@@ -2,7 +2,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
+#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <interface/panel/PanelModelInterface.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
@@ -26,7 +26,7 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 
 ObjectPath iscore::IDocument::path(const QObject* obj)
 {
-    return ObjectPath::pathBetweenObjects(documentFromObject(obj), obj);
+    return ObjectPath::pathBetweenObjects(documentFromObject(obj)->model()->modelDelegate(), obj);
 }
 
 

@@ -1,15 +1,15 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <tools/IdentifiedObject.hpp>
 #include <QJsonObject>
 #include <core/interface/selection/SelectionStack.hpp>
 namespace iscore
 {
     class DocumentDelegatePresenterInterface;
-    class DocumentDelegateModelInterface : public NamedObject
+    class DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
     {
             Q_OBJECT
         public:
-            using NamedObject::NamedObject;
+            using IdentifiedObject::IdentifiedObject;
             virtual ~DocumentDelegateModelInterface() = default;
 
             virtual QByteArray save() = 0;

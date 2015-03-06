@@ -82,7 +82,8 @@ QObject* ObjectPath::find_impl() const
               std::end(m_objectIdentifiers),
               std::begin(children));
 
-    QObject* obj = qApp->findChild<QObject*> (parent_name);
+    auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
+    NamedObject* obj = findById(objs, *m_objectIdentifiers.at(0).id());
 
     for(const auto& currentObjIdentifier : children)
     {

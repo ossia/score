@@ -7,9 +7,19 @@
 
 using namespace iscore;
 
-DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact, QObject* parent) :
+DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
+                             QObject* parent) :
     NamedObject {"DocumentModel", parent},
     m_model{fact->makeModel(this)}
+{
+
+}
+
+DocumentModel::DocumentModel(const QByteArray& data,
+                             DocumentDelegateFactoryInterface* fact,
+                             QObject* parent) :
+    NamedObject {"DocumentModel", parent},
+    m_model{fact->makeModel(this, data)}
 {
 
 }
@@ -25,12 +35,9 @@ PanelModelInterface* DocumentModel::panel(QString name) const
     });
 
     return it != end(m_panelModels) ? *it : nullptr;
-
 }
 
 void DocumentModel::setNewSelection(const Selection& s)
 {
     m_model->setNewSelection(s);
-    // TODO are the panels opt-in or opt-out ?
-    // Inspector is opt-in.
 }

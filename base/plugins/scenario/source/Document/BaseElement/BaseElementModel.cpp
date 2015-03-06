@@ -25,14 +25,14 @@
 using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QByteArray data, QObject* parent) :
-    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
     m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
 {
     m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 
 BaseElementModel::BaseElementModel(QObject* parent) :
-    iscore::DocumentDelegateModelInterface {"BaseElementModel", parent},
+    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
     m_baseConstraint {new ConstraintModel{
                             id_type<ConstraintModel>{0},
                             id_type<AbstractConstraintViewModel>{0},
@@ -53,6 +53,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     AddProcessToConstraint cmd1
     {
         {
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}}
         },
         "Scenario"
@@ -63,18 +64,26 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     AddBoxToConstraint cmd2
     {
         ObjectPath{
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}}
         }
     };
     cmd2.redo();
     auto box = constraint_model->boxes().front();
 
-    ShowBoxInViewModel cmd3 {viewmodel, box->id() };
+    ShowBoxInViewModel cmd3 {
+        ObjectPath{
+            {"BaseElementModel", this->id()},
+            {"BaseConstraintModel", {}},
+            {"FullViewConstraintViewModel", viewmodel->id()}
+        },
+        box->id() };
     cmd3.redo();
 
     AddDeckToBox cmd4
     {
         ObjectPath{
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"BoxModel", box->id() }
         }
@@ -85,6 +94,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     ResizeDeckVertically cmd5
     {
         ObjectPath{
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"BoxModel", box->id() },
             {"DeckModel", deckId}
@@ -96,11 +106,13 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     AddProcessViewModelToDeck cmd6
     {
         {
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"BoxModel", box->id() },
             {"DeckModel", deckId}
         },
         {
+            {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"ScenarioModel", scenarioId}
         }

@@ -58,10 +58,13 @@ namespace iscore
              * @brief newDocument Create a new document.
              */
             void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
+            void loadDocument(const QByteArray& data,
+                              iscore::DocumentDelegateFactoryInterface* doctype);
 
             void on_lock(QByteArray);
             void on_unlock(QByteArray);
         private:
+            void addDocument(Document* doc);
             void setupMenus();
 
             Model* m_model {};

@@ -19,7 +19,11 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            DocumentModel(DocumentDelegateFactoryInterface* model, QObject* parent);
+            DocumentModel(DocumentDelegateFactoryInterface* fact,
+                          QObject* parent);
+            DocumentModel(const QByteArray& data,
+                          DocumentDelegateFactoryInterface* fact,
+                          QObject* parent);
 
             DocumentDelegateModelInterface* modelDelegate() const
             {
@@ -43,7 +47,7 @@ namespace iscore
             void setNewSelection(const Selection&);
 
         private:
-            DocumentDelegateModelInterface* m_model {};
+            DocumentDelegateModelInterface* m_model{};
             QList<PanelModelInterface*> m_panelModels;
     };
 }
