@@ -8,6 +8,7 @@
 namespace iscore
 {
     class PanelViewInterface;
+    class Document;
     class DocumentView;
     /**
      * @brief The View class
@@ -20,7 +21,8 @@ namespace iscore
         public:
             View(QObject* parent);
 
-            void setCentralView(iscore::DocumentView*);
+            void addDocumentView(iscore::DocumentView*);
+            void setCentralView();
             void setupPanelView(PanelViewInterface* v);
 
             void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
@@ -34,9 +36,13 @@ namespace iscore
              */
             void insertActionIntoMenubar(PositionedMenuAction);
 
+            void activeDocumentChanged(Document*);
+
 
         private:
             QList<QDockWidget*> m_leftWidgets;
             QList<QDockWidget*> m_rightWidgets;
+
+            QTabWidget* m_tabWidget{};
     };
 }

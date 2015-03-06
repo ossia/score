@@ -6,8 +6,11 @@
 #include <QGridLayout>
 using namespace iscore;
 
-DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact, QWidget* parent) :
+DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
+                           Document* doc,
+                           QWidget* parent) :
     QWidget {parent},
+    m_document{doc},
     m_view{fact->makeView(this)}
 
 {

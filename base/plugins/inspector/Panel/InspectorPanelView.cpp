@@ -31,12 +31,14 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
     delete m_inspectorPanel;
 
     m_currentDocument = doc;
+
     m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
     m_inspectorPanel = new InspectorPanel{doc->selectionStack(), m_widget};
 
-
     m_widget->layout()->addWidget(m_stack);
     m_widget->layout()->addWidget(m_inspectorPanel);
+
+    setNewSelection(doc->selectionStack().currentSelection());
 }
 
 void InspectorPanelView::setNewSelection(const Selection& s)

@@ -34,6 +34,11 @@ namespace iscore
             void registerPanel(PanelFactoryInterface*);
             void registerDocumentPanel(DocumentDelegateFactoryInterface*);
 
+
+            void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
+            void loadDocument(const QByteArray& data,
+                              iscore::DocumentDelegateFactoryInterface* doctype);
+
             Document* currentDocument() const;
             void setCurrentDocument(Document* doc);
 
@@ -54,15 +59,9 @@ namespace iscore
             void currentDocumentChanged(Document* newDoc);
 
         public slots:
-            /**
-             * @brief newDocument Create a new document.
-             */
-            void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
-            void loadDocument(const QByteArray& data,
-                              iscore::DocumentDelegateFactoryInterface* doctype);
-
             void on_lock(QByteArray);
             void on_unlock(QByteArray);
+
         private:
             void addDocument(Document* doc);
             void setupMenus();

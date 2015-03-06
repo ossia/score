@@ -19,7 +19,7 @@ using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentview, QObject* parent) :
     NamedObject {"Document", parent},
     m_model {new DocumentModel{factory, this}},
-    m_view {new DocumentView{factory, parentview}},
+    m_view {new DocumentView{factory, this, parentview}},
     m_presenter {new DocumentPresenter{factory,
                                        m_model,
                                        m_view,
@@ -34,7 +34,7 @@ Document::Document(const QByteArray& data,
                    QObject* parent):
     NamedObject {"Document", parent},
     m_model {new DocumentModel{data, factory, this}},
-    m_view {new DocumentView{factory, parentview}},
+    m_view {new DocumentView{factory, this, parentview}},
     m_presenter {new DocumentPresenter{factory,
                                        m_model,
                                        m_view,

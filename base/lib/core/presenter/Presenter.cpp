@@ -35,6 +35,8 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
+    connect(m_view, &View::activeDocumentChanged,
+            this,   &Presenter::setCurrentDocument);
 
     registerPluginControl(new UndoControl{this});
     registerPanel(new UndoPanelFactory);
@@ -82,7 +84,6 @@ void Presenter::setCurrentDocument(Document* doc)
         m_currentDocument->bindPanelPresenter(pair.first);
     }
 
-    m_view->setCentralView(m_currentDocument->view());
     emit currentDocumentChanged(m_currentDocument);
 }
 
@@ -106,7 +107,10 @@ void Presenter::addDocument(Document* doc)
         doc->setupNewPanel(panel.first, panel.second);
     }
 
-    setCurrentDocument(doc);
+    m_view->addDocumentView(doc->view());
+
+    if(!currentDocument())
+        setCurrentDocument(doc);
 }
 
 // TODO make a class whose purpose is to instantiate commands.

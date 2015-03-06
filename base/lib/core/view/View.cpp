@@ -10,25 +10,35 @@
 #include <interface/panel/PanelViewInterface.hpp>
 #include <interface/panel/PanelPresenterInterface.hpp>
 
+#include <QTabWidget>
+
 using namespace iscore;
 
 View::View(QObject* parent) :
-    QMainWindow {}
+    QMainWindow {},
+    m_tabWidget{new QTabWidget}
 {
     setObjectName("View");
     setUnifiedTitleAndToolBarOnMac(true);
 
     this->setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
-}
 
-void View::setCentralView(DocumentView* doc)
-{
     QDesktopWidget w;
     auto rect = w.availableGeometry();
-    doc->setParent(this);
-    this->setCentralWidget(doc);
-
     this->resize(rect.width() * 0.75, rect.height() * 0.75);
+
+    setCentralWidget(m_tabWidget);
+    connect(m_tabWidget, &QTabWidget::currentChanged,
+            [&] (int index) {
+           auto view = static_cast<DocumentView*>(m_tabWidget->widget(index));
+           emit activeDocumentChanged(view->document());
+    });
+}
+
+void View::addDocumentView(DocumentView* doc)
+{
+    doc->setParent(this);
+    m_tabWidget->addTab(doc, "Document");
 }
 
 
