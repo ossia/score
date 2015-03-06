@@ -21,13 +21,22 @@ void AddressBar::setTargetObject(ObjectPath&& path)
 
     m_currentPath = path;
 
+    int i = -1;
     for(auto& identifier : m_currentPath)
     {
-        auto lab = new ClickableLabel {QString{"%1%2"} .arg(identifier.objectName())
-                                       .arg(identifier.id() ? "." + QString::number(*identifier.id()) :
-                                            ""),
-                                       this
-                                      };
+        i++;
+        if(identifier.objectName() != "BaseConstraintModel"
+        && identifier.objectName() != "ConstraintModel")
+            continue;
+
+        auto lab = new ClickableLabel{QString{"%1%2"}
+                                          .arg(identifier.objectName())
+                                          .arg(identifier.id()
+                                                   ? "." + QString::number(*identifier.id())
+                                                   : ""),
+                                      this};
+        lab->setIndex(i);
+
         connect(lab, SIGNAL(clicked(ClickableLabel*)),
                 this, SLOT(on_elementClicked(ClickableLabel*)));
 
@@ -40,7 +49,7 @@ void AddressBar::setTargetObject(ObjectPath&& path)
 
 void AddressBar::on_elementClicked(ClickableLabel* clicked)
 {
-    int index = m_layout->indexOf(clicked) / 2;
+    int index = clicked->index();
 
     if(index < m_currentPath.vec().size())
     {
