@@ -43,7 +43,7 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
 
     // TODO make a function to get the document here
     auto doc = IDocument::documentFromObject(m_model);
-    m->m_model->setCommandQueue(doc->presenter()->commandQueue());
+    m->m_model->setCommandQueue(doc->presenter()->commandStack());
     v->m_widget->setModel(m->m_model);
 }
 

@@ -7,6 +7,7 @@ namespace iscore
     class DocumentDelegatePresenterInterface;
     class DocumentDelegateModelInterface;
     class CommandStack;
+    class SelectionStack;
     class PanelModelInterface;
 
     namespace IDocument
@@ -33,7 +34,8 @@ namespace iscore
         PanelModelInterface* panel(const QString& name, const Document* d);
 
         // Command queue
-        CommandStack* commandQueue(const Document* d);
+        CommandStack* commandStack(const Document* d);
+        SelectionStack& selectionStack(const Document* d);
 
         // Presenter of a document plugin.
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document* d);
@@ -56,7 +58,7 @@ namespace iscore
 
         template<typename T> T& modelDelegate(const Document* d)
         {
-            return static_cast<T&>(presenterDelegate_generic(d));
+            return static_cast<T&>(modelDelegate_generic(d));
         }
 
         template<typename T,

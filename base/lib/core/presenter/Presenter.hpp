@@ -35,6 +35,7 @@ namespace iscore
             void registerPanel(PanelFactoryInterface*);
             void registerDocumentPanel(DocumentDelegateFactoryInterface*);
 
+            Document* currentDocument() const;
             void setCurrentDocument(Document* doc);
 
             /**

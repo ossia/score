@@ -6,7 +6,10 @@
 #include <Process/ScenarioModel.hpp>
 
 class TemporalScenarioPresenter;
-class SelectionDispatcher;
+namespace iscore
+{
+    class SelectionDispatcher;
+}
 class ScenarioModel;
 
 class ScenarioSelectionManager : public QObject
@@ -60,6 +63,6 @@ class ScenarioSelectionManager : public QObject
         void setSelectionArea(const QRectF& area);
     private:
         TemporalScenarioPresenter* m_presenter{};
-        SelectionDispatcher* m_selectionDispatcher{};
+        iscore::SelectionDispatcher* m_selectionDispatcher{};
         ScenarioModel* m_scenario{};
 };

@@ -29,7 +29,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
-    m_selectionDispatcher{new SelectionDispatcher{this}}
+    m_selectionDispatcher{new iscore::SelectionDispatcher{this}}
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);

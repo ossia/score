@@ -12,11 +12,11 @@ using namespace iscore;
 
 DocumentPresenter::DocumentPresenter(DocumentModel* m, DocumentView* v, QObject* parent) :
     NamedObject {"DocumentPresenter", parent},
-            m_commandQueue {std::make_unique<CommandStack> (this) },
+            m_commandStack {std::make_unique<CommandStack> (this) },
             m_view{v},
             m_model{m}
 {
-    connect(&m_selection, &SelectionStack::currentSelectionChanged,
+    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
             [&] (const Selection& s)
             {
                 m_model->setNewSelection(s);

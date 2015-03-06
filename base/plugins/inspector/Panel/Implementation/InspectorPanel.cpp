@@ -12,11 +12,11 @@
 #include <QScrollArea>
 #include <QTabWidget>
 
-InspectorPanel::InspectorPanel(SelectionStack& s, QWidget* parent) :
+InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :
     QWidget {parent},
     m_layout{new QVBoxLayout{this}},
     m_tabWidget{new QTabWidget{this}},
-    m_selectionDispatcher{new SelectionDispatcher{s, this}}
+    m_selectionDispatcher{new iscore::SelectionDispatcher{s, this}}
 {
     m_layout->setMargin(8);
     setMinimumWidth(250);

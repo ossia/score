@@ -45,13 +45,16 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <core/interface/document/DocumentInterface.hpp>
 #include <QJsonDocument>
 
 
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+#include <core/presenter/Presenter.hpp>
 
 #include "Control/OldFormatConversion.hpp"
+using namespace iscore;
 
 ScenarioControl::ScenarioControl(QObject* parent) :
     PluginControlInterface {"ScenarioControl", parent},
@@ -62,12 +65,6 @@ m_processList {new ProcessList{this}}
 
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
-    // TODO the stuff here must apply on the current document.
-    // The Global Presenter should have a pointer to the currently displayed document
-    // (and ways to set it).
-    // We have to chase the findchild<DocumentDelegate.../BaseElement...>.
-    using namespace iscore;
-
     // File
 
     // Export in old format
@@ -79,19 +76,17 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
         if(!savename.isEmpty())
         {
-            auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*> ("BaseElementModel");
+            auto& bem = IDocument::modelDelegate<BaseElementModel>(currentDocument());
 
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
-            f.write(JSONToZeroTwo(bem->toJson()).toLatin1().constData());
+            f.write(JSONToZeroTwo(bem.toJson()).toLatin1().constData());
         }
     });
-
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Quit,
                                        toZeroTwo);
-
 
     // Save as json
     // TODO this should go in the global presenter instead.
@@ -104,8 +99,8 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
         if(!savename.isEmpty())
         {
             QJsonDocument doc;
-            auto bem = qApp->findChild<iscore::DocumentDelegateModelInterface*> ("BaseElementModel");
-            doc.setObject(bem->toJson());
+            auto& bem = IDocument::modelDelegate<BaseElementModel>(currentDocument());
+            doc.setObject(bem.toJson());
 
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
@@ -140,10 +135,6 @@ void ScenarioControl::populateToolbars()
 {
 }
 
-void ScenarioControl::setPresenter(iscore::Presenter*)
-{
-}
-
 // Defined in CommandNames.cpp
 iscore::SerializableCommand* makeCommandByName(const QString& name);
 
@@ -151,7 +142,7 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
 {
     using namespace Scenario::Command;
 
-    iscore::SerializableCommand* cmd  = makeCommandByName(name);
+    iscore::SerializableCommand* cmd = makeCommandByName(name);
     if(!cmd)
     {
         qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
@@ -160,18 +151,17 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
 
     cmd->deserialize(data);
     return cmd;
-
 }
 
 void ScenarioControl::selectAll()
 {
-    auto pres = qApp->findChild<BaseElementPresenter*> ("BaseElementPresenter");
-    pres->selectAll();
+    auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+    pres.selectAll();
 }
 
 
 void ScenarioControl::deselectAll()
 {
-    auto pres = qApp->findChild<BaseElementPresenter*> ("BaseElementPresenter");
-    pres->deselectAll();
+    auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+    pres.deselectAll();
 }

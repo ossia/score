@@ -4,7 +4,7 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
+SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack* s, QWidget* parent):
     QWidget{parent},
     m_stack{s}
 {
@@ -29,7 +29,7 @@ SelectionStackWidget::SelectionStackWidget(SelectionStack* s, QWidget* parent):
     connect(m_next, &QToolButton::pressed,
             [&] () { m_stack->reselect(); });
 
-    connect(s, &SelectionStack::currentSelectionChanged,
+    connect(s, &iscore::SelectionStack::currentSelectionChanged,
             [&] (const Selection&)
     {
         m_prev->setEnabled(m_stack->canUnselect());

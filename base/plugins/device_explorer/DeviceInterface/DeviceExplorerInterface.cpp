@@ -20,10 +20,7 @@ QString DeviceExplorer::explorerName()
 
 DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
 {
-    return iscore::IDocument::documentFromObject(object)
-           ->model()
-           ->panel(DeviceExplorer::panelName())
-           ->findChild<DeviceExplorerModel*> (DeviceExplorer::explorerName());
+    return getModel(iscore::IDocument::documentFromObject(object));
 }
 
 
@@ -46,4 +43,12 @@ QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
     }
 
     return txt;
+}
+
+
+DeviceExplorerModel *DeviceExplorer::getModel(iscore::Document *doc)
+{
+    return doc->model()
+            ->panel(DeviceExplorer::panelName())
+            ->findChild<DeviceExplorerModel*> (DeviceExplorer::explorerName());
 }

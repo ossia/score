@@ -12,7 +12,10 @@
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
 #include "core/interface/document/DocumentInterface.hpp"
+#include "core/presenter/command/OngoingCommandManager.hpp"
+#include "core/interface/selection/SelectionStack.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
+#include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 #include "FakeEngine.hpp"
 
 #include <QAction>
@@ -47,39 +50,55 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
-    return nullptr;
+    iscore::SerializableCommand* cmd{};
+    if(false);
+    else if(name == "CreateCurvesFromAddresses") cmd = new CreateCurvesFromAddresses;
+    else if(name == "CreateCurvesFromAddressesInConstraints") cmd = new CreateCurvesFromAddressesInConstraints;
+
+    if(!cmd)
+    {
+        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
+        return nullptr;
+    }
+
+    cmd->deserialize(data);
+    return cmd;
 }
 
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
+    using namespace std;
     // TODO this should take a document as argument.
     // Fetch the selected constraints
-    auto pres = qApp->findChild<BaseElementPresenter*> ("BaseElementPresenter");
-    auto constraints = pres->findChildren<AbstractConstraintPresenter*>();
+    SelectionStack& selectionStack = IDocument::selectionStack(currentDocument());
+    auto sel = selectionStack.currentSelection();
     QList<ConstraintModel*> selected_constraints;
 
-    for(AbstractConstraintPresenter* constraint : constraints)
+    for(auto obj : sel)
     {
-        if(constraint->isSelected())
-        {
-            selected_constraints.push_back(constraint->abstractConstraintViewModel()->model());
-        }
+        if(auto cst = dynamic_cast<ConstraintModel*>(obj))
+            if(cst->selection.get())
+                selected_constraints.push_back(cst);
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = DeviceExplorer::getModel(pres->model());
+    auto device_explorer = DeviceExplorer::getModel(currentDocument());
     auto addresses = device_explorer->selectedIndexes();
 
+    MacroCommandDispatcher macro(new CreateCurvesFromAddressesInConstraints,
+                                 IDocument::commandStack(currentDocument()),
+                                 nullptr);
     for(auto& constraint : selected_constraints)
     {
         QStringList l;
-
         for(auto& index : addresses)
         {
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
         }
 
         auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(constraint), l};
-        // submitCommand(cmd);
+        macro.submitCommand(cmd);
     }
+
+    macro.commit();
 }

@@ -9,7 +9,6 @@ class ScenarioControl : public iscore::PluginControlInterface
 
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
-        virtual void setPresenter(iscore::Presenter*) override;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;
@@ -23,11 +22,6 @@ class ScenarioControl : public iscore::PluginControlInterface
         void deselectAll();
         void selectAll();
 
-        // Only if there is device explorer AND curve plugin
-        void createCurvesFromAddresses();
-
     private:
         ProcessList* m_processList {};
-
-
 };

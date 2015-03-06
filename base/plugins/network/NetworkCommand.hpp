@@ -12,15 +12,14 @@
 
 #include <core/presenter/command/Command.hpp>
 
-class NetworkCommand : public iscore::PluginControlInterface
+class NetworkControl : public iscore::PluginControlInterface
 {
         Q_OBJECT
 
     public:
-        NetworkCommand();
+        NetworkControl();
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
-        virtual void setPresenter(iscore::Presenter*) override;
 
         // @todo PUT SOMEWHERE ELSE
         void handle__document_ask(osc::ReceivedMessageArgumentStream);

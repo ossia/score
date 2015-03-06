@@ -26,7 +26,7 @@
 ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* presenter):
     QObject{presenter},
     m_presenter{presenter},
-    m_selectionDispatcher{new SelectionDispatcher{this}},
+    m_selectionDispatcher{new iscore::SelectionDispatcher{this}},
     m_scenario{static_cast<ScenarioModel*>(presenter->m_viewModel->sharedProcessModel())}
 {
     connect(presenter->m_view,       &TemporalScenarioView::scenarioPressed,

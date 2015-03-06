@@ -15,31 +15,26 @@
 
 #include <QAction>
 using namespace iscore;
-NetworkCommand::NetworkCommand() :
+NetworkControl::NetworkControl() :
     PluginControlInterface {"NetworkCommand", nullptr}
 {
 }
 
-void NetworkCommand::populateMenus(MenubarManager* menu)
+void NetworkControl::populateMenus(MenubarManager* menu)
 {
     QAction* joinSession = new QAction {tr("Join"), this};
     connect(joinSession, &QAction::triggered,
-            this, &NetworkCommand::createZeroconfSelectionDialog);
+            this, &NetworkControl::createZeroconfSelectionDialog);
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
                                        joinSession);
 }
 
-void NetworkCommand::populateToolbars()
+void NetworkControl::populateToolbars()
 {
 }
 
-void NetworkCommand::setPresenter(iscore::Presenter* pres)
-{
-    m_presenter = pres;
-}
-
-void NetworkCommand::handle__document_ask(osc::ReceivedMessageArgumentStream args)
+void NetworkControl::handle__document_ask(osc::ReceivedMessageArgumentStream args)
 {
     osc::int32 sessionId, clientId;
     args >> sessionId >> clientId;
@@ -49,13 +44,13 @@ void NetworkCommand::handle__document_ask(osc::ReceivedMessageArgumentStream arg
         return;
     }
 
-    auto dump = qApp->findChild<Document*> ("Document")->save();
+    auto dump = currentDocument()->save();
 
     osc::Blob blob {dump.constData(), dump.size() };
     m_networkSession->client(clientId).send("/document/receive", sessionId, blob);
 }
 
-void NetworkCommand::handle__document_receive(osc::ReceivedMessageArgumentStream args)
+void NetworkControl::handle__document_receive(osc::ReceivedMessageArgumentStream args)
 {
     osc::int32 sessionId;
     osc::Blob blob;
@@ -66,14 +61,14 @@ void NetworkCommand::handle__document_receive(osc::ReceivedMessageArgumentStream
         return;
     }
 
-    QByteArray arr { (const char*) blob.data, blob.size};
+    QByteArray arr {(const char*) blob.data, blob.size};
 
     emit loadFromNetwork(arr);
 }
 
 
 //////////////////////////////////
-void NetworkCommand::setupMasterSession()
+void NetworkControl::setupMasterSession()
 {
     QSettings s;
     m_networkSession.reset();
@@ -81,7 +76,7 @@ void NetworkCommand::setupMasterSession()
 
     auto session = static_cast<MasterSession*>(m_networkSession.get());
     session->getLocalMaster().receiver().addHandler("/document/ask",
-            &NetworkCommand::handle__document_ask,
+            &NetworkControl::handle__document_ask,
             this);
 
     m_emitter = std::make_unique<RemoteActionEmitter> (m_networkSession.get());
@@ -90,10 +85,10 @@ void NetworkCommand::setupMasterSession()
     m_receiver->setParent(this);  // Else it does not work because childEvent is sent too early (only QObject is created)
 
     connect(m_receiver.get(), &RemoteActionReceiver::commandReceived,
-            this,			  &NetworkCommand::on_commandReceived, Qt::QueuedConnection);
+            this,			  &NetworkControl::on_commandReceived, Qt::QueuedConnection);
 }
 
-void NetworkCommand::setupClientSession(ConnectionData d)
+void NetworkControl::setupClientSession(ConnectionData d)
 {
     QSettings s;
     ClientSessionBuilder builder(d.remote_ip,
@@ -115,7 +110,7 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 
     auto session = static_cast<ClientSession*>(m_networkSession.get());
     session->getLocalClient().receiver().addHandler("/document/receive",
-            &NetworkCommand::handle__document_receive,
+            &NetworkControl::handle__document_receive,
             this);
     session->getRemoteMaster().send("/document/ask",
                                     session->getId(),
@@ -130,35 +125,34 @@ void NetworkCommand::setupClientSession(ConnectionData d)
 // TODO plutôt dans une vue ?
 // TODO delete (mais pb avec threads...)
 #include "zeroconf/ZeroConfConnectDialog.hpp"
-void NetworkCommand::createZeroconfSelectionDialog()
+void NetworkControl::createZeroconfSelectionDialog()
 {
     auto diag = new ZeroconfConnectDialog();
 
     connect(diag,	&ZeroconfConnectDialog::connectedTo,
-            this,	&NetworkCommand::setupClientSession);
+            this,	&NetworkControl::setupClientSession);
 
     diag->exec();
 }
 
-void NetworkCommand::commandPush(SerializableCommand* cmd)
+void NetworkControl::commandPush(SerializableCommand* cmd)
 {
     m_emitter->sendCommand(cmd);
 }
 
 
-#include <QApplication>
-#include <core/application/Application.hpp>
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/interface/document/DocumentInterface.hpp>
 #include <core/interface/presenter/PresenterInterface.hpp>
-void NetworkCommand::on_commandReceived(QString par_name,
+#include <core/presenter/command/OngoingCommandManager.hpp>
+void NetworkControl::on_commandReceived(QString par_name,
                                         QString cmd_name,
                                         QByteArray data)
 {
-    auto cmd = iscore::IPresenter::instantiateUndoCommand(
+    auto cmd = presenter()->instantiateUndoCommand(
                    par_name,
                    cmd_name,
                    data);
 
-    iscore::CommandStack* queue = qApp->findChild<iscore::CommandStack*> ("CommandStack");
-    queue->push(cmd);
+    CommandDispatcher<> cmdDispatcher(currentDocument());
+    cmdDispatcher.submitCommand(cmd);
 }

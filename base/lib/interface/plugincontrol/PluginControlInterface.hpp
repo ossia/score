@@ -1,5 +1,6 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <core/presenter/Presenter.hpp>
 
 namespace iscore
 {
@@ -29,12 +30,30 @@ namespace iscore
             virtual ~PluginControlInterface() = default;
             virtual void populateMenus(iscore::MenubarManager*) = 0;
             virtual void populateToolbars() = 0;
-            virtual void setPresenter(Presenter*) = 0;
 
-            virtual SerializableCommand* instantiateUndoCommand(const QString& name,
+            Presenter* presenter() const
+            {
+                return m_presenter;
+            }
+
+            virtual void setPresenter(Presenter* p)
+            {
+                m_presenter = p;
+            }
+
+            virtual SerializableCommand* instantiateUndoCommand(
+                    const QString& name,
                     const QByteArray& data)
             {
                 return nullptr;
             }
+
+            Document* currentDocument() const
+            {
+                return m_presenter->currentDocument();
+            }
+
+        private:
+            Presenter* m_presenter{};
     };
 }

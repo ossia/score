@@ -17,12 +17,15 @@
 #include <QGridLayout>
 #include <QTimeEdit>
 
+using namespace iscore;
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) :
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent},
-    m_cmdManager{new OngoingCommandDispatcher<MergeStrategy::Simple>{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(m_model)),
-                                           this}}
+    m_cmdManager{new OngoingCommandDispatcher<MergeStrategy::Simple>{
+                        IDocument::commandStack(
+                            IDocument::documentFromObject(m_model)),
+                            this}}
 {
 
     QWidget* widg{new QWidget{this}};

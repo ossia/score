@@ -3,35 +3,40 @@
 #include <QStack>
 #include <QDebug>
 
-class SelectionStack : public QObject
+namespace iscore
 {
-        Q_OBJECT
-    public:
-        SelectionStack();
+    class SelectionStack : public QObject
+    {
+            Q_OBJECT
+        public:
+            SelectionStack();
 
-        bool canUnselect() const;
-        bool canReselect() const;
+            bool canUnselect() const;
+            bool canReselect() const;
 
-        // Select new objects
-        void push(const Selection& s);
+            // Select new objects
+            void push(const Selection& s);
 
-        // Go to the previous set of selections
-        void unselect();
+            // Go to the previous set of selections
+            void unselect();
 
-        // Go to the next set of selections
-        void reselect();
+            // Go to the next set of selections
+            void reselect();
 
-        // Push a new set of empty selection.
-        void deselect();
+            // Push a new set of empty selection.
+            void deselect();
 
-    signals:
-        void currentSelectionChanged(const Selection&);
+            Selection currentSelection() const;
 
-    private slots:
-        void prune(QObject* p);
+        signals:
+            void currentSelectionChanged(const Selection&);
 
-    private:
-        // m_unselectable always contains the empty set at the beginning
-        QStack<Selection> m_unselectable;
-        QStack<Selection> m_reselectable;
-};
+        private slots:
+            void prune(QObject* p);
+
+        private:
+            // m_unselectable always contains the empty set at the beginning
+            QStack<Selection> m_unselectable;
+            QStack<Selection> m_reselectable;
+    };
+}

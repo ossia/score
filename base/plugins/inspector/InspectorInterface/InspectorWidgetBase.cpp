@@ -22,11 +22,11 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
     QWidget(parent),
     _inspectedObject {inspectedObj},
     m_commandDispatcher{inspectedObj
-                          ? new CommandDispatcher<>{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(inspectedObj)),
+                          ? new CommandDispatcher<>{iscore::IDocument::commandStack(iscore::IDocument::documentFromObject(inspectedObj)),
                                                   this}
                           : nullptr},
     m_selectionDispatcher{inspectedObj
-                           ? new SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->presenter()->selectionStack(),
+                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->presenter()->selectionStack(),
                                                      this}
                            : nullptr}
 

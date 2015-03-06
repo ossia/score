@@ -1,5 +1,5 @@
 #include "SelectionStack.hpp"
-
+using namespace iscore;
 
 SelectionStack::SelectionStack()
 {
@@ -49,6 +49,11 @@ void SelectionStack::reselect()
 void SelectionStack::deselect()
 {
     push({});
+}
+
+Selection SelectionStack::currentSelection() const
+{
+    return canUnselect()? m_unselectable.top() : Selection{};
 }
 
 void SelectionStack::prune(QObject* p)

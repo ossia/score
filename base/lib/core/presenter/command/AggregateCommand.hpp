@@ -33,16 +33,16 @@ namespace iscore
             virtual void redo() override;
             virtual bool mergeWith(const Command* other) override;
 
-        protected:
-            virtual void serializeImpl(QDataStream&) const override;
-            virtual void deserializeImpl(QDataStream&) override;
-
             void addCommand(const iscore::SerializableCommand* cmd)
             {
                 m_serializedCommands.push_back({{cmd->parentName(), cmd->name() },
                     cmd->serialize()
                 });
             }
+
+        protected:
+            virtual void serializeImpl(QDataStream&) const override;
+            virtual void deserializeImpl(QDataStream&) override;
 
         private:
             // Meta-data : {{parent name, command name}, command data}

@@ -1,4 +1,4 @@
-    #pragma once
+#pragma once
 #include <memory>
 #include <tools/NamedObject.hpp>
 
@@ -23,21 +23,17 @@ namespace iscore
             Q_OBJECT
         public:
             DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
-            CommandStack* commandQueue()
+            CommandStack* commandStack()
             {
-                return m_commandQueue.get();
+                return m_commandStack.get();
             }
 
             void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
             DocumentDelegatePresenterInterface* presenterDelegate() const
-            {
-                return m_presenter;
-            }
+            { return m_presenter; }
 
             SelectionStack& selectionStack()
-            {
-                return m_selection;
-            }
+            { return m_selectionStack; }
 
         signals:
             void lock(QByteArray);
@@ -47,7 +43,7 @@ namespace iscore
             void lock_impl();
             void unlock_impl();
 
-            std::unique_ptr<CommandStack> m_commandQueue;
+            std::unique_ptr<CommandStack> m_commandStack;
             SerializableCommand* m_ongoingCommand {};
             ObjectPath m_lockedObject;
 
@@ -55,6 +51,6 @@ namespace iscore
             DocumentView* m_view {};
             DocumentModel* m_model {};
 
-            SelectionStack m_selection;
+            SelectionStack m_selectionStack;
     };
 }

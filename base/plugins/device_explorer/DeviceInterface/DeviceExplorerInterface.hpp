@@ -4,6 +4,10 @@
 #include <QModelIndex>
 class QObject;
 class DeviceExplorerModel;
+namespace iscore
+{
+    class Document;
+}
 
 namespace DeviceExplorer
 {
@@ -12,6 +16,7 @@ namespace DeviceExplorer
 
     // Object inside a document.
     DeviceExplorerModel* getModel(QObject* object);
+    DeviceExplorerModel* getModel(iscore::Document* object);
 
     QJsonObject toJson(DeviceExplorerModel* deviceExplorer);
 

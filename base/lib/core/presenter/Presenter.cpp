@@ -43,7 +43,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
-        m_currentDocument->presenter()->commandQueue()->undoAndNotify();
+        m_currentDocument->presenter()->commandStack()->undoAndNotify();
     });
 
     m_redoAction->setShortcut(QKeySequence::Redo);
@@ -52,7 +52,7 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     connect(m_redoAction, &QAction::triggered,
             [&] ()
     {
-        m_currentDocument->presenter()->commandQueue()->redoAndNotify();
+        m_currentDocument->presenter()->commandStack()->redoAndNotify();
     });
 
     registerPanel(new UndoPanelFactory);
@@ -93,6 +93,11 @@ void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel
     m_availableDocuments.push_back(docpanel);
 }
 
+Document *Presenter::currentDocument() const
+{
+    return m_currentDocument;
+}
+
 void Presenter::setCurrentDocument(Document* doc)
 {
     // Disconnect previously registered connections.
@@ -109,17 +114,17 @@ void Presenter::setCurrentDocument(Document* doc)
 
     // TODO put this in the UndoView, and put the CommandQueue inside.
     m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandQueue(), &CommandStack::canUndoChanged,
+                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::canUndoChanged,
                         [&] (bool b) { m_undoAction->setEnabled(b); }));
     m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandQueue(), &CommandStack::canRedoChanged,
+                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::canRedoChanged,
                         [&] (bool b) { m_redoAction->setEnabled(b); }));
 
     m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandQueue(), &CommandStack::undoTextChanged,
+                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::undoTextChanged,
                         [&] (const QString& s) { m_undoAction->setText(tr("Undo ") + s);}));
     m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandQueue(), &CommandStack::redoTextChanged,
+                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::redoTextChanged,
                         [&] (const QString& s) { m_redoAction->setText(tr("Redo ") + s);}));
 }
 

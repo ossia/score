@@ -29,7 +29,7 @@ class InspectorPanel : public QWidget
         Q_OBJECT
 
     public:
-        explicit InspectorPanel(SelectionStack& s, QWidget* parent);
+        explicit InspectorPanel(iscore::SelectionStack& s, QWidget* parent);
 
     public slots:
         /*!
@@ -44,5 +44,5 @@ class InspectorPanel : public QWidget
         QVBoxLayout* m_layout{};
         QTabWidget* m_tabWidget{};
 
-        SelectionDispatcher* m_selectionDispatcher{};
+        iscore::SelectionDispatcher* m_selectionDispatcher{};
 };

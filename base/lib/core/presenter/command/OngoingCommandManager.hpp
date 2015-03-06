@@ -1,5 +1,6 @@
 #pragma once
 #include <core/presenter/command/CommandQueue.hpp>
+#include <core/presenter/command/AggregateCommand.hpp>
 
 // Merging strategies
 // This is for use with commands that can be merged like Qt's mergeWith() would do.
@@ -84,7 +85,7 @@ class ICommandDispatcher : public QObject
         Q_OBJECT
     public:
         ICommandDispatcher(QObject* parent):
-            ICommandDispatcher{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(parent)),
+            ICommandDispatcher{iscore::IDocument::commandStack(iscore::IDocument::documentFromObject(parent)),
                                parent}
         {
 
@@ -212,4 +213,41 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
         bool m_ongoing{};
 };
 
+
+class MacroCommandDispatcher : public ITransactionalCommandDispatcher
+{
+    public:
+        template<typename... Args>
+        MacroCommandDispatcher(iscore::AggregateCommand* aggregate, Args&&... args):
+            ITransactionalCommandDispatcher{std::forward<Args&&>(args)...},
+            m_aggregateCommand{aggregate}
+        {
+            connect(this, &MacroCommandDispatcher::submitCommand,
+                    this, &MacroCommandDispatcher::send_impl,
+                    Qt::DirectConnection);
+
+            connect(this, &MacroCommandDispatcher::commit,
+                    this, &MacroCommandDispatcher::commit_impl,
+                    Qt::DirectConnection);
+        }
+
+
+    private:
+        void send_impl(iscore::SerializableCommand* cmd)
+        {
+            m_aggregateCommand->addCommand(cmd);
+        }
+
+        void commit_impl()
+        {
+            if(m_aggregateCommand)
+            {
+                SendStrategy::Simple::send(stack(), m_aggregateCommand);
+                m_aggregateCommand = nullptr;
+            }
+        }
+
+    protected:
+        iscore::AggregateCommand* m_aggregateCommand {};
+};
 

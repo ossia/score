@@ -84,7 +84,7 @@ iscore::PluginControlInterface* NetworkPlugin::control_make(QString name)
 {
     if(name == QString(CMD_NAME))
     {
-        return new NetworkCommand;
+        return new NetworkControl;
     }
 
     return nullptr;

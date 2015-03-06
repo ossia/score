@@ -7,7 +7,7 @@ namespace Scenario
 {
     namespace Command
     {
-        // TODO generalize this into a generic GroupCommand (maybe it already exists in qt?)
+        // TODO Use AggregateCommand instead
         class RemoveMultipleElements : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND

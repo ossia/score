@@ -9,13 +9,13 @@ class QLineEdit;
 class QLabel;
 class QTextEdit;
 class QPushButton;
-class SelectionDispatcher;
 class InspectorSectionWidget;
 class QScrollArea;
 
 namespace iscore
 {
     class SerializableCommand;
+    class SelectionDispatcher;
 }
 /*!
  * \brief The InspectorWidgetBase class
@@ -82,13 +82,13 @@ class InspectorWidgetBase : public QWidget
         ICommandDispatcher* commandDispatcher() const
         { return m_commandDispatcher; }
 
-        SelectionDispatcher* selectionDispatcher() const
+        iscore::SelectionDispatcher* selectionDispatcher() const
         { return m_selectionDispatcher; }
 
     private:
         QObject* _inspectedObject {};
         ICommandDispatcher* m_commandDispatcher{};
-        SelectionDispatcher* m_selectionDispatcher{};
+        iscore::SelectionDispatcher* m_selectionDispatcher{};
         QVBoxLayout* _scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};
