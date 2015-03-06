@@ -7,25 +7,11 @@ using namespace iscore;
 
 InspectorPlugin::InspectorPlugin() :
     QObject {},
-        iscore::Autoconnect_QtInterface {},
         iscore::PanelFactoryInterface_QtInterface {},
-m_inspectorControl {new InspectorControl}
+        m_inspectorControl {new InspectorControl}
 {
     setObjectName("InspectorPlugin");
 }
-
-
-
-
-
-QList<Autoconnect> InspectorPlugin::autoconnect_list() const
-{
-    return
-    {
-    };
-}
-
-
 
 QStringList InspectorPlugin::panel_list() const
 {

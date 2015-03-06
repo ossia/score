@@ -1,3 +1,4 @@
 #pragma once
+#include <QString>
 
-void FakeEngineExecute();
+void runScore(QString scoreFilePath);

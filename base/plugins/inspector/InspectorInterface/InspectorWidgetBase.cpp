@@ -67,6 +67,7 @@ void InspectorWidgetBase::addSubSection(QString parentSection,
                                         QString subSection,
                                         InspectorSectionWidget* content)
 {
+    //TODO what about passing a pointer?
     InspectorSectionWidget* section = findChild<InspectorSectionWidget*>(parentSection);
 
     if(section != nullptr)

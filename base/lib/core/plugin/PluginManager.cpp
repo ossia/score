@@ -1,7 +1,6 @@
 #include <core/plugin/PluginManager.hpp>
 
 
-#include <interface/plugins/Autoconnect_QtInterface.hpp>
 #include <interface/plugins/FactoryInterface_QtInterface.hpp>
 #include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <interface/plugins/FactoryFamily_QtInterface.hpp>
@@ -108,7 +107,6 @@ void PluginManager::clearPlugins()
     }
 
     m_customFamilies.clear();
-    m_autoconnections.clear();
     m_commandList.clear();
     m_panelList.clear();
     m_documentPanelList.clear();
@@ -135,20 +133,11 @@ void PluginManager::loadFactories(QObject* plugin)
 
 void PluginManager::dispatch(QObject* plugin)
 {
-    auto autoconn_plugin = qobject_cast<Autoconnect_QtInterface*> (plugin);
     auto cmd_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
     auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
     auto panel_plugin = qobject_cast<PanelFactoryInterface_QtInterface*> (plugin);
     auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
     auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
-
-    if(autoconn_plugin)
-    {
-        for(const auto& connection : autoconn_plugin->autoconnect_list())
-        {
-            m_autoconnections.push_back(connection);
-        }
-    }
 
     if(cmd_plugin)
     {

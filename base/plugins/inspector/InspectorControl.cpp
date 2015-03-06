@@ -4,6 +4,7 @@
 
 InspectorWidgetBase* InspectorControl::makeInspectorWidget(QObject* object)
 {
+    // TODO make the same thing than for ProcessList here, with an InspectorInterface.
     auto pmgr = qApp->findChild<InspectorControl*> ("InspectorControl");
 
     auto factories = pmgr->factories();

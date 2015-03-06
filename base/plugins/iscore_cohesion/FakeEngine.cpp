@@ -18,32 +18,13 @@
 
 #include "TTModular.h"
 #include "TTScore.h"
-#include <source/Control/OldFormatConversion.hpp>
-#include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <iostream>
 #include <QString>
 #include <string>
-#include <QTemporaryFile>
+
+
 #include <QDir>
 #include <QApplication>
-
-void runScore(QString scoreFilePath);
-
-void FakeEngineExecute()
-{
-    //TODO pass it in argument.
-    auto doc = qApp->findChild<BaseElementModel*> ("BaseElementModel");
-    auto data = JSONToZeroTwo(doc->toJson());
-
-    QTemporaryFile f;
-
-    if(f.open())
-    {
-        f.write(data.toLatin1().constData(), data.size());
-        f.flush();
-        runScore(f.fileName());
-    }
-}
 
 void runScore(QString scoreFilePath)
 {
@@ -57,7 +38,7 @@ void runScore(QString scoreFilePath)
     }
 
     // initialisation of Modular environnement (passing the folder path where all the dylibs are)
-    TTModularInit(jamomaFolder.toLatin1().constData());
+    TTModularInit(nullptr, true);
 
     // create an application manager
     TTObject applicationManager("ApplicationManager");

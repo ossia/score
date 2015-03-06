@@ -17,6 +17,10 @@
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 #include "FakeEngine.hpp"
+#include <source/Control/OldFormatConversion.hpp>
+#include <source/Document/BaseElement/BaseElementModel.hpp>
+#include <QTemporaryFile>
+
 
 #include <QAction>
 using namespace iscore;
@@ -42,7 +46,21 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     // We can add an option in the menu to generate curves from the selected addresses
     // in the current constraint.
     QAction* play = new QAction {tr("Play in 0.2 engine"), this};
-    connect(play, &QAction::triggered, &FakeEngineExecute);
+    connect(play, &QAction::triggered,
+            [&] ()
+    {
+        QTemporaryFile f;
+
+        if(f.open())
+        {
+            auto& doc = IDocument::modelDelegate<BaseElementModel>(currentDocument());
+            auto data = JSONToZeroTwo(doc.toJson());
+
+            f.write(data.toLatin1().constData(), data.size());
+            f.flush();
+            runScore(f.fileName());
+        }
+    });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        play);

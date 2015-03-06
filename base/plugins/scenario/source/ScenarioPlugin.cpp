@@ -10,7 +10,6 @@
 
 ScenarioPlugin::ScenarioPlugin() :
     QObject {},
-        iscore::Autoconnect_QtInterface {},
         iscore::PluginControlInterface_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
         iscore::FactoryFamily_QtInterface {},
@@ -19,15 +18,6 @@ m_control {new ScenarioControl{nullptr}}
 {
     setObjectName("ScenarioPlugin");
 }
-
-
-QList<iscore::Autoconnect> ScenarioPlugin::autoconnect_list() const
-{
-    return
-    {
-    };
-}
-
 
 // Interfaces implementations :
 QStringList ScenarioPlugin::document_list() const

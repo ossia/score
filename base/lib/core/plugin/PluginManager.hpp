@@ -4,7 +4,6 @@
 #include <QMap>
 
 #include <interface/customfactory/FactoryFamily.hpp>
-#include <interface/autoconnect/Autoconnect.hpp>
 
 namespace iscore
 {
@@ -18,7 +17,6 @@ namespace iscore
     using PanelList = std::vector<PanelFactoryInterface*>;
     using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
     using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
-    using AutoconnectList = std::vector<Autoconnect>;
 
     /**
      * @brief The PluginManager class loads and keeps track of the plug-ins.
@@ -65,7 +63,6 @@ namespace iscore
             QMap<QString, QObject*> m_availablePlugins;
 
             FactoryFamilyList m_customFamilies;
-            AutoconnectList m_autoconnections;
             CommandList  m_commandList;
             PanelList    m_panelList;
             DocumentPanelList m_documentPanelList;

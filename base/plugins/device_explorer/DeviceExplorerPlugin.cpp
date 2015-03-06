@@ -4,38 +4,10 @@ using namespace iscore;
 
 DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},
-        iscore::Autoconnect_QtInterface {},
-//	iscore::PluginControlInterface_QtInterface{},
 iscore::PanelFactoryInterface_QtInterface {}
 {
     setObjectName("DeviceExplorerPlugin");
 }
-
-
-
-
-
-QList<Autoconnect> DeviceExplorerPlugin::autoconnect_list() const
-{
-    return
-    {
-
-    };
-}
-
-
-/*
-QStringList DeviceExplorerPlugin::control_list() const
-{
-	return {""};
-}
-
-PluginControlInterface* DeviceExplorerPlugin::control_make(QString)
-{
-	return nullptr;
-}*/
-
-
 
 QStringList DeviceExplorerPlugin::panel_list() const
 {

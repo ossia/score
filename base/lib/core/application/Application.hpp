@@ -44,22 +44,8 @@ namespace iscore
                 return m_settings.get();
             }
 
-        public slots:
-            /**
-             * @brief addAutoconnection
-             *
-             * Allows to add a connection at runtime.
-             * When called with a new connection, the effect
-             * will be retroactive : if previous objects can been
-             * linked by the new connection, they will be.
-             */
-            void addAutoconnection(Autoconnect);
-
         private:
             void loadPluginData();
-
-            void doConnections();
-            void doConnections(QObject*);
 
             // Base stuff.
             QApplication* m_app;
