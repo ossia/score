@@ -70,7 +70,7 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presen
     QObject{presenter},
     m_presenter{presenter},
     m_creationCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{this}},
-    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple>{this}},
+    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{this}},
     m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{this}}
 {
 
@@ -367,14 +367,11 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
 
 void ScenarioCommandManager::on_ctrlStateChanged(bool ctrlPressed)
 {
-    qDebug() << Q_FUNC_INFO;
     if(!ongoingCommand())
     {
         return;
     }
 
-
-    qDebug() << ctrlPressed;
     if(ctrlPressed)
     {
         createConstraint(m_lastData);

@@ -45,6 +45,6 @@ class ScenarioCommandManager : public QObject
 
         TemporalScenarioPresenter* m_presenter{};
         OngoingCommandDispatcher<MergeStrategy::Undo>* m_creationCommandDispatcher{};
-        OngoingCommandDispatcher<MergeStrategy::Simple>* m_moveCommandDispatcher{};
+        OngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>* m_moveCommandDispatcher{};
         CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
 };

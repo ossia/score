@@ -36,7 +36,7 @@ void MoveEvent::undo()
                                                  m_eventId,
                                                  m_oldX,
                                                  m_oldHeightPosition,
-                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndShrink(t); });
 }
 
 void MoveEvent::redo()
@@ -47,7 +47,7 @@ void MoveEvent::redo()
                                                  m_eventId,
                                                  m_newX,
                                                  m_newHeightPosition,
-                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndGrow(t); });
 }
 
 bool MoveEvent::mergeWith(const Command* other)

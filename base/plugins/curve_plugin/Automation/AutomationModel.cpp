@@ -43,10 +43,6 @@ void AutomationModel::setDurationAndScale(TimeValue newDuration)
 void AutomationModel::setDurationAndGrow(TimeValue newDuration)
 {
     double scale = duration() / newDuration;
-    if(scale == 1)
-    {
-        return;
-    }
 
     // The duration can only grow from the outside (constraint scaling), not shrink
     if(scale < 1)
@@ -93,22 +89,26 @@ void AutomationModel::setDurationAndShrink(TimeValue newDuration)
         auto points = m_points;
         auto keys = m_points.keys();
         m_points.clear();
+
         // Scale all the points
         for(int i = 0; i < keys.size(); ++i)
         {
-            auto newKey = keys[i] * scale;
+            double newKey = keys[i] * scale;
             m_points[newKey] = points[keys[i]];
 
             // Find the first point where the key is > 1
-            if(newKey == 1)
+            if(newKey == 1.)
             {
                 break;
             }
-            else if(newKey > 1)
+            else if(newKey > 1.)
             {
-                auto butlastKey = keys[i-1] * scale;
-                auto val = (m_points[newKey] - m_points[butlastKey]) / (newKey - butlastKey);
-                m_points[1] = val;
+                double x1 = keys[i-1] * scale;
+                double x2 = newKey;
+                double y1 = m_points[x1];
+                double y2 = m_points[x2];
+
+                m_points[1.] = (y2 - y1 + x2 * y1 - x1 * y2) / (x2 - x1);
                 m_points.remove(newKey);
                 break;
             }

@@ -49,6 +49,34 @@ namespace SendStrategy
     };
 }
 
+namespace CommitStrategy
+{
+    struct Quiet
+    {
+            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            {
+                SendStrategy::Quiet::send(stack, cmd);
+            }
+    };
+
+    struct Redo
+    {
+            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            {
+                SendStrategy::Simple::send(stack, cmd);
+            }
+    };
+
+    struct UndoRedo
+    {
+            static void commit(iscore::CommandStack* stack, iscore::SerializableCommand* cmd)
+            {
+                cmd->undo();
+                SendStrategy::Simple::send(stack, cmd);
+            }
+    };
+}
+
 
 #include <core/interface/document/DocumentInterface.hpp>
 class ICommandDispatcher : public QObject
@@ -106,7 +134,7 @@ class ITransactionalCommandDispatcher : public ICommandDispatcher
 };
 
 
-template<typename MergeStrategy_T = MergeStrategy::Simple>
+template<typename MergeStrategy_T = MergeStrategy::Simple, typename CommitStrategy_T = CommitStrategy::UndoRedo>
 class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
 {
     public:
@@ -144,13 +172,6 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
     private:
         void send_impl(iscore::SerializableCommand* cmd)
         {
-            // TODO this logic has to be somewhere else, since one
-            // could want to merge two different commands.
-            if(m_ongoingCommand && cmd->uid() != m_ongoingCommand->uid())
-            {
-                //rollback_impl();
-            }
-
             if(!ongoing())
             {
                 m_ongoingCommand = cmd;
@@ -169,8 +190,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
             if(ongoing())
             {
                 m_ongoing = false;
-                m_ongoingCommand->undo();
-                SendStrategy::Simple::send(stack(), m_ongoingCommand);
+                CommitStrategy_T::commit(stack(), m_ongoingCommand);
                 m_ongoingCommand = nullptr;
             }
         }
