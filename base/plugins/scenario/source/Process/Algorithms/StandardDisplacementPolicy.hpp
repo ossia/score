@@ -26,12 +26,13 @@ namespace StandardDisplacementPolicy
     {
         auto ev = scenario.event(eventId);
 
-        // resize previous constraint
+        // don't touch start event
         if(! ev->previousConstraints().isEmpty())
         {
             TimeValue time = absolute_time - ev->date();
             ev->setHeightPercentage(heightPosition);
 
+            // resize previous constraint
             for(auto& prevConstraintId : ev->previousConstraints())
             {
                 auto constraint = scenario.constraint(prevConstraintId);
@@ -46,6 +47,7 @@ namespace StandardDisplacementPolicy
                 emit scenario.constraintMoved(prevConstraintId);
             }
 
+            // algo
             QVector<id_type<EventModel>> already_moved_events;
             translateNextElements(scenario,
                                   ev->timeNode(),
@@ -58,24 +60,20 @@ namespace StandardDisplacementPolicy
                 auto startEventDate = scenario.event(constraint->startEvent())->date();
                 auto endEventDate = scenario.event(constraint->endEvent())->date();
 
-                constraint->setStartDate(startEventDate);
-
                 TimeValue newDuration = endEventDate - startEventDate;
 
                 if(! (constraint->defaultDuration() - newDuration).isZero())
                 {
+                    constraint->setStartDate(startEventDate);
+
                     constraint->setDefaultDuration(newDuration);
                     for(auto& process : constraint->processes())
                     {
                         scaleMethod(process, newDuration);
                     }
+                    emit scenario.constraintMoved(constraint->id());
                 }
-
-
-
-                emit scenario.constraintMoved(constraint->id());
             }
-
         }
     }
 
