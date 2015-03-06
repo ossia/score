@@ -83,17 +83,13 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
+    connect(m_view,       &TemporalScenarioView::ctrlStateChanged,
+            m_cmdManager, &ScenarioCommandManager::on_ctrlStateChanged);
 
     connect(model(m_viewModel), &ScenarioModel::locked,
-            [&]()
-    {
-        m_view->lock();
-    });
+            m_view,             &TemporalScenarioView::lock);
     connect(model(m_viewModel), &ScenarioModel::unlocked,
-            [&]()
-    {
-        m_view->unlock();
-    });
+            m_view,             &TemporalScenarioView::unlock);
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()

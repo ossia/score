@@ -44,6 +44,7 @@
 #include <QRectF>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+#include <QApplication>
 
 
 
@@ -68,7 +69,9 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_commandDispatcher{new OngoingCommandDispatcher<>{this}}
+    m_creationCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{this}},
+    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple>{this}},
+    m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{this}}
 {
 
     // TODO make it more generic (maybe with a QAction ?)
@@ -85,16 +88,24 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presen
 void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
 {
     connect(e,    &EventPresenter::eventMoved,
-            this, &ScenarioCommandManager::moveEventAndConstraint);
+            [this] (const EventData& ev) { m_lastData = ev; moveEventAndConstraint(ev); });
 
     connect(e,    &EventPresenter::eventMovedWithControl,
-            this, &ScenarioCommandManager::createConstraint);
+            [this] (const EventData& ev) { m_lastData = ev; createConstraint(ev); });
 
-    connect(e,                &EventPresenter::eventReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher<>::commit);
+    auto commit_fn = [this] ()
+    {
+        if(m_creationCommandDispatcher->ongoing())
+            m_creationCommandDispatcher->commit();
 
-    connect(e,                &EventPresenter::eventReleasedWithControl,
-            m_commandDispatcher, &OngoingCommandDispatcher<>::commit);
+        if(m_moveCommandDispatcher->ongoing())
+            m_moveCommandDispatcher->commit();
+    };
+    connect(e,    &EventPresenter::eventReleased,
+            commit_fn);
+
+    connect(e,    &EventPresenter::eventReleasedWithControl,
+            commit_fn);
 
     // TODO manage ctrl being pressed / released globally.
     connect(e,    &EventPresenter::ctrlStateChanged,
@@ -108,7 +119,7 @@ void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
             this, &ScenarioCommandManager::moveTimeNode);
 
     connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher<>::commit);
+            m_creationCommandDispatcher, &OngoingCommandDispatcher<>::commit);
 }
 
 void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
@@ -116,7 +127,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
     connect(c,	  &TemporalConstraintPresenter::constraintMoved,
             this, &ScenarioCommandManager::moveConstraint);
     connect(c,                &TemporalConstraintPresenter::constraintReleased,
-            m_commandDispatcher, &OngoingCommandDispatcher<>::commit);
+            m_creationCommandDispatcher, &OngoingCommandDispatcher<>::commit);
 }
 
 
@@ -136,9 +147,13 @@ void ScenarioCommandManager::createConstraint(EventData data)
 
     // We rollback so that we don't get polluted
     // by the "fake" created events / timenodes.
-    if(ongoingCommand())
+    if(m_moveCommandDispatcher->ongoing())
     {
-        m_commandDispatcher->rollback();
+        m_moveCommandDispatcher->rollback();
+    }
+    if(m_creationCommandDispatcher->ongoing())
+    {
+        m_creationCommandDispatcher->rollback();
     }
 
     QList<EventPresenter*> collidingEvents;
@@ -159,7 +174,7 @@ void ScenarioCommandManager::createConstraint(EventData data)
     {
         if(collidingTimeNodes.empty())
         {
-            emit m_commandDispatcher->submitCommand(new CreateEventAfterEvent(move(cmdPath), data));
+            emit m_creationCommandDispatcher->submitCommand(new CreateEventAfterEvent(move(cmdPath), data));
         }
         else
         {
@@ -167,12 +182,12 @@ void ScenarioCommandManager::createConstraint(EventData data)
             data.endTimeNodeId = tn->id();
             data.dDate = tn->model()->date() - model(m_presenter->m_viewModel)->event(data.eventClickedId)->date();
 
-            emit m_commandDispatcher->submitCommand(new CreateEventAfterEventOnTimeNode(move(cmdPath), data));
+            emit m_creationCommandDispatcher->submitCommand(new CreateEventAfterEventOnTimeNode(move(cmdPath), data));
         }
     }
     else
     {
-        emit m_commandDispatcher->submitCommand(new CreateConstraint(move(cmdPath),
+        emit m_creationCommandDispatcher->submitCommand(new CreateConstraint(move(cmdPath),
                                                 data.eventClickedId,
                                                 collidingEvents.first()->id()));
     }
@@ -205,11 +220,12 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
         }
     }
 
-    auto cmd = new CreateEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
-            data);
+    auto cmd = new CreateEvent{
+                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+                    data};
 
-    emit m_commandDispatcher->submitCommand(cmd);
-    emit m_commandDispatcher->commit();
+    emit m_creationCommandDispatcher->submitCommand(cmd);
+    emit m_creationCommandDispatcher->commit();
 }
 
 void ScenarioCommandManager::clearContentFromSelection()
@@ -240,8 +256,8 @@ void ScenarioCommandManager::clearContentFromSelection()
 
     // 4. Make a meta-command that binds them all and calls undo & redo on the queue.
     auto cmd = new RemoveMultipleElements {std::move(commands) };
-    emit m_commandDispatcher->submitCommand(cmd);
-    emit m_commandDispatcher->commit();
+    emit m_creationCommandDispatcher->submitCommand(cmd);
+    emit m_creationCommandDispatcher->commit();
 }
 
 void ScenarioCommandManager::deleteSelection()
@@ -275,16 +291,12 @@ void ScenarioCommandManager::deleteSelection()
                 new RemoveEvent(
                     iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                     event->model()));
-
         }
 
         // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
         auto cmd = new RemoveMultipleElements {std::move(commands) };
-        emit m_commandDispatcher->submitCommand(cmd);
-        emit m_commandDispatcher->commit();
+        emit m_instantCommandDispatcher->submitCommand(cmd);
     }
-
-    // */
 }
 
 void ScenarioCommandManager::moveEventAndConstraint(EventData data)
@@ -293,12 +305,9 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
     auto eventTN = findById(m_presenter->m_events, data.eventClickedId)->model()->timeNode();
 
-    if(m_commandDispatcher->ongoing())
+    if(m_creationCommandDispatcher->ongoing())
     {
-        if(m_commandDispatcher->command()->uid() == CreateEventAfterEvent::static_uid())
-        {
-            m_commandDispatcher->rollback();
-        }
+        m_creationCommandDispatcher->rollback();
     }
 
     QList<TimeNodePresenter*> collidingTimeNodes;
@@ -315,17 +324,16 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
         auto cmd = new MoveEvent(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                  data);
 
-        emit m_commandDispatcher->submitCommand(cmd);
+        emit m_moveCommandDispatcher->submitCommand(cmd);
     }
     else
     {
-        m_commandDispatcher->rollback();
+        m_moveCommandDispatcher->rollback();
         auto cmd = new MergeTimeNodes(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                       collidingTimeNodes.first()->id(),
                                       eventTN);
 
-        CommandDispatcher<> dispatch{m_presenter};
-        emit dispatch.submitCommand(cmd);
+        emit m_instantCommandDispatcher->submitCommand(cmd);
     }
 
 }
@@ -338,7 +346,7 @@ void ScenarioCommandManager::moveConstraint(ConstraintData data)
     auto cmd = new MoveConstraint(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                   data);
 
-    emit m_commandDispatcher->submitCommand(cmd);
+    emit m_moveCommandDispatcher->submitCommand(cmd);
 }
 
 void ScenarioCommandManager::moveTimeNode(EventData data)
@@ -352,31 +360,32 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
     auto cmd = new MoveTimeNode(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                 data);
 
-    emit m_commandDispatcher->submitCommand(cmd);
+    emit m_moveCommandDispatcher->submitCommand(cmd);
 }
 
 
 
 void ScenarioCommandManager::on_ctrlStateChanged(bool ctrlPressed)
 {
+    qDebug() << Q_FUNC_INFO;
     if(!ongoingCommand())
     {
         return;
     }
 
-    emit m_commandDispatcher->rollback();
 
+    qDebug() << ctrlPressed;
     if(ctrlPressed)
     {
-        createConstraint(m_presenter->m_lastData);
+        createConstraint(m_lastData);
     }
     else
     {
-        moveEventAndConstraint(m_presenter->m_lastData);
+        moveEventAndConstraint(m_lastData);
     }
 }
 
 bool ScenarioCommandManager::ongoingCommand()
 {
-    return m_commandDispatcher->ongoing();
+    return m_creationCommandDispatcher->ongoing() || m_moveCommandDispatcher->ongoing();
 }

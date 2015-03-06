@@ -113,4 +113,16 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
     {
         emit deletePressed();
     }
+    else if(event->key() == Qt::Key_Control)
+    {
+        emit ctrlStateChanged(true);
+    }
+}
+
+void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Control)
+    {
+        emit ctrlStateChanged(false);
+    }
 }

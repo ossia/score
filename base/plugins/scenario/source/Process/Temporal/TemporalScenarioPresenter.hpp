@@ -87,8 +87,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         TemporalScenarioViewModel* m_viewModel;
         TemporalScenarioView* m_view;
 
-        EventData m_lastData {};
-
     private:
         void on_eventCreated_impl(EventModel* event_model);
         void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);

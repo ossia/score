@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <core/presenter/command/OngoingCommandManager.hpp>
+#include <Document/Event/EventData.hpp>
 class TemporalScenarioPresenter;
 
 namespace iscore
@@ -8,7 +9,6 @@ namespace iscore
     class SerializableCommand;
 }
 
-struct EventData;
 struct ConstraintData;
 class EventPresenter;
 class TimeNodePresenter;
@@ -41,6 +41,10 @@ class ScenarioCommandManager : public QObject
         bool ongoingCommand();
 
     private:
+        EventData m_lastData {};
+
         TemporalScenarioPresenter* m_presenter{};
-        OngoingCommandDispatcher<>* m_commandDispatcher{};
+        OngoingCommandDispatcher<MergeStrategy::Undo>* m_creationCommandDispatcher{};
+        OngoingCommandDispatcher<MergeStrategy::Simple>* m_moveCommandDispatcher{};
+        CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
 };
