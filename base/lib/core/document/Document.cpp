@@ -16,24 +16,34 @@
 #include <QLayout>
 
 using namespace iscore;
-Document::Document(DocumentDelegateFactoryInterface* type, QWidget* parentview, QObject* parent) :
+Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentview, QObject* parent) :
     NamedObject {"Document", parent},
-    m_model {new DocumentModel{this}},
-    m_view {new DocumentView{parentview}},
-    m_presenter {new DocumentPresenter{m_model, m_view, this}}
+    m_model {new DocumentModel{factory, this}},
+    m_view {new DocumentView{factory, parentview}},
+    m_presenter {new DocumentPresenter{factory,
+                                       m_model,
+                                       m_view,
+                                       this}}
 {
-    // TODO Do this in the initialization list.
-    // Model setup
-    m_model->setModelDelegate(type->makeModel(m_model));
 
-    // View setup
-    auto view = type->makeView(m_view);
-    m_view->setViewDelegate(view);
+    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
+            [&] (const Selection& s)
+            {
+                m_model->setNewSelection(s);
+                for(auto& panel : m_model->panels())
+                {
+                    panel->setNewSelection(s);
+                }
+            });
+}
 
-    // Presenter setup
-    auto pres = type->makePresenter(m_presenter, m_model->modelDelegate(), view);
-    m_presenter->setPresenterDelegate(pres);
-    emit newDocument_start();
+Document::Document(const QByteArray& data,
+                   DocumentDelegateFactoryInterface* type,
+                   QWidget* parentview,
+                   QObject* parent):
+    NamedObject{"Document", parent}
+{
+
 }
 
 Document::~Document()
@@ -69,18 +79,6 @@ void Document::bindPanelPresenter(PanelPresenterInterface* pres)
     });
 
     pres->setModel(*localmodel);
-}
-
-// TODO Load should go in the global presenter.
-void Document::load(QByteArray data)
-{
-    /*
-    // Model setup
-    m_model->setModelDelegate(m_currentDocumentType->makeModel(m_model, data));
-
-    // TODO call newDocument_start if loaded from this computer, not if serialized from network.
-    setupDocument();
-    */
 }
 
 QByteArray Document::save()

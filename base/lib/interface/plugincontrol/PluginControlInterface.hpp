@@ -36,9 +36,10 @@ namespace iscore
                 return m_presenter;
             }
 
-            virtual void setPresenter(Presenter* p)
+            void setPresenter(Presenter* p)
             {
                 m_presenter = p;
+                on_presenterChanged();
             }
 
             virtual SerializableCommand* instantiateUndoCommand(
@@ -53,7 +54,11 @@ namespace iscore
                 return m_presenter->currentDocument();
             }
 
+        protected:
+            virtual void on_presenterChanged() {}
+
         private:
             Presenter* m_presenter{};
     };
+
 }

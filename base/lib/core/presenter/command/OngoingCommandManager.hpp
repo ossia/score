@@ -1,4 +1,6 @@
 #pragma once
+#include <core/interface/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
 #include <core/presenter/command/AggregateCommand.hpp>
 
@@ -79,13 +81,12 @@ namespace CommitStrategy
 }
 
 
-#include <core/interface/document/DocumentInterface.hpp>
 class ICommandDispatcher : public QObject
 {
         Q_OBJECT
     public:
         ICommandDispatcher(QObject* parent):
-            ICommandDispatcher{iscore::IDocument::commandStack(iscore::IDocument::documentFromObject(parent)),
+            ICommandDispatcher{iscore::IDocument::documentFromObject(parent)->commandStack(),
                                parent}
         {
 

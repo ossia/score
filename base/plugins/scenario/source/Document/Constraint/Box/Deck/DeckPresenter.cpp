@@ -179,8 +179,6 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
     {
         proc->on_zoomRatioChanged(m_zoomRatio);
     }
-
-    // Should not be necessary : updateProcessesShape();
 }
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)

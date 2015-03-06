@@ -3,7 +3,6 @@
 
 #include <core/interface/selection/SelectionDispatcher.hpp>
 #include <core/interface/document/DocumentInterface.hpp>
-#include <core/document/DocumentPresenter.hpp>
 #include <core/document/Document.hpp>
 #include <QLayout>
 #include <QLineEdit>
@@ -22,11 +21,11 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
     QWidget(parent),
     _inspectedObject {inspectedObj},
     m_commandDispatcher{inspectedObj
-                          ? new CommandDispatcher<>{iscore::IDocument::commandStack(iscore::IDocument::documentFromObject(inspectedObj)),
+                          ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack(),
                                                   this}
                           : nullptr},
     m_selectionDispatcher{inspectedObj
-                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->presenter()->selectionStack(),
+                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack(),
                                                      this}
                            : nullptr}
 

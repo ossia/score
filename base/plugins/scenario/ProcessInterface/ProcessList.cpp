@@ -32,7 +32,7 @@ ProcessFactoryInterface* ProcessList::getProcess(QString name)
     return it != m_processes.end() ? *it : nullptr;
 }
 
-void ProcessList::addProcess(iscore::FactoryInterface* arg)
+void ProcessList::registerProcess(iscore::FactoryInterface* arg)
 {
     auto p = static_cast<ProcessFactoryInterface*>(arg);
     auto it = std::find_if(m_processes.begin(),
@@ -48,7 +48,7 @@ void ProcessList::addProcess(iscore::FactoryInterface* arg)
     }
     else
     {
-        qDebug("Alert : a process with the same name already exists.");
+        qDebug() << "Alert : a process with the name" << p->name() << "already exists.";
     }
 }
 

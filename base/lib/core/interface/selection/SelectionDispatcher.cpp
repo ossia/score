@@ -7,7 +7,7 @@
 
 using namespace iscore;
 SelectionDispatcher::SelectionDispatcher(QObject* parent):
-    SelectionDispatcher{IDocument::documentFromObject(parent)->presenter()->selectionStack(),
+    SelectionDispatcher{IDocument::documentFromObject(parent)->selectionStack(),
                         parent}
 {
 

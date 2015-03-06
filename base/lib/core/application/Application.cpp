@@ -29,9 +29,8 @@ Application::Application(int& argc, char** argv) :
 
     // MVP
     m_model = new Model{this};
-
-    m_view = new View(qobject_cast<QObject*> (this));
-    m_presenter = new Presenter(m_model, m_view, this);
+    m_view = new View{this};
+    m_presenter = new Presenter{m_model, m_view, this};
 
     // Plugins
     m_pluginManager.reloadPlugins();
@@ -46,7 +45,6 @@ Application::Application(int& argc, char** argv) :
 Application::~Application()
 {
     this->setParent(nullptr);
-
     m_app->deleteLater();
 }
 

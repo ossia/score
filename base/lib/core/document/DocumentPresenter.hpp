@@ -1,9 +1,6 @@
 #pragma once
 #include <memory>
 #include <tools/NamedObject.hpp>
-
-#include <core/interface/selection/SelectionStack.hpp>
-#include <core/presenter/command/CommandQueue.hpp>
 #include <core/tools/ObjectPath.hpp>
 
 namespace iscore
@@ -11,6 +8,7 @@ namespace iscore
     class DocumentModel;
     class DocumentView;
     class DocumentDelegatePresenterInterface;
+    class DocumentDelegateFactoryInterface;
 
     /**
      * @brief The DocumentPresenter class holds the logic for the main document.
@@ -22,18 +20,14 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            DocumentPresenter(DocumentModel*, DocumentView*, QObject* parent);
-            CommandStack* commandStack()
-            {
-                return m_commandStack.get();
-            }
+            DocumentPresenter(DocumentDelegateFactoryInterface*,
+                              DocumentModel*,
+                              DocumentView*,
+                              QObject* parent);
 
-            void setPresenterDelegate(DocumentDelegatePresenterInterface* pres);
+
             DocumentDelegatePresenterInterface* presenterDelegate() const
             { return m_presenter; }
-
-            SelectionStack& selectionStack()
-            { return m_selectionStack; }
 
         signals:
             void lock(QByteArray);
@@ -43,14 +37,11 @@ namespace iscore
             void lock_impl();
             void unlock_impl();
 
-            std::unique_ptr<CommandStack> m_commandStack;
-            SerializableCommand* m_ongoingCommand {};
             ObjectPath m_lockedObject;
 
-            DocumentDelegatePresenterInterface* m_presenter {};
             DocumentView* m_view {};
             DocumentModel* m_model {};
+            DocumentDelegatePresenterInterface* m_presenter {};
 
-            SelectionStack m_selectionStack;
     };
 }

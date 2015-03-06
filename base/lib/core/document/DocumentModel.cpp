@@ -1,4 +1,5 @@
 #include <core/document/DocumentModel.hpp>
+#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <interface/panel/PanelModelInterface.hpp>
 #include <exception>
@@ -6,21 +7,11 @@
 
 using namespace iscore;
 
-DocumentModel::DocumentModel(QObject* parent) :
-    NamedObject {"DocumentModel", parent}
+DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact, QObject* parent) :
+    NamedObject {"DocumentModel", parent},
+    m_model{fact->makeModel(this)}
 {
 
-}
-
-void DocumentModel::setModelDelegate(DocumentDelegateModelInterface* m)
-{
-    // TODO do this at construction.
-    if(m_model)
-    {
-        delete m_model;
-    }
-
-    m_model = m;
 }
 
 PanelModelInterface* DocumentModel::panel(QString name) const

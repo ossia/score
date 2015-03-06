@@ -19,10 +19,6 @@ class InspectorControl : public iscore::PluginControlInterface
         {
         }
 
-        virtual void setPresenter(iscore::Presenter*) override
-        {
-        }
-
         const QVector<InspectorWidgetFactoryInterface*>& factories() const
         {
             return m_factories;

@@ -18,10 +18,6 @@ class ScenarioControl : public iscore::PluginControlInterface
             return m_processList;
         }
 
-    private slots:
-        void deselectAll();
-        void selectAll();
-
     private:
         ProcessList* m_processList {};
 };

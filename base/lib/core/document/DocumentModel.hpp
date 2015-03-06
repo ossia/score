@@ -5,6 +5,7 @@
 
 namespace iscore
 {
+    class DocumentDelegateFactoryInterface;
     class DocumentDelegateModelInterface;
     class PanelModelInterface;
     /**
@@ -18,9 +19,8 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            DocumentModel(QObject* parent);
+            DocumentModel(DocumentDelegateFactoryInterface* model, QObject* parent);
 
-            void setModelDelegate(DocumentDelegateModelInterface* m);
             DocumentDelegateModelInterface* modelDelegate() const
             {
                 return m_model;

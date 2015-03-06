@@ -1,6 +1,6 @@
 #include "InspectorPanelView.hpp"
 #include <core/view/View.hpp>
-#include <core/document/DocumentPresenter.hpp>
+#include <core/document/Document.hpp>
 #include <QVBoxLayout>
 
 #include "Implementation/InspectorPanel.hpp"
@@ -18,16 +18,16 @@ QWidget* InspectorPanelView::getWidget()
     return m_widget;
 }
 
-void InspectorPanelView::setCurrentDocument(iscore::DocumentPresenter* pres)
+void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
 {
     using namespace iscore;
 
     delete m_stack;
     delete m_inspectorPanel;
 
-    m_currentDocument = pres;
-    m_stack = new SelectionStackWidget{&pres->selectionStack(), m_widget};
-    m_inspectorPanel = new InspectorPanel{pres->selectionStack(), m_widget};
+    m_currentDocument = doc;
+    m_stack = new SelectionStackWidget{&doc->selectionStack(), m_widget};
+    m_inspectorPanel = new InspectorPanel{doc->selectionStack(), m_widget};
 
     auto lay = new QVBoxLayout{m_widget};
     lay->addWidget(m_stack);

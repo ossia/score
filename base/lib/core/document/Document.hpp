@@ -1,5 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
+#include <core/interface/selection/SelectionStack.hpp>
+#include <core/presenter/command/CommandQueue.hpp>
 
 namespace iscore
 {
@@ -23,7 +25,20 @@ namespace iscore
                      QWidget* parentview,
                      QObject* parent);
 
+            Document(const QByteArray& data,
+                     DocumentDelegateFactoryInterface* type,
+                     QWidget* parentview,
+                     QObject* parent);
+
             ~Document();
+
+
+            CommandStack* commandStack()
+            { return &m_commandStack; }
+
+            SelectionStack& selectionStack()
+            { return m_selectionStack; }
+
 
             DocumentModel* model() const
             {
@@ -47,21 +62,14 @@ namespace iscore
 
             QByteArray save();
 
-        signals:
-            /**
-             * @brief newDocument_start
-             *
-             * This signal is emitted before a new document is created.
-             */
-            void newDocument_start();
-
-        public slots:
-            void load(QByteArray data);
-
         private:
+            CommandStack m_commandStack;
+            SelectionStack m_selectionStack;
+
             DocumentModel* m_model {};
             DocumentView* m_view {};
             DocumentPresenter* m_presenter {};
+
     };
 
 }

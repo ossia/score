@@ -33,10 +33,6 @@ namespace iscore
         const QList<PanelModelInterface*>& panels(const Document* d);
         PanelModelInterface* panel(const QString& name, const Document* d);
 
-        // Command queue
-        CommandStack* commandStack(const Document* d);
-        SelectionStack& selectionStack(const Document* d);
-
         // Presenter of a document plugin.
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document* d);
 

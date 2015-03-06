@@ -1,41 +1,5 @@
 #include "ScenarioControl.hpp"
 
-#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
-#include "Commands/Constraint/Box/Deck/CopyProcessViewModel.hpp"
-#include "Commands/Constraint/Box/Deck/MoveProcessViewModel.hpp"
-#include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
-#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
-#include "Commands/Constraint/Box/AddDeckToBox.hpp"
-#include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
-#include "Commands/Constraint/Box/CopyDeck.hpp"
-#include "Commands/Constraint/Box/MoveDeck.hpp"
-#include "Commands/Constraint/Box/MergeDecks.hpp"
-#include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/MergeBoxes.hpp"
-#include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
-#include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-#include "Commands/Constraint/SetMinDuration.hpp"
-#include "Commands/Constraint/SetMaxDuration.hpp"
-#include "Commands/Constraint/SetRigidity.hpp"
-#include "Commands/Event/AddStateToEvent.hpp"
-#include "Commands/Event/SetCondition.hpp"
-#include "Commands/Scenario/ClearConstraint.hpp"
-#include "Commands/Scenario/ClearEvent.hpp"
-#include "Commands/Scenario/RemoveEvent.hpp"
-#include "Commands/Scenario/RemoveConstraint.hpp"
-#include "Commands/Scenario/CreateEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/HideBoxInViewModel.hpp"
-#include "Commands/Scenario/MoveEvent.hpp"
-#include "Commands/Scenario/MoveTimeNode.hpp"
-#include "Commands/Scenario/MoveConstraint.hpp"
-#include "Commands/Scenario/ResizeConstraint.hpp"
-#include "Commands/ResizeBaseConstraint.hpp"
-#include "Commands/Scenario/ShowBoxInViewModel.hpp"
-#include "Commands/RemoveMultipleElements.hpp"
-
 #include <interface/plugincontrol/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QAction>
@@ -115,7 +79,11 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     // View
     QAction* selectAll = new QAction {tr("Select all"), this};
     connect(selectAll,	&QAction::triggered,
-            this,		&ScenarioControl::selectAll);
+            [this] ()
+    {
+        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+        pres.selectAll();
+    });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
@@ -124,7 +92,11 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
     QAction* deselectAll = new QAction {tr("Deselect all"), this};
     connect(deselectAll,	&QAction::triggered,
-            this,			&ScenarioControl::deselectAll);
+            [this] ()
+    {
+        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+        pres.deselectAll();
+    });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
@@ -140,8 +112,6 @@ iscore::SerializableCommand* makeCommandByName(const QString& name);
 
 iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
-    using namespace Scenario::Command;
-
     iscore::SerializableCommand* cmd = makeCommandByName(name);
     if(!cmd)
     {
@@ -151,17 +121,4 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
 
     cmd->deserialize(data);
     return cmd;
-}
-
-void ScenarioControl::selectAll()
-{
-    auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
-    pres.selectAll();
-}
-
-
-void ScenarioControl::deselectAll()
-{
-    auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
-    pres.deselectAll();
 }

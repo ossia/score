@@ -10,7 +10,8 @@
 #include "Commands/ResizeBaseConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
-#include "core/interface/document/DocumentInterface.hpp"
+#include <core/interface/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -23,8 +24,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_model {parent->model()},
     m_parent {parent},
     m_cmdManager{new OngoingCommandDispatcher<MergeStrategy::Simple>{
-                        IDocument::commandStack(
-                            IDocument::documentFromObject(m_model)),
+                            IDocument::documentFromObject(m_model)->commandStack(),
                             this}}
 {
 

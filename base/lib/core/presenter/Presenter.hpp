@@ -29,7 +29,6 @@ namespace iscore
             Q_OBJECT
         public:
             Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
-            ~Presenter();
 
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
@@ -50,6 +49,9 @@ namespace iscore
             instantiateUndoCommand(const QString& parent_name,
                                    const QString& name,
                                    const QByteArray& data);
+
+        signals:
+            void currentDocumentChanged(Document* newDoc);
 
         public slots:
             /**
@@ -74,12 +76,5 @@ namespace iscore
             // TODO instead put the factory as a member function?
             QList<QPair<PanelPresenterInterface*,
                         PanelFactoryInterface*>> m_panelPresenters;
-
-
-            QAction* m_undoAction{new QAction{this}};
-            QAction* m_redoAction{new QAction{this}};
-
-            // Connections to keep for the running document.
-            QList<QMetaObject::Connection> m_connections;
     };
 }

@@ -1,5 +1,6 @@
 #include "DeviceExplorerInterface.hpp"
 
+#include "../DeviceExplorerPanelFactory.hpp"
 #include "../Panel/DeviceExplorerModel.hpp"
 #include "core/interface/document/DocumentInterface.hpp"
 #include "core/document/Document.hpp"
@@ -48,7 +49,7 @@ QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 
 DeviceExplorerModel *DeviceExplorer::getModel(iscore::Document *doc)
 {
-    return doc->model()
-            ->panel(DeviceExplorer::panelName())
-            ->findChild<DeviceExplorerModel*> (DeviceExplorer::explorerName());
+    return static_cast<DeviceExplorerPanelModel*>(
+                doc->model()
+                   ->panel(DeviceExplorer::panelName()))->deviceExplorer();;
 }

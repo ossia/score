@@ -3,7 +3,7 @@
 #include <core/interface/selection/Selection.hpp>
 namespace iscore
 {
-    class DocumentPresenter;
+    class Document;
     class View;
 }
 class SelectionStackWidget;
@@ -21,14 +21,14 @@ class InspectorPanelView : public iscore::PanelViewInterface
         }
 
     public slots:
-        void setCurrentDocument(iscore::DocumentPresenter*);
+        void setCurrentDocument(iscore::Document*);
         void setNewSelection(const Selection& s);
 
     private:
         QWidget* m_widget{};
         SelectionStackWidget* m_stack{};
         InspectorPanel* m_inspectorPanel {};
-        iscore::DocumentPresenter* m_currentDocument{};
+        iscore::Document* m_currentDocument{};
 
         QMetaObject::Connection m_selectionConnection,
                                 m_commandConnection;

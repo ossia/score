@@ -21,6 +21,8 @@ namespace iscore
 
             }
 
+            virtual ~PanelPresenterInterface() = default;
+
             // The name of the model.
             virtual QString modelObjectName() const = 0;
 
@@ -36,9 +38,19 @@ namespace iscore
             }
 
             virtual void on_modelChanged() = 0;
-            virtual ~PanelPresenterInterface() = default;
 
         protected:
+            PanelViewInterface* view() const
+            {
+                return m_view;
+            }
+
+            Presenter* presenter() const
+            {
+                return m_parentPresenter;
+            }
+
+        private:
             PanelModelInterface* m_model {};
             PanelViewInterface* m_view {};
             Presenter* m_parentPresenter {};

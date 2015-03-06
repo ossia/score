@@ -54,10 +54,9 @@ iscore::PluginControlInterface* ScenarioPlugin::control_make(QString name)
 QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
 {
     return {{"Process",
-            std::bind(&ProcessList::addProcess,
-            m_control->processList(),
-            std::placeholders::_1)
-        }
+            std::bind(&ProcessList::registerProcess,
+                      m_control->processList(),
+            std::placeholders::_1)}
     };
 }
 
@@ -71,10 +70,9 @@ QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factor
     if(factoryName == "Inspector")
     {
         return {new ConstraintInspectorFactory,
-                   new EventInspectorFactory,
-                   new ScenarioInspectorFactory,
-                   new TimeNodeInspectorFactory
-        };
+                new EventInspectorFactory,
+                new ScenarioInspectorFactory,
+                new TimeNodeInspectorFactory};
     }
 
     return {};

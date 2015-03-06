@@ -26,6 +26,11 @@ class DeviceExplorerPanelModel : public iscore::PanelModelInterface
     public:
         DeviceExplorerPanelModel(iscore::DocumentModel* parent);
 
+        DeviceExplorerModel* deviceExplorer()
+        {
+            return m_model;
+        }
+
     private:
         DeviceExplorerModel* m_model {};
 };

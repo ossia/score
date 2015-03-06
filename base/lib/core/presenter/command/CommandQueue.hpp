@@ -28,6 +28,17 @@ namespace iscore
                 return !m_redoable.empty();
             }
 
+            QString undoText() const
+            {
+                return canUndo() ? m_undoable.top()->text() : tr("Nothing to undo");
+            }
+
+            QString redoText() const
+            {
+                return canRedo() ? m_redoable.top()->text() : tr("Nothing to redo");
+            }
+
+
             int size() const
             {
                 return m_undoable.size() + m_redoable.size();

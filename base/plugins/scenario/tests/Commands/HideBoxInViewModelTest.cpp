@@ -37,7 +37,7 @@ class HideBoxInViewModelTest: public QObject
             // Maybe do a fake process list, with a fake process for unit tests.
             NamedObject* obj = new NamedObject {"obj", qApp};
             ProcessList* plist = new ProcessList {obj};
-            plist->addProcess(new ScenarioFactory);
+            plist->registerProcess(new ScenarioFactory);
 
             // Setup
             ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0},

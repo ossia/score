@@ -38,12 +38,12 @@ DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* pa
 
 void DeviceExplorerPanelPresenter::on_modelChanged()
 {
-    auto v = static_cast<DeviceExplorerPanelView*>(m_view);
-    auto m = static_cast<DeviceExplorerPanelModel*>(m_model);
+    auto v = static_cast<DeviceExplorerPanelView*>(view());
+    auto m = static_cast<DeviceExplorerPanelModel*>(model());
 
     // TODO make a function to get the document here
-    auto doc = IDocument::documentFromObject(m_model);
-    m->m_model->setCommandQueue(doc->presenter()->commandStack());
+    auto doc = IDocument::documentFromObject(model());
+    m->m_model->setCommandQueue(doc->commandStack());
     v->m_widget->setModel(m->m_model);
 }
 

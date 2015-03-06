@@ -88,7 +88,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     using namespace std;
     // TODO this should take a document as argument.
     // Fetch the selected constraints
-    SelectionStack& selectionStack = IDocument::selectionStack(currentDocument());
+    SelectionStack& selectionStack = currentDocument()->selectionStack();
     auto sel = selectionStack.currentSelection();
     QList<ConstraintModel*> selected_constraints;
 
@@ -104,7 +104,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     auto addresses = device_explorer->selectedIndexes();
 
     MacroCommandDispatcher macro(new CreateCurvesFromAddressesInConstraints,
-                                 IDocument::commandStack(currentDocument()),
+                                 currentDocument()->commandStack(),
                                  nullptr);
     for(auto& constraint : selected_constraints)
     {

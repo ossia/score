@@ -13,13 +13,12 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <core/panels/UndoView.hpp>
+#include <core/undo/UndoControl.hpp>
+#include <core/undo/UndoView.hpp>
 #include <functional>
 
 #include <QKeySequence>
-
 #include <QFileDialog>
-#include <QUndoView>
 
 using namespace iscore;
 
@@ -37,31 +36,8 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
 
-    m_undoAction->setShortcut(QKeySequence::Undo);
-    m_undoAction->setEnabled(false);
-    m_undoAction->setText(tr("Undo"));
-    connect(m_undoAction, &QAction::triggered,
-            [&] ()
-    {
-        m_currentDocument->presenter()->commandStack()->undoAndNotify();
-    });
-
-    m_redoAction->setShortcut(QKeySequence::Redo);
-    m_redoAction->setEnabled(false);
-    m_redoAction->setText(tr("Redo"));
-    connect(m_redoAction, &QAction::triggered,
-            [&] ()
-    {
-        m_currentDocument->presenter()->commandStack()->redoAndNotify();
-    });
-
+    registerPluginControl(new UndoControl{this});
     registerPanel(new UndoPanelFactory);
-}
-
-Presenter::~Presenter()
-{
-    for(auto& conn : m_connections)
-        disconnect(conn);
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* cmd)
@@ -100,10 +76,6 @@ Document *Presenter::currentDocument() const
 
 void Presenter::setCurrentDocument(Document* doc)
 {
-    // Disconnect previously registered connections.
-    for(auto& conn : m_connections)
-        disconnect(conn);
-
     m_currentDocument = doc;
     for(auto& pair : m_panelPresenters)
     {
@@ -111,21 +83,7 @@ void Presenter::setCurrentDocument(Document* doc)
     }
 
     m_view->setCentralView(m_currentDocument->view());
-
-    // TODO put this in the UndoView, and put the CommandQueue inside.
-    m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::canUndoChanged,
-                        [&] (bool b) { m_undoAction->setEnabled(b); }));
-    m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::canRedoChanged,
-                        [&] (bool b) { m_redoAction->setEnabled(b); }));
-
-    m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::undoTextChanged,
-                        [&] (const QString& s) { m_undoAction->setText(tr("Undo ") + s);}));
-    m_connections.push_back(
-                connect(m_currentDocument->presenter()->commandStack(), &CommandStack::redoTextChanged,
-                        [&] (const QString& s) { m_redoAction->setText(tr("Redo ") + s);}));
+    emit currentDocumentChanged(m_currentDocument);
 }
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
@@ -141,7 +99,11 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
     setCurrentDocument(doc);
 }
 
-iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name, const QString& name, const QByteArray& data)
+
+// TODO make a class whose purpose is to instantiate commands.
+iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name,
+                                                               const QString& name,
+                                                               const QByteArray& data)
 {
     for(auto& ccmd : m_customControls)
     {
@@ -151,7 +113,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
         }
     }
 
-    qDebug() << "ALERT: Command" << parent_name << " :: " << name << "could not be instantiated.";
+    qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
     return nullptr;
 }
 
@@ -162,13 +124,13 @@ void Presenter::setupMenus()
                                                       FileMenuElement::New,
                                  [&] () { newDocument(m_availableDocuments.front()); });
 
-
     newAct->setShortcut(QKeySequence::New);
-/*
+
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                            FileMenuElement::Separator_Load);
 
+    /*
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Load,
                                         [this]()
@@ -181,7 +143,7 @@ void Presenter::setupMenus()
 
             if(f.open(QIODevice::ReadOnly))
             {
-                m_document->load(f.readAll());
+                ->load(f.readAll());
             }
         }
     });
@@ -202,7 +164,7 @@ void Presenter::setupMenus()
             f.write(m_document->save());
         }
     });
-
+*/
 
     //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
     //										FileMenuElement::SaveAs,
@@ -220,14 +182,6 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
                                         &QApplication::quit);
-*/
-    ////// Edit //////
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                        EditMenuElement::Undo,
-                                        m_undoAction);
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                        EditMenuElement::Redo,
-                                        m_redoAction);
 
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
@@ -241,6 +195,7 @@ void Presenter::setupMenus()
 }
 
 
+// TODO this goes somewhere elses
 void Presenter::on_lock(QByteArray arr)
 {
     ObjectPath objectToLock;
