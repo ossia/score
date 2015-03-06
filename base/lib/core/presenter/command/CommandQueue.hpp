@@ -18,8 +18,20 @@ namespace iscore
         public:
             CommandStack(QObject* parent = nullptr);
 
-            bool canUndo() const;
-            bool canRedo() const;
+            bool canUndo() const
+            {
+                return !m_undoable.empty();
+            }
+
+            bool canRedo() const
+            {
+                return !m_redoable.empty();
+            }
+
+            int size() const
+            {
+                return m_undoable.size() + m_redoable.size();
+            }
 
             const iscore::SerializableCommand* command(int index) const;
 
@@ -80,13 +92,13 @@ namespace iscore
             void undoAndNotify()
             {
                 undo();
-                onUndo();
+                emit onUndo();
             }
 
             void redoAndNotify()
             {
                 redo();
-                onRedo();
+                emit onRedo();
             }
 
         private:

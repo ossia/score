@@ -4,7 +4,7 @@
 #include <QDataStream>
 #include <QBuffer>
 #include <chrono>
-
+#include <string>
 
 #include <QHash>
 #include <numeric>
@@ -13,6 +13,17 @@
     public: \
     static const char* className(); \
     static QString description(); \
+    static int32_t static_uid() \
+    { \
+    using namespace std; \
+    hash<string> fn; \
+    auto hash = fn(className()); \
+    int32_t theUid = \
+        hash <= numeric_limits<int32_t>::max() ? \
+            (int32_t) hash : \
+            (int32_t) (hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min(); \
+         return theUid; \
+    } \
     private:
 
 namespace iscore
@@ -86,7 +97,8 @@ namespace iscore
             int32_t uid() const
             {
                 using namespace std;
-                auto hash = qHash(this->name());
+                hash<string> fn;
+                auto hash = fn(this->name().toStdString());
                 int32_t theUid =
                     hash <= numeric_limits<int32_t>::max() ?
                         (int32_t) hash :

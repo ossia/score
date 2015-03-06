@@ -10,16 +10,6 @@ CommandStack::CommandStack(QObject* parent) :
     this->setParent(parent);
 }
 
-bool CommandStack::canUndo() const
-{
-    return !m_undoable.empty();
-}
-
-bool CommandStack::canRedo() const
-{
-    return !m_redoable.empty();
-}
-
 const SerializableCommand* CommandStack::command(int index) const
 {
     if(index < m_undoable.size())

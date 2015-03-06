@@ -10,8 +10,8 @@ namespace MergeStrategy
         static void merge(iscore::Command* cmd,
                           iscore::Command* other)
         {
-            other->redo();
             cmd->mergeWith(other);
+            cmd->redo();
         }
     };
 
@@ -47,7 +47,6 @@ namespace SendStrategy
             cmd->quietPush(other);
         }
     };
-
 }
 
 
@@ -55,7 +54,6 @@ namespace SendStrategy
 class ICommandDispatcher : public QObject
 {
         Q_OBJECT
-
     public:
         ICommandDispatcher(QObject* parent):
             ICommandDispatcher{iscore::IDocument::commandQueue(iscore::IDocument::documentFromObject(parent)),
@@ -77,8 +75,6 @@ class ICommandDispatcher : public QObject
 
     signals:
         void submitCommand(iscore::SerializableCommand* cmd);
-
-
 
     private:
         iscore::CommandStack* m_stack{};
@@ -131,6 +127,11 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
                     Qt::DirectConnection);
         }
 
+        const iscore::SerializableCommand* command() const
+        {
+            return m_ongoingCommand;
+        }
+
         virtual ~OngoingCommandDispatcher()
         {
             delete m_ongoingCommand;
@@ -147,7 +148,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
             // could want to merge two different commands.
             if(m_ongoingCommand && cmd->uid() != m_ongoingCommand->uid())
             {
-                rollback_impl();
+                //rollback_impl();
             }
 
             if(!ongoing())
@@ -179,6 +180,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
             if(ongoing())
             {
                 m_ongoing = false;
+
                 m_ongoingCommand->undo();
                 delete m_ongoingCommand;
                 m_ongoingCommand = nullptr;

@@ -120,6 +120,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
 }
 
 
+
 // Three cases :
 // We are between :
 //  an event and nothing -> CreateEventAfterEvent
@@ -177,6 +178,7 @@ void ScenarioCommandManager::createConstraint(EventData data)
     }
 }
 
+// TODO on_scenarioMoved instead?
 void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
     EventData data {};
@@ -291,9 +293,12 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     data.relativeY = data.y / m_presenter->m_view->boundingRect().height();
     auto eventTN = findById(m_presenter->m_events, data.eventClickedId)->model()->timeNode();
 
-    if(ongoingCommand())
+    if(m_commandDispatcher->ongoing())
     {
-        emit m_commandDispatcher->rollback();
+        if(m_commandDispatcher->command()->uid() == CreateEventAfterEvent::static_uid())
+        {
+            m_commandDispatcher->rollback();
+        }
     }
 
     QList<TimeNodePresenter*> collidingTimeNodes;
@@ -314,7 +319,6 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
     }
     else
     {
-        //*
         m_commandDispatcher->rollback();
         auto cmd = new MergeTimeNodes(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                       collidingTimeNodes.first()->id(),
@@ -322,7 +326,6 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 
         CommandDispatcher<> dispatch{m_presenter};
         emit dispatch.submitCommand(cmd);
-        //*/
     }
 
 }
@@ -348,7 +351,6 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
 
     auto cmd = new MoveTimeNode(iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                                 data);
-    cmd->enableMerging();
 
     emit m_commandDispatcher->submitCommand(cmd);
 }
