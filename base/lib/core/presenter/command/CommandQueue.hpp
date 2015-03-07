@@ -45,6 +45,11 @@ namespace iscore
             }
 
             const iscore::SerializableCommand* command(int index) const;
+            void setIndex(int index);
+            int currentIndex()
+            {
+                return m_undoable.size();
+            }
 
         signals:
             /**
@@ -71,9 +76,9 @@ namespace iscore
             void redoTextChanged(QString);
 
             void indexChanged(int);
+            void stackChanged();
 
         public slots:
-
             void undo();
             void redo();
 
@@ -140,6 +145,7 @@ namespace iscore
                     emit redoTextChanged("");
 
                 emit indexChanged(m_undoable.size() - 1);
+                emit stackChanged();
             }
 
             QStack<SerializableCommand*> m_undoable;

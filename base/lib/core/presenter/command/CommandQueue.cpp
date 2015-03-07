@@ -14,10 +14,21 @@ const SerializableCommand* CommandStack::command(int index) const
 {
     if(index < m_undoable.size())
         return m_undoable[index];
-    else if(index - m_undoable.size() < m_redoable.size())
-        return m_redoable[index - m_undoable.size()];
-
+    else if((index - m_undoable.size()) < m_redoable.size())
+        return m_redoable[m_redoable.size() - (index - m_undoable.size()) - 1];
     return nullptr;
+}
+
+
+void CommandStack::setIndex(int index)
+{
+    while(index >= 0 && currentIndex() != index)
+    {
+        if(index < currentIndex())
+            undo();
+        else
+            redo();
+    }
 }
 
 void CommandStack::undo()
