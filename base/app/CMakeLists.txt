@@ -28,11 +28,15 @@ if(ISCORE_STATIC_PLUGINS)
 	add_definitions(-DISCORE_STATIC_PLUGINS)
 	target_link_libraries(${APPNAME}
 		CurvePlugin
-		inspector_plugin 
-		networkplugin 
+		inspector_plugin
 		scenario_process 
 		pluginsettings_plugin
 		device_explorer_plugin)
+		
+	if(TARGET networkplugin)
+		add_definitions(-DISCORE_NETWORK)
+		target_link_libraries(${APPNAME} networkplugin)
+	endif()
 
 	if(TARGET IScoreCohesion)
 		add_definitions(-DISCORE_COHESION)

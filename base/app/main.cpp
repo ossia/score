@@ -6,8 +6,10 @@ Q_IMPORT_PLUGIN(ScenarioPlugin)
 Q_IMPORT_PLUGIN(InspectorPlugin)
 Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin)  // static plug-ins should not be displayed.
-Q_IMPORT_PLUGIN(NetworkPlugin)
 Q_IMPORT_PLUGIN(CurvePlugin)
+#ifdef ISCORE_NETWORK
+Q_IMPORT_PLUGIN(NetworkPlugin)
+#endif
 #ifdef ISCORE_COHESION
 Q_IMPORT_PLUGIN(IScoreCohesion)
 #endif

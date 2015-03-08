@@ -45,26 +45,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/osc/OscOutboundPacketStream.cpp
 
 install(TARGETS oscpack DESTINATION ${CMAKE_BINARY_DIR})
 
-#~ 
-#~ ADD_EXECUTABLE(OscUnitTests tests/OscUnitTests.cpp)
-#~ TARGET_LINK_LIBRARIES(OscUnitTests oscpack ${LIBS})
-#~ 
-#~ ADD_EXECUTABLE(OscSendTests tests/OscSendTests.cpp)
-#~ TARGET_LINK_LIBRARIES(OscSendTests oscpack ${LIBS})
-#~ 
-#~ ADD_EXECUTABLE(OscReceiveTest tests/OscReceiveTest.cpp)
-#~ TARGET_LINK_LIBRARIES(OscReceiveTest oscpack ${LIBS})
-#~ 
-#~ 
-#~ ADD_EXECUTABLE(OscDump examples/OscDump.cpp)
-#~ TARGET_LINK_LIBRARIES(OscDump oscpack ${LIBS})
-#~ 
-#~ ADD_EXECUTABLE(SimpleReceive examples/SimpleReceive.cpp)
-#~ TARGET_LINK_LIBRARIES(SimpleReceive oscpack ${LIBS})
-#~ 
-#~ ADD_EXECUTABLE(SimpleSend examples/SimpleSend.cpp)
-#~ TARGET_LINK_LIBRARIES(SimpleSend oscpack ${LIBS})
-#~ 
+if(WIN32)
+	target_link_libraries(oscpack ${LIBS})
+endif()
 
 if(MSVC)
   # Force to always compile with W4

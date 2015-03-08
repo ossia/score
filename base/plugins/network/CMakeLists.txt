@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(network_plugin)
 
-if(ANDROID)
-    message("TODO FIXME ON ANDROID")
+if(ANDROID OR WIN32)
+    message("TODO FIXME ON ANDROID AND WINDOWS")
     return()
 endif()
 add_subdirectory(Deps)
