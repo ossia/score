@@ -1,12 +1,12 @@
 #include <core/plugin/PluginManager.hpp>
 
 
-#include <plugin_interface/plugins/FactoryInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/FactoryFamily_QtInterface.hpp>
-#include <plugin_interface/plugins/PanelFactoryInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <plugin_interface/customfactory/FactoryInterface.hpp>
 #include <plugin_interface/panel/PanelFactoryInterface.hpp>

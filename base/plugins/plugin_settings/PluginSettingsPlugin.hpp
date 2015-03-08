@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <plugin_interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 class PluginSettingsPlugin :
     public QObject,

@@ -1,10 +1,10 @@
 #pragma once
 #include <QObject>
-#include <plugin_interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
-#include <plugin_interface/plugins/FactoryFamily_QtInterface.hpp>
-#include <plugin_interface/plugins/FactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/FactoryInterface_QtInterface.hpp>
 
 class ScenarioControl;
 class ScenarioPlugin :

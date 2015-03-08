@@ -1,8 +1,8 @@
 #pragma once
 
-#include <plugin_interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/PanelFactoryInterface_QtInterface.hpp>
-#include <plugin_interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 #include <QObject>
 class NetworkSettings;
 
