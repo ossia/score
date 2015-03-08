@@ -1,7 +1,7 @@
 #pragma once
-#include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifier.hpp>
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/NamedObject.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 #include <typeinfo>
 #include <random>
 

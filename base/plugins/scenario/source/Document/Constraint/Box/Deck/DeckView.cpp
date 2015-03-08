@@ -1,6 +1,6 @@
 #include "DeckView.hpp"
 
-#include <tools/NamedObject.hpp>
+#include <public_interface/tools/NamedObject.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>

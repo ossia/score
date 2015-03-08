@@ -1,6 +1,6 @@
 #pragma once
 #include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 #include <public_interface/selection/SelectionStack.hpp>
 
 class BaseElementPresenter;

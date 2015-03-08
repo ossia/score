@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include <core/tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 #include <public_interface/document/DocumentInterface.hpp>
 #include <public_interface/command/SerializableCommand.hpp>
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <QDataStream>
 #include "public_interface/serialization/VisitorInterface.hpp"
-#include <tools/IdentifiedObject.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
 
 class DataStream
 {

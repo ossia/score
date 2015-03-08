@@ -7,7 +7,7 @@
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
-#include <core/tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

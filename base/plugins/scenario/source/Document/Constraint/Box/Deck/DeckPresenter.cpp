@@ -15,7 +15,7 @@
 #include "public_interface/document/DocumentInterface.hpp"
 #include <public_interface/command/OngoingCommandManager.hpp>
 #include <public_interface/command/SerializableCommand.hpp>
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 
 #include <QGraphicsScene>
 

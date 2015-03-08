@@ -24,7 +24,7 @@
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Process/ScenarioModel.hpp"
 
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 #include "public_interface/document/DocumentInterface.hpp"
 #include "core/document/DocumentModel.hpp"
 #include "core/document/Document.hpp"
@@ -36,7 +36,6 @@
 #include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-#include <QApplication>
 #include <QLabel>
 
 using namespace Scenario::Command;

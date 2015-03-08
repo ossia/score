@@ -4,8 +4,8 @@
 #include <set>
 #include <core/document/Document.hpp>
 
-#include <tools/NamedObject.hpp>
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/NamedObject.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 namespace iscore
 {

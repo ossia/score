@@ -1,7 +1,7 @@
 #pragma once
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
-#include <tools/NamedObject.hpp>
+#include <public_interface/tools/NamedObject.hpp>
 
 #include <vector>
 #include <memory>

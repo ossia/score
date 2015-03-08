@@ -1,7 +1,7 @@
 #pragma once
 #include <public_interface/command/SerializableCommand.hpp>
 #include "Commands/Scenario/CreateEventAfterEvent.hpp"
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 #include <QPointF>
 

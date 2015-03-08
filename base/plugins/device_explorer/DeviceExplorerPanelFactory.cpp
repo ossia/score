@@ -1,7 +1,7 @@
 #include "DeviceExplorerPanelFactory.hpp"
 #include "Panel/DeviceExplorerModel.hpp"
 #include "Panel/DeviceExplorerWidget.hpp"
-#include "document/DocumentPresenter.hpp"
+#include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <public_interface/document/DocumentInterface.hpp>
 #include <core/view/View.hpp>

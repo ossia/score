@@ -2,8 +2,6 @@
 #include <Repartition/session/MasterSession.h>
 #include <QDebug>
 
-#include <QApplication>
-#include <core/application/Application.hpp>
 #include <core/command/CommandStack.hpp>
 
 RemoteActionReceiverMaster::RemoteActionReceiverMaster(QObject* parent, MasterSession* s) :

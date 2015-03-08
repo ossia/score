@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/NamedObject.hpp>
+#include <public_interface/tools/NamedObject.hpp>
 #include <plugin_interface/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <QGraphicsView>
 class QSlider;

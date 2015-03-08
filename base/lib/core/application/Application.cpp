@@ -3,8 +3,8 @@
 #include <core/model/Model.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <core/tools/utilsCPP11.hpp>
-#include <core/tools/ObjectIdentifier.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
+#include <public_interface/tools/ObjectIdentifier.hpp>
 using namespace iscore;
 
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <core/tools/IdentifiedObject.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
 class BoxModel;

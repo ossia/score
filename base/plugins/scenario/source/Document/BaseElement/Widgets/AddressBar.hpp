@@ -1,8 +1,8 @@
 #pragma once
 #include <QHBoxLayout>
 #include <QWidget>
-#include <tools/SettableIdentifier.hpp>
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 class ClickableLabel;
 class AddressBar : public QWidget

@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/IdentifiedObject.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
 
 class State : public IdentifiedObject<State>
 {

@@ -3,7 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Deck/DeckModel.hpp"
 
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 
 #include <QDebug>
 

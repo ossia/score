@@ -1,6 +1,6 @@
 #pragma once
 #include "public_interface/serialization/VisitorInterface.hpp"
-#include <tools/IdentifiedObject.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QVector>

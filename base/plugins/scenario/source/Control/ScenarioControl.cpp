@@ -3,7 +3,6 @@
 #include <public_interface/menu/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QAction>
-#include <QApplication>
 
 #include <QFile>
 #include <QFileDialog>

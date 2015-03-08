@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 namespace iscore
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include <InspectorInterface/InspectorSectionWidget.hpp>
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include <unordered_map>
 class BoxModel;
 class DeckModel;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QPointF>
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 class EventModel;

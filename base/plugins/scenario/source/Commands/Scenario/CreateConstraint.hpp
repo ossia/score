@@ -1,7 +1,7 @@
 #pragma once
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include <public_interface/command/SerializableCommand.hpp>
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
 

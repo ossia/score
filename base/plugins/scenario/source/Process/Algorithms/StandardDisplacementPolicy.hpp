@@ -1,6 +1,6 @@
 #pragma once
 #include <ProcessInterface/TimeValue.hpp>
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 
 #include <Process/ScenarioModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include <core/tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 #include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
 
 #include <Repartition/session/Session.h>

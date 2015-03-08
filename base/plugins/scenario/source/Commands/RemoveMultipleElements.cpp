@@ -1,5 +1,4 @@
 #include "RemoveMultipleElements.hpp"
-#include <QApplication>
 
 #include <public_interface/presenter/PresenterInterface.hpp>
 

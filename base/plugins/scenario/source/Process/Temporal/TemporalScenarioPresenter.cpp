@@ -28,7 +28,7 @@
 #include "ScenarioViewInterface.hpp"
 
 #include <public_interface/selection/Selection.hpp>
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 
 #include <QDebug>
 #include <QRectF>
@@ -36,7 +36,6 @@
 #include <QGraphicsScene>
 #include <QStateMachine>
 // TODO use state machine for selection (ctrl / not ctrl)
-#include <QApplication>
 #include <QtMath>
 #include "public_interface/command/SerializableCommand.hpp"
 

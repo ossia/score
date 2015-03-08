@@ -44,8 +44,6 @@
 #include <QRectF>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <QApplication>
-
 
 
 

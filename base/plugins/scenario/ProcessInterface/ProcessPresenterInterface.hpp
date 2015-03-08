@@ -1,6 +1,6 @@
 #pragma once
-#include <tools/NamedObject.hpp>
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/NamedObject.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
 class ProcessSharedModelInterface;

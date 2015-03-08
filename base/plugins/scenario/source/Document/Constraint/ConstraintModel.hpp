@@ -1,6 +1,6 @@
 #pragma once
-#include <tools/IdentifiedObject.hpp>
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include "Document/ModelMetadata.hpp"
 #include <public_interface/serialization/VisitorInterface.hpp>
 #include "ProcessInterface/TimeValue.hpp"

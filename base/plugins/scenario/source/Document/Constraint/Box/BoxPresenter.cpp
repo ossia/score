@@ -9,7 +9,7 @@
 #include "ProcessInterface/ZoomHelper.hpp"
 
 #include <public_interface/command/SerializableCommand.hpp>
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 #include <QGraphicsScene>

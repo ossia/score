@@ -5,16 +5,12 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <API/Headers/Editor/TimeBox.h>
 
 #include <QDebug>
-#include <QApplication>
-
-
-
 
 
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,

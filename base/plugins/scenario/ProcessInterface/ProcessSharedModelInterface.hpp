@@ -1,5 +1,5 @@
 #pragma once
-#include <tools/IdentifiedObject.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <public_interface/selection/Selectable.hpp>
 #include <public_interface/selection/Selection.hpp>

@@ -21,7 +21,6 @@
 #include "source/Process/Temporal/TemporalScenarioView.hpp"
 
 #include <QGraphicsScene>
-#include <QApplication>
 
 ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* presenter):
     QObject{presenter},

@@ -1,6 +1,6 @@
 #pragma once
-#include <tools/SettableIdentifier.hpp>
-#include <tools/NamedObject.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
+#include <public_interface/tools/NamedObject.hpp>
 #include <public_interface/selection/Selection.hpp>
 #include <vector>
 

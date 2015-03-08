@@ -3,7 +3,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 #include <public_interface/document/DocumentInterface.hpp>
-#include <QApplication>
 
 using namespace iscore;
 using namespace Scenario::Command;

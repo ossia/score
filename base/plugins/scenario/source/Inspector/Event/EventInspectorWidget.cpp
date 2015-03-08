@@ -17,7 +17,6 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QApplication>
 #include <QCompleter>
 #include <QToolButton>
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include <tools/NamedObject.hpp>
-#include <core/tools/ObjectPath.hpp>
+#include <public_interface/tools/NamedObject.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 namespace iscore
 {

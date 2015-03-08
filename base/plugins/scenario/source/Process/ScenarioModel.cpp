@@ -294,7 +294,7 @@ void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
 
 
 ///////// DELETION //////////
-#include <tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 void ScenarioModel::removeConstraint(id_type<ConstraintModel> constraintId)
 {
     auto cstr = constraint(constraintId);

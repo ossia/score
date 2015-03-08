@@ -129,7 +129,6 @@ QByteArray BaseElementModel::save()
     return arr;
 }
 
-#include <QApplication>
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 QJsonObject BaseElementModel::toJson()
 {

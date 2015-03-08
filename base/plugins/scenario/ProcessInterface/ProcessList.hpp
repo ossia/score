@@ -1,6 +1,6 @@
 #pragma once
 #include <QStringList>
-#include <tools/NamedObject.hpp>
+#include <public_interface/tools/NamedObject.hpp>
 #include <vector>
 
 namespace iscore

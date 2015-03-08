@@ -1,6 +1,6 @@
 #pragma once
 #include <public_interface/command/SerializableCommand.hpp>
-#include <tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 class MovePoint : public iscore::SerializableCommand
 {

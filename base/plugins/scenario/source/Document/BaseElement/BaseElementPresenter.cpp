@@ -17,7 +17,6 @@
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
-#include <QApplication>
 
 using namespace iscore;
 

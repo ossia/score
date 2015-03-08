@@ -3,7 +3,7 @@
 #include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <plugin_interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <core/tools/utilsCPP11.hpp>
+#include <public_interface/tools/utilsCPP11.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <plugin_interface/panel/PanelModelInterface.hpp>

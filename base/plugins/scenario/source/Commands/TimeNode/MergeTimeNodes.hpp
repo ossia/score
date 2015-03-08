@@ -2,7 +2,7 @@
 
 #include <public_interface/command/SerializableCommand.hpp>
 
-#include <core/tools/ObjectPath.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 
 class EventModel;

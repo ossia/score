@@ -1,6 +1,6 @@
 #include <QApplication>
-#include <core/tools/IdentifiedObject.hpp>
-#include <core/tools/ObjectPath.hpp>
+#include <public_interface/tools/IdentifiedObject.hpp>
+#include <public_interface/tools/ObjectPath.hpp>
 
 ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object)
 {

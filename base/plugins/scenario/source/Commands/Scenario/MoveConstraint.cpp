@@ -6,11 +6,6 @@
 
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
-#include <core/application/Application.hpp>
-#include <core/view/View.hpp>
-
-#include <QApplication>
-
 using namespace iscore;
 using namespace Scenario::Command;
 

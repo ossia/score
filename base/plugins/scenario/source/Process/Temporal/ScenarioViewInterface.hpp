@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tools/SettableIdentifier.hpp>
+#include <public_interface/tools/SettableIdentifier.hpp>
 #include <QObject>
 
 class TemporalScenarioPresenter;
