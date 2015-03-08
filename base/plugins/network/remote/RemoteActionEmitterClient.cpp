@@ -1,7 +1,7 @@
 /*
 #include "RemoteActionEmitterClient.hpp"
 #include <Repartition/session/ClientSession.h>
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 RemoteActionEmitterClient::RemoteActionEmitterClient(ClientSession* session):
 	m_session{session}
 {

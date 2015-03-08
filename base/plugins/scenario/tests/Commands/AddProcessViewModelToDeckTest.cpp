@@ -13,7 +13,7 @@
 #include <Process/ScenarioFactory.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/command/CommandStack.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

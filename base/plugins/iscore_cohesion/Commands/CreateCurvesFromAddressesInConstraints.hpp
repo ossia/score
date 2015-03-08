@@ -1,5 +1,5 @@
 #pragma once
-#include <core/presenter/command/AggregateCommand.hpp>
+#include <public_interface/command/AggregateCommand.hpp>
 
 class CreateCurvesFromAddressesInConstraints : public iscore::AggregateCommand
 {

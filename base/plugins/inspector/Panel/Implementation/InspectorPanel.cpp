@@ -5,7 +5,7 @@
 #include "InspectorControl.hpp"
 
 #include <public_interface/selection/SelectionStack.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 
 #include <QPushButton>
 #include <QVBoxLayout>

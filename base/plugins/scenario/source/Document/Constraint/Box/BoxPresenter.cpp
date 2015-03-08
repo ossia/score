@@ -8,7 +8,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
 
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>

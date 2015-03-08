@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/SettableIdentifier.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>

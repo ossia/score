@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
 

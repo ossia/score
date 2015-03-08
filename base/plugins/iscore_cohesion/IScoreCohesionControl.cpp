@@ -12,7 +12,7 @@
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
 #include "public_interface/document/DocumentInterface.hpp"
-#include "core/presenter/command/OngoingCommandManager.hpp"
+#include "public_interface/command/OngoingCommandManager.hpp"
 #include "public_interface/selection/SelectionStack.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>

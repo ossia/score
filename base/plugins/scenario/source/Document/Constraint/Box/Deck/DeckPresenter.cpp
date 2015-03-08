@@ -13,8 +13,8 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "public_interface/document/DocumentInterface.hpp"
-#include <core/presenter/command/OngoingCommandManager.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/OngoingCommandManager.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>
 
 #include <QGraphicsScene>

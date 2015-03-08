@@ -3,9 +3,9 @@
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
 #include <public_interface/document/DocumentInterface.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 
-#include "core/presenter/command/OngoingCommandManager.hpp"
+#include "public_interface/command/OngoingCommandManager.hpp"
 
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"

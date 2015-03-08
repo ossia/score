@@ -1,8 +1,8 @@
 #pragma once
 #include <public_interface/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include <core/presenter/command/CommandQueue.hpp>
-#include <core/presenter/command/AggregateCommand.hpp>
+#include <core/command/CommandStack.hpp>
+#include <public_interface/command/AggregateCommand.hpp>
 
 // Merging strategies
 // This is for use with commands that can be merged like Qt's mergeWith() would do.

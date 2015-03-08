@@ -1,6 +1,6 @@
 #pragma once
 #include <plugin_interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 #include <QListView>
 
 class PluginSettingsPresenter;

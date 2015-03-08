@@ -1,7 +1,7 @@
 /*
 #include <QtTest/QtTest>
-#include <core/presenter/command/Command.hpp>
-#include <core/presenter/command/CommandQueue.hpp>
+#include <public_interface/command/Command.hpp>
+#include <core/command/CommandStack.hpp>
 #include <core/QNamedObject>
 using namespace iscore;
 

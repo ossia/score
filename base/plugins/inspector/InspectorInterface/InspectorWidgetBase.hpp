@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
 #include <public_interface/selection/SelectionStack.hpp>
-#include <core/presenter/command/OngoingCommandManager.hpp>
+#include <public_interface/command/OngoingCommandManager.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;

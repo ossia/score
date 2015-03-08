@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <core/presenter/command/OngoingCommandManager.hpp>
+#include <public_interface/command/OngoingCommandManager.hpp>
 #include <Document/Event/EventData.hpp>
 class TemporalScenarioPresenter;
 

@@ -17,7 +17,7 @@
 #include <QAction>
 
 #include <plugin_interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <core/presenter/command/OngoingCommandManager.hpp>
+#include <public_interface/command/OngoingCommandManager.hpp>
 
 // TODO plutôt dans une vue ?
 // TODO delete (mais pb avec threads...)

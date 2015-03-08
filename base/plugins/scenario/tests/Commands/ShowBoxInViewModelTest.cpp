@@ -20,7 +20,7 @@
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "public_interface/document/DocumentInterface.hpp"
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/command/CommandStack.hpp>
 
 
 using namespace iscore;

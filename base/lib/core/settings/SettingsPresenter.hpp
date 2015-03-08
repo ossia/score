@@ -3,7 +3,7 @@
 #include <memory>
 #include <queue>
 #include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 #include <QDebug>
 
 namespace iscore

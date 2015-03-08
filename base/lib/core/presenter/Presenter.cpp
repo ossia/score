@@ -1,5 +1,5 @@
 #include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>

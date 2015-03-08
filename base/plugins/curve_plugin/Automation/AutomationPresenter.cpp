@@ -4,7 +4,7 @@
 #include "AutomationView.hpp"
 
 #include <public_interface/document/DocumentInterface.hpp>
-#include <core/presenter/command/OngoingCommandManager.hpp>
+#include <public_interface/command/OngoingCommandManager.hpp>
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                          ProcessViewInterface* view,

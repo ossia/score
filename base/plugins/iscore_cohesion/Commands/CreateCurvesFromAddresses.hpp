@@ -1,5 +1,5 @@
 #pragma once
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 #include <tools/ObjectPath.hpp>
 
 class CreateCurvesFromAddresses : public iscore::SerializableCommand

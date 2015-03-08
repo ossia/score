@@ -10,7 +10,7 @@
 #include "remote/RemoteActionReceiver.hpp"
 
 
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 
 class NetworkControl : public iscore::PluginControlInterface
 {

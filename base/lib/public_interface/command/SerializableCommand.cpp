@@ -1,4 +1,4 @@
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 using namespace iscore;
 
 QByteArray SerializableCommand::serialize() const

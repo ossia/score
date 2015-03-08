@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/presenter/command/Command.hpp>
+#include <public_interface/command/Command.hpp>
 #include <QApplication>
 
 class MasterPortChangedCommand : public iscore::Command

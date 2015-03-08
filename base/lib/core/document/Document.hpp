@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/NamedObject.hpp>
 #include <public_interface/selection/SelectionStack.hpp>
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/command/CommandStack.hpp>
 
 namespace iscore
 {

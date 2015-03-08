@@ -1,5 +1,5 @@
-#include <core/presenter/command/CommandQueue.hpp>
-#include <core/presenter/command/SerializableCommand.hpp>
+#include <core/command/CommandStack.hpp>
+#include <public_interface/command/SerializableCommand.hpp>
 #include <QDebug>
 using namespace iscore;
 

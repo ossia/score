@@ -1,7 +1,7 @@
 #pragma once
 #include "CopyProcessViewModel.hpp"
 #include "RemoveProcessViewModelFromDeck.hpp"
-#include <core/presenter/command/AggregateCommand.hpp>
+#include <public_interface/command/AggregateCommand.hpp>
 
 namespace Scenario
 {

@@ -15,7 +15,7 @@
 #include "DeviceExplorerView.hpp"
 #include "IOTypeDelegate.hpp"
 
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/command/CommandStack.hpp>
 
 #include <QDebug>
 

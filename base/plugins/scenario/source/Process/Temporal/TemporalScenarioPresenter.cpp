@@ -38,7 +38,7 @@
 // TODO use state machine for selection (ctrl / not ctrl)
 #include <QApplication>
 #include <QtMath>
-#include "core/presenter/command/SerializableCommand.hpp"
+#include "public_interface/command/SerializableCommand.hpp"
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
                                                      ProcessViewInterface* view,

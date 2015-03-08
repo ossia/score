@@ -12,7 +12,7 @@
 #include <QDebug>
 
 
-#include <core/presenter/command/CommandQueue.hpp>
+#include <core/command/CommandStack.hpp>
 #include "Commands/DeviceExplorerMoveCommand.hpp"
 #include "Commands/DeviceExplorerInsertCommand.hpp"
 #include "Commands/DeviceExplorerCutCommand.hpp"
