@@ -9,8 +9,7 @@ namespace iscore
         public:
             virtual ~PluginControlInterface_QtInterface() = default;
 
-            virtual QStringList control_list() const = 0;
-            virtual PluginControlInterface* control_make(QString) = 0;
+            virtual PluginControlInterface* control_make() = 0;
     };
 }
 

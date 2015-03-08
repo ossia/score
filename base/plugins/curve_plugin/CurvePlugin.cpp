@@ -11,19 +11,9 @@ CurvePlugin::CurvePlugin() :
     setObjectName("CurvePlugin");
 }
 
-QStringList CurvePlugin::control_list() const
+iscore::PluginControlInterface* CurvePlugin::control_make()
 {
-    return {"AutomationControl"};
-}
-
-iscore::PluginControlInterface* CurvePlugin::control_make(QString name)
-{
-    if(name == "AutomationControl")
-    {
-        return new AutomationControl {nullptr};
-    }
-
-    return nullptr;
+    return new AutomationControl{nullptr};
 }
 
 QVector<iscore::FactoryInterface*> CurvePlugin::factories_make(QString factoryName)

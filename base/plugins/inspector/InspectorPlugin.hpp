@@ -29,8 +29,7 @@ class InspectorPlugin :
         // Offre la factory de Inspector
         virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
 
-        virtual QStringList control_list() const;
-        virtual iscore::PluginControlInterface* control_make(QString);
+        virtual iscore::PluginControlInterface* control_make();
 
     private:
         InspectorControl* m_inspectorControl;

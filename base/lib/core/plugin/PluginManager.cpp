@@ -141,10 +141,7 @@ void PluginManager::dispatch(QObject* plugin)
 
     if(cmd_plugin)
     {
-        for(const auto& cmd : cmd_plugin->control_list())
-        {
-            m_commandList.push_back(cmd_plugin->control_make(cmd));
-        }
+        m_commandList.push_back(cmd_plugin->control_make());
     }
 
     if(settings_plugin)

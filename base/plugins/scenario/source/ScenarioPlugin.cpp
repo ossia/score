@@ -36,19 +36,9 @@ iscore::DocumentDelegateFactoryInterface* ScenarioPlugin::document_make(QString 
     return nullptr;
 }
 
-QStringList ScenarioPlugin::control_list() const
+iscore::PluginControlInterface* ScenarioPlugin::control_make()
 {
-    return {"Scenario control"};
-}
-
-iscore::PluginControlInterface* ScenarioPlugin::control_make(QString name)
-{
-    if(name == "Scenario control")
-    {
-        return m_control;
-    }
-
-    return nullptr;
+    return m_control;
 }
 
 QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()

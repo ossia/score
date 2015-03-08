@@ -28,7 +28,6 @@ class IScoreCohesion:
         IScoreCohesion();
         virtual ~IScoreCohesion() = default;
 
-        virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make(QString) override;
+        virtual iscore::PluginControlInterface* control_make() override;
 };
 

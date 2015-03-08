@@ -38,18 +38,7 @@ QVector<FactoryFamily> InspectorPlugin::factoryFamilies_make()
     };
 }
 
-
-QStringList InspectorPlugin::control_list() const
+PluginControlInterface* InspectorPlugin::control_make()
 {
-    return {"InspectorControl"};
-}
-
-PluginControlInterface* InspectorPlugin::control_make(QString s)
-{
-    if(s == "InspectorControl")
-    {
-        return m_inspectorControl;
-    }
-
-    return nullptr;
+    return m_inspectorControl;
 }

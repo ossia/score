@@ -20,8 +20,7 @@ class CurvePlugin:
         virtual ~CurvePlugin() = default;
 
         // Plugin control interface
-        virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make(QString) override;
+        virtual iscore::PluginControlInterface* control_make() override;
 
         // Process & inspector
         virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;

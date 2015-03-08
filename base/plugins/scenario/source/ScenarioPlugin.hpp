@@ -31,8 +31,7 @@ class ScenarioPlugin :
         virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
 
         // Plugin control interface
-        virtual QStringList control_list() const override;
-        virtual iscore::PluginControlInterface* control_make(QString) override;
+        virtual iscore::PluginControlInterface* control_make() override;
 
         // Offre la factory de Process
         virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
