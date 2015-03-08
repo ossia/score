@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <core/document/DocumentPresenter.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selection.hpp>
 
 namespace iscore
 {

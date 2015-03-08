@@ -1,5 +1,5 @@
 #include "AggregateCommand.hpp"
-#include <core/interface/presenter/PresenterInterface.hpp>
+#include <public_interface/presenter/PresenterInterface.hpp>
 #include <QApplication>
 using namespace iscore;
 

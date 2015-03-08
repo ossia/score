@@ -1,5 +1,5 @@
 #pragma once
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
 #include <core/presenter/command/AggregateCommand.hpp>

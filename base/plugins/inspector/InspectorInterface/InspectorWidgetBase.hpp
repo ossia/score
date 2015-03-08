@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
-#include <core/interface/selection/SelectionStack.hpp>
+#include <public_interface/selection/SelectionStack.hpp>
 #include <core/presenter/command/OngoingCommandManager.hpp>
 class QVBoxLayout;
 class QLineEdit;

@@ -1,6 +1,6 @@
 #include <core/settings/SettingsView.hpp>
-#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
-#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <QListWidgetItem>
 #include <QStyle>
 using namespace iscore;

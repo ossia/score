@@ -22,8 +22,8 @@
 #include <QToolButton>
 
 #include "Process/ScenarioModel.hpp"
-#include "core/interface/document/DocumentInterface.hpp"
-#include "core/interface/selection/SelectionDispatcher.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
+#include "public_interface/selection/SelectionDispatcher.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceCompleter.hpp"
 #include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"

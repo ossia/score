@@ -19,7 +19,7 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 #include <core/presenter/command/CommandQueue.hpp>
 
 

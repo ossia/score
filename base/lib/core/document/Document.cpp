@@ -3,14 +3,14 @@
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
-#include <interface/panel/PanelFactoryInterface.hpp>
-#include <interface/panel/PanelPresenterInterface.hpp>
-#include <interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/panel/PanelFactoryInterface.hpp>
+#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
 
-#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <interface/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 #include <QDebug>
 #include <QLayout>

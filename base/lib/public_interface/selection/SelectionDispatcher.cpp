@@ -1,7 +1,7 @@
 #include "SelectionDispatcher.hpp"
 #include "SelectionStack.hpp"
 
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
 

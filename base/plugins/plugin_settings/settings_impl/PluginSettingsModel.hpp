@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QStandardItemModel>
 #include <QString>
 #include <QObject>

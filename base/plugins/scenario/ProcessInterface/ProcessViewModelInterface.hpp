@@ -1,6 +1,5 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include "serialization/VisitorInterface.hpp"
 
 class ProcessSharedModelInterface;
 

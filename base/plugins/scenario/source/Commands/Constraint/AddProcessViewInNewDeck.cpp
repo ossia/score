@@ -8,7 +8,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

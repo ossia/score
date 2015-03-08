@@ -12,8 +12,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
-#include <core/interface/selection/SelectionDispatcher.hpp>
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/selection/SelectionDispatcher.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>

@@ -35,4 +35,4 @@ ProcessSharedModelInterface* ScenarioFactory::makeModel(id_type<ProcessSharedMod
     return new ScenarioModel {id, parent};
 }
 
-#include <interface/serialization/DataStreamVisitor.hpp>
+#include <public_interface/serialization/DataStreamVisitor.hpp>

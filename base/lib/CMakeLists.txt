@@ -8,21 +8,22 @@ set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets )
 
 if(NOT Boost_FOUND)
-        message("The network plugin requires boost to build")
-        return()
+		message("The network plugin requires boost to build")
+		return()
 endif()
 
 # Files & main target
 include_directories(.)
-include_directories(core)
-include_directories("${CMAKE_SOURCE_DIR}")
 
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp")
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp")
-file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/interface/*.hpp")
-file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/interface/*.cpp")
+file(GLOB_RECURSE SRCS
+	${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/*.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/public_interface/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/public_interface/*.hpp)
 
-add_library(iscore_lib ${HDRS} ${SRCS} ${INTERFACE_HDRS} ${INTERFACE_SRCS})
+add_library(iscore_lib ${SRCS})
 target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)
 
 install(TARGETS iscore_lib

@@ -1,5 +1,5 @@
 #pragma once
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selection.hpp>
 #include <QStack>
 #include <QDebug>
 

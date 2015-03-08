@@ -1,7 +1,7 @@
 #pragma once
 #include <set>
 #include <memory>
-#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 
 #include <QDialog>
 #include <QWidget>

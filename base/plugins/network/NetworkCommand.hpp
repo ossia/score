@@ -1,6 +1,6 @@
 #pragma once
 #include <core/tools/utilsCPP11.hpp>
-#include <interface/plugincontrol/PluginControlInterface.hpp>
+#include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
 
 #include <Repartition/session/Session.h>
 #include <Repartition/session/ConnectionData.hpp>

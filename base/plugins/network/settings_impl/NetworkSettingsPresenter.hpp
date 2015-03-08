@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <QObject>
 
 class NetworkSettingsModel;

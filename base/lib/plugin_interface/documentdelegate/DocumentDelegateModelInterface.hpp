@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <QJsonObject>
-#include <core/interface/selection/SelectionStack.hpp>
+#include <public_interface/selection/SelectionStack.hpp>
 namespace iscore
 {
     class DocumentDelegatePresenterInterface;

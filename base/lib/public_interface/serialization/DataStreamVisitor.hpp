@@ -1,6 +1,6 @@
 #pragma once
 #include <QDataStream>
-#include "interface/serialization/VisitorInterface.hpp"
+#include "public_interface/serialization/VisitorInterface.hpp"
 #include <tools/IdentifiedObject.hpp>
 
 class DataStream

@@ -4,7 +4,7 @@
 #include <QMenuBar>
 #include <map>
 #include <core/presenter/Action.hpp>
-#include <interface/plugincontrol/MenuInterface.hpp>
+#include <public_interface/menu/MenuInterface.hpp>
 #include <QDebug>
 
 class QMenuBar;

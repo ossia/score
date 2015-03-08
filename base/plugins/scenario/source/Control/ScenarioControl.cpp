@@ -1,6 +1,6 @@
 #include "ScenarioControl.hpp"
 
-#include <interface/plugincontrol/MenuInterface.hpp>
+#include <public_interface/menu/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QAction>
 #include <QApplication>
@@ -8,8 +8,8 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <core/interface/document/DocumentInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <QJsonDocument>
 
 

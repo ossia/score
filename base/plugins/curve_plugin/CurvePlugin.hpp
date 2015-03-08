@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <plugins/FactoryInterface_QtInterface.hpp>
-#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/PluginControlInterface_QtInterface.hpp>
 
 class CurvePlugin:
     public QObject,

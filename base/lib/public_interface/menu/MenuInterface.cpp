@@ -1,4 +1,4 @@
-#include <interface/plugincontrol/MenuInterface.hpp>
+#include "MenuInterface.hpp"
 using namespace iscore;
 
 namespace iscore

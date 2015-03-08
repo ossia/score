@@ -1,8 +1,8 @@
 #include "InspectorSectionWidget.hpp"
 #include "InspectorWidgetBase.hpp"
 
-#include <core/interface/selection/SelectionDispatcher.hpp>
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/selection/SelectionDispatcher.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QLayout>
 #include <QLineEdit>

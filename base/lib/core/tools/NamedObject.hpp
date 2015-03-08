@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QGraphicsObject>
 #include <QDebug>
-#include "interface/serialization/VisitorInterface.hpp"
+#include "public_interface/serialization/VisitorInterface.hpp"
 
 
 // TODO : QDomainObject qui contient le document en membre ?

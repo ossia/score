@@ -1,5 +1,5 @@
 #include "IScoreCohesionControl.hpp"
-#include <interface/plugincontrol/MenuInterface.hpp>
+#include <public_interface/menu/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QApplication>
 
@@ -11,9 +11,9 @@
 #include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 #include "core/presenter/command/OngoingCommandManager.hpp"
-#include "core/interface/selection/SelectionStack.hpp"
+#include "public_interface/selection/SelectionStack.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 #include "FakeEngine.hpp"

@@ -2,8 +2,8 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {

@@ -16,7 +16,7 @@
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "core/interface/selection/SelectionDispatcher.hpp"
+#include "public_interface/selection/SelectionDispatcher.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
 #include <InspectorInterface/InspectorSectionWidget.hpp>
@@ -25,7 +25,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include <tools/ObjectPath.hpp>
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 #include "core/document/DocumentModel.hpp"
 #include "core/document/Document.hpp"
 

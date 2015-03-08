@@ -1,5 +1,5 @@
 #include "UndoControl.hpp"
-#include <interface/plugincontrol/MenuInterface.hpp>
+#include <public_interface/menu/MenuInterface.hpp>
 #include <core/presenter/command/CommandQueue.hpp>
 #include <core/document/DocumentPresenter.hpp>
 

@@ -1,14 +1,14 @@
-#include <interface/plugincontrol/PluginControlInterface.hpp>
+#include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 #include <core/model/Model.hpp>
 
-#include <interface/panel/PanelFactoryInterface.hpp>
-#include <interface/panel/PanelPresenterInterface.hpp>
-#include <interface/panel/PanelModelInterface.hpp>
-#include <interface/panel/PanelViewInterface.hpp>
+#include <plugin_interface/panel/PanelFactoryInterface.hpp>
+#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/panel/PanelViewInterface.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>

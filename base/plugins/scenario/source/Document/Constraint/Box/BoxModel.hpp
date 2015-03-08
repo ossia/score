@@ -1,6 +1,6 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
-#include <interface/serialization/VisitorInterface.hpp>
+#include <public_interface/serialization/VisitorInterface.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <vector>

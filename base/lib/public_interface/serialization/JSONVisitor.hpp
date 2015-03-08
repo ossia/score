@@ -1,5 +1,5 @@
 #pragma once
-#include "interface/serialization/VisitorInterface.hpp"
+#include "public_interface/serialization/VisitorInterface.hpp"
 #include <tools/IdentifiedObject.hpp>
 #include <QJsonObject>
 #include <QJsonArray>

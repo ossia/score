@@ -1,10 +1,10 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
-#include <interface/serialization/DataStreamVisitor.hpp>
-#include <interface/serialization/JSONVisitor.hpp>
+#include <public_interface/serialization/DataStreamVisitor.hpp>
+#include <public_interface/serialization/JSONVisitor.hpp>
 #include "Document/ModelMetadata.hpp"
-#include <core/interface/selection/Selectable.hpp>
+#include <public_interface/selection/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <unordered_map>

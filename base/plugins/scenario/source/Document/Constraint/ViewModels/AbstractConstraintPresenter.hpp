@@ -1,7 +1,7 @@
 #pragma once
 #include <tools/SettableIdentifier.hpp>
 #include <tools/NamedObject.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selection.hpp>
 #include <vector>
 
 #include "Document/Constraint/ConstraintData.hpp"

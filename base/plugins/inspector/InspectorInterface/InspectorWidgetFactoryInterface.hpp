@@ -1,6 +1,6 @@
 #pragma once
 
-#include <interface/customfactory/FactoryInterface.hpp>
+#include <plugin_interface/customfactory/FactoryInterface.hpp>
 #include <QList>
 class InspectorWidgetBase;
 

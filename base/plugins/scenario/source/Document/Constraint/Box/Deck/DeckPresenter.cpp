@@ -12,7 +12,7 @@
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 #include <core/presenter/command/OngoingCommandManager.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 #include <tools/utilsCPP11.hpp>

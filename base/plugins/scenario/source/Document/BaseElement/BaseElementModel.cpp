@@ -3,10 +3,10 @@
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <QJsonDocument>
-#include <interface/serialization/JSONVisitor.hpp>
+#include <public_interface/serialization/JSONVisitor.hpp>
 
 #include <iostream>
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"

@@ -1,8 +1,8 @@
 #include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelView.hpp"
-#include <core/interface/document/DocumentInterface.hpp>
-#include <core/interface/selection/SelectionStack.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
+#include <public_interface/selection/SelectionStack.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/Document.hpp>

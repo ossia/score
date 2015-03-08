@@ -4,7 +4,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

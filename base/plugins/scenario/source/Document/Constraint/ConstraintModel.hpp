@@ -2,10 +2,10 @@
 #include <tools/IdentifiedObject.hpp>
 #include <tools/SettableIdentifier.hpp>
 #include "Document/ModelMetadata.hpp"
-#include <interface/serialization/VisitorInterface.hpp>
+#include <public_interface/serialization/VisitorInterface.hpp>
 #include "ProcessInterface/TimeValue.hpp"
 
-#include <core/interface/selection/Selectable.hpp>
+#include <public_interface/selection/Selectable.hpp>
 #include <QColor>
 #include <vector>
 

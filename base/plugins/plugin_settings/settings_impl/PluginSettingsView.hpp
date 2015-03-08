@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateViewInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QListView>
 

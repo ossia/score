@@ -1,6 +1,6 @@
 #include "HideBoxInViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include "core/interface/document/DocumentInterface.hpp"
+#include "public_interface/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -27,7 +27,7 @@
 #include "ScenarioSelectionManager.hpp"
 #include "ScenarioViewInterface.hpp"
 
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selection.hpp>
 #include <tools/utilsCPP11.hpp>
 
 #include <QDebug>

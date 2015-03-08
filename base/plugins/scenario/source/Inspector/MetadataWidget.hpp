@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <core/tools/ObjectPath.hpp>
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/presenter/command/SerializableCommand.hpp>
 
 #include "core/presenter/command/OngoingCommandManager.hpp"

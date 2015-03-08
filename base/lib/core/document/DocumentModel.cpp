@@ -1,8 +1,8 @@
 #include <core/document/DocumentModel.hpp>
-#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <plugin_interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
 #include <exception>
 
 

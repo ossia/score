@@ -1,9 +1,9 @@
 #include "UndoView.hpp"
-#include <interface/panel/PanelModelInterface.hpp>
-#include <interface/panel/PanelPresenterInterface.hpp>
-#include <interface/panel/PanelViewInterface.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <plugin_interface/panel/PanelViewInterface.hpp>
 
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/Document.hpp>

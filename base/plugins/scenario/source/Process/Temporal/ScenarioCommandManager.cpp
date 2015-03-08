@@ -37,7 +37,7 @@
 #include "Commands/RemoveMultipleElements.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
-#include <core/interface/document/DocumentInterface.hpp>
+#include <public_interface/document/DocumentInterface.hpp>
 #include <core/presenter/command/OngoingCommandManager.hpp>
 
 #include <algorithm>

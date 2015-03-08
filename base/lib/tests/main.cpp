@@ -1,3 +1,4 @@
+/*
 #include <QtTest/QtTest>
 
 class TestExample: public QObject
@@ -12,3 +13,4 @@ class TestExample: public QObject
 
 QTEST_MAIN(TestExample)
 #include "main.moc"
+*/

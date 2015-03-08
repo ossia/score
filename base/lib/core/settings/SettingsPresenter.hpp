@@ -2,7 +2,7 @@
 #include <set>
 #include <memory>
 #include <queue>
-#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <core/presenter/command/Command.hpp>
 #include <QDebug>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 class ScenarioDocument : public iscore::DocumentDelegateFactoryInterface
 {

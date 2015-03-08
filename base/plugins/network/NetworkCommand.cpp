@@ -16,7 +16,7 @@
 
 #include <QAction>
 
-#include <interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <plugin_interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/presenter/command/OngoingCommandManager.hpp>
 
 // TODO plutôt dans une vue ?

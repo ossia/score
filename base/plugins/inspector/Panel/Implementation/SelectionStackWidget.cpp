@@ -1,5 +1,5 @@
 #include "SelectionStackWidget.hpp"
-#include <core/interface/selection/SelectionStack.hpp>
+#include <public_interface/selection/SelectionStack.hpp>
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QDebug>

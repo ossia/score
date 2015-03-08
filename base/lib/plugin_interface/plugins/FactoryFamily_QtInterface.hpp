@@ -1,5 +1,5 @@
 #pragma once
-#include <interface/customfactory/FactoryFamily.hpp>
+#include <plugin_interface/customfactory/FactoryFamily.hpp>
 
 namespace iscore
 {

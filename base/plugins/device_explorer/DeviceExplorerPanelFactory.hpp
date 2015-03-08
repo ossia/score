@@ -1,8 +1,8 @@
 #pragma once
-#include <interface/panel/PanelFactoryInterface.hpp>
-#include <interface/panel/PanelModelInterface.hpp>
-#include <interface/panel/PanelPresenterInterface.hpp>
-#include <interface/panel/PanelViewInterface.hpp>
+#include <plugin_interface/panel/PanelFactoryInterface.hpp>
+#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <plugin_interface/panel/PanelViewInterface.hpp>
 
 class DeviceExplorerWidget;
 class DeviceExplorerModel;

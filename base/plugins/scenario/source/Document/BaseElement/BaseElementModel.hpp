@@ -1,7 +1,7 @@
 #pragma once
-#include <interface/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <tools/ObjectPath.hpp>
-#include <core/interface/selection/SelectionStack.hpp>
+#include <public_interface/selection/SelectionStack.hpp>
 
 class BaseElementPresenter;
 class FullViewConstraintViewModel;

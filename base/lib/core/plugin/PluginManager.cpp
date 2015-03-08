@@ -1,17 +1,17 @@
 #include <core/plugin/PluginManager.hpp>
 
 
-#include <interface/plugins/FactoryInterface_QtInterface.hpp>
-#include <interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/FactoryFamily_QtInterface.hpp>
-#include <interface/plugins/PanelFactoryInterface_QtInterface.hpp>
-#include <interface/plugins/PluginControlInterface_QtInterface.hpp>
-#include <interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/FactoryInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/DocumentDelegateFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/FactoryFamily_QtInterface.hpp>
+#include <plugin_interface/plugins/PanelFactoryInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/PluginControlInterface_QtInterface.hpp>
+#include <plugin_interface/plugins/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
-#include <interface/customfactory/FactoryInterface.hpp>
-#include <interface/panel/PanelFactoryInterface.hpp>
-#include <interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-#include <interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <plugin_interface/customfactory/FactoryInterface.hpp>
+#include <plugin_interface/panel/PanelFactoryInterface.hpp>
+#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <QCoreApplication>
 #include <QDir>

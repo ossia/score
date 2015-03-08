@@ -1,7 +1,7 @@
 #pragma once
 #include <core/tools/SettableIdentifier.hpp>
-#include <interface/serialization/DataStreamVisitor.hpp>
-#include <interface/serialization/JSONVisitor.hpp>
+#include <public_interface/serialization/DataStreamVisitor.hpp>
+#include <public_interface/serialization/JSONVisitor.hpp>
 
 
 /**

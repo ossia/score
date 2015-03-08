@@ -3,7 +3,7 @@
 #include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "../curve_plugin/Automation/AutomationModel.hpp"
 
-#include <core/interface/presenter/PresenterInterface.hpp>
+#include <public_interface/presenter/PresenterInterface.hpp>
 #include <QApplication>
 
 using namespace iscore;

@@ -1,8 +1,8 @@
 #pragma once
 #include <tools/NamedObject.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selection.hpp>
 #include <set>
-#include <interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <plugin_interface/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore
 {

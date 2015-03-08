@@ -1,8 +1,8 @@
 #pragma once
 #include <tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <core/interface/selection/Selectable.hpp>
-#include <core/interface/selection/Selection.hpp>
+#include <public_interface/selection/Selectable.hpp>
+#include <public_interface/selection/Selection.hpp>
 
 class QDataStream;
 
