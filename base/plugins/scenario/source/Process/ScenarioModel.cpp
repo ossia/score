@@ -1,5 +1,6 @@
 #include "ScenarioModel.hpp"
 
+#include "Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
@@ -19,7 +20,11 @@ ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* p
     auto event = new EventModel{m_startEventId, this};
     addEvent(event);
 
-    createTimeNode(id_type<TimeNodeModel> (0), m_startEventId);
+    StandardCreationPolicy::createTimeNode(
+                *this,
+                id_type<TimeNodeModel> (0),
+                m_startEventId);
+
     event->changeTimeNode(id_type<TimeNodeModel> (0));
 
     //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
@@ -187,109 +192,6 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 
 
 //////// Creation ////////
-void ScenarioModel::createConstraintBetweenEvents(id_type<EventModel> startEventId,
-                                                  id_type<EventModel> endEventId,
-                                                  id_type<ConstraintModel> newConstraintModelId,
-                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId)
-{
-    auto sev = this->event(startEventId);
-    auto eev = this->event(endEventId);
-    auto constraint = new ConstraintModel {newConstraintModelId,
-                      newConstraintFullViewId,
-                      this};
-
-    /*	auto ossia_tn0 = sev->apiObject();
-    auto ossia_tn1 = eev->apiObject();
-    auto ossia_tb = inter->apiObject();
-
-    m_scenario->addTimeBox(*ossia_tb,
-                           *ossia_tn0,
-                           *ossia_tn1);
-    */
-    // Error checking if it did not go well ? Rollback ?
-    // Else...
-    constraint->setStartEvent(sev->id());
-    constraint->setEndEvent(eev->id());
-
-    constraint->setStartDate(sev->date());
-    constraint->setDefaultDuration(eev->date() - sev->date());
-    constraint->setHeightPercentage((sev->heightPercentage() + eev->heightPercentage()) / 2.);
-
-    sev->addNextConstraint(newConstraintModelId);
-    eev->addPreviousConstraint(newConstraintModelId);
-
-    // From now on everything must be in a valid state.
-    addConstraint(constraint);
-}
-
-void
-ScenarioModel::createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-                                                    TimeValue constraint_duration,
-                                                    double heightPos,
-                                                    id_type<ConstraintModel> newConstraintId,
-                                                    id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-                                                    id_type<EventModel> newEventId)
-{
-    auto startEvent = this->event(startEventId);
-
-    auto constraint = new ConstraintModel {newConstraintId,
-                      newConstraintFullViewId,
-                      this->event(startEventId)->heightPercentage(),
-                      this};
-    auto event = new EventModel {newEventId,
-                 heightPos,
-                 this};
-
-
-    if(startEventId == m_startEventId)
-    {
-        constraint->setHeightPercentage(heightPos);
-    }
-    else
-    {
-        constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
-    }
-
-    // TEMPORARY :
-    constraint->setStartDate(this->event(startEventId)->date());
-    constraint->setDefaultDuration(constraint_duration);
-    event->setDate(constraint->startDate() + constraint->defaultDuration());
-
-    //	auto ossia_tn0 = this->event(startEventId)->apiObject();
-    //	auto ossia_tn1 = event->apiObject();
-    //	auto ossia_tb = constraint->apiObject();
-
-    //	m_scenario->addTimeBox(*ossia_tb,
-    //						   *ossia_tn0,
-    //						   *ossia_tn1);
-
-    // Error checking if it did not go well ? Rollback ?
-    // Else...
-    constraint->setStartEvent(startEventId);
-    constraint->setEndEvent(event->id());
-
-    // From now on everything must be in a valid state.
-    addEvent(event);
-    addConstraint(constraint);
-
-    // link constraint with event
-    event->addPreviousConstraint(newConstraintId);
-    this->event(startEventId)->addNextConstraint(newConstraintId);
-}
-
-void ScenarioModel::createTimeNode(id_type<TimeNodeModel> timeNodeId,
-                                   id_type<EventModel> eventId)
-{
-    auto newEvent = event(eventId);
-
-    auto timeNode = new TimeNodeModel {timeNodeId,
-                    newEvent->date(),
-                    this};
-    timeNode->addEvent(eventId);
-    timeNode->setY(newEvent->heightPercentage());
-
-    addTimeNode(timeNode);
-}
 
 
 
@@ -371,28 +273,6 @@ void ScenarioModel::removeTimeNode(id_type<TimeNodeModel> timeNodeId)
     emit timeNodeRemoved(timeNodeId);
     delete tn;
 }
-
-void ScenarioModel::undo_removeConstraint(ConstraintModel* newConstraint)
-{
-    addConstraint(newConstraint);
-
-    EventModel* sev = event(newConstraint->startEvent());
-    EventModel* eev = event(newConstraint->endEvent());
-
-    sev->addNextConstraint(newConstraint->id());
-    eev->addPreviousConstraint(newConstraint->id());
-}
-
-void ScenarioModel::undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId)
-{
-    removeEvent(endEventId);
-}
-
-void ScenarioModel::undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId)
-{
-    removeConstraint(constraintId);
-}
-
 
 /////////////////////////////
 ConstraintModel* ScenarioModel::constraint(id_type<ConstraintModel> constraintId) const

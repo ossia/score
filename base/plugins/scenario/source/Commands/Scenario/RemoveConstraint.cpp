@@ -42,7 +42,12 @@ void RemoveConstraint::undo()
 
     Deserializer<DataStream> s {&m_serializedConstraint};
 
-    scenar->undo_removeConstraint(new ConstraintModel(s, scenar));
+    auto newConstraint = new ConstraintModel(s, scenar);
+    scenar->addConstraint(newConstraint);
+
+    scenar->event(newConstraint->startEvent())->addNextConstraint(newConstraint->id());
+    scenar->event(newConstraint->endEvent())->addPreviousConstraint(newConstraint->id());
+
 
     for(auto& viewModel : viewModels(scenar))
     {

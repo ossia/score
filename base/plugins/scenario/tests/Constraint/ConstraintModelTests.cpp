@@ -8,6 +8,7 @@
 
 #include <iscore/tools/ObjectPath.hpp>
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
+#include <Process/Algorithms/StandardCreationPolicy.hpp>
 
 
 class ConstraintModelTests: public QObject
@@ -100,13 +101,13 @@ class ConstraintModelTests: public QObject
             auto ev_0_id = getStrongId(s0->events());
             auto fv_0_id = id_type<AbstractConstraintViewModel> {234};
             auto tb_0_id = getStrongId(s0->timeNodes());
-            s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
+            StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
 
             auto int_2_id = getStrongId(s0->constraints());
             auto fv_2_id = id_type<AbstractConstraintViewModel> {454};
             auto ev_2_id = getStrongId(s0->events());
             auto tb_2_id = getStrongId(s0->timeNodes());
-            s0->createConstraintAndEndEventFromEvent(s0->startEvent()->id(), std::chrono::milliseconds {46}, 10, int_2_id, fv_2_id, ev_2_id);
+            StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {46}, 10, int_2_id, fv_2_id, ev_2_id);
 
             auto i1 = s0->constraint(int_0_id);
             auto s1 = new ScenarioModel {id_type<ProcessSharedModelInterface>{0}, i1};

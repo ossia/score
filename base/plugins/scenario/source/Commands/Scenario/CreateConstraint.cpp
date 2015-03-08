@@ -6,6 +6,7 @@
 #include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -35,17 +36,19 @@ void CreateConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->undo_createConstraintBetweenEvent(m_createdConstraintId);
+    scenar->removeConstraint(m_createdConstraintId);
 }
 
 void CreateConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->createConstraintBetweenEvents(m_startEventId,
-                                          m_endEventId,
-                                          m_createdConstraintId,
-                                          m_createdConstraintFullViewId);
+    StandardCreationPolicy::createConstraintBetweenEvents(
+                *scenar,
+                m_startEventId,
+                m_endEventId,
+                m_createdConstraintId,
+                m_createdConstraintFullViewId);
 
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenar))

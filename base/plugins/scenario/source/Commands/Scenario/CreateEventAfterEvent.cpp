@@ -7,6 +7,7 @@
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 #include "source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -42,21 +43,27 @@ void CreateEventAfterEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->undo_createConstraintAndEndEventFromEvent(m_createdEventId);
+    scenar->removeEvent(m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->createConstraintAndEndEventFromEvent(m_firstEventId,
-                                                 m_time,
-                                                 m_heightPosition,
-                                                 m_createdConstraintId,
-                                                 m_createdConstraintFullViewId,
-                                                 m_createdEventId);
+    StandardCreationPolicy::createConstraintAndEndEventFromEvent(
+                *scenar,
+                m_firstEventId,
+                m_time,
+                m_heightPosition,
+                m_createdConstraintId,
+                m_createdConstraintFullViewId,
+                m_createdEventId);
 
-    scenar->createTimeNode(m_createdTimeNodeId, m_createdEventId);
+    StandardCreationPolicy::createTimeNode(
+                *scenar,
+                m_createdTimeNodeId,
+                m_createdEventId);
+
     // this does not work : why scenar->timeNode(m_createdTimeNodeId)->addEvent(m_createdEventId);
     scenar->event(m_createdEventId)->changeTimeNode(m_createdTimeNodeId);
 

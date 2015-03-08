@@ -62,35 +62,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         { return "Scenario"; }
 
         //// ScenarioModel specifics ////
-        // High-level operations (maintaining consistency)
-        /**
-         * @brief createConstraintBetweenEvents
-         *
-         * Creates a new constraint between two existing events
-         */
-        void createConstraintBetweenEvents(id_type<EventModel> startEventId,
-                                           id_type<EventModel> endEventId,
-                                           id_type<ConstraintModel> newConstraintModelId,
-                                           id_type<AbstractConstraintViewModel> newConstraintFullViewId);
-
-        /**
-         * @brief createConstraintAndEndEventFromEvent Base building block of a scenario.
-         *
-         * Given a starting event and a duration, creates an constraint and an event where
-         * the constraint is linked to both events.
-         */
-        void createConstraintAndEndEventFromEvent(id_type<EventModel> startEventId,
-                                                  TimeValue duration,
-                                                  double heightPos,
-                                                  id_type<ConstraintModel> newConstraintId,
-                                                  id_type<AbstractConstraintViewModel> newConstraintFullViewId,
-                                                  id_type<EventModel> newEventId);
-
-        void createTimeNode(id_type<TimeNodeModel> timeNodeId,
-                            id_type<EventModel> eventId);
-
-
-
         // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
@@ -101,12 +72,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         // TODO should maybe not be in the scenario?
         void removeEventFromTimeNode(id_type<EventModel> eventId);
         void removeTimeNode(id_type<TimeNodeModel> timeNodeId);
-
-        //TODO Maybe the command should in fact do this ??
-        void undo_removeConstraint(ConstraintModel* newConstraint);
-        void undo_createConstraintAndEndEventFromEvent(id_type<EventModel> endEventId);
-        void undo_createConstraintBetweenEvent(id_type<ConstraintModel> constraintId);
-
 
         // Accessors
         ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;
