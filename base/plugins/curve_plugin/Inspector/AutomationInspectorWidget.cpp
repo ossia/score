@@ -12,9 +12,9 @@
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
-#include <public_interface/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModelInterface.hpp>
 
 
 #include <QApplication>

@@ -1,8 +1,8 @@
 #pragma once
 #include <set>
 #include <memory>
-#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
-#include <plugin_interface/settingsdelegate/SettingsDelegateModelInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
 #include <QObject>
 #include <QChildEvent>
 #include <QDebug>

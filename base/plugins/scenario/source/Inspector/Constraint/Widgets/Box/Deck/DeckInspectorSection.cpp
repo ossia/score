@@ -14,7 +14,7 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 #include <QtWidgets>
 
 using namespace Scenario::Command;

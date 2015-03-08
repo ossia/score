@@ -1,5 +1,5 @@
 #pragma once
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 
 namespace Scenario
 {

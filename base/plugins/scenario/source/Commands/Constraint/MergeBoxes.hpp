@@ -3,7 +3,7 @@
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include "Box/MoveDeck.hpp"
 #include "RemoveBoxFromConstraint.hpp"
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 namespace Scenario
 {
     namespace Command

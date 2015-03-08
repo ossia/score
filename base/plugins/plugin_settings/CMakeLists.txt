@@ -6,10 +6,6 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 include_directories(.)
-include_directories("${CMAKE_SOURCE_DIR}")
-
-include_directories("${ISCORE_INTERFACE_FOLDER}")
-include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
 set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp

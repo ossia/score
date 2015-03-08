@@ -8,10 +8,6 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
-include_directories("${ISCORE_INTERFACE_FOLDER}")
-include_directories("${ISCORE_INTERFACE_FOLDER}/..")
-include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
-
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 

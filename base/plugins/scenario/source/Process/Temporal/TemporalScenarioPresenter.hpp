@@ -1,6 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
-#include <public_interface/tools/SettableIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <Document/Event/EventData.hpp>
 
 namespace iscore

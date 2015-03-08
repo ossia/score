@@ -12,10 +12,10 @@
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include "public_interface/document/DocumentInterface.hpp"
-#include <public_interface/command/OngoingCommandManager.hpp>
-#include <public_interface/command/SerializableCommand.hpp>
-#include <public_interface/tools/utilsCPP11.hpp>
+#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 
 #include <QGraphicsScene>
 

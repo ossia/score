@@ -3,8 +3,8 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationView.hpp"
 
-#include <public_interface/document/DocumentInterface.hpp>
-#include <public_interface/command/OngoingCommandManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                          ProcessViewInterface* view,

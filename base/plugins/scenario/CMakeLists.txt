@@ -12,10 +12,10 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${ISCORE_INTERFACE_FOLDER}")
-include_directories("${ISCORE_INTERFACE_FOLDER}/..")
-include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
-include_directories("${ISCORE_INTERFACE_FOLDER}/../../../API/Headers")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../device_explorer")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../") # API
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
@@ -29,8 +29,8 @@ target_link_libraries(process_interface Qt5::Core Qt5::Widgets iscore_lib)
 
 add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
-                                       iscore_lib APIMock
-                                       inspector_plugin process_interface device_explorer_plugin)
+									   iscore_lib APIMock
+									   inspector_plugin process_interface device_explorer_plugin)
 
 install(TARGETS process_interface
 		LIBRARY DESTINATION plugins/

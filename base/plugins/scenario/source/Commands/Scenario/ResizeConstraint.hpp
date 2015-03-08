@@ -1,7 +1,7 @@
 #pragma once
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include "Commands/Scenario/MoveEvent.hpp"
-#include <public_interface/tools/ObjectPath.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 #include <QPointF>
 

@@ -3,10 +3,10 @@
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <QJsonDocument>
-#include <public_interface/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 #include <iostream>
-#include <public_interface/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
@@ -129,7 +129,7 @@ QByteArray BaseElementModel::save()
     return arr;
 }
 
-#include "base/plugins/device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
+#include <DeviceInterface/DeviceExplorerInterface.hpp>
 QJsonObject BaseElementModel::toJson()
 {
     QJsonObject complete;

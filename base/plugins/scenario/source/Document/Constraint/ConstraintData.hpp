@@ -1,5 +1,5 @@
 #pragma once
-#include <public_interface/tools/SettableIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 class ConstraintModel;

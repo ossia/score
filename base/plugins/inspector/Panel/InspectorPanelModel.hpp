@@ -1,6 +1,6 @@
 #pragma once
 
-#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModelInterface.hpp>
 namespace iscore
 {
     class DocumentModel;

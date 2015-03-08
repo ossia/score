@@ -1,7 +1,7 @@
 /*
 #include "RemoteActionEmitterMaster.hpp"
 #include <Repartition/session/MasterSession.h>
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include <QDebug>
 
 RemoteActionEmitterMaster::RemoteActionEmitterMaster(MasterSession* session):

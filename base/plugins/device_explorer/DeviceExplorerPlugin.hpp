@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <plugin_interface/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 
 class DeviceExplorerPlugin :
     public QObject,

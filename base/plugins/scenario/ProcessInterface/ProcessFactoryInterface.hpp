@@ -2,9 +2,9 @@
 #include <QStringList>
 #include <QObject>
 #include <QByteArray>
-#include <plugin_interface/customfactory/FactoryInterface.hpp>
-#include <public_interface/serialization/VisitorInterface.hpp>
-#include <public_interface/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
 class ProcessViewModelInterface;
 class ProcessSharedModelInterface;

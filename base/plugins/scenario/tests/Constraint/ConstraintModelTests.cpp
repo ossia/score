@@ -6,7 +6,7 @@
 
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-#include <public_interface/tools/ObjectPath.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 
 

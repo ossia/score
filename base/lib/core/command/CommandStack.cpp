@@ -1,5 +1,5 @@
 #include <core/command/CommandStack.hpp>
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include <QDebug>
 using namespace iscore;
 

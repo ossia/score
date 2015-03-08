@@ -1,6 +1,6 @@
 #include "RemoveMultipleElements.hpp"
 
-#include <public_interface/presenter/PresenterInterface.hpp>
+#include <iscore/presenter/PresenterInterface.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

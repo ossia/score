@@ -1,5 +1,5 @@
 #pragma once
-#include <public_interface/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 
 #include <vector>
 

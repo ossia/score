@@ -1,11 +1,11 @@
 #pragma once
 
 #include <QWidget>
-#include <public_interface/tools/ObjectPath.hpp>
-#include <public_interface/document/DocumentInterface.hpp>
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 
-#include "public_interface/command/OngoingCommandManager.hpp"
+#include "iscore/command/OngoingCommandManager.hpp"
 
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"

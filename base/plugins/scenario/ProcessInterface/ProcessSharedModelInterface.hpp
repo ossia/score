@@ -1,8 +1,8 @@
 #pragma once
-#include <public_interface/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <public_interface/selection/Selectable.hpp>
-#include <public_interface/selection/Selection.hpp>
+#include <iscore/selection/Selectable.hpp>
+#include <iscore/selection/Selection.hpp>
 
 class QDataStream;
 
@@ -19,8 +19,6 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 {
         Q_OBJECT
     public:
-        // TODO Maybe the selectability should in fact
-        // be part of the parent element ???
         Selectable selection;
 
         using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;

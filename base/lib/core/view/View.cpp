@@ -1,5 +1,5 @@
 #include <core/view/View.hpp>
-#include <public_interface/menu/MenuInterface.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 #include <QDockWidget>
 #include <QGridLayout>
 #include <QDesktopWidget>
@@ -7,8 +7,8 @@
 #include <core/application/Application.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <plugin_interface/panel/PanelViewInterface.hpp>
-#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
 
 #include <QTabWidget>
 

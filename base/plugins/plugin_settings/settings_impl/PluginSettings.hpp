@@ -1,5 +1,5 @@
 #pragma once
-#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <QObject>
 
 

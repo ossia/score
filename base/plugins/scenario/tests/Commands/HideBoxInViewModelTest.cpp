@@ -20,7 +20,7 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 #include <core/command/CommandStack.hpp>
 using namespace iscore;
 using namespace Scenario::Command;

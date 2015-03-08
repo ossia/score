@@ -1,5 +1,5 @@
-#include <public_interface/serialization/DataStreamVisitor.hpp>
-#include <public_interface/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Event/State/State.hpp"
 

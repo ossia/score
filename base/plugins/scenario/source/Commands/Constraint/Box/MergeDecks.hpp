@@ -3,7 +3,7 @@
 #include "Deck/MoveProcessViewModel.hpp"
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
 #include "RemoveDeckFromBox.hpp"
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 namespace Scenario
 {
     namespace Command

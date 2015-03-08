@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <plugin_interface/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
 class Dummy {};
 

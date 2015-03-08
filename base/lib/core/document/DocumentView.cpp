@@ -1,6 +1,6 @@
 #include <core/document/DocumentView.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 
 #include <QGridLayout>

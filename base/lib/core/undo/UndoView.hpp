@@ -1,6 +1,6 @@
 #pragma once
 
-#include <plugin_interface/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
 
 class UndoPanelFactory : public iscore::PanelFactoryInterface
 {

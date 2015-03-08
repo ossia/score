@@ -1,14 +1,14 @@
 #include "ScenarioControl.hpp"
 
-#include <public_interface/menu/MenuInterface.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 #include <core/presenter/MenubarManager.hpp>
 #include <QAction>
 
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <public_interface/document/DocumentInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <QJsonDocument>
 
 

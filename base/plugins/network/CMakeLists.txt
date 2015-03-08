@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(network_plugin)
 
 if(ANDROID OR WIN32)
-    message("TODO FIXME ON ANDROID AND WINDOWS")
-    return()
+	message("TODO FIXME ON ANDROID AND WINDOWS")
+	return()
 endif()
 add_subdirectory(Deps)
 add_subdirectory(Repartition)
@@ -14,8 +14,6 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network)
 
 # Files & main target
 include_directories(.)
-include_directories("${ISCORE_INTERFACE_FOLDER}")
-include_directories("${ISCORE_INTERFACE_FOLDER}/..")
 
 include_directories("${CMAKE_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")

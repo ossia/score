@@ -9,9 +9,6 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${ISCORE_INTERFACE_FOLDER}")
-include_directories("${ISCORE_INTERFACE_FOLDER}/..")
-include_directories("${ISCORE_INTERFACE_FOLDER}/../../../")
 
 file(GLOB_RECURSE INTERFACE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.cpp")
 file(GLOB_RECURSE INTERFACE_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/DeviceInterface/*.hpp")
@@ -89,8 +86,8 @@ file(GLOB_RECURSE QRC "${CMAKE_CURRENT_SOURCE_DIR}/*.qrc")
 
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer.qrc")
 
-add_library(device_explorer_plugin 
-                        ${INTERFACE_SRCS} ${INTERFACE_HDRS}
+add_library(device_explorer_plugin
+						${INTERFACE_SRCS} ${INTERFACE_HDRS}
 			${COMMANDS_HDRS} ${COMMANDS_SRCS}
 			${PANEL_HDRS} ${PANEL_SRCS}
 			${PLUGIN_FILES} ${EXPLORER_RESOURCES_RCC})

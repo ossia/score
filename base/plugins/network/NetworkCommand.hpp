@@ -1,6 +1,6 @@
 #pragma once
-#include <public_interface/tools/utilsCPP11.hpp>
-#include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 #include <Repartition/session/Session.h>
 #include <Repartition/session/ConnectionData.hpp>
@@ -10,7 +10,7 @@
 #include "remote/RemoteActionReceiver.hpp"
 
 
-#include <public_interface/command/Command.hpp>
+#include <iscore/command/Command.hpp>
 
 class NetworkControl : public iscore::PluginControlInterface
 {

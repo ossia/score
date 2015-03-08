@@ -25,7 +25,7 @@
 #include "QRectF"
 #include "QPainterPath"
 #include "QGraphicsScene"
-#include <public_interface/selection/Selection.hpp>
+#include <iscore/selection/Selection.hpp>
 
 ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presenter) :
     QObject{presenter},

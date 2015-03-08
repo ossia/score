@@ -1,7 +1,7 @@
 #pragma once
-#include <public_interface/tools/SettableIdentifier.hpp>
-#include <public_interface/tools/NamedObject.hpp>
-#include <public_interface/selection/Selection.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <vector>
 
 #include "Document/Constraint/ConstraintData.hpp"

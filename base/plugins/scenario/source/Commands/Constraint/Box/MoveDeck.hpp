@@ -1,7 +1,7 @@
 #pragma once
 #include "CopyDeck.hpp"
 #include "RemoveDeckFromBox.hpp"
-#include <public_interface/command/AggregateCommand.hpp>
+#include <iscore/command/AggregateCommand.hpp>
 
 namespace Scenario
 {

@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
-#include <public_interface/serialization/DataStreamVisitor.hpp>
-#include <public_interface/serialization/JSONVisitor.hpp>
-#include <public_interface/tools/ObjectPath.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 class SerializationTest: public QObject
 {

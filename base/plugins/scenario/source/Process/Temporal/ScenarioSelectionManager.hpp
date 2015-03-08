@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
-#include <public_interface/selection/Selection.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <QApplication>
-#include <public_interface/selection/SelectionDispatcher.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <Process/ScenarioModel.hpp>
 
 class TemporalScenarioPresenter;

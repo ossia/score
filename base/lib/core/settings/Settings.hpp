@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <plugin_interface/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <set>
 
 #include <core/settings/SettingsModel.hpp>

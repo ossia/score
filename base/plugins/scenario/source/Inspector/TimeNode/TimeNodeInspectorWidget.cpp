@@ -8,7 +8,7 @@
 
 #include "Commands/TimeNode/SplitTimeNode.hpp"
 
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 
 #include <iostream>
 #include <QLabel>

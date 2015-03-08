@@ -1,6 +1,6 @@
 #include "ShowBoxInViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

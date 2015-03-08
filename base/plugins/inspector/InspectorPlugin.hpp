@@ -1,8 +1,8 @@
 #pragma once
-#include <plugin_interface/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <plugin_interface/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <plugin_interface/qt_interfaces/PluginControlInterface_QtInterface.hpp>
-#include <plugin_interface/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 
 class InspectorControl;
 class InspectorPlugin :

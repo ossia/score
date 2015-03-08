@@ -1,12 +1,12 @@
 #include "DocumentPresenter.hpp"
 
-#include <plugin_interface/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <public_interface/tools/utilsCPP11.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModelInterface.hpp>
 
 
 using namespace iscore;

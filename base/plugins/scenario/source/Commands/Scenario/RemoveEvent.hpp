@@ -1,9 +1,9 @@
 #pragma once
-#include <public_interface/tools/SettableIdentifier.hpp>
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 class AbstractConstraintViewModel;
 
-#include <public_interface/tools/ObjectPath.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 class EventModel;
 

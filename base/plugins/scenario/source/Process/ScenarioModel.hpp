@@ -1,9 +1,9 @@
 #pragma once
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include <public_interface/tools/SettableIdentifier.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 
-#include <public_interface/serialization/DataStreamVisitor.hpp>
-#include <public_interface/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 #include <ProcessInterface/TimeValue.hpp>
 

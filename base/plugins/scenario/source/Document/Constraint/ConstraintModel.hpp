@@ -1,11 +1,11 @@
 #pragma once
-#include <public_interface/tools/IdentifiedObject.hpp>
-#include <public_interface/tools/SettableIdentifier.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include "Document/ModelMetadata.hpp"
-#include <public_interface/serialization/VisitorInterface.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 #include "ProcessInterface/TimeValue.hpp"
 
-#include <public_interface/selection/Selectable.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <QColor>
 #include <vector>
 

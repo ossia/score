@@ -1,9 +1,9 @@
 #pragma once
-#include <public_interface/tools/NamedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
 #include <QPluginLoader>
 #include <QMap>
 
-#include <plugin_interface/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace iscore
 {

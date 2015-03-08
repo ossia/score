@@ -37,8 +37,8 @@
 #include "Commands/RemoveMultipleElements.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
-#include <public_interface/document/DocumentInterface.hpp>
-#include <public_interface/command/OngoingCommandManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 
 #include <algorithm>
 #include <QRectF>

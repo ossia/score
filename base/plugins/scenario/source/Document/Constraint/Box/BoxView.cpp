@@ -1,6 +1,6 @@
 #include "BoxView.hpp"
 
-#include <public_interface/tools/NamedObject.hpp>
+#include <iscore/tools/NamedObject.hpp>
 
 #include <QPainter>
 #include <QGraphicsScene>

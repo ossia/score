@@ -11,7 +11,7 @@
 
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 #include <QtWidgets/QVBoxLayout>
 
 using namespace Scenario::Command;

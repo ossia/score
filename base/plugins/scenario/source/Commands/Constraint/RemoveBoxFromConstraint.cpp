@@ -3,7 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 
-#include <public_interface/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

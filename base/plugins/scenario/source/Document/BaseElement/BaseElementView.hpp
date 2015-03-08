@@ -1,6 +1,6 @@
 #pragma once
-#include <public_interface/tools/NamedObject.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <QGraphicsView>
 class QSlider;
 class QGraphicsScene;

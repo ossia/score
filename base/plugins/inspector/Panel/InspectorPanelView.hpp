@@ -1,6 +1,6 @@
 #pragma once
-#include <plugin_interface/panel/PanelViewInterface.hpp>
-#include <public_interface/selection/Selection.hpp>
+#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/selection/Selection.hpp>
 namespace iscore
 {
     class Document;

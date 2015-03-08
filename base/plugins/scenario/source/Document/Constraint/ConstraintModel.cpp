@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include <public_interface/tools/utilsCPP11.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include <API/Headers/Editor/TimeBox.h>

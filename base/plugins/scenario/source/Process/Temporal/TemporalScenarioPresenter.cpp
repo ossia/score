@@ -27,8 +27,8 @@
 #include "ScenarioSelectionManager.hpp"
 #include "ScenarioViewInterface.hpp"
 
-#include <public_interface/selection/Selection.hpp>
-#include <public_interface/tools/utilsCPP11.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/tools/utilsCPP11.hpp>
 
 #include <QDebug>
 #include <QRectF>
@@ -37,7 +37,7 @@
 #include <QStateMachine>
 // TODO use state machine for selection (ctrl / not ctrl)
 #include <QtMath>
-#include "public_interface/command/SerializableCommand.hpp"
+#include "iscore/command/SerializableCommand.hpp"
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
                                                      ProcessViewInterface* view,

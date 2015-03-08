@@ -1,6 +1,6 @@
 #pragma once
 #include <QStack>
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include <memory>
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <plugin_interface/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 namespace iscore
 {

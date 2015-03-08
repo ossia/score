@@ -2,10 +2,10 @@
 
 #include "../DeviceExplorerPanelFactory.hpp"
 #include "../Panel/DeviceExplorerModel.hpp"
-#include "public_interface/document/DocumentInterface.hpp"
+#include "iscore/document/DocumentInterface.hpp"
 #include "core/document/Document.hpp"
 #include <core/document/DocumentModel.hpp>
-#include <plugin_interface/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModelInterface.hpp>
 #include "../Panel/Node.hpp"
 
 QString DeviceExplorer::panelName()

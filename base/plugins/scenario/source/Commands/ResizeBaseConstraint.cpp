@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include <ProcessInterface/TimeValue.hpp>
-#include <public_interface/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

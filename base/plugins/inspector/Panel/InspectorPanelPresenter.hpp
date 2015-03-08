@@ -1,6 +1,6 @@
 #pragma once
 
-#include <plugin_interface/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
 
 class InspectorPanelPresenter : public iscore::PanelPresenterInterface
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include <public_interface/tools/NamedObject.hpp>
-#include <plugin_interface/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 namespace iscore
 {
     class SelectionDispatcher;

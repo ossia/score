@@ -18,10 +18,8 @@ include_directories(.)
 file(GLOB_RECURSE SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/*.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/plugin_interface/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/public_interface/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/public_interface/*.hpp)
+	${CMAKE_CURRENT_SOURCE_DIR}/iscore/*.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/iscore/*.cpp)
 
 add_library(iscore_lib ${SRCS})
 target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)

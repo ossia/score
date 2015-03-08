@@ -1,6 +1,6 @@
 #pragma once
-#include <public_interface/tools/NamedObject.hpp>
-#include <public_interface/selection/SelectionStack.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 #include <core/command/CommandStack.hpp>
 
 namespace iscore

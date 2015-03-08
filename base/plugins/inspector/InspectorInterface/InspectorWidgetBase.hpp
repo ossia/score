@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QWidget>
-#include <public_interface/tools/ObjectPath.hpp>
-#include <public_interface/selection/SelectionStack.hpp>
-#include <public_interface/command/OngoingCommandManager.hpp>
+#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 class QVBoxLayout;
 class QLineEdit;
 class QLabel;

@@ -1,6 +1,6 @@
 /*
 #include <QtTest/QtTest>
-#include <public_interface/command/Command.hpp>
+#include <iscore/command/Command.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/QNamedObject>
 using namespace iscore;

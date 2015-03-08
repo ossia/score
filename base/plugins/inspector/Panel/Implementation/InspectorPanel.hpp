@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QWidget>
-#include <public_interface/selection/SelectionStack.hpp>
-#include <public_interface/selection/SelectionDispatcher.hpp>
+#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 class SelectionStackWidget;
 class QVBoxLayout;
 class InspectorWidgetBase;

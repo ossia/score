@@ -1,12 +1,12 @@
 #pragma once
-#include <public_interface/tools/IdentifiedObject.hpp>
-#include <public_interface/tools/SettableIdentifier.hpp>
-#include <public_interface/serialization/DataStreamVisitor.hpp>
-#include <public_interface/serialization/JSONVisitor.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include "Document/ModelMetadata.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 
-#include <public_interface/selection/Selectable.hpp>
+#include <iscore/selection/Selectable.hpp>
 class EventModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {

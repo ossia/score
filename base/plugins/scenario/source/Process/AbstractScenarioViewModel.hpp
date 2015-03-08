@@ -1,7 +1,7 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include <public_interface/tools/SettableIdentifier.hpp>
-#include <public_interface/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;

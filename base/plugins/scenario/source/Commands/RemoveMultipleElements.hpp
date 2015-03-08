@@ -1,6 +1,6 @@
 #pragma once
 
-#include <public_interface/command/SerializableCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include <QVector>
 
 namespace Scenario
