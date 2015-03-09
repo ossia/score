@@ -94,17 +94,18 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     auto cstrView = new FullViewConstraintView {this->view()->baseObject() };
 
-    delete m_baseConstraintPresenter;
-    m_baseConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
+    delete m_displayedConstraintPresenter;
+    m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
                                 cstrView,
                                 this};
 
-    m_baseConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
+    m_displayedConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
     on_askUpdate();
 
-    connect(m_baseConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
+    connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
 
+    model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
     // Update the address bar
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
@@ -125,7 +126,7 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
     m_horizontalZoomValue = newzoom;
 
     // Maybe translate
-    m_baseConstraintPresenter->on_zoomRatioChanged(millisecondsPerPixel(m_horizontalZoomValue));
+    m_displayedConstraintPresenter->on_zoomRatioChanged(millisecondsPerPixel(m_horizontalZoomValue));
 
     // Change the min & max of position slider, & current value
     // If zoom = min, positionSliderMax = 0.

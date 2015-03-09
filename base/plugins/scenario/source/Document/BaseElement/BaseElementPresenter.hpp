@@ -48,7 +48,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
     private:
         BaseElementView* view() const;
-        FullViewConstraintPresenter* m_baseConstraintPresenter {};
+        FullViewConstraintPresenter* m_displayedConstraintPresenter {};
 
         ConstraintModel* m_displayedConstraint {};
         iscore::SelectionDispatcher* m_selectionDispatcher{};

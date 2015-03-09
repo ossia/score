@@ -32,5 +32,7 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
                                     QObject* parent);
         virtual ~FullViewConstraintPresenter();
 
+        void on_pressed();
+
 };
 

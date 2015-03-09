@@ -9,6 +9,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 #include <QDebug>
 #include <QGraphicsScene>
@@ -25,6 +26,9 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     }
 
     updateHeight();
+
+    connect(cstr_view, &FullViewConstraintView::constraintPressed,
+            this,      &FullViewConstraintPresenter::on_pressed);
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
@@ -40,4 +44,10 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
         view(this)->deleteLater();
     }
+}
+
+void FullViewConstraintPresenter::on_pressed()
+{
+    iscore::SelectionDispatcher disp{this};
+    disp.send(Selection{this->model()});
 }
