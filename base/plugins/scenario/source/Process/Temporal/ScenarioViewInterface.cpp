@@ -32,15 +32,10 @@ ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presente
     m_presenter(presenter)
 {
     connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::eventMoved,
-            [ = ](id_type<EventModel> eventId)
-    {
-        on_eventMoved(eventId);
-    });
+            this, &ScenarioViewInterface::on_eventMoved);
+
     connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::constraintMoved,
-            [ = ](id_type<ConstraintModel> constraintId)
-    {
-        on_constraintMoved(constraintId);
-    });
+            this, &ScenarioViewInterface::on_constraintMoved);
 }
 
 void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)

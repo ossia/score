@@ -97,6 +97,7 @@ void BoxPresenter::on_durationChanged(TimeValue duration)
 void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
 {
     on_deckCreated_impl(m_model->deck(deckId));
+    on_askUpdate();
 }
 
 void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
@@ -113,8 +114,6 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 
     connect(deckPres, &DeckPresenter::askUpdate,
             this,     &BoxPresenter::on_askUpdate);
-
-    on_askUpdate();
 }
 
 void BoxPresenter::on_deckRemoved(id_type<DeckModel> deckId)
