@@ -23,7 +23,7 @@ class NetworkControl : public iscore::PluginControlInterface
 
 
     protected:
-        virtual void on_newDocument(iscore::Document* doc);
+        virtual void on_newDocument(iscore::Document* doc) override;
 
     private:
         iscore::Presenter* m_presenter {};

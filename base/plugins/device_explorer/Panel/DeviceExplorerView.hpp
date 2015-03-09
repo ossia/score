@@ -14,7 +14,7 @@ class DeviceExplorerView : public QTreeView
         DeviceExplorerView(QWidget* parent = 0);
         ~DeviceExplorerView();
 
-        void setModel(QAbstractItemModel* model);
+        void setModel(QAbstractItemModel* model) override;
         void setModel(DeviceExplorerFilterProxyModel* model);
 
         DeviceExplorerModel* model();
@@ -32,7 +32,7 @@ class DeviceExplorerView : public QTreeView
         void promote();
         void demote();
 
-        QModelIndexList selectedIndexes() const;
+        QModelIndexList selectedIndexes() const override;
 
     signals:
         void selectionChanged();
