@@ -4,6 +4,7 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -34,7 +35,8 @@ void SplitTimeNode::undo()
         originalTN->addEvent(eventId);
         newTN->removeEvent(eventId);
     }
-    scenar->removeTimeNode(m_newTimeNodeId);
+
+    StandardRemovalPolicy::removeTimeNode(*scenar, m_newTimeNodeId);
 }
 
 void SplitTimeNode::redo()

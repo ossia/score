@@ -191,48 +191,24 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 }
 
 
-//////// Creation ////////
-
-
-
 ///////// DELETION //////////
 #include <iscore/tools/utilsCPP11.hpp>
-void ScenarioModel::removeConstraint(id_type<ConstraintModel> constraintId)
-{
-    auto cstr = constraint(constraintId);
+void ScenarioModel::removeConstraint(ConstraintModel* cstr)
+{;
+    auto constraintId = cstr->id();
     vec_erase_remove_if(m_constraints,
                         [&constraintId](ConstraintModel * model)
     {
         return model->id() == constraintId;
     });
 
-    auto sev = event(cstr->startEvent());
-    sev->removeNextConstraint(constraintId);
-
-    auto eev = event(cstr->endEvent());
-    eev->removePreviousConstraint(constraintId);
-
     emit constraintRemoved(constraintId);
-
     delete cstr;
 }
 
-void ScenarioModel::removeEvent(id_type<EventModel> eventId)
+void ScenarioModel::removeEvent(EventModel* ev)
 {
-    auto ev = event(eventId);
-
-    auto constraints = ev->previousConstraints();
-    for(auto constraint : constraints)
-    {
-        removeConstraint(constraint);
-    }
-
-    constraints = ev->nextConstraints();
-
-    for(auto constraint : ev->nextConstraints())
-    {
-        removeConstraint(constraint);
-    }
+    auto eventId = ev->id();
 
     vec_erase_remove_if(m_events,
                         [&eventId](EventModel * model)
@@ -240,30 +216,13 @@ void ScenarioModel::removeEvent(id_type<EventModel> eventId)
         return model->id() == eventId;
     });
 
-    removeEventFromTimeNode(eventId);
     emit eventRemoved(eventId);
     delete ev;
 }
 
-void ScenarioModel::removeEventFromTimeNode(id_type<EventModel> eventId)
+void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 {
-    for(auto& timeNode : m_timeNodes)
-    {
-        if(timeNode->removeEvent(eventId))
-        {
-            if(timeNode->isEmpty())
-            {
-                removeTimeNode(timeNode->id());
-            }
-
-            return;
-        }
-    }
-}
-
-void ScenarioModel::removeTimeNode(id_type<TimeNodeModel> timeNodeId)
-{
-    auto tn = timeNode(timeNodeId);
+    auto timeNodeId = tn->id();
     vec_erase_remove_if(m_timeNodes,
                         [&timeNodeId](TimeNodeModel * model)
     {

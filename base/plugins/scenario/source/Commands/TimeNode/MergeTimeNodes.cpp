@@ -5,6 +5,7 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -64,7 +65,8 @@ void MergeTimeNodes::redo()
         aimedTimeNode->addEvent(event);
         movingTimeNode->removeEvent(event);
     }
-    scenar->removeTimeNode(m_movingTimeNodeId);
+
+    StandardRemovalPolicy::removeTimeNode(*scenar, m_movingTimeNodeId);
 }
 
 bool MergeTimeNodes::mergeWith(const Command *other)

@@ -8,6 +8,7 @@
 #include "source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -43,7 +44,7 @@ void CreateEventAfterEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->removeEvent(m_createdEventId);
+    StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()

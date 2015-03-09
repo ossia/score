@@ -7,6 +7,7 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -36,7 +37,7 @@ void CreateConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    scenar->removeConstraint(m_createdConstraintId);
+    StandardRemovalPolicy::removeConstraint(*scenar, m_createdConstraintId);
 }
 
 void CreateConstraint::redo()

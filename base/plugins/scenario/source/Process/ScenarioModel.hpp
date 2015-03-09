@@ -67,11 +67,9 @@ class ScenarioModel : public ProcessSharedModelInterface
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
 
-        void removeConstraint(id_type<ConstraintModel> constraintId);
-        void removeEvent(id_type<EventModel> eventId);
-        // TODO should maybe not be in the scenario?
-        void removeEventFromTimeNode(id_type<EventModel> eventId);
-        void removeTimeNode(id_type<TimeNodeModel> timeNodeId);
+        void removeConstraint(ConstraintModel* constraint);
+        void removeEvent(EventModel* event);
+        void removeTimeNode(TimeNodeModel* timeNode);
 
         // Accessors
         ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;

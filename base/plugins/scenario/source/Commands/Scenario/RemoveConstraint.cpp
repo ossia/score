@@ -6,7 +6,7 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
-
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 #include <iscore/tools/utilsCPP11.hpp>
 
 using namespace iscore;
@@ -71,7 +71,7 @@ void RemoveConstraint::undo()
 void RemoveConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    scenar->removeConstraint(m_cstrId);
+    StandardRemovalPolicy::removeConstraint(*scenar, m_cstrId);
 }
 
 bool RemoveConstraint::mergeWith(const Command* other)

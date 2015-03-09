@@ -9,6 +9,7 @@
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
+#include "Process/Algorithms/StandardRemovalPolicy.hpp"
 #include <iscore/tools/utilsCPP11.hpp>
 
 using namespace iscore;
@@ -123,7 +124,7 @@ void RemoveEvent::undo()
 void RemoveEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    scenar->removeEvent(m_evId);
+    StandardRemovalPolicy::removeEvent(*scenar, m_evId);
 }
 
 bool RemoveEvent::mergeWith(const Command* other)
