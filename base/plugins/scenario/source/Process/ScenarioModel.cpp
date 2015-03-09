@@ -118,7 +118,7 @@ void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
 
 void ScenarioModel::setDurationAndShrink(TimeValue newDuration)
 {
-
+    qDebug() << Q_FUNC_INFO << "TODO";
 }
 
 Selection ScenarioModel::selectableChildren() const
@@ -190,6 +190,38 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
             scen, &view_model_type::constraintMoved);
 }
 
+///////// ADDITION //////////
+void ScenarioModel::addConstraint(ConstraintModel* constraint)
+{
+    m_constraints.push_back(constraint);
+
+    connect(&constraint->selection, &Selectable::changed,
+            [&] (bool) { selectedChildrenChanged(this); } );
+    connect(constraint, &ConstraintModel::selectedChildrenChanged,
+            this,       &ProcessSharedModelInterface::selectedChildrenChanged);
+
+    emit constraintCreated(constraint->id());
+}
+
+void ScenarioModel::addEvent(EventModel* event)
+{
+    m_events.push_back(event);
+
+    connect(&event->selection, &Selectable::changed,
+            [&] (bool) { selectedChildrenChanged(this); } );
+
+    emit eventCreated(event->id());
+}
+
+void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
+{
+    m_timeNodes.push_back(timeNode);
+
+    connect(&timeNode->selection, &Selectable::changed,
+            [&] (bool) { selectedChildrenChanged(this); } );
+
+    emit timeNodeCreated(timeNode->id());
+}
 
 ///////// DELETION //////////
 #include <iscore/tools/utilsCPP11.hpp>
@@ -249,6 +281,7 @@ TimeNodeModel* ScenarioModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
     return findById(m_timeNodes, timeNodeId);
 }
 
+
 EventModel* ScenarioModel::startEvent() const
 {
     return event(m_startEventId);
@@ -259,46 +292,9 @@ EventModel* ScenarioModel::endEvent() const
     return event(m_endEventId);
 }
 
-std::vector<EventModel*> ScenarioModel::events() const
-{
-    return m_events;
-}
+
 
 void ScenarioModel::on_viewModelDestroyed(QObject* obj)
 {
     removeViewModel(static_cast<ProcessViewModelInterface*>(obj));
-}
-
-
-
-void ScenarioModel::addConstraint(ConstraintModel* constraint)
-{
-    m_constraints.push_back(constraint);
-
-    connect(&constraint->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
-    connect(constraint, &ConstraintModel::selectedChildrenChanged,
-            this,       &ProcessSharedModelInterface::selectedChildrenChanged);
-
-    emit constraintCreated(constraint->id());
-}
-
-void ScenarioModel::addEvent(EventModel* event)
-{
-    m_events.push_back(event);
-
-    connect(&event->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
-
-    emit eventCreated(event->id());
-}
-
-void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
-{
-    m_timeNodes.push_back(timeNode);
-
-    connect(&timeNode->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
-
-    emit timeNodeCreated(timeNode->id());
 }

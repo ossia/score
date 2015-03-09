@@ -87,7 +87,12 @@ class ScenarioModel : public ProcessSharedModelInterface
         {
             return m_constraints;
         }
-        std::vector<EventModel*> events() const;
+
+        std::vector<EventModel*> events() const
+        {
+            return m_events;
+        }
+
         std::vector<TimeNodeModel*> timeNodes() const
         {
             return m_timeNodes;
