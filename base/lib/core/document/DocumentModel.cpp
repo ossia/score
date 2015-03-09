@@ -13,7 +13,7 @@ DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
     NamedObject {"DocumentModel", parent},
     m_model{fact->makeModel(this)}
 {
-
+    qDebug("1");
 }
 
 DocumentModel::DocumentModel(const QByteArray& data,
@@ -22,7 +22,7 @@ DocumentModel::DocumentModel(const QByteArray& data,
     NamedObject {"DocumentModel", parent},
     m_model{fact->makeModel(this, data)}
 {
-
+    qDebug("2");
 }
 
 PanelModelInterface* DocumentModel::panel(QString name) const
