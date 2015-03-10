@@ -227,6 +227,9 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
 void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
 {
     // TODO mettre à jour l'inspecteur si la box affichée change (i.e. via une commande réseau).
+    if (m_boxWidget == 0)
+        return;
+
     if(box == m_boxWidget->hiddenText)
     {
         if(vm->isBoxShown())
@@ -246,7 +249,6 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
-
 }
 
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)

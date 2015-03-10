@@ -16,7 +16,7 @@ class EventShortCut: public QWidget
         QString eventName();
 
     signals:
-        void eventSelected(QString);
+        void eventSelected();
 
     private:
         QCheckBox* m_box;

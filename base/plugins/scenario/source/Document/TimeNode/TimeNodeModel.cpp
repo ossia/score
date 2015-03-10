@@ -19,6 +19,12 @@ TimeNodeModel::~TimeNodeModel()
 
 }
 
+#include "Process/ScenarioModel.hpp"
+ScenarioModel *TimeNodeModel::parentScenario() const
+{
+    return dynamic_cast<ScenarioModel*>(parent());
+}
+
 void TimeNodeModel::addEvent(id_type<EventModel> eventId)
 {
     m_events.push_back(eventId);

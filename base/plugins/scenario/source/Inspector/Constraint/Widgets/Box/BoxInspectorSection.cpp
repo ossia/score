@@ -13,8 +13,22 @@
 
 #include "iscore/document/DocumentInterface.hpp"
 #include <QtWidgets/QVBoxLayout>
+#include <QFrame>
 
 using namespace Scenario::Command;
+
+class BoxSeparator : public QFrame
+{
+    public:
+        BoxSeparator(QWidget* parent) :
+            QFrame {parent}
+        {
+            setFrameStyle(QFrame::Raised);
+            setFrameShape(QFrame::HLine);
+            setLineWidth(2);
+        }
+};
+
 
 BoxInspectorSection::BoxInspectorSection(QString name,
                                          BoxModel* box,
@@ -40,6 +54,7 @@ BoxInspectorSection::BoxInspectorSection(QString name,
     m_deckWidget = new AddDeckWidget{this};
     addContent(m_deckSection);
     addContent(m_deckWidget);
+    addContent(new BoxSeparator {this});
 }
 
 void BoxInspectorSection::createDeck()

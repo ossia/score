@@ -15,8 +15,7 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     // HEADER : arrow button and name
     QWidget* title = new QWidget;
     QHBoxLayout* titleLayout = new QHBoxLayout;
-//	_sectionTitle = new QLineEdit; //QLabel ?;
-//	_sectionTitle->setStyleSheet ( QString ( "background-color: lightGray;") );
+
     _btn = new QToolButton;
 
     _buttonTitle = new QPushButton;
@@ -25,7 +24,7 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     _buttonTitle->setStyleSheet("text-align: left;");
     _buttonTitle->setLayout(new QVBoxLayout);
 //	_buttonTitle->layout()->addWidget (_sectionTitle);
-    _buttonTitle->layout()->setMargin(0);
+//    _buttonTitle->layout()->setMargin(0);
 //	_sectionTitle->hide();
 
     titleLayout->addWidget(_btn);
@@ -33,20 +32,10 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     title->setLayout(titleLayout);
 
     // CONTENT
-    /*    _container = new QScrollArea;
-    	QWidget *areaContent = new QWidget;
-
-    	_container->setMinimumSize(150,50);
-    	_container->setWidgetResizable(true);
-    	_containerLayout = new QVBoxLayout;
-    	_containerLayout->setMargin(0);
-    	_containerLayout->addStretch();
-    	areaContent->setLayout(_containerLayout);
-    	_container->setWidget(areaContent);
-    */
     _container = new QWidget;
+    _container->setContentsMargins(0,1,0,0);
     _containerLayout = new QVBoxLayout;
-    _containerLayout->setMargin(1);
+    _containerLayout->setContentsMargins(5,1,0,0);
     _containerLayout->addStretch();
     _container->setLayout(_containerLayout);
 
@@ -54,7 +43,8 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     QVBoxLayout* globalLayout = new QVBoxLayout;
     globalLayout->addWidget(title);
     globalLayout->addWidget(_container);
-    globalLayout->setMargin(5);
+    globalLayout->setContentsMargins(0,1,0,0);
+    this->setContentsMargins(0,1,0,0);
 
     connect(_btn, SIGNAL(released()), this, SLOT(expand()));
     connect(_buttonTitle, SIGNAL(clicked()), this, SLOT(expand()));

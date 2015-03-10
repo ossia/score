@@ -10,6 +10,8 @@ EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
 {
     auto groupLay = new QHBoxLayout{};
     this->setLayout(groupLay);
+    this->setContentsMargins(0,0,0,0);
+    groupLay->setContentsMargins(5,0,0,0);
 
     // browser button
     m_eventBtn = new QPushButton{this};
@@ -24,7 +26,7 @@ EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
     connect(m_eventBtn,   &QPushButton::clicked,
             [ = ]()
     {
-        emit eventSelected(m_eventBtn->text());
+        emit eventSelected();
     });
 
 }
