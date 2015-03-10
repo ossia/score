@@ -10,8 +10,8 @@ namespace iscore
             UndoControl(QObject* parent);
             ~UndoControl();
 
-            void populateMenus(MenubarManager*);
-            void populateToolbars();
+            void populateMenus(MenubarManager*) override;
+            void populateToolbars() override;
 
 
         protected:

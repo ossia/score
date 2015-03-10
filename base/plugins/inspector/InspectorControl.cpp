@@ -15,6 +15,7 @@ InspectorWidgetBase* InspectorControl::makeInspectorWidget(QObject* object)
         {
             return factory->makeWidget(object);  // TODO multiple items.
         }
+        qDebug() << object->objectName();
     }
 
     // When no factory is found.

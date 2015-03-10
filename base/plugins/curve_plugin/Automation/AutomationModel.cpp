@@ -57,25 +57,27 @@ void AutomationModel::setDurationAndGrow(TimeValue newDuration)
             m_points[keys[i] * scale] = points[keys[i]];
         }
 
-        // 2. Create a new point at the end (x=1) with the same value than the last point.
-        // If there is already another point at the same "value" in-between, we optimize
-        // NOTE : One day this may be source of headache.
-        auto newkeys = m_points.keys();
-
-        double butlastKey = newkeys[newkeys.size() - 2];
-        double lastKey = newkeys[newkeys.size() - 1];
-
-        if(m_points[butlastKey] == m_points[lastKey])
+        if(m_points.keys().size() >= 2)
         {
-            auto val = m_points.take(lastKey);
-            m_points[1] = val;
-        }
-        else
-        {
-            auto last = m_points.last();
-            m_points[1] = last;
-        }
+            // 2. Create a new point at the end (x=1) with the same value than the last point.
+            // If there is already another point at the same "value" in-between, we optimize
+            // NOTE : One day this may be source of headache.
+            auto newkeys = m_points.keys();
 
+            double butlastKey = newkeys.at(newkeys.size() - 2);
+            double lastKey = newkeys.at(newkeys.size() - 1);
+
+            if(m_points[butlastKey] == m_points[lastKey])
+            {
+                auto val = m_points.take(lastKey);
+                m_points[1] = val;
+            }
+            else
+            {
+                auto last = m_points.last();
+                m_points[1] = last;
+            }
+        }
         setDuration(newDuration);
         emit pointsChanged();
     }

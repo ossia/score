@@ -4,12 +4,12 @@
 class AutomationFactory : public ProcessFactoryInterface
 {
     public:
-        virtual QString name() const
+        virtual QString name() const override
         {
             return "Automation";
         }
 
-        virtual QStringList availableViews()
+        virtual QStringList availableViews() override
         {
             return {"Curve"};
         }

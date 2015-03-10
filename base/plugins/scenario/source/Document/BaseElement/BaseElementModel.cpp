@@ -157,13 +157,19 @@ void BaseElementModel::setNewSelection(const Selection& s)
         if(m_focusedProcess)
         {
             m_focusedProcess->setSelection({});
+            m_displayedConstraint->selection.set(false);
             m_focusedProcess = nullptr;
         }
+    }
+    else if(s.first() == m_displayedConstraint)
+    {
+        m_displayedConstraint->selection.set(true);
     }
     else
     {
         // We know by the presenter that all objects
         // in a given selection are in the same Process.
+        m_displayedConstraint->selection.set(false);
         auto newProc = parentProcess(s.first());
         if(m_focusedProcess && newProc != m_focusedProcess)
         {
@@ -173,4 +179,9 @@ void BaseElementModel::setNewSelection(const Selection& s)
         m_focusedProcess = newProc;
         m_focusedProcess->setSelection(s);
     }
+}
+
+void BaseElementModel::setDisplayedConstraint(ConstraintModel *constraint)
+{
+    m_displayedConstraint = constraint;
 }

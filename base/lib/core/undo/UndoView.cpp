@@ -63,7 +63,7 @@ class UndoPanelPresenter : public iscore::PanelPresenterInterface
         {
         }
 
-        QString modelObjectName() const
+        QString modelObjectName() const override
         {
             return "UndoPanelModel";
         }

@@ -15,7 +15,7 @@ class InspectorPanelView : public iscore::PanelViewInterface
         InspectorPanelView(iscore::View* parent);
         virtual QWidget* getWidget() override;
 
-        virtual Qt::DockWidgetArea defaultDock() const
+        virtual Qt::DockWidgetArea defaultDock() const override
         {
             return Qt::RightDockWidgetArea;
         }

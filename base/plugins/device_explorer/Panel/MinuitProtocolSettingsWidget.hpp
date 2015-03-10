@@ -12,7 +12,7 @@ class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
 
         virtual QList<QString> getSettings() const override;
 
-        virtual void setSettings(const QList<QString>& settings);
+        virtual void setSettings(const QList<QString>& settings) override;
 
     protected:
         void buildGUI();
