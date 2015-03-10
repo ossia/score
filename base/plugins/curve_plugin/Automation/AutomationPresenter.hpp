@@ -1,5 +1,6 @@
 #pragma once
 #include <ProcessInterface/ProcessPresenterInterface.hpp>
+#include "../../scenario/source/Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp"
 
 class PluginCurveView;
 class PluginCurvePresenter;
@@ -42,4 +43,5 @@ class AutomationPresenter : public ProcessPresenterInterface
         ICommandDispatcher* m_commandDispatcher{};
 
         ZoomRatio m_zoomRatio {};
+        FocusDispatcher m_focusDispatcher;
 };

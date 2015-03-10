@@ -5,6 +5,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include <QGraphicsSceneMouseEvent>
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                          ProcessViewInterface* view,
@@ -12,7 +13,8 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     ProcessPresenterInterface {"AutomationPresenter", parent},
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
-    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}}
+    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}},
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
@@ -74,6 +76,7 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 #include <QGraphicsScene>
 void AutomationPresenter::on_modelPointsChanged()
 {
+    qDebug() << Q_FUNC_INFO << (void*) this;
     if(m_curveView)
     {
         m_view->scene()->removeItem(m_curveView);
@@ -87,6 +90,11 @@ void AutomationPresenter::on_modelPointsChanged()
 
     m_curveModel = new PluginCurveModel {this};
     m_curveView = new PluginCurveView {m_view};
+    connect(m_curveView, &PluginCurveView::mousePressed,
+            this, [&] (QGraphicsSceneMouseEvent*)
+    {
+        m_focusDispatcher.focus(m_viewModel);
+    });
 
     // Compute the scale
     auto duration = m_viewModel->model()->duration();

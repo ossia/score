@@ -9,7 +9,8 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
 {
         Q_OBJECT
     public:
-        using iscore::PanelPresenterInterface::PanelPresenterInterface;
+        ProcessPanelPresenter(iscore::Presenter* parent_presenter,
+                              iscore::PanelViewInterface* view);
 
         QString modelObjectName() const override;
         void on_modelChanged() override;
@@ -19,6 +20,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
         void on_sizeChanged(const QSize& size);
 
     private:
+        QGraphicsObject* m_obj{};
         BaseElementModel* m_baseElementModel{};
         ProcessViewModelInterface* m_processViewModel{};
         ProcessPresenterInterface* m_processPresenter{};

@@ -188,7 +188,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     auto factory = ProcessList::getFactory(procname);
 
     auto proc_view = factory->makeView(proc_vm, m_view);
-    proc_view->setPos(0, 0);
     auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 
     presenter->on_zoomRatioChanged(m_zoomRatio);
@@ -197,6 +196,7 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     updateProcessesShape();
 }
 
+// TODO generalize this in a mapToRectangle function
 void DeckPresenter::updateProcessesShape()
 {
     for(ProcessPresenterInterface* proc : m_processes)

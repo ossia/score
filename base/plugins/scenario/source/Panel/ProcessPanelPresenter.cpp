@@ -22,6 +22,14 @@
 #include <QDebug>
 #include <QGraphicsScene>
 
+ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelViewInterface* view):
+    iscore::PanelPresenterInterface{parent_presenter, view},
+    m_obj{new GraphicsProxyObject}
+{
+    auto panelview = static_cast<ProcessPanelView*>(view);
+    panelview->scene()->addItem(m_obj);
+}
+
 QString ProcessPanelPresenter::modelObjectName() const
 {
     return "ProcessPanelModel";
@@ -58,28 +66,28 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
         if(!thePVM)
             return;
 
-        // TODO Leak
-        auto gobj = new GraphicsProxyObject;
-
-        auto fact = ProcessList::getFactory(m_processViewModel->sharedProcessModel()->processName());
-
+        auto fact = ProcessList::getFactory(m_processViewModel
+                                              ->sharedProcessModel()
+                                                ->processName());
         auto proxy = m_processViewModel->make_panelProxy();
 
-        // TODO pvm::correspondingView ?
-        m_processView = fact->makeView(proxy->viewModel(), gobj);
-        m_processView->setHeight(panelview->view()->size().height());
-        m_processView->setWidth(panelview->view()->size().width());
+        m_processView = fact->makeView(proxy->viewModel(),
+                                       m_obj);
+        m_processPresenter = fact->makePresenter(proxy->viewModel(),
+                                                 m_processView,
+                                                 this);
 
-        // TODO pvm::correspondingPresenter ?
-        m_processPresenter = fact->makePresenter(proxy->viewModel(), m_processView, this);
 
-        panelview->scene()->addItem(gobj);
+        m_processPresenter->on_zoomRatioChanged(1.0);
+        on_sizeChanged(panelview->view()->size());
     }
 }
 
 void ProcessPanelPresenter::on_sizeChanged(const QSize& size)
 {
-    m_processView->setHeight(size.height());
-    m_processView->setWidth(size.width());
-    m_processView->setScale(2);
+    if(!m_processPresenter)
+        return;
+    m_processPresenter->setHeight(size.height());
+    m_processPresenter->setWidth(size.width());
+    m_processPresenter->parentGeometryChanged();
 }
