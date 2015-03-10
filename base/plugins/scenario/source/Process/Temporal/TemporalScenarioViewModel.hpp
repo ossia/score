@@ -38,6 +38,8 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
             vis.writeTo(*this);
         }
 
+        virtual ProcessViewModelPanelProxy* make_panelProxy();
+
         virtual ~TemporalScenarioViewModel() = default;
 
         virtual void serialize(SerializationIdentifier identifier,

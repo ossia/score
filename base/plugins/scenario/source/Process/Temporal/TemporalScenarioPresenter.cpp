@@ -38,8 +38,9 @@
 // TODO use state machine for selection (ctrl / not ctrl)
 #include <QtMath>
 #include "iscore/command/SerializableCommand.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 
-TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
+TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* process_view_model,
                                                      ProcessViewInterface* view,
                                                      QObject* parent) :
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},

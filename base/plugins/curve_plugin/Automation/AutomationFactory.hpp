@@ -9,11 +9,6 @@ class AutomationFactory : public ProcessFactoryInterface
             return "Automation";
         }
 
-        virtual QStringList availableViews()
-        {
-            return {"Curve"};
-        }
-
         virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id,
                 QObject* parent) override;
 
@@ -21,7 +16,7 @@ class AutomationFactory : public ProcessFactoryInterface
                 void* data,
                 QObject* parent) override;
 
-        virtual ProcessViewInterface* makeView(QString view,
+        virtual ProcessViewInterface* makeView(ProcessViewModelInterface* viewmodel,
                                                QObject* parent) override;
         virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
                 ProcessViewInterface*,

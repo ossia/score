@@ -36,7 +36,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         friend class ScenarioSelectionManager;
 
     public:
-        TemporalScenarioPresenter(ProcessViewModelInterface* model,
+        TemporalScenarioPresenter(TemporalScenarioViewModel* model,
                                   ProcessViewInterface* view,
                                   QObject* parent);
         virtual ~TemporalScenarioPresenter();
@@ -92,9 +92,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
         void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
-
         ScenarioCommandManager* m_cmdManager{};
         ScenarioSelectionManager* m_selManager{};
         ScenarioViewInterface* m_viewInterface{};
-
 };

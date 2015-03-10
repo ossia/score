@@ -16,7 +16,7 @@ InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :
     QWidget {parent},
     m_layout{new QVBoxLayout{this}},
     m_tabWidget{new QTabWidget{this}},
-    m_selectionDispatcher{new iscore::SelectionDispatcher{s, this}}
+    m_selectionDispatcher{s}
 {
     m_layout->setMargin(8);
     setMinimumWidth(250);
@@ -43,6 +43,6 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
         // need m_tabWidget.movable() = false !
         Selection sel = objects;
         sel.removeAt(index);
-        m_selectionDispatcher->send(sel);
+        m_selectionDispatcher.send(sel);
     });
 }

@@ -67,9 +67,15 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_creationCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{this}},
-    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{this}},
-    m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{this}}
+    m_creationCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{
+                                iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                                this}},
+    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{
+                            iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                            this}},
+    m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{
+                               iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                               this}}
 {
 
     // TODO make it more generic (maybe with a QAction ?)
@@ -186,8 +192,8 @@ void ScenarioCommandManager::createConstraint(EventData data)
     else
     {
         emit m_creationCommandDispatcher->submitCommand(new CreateConstraint(move(cmdPath),
-                                                data.eventClickedId,
-                                                collidingEvents.first()->id()));
+                                                                             data.eventClickedId,
+                                                                             collidingEvents.first()->id()));
     }
 }
 
@@ -219,8 +225,8 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
     }
 
     auto cmd = new CreateEvent{
-                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
-                    data};
+               iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+               data};
 
     emit m_creationCommandDispatcher->submitCommand(cmd);
     emit m_creationCommandDispatcher->commit();
@@ -241,15 +247,15 @@ void ScenarioCommandManager::clearContentFromSelection()
     for(auto& constraint : constraintsToRemove)
     {
         commands.push_back(
-            new ClearConstraint(
-                iscore::IDocument::path(viewModel(constraint)->model())));
+                    new ClearConstraint(
+                        iscore::IDocument::path(viewModel(constraint)->model())));
     }
 
     for(auto& event : eventsToRemove)
     {
         commands.push_back(
-            new ClearEvent(
-                iscore::IDocument::path(event->model())));
+                    new ClearEvent(
+                        iscore::IDocument::path(event->model())));
     }
 
     // 4. Make a meta-command that binds them all and calls undo & redo on the queue.
@@ -278,17 +284,17 @@ void ScenarioCommandManager::deleteSelection()
         for(auto& constraint : constraintsToRemove)
         {
             commands.push_back(
-                new RemoveConstraint(
-                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
-                    constraint->abstractConstraintViewModel()->model()));
+                        new RemoveConstraint(
+                            iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+                            constraint->abstractConstraintViewModel()->model()));
         }
 
         for(auto& event : eventsToRemove)
         {
             commands.push_back(
-                new RemoveEvent(
-                    iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
-                    event->model()));
+                        new RemoveEvent(
+                            iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
+                            event->model()));
         }
 
         // 3. Make a meta-command that binds them all and calls undo & redo on the queue.

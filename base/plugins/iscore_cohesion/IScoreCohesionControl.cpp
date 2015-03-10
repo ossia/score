@@ -53,7 +53,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
         if(f.open())
         {
-            auto& doc = IDocument::modelDelegate<BaseElementModel>(currentDocument());
+            auto& doc = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
             auto data = JSONToZeroTwo(doc.toJson());
 
             f.write(data.toLatin1().constData(), data.size());

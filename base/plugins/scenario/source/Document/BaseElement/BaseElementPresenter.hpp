@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 namespace iscore
 {
     class SelectionDispatcher;
@@ -51,7 +52,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         FullViewConstraintPresenter* m_baseConstraintPresenter {};
 
         ConstraintModel* m_displayedConstraint {};
-        iscore::SelectionDispatcher* m_selectionDispatcher{};
+        iscore::SelectionDispatcher m_selectionDispatcher;
 
 
         int m_horizontalZoomValue {50};

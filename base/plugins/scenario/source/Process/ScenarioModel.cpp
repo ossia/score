@@ -195,11 +195,6 @@ void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
     m_constraints.push_back(constraint);
 
-    connect(&constraint->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
-    connect(constraint, &ConstraintModel::selectedChildrenChanged,
-            this,       &ProcessSharedModelInterface::selectedChildrenChanged);
-
     emit constraintCreated(constraint->id());
 }
 
@@ -207,18 +202,12 @@ void ScenarioModel::addEvent(EventModel* event)
 {
     m_events.push_back(event);
 
-    connect(&event->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
-
     emit eventCreated(event->id());
 }
 
 void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 {
     m_timeNodes.push_back(timeNode);
-
-    connect(&timeNode->selection, &Selectable::changed,
-            [&] (bool) { selectedChildrenChanged(this); } );
 
     emit timeNodeCreated(timeNode->id());
 }

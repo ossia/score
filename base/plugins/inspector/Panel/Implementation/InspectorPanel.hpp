@@ -44,5 +44,5 @@ class InspectorPanel : public QWidget
         QVBoxLayout* m_layout{};
         QTabWidget* m_tabWidget{};
 
-        iscore::SelectionDispatcher* m_selectionDispatcher{};
+        iscore::SelectionDispatcher m_selectionDispatcher;
 };

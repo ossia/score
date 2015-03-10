@@ -10,7 +10,7 @@ ProcessSharedModelInterface* AutomationFactory::makeModel(id_type<ProcessSharedM
     return new AutomationModel {id, parent};
 }
 
-ProcessViewInterface* AutomationFactory::makeView(QString view, QObject* parent)
+ProcessViewInterface* AutomationFactory::makeView(ProcessViewModelInterface* view, QObject* parent)
 {
     return new AutomationView {static_cast<QGraphicsObject*>(parent) };
 }

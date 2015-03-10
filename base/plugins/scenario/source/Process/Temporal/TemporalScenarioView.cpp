@@ -42,7 +42,7 @@ void TemporalScenarioView::paint(QPainter* painter,
     if(m_clicked)
     {
         painter->setPen(Qt::black);
-        painter->drawRect(*m_selectArea);
+        painter->drawRect(m_selectArea);
     }
 }
 
@@ -58,7 +58,6 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     else if(event->button() == Qt::LeftButton)
     {
         emit scenarioPressed();
-        m_selectArea = new QRectF {0, 0, 0, 0};
         m_clickedPoint = event->pos();
         m_clicked = true;
     }
@@ -70,8 +69,8 @@ void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
     if(m_clicked)
     {
-        m_selectArea->setTopLeft(m_clickedPoint);
-        m_selectArea->setBottomRight(event->pos());
+        m_selectArea.setTopLeft(m_clickedPoint);
+        m_selectArea.setBottomRight(event->pos());
     }
 
     this->update();
@@ -92,7 +91,6 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         rect.setTopLeft(this->mapToScene(m_clickedPoint));
         rect.setBottomRight(event->scenePos());
 
-        delete m_selectArea;
         this->update();
         m_clicked = false;
         emit newSelectionArea(rect);

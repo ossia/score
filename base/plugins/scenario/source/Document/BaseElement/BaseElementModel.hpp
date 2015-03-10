@@ -30,6 +30,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
+        void setFocusedProcess(ProcessSharedModelInterface* proc);
         ProcessSharedModelInterface* focusedProcess() const
         { return m_focusedProcess; }
 

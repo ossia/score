@@ -12,7 +12,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     ProcessPresenterInterface {"AutomationPresenter", parent},
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
-    m_commandDispatcher{new CommandDispatcher<>{this}}
+    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);

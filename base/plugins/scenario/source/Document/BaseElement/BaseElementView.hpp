@@ -1,25 +1,13 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <QGraphicsView>
+#include "Widgets/SizeNotifyingGraphicsView.hpp"
 class QSlider;
 class QGraphicsScene;
 class QGraphicsView;
 class TemporalConstraintView;
 class AddressBar;
 
-class ScoreGraphicsView : public QGraphicsView
-{
-        Q_OBJECT
-    public:
-        using QGraphicsView::QGraphicsView;
-
-    signals:
-        void widthChanged(int);
-
-    protected:
-        virtual void resizeEvent(QResizeEvent* ev);
-};
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -43,7 +31,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
             return m_scene;
         }
 
-        ScoreGraphicsView* view()
+        SizeNotifyingGraphicsView* view()
         {
             return m_view;
         }
@@ -74,7 +62,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
     private:
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
-        ScoreGraphicsView* m_view {};
+        SizeNotifyingGraphicsView* m_view {};
         QGraphicsObject* m_baseObject {};
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};

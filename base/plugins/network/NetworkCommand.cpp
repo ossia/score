@@ -159,7 +159,7 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
                            cmd_name,
                            data);
 
-            CommandDispatcher<> cmdDispatcher(m_control->currentDocument());
+            CommandDispatcher<> cmdDispatcher(m_control->currentDocument()->commandStack(), nullptr);
             cmdDispatcher.submitCommand(cmd);
         }
 
@@ -218,5 +218,7 @@ void NetworkControl::populateToolbars()
 
 void NetworkControl::on_newDocument(Document* doc)
 {
+    // TODO FIXME
+    return;
     doc->model()->addPluginModel(new NetworkDocumentPlugin{this, doc});
 }

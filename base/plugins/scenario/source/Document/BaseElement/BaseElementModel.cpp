@@ -120,6 +120,11 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
+void BaseElementModel::setFocusedProcess(ProcessSharedModelInterface* proc)
+{
+    emit focusedProcessChanged();
+}
+
 QByteArray BaseElementModel::save()
 {
     QByteArray arr;
@@ -157,8 +162,8 @@ void BaseElementModel::setNewSelection(const Selection& s)
         if(m_focusedProcess)
         {
             m_focusedProcess->setSelection({});
-            m_focusedProcess = nullptr;
-            emit focusedProcessChanged();
+            //m_focusedProcess = nullptr;
+            //emit focusedProcessChanged();
         }
     }
     else

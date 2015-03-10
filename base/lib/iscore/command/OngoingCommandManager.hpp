@@ -85,13 +85,6 @@ class ICommandDispatcher : public QObject
 {
         Q_OBJECT
     public:
-        ICommandDispatcher(QObject* parent):
-            ICommandDispatcher{iscore::IDocument::documentFromObject(parent)->commandStack(),
-                               parent}
-        {
-
-        }
-
         ICommandDispatcher(iscore::CommandStack& queue,
                            QObject* parent):
             QObject{parent},
