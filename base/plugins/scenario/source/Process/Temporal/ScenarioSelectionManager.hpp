@@ -4,8 +4,6 @@
 #include <QApplication>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <Process/ScenarioModel.hpp>
-#include <Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp>
-
 class TemporalScenarioPresenter;
 namespace iscore
 {
@@ -58,13 +56,14 @@ class ScenarioSelectionManager : public QObject
                 m_selectionDispatcher.send(
                             filterSelections(elt->model(),
                                              m_scenario->selectedChildren()));
+                focus();
             });
         }
 
         void setSelectionArea(const QRectF& area);
     private:
+        void focus();
         TemporalScenarioPresenter* m_presenter{};
         iscore::SelectionDispatcher m_selectionDispatcher;
-        FocusDispatcher m_focusDispatcher;
         ScenarioModel* m_scenario{};
 };

@@ -60,7 +60,7 @@ void BaseElementPresenter::on_askUpdate()
 
 void BaseElementPresenter::selectAll()
 {
-    if(model()->focusedProcess())
+    if(model()->focusedViewModel())
     {
         m_selectionDispatcher.send(model()->focusedProcess()->selectableChildren());
     }

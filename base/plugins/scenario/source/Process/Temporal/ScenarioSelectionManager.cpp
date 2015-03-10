@@ -29,16 +29,17 @@ using namespace iscore::IDocument;
 ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* presenter):
     QObject{presenter},
     m_presenter{presenter},
-    m_selectionDispatcher{documentFromObject(presenter->m_viewModel->sharedProcessModel())->selectionStack()},
-
-    m_focusDispatcher{*documentFromObject(presenter->m_viewModel->sharedProcessModel())},
-
-    m_scenario{static_cast<ScenarioModel*>(presenter->m_viewModel->sharedProcessModel())}
+    m_selectionDispatcher{documentFromObject(m_presenter->m_viewModel->sharedProcessModel())->selectionStack()},
+    m_scenario{static_cast<ScenarioModel*>(m_presenter->m_viewModel->sharedProcessModel())}
 {
-    connect(presenter->m_view,       &TemporalScenarioView::scenarioPressed,
-            this, [&] () { deselectAll(); });
+    connect(m_presenter->m_view,       &TemporalScenarioView::scenarioPressed,
+            this, [&] ()
+    {
+        deselectAll();
+        focus();
+    });
 
-    connect(presenter->m_view, &TemporalScenarioView::newSelectionArea,
+    connect(m_presenter->m_view, &TemporalScenarioView::newSelectionArea,
             this, &ScenarioSelectionManager::setSelectionArea);
 }
 
@@ -109,4 +110,10 @@ void ScenarioSelectionManager::setSelectionArea(const QRectF& area)
         }
     }
     m_selectionDispatcher.send(sel);
+    focus();
+}
+
+void ScenarioSelectionManager::focus()
+{
+    m_presenter->focus();
 }

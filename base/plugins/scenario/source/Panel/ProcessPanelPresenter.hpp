@@ -4,7 +4,7 @@
 class BaseElementModel;
 class ProcessViewInterface;
 class ProcessPresenterInterface;
-class ProcessSharedModelInterface;
+class ProcessViewModelInterface;
 class ProcessPanelPresenter : public iscore::PanelPresenterInterface
 {
         Q_OBJECT
@@ -15,12 +15,12 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
         void on_modelChanged() override;
 
     private slots:
-        void on_focusedProcessChanged();
+        void on_focusedViewModelChanged();
         void on_sizeChanged(const QSize& size);
 
     private:
         BaseElementModel* m_baseElementModel{};
-        ProcessSharedModelInterface* m_processModel{};
+        ProcessViewModelInterface* m_processViewModel{};
         ProcessPresenterInterface* m_processPresenter{};
         ProcessViewInterface* m_processView{};
 };

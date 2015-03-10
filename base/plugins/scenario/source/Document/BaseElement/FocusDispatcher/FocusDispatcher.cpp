@@ -8,7 +8,7 @@ FocusDispatcher::FocusDispatcher(iscore::Document& doc):
 
 }
 
-void FocusDispatcher::focus(ProcessSharedModelInterface* obj)
+void FocusDispatcher::focus(ProcessViewModelInterface* obj)
 {
-    m_baseElementModel.setFocusedProcess(obj);
+    m_baseElementModel.setFocusedViewModel(obj);
 }

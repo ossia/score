@@ -7,6 +7,7 @@ class BaseElementPresenter;
 class FullViewConstraintViewModel;
 class ConstraintModel;
 class ProcessSharedModelInterface;
+class ProcessViewModelInterface;
 
 /**
  * @brief The BaseElementModel class
@@ -30,9 +31,13 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
-        void setFocusedProcess(ProcessSharedModelInterface* proc);
+        void setFocusedViewModel(ProcessViewModelInterface* vm);
+        ProcessViewModelInterface* focusedViewModel() const
+        { return m_focusedViewModel; }
+
         ProcessSharedModelInterface* focusedProcess() const
         { return m_focusedProcess; }
+
 
         virtual QByteArray save() override;
         virtual QJsonObject toJson() override;
@@ -40,12 +45,13 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void setNewSelection(const Selection& s) override;
 
     signals:
-        void focusedProcessChanged();
+        void focusedViewModelChanged();
 
     private:
         ConstraintModel* m_baseConstraint {};
 
         // The process that contains the current selection.
+        ProcessViewModelInterface* m_focusedViewModel{};
         ProcessSharedModelInterface* m_focusedProcess{};
 };
 

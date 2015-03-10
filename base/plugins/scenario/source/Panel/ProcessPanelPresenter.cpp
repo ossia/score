@@ -37,37 +37,36 @@ void ProcessPanelPresenter::on_modelChanged()
 
     if(!m_baseElementModel) return;
 
-    connect(m_baseElementModel,  &BaseElementModel::focusedProcessChanged,
-            this, &ProcessPanelPresenter::on_focusedProcessChanged);
+    connect(m_baseElementModel,  &BaseElementModel::focusedViewModelChanged,
+            this, &ProcessPanelPresenter::on_focusedViewModelChanged);
 
     connect(panelview, &ProcessPanelView::sizeChanged,
             this, &ProcessPanelPresenter::on_sizeChanged);
 }
 
-void ProcessPanelPresenter::on_focusedProcessChanged()
+void ProcessPanelPresenter::on_focusedViewModelChanged()
 {
     auto panelview = static_cast<ProcessPanelView*>(view());
 
-    auto proc = m_baseElementModel->focusedProcess();
-    if(proc != m_processModel)
+    auto thePVM = m_baseElementModel->focusedViewModel();
+    if(thePVM != m_processViewModel)
     {
-        m_processModel = proc;
+        m_processViewModel = thePVM;
         delete m_processPresenter;
         m_processPresenter = nullptr;
 
-        if(!proc)
+        if(!thePVM)
             return;
 
         // TODO Leak
         auto gobj = new GraphicsProxyObject;
 
-        auto fact = ProcessList::getFactory(proc->processName());
+        auto fact = ProcessList::getFactory(m_processViewModel->sharedProcessModel()->processName());
 
-        ProcessViewModelInterface* pvm = proc->viewModels().first();
-        auto proxy = pvm->make_panelProxy();
+        auto proxy = m_processViewModel->make_panelProxy();
 
         // TODO pvm::correspondingView ?
-        m_processView = fact->makeView(pvm, gobj);
+        m_processView = fact->makeView(proxy->viewModel(), gobj);
         m_processView->setHeight(panelview->view()->size().height());
         m_processView->setWidth(panelview->view()->size().width());
 

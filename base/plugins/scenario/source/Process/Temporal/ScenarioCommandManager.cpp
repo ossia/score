@@ -92,10 +92,18 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presen
 void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
 {
     connect(e,    &EventPresenter::eventMoved,
-            [this] (const EventData& ev) { m_lastData = ev; moveEventAndConstraint(ev); });
+            [this] (const EventData& ev)
+    {
+        m_lastData = ev; moveEventAndConstraint(ev);
+        m_presenter->focus();
+    });
 
     connect(e,    &EventPresenter::eventMovedWithControl,
-            [this] (const EventData& ev) { m_lastData = ev; createConstraint(ev); });
+            [this] (const EventData& ev)
+    {
+        m_lastData = ev; createConstraint(ev);
+        m_presenter->focus();
+    });
 
     auto commit_fn = [this] ()
     {
@@ -104,7 +112,10 @@ void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
 
         if(m_moveCommandDispatcher->ongoing())
             m_moveCommandDispatcher->commit();
+
+        m_presenter->focus();
     };
+
     connect(e,    &EventPresenter::eventReleased,
             commit_fn);
 
@@ -230,6 +241,8 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
 
     emit m_creationCommandDispatcher->submitCommand(cmd);
     emit m_creationCommandDispatcher->commit();
+
+    m_presenter->focus();
 }
 
 void ScenarioCommandManager::clearContentFromSelection()
@@ -351,6 +364,7 @@ void ScenarioCommandManager::moveConstraint(ConstraintData data)
                                   data);
 
     emit m_moveCommandDispatcher->submitCommand(cmd);
+    m_presenter->focus();
 }
 
 void ScenarioCommandManager::moveTimeNode(EventData data)
@@ -365,6 +379,7 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
                                 data);
 
     emit m_moveCommandDispatcher->submitCommand(cmd);
+    m_presenter->focus();
 }
 
 

@@ -2,6 +2,7 @@
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Document/Event/EventData.hpp>
+#include <Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp>
 
 namespace iscore
 {
@@ -54,6 +55,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         virtual void on_zoomRatioChanged(ZoomRatio val) override;
 
+        void focus();
+
     signals:
         void linesExtremityScaled(int, int);
 
@@ -95,4 +98,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         ScenarioCommandManager* m_cmdManager{};
         ScenarioSelectionManager* m_selManager{};
         ScenarioViewInterface* m_viewInterface{};
+
+        FocusDispatcher m_focusDispatcher;
 };

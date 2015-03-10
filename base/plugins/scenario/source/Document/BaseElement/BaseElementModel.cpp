@@ -120,9 +120,13 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
-void BaseElementModel::setFocusedProcess(ProcessSharedModelInterface* proc)
+void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
-    emit focusedProcessChanged();
+    if(proc != m_focusedViewModel)
+    {
+        m_focusedViewModel = proc;
+        emit focusedViewModelChanged();
+    }
 }
 
 QByteArray BaseElementModel::save()
@@ -162,8 +166,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
         if(m_focusedProcess)
         {
             m_focusedProcess->setSelection({});
-            //m_focusedProcess = nullptr;
-            //emit focusedProcessChanged();
+            m_focusedProcess = nullptr;
         }
     }
     else
@@ -178,6 +181,5 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
         m_focusedProcess = newProc;
         m_focusedProcess->setSelection(s);
-        emit focusedProcessChanged();
     }
 }
