@@ -31,7 +31,7 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
 
 {
     _layout = new QVBoxLayout;
-    _layout->setMargin(5);
+    _layout->setContentsMargins(0,1,0,0);
     setLayout(_layout);
 
 

@@ -18,6 +18,9 @@ class LambdaFriendlyQComboBox : public QWidget
         int count() const
         { return m_combobox.count(); }
 
+        QString currentText() const
+        { return m_combobox.currentText() ;}
+
     signals:
         void activated(QString);
 

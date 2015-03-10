@@ -9,4 +9,10 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
     public:
         explicit ScenarioInspectorWidget(ScenarioModel* object,
                                          QWidget* parent = 0);
+
+    signals:
+        void createViewInNewDeck(QString);
+
+    private:
+        ScenarioModel* m_model {};
 };

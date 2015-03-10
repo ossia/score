@@ -1,11 +1,12 @@
 #include "EventInspectorWidget.hpp"
 
 #include "Document/Event/EventModel.hpp"
-
 #include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
 #include "Commands/Event/RemoveStateFromEvent.hpp"
+
+#include "Document/TimeNode/TimeNodeModel.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -39,13 +40,47 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     connect(m_model, &EventModel::messagesChanged,
             this, &EventInspectorWidget::updateMessages);
 
+    // date
+    auto dateWid = new QWidget{this};
+    auto dateLay = new QHBoxLayout{dateWid};
+    auto dateTitle = new QLabel{tr("default date : ")};
+    m_date = new QLabel{QString::number(object->date().msec()) };
+    dateLay->addWidget(dateTitle);
+    dateLay->addWidget(m_date);
+
+    m_properties.push_back(dateWid);
+
+    // timeNode
+
+    QWidget* tnWid = new QWidget {this};
+    QHBoxLayout* tnLay = new QHBoxLayout {tnWid};
+    QPushButton* tnBtn = new QPushButton {tr("None"), tnWid};
+    tnBtn->setFlat(true);
+    tnLay->addWidget(new QLabel{tr("TimeNode :"), tnWid});
+    tnLay->addWidget(tnBtn);
+
+    auto timeNode = m_model->timeNode();
+    if(timeNode)
+    {
+        tnBtn->setText(QString::number(*timeNode.val()));
+        auto scenar = m_model->parentScenario();
+        if (scenar)
+            connect(tnBtn,  &QPushButton::clicked,
+                    [=] () { selectionDispatcher()->send(Selection{scenar->timeNode(timeNode)}); });
+    }
+
+    m_properties.push_back(tnWid);
+
+    // Condition
     m_conditionWidget = new QLineEdit{this};
     connect(m_conditionWidget, SIGNAL(editingFinished()),
             this,			 SLOT(on_conditionChanged()));
+
     // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
-    m_properties.push_back(new QLabel{"Condition"});
+    m_properties.push_back(new QLabel{tr("Condition")});
     m_properties.push_back(m_conditionWidget);
 
+    // State
     QWidget* addressesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{addressesWidget};
     addressesWidget->setLayout(dispLayout);
@@ -113,7 +148,7 @@ void EventInspectorWidget::addAddress(const QString& addr)
     });
 
     m_addresses.push_back(address);
-    m_properties[3]->layout()->addWidget(address);
+    m_properties[4]->layout()->addWidget(address);
 }
 
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)

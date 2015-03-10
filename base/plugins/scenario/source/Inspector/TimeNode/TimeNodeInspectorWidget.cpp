@@ -1,6 +1,9 @@
 #include "TimeNodeInspectorWidget.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/Event/EventModel.hpp"
+
+#include "Process/ScenarioModel.hpp"
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
@@ -9,6 +12,7 @@
 #include "Commands/TimeNode/SplitTimeNode.hpp"
 
 #include "iscore/document/DocumentInterface.hpp"
+#include "iscore/selection/SelectionDispatcher.hpp"
 
 #include <iostream>
 #include <QLabel>
@@ -85,32 +89,26 @@ void TimeNodeInspectorWidget::updateDisplayedValues(TimeNodeModel* timeNode)
 
     m_events.clear();
 
-    // DEMO
-    if(timeNode)
+   if(timeNode)
     {
-//        setName (timeNode->metadata.name() );
-//		setColor (timeNode->metadata.color() );
-//		setComments (timeNode->metadata.comment() );
 
         m_date->setText(QString::number(m_model->date().msec()));
 
         for(id_type<EventModel> event : timeNode->events())
         {
+            ScenarioModel* scenar = timeNode->parentScenario();
+            EventModel* evModel {};
+            if (scenar)
+                evModel = scenar->event(event);
+
             auto eventWid = new EventShortCut(QString::number((*event.val())));
 
             m_events.push_back(eventWid);
             m_eventList->addContent(eventWid);
 
-            // TODO
-//            connect(eventWid,           &EventShortCut::eventSelected,
-//                    m_model,    &TimeNodeModel::eventSelected);
-
+            connect(eventWid, &EventShortCut::eventSelected,
+                    [=]() {   selectionDispatcher()->send(Selection{evModel}); });
         }
-
-
-//        setInspectedObject (timeNode);
-//		changeLabelType ("TimeNode");
-
     }
 }
 
@@ -144,4 +142,5 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
         qDebug() << info;
     }
+    updateDisplayedValues(m_model);
 }

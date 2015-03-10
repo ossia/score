@@ -8,6 +8,7 @@
 
 #include <iscore/selection/Selectable.hpp>
 class EventModel;
+class ScenarioModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
@@ -39,6 +40,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         {
             vis.writeTo(*this);
         }
+
+        ScenarioModel* parentScenario() const;
 
         void addEvent(id_type<EventModel>);
         bool removeEvent(id_type<EventModel>);

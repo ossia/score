@@ -21,7 +21,7 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
         m_parent {parent}
 {
     QGridLayout* lay = new QGridLayout{this};
-    lay->setContentsMargins(0, 0, 0, 0);
+    lay->setContentsMargins(1, 1, 0, 0);
     this->setLayout(lay);
 
     // Button
@@ -42,7 +42,15 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
     lay->addWidget(addText, 0, 1);
     //lay->addWidget(m_boxList, 1, 0, 1, 2);
 
+}
 
+BoxWidget::~BoxWidget()
+{
+    for (auto connection : m_connections)
+    {
+        QObject::disconnect(connection);
+    }
+    m_connections.clear();
 }
 
 void BoxWidget::viewModelsChanged()
@@ -84,19 +92,27 @@ void BoxWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstr
     {
         auto id = *box->id().val();
         combobox->addItem(QString::number(id));
+        // TODO check that
         if(vm->shownBox() == id)
         {
             combobox->setCurrentIndex(combobox->count() - 1);
         }
     }
 
-    connect(combobox, &LambdaFriendlyQComboBox::activated,
-            [=] (QString s)
+    if (m_connections.find(vm) != m_connections.end() )
     {
-        m_parent->activeBoxChanged(s, vm);
-    });
-//    connect(combobox, SIGNAL(activated(QString)),
-//            this,     SLOT(on_comboBoxActivated(QString)));
+        QObject::disconnect(m_connections[vm]);
+        m_connections.remove(vm);
+    }
+
+    m_connections[vm] = connect(combobox, &LambdaFriendlyQComboBox::activated,
+                                [=] (QString s) { m_parent->activeBoxChanged(s, vm); });
+
+    combobox->setCurrentIndex(combobox->count() - 1);
+    if (combobox->count() > 1)
+    {
+        m_parent->activeBoxChanged(combobox->currentText(), vm);
+    }
 }
 
 void BoxWidget::setModel(ConstraintModel* m)
