@@ -23,6 +23,7 @@ class DurationSectionWidget : public InspectorSectionWidget
         void on_modelDefaultDurationChanged(TimeValue dur);
         void on_modelMinDurationChanged(TimeValue dur);
         void on_modelMaxDurationChanged(TimeValue dur);
+        void on_durationsChanged();
 
 
     private:
@@ -33,6 +34,10 @@ class DurationSectionWidget : public InspectorSectionWidget
         QTimeEdit* m_minSpin{};
         QTimeEdit* m_valueSpin{};
         QTimeEdit* m_maxSpin{};
+
+        TimeValue m_min;
+        TimeValue m_max;
+        TimeValue m_default;
 
         OngoingCommandDispatcher<MergeStrategy::Simple>* m_cmdManager{};
 };

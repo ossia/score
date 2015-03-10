@@ -191,9 +191,9 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
         {
             if(ongoing())
             {
-                m_ongoing = false;
                 CommitStrategy_T::commit(stack(), m_ongoingCommand);
                 m_ongoingCommand = nullptr;
+                m_ongoing = false;
             }
         }
 
