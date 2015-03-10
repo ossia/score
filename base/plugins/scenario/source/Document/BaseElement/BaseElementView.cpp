@@ -9,20 +9,7 @@
 #include <QGraphicsItem>
 #include <QSlider>
 #include "Widgets/AddressBar.hpp"
-
-class GrapicsProxyObject : public QGraphicsObject
-{
-    public:
-        using QGraphicsObject::QGraphicsObject;
-    public:
-        virtual QRectF boundingRect() const
-        {
-            return QRectF {};
-        }
-        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-        {
-        }
-};
+#include "Widgets/GraphicsProxyObject.hpp"
 
 
 void ScoreGraphicsView::resizeEvent(QResizeEvent* ev)
@@ -39,7 +26,7 @@ BaseElementView::BaseElementView(QObject* parent) :
 m_widget {new QWidget{}},
 m_scene {new QGraphicsScene{this}},
 m_view {new ScoreGraphicsView{m_scene}},
-m_baseObject {new GrapicsProxyObject{}},
+m_baseObject {new GraphicsProxyObject{}},
 m_addressBar {new AddressBar{nullptr}}
 {
     // Configuration

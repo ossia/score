@@ -38,6 +38,9 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
         void setNewSelection(const Selection& s) override;
 
+    signals:
+        void focusedProcessChanged();
+
     private:
         ConstraintModel* m_baseConstraint {};
 

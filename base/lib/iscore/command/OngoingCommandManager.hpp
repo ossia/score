@@ -174,6 +174,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
     private:
         void send_impl(iscore::SerializableCommand* cmd)
         {
+            Q_ASSERT(cmd != nullptr);
             if(!ongoing())
             {
                 m_ongoingCommand = cmd;

@@ -158,6 +158,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
         {
             m_focusedProcess->setSelection({});
             m_focusedProcess = nullptr;
+            emit focusedProcessChanged();
         }
     }
     else
@@ -172,5 +173,6 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
         m_focusedProcess = newProc;
         m_focusedProcess->setSelection(s);
+        emit focusedProcessChanged();
     }
 }

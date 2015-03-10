@@ -92,19 +92,19 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
             [=] (QTime val) { emit minDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
 
     connect(m_minSpin,	&QTimeEdit::editingFinished,
-            [&]() { emit m_cmdManager->commit(); });
+            [&]() { qDebug("=1="); emit m_cmdManager->commit(); });
 
     connect(m_maxSpin,	&QTimeEdit::timeChanged,
             [=] (QTime val) { emit maxDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
 
     connect(m_maxSpin,	&QTimeEdit::editingFinished,
-            [&]() { emit m_cmdManager->commit(); });
+            [&]() { qDebug("=2="); emit m_cmdManager->commit(); });
 
     connect(m_valueSpin,  &QTimeEdit::timeChanged,
             [=] (QTime val) { emit defaultDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
 
     connect(m_valueSpin,  &QTimeEdit::editingFinished,
-            [&]() { emit m_cmdManager->commit(); });
+            [&]() { qDebug("=3="); emit m_cmdManager->commit(); });
 
     connect(checkbox,	&QCheckBox::toggled,
             this,		&DurationSectionWidget::rigidCheckboxToggled);
