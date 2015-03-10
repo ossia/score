@@ -30,15 +30,15 @@ ObjectPath iscore::IDocument::path(const QObject* obj)
 }
 
 
-iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate_generic(const iscore::Document* d)
+iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate_generic(const iscore::Document& d)
 {
-    return *d->presenter()->presenterDelegate();
+    return *d.presenter()->presenterDelegate();
 }
 
 
-iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic(const iscore::Document* d)
+iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic(const Document& d)
 {
-    return *d->model()->modelDelegate();
+    return *d.model()->modelDelegate();
 }
 
 

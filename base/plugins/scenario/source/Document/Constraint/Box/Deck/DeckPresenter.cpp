@@ -27,7 +27,7 @@ DeckPresenter::DeckPresenter(DeckModel* model,
     NamedObject {"DeckPresenter", parent},
     m_model {model},
     m_view {view},
-    m_commandDispatcher{new CommandDispatcher<>{this}}
+    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model)->commandStack(), this}}
 {
     for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {
@@ -187,7 +187,7 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 
     auto factory = ProcessList::getFactory(procname);
 
-    auto proc_view = factory->makeView(factory->availableViews().first(), m_view);
+    auto proc_view = factory->makeView(proc_vm, m_view);
     proc_view->setPos(0, 0);
     auto presenter = factory->makePresenter(proc_vm, proc_view, this);
 

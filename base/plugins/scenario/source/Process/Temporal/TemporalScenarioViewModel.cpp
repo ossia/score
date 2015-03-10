@@ -5,6 +5,8 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
+#include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
+
 TemporalScenarioViewModel::TemporalScenarioViewModel(id_type<ProcessViewModelInterface> viewModelId,
         ScenarioModel* model,
         QObject* parent) :
@@ -31,14 +33,34 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(const TemporalScenarioViewM
     {
         // TODO some room for optimization here
         addConstraintViewModel(constraint->clone(constraint->id(),
-        constraint->model(),
-        this));
+                                                 constraint->model(),
+                                                 this));
     }
+}
+
+class TemporalScenarioPanelProxy : public ProcessViewModelPanelProxy
+{
+    public:
+        TemporalScenarioPanelProxy(TemporalScenarioViewModel* parent):
+            ProcessViewModelPanelProxy{parent}
+        {
+
+        }
+
+        ProcessViewModelInterface* viewModel() override
+        {
+            return static_cast<TemporalScenarioViewModel*>(parent());
+        }
+};
+
+ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy()
+{
+    return new TemporalScenarioPanelProxy{this};
 }
 
 
 void TemporalScenarioViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
-        id_type<AbstractConstraintViewModel> constraintViewModelId)
+                                                        id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
     auto constraint_model = model(this)->constraint(constraintModelId);
 

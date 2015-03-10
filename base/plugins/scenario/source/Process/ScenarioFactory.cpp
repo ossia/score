@@ -2,6 +2,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 QString ScenarioFactory::name() const
@@ -9,14 +10,9 @@ QString ScenarioFactory::name() const
     return "Scenario";
 }
 
-QStringList ScenarioFactory::availableViews()
+ProcessViewInterface* ScenarioFactory::makeView(ProcessViewModelInterface* viewmodel, QObject* parent)
 {
-    return {"Temporal"};
-}
-
-ProcessViewInterface* ScenarioFactory::makeView(QString view, QObject* parent)
-{
-    if(view == "Temporal")
+    if(auto tvm = dynamic_cast<TemporalScenarioViewModel*>(viewmodel))
         return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
 
     return nullptr;
@@ -27,7 +23,10 @@ ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
                                ProcessViewInterface* view,
                                QObject* parent)
 {
-    return new TemporalScenarioPresenter {pvm, view, parent};
+    if(auto vm = dynamic_cast<TemporalScenarioViewModel*>(pvm))
+        return new TemporalScenarioPresenter {vm, view, parent};
+
+    return nullptr;
 }
 
 ProcessSharedModelInterface* ScenarioFactory::makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)

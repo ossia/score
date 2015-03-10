@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/Selection.hpp>
 
 class QDataStream;
@@ -19,8 +18,6 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 {
         Q_OBJECT
     public:
-        Selectable selection;
-
         using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
         virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
 
@@ -92,9 +89,6 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         // protected:
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const = 0;
-
-    signals:
-        void selectedChildrenChanged(ProcessSharedModelInterface* proc);
 
     protected:
         void addViewModel(ProcessViewModelInterface* m)

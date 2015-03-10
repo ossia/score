@@ -45,7 +45,6 @@ namespace iscore
             }
 
             const iscore::SerializableCommand* command(int index) const;
-            void setIndex(int index);
             int currentIndex()
             {
                 return m_undoable.size();
@@ -79,6 +78,7 @@ namespace iscore
             void stackChanged();
 
         public slots:
+            void setIndex(int index);
             void undo();
             void redo();
 

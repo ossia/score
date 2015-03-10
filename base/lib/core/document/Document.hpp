@@ -62,15 +62,18 @@ namespace iscore
 
             QByteArray save();
 
+            //QByteArray saveDocumentModel();
+            //QByteArray savePanel(const QString& panel);
+
         private:
             void init();
 
             CommandStack m_commandStack;
             SelectionStack m_selectionStack;
 
-            DocumentModel* m_model {};
-            DocumentView* m_view {};
-            DocumentPresenter* m_presenter {};
+            DocumentModel* m_model{};
+            DocumentView* m_view{};
+            DocumentPresenter* m_presenter{};
 
     };
 

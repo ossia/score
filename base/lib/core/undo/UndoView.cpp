@@ -10,7 +10,9 @@
 
 #include <QUndoView>
 #include <QVBoxLayout>
-#include <QListWidget>
+#include "UndoListWidget.hpp"
+
+
 
 class UndoPanelView : public iscore::PanelViewInterface
 {
@@ -28,33 +30,16 @@ class UndoPanelView : public iscore::PanelViewInterface
         Qt::DockWidgetArea defaultDock() const override
         { return Qt::LeftDockWidgetArea; }
 
-    public slots:
         void setStack(iscore::CommandStack* s)
         {
             delete m_list;
-            m_list = new QListWidget;
-            connect(s, &iscore::CommandStack::stackChanged,
-                    [=] () { on_stackChanged(s); });
-            connect(m_list, &QListWidget::currentRowChanged,
-                    s, &iscore::CommandStack::setIndex);
 
+            m_list = new iscore::UndoListWidget{s};
             m_widget->layout()->addWidget(m_list);
-
         }
 
     private:
-        void on_stackChanged(iscore::CommandStack* s)
-        {
-            m_list->clear();
-            m_list->addItem("<Clean state>");
-            for(int i = 0; i < s->size(); i++)
-            {
-                m_list->addItem(s->command(i)->name());
-            }
-            m_list->item(s->currentIndex())->setSelected(true);
-        }
-
-        QListWidget* m_list{};
+        iscore::UndoListWidget* m_list{};
         QWidget* m_widget{};
 };
 

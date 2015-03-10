@@ -5,8 +5,7 @@ class ScenarioFactory : public ProcessFactoryInterface
 {
     public:
         virtual QString name() const override;
-        virtual QStringList availableViews() override;
-        virtual ProcessViewInterface* makeView(QString view, QObject* parent) override;
+        virtual ProcessViewInterface* makeView(ProcessViewModelInterface* viewmodel, QObject* parent) override;
         virtual ProcessPresenterInterface* makePresenter(ProcessViewModelInterface*,
                 ProcessViewInterface*,
                 QObject* parent) override;

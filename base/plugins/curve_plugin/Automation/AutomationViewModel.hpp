@@ -25,6 +25,8 @@ class AutomationViewModel : public ProcessViewModelInterface
             vis.writeTo(*this);
         }
 
+        virtual ProcessViewModelPanelProxy* make_panelProxy();
+
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const;
 

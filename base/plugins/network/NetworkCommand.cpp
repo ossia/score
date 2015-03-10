@@ -36,5 +36,7 @@ void NetworkControl::populateToolbars()
 
 void NetworkControl::on_newDocument(Document* doc)
 {
+    // TODO FIXME
+    return;
     doc->model()->addPluginModel(new NetworkDocumentPlugin{this, doc});
 }

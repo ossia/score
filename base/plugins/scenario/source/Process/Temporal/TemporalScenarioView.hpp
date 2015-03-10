@@ -49,7 +49,7 @@ class TemporalScenarioView : public ProcessViewInterface
 
     private:
         QPointF m_clickedPoint {};
-        QRectF* m_selectArea {};
+        QRectF m_selectArea;
 
         QAction* m_clearAction {};
 

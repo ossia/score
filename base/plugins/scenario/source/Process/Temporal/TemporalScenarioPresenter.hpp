@@ -2,6 +2,7 @@
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Document/Event/EventData.hpp>
+#include <Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp>
 
 namespace iscore
 {
@@ -36,7 +37,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         friend class ScenarioSelectionManager;
 
     public:
-        TemporalScenarioPresenter(ProcessViewModelInterface* model,
+        TemporalScenarioPresenter(TemporalScenarioViewModel* model,
                                   ProcessViewInterface* view,
                                   QObject* parent);
         virtual ~TemporalScenarioPresenter();
@@ -53,6 +54,8 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         virtual void parentGeometryChanged() override;
 
         virtual void on_zoomRatioChanged(ZoomRatio val) override;
+
+        void focus();
 
     signals:
         void linesExtremityScaled(int, int);
@@ -92,9 +95,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
         void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
-
         ScenarioCommandManager* m_cmdManager{};
         ScenarioSelectionManager* m_selManager{};
         ScenarioViewInterface* m_viewInterface{};
 
+        FocusDispatcher m_focusDispatcher;
 };

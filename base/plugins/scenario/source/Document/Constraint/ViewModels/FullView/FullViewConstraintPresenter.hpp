@@ -5,6 +5,7 @@ class FullViewConstraintViewModel;
 class FullViewConstraintView;
 class BoxPresenter;
 class BoxModel;
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 
 namespace iscore
@@ -33,6 +34,9 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
         virtual ~FullViewConstraintPresenter();
 
         void on_pressed();
+
+    private:
+        iscore::SelectionDispatcher m_selectionDispatcher;
 
 };
 

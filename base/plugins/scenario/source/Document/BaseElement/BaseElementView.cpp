@@ -1,46 +1,23 @@
 #include "BaseElementView.hpp"
 
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
-
 #include <QLabel>
 #include <QGridLayout>
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QSlider>
 #include "Widgets/AddressBar.hpp"
-
-class GrapicsProxyObject : public QGraphicsObject
-{
-    public:
-        using QGraphicsObject::QGraphicsObject;
-    public:
-        virtual QRectF boundingRect() const
-        {
-            return QRectF {};
-        }
-        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-        {
-        }
-};
-
-
-void ScoreGraphicsView::resizeEvent(QResizeEvent* ev)
-{
-    QGraphicsView::resizeEvent(ev);
-    emit widthChanged(width());
-}
-
+#include "Widgets/GraphicsProxyObject.hpp"
 
 #include <QDebug>
 #include <QPushButton>
+
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
-m_widget {new QWidget{}},
-m_scene {new QGraphicsScene{this}},
-m_view {new ScoreGraphicsView{m_scene}},
-m_baseObject {new GrapicsProxyObject{}},
-m_addressBar {new AddressBar{nullptr}}
+    m_widget {new QWidget{}},
+    m_scene {new QGraphicsScene{this}},
+    m_view {new SizeNotifyingGraphicsView{m_scene}},
+    m_baseObject {new GraphicsProxyObject{}},
+    m_addressBar {new AddressBar{nullptr}}
 {
     // Configuration
     m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark() });

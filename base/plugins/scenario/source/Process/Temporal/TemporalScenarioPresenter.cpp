@@ -38,8 +38,9 @@
 // TODO use state machine for selection (ctrl / not ctrl)
 #include <QtMath>
 #include "iscore/command/SerializableCommand.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 
-TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* process_view_model,
+TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* process_view_model,
                                                      ProcessViewInterface* view,
                                                      QObject* parent) :
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
@@ -47,7 +48,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(ProcessViewModelInterface* 
     m_view {static_cast<TemporalScenarioView*>(view) },
     m_cmdManager{new ScenarioCommandManager{this}},
     m_selManager{new ScenarioSelectionManager{this}},
-    m_viewInterface{new ScenarioViewInterface{this}}
+    m_viewInterface{new ScenarioViewInterface{this}},
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     /////// Setup of existing data
     // For each constraint & event, display' em
@@ -294,4 +296,9 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
+}
+
+void TemporalScenarioPresenter::focus()
+{
+    m_focusDispatcher.focus(m_viewModel);
 }
