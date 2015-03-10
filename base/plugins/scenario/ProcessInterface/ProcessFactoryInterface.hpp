@@ -12,10 +12,10 @@ class ProcessViewInterface;
 class ProcessPresenterInterface;
 
 /**
-	 * @brief The ProcessFactoryInterface class
-	 *
-	 * Interface to make processes, like Scenario, Automation...
-	 */
+     * @brief The ProcessFactoryInterface class
+     *
+     * Interface to make processes, like Scenario, Automation...
+     */
 class ProcessFactoryInterface : public iscore::FactoryInterface
 {
     public:
@@ -24,8 +24,7 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // The process name
         virtual QString name() const = 0;
 
-        virtual QStringList availableViews() = 0;
-        virtual ProcessViewInterface* makeView(QString view, QObject* parent) = 0;
+        virtual ProcessViewInterface* makeView(ProcessViewModelInterface* view, QObject* parent) = 0;
 
         // TODO Make it take a view name, too (cf. logical / temporal).
         // Or make it be created by the ViewModel, and the View be created by the presenter.

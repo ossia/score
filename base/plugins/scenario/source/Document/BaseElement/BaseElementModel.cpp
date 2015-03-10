@@ -120,6 +120,15 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
+void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
+{
+    if(proc != m_focusedViewModel)
+    {
+        m_focusedViewModel = proc;
+        emit focusedViewModelChanged();
+    }
+}
+
 QByteArray BaseElementModel::save()
 {
     QByteArray arr;

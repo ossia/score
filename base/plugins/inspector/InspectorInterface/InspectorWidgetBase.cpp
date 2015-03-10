@@ -16,7 +16,6 @@
 #include <QColorDialog>
 #include <QVector>
 
-
 InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
     QWidget(parent),
     _inspectedObject {inspectedObj},
@@ -25,8 +24,7 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
                                                   this}
                           : nullptr},
     m_selectionDispatcher{inspectedObj
-                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack(),
-                                                     this}
+                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack()}
                            : nullptr}
 
 {

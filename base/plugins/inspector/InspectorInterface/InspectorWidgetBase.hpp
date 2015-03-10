@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/selection/SelectionStack.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 class QVBoxLayout;
 class QLineEdit;
@@ -83,12 +83,12 @@ class InspectorWidgetBase : public QWidget
         { return m_commandDispatcher; }
 
         iscore::SelectionDispatcher* selectionDispatcher() const
-        { return m_selectionDispatcher; }
+        { return m_selectionDispatcher.get(); }
 
     private:
         QObject* _inspectedObject {};
         ICommandDispatcher* m_commandDispatcher{};
-        iscore::SelectionDispatcher* m_selectionDispatcher{};
+        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* _scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};

@@ -12,8 +12,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 #include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -28,7 +28,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
-    m_selectionDispatcher{new iscore::SelectionDispatcher{this}}
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()}
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
@@ -37,8 +37,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(view(), &BaseElementView::positionSliderChanged,
             this,	&BaseElementPresenter::on_positionSliderChanged);
 
-    connect(view()->view(), &ScoreGraphicsView::widthChanged,
-            this,           &BaseElementPresenter::on_viewWidthChanged);
+    // TODO same for height
+    connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
+            this, [&] (const QSize& size) { on_viewWidthChanged(size.width());});
 
 
     setDisplayedConstraint(model()->constraintModel());
@@ -59,15 +60,15 @@ void BaseElementPresenter::on_askUpdate()
 
 void BaseElementPresenter::selectAll()
 {
-    if(model()->focusedProcess())
+    if(model()->focusedViewModel())
     {
-        m_selectionDispatcher->send(model()->focusedProcess()->selectableChildren());
+        m_selectionDispatcher.send(model()->focusedProcess()->selectableChildren());
     }
 }
 
 void BaseElementPresenter::deselectAll()
 {
-    m_selectionDispatcher->send({});
+    m_selectionDispatcher.send({});
 }
 
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)

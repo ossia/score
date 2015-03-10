@@ -2,6 +2,7 @@
 #include <QStringList>
 #include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioFactory.hpp>
+#include <Panel/ProcessPanelFactory.hpp>
 
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
@@ -39,6 +40,19 @@ iscore::DocumentDelegateFactoryInterface* ScenarioPlugin::document_make(QString 
 iscore::PluginControlInterface* ScenarioPlugin::control_make()
 {
     return m_control;
+}
+
+QStringList ScenarioPlugin::panel_list() const
+{
+    return {"ProcessPanel"};
+}
+
+iscore::PanelFactoryInterface*ScenarioPlugin::panel_make(QString name)
+{
+    if(name == "ProcessPanel")
+        return new ProcessPanelFactory;
+
+    return nullptr;
 }
 
 QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()

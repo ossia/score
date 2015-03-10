@@ -85,17 +85,10 @@ class ICommandDispatcher : public QObject
 {
         Q_OBJECT
     public:
-        ICommandDispatcher(QObject* parent):
-            ICommandDispatcher{iscore::IDocument::documentFromObject(parent)->commandStack(),
-                               parent}
-        {
-
-        }
-
-        ICommandDispatcher(iscore::CommandStack& queue,
+        ICommandDispatcher(iscore::CommandStack& stack,
                            QObject* parent):
             QObject{parent},
-            m_stack{queue}
+            m_stack{stack}
         {
 
         }
@@ -174,6 +167,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
     private:
         void send_impl(iscore::SerializableCommand* cmd)
         {
+            Q_ASSERT(cmd != nullptr);
             if(!ongoing())
             {
                 m_ongoingCommand = cmd;

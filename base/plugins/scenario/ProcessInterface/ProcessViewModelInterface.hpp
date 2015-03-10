@@ -2,6 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class ProcessSharedModelInterface;
+class ProcessViewModelPanelProxy;
 
 /**
  * @brief The ProcessViewModelInterface class
@@ -21,6 +22,9 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         // protected:
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const = 0;
+
+        virtual ProcessViewModelPanelProxy* make_panelProxy() = 0;
+
 
     protected:
         ProcessViewModelInterface(id_type<ProcessViewModelInterface> viewModelId,

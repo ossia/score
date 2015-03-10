@@ -5,14 +5,10 @@
 namespace iscore
 {
     class SelectionStack;
-    class SelectionDispatcher : public QObject
+    class SelectionDispatcher
     {
         public:
-            // Parent must be in the document.
-            SelectionDispatcher(QObject* parent);
-
-            SelectionDispatcher(SelectionStack& s, QObject* parent):
-                QObject{parent},
+            SelectionDispatcher(SelectionStack& s):
                 m_stack{s}
             {
             }

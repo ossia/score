@@ -18,20 +18,28 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include "Document/BaseElement/BaseElementModel.hpp"
+
 #include "source/Process/Temporal/TemporalScenarioView.hpp"
-
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 #include <QGraphicsScene>
-
+using namespace iscore::IDocument;
 ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* presenter):
     QObject{presenter},
     m_presenter{presenter},
-    m_selectionDispatcher{new iscore::SelectionDispatcher{this}},
-    m_scenario{static_cast<ScenarioModel*>(presenter->m_viewModel->sharedProcessModel())}
+    m_selectionDispatcher{documentFromObject(m_presenter->m_viewModel->sharedProcessModel())->selectionStack()},
+    m_scenario{static_cast<ScenarioModel*>(m_presenter->m_viewModel->sharedProcessModel())}
 {
-    connect(presenter->m_view,       &TemporalScenarioView::scenarioPressed,
-            this, &ScenarioSelectionManager::deselectAll);
+    connect(m_presenter->m_view,       &TemporalScenarioView::scenarioPressed,
+            this, [&] ()
+    {
+        deselectAll();
+        focus();
+    });
 
-    connect(presenter->m_view, &TemporalScenarioView::newSelectionArea,
+    connect(m_presenter->m_view, &TemporalScenarioView::newSelectionArea,
             this, &ScenarioSelectionManager::setSelectionArea);
 }
 
@@ -101,5 +109,11 @@ void ScenarioSelectionManager::setSelectionArea(const QRectF& area)
             }
         }
     }
-    m_selectionDispatcher->send(sel);
+    m_selectionDispatcher.send(sel);
+    focus();
+}
+
+void ScenarioSelectionManager::focus()
+{
+    m_presenter->focus();
 }

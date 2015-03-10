@@ -39,7 +39,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
         if(!savename.isEmpty())
         {
-            auto& bem = IDocument::modelDelegate<BaseElementModel>(currentDocument());
+            auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
 
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
@@ -62,7 +62,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
         if(!savename.isEmpty())
         {
             QJsonDocument doc;
-            auto& bem = IDocument::modelDelegate<BaseElementModel>(currentDocument());
+            auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
             doc.setObject(bem.toJson());
 
             QFile f(savename);
@@ -80,7 +80,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     connect(selectAll,	&QAction::triggered,
             [this] ()
     {
-        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
         pres.selectAll();
     });
 
@@ -93,7 +93,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     connect(deselectAll,	&QAction::triggered,
             [this] ()
     {
-        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(currentDocument());
+        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
         pres.deselectAll();
     });
 

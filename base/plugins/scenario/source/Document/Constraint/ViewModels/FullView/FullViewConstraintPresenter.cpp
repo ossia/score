@@ -9,7 +9,8 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 #include <QDebug>
 #include <QGraphicsScene>
@@ -18,7 +19,8 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     FullViewConstraintViewModel* cstr_model,
     FullViewConstraintView* cstr_view,
     QObject* parent) :
-    AbstractConstraintPresenter {"FullViewConstraintPresenter", cstr_model, cstr_view, parent}
+    AbstractConstraintPresenter {"FullViewConstraintPresenter", cstr_model, cstr_view, parent},
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model->model())->selectionStack()}
 {
     if(viewModel(this)->isBoxShown())
     {
@@ -48,6 +50,5 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
 void FullViewConstraintPresenter::on_pressed()
 {
-    iscore::SelectionDispatcher disp{this};
-    disp.send(Selection{this->model()});
+    m_selectionDispatcher.send({this->model()});
 }

@@ -65,7 +65,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
-        auto& base = get<BaseElementPresenter> (documentFromObject(m_currentConstraint));
+        auto& base = get<BaseElementPresenter> (*documentFromObject(m_currentConstraint));
 
         base.setDisplayedConstraint(this->model());
     });
