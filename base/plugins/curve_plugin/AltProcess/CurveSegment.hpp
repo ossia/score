@@ -14,8 +14,8 @@ class CurveSegment : public CurveItem
         bool hovering() const;
 
     protected:
-        void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
-        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
     private:
         bool m_hover{false};
@@ -26,6 +26,6 @@ class LinearCurveSegment : public CurveSegment
     public:
         using CurveSegment::CurveSegment;
 
-        QPainterPath shape() const override;
+       // QPainterPath shape() const override;
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };

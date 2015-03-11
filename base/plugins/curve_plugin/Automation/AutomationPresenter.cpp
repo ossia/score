@@ -93,11 +93,12 @@ void AutomationPresenter::on_modelPointsChanged()
     if(m_curve)
     {
         m_view->scene()->removeItem(m_curve);
-        m_curve->deleteLater();
+        delete m_curve;
     }
 
     auto list = mapToList(m_viewModel->model()->points());
     m_curve = new Curve{list, m_view};
+    m_curve->setPos(0, 0);
     m_curve->setZValue(15);
     m_curve->setSize({m_view->width(), m_view->height()});
 

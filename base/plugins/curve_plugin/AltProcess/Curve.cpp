@@ -141,6 +141,9 @@ QRectF Curve::boundingRect() const
 #include <QPainter>
 void Curve::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+    painter->setPen(Qt::transparent);
+    painter->drawRect(boundingRect());
+
 }
 
 void Curve::setWidth(double d)

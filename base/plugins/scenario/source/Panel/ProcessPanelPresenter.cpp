@@ -69,8 +69,11 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
         auto fact = ProcessList::getFactory(m_processViewModel
                                               ->sharedProcessModel()
                                                 ->processName());
-        auto proxy = m_processViewModel->make_panelProxy();
 
+        auto proxy = m_processViewModel->make_panelProxy();
+        delete m_obj;
+        m_obj = new GraphicsProxyObject;
+        panelview->scene()->addItem(m_obj);
         m_processView = fact->makeView(proxy->viewModel(),
                                        m_obj);
         m_processPresenter = fact->makePresenter(proxy->viewModel(),
@@ -87,7 +90,13 @@ void ProcessPanelPresenter::on_sizeChanged(const QSize& size)
 {
     if(!m_processPresenter)
         return;
+
+    auto panelview = static_cast<ProcessPanelView*>(view());
+    m_processView->setPos(0, 0);
     m_processPresenter->setHeight(size.height());
     m_processPresenter->setWidth(size.width());
     m_processPresenter->parentGeometryChanged();
+
+    panelview->view()->fitInView(m_processView);
+
 }
