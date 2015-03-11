@@ -62,10 +62,13 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 {
     return m_viewModel->model()->id();
 }
-
+/*
 #include "../Process/PluginCurveModel.hpp"
 #include "../Process/PluginCurveView.hpp"
 #include "../Process/PluginCurvePresenter.hpp"
+*/
+
+#include "../AltProcess/Curve.hpp"
 
 #include "../Commands/AddPoint.hpp"
 #include "../Commands/MovePoint.hpp"
@@ -74,8 +77,61 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 #include <ProcessInterface/ZoomHelper.hpp>
 
 #include <QGraphicsScene>
+QList<QPointF> mapToList(QMap<double, double> map)
+{
+    QList<QPointF> list;
+    for(auto key : map.keys())
+    {
+        list.push_back({key, 1.0 - map[key]});
+    }
+
+    return list;
+}
+
 void AutomationPresenter::on_modelPointsChanged()
 {
+    if(m_curve)
+    {
+        m_view->scene()->removeItem(m_curve);
+        m_curve->deleteLater();
+    }
+
+    auto list = mapToList(m_viewModel->model()->points());
+    m_curve = new Curve{list, m_view};
+    m_curve->setZValue(15);
+    m_curve->setSize({m_view->width(), m_view->height()});
+
+
+    connect(m_curve, &Curve::pointMovingFinished,
+            [&](double oldx, double newx, double newy)
+    {
+        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel->model()),
+                                 oldx,
+                                 newx,
+                                 1.0 - newy};
+
+        m_commandDispatcher->submitCommand(cmd);
+    });
+
+
+    connect(m_curve, &Curve::pointCreated,
+            [&](QPointF pt)
+    {
+        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel->model()),
+                   pt.x(),
+                   1.0 - pt.y()};
+
+        m_commandDispatcher->submitCommand(cmd);
+    });
+
+
+    connect(m_curve, &Curve::mousePressed,
+            this, [&] ()
+    {
+        m_focusDispatcher.focus(m_viewModel);
+    });
+
+    /*
     qDebug() << Q_FUNC_INFO << (void*) this;
     if(m_curveView)
     {
@@ -152,5 +208,6 @@ void AutomationPresenter::on_modelPointsChanged()
 
         m_commandDispatcher->submitCommand(cmd);
     });
+    */
 }
 

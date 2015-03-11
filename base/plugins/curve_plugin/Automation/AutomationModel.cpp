@@ -8,6 +8,7 @@ AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
 
     // Demo
     addPoint(0, 0);
+    addPoint(0.5, 0.3);
     addPoint(1, 1);
 }
 
