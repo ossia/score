@@ -37,7 +37,8 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // virtual ProcessSharedModelInterface* makeModel(QDataStream& data, QObject* parent)  = 0;
 
         // throws if the serialization method is not implemented by the subclass
+        // TODO === QVariant ====
         virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,
-                void* data, // Todo : use a variant of some kind instead?
-                QObject* parent)  = 0;
+                                                       void* data,
+                                                       QObject* parent)  = 0;
 };

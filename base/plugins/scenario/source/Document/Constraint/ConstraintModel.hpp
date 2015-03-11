@@ -51,6 +51,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         Selectable selection;
         ModelMetadata metadata;
 
+        // TODO use Qt's instead
         static constexpr const char * className()
         { return "ConstraintModel"; }
         static QString prettyName()

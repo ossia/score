@@ -15,5 +15,5 @@ class ScenarioDocument : public iscore::DocumentDelegateFactoryInterface
         virtual iscore::DocumentDelegateModelInterface*
         makeModel(iscore::DocumentModel* parent) override;
         virtual iscore::DocumentDelegateModelInterface*
-        makeModel(iscore::DocumentModel* parent, QByteArray data) override;
+        makeModel(iscore::DocumentModel* parent, QVariant data) override;
 };

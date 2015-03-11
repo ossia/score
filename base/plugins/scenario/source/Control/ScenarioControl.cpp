@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <QJsonDocument>
 
 
 #include "Document/BaseElement/BaseElementModel.hpp"
@@ -37,6 +36,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     {
         auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
 
+        // TODO Operate at the document level instead.
         if(!savename.isEmpty())
         {
             auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
@@ -51,28 +51,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
                                        FileMenuElement::Separator_Quit,
                                        toZeroTwo);
 
-    // Save as json
-    // TODO this should go in the global presenter instead.
-    auto toJson = new QAction("To JSON", this);
-    connect(toJson, &QAction::triggered,
-            [this]()
-    {
-        auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
-
-        if(!savename.isEmpty())
-        {
-            QJsonDocument doc;
-            auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-            doc.setObject(bem.toJson());
-
-            QFile f(savename);
-            f.open(QIODevice::WriteOnly);
-            f.write(doc.toJson());
-        }
-    });
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                       FileMenuElement::Separator_Quit,
-                                       toJson);
 
 
     // View

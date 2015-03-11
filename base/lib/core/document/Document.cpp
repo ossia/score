@@ -14,6 +14,8 @@
 
 #include <QDebug>
 #include <QLayout>
+#include <QCryptographicHash>
+#include <QJsonDocument>
 
 using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentview, QObject* parent) :
@@ -28,7 +30,7 @@ Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentvie
     init();
 }
 
-Document::Document(const QByteArray& data,
+Document::Document(QVariant data,
                    DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
                    QObject* parent):
@@ -78,9 +80,82 @@ void Document::bindPanelPresenter(PanelPresenterInterface* pres)
     pres->setModel(*localmodel);
 }
 
-QByteArray Document::save()
+QByteArray Document::saveDocumentModelAsByteArray()
 {
-    return m_model->modelDelegate()->save();
+    return m_model->modelDelegate()->toByteArray();
+}
+
+QJsonObject Document::saveDocumentModelAsJson()
+{
+    return m_model->modelDelegate()->toJson();
+}
+
+
+QJsonObject Document::savePanelAsJson(const QString& panel)
+{
+    return m_model->modelDelegate()->toJson();
+}
+
+QByteArray Document::savePanelAsByteArray(const QString& panel)
+{
+    using namespace std;
+    auto panelmodel = find_if(begin(model()->panels()),
+                              end(model()->panels()),
+                              [&] (PanelModelInterface* model) { return model->objectName() == panel;});
+
+    return (*panelmodel)->toByteArray();
+}
+
+QByteArray Document::saveAsJson()
+{
+    QJsonObject complete;
+    complete["Scenario"] = saveDocumentModelAsJson();
+    for(auto panel : model()->panels())
+    {
+        complete[panel->objectName()] = panel->toJson();
+    }
+
+
+    QJsonDocument doc;
+    doc.setObject(complete);
+
+    return doc.toJson();
+}
+
+QByteArray Document::saveAsByteArray()
+{
+    using namespace std;
+    QByteArray global;
+    QDataStream writer(&global, QIODevice::WriteOnly);
+
+    auto docByteArray = saveDocumentModelAsByteArray();
+
+    QVector<QPair<QString, QByteArray>> panelModels;
+    std::transform(begin(model()->panels()),
+                   end(model()->panels()),
+                   std::back_inserter(panelModels),
+                   [] (PanelModelInterface* panel)
+    { return QPair<QString, QByteArray>{
+            panel->objectName(),
+            panel->toByteArray()};
+    });
+
+    writer << docByteArray;
+    writer << panelModels;
+
+    auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
+    writer << hash;
+
+/*
+ * TODO Save this, too.
+    QVector<QPair<QString, QByteArray>> documentPluginModels;
+    std::transform(begin(model()->panels()),
+                   end(model()->panels()),
+                   std::back_inserter(panelModels),
+                   [] (DocumentDelegatePluginModel* plugin) {  return QPair<QString, QByteArray>{plugin->objectName(), plugin->toByteArray()}; });
+                  */
+
+    return global;
 }
 
 void Document::init()

@@ -2,7 +2,6 @@
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
-#include <QJsonDocument>
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <iostream>
@@ -24,10 +23,25 @@
 
 using namespace Scenario;
 
-BaseElementModel::BaseElementModel(QByteArray data, QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
-    m_baseConstraint {new ConstraintModel{Deserializer<DataStream>{&data}, this}}
+BaseElementModel::BaseElementModel(QVariant data, QObject* parent) :
+    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent}
 {
+    if(data.canConvert(QMetaType::QByteArray))
+    {
+        auto arr = data.toByteArray();
+        m_baseConstraint = new ConstraintModel{Deserializer<DataStream>{&arr}, this};
+    }
+    else if(data.canConvert(QMetaType::QJsonObject))
+    {
+        qDebug() << data.toJsonObject();
+        m_baseConstraint = new ConstraintModel{Deserializer<JSON>{data.toJsonObject()}, this};
+    }
+    else
+    {
+        qFatal("Could not load BaseElementModel");
+        return;
+    }
+
     m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 
@@ -129,7 +143,7 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
     }
 }
 
-QByteArray BaseElementModel::save()
+QByteArray BaseElementModel::toByteArray()
 {
     QByteArray arr;
     Serializer<DataStream> s {&arr};
@@ -138,25 +152,12 @@ QByteArray BaseElementModel::save()
     return arr;
 }
 
-#include <DeviceInterface/DeviceExplorerInterface.hpp>
 QJsonObject BaseElementModel::toJson()
 {
-    QJsonObject complete;
-    // TODO : save all panels from the iscore_lib::Document
-    // Device explorer
-    auto deviceExplorerModel = DeviceExplorer::getModel(this);
-
-    if(deviceExplorerModel)
-    {
-        complete["DeviceExplorer"] = DeviceExplorer::toJson(deviceExplorerModel);
-    }
-
-    // Document
     Serializer<JSON> s;
     s.readFrom(*constraintModel());
 
-    complete["Scenario"] = s.m_obj;
-    return complete;
+    return s.m_obj;
 }
 
 void BaseElementModel::setNewSelection(const Selection& s)
