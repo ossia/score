@@ -31,8 +31,4 @@ class AutomationViewModel : public ProcessViewModelInterface
                                void* data) const;
 
         AutomationModel* model();
-
-
-    private:
-        AutomationModel* m_model {};
 };

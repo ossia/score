@@ -17,7 +17,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
-            this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
+            this, &AutomationPresenter::on_modelPointsChanged);
 
     on_modelPointsChanged();
 }
