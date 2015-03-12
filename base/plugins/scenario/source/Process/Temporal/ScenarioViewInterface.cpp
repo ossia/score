@@ -47,8 +47,8 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
                         rect.height() * ev->model()->heightPercentage()
                        });
 
-    // TODO a revoir
-    ev->view()->setMoving(m_presenter->ongoingCommand());
+    // TODO mode fantome a revoir
+//    ev->view()->setMoving(m_presenter->ongoingCommand());
 
     // @todo change when multiple event on a same timeNode
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
@@ -88,7 +88,8 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
             view(pres)->setMinWidth(cstr_model->minDuration().toPixels(msPerPixel));
             view(pres)->setMaxWidth(cstr_model->maxDuration().toPixels(msPerPixel));
 
-            view(pres)->setMoving(m_presenter->ongoingCommand());
+            // TODO mode fantome a revoir
+//            view(pres)->setMoving(m_presenter->ongoingCommand());
 
             auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
@@ -148,5 +149,6 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 
-    timeNode->view()->setMoving(m_presenter->ongoingCommand());
+    // TODO mode fantome a revoir
+//    timeNode->view()->setMoving(m_presenter->ongoingCommand());
 }

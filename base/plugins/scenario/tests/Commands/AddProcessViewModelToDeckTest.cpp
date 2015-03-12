@@ -36,20 +36,20 @@ class AddProcessViewModelToDeckTest: public QObject
 
             auto cmd_proc = new AddProcessToConstraint(
             {
-                {"ConstraintModel", {}}
+                {"ConstraintModel", {0}}
             }, "Scenario");
             stack.push(cmd_proc);
             auto procId = cmd_proc->m_createdProcessId;
 
             auto cmd_box = new AddBoxToConstraint(
-            ObjectPath { {"ConstraintModel", {}} });
+            ObjectPath { {"ConstraintModel", {0}} });
             stack.push(cmd_box);
             auto boxId = cmd_box->m_createdBoxId;
 
             auto cmd_deck = new AddDeckToBox(
                 ObjectPath
             {
-                {"ConstraintModel", {}},
+                {"ConstraintModel", {0}},
                 {"BoxModel", boxId}
             });
             auto deckId = cmd_deck->m_createdDeckId;
@@ -57,12 +57,12 @@ class AddProcessViewModelToDeckTest: public QObject
 
             auto cmd_pvm = new AddProcessViewModelToDeck(
             {
-                {"ConstraintModel", {}},
+                {"ConstraintModel", {0}},
                 {"BoxModel", boxId},
                 {"DeckModel", deckId}
             },
             {
-                {"ConstraintModel", {}},
+                {"ConstraintModel", {0}},
                 {"ScenarioModel", procId}
             });
             stack.push(cmd_pvm);

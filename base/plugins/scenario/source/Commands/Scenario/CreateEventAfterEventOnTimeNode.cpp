@@ -42,7 +42,6 @@ void CreateEventAfterEventOnTimeNode::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    // TODO enlever event de la timenode?
     StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
 }
 

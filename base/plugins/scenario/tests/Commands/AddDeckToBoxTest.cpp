@@ -18,7 +18,7 @@ class AddDeckToBoxTest: public QObject
 
             QCOMPARE((int) box->decks().size(), 0);
             AddDeckToBox cmd(
-            ObjectPath { {"BoxModel", {}} });
+            ObjectPath { {"BoxModel", {0}} });
             auto deckId = cmd.m_createdDeckId;
 
             cmd.redo();

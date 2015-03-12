@@ -5,7 +5,6 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 
-// TODO is this undoable ?
 void removeEventFromTimeNode(ScenarioModel& scenario,
                              id_type<EventModel> eventId)
 {
