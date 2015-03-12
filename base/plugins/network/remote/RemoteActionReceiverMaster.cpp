@@ -7,6 +7,7 @@ RemoteActionReceiverMaster::RemoteActionReceiverMaster(QObject* parent, MasterSe
     RemoteActionReceiver {s},
 m_session {s}
 {
+    /*
     s->getClient().receiver().addHandler("/edit/undo",
     &RemoteActionReceiverMaster::handle__edit_undo,
     this);
@@ -24,10 +25,13 @@ m_session {s}
     s->getClient().receiver().addHandler("/edit/command",
     &RemoteActionReceiverMaster::handle__edit_command,
     this);
+    */
 }
+
 
 void RemoteActionReceiverMaster::handle__edit_command(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::int32 clientId;
     const char* par_name;
@@ -57,11 +61,13 @@ void RemoteActionReceiverMaster::handle__edit_command(osc::ReceivedMessageArgume
                         blob);
         }
     }
+    */
 }
 
 
 void RemoteActionReceiverMaster::handle__edit_lock(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::int32 clientId;
 
@@ -82,10 +88,12 @@ void RemoteActionReceiverMaster::handle__edit_lock(osc::ReceivedMessageArgumentS
             client.send("/edit/lock", sessionId, clientId, blob);
         }
     }
+    */
 }
 
 void RemoteActionReceiverMaster::handle__edit_unlock(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::int32 clientId;
 
@@ -106,10 +114,12 @@ void RemoteActionReceiverMaster::handle__edit_unlock(osc::ReceivedMessageArgumen
             client.send("/edit/unlock", sessionId, clientId, blob);
         }
     }
+    */
 }
 
 void RemoteActionReceiverMaster::handle__edit_undo(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::int32 clientId;
 
@@ -129,11 +139,13 @@ void RemoteActionReceiverMaster::handle__edit_undo(osc::ReceivedMessageArgumentS
             client.send("/edit/undo", sessionId, clientId);
         }
     }
+    */
 }
 
 
 void RemoteActionReceiverMaster::handle__edit_redo(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::int32 clientId;
 
@@ -152,6 +164,6 @@ void RemoteActionReceiverMaster::handle__edit_redo(osc::ReceivedMessageArgumentS
         {
             client.send("/edit/redo", sessionId, clientId);
         }
-    }
+    }*/
 
 }

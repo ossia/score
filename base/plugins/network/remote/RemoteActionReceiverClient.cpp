@@ -6,6 +6,7 @@ RemoteActionReceiverClient::RemoteActionReceiverClient(QObject* parent, ClientSe
     RemoteActionReceiver {s},
 m_session {s}
 {
+    /*
     s->getClient().receiver().addHandler("/edit/undo",
     &RemoteActionReceiverClient::handle__edit_undo,
     this);
@@ -23,4 +24,5 @@ m_session {s}
     s->getClient().receiver().addHandler("/edit/command",
     &RemoteActionReceiverClient::handle__edit_command,
     this);
+    */
 }

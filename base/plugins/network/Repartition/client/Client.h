@@ -1,45 +1,36 @@
 #pragma once
-#include <string>
-#include <memory>
-#include "../osc/oscreceiver.h"
+#include <iscore/tools/IdentifiedObject.hpp>
 
-#include "../group/Group.h"
-
-#include"../properties/hasId.h"
-#include"../properties/hasName.h"
-class Client : public hasId, public hasName
+class Client : public IdentifiedObject<Client>
 {
-	public:
-		using hasName::hasSame;
-		using hasId::hasSame;
+        Q_OBJECT
+        Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+    public:
+        Client(id_type<Client> id, QObject* parent = nullptr):
+            IdentifiedObject<Client>{id, "Client", parent}
+        {
+        }
 
-		Client(const std::string& hostname):
-			Client(-1, hostname)
-		{
-		}
+        QString name() const
+        {
+            return m_name;
+        }
 
-		Client(const int id,
-			   const std::string& hostname):
-			hasId(id),
-			hasName(hostname)
-		{
-		}
+    public slots:
+        void setName(QString arg)
+        {
+            if (m_name == arg)
+                return;
 
-		virtual ~Client() = default;
-		Client(Client&&) = default;
-		Client(const Client&) = default;
-		Client& operator=(const Client&) = default;
-		Client& operator=(Client&&) = default;
+            m_name = arg;
+            emit nameChanged(arg);
+        }
 
-		bool operator==(const Client& c) const
-		{
-			return c.getId() == getId();
-		}
+    signals:
+        void nameChanged(QString arg);
 
-		bool operator!=(const Client& c) const
-		{
-			return c.getId() != getId();
-		}
+    private:
+        QString m_name;
 };
 
 using Client_p = std::unique_ptr<Client>;

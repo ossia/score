@@ -2,6 +2,7 @@
 #include <string>
 #include <QObject>
 #include <Repartition/session/Session.h>
+#include <Deps/oscpack/osc/OscReceivedElements.h>
 
 namespace iscore
 {

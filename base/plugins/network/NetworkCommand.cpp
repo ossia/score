@@ -4,7 +4,8 @@
 #include <core/document/DocumentModel.hpp>
 
 #include "NetworkDocumentPlugin.hpp"
-#include "Serialization/NetworkSerialization.hpp"
+#include "Serialization/NetworkServer.hpp"
+#include "Serialization/NetworkSocket.hpp"
 #include <QAction>
 
 
@@ -32,7 +33,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     QAction* connectServer = new QAction {tr("Server"), this};
     connect(connectServer, &QAction::triggered,
             [&] () {
-        new NetworkSerializationServer(9876, this);
+        new NetworkServer(9876, this);
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -42,7 +43,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     QAction* connectLocal = new QAction {tr("Client"), this};
     connect(connectLocal, &QAction::triggered,
             [&] () {
-        new NetworkSerializationSocket("127.0.0.1", 9876, this);
+        new NetworkSocket("127.0.0.1", 9876, this);
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,

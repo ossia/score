@@ -1,61 +1,28 @@
 #pragma once
 #include "Client.h"
 #include "RemoteSender.h"
+#include <Serialization/NetworkSocket.hpp>
 
-class RemoteClient : public Client, public RemoteSender
+// Has a TCP socket for exchange with this client.
+class RemoteClient : public Client
 {
-	public:
-		RemoteClient(const int id,
-					 const std::string& hostname,
-					 const std::string& remoteip,
-					 const int remoteport):
-			Client(id, hostname),
-			RemoteSender(remoteip, remoteport)
-		{
-		}
+    public:
+        RemoteClient(NetworkSocket* socket,
+                     id_type<Client> id,
+                     QObject* parent = nullptr):
+            Client(id, parent),
+            m_socket{socket}
+        {
+            connect(m_socket, SIGNAL(messageReceived(NetworkMessage)),
+                    this,     SIGNAL(messageReceived(NetworkMessage)));
+        }
 
-		RemoteClient(const int id,
-					 const std::string& hostname,
-					 OscSender&& sender):
-			Client(id, hostname),
-			RemoteSender(std::move(sender))
-		{
-		}
+        void sendMessage(NetworkMessage m)
+        {
+            m_socket->sendMessage(m);
+        }
 
-		RemoteClient(RemoteClient&&) = default;
-		RemoteClient(const RemoteClient&) = default;
-		RemoteClient& operator=(const RemoteClient&) = default;
-		RemoteClient& operator=(RemoteClient&&) = default;
-
-		/**** Inter-client communication ****/
-		// Cette méthode est appelée par le serveur.
-		// Le serveur dit au client A (this, qui vient d'être créé)
-		// d'initier la connection avec le client B (c).
-		// Pour cela, on a besoin de l'ip de B par rapport au serveur.
-		void initConnectionTo(int sessionId, RemoteClient& c)
-		{
-			if(c.getId() != getId())
-			{
-				send("/connect/discover",
-					 sessionId,
-					 c.getName().c_str(),
-					 c.getId(),
-					 c.ip().c_str(),
-					 c.port());
-			}
-		}
-
-		/**** Delay-related methods ****/
-		void pollDelay();
-		int getDelay();
-
-		void setPingStamp(int ms)
-		{
-			_pingStamp = ms; // Faire struct & vecteur avec seqnum
-		}
-
-	private:
-		int _delayInMs{}; // ns ? µs?
-		int _pingStamp{};
+    private:
+        NetworkSocket* m_socket{};
 };
 

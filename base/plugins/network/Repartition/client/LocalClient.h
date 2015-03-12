@@ -1,41 +1,23 @@
 #pragma once
 #include "Client.h"
-
+#include <Serialization/NetworkServer.hpp>
+// Has a TCP server to receive incoming connections from other clients.
 class LocalClient : public Client
 {
-	friend class ClientSessionBuilder;
-	using SignalHandler = std::function<void()>;
+        Q_OBJECT
+    public:
+        LocalClient(id_type<Client> id, QObject* parent = nullptr):
+            Client{id, parent},
+            m_server{new NetworkServer{9090, this}}
+        {
+            // todo : envoyer id et name du client.
+            connect(m_server, SIGNAL(newSocket(QTcpSocket*)),
+                    this, SIGNAL(createNewClient(QTcpSocket*)));
+        }
 
-	public:
-		LocalClient(int port, int id, std::string name):
-			Client(id, name),
-			_receiver(new OscReceiver(port))
-		{
-		}
+    signals:
+        void createNewClient(QTcpSocket*);
 
-		LocalClient(std::unique_ptr<OscReceiver>&& receiver, int id, std::string name):
-			Client(id, name),
-			_receiver(std::move(receiver))
-		{
-		}
-
-		virtual ~LocalClient() = default;
-
-		int localPort() const
-		{
-			return _receiver->port();
-		}
-
-		void setLocalPort(unsigned int c)
-		{
-			_receiver->setPort(c);
-		}
-
-		OscReceiver& receiver()
-		{
-			return *_receiver;
-		}
-
-	protected:
-		std::unique_ptr<OscReceiver> _receiver{nullptr};
+    private:
+        NetworkServer* m_server{};
 };

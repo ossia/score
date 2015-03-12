@@ -34,6 +34,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkControl *control, iscore::Do
 
 void NetworkDocumentPlugin::handle__document_ask(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId, clientId;
     args >> sessionId >> clientId;
 
@@ -46,11 +47,13 @@ void NetworkDocumentPlugin::handle__document_ask(osc::ReceivedMessageArgumentStr
 
     osc::Blob blob {dump.constData(), dump.size() };
     m_networkSession->client(clientId).send("/document/receive", sessionId, blob);
+    */
 }
 
 
 void NetworkDocumentPlugin::handle__document_receive(osc::ReceivedMessageArgumentStream args)
 {
+    /*
     osc::int32 sessionId;
     osc::Blob blob;
     args >> sessionId >> blob;
@@ -66,11 +69,13 @@ void NetworkDocumentPlugin::handle__document_receive(osc::ReceivedMessageArgumen
     // from a tcp socket that would be opened prior to any document.
     // The "join" operation must not be in a created document;
     emit loadFromNetwork(arr);
+    */
 }
 
 
 void NetworkDocumentPlugin::setupMasterSession()
 {
+    /*
     QSettings s;
     m_networkSession.reset();
     m_networkSession = std::make_unique<MasterSession> ("Session Maitre",
@@ -90,11 +95,13 @@ void NetworkDocumentPlugin::setupMasterSession()
             this,			  &NetworkDocumentPlugin::on_commandReceived, Qt::QueuedConnection);
 
     setupConnections();
+    */
 }
 
 
 void NetworkDocumentPlugin::setupClientSession(ConnectionData d)
 {
+    /*
     QSettings s;
     ClientSessionBuilder builder(d.remote_ip,
                                  d.remote_port,
@@ -126,6 +133,7 @@ void NetworkDocumentPlugin::setupClientSession(ConnectionData d)
     m_receiver = std::make_unique<RemoteActionReceiverClient> (this, session);
     m_receiver->setParent(this);  // Else it does not work because childEvent is sent too early.
     setupConnections();
+    */
 }
 
 
