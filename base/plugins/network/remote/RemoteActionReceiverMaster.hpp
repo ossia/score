@@ -1,7 +1,7 @@
 #pragma once
 #include "RemoteActionReceiver.hpp"
 
-#include <Repartition/session/MasterSession.h>
+#include <Repartition/session/MasterSession.hpp>
 
 class MasterSession;
 class RemoteActionReceiverMaster : public RemoteActionReceiver

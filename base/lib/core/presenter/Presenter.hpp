@@ -36,7 +36,7 @@ namespace iscore
 
 
             void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
-            void loadDocument(QVariant data,
+            Document* loadDocument(QVariant data,
                               iscore::DocumentDelegateFactoryInterface* doctype);
 
             Document* currentDocument() const;
@@ -54,6 +54,11 @@ namespace iscore
             instantiateUndoCommand(const QString& parent_name,
                                    const QString& name,
                                    const QByteArray& data);
+
+            std::vector<DocumentDelegateFactoryInterface*> availableDocuments() const
+            {
+                return m_availableDocuments;
+            }
 
         signals:
             void currentDocumentChanged(Document* newDoc);

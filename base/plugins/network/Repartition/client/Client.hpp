@@ -4,11 +4,13 @@
 class Client : public IdentifiedObject<Client>
 {
         Q_OBJECT
-        Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+        Q_PROPERTY(QString name
+                   READ name WRITE setName NOTIFY nameChanged)
     public:
         Client(id_type<Client> id, QObject* parent = nullptr):
             IdentifiedObject<Client>{id, "Client", parent}
         {
+
         }
 
         QString name() const
@@ -33,4 +35,3 @@ class Client : public IdentifiedObject<Client>
         QString m_name;
 };
 
-using Client_p = std::unique_ptr<Client>;

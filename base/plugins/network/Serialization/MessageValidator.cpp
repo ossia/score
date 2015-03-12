@@ -1,5 +1,5 @@
 #include "MessageValidator.hpp"
-#include "../Repartition/session/Session.h"
+#include "../Repartition/session/Session.hpp"
 MessageValidator::MessageValidator(Session& s, MessageMapper& map):
     m_session{s},
     m_mapper{map}

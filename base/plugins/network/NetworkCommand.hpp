@@ -6,6 +6,8 @@
 
 
 #include <iscore/command/Command.hpp>
+#include "Repartition/session/ConnectionData.hpp"
+class ClientSessionBuilder;
 
 class NetworkControl : public iscore::PluginControlInterface
 {
@@ -15,6 +17,11 @@ class NetworkControl : public iscore::PluginControlInterface
         NetworkControl();
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
+        void createZeroconfSelectionDialog();
+
+        void setupClientConnection(ConnectionData);
+    public slots:
+        void on_sessionBuilt();
 
 
     protected:
@@ -22,4 +29,5 @@ class NetworkControl : public iscore::PluginControlInterface
 
     private:
         iscore::Presenter* m_presenter {};
+        ClientSessionBuilder* m_sessionBuilder{};
 };

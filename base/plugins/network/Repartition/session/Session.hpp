@@ -1,21 +1,24 @@
 #pragma once
-#include "../client/LocalClient.h"
-#include "../client/RemoteClient.h"
+#include "../client/LocalClient.hpp"
+#include "../client/RemoteClient.hpp"
 #include <Serialization/NetworkMessage.hpp>
 #include <Serialization/MessageMapper.hpp>
 #include <Serialization/MessageValidator.hpp>
 
+class MasterSession;
 
 class Session : public IdentifiedObject<Session>
 {
+        Q_OBJECT
     public:
-        Session(LocalClient* client, id_type<Session> id, QObject* parent = nullptr):
+        Session(LocalClient* client,
+                id_type<Session> id,
+                QObject* parent = nullptr):
             IdentifiedObject<Session>{id, "Session", parent},
             m_client{client},
             m_mapper{new MessageMapper},
             m_validator{new MessageValidator(*this, *m_mapper)}
         {
-
         }
 
         LocalClient& localClient()
@@ -29,7 +32,6 @@ class Session : public IdentifiedObject<Session>
                 client->sendMessage(m);
         }
 
-
     protected:
         LocalClient* m_client{};
 
@@ -39,5 +41,3 @@ class Session : public IdentifiedObject<Session>
         QList<RemoteClient*> m_remoteClients;
 
 };
-
-using Session_p = std::unique_ptr<Session>;

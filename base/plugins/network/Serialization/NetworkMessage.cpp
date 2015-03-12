@@ -1,5 +1,5 @@
 #include "NetworkMessage.hpp"
-#include "../Repartition/session/Session.h"
+#include "../Repartition/session/Session.hpp"
 
 QDataStream& operator<<(QDataStream& s, const NetworkMessage& m)
 {

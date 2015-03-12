@@ -1,5 +1,5 @@
 #include "RemoteActionReceiverMaster.hpp"
-#include <Repartition/session/MasterSession.h>
+#include <Repartition/session/MasterSession.hpp>
 #include <QDebug>
 
 

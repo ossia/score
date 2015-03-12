@@ -1,5 +1,5 @@
 #include "RemoteActionEmitter.hpp"
-#include <Repartition/session/Session.h>
+#include <Repartition/session/Session.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 RemoteActionEmitter::RemoteActionEmitter(Session* session) :

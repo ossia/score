@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <QObject>
-#include <Repartition/session/Session.h>
+#include <Repartition/session/Session.hpp>
 #include <Deps/oscpack/osc/OscReceivedElements.h>
 
 namespace iscore

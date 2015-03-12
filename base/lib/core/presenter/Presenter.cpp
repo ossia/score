@@ -93,10 +93,13 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
     addDocument(new Document{doctype, m_view, this});
 }
 
-void Presenter::loadDocument(QVariant data,
-                             DocumentDelegateFactoryInterface* doctype)
+Document* Presenter::loadDocument(QVariant data,
+                                  DocumentDelegateFactoryInterface* doctype)
 {
-    addDocument(new Document{data, doctype, m_view, this});
+    auto doc = new Document{data, doctype, m_view, this};
+    addDocument(doc);
+
+    return doc;
 }
 
 void Presenter::addDocument(Document* doc)
