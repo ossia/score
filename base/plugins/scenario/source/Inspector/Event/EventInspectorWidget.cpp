@@ -81,9 +81,9 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     m_properties.push_back(m_conditionWidget);
 
     // State
-    QWidget* addressesWidget = new QWidget{this};
-    auto dispLayout = new QVBoxLayout{addressesWidget};
-    addressesWidget->setLayout(dispLayout);
+    m_addressesWidget = new QWidget{this};
+    auto dispLayout = new QVBoxLayout{m_addressesWidget};
+    m_addressesWidget->setLayout(dispLayout);
 
     QWidget* addAddressWidget = new QWidget{this};
     auto addLayout = new QHBoxLayout{addAddressWidget};
@@ -106,7 +106,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     addLayout->addWidget(ok_button);
 
     m_properties.push_back(new QLabel{"States"});
-    m_properties.push_back(addressesWidget);
+    m_properties.push_back(m_addressesWidget);
     m_properties.push_back(addAddressWidget);
 
     // Constraint list
@@ -148,7 +148,7 @@ void EventInspectorWidget::addAddress(const QString& addr)
     });
 
     m_addresses.push_back(address);
-    m_properties[4]->layout()->addWidget(address);
+    m_addressesWidget->layout()->addWidget(address);
 }
 
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)

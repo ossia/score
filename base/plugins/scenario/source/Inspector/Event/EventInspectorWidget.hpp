@@ -37,6 +37,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         QLabel* m_date {};
         QLineEdit* m_conditionWidget {};
         QLineEdit* m_addressLineEdit {};
+        QWidget* m_addressesWidget{};
         EventModel* m_model {};
 
         InspectorSectionWidget* m_prevConstraints;
