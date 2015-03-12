@@ -56,6 +56,7 @@ template<>
 class Visitor<Writer<DataStream>>
 {
     public:
+        // TODO a const ref is sufficient here
         Visitor<Writer<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::ReadOnly}
         {

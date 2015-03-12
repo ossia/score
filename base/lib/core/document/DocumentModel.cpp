@@ -16,13 +16,33 @@ DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
     qDebug("1");
 }
 
-DocumentModel::DocumentModel(const QByteArray& data,
+DocumentModel::DocumentModel(QVariant data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
-    NamedObject {"DocumentModel", parent},
-    m_model{fact->makeModel(this, data)}
+    NamedObject {"DocumentModel", parent}
 {
-    qDebug("2");
+    if(data.canConvert(QMetaType::QByteArray))
+    {
+        auto full = data.toByteArray();
+        QByteArray doc;
+        QVector<QPair<QString, QByteArray>> panelModels;
+        QDataStream wr(full);
+        wr >> doc >> panelModels;
+        // TODO check hash
+
+
+        m_model = fact->makeModel(this, doc);
+    }
+    else if(data.canConvert(QMetaType::QJsonObject))
+    {
+        auto json = data.toJsonObject();
+        m_model = fact->makeModel(this, json["Scenario"].toObject());
+    }
+    else
+    {
+        qFatal("Could not load DocumentModel");
+        return;
+    }
 }
 
 PanelModelInterface* DocumentModel::panel(QString name) const

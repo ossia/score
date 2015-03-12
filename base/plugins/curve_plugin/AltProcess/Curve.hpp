@@ -38,8 +38,8 @@ class Curve : public QGraphicsObject
         void editingFinished(CurvePoint* pt);
 
     protected:
-        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt);
-        void mousePressEvent(QGraphicsSceneMouseEvent* evt);
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent* evt) override;
 
     private:
         CurvePoint* makePoint(double x, double y);

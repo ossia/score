@@ -14,20 +14,22 @@ CurvePoint::CurvePoint(Curve* parent):
 
 QRectF CurvePoint::boundingRect() const
 {
-    return {-6, -6, 12, 12};
+    return {-3, -3, 6, 6};
 }
 
-void CurvePoint::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void CurvePoint::paint(QPainter* painter,
+                       const QStyleOptionGraphicsItem* option,
+                       QWidget* widget)
 {
     if(m_hover)
     {
-        painter->setPen(QPen(Qt::red, 3));
+        painter->setPen(Qt::red);
         painter->setBrush(Qt::red);
-        painter->drawEllipse({0, 0}, 5, 5);
+        painter->drawEllipse({0, 0}, 3, 3);
 
         painter->setPen(QColor(255, 80, 80));
         painter->setBrush(QColor(255, 200, 200));
-        painter->drawEllipse({0, 0}, 3, 3);
+        painter->drawEllipse({0, 0}, 1, 1);
     }
     else
     {
@@ -35,6 +37,7 @@ void CurvePoint::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
         painter->setBrush(Qt::red);
         painter->drawEllipse({0, 0}, 3, 3);
     }
+    painter->drawRect(boundingRect());
 }
 
 double clamp(double val, double min, double max)

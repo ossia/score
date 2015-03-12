@@ -44,7 +44,11 @@ iscore::PluginControlInterface* ScenarioPlugin::control_make()
 
 QStringList ScenarioPlugin::panel_list() const
 {
-    return {"ProcessPanel"};
+    // Disabled for now.
+    // TODO Later
+    // return {"ProcessPanel"};
+
+    return {};
 }
 
 iscore::PanelFactoryInterface*ScenarioPlugin::panel_make(QString name)

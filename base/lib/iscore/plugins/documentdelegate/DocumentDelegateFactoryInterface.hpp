@@ -1,4 +1,5 @@
 #pragma once
+#include <QVariant>
 class QByteArray;
 
 namespace iscore
@@ -25,7 +26,8 @@ namespace iscore
                     DocumentDelegateViewInterface* view) = 0;
 
             virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
-            virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent, QByteArray data) = 0;
+            virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent,
+                                                              QVariant data) = 0;
     };
 
 }

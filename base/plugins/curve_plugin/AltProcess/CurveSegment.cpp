@@ -3,6 +3,7 @@
 #include "Curve.hpp"
 #include <QPainter>
 #include <QDebug>
+#include <cmath>
 
 CurveSegment::CurveSegment(Curve* parent):
     CurveItem{parent}
@@ -37,7 +38,7 @@ void CurveSegment::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 
 ///////////////////
-
+/*
 QPainterPath LinearCurveSegment::shape() const
 {
     QPainterPath path;
@@ -47,14 +48,14 @@ QPainterPath LinearCurveSegment::shape() const
     path.lineTo(dest->pos());
 
     return stroker.createStroke(path);
-}
+}*/
 
 void LinearCurveSegment::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    if(!hovering())
+ //   if(!hovering())
+ //       painter->setPen(QPen(Qt::black, 2));
+ //   else
         painter->setPen(QPen(Qt::black, 2));
-    else
-        painter->setPen(QPen(QColor(255, 50, 50), 2));
 
     painter->drawLine(origin->pos(), dest->pos());
 }

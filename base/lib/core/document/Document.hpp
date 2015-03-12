@@ -25,7 +25,7 @@ namespace iscore
                      QWidget* parentview,
                      QObject* parent);
 
-            Document(const QByteArray& data,
+            Document(QVariant data,
                      DocumentDelegateFactoryInterface* type,
                      QWidget* parentview,
                      QObject* parent);
@@ -60,11 +60,14 @@ namespace iscore
             void bindPanelPresenter(PanelPresenterInterface*);
 
 
-            QByteArray save();
+            QJsonObject saveDocumentModelAsJson();
+            QByteArray saveDocumentModelAsByteArray();
 
-            //QByteArray saveDocumentModel();
-            //QByteArray savePanel(const QString& panel);
+            QJsonObject savePanelAsJson(const QString& panel);
+            QByteArray savePanelAsByteArray(const QString& panel);
 
+            QByteArray saveAsJson();
+            QByteArray saveAsByteArray();
         private:
             void init();
 

@@ -21,7 +21,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         Q_OBJECT
 
     public:
-        BaseElementModel(QByteArray data, QObject* parent);
+        BaseElementModel(QVariant data, QObject* parent);
         BaseElementModel(QObject* parent);
 
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
@@ -39,7 +39,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         { return m_focusedProcess; }
 
 
-        virtual QByteArray save() override;
+        virtual QByteArray toByteArray() override;
         virtual QJsonObject toJson() override;
 
         void setNewSelection(const Selection& s) override;

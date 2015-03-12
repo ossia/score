@@ -12,11 +12,8 @@ namespace iscore
             using IdentifiedObject::IdentifiedObject;
             virtual ~DocumentDelegateModelInterface() = default;
 
-            virtual QByteArray save() = 0;
-            virtual QJsonObject toJson()
-            {
-                return {};
-            }
+            virtual QByteArray toByteArray() = 0;
+            virtual QJsonObject toJson() = 0;
 
         public slots:
             virtual void setNewSelection(const Selection& s) = 0;

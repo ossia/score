@@ -38,7 +38,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelPanelProxy* make_panelProxy();
+        virtual ProcessViewModelPanelProxy* make_panelProxy() override;
 
         virtual ~TemporalScenarioViewModel() = default;
 

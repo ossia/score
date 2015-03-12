@@ -36,7 +36,7 @@ namespace iscore
 
 
             void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
-            void loadDocument(const QByteArray& data,
+            void loadDocument(QVariant data,
                               iscore::DocumentDelegateFactoryInterface* doctype);
 
             Document* currentDocument() const;

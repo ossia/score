@@ -13,11 +13,12 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     ProcessPresenterInterface {"AutomationPresenter", parent},
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
-    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}},
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
+    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}}
+    //,
+    //m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
-            this, &AutomationPresenter::on_modelPointsChanged, Qt::QueuedConnection);
+            this, &AutomationPresenter::on_modelPointsChanged);
 
     on_modelPointsChanged();
 }
@@ -93,11 +94,12 @@ void AutomationPresenter::on_modelPointsChanged()
     if(m_curve)
     {
         m_view->scene()->removeItem(m_curve);
-        m_curve->deleteLater();
+        delete m_curve;
     }
 
     auto list = mapToList(m_viewModel->model()->points());
     m_curve = new Curve{list, m_view};
+    m_curve->setPos(0, 0);
     m_curve->setZValue(15);
     m_curve->setSize({m_view->width(), m_view->height()});
 
@@ -128,7 +130,7 @@ void AutomationPresenter::on_modelPointsChanged()
     connect(m_curve, &Curve::mousePressed,
             this, [&] ()
     {
-        m_focusDispatcher.focus(m_viewModel);
+        //m_focusDispatcher.focus(m_viewModel);
     });
 
     /*

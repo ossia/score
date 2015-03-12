@@ -21,7 +21,7 @@ class AddBoxToConstraintTest: public QObject
 
             QCOMPARE((int) constraint->boxes().size(), 0);
             AddBoxToConstraint cmd(
-            ObjectPath { {"ConstraintModel", {}} });
+            ObjectPath { {"ConstraintModel", {0}} });
 
             auto id = cmd.m_createdBoxId;
 
