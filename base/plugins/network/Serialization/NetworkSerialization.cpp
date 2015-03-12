@@ -1,61 +1,52 @@
 #include "NetworkSerialization.hpp"
 
-/*
- *
- * Côté serveur :
- * On a un NetworkSerializationServer
- *
- * Côté client :
- * On ask une connection.
- *
- */
-NetworkSerializationSocket::NetworkSerializationSocket(QString ip, int port, QObject* parent) :
-    QObject(parent)
+NetworkSerializationSocket::NetworkSerializationSocket(QTcpSocket* sock,
+                                                       QObject* parent):
+    QObject{parent},
+    m_socket{sock}
 {
-    socket = new QTcpSocket(this);
+    init();
+}
 
-    connect(socket, SIGNAL(connected()), this, SLOT(connected()));
-    connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
-    connect(socket, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
-    connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+NetworkSerializationSocket::NetworkSerializationSocket(QString ip,
+                                                       int port,
+                                                       QObject* parent) :
+    QObject{parent},
+    m_socket{new QTcpSocket{this}}
+{
+    init();
 
-    qDebug() << "connecting...";
-
-    // this is not blocking call
-    socket->connectToHost(ip, port);
-
-    // we need to wait...
-    if(!socket->waitForConnected(5000))
+    m_socket->connectToHost(ip, port);
+    if(!m_socket->waitForConnected(5000))
     {
-        qDebug() << "Error: " << socket->errorString();
+        qDebug() << "Error: " << m_socket->errorString();
     }
 }
 
-void NetworkSerializationSocket::connected()
+void NetworkSerializationSocket::sendMessage(NetworkMessage mess)
 {
-    qDebug() << "connected...";
-
-    // Hey server, tell me about you.
-    socket->write("y'a du plop\n");
+    QByteArray b;
+    QDataStream writer(&b, QIODevice::WriteOnly);
+    writer << mess;
+    m_socket->write(b);
 }
 
-void NetworkSerializationSocket::disconnected()
+void NetworkSerializationSocket::init()
 {
-    qDebug() << "disconnected...";
+    connect(m_socket, &QAbstractSocket::disconnected, this, [] () { qDebug("Disconnected"); });
+    connect(m_socket, &QIODevice::readyRead, this, [=] ()
+    {
+        QByteArray b = m_socket->readAll();
+
+        QDataStream reader(b);
+        NetworkMessage m;
+        reader >> m;
+
+        emit messageReceived(m);
+    });
 }
 
-void NetworkSerializationSocket::bytesWritten(qint64 bytes)
-{
-    qDebug() << bytes << " bytes written...";
-}
 
-void NetworkSerializationSocket::readyRead()
-{
-    qDebug() << "reading...";
-
-    // read the data from the socket
-    qDebug() << socket->readAll();
-}
 
 
 #include <QNetworkInterface>
@@ -63,7 +54,7 @@ NetworkSerializationServer::NetworkSerializationServer(int port, QObject* parent
 {
     m_tcpServer = new QTcpServer(this);
 
-    if(!m_tcpServer->listen())
+    if(!m_tcpServer->listen(QHostAddress::Any, port))
     {
         qDebug() << tr("Unable to start the server: %1.").arg(m_tcpServer->errorString());
 
@@ -91,6 +82,12 @@ NetworkSerializationServer::NetworkSerializationServer(int port, QObject* parent
     }
 
     qDebug() << tr("The server is running on\n\nIP: %1\nport: %2\n\n")
-             .arg(ipAddress)
-             .arg(m_tcpServer->serverPort());
+                .arg(ipAddress)
+                .arg(m_tcpServer->serverPort());
+
+    connect(m_tcpServer, &QTcpServer::newConnection,
+            this, [=] ()
+    {
+        emit newSocket(m_tcpServer->nextPendingConnection());
+    });
 }

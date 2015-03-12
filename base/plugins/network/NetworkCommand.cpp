@@ -4,7 +4,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include "NetworkDocumentPlugin.hpp"
-
+#include "Serialization/NetworkSerialization.hpp"
 #include <QAction>
 
 
@@ -28,6 +28,26 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
                                        joinSession);
+
+    QAction* connectServer = new QAction {tr("Server"), this};
+    connect(connectServer, &QAction::triggered,
+            [&] () {
+        new NetworkSerializationServer(9876, this);
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                       FileMenuElement::Separator_Load,
+                                       connectServer);
+
+    QAction* connectLocal = new QAction {tr("Client"), this};
+    connect(connectLocal, &QAction::triggered,
+            [&] () {
+        new NetworkSerializationSocket("127.0.0.1", 9876, this);
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                       FileMenuElement::Separator_Load,
+                                       connectLocal);
 }
 
 void NetworkControl::populateToolbars()
@@ -37,6 +57,6 @@ void NetworkControl::populateToolbars()
 void NetworkControl::on_newDocument(Document* doc)
 {
     // TODO FIXME
-    return;
+    //return;
     doc->model()->addPluginModel(new NetworkDocumentPlugin{this, doc});
 }
