@@ -3,6 +3,7 @@
 #include "Curve.hpp"
 #include <QPainter>
 #include <QDebug>
+#include <cmath>
 
 CurveSegment::CurveSegment(Curve* parent):
     CurveItem{parent}

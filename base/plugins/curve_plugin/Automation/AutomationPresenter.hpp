@@ -45,5 +45,5 @@ class AutomationPresenter : public ProcessPresenterInterface
         ICommandDispatcher* m_commandDispatcher{};
 
         ZoomRatio m_zoomRatio {};
-        FocusDispatcher m_focusDispatcher;
+        //FocusDispatcher m_focusDispatcher;
 };
