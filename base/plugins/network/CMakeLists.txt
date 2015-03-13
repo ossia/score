@@ -8,6 +8,7 @@ endif()
 
 # Packages
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network)
+find_package(KF5DNSSD NO_MODULE)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -18,19 +19,28 @@ include_directories("${CMAKE_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 
 file(GLOB_RECURSE SRCS
-
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 
-add_library(networkplugin ${SRCS})
+if(${KF5DNSSD_FOUND})
+	message("Will use ZeroConf")
+	file(GLOB_RECURSE ZEROCONF_SRCS
+		"${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.cpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.hpp")
+endif()
+
+add_library(networkplugin ${SRCS} ${ZEROCONF_SRCS})
 
 target_link_libraries(networkplugin
 									iscore_lib
 									Qt5::Core
 									Qt5::Widgets
-									Qt5::Network
-									pthread)
+									Qt5::Network)
+
+if(${KF5DNSSD_FOUND})
+	target_compile_definitions(networkplugin PUBLIC USE_ZEROCONF)
+	target_link_libraries(networkplugin KF5::DNSSD)
+endif()
 
 if(NOT APPLE)
 	target_link_libraries(networkplugin dns_sd)

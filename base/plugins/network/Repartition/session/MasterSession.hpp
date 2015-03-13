@@ -5,6 +5,14 @@
 namespace iscore {
 class Document;
 }
+
+#ifdef USE_ZEROCONF
+namespace KDNSSD
+{
+    class PublicService;
+}
+#endif
+
 class MasterSession : public Session
 {
            Q_OBJECT
@@ -12,55 +20,24 @@ class MasterSession : public Session
         MasterSession(iscore::Document* doc,
                       LocalClient* theclient,
                       id_type<Session> id,
-                      QObject* parent = nullptr):
-            Session{theclient, id, parent},
-            m_document{doc}
-        {
-            connect(&localClient(), SIGNAL(createNewClient(QTcpSocket*)),
-                    this, SLOT(on_createNewClient(QTcpSocket*)));
-        }
+                      QObject* parent = nullptr);
 
-        void broadcast(NetworkMessage m)
-        {
-            for(RemoteClient* client : remoteClients())
-                client->sendMessage(m);
-        }
-
-        void transmit(id_type<RemoteClient> sender, NetworkMessage m)
-        {
-            for(auto& client : remoteClients())
-            {
-                if(client->id() != sender)
-                    client->sendMessage(m);
-            }
-        }
+        void broadcast(NetworkMessage m);
+        void transmit(id_type<RemoteClient> sender, NetworkMessage m);
 
         iscore::Document* document() const
         { return m_document; }
 
     public slots:
-        void on_createNewClient(QTcpSocket* sock)
-        {
-            RemoteClientBuilder* builder = new RemoteClientBuilder(*this, sock);
-            connect(builder, SIGNAL(clientReady(RemoteClientBuilder*,RemoteClient*)),
-                    this, SLOT(on_clientReady(RemoteClientBuilder*,RemoteClient*)));
-
-            m_clientBuilders.append(builder);
-        }
-
-        void on_clientReady(RemoteClientBuilder* bldr, RemoteClient* clt)
-        {
-            m_clientBuilders.removeOne(bldr);
-            delete bldr;
-
-            connect(clt, &RemoteClient::messageReceived,
-                    this, &Session::validateMessage, Qt::QueuedConnection);
-
-            remoteClients().push_back(clt);
-        }
+        void on_createNewClient(QTcpSocket* sock);
+        void on_clientReady(RemoteClientBuilder* bldr, RemoteClient* clt);
 
     private:
         iscore::Document* m_document{};
         QList<RemoteClientBuilder*> m_clientBuilders;
+
+#ifdef USE_ZEROCONF
+        KDNSSD::PublicService* m_service{};
+#endif
 
 };

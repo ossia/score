@@ -1,5 +1,6 @@
 #include "NetworkServer.hpp"
 #include <QNetworkInterface>
+#include <QTcpServer>
 
 
 NetworkServer::NetworkServer(int port, QObject* parent):
@@ -40,4 +41,9 @@ NetworkServer::NetworkServer(int port, QObject* parent):
     {
         emit newSocket(m_tcpServer->nextPendingConnection());
     });
+}
+
+int NetworkServer::port() const
+{
+    return m_tcpServer->serverPort();
 }

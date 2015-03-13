@@ -10,27 +10,30 @@
 #include "Serialization/NetworkSocket.hpp"
 #include <QAction>
 
+#ifdef USE_ZEROCONF
+#include "Zeroconf/ZeroconfBrowser.hpp"
+#endif
+
 
 using namespace iscore;
 
 NetworkControl::NetworkControl() :
     PluginControlInterface {"NetworkCommand", nullptr}
 {
+#ifdef USE_ZEROCONF
+    m_zeroconfBrowser = new ZeroconfBrowser{this};
+    connect(m_zeroconfBrowser, SIGNAL(sessionSelected(QString,int)),
+            this, SLOT(setupClientConnection(QString, int)));
+#endif
 }
 
 void NetworkControl::populateMenus(MenubarManager* menu)
 {
-
- /*
-    QAction* joinSession = new QAction {tr("Join"), this};
-    connect(joinSession, &QAction::triggered,
-            [&] () {
-        createZeroconfSelectionDialog();
-    });
+#ifdef USE_ZEROCONF
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
-                                       joinSession);
-*/
+                                       m_zeroconfBrowser->makeAction());
+#endif
 
     QAction* makeServer = new QAction {tr("Make Server"), this};
     connect(makeServer, &QAction::triggered, this,
