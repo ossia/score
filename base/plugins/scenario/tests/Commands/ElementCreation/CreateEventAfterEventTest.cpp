@@ -27,7 +27,7 @@ class CreateEventAfterEventTest: public QObject
 
             CreateEventAfterEvent cmd(
             {
-                {"ScenarioModel", {}},
+                {"ScenarioModel", {0}},
             }, data);
 
             cmd.redo();
