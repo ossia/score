@@ -23,19 +23,12 @@ class BoxWidget : public QWidget
         void updateComboBox(LambdaFriendlyQComboBox*, AbstractConstraintViewModel* vm);
         void setModel(ConstraintModel*);
 
-        const QString hiddenText
-        {
-            tr("Hide")
-        };
+        static const QString hiddenText;
 
-    public slots:
-        void on_comboBoxActivated(QString);
 
     private:
         QWidget* m_comboBoxesWidget{};
         ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
-
-        QMap<AbstractConstraintViewModel*, QMetaObject::Connection> m_connections;
 
 };

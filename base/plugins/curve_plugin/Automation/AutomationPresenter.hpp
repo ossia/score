@@ -1,11 +1,7 @@
 #pragma once
 #include <ProcessInterface/ProcessPresenterInterface.hpp>
-#include "../../scenario/source/Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp"
-/*
-class PluginCurveView;
-class PluginCurvePresenter;
-class PluginCurveModel;
-*/
+#include <ProcessInterface/Focus/FocusDispatcher.hpp>
+
 class Curve;
 class ProcessViewInterface;
 class AutomationViewModel;
@@ -36,14 +32,10 @@ class AutomationPresenter : public ProcessPresenterInterface
     private:
         AutomationViewModel* m_viewModel {};
         AutomationView* m_view {};
-/*
-        PluginCurveModel* m_curveModel {};
-        PluginCurvePresenter* m_curvePresenter {};
-        PluginCurveView* m_curveView {};
-*/
+
         Curve* m_curve{};
         ICommandDispatcher* m_commandDispatcher{};
 
         ZoomRatio m_zoomRatio {};
-        //FocusDispatcher m_focusDispatcher;
+        FocusDispatcher m_focusDispatcher;
 };

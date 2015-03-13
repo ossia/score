@@ -31,8 +31,6 @@ void TemporalScenarioView::paint(QPainter* painter,
         painter->setPen(Qt::blue);
     }
 
-    painter->drawRect(boundingRect());
-
     if(m_lock)
     {
         painter->setBrush({Qt::red, Qt::DiagCrossPattern});

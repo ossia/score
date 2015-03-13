@@ -13,7 +13,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
-
+const QString BoxWidget::hiddenText{ QObject::tr("Hide")};
 
 BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
     QWidget {parent},
@@ -46,11 +46,6 @@ BoxWidget::BoxWidget(ConstraintInspectorWidget* parent) :
 
 BoxWidget::~BoxWidget()
 {
-    for (auto connection : m_connections)
-    {
-        QObject::disconnect(connection);
-    }
-    m_connections.clear();
 }
 
 void BoxWidget::viewModelsChanged()
@@ -93,26 +88,33 @@ void BoxWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstr
         auto id = *box->id().val();
         combobox->addItem(QString::number(id));
         // TODO check that
-        if(vm->shownBox() == id)
+        if(vm->shownBox() == box->id())
         {
             combobox->setCurrentIndex(combobox->count() - 1);
         }
     }
 
-    if (m_connections.find(vm) != m_connections.end() )
-    {
-        QObject::disconnect(m_connections[vm]);
-        m_connections.remove(vm);
-    }
+    connect(combobox, &LambdaFriendlyQComboBox::activated,
+            combobox, [=] (QString s) { m_parent->activeBoxChanged(s, vm); });
 
-    m_connections[vm] = connect(combobox, &LambdaFriendlyQComboBox::activated,
-                                [=] (QString s) { m_parent->activeBoxChanged(s, vm); });
+    connect(vm, &AbstractConstraintViewModel::boxHidden,
+            combobox, [=] () { combobox->setCurrentIndex(0); });
 
-    combobox->setCurrentIndex(combobox->count() - 1);
-    if (combobox->count() > 1)
+    connect(vm, &AbstractConstraintViewModel::boxShown,
+            combobox, [=] (id_type<BoxModel> id)
     {
-        m_parent->activeBoxChanged(combobox->currentText(), vm);
-    }
+        using namespace std;
+        auto elts = combobox->elements();
+
+        for(int i = 0; i < elts.size(); ++i)
+        {
+            if(elts[i] == QString::number(id.val().get()))
+            {
+                combobox->setCurrentIndex(i);
+                break;
+            }
+        }
+    });
 }
 
 void BoxWidget::setModel(ConstraintModel* m)
@@ -121,8 +123,3 @@ void BoxWidget::setModel(ConstraintModel* m)
     viewModelsChanged();
 }
 
-void BoxWidget::on_comboBoxActivated(QString s)
-{
-    // TODO
-    //m_parent->activeBoxChanged(s);
-}

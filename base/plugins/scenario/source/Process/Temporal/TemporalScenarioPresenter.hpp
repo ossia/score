@@ -2,7 +2,7 @@
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Document/Event/EventData.hpp>
-#include <Document/BaseElement/FocusDispatcher/FocusDispatcher.hpp>
+#include <ProcessInterface/Focus/FocusDispatcher.hpp>
 
 namespace iscore
 {

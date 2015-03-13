@@ -219,9 +219,12 @@ void ConstraintInspectorWidget::createBox()
 
 void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
 {
+    // TODO this will bite us when the name does not contain the id anymore.
+    // We will have to stock the id's somewhere.
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
-        processName);
+        id_type<ProcessSharedModelInterface>(processName.toInt()));
+
     emit commandDispatcher()->submitCommand(cmd);
 }
 

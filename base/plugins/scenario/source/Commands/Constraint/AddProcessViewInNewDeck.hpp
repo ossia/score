@@ -23,7 +23,8 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewDeck, "ScenarioControl")
-                AddProcessViewInNewDeck(ObjectPath&& constraintPath, QString process);
+                AddProcessViewInNewDeck(ObjectPath&& constraintPath,
+                                        id_type<ProcessSharedModelInterface> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -40,8 +41,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                ObjectPath m_processPath;
-                QString m_processName;
+                QString m_processIdentifier;
 
                 bool m_existingBox {};
 
