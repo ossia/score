@@ -51,6 +51,28 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
                           defaultWidth(),
                           0);
     }
+    else if(infinite())
+    {
+        painter->setPen(m_solidPen);
+        painter->drawLine(0,
+                          0,
+                          minWidth(),
+                          0);
+
+        QPen pen = m_dashPen;
+        QLinearGradient gradient(minWidth(), 0, defaultWidth(), 0);
+        gradient.setColorAt(0, c);
+        gradient.setColorAt(1, Qt::transparent);
+
+
+        pen.setColor(Qt::black);
+        pen.setBrush(gradient);
+        painter->setPen(pen);
+        painter->drawLine(minWidth(),
+                          0,
+                          defaultWidth(),
+                          0);
+    }
     else
     {
         // Firs the line going from 0 to the min
@@ -82,7 +104,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
                           0);
     }
 
-    // TODO max -> +inf
 
 }
 

@@ -86,7 +86,9 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
 
             view(pres)->setDefaultWidth(cstr_model->defaultDuration().toPixels(msPerPixel));
             view(pres)->setMinWidth(cstr_model->minDuration().toPixels(msPerPixel));
-            view(pres)->setMaxWidth(cstr_model->maxDuration().toPixels(msPerPixel));
+            view(pres)->setMaxWidth(cstr_model->maxDuration().isInfinite(),
+                                    cstr_model->maxDuration().isInfinite()? -1 :
+                                        cstr_model->maxDuration().toPixels(msPerPixel));
 
             // TODO mode fantome a revoir
 //            view(pres)->setMoving(m_presenter->ongoingCommand());

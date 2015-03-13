@@ -3,6 +3,7 @@
 #include <QGraphicsProxyWidget>
 #include <QPointF>
 #include <QPen>
+#include <ProcessInterface/TimeValue.hpp>
 
 class AbstractConstraintViewModel;
 
@@ -16,9 +17,11 @@ class AbstractConstraintView : public QGraphicsObject
         virtual ~AbstractConstraintView() = default;
 
         virtual void setInfinite(bool);
+        bool infinite() const
+        { return m_infinite; }
 
         void setDefaultWidth(int width);
-        void setMaxWidth(int max);
+        void setMaxWidth(bool infinite, int max);
         void setMinWidth(int min);
         void setHeight(int height);
 
@@ -84,4 +87,5 @@ class AbstractConstraintView : public QGraphicsObject
         int m_height {};
 
         bool m_selected{};
+        bool m_infinite{};
 };

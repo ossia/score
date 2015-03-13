@@ -36,7 +36,7 @@ class AbstractConstraintPresenter : public NamedObject
                                     AbstractConstraintView* view,
                                     QObject* parent);
         virtual ~AbstractConstraintPresenter() = default;
-        virtual void updateScaling(double msPerPixels);
+        virtual void updateScaling();
 
         bool isSelected() const;
 

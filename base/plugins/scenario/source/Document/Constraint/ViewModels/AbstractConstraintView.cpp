@@ -6,9 +6,12 @@ AbstractConstraintView::AbstractConstraintView(QGraphicsObject* parent) :
 
 }
 
-void AbstractConstraintView::setInfinite(bool)
+void AbstractConstraintView::setInfinite(bool infinite)
 {
+    prepareGeometryChange();
 
+    m_infinite = infinite;
+    update();
 }
 
 void AbstractConstraintView::setDefaultWidth(int width)
@@ -17,10 +20,17 @@ void AbstractConstraintView::setDefaultWidth(int width)
     m_defaultWidth = width;
 }
 
-void AbstractConstraintView::setMaxWidth(int max)
+void AbstractConstraintView::setMaxWidth(bool infinite, int max)
 {
     prepareGeometryChange();
-    m_maxWidth = max;
+
+    setInfinite(infinite);
+    if(!infinite)
+    {
+        qDebug() << max;
+        m_maxWidth = max;
+    }
+
 }
 
 void AbstractConstraintView::setMinWidth(int min)

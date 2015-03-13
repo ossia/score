@@ -51,13 +51,14 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
     this,                &AbstractConstraintPresenter::on_boxRemoved);
 }
 
-void AbstractConstraintPresenter::updateScaling(double msPerPixels)
+void AbstractConstraintPresenter::updateScaling()
 {
     auto cm = m_viewModel->model();
     // prendre en compte la distance du clic à chaque côté
-    m_view->setDefaultWidth(cm->defaultDuration().toPixels(msPerPixels));
-    m_view->setMinWidth(cm->minDuration().toPixels(msPerPixels));
-    m_view->setMaxWidth(cm->maxDuration().toPixels(msPerPixels));
+    m_view->setDefaultWidth(cm->defaultDuration().toPixels(m_zoomRatio));
+    m_view->setMinWidth(cm->minDuration().toPixels(m_zoomRatio));
+    m_view->setMaxWidth(cm->maxDuration().isInfinite(),
+                        cm->maxDuration().isInfinite()? -1 : cm->maxDuration().toPixels(m_zoomRatio));
 
     if(box())
     {
@@ -70,7 +71,7 @@ void AbstractConstraintPresenter::updateScaling(double msPerPixels)
 void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
-    updateScaling(m_zoomRatio);
+    updateScaling();
 
     if(box())
     {
@@ -96,15 +97,8 @@ void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 
 void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 {
-    if(max.isInfinite())
-    {
-        m_view->setInfinite(true);
-    }
-    else
-    {
-        m_view->setInfinite(false);
-        m_view->setMaxWidth(max.toPixels(m_zoomRatio));
-    }
+    m_view->setMaxWidth(max.isInfinite(),
+                        max.isInfinite()? -1 : max.toPixels(m_zoomRatio));
 
     emit askUpdate();
     m_view->update();
@@ -126,7 +120,6 @@ void AbstractConstraintPresenter::updateHeight()
     m_view->update();
 }
 
-// TODO Change this to use the model instead.
 bool AbstractConstraintPresenter::isSelected() const
 {
     return m_viewModel->model()->selection.get();
