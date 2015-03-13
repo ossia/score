@@ -28,14 +28,12 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
                             IDocument::documentFromObject(m_model)->commandStack(),
                             this}}
 {
-
     QWidget* widg{new QWidget{this}};
     QGridLayout* lay = new QGridLayout{widg};
     lay->setContentsMargins(0, 0, 0 , 0);
     widg->setLayout(lay);
 
     m_valueLabel = new QLabel{"Default: "};
-    auto checkbox = new QCheckBox{"Rigid"};
     m_minSpin = new QTimeEdit{};
     m_maxSpin = new QTimeEdit{};
     m_valueSpin = new QTimeEdit{};
@@ -56,70 +54,68 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     timeValidation->setText("OK");
 
     m_default = m_model->defaultDuration();
-    //QTime msDuration = m_default.toQTime();
     m_min = m_default;
     m_max = m_default;
     m_max.addMSecs(1);
 
-//    minSpin->setMinimumTime(QTime(0,0,0,0));
     m_minSpin->setMaximumTime(m_min.toQTime());
     m_maxSpin->setMinimumTime(m_max.toQTime());
-//    maxSpin->setMaximumTime(std::numeric_limits<int>::max());
 
-//    valueSpin->setMinimum(std::numeric_limits<int>::min());
-//    valueSpin->setMaximum(std::numeric_limits<int>::max());
 
-    connect(checkbox, &QCheckBox::toggled,
+    auto rigid_checkbox = new QCheckBox{"Rigid"};
+    connect(rigid_checkbox, &QCheckBox::toggled,
             [ = ](bool val)
     {
         m_minSpin->setEnabled(!val);
         m_maxSpin->setEnabled(!val);
     });
 
+
+    m_infinite = new QCheckBox{"Infinite"};
+    connect(m_infinite, &QCheckBox::toggled,
+            [=](bool val)
+    {
+        TimeValue newTime = val
+                            ? TimeValue(PositiveInfinity{})
+                            : TimeValue(std::chrono::milliseconds(m_maxSpin->time().msecsSinceStartOfDay()));
+        if(m_model->maxDuration() == newTime)
+            return;
+
+        auto cmd = new Scenario::Command::SetMaxDuration(
+                       iscore::IDocument::path(m_model),
+                       newTime);
+
+        m_cmdManager->submitCommand(cmd);
+        m_cmdManager->commit();
+    });
+
+
     m_minSpin->setTime(m_min.toQTime());
     m_maxSpin->setTime((m_max.toQTime()));
 
     if(m_model->minDuration() == m_model->maxDuration())
     {
-        checkbox->setChecked(true);
+        rigid_checkbox->setChecked(true);
     }
 
     m_valueSpin->setTime(m_default.toQTime());
 
-    lay->addWidget(checkbox, 0, 0);
+    lay->addWidget(rigid_checkbox, 0, 0);
     lay->addWidget(timeValidation, 0, 1);
     lay->addWidget(new QLabel{tr("Min duration") }, 1, 0);
     lay->addWidget(m_minSpin, 1, 1);
     lay->addWidget(new QLabel{tr("Max duration") }, 2, 0);
     lay->addWidget(m_maxSpin, 2, 1);
+    lay->addWidget(m_infinite, 2, 2);
 
     lay->addWidget(m_valueLabel, 3, 0);
     lay->addWidget(m_valueSpin, 3, 1);
 
-    // TODO bug/crashes si décommenté ... Problème avec les signaux utilisés ??
-/*
-    connect(m_minSpin,	&QTimeEdit::timeChanged,
-            [=] (QTime val) { emit minDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
 
-    connect(m_minSpin,	&QTimeEdit::editingFinished,
-            [&]() { qDebug("=1="); emit m_cmdManager->commit(); });
-
-    connect(m_maxSpin,	&QTimeEdit::timeChanged,
-            [=] (QTime val) { emit maxDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
-
-    connect(m_maxSpin,	&QTimeEdit::editingFinished,
-            [&]() { qDebug("=2="); emit m_cmdManager->commit(); });
-
-    connect(m_valueSpin,  &QTimeEdit::timeChanged,
-            [=] (QTime val) { emit defaultDurationSpinboxChanged(val.msecsSinceStartOfDay()); });
-
-    connect(m_valueSpin,  &QTimeEdit::editingFinished,
-            [&]() { emit m_cmdManager->commit(); });
-*/
     connect(timeValidation, &QToolButton::clicked,
             this,           &DurationSectionWidget::on_durationsChanged);
 
-    connect(checkbox,	&QCheckBox::toggled,
+    connect(rigid_checkbox,	&QCheckBox::toggled,
             this,		&DurationSectionWidget::rigidCheckboxToggled);
 
 
@@ -193,28 +189,45 @@ void DurationSectionWidget::on_modelMinDurationChanged(TimeValue dur)
 
 void DurationSectionWidget::on_modelMaxDurationChanged(TimeValue dur)
 {
-    if (dur.toQTime() == m_maxSpin->time())
-        return;
+    if(dur.isInfinite())
+    {
+        if(!m_infinite->isChecked())
+        {
+            m_infinite->setCheckState(Qt::Checked);
+            m_maxSpin->setEnabled(false);
+        }
+    }
+    else
+    {
+        if(m_infinite->isChecked())
+        {
+            m_infinite->setCheckState(Qt::Unchecked);
+            m_maxSpin->setEnabled(true);
+        }
 
-    m_maxSpin->setTime(dur.toQTime());
+        if (dur.toQTime() == m_maxSpin->time())
+            return;
+
+        m_maxSpin->setTime(dur.toQTime());
+    }
 }
 
 void DurationSectionWidget::on_durationsChanged()
 {
     if (m_default.toQTime() != m_valueSpin->time())
     {
-        emit defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
+        defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
         m_cmdManager->commit();
     }
 
     if (m_min.toQTime() != m_minSpin->time())
     {
-        emit minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
+        minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
         m_cmdManager->commit();
 
     }if (m_max.toQTime() != m_maxSpin->time())
     {
-        emit maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
+        maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
         m_cmdManager->commit();
     }
 }

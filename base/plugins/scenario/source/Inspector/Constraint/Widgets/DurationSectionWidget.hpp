@@ -6,7 +6,7 @@ class QLabel;
 class ConstraintModel;
 class ConstraintInspectorWidget;
 class QTimeEdit;
-
+class QCheckBox;
 class DurationSectionWidget : public InspectorSectionWidget
 {
         Q_OBJECT
@@ -34,6 +34,7 @@ class DurationSectionWidget : public InspectorSectionWidget
         QTimeEdit* m_minSpin{};
         QTimeEdit* m_valueSpin{};
         QTimeEdit* m_maxSpin{};
+        QCheckBox* m_infinite{};
 
         TimeValue m_min;
         TimeValue m_max;

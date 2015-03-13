@@ -6,6 +6,11 @@ AbstractConstraintView::AbstractConstraintView(QGraphicsObject* parent) :
 
 }
 
+void AbstractConstraintView::setInfinite(bool)
+{
+
+}
+
 void AbstractConstraintView::setDefaultWidth(int width)
 {
     prepareGeometryChange();

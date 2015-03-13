@@ -15,6 +15,8 @@ class AbstractConstraintView : public QGraphicsObject
 
         virtual ~AbstractConstraintView() = default;
 
+        virtual void setInfinite(bool);
+
         void setDefaultWidth(int width);
         void setMaxWidth(int max);
         void setMinWidth(int min);

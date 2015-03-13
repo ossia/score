@@ -96,7 +96,15 @@ void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
 
 void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 {
-    m_view->setMaxWidth(max.toPixels(m_zoomRatio));
+    if(max.isInfinite())
+    {
+        m_view->setInfinite(true);
+    }
+    else
+    {
+        m_view->setInfinite(false);
+        m_view->setMaxWidth(max.toPixels(m_zoomRatio));
+    }
 
     emit askUpdate();
     m_view->update();
