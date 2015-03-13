@@ -1,5 +1,5 @@
 #include <NetworkPlugin.hpp>
-#include <NetworkCommand.hpp>
+#include <NetworkControl.hpp>
 #include <settings_impl/NetworkSettings.hpp>
 
 #define PROCESS_NAME "Network Process"

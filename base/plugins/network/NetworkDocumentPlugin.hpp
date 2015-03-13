@@ -3,7 +3,6 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 
-#include <Repartition/session/ConnectionData.hpp>
 class NetworkControl;
 class ClientSession;
 class MasterSession;

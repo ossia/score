@@ -1,9 +1,10 @@
-#include "NetworkCommand.hpp"
+#include "NetworkControl.hpp"
 #include <core/presenter/Presenter.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 
 #include "NetworkDocumentPlugin.hpp"
+#include "Repartition/session/ClientSession.hpp"
 #include "Repartition/session/MasterSession.hpp"
 #include "Serialization/NetworkServer.hpp"
 #include "Serialization/NetworkSocket.hpp"
@@ -61,7 +62,7 @@ void NetworkControl::populateToolbars()
 {
 }
 
-#include "Repartition/session/ClientSessionBuilder.h"
+#include "Repartition/session/ClientSessionBuilder.hpp"
 void NetworkControl::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = new ClientSessionBuilder{
@@ -71,7 +72,7 @@ void NetworkControl::setupClientConnection(QString ip, int port)
     connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
             this, &NetworkControl::on_sessionBuilt, Qt::QueuedConnection);
 
-    m_sessionBuilder->doConnection();
+    m_sessionBuilder->initiateConnection();
 }
 
 void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession)
@@ -84,11 +85,4 @@ void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, Clien
 
     delete sessionBuilder;
 
-}
-
-void NetworkControl::on_newDocument(Document* doc)
-{
-    // TODO FIXME
-    //return;
-    //doc->model()->addPluginModel(new NetworkDocumentPlugin{this, doc});
 }

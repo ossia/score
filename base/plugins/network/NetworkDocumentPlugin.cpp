@@ -3,13 +3,13 @@
 #include <Repartition/session/MasterSession.hpp>
 #include <Repartition/session/ClientSession.hpp>
 #include <Repartition/client/RemoteClient.hpp>
-#include <Repartition/session/ClientSessionBuilder.h>
+#include <Repartition/session/ClientSessionBuilder.hpp>
 
 
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include "NetworkCommand.hpp"
+#include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 
 
