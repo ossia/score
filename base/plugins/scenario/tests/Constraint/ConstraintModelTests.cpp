@@ -116,7 +116,7 @@ class ConstraintModelTests: public QObject
 
             ObjectPath p
             {
-                {"OriginalConstraint", {}},
+                {"OriginalConstraint", {0}},
                 {"ScenarioModel", 0},
                 {"ConstraintModel", int_0_id},
                 {"ScenarioModel", 1}
@@ -125,7 +125,7 @@ class ConstraintModelTests: public QObject
 
             ObjectPath p2
             {
-                {"OriginalConstraint", {}},
+                {"OriginalConstraint", {0}},
                 {"ScenarioModel", 0},
                 {"ConstraintModel", int_0_id},
                 {"ScenarioModel", 7}
@@ -140,7 +140,7 @@ class ConstraintModelTests: public QObject
 
             ObjectPath p3
             {
-                {"OriginalConstraint", {}},
+                {"OriginalConstraint", {0}},
                 {"ScenarioModel", 0},
                 {"ConstraintModel0xBADBAD", int_0_id},
                 {"ScenarioModel", 1}
@@ -155,7 +155,7 @@ class ConstraintModelTests: public QObject
 
             ObjectPath p4
             {
-                {"OriginalConstraint", {}},
+                {"OriginalConstraint", {0}},
                 {"ScenarioModel", 0},
                 {"ConstraintModel", int_0_id},
                 {"ScenarioModel", 1},

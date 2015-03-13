@@ -30,6 +30,16 @@ namespace Scenario
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
 
+                id_type<TimeNodeModel> createdTimeNode() const
+                {
+                    return m_cmd->createdTimeNode();
+                }
+
+                id_type<EventModel> createdEvent() const
+                {
+                    return m_cmd->createdEvent();
+                }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;
