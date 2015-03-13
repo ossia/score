@@ -21,6 +21,14 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 file(GLOB_RECURSE SRCS
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+	
+	
+foreach(item ${SRCS})
+  if(${item} MATCHES "Zeroconf")
+    list(REMOVE_ITEM SRCS ${item})
+  endif()
+endforeach()
+message("${SRCS}")
 
 if(${KF5DNSSD_FOUND})
 	message("Will use ZeroConf")
