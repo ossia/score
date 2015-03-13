@@ -2,6 +2,11 @@
 #include <QString>
 #include <QJsonObject>
 #include <QModelIndex>
+
+
+#include "../../scenario/source/Document/Event/State/Message.hpp"
+
+
 class QObject;
 class DeviceExplorerModel;
 namespace iscore
@@ -21,4 +26,5 @@ namespace DeviceExplorer
     QJsonObject toJson(DeviceExplorerModel* deviceExplorer);
 
     QString addressFromModelIndex(const QModelIndex& index);
+    Message messageFromModelIndex(const QModelIndex& index);
 }

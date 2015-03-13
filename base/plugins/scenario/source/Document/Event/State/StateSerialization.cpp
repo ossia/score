@@ -42,3 +42,40 @@ void Visitor<Writer<JSON>>::writeTo(State& state)
         state.addMessage(message.toString());
     }
 }
+
+
+
+
+
+#include "Message.hpp"
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
+{
+    // TODO Continue / overhaul messages.
+    m_stream << mess.address << mess.value;
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSON>>::readFrom(const Message& mess)
+{
+    m_obj["Address"] = mess.address;
+    m_obj["Value"] = mess.value.toString();
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(Message& mess)
+{
+    m_stream >> mess.address >> mess.value;
+
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSON>>::writeTo(Message& mess)
+{
+    mess.address = m_obj["Address"].toString();
+    mess.value = QJsonValue(m_obj["Value"]).toVariant();
+}
+

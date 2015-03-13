@@ -47,6 +47,15 @@ QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 }
 
 
+Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
+{
+    Message mess;
+    mess.address = addressFromModelIndex(m);
+    mess.value = m.sibling(m.row(), 1).data();
+
+    return mess;
+}
+
 DeviceExplorerModel *DeviceExplorer::getModel(iscore::Document *doc)
 {
     return static_cast<DeviceExplorerPanelModel*>(

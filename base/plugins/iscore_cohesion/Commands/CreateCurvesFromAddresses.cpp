@@ -3,9 +3,6 @@
 #include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "../curve_plugin/Automation/AutomationModel.hpp"
 
-#include <iscore/presenter/PresenterInterface.hpp>
-#include <QApplication>
-
 using namespace iscore;
 
 #define CMD_UID 4000
@@ -45,9 +42,8 @@ void CreateCurvesFromAddresses::undo()
 {
     for(auto& cmd_pack : m_serializedCommands)
     {
-        auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
-                   "AddProcessToConstraint",
-                   cmd_pack);
+        auto cmd = new Scenario::Command::AddProcessToConstraint;
+        cmd->deserialize(cmd_pack);
         cmd->undo();
 
         delete cmd;
@@ -61,16 +57,13 @@ void CreateCurvesFromAddresses::redo()
     for(int i = 0; i < m_addresses.size(); ++i)
     {
         // Creation
-        auto cmd = IPresenter::instantiateUndoCommand("ScenarioControl",
-                   "AddProcessToConstraint",
-                   m_serializedCommands[i]);
-
+        auto cmd = new Scenario::Command::AddProcessToConstraint;
+        cmd->deserialize(m_serializedCommands[i]);
         cmd->redo();
 
         // Change the address
         // TODO maybe pass parameters to AddProcessToConstraint?
-        auto addProcessCmd = static_cast<Scenario::Command::AddProcessToConstraint*>(cmd);
-        auto id = addProcessCmd->processId();
+        auto id = cmd->processId();
 
         auto curve = static_cast<AutomationModel*>(constraint->process(id));
         curve->setAddress(m_addresses[i]);
