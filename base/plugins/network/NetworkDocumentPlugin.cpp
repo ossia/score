@@ -5,9 +5,6 @@
 #include <Repartition/client/RemoteClient.hpp>
 #include <Repartition/session/ClientSessionBuilder.h>
 
-#include "remote/RemoteActionReceiverMaster.hpp"
-#include "remote/RemoteActionReceiverClient.hpp"
-
 
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/Document.hpp>

@@ -18,12 +18,10 @@ include_directories(.)
 include_directories("${CMAKE_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/oscpack")
 
 file(GLOB_RECURSE SRCS
 
 	"${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour*.*"
-	"${CMAKE_CURRENT_SOURCE_DIR}/remote/*.*"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/*.*"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/*.*"
 	"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/*.*"
@@ -36,8 +34,7 @@ target_link_libraries(networkplugin
 									Qt5::Core
 									Qt5::Widgets
 									Qt5::Network
-									pthread
-									oscpack)
+									pthread)
 
 if(NOT APPLE)
 	target_link_libraries(networkplugin dns_sd)

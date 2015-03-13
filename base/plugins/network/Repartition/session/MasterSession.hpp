@@ -1,6 +1,5 @@
 #pragma once
 #include "Session.hpp"
-#include "../client/LocalMaster.h"
 #include "ZeroConfServerThread.h"
 #include "RemoteClientBuilder.hpp"
 namespace iscore {

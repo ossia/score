@@ -7,7 +7,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/modules")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
 
-include_directories(${API_DEPENDENCIES_FOLDER}/oscpack)
 include_directories(${API_DEPENDENCIES_FOLDER}/bonjour-qt/headers)
 include_directories(${API_HEADERS_FOLDER}/Repartition)
 include_directories(${API_HEADERS_FOLDER}/Editor)
@@ -30,5 +29,5 @@ ${API_HEADERS_FOLDER}/Repartition/session/ZeroConfServerThread.h)
 
 add_executable(Server ${SRC} ${HEADERS})
 
-target_link_libraries(Server APIMock oscpack dns_sd pthread)
+target_link_libraries(Server APIMock dns_sd pthread)
 target_link_libraries(Server Qt5::Core Qt5::Network)

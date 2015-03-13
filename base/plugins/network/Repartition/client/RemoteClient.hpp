@@ -1,6 +1,5 @@
 #pragma once
 #include "Client.hpp"
-#include "RemoteSender.h"
 #include <Serialization/NetworkSocket.hpp>
 
 // Has a TCP socket for exchange with this client.

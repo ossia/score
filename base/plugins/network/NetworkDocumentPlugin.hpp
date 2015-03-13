@@ -4,9 +4,6 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 
 #include <Repartition/session/ConnectionData.hpp>
-#include "remote/RemoteActionEmitter.hpp"
-#include "remote/RemoteActionReceiver.hpp"
-
 class NetworkControl;
 class ClientSession;
 class MasterSession;
