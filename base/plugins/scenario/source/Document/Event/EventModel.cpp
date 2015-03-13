@@ -116,7 +116,11 @@ TimeValue EventModel::date() const
 
 void EventModel::setDate(TimeValue date)
 {
-    m_date = date;
+    if (m_date != date)
+    {
+        m_date = date;
+        emit dateChanged();
+    }
 } //TODO ajuster la date avec celle du Timenode
 
 void EventModel::setTopY(double val)
@@ -141,7 +145,7 @@ void EventModel::setBottomY(double val)
 
 void EventModel::translate(TimeValue deltaTime)
 {
-    m_date = m_date + deltaTime;
+    setDate(m_date + deltaTime);
 }
 
 void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)

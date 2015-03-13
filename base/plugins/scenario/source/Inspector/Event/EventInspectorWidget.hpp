@@ -25,9 +25,10 @@ class EventInspectorWidget : public InspectorWidgetBase
         void on_addAddressClicked();
         void on_conditionChanged();
 
-        void updateMessages();
-
         void removeState(QString);
+
+        void updateInspector();
+        void modelDateChanged();
 
     private:
         QVector<QWidget*> m_properties;

@@ -17,7 +17,7 @@ ScenarioInspectorWidget::ScenarioInspectorWidget(ScenarioModel* object, QWidget*
     QVector<QWidget*> vec;
     vec.push_back(new QLabel{ QString::number(object->id_val())} );
 
-    QPushButton* displayBtn = new QPushButton {tr("Display in new Box"), this};
+    QPushButton* displayBtn = new QPushButton {tr("Display in new Deck"), this};
     vec.push_back(displayBtn);
 
     connect(displayBtn, &QPushButton::clicked,

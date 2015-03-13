@@ -46,5 +46,6 @@ AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent
         {
             parent->createProcess(process_name);
         }
+        addAutomButton->setDown(false);
     });
 }
