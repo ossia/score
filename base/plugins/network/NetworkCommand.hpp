@@ -18,12 +18,11 @@ class NetworkControl : public iscore::PluginControlInterface
         NetworkControl();
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual void populateToolbars() override;
-        void createZeroconfSelectionDialog();
 
-        void setupClientConnection(ConnectionData);
+        void setupClientConnection(QString ip, int port);
+
     public slots:
         void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
-
 
     protected:
         virtual void on_newDocument(iscore::Document* doc) override;

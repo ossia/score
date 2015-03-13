@@ -51,6 +51,7 @@ class Session : public IdentifiedObject<Session>
 
             return m;
         }
+
         template<typename... Args>
         NetworkMessage makeMessage(QString address, Args&&... args)
         {

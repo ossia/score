@@ -1,14 +1,12 @@
 #pragma once
 #include "Session.hpp"
-#include "ZeroConfServerThread.h"
+
 #include "RemoteClientBuilder.hpp"
 namespace iscore {
 class Document;
 }
 class MasterSession : public Session
 {
-        ZeroConfServerThread _zc_thread;
-
            Q_OBJECT
     public:
         MasterSession(iscore::Document* doc,
@@ -21,13 +19,6 @@ class MasterSession : public Session
             connect(&localClient(), SIGNAL(createNewClient(QTcpSocket*)),
                     this, SLOT(on_createNewClient(QTcpSocket*)));
         }
-
-        virtual ~MasterSession()
-        {
-            _zc_thread.quit();
-            while(_zc_thread.isRunning()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-
 
         void broadcast(NetworkMessage m)
         {

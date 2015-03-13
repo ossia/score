@@ -110,7 +110,6 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     //   -> transmit to all but the client
     s->mapper().addHandler("/command", [&] (NetworkMessage m)
     {
-        qDebug() << Q_FUNC_INFO;
         QString parentName; QString name; QByteArray data;
         QDataStream s{m.data};
         s >> parentName >> name >> data;
@@ -123,13 +122,11 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     });
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {
-        qDebug() << Q_FUNC_INFO;
         m_document->commandStack().undoQuiet();
         m_session->transmit(id_type<RemoteClient>(m.clientId), m);
     });
     s->mapper().addHandler("/redo", [&] (NetworkMessage m)
     {
-        qDebug() << Q_FUNC_INFO;
         m_document->commandStack().redoQuiet();
         m_session->transmit(id_type<RemoteClient>(m.clientId), m);
     });

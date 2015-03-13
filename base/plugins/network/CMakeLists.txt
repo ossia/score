@@ -5,7 +5,6 @@ if(ANDROID OR WIN32)
 	message("TODO FIXME ON ANDROID AND WINDOWS")
 	return()
 endif()
-add_subdirectory(Deps)
 
 # Packages
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Network)
@@ -17,17 +16,14 @@ include_directories(.)
 
 include_directories("${CMAKE_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour-qt/headers")
 
 file(GLOB_RECURSE SRCS
 
-	"${CMAKE_CURRENT_SOURCE_DIR}/Deps/bonjour*.*"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/*.*"
-	"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/*.*"
-	"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/*.*"
-	"${CMAKE_CURRENT_SOURCE_DIR}/zeroconf/*.*")
+	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 
-add_library(networkplugin ${SRCS} NetworkCommand.cpp NetworkCommand.hpp NetworkDocumentPlugin.cpp NetworkDocumentPlugin.hpp NetworkPlugin.cpp NetworkPlugin.hpp)
+add_library(networkplugin ${SRCS})
 
 target_link_libraries(networkplugin
 									iscore_lib

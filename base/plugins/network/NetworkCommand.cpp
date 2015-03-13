@@ -10,9 +10,6 @@
 #include <QAction>
 
 
-// TODO plutôt dans une vue ?
-// TODO delete (mais pb avec threads...)
-#include "zeroconf/ZeroConfConnectDialog.hpp"
 using namespace iscore;
 
 NetworkControl::NetworkControl() :
@@ -22,15 +19,17 @@ NetworkControl::NetworkControl() :
 
 void NetworkControl::populateMenus(MenubarManager* menu)
 {
+
+ /*
     QAction* joinSession = new QAction {tr("Join"), this};
     connect(joinSession, &QAction::triggered,
             [&] () {
         createZeroconfSelectionDialog();
     });
-
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
                                        joinSession);
+*/
 
     QAction* makeServer = new QAction {tr("Make Server"), this};
     connect(makeServer, &QAction::triggered, this,
@@ -50,10 +49,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     connect(connectLocal, &QAction::triggered, this,
             [&] ()
     {
-        ConnectionData dat;
-        dat.remote_ip = "127.0.0.1";
-        dat.remote_port = 9090;
-        setupClientConnection(dat);
+        setupClientConnection("127.0.0.1", 9090);
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -65,22 +61,12 @@ void NetworkControl::populateToolbars()
 {
 }
 
-void NetworkControl::createZeroconfSelectionDialog()
-{
-    auto diag = new ZeroconfConnectDialog();
-
-    connect(diag,	&ZeroconfConnectDialog::connectedTo,
-            this,	&NetworkControl::setupClientConnection);
-
-    diag->exec();
-}
-
 #include "Repartition/session/ClientSessionBuilder.h"
-void NetworkControl::setupClientConnection(ConnectionData d)
+void NetworkControl::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = new ClientSessionBuilder{
-                QString::fromStdString(d.remote_ip),
-                d.remote_port};
+                ip,
+                port};
 
     connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
             this, &NetworkControl::on_sessionBuilt, Qt::QueuedConnection);
