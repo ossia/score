@@ -5,7 +5,6 @@
 RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* sock):
     m_session{session}
 {
-    qDebug() << "bump";
     m_socket = new NetworkSocket(sock, nullptr);
     connect(m_socket, SIGNAL(messageReceived(NetworkMessage)),
             this, SLOT(on_messageReceived(NetworkMessage)));
@@ -30,7 +29,7 @@ void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
     {
         NetworkMessage doc;
         doc.address = "/session/document";
-        doc.data = m_session.document()->saveDocumentModelAsByteArray();
+        doc.data = m_session.document()->saveAsByteArray();
         m_socket->sendMessage(doc);
 
         m_remoteClient = new RemoteClient(m_socket, m_clientId);

@@ -58,12 +58,12 @@ class ClientSessionBuilder : public QObject
 
                 m_documentData = m.data;
 
-                emit sessionBuilt();
+                emit sessionReady(this, m_session);
             }
         }
 
     signals:
-        void sessionBuilt();
+        void sessionReady(ClientSessionBuilder*, ClientSession*);
 
     private:
         id_type<Client> m_masterId, m_clientId;

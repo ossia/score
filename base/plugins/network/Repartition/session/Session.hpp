@@ -17,8 +17,18 @@ class Session : public IdentifiedObject<Session>
             IdentifiedObject<Session>{id, "Session", parent},
             m_client{client},
             m_mapper{new MessageMapper},
-            m_validator{new MessageValidator(*this, *m_mapper)}
+            m_validator{new MessageValidator(*this, mapper())}
         {
+        }
+
+
+        MessageValidator& validator()
+        {
+            return *m_validator;
+        }
+        MessageMapper& mapper()
+        {
+            return *m_mapper;
         }
 
         LocalClient& localClient()
@@ -26,18 +36,60 @@ class Session : public IdentifiedObject<Session>
             return *m_client;
         }
 
-        void broadcast(NetworkMessage m)
+        QList<RemoteClient*>& remoteClients()
         {
-            for(RemoteClient* client : m_remoteClients)
-                client->sendMessage(m);
+            return m_remoteClients;
         }
 
-    protected:
-        LocalClient* m_client{};
 
+        NetworkMessage makeMessage(QString address)
+        {
+            NetworkMessage m;
+            m.address = address;
+            m.clientId = localClient().id();
+            m.sessionId = id();
+
+            return m;
+        }
+        template<typename... Args>
+        NetworkMessage makeMessage(QString address, Args&&... args)
+        {
+            NetworkMessage m;
+            m.address = address;
+            m.clientId = localClient().id();
+            m.sessionId = id();
+
+            impl_makeMessage(QDataStream{&m.data, QIODevice::WriteOnly}, std::forward<Args&&>(args)...);
+
+            return m;
+        }
+
+    public slots:
+        void validateMessage(NetworkMessage m)
+        {
+            if(validator().validate(m))
+                mapper().map(m);
+        }
+
+
+    private:
+        template<typename Arg>
+        void impl_makeMessage(QDataStream&& s, Arg&& arg)
+        {
+            s << arg;
+        }
+
+        template<typename Arg, typename... Args>
+        void impl_makeMessage(QDataStream&& s, Arg&& arg, Args&&... args)
+        {
+            impl_makeMessage(std::move(s << arg), std::forward<Args&&>(args)...);
+        }
+
+
+        LocalClient* m_client{};
         MessageMapper* m_mapper{};
         MessageValidator* m_validator{};
-
         QList<RemoteClient*> m_remoteClients;
+
 
 };

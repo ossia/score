@@ -10,6 +10,5 @@ MessageValidator::MessageValidator(Session& s, MessageMapper& map):
 bool MessageValidator::validate(NetworkMessage m)
 {
     return  m_mapper.addresses().contains(m.address)
-            && m_session.id() == m.sessionId
-            && m_session.localClient().id() == m.clientId;
+            && m_session.id() == m.sessionId;
 }

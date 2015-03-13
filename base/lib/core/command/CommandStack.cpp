@@ -22,16 +22,17 @@ const SerializableCommand* CommandStack::command(int index) const
 
 void CommandStack::setIndex(int index)
 {
+    // TODO send this by network, too
     while(index >= 0 && currentIndex() != index)
     {
         if(index < currentIndex())
-            undo();
+            undoQuiet();
         else
-            redo();
+            redoQuiet();
     }
 }
 
-void CommandStack::undo()
+void CommandStack::undoQuiet()
 {
     updateStack([&] ()
     {
@@ -41,7 +42,7 @@ void CommandStack::undo()
     });
 }
 
-void CommandStack::redo()
+void CommandStack::redoQuiet()
 {
     updateStack([&] ()
     {
@@ -52,14 +53,15 @@ void CommandStack::redo()
     });
 }
 
-void CommandStack::push(SerializableCommand* cmd)
+void CommandStack::redoAndPush(SerializableCommand* cmd)
 {
     cmd->redo();
-    quietPush(cmd);
+    push(cmd);
 }
 
-void CommandStack::quietPush(SerializableCommand* cmd)
+void CommandStack::push(SerializableCommand* cmd)
 {
+    emit localCommand(cmd);
     updateStack([&] ()
     {
         m_undoable.push(cmd);
@@ -69,8 +71,19 @@ void CommandStack::quietPush(SerializableCommand* cmd)
     });
 }
 
-void CommandStack::pushAndEmit(SerializableCommand* cmd)
+void CommandStack::redoAndPushQuiet(SerializableCommand* cmd)
 {
-    emit push_start(cmd);
-    push(cmd);
+    cmd->redo();
+    pushQuiet(cmd);
+}
+
+void CommandStack::pushQuiet(SerializableCommand* cmd)
+{
+    updateStack([&] ()
+    {
+        m_undoable.push(cmd);
+
+        qDeleteAll(m_redoable);
+        m_redoable.clear();
+    });
 }

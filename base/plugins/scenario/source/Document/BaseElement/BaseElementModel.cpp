@@ -24,12 +24,16 @@
 using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QVariant data, QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent}
+    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0), "BaseElementModel", parent}
 {
     if(data.canConvert(QMetaType::QByteArray))
     {
+        id_type<iscore::DocumentDelegateModelInterface> id;
         auto arr = data.toByteArray();
-        m_baseConstraint = new ConstraintModel{Deserializer<DataStream>{&arr}, this};
+        Deserializer<DataStream> deser{&arr};
+        deser.writeTo(id);
+        this->setId(std::move(id));
+        m_baseConstraint = new ConstraintModel{deser, this};
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
@@ -147,6 +151,7 @@ QByteArray BaseElementModel::toByteArray()
 {
     QByteArray arr;
     Serializer<DataStream> s {&arr};
+    s.readFrom(this->id());
     s.readFrom(*constraintModel());
 
     return arr;

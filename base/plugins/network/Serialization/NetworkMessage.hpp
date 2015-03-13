@@ -15,3 +15,6 @@ struct NetworkMessage
         int clientId;
         QByteArray data;
 };
+
+
+Q_DECLARE_METATYPE(NetworkMessage)

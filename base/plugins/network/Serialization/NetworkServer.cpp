@@ -33,9 +33,7 @@ NetworkServer::NetworkServer(int port, QObject* parent):
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
     }
 
-    qDebug() << tr("The server is running on\n\nIP: %1\nport: %2\n\n")
-                .arg(ipAddress)
-                .arg(m_tcpServer->serverPort());
+    qDebug() << "Server: " << ipAddress << ":" << m_tcpServer->serverPort();
 
     connect(m_tcpServer, &QTcpServer::newConnection,
             this, [=] ()

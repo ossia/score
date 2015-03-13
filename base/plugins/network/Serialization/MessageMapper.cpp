@@ -1,17 +1,17 @@
 #include "MessageMapper.hpp"
 #include <QDebug>
-void MessageMapper::addHandler(QString addr, std::function<void (QByteArray)> fun)
+void MessageMapper::addHandler(QString addr, std::function<void(NetworkMessage)> fun)
 {
     m_handlers[addr] = fun;
 }
 
 
-void MessageMapper::map(QString addr, QByteArray data)
+void MessageMapper::map(NetworkMessage m)
 {
-    if(m_handlers.contains(addr))
-        m_handlers[addr](data);
+    if(m_handlers.contains(m.address))
+        m_handlers[m.address](m);
     else
-        qDebug() << "Address" << addr << "not handled.";
+        qDebug() << "Address" << m.address << "not handled.";
 }
 
 

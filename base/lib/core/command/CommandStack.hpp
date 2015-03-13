@@ -55,18 +55,18 @@ namespace iscore
              * @brief push_start Is emitted when a command was pushed on the stack
              * @param cmd the command that was pushed
              */
-            void push_start(iscore::SerializableCommand* cmd);
+            void localCommand(iscore::SerializableCommand* cmd);
 
 
             /**
              * @brief onUndo Is emitted when the user calls "Undo"
              */
-            void onUndo();
+            void localUndo();
 
             /**
              * @brief onRedo Is emitted when the user calls "Redo"
              */
-            void onRedo();
+            void localRedo();
 
             void canUndoChanged(bool);
             void canRedoChanged(bool);
@@ -79,8 +79,10 @@ namespace iscore
 
         public slots:
             void setIndex(int index);
-            void undo();
-            void redo();
+
+            // These ones do not send signals
+            void undoQuiet();
+            void redoQuiet();
 
             /**
              * @brief push Pushes a command on the stack
@@ -88,7 +90,7 @@ namespace iscore
              *
              * Calls cmd::redo()
              */
-            void push(iscore::SerializableCommand* cmd);
+            void redoAndPush(iscore::SerializableCommand* cmd);
 
 
             /**
@@ -97,24 +99,25 @@ namespace iscore
              *
              * Does NOT call cmd::redo()
              */
-            void quietPush(iscore::SerializableCommand* cmd);
+            void push(iscore::SerializableCommand* cmd);
 
             /**
              * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
              * @param cmd The command
              */
-            void pushAndEmit(iscore::SerializableCommand* cmd);
+            void redoAndPushQuiet(iscore::SerializableCommand* cmd);
+            void pushQuiet(iscore::SerializableCommand* cmd);
 
-            void undoAndNotify()
+            void undo()
             {
-                undo();
-                emit onUndo();
+                undoQuiet();
+                emit localUndo();
             }
 
-            void redoAndNotify()
+            void redo()
             {
-                redo();
-                emit onRedo();
+                redoQuiet();
+                emit localRedo();
             }
 
         private:

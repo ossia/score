@@ -38,7 +38,7 @@ namespace SendStrategy
         static void send(iscore::CommandStack& cmd,
                          iscore::SerializableCommand* other)
         {
-            cmd.push(other);
+            cmd.redoAndPush(other);
         }
     };
 
@@ -47,21 +47,13 @@ namespace SendStrategy
         static void send(iscore::CommandStack& cmd,
                          iscore::SerializableCommand* other)
         {
-            cmd.quietPush(other);
+            cmd.push(other);
         }
     };
 }
 
 namespace CommitStrategy
 {
-    struct Quiet
-    {
-            static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
-            {
-                SendStrategy::Quiet::send(stack, cmd);
-            }
-    };
-
     struct Redo
     {
             static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)

@@ -8,6 +8,7 @@
 #include <iscore/command/Command.hpp>
 #include "Repartition/session/ConnectionData.hpp"
 class ClientSessionBuilder;
+class ClientSession;
 
 class NetworkControl : public iscore::PluginControlInterface
 {
@@ -21,7 +22,7 @@ class NetworkControl : public iscore::PluginControlInterface
 
         void setupClientConnection(ConnectionData);
     public slots:
-        void on_sessionBuilt();
+        void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
 
 
     protected:

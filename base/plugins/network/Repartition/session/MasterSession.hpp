@@ -13,13 +13,13 @@ class MasterSession : public Session
            Q_OBJECT
     public:
         MasterSession(iscore::Document* doc,
-                      LocalClient* client,
+                      LocalClient* theclient,
                       id_type<Session> id,
                       QObject* parent = nullptr):
-            Session{client, id, parent},
+            Session{theclient, id, parent},
             m_document{doc}
         {
-            connect(m_client, SIGNAL(createNewClient(QTcpSocket*)),
+            connect(&localClient(), SIGNAL(createNewClient(QTcpSocket*)),
                     this, SLOT(on_createNewClient(QTcpSocket*)));
         }
 
@@ -29,9 +29,16 @@ class MasterSession : public Session
             while(_zc_thread.isRunning()) std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
+
+        void broadcast(NetworkMessage m)
+        {
+            for(RemoteClient* client : remoteClients())
+                client->sendMessage(m);
+        }
+
         void transmit(id_type<RemoteClient> sender, NetworkMessage m)
         {
-            for(auto& client : m_remoteClients)
+            for(auto& client : remoteClients())
             {
                 if(client->id() != sender)
                     client->sendMessage(m);
@@ -56,12 +63,14 @@ class MasterSession : public Session
             m_clientBuilders.removeOne(bldr);
             delete bldr;
 
-            m_remoteClients.push_back(clt);
+            connect(clt, &RemoteClient::messageReceived,
+                    this, &Session::validateMessage, Qt::QueuedConnection);
+
+            remoteClients().push_back(clt);
         }
 
     private:
         iscore::Document* m_document{};
-
         QList<RemoteClientBuilder*> m_clientBuilders;
 
 };

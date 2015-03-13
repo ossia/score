@@ -1210,7 +1210,7 @@ DeviceExplorerModel::cut(const QModelIndex& index)
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
     cmd->set(index.parent(), index.row(), tr("Cut %1").arg(name), this);
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1346,7 +1346,7 @@ DeviceExplorerModel::paste(const QModelIndex& index)
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
     cmd->set(index.parent(), index.row(), tr("Paste %1").arg(name), this);
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1542,7 +1542,7 @@ DeviceExplorerModel::moveUp(const QModelIndex& index)
     DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
     cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow, tr("Move up %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1585,7 +1585,7 @@ DeviceExplorerModel::moveDown(const QModelIndex& index)
     cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow + 1, tr("Move down %1").arg(n->name()) , this);
     //newRow+1 because moved before, cf doc.
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1637,7 +1637,7 @@ DeviceExplorerModel::promote(const QModelIndex& index)  //== moveLeft
     DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
     cmd->set(srcParentIndex, row, 1, dstParentIndex, rowParent + 1, tr("Promote %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1686,7 +1686,7 @@ DeviceExplorerModel::demote(const QModelIndex& index)  //== moveRight
     DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
     cmd->set(srcParentIndex, row, 1, dstParentIndex, sibling->childCount(), tr("Demote %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
-    m_cmdQ->push(cmd);
+    m_cmdQ->redoAndPush(cmd);
 
     if(! m_cachedResult)
     {
@@ -1911,7 +1911,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
         cmd->set(parentIndex, row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), this);
         Q_ASSERT(m_cmdQ);
-        m_cmdQ->push(cmd);
+        m_cmdQ->redoAndPush(cmd);
 
         if(! m_cachedResult)
         {

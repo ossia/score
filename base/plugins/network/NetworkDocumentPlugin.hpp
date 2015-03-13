@@ -20,6 +20,7 @@ class NetworkDocumentClientPlugin : public iscore::DocumentDelegatePluginModel
     public:
         NetworkDocumentClientPlugin(ClientSession* s, NetworkControl* control, iscore::Document* doc);
 
+
     private:
         ClientSession* m_session{};
         NetworkControl* m_control{};

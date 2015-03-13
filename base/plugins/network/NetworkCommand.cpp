@@ -50,7 +50,9 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     connect(connectLocal, &QAction::triggered, this,
             [&] ()
     {
-        ConnectionData dat; dat.remote_ip = "127.0.0.1"; dat.remote_port = 9090;
+        ConnectionData dat;
+        dat.remote_ip = "127.0.0.1";
+        dat.remote_port = 9090;
         setupClientConnection(dat);
     });
 
@@ -76,27 +78,25 @@ void NetworkControl::createZeroconfSelectionDialog()
 #include "Repartition/session/ClientSessionBuilder.h"
 void NetworkControl::setupClientConnection(ConnectionData d)
 {
-    qDebug(Q_FUNC_INFO);
     m_sessionBuilder = new ClientSessionBuilder{
                 QString::fromStdString(d.remote_ip),
                 d.remote_port};
 
-    connect(m_sessionBuilder, &ClientSessionBuilder::sessionBuilt,
-            this, &NetworkControl::on_sessionBuilt);
+    connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
+            this, &NetworkControl::on_sessionBuilt, Qt::QueuedConnection);
 
     m_sessionBuilder->doConnection();
 }
 
-void NetworkControl::on_sessionBuilt()
+void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession)
 {
-    qDebug(Q_FUNC_INFO);
-    auto builtSession = m_sessionBuilder->builtSession();
-
-    auto doc = presenter()->loadDocument(m_sessionBuilder->documentData(),
-                              presenter()->availableDocuments().front());
+    auto doc = presenter()->loadDocument(
+                   m_sessionBuilder->documentData(),
+                   presenter()->availableDocuments().front());
 
     doc->model()->addPluginModel(new NetworkDocumentClientPlugin{builtSession, this, doc});
 
+    delete sessionBuilder;
 
 }
 

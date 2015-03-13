@@ -68,6 +68,7 @@ namespace iscore
 
             QByteArray saveAsJson();
             QByteArray saveAsByteArray();
+
         private:
             void init();
 

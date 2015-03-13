@@ -38,12 +38,12 @@ class AddProcessViewModelToDeckTest: public QObject
             {
                 {"ConstraintModel", {0}}
             }, "Scenario");
-            stack.push(cmd_proc);
+            stack.redoAndPush(cmd_proc);
             auto procId = cmd_proc->m_createdProcessId;
 
             auto cmd_box = new AddBoxToConstraint(
             ObjectPath { {"ConstraintModel", {0}} });
-            stack.push(cmd_box);
+            stack.redoAndPush(cmd_box);
             auto boxId = cmd_box->m_createdBoxId;
 
             auto cmd_deck = new AddDeckToBox(
@@ -53,7 +53,7 @@ class AddProcessViewModelToDeckTest: public QObject
                 {"BoxModel", boxId}
             });
             auto deckId = cmd_deck->m_createdDeckId;
-            stack.push(cmd_deck);
+            stack.redoAndPush(cmd_deck);
 
             auto cmd_pvm = new AddProcessViewModelToDeck(
             {
@@ -65,18 +65,18 @@ class AddProcessViewModelToDeckTest: public QObject
                 {"ConstraintModel", {0}},
                 {"ScenarioModel", procId}
             });
-            stack.push(cmd_pvm);
+            stack.redoAndPush(cmd_pvm);
 
             for(int i = 4; i -- > 0;)
             {
                 while(stack.canUndo())
                 {
-                    stack.undo();
+                    stack.undoQuiet();
                 }
 
                 while(stack.canRedo())
                 {
-                    stack.redo();
+                    stack.redoQuiet();
                 }
             }
 

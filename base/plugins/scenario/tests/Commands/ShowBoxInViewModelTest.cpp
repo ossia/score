@@ -50,7 +50,7 @@ class ShowBoxInViewModelTest: public QObject
             {
                 {"ConstraintModel", {}}
             }, "Scenario");
-            stack.push(cmd_proc);
+            stack.redoAndPush(cmd_proc);
             auto scenarioId = cmd_proc->m_createdProcessId;
             auto scenario = static_cast<ScenarioModel*>(constraint->process(scenarioId));
 
@@ -58,7 +58,7 @@ class ShowBoxInViewModelTest: public QObject
             // Creation of a way to visualize what happens in the original constraint
             auto cmd_box = new AddBoxToConstraint(
             ObjectPath { {"ConstraintModel", {}} });
-            stack.push(cmd_box);
+            stack.redoAndPush(cmd_box);
             auto boxId = cmd_box->m_createdBoxId;
 
             auto cmd_deck = new AddDeckToBox(
@@ -68,7 +68,7 @@ class ShowBoxInViewModelTest: public QObject
                 {"BoxModel", boxId}
             });
             auto deckId = cmd_deck->m_createdDeckId;
-            stack.push(cmd_deck);
+            stack.redoAndPush(cmd_deck);
 
             auto cmd_pvm = new AddProcessViewModelToDeck(
             {
@@ -80,7 +80,7 @@ class ShowBoxInViewModelTest: public QObject
                 {"ConstraintModel", {}},
                 {"ScenarioModel", scenarioId}
             });
-            stack.push(cmd_pvm);
+            stack.redoAndPush(cmd_pvm);
 
             auto viewmodel = constraint->boxes().front()->decks().front()->processViewModels().front();
             auto scenario_viewmodel = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
@@ -99,7 +99,7 @@ class ShowBoxInViewModelTest: public QObject
             {
                 {"ScenarioModel", {}},
             }, data);
-            stack.push(cmd_event);
+            stack.redoAndPush(cmd_event);
 
             // This will create a view model for this constraint
             // in the previously-created Scenario View Model
@@ -117,7 +117,7 @@ class ShowBoxInViewModelTest: public QObject
                 {"ScenarioModel", scenarioId},
                 {"ConstraintModel", cmd_event->m_cmd->m_createdConstraintId}
             });
-            stack.push(cmd_box2);
+            stack.redoAndPush(cmd_box2);
 
             QCOMPARE(constraint_viewmodel->isBoxShown(), false);  // Now there is a box but we do not show it
             auto box2Id = cmd_box2->m_createdBoxId;
@@ -125,7 +125,7 @@ class ShowBoxInViewModelTest: public QObject
 
             // Show the box
             auto cmd_showbox = new ShowBoxInViewModel(iscore::IDocument::path(constraint_viewmodel), box2Id);
-            stack.push(cmd_showbox);
+            stack.redoAndPush(cmd_showbox);
             QCOMPARE(constraint_viewmodel->isBoxShown(), true);
             QCOMPARE(constraint_viewmodel->shownBox(), box2Id);
         }
