@@ -120,6 +120,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void heightPercentageChanged(double arg);
         void messagesChanged();
         void conditionChanged(QString arg);
+        void dateChanged();
 
     private:
         void setTopY(double val);

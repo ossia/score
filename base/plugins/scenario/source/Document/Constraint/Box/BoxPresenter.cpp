@@ -27,6 +27,7 @@ m_view {view}
     }
 
     m_duration = model->constraint()->defaultDuration();
+    m_view->setText( QString{"Box.%1"}.arg(m_model->id_val()) );
 
     on_askUpdate();
 

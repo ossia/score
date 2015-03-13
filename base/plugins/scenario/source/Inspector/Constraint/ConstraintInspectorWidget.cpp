@@ -100,6 +100,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     // Boxes
     m_boxSection = new InspectorSectionWidget {"Boxes", this};
     m_boxSection->setObjectName("Boxes");
+    m_boxSection->expand();
 
     m_boxWidget = new BoxWidget {this};
 

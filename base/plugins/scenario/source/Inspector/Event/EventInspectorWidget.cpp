@@ -38,7 +38,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     setParent(parent);
 
     connect(m_model, &EventModel::messagesChanged,
-            this, &EventInspectorWidget::updateMessages);
+            this, &EventInspectorWidget::updateInspector);
 
     // date
     auto dateWid = new QWidget{this};
@@ -128,6 +128,9 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
 
     // display data
     updateDisplayedValues(object);
+
+    connect (object,   &EventModel::dateChanged,
+             this,      &EventInspectorWidget::modelDateChanged);
 }
 
 void EventInspectorWidget::addAddress(const QString& addr)
@@ -164,9 +167,13 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
     m_prevConstraints->removeAll();
     m_nextConstraints->removeAll();
 
+    m_date->clear();
+
     // DEMO
     if(event)
     {
+        m_date->setText(QString::number(m_model->date().msec()));
+
         auto scenar = event->parentScenario();
 
         for(State* state : event->states())
@@ -235,13 +242,18 @@ void EventInspectorWidget::on_conditionChanged()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void EventInspectorWidget::updateMessages()
-{
-    updateDisplayedValues(m_model);
-}
-
 void EventInspectorWidget::removeState(QString state)
 {
     auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);
+}
+
+void EventInspectorWidget::updateInspector()
+{
+    updateDisplayedValues(m_model);
+}
+
+void EventInspectorWidget::modelDateChanged()
+{
+    m_date->setText(QString::number(m_model->date().msec()));
 }
