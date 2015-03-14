@@ -106,7 +106,7 @@ QByteArray Document::savePanelAsByteArray(const QString& panel)
     return (*panelmodel)->toByteArray();
 }
 
-QByteArray Document::saveAsJson()
+QJsonObject Document::saveAsJson()
 {
     QJsonObject complete;
     complete["Scenario"] = saveDocumentModelAsJson();
@@ -115,11 +115,7 @@ QByteArray Document::saveAsJson()
         complete[panel->objectName()] = panel->toJson();
     }
 
-
-    QJsonDocument doc;
-    doc.setObject(complete);
-
-    return doc.toJson();
+    return complete;
 }
 
 QByteArray Document::saveAsByteArray()

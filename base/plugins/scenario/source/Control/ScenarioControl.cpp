@@ -39,11 +39,9 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
         // TODO Operate at the document level instead.
         if(!savename.isEmpty())
         {
-            auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
-            f.write(JSONToZeroTwo(bem.toJson()).toLatin1().constData());
+            f.write(JSONToZeroTwo(currentDocument()->saveAsJson()).toLatin1().constData());
         }
     });
 

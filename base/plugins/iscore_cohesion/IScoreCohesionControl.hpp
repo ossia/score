@@ -1,5 +1,7 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include "FakeEngine.hpp"
+#include <QTemporaryFile>
 
 class IScoreCohesionControl : public iscore::PluginControlInterface
 {
@@ -10,6 +12,12 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         iscore::SerializableCommand* instantiateUndoCommand(const QString& name, const QByteArray& data) override;
 
     public slots:
+        void on_currentTimeChanged(double);
+
         void createCurvesFromAddresses();
         void snapshotParametersInEvents();
+
+    private:
+        FakeEngine m_engine;
+        QTemporaryFile m_scoreFile;
 };

@@ -251,7 +251,7 @@ QString JSONToZeroTwo(QJsonObject base)
     // BOUCLE POUR LES DEVICES
     //////////////////////////////////////////////////////////////////////////////
 
-    QJsonArray j_root = base["DeviceExplorer"].toObject() ["Children"].toArray();
+    QJsonArray j_root = base["DeviceExplorerPanelModel"].toObject() ["Children"].toArray();
 
     for(auto dev : j_root)
     {
@@ -278,8 +278,6 @@ QString JSONToZeroTwo(QJsonObject base)
     }
 
 
-
-
     QJsonObject scenar = base["Scenario"].toObject();
 
     QJsonArray processes = scenar["Processes"].toArray();
@@ -290,6 +288,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
         if(j_proc["ProcessName"].toString() == "Scenario")
         {
+            qDebug() << "iterating on scenario";
             //////////////////////////////////////////////////////////////////////////////
             // BOUCLE POUR LES EVENTS
             //////////////////////////////////////////////////////////////////////////////
@@ -620,5 +619,5 @@ QString JSONToZeroTwo(QJsonObject base)
         QTextStream out(&file);
         out << xml;
         file.close();
-    	*/
+        */
 }

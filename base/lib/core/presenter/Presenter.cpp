@@ -218,7 +218,11 @@ void Presenter::setupMenus()
         {
             QFile f(savename);
             f.open(QIODevice::WriteOnly);
-            f.write(currentDocument()->saveAsJson());
+
+            QJsonDocument doc;
+            doc.setObject(currentDocument()->saveAsJson());
+
+            f.write(doc.toJson());
         }
     });
 

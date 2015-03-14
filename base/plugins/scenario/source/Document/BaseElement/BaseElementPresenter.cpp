@@ -7,6 +7,7 @@
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
+#include "Widgets/ProgressBar.hpp"
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -28,7 +29,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()}
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
+    m_progressBar{new ProgressBar}
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
@@ -39,8 +41,11 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     // TODO same for height
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
-            this, [&] (const QSize& size) { on_viewWidthChanged(size.width());});
+            this, &BaseElementPresenter::on_viewSizeChanged);
 
+    view()->scene()->addItem(m_progressBar);
+    m_progressBar->setPos(0, 0);
+    m_progressBar->setHeight(200);
 
     setDisplayedConstraint(model()->constraintModel());
 
@@ -124,6 +129,11 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     on_horizontalZoomChanged(m_horizontalZoomValue);
 }
 
+void BaseElementPresenter::setProgressBarTime(TimeValue t)
+{
+    m_progressBar->setPos({t.toPixels(millisecondsPerPixel(m_horizontalZoomValue)), 0});
+}
+
 void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
 {
     m_horizontalZoomValue = newzoom;
@@ -155,10 +165,11 @@ void BaseElementPresenter::on_positionSliderChanged(int newPos)
     view()->view()->setSceneRect(newPos, 0, 1, 1);
 }
 
-void BaseElementPresenter::on_viewWidthChanged(int w)
+void BaseElementPresenter::on_viewSizeChanged(QSize s)
 {
+    m_progressBar->setHeight(s.height());
     int val = view()->zoomSlider()->value();
-    int newMin = w * 97.0 / model()->constraintModel()->defaultDuration().msec();
+    int newMin = s.width() * 97.0 / model()->constraintModel()->defaultDuration().msec();
     view()->zoomSlider()->setMinimum(newMin);
 
     if(val < newMin)

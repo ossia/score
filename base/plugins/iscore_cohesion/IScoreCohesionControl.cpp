@@ -33,6 +33,8 @@ IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
     iscore::PluginControlInterface {"IScoreCohesionControl", parent}
 {
 
+    connect(&m_engine, &FakeEngine::currentTimeChanged,
+            this, &IScoreCohesionControl::on_currentTimeChanged);
 }
 
 void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
@@ -60,16 +62,14 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     connect(play, &QAction::triggered,
             [&] ()
     {
-        QTemporaryFile f;
-
-        if(f.open())
+        m_scoreFile.close();
+        if(m_scoreFile.open())
         {
-            auto& doc = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-            auto data = JSONToZeroTwo(doc.toJson());
+            auto data = JSONToZeroTwo(currentDocument()->saveAsJson());
 
-            f.write(data.toLatin1().constData(), data.size());
-            f.flush();
-            runScore(f.fileName());
+            m_scoreFile.write(data.toLatin1().constData(), data.size());
+            m_scoreFile.flush();
+            m_engine.runScore(m_scoreFile.fileName());
         }
     });
 
@@ -94,6 +94,14 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
 
     cmd->deserialize(data);
     return cmd;
+}
+
+#include <core/document/DocumentModel.hpp>
+#include <Document/BaseElement/BaseElementPresenter.hpp>
+void IScoreCohesionControl::on_currentTimeChanged(double t)
+{
+    auto bep = static_cast<BaseElementPresenter*>(currentDocument()->presenter()->presenterDelegate());
+    bep->setProgressBarTime(TimeValue(std::chrono::milliseconds((uint32_t)t)));
 }
 
 void IScoreCohesionControl::createCurvesFromAddresses()

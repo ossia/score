@@ -1,20 +1,4 @@
 #include "FakeEngine.hpp"
-/** @file
- *
- * @ingroup scoreImplementation
- *
- * @brief a command line tool to load and play a .score file format
- *
- * @details ... @n@n
- *
- * @see TTScore, TTModular
- *
- * @author Théo de la Hogue
- *
- * @copyright Copyright © 2014, Théo de la Hogue @n
- * This code is licensed under the terms of the "CeCILL-C" @n
- * http://www.cecill.info
- */
 
 #include "TTModular.h"
 #include "TTScore.h"
@@ -25,11 +9,12 @@
 
 #include <QDir>
 #include <QApplication>
+#include <QDebug>
+#include <thread>
 
-void runScore(QString scoreFilePath)
+void FakeEngine::runThread(QString scoreFilePath)
 {
     TTSymbol filepath {scoreFilePath.toLatin1().constData() };  // .score file to load
-
     QString jamomaFolder = (QCoreApplication::applicationDirPath() + "/../Frameworks/jamoma");
 
     if(!QDir(jamomaFolder).exists())
@@ -75,9 +60,20 @@ void runScore(QString scoreFilePath)
 
     do
     {
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+        TTValue out;
         scenario.get("running", running);
+        scenario.get("date", out);
+
+        emit currentTimeChanged( TTFloat64(out[0]));
     }
     while(running);
+}
+
+void FakeEngine::runScore(QString scoreFilePath)
+{
+    if(m_thread.joinable())
+        m_thread.join();
+    m_thread = std::thread{&FakeEngine::runThread, this, scoreFilePath};
 }
 

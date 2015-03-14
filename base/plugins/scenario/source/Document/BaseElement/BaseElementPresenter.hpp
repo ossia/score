@@ -2,6 +2,8 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
+#include <ProcessInterface/TimeValue.hpp>
+class ProgressBar;
 namespace iscore
 {
     class SelectionDispatcher;
@@ -41,11 +43,13 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void on_displayedConstraintChanged();
 
+        void setProgressBarTime(TimeValue t);
+
     private slots:
         void on_horizontalZoomChanged(int);
         void on_positionSliderChanged(int);
 
-        void on_viewWidthChanged(int);
+        void on_viewSizeChanged(QSize s);
 
     private:
         BaseElementView* view() const;
@@ -53,6 +57,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         ConstraintModel* m_displayedConstraint {};
         iscore::SelectionDispatcher m_selectionDispatcher;
+
+        ProgressBar* m_progressBar{};
 
 
         int m_horizontalZoomValue {50};

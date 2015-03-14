@@ -66,7 +66,7 @@ namespace iscore
             QJsonObject savePanelAsJson(const QString& panel);
             QByteArray savePanelAsByteArray(const QString& panel);
 
-            QByteArray saveAsJson();
+            QJsonObject saveAsJson();
             QByteArray saveAsByteArray();
 
         private:

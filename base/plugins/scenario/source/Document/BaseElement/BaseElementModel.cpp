@@ -23,8 +23,11 @@
 
 using namespace Scenario;
 
-BaseElementModel::BaseElementModel(QVariant data, QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0), "BaseElementModel", parent}
+BaseElementModel::BaseElementModel(QVariant data,
+                                   QObject* parent) :
+    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0),
+                                            "BaseElementModel",
+                                            parent}
 {
     if(data.canConvert(QMetaType::QByteArray))
     {
