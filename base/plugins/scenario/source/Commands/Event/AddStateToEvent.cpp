@@ -2,8 +2,6 @@
 
 #include "Document/Event/EventModel.hpp"
 
-#include <State/StateInterface.hpp>
-
 #include <QDebug>
 
 using namespace iscore;
