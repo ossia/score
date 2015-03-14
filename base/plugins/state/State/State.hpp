@@ -4,14 +4,14 @@
 // TODO faire un vrai plug-in avec factory pour les plug-ins d'inspecteur de States.
 
 class State
-{       template friend
-        void Visitor<Reader<DataStream>>::readFrom<>(const State& mess);
-        template friend
-        void Visitor<Reader<JSON>>::readFrom<>(const State& mess);
-        template friend
-        void Visitor<Writer<DataStream>>::writeTo<>(State& mess);
-        template friend
-        void Visitor<Writer<JSON>>::writeTo<>(State& mess);
+{       friend
+        void Visitor<Reader<DataStream>>::readFrom<State>(const State& mess);
+        friend
+        void Visitor<Reader<JSON>>::readFrom<State>(const State& mess);
+        friend
+        void Visitor<Writer<DataStream>>::writeTo<State>(State& mess);
+        friend
+        void Visitor<Writer<JSON>>::writeTo<State>(State& mess);
     public:
         State() = default;
         ~State() = default;

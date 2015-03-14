@@ -83,8 +83,7 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
     if(false);
     else if(name == "CreateCurvesFromAddresses") cmd = new CreateCurvesFromAddresses;
     else if(name == "CreateCurvesFromAddressesInConstraints") cmd = new CreateCurvesFromAddressesInConstraints;
-    else if(name == "CreateStatesFromParametersInEvents") cmd = new CreateStatesFromParametersInEvents;
-    else if(name == "CreateStatesFromParameters") cmd = new CreateStatesFromParameters;
+    else if(name == "CreateStatesFromParametersInEvents") cmd = new CreateStatesFromParametersInEvents;;
 
     if(!cmd)
     {
@@ -142,6 +141,8 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     macro.commit();
 }
 
+
+#include "../scenario/source/Commands/Event/AddStateToEvent.hpp"
 void IScoreCohesionControl::snapshotParametersInEvents()
 {
     using namespace std;
@@ -162,7 +163,7 @@ void IScoreCohesionControl::snapshotParametersInEvents()
     auto device_explorer = DeviceExplorer::getModel(currentDocument());
     auto indexes = device_explorer->selectedIndexes();
 
-    QList<Message> messages;
+    MessageList messages;
     for(auto& index : indexes)
         messages.push_back(DeviceExplorer::messageFromModelIndex(index));
 
@@ -172,9 +173,8 @@ void IScoreCohesionControl::snapshotParametersInEvents()
                                  nullptr);
     for(auto& event : selected_events)
     {
-        auto cmd = new CreateStatesFromParameters {
-                        iscore::IDocument::path(event),
-                        messages};
+        auto cmd = new Scenario::Command::AddStateToEvent{
+                              iscore::IDocument::path(event), messages};
         macro.submitCommand(cmd);
     }
 

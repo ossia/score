@@ -5,6 +5,8 @@ class EventModel;
 
 class QFormLayout;
 class MetadataWidget;
+struct Message;
+class State;
 
 /*!
  * \brief The EventInspectorWidget class
@@ -19,7 +21,9 @@ class EventInspectorWidget : public InspectorWidgetBase
     signals:
 
     public slots:
-        void addAddress(const QString& addr);
+        void addMessage(const Message& mess);
+        void addState(const State& state);
+
         void updateDisplayedValues(EventModel* obj);
 
         void on_addAddressClicked();

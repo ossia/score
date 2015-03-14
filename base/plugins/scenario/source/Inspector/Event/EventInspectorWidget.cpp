@@ -134,25 +134,31 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
              this,      &EventInspectorWidget::modelDateChanged);
 }
 
-void EventInspectorWidget::addAddress(const QString& addr)
+#include "EventWidgets/MessageWidget.hpp"
+void EventInspectorWidget::addMessage(const Message& mess)
 {
-    auto address = new QWidget {this};
-    auto lay = new QHBoxLayout {address};
-    auto lbl = new QLabel {addr, this};
-    lay->addWidget(lbl);
-
-    QToolButton* rmBtn = new QToolButton {};
-    rmBtn->setText("X");
-    lay->addWidget(rmBtn);
-
-    connect(rmBtn, &QToolButton::clicked,
-            [ = ]()
-    {
-        removeState(lbl->text());
-    });
+    auto address = new MessageWidget {mess, this};
 
     m_addresses.push_back(address);
     m_addressesWidget->layout()->addWidget(address);
+}
+
+void EventInspectorWidget::addState(const State& state)
+{
+
+    // TODO : makeStateWidget(state)
+    // state must have a way (State::m_name) to identify its kind
+    if(state.data().canConvert<Message>())
+    {
+        addMessage(state.data().value<Message>());
+    }
+    else if(state.data().canConvert<MessageList>())
+    {
+        for(const Message& mess : state.data().value<MessageList>())
+        {
+            addMessage(mess);
+        }
+    }
 }
 
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)
@@ -179,14 +185,8 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
 
         for(const State& state : event->states())
         {
-            // TODO : makeStateWidget(state)
-            // state must have a way (State::m_name) to identify its kind
-            if(state.data().canConvert<Message>())
-            {
-                addAddress(state.data().value<Message>().address);
-            }
+            addState(state);
         }
-
 
         for(auto cstr : event->previousConstraints())
         {
