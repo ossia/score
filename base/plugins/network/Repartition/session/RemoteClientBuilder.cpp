@@ -29,7 +29,19 @@ void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
     {
         NetworkMessage doc;
         doc.address = "/session/document";
-        doc.data = m_session.document()->saveAsByteArray();
+
+        // Data is the serialized command stack, and the document models.
+        auto& cq = m_session.document()->commandStack();
+        QList<QPair <QPair <QString,QString>, QByteArray> > commandStack;
+        for(int i = 0; i < cq.size(); i++)
+        {
+            auto cmd = cq.command(i);
+            commandStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        }
+
+        QDataStream s{&doc.data, QIODevice::WriteOnly};
+        s << commandStack << m_session.document()->saveAsByteArray();
+
         m_socket->sendMessage(doc);
 
         m_remoteClient = new RemoteClient(m_socket, m_clientId);

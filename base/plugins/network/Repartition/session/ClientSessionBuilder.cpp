@@ -29,6 +29,11 @@ QByteArray ClientSessionBuilder::documentData() const
     return m_documentData;
 }
 
+const QList<QPair<QPair<QString, QString>, QByteArray> >& ClientSessionBuilder::commandStackData() const
+{
+    return m_commandStack;
+}
+
 void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
 {
     if(m.address == "/session/idOffer")
@@ -53,7 +58,9 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
                                       m_sessionId,
                                       nullptr);
 
-        m_documentData = m.data;
+
+        QDataStream s{m.data};
+        s >> m_commandStack >> m_documentData;
 
         emit sessionReady(this, m_session);
     }

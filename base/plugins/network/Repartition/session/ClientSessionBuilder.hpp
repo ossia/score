@@ -16,6 +16,7 @@ class ClientSessionBuilder : public QObject
         void initiateConnection();
         ClientSession* builtSession() const;
         QByteArray documentData() const;
+        const QList<QPair<QPair<QString, QString>, QByteArray> >& commandStackData() const;
 
     public slots:
         void on_messageReceived(NetworkMessage m);
@@ -28,6 +29,8 @@ class ClientSessionBuilder : public QObject
         id_type<Session> m_sessionId;
         NetworkSocket* m_mastersocket{};
 
+
+        QList<QPair <QPair <QString,QString>, QByteArray> > m_commandStack;
         QByteArray m_documentData;
 
         ClientSession* m_session{};

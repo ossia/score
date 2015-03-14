@@ -84,6 +84,11 @@ void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, Clien
                    m_sessionBuilder->documentData(),
                    presenter()->availableDocuments().front());
 
+    for(const auto& elt : m_sessionBuilder->commandStackData())
+    {
+        auto cmd = presenter()->instantiateUndoCommand(elt.first.first, elt.first.second, elt.second);
+        doc->commandStack().pushQuiet(cmd);
+    }
     doc->model()->addPluginModel(new NetworkDocumentClientPlugin{builtSession, this, doc});
 
     delete sessionBuilder;
