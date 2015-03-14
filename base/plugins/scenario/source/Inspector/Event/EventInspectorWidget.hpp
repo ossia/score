@@ -21,7 +21,6 @@ class EventInspectorWidget : public InspectorWidgetBase
     signals:
 
     public slots:
-        void addMessage(const Message& mess);
         void addState(const State& state);
 
         void updateDisplayedValues(EventModel* obj);

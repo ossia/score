@@ -134,31 +134,12 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
              this,      &EventInspectorWidget::modelDateChanged);
 }
 
-#include "EventWidgets/MessageWidget.hpp"
-void EventInspectorWidget::addMessage(const Message& mess)
-{
-    auto address = new MessageWidget {mess, this};
-
-    m_addresses.push_back(address);
-    m_addressesWidget->layout()->addWidget(address);
-}
-
+#include "EventWidgets/StateWidget.hpp"
 void EventInspectorWidget::addState(const State& state)
 {
-
-    // TODO : makeStateWidget(state)
-    // state must have a way (State::m_name) to identify its kind
-    if(state.data().canConvert<Message>())
-    {
-        addMessage(state.data().value<Message>());
-    }
-    else if(state.data().canConvert<MessageList>())
-    {
-        for(const Message& mess : state.data().value<MessageList>())
-        {
-            addMessage(mess);
-        }
-    }
+    auto sw = new StateWidget{state, this};
+    m_addresses.push_back(sw);
+    m_addressesWidget->layout()->addWidget(sw);
 }
 
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)

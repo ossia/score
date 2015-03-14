@@ -1,6 +1,7 @@
 #pragma once
 #include <QVariant>
-
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 // TODO faire un vrai plug-in avec factory pour les plug-ins d'inspecteur de States.
 
 class State
