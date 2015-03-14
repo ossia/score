@@ -2,10 +2,10 @@
 #include "../client/LocalClient.hpp"
 #include "../client/RemoteClient.hpp"
 #include <Serialization/NetworkMessage.hpp>
-#include <Serialization/MessageMapper.hpp>
-#include <Serialization/MessageValidator.hpp>
 
 class MasterSession;
+class MessageMapper;
+class MessageValidator;
 
 class Session : public IdentifiedObject<Session>
 {
@@ -13,13 +13,7 @@ class Session : public IdentifiedObject<Session>
     public:
         Session(LocalClient* client,
                 id_type<Session> id,
-                QObject* parent = nullptr):
-            IdentifiedObject<Session>{id, "Session", parent},
-            m_client{client},
-            m_mapper{new MessageMapper},
-            m_validator{new MessageValidator(*this, mapper())}
-        {
-        }
+                QObject* parent = nullptr);
 
 
         MessageValidator& validator()
@@ -41,16 +35,7 @@ class Session : public IdentifiedObject<Session>
             return m_remoteClients;
         }
 
-
-        NetworkMessage makeMessage(QString address)
-        {
-            NetworkMessage m;
-            m.address = address;
-            m.clientId = localClient().id();
-            m.sessionId = id();
-
-            return m;
-        }
+        NetworkMessage makeMessage(QString address);
 
         template<typename... Args>
         NetworkMessage makeMessage(QString address, Args&&... args)
@@ -66,12 +51,7 @@ class Session : public IdentifiedObject<Session>
         }
 
     public slots:
-        void validateMessage(NetworkMessage m)
-        {
-            if(validator().validate(m))
-                mapper().map(m);
-        }
-
+        void validateMessage(NetworkMessage m);
 
     private:
         template<typename Arg>
@@ -86,11 +66,8 @@ class Session : public IdentifiedObject<Session>
             impl_makeMessage(std::move(s << arg), std::forward<Args&&>(args)...);
         }
 
-
         LocalClient* m_client{};
         MessageMapper* m_mapper{};
         MessageValidator* m_validator{};
         QList<RemoteClient*> m_remoteClients;
-
-
 };

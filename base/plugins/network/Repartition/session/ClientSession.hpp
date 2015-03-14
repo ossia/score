@@ -7,13 +7,7 @@ class ClientSession : public Session
         ClientSession(RemoteClient* master,
                       LocalClient* client,
                       id_type<Session> id,
-                      QObject* parent = nullptr):
-            Session{client, id, parent},
-            m_master{master}
-        {
-            connect(master, &RemoteClient::messageReceived,
-                    this, &Session::validateMessage, Qt::QueuedConnection);
-        }
+                      QObject* parent = nullptr);
 
         RemoteClient* master() const
         {

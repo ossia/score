@@ -4,7 +4,7 @@
 #include <Repartition/session/ClientSession.hpp>
 #include <Repartition/client/RemoteClient.hpp>
 #include <Repartition/session/ClientSessionBuilder.hpp>
-
+#include <Serialization/MessageMapper.hpp>
 
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/Document.hpp>
