@@ -2,57 +2,41 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "State.hpp"
 
+
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const State& state)
+void Visitor<Reader<DataStream>>::readFrom(const State& mess)
 {
-    readFrom(static_cast<const IdentifiedObject<State>&>(state));
-
-    m_stream << state.messages();
-
+    m_stream << mess.m_data;
     insertDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const State& state)
+void Visitor<Reader<JSON>>::readFrom(const State& mess)
 {
-    readFrom(static_cast<const IdentifiedObject<State>&>(state));
-
-    m_obj["Messages"] = QJsonArray::fromStringList(state.messages());
+    QVariantMap vm;
+    vm["Data"] = mess.m_data;
+    m_obj["State"] = QJsonObject::fromVariantMap(vm);
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(State& state)
+void Visitor<Writer<DataStream>>::writeTo(State& mess)
 {
-    QStringList messages;
-    m_stream >> messages;
-
-    for(auto& message : messages)
-    {
-        state.addMessage(message);
-    }
+    m_stream >> mess.m_data;
 
     checkDelimiter();
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(State& state)
+void Visitor<Writer<JSON>>::writeTo(State& mess)
 {
-    for(auto& message : m_obj["Messages"].toArray().toVariantList())
-    {
-        state.addMessage(message.toString());
-    }
+    mess.m_data = m_obj["State"].toObject().toVariantMap()["Data"];
 }
-
-
-
-
 
 #include "Message.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 {
-    // TODO Continue / overhaul messages.
     m_stream << mess.address << mess.value;
     insertDelimiter();
 }

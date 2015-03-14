@@ -2,7 +2,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-class State;
 namespace Scenario
 {
     namespace Command

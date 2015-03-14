@@ -1,6 +1,7 @@
 #include "EventModel.hpp"
 
-#include "Document/Event/State/State.hpp"
+
+#include <State/State.hpp>
 
 #include <API/Headers/Editor/TimeNode.h>
 
@@ -33,12 +34,7 @@ EventModel::EventModel(EventModel* source,
     m_topY = source->topY();
     m_bottomY = source->bottomY();
 
-    for(State* state : source->m_states)
-    {
-        FakeState* newstate = new FakeState {state->id(), this};
-        newstate->addMessage(state->messages().first());
-        addState(newstate);
-    }
+    m_states = source->m_states;
 
     m_condition = source->condition();
     m_date = source->date();
@@ -165,20 +161,25 @@ QString EventModel::condition() const
     return m_condition;
 }
 
-const std::vector<State*>& EventModel::states() const
+const StateList& EventModel::states() const
 {
     return m_states;
 }
 
-void EventModel::addState(State* state)
+void EventModel::replaceStates(StateList newStates)
 {
-    m_states.push_back(state);
+    m_states = newStates;
+}
+
+void EventModel::addState(const State& state)
+{
+    m_states.append(state);
     emit messagesChanged();
 }
 
-void EventModel::removeState(id_type<State> stateId)
+void EventModel::removeState(const State& s)
 {
-    removeById(m_states, stateId);
+    m_states.removeOne(s);
     emit messagesChanged();
 }
 
@@ -192,7 +193,7 @@ void EventModel::setHeightPercentage(double arg)
 }
 
 
-void EventModel::setCondition(QString arg)
+void EventModel::setCondition(const QString& arg)
 {
     if(m_condition == arg)
     {

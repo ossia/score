@@ -160,7 +160,7 @@ QString Scenario::Command::SetMinDuration::description() { return QObject::tr("S
 QString Scenario::Command::MergeBoxes::description() { return QObject::tr("MergeBoxes"); }
 QString Scenario::Command::RemoveStateFromEvent::description() { return QObject::tr("RemoveStateFromEvent"); }
 QString Scenario::Command::SetCondition::description() { return QObject::tr("SetCondition"); }
-QString Scenario::Command::AddStateToEvent::description() { return QObject::tr("AddStateToEvent"); }
+QString Scenario::Command::AddStateToEvent::description() { return QObject::tr("AddNewMessageToEvent"); }
 QString Scenario::Command::UnassignMessagesFromState::description() { return QObject::tr("UnassignMessagesFromState"); }
 QString Scenario::Command::AssignMessagesToState::description() { return QObject::tr("AssignMessagesToState"); }
 QString Scenario::Command::ResizeBaseConstraint::description() { return QObject::tr("ResizeBaseConstraint"); }

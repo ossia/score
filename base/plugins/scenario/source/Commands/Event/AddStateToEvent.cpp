@@ -1,38 +1,34 @@
 #include "AddStateToEvent.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
+
+#include <State/StateInterface.hpp>
 
 #include <QDebug>
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, QString message) :
+AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State& state) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
-m_path {std::move(eventPath) },
-m_message(message)
+    m_path {std::move(eventPath) },
+    m_state{state}
 {
-    auto event = m_path.find<EventModel>();
-    m_stateId = getStrongId(event->states());
+
 }
 
 void AddStateToEvent::undo()
 {
     auto event = m_path.find<EventModel>();
-
-    event->removeState(m_stateId);
+    event->removeState(m_state);
 }
 
 void AddStateToEvent::redo()
 {
     auto event = m_path.find<EventModel>();
-    FakeState* state = new FakeState {m_stateId, event};
-    state->addMessage(m_message);
-
-    event->addState(state);
+    event->addState(m_state);
 }
 
 bool AddStateToEvent::mergeWith(const Command* other)
@@ -42,10 +38,10 @@ bool AddStateToEvent::mergeWith(const Command* other)
 
 void AddStateToEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_message << m_stateId;
+    s << m_path << m_state;
 }
 
 void AddStateToEvent::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_message >> m_stateId;
+    s >> m_path >> m_state;
 }

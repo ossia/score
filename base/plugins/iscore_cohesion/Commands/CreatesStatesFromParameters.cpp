@@ -24,40 +24,43 @@ CreateStatesFromParameters::CreateStatesFromParameters(ObjectPath&& event,
     m_path {event},
     m_messages {addresses}
 {
+    /*
     for(auto& message : m_messages)
     {
-        auto cmd = new Scenario::Command::AddStateToEvent{
+        auto cmd = new Scenario::Command::AddNewMessageToEvent{
                    ObjectPath{m_path},
                    QString{"%1 %2"}
                     .arg(message.address)
                     .arg(message.value.toString())};
         m_serializedCommands.push_back(cmd->serialize());
         delete cmd;
-    }
+    }*/
 }
 
 void CreateStatesFromParameters::undo()
 {
+    /*
     for(auto& cmd_pack : m_serializedCommands)
     {
-        auto cmd = new Scenario::Command::AddStateToEvent;
+        auto cmd = new Scenario::Command::AddNewMessageToEvent;
         cmd->deserialize(cmd_pack);
         cmd->undo();
 
         delete cmd;
-    }
+    }*/
 }
 
 void CreateStatesFromParameters::redo()
 {
+    /*
     for(auto& cmd_pack : m_serializedCommands)
     {
-        auto cmd = new Scenario::Command::AddStateToEvent;
+        auto cmd = new Scenario::Command::AddNewMessageToEvent;
         cmd->deserialize(cmd_pack);
         cmd->redo();
 
         delete cmd;
-    }
+    }*/
 }
 
 bool CreateStatesFromParameters::mergeWith(const Command* other)

@@ -1,7 +1,6 @@
 #include "EventInspectorWidget.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
 #include "Commands/Event/RemoveStateFromEvent.hpp"
@@ -10,6 +9,8 @@
 
 #include <InspectorInterface/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
+
+#include <State/State.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
@@ -176,13 +177,16 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
 
         auto scenar = event->parentScenario();
 
-        for(State* state : event->states())
+        for(const State& state : event->states())
         {
-            for(auto& msg : state->messages())
+            // TODO : makeStateWidget(state)
+            // state must have a way (State::m_name) to identify its kind
+            if(state.data().canConvert<Message>())
             {
-                addAddress(msg);
+                addAddress(state.data().value<Message>().address);
             }
         }
+
 
         for(auto cstr : event->previousConstraints())
         {
@@ -223,7 +227,9 @@ using namespace Scenario;
 void EventInspectorWidget::on_addAddressClicked()
 {
     auto txt = m_addressLineEdit->text();
-    auto cmd = new Command::AddStateToEvent{path(m_model), txt};
+    // TODO Faire fonction pour parser texte en message.
+    Message m; m.address = txt;
+    auto cmd = new Command::AddStateToEvent{path(m_model), m};
 
     emit commandDispatcher()->submitCommand(cmd);
     m_addressLineEdit->clear();
@@ -244,7 +250,8 @@ void EventInspectorWidget::on_conditionChanged()
 
 void EventInspectorWidget::removeState(QString state)
 {
-    auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
+    Message m; m.address = state;
+    auto cmd = new Command::RemoveStateFromEvent{path(m_model), m};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

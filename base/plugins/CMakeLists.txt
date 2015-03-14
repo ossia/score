@@ -11,6 +11,8 @@ endif()
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/inspector/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/scenario/")
 
+add_subdirectory(state)
+
 add_subdirectory(plugin_settings)
 add_subdirectory(inspector)
 add_subdirectory(scenario)

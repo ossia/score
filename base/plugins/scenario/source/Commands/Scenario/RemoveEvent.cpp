@@ -2,14 +2,15 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
-
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
+
+#include <State/State.hpp>
+
 #include <iscore/tools/utilsCPP11.hpp>
 
 using namespace iscore;

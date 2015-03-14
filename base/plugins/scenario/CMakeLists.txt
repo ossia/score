@@ -30,7 +30,7 @@ target_link_libraries(process_interface Qt5::Core Qt5::Widgets iscore_lib)
 add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
 									   iscore_lib APIMock
-									   inspector_plugin process_interface device_explorer_plugin)
+									   inspector_plugin process_interface device_explorer_plugin  StateLibrary)
 
 install(TARGETS process_interface
 		LIBRARY DESTINATION plugins/

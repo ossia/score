@@ -37,7 +37,7 @@ namespace Scenario
             private:
                 ObjectPath m_path;
 
-                QVector<QByteArray> m_serializedStates;
+                QByteArray m_serializedStates;
                 //		QByteArray m_serializedEvent;
                 //		QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
         };

@@ -1,7 +1,8 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include "../../scenario/source/Document/Event/State/Message.hpp"
+
+#include <State/Message.hpp>
 
 class CreateStatesFromParameters : public iscore::SerializableCommand
 {

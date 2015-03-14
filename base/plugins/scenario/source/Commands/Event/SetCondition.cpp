@@ -1,7 +1,7 @@
 #include "SetCondition.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
+#include <State/State.hpp>
 
 #include <QDebug>
 

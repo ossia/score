@@ -4,7 +4,7 @@
 #include <QModelIndex>
 
 
-#include "../../scenario/source/Document/Event/State/Message.hpp"
+#include <State/Message.hpp>
 
 
 class QObject;

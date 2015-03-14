@@ -9,6 +9,8 @@
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 
+#include <State/Message.hpp>
+
 ScenarioPlugin::ScenarioPlugin() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},
@@ -18,6 +20,9 @@ ScenarioPlugin::ScenarioPlugin() :
 m_control {new ScenarioControl{nullptr}}
 {
     setObjectName("ScenarioPlugin");
+
+    // TODO there should be another way... :'(
+    QMetaType::registerComparators<Message>();
 }
 
 // Interfaces implementations :

@@ -1,7 +1,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/Event/EventModel.hpp"
-#include "source/Document/Event/State/State.hpp"
+
+#include <State/State.hpp>
 
 #include <API/Headers/Editor/TimeNode.h>
 
@@ -21,13 +22,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
     m_stream << ev.condition();
     m_stream << ev.timeNode();
 
-    auto states = ev.states();
-    m_stream << int (states.size());
-
-    for(auto state : states)
-    {
-        readFrom(*state);
-    }
+    m_stream << ev.states();
 
     // TODO save OSSIA::TimeNode
     insertDelimiter();
@@ -62,14 +57,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     ev.setCondition(condition);
     ev.changeTimeNode(timenode);
 
-    int numStates {};
-    m_stream >> numStates;
-
-    for(; numStates -- > 0;)
-    {
-        FakeState* state = new FakeState {*this, &ev};
-        ev.addState(state);
-    }
+    QList<State> states;
+    m_stream >> states;
+    ev.replaceStates(states);
 
     ev.setOSSIATimeNode(new OSSIA::TimeNode);
     // TODO load the timenode
@@ -117,6 +107,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
     ev.setCondition(m_obj["Condition"].toString());
     ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>> (m_obj["TimeNode"].toObject()));
 
+    /* TODO
     QJsonArray states = m_obj["States"].toArray();
 
     for(auto json_vref : states)
@@ -125,6 +116,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
         FakeState* state = new FakeState {deserializer, &ev};
         ev.addState(state);
     }
-
+*/
     ev.setOSSIATimeNode(new OSSIA::TimeNode);
 }

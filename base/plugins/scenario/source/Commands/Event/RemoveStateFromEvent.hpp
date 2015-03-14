@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <State/State.hpp>
 
 class State;
 namespace Scenario
@@ -12,7 +13,7 @@ namespace Scenario
                 ISCORE_COMMAND
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(RemoveStateFromEvent, "ScenarioControl")
-                RemoveStateFromEvent(ObjectPath&& eventPath, QString message);
+                RemoveStateFromEvent(ObjectPath&& eventPath, const State& state);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
@@ -23,10 +24,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                QString m_message;
-
-                id_type<State> m_stateId {};
-                QByteArray m_serializedState;
+                State m_state;
         };
 
     }

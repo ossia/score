@@ -1,50 +1,30 @@
 #include "RemoveStateFromEvent.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, QString message):
+RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, const State& state):
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
-m_path {std::move(eventPath) },
-m_message(message)
+    m_path {std::move(eventPath) },
+    m_state{state}
 {
-    auto event = m_path.find<EventModel>();
-    for (State* state : event->states())
-    {
-        for (QString msg : state->messages())
-        {
-            if (msg == m_message)
-            {
-                m_stateId = state->id();
 
-                QByteArray arr;
-                Serializer<DataStream> s{&arr};
-                s.readFrom(*state);
-                m_serializedState = arr;
-
-                break;
-            }
-        }
-    }
 }
 
 void RemoveStateFromEvent::undo()
 {
     auto event = m_path.find<EventModel>();
-    Deserializer<DataStream> s{&m_serializedState};
-    FakeState* state = new FakeState{s, event};
-    event->addState(state);
+    event->addState(m_state);
 }
 
 void RemoveStateFromEvent::redo()
 {
     auto event = m_path.find<EventModel>();
-    event->removeState(m_stateId);
+    event->removeState(m_state);
 }
 
 bool RemoveStateFromEvent::mergeWith(const Command* other)
@@ -54,10 +34,10 @@ bool RemoveStateFromEvent::mergeWith(const Command* other)
 
 void RemoveStateFromEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_message << m_stateId;
+    s << m_path << m_state;
 }
 
 void RemoveStateFromEvent::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_message >> m_stateId;
+    s >> m_path >> m_state;
 }

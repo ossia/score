@@ -8,11 +8,11 @@
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <unordered_map>
+#include <State/State.hpp>
 namespace OSSIA
 {
     class TimeNode;
 }
-class State;
 class ConstraintModel;
 class TimeNodeModel;
 class ScenarioModel;
@@ -75,9 +75,10 @@ class EventModel : public IdentifiedObject<EventModel>
         void changeTimeNode(id_type<TimeNodeModel>);
         id_type<TimeNodeModel> timeNode() const;
 
-        const std::vector<State*>& states() const;
-        void addState(State* s);
-        void removeState(id_type<State> stateId);
+        const StateList& states() const;
+        void replaceStates(StateList newStates);
+        void addState(const State& s);
+        void removeState(const State& s);
 
         OSSIA::TimeNode* apiObject()
         {
@@ -113,7 +114,7 @@ class EventModel : public IdentifiedObject<EventModel>
     public slots:
         void setHeightPercentage(double arg);
         void setDate(TimeValue date);
-        void setCondition(QString arg);
+        void setCondition(const QString& arg);
 
     signals:
         void selectionChanged(bool);
@@ -145,7 +146,7 @@ class EventModel : public IdentifiedObject<EventModel>
         double m_topY {0.5};
         double m_bottomY {0.5};
 
-        std::vector<State*> m_states;
+        StateList m_states;
         QString m_condition {};
 
         /// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.

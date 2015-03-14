@@ -1,18 +1,21 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <State/State.hpp>
 
 class State;
 namespace Scenario
 {
     namespace Command
     {
+        // TODO change to AddNewMessageToEventInNewState
+        // TODO Add AddNewMessageToState
         class AddStateToEvent : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(AddStateToEvent, "ScenarioControl")
-                AddStateToEvent(ObjectPath&& eventPath, QString message);
+                AddStateToEvent(ObjectPath&& eventPath, const State& state);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
@@ -23,9 +26,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                QString m_message;
-
-                id_type<State> m_stateId {};
+                State m_state;
         };
     }
 }

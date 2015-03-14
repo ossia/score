@@ -94,7 +94,7 @@ add_library(device_explorer_plugin
 
 
 
-target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets iscore_lib)
+target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets iscore_lib  StateLibrary)
 
 
 install(TARGETS device_explorer_plugin

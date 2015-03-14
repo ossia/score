@@ -1,10 +1,10 @@
 #include "ClearEvent.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/State/State.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
 
+#include <State/State.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
 
 using namespace iscore;
@@ -16,38 +16,34 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath) :
                          description()},
 m_path {std::move(eventPath) }
 {
-
+    /*
     auto event = m_path.find<EventModel>();
-
-    for(const State* state : event->states())
-    {
-        QByteArray arr;
-        Serializer<DataStream> s {&arr};
-        s.readFrom(*state);
-        m_serializedStates.push_back(arr);
-    }
+    QDataStream s(&m_serializedStates, QIODevice::WriteOnly);
+    s << event->states();
+    */
 }
 
 void ClearEvent::undo()
 {
+    /*
     auto event = m_path.find<EventModel>();
+    QList<State> states;
+    QDataStream s(m_serializedStates);
+    s >> states;
 
-    for(auto& serializedState : m_serializedStates)
+    for(auto&& state : states)
     {
-        Deserializer<DataStream> s {&serializedState};
-        event->addState(new FakeState {s, event});
+        event->addState(std::move(state));
     }
+    */
 }
 
 void ClearEvent::redo()
 {
+    /*
     auto event = m_path.find<EventModel>();
-
-    for(auto& state : event->states())
-    {
-        event->removeState(state->id());
-    }
-
+    event->replaceStates({});
+    */
 }
 
 bool ClearEvent::mergeWith(const Command* other)
