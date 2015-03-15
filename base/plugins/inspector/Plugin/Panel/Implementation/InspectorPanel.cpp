@@ -34,7 +34,8 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     for(auto object : objects)
     {
         auto widget = InspectorWidgetList::makeInspectorWidget(object->objectName(),
-                                                               object);
+                                                               object,
+                                                               m_tabWidget);
         m_tabWidget->addTab(widget, object->objectName());
     }
 

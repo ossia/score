@@ -61,6 +61,10 @@ class ScenarioModel : public ProcessSharedModelInterface
         QString processName() const override
         { return "Scenario"; }
 
+
+        ProcessStateDataInterface* startState() const override;
+        ProcessStateDataInterface* endState() const override;
+
         //// ScenarioModel specifics ////
         // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
         void addConstraint(ConstraintModel* constraint);

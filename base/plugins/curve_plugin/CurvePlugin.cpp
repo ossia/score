@@ -1,6 +1,7 @@
 #include "CurvePlugin.hpp"
 
 #include "Inspector/AutomationInspectorFactory.hpp"
+#include "Inspector/AutomationStateInspectorFactory.hpp"
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"
 #include <QVector>
@@ -25,7 +26,8 @@ QVector<iscore::FactoryInterface*> CurvePlugin::factories_make(QString factoryNa
 
     if(factoryName == "Inspector")
     {
-        return {new AutomationInspectorFactory};
+        return {new AutomationInspectorFactory,
+                new AutomationStateInspectorFactory};
     }
 
     return {};

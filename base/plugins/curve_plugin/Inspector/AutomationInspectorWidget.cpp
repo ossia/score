@@ -21,7 +21,7 @@
 
 AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automationModel,
                                                      QWidget* parent) :
-    InspectorWidgetBase {nullptr},
+    InspectorWidgetBase {automationModel, parent},
     m_model {automationModel}
 {
     setObjectName("AutomationInspectorWidget");

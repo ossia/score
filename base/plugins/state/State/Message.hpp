@@ -22,6 +22,9 @@ struct Message
         return false;
     }
 
+    QString toString() const
+    { return address + " " + value.toString(); }
+
     QString address;
     QVariant value;
 };

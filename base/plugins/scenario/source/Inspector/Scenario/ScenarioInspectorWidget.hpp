@@ -8,7 +8,7 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit ScenarioInspectorWidget(ScenarioModel* object,
-                                         QWidget* parent = 0);
+                                         QWidget* parent);
 
     signals:
         void createViewInNewDeck(QString);

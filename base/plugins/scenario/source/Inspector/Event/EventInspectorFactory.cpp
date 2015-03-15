@@ -5,8 +5,8 @@
 
 //using namespace iscore;
 
-InspectorWidgetBase* EventInspectorFactory::makeWidget(QObject* sourceElement)
+InspectorWidgetBase* EventInspectorFactory::makeWidget(QObject* sourceElement, QWidget* parent)
 {
     auto event = static_cast<EventModel*>(sourceElement);
-    return new EventInspectorWidget(event);
+    return new EventInspectorWidget{event, parent};
 }

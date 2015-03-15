@@ -1,11 +1,6 @@
 #pragma once
 #include <QMetaType>
-
-class ProcessStateDataInterface : public QObject
-{
-
-};
-
+#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 class ProcessState
 {
     public:
@@ -15,9 +10,15 @@ class ProcessState
         ProcessState& operator=(const ProcessState&) = default;
         ProcessState& operator=(ProcessState&&) = default;
 
+        ProcessState(ProcessStateDataInterface* d):
+            m_data{d}
+        {
+
+        }
+
         bool operator==(const ProcessState& p) const
         {
-            return false;
+            return m_data == p.m_data;
         }
 
         bool operator<(const ProcessState& p) const

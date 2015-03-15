@@ -4,7 +4,7 @@
 
 //using namespace iscore;
 
-InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(QObject* sourceElement)
+InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(QObject* sourceElement, QWidget* parent)
 {
-    return new ScenarioInspectorWidget(static_cast<ScenarioModel*>(sourceElement));
+    return new ScenarioInspectorWidget(static_cast<ScenarioModel*>(sourceElement), parent);
 }

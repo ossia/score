@@ -12,7 +12,8 @@ class TimeNodeInspectorFactory : public InspectorWidgetFactoryInterface
 
         }
 
-        virtual InspectorWidgetBase* makeWidget(QObject* sourceElement) override;
+        virtual InspectorWidgetBase* makeWidget(QObject* sourceElement,
+                                                QWidget* parent) override;
 
         virtual QList<QString> correspondingObjectsNames() const override
         {

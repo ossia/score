@@ -1,5 +1,6 @@
 #include "AutomationModel.hpp"
 #include "AutomationViewModel.hpp"
+#include "State/AutomationState.hpp"
 
 AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
                                  QObject* parent) :
@@ -133,6 +134,18 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewMod
         QObject* parent)
 {
     return new AutomationViewModel {static_cast<const AutomationViewModel*>(source), this, newId, parent};
+}
+
+
+
+ProcessStateDataInterface* AutomationModel::startState() const
+{
+    return new AutomationState{this, 0.};
+}
+
+ProcessStateDataInterface* AutomationModel::endState() const
+{
+    return new AutomationState{this, 1.};
 }
 
 // Note : the presenter should see the modifications happening,

@@ -258,9 +258,23 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process->processName());
-    auto widg = InspectorWidgetList::makeInspectorWidget(process->processName(), process);
 
+    // Process
+    auto widg = InspectorWidgetList::makeInspectorWidget(process->processName(), process, newProc);
     newProc->addContent(widg);
+
+    // Start & end state
+    if(auto start = process->startState())
+    {
+        auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, newProc);
+        newProc->addContent(startWidg);
+    }
+
+    if(auto end = process->endState())
+    {
+        auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, newProc);
+        newProc->addContent(endWidg);
+    }
 
     m_processesSectionWidgets.push_back(newProc);
     m_processSection->addContent(newProc);

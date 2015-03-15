@@ -2,6 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
+#include "State/ProcessStateDataInterface.hpp"
 
 class QDataStream;
 
@@ -77,6 +78,10 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         {
             return m_duration;
         }
+
+        /// States
+        virtual ProcessStateDataInterface* startState() const = 0;
+        virtual ProcessStateDataInterface* endState() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;

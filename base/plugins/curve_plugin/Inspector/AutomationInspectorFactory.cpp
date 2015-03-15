@@ -4,8 +4,8 @@
 
 //using namespace iscore;
 
-InspectorWidgetBase* AutomationInspectorFactory::makeWidget(QObject* sourceElement)
+InspectorWidgetBase* AutomationInspectorFactory::makeWidget(QObject* sourceElement, QWidget* parent)
 {
-    return new AutomationInspectorWidget(static_cast<AutomationModel*>(sourceElement));
+    return new AutomationInspectorWidget(static_cast<AutomationModel*>(sourceElement), parent);
 
 }

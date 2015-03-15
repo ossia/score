@@ -8,7 +8,9 @@ InspectorWidgetList::InspectorWidgetList(QObject* parent):
 {
 }
 
-InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(QString name, QObject* object)
+InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(QString name,
+                                                              QObject* model,
+                                                              QWidget* parent)
 {
     auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");
 
@@ -16,12 +18,12 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(QString name, QObj
     {
         if(factory->correspondingObjectsNames().contains(name))
         {
-            return factory->makeWidget(object);
+            return factory->makeWidget(model, parent);
         }
     }
 
     // When no factory is found.
-    return new InspectorWidgetBase(object);
+    return new InspectorWidgetBase(model, nullptr);
 }
 
 void InspectorWidgetList::registerFactory(iscore::FactoryInterface* e)

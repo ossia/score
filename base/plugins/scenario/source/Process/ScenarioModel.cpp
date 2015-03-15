@@ -164,6 +164,18 @@ void ScenarioModel::setSelection(const Selection& s)
         elt->selection.set(s.contains(elt));
 }
 
+ProcessStateDataInterface* ScenarioModel::startState() const
+{
+    qDebug() << Q_FUNC_INFO << "TODO";
+    return nullptr;
+}
+
+ProcessStateDataInterface* ScenarioModel::endState() const
+{
+    qDebug() << Q_FUNC_INFO << "TODO";
+    return nullptr;
+}
+
 
 void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {

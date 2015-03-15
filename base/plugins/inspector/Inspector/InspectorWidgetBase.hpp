@@ -33,7 +33,7 @@ class InspectorWidgetBase : public QWidget
          * \param inspectedObj The selected object
          * \param parent The parent Widget
          */
-        explicit InspectorWidgetBase(QObject* inspectedObj = 0, QWidget* parent = 0);
+        explicit InspectorWidgetBase(QObject* inspectedObj, QWidget* parent);
 
     public slots:
 

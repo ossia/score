@@ -3,10 +3,10 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class ScenarioInspectorFactory : public InspectorWidgetFactoryInterface
+class AutomationStateInspectorFactory : public InspectorWidgetFactoryInterface
 {
     public:
-        ScenarioInspectorFactory() :
+        AutomationStateInspectorFactory() :
             InspectorWidgetFactoryInterface {}
         {
 
@@ -16,6 +16,6 @@ class ScenarioInspectorFactory : public InspectorWidgetFactoryInterface
 
         virtual QList<QString> correspondingObjectsNames() const override
         {
-            return {"Scenario"};
+            return {"AutomationState"};
         }
 };

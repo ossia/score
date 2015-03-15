@@ -8,7 +8,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit AutomationInspectorWidget(AutomationModel* object,
-                                           QWidget* parent = 0);
+                                           QWidget* parent);
 
     public slots:
         void on_addressChange(const QString& newText);

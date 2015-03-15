@@ -87,7 +87,7 @@ void AutomationPresenter::on_modelPointsChanged()
     if(m_curve)
     {
         m_view->scene()->removeItem(m_curve);
-        delete m_curve;
+        m_curve->deleteLater();
     }
 
     auto list = mapToList(m_viewModel->model()->points());

@@ -15,7 +15,7 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit TimeNodeInspectorWidget(TimeNodeModel* object, QWidget* parent = 0);
+        explicit TimeNodeInspectorWidget(TimeNodeModel* object, QWidget* parent);
 
     signals:
 
