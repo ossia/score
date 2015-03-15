@@ -1,12 +1,12 @@
 #include "DeviceExplorerInterface.hpp"
 
-#include "../DeviceExplorerPanelFactory.hpp"
-#include "../Panel/DeviceExplorerModel.hpp"
+#include "../Plugin/DeviceExplorerPanelFactory.hpp"
+#include "../Plugin/Panel/DeviceExplorerModel.hpp"
+#include "Node/Node.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
-#include "../Panel/Node.hpp"
 
 QString DeviceExplorer::panelName()
 {
@@ -28,6 +28,16 @@ DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
 QJsonObject DeviceExplorer::toJson(DeviceExplorerModel* deviceExplorer)
 {
     return nodeToJson(deviceExplorer->rootNode());
+}
+
+
+QByteArray DeviceExplorer::toByteArray(DeviceExplorerModel* deviceExplorer)
+{
+    QByteArray b;
+    QDataStream s(&b, QIODevice::WriteOnly);
+    s << *deviceExplorer->rootNode();
+
+    return b;
 }
 
 
@@ -62,3 +72,4 @@ DeviceExplorerModel *DeviceExplorer::getModel(iscore::Document *doc)
                 doc->model()
                    ->panel(DeviceExplorer::panelName()))->deviceExplorer();;
 }
+

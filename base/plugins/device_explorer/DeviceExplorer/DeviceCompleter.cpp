@@ -1,5 +1,5 @@
 #include "DeviceCompleter.hpp"
-#include "../Panel/DeviceExplorerModel.hpp"
+#include "../Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <QApplication>
 

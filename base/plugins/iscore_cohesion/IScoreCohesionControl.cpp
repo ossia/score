@@ -9,8 +9,10 @@
 #include "../scenario/source/Document/Event/EventModel.hpp"
 #include "../scenario/source/Document/BaseElement/BaseElementModel.hpp"
 #include "../scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
-#include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
-#include "../device_explorer/Panel/DeviceExplorerModel.hpp"
+#include <DeviceExplorer/DeviceExplorerInterface.hpp>
+
+// TODO Refactor in order to use the Node data structure instead.
+#include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
 #include "Commands/CreatesStatesFromParameters.hpp"
 #include "Commands/CreateStatesFromParametersInEvents.hpp"

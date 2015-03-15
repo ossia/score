@@ -4,6 +4,7 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <DeviceExplorer/DeviceExplorerInterface.hpp>
 #include <core/view/View.hpp>
 using namespace iscore;
 
@@ -22,11 +23,31 @@ QWidget* DeviceExplorerPanelView::getWidget()
 }
 
 
+
+
+
+
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(DocumentModel* parent) :
     iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
 m_model {new DeviceExplorerModel{this}}
 {
 }
+
+QJsonObject DeviceExplorerPanelModel::toJson()
+{
+    return DeviceExplorer::toJson(m_model);
+}
+
+QByteArray DeviceExplorerPanelModel::toByteArray()
+{
+    return DeviceExplorer::toByteArray(m_model);
+}
+
+
+
+
+
+
 
 
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
@@ -68,4 +89,3 @@ iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel
 {
     return new DeviceExplorerPanelModel {parent};
 }
-

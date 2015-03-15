@@ -26,6 +26,9 @@ class DeviceExplorerPanelModel : public iscore::PanelModelInterface
     public:
         DeviceExplorerPanelModel(iscore::DocumentModel* parent);
 
+        QJsonObject toJson() override;
+        QByteArray toByteArray() override;
+
         DeviceExplorerModel* deviceExplorer()
         {
             return m_model;
@@ -33,6 +36,7 @@ class DeviceExplorerPanelModel : public iscore::PanelModelInterface
 
     private:
         DeviceExplorerModel* m_model {};
+
 };
 
 

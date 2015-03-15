@@ -8,7 +8,7 @@ find_package(Qt5Test)
 
 function(addIScoreQtTest TESTNAME TESTSRCS)
 		add_executable(${TESTNAME} ${TESTSRCS})
-		target_link_libraries(${TESTNAME} Qt5::Core Qt5::Test iscore_lib scenario_process StateLibrary)
+		target_link_libraries(${TESTNAME} Qt5::Core Qt5::Test iscore_lib scenario_process DeviceExplorerLibrary StateLibrary)
 		add_test(${TESTNAME}_target ${TESTNAME})
 endFunction()
 

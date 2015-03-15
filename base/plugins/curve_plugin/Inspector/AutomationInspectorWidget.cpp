@@ -2,11 +2,11 @@
 #include "../Automation/AutomationModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "../Commands/ChangeAddress.hpp"
-#include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
-#include "../device_explorer/DeviceInterface/DeviceCompleter.hpp"
+#include <DeviceExplorer/DeviceExplorerInterface.hpp>
+#include <DeviceExplorer/DeviceCompleter.hpp>
 
-#include "../device_explorer/Panel/DeviceExplorerModel.hpp"
-#include "../device_explorer/QMenuView/qmenuview.h"
+//#include "../device_explorer/Panel/DeviceExplorerModel.hpp"
+#include <DeviceExplorer/QMenuView/qmenuview.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -63,7 +63,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automation
         auto pb = new QPushButton {"/"};
 
         auto menuview = new QMenuView {pb};
-        menuview->setModel(deviceexplorer);
+        menuview->setModel(reinterpret_cast<QAbstractItemModel*>(deviceexplorer));
 
         connect(menuview, &QMenuView::triggered,
                 [ = ](const QModelIndex & m)

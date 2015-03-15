@@ -361,7 +361,7 @@ bool ModelResetCommand::emitPreSignal(const QModelIndex& srcParent, int srcStart
 
 void ModelResetCommand::emitPostSignal()
 {
-    m_model->reset();
+    // TODO m_model->reset();
 }
 
 ModelResetCommandFixed::ModelResetCommandFixed(DynamicTreeModel* model, QObject* parent)

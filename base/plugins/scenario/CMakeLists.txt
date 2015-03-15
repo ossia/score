@@ -18,21 +18,23 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.cpp")
 
-### TODO Do the same for inspector.
-add_library(process_interface ${PROCESS_HDRS} ${PROCESS_SRCS})
-target_link_libraries(process_interface Qt5::Core Qt5::Widgets iscore_lib)
+add_library(ProcessLibrary ${PROCESS_HDRS} ${PROCESS_SRCS})
+target_link_libraries(ProcessLibrary Qt5::Core Qt5::Widgets iscore_lib)
+
+
+
+file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
+file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
 add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
 									   iscore_lib APIMock
-									   InspectorLibrary process_interface device_explorer_plugin  StateLibrary)
+									   InspectorLibrary ProcessLibrary DeviceExplorerLibrary  StateLibrary)
 
-install(TARGETS process_interface
+install(TARGETS ProcessLibrary
 		LIBRARY DESTINATION plugins/
 		ARCHIVE DESTINATION static_plugins/)
 install(TARGETS scenario_process

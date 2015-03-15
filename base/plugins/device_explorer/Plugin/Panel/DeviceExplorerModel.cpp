@@ -1,6 +1,6 @@
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
-#include "Node.hpp"
+#include <DeviceExplorer/Node/Node.hpp>
 #include <cassert>
 #include <iostream>
 

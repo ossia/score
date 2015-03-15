@@ -22,11 +22,11 @@
 #include <QCompleter>
 #include <QToolButton>
 
-#include "Process/ScenarioModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/selection/SelectionDispatcher.hpp"
-#include <DeviceInterface/DeviceCompleter.hpp>
-#include <DeviceInterface/DeviceExplorerInterface.hpp>
+#include <Process/ScenarioModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <DeviceExplorer/DeviceCompleter.hpp>
+#include <DeviceExplorer/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?

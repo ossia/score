@@ -24,6 +24,7 @@ namespace DeviceExplorer
     DeviceExplorerModel* getModel(iscore::Document* object);
 
     QJsonObject toJson(DeviceExplorerModel* deviceExplorer);
+    QByteArray toByteArray(DeviceExplorerModel* deviceExplorer);
 
     QString addressFromModelIndex(const QModelIndex& index);
     Message messageFromModelIndex(const QModelIndex& index);

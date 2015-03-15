@@ -230,3 +230,23 @@ QJsonObject nodeToJson(const Node* n)
 
     return obj;
 }
+
+
+QDataStream& operator<<(QDataStream& s, const Node& n)
+{
+    s << n.name() << n.value() << n.ioType() << n.minValue() << n.maxValue() << n.priority();
+
+    s << n.isDevice();
+    if(n.isDevice())
+    {
+        s << n.deviceSettings();
+    }
+
+    s << n.childCount();
+    for(auto& child : n.children())
+    {
+        s << *child;
+    }
+
+    return s;
+}

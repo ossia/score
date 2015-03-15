@@ -20,7 +20,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
 					 Qt5::Core Qt5::Widgets
-					 iscore_lib InspectorLibrary device_explorer_plugin process_interface)
+					 iscore_lib InspectorLibrary DeviceExplorerLibrary ProcessLibrary)
 
 
 install(TARGETS ${PROJECT_NAME}
