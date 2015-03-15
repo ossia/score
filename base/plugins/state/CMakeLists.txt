@@ -12,17 +12,17 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
+file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/State/*.cpp")
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
+add_library(StateLibrary ${SRCS} ${HDRS})
+target_link_libraries(StateLibrary Qt5::Core Qt5::Widgets)
 
 
-set_property(TARGET ${PROJECT_NAME} APPEND
+set_property(TARGET StateLibrary APPEND
 			 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS StateLibrary
 		LIBRARY DESTINATION plugins/
 		ARCHIVE DESTINATION static_plugins/)
