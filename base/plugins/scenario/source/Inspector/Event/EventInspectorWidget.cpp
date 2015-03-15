@@ -134,10 +134,12 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
              this,      &EventInspectorWidget::modelDateChanged);
 }
 
-#include "EventWidgets/StateWidget.hpp"
+#include <State/Widgets/StateWidget.hpp>
 void EventInspectorWidget::addState(const State& state)
 {
     auto sw = new StateWidget{state, this};
+    connect(sw, &StateWidget::removeMe,
+            this, [&] () { removeState(state);});
     m_addresses.push_back(sw);
     m_addressesWidget->layout()->addWidget(sw);
 }
@@ -229,10 +231,9 @@ void EventInspectorWidget::on_conditionChanged()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void EventInspectorWidget::removeState(QString state)
+void EventInspectorWidget::removeState(const State& state)
 {
-    Message m; m.address = state;
-    auto cmd = new Command::RemoveStateFromEvent{path(m_model), m};
+    auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

@@ -16,8 +16,6 @@ class State
         friend
         void Visitor<Writer<JSON>>::writeTo<State>(State& mess);
 
-        friend StateId stateId(const State&)
-        { return 1; }
     public:
         State() = default;
         ~State() = default;
@@ -28,14 +26,12 @@ class State
 
         template<typename T>
         State(T&& t):
-            m_id{stateId(t)},
             m_data{QVariant::fromValue(t)}
         {
 
         }
 
-        State(StateId id, QVariant variant):
-            m_id{id},
+        State(QVariant variant):
             m_data{variant}
         {
         }
@@ -51,7 +47,6 @@ class State
         }
 
     private:
-        StateId m_id;
         QVariant m_data;
 };
 

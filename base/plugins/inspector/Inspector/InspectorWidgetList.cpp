@@ -12,7 +12,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(QString name, QObj
 {
     auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");
 
-    for(auto& factory : iwl->m_factories)
+    for(InspectorWidgetFactoryInterface* factory : iwl->m_factories)
     {
         if(factory->correspondingObjectsNames().contains(name))
         {

@@ -3,13 +3,8 @@
 #include <QObject>
 #include <State/StateInterface.hpp>
 
-
-
 struct Message
 {
-    friend StateId stateId(const Message&)
-    { return 2; }
-
     Message() = default;
     Message(const Message&) = default;
     Message(Message&&) = default;

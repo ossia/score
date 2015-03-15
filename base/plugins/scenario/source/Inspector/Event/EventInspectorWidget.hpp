@@ -28,7 +28,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         void on_addAddressClicked();
         void on_conditionChanged();
 
-        void removeState(QString);
+        void removeState(const State&);
 
         void updateInspector();
         void modelDateChanged();
