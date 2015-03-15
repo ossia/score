@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <InspectorInterface/InspectorWidgetFactoryInterface.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
 class ConstraintInspectorFactory : public InspectorWidgetFactoryInterface
@@ -13,7 +13,6 @@ class ConstraintInspectorFactory : public InspectorWidgetFactoryInterface
         }
 
         virtual InspectorWidgetBase* makeWidget(QObject* sourceElement) override;
-        virtual InspectorWidgetBase* makeWidget(QList<QObject*> sourceElements) override;
 
         virtual QList<QString> correspondingObjectsNames() const override
         {

@@ -1,5 +1,5 @@
 #include "ScenarioInspectorWidget.hpp"
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include "Process/ScenarioModel.hpp"
 

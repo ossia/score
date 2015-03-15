@@ -1,6 +1,6 @@
 #include "AutomationInspectorWidget.hpp"
 #include "../Automation/AutomationModel.hpp"
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include "../Commands/ChangeAddress.hpp"
 #include "../device_explorer/DeviceInterface/DeviceExplorerInterface.hpp"
 #include "../device_explorer/DeviceInterface/DeviceCompleter.hpp"

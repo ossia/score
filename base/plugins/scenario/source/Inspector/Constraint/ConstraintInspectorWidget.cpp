@@ -19,8 +19,8 @@
 #include "iscore/selection/SelectionDispatcher.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
-#include <InspectorInterface/InspectorSectionWidget.hpp>
-#include <InspectorControl.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorWidgetList.hpp>
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Process/ScenarioModel.hpp"
 
@@ -258,7 +258,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process->processName());
-    auto widg = InspectorControl::makeInspectorWidget(process);
+    auto widg = InspectorWidgetList::makeInspectorWidget(process->processName(), process);
 
     newProc->addContent(widg);
 

@@ -5,7 +5,7 @@
 
 #include "Process/ScenarioModel.hpp"
 
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 #include "Inspector/Event/EventWidgets/EventShortcut.hpp"
 

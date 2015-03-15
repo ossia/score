@@ -1,8 +1,7 @@
 #include "InspectorPanel.hpp"
-#include "InspectorInterface/InspectorWidgetBase.hpp"
-#include "InspectorInterface/InspectorSectionWidget.hpp"
-
-#include "InspectorControl.hpp"
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorWidgetList.hpp>
 
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/command/SerializableCommand.hpp>
@@ -31,11 +30,14 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     m_layout->addWidget(m_tabWidget);
 
     m_tabWidget->setTabsClosable(true);
+
     for(auto object : objects)
     {
-        auto widget = InspectorControl::makeInspectorWidget(object);
+        auto widget = InspectorWidgetList::makeInspectorWidget(object->objectName(),
+                                                               object);
         m_tabWidget->addTab(widget, object->objectName());
     }
+
 
     connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
             [=] (int index)

@@ -1,7 +1,7 @@
 #include "MetadataWidget.hpp"
 
 #include "Document/ModelMetadata.hpp"
-#include "InspectorInterface/InspectorSectionWidget.hpp"
+#include "Inspector/InspectorSectionWidget.hpp"
 #include "CommentEdit.hpp"
 
 #include <QLabel>

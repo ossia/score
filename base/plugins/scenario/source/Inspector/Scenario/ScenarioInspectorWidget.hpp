@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InspectorInterface/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 
 class ScenarioModel;
 class ScenarioInspectorWidget : public InspectorWidgetBase

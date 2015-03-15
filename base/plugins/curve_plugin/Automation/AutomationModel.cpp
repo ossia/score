@@ -3,7 +3,7 @@
 
 AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
                                  QObject* parent) :
-    ProcessSharedModelInterface {id, "Automation", parent}
+    ProcessSharedModelInterface {id, processName(), parent}
 {
 
     // Demo

@@ -48,7 +48,9 @@ void PluginManager::reloadPlugins()
         }
         else
         {
-            qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
+            QString s = loader.errorString();
+            if(!s.contains("Plugin verification data mismatch"))
+                qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
         }
     }
 

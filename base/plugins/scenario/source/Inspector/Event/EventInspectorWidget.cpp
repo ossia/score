@@ -7,7 +7,7 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 
 #include <State/State.hpp>

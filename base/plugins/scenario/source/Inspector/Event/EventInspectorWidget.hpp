@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InspectorInterface/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 class EventModel;
 
 class QFormLayout;

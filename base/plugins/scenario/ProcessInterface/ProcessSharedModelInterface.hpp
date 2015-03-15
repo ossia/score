@@ -5,10 +5,7 @@
 
 class QDataStream;
 
-class InspectorSectionWidget;
 class ProcessViewModelInterface;
-
-enum class ProcessDurationScaling { Scale, NoScale };
 /**
  * @brief The ProcessSharedModelInterface class
  *

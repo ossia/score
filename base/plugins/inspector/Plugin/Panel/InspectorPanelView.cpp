@@ -4,7 +4,7 @@
 #include <QVBoxLayout>
 
 #include "Implementation/InspectorPanel.hpp"
-#include <Panel/Implementation/SelectionStackWidget.hpp>
+#include "Implementation/SelectionStackWidget.hpp"
 
 InspectorPanelView::InspectorPanelView(iscore::View* parent) :
     iscore::PanelViewInterface {parent},

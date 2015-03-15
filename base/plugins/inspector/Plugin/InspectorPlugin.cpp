@@ -1,9 +1,11 @@
 #include "InspectorPlugin.hpp"
+#include "InspectorControl.hpp"
+#include <Inspector/InspectorWidgetList.hpp>
+
 #include "Panel/InspectorPanelFactory.hpp"
 using namespace iscore;
 
-#include "InspectorInterface/InspectorWidgetFactoryInterface.hpp"
-#include <InspectorControl.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 InspectorPlugin::InspectorPlugin() :
     QObject {},
@@ -31,11 +33,11 @@ PanelFactoryInterface* InspectorPlugin::panel_make(QString name)
 QVector<FactoryFamily> InspectorPlugin::factoryFamilies_make()
 {
     return {{"Inspector",
-            std::bind(&InspectorControl::on_newInspectorWidgetFactory,
-            m_inspectorControl,
-            std::placeholders::_1)
-        }
-    };
+             [&] (iscore::FactoryInterface* fact)
+             {
+                m_inspectorControl->widgetList()->registerFactory(fact);
+             }
+           }};
 }
 
 PluginControlInterface* InspectorPlugin::control_make()

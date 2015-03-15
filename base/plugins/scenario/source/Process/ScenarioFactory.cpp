@@ -12,7 +12,7 @@ QString ScenarioFactory::name() const
 
 ProcessViewInterface* ScenarioFactory::makeView(ProcessViewModelInterface* viewmodel, QObject* parent)
 {
-    if(auto tvm = dynamic_cast<TemporalScenarioViewModel*>(viewmodel))
+    if(dynamic_cast<TemporalScenarioViewModel*>(viewmodel))
         return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
 
     return nullptr;

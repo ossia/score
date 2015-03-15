@@ -1,5 +1,5 @@
 #pragma once
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class BoxModel;

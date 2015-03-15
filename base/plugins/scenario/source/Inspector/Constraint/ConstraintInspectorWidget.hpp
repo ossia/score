@@ -1,6 +1,6 @@
 #pragma once
 
-#include <InspectorInterface/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <unordered_map>
 
 class ConstraintModel;

@@ -1,4 +1,4 @@
-#include <InspectorInterface/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 
