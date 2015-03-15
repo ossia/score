@@ -101,7 +101,7 @@ void InspectorSectionWidget::renameSection(QString newName)
 
 void InspectorSectionWidget::addContent(QWidget* newWidget)
 {
-    _containerLayout->insertWidget(_containerLayout->count() - 1, newWidget);
+    _containerLayout->addWidget(newWidget);
 }
 
 void InspectorSectionWidget::removeContent(QWidget* toRemove)

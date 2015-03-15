@@ -16,7 +16,6 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
 
 Message AutomationState::message() const
 {
-    qDebug() << model()->points();
     Message m;
     m.address = model()->address();
     m.value = model()->points().value(m_point);

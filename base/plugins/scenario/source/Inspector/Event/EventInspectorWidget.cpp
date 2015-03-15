@@ -144,6 +144,8 @@ void EventInspectorWidget::addState(const State& state)
     m_addressesWidget->layout()->addWidget(sw);
 }
 
+#include <Inspector/InspectorWidgetList.hpp>
+#include <ProcessInterface/ProcessSharedModelInterface.hpp>
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)
 {
     // Cleanup
@@ -174,6 +176,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
         for(auto cstr : event->previousConstraints())
         {
             auto cstrBtn = new QPushButton {};
+            // TODO constraint.metadata. ...
             cstrBtn->setText(QString::number(*cstr.val()));
             cstrBtn->setFlat(true);
             m_prevConstraints->addContent(cstrBtn);
@@ -183,6 +186,18 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             {
                 selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
             });
+
+
+            // End state of previous
+            auto constraint = event->parentScenario()->constraint(cstr);
+            for(auto& proc : constraint->processes())
+            {
+                if(auto end = proc->endState())
+                {
+                    auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, m_prevConstraints);
+                    m_prevConstraints->addContent(endWidg);
+                }
+            }
         }
 
         for(auto cstr : event->nextConstraints())
@@ -197,6 +212,17 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             {
                 selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
             });
+
+            // Start state of next
+            auto constraint = event->parentScenario()->constraint(cstr);
+            for(auto& proc : constraint->processes())
+            {
+                if(auto start = proc->startState())
+                {
+                    auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, m_nextConstraints);
+                    m_nextConstraints->addContent(startWidg);
+                }
+            }
         }
 
 
