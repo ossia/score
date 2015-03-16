@@ -15,20 +15,28 @@
 ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent) :
     ProcessSharedModelInterface {id, "ScenarioModel", parent},
     //m_scenario{nullptr},
-    m_startEventId {0} // Always
+    m_startEventId {0}, // Always
+    m_endEventId{1}
 {
-    auto event = new EventModel{m_startEventId, this};
-    addEvent(event);
+    auto start_event = new EventModel{m_startEventId, this};
+    addEvent(start_event);
 
     StandardCreationPolicy::createTimeNode(
                 *this,
-                id_type<TimeNodeModel> (0),
+                id_type<TimeNodeModel>(0),
                 m_startEventId);
 
-    event->changeTimeNode(id_type<TimeNodeModel> (0));
+    start_event->changeTimeNode(id_type<TimeNodeModel> (0));
 
-    //TODO demander à Clément si l'élément de fin sert vraiment à qqch ?
-    //m_events.push_back(new EventModel(1, this));
+    auto end_event = new EventModel{m_endEventId, this};
+    addEvent(end_event);
+
+    StandardCreationPolicy::createTimeNode(
+                *this,
+                id_type<TimeNodeModel>(1),
+                m_endEventId);
+
+    end_event->changeTimeNode(id_type<TimeNodeModel>(1));
 }
 
 ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)

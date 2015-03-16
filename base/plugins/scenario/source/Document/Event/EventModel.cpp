@@ -29,10 +29,7 @@ EventModel::EventModel(EventModel* source,
     m_timeNode = source->timeNode();
     m_previousConstraints = source->previousConstraints();
     m_nextConstraints = source->nextConstraints();
-    m_constraintsYPos = source->constraintsYPos();
     m_heightPercentage = source->heightPercentage();
-    m_topY = source->topY();
-    m_bottomY = source->bottomY();
 
     m_states = source->m_states;
 
@@ -71,7 +68,6 @@ bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelet
     if(m_nextConstraints.indexOf(constraintToDelete) >= 0)
     {
         m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
-        m_constraintsYPos.remove(constraintToDelete);
         return true;
     }
 
@@ -83,7 +79,6 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
     if(m_previousConstraints.indexOf(constraintToDelete) >= 0)
     {
         m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-        m_constraintsYPos.remove(constraintToDelete);
         return true;
     }
 
@@ -119,34 +114,9 @@ void EventModel::setDate(TimeValue date)
     }
 } //TODO ajuster la date avec celle du Timenode
 
-void EventModel::setTopY(double val)
-{
-    if(val < 0)
-    {
-        val = 0;
-    }
-
-    m_topY = val;
-}
-
-void EventModel::setBottomY(double val)
-{
-    if(val > 1)
-    {
-        val = 1.0;
-    }
-
-    m_bottomY = val;
-}
-
 void EventModel::translate(TimeValue deltaTime)
 {
     setDate(m_date + deltaTime);
-}
-
-void EventModel::setVerticalExtremity(id_type<ConstraintModel> consId, double newPosition)
-{
-    m_constraintsYPos[consId] = newPosition;
 }
 
 // Maybe remove the need for this by passing to the scenario instead ?

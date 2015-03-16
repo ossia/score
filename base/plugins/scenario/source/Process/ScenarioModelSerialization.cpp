@@ -77,12 +77,12 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     // Recreate the API
     /*for(ConstraintModel* constraint : scenario.m_constraints)
     {
-    	auto sev = scenario.event(constraint->startEvent());
-    	auto eev = scenario.event(constraint->endEvent());
+        auto sev = scenario.event(constraint->startEvent());
+        auto eev = scenario.event(constraint->endEvent());
 
-    	scenario.m_scenario->addTimeBox(*constraint->apiObject(),
-    									*sev->apiObject(),
-    									*eev->apiObject());
+        scenario.m_scenario->addTimeBox(*constraint->apiObject(),
+                                        *sev->apiObject(),
+                                        *eev->apiObject());
     }*/
 
     checkDelimiter();
@@ -136,12 +136,12 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
     // Recreate the API
     /*for(ConstraintModel* constraint : scenario.m_constraints)
     {
-    	auto sev = scenario.event(constraint->startEvent());
-    	auto eev = scenario.event(constraint->endEvent());
+        auto sev = scenario.event(constraint->startEvent());
+        auto eev = scenario.event(constraint->endEvent());
 
-    	scenario.m_scenario->addTimeBox(*constraint->apiObject(),
-    									*sev->apiObject(),
-    									*eev->apiObject());
+        scenario.m_scenario->addTimeBox(*constraint->apiObject(),
+                                        *sev->apiObject(),
+                                        *eev->apiObject());
     }*/
 }
 
