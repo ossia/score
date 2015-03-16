@@ -13,9 +13,6 @@ class NetworkServer : public QObject
     signals:
         void newSocket(QTcpSocket* sock);
 
-    public slots:
-        void acceptConnection();
-
     private:
         QTcpServer* m_tcpServer{};
 };

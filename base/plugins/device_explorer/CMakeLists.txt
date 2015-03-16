@@ -9,6 +9,7 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 
 
+find_package(Qt5Test)
 file(GLOB_RECURSE INTERFACE_SRCS
 		"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
@@ -32,7 +33,7 @@ add_library(device_explorer_plugin
 			${PLUGIN_SRCS}
 			${EXPLORER_RESOURCES_RCC})
 
-target_link_libraries(device_explorer_plugin DeviceExplorerLibrary)
+target_link_libraries(device_explorer_plugin DeviceExplorerLibrary Qt5::Test)
 
 
 install(TARGETS device_explorer_plugin
