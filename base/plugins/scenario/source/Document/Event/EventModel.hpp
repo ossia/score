@@ -44,11 +44,11 @@ class EventModel : public IdentifiedObject<EventModel>
         static QString prettyName()
         { return QObject::tr("Event"); }
 
+        ScenarioModel* parentScenario() const;
 
         /** The class **/
         EventModel(id_type<EventModel>, QObject* parent);
         EventModel(id_type<EventModel>, double yPos, QObject* parent);
-
 
         // Copy
         EventModel(EventModel* source,
@@ -63,37 +63,36 @@ class EventModel : public IdentifiedObject<EventModel>
             vis.writeTo(*this);
         }
 
+        // Constraints
         const QVector<id_type<ConstraintModel>>& previousConstraints() const;
         const QVector<id_type<ConstraintModel>>& nextConstraints() const;
 
         void addNextConstraint(id_type<ConstraintModel>);
         void addPreviousConstraint(id_type<ConstraintModel>);
-
         bool removeNextConstraint(id_type<ConstraintModel>);
         bool removePreviousConstraint(id_type<ConstraintModel>);
 
+        // Timenode
         void changeTimeNode(id_type<TimeNodeModel>);
         id_type<TimeNodeModel> timeNode() const;
 
+        // States
         const StateList& states() const;
         void replaceStates(StateList newStates);
         void addState(const State& s);
         void removeState(const State& s);
 
+        // Other event properties
         OSSIA::TimeNode* apiObject()
-        {
-            return m_timeEvent;
-        }
+        { return m_timeEvent; }
 
         double heightPercentage() const;
+        // TODO now that we have time nodes, shouldn't the date
+        // be the date of the timenode on which the event is ?
         TimeValue date() const;
-
         void translate(TimeValue deltaTime);
 
-        void eventMovedVertically(double);
-
-        ScenarioModel* parentScenario() const;
-
+        // TODO use a stronger type for the condition.
         QString condition() const;
 
     public slots:
