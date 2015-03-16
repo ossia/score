@@ -35,7 +35,8 @@ QByteArray DeviceExplorer::toByteArray(DeviceExplorerModel* deviceExplorer)
 {
     QByteArray b;
     QDataStream s(&b, QIODevice::WriteOnly);
-    s << *deviceExplorer->rootNode();
+    if(deviceExplorer->rootNode())
+        s << *deviceExplorer->rootNode();
 
     return b;
 }
