@@ -35,7 +35,7 @@ m_heightPosition {data.relativeY}
     }
 
     // Finally, the id of the full view
-    m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
+    m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector());
 }
 
 void CreateEventAfterEventOnTimeNode::undo()
@@ -61,22 +61,9 @@ void CreateEventAfterEventOnTimeNode::redo()
     scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
 
     // Creation of all the constraint view models
-    for(auto& viewModel : viewModels(scenar))
-    {
-        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-
-        if(m_createdConstraintViewModelIDs.contains(cvm_id))
-        {
-            viewModel->makeConstraintViewModel(m_createdConstraintId,
-                                               m_createdConstraintViewModelIDs[cvm_id]);
-        }
-        else
-        {
-            throw std::runtime_error("CreateEvent : missing identifier.");
-        }
-    }
-
-    // @todo Creation of all the event view models
+    createConstraintViewModels(m_createdConstraintViewModelIDs,
+                               m_createdConstraintId,
+                               scenar);
 }
 
 bool CreateEventAfterEventOnTimeNode::mergeWith(const Command* other)

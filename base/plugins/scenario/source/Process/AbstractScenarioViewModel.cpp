@@ -33,3 +33,25 @@ AbstractConstraintViewModel*AbstractScenarioViewModel::constraint(id_type<Constr
 
     return it != end(m_constraints) ? *it : nullptr;
 }
+
+#include "Process/ScenarioModel.hpp"
+void createConstraintViewModels(ConstraintViewModelIdMap idMap,
+                                id_type<ConstraintModel> constraintId,
+                                ScenarioModel* scenario)
+{
+    // Creation of all the constraint view models
+    for(auto& viewModel : viewModels(scenario))
+    {
+        auto pvm_id = identifierOfViewModelFromSharedModel(viewModel);
+
+        if(idMap.contains(pvm_id))
+        {
+            viewModel->makeConstraintViewModel(constraintId,
+                                               idMap[pvm_id]);
+        }
+        else
+        {
+            throw std::runtime_error("createConstraintViewModels : missing identifier.");
+        }
+    }
+}

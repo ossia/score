@@ -60,3 +60,59 @@ void Visitor<Writer<JSON>>::writeTo(AbstractConstraintViewModel& cvm)
         cvm.hideBox();
     }
 }
+
+#include "Temporal/TemporalConstraintViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+SerializedConstraintViewModels serializeConstraintViewModels(ConstraintModel* constraint, ScenarioModel* scenario)
+{
+    SerializedConstraintViewModels map;
+    // The other constraint view models are in their respective scenario view models
+    for(auto& viewModel : viewModels(scenario))
+    {
+        // TODO we need to know its concrete type in order to serialize it correctly.
+        auto cstrVM = viewModel->constraint(constraint->id());
+        if(auto temporalCstrVM = dynamic_cast<TemporalConstraintViewModel*>(cstrVM))
+        {
+            auto pvm_id = identifierOfViewModelFromSharedModel(viewModel);
+
+            QByteArray arr;
+            Serializer<DataStream> cvmReader{&arr};
+            cvmReader.readFrom(*temporalCstrVM);
+
+            map[pvm_id] = {"Temporal", arr};
+        }
+        else
+        {
+            qWarning() << Q_FUNC_INFO << "TODO";
+        }
+    }
+
+    return map;
+}
+
+
+void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, ScenarioModel* scenar)
+{
+    for(auto& viewModel : viewModels(scenar))
+    {
+        if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
+        {
+            auto cvm_id = identifierOfViewModelFromSharedModel(temporalSVM);
+
+            if(vms.contains(cvm_id))
+            {
+                Deserializer<DataStream> d(&(vms[cvm_id].second));
+                auto cstr = createConstraintViewModel(d, temporalSVM);
+                temporalSVM->addConstraintViewModel(cstr);
+            }
+            else
+            {
+                throw std::runtime_error("undo RemoveConstraint : missing identifier.");
+            }
+        }
+        else
+        {
+            qWarning() << Q_FUNC_INFO << "TODO";
+        }
+    }
+}

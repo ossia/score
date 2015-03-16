@@ -70,22 +70,9 @@ void CreateEventAfterEvent::redo()
 
 
     // Creation of all the constraint view models
-    for(auto& viewModel : viewModels(scenar))
-    {
-        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-
-        if(m_createdConstraintViewModelIDs.contains(cvm_id))
-        {
-            viewModel->makeConstraintViewModel(m_createdConstraintId,
-                                               m_createdConstraintViewModelIDs[cvm_id]);
-        }
-        else
-        {
-            throw std::runtime_error("CreateEvent : missing identifier.");
-        }
-    }
-
-    // @todo Creation of all the event view models
+    createConstraintViewModels(m_createdConstraintViewModelIDs,
+                               m_createdConstraintId,
+                               scenar);
 }
 
 bool CreateEventAfterEvent::mergeWith(const Command* other)

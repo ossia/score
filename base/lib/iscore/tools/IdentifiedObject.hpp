@@ -164,6 +164,23 @@ id_type<T> getStrongId(const std::vector<id_type<T>>& ids)
     return id;
 }
 
+template<typename T>
+id_type<T> getStrongId(const QVector<id_type<T>>& ids)
+{
+    using namespace std;
+    id_type<T> id {};
+
+    do
+    {
+        id = id_type<T> {getNextId() };
+    }
+    while(find(begin(ids),
+               end(ids),
+               id) != end(ids));
+
+    return id;
+}
+
 
 template <typename Vector, typename id_T>
 void removeById(Vector& c, id_T id)
