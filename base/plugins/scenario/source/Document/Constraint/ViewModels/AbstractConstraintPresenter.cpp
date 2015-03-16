@@ -118,6 +118,7 @@ void AbstractConstraintPresenter::updateHeight()
 
     emit askUpdate();
     m_view->update();
+    emit heightChanged();
 }
 
 bool AbstractConstraintPresenter::isSelected() const

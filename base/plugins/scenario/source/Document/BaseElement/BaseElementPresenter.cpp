@@ -110,6 +110,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
+    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::heightChanged,
+            this, [&] () { updateRect({(double)view()->positionSlider()->value(), 0, 1, height()});} );
 
     model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
     // Update the address bar
@@ -143,13 +145,13 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
 
     // Change the min & max of position slider, & current value
     // If zoom = min, positionSliderMax = 0.
-    // Else positionSliderMax is such that max = 3% more.
+    // Else positionSliderMax is for the end at max.
 
     int val = view()->positionSlider()->value();
     auto newMax = model()->constraintModel()
                     ->defaultDuration().toPixels(
                         millisecondsPerPixel(view()->zoomSlider()->value()))
-                  - 0.97 * view()->view()->width();
+                  - view()->view()->width();
     view()->positionSlider()->setMaximum(newMax);
 
     if(val > newMax)
@@ -157,19 +159,18 @@ void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
         view()->positionSlider()->setValue(newMax);
         on_positionSliderChanged(newMax);
     }
-
 }
 
 void BaseElementPresenter::on_positionSliderChanged(int newPos)
 {
-    view()->view()->setSceneRect(newPos, 0, 1, 1);
+    updateRect({(double)newPos, 0, 1, height()});
 }
 
 void BaseElementPresenter::on_viewSizeChanged(QSize s)
 {
     m_progressBar->setHeight(s.height());
     int val = view()->zoomSlider()->value();
-    int newMin = s.width() * 97.0 / model()->constraintModel()->defaultDuration().msec();
+    int newMin = s.width() / model()->constraintModel()->defaultDuration().msec();
     view()->zoomSlider()->setMinimum(newMin);
 
     if(val < newMin)
@@ -179,9 +180,19 @@ void BaseElementPresenter::on_viewSizeChanged(QSize s)
     }
 }
 
+void BaseElementPresenter::updateRect(QRectF rect)
+{
+    view()->view()->setSceneRect(rect);
+}
+
 BaseElementModel* BaseElementPresenter::model() const
 {
     return static_cast<BaseElementModel*>(m_model);
+}
+
+double BaseElementPresenter::height() const
+{
+    return m_displayedConstraintPresenter->abstractConstraintView()->height();
 }
 
 BaseElementView* BaseElementPresenter::view() const

@@ -56,6 +56,7 @@ class AbstractConstraintPresenter : public NamedObject
     signals:
         void pressed();
         void askUpdate();
+        void heightChanged();
 
     public slots:
         void on_defaultDurationChanged(TimeValue val);

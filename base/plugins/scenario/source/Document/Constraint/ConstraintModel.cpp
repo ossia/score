@@ -8,7 +8,7 @@
 #include <iscore/tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include <API/Headers/Editor/TimeBox.h>
+//#include <API/Headers/Editor/TimeBox.h>
 
 #include <QDebug>
 
@@ -17,7 +17,7 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    m_timeBox {new OSSIA::TimeBox},
+    //m_timeBox {new OSSIA::TimeBox},
     m_fullViewModel
 {
     new FullViewConstraintViewModel{fullViewId, this, this}
@@ -39,8 +39,8 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  id_type<ConstraintModel> id,
                                  QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-m_timeBox {new OSSIA::TimeBox}
+    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}//,
+//m_timeBox {new OSSIA::TimeBox}
 {
     metadata = source->metadata;
 

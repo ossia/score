@@ -31,7 +31,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
 add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
-									   iscore_lib APIMock
+									   iscore_lib
 									   InspectorLibrary ProcessLibrary DeviceExplorerLibrary  StateLibrary)
 
 install(TARGETS ProcessLibrary

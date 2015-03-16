@@ -51,7 +51,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     m_stream >> states;
     ev.replaceStates(states);
 
-    ev.setOSSIATimeNode(new OSSIA::TimeNode);
+    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
     // TODO load the timenode
 
     checkDelimiter();
@@ -100,5 +100,5 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
         ev.addState(state);
     }
 */
-    ev.setOSSIATimeNode(new OSSIA::TimeNode);
+    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
 }

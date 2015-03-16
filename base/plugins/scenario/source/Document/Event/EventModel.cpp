@@ -9,8 +9,8 @@
 
 
 EventModel::EventModel(id_type<EventModel> id, QObject* parent) :
-    IdentifiedObject<EventModel> {id, "EventModel", parent},
-m_timeEvent {new OSSIA::TimeNode}
+    IdentifiedObject<EventModel> {id, "EventModel", parent}//,
+//m_timeEvent {new OSSIA::TimeNode}
 {
 }
 

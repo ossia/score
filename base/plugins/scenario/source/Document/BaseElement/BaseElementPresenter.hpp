@@ -32,6 +32,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
 
+        // The height in pixels of the displayed constraint with its box.
+        double height() const;
     public slots:
         void setDisplayedConstraint(ConstraintModel*);
         void setDisplayedObject(ObjectPath);
@@ -50,6 +52,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void on_positionSliderChanged(int);
 
         void on_viewSizeChanged(QSize s);
+
+        void updateRect(QRectF rect);
 
     private:
         BaseElementView* view() const;

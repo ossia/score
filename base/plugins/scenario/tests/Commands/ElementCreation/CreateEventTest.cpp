@@ -32,11 +32,11 @@ class CreateEventTest: public QObject
             }, data);
 
             cmd.redo();
-            QCOMPARE((int) scenar->events().size(), 2);   // TODO 3 if endEvent
+            QCOMPARE((int) scenar->events().size(), 3);
             QCOMPARE(scenar->event(cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.2);
 
             cmd.undo();
-            QCOMPARE((int) scenar->events().size(), 1);   // TODO 2 if endEvent
+            QCOMPARE((int) scenar->events().size(), 2);
 
             cmd.redo();
             QCOMPARE((int) scenar->events().size(), 2);

@@ -10,14 +10,12 @@ namespace iscore
      *
      */
 
-    // TODO remove. It is not useful. The models should be completely in the documents;
-    // the software model is materialized by the Settings.
+    // TODO maybe this should hold some global data such as :
+    // - the plug-ins & plugin controls?
+    // - the settings ?
     class Model : public QObject
     {
         public:
             using QObject::QObject;
-
-        private:
-            std::set<PanelModelInterface*> m_panelsModels;
     };
 }

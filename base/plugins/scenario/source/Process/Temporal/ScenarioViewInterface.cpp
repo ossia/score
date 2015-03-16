@@ -72,7 +72,7 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
         {
             auto startPos = cstr_model->startDate().toPixels(msPerPixel);
             auto delta = view(pres)->x() - startPos;
-            bool dateChanged = (delta * delta > 1); // TODO : jm : what????
+            bool dateChanged = (delta * delta > 1); // Magnetism
 
             if(dateChanged)
             {
