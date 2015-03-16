@@ -21,6 +21,8 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         void removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId);
 
         // Access to elements
+        // A given constraint can be represented only once in a given scenario VM, hence...
+        AbstractConstraintViewModel* constraint(id_type<ConstraintModel> constraintModelid) const;
         AbstractConstraintViewModel* constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const;
         QVector<AbstractConstraintViewModel*> constraints() const;
 

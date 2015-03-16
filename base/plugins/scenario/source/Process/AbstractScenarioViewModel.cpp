@@ -1,5 +1,6 @@
 #include "AbstractScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 
 AbstractConstraintViewModel* AbstractScenarioViewModel::constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const
 {
@@ -18,4 +19,17 @@ void AbstractScenarioViewModel::removeConstraintViewModel(id_type<AbstractConstr
     emit constraintViewModelRemoved(constraintViewModelId);
     removeById(m_constraints, constraintViewModelId);
 
+}
+
+AbstractConstraintViewModel*AbstractScenarioViewModel::constraint(id_type<ConstraintModel> constraintModelId) const
+{
+    using namespace std;
+    auto it = find_if(begin(m_constraints),
+                      end(m_constraints),
+                      [&] (AbstractConstraintViewModel* vm)
+    {
+        return vm->model()->id() == constraintModelId;
+    });
+
+    return it != end(m_constraints) ? *it : nullptr;
 }

@@ -127,11 +127,11 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 };
 
 template<typename T>
-QVector<typename T::view_model_type*> viewModels(T* processViewModel)
+QVector<typename T::view_model_type*> viewModels(T* processModel)
 {
     QVector<typename T::view_model_type*> v;
 
-    for(auto& elt : processViewModel->viewModels())
+    for(auto& elt : processModel->viewModels())
     {
         v.push_back(static_cast<typename T::view_model_type*>(elt));
     }

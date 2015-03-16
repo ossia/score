@@ -4,10 +4,12 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 #include <iscore/tools/utilsCPP11.hpp>
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -18,21 +20,34 @@ RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* c
                         description()},
 m_path {std::move(scenarioPath) }
 {
-    QByteArray arr;
-    Serializer<DataStream> s{&arr};
-    s.readFrom(*constraint);
-    m_serializedConstraint = arr;
+    Serializer<DataStream> cstReader{&m_serializedConstraint};
+    cstReader.readFrom(*constraint);
 
     m_cstrId = constraint->id();
 
     auto scenar = m_path.find<ScenarioModel>();
+    // We have to backup all the view models pointing to a constraint.
+    // The full view is already back-upped by the serialization process.
 
+    // The other constraint view models are in their respective scenario view models
     for(auto& viewModel : viewModels(scenar))
     {
-        // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
-        auto cstrVM = constraint->viewModels().first();
-        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-        m_constraintViewModelIDs[cvm_id] = cstrVM->id();
+        // TODO we need to know its concrete type in order to serialize it correctly.
+        auto cstrVM = viewModel->constraint(constraint->id());
+        if(auto temporalCstrVM = dynamic_cast<TemporalConstraintViewModel*>(cstrVM))
+        {
+            auto pvm_id = identifierOfViewModelFromSharedModel(viewModel);
+
+            QByteArray arr;
+            Serializer<DataStream> cvmReader{&arr};
+            cvmReader.readFrom(*temporalCstrVM);
+
+            m_serializedConstraintViewModels[pvm_id] = {"Temporal", arr};
+        }
+        else
+        {
+            qWarning() << Q_FUNC_INFO << "TODO";
+        }
     }
 }
 
@@ -51,20 +66,25 @@ void RemoveConstraint::undo()
 
     for(auto& viewModel : viewModels(scenar))
     {
-        //*
-        auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-
-        if(m_constraintViewModelIDs.contains(cvm_id))
+        if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {
-            viewModel->makeConstraintViewModel(m_cstrId,
-                                               m_constraintViewModelIDs[cvm_id]);
+            auto cvm_id = identifierOfViewModelFromSharedModel(temporalSVM);
+
+            if(m_serializedConstraintViewModels.contains(cvm_id))
+            {
+                Deserializer<DataStream> d(&m_serializedConstraintViewModels[cvm_id].second);
+                auto cstr = createConstraintViewModel(d, temporalSVM);
+                temporalSVM->addConstraintViewModel(cstr);
+            }
+            else
+            {
+                throw std::runtime_error("undo RemoveConstraint : missing identifier.");
+            }
         }
         else
         {
-            throw std::runtime_error("undo RemoveConstraint : missing identifier.");
+            qWarning() << Q_FUNC_INFO << "TODO";
         }
-
-        //*/
     }
 }
 
@@ -81,10 +101,10 @@ bool RemoveConstraint::mergeWith(const Command* other)
 
 void RemoveConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_cstrId << m_serializedConstraint << m_constraintViewModelIDs << m_constraintFullViewId << m_startEvent << m_endEvent;
+    s << m_path << m_cstrId << m_serializedConstraint << m_serializedConstraintViewModels << m_constraintFullViewId;
 }
 
 void RemoveConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_cstrId >> m_serializedConstraint >> m_constraintViewModelIDs >> m_constraintFullViewId >> m_startEvent >> m_endEvent ;
+    s >> m_path >> m_cstrId >> m_serializedConstraint >> m_serializedConstraintViewModels >> m_constraintFullViewId;
 }

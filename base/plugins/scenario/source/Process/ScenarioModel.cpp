@@ -126,8 +126,7 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
 void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
-    // There should be nothing to do here ?
-    // Maybe with the last event/timenode ? (hence they finally have a meaning)
+    // Here and in setDurationAndShrink, this should "drag" the last timenode.
 }
 
 void ScenarioModel::setDurationAndShrink(TimeValue newDuration)

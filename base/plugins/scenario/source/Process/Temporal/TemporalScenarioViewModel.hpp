@@ -45,6 +45,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const override;
 
+        // TODO this should maybe be outside of this class.
         virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
                                              id_type<AbstractConstraintViewModel> constraintViewModelId) override;
 

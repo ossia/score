@@ -77,7 +77,7 @@ typename T::model_type* model(T* viewModel)
  */
 inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessViewModelInterface* pvm)
 {
-    // TODO - this only works by sheer luck
+    // TODO - this only works in a scenario.
     auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());
     auto boxModel = static_cast<IdentifiedObjectAbstract*>(deckModel->parent());
     return std::tuple<int, int, int>
