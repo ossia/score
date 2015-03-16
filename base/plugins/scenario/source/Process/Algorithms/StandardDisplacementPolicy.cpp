@@ -6,6 +6,8 @@ void translateNextElements(ScenarioModel& scenario,
                            TimeValue deltaTime,
                            QVector<id_type<EventModel>>& movedEvents)
 {
+    if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
+        return;
     auto cur_timeNode = scenario.timeNode(firstTimeNodeMovedId);
 
     for(id_type<EventModel> cur_eventId : cur_timeNode->events())
@@ -28,7 +30,7 @@ void translateNextElements(ScenarioModel& scenario,
                 auto evId = scenario.constraint(cons)->endEvent();
 
                 // if event has not already moved
-                if(movedEvents.indexOf(evId) == -1)
+                if(movedEvents.indexOf(evId) == -1 && scenario.event(evId)->timeNode() != 0)
                 {
                     scenario.event(evId)->translate(deltaTime);
                     movedEvents.push_back(evId);

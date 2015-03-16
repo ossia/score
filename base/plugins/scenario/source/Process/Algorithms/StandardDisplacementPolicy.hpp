@@ -26,6 +26,9 @@ namespace StandardDisplacementPolicy
     {
         auto ev = scenario.event(eventId);
 
+        if (*ev->timeNode().val() == 0)
+            return;
+
         // don't touch start event
         if(! ev->previousConstraints().isEmpty())
         {
