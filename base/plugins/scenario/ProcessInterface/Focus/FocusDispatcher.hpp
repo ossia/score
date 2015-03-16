@@ -16,5 +16,5 @@ class FocusDispatcher
         void focus(ProcessViewModelInterface* obj);
 
     private:
-        BaseElementModel& m_baseElementModel;
+//        BaseElementModel& m_baseElementModel;
 };

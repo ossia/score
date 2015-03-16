@@ -245,7 +245,8 @@ QDataStream& operator<<(QDataStream& s, const Node& n)
     s << n.childCount();
     for(auto& child : n.children())
     {
-        s << *child;
+        if(child)
+            s << *child;
     }
 
     return s;
