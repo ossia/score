@@ -99,9 +99,9 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
 }
 
 
-void StandardCreationPolicy::createTimeNode(ScenarioModel& scenario,
-                                            id_type<TimeNodeModel> timeNodeId,
-                                            id_type<EventModel> eventId)
+TimeNodeModel* StandardCreationPolicy::createTimeNode(ScenarioModel& scenario,
+                                                 id_type<TimeNodeModel> timeNodeId,
+                                                 id_type<EventModel> eventId)
 {
     auto newEvent = scenario.event(eventId);
 
@@ -112,4 +112,5 @@ void StandardCreationPolicy::createTimeNode(ScenarioModel& scenario,
     timeNode->setY(newEvent->heightPercentage());
 
     scenario.addTimeNode(timeNode);
+    return timeNode;
 }

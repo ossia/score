@@ -9,7 +9,7 @@ class AutomationFactory : public ProcessFactoryInterface
             return "Automation";
         }
 
-        virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id,
+        virtual ProcessSharedModelInterface* makeModel(TimeValue duration, id_type<ProcessSharedModelInterface> id,
                 QObject* parent) override;
 
         virtual ProcessSharedModelInterface* makeModel(SerializationIdentifier identifier,

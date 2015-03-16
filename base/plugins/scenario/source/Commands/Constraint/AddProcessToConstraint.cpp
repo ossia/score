@@ -33,8 +33,10 @@ void AddProcessToConstraint::redo()
     auto constraint = m_path.find<ConstraintModel>();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)->makeModel(m_createdProcessId, constraint);
-    proc->setDuration(constraint->defaultDuration());
+    auto proc = ProcessList::getFactory(m_processName)->makeModel(constraint->defaultDuration(),
+                                                                  m_createdProcessId,
+                                                                  constraint);
+
     constraint->addProcess(proc);
 }
 

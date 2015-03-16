@@ -19,7 +19,9 @@ class AutomationModel : public ProcessSharedModelInterface
         Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
 
     public:
-        AutomationModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+        AutomationModel(TimeValue duration,
+                        id_type<ProcessSharedModelInterface> id,
+                        QObject* parent);
         ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
                                            QObject* newParent) override;
 

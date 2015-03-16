@@ -17,7 +17,18 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         Q_OBJECT
     public:
         using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
-        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent) = 0;
+        ProcessSharedModelInterface(TimeValue duration,
+                                    id_type<ProcessSharedModelInterface> id,
+                                    const QString& name,
+                                    QObject* parent):
+            IdentifiedObject<ProcessSharedModelInterface>{id, name, parent},
+            m_duration{duration}
+        {
+
+        }
+
+        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+                                                   QObject* newParent) = 0;
 
         /**
          * @brief processName

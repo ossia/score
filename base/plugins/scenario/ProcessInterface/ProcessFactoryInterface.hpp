@@ -6,6 +6,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
+#include <ProcessInterface/TimeValue.hpp>
 class ProcessViewModelInterface;
 class ProcessSharedModelInterface;
 class ProcessViewInterface;
@@ -33,7 +34,9 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
                 QObject* parent) = 0;
 
 
-        virtual ProcessSharedModelInterface* makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)  = 0;
+        virtual ProcessSharedModelInterface* makeModel(TimeValue duration,
+                                                       id_type<ProcessSharedModelInterface> id,
+                                                       QObject* parent)  = 0;
         // virtual ProcessSharedModelInterface* makeModel(QDataStream& data, QObject* parent)  = 0;
 
         // throws if the serialization method is not implemented by the subclass

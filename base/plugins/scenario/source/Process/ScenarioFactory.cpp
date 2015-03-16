@@ -29,9 +29,9 @@ ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
     return nullptr;
 }
 
-ProcessSharedModelInterface* ScenarioFactory::makeModel(id_type<ProcessSharedModelInterface> id, QObject* parent)
+ProcessSharedModelInterface* ScenarioFactory::makeModel(TimeValue duration,
+                                                        id_type<ProcessSharedModelInterface> id,
+                                                        QObject* parent)
 {
-    return new ScenarioModel {id, parent};
+    return new ScenarioModel {duration, id, parent};
 }
-
-#include <iscore/serialization/DataStreamVisitor.hpp>

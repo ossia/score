@@ -95,7 +95,7 @@ class ConstraintModelTests: public QObject
                                 id_type<AbstractConstraintViewModel>{0}, qApp
                                };
             i0.setObjectName("OriginalConstraint");
-            auto s0 = new ScenarioModel {id_type<ProcessSharedModelInterface>{0}, &i0};
+            auto s0 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessSharedModelInterface>{0}, &i0};
 
             auto int_0_id = getStrongId(s0->constraints());
             auto ev_0_id = getStrongId(s0->events());
@@ -110,9 +110,9 @@ class ConstraintModelTests: public QObject
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {46}, 10, int_2_id, fv_2_id, ev_2_id);
 
             auto i1 = s0->constraint(int_0_id);
-            auto s1 = new ScenarioModel {id_type<ProcessSharedModelInterface>{0}, i1};
+            auto s1 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessSharedModelInterface>{0}, i1};
             (void) s1;
-            auto s2 = new ScenarioModel {id_type<ProcessSharedModelInterface>{1}, i1};
+            auto s2 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessSharedModelInterface>{1}, i1};
 
             ObjectPath p
             {

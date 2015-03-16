@@ -36,7 +36,9 @@ class ScenarioModel : public ProcessSharedModelInterface
     public:
         using view_model_type = AbstractScenarioViewModel;
 
-        ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent);
+        ScenarioModel(TimeValue duration,
+                      id_type<ProcessSharedModelInterface> id,
+                      QObject* parent);
         ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
                                            QObject* newParent) override;
 

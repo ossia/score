@@ -26,7 +26,7 @@ namespace StandardCreationPolicy
                                               id_type<EventModel> newEventId);
 
 
-    void createTimeNode(ScenarioModel& scenario,
-                        id_type<TimeNodeModel> timeNodeId,
-                        id_type<EventModel> eventId);
+    TimeNodeModel* createTimeNode(ScenarioModel& scenario,
+                             id_type<TimeNodeModel> timeNodeId,
+                             id_type<EventModel> eventId);
 }

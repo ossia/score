@@ -20,7 +20,7 @@ class CreateEventTest: public QObject
 
         void CreateTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
             EventData data {};
             // data.id = 0; unused here
             data.dDate.setMSecs(10);

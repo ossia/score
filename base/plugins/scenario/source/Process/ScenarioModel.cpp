@@ -12,8 +12,10 @@
 
 #include <QDebug>
 
-ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* parent) :
-    ProcessSharedModelInterface {id, "ScenarioModel", parent},
+ScenarioModel::ScenarioModel(TimeValue duration,
+                             id_type<ProcessSharedModelInterface> id,
+                             QObject* parent) :
+    ProcessSharedModelInterface {duration, id, "ScenarioModel", parent},
     //m_scenario{nullptr},
     m_startEventId {0}, // Always
     m_endEventId{1}
@@ -28,20 +30,23 @@ ScenarioModel::ScenarioModel(id_type<ProcessSharedModelInterface> id, QObject* p
 
     start_event->changeTimeNode(id_type<TimeNodeModel> (0));
 
+
     auto end_event = new EventModel{m_endEventId, this};
     addEvent(end_event);
 
-    StandardCreationPolicy::createTimeNode(
+    auto tn = StandardCreationPolicy::createTimeNode(
                 *this,
                 id_type<TimeNodeModel>(1),
                 m_endEventId);
 
     end_event->changeTimeNode(id_type<TimeNodeModel>(1));
+    end_event->setDate(this->duration());
+    tn->setDate(this->duration());
 }
 
 ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)
 {
-    auto scenario = new ScenarioModel {newId, newParent};
+    auto scenario = new ScenarioModel {this->duration(), newId, newParent};
 
     for(ConstraintModel* constraint : m_constraints)
     {
@@ -95,6 +100,7 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
     double scale =  newDuration / duration();
 
     // Is it recursive ?? Make a scale() method on the constraint, maybe ?
+    // TODO we should only have to set the date of the event / constraint
     for(TimeNodeModel* timenode : m_timeNodes)
     {
         timenode->setDate(timenode->date() * scale);

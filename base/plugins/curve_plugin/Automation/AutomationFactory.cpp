@@ -4,10 +4,10 @@
 #include "AutomationPresenter.hpp"
 
 
-ProcessSharedModelInterface* AutomationFactory::makeModel(id_type<ProcessSharedModelInterface> id,
+ProcessSharedModelInterface* AutomationFactory::makeModel(TimeValue duration, id_type<ProcessSharedModelInterface> id,
         QObject* parent)
 {
-    return new AutomationModel {id, parent};
+    return new AutomationModel {duration, id, parent};
 }
 
 ProcessViewInterface* AutomationFactory::makeView(ProcessViewModelInterface* view, QObject* parent)

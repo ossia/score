@@ -2,9 +2,9 @@
 #include "AutomationViewModel.hpp"
 #include "State/AutomationState.hpp"
 
-AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
+AutomationModel::AutomationModel(TimeValue duration, id_type<ProcessSharedModelInterface> id,
                                  QObject* parent) :
-    ProcessSharedModelInterface {id, processName(), parent}
+    ProcessSharedModelInterface {duration, id, processName(), parent}
 {
 
     // Demo
@@ -16,7 +16,7 @@ AutomationModel::AutomationModel(id_type<ProcessSharedModelInterface> id,
 ProcessSharedModelInterface* AutomationModel::clone(id_type<ProcessSharedModelInterface> newId,
         QObject* newParent)
 {
-    auto autom = new AutomationModel {newId, newParent};
+    auto autom = new AutomationModel {this->duration(), newId, newParent};
     autom->setAddress(address());
     autom->setPoints(QMap<double, double> {points() });
 
