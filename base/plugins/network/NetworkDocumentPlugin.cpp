@@ -49,10 +49,10 @@ NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
     // Lock-unlock
     connect(&m_document->locker(), &iscore::ObjectLocker::lock,
             this, [&] (QByteArray arr)
-    { m_session->master()->sendMessage(m_session->makeMessage("/lock", arr)); });
+    { qDebug() << "client send lock"; m_session->master()->sendMessage(m_session->makeMessage("/lock", arr)); });
     connect(&m_document->locker(), &iscore::ObjectLocker::unlock,
             this, [&] (QByteArray arr)
-    { m_session->master()->sendMessage(m_session->makeMessage("/unlock", arr)); });
+    { qDebug() << "client send unlock"; m_session->master()->sendMessage(m_session->makeMessage("/unlock", arr)); });
 
 
     /////////////////////////////////////////////////////////////////////////////

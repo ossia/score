@@ -67,10 +67,14 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
-    m_creationCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Undo>{
+    m_creationCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Undo>{
+                                m_presenter->m_viewModel->sharedProcessModel(),
+                                iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->locker(),
                                 iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
                                 this}},
-    m_moveCommandDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{
+    m_moveCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{
+                            m_presenter->m_viewModel->sharedProcessModel(),
+                            iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->locker(),
                             iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
                             this}},
     m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{

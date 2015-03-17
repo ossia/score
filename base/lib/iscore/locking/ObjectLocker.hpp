@@ -1,9 +1,9 @@
 #pragma once
 #include <QObject>
 #include <iscore/tools/ObjectPath.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 namespace iscore
 {
-
     class ObjectLocker : public QObject
     {
             Q_OBJECT
@@ -26,6 +26,43 @@ namespace iscore
             void unlock_impl();
 
             QList<ObjectPath> m_lockedObjects;
+    };
+
+    class LockHelper
+    {
+        public:
+            LockHelper(const QObject* model, ObjectLocker& locker):
+                m_path{IDocument::path(model)},
+                m_locker{locker}
+            {
+                Serializer<DataStream> ser {&m_serializedPath};
+                ser.readFrom(m_path);
+            }
+
+            ~LockHelper()
+            {
+                if(m_locked)
+                    unlock();
+            }
+
+            void lock()
+            {
+                emit m_locker.lock(m_serializedPath);
+                m_locked = true;
+            }
+
+            void unlock()
+            {
+                emit m_locker.unlock(m_serializedPath);
+                m_locked = false;
+            }
+
+        private:
+              ObjectPath m_path;
+              QByteArray m_serializedPath;
+              ObjectLocker& m_locker;
+              bool m_locked{false};
+
     };
 
 }
