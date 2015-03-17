@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/selection/SelectionStack.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 
 namespace iscore
@@ -39,6 +40,11 @@ namespace iscore
             SelectionStack& selectionStack()
             { return m_selectionStack; }
 
+            ObjectLocker& locker()
+            { return m_objectLocker; }
+
+
+
 
             DocumentModel* model() const
             {
@@ -74,6 +80,7 @@ namespace iscore
 
             CommandStack m_commandStack;
             SelectionStack m_selectionStack;
+            ObjectLocker m_objectLocker;
 
             DocumentModel* m_model{};
             DocumentView* m_view{};
