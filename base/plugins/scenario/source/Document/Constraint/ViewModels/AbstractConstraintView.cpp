@@ -3,7 +3,7 @@
 AbstractConstraintView::AbstractConstraintView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
 {
-
+    setAcceptHoverEvents(true);
 }
 
 void AbstractConstraintView::setInfinite(bool infinite)

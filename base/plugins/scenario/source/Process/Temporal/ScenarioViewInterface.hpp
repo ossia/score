@@ -18,6 +18,10 @@ class ScenarioViewInterface : public QObject
         void on_constraintMoved(id_type<ConstraintModel> constraintId);
         void updateTimeNode(id_type<TimeNodeModel> timeNodeId);
 
+    public slots:
+        void on_hoverOnConstraint(id_type<ConstraintModel> constraintId, bool enter);
+        void on_hoverOnEvent(id_type<EventModel> eventId, bool enter);
+
     private:
         TemporalScenarioPresenter* m_presenter;
 };

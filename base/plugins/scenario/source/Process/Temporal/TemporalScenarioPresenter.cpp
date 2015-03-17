@@ -242,6 +242,14 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     event_view->setPos({rect.x() + event_model->date().toPixels(m_zoomRatio),
                         rect.y() + rect.height() * event_model->heightPercentage() });
 
+    connect(event_presenter,    &EventPresenter::eventHoverEnter,
+            [=] ()
+    {   m_viewInterface->on_hoverOnEvent(event_presenter->id(), true); });
+
+    connect(event_presenter,    &EventPresenter::eventHoverLeave,
+            [=] ()
+    {   m_viewInterface->on_hoverOnEvent(event_presenter->id(), false); });
+
     m_events.push_back(event_presenter);
 
     m_cmdManager->setupEventPresenter(event_presenter);
@@ -290,6 +298,17 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     connect(constraint_presenter,	&TemporalConstraintPresenter::askUpdate,
             this,					&TemporalScenarioPresenter::on_askUpdate);
+
+    connect(constraint_presenter,   &TemporalConstraintPresenter::constraintHoverEnter,
+            [=] ()
+    {
+        m_viewInterface->on_hoverOnConstraint(constraint_presenter->model()->id(), true);
+    });
+    connect(constraint_presenter,   &TemporalConstraintPresenter::constraintHoverLeave,
+            [=] ()
+    {
+        m_viewInterface->on_hoverOnConstraint(constraint_presenter->model()->id(), false);
+    });
 
     m_cmdManager->setupConstraintPresenter(constraint_presenter);
     m_selManager->setup(constraint_presenter);

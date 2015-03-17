@@ -79,6 +79,9 @@ void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
+id_type<ConstraintModel> AbstractConstraintPresenter::id() const
+{return model()->id();}
+
 void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 {
     m_view->setDefaultWidth(val.toPixels(m_zoomRatio));

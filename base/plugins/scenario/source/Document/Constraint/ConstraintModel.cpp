@@ -72,7 +72,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
 
 ConstraintModel::~ConstraintModel()
 {
-    delete m_timeBox;
+    //delete m_timeBox;
 }
 
 

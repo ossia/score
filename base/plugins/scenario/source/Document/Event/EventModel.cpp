@@ -39,7 +39,7 @@ EventModel::EventModel(EventModel* source,
 
 EventModel::~EventModel()
 {
-    delete m_timeEvent;
+    //delete m_timeEvent;
 }
 
 const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const
@@ -50,6 +50,14 @@ const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const
 const QVector<id_type<ConstraintModel>>& EventModel::nextConstraints() const
 {
     return m_nextConstraints;
+}
+
+QVector<id_type<ConstraintModel> > EventModel::constraints()
+{
+    QVector<id_type<ConstraintModel> > allCstr = m_previousConstraints;
+    allCstr += m_nextConstraints;
+
+    return allCstr;
 }
 
 void EventModel::addNextConstraint(id_type<ConstraintModel> constraint)

@@ -35,6 +35,10 @@ void EventView::paint(QPainter* painter,
     {
         pen_color = Qt::blue;
     }
+    else if (isShadow())
+    {
+        pen_color = Qt::cyan;
+    }
 
     /*	else if(parentItem()->isSelected())
         {
@@ -63,6 +67,12 @@ void EventView::changeColor(QColor newColor)
 void EventView::setMoving(bool arg)
 {
     m_moving = arg;
+    update();
+}
+
+void EventView::setShadow(bool arg)
+{
+    m_shadow = arg;
     update();
 }
 
@@ -132,4 +142,16 @@ void EventView::keyReleaseEvent(QKeyEvent* e)
     {
         emit ctrlStateChanged(false);
     }
+}
+
+void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsObject::hoverEnterEvent(h);
+    emit eventHoverEnter();
+}
+
+void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsObject::hoverLeaveEvent(h);
+    emit eventHoverLeave();
 }

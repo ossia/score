@@ -152,5 +152,24 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 
     // TODO mode fantome a revoir
-//    timeNode->view()->setMoving(m_presenter->ongoingCommand());
+    //    timeNode->view()->setMoving(m_presenter->ongoingCommand());
+}
+
+void ScenarioViewInterface::on_hoverOnConstraint(id_type<ConstraintModel> constraintId, bool enter)
+{
+    auto constraint = findById(m_presenter->m_constraints, constraintId)->model();
+    EventPresenter* start = findById(m_presenter->m_events, constraint->startEvent());
+    start->view()->setShadow(enter);
+    EventPresenter* end = findById(m_presenter->m_events, constraint->endEvent());
+    end->view()->setShadow(enter);
+}
+
+void ScenarioViewInterface::on_hoverOnEvent(id_type<EventModel> eventId, bool enter)
+{
+    auto event = findById(m_presenter->m_events, eventId)->model();
+    for (auto cstr : event->constraints())
+    {
+        auto cstrView = view(findById(m_presenter->m_constraints, cstr));
+        cstrView->setShadow(enter);
+    }
 }

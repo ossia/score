@@ -27,12 +27,19 @@ class EventView : public QGraphicsObject
             return m_selected;
         }
 
+        bool isShadow() const
+        {
+            return m_shadow;
+        }
+
     signals:
         void eventPressed();
         void eventReleasedWithControl(QPointF, QPointF);
         void eventReleased();
         void eventMoved(QPointF);
         void eventMovedWithControl(QPointF, QPointF);
+        void eventHoverEnter();
+        void eventHoverLeave();
 
         // True : ctrl is pressed; false : ctrl is not.
         void ctrlStateChanged(bool);
@@ -40,6 +47,7 @@ class EventView : public QGraphicsObject
     public slots:
         void changeColor(QColor);
         void setMoving(bool arg);
+        void setShadow(bool arg);
 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
@@ -47,12 +55,15 @@ class EventView : public QGraphicsObject
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void keyPressEvent(QKeyEvent* e) override;
         virtual void keyReleaseEvent(QKeyEvent* e) override;
+        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
+        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
     private:
         QPointF m_clickedPoint {};
         QColor m_color;
 
         bool m_moving {false};
+        bool m_shadow {false};
         bool m_selected{};
 };
 
