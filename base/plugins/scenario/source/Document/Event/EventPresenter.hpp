@@ -27,6 +27,8 @@ class EventPresenter : public NamedObject
         void eventMovedWithControl(EventData);
         void eventReleased();
         void eventReleasedWithControl(EventData);
+        void eventHoverEnter();
+        void eventHoverLeave();
 
         void ctrlStateChanged(bool);
 

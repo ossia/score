@@ -53,6 +53,8 @@ class AbstractConstraintPresenter : public NamedObject
 
         void on_zoomRatioChanged(ZoomRatio val);
 
+        id_type<ConstraintModel> id() const;
+
     signals:
         void pressed();
         void askUpdate();

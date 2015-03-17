@@ -42,14 +42,8 @@ void StandardRemovalPolicy::removeEvent(ScenarioModel& scenario,
 {
     auto ev = scenario.event(eventId);
 
-    auto constraints = ev->previousConstraints();
+    auto constraints = ev->constraints();
     for(auto constraint : constraints)
-    {
-        StandardRemovalPolicy::removeConstraint(scenario, constraint);
-    }
-
-    constraints = ev->nextConstraints();
-    for(auto constraint : ev->nextConstraints())
     {
         StandardRemovalPolicy::removeConstraint(scenario, constraint);
     }
