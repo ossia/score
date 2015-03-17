@@ -35,3 +35,5 @@ set_property(TARGET StateLibrary APPEND
 install(TARGETS StateLibrary # StatePlugin
 		LIBRARY DESTINATION plugins/
 		ARCHIVE DESTINATION static_plugins/)
+
+add_subdirectory(Tests)

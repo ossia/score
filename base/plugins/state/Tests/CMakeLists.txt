@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.0)
+project(StateTests)
+
+
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Test)
+
+function(addStateTest TESTNAME TESTSRCS)
+		add_executable(State_${TESTNAME} ${TESTSRCS})
+		target_link_libraries(State_${TESTNAME} Qt5::Core Qt5::Test iscore_lib StateLibrary)
+		add_test(State_${TESTNAME}_target State_${TESTNAME})
+endFunction()
+
+
+# Commands
+addStateTest(SerializationTest
+			  "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")

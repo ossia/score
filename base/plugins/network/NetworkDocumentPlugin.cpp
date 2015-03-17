@@ -92,8 +92,6 @@ NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
         s >> data;
         m_document->locker().on_unlock(data);
     });
-
-
 }
 
 
