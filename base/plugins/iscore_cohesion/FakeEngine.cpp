@@ -46,6 +46,7 @@ void FakeEngine::runThread(QString scoreFilePath)
 
     // create a scenario
     TTObject scenario("Scenario");
+    m_scenario = &scenario;
 
     // load project file
     TTObject xmlHandler("XmlHandler");
@@ -68,6 +69,20 @@ void FakeEngine::runThread(QString scoreFilePath)
         emit currentTimeChanged( TTFloat64(out[0]));
     }
     while(running);
+
+    m_scenario = nullptr;
+}
+
+FakeEngine::~FakeEngine()
+{
+    if(m_scenario)
+    {
+        m_scenario->send("Stop");
+        m_scenario = nullptr;
+        while(!m_thread.joinable())
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        m_thread.join();
+    }
 }
 
 void FakeEngine::runScore(QString scoreFilePath)

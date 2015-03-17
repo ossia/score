@@ -326,6 +326,7 @@ QString JSONToZeroTwo(QJsonObject base)
                     for(auto state : states)
                     {
                         auto j_rootState = state.toObject();
+                        qDebug() << j_rootState;
                         auto j_state = j_rootState["State"].toObject();
                         auto j_msg = j_state["Data"].toArray();
 
