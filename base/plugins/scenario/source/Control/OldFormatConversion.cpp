@@ -225,7 +225,7 @@ QString JSONToZeroTwo(QJsonObject base)
     ////////////////////////////////////////////////////////////
 
     // coeff pour ajuster la mise à l'échelle
-    const int TIMECOEFF = 10;
+    const int TIMECOEFF = 1;
     const int YCOEFF = 600;
 
     /*
@@ -303,7 +303,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString id = "j"; // identifiant 0.2 commencent par un j ...
                 id += QString::number(idNode["IdentifierValue"].toInt());
 
-                QString date = QString::number(j_ev["Date"].toObject() ["Time"].toInt() * TIMECOEFF + DELTAT);
+                QString date = QString::number(int(j_ev["Date"].toObject() ["Time"].toInt() / TIMECOEFF + DELTAT));
                 date += "u";    // position 0.2 finissent par u ...
 
                 // dans le noeud "Scenario"
@@ -325,8 +325,9 @@ QString JSONToZeroTwo(QJsonObject base)
                 {
                     for(auto state : states)
                     {
-                        auto j_state = state.toObject();
-                        auto j_msg = j_state["Messages"].toArray();
+                        auto j_rootState = state.toObject();
+                        auto j_state = j_rootState["State"].toObject();
+                        auto j_msg = j_state["Data"].toArray();
 
                         QString msg = j_msg.first().toString();
                         QString address = msg;
@@ -432,9 +433,9 @@ QString JSONToZeroTwo(QJsonObject base)
                 boxEnd += QString::number(endEv);
 
 
-                QString min = QString::number(j_cstr["MinDuration"].toObject() ["Time"].toInt() * TIMECOEFF - deltaDuration);
+                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toInt() / TIMECOEFF - deltaDuration));
                 min += "u";
-                QString max = QString::number(j_cstr["MaxDuration"].toObject() ["Time"].toInt() * TIMECOEFF - deltaDuration);
+                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toInt() / TIMECOEFF - deltaDuration));
                 max += "u";
 
                 QString y = QString::number(int (j_cstr["HeightPercentage"].toDouble() * YCOEFF));
@@ -447,7 +448,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString boxStart = interStart;
                 boxStart += QString::number(idIndent);
                 idIndent++;
-                QString date = QString::number(j_cstr["StartDate"].toObject() ["Time"].toInt() * TIMECOEFF + DELTAT + deltaDuration);
+                QString date = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toInt() / TIMECOEFF + DELTAT + deltaDuration));
                 date += "u";
 
                 QDomElement dom_event = domdoc.createElement("event");
