@@ -37,24 +37,7 @@ m_path {std::move(scenarioPath) }
     s2.readFrom(*timeNode);
     m_serializedTimeNode = arr2;
 
-    for (auto cstr : event->previousConstraints())
-    {
-        ConstraintModel* constraint = scenar->constraint(cstr);
-
-        QByteArray arr;
-        Serializer<DataStream> s{&arr};
-        s.readFrom(*constraint);
-        m_serializedConstraints.push_back(arr);
-
-        for(auto& viewModel : viewModels(scenar))
-        {
-            // todo : associer toutes les combinaisons de modèles de vues, pas que la première =)
-            auto cstrVM = constraint->viewModels().first();
-            auto cvm_id = identifierOfViewModelFromSharedModel(viewModel);
-            m_constraintViewModelIDs[cvm_id] = cstrVM->id();
-        }
-    }
-    for (auto cstr : event->nextConstraints())
+    for (auto cstr : event->constraints())
     {
         ConstraintModel* constraint = scenar->constraint(cstr);
 
