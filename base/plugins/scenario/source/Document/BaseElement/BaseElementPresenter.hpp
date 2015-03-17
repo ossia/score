@@ -48,9 +48,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void setProgressBarTime(TimeValue t);
 
     private slots:
-        void on_horizontalZoomChanged(int);
-        void on_positionSliderChanged(int);
-
+        // Value : the number of milliseconds per pixels
+        void on_zoomSliderChanged(double);
         void on_viewSizeChanged(QSize s);
 
         void updateRect(QRectF rect);
@@ -64,7 +63,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         ProgressBar* m_progressBar{};
 
-
-        int m_horizontalZoomValue {50};
-
+        // 30s displayed by default on average
+        double m_millisecondsPerPixel{0.03};
 };

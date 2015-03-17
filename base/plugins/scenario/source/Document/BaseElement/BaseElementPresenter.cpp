@@ -5,6 +5,7 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
+#include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
@@ -35,22 +36,21 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
-            this,	&BaseElementPresenter::on_horizontalZoomChanged);
-    connect(view(), &BaseElementView::positionSliderChanged,
-            this,	&BaseElementPresenter::on_positionSliderChanged);
+            this,	&BaseElementPresenter::on_zoomSliderChanged);
 
     // TODO same for height
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
             this, &BaseElementPresenter::on_viewSizeChanged);
 
     view()->scene()->addItem(m_progressBar);
-    m_progressBar->setPos(0, 0);
-    m_progressBar->setHeight(200);
+    setProgressBarTime(std::chrono::milliseconds{0});
 
     setDisplayedConstraint(model()->constraintModel());
 
     // Use the default value in the slider.
+    /*
     on_horizontalZoomChanged(m_horizontalZoomValue);
+    */
 }
 
 ConstraintModel* BaseElementPresenter::displayedConstraint() const
@@ -105,79 +105,63 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                 cstrView,
                                 this};
 
-    m_displayedConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
+    //m_displayedConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
     on_askUpdate();
 
     connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
             this,						&BaseElementPresenter::on_askUpdate);
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::heightChanged,
-            this, [&] () { updateRect({(double)view()->positionSlider()->value(), 0, 1, height()});} );
+            this, [&] () { updateRect({0,
+                                       0,
+                                       m_displayedConstraint->defaultDuration().toPixels(m_millisecondsPerPixel),
+                                       height()});} );
 
     model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
     // Update the address bar
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
-
-    // Set the new minimum zoom. It should be set such that :
-    // - when the x position is 0
-    // - when the zoom is minimal (minZ)
-    // - for the current viewport
-    //  => the view can see 3% more than the base constraint
-
-    // minSlider = viewportwidth * 100 * 0.97 / constraintDuration
-
-    //view()->zoomSlider()->setMinimum(view()->view()->width() * 97.0 / model()->constraintModel()->defaultDuration().msec());
-
-    on_horizontalZoomChanged(m_horizontalZoomValue);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
 {
-    m_progressBar->setPos({t.toPixels(millisecondsPerPixel(m_horizontalZoomValue)), 0});
+    m_progressBar->setPos({t.toPixels(m_millisecondsPerPixel), 0});
 }
 
-void BaseElementPresenter::on_horizontalZoomChanged(int newzoom)
+void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 {
-    m_horizontalZoomValue = newzoom;
+    // 1. Map from 0 - 1 to min - max for m_pixelsPerMillisecond.
+    // Min: 90 pixels per ms
+    // Default: 0.03 pixels per ms
+    // Max: enough so that the whole base constraint fills the screen
+
+    // mapZoom maps a value between 0 and 1 to the correctzoom.
+    auto mapZoom = [] (double val, double min, double max)
+    { return (max - min) * val + min; };
+
+    // computedMax : the number of pixels in a millisecond when the whole constraint
+    // is displayed on screen;
+    auto computedMax = [&] ()
+    {
+        // Durée d'une base contrainte : X s.
+        // On veut que cette fonction retourne le facteur de
+        // m_millisecondsPerPixel nécessaire pour que X s tienne à l'écran.
+        double viewWidth = view()->view()->width();
+        double duration =  model()->constraintModel()->defaultDuration().msec();
+
+        return 5 + duration / viewWidth;
+    };
+
+    m_millisecondsPerPixel = mapZoom(1.0 - newzoom, 1./90., computedMax());
 
     // Maybe translate
-    m_displayedConstraintPresenter->on_zoomRatioChanged(millisecondsPerPixel(m_horizontalZoomValue));
-
-    // Change the min & max of position slider, & current value
-    // If zoom = min, positionSliderMax = 0.
-    // Else positionSliderMax is for the end at max.
-
-    int val = view()->positionSlider()->value();
-    auto newMax = model()->constraintModel()
-                    ->defaultDuration().toPixels(
-                        millisecondsPerPixel(view()->zoomSlider()->value()))
-                  - view()->view()->width();
-    view()->positionSlider()->setMaximum(newMax);
-
-    if(val > newMax)
-    {
-        view()->positionSlider()->setValue(newMax);
-        on_positionSliderChanged(newMax);
-    }
+    m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
-void BaseElementPresenter::on_positionSliderChanged(int newPos)
-{
-    updateRect({(double)newPos, 0, 1, height()});
-}
-
+#include <QDesktopWidget>
 void BaseElementPresenter::on_viewSizeChanged(QSize s)
 {
     m_progressBar->setHeight(s.height());
-    int val = view()->zoomSlider()->value();
-    int newMin = s.width() / model()->constraintModel()->defaultDuration().msec();
-    view()->zoomSlider()->setMinimum(newMin);
-
-    if(val < newMin)
-    {
-        view()->zoomSlider()->setValue(newMin);
-        on_horizontalZoomChanged(newMin);
-    }
+    on_zoomSliderChanged(view()->zoomSlider()->value());
 }
 
 void BaseElementPresenter::updateRect(QRectF rect)
