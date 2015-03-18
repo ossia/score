@@ -149,11 +149,10 @@ if(DEPLOYMENT_BUILD)
 	   )
 
 		if(NOT ${LSB_ID} STREQUAL "")
-		  # found some, use it :D
 		  set(INSTALLER_PLATFORM "${LSB_ID}-${LSB_VER}" CACHE PATH "Installer chosen platform")
-		else(NOT ${LSB_ID} STREQUAL "")
+		else()
 		  set(INSTALLER_PLATFORM "linux-generic" CACHE PATH "Installer chosen platform")
-		endif(NOT ${LSB_ID} STREQUAL "")
+		endif()
 
 		set(CPACK_SYSTEM_NAME "${INSTALLER_PLATFORM}")
 
