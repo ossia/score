@@ -66,6 +66,7 @@ class EventModel : public IdentifiedObject<EventModel>
         // Constraints
         const QVector<id_type<ConstraintModel>>& previousConstraints() const;
         const QVector<id_type<ConstraintModel>>& nextConstraints() const;
+        QVector<id_type<ConstraintModel> > constraints();
 
         void addNextConstraint(id_type<ConstraintModel>);
         void addPreviousConstraint(id_type<ConstraintModel>);

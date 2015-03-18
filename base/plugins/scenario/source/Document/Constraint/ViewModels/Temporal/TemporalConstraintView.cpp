@@ -32,6 +32,10 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     {
         c = Qt::blue;
     }
+    else if (shadow())
+    {
+        c = Qt::cyan;
+    }
 
     if(defaultWidth() < 0)
     {
@@ -158,3 +162,26 @@ void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 
     emit constraintReleased();
 }
+
+void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsObject::hoverEnterEvent(h);
+    emit constraintHoverEnter();
+}
+
+void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsObject::hoverLeaveEvent(h);
+    emit constraintHoverLeave();
+}
+bool TemporalConstraintView::shadow() const
+{
+    return m_shadow;
+}
+
+void TemporalConstraintView::setShadow(bool shadow)
+{
+    m_shadow = shadow;
+    update();
+}
+

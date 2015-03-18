@@ -200,6 +200,101 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
         bool m_ongoing{};
 };
 
+#include <iscore/locking/ObjectLocker.hpp>
+template<typename MergeStrategy_T = MergeStrategy::Simple, typename CommitStrategy_T = CommitStrategy::UndoRedo>
+class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
+{
+    public:
+        template<typename... Args>
+        LockingOngoingCommandDispatcher(QObject* objectToLock, iscore::ObjectLocker& locker, Args&&... args):
+            ITransactionalCommandDispatcher{std::forward<Args&&>(args)...},
+            m_locker{objectToLock, locker}
+        {
+            connect(this, &LockingOngoingCommandDispatcher::submitCommand,
+                    this, &LockingOngoingCommandDispatcher::send_impl,
+                    Qt::DirectConnection);
+
+            connect(this, &LockingOngoingCommandDispatcher::commit,
+                    this, &LockingOngoingCommandDispatcher::commit_impl,
+                    Qt::DirectConnection);
+
+            connect(this, &LockingOngoingCommandDispatcher::rollback,
+                    this, &LockingOngoingCommandDispatcher::rollback_impl,
+                    Qt::DirectConnection);
+        }
+
+        const iscore::SerializableCommand* command() const
+        {
+            return m_ongoingCommand;
+        }
+
+        virtual ~LockingOngoingCommandDispatcher()
+        {
+            delete m_ongoingCommand;
+        }
+
+        // True if there is an ongoing command.
+        bool ongoing() const
+        { return m_ongoing; }
+
+    private:
+        void send_impl(iscore::SerializableCommand* cmd)
+        {
+            Q_ASSERT(cmd != nullptr);
+            if(!ongoing())
+            {
+                m_ongoingCommand = cmd;
+                m_ongoingCommand->redo();
+                m_ongoing = true;
+
+                m_locker.lock();
+            }
+            else
+            {
+                if(m_ongoingCommand->uid() != cmd->uid())
+                    qWarning() << "Merging incompatible commands" << m_ongoingCommand->name() << cmd->name();
+
+                MergeStrategy_T::merge(m_ongoingCommand, cmd);
+                delete cmd;
+            }
+        }
+
+        void commit_impl()
+        {
+            if(ongoing())
+            {
+                CommitStrategy_T::commit(stack(), m_ongoingCommand);
+                m_ongoingCommand = nullptr;
+                m_ongoing = false;
+
+                m_locker.unlock();
+            }
+        }
+
+        void rollback_impl()
+        {
+            if(ongoing())
+            {
+                m_ongoing = false;
+
+                m_ongoingCommand->undo();
+                delete m_ongoingCommand;
+                m_ongoingCommand = nullptr;
+
+                m_locker.unlock();
+            }
+        }
+
+    protected:
+        // TODO unique_ptr
+        iscore::SerializableCommand* m_ongoingCommand {};
+        bool m_ongoing{};
+
+        iscore::LockHelper m_locker;
+};
+
+
+
 
 class MacroCommandDispatcher : public ITransactionalCommandDispatcher
 {

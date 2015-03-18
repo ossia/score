@@ -4,7 +4,6 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <State/StateInterface.hpp>
-// TODO faire un vrai plug-in avec factory pour les plug-ins d'inspecteur de States.
 
 class State
 {       friend

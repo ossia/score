@@ -49,7 +49,7 @@ class RemoveProcessFromConstraintTest: public QObject
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
             s0->constraint(int_0_id)->createBox(id_type<BoxModel> {5676});
             QCOMPARE((int) s0->constraints().size(), 1);
-            QCOMPARE((int) s0->events().size(), 2);   // TODO 3 if endEvent
+            QCOMPARE((int) s0->events().size(), 3);
 
             AddProcessToConstraint cmd2(
             {

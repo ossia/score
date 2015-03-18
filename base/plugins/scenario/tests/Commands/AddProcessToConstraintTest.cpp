@@ -27,7 +27,6 @@ class AddProcessToConstraintTest: public QObject
 
             ConstraintModel* cstrModel  = new ConstraintModel {id_type<ConstraintModel>{1}, id_type<AbstractConstraintViewModel>{0}, qApp};
 
-            //int_model->createBox(id_type<BoxModel> {421});  // TODO use command instead.
             AddBoxToConstraint boxCmd(
                         ObjectPath { {"ConstraintModel", {1}} });
             boxCmd.redo();

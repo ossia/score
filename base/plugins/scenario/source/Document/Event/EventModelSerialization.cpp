@@ -28,15 +28,13 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
-    QMap<id_type<ConstraintModel>, double> cstrYPos;
     double heightPercentage;
     TimeValue date;
     QString condition;
     id_type<TimeNodeModel> timenode;
     m_stream >> prevCstr
              >> nextCstr
-             >> heightPercentage
-             >> cstrYPos;
+             >> heightPercentage;
 
     m_stream >> date; // should be in OSSIA API
     m_stream >> condition;
@@ -53,7 +51,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     m_stream >> states;
     ev.replaceStates(states);
 
-    ev.setOSSIATimeNode(new OSSIA::TimeNode);
+    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
     // TODO load the timenode
 
     checkDelimiter();
@@ -102,5 +100,5 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
         ev.addState(state);
     }
 */
-    ev.setOSSIATimeNode(new OSSIA::TimeNode);
+    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
 }

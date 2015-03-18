@@ -20,10 +20,12 @@ class AbstractConstraintView : public QGraphicsObject
         bool infinite() const
         { return m_infinite; }
 
-        void setDefaultWidth(int width);
-        void setMaxWidth(bool infinite, int max);
-        void setMinWidth(int min);
-        void setHeight(int height);
+        void setDefaultWidth(double width);
+        void setMaxWidth(bool infinite, double max);
+        void setMinWidth(double min);
+        void setHeight(double height);
+        double height() const
+        { return m_height; }
 
 
         void setSelected(bool selected)
@@ -38,22 +40,22 @@ class AbstractConstraintView : public QGraphicsObject
         }
 
 
-        int defaultWidth() const
+        double defaultWidth() const
         {
             return m_defaultWidth;
         }
 
-        int minWidth() const
+        double minWidth() const
         {
             return m_minWidth;
         }
 
-        int maxWidth() const
+        double maxWidth() const
         {
             return m_maxWidth;
         }
 
-        int constraintHeight() const
+        double constraintHeight() const
         {
             return m_height;
         }
@@ -80,11 +82,11 @@ class AbstractConstraintView : public QGraphicsObject
         };
 
     private:
-        int m_defaultWidth {};
-        int m_maxWidth {};
-        int m_minWidth {};
+        double m_defaultWidth {};
+        double m_maxWidth {};
+        double m_minWidth {};
 
-        int m_height {};
+        double m_height {};
 
         bool m_selected{};
         bool m_infinite{};

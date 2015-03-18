@@ -7,7 +7,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class TemporalConstraintView;
 class AddressBar;
-
+class DoubleSlider;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -41,23 +41,14 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
             return m_addressBar;
         }
 
-        QSlider* positionSlider()
-        {
-            return m_positionSlider;
-        }
-
-        QSlider* zoomSlider()
+        DoubleSlider* zoomSlider()
         {
             return m_zoomSlider;
         }
 
     signals:
-        void horizontalZoomChanged(int newZoom);
+        void horizontalZoomChanged(double newZoom);
         void verticalZoomChanged(int newZoom);
-        void positionSliderChanged(int newPos);
-
-    private slots:
-        void on_positionSliderReleased(int val);
 
     private:
         QWidget* m_widget {};
@@ -67,7 +58,6 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
 
-        QSlider* m_positionSlider {};
-        QSlider* m_zoomSlider {};
+        DoubleSlider* m_zoomSlider {};
 };
 

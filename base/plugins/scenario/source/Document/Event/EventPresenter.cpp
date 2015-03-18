@@ -51,6 +51,12 @@ EventPresenter::EventPresenter(EventModel* model,
 
     connect(& (m_model->metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
+
+    connect(m_view, &EventView::eventHoverEnter,
+            this,   &EventPresenter::eventHoverEnter);
+
+    connect(m_view, &EventView::eventHoverLeave,
+            this,   &EventPresenter::eventHoverLeave);
 }
 
 EventPresenter::~EventPresenter()

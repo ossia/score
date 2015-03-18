@@ -32,6 +32,12 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(view(this), &TemporalConstraintView::constraintReleased,
             this,		&TemporalConstraintPresenter::constraintReleased);
 
+    connect(view(this), &TemporalConstraintView::constraintHoverEnter,
+            this,       &TemporalConstraintPresenter::constraintHoverEnter);
+
+    connect(view(this), &TemporalConstraintView::constraintHoverLeave,
+            this,       &TemporalConstraintPresenter::constraintHoverLeave);
+
     if(viewModel(this)->isBoxShown())
     {
         on_boxShown(viewModel(this)->shownBox());
