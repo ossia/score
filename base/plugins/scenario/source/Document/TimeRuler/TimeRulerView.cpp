@@ -1,22 +1,22 @@
-#include "TimeRuler.hpp"
+#include "TimeRulerView.hpp"
 
 #include <QPainter>
 
 #include <QDebug>
 #include <QGraphicsScene>
 
-TimeRuler::TimeRuler()
+TimeRulerView::TimeRulerView()
 {
     m_duration.addMSecs(30000);
     m_width = m_duration.msec() * m_pixelPerMillis;
 }
 
-QRectF TimeRuler::boundingRect() const
+QRectF TimeRulerView::boundingRect() const
 {
     return QRectF{0, -m_height, m_width + 20, m_height};
 }
 
-void TimeRuler::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(QPen(QBrush(QColor(100, 0, 255)), 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
@@ -27,8 +27,14 @@ void TimeRuler::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
     while (t < m_width + 10)
     {
+        painter->setPen(QPen(QBrush(QColor(100, 0, 255)), 2, Qt::SolidLine));
         painter->drawLine(t, 0, t, -10);
         painter->drawText(t, -20, QString::number(10 * i));
+
+        // GRID
+//        painter->setPen(QPen(QBrush(QColor(100, 0, 255)), 1, Qt::DashDotDotLine));
+//        painter->drawLine(t, 0, t, 500);
+
         t += 10 * pixPerSec;
         i++;
         qDebug () << i ;
@@ -36,31 +42,31 @@ void TimeRuler::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     qDebug() << m_width << pixPerSec;
 }
 
-void TimeRuler::setHeight(qreal newHeight)
+void TimeRulerView::setHeight(qreal newHeight)
 {
     prepareGeometryChange();
     m_height = newHeight;
 }
 
-void TimeRuler::setWidth(qreal newWidth)
+void TimeRulerView::setWidth(qreal newWidth)
 {
     prepareGeometryChange();
     m_width = newWidth;
 }
 
-void TimeRuler::setPixelPerMillis(double newFactor)
+void TimeRulerView::setPixelPerMillis(double newFactor)
 {
     m_pixelPerMillis = newFactor;
     updateGraduationsSize();
 }
 
-void TimeRuler::setDuration(TimeValue dur)
+void TimeRulerView::setDuration(TimeValue dur)
 {
     m_duration = dur;
     updateGraduationsSize();
 }
 
-void TimeRuler::updateGraduationsSize()
+void TimeRulerView::updateGraduationsSize()
 {
     prepareGeometryChange();
     m_width = m_duration.msec() * m_pixelPerMillis;

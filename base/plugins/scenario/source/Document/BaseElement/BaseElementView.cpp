@@ -7,7 +7,7 @@
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/AddressBar.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
-#include "Widgets/TimeRuler.hpp"
+#include "Document/TimeRuler/TimeRulerView.hpp"
 #include <QSlider>
 #include <QDebug>
 #include <QPushButton>
@@ -19,10 +19,10 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_view {new SizeNotifyingGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject{}},
     m_addressBar {new AddressBar{nullptr}},
-    m_timeRuler {new TimeRuler{} }
+    m_timeRuler {new TimeRulerView{} }
 {
     // Configuration
-    m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark() });
+    m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark()});
     m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 

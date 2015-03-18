@@ -4,10 +4,10 @@
 #include "ProcessInterface/TimeValue.hpp"
 
 
-class TimeRuler : public QGraphicsObject
+class TimeRulerView : public QGraphicsObject
 {
     public:
-        TimeRuler();
+        TimeRulerView();
         QRectF boundingRect() const override;
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,

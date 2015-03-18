@@ -7,7 +7,8 @@
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
-#include "Document/BaseElement/Widgets/TimeRuler.hpp"
+#include "Document/TimeRuler/TimeRulerPresenter.hpp"
+#include "Document/TimeRuler/TimeRulerView.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
@@ -32,7 +33,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_model,
                                         delegate_view},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
-    m_progressBar{new ProgressBar}
+    m_progressBar{new ProgressBar},
+    m_timeRuler{new TimeRulerPresenter{view()->timeRuler(), this} }
 {
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
@@ -46,7 +48,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
-    view()->timeRuler()->setDuration(model()->constraintModel()->defaultDuration());
+    m_timeRuler->setDuration(model()->constraintModel()->defaultDuration());
     setDisplayedConstraint(model()->constraintModel());
 
     // Use the default value in the slider.
@@ -123,7 +125,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    view()->timeRuler()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
+    m_timeRuler->view()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -134,7 +136,7 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
 void BaseElementPresenter::setMillisPerPixel(double newFactor)
 {
     m_millisecondsPerPixel = newFactor;
-    view()->timeRuler()->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_timeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
