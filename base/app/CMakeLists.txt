@@ -125,6 +125,8 @@ if(DEPLOYMENT_BUILD)
 		# After installation and fix-up by DeployQt5, we import the Jamoma libraries.
 		# They are put in the RPATH.
 		fixup_bundle_jamoma(${CMAKE_INSTALL_PREFIX}/${APPNAME}.app ${APPNAME} "${JAMOMA_LIBS}")
+		set(CPACK_GENERATOR "DragNDrop")
+
 	elseif(UNIX)
 		# use the LSB stuff if possible :)
 		 EXECUTE_PROCESS(
