@@ -47,6 +47,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void setProgressBarTime(TimeValue t);
 
+        void setMillisPerPixel(double newFactor);
+
     private slots:
         // Value : the number of milliseconds per pixels
         void on_zoomSliderChanged(double);

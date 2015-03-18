@@ -7,6 +7,7 @@
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
+#include "Document/BaseElement/Widgets/TimeRuler.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
@@ -127,6 +128,12 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
     m_progressBar->setPos({t.toPixels(m_millisecondsPerPixel), 0});
 }
 
+void BaseElementPresenter::setMillisPerPixel(double newFactor)
+{
+    m_millisecondsPerPixel = newFactor;
+    view()->timeRuler()->setPixelPerMillis(1/m_millisecondsPerPixel);
+}
+
 void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 {
     // 1. Map from 0 - 1 to min - max for m_pixelsPerMillisecond.
@@ -151,10 +158,11 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         return 5 + duration / viewWidth;
     };
 
-    m_millisecondsPerPixel = mapZoom(1.0 - newzoom, 1./90., computedMax());
+    setMillisPerPixel(mapZoom(1.0 - newzoom, 1./90., computedMax()));
 
     // Maybe translate
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
+//    view()->timeRuler()->setPixelPerMillis(1 / newzoom);
 }
 
 #include <QDesktopWidget>
