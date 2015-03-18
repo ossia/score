@@ -11,7 +11,6 @@ find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
-
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
