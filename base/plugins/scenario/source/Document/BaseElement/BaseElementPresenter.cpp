@@ -46,6 +46,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
+    view()->timeRuler()->setDuration(model()->constraintModel()->defaultDuration());
     setDisplayedConstraint(model()->constraintModel());
 
     // Use the default value in the slider.
@@ -121,6 +122,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     // Update the address bar
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
+
+    view()->timeRuler()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -162,7 +165,9 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     // Maybe translate
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
-//    view()->timeRuler()->setPixelPerMillis(1 / newzoom);
+
+    view()->timeRuler()->setPixelPerMillis(1 / m_millisecondsPerPixel);
+    view()->timeRuler()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
 }
 
 #include <QDesktopWidget>

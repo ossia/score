@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QGraphicsObject>
+#include "ProcessInterface/TimeValue.hpp"
 
-//class TimeValue;
 
 class TimeRuler : public QGraphicsObject
 {
@@ -17,6 +17,7 @@ class TimeRuler : public QGraphicsObject
         void setWidth(qreal newWidth);
 
         void setPixelPerMillis(double newFactor);
+        void setDuration(TimeValue dur);
 
     signals:
 
@@ -24,12 +25,12 @@ class TimeRuler : public QGraphicsObject
         void updateGraduationsSize();
 
     private:
-        qreal m_height {2};
+        qreal m_height {35};
         qreal m_width {800};
 
-//        TimeValue m_duration {};
+        TimeValue m_duration;
 
-        double m_pixelPerMillis {0.02};
-        double m_graduationSize {};
-        double m_subGraduationSize {};
+        double m_pixelPerMillis {0.03};
+//        double m_graduationSize {};
+//        double m_subGraduationSize {};
 };
