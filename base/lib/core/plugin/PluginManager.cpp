@@ -49,7 +49,7 @@ void PluginManager::reloadPlugins()
         else
         {
             QString s = loader.errorString();
-            if(!s.contains("Plugin verification data mismatch"))
+            if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
                 qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
         }
     }

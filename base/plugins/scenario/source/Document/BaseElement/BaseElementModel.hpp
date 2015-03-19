@@ -31,7 +31,6 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
-        void setFocusedViewModel(ProcessViewModelInterface* vm);
         ProcessViewModelInterface* focusedViewModel() const
         { return m_focusedViewModel; }
 
@@ -47,6 +46,9 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     signals:
         void focusedViewModelChanged();
+
+    public slots:
+        void setFocusedViewModel(ProcessViewModelInterface* vm);
 
     private:
         ConstraintModel* m_baseConstraint {};

@@ -51,6 +51,16 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
 
 
+    QAction* removeElements = new QAction {tr("Remove selection"), this};
+    connect(removeElements,	&QAction::triggered,
+            [this] ()
+    {
+        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       removeElements);
+
     // View
     QAction* selectAll = new QAction {tr("Select all"), this};
     connect(selectAll,	&QAction::triggered,

@@ -8,13 +8,15 @@ namespace iscore
 class BaseElementModel;
 
 // Sets the focus on a scenario document.
-class FocusDispatcher
+class FocusDispatcher : public QObject
 {
+        Q_OBJECT
     public:
         FocusDispatcher(iscore::Document& doc);
 
+    signals:
         void focus(ProcessViewModelInterface* obj);
 
     private:
-//        BaseElementModel& m_baseElementModel;
+        BaseElementModel& m_baseElementModel;
 };
