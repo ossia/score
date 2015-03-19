@@ -19,14 +19,19 @@ class TimeRulerView : public QGraphicsObject
     signals:
 
     public slots:
-        void setGraduationsSpacing(double size);
+        void setGraduationsStyle(double size, int delta, QString format, int mark);
         void setDownGraduations();
+        void setFormat(QString);
 
     private:
         qreal m_height {};
         qreal m_width {};
 
         qreal m_graduationsSpacing {};
+        int m_graduationDelta {};
+        QString m_timeFormat{};
+        int m_intervalsBeetwenMark {};
+
         qreal m_textPosition{};
         int m_graduationHeight {};
 

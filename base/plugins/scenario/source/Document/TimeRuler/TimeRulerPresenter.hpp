@@ -22,10 +22,14 @@ class TimeRulerPresenter : public QObject
         void setPixelPerMillis(double factor);
 
     private:
+        void computeGraduationSpacing();
+
         TimeRulerView* m_view;
 
         TimeValue m_startPoint {};
         TimeValue m_duration {};
+
+        QVector< QPair<double, TimeValue> > m_graduationsSpacing;
 
         double m_pixelPerMillis {0.01};
 };

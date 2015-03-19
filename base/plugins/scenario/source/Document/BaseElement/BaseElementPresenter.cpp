@@ -133,7 +133,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    m_mainTimeRuler->setStartPoint(m_displayedConstraint->startDate());
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -207,7 +207,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     m_mainTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
     m_localTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
-    m_mainTimeRuler->setStartPoint(m_displayedConstraint->startDate());
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
 }
 
 #include <QDesktopWidget>
