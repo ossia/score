@@ -30,7 +30,7 @@ class TimeRulerView : public QGraphicsObject
 
         TimeValue m_duration;
 
-        double m_pixelPerMillis {0.03};
+        double m_pixelPerMillis {0.01};
 //        double m_graduationSize {};
 //        double m_subGraduationSize {};
 };

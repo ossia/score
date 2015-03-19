@@ -19,7 +19,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_view {new SizeNotifyingGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject{}},
     m_addressBar {new AddressBar{nullptr}},
-    m_timeRuler {new TimeRulerView{} }
+    m_timeRuler {new TimeRulerView{} },
+    m_localTimeRuler {new TimeRulerView{} }
 {
     // Configuration
     m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark()});
@@ -34,7 +35,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     timeRulerView->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
     timeRulerView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     timeRulerView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    timeRulerView->setSceneRect(0, -30, 800, 30);
+    timeRulerView->setSceneRect(0, -60, 800, 60);
+
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
@@ -52,6 +54,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     transportWidget->setLayout(transportLayout);
 
     // view layout
+    m_scene->addItem(m_localTimeRuler);
     m_scene->addItem(m_timeRuler);
     m_scene->addItem(m_baseObject);
 

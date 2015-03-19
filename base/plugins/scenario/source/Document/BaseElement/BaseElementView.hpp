@@ -51,6 +51,10 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         {
             return m_timeRuler;
         }
+        TimeRulerView* localTimeRuler()
+        {
+            return m_localTimeRuler;
+        }
 
     signals:
         void horizontalZoomChanged(double newZoom);
@@ -64,6 +68,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
         TimeRulerView* m_timeRuler {};
+        TimeRulerView* m_localTimeRuler {};
 
         DoubleSlider* m_zoomSlider {};
 };

@@ -37,9 +37,7 @@ void TimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
         t += 10 * pixPerSec;
         i++;
-        qDebug () << i ;
     }
-    qDebug() << m_width << pixPerSec;
 }
 
 void TimeRulerView::setHeight(qreal newHeight)
@@ -70,7 +68,6 @@ void TimeRulerView::updateGraduationsSize()
 {
     prepareGeometryChange();
     m_width = m_duration.msec() * m_pixelPerMillis;
-    return;
 }
 
 

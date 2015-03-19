@@ -34,8 +34,13 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_view},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
     m_progressBar{new ProgressBar},
-    m_timeRuler{new TimeRulerPresenter{view()->timeRuler(), this} }
+    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this} },
+    m_localTimeRuler { new TimeRulerPresenter{view()->localTimeRuler(), this} }
 {
+
+    connect(&(m_selectionDispatcher.stack()),  &SelectionStack::currentSelectionChanged,
+            this,   &BaseElementPresenter::on_newSelection);
+
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
@@ -48,8 +53,12 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
-    m_timeRuler->setDuration(model()->constraintModel()->defaultDuration());
+    m_mainTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+    m_localTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+
     setDisplayedConstraint(model()->constraintModel());
+
+    m_localTimeRuler->view()->setY(-30);
 
     // Use the default value in the slider.
     /*
@@ -125,7 +134,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    m_timeRuler->view()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
+    m_mainTimeRuler->view()->setX(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -136,7 +145,25 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
 void BaseElementPresenter::setMillisPerPixel(double newFactor)
 {
     m_millisecondsPerPixel = newFactor;
-    m_timeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_mainTimeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_localTimeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
+}
+
+void BaseElementPresenter::on_newSelection(Selection sel)
+{
+    if (sel.isEmpty())
+    {
+
+    }
+    else
+    {
+        if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
+        {
+            m_localTimeRuler->setDuration(cstr->defaultDuration());
+            m_localTimeRuler->view()->setX(cstr->startDate().msec() / m_millisecondsPerPixel);
+        }
+        qDebug() << "selection changed";
+    }
 }
 
 void BaseElementPresenter::on_zoomSliderChanged(double newzoom)

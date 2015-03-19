@@ -51,6 +51,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void setMillisPerPixel(double newFactor);
 
+        void on_newSelection(Selection);
+
     private slots:
         // Value : the number of milliseconds per pixels
         void on_zoomSliderChanged(double);
@@ -67,7 +69,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         ProgressBar* m_progressBar{};
 
-        TimeRulerPresenter* m_timeRuler{};
+        TimeRulerPresenter* m_mainTimeRuler{};
+        TimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
         double m_millisecondsPerPixel{0.03};
