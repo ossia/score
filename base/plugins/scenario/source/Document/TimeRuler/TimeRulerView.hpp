@@ -16,21 +16,15 @@ class TimeRulerView : public QGraphicsObject
         void setHeight(qreal newHeight);
         void setWidth(qreal newWidth);
 
-        void setPixelPerMillis(double newFactor);
-        void setDuration(TimeValue dur);
-
     signals:
 
     public slots:
-        void updateGraduationsSize();
+        void setGraduationsSize(double size);
 
     private:
         qreal m_height {35};
         qreal m_width {800};
 
-        TimeValue m_duration;
-
-        double m_pixelPerMillis {0.01};
-//        double m_graduationSize {};
+        double m_graduationSize {};
 //        double m_subGraduationSize {};
 };

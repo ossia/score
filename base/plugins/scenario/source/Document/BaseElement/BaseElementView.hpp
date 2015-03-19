@@ -55,6 +55,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         {
             return m_localTimeRuler;
         }
+        void newLocalTimeRuler();
 
     signals:
         void horizontalZoomChanged(double newZoom);

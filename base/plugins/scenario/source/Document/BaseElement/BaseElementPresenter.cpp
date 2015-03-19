@@ -54,11 +54,12 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     setProgressBarTime(std::chrono::milliseconds{0});
 
     m_mainTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+
     m_localTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+    m_mainTimeRuler->view()->setY(-30);
 
     setDisplayedConstraint(model()->constraintModel());
 
-    m_localTimeRuler->view()->setY(-30);
 
     // Use the default value in the slider.
     /*
@@ -134,7 +135,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
           ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    m_mainTimeRuler->view()->setX(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel);
+    m_mainTimeRuler->setStartPoint(m_displayedConstraint->startDate());
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -145,8 +146,8 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
 void BaseElementPresenter::setMillisPerPixel(double newFactor)
 {
     m_millisecondsPerPixel = newFactor;
-    m_mainTimeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
-    m_localTimeRuler->view()->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_mainTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::on_newSelection(Selection sel)
@@ -159,10 +160,21 @@ void BaseElementPresenter::on_newSelection(Selection sel)
     {
         if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
         {
+            delete m_localTimeRuler;
+            view()->newLocalTimeRuler();
+            m_localTimeRuler = new TimeRulerPresenter{view()->localTimeRuler(), this};
+
+            m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
             m_localTimeRuler->setDuration(cstr->defaultDuration());
-            m_localTimeRuler->view()->setX(cstr->startDate().msec() / m_millisecondsPerPixel);
+            m_localTimeRuler->setStartPoint(cstr->startDate());
+
+            //m_localTimeRuler->view()->setY(-30);
+
+            connect(cstr,               &ConstraintModel::defaultDurationChanged,
+                    m_localTimeRuler,   &TimeRulerPresenter::setDuration);
+            connect(cstr,               &ConstraintModel::startDateChanged,
+                    m_localTimeRuler,   &TimeRulerPresenter::setStartPoint);
         }
-        qDebug() << "selection changed";
     }
 }
 
@@ -195,8 +207,9 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     // Maybe translate
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 
-    view()->timeRuler()->setPixelPerMillis(1 / m_millisecondsPerPixel);
-    view()->timeRuler()->setPos(- m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel, 0);
+    m_mainTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
+    m_mainTimeRuler->setStartPoint(m_displayedConstraint->startDate());
 }
 
 #include <QDesktopWidget>
