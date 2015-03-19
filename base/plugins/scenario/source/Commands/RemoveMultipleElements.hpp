@@ -1,37 +1,21 @@
 #pragma once
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/AggregateCommand.hpp>
 #include <QVector>
 
 namespace Scenario
 {
     namespace Command
     {
-        // TODO Use AggregateCommand instead
-        class RemoveMultipleElements : public iscore::SerializableCommand
+        class RemoveMultipleElements : public iscore::AggregateCommand
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(RemoveMultipleElements, "ScenarioControl")
-                RemoveMultipleElements(QVector<SerializableCommand*> elementsToDelete);
-                virtual void undo() override;
-                virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
+                RemoveMultipleElements():
+                      AggregateCommand{"ScenarioControl",
+                                       className(),
+                                       description()} { }
 
-            protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
-
-            private:
-                QVector<QPair<
-                QPair<QString, QString>, // Meta-data
-                      QByteArray>>
-                      m_serializedCommands;
-                QVector<QPair<
-                QPair<QString, QString>, // Meta-data
-                      QByteArray>>
-                      m_serializedCommandsDecreasing;
         };
-
     }
 }

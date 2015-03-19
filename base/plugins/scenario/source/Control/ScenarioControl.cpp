@@ -56,6 +56,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
             [this] ()
     {
         auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
+        pres.model()->focusedViewModel();
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,

@@ -67,18 +67,20 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter* presenter) :
     QObject{presenter},
     m_presenter{presenter},
+    m_commandStack{iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack()},
+    m_locker{iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->locker()},
     m_creationCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Undo>{
                                 m_presenter->m_viewModel->sharedProcessModel(),
-                                iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->locker(),
-                                iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                                m_locker,
+                                m_commandStack,
                                 this}},
     m_moveCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{
                             m_presenter->m_viewModel->sharedProcessModel(),
-                            iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->locker(),
-                            iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                            m_locker,
+                            m_commandStack,
                             this}},
     m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{
-                               iscore::IDocument::documentFromObject(presenter->m_viewModel->sharedProcessModel())->commandStack(),
+                               m_commandStack,
                                this}}
 {
 
@@ -258,27 +260,26 @@ void ScenarioCommandManager::clearContentFromSelection()
     copyIfSelected(m_presenter->m_constraints, constraintsToRemove);
     copyIfSelected(m_presenter->m_events, eventsToRemove);
 
-    QVector<iscore::SerializableCommand*> commands;
+    MacroCommandDispatcher cleaner(new RemoveMultipleElements,
+                                   m_commandStack,
+                                   nullptr);
 
     // 3. Create a Delete command for each. For now : only emptying.
     for(auto& constraint : constraintsToRemove)
     {
-        commands.push_back(
+        cleaner.submitCommand(
                     new ClearConstraint(
                         iscore::IDocument::path(viewModel(constraint)->model())));
     }
 
     for(auto& event : eventsToRemove)
     {
-        commands.push_back(
+        cleaner.submitCommand(
                     new ClearEvent(
                         iscore::IDocument::path(event->model())));
     }
 
-    // 4. Make a meta-command that binds them all and calls undo & redo on the queue.
-    auto cmd = new RemoveMultipleElements {std::move(commands) };
-    emit m_creationCommandDispatcher->submitCommand(cmd);
-    emit m_creationCommandDispatcher->commit();
+    cleaner.commit();
 }
 
 void ScenarioCommandManager::deleteSelection()
@@ -287,7 +288,7 @@ void ScenarioCommandManager::deleteSelection()
 
     //*
     // 1. Select items
-    std::vector<TemporalConstraintPresenter*> constraintsToRemove;
+    std::vector<AbstractConstraintPresenter*> constraintsToRemove;
     std::vector<EventPresenter*> eventsToRemove;
 
     copyIfSelected(m_presenter->m_constraints, constraintsToRemove);
@@ -295,12 +296,14 @@ void ScenarioCommandManager::deleteSelection()
 
     if(constraintsToRemove.size() != 0 || eventsToRemove.size() != 0)
     {
-        QVector<iscore::SerializableCommand*> commands;
+        MacroCommandDispatcher cleaner(new RemoveMultipleElements,
+                                       m_commandStack,
+                                       nullptr);
 
         // 2. Create a Delete command for each. For now : only emptying.
         for(auto& constraint : constraintsToRemove)
         {
-            commands.push_back(
+            cleaner.submitCommand(
                         new RemoveConstraint(
                             iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                             constraint->abstractConstraintViewModel()->model()));
@@ -308,15 +311,14 @@ void ScenarioCommandManager::deleteSelection()
 
         for(auto& event : eventsToRemove)
         {
-            commands.push_back(
+            cleaner.submitCommand(
                         new RemoveEvent(
                             iscore::IDocument::path(m_presenter->m_viewModel->sharedProcessModel()),
                             event->model()));
         }
 
         // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
-        auto cmd = new RemoveMultipleElements {std::move(commands) };
-        emit m_instantCommandDispatcher->submitCommand(cmd);
+        cleaner.commit();
     }
 }
 
