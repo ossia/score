@@ -161,3 +161,20 @@ class ScenarioModel : public ProcessSharedModelInterface
         id_type<EventModel> m_startEventId {};
         id_type<EventModel> m_endEventId {};
 };
+
+
+template<typename Vector>
+Vector selectedElements(const Vector& in)
+{
+    Vector out;
+    std::copy_if(begin(in),
+                 end(in),
+                 back_inserter(out),
+                 [](typename Vector::value_type c)
+    {
+        return c->selection.get();
+    });
+
+    return out;
+}
+

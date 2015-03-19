@@ -11,21 +11,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-template<typename Vector>
-Vector selectedElements(const Vector& in)
-{
-    Vector out;
-    std::copy_if(begin(in),
-                 end(in),
-                 back_inserter(out),
-                 [](typename Vector::value_type c)
-    {
-        return c->selection.get();
-    });
-
-    return out;
-}
-
 
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path

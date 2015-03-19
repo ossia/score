@@ -1,6 +1,9 @@
 #include "ScenarioControl.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
@@ -17,6 +20,27 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextBlock>
+#include <QJsonDocument>
+#include <QGridLayout>
+#include <QTextEdit>
+#include <QDialogButtonBox>
+class TextDialog : public QDialog
+{
+    public:
+        TextDialog(QString s)
+        {
+            this->setLayout(new QGridLayout);
+            auto textEdit = new QTextEdit;
+            textEdit->setPlainText(s);
+            layout()->addWidget(textEdit);
+            auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
+            layout()->addWidget(buttonBox);
+
+            connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+
+        }
+};
 
 using namespace iscore;
 
@@ -29,6 +53,11 @@ ScenarioControl::ScenarioControl(QObject* parent) :
 
 void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 {
+    auto focusedScenario = [this] () {
+        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        return dynamic_cast<ScenarioModel*>(model.focusedViewModel()->sharedProcessModel());
+    };
+
     // File
 
     // Export in old format
@@ -55,10 +84,9 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     // Edit
     QAction* removeElements = new QAction {tr("Remove scenario elements"), this};
     connect(removeElements, &QAction::triggered,
-            [this] ()
+            [this,focusedScenario] ()
     {
-        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        if(auto sm = dynamic_cast<ScenarioModel*>(model.focusedViewModel()->sharedProcessModel()))
+        if(auto sm = focusedScenario())
         {
             ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
             mgr.deleteSelection(*sm);
@@ -70,10 +98,9 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 
     QAction* clearElements = new QAction {tr("Clear scenario elements"), this};
     connect(clearElements, &QAction::triggered,
-            [this] ()
+            [this,focusedScenario] ()
     {
-        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        if(auto sm = dynamic_cast<ScenarioModel*>(model.focusedViewModel()->sharedProcessModel()))
+        if(auto sm = focusedScenario())
         {
             ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
             mgr.clearContentFromSelection(*sm);
@@ -107,6 +134,46 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
                                        deselectAll);
+
+    QAction* elementsToJson = new QAction {tr("Convert selection to JSON"), this};
+    connect(elementsToJson,	&QAction::triggered,
+            [this,focusedScenario] ()
+    {
+        if(auto sm = focusedScenario())
+        {
+            auto arrayToJson = [] (auto&& selected)
+            {
+                QJsonArray array;
+                if(!selected.empty())
+                {
+                    for(auto& element : selected)
+                    {
+                        Visitor<Reader<JSON>> jr;
+                        jr.readFrom(*element);
+                        array.push_back(jr.m_obj);
+                    }
+                }
+
+                return array;
+            };
+
+
+            QJsonObject base;
+            base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
+            base["Events"] = arrayToJson(selectedElements(sm->events()));
+            base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
+
+
+            QJsonDocument doc; doc.setObject(base);
+            auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
+
+            s->show();
+        }
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
+                                       ViewMenuElement::Windows,
+                                       elementsToJson);
 }
 
 void ScenarioControl::populateToolbars()
