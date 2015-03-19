@@ -45,6 +45,11 @@ class State
             return m_data == s.m_data;
         }
 
+        bool operator!=(const State& s) const
+        {
+            return m_data != s.m_data;
+        }
+
     private:
         QVariant m_data;
 };

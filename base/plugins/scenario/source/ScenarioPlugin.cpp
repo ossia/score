@@ -23,6 +23,7 @@ m_control {new ScenarioControl{nullptr}}
 
     // TODO there should be another way... :'(
     QMetaType::registerComparators<Message>();
+    QMetaType::registerComparators<MessageList>();
     qRegisterMetaTypeStreamOperators<Message>();
     qRegisterMetaTypeStreamOperators<MessageList>();
 }

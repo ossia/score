@@ -25,8 +25,11 @@ struct Message
 
     bool operator==(const Message& m) const
     {
-        return address == m.address &&
-                ((!value.isValid() && !m.value.isValid()) || (value == m.value));
+        return address == m.address && value == m.value;
+    }
+    bool operator!=(const Message& m) const
+    {
+        return address != m.address && value != m.value;
     }
 
     bool operator<(const Message& m) const
@@ -42,6 +45,10 @@ struct Message
 };
 
 using MessageList = QList<Message>;
+inline bool operator<(const MessageList&, const MessageList&)
+{
+    return false;
+}
 
 Q_DECLARE_METATYPE(Message)
 Q_DECLARE_METATYPE(MessageList)

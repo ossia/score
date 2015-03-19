@@ -14,3 +14,6 @@ endFunction()
 # Commands
 addStateTest(SerializationTest
 			  "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
+
+addStateTest(EqualityTest
+			  "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp")
