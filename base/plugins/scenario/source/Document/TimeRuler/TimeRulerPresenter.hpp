@@ -18,7 +18,14 @@ class TimeRulerPresenter : public QObject
 
     public slots:
         void setDuration(TimeValue dur);
+        void setStartPoint(TimeValue dur);
+        void setPixelPerMillis(double factor);
 
     private:
         TimeRulerView* m_view;
+
+        TimeValue m_startPoint {};
+        TimeValue m_duration {};
+
+        double m_pixelPerMillis {0.01};
 };

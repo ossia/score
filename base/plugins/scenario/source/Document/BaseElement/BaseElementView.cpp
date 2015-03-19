@@ -75,3 +75,10 @@ void BaseElementView::update()
 {
     m_scene->update();
 }
+
+void BaseElementView::newLocalTimeRuler()
+{
+    delete m_localTimeRuler;
+    m_localTimeRuler = new TimeRulerView{};
+    m_scene->addItem(m_localTimeRuler);
+}

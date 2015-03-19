@@ -7,13 +7,12 @@
 
 TimeRulerView::TimeRulerView()
 {
-    m_duration.addMSecs(30000);
-    m_width = m_duration.msec() * m_pixelPerMillis;
+
 }
 
 QRectF TimeRulerView::boundingRect() const
 {
-    return QRectF{0, -m_height, m_width + 20, m_height};
+    return QRectF{0, -m_height, m_width * 2, m_height};
 }
 
 void TimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -21,7 +20,6 @@ void TimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setPen(QPen(QBrush(QColor(100, 0, 255)), 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
 
-    double pixPerSec = m_pixelPerMillis * 1000;
     double t = 0;
     int i = 0;
 
@@ -35,7 +33,7 @@ void TimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 //        painter->setPen(QPen(QBrush(QColor(100, 0, 255)), 1, Qt::DashDotDotLine));
 //        painter->drawLine(t, 0, t, 500);
 
-        t += 10 * pixPerSec;
+        t += m_graduationSize;
         i++;
     }
 }
@@ -52,22 +50,10 @@ void TimeRulerView::setWidth(qreal newWidth)
     m_width = newWidth;
 }
 
-void TimeRulerView::setPixelPerMillis(double newFactor)
-{
-    m_pixelPerMillis = newFactor;
-    updateGraduationsSize();
-}
-
-void TimeRulerView::setDuration(TimeValue dur)
-{
-    m_duration = dur;
-    updateGraduationsSize();
-}
-
-void TimeRulerView::updateGraduationsSize()
+void TimeRulerView::setGraduationsSize(double size)
 {
     prepareGeometryChange();
-    m_width = m_duration.msec() * m_pixelPerMillis;
+    m_graduationSize = size;
 }
 
 
