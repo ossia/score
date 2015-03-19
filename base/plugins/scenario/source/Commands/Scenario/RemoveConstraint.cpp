@@ -14,6 +14,12 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveConstraint::RemoveConstraint(const ObjectPath &scenarioPath, ConstraintModel *constraint):
+    RemoveConstraint{ObjectPath{scenarioPath}, constraint}
+{
+
+}
+
 RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint) :
     SerializableCommand{"ScenarioControl",
                         className(),

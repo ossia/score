@@ -16,6 +16,12 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+RemoveEvent::RemoveEvent(const ObjectPath &scenarioPath, EventModel *event):
+    RemoveEvent{ObjectPath{scenarioPath}, event}
+{
+
+}
+
 RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event) :
     SerializableCommand{"ScenarioControl",
                         className(),
