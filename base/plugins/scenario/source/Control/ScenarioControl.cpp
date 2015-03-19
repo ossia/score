@@ -1,26 +1,28 @@
 #include "ScenarioControl.hpp"
+#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/ScenarioGlobalCommandManager.hpp"
 
 #include <iscore/menu/MenuInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/presenter/MenubarManager.hpp>
-#include <QAction>
 
+#include "Control/OldFormatConversion.hpp"
+
+#include <QAction>
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 
-
-#include "Document/BaseElement/BaseElementModel.hpp"
-#include "Document/BaseElement/BaseElementPresenter.hpp"
-#include <core/presenter/Presenter.hpp>
-
-#include "Control/OldFormatConversion.hpp"
 using namespace iscore;
 
 ScenarioControl::ScenarioControl(QObject* parent) :
     PluginControlInterface {"ScenarioControl", parent},
-m_processList {new ProcessList{this}}
+    m_processList {new ProcessList{this}}
 {
 
 }
@@ -50,17 +52,35 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
                                        toZeroTwo);
 
 
-
-    QAction* removeElements = new QAction {tr("Remove selection"), this};
-    connect(removeElements,	&QAction::triggered,
+    // Edit
+    QAction* removeElements = new QAction {tr("Remove scenario elements"), this};
+    connect(removeElements, &QAction::triggered,
             [this] ()
     {
-        auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
-        pres.model()->focusedViewModel();
+        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        if(auto sm = dynamic_cast<ScenarioModel*>(model.focusedViewModel()->sharedProcessModel()))
+        {
+            ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
+            mgr.deleteSelection(*sm);
+        }
     });
-
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        removeElements);
+
+
+    QAction* clearElements = new QAction {tr("Clear scenario elements"), this};
+    connect(clearElements, &QAction::triggered,
+            [this] ()
+    {
+        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        if(auto sm = dynamic_cast<ScenarioModel*>(model.focusedViewModel()->sharedProcessModel()))
+        {
+            ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
+            mgr.clearContentFromSelection(*sm);
+        }
+    });
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       clearElements);
 
     // View
     QAction* selectAll = new QAction {tr("Select all"), this};
