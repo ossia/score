@@ -65,6 +65,12 @@ typename T::model_type* model(T* viewModel)
 }
 
 
+template<typename T>
+typename T::model_type& model(T& viewModel)
+{
+    return static_cast<typename T::model_type&>(*viewModel.sharedProcessModel());
+}
+
 
 /**
  * @brief identifierOfViewModelFromSharedModel

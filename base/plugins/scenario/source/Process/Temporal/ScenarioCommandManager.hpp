@@ -18,7 +18,7 @@ class QPointF;
 class ScenarioCommandManager : public QObject
 {
     public:
-        ScenarioCommandManager(TemporalScenarioPresenter* presenter);
+        ScenarioCommandManager(TemporalScenarioPresenter& presenter);
 
         void setupEventPresenter(EventPresenter* e);
         void setupTimeNodePresenter(TimeNodePresenter* t);
@@ -26,9 +26,6 @@ class ScenarioCommandManager : public QObject
 
         void createConstraint(EventData);
         void on_scenarioReleased(QPointF point, QPointF scenePoint);
-
-        void clearContentFromSelection();
-        void deleteSelection();
 
         // Moving
         void moveEventAndConstraint(EventData data);
@@ -43,7 +40,7 @@ class ScenarioCommandManager : public QObject
     private:
         EventData m_lastData {};
 
-        TemporalScenarioPresenter* m_presenter{};
+        TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
         LockingOngoingCommandDispatcher<MergeStrategy::Undo>* m_creationCommandDispatcher{};

@@ -46,7 +46,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
     m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
     m_view {static_cast<TemporalScenarioView*>(view) },
-    m_cmdManager{new ScenarioCommandManager{this}},
+    m_cmdManager{new ScenarioCommandManager{*this}},
     m_selManager{new ScenarioSelectionManager{this}},
     m_viewInterface{new ScenarioViewInterface{this}},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}

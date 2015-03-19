@@ -24,6 +24,11 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 }
 
 
+iscore::Document* iscore::IDocument::documentFromObject(const QObject& obj)
+{
+    return documentFromObject(&obj);
+}
+
 ObjectPath iscore::IDocument::path(const QObject* obj)
 {
     return ObjectPath::pathBetweenObjects(documentFromObject(obj)->model()->modelDelegate(), obj);
@@ -60,4 +65,10 @@ iscore::PanelModelInterface* iscore::IDocument::panel(const QString& name, const
     });
 
     return (it != end(panels) ? *it : nullptr);
+}
+
+
+ObjectPath iscore::IDocument::path(const QObject &obj)
+{
+    return path(&obj);
 }
