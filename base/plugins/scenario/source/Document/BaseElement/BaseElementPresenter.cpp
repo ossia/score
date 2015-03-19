@@ -54,9 +54,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     setProgressBarTime(std::chrono::milliseconds{0});
 
     m_mainTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
-
     m_localTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
-    m_mainTimeRuler->view()->setY(-30);
 
     setDisplayedConstraint(model()->constraintModel());
 
@@ -168,7 +166,7 @@ void BaseElementPresenter::on_newSelection(Selection sel)
             m_localTimeRuler->setDuration(cstr->defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());
 
-            //m_localTimeRuler->view()->setY(-30);
+            m_localTimeRuler->view()->setDownGraduations();
 
             connect(cstr,               &ConstraintModel::defaultDurationChanged,
                     m_localTimeRuler,   &TimeRulerPresenter::setDuration);

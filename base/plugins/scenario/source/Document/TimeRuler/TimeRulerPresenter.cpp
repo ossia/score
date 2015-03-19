@@ -37,7 +37,9 @@ void TimeRulerPresenter::setPixelPerMillis(double factor)
     if (factor != m_pixelPerMillis)
     {
         m_pixelPerMillis = factor;
-        m_view->setGraduationsSize(factor * 10000); // 10 sec for now
+        m_view->setGraduationsSpacing(factor * 10000); // 10 sec for now
+        m_view->setWidth(m_duration.msec() * m_pixelPerMillis);
+        m_view->setX(m_startPoint.msec() * m_pixelPerMillis);
     }
 }
 

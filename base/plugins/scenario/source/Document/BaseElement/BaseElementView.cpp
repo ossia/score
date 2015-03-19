@@ -35,7 +35,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     timeRulerView->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
     timeRulerView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     timeRulerView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    timeRulerView->setSceneRect(0, -60, 800, 60);
+    timeRulerView->setSceneRect(0, -70, 800, 70);
+    timeRulerView->setMaximumHeight(70);
 
 
     // Transport
