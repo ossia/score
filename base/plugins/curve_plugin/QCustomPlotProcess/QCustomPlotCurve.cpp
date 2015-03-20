@@ -1,6 +1,5 @@
 #include "QCustomPlotCurve.hpp"
 
-#include "qcustomplot/qcustomplot.h"
 #include <QGraphicsProxyWidget>
 #include <QPainter>
 
@@ -104,7 +103,47 @@ class MyPoint : public QGraphicsItem
         QCustomPlotCurve* m_curve{};
 };
 
+class PointsLayer : public QGraphicsItem
+{
+        QRectF m_rect;
+    public:
+        PointsLayer(QCustomPlotCurve* parent):
+            QGraphicsItem{parent}
+        {
+            setRect(parent->boundingRect());
+        }
 
+        // Points in pixel coordinates
+        void setPoints(const QList<QPointF>& points)
+        {
+            m_points = points;
+            update();
+        }
+
+        void setRect(const QRectF& rect)
+        {
+            prepareGeometryChange();
+            m_rect = rect;
+        }
+
+        QRectF boundingRect() const override
+        { return m_rect; }
+
+
+        virtual void paint(QPainter* painter,
+                           const QStyleOptionGraphicsItem* option,
+                           QWidget* widget) override
+        {
+            painter->setPen(Qt::red);
+            painter->setBrush(Qt::white);
+
+            for(auto pt : m_points)
+                painter->drawEllipse(pt, 5, 5);
+        }
+
+    private:
+        QList<QPointF> m_points;
+};
 
 
 static const QPointF invalid_point{-1, -1};
@@ -112,9 +151,10 @@ static const QPointF invalid_point{-1, -1};
 QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
     QGraphicsObject{parent}
 {
+    // QCustomPlot
     auto widg = new QGraphicsProxyWidget{this};
     widg->setPos(0, 0);
-    widg->setZValue(2);
+    widg->setZValue(1);
 
     m_plot = new QCustomPlot;
 
@@ -129,15 +169,22 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
             this,   &QCustomPlotCurve::on_mousePressEvent);
 
     widg->setWidget(m_plot);
+
+    // The static points
+    m_points = new PointsLayer{this};
+    m_points->setPos(0,0);
 }
 
 void QCustomPlotCurve::setPoints(QList<QPointF> list)
 {
+    // QCustomPlot
     QVector<double> x, y;
-    for(auto pt : list)
+
+    for(const auto& pt : list)
     {
         x.push_back(pt.x());
         y.push_back(1. - pt.y());
+
     }
 
     m_plot->removeGraph(0);
@@ -145,7 +192,6 @@ void QCustomPlotCurve::setPoints(QList<QPointF> list)
     graph->setData(x, y);
     graph->setPen(QPen(QColor(200, 30, 0), 3));
     graph->setLineStyle(QCPGraph::lsLine);
-    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
 
     m_plot->xAxis->setAutoTicks(false);
     m_plot->yAxis->setAutoTicks(false);
@@ -154,12 +200,18 @@ void QCustomPlotCurve::setPoints(QList<QPointF> list)
 
     m_plot->replot();
 
+    // The static points
+    m_points->setPoints(pointsToPixels(*m_plot->graph()->data()));
+
+    // Cleanup
     if(m_fakePoint)
     {
         removeFakePoint();
     }
 
     m_backedUpPoint = invalid_point;
+
+    update();
 }
 
 void QCustomPlotCurve::setSize(const QSizeF& size)
@@ -173,7 +225,20 @@ void QCustomPlotCurve::setSize(const QSizeF& size)
     m_plot->setMinimumSize(m_size.toSize());
     m_plot->setMaximumSize(m_size.toSize());
 
+    if(m_plot && m_plot->graph())
+        m_points->setPoints(pointsToPixels(*m_plot->graph()->data()));
+
     update();
+}
+
+QList<QPointF> QCustomPlotCurve::pointsToPixels(const QCPDataMap& data)
+{
+    QList<QPointF> mappedPoints;
+    for(const auto& pt : data.values())
+        mappedPoints.push_back({m_plot->xAxis->coordToPixel(pt.key),
+                                m_plot->yAxis->coordToPixel(pt.value)});
+
+    return mappedPoints;
 }
 
 QDebug& operator<<(QDebug& d, const QCPData& data)
@@ -211,6 +276,8 @@ void QCustomPlotCurve::setCurrentPointPos(QPointF point)
     m_plot->replot();
 
     m_fakePoint->previousPoint = newPt;
+
+    m_points->setPoints(pointsToPixels(*m_plot->graph()->data()));
     update();
 }
 
@@ -224,7 +291,7 @@ void QCustomPlotCurve::removeFakePoint()
 void QCustomPlotCurve::pointMoved(QPointF pt)
 {
     QPointF newPt{m_plot->xAxis->pixelToCoord(pt.x()),
-                  m_plot->yAxis->pixelToCoord(pt.y())};
+                m_plot->yAxis->pixelToCoord(pt.y())};
 
     emit pointMovingFinished(m_fakePoint->originalPoint.x(),
                              newPt.x(),
@@ -237,7 +304,7 @@ void QCustomPlotCurve::on_mousePressEvent(QMouseEvent* event)
     if(qApp->keyboardModifiers() == Qt::ControlModifier)
     {
         QPointF newPt{m_plot->xAxis->pixelToCoord(event->pos().x()),
-                      1. - m_plot->yAxis->pixelToCoord(event->pos().y())};
+                    1. - m_plot->yAxis->pixelToCoord(event->pos().y())};
         emit pointCreated(newPt);
     }
 }
@@ -281,3 +348,5 @@ QPointF QCustomPlotCurve::pointUnderMouse(QMouseEvent* event)
 
     return (ptIt == end(dl)) ? QPointF{-1., -1.} : QPointF{ptIt->key, ptIt->value};
 }
+
+

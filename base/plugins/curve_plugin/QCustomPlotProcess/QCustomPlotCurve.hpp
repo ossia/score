@@ -1,9 +1,10 @@
 #pragma once
 #include <QGraphicsObject>
+#include "qcustomplot/qcustomplot.h"
 
 class QCustomPlot;
 class QMouseEvent;
-
+class PointsLayer;
 class MyPoint;
 class QCustomPlotCurve : public QGraphicsObject
 {
@@ -15,6 +16,8 @@ class QCustomPlotCurve : public QGraphicsObject
         void setPoints(QList<QPointF> list);
         void setSize(const QSizeF& size);
 
+
+        QList<QPointF> pointsToPixels(const QCPDataMap& data);
         QRectF boundingRect() const
         {
             return {0, 0, m_size.width(), m_size.height()};
@@ -40,6 +43,7 @@ class QCustomPlotCurve : public QGraphicsObject
 
 
         QCustomPlot* m_plot{};
+        PointsLayer* m_points{};
         MyPoint* m_fakePoint{};
 
         QSizeF m_size;
