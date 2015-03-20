@@ -5,6 +5,11 @@
 #include <QPainter>
 
 
+double clamp(double val, double min, double max)
+{
+    return val < min ? min : (val > max ? max : val);
+}
+
 class MyPoint : public QGraphicsItem
 {
     public:
@@ -26,67 +31,10 @@ class MyPoint : public QGraphicsItem
             setFlag(ItemSendsGeometryChanges);
         }
 
-        virtual void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget) override
+        QPointF clampPoint(const QPointF& point)
         {
-            painter->setPen(Qt::blue);
-            painter->setBrush(Qt::green);
-            painter->drawEllipse(m_pointPos, 5, 5);
-
-            painter->setPen(QColor(255, 80, 80));
-            painter->setBrush(QColor(255, 200, 200));
-            painter->drawEllipse(m_pointPos, 3, 3);
-        }
-
-        QRectF boundingRect() const override
-        {
-            return m_rect;
-        }
-
-    protected:
-        double clamp(double val, double min, double max)
-        {
-            return val < min ? min : (val > max ? max : val);
-        }
-
-        QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
-        {
-            if (change == ItemPositionChange)
-            {
-                auto newPt = value.toPointF();
-
-                qDebug() << newPt;
-                // We have to clamp the point :
-                // For each point :
-                //  - In height (< 0; > 1)
-                //  - In width (< 0; > 1)
-                // For the first / last points :
-                //  - x == 0 or x == 1;
-
-                auto newX = clamp(newPt.x(), 0.0, m_curve->m_plot->xAxis->coordToPixel(1.0));
-                if(originalPoint.x() == 0. || originalPoint.x() == 1.)
-                {
-                    newX = originalPoint.x() * m_curve->m_plot->xAxis->coordToPixel(1.0);
-                }
-
-                auto newY = clamp(newPt.y(), 0.0, m_curve->m_plot->xAxis->coordToPixel(1.0));
-
-                return QPointF(newX,
-                               newY);
-            }
-            return QGraphicsItem::itemChange(change, value);
-        }
-
-        void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-        {
-            event->accept();
-        }
-
-        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-        {
-            QPointF movedPointInCoord = { m_curve->m_plot->xAxis->pixelToCoord(event->pos().x()),
-                                          m_curve->m_plot->yAxis->pixelToCoord(event->pos().y())};
+            QPointF movedPointInCoord = { m_curve->m_plot->xAxis->pixelToCoord(point.x()),
+                                          m_curve->m_plot->yAxis->pixelToCoord(point.y())};
 
             auto newX = clamp(movedPointInCoord.x(), 0.0, 1.0);
             if(originalPoint.x() == 0. || originalPoint.x() == 1.)
@@ -95,18 +43,44 @@ class MyPoint : public QGraphicsItem
             }
             auto newY = clamp(movedPointInCoord.y(), 0.0, 1.0);
 
-            QPointF movedPointInPixelsAfterClamp =
-            { m_curve->m_plot->xAxis->coordToPixel(newX),
-              m_curve->m_plot->yAxis->coordToPixel(newY)};
+            return QPointF{m_curve->m_plot->xAxis->coordToPixel(newX),
+                        m_curve->m_plot->yAxis->coordToPixel(newY)};
+        }
 
-            m_pointPos = movedPointInPixelsAfterClamp;
-            m_curve->setCurrentPointPos(movedPointInPixelsAfterClamp);
+        virtual void paint(QPainter* painter,
+                           const QStyleOptionGraphicsItem* option,
+                           QWidget* widget) override
+        {
+            painter->setPen(Qt::blue);
+            painter->setBrush(Qt::green);
+            painter->drawEllipse(m_pointPos, 7, 7);
+
+            painter->setPen(QColor(255, 80, 80));
+            painter->setBrush(QColor(255, 200, 200));
+            painter->drawEllipse(m_pointPos, 5, 5);
+        }
+
+        QRectF boundingRect() const override
+        {
+            return m_rect;
+        }
+
+    protected:
+        void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+        {
+            event->accept();
+        }
+
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+        {
+            m_pointPos = clampPoint(event->pos());
+            m_curve->setCurrentPointPos(m_pointPos);
             update();
         }
 
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
         {
-            m_curve->pointMoved(event->pos());
+            m_curve->pointMoved(clampPoint(event->pos()));
         }
 
         void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override
@@ -115,10 +89,10 @@ class MyPoint : public QGraphicsItem
             double x = event->pos().x();
             double y = event->pos().y();
 
-            if(!((x <= m_pointPos.x() + 5)
-                 && (x >= m_pointPos.x() - 5)
-                 && (y <= m_pointPos.y() + 5)
-                 && (y >= m_pointPos.y() - 5)))
+            if(!((x <= m_pointPos.x() + 7)
+                 && (x >= m_pointPos.x() - 7)
+                 && (y <= m_pointPos.y() + 7)
+                 && (y >= m_pointPos.y() - 7)))
             {
                 m_curve->removeFakePoint();
             }
@@ -184,6 +158,8 @@ void QCustomPlotCurve::setPoints(QList<QPointF> list)
     {
         removeFakePoint();
     }
+
+    m_backedUpPoint = invalid_point;
 }
 
 void QCustomPlotCurve::setSize(const QSizeF& size)
@@ -213,6 +189,24 @@ void QCustomPlotCurve::setCurrentPointPos(QPointF point)
                 m_plot->yAxis->pixelToCoord(point.y())};
 
     m_plot->graph()->removeData(oldPt.x());
+    // Restore the previously backed up point ?
+    if(m_backedUpPoint != invalid_point)
+    {
+        m_plot->graph()->addData(m_backedUpPoint.x(), m_backedUpPoint.y());
+        m_backedUpPoint = invalid_point;
+    }
+
+    // If there is already a point where we move, we have to back it up;
+    auto existingVal = m_plot->graph()->data()->value(newPt.x(), QCPData{-1, -1});
+    if(existingVal.key != -1)
+    {
+        m_backedUpPoint = {existingVal.key, existingVal.value};
+    }
+    else
+    {
+        m_backedUpPoint = invalid_point;
+    }
+    m_plot->graph()->removeData(newPt.x());
     m_plot->graph()->addData(newPt.x(), newPt.y());
     m_plot->replot();
 
@@ -230,7 +224,7 @@ void QCustomPlotCurve::removeFakePoint()
 void QCustomPlotCurve::pointMoved(QPointF pt)
 {
     QPointF newPt{m_plot->xAxis->pixelToCoord(pt.x()),
-                m_plot->yAxis->pixelToCoord(pt.y())};
+                  m_plot->yAxis->pixelToCoord(pt.y())};
 
     emit pointMovingFinished(m_fakePoint->originalPoint.x(),
                              newPt.x(),
@@ -240,11 +234,10 @@ void QCustomPlotCurve::pointMoved(QPointF pt)
 #include <QApplication>
 void QCustomPlotCurve::on_mousePressEvent(QMouseEvent* event)
 {
-    qDebug() << Q_FUNC_INFO;
     if(qApp->keyboardModifiers() == Qt::ControlModifier)
     {
         QPointF newPt{m_plot->xAxis->pixelToCoord(event->pos().x()),
-                    1. - m_plot->yAxis->pixelToCoord(event->pos().y())};
+                      1. - m_plot->yAxis->pixelToCoord(event->pos().y())};
         emit pointCreated(newPt);
     }
 }
@@ -274,8 +267,8 @@ QPointF QCustomPlotCurve::pointUnderMouse(QMouseEvent* event)
 
     QList<QCPData> dl = m_plot->graph()->data()->values();
 
-    double Xoffset = m_plot->xAxis->pixelToCoord(5); // TODO pen size
-    double Yoffset = 1. - m_plot->yAxis->pixelToCoord(5);
+    double Xoffset = m_plot->xAxis->pixelToCoord(7.); // TODO pen size
+    double Yoffset = 1. - m_plot->yAxis->pixelToCoord(7.);
 
     auto ptIt = find_if(begin(dl), end(dl),
                         [&] (const QCPData& val)

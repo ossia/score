@@ -43,4 +43,5 @@ class QCustomPlotCurve : public QGraphicsObject
         MyPoint* m_fakePoint{};
 
         QSizeF m_size;
+        QPointF m_backedUpPoint{-1, -1};
 };
