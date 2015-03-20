@@ -1,6 +1,6 @@
 #include "QCustomPlotCurve.hpp"
 
-#include <qcustomplot.h>
+#include "qcustomplot/qcustomplot.h"
 #include <QGraphicsProxyWidget>
 #include <QPainter>
 
