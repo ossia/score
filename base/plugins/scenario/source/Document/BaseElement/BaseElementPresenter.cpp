@@ -79,7 +79,7 @@ void BaseElementPresenter::deselectAll()
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
-    || path.vec().last().objectName() == "BaseConstraintModel")
+            || path.vec().last().objectName() == "BaseConstraintModel")
     {
         setDisplayedConstraint(path.find<ConstraintModel>());
     }
@@ -102,14 +102,15 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     delete m_displayedConstraintPresenter;
     m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-                                cstrView,
-                                this};
+                                     cstrView,
+                                     this};
 
-    //m_displayedConstraintPresenter->on_zoomRatioChanged(m_horizontalZoomValue);
+    // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
+    on_zoomSliderChanged(0);
     on_askUpdate();
 
     connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
-            this,						&BaseElementPresenter::on_askUpdate);
+            this,					        &BaseElementPresenter::on_askUpdate);
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () { updateRect({0,
                                        0,
@@ -117,9 +118,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                        height()});} );
 
     model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
+
     // Update the address bar
     view()->addressBar()
-          ->setTargetObject(IDocument::path(displayedConstraint()));
+            ->setTargetObject(IDocument::path(displayedConstraint()));
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -134,7 +136,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     // Default: 0.03 pixels per ms
     // Max: enough so that the whole base constraint fills the screen
 
-    // mapZoom maps a value between 0 and 1 to the correctzoom.
+    // mapZoom maps a value between 0 and 1 to the correct zoom.
     auto mapZoom = [] (double val, double min, double max)
     { return (max - min) * val + min; };
 
@@ -142,22 +144,19 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     // is displayed on screen;
     auto computedMax = [&] ()
     {
-        // Durée d'une base contrainte : X s.
         // On veut que cette fonction retourne le facteur de
-        // m_millisecondsPerPixel nécessaire pour que X s tienne à l'écran.
+        // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
         double viewWidth = view()->view()->width();
-        double duration =  model()->constraintModel()->defaultDuration().msec();
+        double duration =  m_displayedConstraint->defaultDuration().msec();
 
         return 5 + duration / viewWidth;
     };
 
     m_millisecondsPerPixel = mapZoom(1.0 - newzoom, 1./90., computedMax());
 
-    // Maybe translate
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
-#include <QDesktopWidget>
 void BaseElementPresenter::on_viewSizeChanged(QSize s)
 {
     m_progressBar->setHeight(s.height());

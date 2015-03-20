@@ -15,8 +15,12 @@ void AddressBar::setTargetObject(ObjectPath&& path)
 
     while((child = m_layout->takeAt(0)) != 0)
     {
-        child->widget()->deleteLater();
-        delete child;
+        if(child)
+        {
+            if(child->widget())
+                child->widget()->deleteLater();
+            delete child;
+        }
     }
 
     m_currentPath = path;
