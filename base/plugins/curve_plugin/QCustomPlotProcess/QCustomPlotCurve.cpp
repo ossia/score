@@ -2,7 +2,8 @@
 
 #include <QGraphicsProxyWidget>
 #include <QPainter>
-
+static const QColor outerColor{200, 30, 0};
+static const QColor innerColor{255, 200, 200};
 
 double clamp(double val, double min, double max)
 {
@@ -54,8 +55,8 @@ class MyPoint : public QGraphicsItem
             painter->setBrush(Qt::green);
             painter->drawEllipse(m_pointPos, 7, 7);
 
-            painter->setPen(QColor(255, 80, 80));
-            painter->setBrush(QColor(255, 200, 200));
+            painter->setPen(outerColor);
+            painter->setBrush(innerColor);
             painter->drawEllipse(m_pointPos, 5, 5);
         }
 
@@ -134,8 +135,8 @@ class PointsLayer : public QGraphicsItem
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override
         {
-            painter->setPen(Qt::red);
-            painter->setBrush(Qt::white);
+            painter->setPen(outerColor);
+            painter->setBrush(outerColor);
 
             for(auto pt : m_points)
                 painter->drawEllipse(pt, 5, 5);
@@ -173,6 +174,7 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
     // The static points
     m_points = new PointsLayer{this};
     m_points->setPos(0,0);
+    m_points->setZValue(2);
 }
 
 void QCustomPlotCurve::setPoints(QList<QPointF> list)
@@ -190,7 +192,7 @@ void QCustomPlotCurve::setPoints(QList<QPointF> list)
     m_plot->removeGraph(0);
     auto graph = m_plot->addGraph();
     graph->setData(x, y);
-    graph->setPen(QPen(QColor(200, 30, 0), 3));
+    graph->setPen(QPen(outerColor, 3));
     graph->setLineStyle(QCPGraph::lsLine);
 
     m_plot->xAxis->setAutoTicks(false);
