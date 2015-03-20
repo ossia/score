@@ -3,9 +3,18 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationView.hpp"
 
+
+#include "../Commands/AddPoint.hpp"
+#include "../Commands/MovePoint.hpp"
+#include "../Commands/RemovePoint.hpp"
+
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <QGraphicsSceneMouseEvent>
+
+#include "QCustomPlotProcess/QCustomPlotCurve.hpp"
+
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                          ProcessViewInterface* view,
@@ -13,23 +22,39 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     ProcessPresenterInterface {"AutomationPresenter", parent},
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
+    m_curve{new QCustomPlotCurve{m_view}},
     m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
+
+    connect(m_curve, &QCustomPlotCurve::pointMovingFinished,
+            [&](double oldx, double newx, double newy)
+    {
+        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel->model()),
+                                 oldx,
+                                 newx,
+                                 1.0 - newy};
+
+        m_commandDispatcher->submitCommand(cmd);
+    });
+
+    parentGeometryChanged();
     on_modelPointsChanged();
 }
 
 void AutomationPresenter::setWidth(int width)
 {
     m_view->setWidth(width);
+    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
+    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::putToFront()
@@ -46,11 +71,13 @@ void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
     on_modelPointsChanged();
+
+    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::parentGeometryChanged()
 {
-    on_modelPointsChanged();
+    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 id_type<ProcessViewModelInterface> AutomationPresenter::viewModelId() const
@@ -62,11 +89,6 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 {
     return m_viewModel->model()->id();
 }
-#include "../AltProcess/Curve.hpp"
-
-#include "../Commands/AddPoint.hpp"
-#include "../Commands/MovePoint.hpp"
-#include "../Commands/RemovePoint.hpp"
 
 #include <ProcessInterface/ZoomHelper.hpp>
 
@@ -84,14 +106,11 @@ QList<QPointF> mapToList(QMap<double, double> map)
 
 void AutomationPresenter::on_modelPointsChanged()
 {
-    if(m_curve)
-    {
-        m_view->scene()->removeItem(m_curve);
-        m_curve->deleteLater();
-    }
+    m_curve->setPoints(mapToList(m_viewModel->model()->points()));
+    parentGeometryChanged();
 
-    auto list = mapToList(m_viewModel->model()->points());
-    m_curve = new Curve{list, m_view};
+
+    /*m_curve = new Curve{list, m_view};
     m_curve->setPos(0, 0);
     m_curve->setZValue(15);
     m_curve->setSize({m_view->width(), m_view->height()});
@@ -125,5 +144,6 @@ void AutomationPresenter::on_modelPointsChanged()
     {
         m_focusDispatcher.focus(m_viewModel);
     });
+    */
 }
 

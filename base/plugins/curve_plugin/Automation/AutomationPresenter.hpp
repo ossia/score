@@ -2,7 +2,8 @@
 #include <ProcessInterface/ProcessPresenterInterface.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 
-class Curve;
+class QCustomPlotCurve;
+class QCPGraph;
 class ProcessViewInterface;
 class AutomationViewModel;
 class AutomationView;
@@ -33,9 +34,10 @@ class AutomationPresenter : public ProcessPresenterInterface
         AutomationViewModel* m_viewModel {};
         AutomationView* m_view {};
 
-        Curve* m_curve{};
+        QCustomPlotCurve* m_curve{};
+
         ICommandDispatcher* m_commandDispatcher{};
+        FocusDispatcher m_focusDispatcher;
 
         ZoomRatio m_zoomRatio {};
-        FocusDispatcher m_focusDispatcher;
 };

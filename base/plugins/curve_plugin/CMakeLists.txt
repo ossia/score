@@ -7,7 +7,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets PrintSupport)
+find_package(QCustomPlot)
 
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
@@ -18,8 +19,9 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
-					 Qt5::Core Qt5::Widgets
-					 iscore_lib InspectorLibrary DeviceExplorerLibrary ProcessLibrary)
+					 Qt5::Core Qt5::Widgets Qt5::PrintSupport
+					 iscore_lib InspectorLibrary DeviceExplorerLibrary ProcessLibrary
+					 qcustomplot)
 
 
 install(TARGETS ${PROJECT_NAME}

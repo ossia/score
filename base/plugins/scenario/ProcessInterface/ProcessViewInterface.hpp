@@ -11,26 +11,26 @@ class ProcessViewInterface : public QGraphicsObject
             return {0, 0, m_width, m_height};
         }
 
-        void setHeight(int height)
+        void setHeight(qreal height)
         {
             prepareGeometryChange();
-            m_height = qreal(height);
+            m_height = height;
         }
 
-        int height() const
+        qreal height() const
         {
-            return int (m_height);
+            return m_height;
         }
 
-        void setWidth(int width)
+        void setWidth(qreal width)
         {
             prepareGeometryChange();
-            m_width = qreal(width);
+            m_width = width;
         }
 
-        int width() const
+        qreal width() const
         {
-            return int (m_width);
+            return m_width;
         }
 
     private:
