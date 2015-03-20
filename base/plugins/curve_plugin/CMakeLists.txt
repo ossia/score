@@ -9,10 +9,15 @@ set(CMAKE_AUTOUIC ON)
 # Packages
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets PrintSupport)
 find_package(QCustomPlot)
+if(NOT ${QCustomPlot_FOUND})
+	message("Curve plugin requires QCustomPlot")
+	return()
+endif()
 
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
+include_directories("${QCustomPlot_INCLUDE_DIR}")
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
@@ -21,7 +26,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
 					 Qt5::Core Qt5::Widgets Qt5::PrintSupport
 					 iscore_lib InspectorLibrary DeviceExplorerLibrary ProcessLibrary
-					 qcustomplot)
+					 ${QCustomPlot_LIBRARIES})
 
 
 install(TARGETS ${PROJECT_NAME}
