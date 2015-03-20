@@ -8,12 +8,12 @@ class MyPoint;
 class QCustomPlotCurve : public QGraphicsObject
 {
         Q_OBJECT
+        friend class MyPoint;
     public:
         QCustomPlotCurve(QGraphicsItem* parent);
 
         void setPoints(QList<QPointF> list);
         void setSize(const QSizeF& size);
-
 
         QRectF boundingRect() const
         {
@@ -24,17 +24,20 @@ class QCustomPlotCurve : public QGraphicsObject
         {
         }
 
+    signals:
+        void pointMovingFinished(double oldx, double newx, double newy);
+        void pointCreated(QPointF pt);
+
+    private:
+        QPointF pointUnderMouse(QMouseEvent*);
+        void on_mouseMoveEvent(QMouseEvent*);
+        void on_mousePressEvent(QMouseEvent*);
+
+        // From MyPoint
         void setCurrentPointPos(QPointF);
         void removeFakePoint();
         void pointMoved(QPointF);
 
-    signals:
-        void pointMovingFinished(double oldx, double newx, double newy);
-
-    private:
-        void on_mouseMoveEvent(QMouseEvent*);
-
-        QPointF pointUnderMouse(QMouseEvent*);
 
         QCustomPlot* m_plot{};
         MyPoint* m_fakePoint{};

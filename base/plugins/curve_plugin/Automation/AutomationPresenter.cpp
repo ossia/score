@@ -14,6 +14,8 @@
 #include <QGraphicsSceneMouseEvent>
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
+#include <ProcessInterface/ZoomHelper.hpp>
+#include <QGraphicsScene>
 
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
@@ -37,6 +39,16 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                  oldx,
                                  newx,
                                  1.0 - newy};
+
+        m_commandDispatcher->submitCommand(cmd);
+    });
+
+    connect(m_curve, &QCustomPlotCurve::pointCreated,
+            [&](QPointF pt)
+    {
+        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel->model()),
+                   pt.x(),
+                   1.0 - pt.y()};
 
         m_commandDispatcher->submitCommand(cmd);
     });
@@ -90,9 +102,6 @@ id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
     return m_viewModel->model()->id();
 }
 
-#include <ProcessInterface/ZoomHelper.hpp>
-
-#include <QGraphicsScene>
 QList<QPointF> mapToList(QMap<double, double> map)
 {
     QList<QPointF> list;
@@ -110,33 +119,10 @@ void AutomationPresenter::on_modelPointsChanged()
     parentGeometryChanged();
 
 
-    /*m_curve = new Curve{list, m_view};
-    m_curve->setPos(0, 0);
-    m_curve->setZValue(15);
-    m_curve->setSize({m_view->width(), m_view->height()});
+    /*
 
 
-    connect(m_curve, &Curve::pointMovingFinished,
-            [&](double oldx, double newx, double newy)
-    {
-        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel->model()),
-                                 oldx,
-                                 newx,
-                                 1.0 - newy};
 
-        m_commandDispatcher->submitCommand(cmd);
-    });
-
-
-    connect(m_curve, &Curve::pointCreated,
-            [&](QPointF pt)
-    {
-        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel->model()),
-                   pt.x(),
-                   1.0 - pt.y()};
-
-        m_commandDispatcher->submitCommand(cmd);
-    });
 
 
     connect(m_curve, &Curve::mousePressed,

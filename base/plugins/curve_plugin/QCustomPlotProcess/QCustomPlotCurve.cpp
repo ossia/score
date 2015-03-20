@@ -45,6 +45,39 @@ class MyPoint : public QGraphicsItem
         }
 
     protected:
+        double clamp(double val, double min, double max)
+        {
+            return val < min ? min : (val > max ? max : val);
+        }
+
+        QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+        {
+            if (change == ItemPositionChange)
+            {
+                auto newPt = value.toPointF();
+
+                qDebug() << newPt;
+                // We have to clamp the point :
+                // For each point :
+                //  - In height (< 0; > 1)
+                //  - In width (< 0; > 1)
+                // For the first / last points :
+                //  - x == 0 or x == 1;
+
+                auto newX = clamp(newPt.x(), 0.0, m_curve->m_plot->xAxis->coordToPixel(1.0));
+                if(originalPoint.x() == 0. || originalPoint.x() == 1.)
+                {
+                    newX = originalPoint.x() * m_curve->m_plot->xAxis->coordToPixel(1.0);
+                }
+
+                auto newY = clamp(newPt.y(), 0.0, m_curve->m_plot->xAxis->coordToPixel(1.0));
+
+                return QPointF(newX,
+                               newY);
+            }
+            return QGraphicsItem::itemChange(change, value);
+        }
+
         void mousePressEvent(QGraphicsSceneMouseEvent* event) override
         {
             event->accept();
@@ -52,8 +85,22 @@ class MyPoint : public QGraphicsItem
 
         void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
         {
-            m_pointPos = event->pos();
-            m_curve->setCurrentPointPos(m_pointPos);
+            QPointF movedPointInCoord = { m_curve->m_plot->xAxis->pixelToCoord(event->pos().x()),
+                                          m_curve->m_plot->yAxis->pixelToCoord(event->pos().y())};
+
+            auto newX = clamp(movedPointInCoord.x(), 0.0, 1.0);
+            if(originalPoint.x() == 0. || originalPoint.x() == 1.)
+            {
+                newX = originalPoint.x();
+            }
+            auto newY = clamp(movedPointInCoord.y(), 0.0, 1.0);
+
+            QPointF movedPointInPixelsAfterClamp =
+            { m_curve->m_plot->xAxis->coordToPixel(newX),
+              m_curve->m_plot->yAxis->coordToPixel(newY)};
+
+            m_pointPos = movedPointInPixelsAfterClamp;
+            m_curve->setCurrentPointPos(movedPointInPixelsAfterClamp);
             update();
         }
 
@@ -69,9 +116,9 @@ class MyPoint : public QGraphicsItem
             double y = event->pos().y();
 
             if(!((x <= m_pointPos.x() + 5)
-            && (x >= m_pointPos.x() - 5)
-            && (y <= m_pointPos.y() + 5)
-            && (y >= m_pointPos.y() - 5)))
+                 && (x >= m_pointPos.x() - 5)
+                 && (y <= m_pointPos.y() + 5)
+                 && (y >= m_pointPos.y() - 5)))
             {
                 m_curve->removeFakePoint();
             }
@@ -104,6 +151,8 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
 
     connect(m_plot, &QCustomPlot::mouseMove,
             this,   &QCustomPlotCurve::on_mouseMoveEvent);
+    connect(m_plot, &QCustomPlot::mousePress,
+            this,   &QCustomPlotCurve::on_mousePressEvent);
 
     widg->setWidget(m_plot);
 }
@@ -159,9 +208,9 @@ QDebug& operator<<(QDebug& d, const QCPData& data)
 void QCustomPlotCurve::setCurrentPointPos(QPointF point)
 {
     QPointF oldPt{m_fakePoint->previousPoint.x(),
-                  m_fakePoint->previousPoint.y()};
+                m_fakePoint->previousPoint.y()};
     QPointF newPt{m_plot->xAxis->pixelToCoord(point.x()),
-                  m_plot->yAxis->pixelToCoord(point.y())};
+                m_plot->yAxis->pixelToCoord(point.y())};
 
     m_plot->graph()->removeData(oldPt.x());
     m_plot->graph()->addData(newPt.x(), newPt.y());
@@ -181,11 +230,23 @@ void QCustomPlotCurve::removeFakePoint()
 void QCustomPlotCurve::pointMoved(QPointF pt)
 {
     QPointF newPt{m_plot->xAxis->pixelToCoord(pt.x()),
-                  m_plot->yAxis->pixelToCoord(pt.y())};
+                m_plot->yAxis->pixelToCoord(pt.y())};
 
     emit pointMovingFinished(m_fakePoint->originalPoint.x(),
                              newPt.x(),
                              1. - newPt.y());
+}
+
+#include <QApplication>
+void QCustomPlotCurve::on_mousePressEvent(QMouseEvent* event)
+{
+    qDebug() << Q_FUNC_INFO;
+    if(qApp->keyboardModifiers() == Qt::ControlModifier)
+    {
+        QPointF newPt{m_plot->xAxis->pixelToCoord(event->pos().x()),
+                    1. - m_plot->yAxis->pixelToCoord(event->pos().y())};
+        emit pointCreated(newPt);
+    }
 }
 
 void QCustomPlotCurve::on_mouseMoveEvent(QMouseEvent* event)
@@ -199,7 +260,7 @@ void QCustomPlotCurve::on_mouseMoveEvent(QMouseEvent* event)
     if(point != invalid_point)
     {
         QPointF pixelPt{m_plot->xAxis->coordToPixel(point.x()),
-                        m_plot->yAxis->coordToPixel(point.y())};
+                    m_plot->yAxis->coordToPixel(point.y())};
 
         m_fakePoint = new MyPoint(point, pixelPt, this);
     }
