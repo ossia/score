@@ -134,14 +134,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
 
     // Update the address bar
-    view()->addressBar()
-<<<<<<< HEAD
-            ->setTargetObject(IDocument::path(displayedConstraint()));
-=======
-          ->setTargetObject(IDocument::path(displayedConstraint()));
+    view()->addressBar()->setTargetObject(IDocument::path(displayedConstraint()));
 
     m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
->>>>>>> feature/TimeRuler
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
