@@ -193,11 +193,12 @@ TimeValue ConstraintModel::startDate() const
 void ConstraintModel::setStartDate(TimeValue start)
 {
     m_x = start;
+    emit startDateChanged(start);
 }
 
 void ConstraintModel::translate(TimeValue deltaTime)
 {
-    m_x = m_x + deltaTime;
+    setStartDate(m_x + deltaTime);
 }
 
 // Simple getters and setters

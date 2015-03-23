@@ -15,7 +15,9 @@ namespace iscore
 
             void send(const Selection&);
 
-        private:
+            iscore::SelectionStack &stack() const;
+
+    private:
             iscore::SelectionStack& m_stack;
     };
 }

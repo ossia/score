@@ -8,6 +8,8 @@ class QGraphicsView;
 class TemporalConstraintView;
 class AddressBar;
 class DoubleSlider;
+class TimeRulerView;
+class LocalTimeRulerView;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -46,6 +48,16 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
             return m_zoomSlider;
         }
 
+        TimeRulerView* timeRuler()
+        {
+            return m_timeRuler;
+        }
+        LocalTimeRulerView* localTimeRuler()
+        {
+            return m_localTimeRuler;
+        }
+        void newLocalTimeRuler();
+
     signals:
         void horizontalZoomChanged(double newZoom);
         void verticalZoomChanged(int newZoom);
@@ -57,6 +69,8 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsObject* m_baseObject {};
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
+        TimeRulerView* m_timeRuler {};
+        LocalTimeRulerView* m_localTimeRuler {};
 
         DoubleSlider* m_zoomSlider {};
 };

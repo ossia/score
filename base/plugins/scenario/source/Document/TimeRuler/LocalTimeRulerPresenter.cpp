@@ -1,0 +1,25 @@
+#include "LocalTimeRulerPresenter.hpp"
+
+LocalTimeRulerPresenter::LocalTimeRulerPresenter(LocalTimeRulerView *view, QObject *parent) :
+    AbstractTimeRuler{view, parent}
+{
+
+}
+
+LocalTimeRulerPresenter::LocalTimeRulerPresenter(LocalTimeRulerView *view,
+                                                 TimeValue startDate,
+                                                 TimeValue duration,
+                                                 double pixPerMillis,
+                                                 QObject *parent) :
+    LocalTimeRulerPresenter{view, parent}
+{
+    m_startPoint = startDate;
+    m_duration = duration;
+    m_pixelPerMillis = pixPerMillis;
+}
+
+LocalTimeRulerPresenter::~LocalTimeRulerPresenter()
+{
+
+}
+

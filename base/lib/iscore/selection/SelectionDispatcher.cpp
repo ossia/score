@@ -7,3 +7,7 @@ void SelectionDispatcher::send(const Selection& s)
 {
     m_stack.push(s);
 }
+iscore::SelectionStack &SelectionDispatcher::stack() const
+{
+    return m_stack;
+}

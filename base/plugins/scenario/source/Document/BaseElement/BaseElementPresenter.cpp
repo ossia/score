@@ -7,6 +7,10 @@
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
+#include "Document/TimeRuler/TimeRulerPresenter.hpp"
+#include "Document/TimeRuler/TimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRulerPresenter.hpp"
+#include "Document/TimeRuler/LocalTimeRulerView.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
@@ -31,8 +35,14 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_model,
                                         delegate_view},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
-    m_progressBar{new ProgressBar}
+    m_progressBar{new ProgressBar},
+    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this} },
+    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this} }
 {
+
+    connect(&(m_selectionDispatcher.stack()),  &SelectionStack::currentSelectionChanged,
+            this,   &BaseElementPresenter::on_newSelection);
+
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
@@ -45,7 +55,11 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
+    m_mainTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+    m_localTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+
     setDisplayedConstraint(model()->constraintModel());
+
 
     // Use the default value in the slider.
     /*
@@ -121,12 +135,51 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     // Update the address bar
     view()->addressBar()
+<<<<<<< HEAD
             ->setTargetObject(IDocument::path(displayedConstraint()));
+=======
+          ->setTargetObject(IDocument::path(displayedConstraint()));
+
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
+>>>>>>> feature/TimeRuler
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
 {
     m_progressBar->setPos({t.toPixels(m_millisecondsPerPixel), 0});
+}
+
+void BaseElementPresenter::setMillisPerPixel(double newFactor)
+{
+    m_millisecondsPerPixel = newFactor;
+    m_mainTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+}
+
+void BaseElementPresenter::on_newSelection(Selection sel)
+{
+    if (sel.isEmpty())
+    {
+
+    }
+    else
+    {
+        if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
+        {
+            delete m_localTimeRuler;
+            view()->newLocalTimeRuler();
+            m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
+
+            m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+            m_localTimeRuler->setDuration(cstr->defaultDuration());
+            m_localTimeRuler->setStartPoint(cstr->startDate());
+
+            connect(cstr,               &ConstraintModel::defaultDurationChanged,
+                    m_localTimeRuler,   &TimeRulerPresenter::setDuration);
+            connect(cstr,               &ConstraintModel::startDateChanged,
+                    m_localTimeRuler,   &TimeRulerPresenter::setStartPoint);
+        }
+    }
 }
 
 void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
@@ -152,9 +205,13 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         return 5 + duration / viewWidth;
     };
 
-    m_millisecondsPerPixel = mapZoom(1.0 - newzoom, 1./90., computedMax());
+    setMillisPerPixel(mapZoom(1.0 - newzoom, 1./90., computedMax()));
 
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
+
+    m_mainTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
 }
 
 void BaseElementPresenter::on_viewSizeChanged(QSize s)
