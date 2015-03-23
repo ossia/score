@@ -58,6 +58,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         // Value : the number of milliseconds per pixels
         void on_zoomSliderChanged(double);
         void on_viewSizeChanged(QSize s);
+        void on_horizontalPositionChanged(int dx);
 
         void updateRect(QRectF rect);
 

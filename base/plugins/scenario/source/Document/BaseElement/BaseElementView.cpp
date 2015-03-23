@@ -7,11 +7,12 @@
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/AddressBar.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
-#include "Document/TimeRuler/TimeRulerView.hpp"
-#include "Document/TimeRuler/LocalTimeRulerView.hpp"
+#include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
 #include <QSlider>
 #include <QDebug>
 #include <QPushButton>
+#include <QScrollBar>
 
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
@@ -29,15 +30,16 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
    // QGraphicsScene* timeRulerScene = new QGraphicsScene{this};
-    QGraphicsView* timeRulerView = new QGraphicsView{m_scene};
+    m_timeRulersView = new QGraphicsView{m_scene};
 
     //timeRulerScene->setBackgroundBrush(QBrush{m_widget->palette().dark() });
-    timeRulerView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    timeRulerView->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
-    timeRulerView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    timeRulerView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    timeRulerView->setSceneRect(0, -70, 800, 70);
-    timeRulerView->setMaximumHeight(70);
+    m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    m_timeRulersView->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
+    m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_timeRulersView->setFocusPolicy(Qt::NoFocus);
+    m_timeRulersView->setSceneRect(0, -70, 800, 70);
+    m_timeRulersView->setMaximumHeight(70);
 
 
     // Transport
@@ -63,9 +65,13 @@ BaseElementView::BaseElementView(QObject* parent) :
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     lay->addWidget(m_addressBar);
-    lay->addWidget(timeRulerView);
+    lay->addWidget(m_timeRulersView);
     lay->addWidget(m_view);
     lay->addWidget(transportWidget);
+
+    m_timeRulersView->setAutoFillBackground(true);
+    connect(m_view, &SizeNotifyingGraphicsView::scrolled,
+            this,   &BaseElementView::horizontalPositionChanged);
 }
 
 QWidget* BaseElementView::getWidget()

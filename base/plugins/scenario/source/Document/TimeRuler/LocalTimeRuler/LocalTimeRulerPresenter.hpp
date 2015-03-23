@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Document/TimeRuler/AbstractTimeRuler.hpp"
-#include "Document/TimeRuler/LocalTimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
 
 #include "ProcessInterface/TimeValue.hpp"
 

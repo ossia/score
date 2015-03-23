@@ -37,6 +37,10 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         {
             return m_view;
         }
+        QGraphicsView* rulerView()
+        {
+            return m_timeRulersView;
+        }
 
         AddressBar* addressBar()
         {
@@ -58,9 +62,12 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         }
         void newLocalTimeRuler();
 
+        public slots:
+
     signals:
         void horizontalZoomChanged(double newZoom);
         void verticalZoomChanged(int newZoom);
+        void horizontalPositionChanged(int);
 
     private:
         QWidget* m_widget {};
@@ -69,6 +76,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsObject* m_baseObject {};
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
+        QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};
         LocalTimeRulerView* m_localTimeRuler {};
 

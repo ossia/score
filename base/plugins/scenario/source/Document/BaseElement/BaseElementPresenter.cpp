@@ -7,10 +7,10 @@
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
-#include "Document/TimeRuler/TimeRulerPresenter.hpp"
-#include "Document/TimeRuler/TimeRulerView.hpp"
-#include "Document/TimeRuler/LocalTimeRulerPresenter.hpp"
-#include "Document/TimeRuler/LocalTimeRulerView.hpp"
+#include "Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp"
+#include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp"
+#include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
@@ -51,6 +51,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     // TODO same for height
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
             this, &BaseElementPresenter::on_viewSizeChanged);
+
+    connect(view(),     &BaseElementView::horizontalPositionChanged,
+            this,       &BaseElementPresenter::on_horizontalPositionChanged);
 
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
@@ -135,13 +138,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     // Update the address bar
     view()->addressBar()
-<<<<<<< HEAD
             ->setTargetObject(IDocument::path(displayedConstraint()));
-=======
-          ->setTargetObject(IDocument::path(displayedConstraint()));
 
     m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
->>>>>>> feature/TimeRuler
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -152,8 +151,8 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
 void BaseElementPresenter::setMillisPerPixel(double newFactor)
 {
     m_millisecondsPerPixel = newFactor;
-    m_mainTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
-    m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_mainTimeRuler->setPixelPerMillis(1.0/newFactor);
+    m_localTimeRuler->setPixelPerMillis(1.0/newFactor);
 }
 
 void BaseElementPresenter::on_newSelection(Selection sel)
@@ -166,18 +165,20 @@ void BaseElementPresenter::on_newSelection(Selection sel)
     {
         if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
         {
+            TimeValue offset = m_localTimeRuler->offset();
             delete m_localTimeRuler;
             view()->newLocalTimeRuler();
             m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
 
             m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
             m_localTimeRuler->setDuration(cstr->defaultDuration());
+            m_localTimeRuler->setOffset(offset);
             m_localTimeRuler->setStartPoint(cstr->startDate());
 
             connect(cstr,               &ConstraintModel::defaultDurationChanged,
-                    m_localTimeRuler,   &TimeRulerPresenter::setDuration);
+                    m_localTimeRuler,   &LocalTimeRulerPresenter::setDuration);
             connect(cstr,               &ConstraintModel::startDateChanged,
-                    m_localTimeRuler,   &TimeRulerPresenter::setStartPoint);
+                    m_localTimeRuler,   &LocalTimeRulerPresenter::setStartPoint);
         }
     }
 }
@@ -209,8 +210,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 
-    m_mainTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
-    m_localTimeRuler->setPixelPerMillis(1 / m_millisecondsPerPixel);
     m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
 }
 
@@ -220,9 +219,19 @@ void BaseElementPresenter::on_viewSizeChanged(QSize s)
     on_zoomSliderChanged(view()->zoomSlider()->value());
 }
 
+void BaseElementPresenter::on_horizontalPositionChanged(int dx)
+{
+    m_mainTimeRuler->scroll(dx);
+    m_localTimeRuler->setRelativeOffset(dx * m_millisecondsPerPixel);
+    m_localTimeRuler->scroll(dx);
+}
+
 void BaseElementPresenter::updateRect(QRectF rect)
 {
     view()->view()->setSceneRect(rect);
+    rect.setHeight(70);
+    rect.setY(-70);
+    view()->rulerView()->setSceneRect(rect);
 }
 
 BaseElementModel* BaseElementPresenter::model() const

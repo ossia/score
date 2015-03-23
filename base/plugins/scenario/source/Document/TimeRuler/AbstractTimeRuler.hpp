@@ -13,6 +13,10 @@ class AbstractTimeRuler : public QObject
         virtual ~AbstractTimeRuler() = default;
 
         AbstractTimeRulerView* view() { return m_view; }
+        void setOffset(TimeValue t) {m_offset = t;}
+        TimeValue offset() {return m_offset;}
+        void setRelativeOffset(int ms) {m_offset.addMSecs(ms);}
+        void scroll(int dx);
 
     signals:
 
@@ -32,4 +36,5 @@ class AbstractTimeRuler : public QObject
         QVector< QPair<double, TimeValue> > m_graduationsSpacing;
 
         double m_pixelPerMillis {0.01};
+        TimeValue m_offset{std::chrono::milliseconds(0)};
 };

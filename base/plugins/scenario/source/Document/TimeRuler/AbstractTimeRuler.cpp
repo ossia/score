@@ -1,6 +1,6 @@
 #include "AbstractTimeRuler.hpp"
 
-#include "TimeRulerView.hpp"
+#include "AbstractTimeRulerView.hpp"
 
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent) :
     m_view{view}
@@ -22,6 +22,11 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject *paren
     m_graduationsSpacing.push_back( {500, TimeValue{std::chrono::milliseconds (20)} });
 }
 
+void AbstractTimeRuler::scroll(int dx)
+{
+    view()->setX(view()->x() + dx);
+}
+
 void AbstractTimeRuler::setDuration(TimeValue dur)
 {
     if (m_duration != dur)
@@ -36,7 +41,7 @@ void AbstractTimeRuler::setStartPoint(TimeValue dur)
     if (m_startPoint != dur)
     {
         m_startPoint = dur;
-        m_view->setX(m_startPoint.msec() * m_pixelPerMillis);
+        m_view->setX((m_startPoint + m_offset).msec() * m_pixelPerMillis);
     }
 }
 

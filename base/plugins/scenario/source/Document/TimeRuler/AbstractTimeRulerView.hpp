@@ -3,6 +3,7 @@
 #include <QGraphicsObject>
 #include "ProcessInterface/TimeValue.hpp"
 
+class QPainterPath;
 
 class AbstractTimeRulerView : public QGraphicsObject
 {
@@ -16,6 +17,11 @@ class AbstractTimeRulerView : public QGraphicsObject
         void setHeight(qreal newHeight);
         void setWidth(qreal newWidth);
 
+        qreal width() const
+        {
+            return m_width;
+        }
+
     signals:
 
     public slots:
@@ -23,6 +29,8 @@ class AbstractTimeRulerView : public QGraphicsObject
         void setFormat(QString);
 
     protected:
+        void createRulerPath();
+
         qreal m_height {};
         qreal m_width {};
 
@@ -35,4 +43,5 @@ class AbstractTimeRulerView : public QGraphicsObject
         int m_graduationHeight {};
 
         QColor m_color;
+        QPainterPath m_path;
 };
