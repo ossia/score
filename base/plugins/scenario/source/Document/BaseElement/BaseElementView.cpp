@@ -8,6 +8,7 @@
 #include "Widgets/AddressBar.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
 #include "Document/TimeRuler/TimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRulerView.hpp"
 #include <QSlider>
 #include <QDebug>
 #include <QPushButton>
@@ -20,7 +21,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_baseObject {new GraphicsProxyObject{}},
     m_addressBar {new AddressBar{nullptr}},
     m_timeRuler {new TimeRulerView{} },
-    m_localTimeRuler {new TimeRulerView{} }
+    m_localTimeRuler {new LocalTimeRulerView{} }
 {
     // Configuration
     m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark()});
@@ -80,6 +81,6 @@ void BaseElementView::update()
 void BaseElementView::newLocalTimeRuler()
 {
     delete m_localTimeRuler;
-    m_localTimeRuler = new TimeRulerView{};
+    m_localTimeRuler = new LocalTimeRulerView{};
     m_scene->addItem(m_localTimeRuler);
 }

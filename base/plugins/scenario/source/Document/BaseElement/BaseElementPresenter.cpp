@@ -9,6 +9,8 @@
 #include "Document/BaseElement/Widgets/AddressBar.hpp"
 #include "Document/TimeRuler/TimeRulerPresenter.hpp"
 #include "Document/TimeRuler/TimeRulerView.hpp"
+#include "Document/TimeRuler/LocalTimeRulerPresenter.hpp"
+#include "Document/TimeRuler/LocalTimeRulerView.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
@@ -35,7 +37,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
     m_progressBar{new ProgressBar},
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this} },
-    m_localTimeRuler { new TimeRulerPresenter{view()->localTimeRuler(), this} }
+    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this} }
 {
 
     connect(&(m_selectionDispatcher.stack()),  &SelectionStack::currentSelectionChanged,
@@ -160,13 +162,11 @@ void BaseElementPresenter::on_newSelection(Selection sel)
         {
             delete m_localTimeRuler;
             view()->newLocalTimeRuler();
-            m_localTimeRuler = new TimeRulerPresenter{view()->localTimeRuler(), this};
+            m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
 
             m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
             m_localTimeRuler->setDuration(cstr->defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());
-
-            m_localTimeRuler->view()->setDownGraduations();
 
             connect(cstr,               &ConstraintModel::defaultDurationChanged,
                     m_localTimeRuler,   &TimeRulerPresenter::setDuration);

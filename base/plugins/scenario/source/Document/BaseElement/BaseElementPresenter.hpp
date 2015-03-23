@@ -14,6 +14,7 @@ class BaseElementView;
 class FullViewConstraintPresenter;
 class ConstraintModel;
 class TimeRulerPresenter;
+class LocalTimeRulerPresenter;
 
 /**
  * @brief The BaseElementPresenter class
@@ -70,7 +71,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         ProgressBar* m_progressBar{};
 
         TimeRulerPresenter* m_mainTimeRuler{};
-        TimeRulerPresenter* m_localTimeRuler {};
+        LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
         double m_millisecondsPerPixel{0.03};

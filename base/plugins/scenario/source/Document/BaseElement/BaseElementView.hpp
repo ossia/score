@@ -9,6 +9,7 @@ class TemporalConstraintView;
 class AddressBar;
 class DoubleSlider;
 class TimeRulerView;
+class LocalTimeRulerView;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -51,7 +52,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         {
             return m_timeRuler;
         }
-        TimeRulerView* localTimeRuler()
+        LocalTimeRulerView* localTimeRuler()
         {
             return m_localTimeRuler;
         }
@@ -69,7 +70,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
         TimeRulerView* m_timeRuler {};
-        TimeRulerView* m_localTimeRuler {};
+        LocalTimeRulerView* m_localTimeRuler {};
 
         DoubleSlider* m_zoomSlider {};
 };
