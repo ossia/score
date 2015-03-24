@@ -244,6 +244,7 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
             if(!ongoing())
             {
                 m_ongoingCommand = cmd;
+                m_ongoingCommand->init();
                 m_ongoingCommand->redo();
                 m_ongoing = true;
 
@@ -263,6 +264,7 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
         {
             if(ongoing())
             {
+                m_ongoingCommand->finish();
                 CommitStrategy_T::commit(stack(), m_ongoingCommand);
                 m_ongoingCommand = nullptr;
                 m_ongoing = false;

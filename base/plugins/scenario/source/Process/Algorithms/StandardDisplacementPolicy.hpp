@@ -16,6 +16,52 @@ void translateNextElements(ScenarioModel& scenario,
 
 namespace StandardDisplacementPolicy
 {
+    // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
+    void getRelatedElements(ScenarioModel& scenario,
+                        id_type<TimeNodeModel> firstTimeNodeMovedId,
+                        QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
+
+
+    template<typename ProcessScaleMethod>
+    void updatePositions(ScenarioModel& scenario,
+                          QVector<id_type<TimeNodeModel> > translatedTimeNodes,
+                          TimeValue deltaTime,
+                          ProcessScaleMethod&& scaleMethod)
+    {
+        for (auto timeNode_id :translatedTimeNodes)
+        {
+            TimeNodeModel* timeNode = scenario.timeNode(timeNode_id);
+            timeNode->setDate(timeNode->date() + deltaTime);
+            for (auto event : timeNode->events())
+            {
+                scenario.event(event)->setDate(timeNode->date());
+                emit scenario.eventMoved(event);
+            }
+        }
+        for(ConstraintModel* constraint : scenario.constraints())
+        {
+            auto startEventDate = scenario.event(constraint->startEvent())->date();
+            auto endEventDate = scenario.event(constraint->endEvent())->date();
+
+            TimeValue newDuration = endEventDate - startEventDate;
+
+            if ( !(constraint->startDate() - startEventDate).isZero())
+            {
+                constraint->setStartDate(startEventDate);
+                emit scenario.constraintMoved(constraint->id());
+            }
+            if(! (constraint->defaultDuration() - newDuration).isZero())
+            {
+                constraint->setDefaultDuration(newDuration);
+                for(auto& process : constraint->processes())
+                {
+                    scaleMethod(process, newDuration);
+                }
+                emit scenario.constraintMoved(constraint->id());
+            }
+        }
+    }
+
     // ProcessScaleMethod is a callable object that takes a ProcessModel*
     template<typename ProcessScaleMethod>
     void setEventPosition(ScenarioModel& scenario,
@@ -34,21 +80,6 @@ namespace StandardDisplacementPolicy
         {
             TimeValue time = absolute_time - ev->date();
             ev->setHeightPercentage(heightPosition);
-
-            // resize previous constraint
-            for(auto& prevConstraintId : ev->previousConstraints())
-            {
-                auto constraint = scenario.constraint(prevConstraintId);
-                auto newDuration = constraint->defaultDuration() + time;
-
-                constraint->setDefaultDuration(newDuration);
-                for(auto& process : constraint->processes())
-                {
-                    scaleMethod(process, newDuration);
-                }
-
-                emit scenario.constraintMoved(prevConstraintId);
-            }
 
             // algo
             QVector<id_type<EventModel>> already_moved_events;

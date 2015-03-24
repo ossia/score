@@ -49,3 +49,33 @@ void translateNextElements(ScenarioModel& scenario,
         }
     }
 }
+
+void StandardDisplacementPolicy::getRelatedElements(ScenarioModel& scenario,
+                        id_type<TimeNodeModel> firstTimeNodeMovedId,
+                        QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
+{
+    if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
+        return;
+    auto cur_timeNode = scenario.timeNode(firstTimeNodeMovedId);
+
+    if(translatedTimeNodes.indexOf(firstTimeNodeMovedId) == -1)
+    {
+        translatedTimeNodes.push_back(firstTimeNodeMovedId);
+    }
+    else // timeNode already moved
+    {
+        return;
+    }
+
+    for(id_type<EventModel> cur_eventId : cur_timeNode->events())
+    {
+        EventModel* cur_event = scenario.event(cur_eventId);
+
+        for(id_type<ConstraintModel> cons : cur_event->nextConstraints())
+        {
+            auto endEvId = scenario.constraint(cons)->endEvent();
+            auto endTnId = scenario.event(endEvId)->timeNode();
+            getRelatedElements(scenario, endTnId, translatedTimeNodes);
+        }
+    }
+}

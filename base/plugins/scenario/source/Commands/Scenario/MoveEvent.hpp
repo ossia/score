@@ -3,8 +3,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+
 struct EventData;
 class EventModel;
+class TimeNodeModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -18,6 +20,8 @@ namespace Scenario
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
                 MoveEvent(ObjectPath&& scenarioPath, EventData data);
+                virtual bool init() override;
+                virtual bool finish() override;
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
@@ -34,6 +38,8 @@ namespace Scenario
                 double m_oldHeightPosition {};
                 double m_newHeightPosition {};
                 TimeValue m_newX {};
+
+                QVector<id_type<TimeNodeModel>> m_already_moved_timeNodes;
         };
     }
 }
