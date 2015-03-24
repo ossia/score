@@ -165,6 +165,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void defaultDurationChanged(TimeValue arg);
         void minDurationChanged(TimeValue arg);
         void maxDurationChanged(TimeValue arg);
+        void startDateChanged(TimeValue arg);
 
         void selectedChildrenChanged(ProcessSharedModelInterface* proc);
 

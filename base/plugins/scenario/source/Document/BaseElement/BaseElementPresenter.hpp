@@ -13,6 +13,9 @@ class BaseElementModel;
 class BaseElementView;
 class FullViewConstraintPresenter;
 class ConstraintModel;
+class TimeRulerPresenter;
+class LocalTimeRulerPresenter;
+
 /**
  * @brief The BaseElementPresenter class
  *
@@ -47,10 +50,15 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void setProgressBarTime(TimeValue t);
 
+        void setMillisPerPixel(double newFactor);
+
+        void on_newSelection(Selection);
+
     private slots:
         // Value : the number of milliseconds per pixels
         void on_zoomSliderChanged(double);
         void on_viewSizeChanged(QSize s);
+        void on_horizontalPositionChanged(int dx);
 
         void updateRect(QRectF rect);
 
@@ -62,6 +70,9 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         iscore::SelectionDispatcher m_selectionDispatcher;
 
         ProgressBar* m_progressBar{};
+
+        TimeRulerPresenter* m_mainTimeRuler{};
+        LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
         double m_millisecondsPerPixel{0.03};

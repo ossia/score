@@ -84,7 +84,6 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
     else
     {
-        QPainterPath path {};
         QRectF rect {};
         rect.setTopLeft(this->mapToScene(m_clickedPoint));
         rect.setBottomRight(event->scenePos());
@@ -93,6 +92,8 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         m_clicked = false;
         emit newSelectionArea(rect);
     }
+    m_selectArea.setWidth(0);
+    m_selectArea.setHeight(0);
 }
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

@@ -47,6 +47,11 @@ class TimeValue_T
             return *m_impl;
         }
 
+        double sec() const
+        {
+            return double(*m_impl)/1000;
+        }
+
         double toPixels(ZoomRatio millisecondsPerPixel)
         {
             return *m_impl / millisecondsPerPixel;
@@ -161,6 +166,18 @@ class TimeValue_T
             }
 
             res.m_impl = m_impl.get() - other.m_impl.get();
+            return res;
+        }
+
+        TimeValue_T operator- ()
+        {
+            TimeValue_T res;
+            res.addMSecs(0);
+            TimeValue_T zero;
+            zero.addMSecs(0);
+
+            res.m_impl = zero.m_impl.get() - m_impl.get();
+
             return res;
         }
 
