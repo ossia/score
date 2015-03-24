@@ -25,6 +25,7 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject *paren
 void AbstractTimeRuler::scroll(int dx)
 {
     view()->setX(view()->x() + dx);
+    m_totalScroll += dx;
 }
 
 void AbstractTimeRuler::setDuration(TimeValue dur)
@@ -41,7 +42,7 @@ void AbstractTimeRuler::setStartPoint(TimeValue dur)
     if (m_startPoint != dur)
     {
         m_startPoint = dur;
-        m_view->setX((m_startPoint + m_offset).msec() * m_pixelPerMillis);
+        m_view->setX((m_startPoint).msec() * m_pixelPerMillis + m_totalScroll);
     }
 }
 
@@ -49,10 +50,10 @@ void AbstractTimeRuler::setPixelPerMillis(double factor)
 {
     if (factor != m_pixelPerMillis)
     {
-        m_pixelPerMillis = factor;
         computeGraduationSpacing();
-        m_view->setWidth(m_duration.msec() * m_pixelPerMillis);
-        m_view->setX(m_startPoint.msec() * m_pixelPerMillis);
+        m_view->setWidth(m_duration.msec() * factor);
+        m_view->setX(m_startPoint.msec() * factor + m_totalScroll * (factor / m_pixelPerMillis));
+        m_pixelPerMillis = factor;
     }
 }
 

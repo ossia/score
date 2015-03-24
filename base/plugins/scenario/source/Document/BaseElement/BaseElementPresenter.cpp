@@ -140,7 +140,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
             ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
+    m_mainTimeRuler->scroll(m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -165,14 +165,14 @@ void BaseElementPresenter::on_newSelection(Selection sel)
     {
         if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
         {
-            TimeValue offset = m_localTimeRuler->offset();
+            int scroll = m_localTimeRuler->totalScroll();
             delete m_localTimeRuler;
             view()->newLocalTimeRuler();
             m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
 
+            m_localTimeRuler->scroll(scroll);
             m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
             m_localTimeRuler->setDuration(cstr->defaultDuration());
-            m_localTimeRuler->setOffset(offset);
             m_localTimeRuler->setStartPoint(cstr->startDate());
 
             connect(cstr,               &ConstraintModel::defaultDurationChanged,
@@ -210,7 +210,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 
-    m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
     updateGrid();
 }
 
@@ -223,16 +222,15 @@ void BaseElementPresenter::on_viewSizeChanged(QSize s)
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
     m_mainTimeRuler->scroll(dx);
-    m_localTimeRuler->setRelativeOffset(dx * m_millisecondsPerPixel);
     m_localTimeRuler->scroll(dx);
 }
 
 void BaseElementPresenter::updateGrid()
 {
     QPainterPath grid;
-    double x = m_mainTimeRuler->view()->x();
+    double x = 0;
 
-    while (x < m_mainTimeRuler->view()->width() + m_mainTimeRuler->view()->x())
+    while (x < m_mainTimeRuler->view()->width())
     {
         grid.addRect(x, 0, 1, height());
         x += m_mainTimeRuler->view()->graduationSpacing();
