@@ -18,9 +18,11 @@ class AbstractTimeRuler : public QObject
         void setRelativeOffset(int ms) {m_offset.addMSecs(ms);}
         void scroll(int dx);
 
-    signals:
+        QVector<QPair<double, TimeValue> > graduationsSpacing() const;
 
-    public slots:
+signals:
+
+public slots:
         void setDuration(TimeValue dur);
         void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);

@@ -16,6 +16,8 @@ class AbstractTimeRulerView : public QGraphicsObject
         void setHeight(qreal newHeight);
         void setWidth(qreal newWidth);
 
+        qreal graduationSpacing() const {return m_intervalsBeetwenMark * m_graduationsSpacing;}
+
         qreal width() const
         {
             return m_width;

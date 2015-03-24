@@ -83,4 +83,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
 
     m_view->setGraduationsStyle(gradSpace, deltaTime, format, loop );
 }
-
+QVector<QPair<double, TimeValue> > AbstractTimeRuler::graduationsSpacing() const
+{
+    return m_graduationsSpacing;
+}

@@ -60,6 +60,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void on_viewSizeChanged(QSize s);
         void on_horizontalPositionChanged(int dx);
 
+        void updateGrid();
+
         void updateRect(QRectF rect);
 
     private:

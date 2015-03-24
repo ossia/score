@@ -211,6 +211,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 
     m_mainTimeRuler->setStartPoint(- m_displayedConstraint->startDate());
+    updateGrid();
 }
 
 void BaseElementPresenter::on_viewSizeChanged(QSize s)
@@ -224,6 +225,20 @@ void BaseElementPresenter::on_horizontalPositionChanged(int dx)
     m_mainTimeRuler->scroll(dx);
     m_localTimeRuler->setRelativeOffset(dx * m_millisecondsPerPixel);
     m_localTimeRuler->scroll(dx);
+}
+
+void BaseElementPresenter::updateGrid()
+{
+    QPainterPath grid;
+    double x = m_mainTimeRuler->view()->x();
+
+    while (x < m_mainTimeRuler->view()->width() + m_mainTimeRuler->view()->x())
+    {
+        grid.addRect(x, 0, 1, height());
+        x += m_mainTimeRuler->view()->graduationSpacing();
+    }
+
+    view()->view()->setGrid(grid);
 }
 
 void BaseElementPresenter::updateRect(QRectF rect)
