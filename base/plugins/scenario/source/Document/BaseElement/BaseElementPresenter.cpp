@@ -229,9 +229,10 @@ void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 void BaseElementPresenter::updateRect(QRectF rect)
 {
     view()->view()->setSceneRect(rect);
-    rect.setHeight(70);
-    rect.setY(-70);
-    view()->rulerView()->setSceneRect(rect);
+    QRectF other{view()->rulerView()->sceneRect()};
+    other.setWidth(rect.width());
+    other.setX(rect.x());
+    view()->rulerView()->setSceneRect(other);
 }
 
 BaseElementModel* BaseElementPresenter::model() const

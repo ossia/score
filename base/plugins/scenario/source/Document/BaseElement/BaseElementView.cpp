@@ -29,18 +29,13 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-   // QGraphicsScene* timeRulerScene = new QGraphicsScene{this};
     m_timeRulersView = new QGraphicsView{m_scene};
-
-    //timeRulerScene->setBackgroundBrush(QBrush{m_widget->palette().dark() });
     m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    m_timeRulersView->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
-    m_timeRulersView->setSceneRect(0, -70, 800, 70);
-    m_timeRulersView->setMaximumHeight(70);
-
+    m_timeRulersView->setSceneRect(0, -80, 800, 60);
+    m_timeRulersView->setFixedHeight(65);
 
     // Transport
     auto transportWidget = new QWidget{m_widget};

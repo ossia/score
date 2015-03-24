@@ -9,7 +9,6 @@ class AbstractTimeRulerView : public QGraphicsObject
 {
     public:
         AbstractTimeRulerView();
-        QRectF boundingRect() const override;
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
                    QWidget* widget) override;
@@ -44,4 +43,6 @@ class AbstractTimeRulerView : public QGraphicsObject
 
         QColor m_color;
         QPainterPath m_path;
+
+        QMap<double, QTime> m_marks;
 };
