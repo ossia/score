@@ -60,7 +60,6 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsScene* m_scene {};
         SizeNotifyingGraphicsView* m_view {};
         QGraphicsObject* m_baseObject {};
-        TemporalConstraintView* m_constraint {};
         AddressBar* m_addressBar {};
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};

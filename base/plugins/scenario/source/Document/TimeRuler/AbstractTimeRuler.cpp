@@ -42,7 +42,6 @@ void AbstractTimeRuler::setStartPoint(TimeValue dur)
     if (m_startPoint != dur)
     {
         m_startPoint = dur;
-        m_view->setX((m_startPoint).msec() * m_pixelPerMillis + m_totalScroll);
     }
 }
 
@@ -50,10 +49,10 @@ void AbstractTimeRuler::setPixelPerMillis(double factor)
 {
     if (factor != m_pixelPerMillis)
     {
-        computeGraduationSpacing();
         m_view->setWidth(m_duration.msec() * factor);
         m_view->setX(m_startPoint.msec() * factor + m_totalScroll * (factor / m_pixelPerMillis));
         m_pixelPerMillis = factor;
+        computeGraduationSpacing();
     }
 }
 

@@ -15,7 +15,7 @@ class TimeRulerPresenter : public AbstractTimeRuler
     signals:
 
     public slots:
-
+        virtual void setStartPoint(TimeValue dur) override;
     private:
 
 };

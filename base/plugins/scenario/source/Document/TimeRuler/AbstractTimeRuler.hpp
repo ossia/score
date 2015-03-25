@@ -15,6 +15,7 @@ class AbstractTimeRuler : public QObject
         AbstractTimeRulerView* view() { return m_view; }
         void scroll(int dx);
         int totalScroll() {return m_totalScroll;}
+        TimeValue startPoint() const {return m_startPoint;}
 
         QVector<QPair<double, TimeValue> > graduationsSpacing() const;
 
@@ -22,7 +23,7 @@ signals:
 
 public slots:
         void setDuration(TimeValue dur);
-        void setStartPoint(TimeValue dur);
+        virtual void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);
 
     protected:

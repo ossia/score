@@ -122,6 +122,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                      cstrView,
                                      this};
 
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model()->startDate());
+    m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
+    m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
+
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
     on_zoomSliderChanged(0);
     on_askUpdate();
@@ -140,7 +144,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     view()->addressBar()
             ->setTargetObject(IDocument::path(displayedConstraint()));
 
-    m_mainTimeRuler->scroll(m_displayedConstraint->startDate().msec() / m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)
@@ -209,7 +212,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     setMillisPerPixel(mapZoom(1.0 - newzoom, 1./90., computedMax()));
 
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
-
     updateGrid();
 }
 

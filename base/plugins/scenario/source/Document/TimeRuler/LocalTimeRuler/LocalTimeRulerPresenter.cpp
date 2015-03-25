@@ -23,3 +23,12 @@ LocalTimeRulerPresenter::~LocalTimeRulerPresenter()
 
 }
 
+void LocalTimeRulerPresenter::setStartPoint(TimeValue dur)
+{
+    if (m_startPoint != dur)
+    {
+        m_startPoint = dur;
+        m_view->setX((m_startPoint).msec() * m_pixelPerMillis + m_totalScroll);
+    }
+}
+
