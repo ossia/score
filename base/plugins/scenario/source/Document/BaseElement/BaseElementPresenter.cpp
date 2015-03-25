@@ -160,21 +160,22 @@ void BaseElementPresenter::setMillisPerPixel(double newFactor)
 
 void BaseElementPresenter::on_newSelection(Selection sel)
 {
+    int scroll = m_localTimeRuler->totalScroll();
+    delete m_localTimeRuler;
+    view()->newLocalTimeRuler();
+    m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
+    m_localTimeRuler->scroll(scroll);
+    m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+
     if (sel.isEmpty())
     {
-
+        m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
+        m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
     }
     else
     {
         if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
         {
-            int scroll = m_localTimeRuler->totalScroll();
-            delete m_localTimeRuler;
-            view()->newLocalTimeRuler();
-            m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
-
-            m_localTimeRuler->scroll(scroll);
-            m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
             m_localTimeRuler->setDuration(cstr->defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());
 
