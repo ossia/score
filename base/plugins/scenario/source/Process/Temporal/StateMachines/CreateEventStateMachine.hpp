@@ -118,7 +118,7 @@ class CreateEventState : public QState
     private:
         ObjectPath m_scenarioPath;
         RealtimeMacroCommandDispatcher m_dispatcher;
-        id_type<EventModel> createdEvent;
+        id_type<EventModel> m_createdEvent;
 };
 
 
@@ -261,7 +261,6 @@ class ScenarioClickOnEvent_Transition : public AbstractScenarioTransition
 
         virtual void onTransition(QEvent * ev)
         {
-            qDebug() << "sfsdfsdgs";
             auto qev = static_cast<ScenarioClickOnEvent_QEvent*>(ev);
 
             state().firstEvent = qev->m_id;
@@ -294,8 +293,8 @@ class ScenarioMove_Transition : public AbstractScenarioTransition
         virtual bool eventTest(QEvent *e)
         { return e->type() == QEvent::Type(QEvent::User+4); }
 
-        virtual void onTransition(QEvent * ev) {
-            qDebug() << "move move";
+        virtual void onTransition(QEvent * ev)
+        {
             auto qev = static_cast<ScenarioMove_QEvent*>(ev);
 
             state().eventDate = qev->m_date;

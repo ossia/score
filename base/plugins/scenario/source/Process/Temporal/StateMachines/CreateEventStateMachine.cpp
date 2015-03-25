@@ -42,39 +42,41 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
         tr2->setTargetState(releasedState);
         movingState->addTransition(tr2);
 
-        pressedState->addTransition(this, SIGNAL(move()), movingState);
-        movingState->addTransition(this, SIGNAL(move()), movingState);
+        auto tr3 = new ScenarioMove_Transition{this};
+        tr3->setTargetState(movingState);
+        pressedState->addTransition(tr3);
+        auto tr4 = new ScenarioMove_Transition{this};
+        tr4->setTargetState(movingState);
+        movingState->addTransition(tr4);
+
         releasedState->addTransition(finalState);
 
         mainState->setInitialState(pressedState);
 
         QObject::connect(pressedState, &QState::entered, [&] ()
         {
-            qDebug() << "Badaboum";
             auto init = new CreateEventAfterEvent{
                                 ObjectPath{m_scenarioPath},
                                 firstEvent,
                                 eventDate,
                                 ypos};
-            createdEvent = init->createdEvent();
+            m_createdEvent = init->createdEvent();
 
             m_dispatcher.submitCommand(init);
         });
 
         QObject::connect(movingState, &QState::entered, [&] ()
         {
-            qDebug() << "move";
             m_dispatcher.submitCommand(
                         new MoveEvent{
                                 ObjectPath{m_scenarioPath},
-                                createdEvent,
+                                m_createdEvent,
                                 eventDate,
                                 ypos});
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
         {
-            qDebug() << "exit";
             m_dispatcher.commit();
         });
     }

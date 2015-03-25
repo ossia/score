@@ -265,7 +265,6 @@ void ScenarioCommandManager::on_scenarioPressed(QPointF point)
     else
     {
         qDebug("3");
-        // Post a EmptyClicked
         m_sm.postEvent(new ScenarioClickOnNothing_QEvent{
                            TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                            point.y() /  m_presenter.m_view->boundingRect().height()});
@@ -276,25 +275,16 @@ void ScenarioCommandManager::on_scenarioPressed(QPointF point)
 
 void ScenarioCommandManager::on_scenarioMoved(QPointF point)
 {
-    // TODO here the meta-state machine should be the correct thing according to the
-    // state it is in.
-
+    qDebug() << point;
     m_sm.postEvent(new ScenarioMove_QEvent{
                        TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                        point.y() /  m_presenter.m_view->boundingRect().height()});
-    //m_createEvent->move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-    //                   point.y() /  m_presenter.m_view->boundingRect().height());
 
 }
 
 // TODO on_scenarioMoved instead?
 void ScenarioCommandManager::on_scenarioReleased(QPointF point)
 {
-    // Use a state machine to see if we are going to allow merging with a time node,
-    // or only place the event in the "air".
-    // use eventOk in QState with a parameter in the settings to do the checking.
-
-    qDebug() << "yolo";
     m_sm.postEvent(new ScenarioRelease_QEvent);
 
     /*
