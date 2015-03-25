@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include "Commands/Scenario/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <QPointF>

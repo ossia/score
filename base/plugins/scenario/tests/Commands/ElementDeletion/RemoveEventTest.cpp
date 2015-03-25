@@ -1,7 +1,7 @@
 #include <QtTest/QTest>
 
-#include "Commands/Scenario/RemoveEvent.hpp"
-#include "Commands/Scenario/CreateEvent.hpp"
+#include "Commands/Scenario/Deletions/RemoveEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEvent.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include <Document/Event/EventData.hpp>

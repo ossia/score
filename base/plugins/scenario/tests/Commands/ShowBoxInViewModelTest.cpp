@@ -12,7 +12,7 @@
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
-#include "Commands/Scenario/CreateEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEvent.hpp"
 
 #include "Process/ScenarioFactory.hpp"
 #include "Process/ScenarioModel.hpp"

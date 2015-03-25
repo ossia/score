@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include "Commands/Scenario/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <QPointF>
@@ -46,6 +47,9 @@ namespace Scenario
 
             private:
                 CreateEventAfterEvent* m_cmd {};
+                CreateEventAfterEventOnTimeNode* m_tnCmd {};
+
+                bool m_tn;
         };
     }
 }

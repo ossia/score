@@ -1,10 +1,10 @@
 #include "ScenarioGlobalCommandManager.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 
-#include "Commands/Scenario/RemoveConstraint.hpp"
-#include "Commands/Scenario/RemoveEvent.hpp"
-#include "Commands/Scenario/ClearConstraint.hpp"
-#include "Commands/Scenario/ClearEvent.hpp"
+#include "Commands/Scenario/Deletions/RemoveConstraint.hpp"
+#include "Commands/Scenario/Deletions/RemoveEvent.hpp"
+#include "Commands/Scenario/Deletions/ClearConstraint.hpp"
+#include "Commands/Scenario/Deletions/ClearEvent.hpp"
 
 #include "Commands/RemoveMultipleElements.hpp"
 #include "Process/ScenarioModel.hpp"

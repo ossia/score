@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/MoveEvent.hpp>
-#include <Commands/Scenario/CreateEvent.hpp>
+#include <Commands/Scenario/Displacement/MoveEvent.hpp>
+#include <Commands/Scenario/Creations/CreateEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>

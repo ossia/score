@@ -23,28 +23,25 @@ void translateNextElements(ScenarioModel& scenario,
         }
 
         // if current event is'nt the StartEvent
-        if(! cur_event->previousConstraints().isEmpty())
+        for(id_type<ConstraintModel> cons : cur_event->nextConstraints())
         {
-            for(id_type<ConstraintModel> cons : cur_event->nextConstraints())
+            auto evId = scenario.constraint(cons)->endEvent();
+
+            // if event has not already moved
+            if(movedEvents.indexOf(evId) == -1 && scenario.event(evId)->timeNode() != 0)
             {
-                auto evId = scenario.constraint(cons)->endEvent();
+                scenario.event(evId)->translate(deltaTime);
+                movedEvents.push_back(evId);
+                scenario.constraint(cons)->translate(deltaTime);
 
-                // if event has not already moved
-                if(movedEvents.indexOf(evId) == -1 && scenario.event(evId)->timeNode() != 0)
-                {
-                    scenario.event(evId)->translate(deltaTime);
-                    movedEvents.push_back(evId);
-                    scenario.constraint(cons)->translate(deltaTime);
+                // move timeNode
+                auto tn = scenario.timeNode(scenario.event(evId)->timeNode());
+                tn->setDate(scenario.event(evId)->date());
 
-                    // move timeNode
-                    auto tn = scenario.timeNode(scenario.event(evId)->timeNode());
-                    tn->setDate(scenario.event(evId)->date());
+                emit scenario.eventMoved(evId);
+                emit scenario.constraintMoved(cons);
 
-                    emit scenario.eventMoved(evId);
-                    emit scenario.constraintMoved(cons);
-
-                    translateNextElements(scenario, tn->id(), deltaTime, movedEvents);
-                }
+                translateNextElements(scenario, tn->id(), deltaTime, movedEvents);
             }
         }
     }

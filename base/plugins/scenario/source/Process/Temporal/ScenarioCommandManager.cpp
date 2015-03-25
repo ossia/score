@@ -23,13 +23,13 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
 
-#include "Commands/Scenario/CreateEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/CreateConstraint.hpp"
-#include "Commands/Scenario/MoveEvent.hpp"
-#include "Commands/Scenario/MoveTimeNode.hpp"
-#include "Commands/Scenario/MoveConstraint.hpp"
+#include "Commands/Scenario/Creations/CreateEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
+#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
+#include "Commands/Scenario/Creations/CreateConstraint.hpp"
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
+#include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
 
@@ -226,6 +226,10 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
                 break;
             }
         }
+    }
+    else
+    {
+        data.endTimeNodeId = id_type<TimeNodeModel>(-1);
     }
 
     auto cmd = new CreateEvent{

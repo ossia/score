@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/MoveConstraint.hpp>
+#include <Commands/Scenario/Displacement/MoveConstraint.hpp>
 
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/ConstraintData.hpp>

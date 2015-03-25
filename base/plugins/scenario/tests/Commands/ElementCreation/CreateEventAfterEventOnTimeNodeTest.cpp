@@ -1,7 +1,7 @@
 #include <QtTest/QTest>
 
-#include <Commands/Scenario/CreateEventAfterEventOnTimeNode.hpp>
-#include <Commands/Scenario/CreateEvent.hpp>
+#include <Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp>
+#include <Commands/Scenario/Creations/CreateEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>

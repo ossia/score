@@ -31,18 +31,32 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data) :
 
     data.eventClickedId = scenar->startEvent()->id();
 
-
-    m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
+    if (data.endTimeNodeId.val() == -1)
+    {
+        m_cmd = new CreateEventAfterEvent{std::move(scenarioPath), data};
+        m_tn = false;
+    }
+    else
+    {
+        m_tnCmd = new CreateEventAfterEventOnTimeNode{std::move(scenarioPath), data};
+        m_tn = true;
+    }
 }
 
 void CreateEvent::undo()
 {
-    m_cmd->undo();
+    if (m_tn)
+        m_tnCmd->undo();
+    else
+        m_cmd->undo();
 }
 
 void CreateEvent::redo()
 {
-    m_cmd->redo();
+    if (m_tn)
+        m_tnCmd->redo();
+    else
+        m_cmd->redo();
 }
 
 bool CreateEvent::mergeWith(const Command* other)
@@ -61,12 +75,13 @@ bool CreateEvent::mergeWith(const Command* other)
 
 void CreateEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_cmd->serialize();
+    s << m_cmd->serialize() << m_tnCmd->serialize() << m_tn;
 }
 
 void CreateEvent::deserializeImpl(QDataStream& s)
 {
-    QByteArray b;
-    s >> b;
+    QByteArray b, c;
+    s >> b >> c >> m_tn;
     m_cmd->deserialize(b);
+    m_tnCmd->deserialize(c);
 }

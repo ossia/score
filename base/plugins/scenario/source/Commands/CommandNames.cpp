@@ -94,40 +94,40 @@ const char* Scenario::Command::SplitTimeNode::className() { return "SplitTimeNod
 #include "SwitchStatePosition.hpp"
 const char* Scenario::Command::SwitchStatePosition::className() { return "SwitchStatePosition"; }
 
-#include "Scenario/RemoveEvent.hpp"
+#include "Scenario/Deletions/RemoveEvent.hpp"
 const char* Scenario::Command::RemoveEvent::className() { return "RemoveEvent"; }
 
-#include "Scenario/RemoveConstraint.hpp"
+#include "Scenario/Deletions/RemoveConstraint.hpp"
 const char* Scenario::Command::RemoveConstraint::className() { return "RemoveConstraint"; }
 
-#include "Scenario/CreateEventAfterEvent.hpp"
+#include "Scenario/Creations/CreateEventAfterEvent.hpp"
 const char* Scenario::Command::CreateEventAfterEvent::className() { return "CreateEventAfterEvent"; }
 
-#include "Scenario/MoveEvent.hpp"
+#include "Scenario/Displacement/MoveEvent.hpp"
 const char* Scenario::Command::MoveEvent::className() { return "MoveEvent"; }
 
-#include "Scenario/MoveTimeNode.hpp"
+#include "Scenario/Displacement/MoveTimeNode.hpp"
 const char* Scenario::Command::MoveTimeNode::className() { return "MoveTimeNode"; }
 
 #include "Scenario/ResizeConstraint.hpp"
 const char* Scenario::Command::ResizeConstraint::className() { return "ResizeConstraint"; }
 
-#include "Scenario/MoveConstraint.hpp"
+#include "Scenario/Displacement/MoveConstraint.hpp"
 const char* Scenario::Command::MoveConstraint::className() { return "MoveConstraint"; }
 
-#include "Scenario/CreateConstraint.hpp"
+#include "Scenario/Creations/CreateConstraint.hpp"
 const char* Scenario::Command::CreateConstraint::className() { return "CreateConstraint"; }
 
-#include "Scenario/ClearEvent.hpp"
+#include "Scenario/Deletions/ClearEvent.hpp"
 const char* Scenario::Command::ClearEvent::className() { return "ClearEvent"; }
 
-#include "Scenario/CreateEvent.hpp"
+#include "Scenario/Creations/CreateEvent.hpp"
 const char* Scenario::Command::CreateEvent::className() { return "CreateEvent"; }
 
-#include "Scenario/CreateEventAfterEventOnTimeNode.hpp"
+#include "Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 const char* Scenario::Command::CreateEventAfterEventOnTimeNode::className() { return "CreateEventAfterEventOnTimeNode"; }
 
-#include "Scenario/ClearConstraint.hpp"
+#include "Scenario/Deletions/ClearConstraint.hpp"
 const char* Scenario::Command::ClearConstraint::className() { return "ClearConstraint"; }
 
 #include "Scenario/ShowBoxInViewModel.hpp"

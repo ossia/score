@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/CreateEventAfterEvent.hpp>
+#include <Commands/Scenario/Creations/CreateEventAfterEvent.hpp>
 
 #include <Document/Event/EventModel.hpp>
 #include <Document/Event/EventData.hpp>
