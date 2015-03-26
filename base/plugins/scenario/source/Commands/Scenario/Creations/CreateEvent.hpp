@@ -38,6 +38,8 @@ namespace Scenario
 
                 id_type<EventModel> createdEvent() const
                 {
+                    if (m_tn)
+                        return m_tnCmd->createdEvent();
                     return m_cmd->createdEvent();
                 }
 

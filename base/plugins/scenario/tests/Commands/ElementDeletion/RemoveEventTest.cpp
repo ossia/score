@@ -14,13 +14,17 @@ class RemoveEventTest : public QObject
 {
         Q_OBJECT
     private slots:
-        void RemoveTest()
+        void RemoveEventAndTimeNodeTest()
         {
+            // only one event on a timeNode
+            // the timeNode will be deleted too
+
             ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);
             data.relativeY = 0.4;
+            data.endTimeNodeId = id_type<TimeNodeModel>(-1);
 
             CreateEvent eventCmd(
             {
@@ -32,14 +36,17 @@ class RemoveEventTest : public QObject
             auto event_id = eventCreated->id();
             auto tn_id = eventCreated->timeNode();
 
+            int nbOfEvent = 3;
+            int nbOfTimeNodes = 3;
+
             RemoveEvent removeCmd(
             {
                 {"ScenarioModel", {0}},
             }, eventCreated );
 
             removeCmd.redo();
-            QCOMPARE((int) scenar->events().size(), 1);
-            QCOMPARE((int) scenar->timeNodes().size(), 1);
+            QCOMPARE((int) scenar->events().size(), nbOfEvent - 1);
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes - 1);
             try
             {
                 scenar->event(event_id);
@@ -54,13 +61,13 @@ class RemoveEventTest : public QObject
             catch(...) { }
 
             removeCmd.undo();
-            QCOMPARE((int) scenar->events().size(), 2);
-            QCOMPARE((int) scenar->timeNodes().size(), 2);
+            QCOMPARE((int) scenar->events().size(), nbOfEvent );
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes );
             QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
 
             removeCmd.redo();
-            QCOMPARE((int) scenar->events().size(), 1);
-            QCOMPARE((int) scenar->timeNodes().size(), 1);
+            QCOMPARE((int) scenar->events().size(), nbOfEvent - 1);
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes - 1);
 
             try
             {
@@ -75,7 +82,84 @@ class RemoveEventTest : public QObject
             }
             catch(...) { }
 
+            delete scenar;
+
         }
+
+        void RemoveOnlyEventTest()
+        {
+            // two events on a same timeNode
+            // test removing just one of them : the timeNode stay
+
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
+
+            EventData data {};
+            data.dDate.setMSecs(10);
+            data.relativeY = 0.8;
+            data.endTimeNodeId = id_type<TimeNodeModel>(-1);
+
+            CreateEvent eventCmd(
+            {
+                {"ScenarioModel", {0}},
+            }, data);
+            eventCmd.redo();
+
+            data.endTimeNodeId = eventCmd.createdTimeNode();
+            data.relativeY = 0.4;
+
+            CreateEvent event2Cmd(
+            {
+                {"ScenarioModel", {0}},
+            }, data);
+            event2Cmd.redo();
+
+            auto event_id = event2Cmd.createdEvent();
+            auto eventCreated = scenar->event(event_id);
+
+            int prevConstraintCount = 1;
+            QCOMPARE (eventCreated->previousConstraints().size(), prevConstraintCount);
+
+            auto prevConstraints = eventCreated->previousConstraints();
+
+            int nbOfEvent = 4;
+            int nbOfTimeNodes = 3;
+
+            RemoveEvent removeCmd(
+            {
+                {"ScenarioModel", {0}},
+            }, eventCreated );
+
+            removeCmd.redo();
+            QCOMPARE((int) scenar->events().size(), nbOfEvent - 1);
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes);
+            try
+            {
+                scenar->event(event_id);
+                QFAIL("Event call did not throw!");
+            }
+            catch(...) { }
+
+            removeCmd.undo();
+            QCOMPARE((int) scenar->events().size(), nbOfEvent);
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes);
+            QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
+            QCOMPARE(scenar->event(event_id)->previousConstraints().size(), prevConstraintCount);
+            QCOMPARE(scenar->event(event_id)->previousConstraints().first(), prevConstraints[0] );
+
+            removeCmd.redo();
+            QCOMPARE((int) scenar->events().size(), nbOfEvent - 1);
+            QCOMPARE((int) scenar->timeNodes().size(), nbOfTimeNodes);
+
+            try
+            {
+                scenar->event(event_id);
+                QFAIL("Event call did not throw!");
+            }
+            catch(...) { }
+
+            delete scenar;
+        }
+
 };
 
 

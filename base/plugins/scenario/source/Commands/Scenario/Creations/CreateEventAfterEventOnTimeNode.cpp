@@ -60,6 +60,8 @@ void CreateEventAfterEventOnTimeNode::redo()
 
     scenar->timeNode(m_timeNodeId)->addEvent(m_createdEventId);
 
+    scenar->event(m_createdEventId)->changeTimeNode(m_timeNodeId);
+
     // Creation of all the constraint view models
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
