@@ -33,14 +33,8 @@ class EventView : public QGraphicsObject
         }
 
     signals:
-        void eventPressed();
-        void eventReleased();
-        void eventMoved(QPointF);
         void eventHoverEnter();
         void eventHoverLeave();
-
-        // True : ctrl is pressed; false : ctrl is not.
-        void ctrlStateChanged(bool);
 
     public slots:
         void changeColor(QColor);
@@ -51,10 +45,7 @@ class EventView : public QGraphicsObject
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-        /*
-        virtual void keyPressEvent(QKeyEvent* e) override;
-        virtual void keyReleaseEvent(QKeyEvent* e) override;
-        */
+
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 

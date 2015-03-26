@@ -22,19 +22,12 @@ class EventPresenter : public NamedObject
         bool isSelected() const;
 
     signals:
-        void pressed();
-        void eventMoved(EventData);
-        void eventReleased();
         void eventHoverEnter();
         void eventHoverLeave();
-
-        void ctrlStateChanged(bool);
 
         void linesExtremityChange(int, double);
 
     private:
-        EventData pointToEventData(QPointF p) const;
-
         EventModel* m_model {};
         EventView* m_view {};
 };

@@ -256,8 +256,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 
     m_events.push_back(event_presenter);
 
-    m_cmdManager->setupEventPresenter(event_presenter);
-    m_selManager->setup(event_presenter);
+    // TODO see with state machine instead. m_selManager->setup(event_presenter);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -278,7 +277,6 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
             this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
 
-    m_cmdManager->setupTimeNodePresenter(timeNode_presenter);
     m_selManager->setup(timeNode_presenter);
 }
 
@@ -314,7 +312,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
         m_viewInterface->on_hoverOnConstraint(constraint_presenter->model()->id(), false);
     });
 
-    m_cmdManager->setupConstraintPresenter(constraint_presenter);
     m_selManager->setup(constraint_presenter);
     m_selManager->selectConstraint(constraint_presenter);
 

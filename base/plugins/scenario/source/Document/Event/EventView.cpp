@@ -79,66 +79,20 @@ void EventView::setShadow(bool arg)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    /*
-    QGraphicsItem::mousePressEvent(event);
-
-    m_clickedPoint = event->pos();
-    emit eventPressed();
-    */
     // Should be selectable only when the state machine is in the selection tool.
     event->ignore();
 }
 
-void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
+void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    /*
-    QGraphicsObject::mouseReleaseEvent(m);
-
-    emit eventReleased();
-
-    m_moving = false;
-    */
-    m->ignore();
+    event->ignore();
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 {
-    /*
-    QGraphicsObject::mouseMoveEvent(m);
-
-    auto posInScenario = pos() + m->pos() - m_clickedPoint;
-
-    // TODO effet bizarre : un léger déplacement est autorisé la première fois ... D'où est ce que ça sort ?
-
-    if(m->modifiers() == Qt::ShiftModifier)
-    {
-        posInScenario.setX(pos().x());
-    }
-
-    emit eventMoved(posInScenario);
-
-
-    m_moving = true;
-    */
     m->ignore();
 }
-/*
-void EventView::keyPressEvent(QKeyEvent* e)
-{
-    if(e->key() == Qt::Key_Control)
-    {
-        emit ctrlStateChanged(true);
-    }
-}
 
-void EventView::keyReleaseEvent(QKeyEvent* e)
-{
-    if(e->key() == Qt::Key_Control)
-    {
-        emit ctrlStateChanged(false);
-    }
-}
-*/
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsObject::hoverEnterEvent(h);

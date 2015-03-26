@@ -128,55 +128,6 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
 
 }
 
-void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
-{
-    /*
-    connect(e, &EventPresenter::eventMoved,
-            [this] (const EventData& ev)
-    {
-        m_lastData = ev; moveEventAndConstraint(ev);
-        m_presenter.focus();
-    });
-
-    auto commit_fn = [this] ()
-    {
-        if(m_creationCommandDispatcher->ongoing())
-            m_creationCommandDispatcher->commit();
-
-        if(m_moveCommandDispatcher->ongoing())
-            m_moveCommandDispatcher->commit();
-
-        m_presenter.focus();
-    };
-
-    connect(e,    &EventPresenter::eventReleased,
-            commit_fn);
-
-    // TODO manage ctrl being pressed / released globally.
-    connect(e,    &EventPresenter::ctrlStateChanged,
-            this, &ScenarioCommandManager::on_ctrlStateChanged);
-            */
-
-}
-
-void ScenarioCommandManager::setupTimeNodePresenter(TimeNodePresenter* t)
-{
-    connect(t,    &TimeNodePresenter::timeNodeMoved,
-            this, &ScenarioCommandManager::moveTimeNode);
-
-    connect(t,                &TimeNodePresenter::timeNodeReleased,
-            m_moveCommandDispatcher, &OngoingCommandDispatcher<>::commit);
-}
-
-void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresenter* c)
-{
-    connect(c,	  &TemporalConstraintPresenter::constraintMoved,
-            this, &ScenarioCommandManager::moveConstraint);
-    connect(c,                       &TemporalConstraintPresenter::constraintReleased,
-            m_moveCommandDispatcher, &OngoingCommandDispatcher<>::commit);
-}
-
-
 
 // Three cases :
 // We are between :
@@ -241,49 +192,92 @@ void ScenarioCommandManager::createConstraint(EventData data)
     */
 }
 
-void ScenarioCommandManager::on_scenarioPressed(QPointF point)
+template<typename EventFun, typename TimeNodeFun, typename NothingFun>
+void ScenarioCommandManager::mapItemToAction(QGraphicsItem* pressedItem, EventFun&& ev_fun, TimeNodeFun&& tn_fun, NothingFun&& nothing_fun)
 {
-    auto pressedItem = m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform());
     if(auto ev = dynamic_cast<EventView*>(pressedItem))
     {
-        for(EventPresenter* event : m_presenter.m_events)
-        {
-            if(event->view() == ev)
-            {
-                m_sm.postEvent(new ScenarioClickOnEvent_QEvent{event->model()->id(),
-                                                               event->model()->date(),
-                                                               event->model()->heightPercentage()});
-                break;
-            }
-        }
-
+        ev_fun(getPresenterFromView(ev, m_presenter.m_events)->model());
     }
-    else if(dynamic_cast<TimeNodeView*>(pressedItem))
+    else if(auto tn = dynamic_cast<TimeNodeView*>(pressedItem))
     {
-        qDebug("2");
+        tn_fun(getPresenterFromView(tn, m_presenter.m_timeNodes)->model());
     }
     else
     {
-        qDebug("3");
+        nothing_fun();
+    }
+}
+
+void ScenarioCommandManager::on_scenarioPressed(const QPointF& point)
+{
+    mapItemToAction(m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform()),
+    [&] (EventModel* model)
+    {
+        m_sm.postEvent(new ScenarioClickOnEvent_QEvent{
+                           model->id(),
+                           model->date(),
+                           model->heightPercentage()});
+    },
+    [&] (TimeNodeModel* model)
+    {
+
+    },
+    [&] ()
+    {
         m_sm.postEvent(new ScenarioClickOnNothing_QEvent{
                            TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                            point.y() /  m_presenter.m_view->boundingRect().height()});
-    }
-
-
+    });
 }
 
-void ScenarioCommandManager::on_scenarioMoved(QPointF point)
+void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
 {
-    qDebug() << point;
-    m_sm.postEvent(new ScenarioMove_QEvent{
-                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                       point.y() /  m_presenter.m_view->boundingRect().height()});
+    // We have to get the topmost item we're colliding with which isn't being created.
+    /*
+    auto eventTN = findById(m_presenter.m_events, data.eventClickedId)->model()->timeNode();
+    QList<TimeNodePresenter*> collidingTimeNodes;
+    copy_if(begin(m_presenter.m_timeNodes), end(m_presenter.m_timeNodes), std::back_inserter(collidingTimeNodes),
+            [=](TimeNodePresenter * tn)
+    {
+        if (eventTN != tn->id())
+            return tn->view()->isUnderMouse();
+        return false;
+    });
+
+    */
+
+    //qDebug() << collidingTimeNodes;
+    mapItemToAction(m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform()),
+    [&] (EventModel* model)
+    {
+        qDebug() << 1;
+        /*
+        m_sm.postEvent(new ScenarioMoveOverEvent_QEvent{
+                           model->id(),
+                           model->date(),
+                           model->heightPercentage()});
+                           */
+    },
+    [&] (TimeNodeModel* model)
+    {
+
+        qDebug() << 2;
+    },
+    [&] ()
+    {
+
+        qDebug() << 3;
+        m_sm.postEvent(new ScenarioMoveOverNothing_QEvent{
+                           TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                           point.y() /  m_presenter.m_view->boundingRect().height()});
+    });
+
 
 }
 
 // TODO on_scenarioMoved instead?
-void ScenarioCommandManager::on_scenarioReleased(QPointF point)
+void ScenarioCommandManager::on_scenarioReleased(const QPointF& point)
 {
     m_sm.postEvent(new ScenarioRelease_QEvent);
 

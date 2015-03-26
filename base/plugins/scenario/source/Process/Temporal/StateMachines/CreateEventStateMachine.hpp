@@ -97,23 +97,9 @@ class CreateEventState : public QState
                          iscore::CommandStack& stack,
                          QState* parent);
 
-        void move(const TimeValue& newdate, double newy)
-        {
-            eventDate = newdate;
-            ypos = newy;
-            emit move();
-        }
-
-
-
         id_type<EventModel> firstEvent;
         TimeValue eventDate;
         double ypos{};
-
-    signals:
-        void move();
-        void release();
-        void cancel();
 
     private:
         ObjectPath m_scenarioPath;
@@ -126,6 +112,26 @@ class CreateEventState : public QState
 
 
 ////////////////////////
+struct ScenarioCancel_QEvent : public QEvent
+{
+        ScenarioCancel_QEvent():
+            QEvent{QEvent::Type(QEvent::User+100)}
+        { }
+};
+class ScenarioCancelTransition : public QAbstractTransition
+{
+        Q_OBJECT
+    public:
+        using QAbstractTransition::QAbstractTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+100); }
+
+        virtual void onTransition(QEvent * ev)
+        { }
+};
+
 
 struct ScenarioRelease_QEvent : public QEvent
 {
@@ -271,9 +277,9 @@ class ScenarioClickOnEvent_Transition : public AbstractScenarioTransition
 
 
 ////////////////////////
-struct ScenarioMove_QEvent : public QEvent
+struct ScenarioMoveOverNothing_QEvent : public QEvent
 {
-        ScenarioMove_QEvent(const TimeValue& newdate, double newy):
+        ScenarioMoveOverNothing_QEvent(const TimeValue& newdate, double newy):
             QEvent{QEvent::Type(QEvent::User+4)},
             m_date{newdate},
             m_ypos{newy}
@@ -295,7 +301,7 @@ class ScenarioMove_Transition : public AbstractScenarioTransition
 
         virtual void onTransition(QEvent * ev)
         {
-            auto qev = static_cast<ScenarioMove_QEvent*>(ev);
+            auto qev = static_cast<ScenarioMoveOverNothing_QEvent*>(ev);
 
             state().eventDate = qev->m_date;
             state().ypos =  qev->m_ypos;

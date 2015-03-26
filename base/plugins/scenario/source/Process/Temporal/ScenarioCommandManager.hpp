@@ -22,14 +22,10 @@ class ScenarioCommandManager : public QObject
     public:
         ScenarioCommandManager(TemporalScenarioPresenter& presenter);
 
-        void setupEventPresenter(EventPresenter* e);
-        void setupTimeNodePresenter(TimeNodePresenter* t);
-        void setupConstraintPresenter(TemporalConstraintPresenter* c);
-
         void createConstraint(EventData);
-        void on_scenarioPressed(QPointF point);
-        void on_scenarioMoved(QPointF point);
-        void on_scenarioReleased(QPointF point);
+        void on_scenarioPressed(const QPointF& point);
+        void on_scenarioMoved(const QPointF& point);
+        void on_scenarioReleased(const QPointF& point);
 
         // Moving
         void moveEventAndConstraint(EventData data);
@@ -42,6 +38,21 @@ class ScenarioCommandManager : public QObject
         bool ongoingCommand();
 
     private:
+
+        template<typename View, typename Array>
+        auto getPresenterFromView(const View* v, const Array& arr)
+        {
+            // TODO : filter the elements currently being created ?
+            auto it = std::find_if(begin(arr), end(arr),
+                                   [&] (const typename Array::value_type& val)
+            { return val->view() == v; });
+            Q_ASSERT(it != end(arr));
+            return *it;
+        }
+
+        template<typename EventFun, typename TimeNodeFun, typename NothingFun>
+        void mapItemToAction(QGraphicsItem* pressedItem, EventFun&& ev_fun, TimeNodeFun&& tn_fun, NothingFun&& nothing_fun);
+
         EventData m_lastData {};
 
         TemporalScenarioPresenter& m_presenter;
