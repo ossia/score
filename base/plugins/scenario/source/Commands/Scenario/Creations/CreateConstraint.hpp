@@ -34,6 +34,11 @@ namespace Scenario
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
 
+                id_type<ConstraintModel> createdConstraint()
+                {
+                    return m_createdConstraintId;
+                }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;
