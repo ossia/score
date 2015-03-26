@@ -54,11 +54,12 @@ class GenericToolState : public QState
         template<typename View, typename Array>
         auto getPresenterFromView(const View* v, const Array& arr) const
         {
+            // TODO optimize this by putting a pointer to the presenter in the view...
             auto it = std::find_if(std::begin(arr), std::end(arr),
                                    [&] (const typename Array::value_type& val)
             { return val->view() == v; });
-            Q_ASSERT(it != std::end(arr));
-            return *it;
+
+            return it != std::end(arr) ? *it : nullptr;
         }
 
         template<typename EventFun,
@@ -72,18 +73,23 @@ class GenericToolState : public QState
                 ConstraintFun&& cst_fun,
                 NothingFun&& nothing_fun) const
         {
+            // Each time :
+            // Check if it is an event / timenode / constraint
+            // Check if it is in our scenario.
             if(auto ev = dynamic_cast<const EventView*>(pressedItem))
             {
-                ev_fun(getPresenterFromView(ev, m_sm.presenter().events())->model()->id());
+                if(auto pres = getPresenterFromView(ev, m_sm.presenter().events()))
+                    ev_fun(pres->model()->id());
             }
             else if(auto tn = dynamic_cast<const TimeNodeView*>(pressedItem))
             {
-                tn_fun(getPresenterFromView(tn, m_sm.presenter().timeNodes())->model()->id());
+                if(auto pres = getPresenterFromView(tn, m_sm.presenter().timeNodes()))
+                    tn_fun(pres->model()->id());
             }
             else if(auto cst = dynamic_cast<const AbstractConstraintView*>(pressedItem))
             {
-                cst_fun(getPresenterFromView(cst, m_sm.presenter().constraints())
-                            ->abstractConstraintViewModel()->model()->id());
+                if(auto pres = getPresenterFromView(cst, m_sm.presenter().constraints()))
+                    cst_fun(pres->abstractConstraintViewModel()->model()->id());
             }
             else
             {

@@ -24,7 +24,7 @@ class CommonState : public QState
             clickedTimeNode = id_type<TimeNodeModel>{};
             clickedConstraint = id_type<ConstraintModel>{};
 
-            point = ScenarioPoint{};
+            point = ScenarioPoint();
 
         }
 
