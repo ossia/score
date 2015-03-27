@@ -39,6 +39,10 @@ namespace Scenario
                 {
                     return m_createdEventId;
                 }
+                id_type<TimeNodeModel> timeNode() const
+                {
+                    return m_timeNodeId;
+                }
 
                 virtual void undo() override;
                 virtual void redo() override;

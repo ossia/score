@@ -26,6 +26,9 @@ addIScoreQtTest(AddDeckToBoxTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddDeckToBoxTest.cpp")
 addIScoreQtTest(AddProcessViewModelToDeckTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToDeckTest.cpp")
+addIscoreQtTest(SplitTimeNodeTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeNodeTest.cpp")
+
 ## elementCreation
 addIScoreQtTest(CreateEventAfterEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventTest.cpp")
@@ -39,6 +42,8 @@ addIScoreQtTest(CreateConstraintTest
 ## elementDeletion
 addIscoreQtTest(RemoveEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveEventTest.cpp")
+addIscoreQtTest(RemoveConstraintTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveConstraintTest.cpp")
 
 addIScoreQtTest(HideBoxInViewModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/HideBoxInViewModelTest.cpp")

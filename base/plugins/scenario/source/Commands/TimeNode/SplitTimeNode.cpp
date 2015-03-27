@@ -34,6 +34,7 @@ void SplitTimeNode::undo()
     {
         originalTN->addEvent(eventId);
         newTN->removeEvent(eventId);
+        scenar->event(eventId)->changeTimeNode(m_originalTimeNodeId);
     }
 
     StandardRemovalPolicy::removeTimeNode(*scenar, m_newTimeNodeId);
@@ -51,6 +52,7 @@ void SplitTimeNode::redo()
     {
         newTimeNode->addEvent(eventId);
         originalTN->removeEvent(eventId);
+        scenar->event(eventId)->changeTimeNode(m_newTimeNodeId);
     }
 
 }

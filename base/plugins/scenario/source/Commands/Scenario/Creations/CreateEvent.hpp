@@ -33,6 +33,8 @@ namespace Scenario
 
                 id_type<TimeNodeModel> createdTimeNode() const
                 {
+                    if (m_tn)
+                        return m_tnCmd->timeNode();
                     return m_cmd->createdTimeNode();
                 }
 

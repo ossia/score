@@ -33,8 +33,12 @@ class CreateEventTest: public QObject
             }, data);
 
             cmd.redo();
+
+            auto event = scenar->event(cmd.createdEvent());
+
             QCOMPARE((int) scenar->events().size(), 3);
-            QCOMPARE(scenar->event(cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.2);
+            QCOMPARE(event->heightPercentage(), 0.2);
+            QCOMPARE( cmd.createdTimeNode(), event->timeNode() );
 
             cmd.undo();
             QCOMPARE((int) scenar->events().size(), 2);
@@ -43,7 +47,7 @@ class CreateEventTest: public QObject
 
             cmd.redo();
             QCOMPARE((int) scenar->events().size(), 3);
-            QCOMPARE(scenar->event(cmd.m_cmd->m_createdEventId)->heightPercentage(), 0.2);
+            QCOMPARE(event->heightPercentage(), 0.2);
 
 
             // Delete them else they stay in qApp !
