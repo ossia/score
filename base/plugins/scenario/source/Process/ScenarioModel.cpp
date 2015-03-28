@@ -174,7 +174,13 @@ void ScenarioModel::setSelection(const Selection& s)
     for(auto elt : m_events)
         elt->selection.set(s.contains(elt));
     for(auto elt : m_timeNodes)
-        elt->selection.set(s.contains(elt));
+      elt->selection.set(s.contains(elt));
+}
+
+#include "ScenarioExecutor.hpp"
+ProcessExecutor* ScenarioModel::makeExecutor()
+{
+    return new ScenarioExecutor{*this};
 }
 
 ProcessStateDataInterface* ScenarioModel::startState() const

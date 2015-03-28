@@ -4,6 +4,7 @@
 #include <iscore/selection/Selection.hpp>
 #include "State/ProcessStateDataInterface.hpp"
 
+class ProcessExecutor;
 class QDataStream;
 
 class ProcessViewModelInterface;
@@ -62,6 +63,9 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         {
             return m_viewModels;
         }
+
+        //// Executor interface
+        virtual ProcessExecutor* makeExecutor() = 0;
 
         //// Features of a process
         /// Duration
