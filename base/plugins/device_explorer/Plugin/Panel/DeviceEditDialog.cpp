@@ -6,7 +6,8 @@
 #include <QLabel>
 
 #include "NodeFactory.hpp"
-#include "ProtocolSettingsWidget.hpp"
+
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 
 DeviceEditDialog::DeviceEditDialog(QWidget* parent)

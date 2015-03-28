@@ -3,13 +3,15 @@
 class ScenarioModel;
 
 class EventExecutor;
+class TimeNodeExecutor;
 class ConstraintExecutor;
 class ScenarioExecutor : public ProcessExecutor
 {
     ScenarioModel& m_model;
 
-    QList<EventExecutor*> m_events;
-    QList<ConstraintExecutor*> m_constraints;
+    QSet<EventExecutor*> m_events;
+    QSet<ConstraintExecutor*> m_constraints;
+    QSet<TimeNodeExecutor*> m_timenodes;
   public:
     ScenarioExecutor(ScenarioModel& model);
 

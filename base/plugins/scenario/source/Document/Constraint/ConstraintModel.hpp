@@ -45,6 +45,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                    READ maxDuration
                    WRITE setMaxDuration
                    NOTIFY maxDurationChanged)
+        Q_PROPERTY(TimeValue playDuration
+                   READ playDuration
+                   WRITE setPlayDuration
+                   NOTIFY playDurationChanged)
 
     public:
         /** Properties of the class **/
@@ -150,6 +154,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void setFullView(FullViewConstraintViewModel* fv);
 
+        TimeValue playDuration() const
+        {
+            return m_playDuration;
+        }
+
     signals:
         void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
         void processRemoved(id_type<ProcessSharedModelInterface> processId);
@@ -169,12 +178,24 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void selectedChildrenChanged(ProcessSharedModelInterface* proc);
 
+        void playDurationChanged(TimeValue arg);
+
     public slots:
         void setHeightPercentage(double arg);
 
+        void setDefaultDurationInBounds(TimeValue defaultDuration);
         void setDefaultDuration(TimeValue defaultDuration);
         void setMinDuration(TimeValue arg);
         void setMaxDuration(TimeValue arg);
+
+        void setPlayDuration(TimeValue arg)
+        {
+            if (m_playDuration == arg)
+                return;
+
+            m_playDuration = arg;
+            emit playDurationChanged(arg);
+        }
 
     private slots:
         void on_destroyedViewModel(QObject*);
@@ -203,4 +224,5 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         TimeValue m_x {}; // origin
 
         double m_heightPercentage {0.5};
+        TimeValue m_playDuration;
 };

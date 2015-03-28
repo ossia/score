@@ -23,7 +23,7 @@ class MasterSession : public Session
                       QObject* parent = nullptr);
 
         void broadcast(NetworkMessage m);
-        void transmit(id_type<RemoteClient> sender, NetworkMessage m);
+        void transmit(id_type<Client> sender, NetworkMessage m);
 
         iscore::Document* document() const
         { return m_document; }

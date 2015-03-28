@@ -3,6 +3,10 @@
 #include <ProcessInterface/ProcessExecutor.hpp>
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "ScenarioExecutor.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "../curve_plugin/Automation/AutomationExecutor.hpp"
+#include "../curve_plugin/Automation/AutomationModel.hpp"
 ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
     m_constraint{cm}
 {
@@ -20,9 +24,12 @@ ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
         }
     });
 
-    for(auto& process : m_constraint.processes())
+    for(ProcessSharedModelInterface* process : m_constraint.processes())
     {
-        m_executors.push_back(process->makeExecutor());
+        if(process->processName() == "Scenario")
+            m_executors.push_back(new ScenarioExecutor(static_cast<ScenarioModel&>(*process)));
+        if(process->processName() == "Automation")
+            m_executors.push_back(new AutomationExecutor(static_cast<AutomationModel&>(*process)));
     }
 }
 
@@ -62,4 +69,13 @@ void ConstraintExecutor::tick()
     {
         proc->onTick(m_currentTime);
     }
+    m_constraint.setPlayDuration(m_currentTime);
+/*
+    if((m_constraint.defaultDuration() != m_constraint.minDuration()
+     || m_constraint.defaultDuration() != m_constraint.maxDuration())
+    && m_currentTime > m_constraint.minDuration())
+    {
+        m_constraint.setDefaultDurationInBounds(m_currentTime);
+    }
+    */
 }

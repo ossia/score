@@ -3,7 +3,7 @@
 class QLineEdit;
 class QSpinBox;
 
-#include "ProtocolSettingsWidget.hpp"
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
 {

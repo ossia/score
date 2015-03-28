@@ -105,6 +105,11 @@ class TimeValue_T
             }
         }
 
+        bool operator>= (const TimeValue_T& other) const
+        {
+            return *this > other || *this == other;
+        }
+
         bool operator< (const TimeValue_T& other) const
         {
             if(isInfinite() && other.isInfinite())
@@ -123,6 +128,11 @@ class TimeValue_T
             {
                 return msec() < other.msec();
             }
+        }
+
+        bool operator<= (const TimeValue_T& other) const
+        {
+            return *this < other || *this == other;
         }
 
         TimeValue_T operator+ (const TimeValue_T& other)

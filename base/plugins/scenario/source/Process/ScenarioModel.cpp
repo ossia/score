@@ -177,12 +177,6 @@ void ScenarioModel::setSelection(const Selection& s)
       elt->selection.set(s.contains(elt));
 }
 
-#include "ScenarioExecutor.hpp"
-ProcessExecutor* ScenarioModel::makeExecutor()
-{
-    return new ScenarioExecutor{*this};
-}
-
 ProcessStateDataInterface* ScenarioModel::startState() const
 {
     qDebug() << Q_FUNC_INFO << "TODO";

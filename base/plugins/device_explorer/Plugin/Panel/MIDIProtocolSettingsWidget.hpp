@@ -3,7 +3,7 @@
 class QRadioButton;
 class QComboBox;
 
-#include "ProtocolSettingsWidget.hpp"
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 class MIDIProtocolSettingsWidget : public ProtocolSettingsWidget
 {

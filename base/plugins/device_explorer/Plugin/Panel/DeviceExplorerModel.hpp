@@ -16,7 +16,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 {
         Q_OBJECT
 
-
         friend class DeviceExplorerMoveCommand;
         friend class DeviceExplorerInsertCommand;
         friend class DeviceExplorerRemoveCommand;

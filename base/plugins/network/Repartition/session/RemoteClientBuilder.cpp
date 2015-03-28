@@ -16,8 +16,8 @@ void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
     {
         NetworkMessage idOffer;
         idOffer.address = "/session/idOffer";
-        idOffer.sessionId = m_session.id();
-        idOffer.clientId = m_session.localClient().id();
+        idOffer.sessionId = m_session.id().val().get();
+        idOffer.clientId = m_session.localClient().id().val().get();
         QDataStream s(&idOffer.data, QIODevice::WriteOnly);
 
         m_clientId = id_type<Client>(getNextId());

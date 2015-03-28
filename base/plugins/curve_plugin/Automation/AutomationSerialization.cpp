@@ -62,12 +62,6 @@ void AutomationModel::serialize(SerializationIdentifier identifier,
     throw std::runtime_error("AutomationModel only supports DataStream & JSON serialization");
 }
 
-#include "AutomationExecutor.hpp"
-ProcessExecutor*AutomationModel::makeExecutor()
-{
-    return new AutomationExecutor{*this};
-}
-
 
 
 ProcessSharedModelInterface* AutomationFactory::makeModel(SerializationIdentifier identifier,

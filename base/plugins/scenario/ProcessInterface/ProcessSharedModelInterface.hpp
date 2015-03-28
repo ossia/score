@@ -64,9 +64,6 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
             return m_viewModels;
         }
 
-        //// Executor interface
-        virtual ProcessExecutor* makeExecutor() = 0;
-
         //// Features of a process
         /// Duration
         // Used to scale the process.

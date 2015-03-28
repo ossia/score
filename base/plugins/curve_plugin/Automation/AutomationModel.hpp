@@ -54,8 +54,6 @@ class AutomationModel : public ProcessSharedModelInterface
 
         void serialize(SerializationIdentifier identifier, void* data) const override;
 
-        ProcessExecutor* makeExecutor() override;
-
         /// States
         ProcessStateDataInterface* startState() const override;
         ProcessStateDataInterface* endState() const override;

@@ -25,7 +25,7 @@ class id
             return *lhs.val() < *rhs.val();
         }
 
-        operator bool() const
+        explicit operator bool() const
         {
             return bool(m_id);
         }

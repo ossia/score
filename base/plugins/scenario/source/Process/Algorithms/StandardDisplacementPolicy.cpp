@@ -28,7 +28,7 @@ void translateNextElements(ScenarioModel& scenario,
             auto evId = scenario.constraint(cons)->endEvent();
 
             // if event has not already moved
-            if(movedEvents.indexOf(evId) == -1 && scenario.event(evId)->timeNode() != 0)
+            if(movedEvents.indexOf(evId) == -1 && scenario.event(evId)->timeNode() != scenario.startEvent()->timeNode())
             {
                 scenario.event(evId)->translate(deltaTime);
                 movedEvents.push_back(evId);

@@ -25,7 +25,7 @@
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QTemporaryFile>
-#include <source/Process/Algorithms/Execution.hpp>
+#include <Execution/Execution.hpp>
 
 // TODO : snapshot : doit être un mode d'édition particulier
 // on enregistre l'état précédent et on crée les courbes correspondantes
