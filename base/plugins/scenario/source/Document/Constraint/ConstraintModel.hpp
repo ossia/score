@@ -102,7 +102,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void addProcess(ProcessSharedModelInterface*);
         void removeProcess(id_type<ProcessSharedModelInterface> processId);
 
-        void createBox(id_type<BoxModel> boxId);  // TODO : Remove this one
+        void createBox(id_type<BoxModel> boxId);
         void addBox(BoxModel*);
         void removeBox(id_type<BoxModel> boxId);
 

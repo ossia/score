@@ -409,7 +409,7 @@ DeviceExplorerWidget::addAddress(int insertType)
         QList<QString> addressSettings = m_addressDialog->getSettings();
         Q_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-        model()->addAddress(index, insert, addressSettings);  //TODO: pass a API::Device ???
+        model()->addAddress(index, insert, addressSettings);
         //TODO: we should set the focus on this Node & expand it
         //m_ntView->setCurrentIndex(?)
     }

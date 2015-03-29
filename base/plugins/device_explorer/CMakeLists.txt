@@ -7,39 +7,41 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
-
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/API)
+include_directories(${CMAKE_SOURCE_DIR}/API/Headers)
 ### Library ###
 find_package(Qt5Test)
 file(GLOB_RECURSE INTERFACE_SRCS
-		"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.cpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
 
 add_library(DeviceExplorerLibrary
-			${INTERFACE_SRCS})
+      ${INTERFACE_SRCS})
 
 set_property(TARGET DeviceExplorerLibrary APPEND
-			 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+       PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(DeviceExplorerLibrary Qt5::Core Qt5::Widgets iscore_lib  StateLibrary)
 
 install(TARGETS DeviceExplorerLibrary
-		LIBRARY DESTINATION .
-		ARCHIVE DESTINATION static_lib/)
+    LIBRARY DESTINATION .
+    ARCHIVE DESTINATION static_lib/)
 
 ### Plugin ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Plugin")
 file(GLOB_RECURSE PLUGIN_SRCS
-		"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.cpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp")
 
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorer.qrc")
 
 add_library(device_explorer_plugin
-			${PLUGIN_SRCS}
-			${EXPLORER_RESOURCES_RCC})
+      ${PLUGIN_SRCS}
+      ${EXPLORER_RESOURCES_RCC})
 
 target_link_libraries(device_explorer_plugin DeviceExplorerLibrary Qt5::Test)
 
 
 install(TARGETS device_explorer_plugin
-		LIBRARY DESTINATION plugins/
-		ARCHIVE DESTINATION static_plugins/)
+    LIBRARY DESTINATION plugins/
+    ARCHIVE DESTINATION static_plugins/)

@@ -19,10 +19,7 @@ class AddressEditDialog : public QDialog
         AddressEditDialog(QWidget* parent);
         ~AddressEditDialog();
 
-        //TODO: use QVariant ???
-        /*
-          first element is node name, second element is node value type.
-        */
+        // TODO
         QList<QString> getSettings() const;
 
         void setSettings(QList<QString>& settings);

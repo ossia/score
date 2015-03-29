@@ -54,7 +54,7 @@ DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
               ? MIDISpecificSettings::IO::In
               : MIDISpecificSettings::IO::Out;
     s.deviceSpecificSettings = QVariant::fromValue(midi);
-    // TODO
+
     return s;
 }
 
@@ -85,7 +85,6 @@ MIDIProtocolSettingsWidget::setSettings(const QList<QString>& settings)
 
 QList<QString> getAvailableInputMIDIDevices()
 {
-    //TODO: ask hardware...
     QList<QString> list;
     list.append(QObject::tr("MIDI.1"));
     list.append(QObject::tr("MIDI.5"));
@@ -95,7 +94,6 @@ QList<QString> getAvailableInputMIDIDevices()
 
 QList<QString> getAvailableOutputMIDIDevices()
 {
-    //TODO: ask hardware...
     QList<QString> list;
     list.append(QObject::tr("MIDI.out.2"));
     list.append(QObject::tr("MIDI.7"));
@@ -108,7 +106,6 @@ QList<QString> getAvailableOutputMIDIDevices()
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
-    //TODO: get input MIDI devices from Model ???
     m_deviceCBox->clear();
     QList<QString> deviceNames = getAvailableInputMIDIDevices();
     m_deviceCBox->addItems(deviceNames);
@@ -117,7 +114,6 @@ MIDIProtocolSettingsWidget::updateInputDevices()
 void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
-    //TODO: get output MIDI devices from Model ???
     m_deviceCBox->clear();
     QList<QString> deviceNames = getAvailableOutputMIDIDevices();
     m_deviceCBox->addItems(deviceNames);

@@ -18,10 +18,6 @@ class DeviceEditDialog : public QDialog
         DeviceEditDialog(QWidget* parent);
         ~DeviceEditDialog();
 
-        //TODO: use QVariant ???
-        /*
-          first element is protocol name, second element (if present) is node name.
-        */
         DeviceSettings getSettings() const;
 
         void setSettings(QList<QString>& settings);

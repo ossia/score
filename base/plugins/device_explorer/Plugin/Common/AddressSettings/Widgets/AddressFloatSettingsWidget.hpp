@@ -14,10 +14,6 @@ class AddressFloatSettingsWidget : public AddressSettingsWidget
         AddressFloatSettingsWidget(QWidget* parent = nullptr);
 
         //TODO: use QVariant instead ???
-        /*
-
-          The first element in returned list must be the name of the device.
-         */
         virtual QList<QString> getSettings() const override;
 
         virtual void setSettings(const QList<QString>& settings) override;

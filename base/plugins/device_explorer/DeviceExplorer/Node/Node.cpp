@@ -76,8 +76,6 @@ void Node::insertChild(int index, Node* n)
     Q_ASSERT(n);
     n->m_parent = this;
     m_children.insert(index, n);
-
-    //TODO: change corresponding API::Address ?
 }
 
 void Node::addChild(Node* n)
@@ -85,8 +83,6 @@ void Node::addChild(Node* n)
     Q_ASSERT(n);
     n->m_parent = this;
     m_children.append(n);
-
-    //TODO: change corresponding API::Address ?
 }
 
 void Node::swapChildren(int oldIndex, int newIndex)

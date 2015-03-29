@@ -4,7 +4,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <DeviceExplorer/Protocol/ProtocolList.hpp>
-
+#include <DeviceExplorer/Protocol/DeviceList.hpp>
 
 class SingletonProtocolList
 {
@@ -15,6 +15,14 @@ class SingletonProtocolList
         static ProtocolList m_instance;
 };
 
+class SingletonDeviceList
+{
+    public:
+        static DeviceList& instance();
+
+    private:
+        static DeviceList m_instance;
+};
 
 class DeviceExplorerPlugin :
     public QObject,

@@ -97,18 +97,19 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    //TODO: we should access a factory from MainWindow ? Model ???
-
     const QString protocol = m_protocolCBox->currentText();
     m_protocolWidget = SingletonProtocolList::instance().protocol(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {
-/* TODO        if(! m_previousSettings.at(m_index).empty())
+// TODO
+        /*
+        if(! m_previousSettings.at(m_index).empty())
         {
             m_protocolWidget->setSettings(m_previousSettings.at(m_index));
         }
-*/
+        */
+
         m_gLayout->addWidget(m_protocolWidget, 1, 0, 1, 2);
         updateGeometry();
     }
