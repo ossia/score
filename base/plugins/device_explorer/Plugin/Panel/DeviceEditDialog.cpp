@@ -7,7 +7,8 @@
 
 #include <DeviceExplorer/Node/NodeFactory.hpp>
 #include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
-
+#include <Plugin/DeviceExplorerPlugin.hpp>
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 DeviceEditDialog::DeviceEditDialog(QWidget* parent)
     : QDialog(parent),
@@ -66,7 +67,7 @@ DeviceEditDialog::initAvailableProtocols()
 {
     Q_ASSERT(m_protocolCBox);
 
-    m_protocolCBox->addItems(NodeFactory::instance().getAvailableProtocols());
+    m_protocolCBox->addItems(SingletonProtocolList::instance().protocols());
 
     //initialize previous settings
     m_previousSettings.clear();
@@ -100,7 +101,7 @@ DeviceEditDialog::updateProtocolWidget()
     //TODO: we should access a factory from MainWindow ? Model ???
 
     const QString protocol = m_protocolCBox->currentText();
-    m_protocolWidget = NodeFactory::instance().getProtocolWidget(protocol);
+    m_protocolWidget = SingletonProtocolList::instance().protocol(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {

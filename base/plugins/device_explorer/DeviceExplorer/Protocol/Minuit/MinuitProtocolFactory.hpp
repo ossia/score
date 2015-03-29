@@ -1,6 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 #include <DeviceExplorer/Protocol/Minuit/MinuitDevice.hpp>
+#include <DeviceExplorer/Protocol/Minuit/MinuitProtocolSettingsWidget.hpp>
 
 class MinuitProtocolFactory : public ProtocolFactoryInterface
 {
@@ -11,5 +12,10 @@ class MinuitProtocolFactory : public ProtocolFactoryInterface
         DeviceInterface* makeDevice(const DeviceSettings& settings) override
         {
             return new MinuitDevice(settings.deviceSpecificSettings.value<MinuitSpecificSettings>());
+        }
+
+        virtual ProtocolSettingsWidget* makeSettingsWidget() override
+        {
+            return new MinuitProtocolSettingsWidget;
         }
 };

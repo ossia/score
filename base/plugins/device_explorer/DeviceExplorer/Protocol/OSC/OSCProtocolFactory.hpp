@@ -1,6 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 #include <DeviceExplorer/Protocol/OSC/OSCDevice.hpp>
+#include <DeviceExplorer/Protocol/OSC/OSCProtocolSettingsWidget.hpp>
 
 class OSCProtocolFactory : public ProtocolFactoryInterface
 {
@@ -11,5 +12,10 @@ class OSCProtocolFactory : public ProtocolFactoryInterface
         DeviceInterface* makeDevice(const DeviceSettings& settings) override
         {
             return new OSCDevice(settings.deviceSpecificSettings.value<OSCSpecificSettings>());
+        }
+
+        virtual ProtocolSettingsWidget* makeSettingsWidget() override
+        {
+            return new OSCProtocolSettingsWidget;
         }
 };
