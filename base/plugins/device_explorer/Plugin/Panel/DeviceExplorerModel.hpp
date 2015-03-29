@@ -45,7 +45,9 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void setCommandQueue(iscore::CommandStack* q);
         bool load(const QString& filename);
-        void addDevice(const QList<QString>& deviceSettings);
+
+        // Returns the row (useful for undo)
+        int addDevice(Node* deviceNode);
         void addAddress(QModelIndex index,
                         DeviceExplorerModel::Insert insert,
                         const QList<QString>& addressSettings);

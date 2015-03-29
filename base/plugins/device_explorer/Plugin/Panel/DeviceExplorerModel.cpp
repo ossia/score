@@ -329,16 +329,12 @@ DeviceExplorerModel::getColumns() const
     return l;
 }
 
-/**
- * TODO : Put this in a command
- */
-void DeviceExplorerModel::addDevice(const QList<QString>& deviceSettings)
-{
-    Q_ASSERT(deviceSettings.size() >= 2);
-    const QString protocol = deviceSettings.at(0);
-    const QString deviceName = deviceSettings.at(1);
 
-    qDebug() << deviceSettings;
+/**
+ * TODO : should be called with a Node* instead
+ */
+int DeviceExplorerModel::addDevice(Node* deviceNode)
+{
 
     if(m_rootNode == nullptr)
     {
@@ -354,103 +350,11 @@ void DeviceExplorerModel::addDevice(const QList<QString>& deviceSettings)
     int row = m_rootNode->childCount();
     QModelIndex parent; //invalid
     beginInsertRows(parent, row, row);
-
-    //TODO: contact MainWindow or Model to get/build/explore hierarchy from these settings
-    Node* node = new Node(deviceSettings, deviceName, m_rootNode);
-    {
-        //DEBUG: arbitrary population of the tree
-
-        if(protocol == "Minuit" || protocol == "OSC")
-        {
-            Node* node1 = new Node("debug1", node);
-            node1->setValue("10");
-            node1->setIOType(Node::In);
-            node1->setMinValue(0.f);
-            node1->setMaxValue(0.f);
-            node1->setPriority(1);
-            //node->addChild(node1);
-            Node* node2 = new Node("debug2", node);
-            node2->setValue("13.7");
-            node2->setIOType(Node::Out);
-            node2->setMinValue(0.f);
-            node2->setMaxValue(76.f);
-            node2->setPriority(2);
-            //node->addChild(node2);
-        }
-
-        if(protocol == "OSC" || protocol == "MIDI")
-        {
-            Node* node3 = new Node("debug3", node);
-            node3->setValue("13");
-            node3->setIOType(Node::InOut);
-            node3->setMinValue(0.f);
-            node3->setMaxValue(100.f);
-            node3->setPriority(2);
-            //node->addChild(node3);
-            Node* node4 = new Node("debug4", node3);
-            node4->setValue("11");
-            node4->setIOType(Node::InOut);
-            node4->setMinValue(1.f);
-            node4->setMaxValue(78.f);
-            node4->setPriority(7);
-            //node3->addChild(node4);
-
-            if(protocol == "OSC")
-            {
-                Node* node5 = new Node("debug5", node4);
-                node5->setValue("777");
-                node5->setIOType(Node::In);
-                node5->setMinValue(1.f);
-                node5->setMaxValue(3.f);
-                node5->setPriority(3);
-
-                Node* node6 = new Node("debug6", node5);
-                node6->setValue("777");
-                node6->setIOType(Node::In);
-                node6->setMinValue(1.f);
-                node6->setMaxValue(3.f);
-                node6->setPriority(3);
-
-                Node* node7 = new Node("debug7", node5);
-                node7->setValue("754");
-                node7->setIOType(Node::Out);
-                node7->setMinValue(1.33f);
-                node7->setMaxValue(2.3f);
-                node7->setPriority(33);
-            }
-
-        }
-    }
+    deviceNode->setParent(m_rootNode);
 
     endInsertRows();
 
-}
-
-namespace
-{
-    void setIOType(Node* n, const QString& type)
-    {
-        Q_ASSERT(n);
-
-        if(type == "In")
-        {
-            n->setIOType(Node::In);
-        }
-        else if(type == "Out")
-        {
-            n->setIOType(Node::Out);
-        }
-        else if(type == "In/Out")
-        {
-            n->setIOType(Node::InOut);
-        }
-        else
-        {
-            std::cerr << "Unknown I/O type: " << type.toStdString() << "\n";
-        }
-    }
-
-
+    return row;
 }
 
 void
@@ -495,58 +399,7 @@ DeviceExplorerModel::addAddress(QModelIndex index, DeviceExplorerModel::Insert i
 
     beginInsertRows(parentIndex, row, row);
 
-    Q_ASSERT(addressSettings.size() >= 2);
-    QString name = addressSettings.at(0);
-    QString valueType = addressSettings.at(1);
-
-    Node* node = new Node(name, nullptr);  //build without parent otherwise appended at the end
-
-    if(valueType == "Int")
-    {
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString valueMin = addressSettings.at(4);
-        QString valueMax = addressSettings.at(5);
-        QString unite = addressSettings.at(6);
-        QString clipMode = addressSettings.at(7);
-        QString priority = addressSettings.at(8);
-        QString tags = addressSettings.at(9);
-        node->setValue(value);
-        setIOType(node, ioType);
-        node->setMinValue(valueMin.toUInt());
-        node->setMaxValue(valueMax.toUInt());
-        node->setPriority(priority.toUInt());
-        //TODO: other columns
-    }
-    else if(valueType == "Float")
-    {
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString valueMin = addressSettings.at(4);
-        QString valueMax = addressSettings.at(5);
-        QString unite = addressSettings.at(6);
-        QString clipMode = addressSettings.at(7);
-        QString priority = addressSettings.at(8);
-        QString tags = addressSettings.at(9);
-        node->setValue(value);
-        setIOType(node, ioType);
-        node->setMinValue(valueMin.toFloat());
-        node->setMaxValue(valueMax.toFloat());
-        node->setPriority(priority.toUInt());
-        //TODO: other columns
-    }
-    else if(valueType == "String")
-    {
-
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString priority = addressSettings.at(4);
-        QString tags = addressSettings.at(5);
-        node->setValue(value);
-        node->setPriority(priority.toUInt());
-        setIOType(node, ioType);
-    }
-
+    auto node = makeNode(addressSettings);
     parent->insertChild(row, node);
 
     endInsertRows();
@@ -1028,14 +881,11 @@ DeviceExplorerModel::removeRows(int row, int count, const QModelIndex& parent)
     }
 
     Node* parentNode = parent.isValid() ? nodeFromModelIndex(parent) : m_rootNode;
-
     beginRemoveRows(parent, row, row + count - 1);
 
     for(int i = 0; i < count; ++i)
     {
-
         Node* n = parentNode->takeChild(row);
-
         delete n;
     }
 

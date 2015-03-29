@@ -2,8 +2,7 @@
 
 class QComboBox;
 class QGridLayout;
-class ProtocolSettingsWidget;
-
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <QDialog>
 #include <QList>
@@ -23,7 +22,7 @@ class DeviceEditDialog : public QDialog
         /*
           first element is protocol name, second element (if present) is node name.
         */
-        QList<QString> getSettings() const;
+        DeviceSettings getSettings() const;
 
         void setSettings(QList<QString>& settings);
 
@@ -42,7 +41,7 @@ class DeviceEditDialog : public QDialog
         QComboBox* m_protocolCBox;
         ProtocolSettingsWidget* m_protocolWidget;
         QGridLayout* m_gLayout;
-        QList<QList<QString>> m_previousSettings;
+        QList<DeviceSettings> m_previousSettings;
         int m_index;
 };
 

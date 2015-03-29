@@ -78,6 +78,8 @@ class AutomationModel : public ProcessSharedModelInterface
         void removePoint(double x);
         void movePoint(double oldx, double newx, double newy);
 
+        double value(const TimeValue& time);
+
     signals:
         void addressChanged(QString arg);
         void pointsChanged();

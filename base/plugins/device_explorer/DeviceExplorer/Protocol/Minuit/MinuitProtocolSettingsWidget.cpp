@@ -52,20 +52,23 @@ MinuitProtocolSettingsWidget::setDefaults()
 
     m_deviceNameEdit->setText("MinuitDevice");
     m_portOutputSBox->setValue(9998);
-    //m_portInputSBox->setValue(13579);
     m_localHostEdit->setText("127.0.0.1");
 }
 
-QList<QString>
-MinuitProtocolSettingsWidget::getSettings() const
+#include "MinuitSpecificSettings.hpp"
+DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_deviceNameEdit);
 
-    QList<QString> list;
-    list.append(m_deviceNameEdit->text());   //name first !
-    list.append(QString::number(m_portOutputSBox->value()));
-    list.append(m_localHostEdit->text());
-    return list;
+    DeviceSettings s;
+    s.name = m_deviceNameEdit->text();
+
+    MinuitSpecificSettings minuit;
+    minuit.host = m_localHostEdit->text();
+    minuit.port = m_portOutputSBox->value();
+
+    s.deviceSpecificSettings = QVariant::fromValue(minuit);
+    return s;
 }
 
 void

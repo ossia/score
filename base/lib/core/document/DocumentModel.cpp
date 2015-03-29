@@ -10,16 +10,15 @@ using namespace iscore;
 
 DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
-    NamedObject {"DocumentModel", parent},
+    IdentifiedObject {id_type<DocumentModel>(getNextId()), "DocumentModel", parent},
     m_model{fact->makeModel(this)}
 {
-    qDebug("1");
 }
 
 DocumentModel::DocumentModel(QVariant data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
-    NamedObject {"DocumentModel", parent}
+    IdentifiedObject {id_type<DocumentModel>(getNextId()), "DocumentModel", parent}
 {
     if(data.canConvert(QMetaType::QByteArray))
     {

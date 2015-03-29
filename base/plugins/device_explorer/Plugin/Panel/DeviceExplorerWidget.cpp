@@ -25,10 +25,11 @@
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
       m_proxyModel(nullptr),
-      m_deviceDialog(nullptr), m_addressDialog(nullptr)   //,
-      //m_cmdQ(nullptr)
+      m_deviceDialog(nullptr), m_addressDialog(nullptr)
+
 {
     buildGUI();
+    ;
 
 }
 
@@ -233,6 +234,12 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
     m_ntView->setModel(m_proxyModel);
     model->setView(m_ntView);
 
+
+    delete m_cmdDispatcher;
+    m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
+        iscore::IDocument::documentFromObject(model)->commandStack(),
+                this};
+
     populateColumnCBox();
 
     updateActions();
@@ -343,11 +350,11 @@ DeviceExplorerWidget::loadModel(const QString filename)
 
 }
 
-
-
+#include <Commands/AddDevice.hpp>
 void
 DeviceExplorerWidget::addDevice()
 {
+
     if(! m_deviceDialog)
     {
         m_deviceDialog = new DeviceEditDialog(this);
@@ -357,9 +364,9 @@ DeviceExplorerWidget::addDevice()
 
     if(code == QDialog::Accepted)
     {
-        QList<QString> deviceSettings = m_deviceDialog->getSettings();
+        auto deviceSettings = m_deviceDialog->getSettings();
         Q_ASSERT(model());
-        model()->addDevice(deviceSettings);  //TODO: pass a API::Device ???
+        m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings});
         //TODO: we should set the focus on this Node & expand it
         //m_ntView->setCurrentIndex(?)
     }

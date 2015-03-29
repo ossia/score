@@ -71,17 +71,21 @@ OSCProtocolSettingsWidget::setDefaults()
     m_localHostEdit->setText("127.0.0.1");
 }
 
-
-QList<QString>
-OSCProtocolSettingsWidget::getSettings() const
+#include "OSCSpecificSettings.hpp"
+DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 {
-    QList<QString> list;
-    list.append(m_deviceNameEdit->text());   //name first !
-    list.append(QString::number(m_portOutputSBox->value()));
-    list.append(QString::number(m_portInputSBox->value()));
-    list.append(m_localHostEdit->text());
-    list.append(m_namespaceFilePathEdit->text());
-    return list;
+    DeviceSettings s;
+    s.name = m_deviceNameEdit->text();
+
+    OSCSpecificSettings osc;
+    osc.host = m_localHostEdit->text();
+    osc.inputPort = m_portInputSBox->value();
+    osc.outputPort = m_portOutputSBox->value();
+
+    // TODO list.append(m_namespaceFilePathEdit->text());
+    s.deviceSpecificSettings = QVariant::fromValue(osc);
+
+    return s;
 }
 
 void

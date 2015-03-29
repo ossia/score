@@ -161,9 +161,9 @@ class TimeValue_T
             return res;
         }
 
-        double operator/ (TimeValue_T other)
+        double operator/ (const TimeValue_T& other) const
         {
-            return m_impl.get() / other.m_impl.get();
+            return double(m_impl.get()) / double(other.m_impl.get());
         }
 
         TimeValue_T operator- (const TimeValue_T& other)

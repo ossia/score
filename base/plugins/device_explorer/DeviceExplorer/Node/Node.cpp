@@ -18,7 +18,7 @@ Node::Node(const QString& name, Node* parent)
     }
 }
 
-Node::Node(const QList<QString>& devices,
+Node::Node(const DeviceSettings& devices,
            const QString& name,
            Node* parent) :
     Node {name, parent}
@@ -30,6 +30,15 @@ Node::Node(const QList<QString>& devices,
 Node::~Node()
 {
     qDeleteAll(m_children);  //calls delete on each children
+}
+
+void Node::setParent(Node* parent)
+{
+    if(m_parent)
+        m_parent->removeChild(this);
+
+    m_parent = parent;
+    m_parent->addChild(this);
 }
 
 Node* Node::parent() const
@@ -94,6 +103,11 @@ Node* Node::takeChild(int index)
     Q_ASSERT(n);
     n->m_parent = 0;
     return n;
+}
+
+void Node::removeChild(Node* child)
+{
+    m_children.removeAll(child);
 }
 
 QString Node::name() const
@@ -177,7 +191,7 @@ bool Node::isDevice() const
     return false;
 }
 
-const QStringList& Node::deviceSettings() const
+const DeviceSettings& Node::deviceSettings() const
 {
     return m_deviceSettings;
 }
@@ -216,7 +230,8 @@ QJsonObject nodeToJson(const Node* n)
 
     if(n->isDevice())
     {
-        obj["DeviceSettings"] = QJsonArray::fromStringList(n->deviceSettings());
+        // TODO in a device-specific way
+        // obj["DeviceSettings"] = QJsonArray::fromStringList(n->deviceSettings());
     }
 
     QJsonArray arr;
@@ -250,4 +265,86 @@ QDataStream& operator<<(QDataStream& s, const Node& n)
     }
 
     return s;
+}
+
+#include <QDebug>
+namespace
+{
+    void setIOType(Node* n, const QString& type)
+    {
+        Q_ASSERT(n);
+
+        if(type == "In")
+        {
+            n->setIOType(Node::In);
+        }
+        else if(type == "Out")
+        {
+            n->setIOType(Node::Out);
+        }
+        else if(type == "In/Out")
+        {
+            n->setIOType(Node::InOut);
+        }
+        else
+        {
+            qDebug() << "Unknown I/O type: " << type;
+        }
+    }
+}
+
+Node* makeNode(const QList<QString>& addressSettings)
+{
+    Q_ASSERT(addressSettings.size() >= 2);
+    QString name = addressSettings.at(0);
+    QString valueType = addressSettings.at(1);
+
+    Node* node = new Node(name, nullptr);  //build without parent otherwise appended at the end
+
+    if(valueType == "Int")
+    {
+        QString ioType = addressSettings.at(2);
+        QString value = addressSettings.at(3);
+        QString valueMin = addressSettings.at(4);
+        QString valueMax = addressSettings.at(5);
+        QString unite = addressSettings.at(6);
+        QString clipMode = addressSettings.at(7);
+        QString priority = addressSettings.at(8);
+        QString tags = addressSettings.at(9);
+        node->setValue(value);
+        setIOType(node, ioType);
+        node->setMinValue(valueMin.toUInt());
+        node->setMaxValue(valueMax.toUInt());
+        node->setPriority(priority.toUInt());
+        //TODO: other columns
+    }
+    else if(valueType == "Float")
+    {
+        QString ioType = addressSettings.at(2);
+        QString value = addressSettings.at(3);
+        QString valueMin = addressSettings.at(4);
+        QString valueMax = addressSettings.at(5);
+        QString unite = addressSettings.at(6);
+        QString clipMode = addressSettings.at(7);
+        QString priority = addressSettings.at(8);
+        QString tags = addressSettings.at(9);
+        node->setValue(value);
+        setIOType(node, ioType);
+        node->setMinValue(valueMin.toFloat());
+        node->setMaxValue(valueMax.toFloat());
+        node->setPriority(priority.toUInt());
+        //TODO: other columns
+    }
+    else if(valueType == "String")
+    {
+        QString ioType = addressSettings.at(2);
+        QString value = addressSettings.at(3);
+        QString priority = addressSettings.at(4);
+        QString tags = addressSettings.at(5);
+        node->setValue(value);
+        node->setPriority(priority.toUInt());
+        setIOType(node, ioType);
+    }
+
+    return node;
 }

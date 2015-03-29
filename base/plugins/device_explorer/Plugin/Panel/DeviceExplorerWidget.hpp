@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <iscore/command/OngoingCommandManager.hpp>
 
 class DeviceExplorerView;
 class DeviceExplorerModel;
@@ -84,6 +85,8 @@ class DeviceExplorerWidget : public QWidget
 
         QComboBox* m_columnCBox;
         QLineEdit* m_nameLEdit;
+
+        CommandDispatcher<SendStrategy::Simple>* m_cmdDispatcher{};
 
 };
 

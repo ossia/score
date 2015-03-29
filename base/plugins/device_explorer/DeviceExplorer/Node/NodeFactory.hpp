@@ -28,9 +28,6 @@ class NodeFactory
         QList<QString> getAvailableProtocols() const;
         ProtocolSettingsWidget* getProtocolWidget(const QString& protocol) const;
 
-        QList<QString> getAvailableInputMIDIDevices() const;
-        QList<QString> getAvailableOutputMIDIDevices() const;
-
     private:
         NodeFactory();
 

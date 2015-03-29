@@ -1,10 +1,17 @@
 #include "DeviceExplorerPlugin.hpp"
 #include "DeviceExplorerPanelFactory.hpp"
 using namespace iscore;
-#include <DeviceExplorer/Protocol/ProtocolInterface.hpp>
 #include <DeviceExplorer/Protocol/MIDI/MIDIProtocolFactory.hpp>
 #include <DeviceExplorer/Protocol/Minuit/MinuitProtocolFactory.hpp>
 #include <DeviceExplorer/Protocol/OSC/OSCProtocolFactory.hpp>
+#include <DeviceExplorer/Protocol/ProtocolList.hpp>
+
+ProtocolList  SingletonProtocolList::m_instance;
+ProtocolList& SingletonProtocolList::instance()
+{
+    return m_instance;
+}
+
 
 DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},
@@ -32,13 +39,9 @@ PanelFactoryInterface* DeviceExplorerPlugin::panel_make(QString name)
 
 QVector<iscore::FactoryFamily> DeviceExplorerPlugin::factoryFamilies_make()
 {
-    return {};
-    /*
     return {{"Protocol",
-            std::bind(&ProtocolList::registerProtocol,
-                      m_control->protocolList(),
-                      std::placeholders::_1)}
-    };*/
+            [] (iscore::FactoryInterface* f)
+            { SingletonProtocolList::instance().registerFactory(f); }}};
 }
 
 QVector<iscore::FactoryInterface*> DeviceExplorerPlugin::factories_make(QString factoryName)

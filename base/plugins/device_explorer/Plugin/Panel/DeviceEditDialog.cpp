@@ -73,7 +73,7 @@ DeviceEditDialog::initAvailableProtocols()
 
     for(int i = 0; i < m_protocolCBox->count(); ++i)
     {
-        m_previousSettings.append(QList<QString>());
+        m_previousSettings.append(DeviceSettings{});
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -104,28 +104,28 @@ DeviceEditDialog::updateProtocolWidget()
 
     if(m_protocolWidget)
     {
-        if(! m_previousSettings.at(m_index).empty())
+/* TODO        if(! m_previousSettings.at(m_index).empty())
         {
             m_protocolWidget->setSettings(m_previousSettings.at(m_index));
         }
-
+*/
         m_gLayout->addWidget(m_protocolWidget, 1, 0, 1, 2);
         updateGeometry();
     }
 
 }
 
-QList<QString>
-DeviceEditDialog::getSettings() const
+DeviceSettings DeviceEditDialog::getSettings() const
 {
-    QList<QString> settings;
+    DeviceSettings settings;
 
     if(m_protocolWidget)
     {
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.insert(0, m_protocolCBox->currentText());   //protocol as first element
+    settings.protocol = m_protocolCBox->currentText();
+
     return settings;
 }
 

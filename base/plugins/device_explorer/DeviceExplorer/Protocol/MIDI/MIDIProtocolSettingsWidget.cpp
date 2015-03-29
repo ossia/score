@@ -43,17 +43,22 @@ MIDIProtocolSettingsWidget::buildGUI()
     updateInputDevices();
 }
 
-
-QList<QString>
-MIDIProtocolSettingsWidget::getSettings() const
+#include "MIDISpecificSettings.hpp"
+DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_deviceCBox);
     Q_ASSERT(m_inButton);
 
-    QList<QString> list;
-    list.append(m_deviceCBox->currentText());   //name first !
-    list.append(m_inButton->isChecked() ? "In" : "Out");
-    return list;
+    DeviceSettings s;
+    MIDISpecificSettings midi;
+    s.name = m_deviceCBox->currentText();
+
+    midi.io = m_inButton->isChecked()
+              ? MIDISpecificSettings::IO::In
+              : MIDISpecificSettings::IO::Out;
+    s.deviceSpecificSettings = QVariant::fromValue(midi);
+    // TODO
+    return s;
 }
 
 void
@@ -79,12 +84,36 @@ MIDIProtocolSettingsWidget::setSettings(const QList<QString>& settings)
 
 }
 
+
+
+QList<QString> getAvailableInputMIDIDevices()
+{
+    //TODO: ask hardware...
+    QList<QString> list;
+    list.append(QObject::tr("MIDI.1"));
+    list.append(QObject::tr("MIDI.5"));
+    list.append(QObject::tr("MIDI.Z"));
+    return list;
+}
+
+QList<QString> getAvailableOutputMIDIDevices()
+{
+    //TODO: ask hardware...
+    QList<QString> list;
+    list.append(QObject::tr("MIDI.out.2"));
+    list.append(QObject::tr("MIDI.7"));
+    list.append(QObject::tr("MIDI.AB"));
+    list.append(QObject::tr("MIDI.Abcdef"));
+    return list;
+}
+
+
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
     //TODO: get input MIDI devices from Model ???
     m_deviceCBox->clear();
-    QList<QString> deviceNames = NodeFactory::instance().getAvailableInputMIDIDevices();
+    QList<QString> deviceNames = getAvailableInputMIDIDevices();
     m_deviceCBox->addItems(deviceNames);
 }
 
@@ -93,6 +122,6 @@ MIDIProtocolSettingsWidget::updateOutputDevices()
 {
     //TODO: get output MIDI devices from Model ???
     m_deviceCBox->clear();
-    QList<QString> deviceNames = NodeFactory::instance().getAvailableOutputMIDIDevices();
+    QList<QString> deviceNames = getAvailableOutputMIDIDevices();
     m_deviceCBox->addItems(deviceNames);
 }

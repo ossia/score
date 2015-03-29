@@ -21,20 +21,18 @@ class ProtocolSettingsWidgetFactoryMethodT : public ProtocolSettingsWidgetFactor
 };
 
 
-
-template <typename T>
-T* factoryMethod()
-{
-    return new T;
-}
-
-
 NodeFactory::NodeFactory()
 {
     //TODO: retrieve from loaded plugins ?
-    m_protocolSettingsWidgetFactory.insert(QObject::tr("Minuit"), new ProtocolSettingsWidgetFactoryMethodT<MinuitProtocolSettingsWidget>);
-    m_protocolSettingsWidgetFactory.insert(QObject::tr("OSC"), new ProtocolSettingsWidgetFactoryMethodT<OSCProtocolSettingsWidget>);
-    m_protocolSettingsWidgetFactory.insert(QObject::tr("MIDI"), new ProtocolSettingsWidgetFactoryMethodT<MIDIProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(
+                QObject::tr("Minuit"),
+                new ProtocolSettingsWidgetFactoryMethodT<MinuitProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(
+                QObject::tr("OSC"),
+                new ProtocolSettingsWidgetFactoryMethodT<OSCProtocolSettingsWidget>);
+    m_protocolSettingsWidgetFactory.insert(
+                QObject::tr("MIDI"),
+                new ProtocolSettingsWidgetFactoryMethodT<MIDIProtocolSettingsWidget>);
 
 }
 
@@ -59,27 +57,3 @@ NodeFactory::getProtocolWidget(const QString& protocol) const
         return nullptr;
     }
 }
-
-QList<QString>
-NodeFactory::getAvailableInputMIDIDevices() const
-{
-    //TODO: ask hardware...
-    QList<QString> list;
-    list.append(QObject::tr("MIDI.1"));
-    list.append(QObject::tr("MIDI.5"));
-    list.append(QObject::tr("MIDI.Z"));
-    return list;
-}
-
-QList<QString>
-NodeFactory::getAvailableOutputMIDIDevices() const
-{
-    //TODO: ask hardware...
-    QList<QString> list;
-    list.append(QObject::tr("MIDI.out.2"));
-    list.append(QObject::tr("MIDI.7"));
-    list.append(QObject::tr("MIDI.AB"));
-    list.append(QObject::tr("MIDI.Abcdef"));
-    return list;
-}
-

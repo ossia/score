@@ -31,7 +31,7 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject& obj)
 
 ObjectPath iscore::IDocument::path(const QObject* obj)
 {
-    return ObjectPath::pathBetweenObjects(documentFromObject(obj)->model()->modelDelegate(), obj);
+    return ObjectPath::pathBetweenObjects(documentFromObject(obj)->model(), obj);
 }
 
 

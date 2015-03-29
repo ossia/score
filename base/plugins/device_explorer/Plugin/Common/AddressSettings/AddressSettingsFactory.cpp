@@ -23,9 +23,12 @@ AddressSettingsFactory AddressSettingsFactory::m_instance;
 AddressSettingsFactory::AddressSettingsFactory()
 {
     //TODO: retrieve from loaded plugins ?
-    m_addressSettingsWidgetFactory.insert(QObject::tr("Int"), new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
-    m_addressSettingsWidgetFactory.insert(QObject::tr("Float"), new AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>);
-    m_addressSettingsWidgetFactory.insert(QObject::tr("String"), new AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Int"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Float"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("String"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>);
 }
 
 
