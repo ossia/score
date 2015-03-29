@@ -5,8 +5,7 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include "NodeFactory.hpp"
-
+#include <DeviceExplorer/Node/NodeFactory.hpp>
 #include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 

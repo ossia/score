@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QRadioButton>
 
-#include "NodeFactory.hpp"
+#include <DeviceExplorer/Node/NodeFactory.hpp>
 
 
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
