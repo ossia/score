@@ -13,4 +13,25 @@ class MIDIDevice : public DeviceInterface
             //MIDI MIDIDeviceParameters{settings.host, settings.inputPort, settings.outputPort};
 
         }
+
+
+        virtual void addPath(const AddressSettings& address) override
+        {
+
+        }
+
+        virtual void removePath(const QString& path) override
+        {
+
+        }
+
+        virtual void sendMessage(Message& mess) override
+        {
+
+        }
+
+        virtual bool check(const QString& str) override
+        {
+            return false;
+        }
 };
