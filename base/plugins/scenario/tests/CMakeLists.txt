@@ -28,6 +28,8 @@ addIScoreQtTest(AddProcessViewModelToDeckTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToDeckTest.cpp")
 addIscoreQtTest(SplitTimeNodeTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeNodeTest.cpp")
+addIscoreQtTest(MergeTimeNodesTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MergeTimeNodesTest.cpp")
 
 ## elementCreation
 addIScoreQtTest(CreateEventAfterEventTest

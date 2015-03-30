@@ -96,6 +96,7 @@ bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToD
 void EventModel::changeTimeNode(id_type<TimeNodeModel> newTimeNodeId)
 {
     m_timeNode = newTimeNodeId;
+    qDebug() << "blop";
 }
 
 id_type<TimeNodeModel> EventModel::timeNode() const

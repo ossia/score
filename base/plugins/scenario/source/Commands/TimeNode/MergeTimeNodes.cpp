@@ -64,6 +64,7 @@ void MergeTimeNodes::redo()
                                                      [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
         aimedTimeNode->addEvent(event);
         movingTimeNode->removeEvent(event);
+        scenar->event(event)->changeTimeNode(aimedTimeNode->id());
     }
 
     StandardRemovalPolicy::removeTimeNode(*scenar, m_movingTimeNodeId);

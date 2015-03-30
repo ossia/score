@@ -71,5 +71,6 @@ void TimeNodePresenter::on_timeNodeMoved(QPointF p)
 
 void TimeNodePresenter::on_eventAdded(id_type<EventModel> eventId)
 {
+    qDebug() << "receive" << this->id() << eventId;
     emit eventAdded(eventId, this->model()->id());
 }
