@@ -7,7 +7,8 @@
 class MinuitDevice : public DeviceInterface
 {
     public:
-        MinuitDevice(const MinuitSpecificSettings& settings)
+        MinuitDevice(const DeviceSettings& settings):
+            DeviceInterface{settings}
         {
             //using namespace OSSIA;
             //OSC oscDeviceParameters{settings.host, settings.inputPort, settings.outputPort};

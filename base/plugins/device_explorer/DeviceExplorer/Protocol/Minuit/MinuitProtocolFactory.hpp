@@ -11,7 +11,7 @@ class MinuitProtocolFactory : public ProtocolFactoryInterface
 
         DeviceInterface* makeDevice(const DeviceSettings& settings) override
         {
-            return new MinuitDevice(settings.deviceSpecificSettings.value<MinuitSpecificSettings>());
+            return new MinuitDevice{settings};
         }
 
         virtual ProtocolSettingsWidget* makeSettingsWidget() override

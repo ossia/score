@@ -19,6 +19,63 @@ class SingletonDeviceList
 {
     public:
         static DeviceList& instance();
+        static bool check(const QString& condition)
+        {
+            // TODO thorought testing required
+            if(condition.isEmpty())
+            {
+                qDebug() << Q_FUNC_INFO << "Invalid condition: " << condition;
+                return false;
+            }
+
+            QString addr = condition.split(" ")[0];
+            QStringList splt = addr.split("/");
+
+            // Get the corresponding device
+            if(!instance().hasDevice(splt[1]))
+            {
+                qDebug() << Q_FUNC_INFO << "Device '" << splt[1] << "' not found";
+                return false;
+            }
+            auto dev = instance().device(splt[1]);
+
+            return dev->check(condition);
+        }
+
+        static void sendMessage(const QString& address, QVariant val)
+        {
+            // TODO thorought testing required
+            if(address.isEmpty())
+            {
+                qDebug() << Q_FUNC_INFO << "Invalid address: " << address;
+                return;
+            }
+
+            // Get the first part of the address
+            QStringList splt = address.split("/");
+
+            // Get the corresponding device
+            if(!instance().hasDevice(splt[1]))
+            {
+                qDebug() << Q_FUNC_INFO << "Device '" << splt[1] << "' not found";
+                return;
+            }
+            auto dev = instance().device(splt[1]);
+
+            // Remove two first elements
+            splt.removeFirst();
+            splt.removeFirst();
+
+            Message m;
+            m.address = splt.join("/");
+            m.value = val;
+            dev->sendMessage(m);
+        }
+
+        static void sendMessage(const Message& m)
+        {
+            sendMessage(m.address, m.value);
+        }
 
     private:
         static DeviceList m_instance;

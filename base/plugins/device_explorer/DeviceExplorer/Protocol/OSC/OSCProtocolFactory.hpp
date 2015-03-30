@@ -11,7 +11,7 @@ class OSCProtocolFactory : public ProtocolFactoryInterface
 
         DeviceInterface* makeDevice(const DeviceSettings& settings) override
         {
-            return new OSCDevice(settings.deviceSpecificSettings.value<OSCSpecificSettings>());
+            return new OSCDevice{settings};
         }
 
         virtual ProtocolSettingsWidget* makeSettingsWidget() override

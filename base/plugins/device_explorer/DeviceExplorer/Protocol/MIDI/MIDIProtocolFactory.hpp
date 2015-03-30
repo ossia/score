@@ -11,7 +11,7 @@ class MIDIProtocolFactory : public ProtocolFactoryInterface
 
         DeviceInterface* makeDevice(const DeviceSettings& settings) override
         {
-            return new MIDIDevice(settings.deviceSpecificSettings.value<MIDISpecificSettings>());
+            return new MIDIDevice{settings};
         }
 
         virtual ProtocolSettingsWidget* makeSettingsWidget() override

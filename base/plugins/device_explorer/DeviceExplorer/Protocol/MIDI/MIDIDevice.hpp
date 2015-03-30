@@ -7,7 +7,8 @@
 class MIDIDevice : public DeviceInterface
 {
     public:
-        MIDIDevice(const MIDISpecificSettings& settings)
+        MIDIDevice(const DeviceSettings& settings):
+            DeviceInterface{settings}
         {
             //using namespace OSSIA;
             //MIDI MIDIDeviceParameters{settings.host, settings.inputPort, settings.outputPort};

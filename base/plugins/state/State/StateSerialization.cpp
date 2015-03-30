@@ -73,30 +73,6 @@ void Visitor<Writer<JSON>>::writeTo(State& state)
     {
         qDebug() << Q_FUNC_INFO << "TODO";
     }
-/*
-    m_obj["Type"] = state.data().type();
-    if(state.data().canConvert<State>())
-    {
-        m_obj["Data"] = toJsonObject(state.data().convert<State>());
-    }
-    else if(state.data().canConvert<StateList>())
-    {
-        m_obj["Data"] = toJsonArray(state.data().convert<StateList>());
-    }
-    else if(state.data().canConvert<Message>())
-    {
-        m_obj["Data"] = toJsonObject(state.data().convert<Message>());
-    }
-    else if(state.data().canConvert<MessageList>())
-    {
-        m_obj["Data"] = toJsonArray(state.data().convert<MessageList>());
-    }
-    else if(state.data().canConvert<ProcessState>())
-    {
-        qDebug() << "TODO";
-    }
-*/
-    //mess.m_data = m_obj["State"].toObject().toVariantMap()["Data"];
 }
 
 #include "Message.hpp"

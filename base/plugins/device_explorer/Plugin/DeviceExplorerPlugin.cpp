@@ -12,6 +12,14 @@ ProtocolList& SingletonProtocolList::instance()
     return m_instance;
 }
 
+DeviceList  SingletonDeviceList::m_instance;
+DeviceList& SingletonDeviceList::instance()
+{
+    return m_instance;
+}
+
+
+
 
 DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},

@@ -27,7 +27,6 @@ Node* makeDeviceNode(const DeviceSettings& device)
             node2->setMinValue(0.f);
             node2->setMaxValue(76.f);
             node2->setPriority(2);
-
         }
 
         if(device.protocol == "OSC" || device.protocol == "MIDI")
@@ -69,7 +68,6 @@ Node* makeDeviceNode(const DeviceSettings& device)
                 node7->setMaxValue(2.3f);
                 node7->setPriority(33);
             }
-
         }
     }
 
@@ -92,6 +90,8 @@ void AddDevice::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
     explorer->removeRow(m_row);
+
+    SingletonDeviceList::instance().removeDevice(m_parameters.name);
 }
 
 void AddDevice::redo()
@@ -101,6 +101,7 @@ void AddDevice::redo()
     // Instantiate a real device.
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     auto dev = proto->makeDevice(m_parameters);
+    SingletonDeviceList::instance().addDevice(dev);
 
     // Put it in the tree.
     auto node = makeDeviceNode(m_parameters);

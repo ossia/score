@@ -4,9 +4,40 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "ConstraintExecutor.hpp"
+#include <Plugin/DeviceExplorerPlugin.hpp>
+#include <State/Message.hpp>
 #include <set>
 
-//#include "DeviceProvider.hpp"
+
+void executeState(const State& state)
+{
+    if(state.data().canConvert<MessageList>())
+    {
+        auto ml = state.data().value<MessageList>();
+        for(auto& message : ml)
+        {
+            SingletonDeviceList::sendMessage(message);
+        }
+    }
+    else if(state.data().canConvert<Message>())
+    {
+        SingletonDeviceList::sendMessage(state.data().value<Message>());
+    }
+    else if(state.data().canConvert<StateList>())
+    {
+        for(auto& state : state.data().value<StateList>())
+        {
+            executeState(state);
+        }
+    }
+    else if(state.data().canConvert<State>())
+    {
+        executeState(state.data().value<State>());
+    }
+
+}
+
+
 class EventExecutor
 {
         EventModel& m_event;
@@ -36,7 +67,7 @@ class EventExecutor
         bool check()
         {
             using namespace std;
-            if(m_event.condition().isEmpty() || false) // TODO check here
+            if(m_event.condition().isEmpty() || SingletonDeviceList::check(m_event.condition())) // TODO check here
             {
                 if(m_previousConstraints.empty())
                 {
@@ -92,6 +123,13 @@ class TimeNodeExecutor
                 // 2. Check which event has its condition true
                 if(event->check())
                 {
+                    // Send the states of the event
+                    for(const State& state : event->event().states())
+                    {
+                        executeState(state);
+                    }
+
+                    // Start the constraints
                     for(ConstraintExecutor* next_cst : event->m_nextConstraints)
                     {
                         next_cst->start();
