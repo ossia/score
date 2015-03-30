@@ -42,8 +42,8 @@ class Session : public IdentifiedObject<Session>
         {
             NetworkMessage m;
             m.address = address;
-            m.clientId = localClient().id();
-            m.sessionId = id();
+            m.clientId = localClient().id().val().get();
+            m.sessionId = id().val().get();
 
             impl_makeMessage(QDataStream{&m.data, QIODevice::WriteOnly}, std::forward<Args&&>(args)...);
 

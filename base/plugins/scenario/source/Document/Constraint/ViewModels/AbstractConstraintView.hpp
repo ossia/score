@@ -24,6 +24,8 @@ class AbstractConstraintView : public QGraphicsObject
         void setMaxWidth(bool infinite, double max);
         void setMinWidth(double min);
         void setHeight(double height);
+        void setPlayDuration(double width);
+
         double height() const
         { return m_height; }
 
@@ -60,6 +62,11 @@ class AbstractConstraintView : public QGraphicsObject
             return m_height;
         }
 
+        double playDuration() const
+        {
+            return m_playDuration;
+        }
+
     signals:
         void constraintPressed();
 
@@ -85,6 +92,7 @@ class AbstractConstraintView : public QGraphicsObject
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};
+        double m_playDuration {};
 
         double m_height {};
 

@@ -13,7 +13,6 @@
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"

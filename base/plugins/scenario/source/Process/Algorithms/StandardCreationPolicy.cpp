@@ -36,6 +36,8 @@ void StandardCreationPolicy::createConstraintAndEndEventFromEvent(
     // TEMPORARY :
     constraint->setStartDate(scenario.event(startEventId)->date());
     constraint->setDefaultDuration(constraint_duration);
+    constraint->setMinDuration(constraint_duration);
+    constraint->setMaxDuration(constraint_duration);
     event->setDate(constraint->startDate() + constraint->defaultDuration());
 
     //	auto ossia_tn0 = this->event(startEventId)->apiObject();
@@ -88,7 +90,10 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
     constraint->setEndEvent(eev->id());
 
     constraint->setStartDate(sev->date());
-    constraint->setDefaultDuration(eev->date() - sev->date());
+    auto constraint_duration = eev->date() - sev->date();
+    constraint->setDefaultDuration(constraint_duration);
+    constraint->setMinDuration(constraint_duration);
+    constraint->setMaxDuration(constraint_duration);
     constraint->setHeightPercentage((sev->heightPercentage() + eev->heightPercentage()) / 2.);
 
     sev->addNextConstraint(newConstraintModelId);

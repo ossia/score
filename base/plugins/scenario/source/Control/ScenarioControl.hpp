@@ -13,6 +13,8 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;
 
+        // TODO why not in the plug-in ? (cf. DeviceExplorer)
+        // Or - why could not the control be instead the Plugin (what is its point) ?
         ProcessList* processList()
         {
             return m_processList;

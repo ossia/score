@@ -3,7 +3,7 @@
 class QLineEdit;
 class QSpinBox;
 
-#include "ProtocolSettingsWidget.hpp"
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 
 class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
 {
@@ -12,7 +12,7 @@ class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
     public:
         OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        virtual QList<QString> getSettings() const override;
+        virtual DeviceSettings getSettings() const override;
 
         virtual void setSettings(const QList<QString>& settings) override;
 

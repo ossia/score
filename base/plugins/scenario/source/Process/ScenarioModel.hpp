@@ -63,7 +63,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         QString processName() const override
         { return "Scenario"; }
 
-
         ProcessStateDataInterface* startState() const override;
         ProcessStateDataInterface* endState() const override;
 

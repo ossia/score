@@ -25,7 +25,7 @@ void MasterSession::broadcast(NetworkMessage m)
         client->sendMessage(m);
 }
 
-void MasterSession::transmit(id_type<RemoteClient> sender, NetworkMessage m)
+void MasterSession::transmit(id_type<Client> sender, NetworkMessage m)
 {
     for(auto& client : remoteClients())
     {

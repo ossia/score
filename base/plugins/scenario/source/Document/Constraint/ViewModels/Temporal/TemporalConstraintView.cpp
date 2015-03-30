@@ -41,6 +41,7 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     {
         c = Qt::red;
     }
+    QPen playedPen{Qt::green};
 
     (m_moving ? c.setAlphaF(0.4) : c.setAlphaF(1.0));
 
@@ -49,11 +50,10 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 
     if(minWidth() == maxWidth())
     {
+        painter->setPen(playedPen);
+        painter->drawLine(0, 0, playDuration(), 0);
         painter->setPen(m_solidPen);
-        painter->drawLine(0,
-                          0,
-                          defaultWidth(),
-                          0);
+        painter->drawLine(playDuration(), 0, defaultWidth(), 0);
     }
     else if(infinite())
     {

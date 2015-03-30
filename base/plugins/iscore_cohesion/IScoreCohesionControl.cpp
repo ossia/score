@@ -7,7 +7,6 @@
 #include "../scenario/source/Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
 #include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "../scenario/source/Document/Event/EventModel.hpp"
-#include "../scenario/source/Document/BaseElement/BaseElementModel.hpp"
 #include "../scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
 #include <DeviceExplorer/DeviceExplorerInterface.hpp>
 
@@ -26,6 +25,7 @@
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QTemporaryFile>
+#include <Execution/Execution.hpp>
 
 // TODO : snapshot : doit être un mode d'édition particulier
 // on enregistre l'état précédent et on crée les courbes correspondantes
@@ -77,6 +77,18 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        play);
+
+    QAction* play2 = new QAction {tr("Play in test engine"), this};
+    connect(play2, &QAction::triggered,
+            [&] ()
+    {
+        auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        Executor * e = new Executor(*bem.constraintModel());
+
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       play2);
 }
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)

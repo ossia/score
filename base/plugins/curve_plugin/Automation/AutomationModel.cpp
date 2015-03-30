@@ -169,3 +169,36 @@ void AutomationModel::movePoint(double oldx, double newx, double newy)
     m_points[newx] = newy;
     emit pointsChanged();
 }
+
+double AutomationModel::value(const TimeValue& time)
+{
+    Q_ASSERT(time >= TimeValue{std::chrono::seconds(0)});
+    Q_ASSERT(time <= duration());
+
+    // Map the given time between 0 - 1
+    double x = time / duration();
+
+    // Find the two keys closest to the value.
+    if(m_points.contains(x))
+        return m_points[x];
+
+    // This should be offloaded to the API.
+    auto keys = m_points.keys();
+    for(int i = 0; i < keys.size(); i++)
+    {
+        if(x > keys[i] && x < keys[i + 1])
+        {
+            double x1 = keys[i];
+            double x2 = keys[i + 1];
+            double y1 = m_points[x1];
+            double y2 = m_points[x2];
+
+            double a = (x2 - x1) / (y2 - y1);
+            double b = (y1 - a * x1);
+
+            return a * x + b;
+        }
+    }
+
+    throw std::runtime_error("Should never get there");
+}

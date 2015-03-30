@@ -16,7 +16,7 @@ IOTypeDelegate::createEditor(QWidget* parent,
                              const QModelIndex& /*index*/) const
 {
     QComboBox* comboBox = new QComboBox(parent);
-    //TODO: use an enum inside QVariant !?!
+    //TODO: use an enum inside QVariant !?! or boost::multimap
     comboBox->addItem(QString("<- "), QVariant("<-"));
     comboBox->addItem(QString(" ->"), QVariant("->"));
     comboBox->addItem(QString("<->"), QVariant("<->"));

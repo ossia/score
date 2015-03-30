@@ -16,7 +16,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 {
         Q_OBJECT
 
-
         friend class DeviceExplorerMoveCommand;
         friend class DeviceExplorerInsertCommand;
         friend class DeviceExplorerRemoveCommand;
@@ -46,7 +45,9 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void setCommandQueue(iscore::CommandStack* q);
         bool load(const QString& filename);
-        void addDevice(const QList<QString>& deviceSettings);
+
+        // Returns the row (useful for undo)
+        int addDevice(Node* deviceNode);
         void addAddress(QModelIndex index,
                         DeviceExplorerModel::Insert insert,
                         const QList<QString>& addressSettings);

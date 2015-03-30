@@ -54,7 +54,6 @@ class AutomationModel : public ProcessSharedModelInterface
 
         void serialize(SerializationIdentifier identifier, void* data) const override;
 
-
         /// States
         ProcessStateDataInterface* startState() const override;
         ProcessStateDataInterface* endState() const override;
@@ -78,6 +77,8 @@ class AutomationModel : public ProcessSharedModelInterface
         void addPoint(double x, double y);
         void removePoint(double x);
         void movePoint(double oldx, double newx, double newy);
+
+        double value(const TimeValue& time);
 
     signals:
         void addressChanged(QString arg);

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <set>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
@@ -14,10 +14,8 @@ namespace iscore
      * @brief The DocumentDelegateModelInterface class
      *
      * Drawbridge between the application and a model given by a plugin.
-     *
-     * TODO this is now eligible to be an identified object.
      */
-    class DocumentModel : public NamedObject
+    class DocumentModel : public IdentifiedObject<DocumentModel>
     {
             Q_OBJECT
         public:

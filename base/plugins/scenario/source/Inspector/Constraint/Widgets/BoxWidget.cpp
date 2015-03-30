@@ -64,7 +64,7 @@ void BoxWidget::viewModelsChanged()
         }
         else
         {
-            label = new QLabel{QString::number(vm->id()), m_comboBoxesWidget};
+            label = new QLabel{QString::number(vm->id().val().get()), m_comboBoxesWidget};
         }
         auto box = new LambdaFriendlyQComboBox{m_comboBoxesWidget};
         updateComboBox(box, vm);

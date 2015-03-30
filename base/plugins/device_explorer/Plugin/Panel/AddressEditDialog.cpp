@@ -6,9 +6,8 @@
 #include <QLabel>
 #include <QLineEdit>
 
-#include "NodeFactory.hpp"
-#include "AddressSettingsWidget.hpp"
-
+#include "Common/AddressSettings/AddressSettingsFactory.hpp"
+#include "Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
 #include<iostream>
 
 AddressEditDialog::AddressEditDialog(QWidget* parent)
@@ -71,7 +70,7 @@ AddressEditDialog::initAvailableValueTypes()
 {
     Q_ASSERT(m_valueTypeCBox);
 
-    m_valueTypeCBox->addItems(NodeFactory::instance().getAvailableValueTypes());
+    m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
 
     //initialize previous settings
     m_previousSettings.clear();
@@ -101,7 +100,7 @@ AddressEditDialog::updateNodeWidget()
     m_index = m_valueTypeCBox->currentIndex();
 
     const QString valueType = m_valueTypeCBox->currentText();
-    m_addressWidget = NodeFactory::instance().getValueTypeWidget(valueType);
+    m_addressWidget = AddressSettingsFactory::instance().getValueTypeWidget(valueType);
 
     if(m_addressWidget)
     {
