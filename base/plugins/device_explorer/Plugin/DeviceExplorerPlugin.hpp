@@ -28,18 +28,24 @@ class SingletonDeviceList
                 return false;
             }
 
-            QString addr = condition.split(" ")[0];
-            QStringList splt = addr.split("/");
+            QStringList spltCond = condition.split(" ");
+            QStringList spltAddr = spltCond[0].split("/");
 
             // Get the corresponding device
-            if(!instance().hasDevice(splt[1]))
+            if(!instance().hasDevice(spltAddr[1]))
             {
-                qDebug() << Q_FUNC_INFO << "Device '" << splt[1] << "' not found";
+                qDebug() << Q_FUNC_INFO << "Device '" << spltAddr[1] << "' not found";
                 return false;
             }
-            auto dev = instance().device(splt[1]);
+            auto dev = instance().device(spltAddr[1]);
 
-            return dev->check(condition);
+            spltAddr.removeFirst();
+            spltAddr.removeFirst();
+
+            spltCond.removeFirst();
+            QString finalCond = spltAddr.join("/") + spltCond.join(" ");
+
+            return dev->check(finalCond);
         }
 
         static void sendMessage(const QString& address, QVariant val)
