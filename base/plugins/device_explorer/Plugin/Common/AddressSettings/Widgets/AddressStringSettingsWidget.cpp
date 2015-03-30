@@ -7,7 +7,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 
-#include "NodeFactory.hpp"
+#include <Common/CommonTypes.hpp>
 
 
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)

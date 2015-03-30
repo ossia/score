@@ -146,7 +146,7 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
                     iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
 
 
-        m_session->transmit(id_type<RemoteClient>(m.clientId), m);
+        m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
     // TODO aspect-orientation would *really* help here.
@@ -154,12 +154,12 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {
         m_document->commandStack().undoQuiet();
-        m_session->transmit(id_type<RemoteClient>(m.clientId), m);
+        m_session->transmit(id_type<Client>(m.clientId), m);
     });
     s->mapper().addHandler("/redo", [&] (NetworkMessage m)
     {
         m_document->commandStack().redoQuiet();
-        m_session->transmit(id_type<RemoteClient>(m.clientId), m);
+        m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
     // Lock-unlock
@@ -169,7 +169,7 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
         QByteArray data;
         s >> data;
         m_document->locker().on_lock(data);
-        m_session->transmit(id_type<RemoteClient>(m.clientId), m);
+        m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
@@ -178,7 +178,7 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
         QByteArray data;
         s >> data;
         m_document->locker().on_unlock(data);
-        m_session->transmit(id_type<RemoteClient>(m.clientId), m);
+        m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
 }

@@ -5,9 +5,9 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include "NodeFactory.hpp"
-#include "ProtocolSettingsWidget.hpp"
-
+#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
+#include <Plugin/DeviceExplorerPlugin.hpp>
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 DeviceEditDialog::DeviceEditDialog(QWidget* parent)
     : QDialog(parent),
@@ -66,14 +66,14 @@ DeviceEditDialog::initAvailableProtocols()
 {
     Q_ASSERT(m_protocolCBox);
 
-    m_protocolCBox->addItems(NodeFactory::instance().getAvailableProtocols());
+    m_protocolCBox->addItems(SingletonProtocolList::instance().protocols());
 
     //initialize previous settings
     m_previousSettings.clear();
 
     for(int i = 0; i < m_protocolCBox->count(); ++i)
     {
-        m_previousSettings.append(QList<QString>());
+        m_previousSettings.append(DeviceSettings{});
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -97,17 +97,18 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    //TODO: we should access a factory from MainWindow ? Model ???
-
     const QString protocol = m_protocolCBox->currentText();
-    m_protocolWidget = NodeFactory::instance().getProtocolWidget(protocol);
+    m_protocolWidget = SingletonProtocolList::instance().protocol(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {
+// TODO
+        /*
         if(! m_previousSettings.at(m_index).empty())
         {
             m_protocolWidget->setSettings(m_previousSettings.at(m_index));
         }
+        */
 
         m_gLayout->addWidget(m_protocolWidget, 1, 0, 1, 2);
         updateGeometry();
@@ -115,17 +116,17 @@ DeviceEditDialog::updateProtocolWidget()
 
 }
 
-QList<QString>
-DeviceEditDialog::getSettings() const
+DeviceSettings DeviceEditDialog::getSettings() const
 {
-    QList<QString> settings;
+    DeviceSettings settings;
 
     if(m_protocolWidget)
     {
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.insert(0, m_protocolCBox->currentText());   //protocol as first element
+    settings.protocol = m_protocolCBox->currentText();
+
     return settings;
 }
 

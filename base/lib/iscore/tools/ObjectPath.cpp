@@ -15,11 +15,15 @@ ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const
             v.push_back({ptr->objectName(), {}});
     };
 
+    QString debug_objectnames;
     // Recursively go through the object and all the parents
     while(current_obj != parent_obj)
     {
+        debug_objectnames += current_obj->objectName() + "->";
+
         if(current_obj->objectName().isEmpty())
         {
+            qDebug() << "Names: " << debug_objectnames;
             throw std::runtime_error("ObjectPath::pathFromObject : an object in the hierarchy does not have a name.");
         }
 

@@ -21,7 +21,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
         void scrolled(const int);
 
     protected:
-        virtual void resizeEvent(QResizeEvent* ev)
+        virtual void resizeEvent(QResizeEvent* ev) override
         {
             QGraphicsView::resizeEvent(ev);
             emit sizeChanged(size());

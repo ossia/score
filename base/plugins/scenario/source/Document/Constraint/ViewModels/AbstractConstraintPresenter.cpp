@@ -49,6 +49,9 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
     this,                &AbstractConstraintPresenter::on_boxHidden);
     connect(m_viewModel, &AbstractConstraintViewModel::boxRemoved,
     this,                &AbstractConstraintPresenter::on_boxRemoved);
+
+    connect(m_viewModel->model(), &ConstraintModel::playDurationChanged,
+            [&] (TimeValue t) {m_view->setPlayDuration(t.toPixels(m_zoomRatio));});
 }
 
 void AbstractConstraintPresenter::updateScaling()

@@ -1,37 +1,34 @@
-#include "AddressFloatSettingsWidget.hpp"
+#include "AddressIntSettingsWidget.hpp"
 
 #include <QComboBox>
 #include <QDebug>
-#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
 
-#include "NodeFactory.hpp"
+#include <Common/CommonTypes.hpp>
 
-
-AddressFloatSettingsWidget::AddressFloatSettingsWidget(QWidget* parent)
+AddressIntSettingsWidget::AddressIntSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
-
     buildGUI();
 }
 
 void
-AddressFloatSettingsWidget::buildGUI()
+AddressIntSettingsWidget::buildGUI()
 {
     QLabel* ioTypeLabel = new QLabel(tr("I/O type"), this);
     m_ioTypeCBox = new QComboBox(this);
 
     QLabel* valueLabel = new QLabel(tr("Value"), this);
-    m_valueSBox = new QDoubleSpinBox(this);
+    m_valueSBox = new QSpinBox(this);
 
     QLabel* minLabel = new QLabel(tr("Min"), this);
-    m_minSBox = new QDoubleSpinBox(this);
+    m_minSBox = new QSpinBox(this);
 
     QLabel* maxLabel = new QLabel(tr("Max"), this);
-    m_maxSBox = new QDoubleSpinBox(this);
+    m_maxSBox = new QSpinBox(this);
 
     QLabel* unitLabel = new QLabel(tr("Unit"), this);
     m_unitCBox = new QComboBox(this);
@@ -81,22 +78,22 @@ AddressFloatSettingsWidget::buildGUI()
 }
 
 void
-AddressFloatSettingsWidget::setDefaults()
+AddressIntSettingsWidget::setDefaults()
 {
     Q_ASSERT(m_ioTypeCBox);
     Q_ASSERT(m_valueSBox);
 
     m_ioTypeCBox->setCurrentIndex(0);
 
-    m_valueSBox->setValue(0.0);
+    m_valueSBox->setValue(0);
 
-    m_minSBox->setMinimum(-100000.0);  //?
-    m_minSBox->setMaximum(100000.0);  //?
-    m_minSBox->setValue(0.0);
+    m_minSBox->setMinimum(-100000);  //?
+    m_minSBox->setMaximum(100000);  //?
+    m_minSBox->setValue(0);
 
-    m_maxSBox->setMinimum(-100000.0);  //?
-    m_maxSBox->setMaximum(100000.0);  //?
-    m_maxSBox->setValue(1.0);
+    m_maxSBox->setMinimum(-100000);  //?
+    m_maxSBox->setMaximum(100000);  //?
+    m_maxSBox->setValue(100);
 
     m_unitCBox->setCurrentIndex(0);
 
@@ -111,7 +108,7 @@ AddressFloatSettingsWidget::setDefaults()
 }
 
 QList<QString>
-AddressFloatSettingsWidget::getSettings() const
+AddressIntSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_ioTypeCBox);
 
@@ -124,12 +121,11 @@ AddressFloatSettingsWidget::getSettings() const
     list.append(m_clipModeCBox->currentText());
     list.append(QString::number(m_prioritySBox->value()));
     list.append(m_tagsEdit->text());   //TODO: TagListWidget
-
     return list;
 }
 
 void
-AddressFloatSettingsWidget::setSettings(const QList<QString>& settings)
+AddressIntSettingsWidget::setSettings(const QList<QString>& settings)
 {
     Q_ASSERT(m_ioTypeCBox);
 

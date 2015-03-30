@@ -4,6 +4,15 @@
 #include <QJsonObject>
 #include <QStringList>
 
+#include <DeviceExplorer/Protocol/DeviceSettings.hpp>
+/**
+ * Note: JM : the Commands should operat on the Node hierarchy.
+ * When updated, a Node should update both :
+ *  - The DeviceExplorerModel (via signals / slots)
+ *  - The sub-jacent Device.
+ *
+ * The sub-jacent device should also update the Node.
+ */
 class Node
 {
     public:
@@ -14,12 +23,13 @@ class Node
 
         Node(const QString& name = QString(),
              Node* parent = nullptr);
-        Node(const QList<QString>& devices,
+        Node(const DeviceSettings& devices,
              const QString& name = QString(),
              Node* parent = nullptr);
 
         ~Node();
 
+        void setParent(Node* parent);
         Node* parent() const;
         Node* childAt(int index) const;  //return 0 if invalid index
         int indexOfChild(Node* child) const;  //return -1 if not found
@@ -31,6 +41,7 @@ class Node
         void addChild(Node* n);
         void swapChildren(int oldIndex, int newIndex);
         Node* takeChild(int index);
+        void removeChild(Node* child);
 
         //- accessors
 
@@ -52,7 +63,7 @@ class Node
 
         bool isEditable() const;
         bool isDevice() const;
-        const QStringList& deviceSettings() const;
+        const DeviceSettings& deviceSettings() const;
         Node* clone() const;
 
 
@@ -66,8 +77,11 @@ class Node
         Node* m_parent {};
         QList<Node*> m_children;
 
-        QStringList m_deviceSettings;
+        DeviceSettings m_deviceSettings;
 };
 
 QJsonObject nodeToJson(const Node* n);
 QDataStream& operator<<(QDataStream& s, const Node& n);
+
+
+Node* makeNode(const QList<QString>& addressSettings);

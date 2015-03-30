@@ -46,7 +46,7 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
         // TODO ask with additional data
         NetworkMessage join;
         join.address = "/session/join";
-        join.clientId = m_clientId;
+        join.clientId = m_clientId.val().get();
         join.sessionId = m.sessionId;
 
         m_mastersocket->sendMessage(join);

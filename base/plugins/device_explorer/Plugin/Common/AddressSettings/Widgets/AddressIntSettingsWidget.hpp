@@ -7,18 +7,12 @@ class QLineEdit;
 class QSpinBox;
 
 
-class AddressStringSettingsWidget : public AddressSettingsWidget
+class AddressIntSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressStringSettingsWidget(QWidget* parent = nullptr);
+        AddressIntSettingsWidget(QWidget* parent = nullptr);
 
-        //TODO: use QVariant instead ???
-        /*
-
-          The first element in returned list must be the name of the device.
-         */
         virtual QList<QString> getSettings() const override;
-
         virtual void setSettings(const QList<QString>& settings) override;
 
     protected:
@@ -30,7 +24,11 @@ class AddressStringSettingsWidget : public AddressSettingsWidget
     protected:
 
         QComboBox* m_ioTypeCBox;
-        QLineEdit* m_valueEdit;
+        QSpinBox* m_valueSBox;
+        QSpinBox* m_minSBox;
+        QSpinBox* m_maxSBox;
+        QComboBox* m_unitCBox;
+        QComboBox* m_clipModeCBox;
         QSpinBox* m_prioritySBox;
         QLineEdit* m_tagsEdit;
 
