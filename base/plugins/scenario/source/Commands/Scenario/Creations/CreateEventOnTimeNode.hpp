@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
@@ -11,12 +12,12 @@ namespace Scenario
 {
     namespace Command
     {
-        class CreateEventOnTimeNode
+        class CreateEventOnTimeNode : public iscore::SerializableCommand
         {
             ISCORE_COMMAND
             #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CreateEventAfterEventOnTimeNode, "ScenarioControl")
+                ISCORE_COMMAND_DEFAULT_CTOR(CreateEventOnTimeNode, "ScenarioControl")
                 CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<TimeNodeModel> timeNodeId, double heightPosition);
 
                 virtual void undo() override;
@@ -32,7 +33,7 @@ namespace Scenario
                 id_type<TimeNodeModel> m_timeNodeId;
                 double m_heightPosition;
 
-                id_type<EventModel> m_createdEvent;
+                id_type<EventModel> m_createdEventId;
         };
     }
 }

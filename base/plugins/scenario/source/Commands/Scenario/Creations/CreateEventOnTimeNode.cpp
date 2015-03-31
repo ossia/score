@@ -30,18 +30,18 @@ void CreateEventOnTimeNode::undo()
 void CreateEventOnTimeNode::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    m_createdEvent = getStrongId(scenar->events());
+    m_createdEventId = getStrongId(scenar->events());
 
     EventModel* event = new EventModel{
-                            m_createdEvent,
+                            m_createdEventId,
                             m_heightPosition,
-                            &scenar };
+                            scenar };
     event->setDate(scenar->timeNode(m_timeNodeId)->date());
 
     scenar->addEvent(event);
 }
 
-bool CreateEventOnTimeNode::mergeWith(const Scenario::Command *other)
+bool CreateEventOnTimeNode::mergeWith(const Command *other)
 {
     return false;
 }
