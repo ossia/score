@@ -25,9 +25,9 @@ void executeState(const State& state)
     }
     else if(state.data().canConvert<StateList>())
     {
-        for(auto& state : state.data().value<StateList>())
+        for(auto& substate : state.data().value<StateList>())
         {
-            executeState(state);
+            executeState(substate);
         }
     }
     else if(state.data().canConvert<State>())
