@@ -27,6 +27,7 @@ namespace Scenario
                 CreateEvent();
                 ~CreateEvent();
                 CreateEvent(ObjectPath&& scenarioPath, EventData data);
+                virtual bool init() override;
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;

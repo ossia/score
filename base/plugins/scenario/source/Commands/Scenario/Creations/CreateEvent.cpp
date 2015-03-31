@@ -43,6 +43,15 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data) :
     }
 }
 
+bool CreateEvent::init()
+{
+    if (m_tn)
+        m_tnCmd->init();
+    else
+        m_cmd->init();
+    return true;
+}
+
 void CreateEvent::undo()
 {
     if (m_tn)

@@ -43,7 +43,7 @@ class ScenarioCommandManager : public QObject
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
-        LockingOngoingCommandDispatcher<MergeStrategy::Undo>* m_creationCommandDispatcher{};
+        LockingOngoingCommandDispatcher<MergeStrategy::Simple>* m_creationCommandDispatcher{};
         LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>* m_moveCommandDispatcher{};
         CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
 };

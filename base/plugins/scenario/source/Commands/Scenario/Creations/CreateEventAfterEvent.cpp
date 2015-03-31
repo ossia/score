@@ -9,6 +9,9 @@
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
+
+#include "source/Commands/Scenario/Displacement/MoveEvent.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -40,21 +43,16 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath, EventDat
     m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
-void CreateEventAfterEvent::undo()
+bool CreateEventAfterEvent::init()
 {
     auto scenar = m_path.find<ScenarioModel>();
-
-    StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
-}
-
-void CreateEventAfterEvent::redo()
-{
-    auto scenar = m_path.find<ScenarioModel>();
+    auto event = scenar->event(m_firstEventId);
+    m_oldTime = event->date();
 
     StandardCreationPolicy::createConstraintAndEndEventFromEvent(
                 *scenar,
                 m_firstEventId,
-                m_time,
+                m_oldTime,
                 m_heightPosition,
                 m_createdConstraintId,
                 m_createdConstraintFullViewId,
@@ -73,6 +71,27 @@ void CreateEventAfterEvent::redo()
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
+    return true;
+}
+
+void CreateEventAfterEvent::undo()
+{
+    auto scenar = m_path.find<ScenarioModel>();
+
+    StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
+}
+
+void CreateEventAfterEvent::redo()
+{
+    auto scenar = m_path.find<ScenarioModel>();
+    auto event = scenar->event(m_createdEventId);
+
+    auto deltaTime = m_time - event->date() + m_oldTime;
+    event->setHeightPercentage(m_heightPosition);
+    StandardDisplacementPolicy::updatePositions(*scenar,
+                                                QVector<id_type<TimeNodeModel> > {m_createdTimeNodeId},
+                                                deltaTime,
+                                                [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
 }
 
 bool CreateEventAfterEvent::mergeWith(const Command* other)

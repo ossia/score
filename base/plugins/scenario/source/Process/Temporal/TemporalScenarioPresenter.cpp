@@ -312,6 +312,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
 
     m_cmdManager->setupConstraintPresenter(constraint_presenter);
     m_selManager->setup(constraint_presenter);
+    m_selManager->selectConstraint(constraint_presenter);
 
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());

@@ -48,7 +48,7 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
     m_presenter{presenter},
     m_commandStack{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
     m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()},
-    m_creationCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Undo>{
+    m_creationCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Simple>{
                                 m_presenter.m_viewModel->sharedProcessModel(),
                                 m_locker,
                                 m_commandStack,
@@ -161,7 +161,7 @@ void ScenarioCommandManager::createConstraint(EventData data)
     }
     if(m_creationCommandDispatcher->ongoing())
     {
-        m_creationCommandDispatcher->rollback();
+//        m_creationCommandDispatcher->rollback();
     }
 
     QList<EventPresenter*> collidingEvents;
@@ -250,7 +250,7 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 
     if(m_creationCommandDispatcher->ongoing())
     {
-        m_creationCommandDispatcher->rollback();
+//        m_creationCommandDispatcher->rollback();
     }
 
     QList<TimeNodePresenter*> collidingTimeNodes;

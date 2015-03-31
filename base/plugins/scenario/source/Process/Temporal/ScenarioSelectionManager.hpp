@@ -4,6 +4,8 @@
 #include <QApplication>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <Process/ScenarioModel.hpp>
+
+class TemporalConstraintPresenter;
 class TemporalScenarioPresenter;
 namespace iscore
 {
@@ -61,6 +63,7 @@ class ScenarioSelectionManager : public QObject
         }
 
         void setSelectionArea(const QRectF& area);
+        void selectConstraint(TemporalConstraintPresenter* cstr);
     private:
         void focus();
         TemporalScenarioPresenter* m_presenter{};

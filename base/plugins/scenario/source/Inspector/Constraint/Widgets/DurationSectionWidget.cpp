@@ -120,6 +120,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
 
     addContent(widg);
+
+    m_valueSpin->setFocus();
 }
 
 using namespace Scenario::Command;

@@ -44,6 +44,7 @@ namespace Scenario
                     return m_createdEventId;
                 }
 
+                virtual bool init() override;
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
@@ -65,6 +66,8 @@ namespace Scenario
 
                 QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};
+
+                TimeValue m_oldTime {};
         };
     }
 }

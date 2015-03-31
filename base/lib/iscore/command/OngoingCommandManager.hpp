@@ -67,6 +67,7 @@ namespace CommitStrategy
             static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
             {
                 cmd->undo();
+                cmd->init();
                 SendStrategy::Simple::send(stack, cmd);
             }
     };

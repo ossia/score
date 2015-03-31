@@ -81,6 +81,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     // Separator
     m_properties.push_back(new Separator {this});
 
+    // Durations
     m_durationSection = new DurationSectionWidget {this};
     m_properties.push_back(m_durationSection);
 

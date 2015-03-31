@@ -117,3 +117,8 @@ void ScenarioSelectionManager::focus()
 {
     m_presenter->focus();
 }
+
+void ScenarioSelectionManager::selectConstraint(TemporalConstraintPresenter *cstr)
+{
+    m_selectionDispatcher.send(Selection{cstr->model()});
+}

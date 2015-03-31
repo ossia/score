@@ -47,6 +47,7 @@ void CommandStack::redoQuiet()
     updateStack([&] ()
     {
         auto cmd = m_redoable.pop();
+        cmd->init();
         cmd->redo();
 
         m_undoable.push(cmd);
