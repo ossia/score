@@ -53,6 +53,14 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
         m_commandDispatcher->submitCommand(cmd);
     });
 
+    // TODO suppression
+
+    connect(m_curve, &QCustomPlotCurve::mousePressed,
+            this, [&] ()
+    {
+        m_focusDispatcher.focus(m_viewModel);
+    });
+
     parentGeometryChanged();
     on_modelPointsChanged();
 }
@@ -117,19 +125,5 @@ void AutomationPresenter::on_modelPointsChanged()
 {
     m_curve->setPoints(mapToList(m_viewModel->model()->points()));
     parentGeometryChanged();
-
-
-    /*
-
-
-
-
-
-    connect(m_curve, &Curve::mousePressed,
-            this, [&] ()
-    {
-        m_focusDispatcher.focus(m_viewModel);
-    });
-    */
 }
 

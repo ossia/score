@@ -144,7 +144,6 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
     if(proc != m_focusedViewModel)
     {
-        qDebug( ) << "here" << (void*) proc;
         m_focusedViewModel = proc;
         emit focusedViewModelChanged();
     }

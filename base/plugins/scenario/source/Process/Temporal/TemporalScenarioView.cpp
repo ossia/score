@@ -49,13 +49,9 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsObject::mousePressEvent(event);
 
-    if(event->modifiers() == Qt::ControlModifier)
+    if(event->button() == Qt::LeftButton)
     {
-        emit scenarioPressedWithControl(event->pos(), event->scenePos());
-    }
-    else if(event->button() == Qt::LeftButton)
-    {
-        emit scenarioPressed();
+        emit scenarioPressed(event->pos(), event->scenePos());
         m_clickedPoint = event->pos();
         m_clicked = true;
     }
@@ -65,11 +61,11 @@ void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsObject::mouseMoveEvent(event);
 
-    if(m_clicked)
+    /*if(m_clicked)
     {
         m_selectArea.setTopLeft(m_clickedPoint);
         m_selectArea.setBottomRight(event->pos());
-    }
+    }*/
 
     this->update();
 }
@@ -78,12 +74,13 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsObject::mouseReleaseEvent(event);
 
-    if(event->modifiers() == Qt::ControlModifier)
+    //if(event->modifiers() == Qt::ControlModifier)
     {
         emit scenarioReleased(event->pos(), mapToScene(event->pos()));
     }
-    else
+    /*else
     {
+        // TODO the selection should be a tool with the state machine
         QRectF rect {};
         rect.setTopLeft(this->mapToScene(m_clickedPoint));
         rect.setBottomRight(event->scenePos());
@@ -94,6 +91,7 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
     m_selectArea.setWidth(0);
     m_selectArea.setHeight(0);
+    */
 }
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

@@ -31,6 +31,8 @@ class QCustomPlotCurve : public QGraphicsObject
         void pointMovingFinished(double oldx, double newx, double newy);
         void pointCreated(QPointF pt);
 
+        void mousePressed();
+
     private:
         QPointF pointUnderMouse(QMouseEvent*);
         void on_mouseMoveEvent(QMouseEvent*);

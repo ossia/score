@@ -269,7 +269,6 @@ DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 int
 DeviceExplorerView::getIOTypeColumn() const
 {
-
     //TODO: how do we get the view/displayed column number & not the model column number ???
 
     const DeviceExplorerModel* m = const_cast<DeviceExplorerView*>(this)->model();

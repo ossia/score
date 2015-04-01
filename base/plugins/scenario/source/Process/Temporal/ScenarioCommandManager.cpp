@@ -78,6 +78,8 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
         mgr.clearContentFromSelection(model(*m_presenter.m_viewModel));
     });
 
+    connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,
+            this, &ScenarioCommandManager::on_scenarioPressed);
     connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
             this, &ScenarioCommandManager::on_scenarioReleased);
 }
@@ -147,6 +149,7 @@ void ScenarioCommandManager::setupConstraintPresenter(TemporalConstraintPresente
 //  an event and another event -> CreateConstraint
 void ScenarioCommandManager::createConstraint(EventData data)
 {
+    /*
     using namespace std;
     data.dDate.setMSecs(data.x * m_presenter.m_zoomRatio - model(m_presenter.m_viewModel)->event(data.eventClickedId)->date().msec());
     data.relativeY = data.y / m_presenter.m_view->boundingRect().height();
@@ -199,11 +202,30 @@ void ScenarioCommandManager::createConstraint(EventData data)
                                                                              data.eventClickedId,
                                                                              collidingEvents.first()->id()));
     }
+    */
+}
+
+void ScenarioCommandManager::on_scenarioPressed(QPointF point, QPointF scenePoint)
+{
+    qDebug() << point << scenePoint;
+
 }
 
 // TODO on_scenarioMoved instead?
 void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoint)
 {
+    // Use a state machine to see if we are going to allow merging with a time node,
+    // or only place the event in the "air".
+    // use eventOk in QState with a parameter in the settings to do the checking.
+
+    // TODO introduire des unités de hauteur dans le scénario.
+    // Top left = {t: 0, y: 0}
+    // y: double qui va de 0 à 1
+    //m_createevent.move();
+
+    qDebug() << point << scenePoint;
+
+    /*
     EventData data {};
     data.eventClickedId = m_presenter.m_events.back()->id();
     data.x = point.x();
@@ -239,11 +261,12 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoi
     emit m_creationCommandDispatcher->submitCommand(cmd);
     emit m_creationCommandDispatcher->commit();
 
-    m_presenter.focus();
+    m_presenter.focus();  // TODO aspect programming pls
+    */
 }
 
 void ScenarioCommandManager::moveEventAndConstraint(EventData data)
-{
+{/*
     data.dDate.setMSecs(data.x * m_presenter.m_zoomRatio);
     data.relativeY = data.y / m_presenter.m_view->boundingRect().height();
     auto eventTN = findById(m_presenter.m_events, data.eventClickedId)->model()->timeNode();
@@ -278,11 +301,12 @@ void ScenarioCommandManager::moveEventAndConstraint(EventData data)
 
         emit m_instantCommandDispatcher->submitCommand(cmd);
     }
-
+    */
 }
 
 void ScenarioCommandManager::moveConstraint(ConstraintData data)
 {
+    /*
     data.dDate.setMSecs(data.x * m_presenter.m_zoomRatio);
     data.relativeY = data.y / m_presenter.m_view->boundingRect().height();
 
@@ -290,11 +314,13 @@ void ScenarioCommandManager::moveConstraint(ConstraintData data)
                                   data);
 
     emit m_moveCommandDispatcher->submitCommand(cmd);
-    m_presenter.focus();
+    m_presenter.focus(); // TODO aspect programming pls
+    */
 }
 
 void ScenarioCommandManager::moveTimeNode(EventData data)
 {
+    /*
     auto ev = findById(m_presenter.m_events, data.eventClickedId);
     data.y = ev->view()->y();
     data.dDate.setMSecs(data.x * m_presenter.m_zoomRatio);
@@ -305,7 +331,8 @@ void ScenarioCommandManager::moveTimeNode(EventData data)
                                 data);
 
     emit m_moveCommandDispatcher->submitCommand(cmd);
-    m_presenter.focus();
+    m_presenter.focus();  // TODO aspect programming pls
+    */
 }
 
 

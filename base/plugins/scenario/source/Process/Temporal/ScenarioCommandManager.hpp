@@ -15,6 +15,7 @@ class TimeNodePresenter;
 class TemporalConstraintPresenter;
 class QPointF;
 
+#include "StateMachines/CreateEventStateMachine.hpp"
 class ScenarioCommandManager : public QObject
 {
     public:
@@ -25,6 +26,7 @@ class ScenarioCommandManager : public QObject
         void setupConstraintPresenter(TemporalConstraintPresenter* c);
 
         void createConstraint(EventData);
+        void on_scenarioPressed(QPointF point, QPointF scenePoint);
         void on_scenarioReleased(QPointF point, QPointF scenePoint);
 
         // Moving
@@ -46,4 +48,7 @@ class ScenarioCommandManager : public QObject
         LockingOngoingCommandDispatcher<MergeStrategy::Simple>* m_creationCommandDispatcher{};
         LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>* m_moveCommandDispatcher{};
         CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
+
+
+        CreateEventStateMachine m_createevent{m_commandStack};
 };

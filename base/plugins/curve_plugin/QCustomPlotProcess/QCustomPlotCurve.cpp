@@ -300,9 +300,9 @@ void QCustomPlotCurve::pointMoved(QPointF pt)
                              1. - newPt.y());
 }
 
-#include <QApplication>
 void QCustomPlotCurve::on_mousePressEvent(QMouseEvent* event)
 {
+    emit mousePressed();
     if(qApp->keyboardModifiers() == Qt::ControlModifier)
     {
         QPointF newPt{m_plot->xAxis->pixelToCoord(event->pos().x()),

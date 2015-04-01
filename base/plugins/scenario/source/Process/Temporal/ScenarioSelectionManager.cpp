@@ -33,8 +33,9 @@ ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* pr
     m_scenario{static_cast<ScenarioModel*>(m_presenter->m_viewModel->sharedProcessModel())}
 {
     connect(m_presenter->m_view,       &TemporalScenarioView::scenarioPressed,
-            this, [&] ()
+            this, [&] (QPointF, QPointF)
     {
+        // TODO state machine : only if we are not in a "create event" state
         deselectAll();
         focus();
     });
