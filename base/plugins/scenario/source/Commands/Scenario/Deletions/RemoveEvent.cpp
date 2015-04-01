@@ -64,7 +64,6 @@ m_path {std::move(scenarioPath) }
 
 void RemoveEvent::undo()
 {
-
     auto scenar = m_path.find<ScenarioModel>();
 
     Deserializer<DataStream> s {&m_serializedEvent};

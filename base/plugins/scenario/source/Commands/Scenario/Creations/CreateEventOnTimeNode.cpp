@@ -22,13 +22,16 @@ CreateEventOnTimeNode::CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<
 
 void CreateEventOnTimeNode::undo()
 {
+    /*
     auto scenar = m_path.find<ScenarioModel>();
 
     StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
+    */
 }
 
 void CreateEventOnTimeNode::redo()
 {
+    /* TODO
     auto scenar = m_path.find<ScenarioModel>();
     m_createdEventId = getStrongId(scenar->events());
 
@@ -39,6 +42,7 @@ void CreateEventOnTimeNode::redo()
     event->setDate(scenar->timeNode(m_timeNodeId)->date());
 
     scenar->addEvent(event);
+    */
 }
 
 bool CreateEventOnTimeNode::mergeWith(const Command *other)

@@ -6,6 +6,7 @@
 
 //using namespace std::literals::chrono_literals;
 
+class ZeroTime {};
 class PositiveInfinity {};
 template<typename T>
 class TimeValue_T
@@ -14,6 +15,10 @@ class TimeValue_T
         TimeValue_T() = default;
         TimeValue_T(PositiveInfinity) :
             m_impl {}
+        { }
+
+        TimeValue_T(ZeroTime) :
+            m_impl {0}
         { }
 
         // These two overloads are here to please coverity...

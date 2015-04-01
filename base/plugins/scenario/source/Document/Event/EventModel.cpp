@@ -1,35 +1,34 @@
 #include "EventModel.hpp"
-
-
+#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Process/ScenarioModel.hpp>
 #include <State/State.hpp>
 
 #include <API/Headers/Editor/TimeNode.h>
 
 #include <QVector>
 
-
-EventModel::EventModel(id_type<EventModel> id, QObject* parent) :
-    IdentifiedObject<EventModel> {id, "EventModel", parent}//,
-//m_timeEvent {new OSSIA::TimeNode}
+EventModel::EventModel(id_type<EventModel> id,
+                       TimeNodeModel& timenode,
+                       double yPos,
+                       QObject* parent):
+    IdentifiedObject<EventModel> {id, "EventModel", parent},
+    m_timeNode{timenode.id()},
+    m_heightPercentage{yPos}
 {
-}
-
-EventModel::EventModel(id_type<EventModel> id, double yPos, QObject* parent) :
-    EventModel {id, parent}
-{
-    m_heightPercentage = yPos;
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
+    timenode.addEvent(id);
 }
 
 EventModel::EventModel(EventModel* source,
                        id_type<EventModel> id,
                        QObject* parent) :
-    EventModel {id, parent}
+    EventModel {id,
+                *source->parentScenario()->timeNode(source->timeNode()),
+                source->heightPercentage(),
+                parent}
 {
-    m_timeNode = source->timeNode();
     m_previousConstraints = source->previousConstraints();
     m_nextConstraints = source->nextConstraints();
-    m_heightPercentage = source->heightPercentage();
 
     m_states = source->m_states;
 
@@ -180,4 +179,17 @@ void EventModel::setCondition(const QString& arg)
 
     m_condition = arg;
     emit conditionChanged(arg);
+}
+
+
+void CreateEventMin::undo()
+{
+}
+
+EventModel& CreateEventMin::redo(id_type<EventModel> id, TimeNodeModel& timenode, double y, ScenarioModel& s)
+{
+    auto ev = new EventModel{id, timenode, y, &s};
+    s.addEvent(ev);
+
+    return *ev;
 }

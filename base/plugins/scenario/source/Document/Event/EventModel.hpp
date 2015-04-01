@@ -47,8 +47,7 @@ class EventModel : public IdentifiedObject<EventModel>
         ScenarioModel* parentScenario() const;
 
         /** The class **/
-        EventModel(id_type<EventModel>, QObject* parent);
-        EventModel(id_type<EventModel>, double yPos, QObject* parent);
+        EventModel(id_type<EventModel>, TimeNodeModel& timenode, double yPos, QObject* parent);
 
         // Copy
         EventModel(EventModel* source,
@@ -129,4 +128,17 @@ class EventModel : public IdentifiedObject<EventModel>
 
         /// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
         TimeValue m_date {std::chrono::seconds{0}}; // Was : m_x
+};
+
+
+class CreateEventMin
+{
+    public:
+        static void undo();
+
+        static EventModel& redo(
+                id_type<EventModel> id,
+                TimeNodeModel& timenode,
+                double y,
+                ScenarioModel& s);
 };

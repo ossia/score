@@ -1,22 +1,41 @@
 #include "CreateEventStateMachine.hpp"
-
+#include <Process/ScenarioModel.hpp>
+#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Event/EventModel.hpp>
 // NOTE : macro commands should be able to share some data  ?
 // Or have some mini-command that just do one thing (with undo() redo()) and operatoe on the data of the parent ?
 // like :
+
+/**
+ *
+ * Constraint - Event - Timenode
+ *
+ *
+*/
+
+
 class CreateConstraintMin
 {
     public:
-        void undo()
+        template<typename Command>
+        void undo(Command& cmd)
         {
             // Voire pareil pour time node; event.
             // Cf. feuilles dans sec.
         }
 
-        void redo()
+        template<typename Command>
+        void redo(Command& cmd)
         {
 
         }
 };
+
+
+
+
+
 
 
 CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):

@@ -20,28 +20,14 @@ ScenarioModel::ScenarioModel(TimeValue duration,
     m_startEventId {0}, // Always
     m_endEventId{1}
 {
-    auto start_event = new EventModel{m_startEventId, this};
-    addEvent(start_event);
+    auto& start_tn = CreateTimeNodeMin::redo(id_type<TimeNodeModel>(0), TimeValue(ZeroTime{}), 0.5, *this);
+    auto& end_tn = CreateTimeNodeMin::redo(id_type<TimeNodeModel>(1), duration, 0.5, *this);
 
-    StandardCreationPolicy::createTimeNode(
-                *this,
-                id_type<TimeNodeModel>(0),
-                m_startEventId);
+    CreateEventMin::redo(m_startEventId, start_tn, 0.5, *this);
+    CreateEventMin::redo(m_endEventId, end_tn, 0.5, *this);
 
-    start_event->changeTimeNode(id_type<TimeNodeModel> (0));
+    // TODO event should not need a date; it shall be set by the timenode
 
-
-    auto end_event = new EventModel{m_endEventId, this};
-    addEvent(end_event);
-
-    auto tn = StandardCreationPolicy::createTimeNode(
-                *this,
-                id_type<TimeNodeModel>(1),
-                m_endEventId);
-
-    end_event->changeTimeNode(id_type<TimeNodeModel>(1));
-    end_event->setDate(this->duration());
-    tn->setDate(this->duration());
 }
 
 ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)

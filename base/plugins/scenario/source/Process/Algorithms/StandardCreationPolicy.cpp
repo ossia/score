@@ -13,6 +13,8 @@ void StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         id_type<AbstractConstraintViewModel> newConstraintFullViewId,
         id_type<EventModel> newEventId)
 {
+    // TODO TimeNode?
+    /*
     auto startEvent = scenario.event(startEventId);
 
     auto constraint = new ConstraintModel {newConstraintId,
@@ -33,20 +35,11 @@ void StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         constraint->setHeightPercentage((heightPos + startEvent->heightPercentage()) / 2);
     }
 
-    // TEMPORARY :
     constraint->setStartDate(scenario.event(startEventId)->date());
     constraint->setDefaultDuration(constraint_duration);
     constraint->setMinDuration(constraint_duration);
     constraint->setMaxDuration(constraint_duration);
     event->setDate(constraint->startDate() + constraint->defaultDuration());
-
-    //	auto ossia_tn0 = this->event(startEventId)->apiObject();
-    //	auto ossia_tn1 = event->apiObject();
-    //	auto ossia_tb = constraint->apiObject();
-
-    //	m_scenario->addTimeBox(*ossia_tb,
-    //						   *ossia_tn0,
-    //						   *ossia_tn1);
 
     // Error checking if it did not go well ? Rollback ?
     // Else...
@@ -60,6 +53,7 @@ void StandardCreationPolicy::createConstraintAndEndEventFromEvent(
     // link constraint with event
     event->addPreviousConstraint(newConstraintId);
     startEvent->addNextConstraint(newConstraintId);
+    */
 }
 
 
