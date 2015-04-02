@@ -2,6 +2,7 @@
 #include <QObject>
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <Document/Event/EventData.hpp>
+#include <QStateMachine>
 class TemporalScenarioPresenter;
 
 namespace iscore
@@ -51,5 +52,7 @@ class ScenarioCommandManager : public QObject
         CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
 
 
-        CreateEventStateMachine m_createevent{m_commandStack};
+        CreateEventState* m_createEvent;
+
+        QStateMachine m_sm;
 };

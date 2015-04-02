@@ -3,46 +3,16 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
-// NOTE : macro commands should be able to share some data  ?
-// Or have some mini-command that just do one thing (with undo() redo()) and operatoe on the data of the parent ?
-// like :
-
-/**
- *
- * Constraint - Event - Timenode
- *
- *
-*/
-
-
-class CreateConstraintMin
-{
-    public:
-        template<typename Command>
-        void undo(Command& cmd)
-        {
-            // Voire pareil pour time node; event.
-            // Cf. feuilles dans sec.
-        }
-
-        template<typename Command>
-        void redo(Command& cmd)
-        {
-
-        }
-};
-
-
-
-
 
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
-CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
+#include <QFinalState>
+CreateEventState::CreateEventState(iscore::CommandStack& stack, QState* parent):
+    QState{parent},
     m_dispatcher{stack, nullptr}
 {
     using namespace Scenario::Command;
-    QState* exitState = new QState;
-    QState* topState = new QState;
+    auto finalState = new QFinalState{this};
+    QState* topState = new QState{this};
     {
         QState* pressedState = new QState{topState};
         QState* movingState = new QState{topState};
@@ -52,6 +22,7 @@ CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
         pressedState->addTransition(this, SIGNAL(release()), releasedState);
         movingState->addTransition(this, SIGNAL(release()), releasedState);
         movingState->addTransition(this, SIGNAL(move()), movingState);
+        releasedState->addTransition(finalState);
 
         topState->setInitialState(pressedState);
 
@@ -79,25 +50,23 @@ CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
 
         QObject::connect(releasedState, &QState::entered, [&] ()
         {
-            m_sm.stop();
             m_dispatcher.commit();
         });
     }
 
-    topState->addTransition(this, SIGNAL(cancel()), exitState);
-    m_sm.addState(topState);
-    m_sm.addState(exitState);
-
-    m_sm.setInitialState(topState);
-
-    QObject::connect(exitState, &QState::entered, [&] ()
+    QState* rollbackState = new QState{this};
+    topState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    rollbackState->addTransition(finalState);
+    QObject::connect(rollbackState, &QState::entered, [&] ()
     {
         m_dispatcher.rollback();
-        m_sm.stop();
     });
+
+    setInitialState(topState);
+
 }
 
-void CreateEventStateMachine::init(ObjectPath&& path,
+void CreateEventState::init(ObjectPath&& path,
                                    id_type<EventModel> startEvent,
                                    const TimeValue& date,
                                    double y)
@@ -107,5 +76,5 @@ void CreateEventStateMachine::init(ObjectPath&& path,
     m_eventDate = date;
     m_ypos = y;
 
-    m_sm.start();
+    emit init();
 }

@@ -82,11 +82,47 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
             this, &ScenarioCommandManager::on_scenarioPressed);
     connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
             this, &ScenarioCommandManager::on_scenarioReleased);
+
+
+    ////// Try to make a state machine with states :
+    /// Selection
+    /// Constraint creation between two events
+    /// Constraint + event creation
+    /// Constraint + event + timenode creation from nowhere
+    /// Event adding in timenode
+    /// Event move
+    /// Constraint move
+    /// Timenode move
+    ///
+
+    // The ScenarioControl should register the StateMachine for the toolbar.
+    // It should then propagate signals to the focused scenario.
+    //QState* selectionState = new QState;
+    QState* creationState = new QState;
+    QState* creationState_wait = new QState{creationState};
+    creationState->setInitialState(creationState_wait);
+    m_createEvent = new CreateEventState{m_commandStack, creationState};
+    //QState* moveState = new QState;
+
+    //m_sm.addState(selectionState);
+    m_sm.addState(creationState);
+    //m_sm.addState(moveState);
+
+    // TODO utiiser events et postEvent
+    // pour faire évoluer la machine correctement
+    // peu importe l'outil dans lequel on se trouve
+
+    m_sm.setInitialState(creationState);
+    creationState_wait->addTransition(m_presenter.m_view, SIGNAL(scenarioPressed(QPointF,QPointF)), m_createEvent);
+    m_createEvent->addTransition(m_createEvent, SIGNAL(finished()), creationState_wait);
+    m_sm.start();
+    // TODO The machine should be started when the process gets the focus ?
+
 }
 
 void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
 {
-    connect(e,    &EventPresenter::eventMoved,
+    connect(e, &EventPresenter::eventMoved,
             [this] (const EventData& ev)
     {
         m_lastData = ev; moveEventAndConstraint(ev);
@@ -209,7 +245,7 @@ void ScenarioCommandManager::on_scenarioPressed(QPointF point,
                                                 QPointF scenePoint)
 {
     // TODO what is the point of scenePoint ??
-    m_createevent.init(iscore::IDocument::path(m_presenter.m_viewModel->sharedProcessModel()),
+    m_createEvent->init(iscore::IDocument::path(m_presenter.m_viewModel->sharedProcessModel()),
                        id_type<EventModel>(0),
                        TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                        point.y() /  m_presenter.m_view->boundingRect().height());
@@ -220,7 +256,7 @@ void ScenarioCommandManager::on_scenarioMoved(QPointF point)
 {
     // TODO here the meta-state machine should be the correct thing according to the
     // state it is in.
-    m_createevent.move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+    m_createEvent->move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                        point.y() /  m_presenter.m_view->boundingRect().height());
 }
 
@@ -234,7 +270,7 @@ void ScenarioCommandManager::on_scenarioReleased(QPointF point,
 
     //m_createevent.move();
 
-    m_createevent.release();
+    m_createEvent->release();
     /*
     EventData data {};
     data.eventClickedId = m_presenter.m_events.back()->id();

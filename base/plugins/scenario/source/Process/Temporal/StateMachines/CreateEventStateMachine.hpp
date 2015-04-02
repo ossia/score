@@ -83,11 +83,11 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 };
 
 #include <Document/Event/EventData.hpp>
-class CreateEventStateMachine : public QObject
+class CreateEventState : public QState
 {
         Q_OBJECT
     public:
-        CreateEventStateMachine(iscore::CommandStack& stack);
+        CreateEventState(iscore::CommandStack& stack, QState* parent);
 
         void init(ObjectPath&& path,
                   id_type<EventModel> startEvent,
@@ -102,17 +102,16 @@ class CreateEventStateMachine : public QObject
         }
 
     signals:
+        void init();
         void move();
         void release();
         void cancel();
 
     private:
-        QStateMachine m_sm;
         RealtimeMacroCommandDispatcher m_dispatcher;
 
         ObjectPath m_scenarioPath;
-
-        id_type<EventModel> m_firstEvent{0};
+        id_type<EventModel> m_firstEvent;
         id_type<EventModel> m_createdEvent;
         TimeValue m_eventDate;
         double m_ypos{};
