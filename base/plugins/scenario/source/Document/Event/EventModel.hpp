@@ -47,13 +47,15 @@ class EventModel : public IdentifiedObject<EventModel>
         ScenarioModel* parentScenario() const;
 
         /** The class **/
-        EventModel(id_type<EventModel>, TimeNodeModel& timenode, double yPos, QObject* parent);
+        EventModel(id_type<EventModel>,
+                   id_type<TimeNodeModel> timenode,
+                   double yPos,
+                   QObject* parent);
 
         // Copy
         EventModel(EventModel* source,
                    id_type<EventModel>,
                    QObject* parent);
-        ~EventModel();
 
         template<typename DeserializerVisitor>
         EventModel(DeserializerVisitor&& vis, QObject* parent) :
@@ -82,22 +84,18 @@ class EventModel : public IdentifiedObject<EventModel>
         void addState(const State& s);
         void removeState(const State& s);
 
-        // Other event properties
-        OSSIA::TimeNode* apiObject()
-        { return m_timeEvent; }
-
+        // Other properties
         double heightPercentage() const;
-        // TODO now that we have time nodes, shouldn't the date
-        // be the date of the timenode on which the event is ?
+
         TimeValue date() const;
-        void translate(TimeValue deltaTime);
+        void translate(const TimeValue& deltaTime);
 
         // TODO use a stronger type for the condition.
         QString condition() const;
 
     public slots:
         void setHeightPercentage(double arg);
-        void setDate(TimeValue date);
+        void setDate(const TimeValue& date);
         void setCondition(const QString& arg);
 
     signals:
@@ -108,14 +106,6 @@ class EventModel : public IdentifiedObject<EventModel>
         void dateChanged();
 
     private:
-        void setOSSIATimeNode(OSSIA::TimeNode* timeEvent)
-        {
-            m_timeEvent = timeEvent;
-        }
-
-
-        OSSIA::TimeNode* m_timeEvent {};
-
         id_type<TimeNodeModel> m_timeNode {};
 
         QVector<id_type<ConstraintModel>> m_previousConstraints;
@@ -126,19 +116,5 @@ class EventModel : public IdentifiedObject<EventModel>
         StateList m_states;
         QString m_condition {};
 
-        /// TEMPORARY. This information has to be queried from OSSIA::Scenario instead.
-        TimeValue m_date {std::chrono::seconds{0}}; // Was : m_x
-};
-
-
-class CreateEventMin
-{
-    public:
-        static void undo();
-
-        static EventModel& redo(
-                id_type<EventModel> id,
-                TimeNodeModel& timenode,
-                double y,
-                ScenarioModel& s);
+        TimeValue m_date {std::chrono::seconds{0}};
 };

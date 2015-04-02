@@ -30,11 +30,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
 
         /** The class **/
-        // TODO since timenode is always in a scenario, maybe have it take a ScenarioModel& as parent?
-        TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent); // TODO remove
-        TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent); // TODO remove
         TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double ypos, QObject* parent);
-        ~TimeNodeModel();
 
         template<typename DeserializerVisitor>
         TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :
@@ -77,17 +73,3 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         double m_bottomY {0.0};
 };
 
-
-class CreateTimeNodeMin
-{
-    public:
-        static void undo(
-                id_type<TimeNodeModel> id,
-                ScenarioModel& s);
-
-        static TimeNodeModel& redo(
-                id_type<TimeNodeModel> id,
-                const TimeValue& date,
-                double y,
-                ScenarioModel& s);
-};

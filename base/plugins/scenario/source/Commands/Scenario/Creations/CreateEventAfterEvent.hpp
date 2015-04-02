@@ -32,7 +32,11 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(CreateEventAfterEvent, "ScenarioControl")
-                CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data);
+                CreateEventAfterEvent(
+                    ObjectPath&& scenarioPath,
+                    id_type<EventModel> firstEvent,
+                    const TimeValue& date,
+                    double y);
                 CreateEventAfterEvent& operator= (CreateEventAfterEvent &&) = default;
 
                 id_type<TimeNodeModel> createdTimeNode() const
@@ -44,7 +48,6 @@ namespace Scenario
                     return m_createdEventId;
                 }
 
-                virtual bool init() override;
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;

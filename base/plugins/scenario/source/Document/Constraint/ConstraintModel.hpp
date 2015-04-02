@@ -65,7 +65,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         /** The class **/
         ConstraintModel(id_type<ConstraintModel>,
                         id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
-                        QObject* parent);
+                        QObject* parent); // TODO remove
         ConstraintModel(id_type<ConstraintModel>,
                         id_type<AbstractConstraintViewModel> fullViewId,
                         double yPos,

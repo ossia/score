@@ -8,22 +8,21 @@
 #include <QVector>
 
 EventModel::EventModel(id_type<EventModel> id,
-                       TimeNodeModel& timenode,
+                       id_type<TimeNodeModel> timenode,
                        double yPos,
                        QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    m_timeNode{timenode.id()},
+    m_timeNode{timenode},
     m_heightPercentage{yPos}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
-    timenode.addEvent(id);
 }
 
 EventModel::EventModel(EventModel* source,
                        id_type<EventModel> id,
                        QObject* parent) :
     EventModel {id,
-                *source->parentScenario()->timeNode(source->timeNode()),
+                source->timeNode(),
                 source->heightPercentage(),
                 parent}
 {
@@ -34,11 +33,6 @@ EventModel::EventModel(EventModel* source,
 
     m_condition = source->condition();
     m_date = source->date();
-}
-
-EventModel::~EventModel()
-{
-    //delete m_timeEvent;
 }
 
 const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const
@@ -53,10 +47,7 @@ const QVector<id_type<ConstraintModel>>& EventModel::nextConstraints() const
 
 QVector<id_type<ConstraintModel> > EventModel::constraints()
 {
-    QVector<id_type<ConstraintModel> > allCstr = m_previousConstraints;
-    allCstr += m_nextConstraints;
-
-    return allCstr;
+    return m_previousConstraints + m_nextConstraints;
 }
 
 void EventModel::addNextConstraint(id_type<ConstraintModel> constraint)
@@ -112,7 +103,7 @@ TimeValue EventModel::date() const
     return m_date;
 }
 
-void EventModel::setDate(TimeValue date)
+void EventModel::setDate(const TimeValue& date)
 {
     if (m_date != date)
     {
@@ -121,7 +112,7 @@ void EventModel::setDate(TimeValue date)
     }
 } //TODO ajuster la date avec celle du Timenode
 
-void EventModel::translate(TimeValue deltaTime)
+void EventModel::translate(const TimeValue& deltaTime)
 {
     setDate(m_date + deltaTime);
 }
@@ -179,17 +170,4 @@ void EventModel::setCondition(const QString& arg)
 
     m_condition = arg;
     emit conditionChanged(arg);
-}
-
-
-void CreateEventMin::undo()
-{
-}
-
-EventModel& CreateEventMin::redo(id_type<EventModel> id, TimeNodeModel& timenode, double y, ScenarioModel& s)
-{
-    auto ev = new EventModel{id, timenode, y, &s};
-    s.addEvent(ev);
-
-    return *ev;
 }

@@ -20,8 +20,9 @@ MoveTimeNode::MoveTimeNode():
 MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath, EventData data) :
     SerializableCommand{"ScenarioControl",
                         className(),
-                        description()},
-    m_cmd{new MoveEvent{std::move(scenarioPath), data}}
+                        description()}
+  // TODO,
+  //  m_cmd{new MoveEvent{std::move(scenarioPath), data}}
 {
 }
 

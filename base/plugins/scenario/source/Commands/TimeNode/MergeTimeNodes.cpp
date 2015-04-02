@@ -6,6 +6,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -34,9 +35,12 @@ void MergeTimeNodes::undo()
     auto aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
 
     Deserializer<DataStream> s {&m_serializedTimeNode};
+
+    // todo make a function to do this (inline).
     auto movingTimeNode = new TimeNodeModel(s, scenar);
     scenar->addTimeNode(movingTimeNode);
-    for (auto event : movingTimeNode->events())
+
+    for (auto& event : movingTimeNode->events())
     {
         aimedTimeNode->removeEvent(event);
         scenar->event(event)->changeTimeNode(movingTimeNode->id());
@@ -57,17 +61,20 @@ void MergeTimeNodes::redo()
 
     for (auto event : movingTimeNode->events())
     {
-        StandardDisplacementPolicy::setEventPosition(*scenar,
-                                                     event,
-                                                     aimedTimeNode->date(),
-                                                     scenar->event(event)->heightPercentage(),
-                                                     [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+        StandardDisplacementPolicy::setEventPosition(
+                    *scenar,
+                    event,
+                    aimedTimeNode->date(),
+                    scenar->event(event)->heightPercentage(),
+                    [] (ProcessSharedModelInterface* p, TimeValue t)
+                        { p->setDurationAndScale(t); });
+
         aimedTimeNode->addEvent(event);
         movingTimeNode->removeEvent(event);
         scenar->event(event)->changeTimeNode(aimedTimeNode->id());
     }
 
-    StandardRemovalPolicy::removeTimeNode(*scenar, m_movingTimeNodeId);
+    CreateTimeNodeMin::undo(m_movingTimeNodeId, *scenar);
 }
 
 bool MergeTimeNodes::mergeWith(const Command *other)

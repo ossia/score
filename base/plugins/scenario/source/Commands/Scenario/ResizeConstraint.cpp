@@ -39,7 +39,7 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue durati
 
     m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
 
-    m_cmd = new MoveEvent{iscore::IDocument::path(constraint->parent()), endEventData};
+    // TODO m_cmd = new MoveEvent{iscore::IDocument::path(constraint->parent()), endEventData};
 }
 
 void ResizeConstraint::undo()
@@ -64,7 +64,7 @@ bool ResizeConstraint::mergeWith(const Command* other)
     auto cmd = static_cast<const ResizeConstraint*>(other);
     m_cmd = cmd->m_cmd;
 
-    m_cmd->m_oldX = m_oldEndDate;
+    m_cmd->m_oldDate = m_oldEndDate;
 
     return true;;
 }

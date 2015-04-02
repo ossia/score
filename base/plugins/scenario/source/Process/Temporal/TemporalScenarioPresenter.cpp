@@ -84,8 +84,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
+    // TODO should be elsewhere
     connect(m_view,       &TemporalScenarioView::ctrlStateChanged,
             m_cmdManager, &ScenarioCommandManager::on_ctrlStateChanged);
+
+    connect(m_view, &TemporalScenarioView::scenarioMoved,
+            m_cmdManager, &ScenarioCommandManager::on_scenarioMoved);
 
     connect(model(m_viewModel), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);

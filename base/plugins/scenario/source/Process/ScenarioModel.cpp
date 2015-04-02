@@ -17,7 +17,7 @@ ScenarioModel::ScenarioModel(TimeValue duration,
                              QObject* parent) :
     ProcessSharedModelInterface {duration, id, "ScenarioModel", parent},
     //m_scenario{nullptr},
-    m_startEventId {0}, // Always
+    m_startEventId{0}, // Always
     m_endEventId{1}
 {
     auto& start_tn = CreateTimeNodeMin::redo(id_type<TimeNodeModel>(0), TimeValue(ZeroTime{}), 0.5, *this);
@@ -50,11 +50,6 @@ ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInte
     scenario->m_endEventId = m_endEventId;
 
     return scenario;
-}
-
-ScenarioModel::~ScenarioModel()
-{
-    //if(m_scenario) delete m_scenario;
 }
 
 ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,

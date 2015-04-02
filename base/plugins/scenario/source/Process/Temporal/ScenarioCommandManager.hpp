@@ -27,6 +27,7 @@ class ScenarioCommandManager : public QObject
 
         void createConstraint(EventData);
         void on_scenarioPressed(QPointF point, QPointF scenePoint);
+        void on_scenarioMoved(QPointF point);
         void on_scenarioReleased(QPointF point, QPointF scenePoint);
 
         // Moving

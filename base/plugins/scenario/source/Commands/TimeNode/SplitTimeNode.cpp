@@ -3,6 +3,7 @@
 #include "source/Process/ScenarioModel.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
@@ -37,7 +38,7 @@ void SplitTimeNode::undo()
         scenar->event(eventId)->changeTimeNode(m_originalTimeNodeId);
     }
 
-    StandardRemovalPolicy::removeTimeNode(*scenar, m_newTimeNodeId);
+    CreateTimeNodeMin::undo(m_newTimeNodeId, *scenar);
 }
 
 void SplitTimeNode::redo()
@@ -45,16 +46,15 @@ void SplitTimeNode::redo()
     auto scenar = static_cast<ScenarioModel*>(m_path.find<TimeNodeModel>()->parent());
     auto originalTN = scenar->timeNode(m_originalTimeNodeId);
 
-    auto newTimeNode = new TimeNodeModel{m_newTimeNodeId, originalTN->date(), scenar};
-    scenar->addTimeNode(newTimeNode);
+    // TODO set the correct position here.
+    auto& tn = CreateTimeNodeMin::redo(m_newTimeNodeId, originalTN->date(), 0.5, *scenar);
 
-    for (auto eventId : m_eventsInNewTimeNode)
+    for (auto& eventId : m_eventsInNewTimeNode)
     {
-        newTimeNode->addEvent(eventId);
+        tn.addEvent(eventId);
         originalTN->removeEvent(eventId);
         scenar->event(eventId)->changeTimeNode(m_newTimeNodeId);
     }
-
 }
 
 bool SplitTimeNode::mergeWith(const Command *other)

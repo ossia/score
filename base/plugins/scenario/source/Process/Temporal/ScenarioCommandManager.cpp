@@ -205,26 +205,36 @@ void ScenarioCommandManager::createConstraint(EventData data)
     */
 }
 
-void ScenarioCommandManager::on_scenarioPressed(QPointF point, QPointF scenePoint)
+void ScenarioCommandManager::on_scenarioPressed(QPointF point,
+                                                QPointF scenePoint)
 {
-    qDebug() << point << scenePoint;
+    // TODO what is the point of scenePoint ??
+    m_createevent.init(iscore::IDocument::path(m_presenter.m_viewModel->sharedProcessModel()),
+                       id_type<EventModel>(0),
+                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                       point.y() /  m_presenter.m_view->boundingRect().height());
 
 }
 
+void ScenarioCommandManager::on_scenarioMoved(QPointF point)
+{
+    // TODO here the meta-state machine should be the correct thing according to the
+    // state it is in.
+    m_createevent.move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                       point.y() /  m_presenter.m_view->boundingRect().height());
+}
+
 // TODO on_scenarioMoved instead?
-void ScenarioCommandManager::on_scenarioReleased(QPointF point, QPointF scenePoint)
+void ScenarioCommandManager::on_scenarioReleased(QPointF point,
+                                                 QPointF scenePoint)
 {
     // Use a state machine to see if we are going to allow merging with a time node,
     // or only place the event in the "air".
     // use eventOk in QState with a parameter in the settings to do the checking.
 
-    // TODO introduire des unités de hauteur dans le scénario.
-    // Top left = {t: 0, y: 0}
-    // y: double qui va de 0 à 1
     //m_createevent.move();
 
-    qDebug() << point << scenePoint;
-
+    m_createevent.release();
     /*
     EventData data {};
     data.eventClickedId = m_presenter.m_events.back()->id();

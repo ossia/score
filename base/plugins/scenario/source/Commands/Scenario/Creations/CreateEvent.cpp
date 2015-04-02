@@ -27,6 +27,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data) :
                          className(),
                          description()}
 {
+    /*
     auto scenar = scenarioPath.find<ScenarioModel>();
 
     data.eventClickedId = scenar->startEvent()->id();
@@ -41,6 +42,7 @@ CreateEvent::CreateEvent(ObjectPath&& scenarioPath, EventData data) :
         m_tnCmd = new CreateEventAfterEventOnTimeNode{std::move(scenarioPath), data};
         m_tn = true;
     }
+    */
 }
 
 bool CreateEvent::init()

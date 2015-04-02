@@ -1,16 +1,5 @@
 #include "TimeNodeModel.hpp"
 
-TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, QObject* parent) :
-    TimeNodeModel {id, std::chrono::seconds(0), 0.5, parent}
-{
-
-}
-
-TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, QObject* parent) :
-    TimeNodeModel {id, date, 0.5, parent}
-{
-}
-
 TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double ypos, QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
     m_date{date},
@@ -18,11 +7,6 @@ TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double y
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
-}
-
-TimeNodeModel::~TimeNodeModel()
-{
-
 }
 
 #include "Process/ScenarioModel.hpp"
@@ -90,17 +74,4 @@ QVector<id_type<EventModel>> TimeNodeModel::events() const
 void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
-}
-
-#include <Process/ScenarioModel.hpp>
-void CreateTimeNodeMin::undo(id_type<TimeNodeModel> id, ScenarioModel& s)
-{
-    s.removeTimeNode(s.timeNode(id));
-}
-
-TimeNodeModel&CreateTimeNodeMin::redo(id_type<TimeNodeModel> id, const TimeValue& date, double y, ScenarioModel& s)
-{
-    auto timeNode = new TimeNodeModel {id, date, y, &s};
-    s.addTimeNode(timeNode);
-    return *timeNode;
 }

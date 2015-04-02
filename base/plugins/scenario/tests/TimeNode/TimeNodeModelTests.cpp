@@ -18,7 +18,7 @@ class TimeNodeModelTests : public QObject
     private slots:
             void AddEventTest()
             {
-                TimeNodeModel model {id_type<TimeNodeModel>(1), TimeValue{std::chrono::milliseconds (1)}, this};
+                TimeNodeModel model {id_type<TimeNodeModel>(1), TimeValue{std::chrono::milliseconds (1)}, 0.5, this};
             }
 
 };

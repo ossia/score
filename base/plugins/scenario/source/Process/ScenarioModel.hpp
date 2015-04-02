@@ -42,8 +42,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
                                            QObject* newParent) override;
 
-        ~ScenarioModel();
-
         //// ProcessSharedModelInterface specifics ////
         ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                                                  QObject* parent) override;
@@ -107,9 +105,11 @@ class ScenarioModel : public ProcessSharedModelInterface
         void eventCreated(id_type<EventModel> eventId);
         void constraintCreated(id_type<ConstraintModel> constraintId);
         void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+
         void eventRemoved(id_type<EventModel> eventId);
         void constraintRemoved(id_type<ConstraintModel> constraintId);
         void timeNodeRemoved(id_type<TimeNodeModel> timeNodeId);
+
         void eventMoved(id_type<EventModel> eventId);
         void constraintMoved(id_type<ConstraintModel> constraintId);
 
@@ -150,8 +150,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
     private:
         void makeViewModel_impl(view_model_type*);
-
-        //OSSIA::Scenario* m_scenario;
 
         std::vector<ConstraintModel*> m_constraints;
         std::vector<EventModel*> m_events;

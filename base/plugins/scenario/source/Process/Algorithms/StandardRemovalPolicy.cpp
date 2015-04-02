@@ -3,7 +3,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
-
+#include "StandardCreationPolicy.hpp"
 
 void removeEventFromTimeNode(ScenarioModel& scenario,
                              id_type<EventModel> eventId)
@@ -14,8 +14,8 @@ void removeEventFromTimeNode(ScenarioModel& scenario,
         {
             if(timeNode->isEmpty())
             {
-                StandardRemovalPolicy::removeTimeNode(scenario,
-                                                      timeNode->id());
+                // TODO transform this into a class with algorithms on timenodes + scenario, etc.
+                CreateTimeNodeMin::undo(timeNode->id(), scenario);
             }
 
             return;
@@ -42,8 +42,7 @@ void StandardRemovalPolicy::removeEvent(ScenarioModel& scenario,
 {
     auto ev = scenario.event(eventId);
 
-    auto constraints = ev->constraints();
-    for(auto constraint : constraints)
+    for(auto constraint : ev->constraints())
     {
         StandardRemovalPolicy::removeConstraint(scenario, constraint);
     }
@@ -51,10 +50,4 @@ void StandardRemovalPolicy::removeEvent(ScenarioModel& scenario,
     removeEventFromTimeNode(scenario, eventId);
 
     scenario.removeEvent(ev);
-}
-
-void StandardRemovalPolicy::removeTimeNode(ScenarioModel& scenario,
-                                           id_type<TimeNodeModel> timeNodeId)
-{
-    scenario.removeTimeNode(scenario.timeNode(timeNodeId));
 }

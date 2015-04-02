@@ -16,21 +16,23 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath, EventData data) :
+CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
+                                             id_type<EventModel> firstEvent,
+                                             const TimeValue& date,
+                                             double y) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
     m_path {std::move(scenarioPath) },
-    m_firstEventId {data.eventClickedId},
-    m_time {data.dDate},
-    m_heightPosition {data.relativeY}
+    m_firstEventId {firstEvent},
+    m_time {date},
+    m_heightPosition {y}
 {
     auto scenar = m_path.find<ScenarioModel>();
 
     m_createdEventId = getStrongId(scenar->events());
     m_createdConstraintId = getStrongId(scenar->constraints());
     m_createdTimeNodeId = getStrongId(scenar->timeNodes());
-
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -43,55 +45,27 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath, EventDat
     m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
-bool CreateEventAfterEvent::init()
-{
-    auto scenar = m_path.find<ScenarioModel>();
-    auto event = scenar->event(m_firstEventId);
-    m_oldTime = event->date();
-
-    StandardCreationPolicy::createConstraintAndEndEventFromEvent(
-                *scenar,
-                m_firstEventId,
-                m_oldTime,
-                m_heightPosition,
-                m_createdConstraintId,
-                m_createdConstraintFullViewId,
-                m_createdEventId);
-
-    StandardCreationPolicy::createTimeNode(
-                *scenar,
-                m_createdTimeNodeId,
-                m_createdEventId);
-
-    // this does not work : why scenar->timeNode(m_createdTimeNodeId)->addEvent(m_createdEventId);
-    scenar->event(m_createdEventId)->changeTimeNode(m_createdTimeNodeId);
-
-
-    // Creation of all the constraint view models
-    createConstraintViewModels(m_createdConstraintViewModelIDs,
-                               m_createdConstraintId,
-                               scenar);
-    return true;
-}
-
 void CreateEventAfterEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-
     StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto event = scenar->event(m_createdEventId);
+    createTimenodeConstraintAndEvent(m_createdConstraintId,
+                                     m_createdConstraintFullViewId,
+                                     *scenar->startEvent(),
+                                     m_createdEventId,
+                                     m_createdTimeNodeId,
+                                     m_time,
+                                     m_heightPosition,
+                                     *scenar);
 
-    auto deltaTime = m_time - event->date() + m_oldTime;
-    event->setHeightPercentage(m_heightPosition);
-    StandardDisplacementPolicy::updatePositions(*scenar,
-                                                QVector<id_type<TimeNodeModel> > {m_createdTimeNodeId},
-                                                deltaTime,
-                                                [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+    createConstraintViewModels(m_createdConstraintViewModelIDs,
+                               m_createdConstraintId,
+                               scenar);
 }
 
 bool CreateEventAfterEvent::mergeWith(const Command* other)

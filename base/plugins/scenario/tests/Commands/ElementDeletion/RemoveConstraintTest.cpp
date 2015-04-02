@@ -82,12 +82,10 @@ class RemoveConstraintTest: public QObject
 
             auto startEv_id = eventCmd.createdEvent();
 
-            data.eventClickedId = startEv_id;
-            data.dDate.setMSecs(30);
             CreateEventAfterEvent event2Cmd(
             {
                 {"ScenarioModel", {0}},
-            }, data);
+            }, startEv_id, TimeValue::fromMsecs(30), 0.5);
             event2Cmd.redo();
 
             auto endEvent_id = event2Cmd.createdEvent();

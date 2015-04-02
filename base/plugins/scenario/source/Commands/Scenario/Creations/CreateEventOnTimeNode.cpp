@@ -3,6 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "source/Process/ScenarioModel.hpp"
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;
@@ -17,32 +18,26 @@ CreateEventOnTimeNode::CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<
     m_timeNodeId {timeNodeId},
     m_heightPosition {heightPosition}
 {
+    auto scenar = m_path.find<ScenarioModel>();
+    m_createdEventId = getStrongId(scenar->events());
 
 }
 
 void CreateEventOnTimeNode::undo()
 {
-    /*
     auto scenar = m_path.find<ScenarioModel>();
 
     StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
-    */
 }
 
 void CreateEventOnTimeNode::redo()
 {
-    /* TODO
     auto scenar = m_path.find<ScenarioModel>();
-    m_createdEventId = getStrongId(scenar->events());
-
-    EventModel* event = new EventModel{
-                            m_createdEventId,
-                            m_heightPosition,
-                            scenar };
-    event->setDate(scenar->timeNode(m_timeNodeId)->date());
-
-    scenar->addEvent(event);
-    */
+    CreateEventMin::redo(
+                        m_createdEventId,
+                        *scenar->timeNode(m_timeNodeId),
+                        m_heightPosition,
+                        *scenar);
 }
 
 bool CreateEventOnTimeNode::mergeWith(const Command *other)

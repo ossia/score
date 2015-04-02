@@ -20,15 +20,11 @@ class CreateEventAfterEventTest: public QObject
         void CreateTest()
         {
             ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
-            EventData data {};
-            data.eventClickedId = scenar->startEvent()->id();
-            data.dDate.setMSecs(10);
-            data.relativeY = 0.5;
 
             CreateEventAfterEvent cmd(
             {
                 {"ScenarioModel", {0}},
-            }, data);
+            }, scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
 
             cmd.redo();
             QCOMPARE((int) scenar->events().size(), 2);

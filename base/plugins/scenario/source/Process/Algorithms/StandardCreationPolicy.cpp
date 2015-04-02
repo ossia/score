@@ -13,7 +13,6 @@ void StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         id_type<AbstractConstraintViewModel> newConstraintFullViewId,
         id_type<EventModel> newEventId)
 {
-    // TODO TimeNode?
     /*
     auto startEvent = scenario.event(startEventId);
 
@@ -70,14 +69,6 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
                       newConstraintFullViewId,
                       &scenario};
 
-    /*	auto ossia_tn0 = sev->apiObject();
-    auto ossia_tn1 = eev->apiObject();
-    auto ossia_tb = inter->apiObject();
-
-    m_scenario->addTimeBox(*ossia_tb,
-                           *ossia_tn0,
-                           *ossia_tn1);
-    */
     // Error checking if it did not go well ? Rollback ?
     // Else...
     constraint->setStartEvent(sev->id());
@@ -106,10 +97,93 @@ TimeNodeModel* StandardCreationPolicy::createTimeNode(ScenarioModel& scenario,
 
     auto timeNode = new TimeNodeModel {timeNodeId,
                     newEvent->date(),
+                    newEvent->heightPercentage(),
                     &scenario};
     timeNode->addEvent(eventId);
-    timeNode->setY(newEvent->heightPercentage());
 
     scenario.addTimeNode(timeNode);
     return timeNode;
+}
+
+
+void CreateTimeNodeMin::undo(id_type<TimeNodeModel> id,
+                             ScenarioModel& s)
+{
+    s.removeTimeNode(s.timeNode(id));
+}
+
+TimeNodeModel& CreateTimeNodeMin::redo(id_type<TimeNodeModel> id,
+                                       const TimeValue& date,
+                                       double y,
+                                       ScenarioModel& s)
+{
+    auto timeNode = new TimeNodeModel {id, date, y, &s};
+    s.addTimeNode(timeNode);
+    return *timeNode;
+}
+
+void CreateEventMin::undo(id_type<EventModel> id,
+                          ScenarioModel& s)
+{
+    auto ev = s.event(id);
+    s.timeNode(ev->timeNode())->removeEvent(id);
+    s.removeEvent(ev);
+}
+
+EventModel& CreateEventMin::redo(id_type<EventModel> id,
+                                 TimeNodeModel& timenode,
+                                 double y,
+                                 ScenarioModel& s)
+{
+    auto ev = new EventModel{id, timenode.id(), y, &s};
+    ev->setDate(timenode.date());
+
+    s.addEvent(ev);
+    timenode.addEvent(id);
+
+    return *ev;
+}
+
+
+
+void CreateConstraintMin::undo(id_type<ConstraintModel> id,
+                               ScenarioModel& s)
+{
+    auto cst = s.constraint(id);
+    auto sev = s.event(cst->startEvent());
+    auto eev = s.event(cst->endEvent());
+    sev->removeNextConstraint(id);
+    eev->removePreviousConstraint(id);
+
+    s.removeConstraint(cst);
+
+}
+
+ConstraintModel&CreateConstraintMin::redo(id_type<ConstraintModel> id,
+                                          id_type<AbstractConstraintViewModel> fullviewid,
+                                          EventModel& sev,
+                                          EventModel& eev,
+                                          double ypos,
+                                          ScenarioModel& s)
+{
+    auto constraint = new ConstraintModel {
+                      id,
+                      fullviewid,
+                      ypos,
+                      &s};
+
+    sev.addNextConstraint(id);
+    eev.addPreviousConstraint(id);
+
+    constraint->setStartEvent(sev.id());
+    constraint->setEndEvent(eev.id());
+
+    auto dur = eev.date() - sev.date();
+    constraint->setDefaultDuration(dur);
+    constraint->setMinDuration(dur);
+    constraint->setMaxDuration(dur);
+    constraint->setStartDate(sev.date());
+
+    s.addConstraint(constraint);
+    return *constraint;
 }

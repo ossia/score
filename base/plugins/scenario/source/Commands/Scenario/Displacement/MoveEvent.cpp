@@ -9,46 +9,33 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveEvent::MoveEvent(ObjectPath&& scenarioPath, EventData data) :
+MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
+                     id_type<EventModel> eventId,
+                     const TimeValue& date,
+                     double height) :
     SerializableCommand {"ScenarioControl",
-                         "MoveEvent",
-                         QObject::tr("Event move") },
-    m_path {std::move(scenarioPath) },
-    m_eventId {data.eventClickedId},
-    m_newHeightPosition {data.relativeY},
-    m_newX {data.dDate}
+                         className(),
+                         description()},
+    m_path {std::move(scenarioPath)},
+    m_eventId {eventId},
+    m_newHeightPosition {height},
+    m_newDate {date}
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto ev = scenar->event(m_eventId);
     m_oldHeightPosition = ev->heightPercentage();
-    m_oldX = ev->date();
-    m_already_moved_timeNodes.clear();
-}
-
-bool MoveEvent::init()
-{
-    auto scenar = m_path.find<ScenarioModel>();
-
-    auto timeNode = scenar->event(m_eventId)->timeNode();
-
-    StandardDisplacementPolicy::getRelatedElements(*scenar, timeNode, m_already_moved_timeNodes);
-    return true;
-}
-
-bool MoveEvent::finish()
-{
-    return true;
+    m_oldDate = ev->date();
 }
 
 void MoveEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto event = scenar->event(m_eventId);
-    auto deltaTime = m_oldX - event->date();
+
     event->setHeightPercentage(m_oldHeightPosition);
     StandardDisplacementPolicy::updatePositions(*scenar,
-                                                m_already_moved_timeNodes,
-                                                deltaTime,
+                                                m_movableTimenodes,
+                                                m_oldDate - event->date(),
                                                 [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
 }
 
@@ -56,12 +43,17 @@ void MoveEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto event = scenar->event(m_eventId);
-    auto deltaTime = m_newX - event->date();
+
+    auto timeNode = scenar->event(m_eventId)->timeNode();
+    StandardDisplacementPolicy::getRelatedElements(*scenar,
+                                                   timeNode,
+                                                   m_movableTimenodes);
     event->setHeightPercentage(m_newHeightPosition);
     StandardDisplacementPolicy::updatePositions(*scenar,
-                                                m_already_moved_timeNodes,
-                                                deltaTime,
-                                                [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                m_movableTimenodes,
+                                                m_newDate - event->date(),
+                                                [] (ProcessSharedModelInterface* p, TimeValue t)
+    { p->setDurationAndScale(t); });
 }
 
 bool MoveEvent::mergeWith(const Command* other)
@@ -73,11 +65,11 @@ bool MoveEvent::mergeWith(const Command* other)
     }
 
     auto cmd = static_cast<const MoveEvent*>(other);
-    m_newX = cmd->m_newX;
+    m_newDate = cmd->m_newDate;
     m_newHeightPosition = cmd->m_newHeightPosition;
-    for (auto tn : cmd->m_already_moved_timeNodes)
+    for (auto tn : cmd->m_movableTimenodes)
     {
-        m_already_moved_timeNodes.push_back(tn);
+        m_movableTimenodes.push_back(tn);
     }
 
     return true;
@@ -86,13 +78,13 @@ bool MoveEvent::mergeWith(const Command* other)
 void MoveEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_eventId
-      << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX
-      << m_already_moved_timeNodes ;
+      << m_oldHeightPosition << m_newHeightPosition << m_oldDate << m_newDate
+      << m_movableTimenodes ;
 }
 
 void MoveEvent::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_eventId
-      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX
-      >> m_already_moved_timeNodes;
+      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldDate >> m_newDate
+      >> m_movableTimenodes;
 }

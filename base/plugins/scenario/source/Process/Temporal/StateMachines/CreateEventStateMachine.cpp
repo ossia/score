@@ -36,16 +36,11 @@ class CreateConstraintMin
 
 
 
-
-
+#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
     m_dispatcher{stack, nullptr}
 {
-    ////////////
-    ///
-    ///
-    ///
-    ///
+    using namespace Scenario::Command;
     QState* exitState = new QState;
     QState* topState = new QState;
     {
@@ -60,11 +55,33 @@ CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
 
         topState->setInitialState(pressedState);
 
-        // TODO QObject::connect(pressedState, &QState::entered, [&] ()
-        //{ m_dispatcher.submitCommand(new Scenario::Command::CreateEvent()); });
+        QObject::connect(pressedState, &QState::entered, [&] ()
+        {
+            auto init = new CreateEventAfterEvent{
+                                ObjectPath{m_scenarioPath},
+                                m_firstEvent,
+                                m_eventDate,
+                                m_ypos};
+            m_createdEvent = init->createdEvent();
+
+            m_dispatcher.submitCommand(init);
+        });
 
         QObject::connect(movingState, &QState::entered, [&] ()
-        { m_dispatcher.submitCommand(new Scenario::Command::MoveEvent()); });
+        {
+            m_dispatcher.submitCommand(
+                        new MoveEvent{
+                                ObjectPath{m_scenarioPath},
+                                m_createdEvent,
+                                m_eventDate,
+                                m_ypos});
+        });
+
+        QObject::connect(releasedState, &QState::entered, [&] ()
+        {
+            m_sm.stop();
+            m_dispatcher.commit();
+        });
     }
 
     topState->addTransition(this, SIGNAL(cancel()), exitState);
@@ -73,8 +90,22 @@ CreateEventStateMachine::CreateEventStateMachine(iscore::CommandStack& stack):
 
     m_sm.setInitialState(topState);
 
+    QObject::connect(exitState, &QState::entered, [&] ()
+    {
+        m_dispatcher.rollback();
+        m_sm.stop();
+    });
+}
 
-    QObject::connect(exitState, &QState::entered, [&] () { m_dispatcher.rollback(); });
+void CreateEventStateMachine::init(ObjectPath&& path,
+                                   id_type<EventModel> startEvent,
+                                   const TimeValue& date,
+                                   double y)
+{
+    m_scenarioPath = std::move(path);
+    m_firstEvent = startEvent;
+    m_eventDate = date;
+    m_ypos = y;
 
     m_sm.start();
 }

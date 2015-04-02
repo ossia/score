@@ -12,6 +12,13 @@ template<typename T>
 class TimeValue_T
 {
     public:
+        static TimeValue_T fromMsecs(T msecs)
+        {
+            TimeValue_T time;
+            time.m_impl = msecs;
+            return time;
+        }
+
         TimeValue_T() = default;
         TimeValue_T(PositiveInfinity) :
             m_impl {}
@@ -75,7 +82,7 @@ class TimeValue_T
             }
         }
 
-        void setMSecs(int msecs)
+        void setMSecs(T msecs)
         {
             m_impl = msecs;
         }
@@ -186,10 +193,8 @@ class TimeValue_T
 
         TimeValue_T operator- ()
         {
-            TimeValue_T res;
-            res.addMSecs(0);
-            TimeValue_T zero;
-            zero.addMSecs(0);
+            TimeValue_T res{ZeroTime{}};
+            TimeValue_T zero{ZeroTime{}};
 
             res.m_impl = zero.m_impl.get() - m_impl.get();
 

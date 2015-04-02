@@ -66,7 +66,6 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
             {
                 // Only send the base command
                 SendStrategy::Quiet::send(stack(), m_base);
-                m_base = nullptr;
             }
             else
             {
@@ -74,21 +73,31 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
                 auto cmd = new CreateEventAggregate{m_base, m_continuous};
                 SendStrategy::Quiet::send(stack(), cmd);
             }
+
+            m_base = nullptr;
+            m_continuous = nullptr;
         }
 
         iscore::SerializableCommand* m_base{};
         iscore::SerializableCommand* m_continuous{};
 };
 
+#include <Document/Event/EventData.hpp>
 class CreateEventStateMachine : public QObject
 {
         Q_OBJECT
     public:
         CreateEventStateMachine(iscore::CommandStack& stack);
 
-        void move(const QPointF& newpos)
+        void init(ObjectPath&& path,
+                  id_type<EventModel> startEvent,
+                  const TimeValue& date,
+                  double y);
+
+        void move(const TimeValue& newdate, double newy)
         {
-            m_pos = newpos;
+            m_eventDate = newdate;
+            m_ypos = newy;
             emit move();
         }
 
@@ -98,7 +107,13 @@ class CreateEventStateMachine : public QObject
         void cancel();
 
     private:
-        QPointF m_pos;
         QStateMachine m_sm;
         RealtimeMacroCommandDispatcher m_dispatcher;
+
+        ObjectPath m_scenarioPath;
+
+        id_type<EventModel> m_firstEvent{0};
+        id_type<EventModel> m_createdEvent;
+        TimeValue m_eventDate;
+        double m_ypos{};
 };

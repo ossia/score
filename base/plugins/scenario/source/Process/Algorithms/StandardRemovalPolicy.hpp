@@ -13,7 +13,4 @@ namespace StandardRemovalPolicy
 
     void removeEvent(ScenarioModel& scenario,
                      id_type<EventModel> eventId);
-
-    void removeTimeNode(ScenarioModel& scenario,
-                        id_type<TimeNodeModel> timeNodeId);
 }

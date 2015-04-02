@@ -60,6 +60,7 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsObject::mouseMoveEvent(event);
+    emit scenarioMoved(event->pos());
 
     /*if(m_clicked)
     {

@@ -38,7 +38,7 @@ class MoveEventTest: public QObject
             MoveEvent cmd(
             {
                 {"ScenarioModel", {}},
-            }, data);
+            }, eventid, data.dDate, data.relativeY);
 
             cmd.redo();
             QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
