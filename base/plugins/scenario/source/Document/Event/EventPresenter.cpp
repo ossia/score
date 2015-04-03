@@ -27,24 +27,8 @@ EventPresenter::EventPresenter(EventModel* model,
         emit eventMoved(pointToEventData(p));
     });
 
-    connect(m_view, &EventView::eventMovedWithControl,
-            [this](QPointF p, QPointF pInScene)
-    {
-        EventData d(pointToEventData(p));
-        d.scenePos = pInScene;
-        emit eventMovedWithControl(d);
-    });
-
     connect(m_view, &EventView::eventReleased,
             this,	&EventPresenter::eventReleased);
-
-    connect(m_view, &EventView::eventReleasedWithControl,
-            [this](QPointF p, QPointF pInScene)
-    {
-        EventData d(pointToEventData(p));
-        d.scenePos = pInScene;
-        emit eventReleasedWithControl(d);
-    });
 
     connect(m_view, &EventView::ctrlStateChanged,
             this,	&EventPresenter::ctrlStateChanged);

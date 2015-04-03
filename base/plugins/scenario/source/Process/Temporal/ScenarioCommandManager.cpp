@@ -101,20 +101,28 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
     QState* creationState = new QState;
     QState* creationState_wait = new QState{creationState};
     creationState->setInitialState(creationState_wait);
-    m_createEvent = new CreateEventState{m_commandStack, creationState};
+    m_createEvent = new CreateEventState{iscore::IDocument::path(m_presenter.m_viewModel->sharedProcessModel()), m_commandStack, creationState};
     //QState* moveState = new QState;
 
     //m_sm.addState(selectionState);
     m_sm.addState(creationState);
     //m_sm.addState(moveState);
 
-    // TODO utiiser events et postEvent
+    // TODO utiiser events et postEvent (avec les id des timenode, event, sous lesquelles on se trouve)
     // pour faire évoluer la machine correctement
     // peu importe l'outil dans lequel on se trouve
 
     m_sm.setInitialState(creationState);
-    creationState_wait->addTransition(m_presenter.m_view, SIGNAL(scenarioPressed(QPointF,QPointF)), m_createEvent);
+    auto t1 = new ScenarioClickOnEvent_Transition(m_createEvent);
+    t1->setTargetState(m_createEvent);
+    creationState_wait->addTransition(t1);
+
+    auto t2 = new ScenarioClickOnNothing_Transition(m_createEvent);
+    t2->setTargetState(m_createEvent);
+    creationState_wait->addTransition(t2);
+    //creationState_wait->addTransition(m_presenter.m_view, SIGNAL(scenarioPressed(QPointF)), m_createEvent);
     m_createEvent->addTransition(m_createEvent, SIGNAL(finished()), creationState_wait);
+
     m_sm.start();
     // TODO The machine should be started when the process gets the focus ?
 
@@ -122,17 +130,11 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
 
 void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
 {
+    /*
     connect(e, &EventPresenter::eventMoved,
             [this] (const EventData& ev)
     {
         m_lastData = ev; moveEventAndConstraint(ev);
-        m_presenter.focus();
-    });
-
-    connect(e,    &EventPresenter::eventMovedWithControl,
-            [this] (const EventData& ev)
-    {
-        m_lastData = ev; createConstraint(ev);
         m_presenter.focus();
     });
 
@@ -150,12 +152,10 @@ void ScenarioCommandManager::setupEventPresenter(EventPresenter* e)
     connect(e,    &EventPresenter::eventReleased,
             commit_fn);
 
-    connect(e,    &EventPresenter::eventReleasedWithControl,
-            commit_fn);
-
     // TODO manage ctrl being pressed / released globally.
     connect(e,    &EventPresenter::ctrlStateChanged,
             this, &ScenarioCommandManager::on_ctrlStateChanged);
+            */
 
 }
 
@@ -241,14 +241,36 @@ void ScenarioCommandManager::createConstraint(EventData data)
     */
 }
 
-void ScenarioCommandManager::on_scenarioPressed(QPointF point,
-                                                QPointF scenePoint)
+void ScenarioCommandManager::on_scenarioPressed(QPointF point)
 {
-    // TODO what is the point of scenePoint ??
-    m_createEvent->init(iscore::IDocument::path(m_presenter.m_viewModel->sharedProcessModel()),
-                       id_type<EventModel>(0),
-                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                       point.y() /  m_presenter.m_view->boundingRect().height());
+    auto pressedItem = m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform());
+    if(auto ev = dynamic_cast<EventView*>(pressedItem))
+    {
+        for(EventPresenter* event : m_presenter.m_events)
+        {
+            if(event->view() == ev)
+            {
+                m_sm.postEvent(new ScenarioClickOnEvent_QEvent{event->model()->id(),
+                                                               event->model()->date(),
+                                                               event->model()->heightPercentage()});
+                break;
+            }
+        }
+
+    }
+    else if(dynamic_cast<TimeNodeView*>(pressedItem))
+    {
+        qDebug("2");
+    }
+    else
+    {
+        qDebug("3");
+        // Post a EmptyClicked
+        m_sm.postEvent(new ScenarioClickOnNothing_QEvent{
+                           TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                           point.y() /  m_presenter.m_view->boundingRect().height()});
+    }
+
 
 }
 
@@ -256,21 +278,25 @@ void ScenarioCommandManager::on_scenarioMoved(QPointF point)
 {
     // TODO here the meta-state machine should be the correct thing according to the
     // state it is in.
-    m_createEvent->move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                       point.y() /  m_presenter.m_view->boundingRect().height());
+
+    m_sm.postEvent(new ScenarioMove_QEvent{
+                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                       point.y() /  m_presenter.m_view->boundingRect().height()});
+    //m_createEvent->move(TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+    //                   point.y() /  m_presenter.m_view->boundingRect().height());
+
 }
 
 // TODO on_scenarioMoved instead?
-void ScenarioCommandManager::on_scenarioReleased(QPointF point,
-                                                 QPointF scenePoint)
+void ScenarioCommandManager::on_scenarioReleased(QPointF point)
 {
     // Use a state machine to see if we are going to allow merging with a time node,
     // or only place the event in the "air".
     // use eventOk in QState with a parameter in the settings to do the checking.
 
-    //m_createevent.move();
+    qDebug() << "yolo";
+    m_sm.postEvent(new ScenarioRelease_QEvent);
 
-    m_createEvent->release();
     /*
     EventData data {};
     data.eventClickedId = m_presenter.m_events.back()->id();

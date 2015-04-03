@@ -6,75 +6,87 @@
 
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include <QFinalState>
-CreateEventState::CreateEventState(iscore::CommandStack& stack, QState* parent):
+class PressedState : public QState
+{
+    public:
+        using QState::QState;
+};
+class MovingState : public QState
+{
+    public:
+        using QState::QState;
+};
+class ReleasedState : public QState
+{
+    public:
+        using QState::QState;
+};
+
+CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandStack& stack, QState* parent):
     QState{parent},
+    m_scenarioPath{std::move(scenarioPath)},
     m_dispatcher{stack, nullptr}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QState* topState = new QState{this};
+    QState* mainState = new QState{this};
     {
-        QState* pressedState = new QState{topState};
-        QState* movingState = new QState{topState};
-        QState* releasedState = new QState{topState};
+        QState* pressedState = new PressedState{mainState};
+        QState* movingState = new MovingState{mainState};
+        QState* releasedState = new ReleasedState{mainState};
+
+        auto tr1 = new ScenarioRelease_Transition;
+        tr1->setTargetState(releasedState);
+        pressedState->addTransition(tr1);
+        auto tr2 = new ScenarioRelease_Transition;
+        tr2->setTargetState(releasedState);
+        movingState->addTransition(tr2);
 
         pressedState->addTransition(this, SIGNAL(move()), movingState);
-        pressedState->addTransition(this, SIGNAL(release()), releasedState);
-        movingState->addTransition(this, SIGNAL(release()), releasedState);
         movingState->addTransition(this, SIGNAL(move()), movingState);
         releasedState->addTransition(finalState);
 
-        topState->setInitialState(pressedState);
+        mainState->setInitialState(pressedState);
 
         QObject::connect(pressedState, &QState::entered, [&] ()
         {
+            qDebug() << "Badaboum";
             auto init = new CreateEventAfterEvent{
                                 ObjectPath{m_scenarioPath},
-                                m_firstEvent,
-                                m_eventDate,
-                                m_ypos};
-            m_createdEvent = init->createdEvent();
+                                firstEvent,
+                                eventDate,
+                                ypos};
+            createdEvent = init->createdEvent();
 
             m_dispatcher.submitCommand(init);
         });
 
         QObject::connect(movingState, &QState::entered, [&] ()
         {
+            qDebug() << "move";
             m_dispatcher.submitCommand(
                         new MoveEvent{
                                 ObjectPath{m_scenarioPath},
-                                m_createdEvent,
-                                m_eventDate,
-                                m_ypos});
+                                createdEvent,
+                                eventDate,
+                                ypos});
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
         {
+            qDebug() << "exit";
             m_dispatcher.commit();
         });
     }
 
     QState* rollbackState = new QState{this};
-    topState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    mainState->addTransition(this, SIGNAL(cancel()), rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
         m_dispatcher.rollback();
     });
 
-    setInitialState(topState);
-
+    setInitialState(mainState);
 }
 
-void CreateEventState::init(ObjectPath&& path,
-                                   id_type<EventModel> startEvent,
-                                   const TimeValue& date,
-                                   double y)
-{
-    m_scenarioPath = std::move(path);
-    m_firstEvent = startEvent;
-    m_eventDate = date;
-    m_ypos = y;
-
-    emit init();
-}

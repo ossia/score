@@ -82,37 +82,247 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
         iscore::SerializableCommand* m_continuous{};
 };
 
+
+
+
+#include <QAbstractTransition>
+
 #include <Document/Event/EventData.hpp>
+// Note : objectpath should be at creation
 class CreateEventState : public QState
 {
         Q_OBJECT
     public:
-        CreateEventState(iscore::CommandStack& stack, QState* parent);
-
-        void init(ObjectPath&& path,
-                  id_type<EventModel> startEvent,
-                  const TimeValue& date,
-                  double y);
+        CreateEventState(ObjectPath&& scenarioPath,
+                         iscore::CommandStack& stack,
+                         QState* parent);
 
         void move(const TimeValue& newdate, double newy)
         {
-            m_eventDate = newdate;
-            m_ypos = newy;
+            eventDate = newdate;
+            ypos = newy;
             emit move();
         }
 
+
+
+        id_type<EventModel> firstEvent;
+        TimeValue eventDate;
+        double ypos{};
+
     signals:
-        void init();
         void move();
         void release();
         void cancel();
 
     private:
-        RealtimeMacroCommandDispatcher m_dispatcher;
-
         ObjectPath m_scenarioPath;
-        id_type<EventModel> m_firstEvent;
-        id_type<EventModel> m_createdEvent;
+        RealtimeMacroCommandDispatcher m_dispatcher;
+        id_type<EventModel> createdEvent;
+};
+
+
+
+
+
+////////////////////////
+
+struct ScenarioRelease_QEvent : public QEvent
+{
+        ScenarioRelease_QEvent():
+            QEvent{QEvent::Type(QEvent::User+10)}
+        { }
+};
+
+class ScenarioRelease_Transition : public QAbstractTransition
+{
+        Q_OBJECT
+    public:
+        using QAbstractTransition::QAbstractTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+10); }
+
+        virtual void onTransition(QEvent * ev)
+        { }
+};
+
+
+class AbstractScenarioTransition : public QAbstractTransition
+{
+    public:
+        AbstractScenarioTransition(CreateEventState* state):
+                    m_state{state} { }
+
+        CreateEventState& state() const { return *m_state; }
+
+    private:
+        CreateEventState* m_state{};
+};
+
+
+////////////
+struct ScenarioClickOnNothing_QEvent : public QEvent
+{
+        ScenarioClickOnNothing_QEvent(const TimeValue& newdate, double newy):
+            QEvent{QEvent::Type(QEvent::User+1)},
+            m_eventDate{newdate},
+            m_ypos{newy}
+        {
+        }
+
         TimeValue m_eventDate;
         double m_ypos{};
+};
+
+class ScenarioClickOnNothing_Transition : public AbstractScenarioTransition
+{
+        Q_OBJECT
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+1); }
+
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<ScenarioClickOnNothing_QEvent*>(ev);
+
+            state().firstEvent = id_type<EventModel>(0);
+            state().eventDate = qev->m_eventDate;
+            state().ypos =  qev->m_ypos;
+        }
+};
+
+
+////////////////////////
+struct ScenarioClickOnTimeNode_QEvent : public QEvent
+{
+        ScenarioClickOnTimeNode_QEvent(id_type<TimeNodeModel>& tn_id,
+                                       const TimeValue& newdate,
+                                       double newy):
+            QEvent{QEvent::Type(QEvent::User+2)},
+            m_id{tn_id},
+            m_date{newdate},
+            m_ypos{newy}
+        {
+        }
+
+        id_type<TimeNodeModel> m_id;
+        TimeValue m_date;
+        double m_ypos{};
+};
+
+class ScenarioClickOnTimeNode_Transition : public AbstractScenarioTransition
+{
+        Q_OBJECT
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+2); }
+
+        virtual void onTransition(QEvent * ev)
+        {
+            //auto qev = static_cast<ScenarioClickOnTimeNode_QEvent*>(ev);
+            //state().press(qev->m_id, qev->m_date, qev->m_ypos);
+        }
+};
+
+
+////////////////////////
+struct ScenarioClickOnEvent_QEvent : public QEvent
+{
+        ScenarioClickOnEvent_QEvent(id_type<EventModel> e, const TimeValue& newdate, double newy):
+            QEvent{QEvent::Type(QEvent::User+3)},
+            m_id{e},
+            m_date{newdate},
+            m_ypos{newy}
+        {
+        }
+
+        id_type<EventModel> m_id;
+        TimeValue m_date;
+        double m_ypos{};
+};
+
+class ScenarioClickOnEvent_Transition : public AbstractScenarioTransition
+{
+        Q_OBJECT
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+3); }
+
+        virtual void onTransition(QEvent * ev)
+        {
+            qDebug() << "sfsdfsdgs";
+            auto qev = static_cast<ScenarioClickOnEvent_QEvent*>(ev);
+
+            state().firstEvent = qev->m_id;
+            state().eventDate = qev->m_date;
+            state().ypos =  qev->m_ypos;
+        }
+};
+
+
+////////////////////////
+struct ScenarioMove_QEvent : public QEvent
+{
+        ScenarioMove_QEvent(const TimeValue& newdate, double newy):
+            QEvent{QEvent::Type(QEvent::User+4)},
+            m_date{newdate},
+            m_ypos{newy}
+        {
+        }
+
+        TimeValue m_date;
+        double m_ypos{};
+};
+class ScenarioMove_Transition : public AbstractScenarioTransition
+{
+        Q_OBJECT
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+4); }
+
+        virtual void onTransition(QEvent * ev) {
+            qDebug() << "move move";
+            auto qev = static_cast<ScenarioMove_QEvent*>(ev);
+
+            state().eventDate = qev->m_date;
+            state().ypos =  qev->m_ypos;
+        }
+};
+
+
+
+struct ScenarioHoverEvent_QEvent : public QEvent
+{
+        ScenarioHoverEvent_QEvent(const EventModel& ev):
+            QEvent{QEvent::Type(QEvent::User+5)},
+            m_event{ev}
+        {
+        }
+
+        const EventModel& m_event;
+};
+
+struct ScenarioHoverTimeNode_QEvent : public QEvent
+{
+        ScenarioHoverTimeNode_QEvent(const TimeNodeModel& tn):
+            QEvent{QEvent::Type(QEvent::User+6)},
+            m_timenode{tn}
+        {
+        }
+
+        const TimeNodeModel& m_timenode;
 };

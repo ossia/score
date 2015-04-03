@@ -77,57 +77,52 @@ void EventView::setShadow(bool arg)
 }
 
 
-void EventView::mousePressEvent(QGraphicsSceneMouseEvent* m)
+void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    QGraphicsObject::mousePressEvent(m);
+    /*
+    QGraphicsItem::mousePressEvent(event);
 
-    m_clickedPoint = m->pos();
+    m_clickedPoint = event->pos();
     emit eventPressed();
+    */
+    // Should be selectable only when the state machine is in the selection tool.
+    event->ignore();
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
 {
+    /*
     QGraphicsObject::mouseReleaseEvent(m);
 
-    auto posInScenario = pos() + m->pos() - m_clickedPoint;
-
-    if(m->modifiers() == Qt::ControlModifier)
-    {
-        emit eventReleasedWithControl(posInScenario, mapToScene(m->pos()));
-    }
-    else
-    {
-        emit eventReleased();
-    }
+    emit eventReleased();
 
     m_moving = false;
+    */
+    m->ignore();
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
 {
+    /*
     QGraphicsObject::mouseMoveEvent(m);
 
     auto posInScenario = pos() + m->pos() - m_clickedPoint;
 
-    if(m->modifiers() == Qt::ControlModifier)
-    {
-        emit eventMovedWithControl(posInScenario, mapToScene(m->pos()));
-    }
-    else
-    {
-        // TODO effet bizarre : un léger déplacement est autorisé la première fois ... D'où est ce que ça sort ?
+    // TODO effet bizarre : un léger déplacement est autorisé la première fois ... D'où est ce que ça sort ?
 
-        if(m->modifiers() == Qt::ShiftModifier)
-        {
-            posInScenario.setX(pos().x());
-        }
-
-        emit eventMoved(posInScenario);
+    if(m->modifiers() == Qt::ShiftModifier)
+    {
+        posInScenario.setX(pos().x());
     }
+
+    emit eventMoved(posInScenario);
+
 
     m_moving = true;
+    */
+    m->ignore();
 }
-
+/*
 void EventView::keyPressEvent(QKeyEvent* e)
 {
     if(e->key() == Qt::Key_Control)
@@ -143,7 +138,7 @@ void EventView::keyReleaseEvent(QKeyEvent* e)
         emit ctrlStateChanged(false);
     }
 }
-
+*/
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsObject::hoverEnterEvent(h);

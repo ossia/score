@@ -15,8 +15,8 @@ class TemporalScenarioView : public ProcessViewInterface
         virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     signals:
-        void scenarioPressed(QPointF, QPointF);
-        void scenarioReleased(QPointF, QPointF);
+        void scenarioPressed(QPointF);
+        void scenarioReleased(QPointF);
         void scenarioMoved(QPointF);
 
         void newSelectionArea(QRectF area);

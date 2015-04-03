@@ -58,10 +58,11 @@ void TimeNodeView::setExtremities(int top, int bottom)
 
 void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* m)
 {
-    QGraphicsObject::mousePressEvent(m);
+    //QGraphicsObject::mousePressEvent(m);
     m_clickedPoint =  m->pos();
 
     emit timeNodePressed();
+    m->ignore();
 }
 
 void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)

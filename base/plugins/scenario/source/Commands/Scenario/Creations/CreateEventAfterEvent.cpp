@@ -56,7 +56,7 @@ void CreateEventAfterEvent::redo()
     auto scenar = m_path.find<ScenarioModel>();
     createTimenodeConstraintAndEvent(m_createdConstraintId,
                                      m_createdConstraintFullViewId,
-                                     *scenar->startEvent(),
+                                     *scenar->event(m_firstEventId),
                                      m_createdEventId,
                                      m_createdTimeNodeId,
                                      m_time,

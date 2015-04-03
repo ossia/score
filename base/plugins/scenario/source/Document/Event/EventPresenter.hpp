@@ -24,9 +24,7 @@ class EventPresenter : public NamedObject
     signals:
         void pressed();
         void eventMoved(EventData);
-        void eventMovedWithControl(EventData);
         void eventReleased();
-        void eventReleasedWithControl(EventData);
         void eventHoverEnter();
         void eventHoverLeave();
 

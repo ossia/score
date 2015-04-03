@@ -34,10 +34,8 @@ class EventView : public QGraphicsObject
 
     signals:
         void eventPressed();
-        void eventReleasedWithControl(QPointF, QPointF);
         void eventReleased();
         void eventMoved(QPointF);
-        void eventMovedWithControl(QPointF, QPointF);
         void eventHoverEnter();
         void eventHoverLeave();
 
@@ -53,8 +51,10 @@ class EventView : public QGraphicsObject
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
+        /*
         virtual void keyPressEvent(QKeyEvent* e) override;
         virtual void keyReleaseEvent(QKeyEvent* e) override;
+        */
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
