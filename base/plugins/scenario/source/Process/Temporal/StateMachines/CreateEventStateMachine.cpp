@@ -23,7 +23,7 @@ class ReleasedState : public QState
 };
 
 CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandStack& stack, QState* parent):
-    QState{parent},
+    CommonState{parent},
     m_scenarioPath{std::move(scenarioPath)},
     m_dispatcher{stack, nullptr}
 {
@@ -42,10 +42,10 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
         tr2->setTargetState(releasedState);
         movingState->addTransition(tr2);
 
-        auto tr3 = new Move_Transition{this};
+        auto tr3 = new Move_Transition{*this};
         tr3->setTargetState(movingState);
         pressedState->addTransition(tr3);
-        auto tr4 = new Move_Transition{this};
+        auto tr4 = new Move_Transition{*this};
         tr4->setTargetState(movingState);
         movingState->addTransition(tr4);
 

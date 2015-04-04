@@ -113,11 +113,11 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
     // peu importe l'outil dans lequel on se trouve
 
     m_sm.setInitialState(creationState);
-    auto t1 = new ClickOnEvent_Transition(m_createEvent);
+    auto t1 = new ClickOnEvent_Transition(*m_createEvent);
     t1->setTargetState(m_createEvent);
     creationState_wait->addTransition(t1);
 
-    auto t2 = new ClickOnNothing_Transition(m_createEvent);
+    auto t2 = new ClickOnNothing_Transition(*m_createEvent);
     t2->setTargetState(m_createEvent);
     creationState_wait->addTransition(t2);
     //creationState_wait->addTransition(m_presenter.m_view, SIGNAL(scenarioPressed(QPointF)), m_createEvent);
@@ -304,7 +304,7 @@ void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
         */
     }
 
-    m_sm.postEvent(new MoveOverNothing_Event{
+    m_sm.postEvent(new MoveOnNothing_Event{
                        TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
                        point.y() /  m_presenter.m_view->boundingRect().height()});
 }
