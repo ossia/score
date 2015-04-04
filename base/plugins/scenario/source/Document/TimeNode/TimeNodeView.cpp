@@ -11,7 +11,6 @@ TimeNodeView::TimeNodeView(QGraphicsObject* parent) :
 {
     this->setParentItem(parent);
     this->setZValue(parent->zValue() + 1.5);
-    this->setFlag(ItemIsSelectable);
     this->setAcceptHoverEvents(true);
 
     m_color = Qt::darkRed;
@@ -54,33 +53,6 @@ void TimeNodeView::setExtremities(int top, int bottom)
     m_top = top - 10;
     m_bottom = bottom + 10;
     this->update();
-}
-
-void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* m)
-{
-    //QGraphicsObject::mousePressEvent(m);
-    m_clickedPoint =  m->pos();
-
-    emit timeNodePressed();
-    m->ignore();
-}
-
-void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mouseMoveEvent(m);
-    m_moving = true;
-
-    if(m->pos() != m_clickedPoint)
-    {
-        emit timeNodeMoved(pos() + m->pos() - m_clickedPoint);
-    }
-}
-
-void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mouseReleaseEvent(m);
-    m_moving = false;
-    emit timeNodeReleased();
 }
 
 void TimeNodeView::setMoving(bool arg)

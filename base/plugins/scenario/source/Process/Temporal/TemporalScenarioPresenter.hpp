@@ -82,9 +82,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         std::vector<EventPresenter*> m_events;
         std::vector<TimeNodePresenter*> m_timeNodes;
 
-        // Necessary for the real-time creation / moving of elements
-        bool ongoingCommand();
-
         ZoomRatio m_zoomRatio {1};
 
         TemporalScenarioViewModel* m_viewModel;

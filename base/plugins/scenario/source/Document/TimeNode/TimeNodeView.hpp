@@ -19,9 +19,6 @@ class TimeNodeView : public QGraphicsObject
         QRectF boundingRect() const override;
 
         void setExtremities(int top, int bottom);
-        void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
-        void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-        void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
 
         void setMoving(bool);
         void setSelected(bool selected)
@@ -37,11 +34,6 @@ class TimeNodeView : public QGraphicsObject
 
     public slots:
         void changeColor(QColor);
-
-    signals:
-        void timeNodePressed();
-        void timeNodeMoved(QPointF);
-        void timeNodeReleased();
 
     private:
         int m_top {0};

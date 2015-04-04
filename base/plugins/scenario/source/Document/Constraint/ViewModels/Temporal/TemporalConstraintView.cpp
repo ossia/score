@@ -117,52 +117,6 @@ void TemporalConstraintView::setMoving(bool arg)
     update();
 }
 
-void TemporalConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mousePressEvent(m);
-
-    m_clickedPoint = m->pos();
-    emit constraintPressed();
-    //emit constraintPressed(pos() + m->pos());
-}
-
-void TemporalConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mouseMoveEvent(m);
-
-    auto posInScenario = pos() + m->pos() - m_clickedPoint;
-
-    if(m->modifiers() == Qt::ShiftModifier)
-    {
-        posInScenario.setX(pos().x());
-    }
-
-    m_moving = true;
-    emit constraintMoved(posInScenario);
-}
-
-void TemporalConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mouseReleaseEvent(m);
-    /*
-        // dans event, ceci est dans mouseMoveEvent.
-        auto posInScenario = pos() + m->pos() - m_clickedPoint;
-
-        if ((m->pos() - m_clickedPoint).x() < 10 && (m->pos() - m_clickedPoint).x() > -10) // @todo use a const !
-        {
-            posInScenario.setX(pos().x());
-        }
-        if ((m->pos() - m_clickedPoint).y() < 10 && (m->pos() - m_clickedPoint).y() > -10) // @todo use a const !
-        {
-            posInScenario.setY(pos().y());
-        }
-        if(m->pos() != m_clickedPoint) emit constraintReleased(posInScenario);
-        */
-    m_moving = false;
-
-    emit constraintReleased();
-}
-
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsObject::hoverEnterEvent(h);

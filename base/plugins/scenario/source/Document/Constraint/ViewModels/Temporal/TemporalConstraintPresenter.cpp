@@ -19,19 +19,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     QObject* parent) :
     AbstractConstraintPresenter {"TemporalConstraintPresenter", cstr_model, cstr_view, parent}
 {
-    connect(::view(this), &TemporalConstraintView::constraintMoved,
-    [&](QPointF p)
-    {
-        ConstraintData data {};
-        data.id = viewModel(this)->model()->id();
-        data.y = p.y();
-        data.x = p.x();
-        emit constraintMoved(data);
-    });
-
-    connect(::view(this), &TemporalConstraintView::constraintReleased,
-            this,		&TemporalConstraintPresenter::constraintReleased);
-
     connect(::view(this), &TemporalConstraintView::constraintHoverEnter,
             this,       &TemporalConstraintPresenter::constraintHoverEnter);
 

@@ -42,10 +42,6 @@ class EventView : public QGraphicsObject
         void setShadow(bool arg);
 
     protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 

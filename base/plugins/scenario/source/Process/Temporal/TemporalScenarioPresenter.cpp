@@ -84,10 +84,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-    // TODO should be elsewhere
-    connect(m_view,       &TemporalScenarioView::ctrlStateChanged,
-            m_cmdManager, &ScenarioCommandManager::on_ctrlStateChanged);
-
     connect(m_view, &TemporalScenarioView::scenarioMoved,
             m_cmdManager, &ScenarioCommandManager::on_scenarioMoved);
 
@@ -228,11 +224,6 @@ void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
     event->model()->changeTimeNode(timeNodeId);
 }
 
-bool TemporalScenarioPresenter::ongoingCommand()
-{
-    return m_cmdManager->ongoingCommand();
-}
-
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
 void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
@@ -277,7 +268,6 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
     connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
             this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
 
-    m_selManager->setup(timeNode_presenter);
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
@@ -312,7 +302,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
         m_viewInterface->on_hoverOnConstraint(constraint_presenter->model()->id(), false);
     });
 
-    m_selManager->setup(constraint_presenter);
     m_selManager->selectConstraint(constraint_presenter);
 
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());

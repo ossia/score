@@ -26,13 +26,9 @@ class TimeNodePresenter :  public NamedObject
         TimeNodeView* view();
 
     signals:
-        void pressed();
-        void timeNodeMoved(EventData);
-        void timeNodeReleased();
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
     public slots:
-        void on_timeNodeMoved(QPointF);
         void on_eventAdded(id_type<EventModel> eventId);
 
     private:

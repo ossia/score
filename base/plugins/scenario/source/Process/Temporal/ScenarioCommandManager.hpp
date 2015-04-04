@@ -27,16 +27,6 @@ class ScenarioCommandManager : public QObject
         void on_scenarioMoved(const QPointF& point);
         void on_scenarioReleased(const QPointF& point);
 
-        // Moving
-        void moveEventAndConstraint(EventData data);
-        void moveConstraint(ConstraintData data);
-        void moveTimeNode(EventData data);
-
-        void on_ctrlStateChanged(bool);
-
-        // Utility
-        bool ongoingCommand();
-
     private:
         template<typename View, typename Array>
         auto getPresenterFromView(const View* v, const Array& arr)

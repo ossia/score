@@ -32,8 +32,6 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
         virtual ~TemporalConstraintPresenter();
 
     signals:
-        void constraintMoved(ConstraintData);
-        void constraintReleased();
         void constraintHoverEnter();
         void constraintHoverLeave();
 };

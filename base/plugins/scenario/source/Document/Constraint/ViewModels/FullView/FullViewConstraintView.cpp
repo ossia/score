@@ -91,10 +91,7 @@ void FullViewConstraintView::paint(QPainter* painter,
     painter->setBrush(brush);
     painter->setPen(QPen(brush, 4));
 
-
     painter->drawLine(maxWidth(), 0, maxWidth() + 200, 0);
-
-
 }
 
 void FullViewConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)

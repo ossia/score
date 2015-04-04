@@ -22,16 +22,11 @@ class TemporalConstraintView : public AbstractConstraintView
         bool shadow() const;
         void setShadow(bool shadow);
 
-signals:
-        void constraintMoved(QPointF);
-        void constraintReleased();
+    signals:
         void constraintHoverEnter();
         void constraintHoverLeave();
 
     protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* m) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* m) override;
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 

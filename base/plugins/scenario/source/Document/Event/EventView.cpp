@@ -13,7 +13,6 @@ EventView::EventView(QGraphicsObject* parent) :
     // TODO hack. How to do it properly ? should events be "over" constraints ? maybe +1.5 ?
     this->setZValue(parent->zValue() + 2);
 
-    this->setFlag(ItemIsSelectable);
     this->setAcceptHoverEvents(true);
 
     m_color = Qt::black;
@@ -74,23 +73,6 @@ void EventView::setShadow(bool arg)
 {
     m_shadow = arg;
     update();
-}
-
-
-void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    // Should be selectable only when the state machine is in the selection tool.
-    event->ignore();
-}
-
-void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-    event->ignore();
-}
-
-void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* m)
-{
-    m->ignore();
 }
 
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
