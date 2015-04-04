@@ -35,17 +35,17 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
         QState* movingState = new MovingState{mainState};
         QState* releasedState = new ReleasedState{mainState};
 
-        auto tr1 = new ScenarioRelease_Transition;
+        auto tr1 = new Release_Transition;
         tr1->setTargetState(releasedState);
         pressedState->addTransition(tr1);
-        auto tr2 = new ScenarioRelease_Transition;
+        auto tr2 = new Release_Transition;
         tr2->setTargetState(releasedState);
         movingState->addTransition(tr2);
 
-        auto tr3 = new ScenarioMove_Transition{this};
+        auto tr3 = new Move_Transition{this};
         tr3->setTargetState(movingState);
         pressedState->addTransition(tr3);
-        auto tr4 = new ScenarioMove_Transition{this};
+        auto tr4 = new Move_Transition{this};
         tr4->setTargetState(movingState);
         movingState->addTransition(tr4);
 
