@@ -90,19 +90,45 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 class CommonState : public QState
 {
     public:
-        using QState::QState;
-        id_type<EventModel> firstEvent;
-        TimeValue eventDate;
+        CommonState(ObjectPath&& scenar, QState* parent):
+            QState{parent},
+            m_scenarioPath{std::move(scenar)}
+        { }
+
+        void clear()
+        {
+            // TODO faire un StateData qu'on peut operator='er à la place ?
+            // Vérifier que c'est nécessaire dans tous les cas.
+            clickedEvent = id_type<EventModel>{};
+            clickedTimeNode = id_type<TimeNodeModel>{};
+            clickedConstraint = id_type<ConstraintModel>{};
+
+            date = TimeValue{};
+            ypos = 0;
+
+        }
+
+        id_type<EventModel> clickedEvent;
+        id_type<TimeNodeModel> clickedTimeNode;
+        id_type<ConstraintModel> clickedConstraint;
+
+        id_type<EventModel> hoveredEvent;
+        id_type<TimeNodeModel> hoveredTimeNode;
+        id_type<ConstraintModel> hoveredConstraint;
+
+        TimeValue date;
         double ypos{};
 
         const auto& createdEvent() const
         { return m_createdEvent; }
         const auto& createdTimeNode() const
-        { return m_createTimeNode; }
+        { return m_createdTimeNode; }
 
     protected:
+        ObjectPath m_scenarioPath;
+
         id_type<EventModel> m_createdEvent;
-        id_type<TimeNodeModel> m_createTimeNode;
+        id_type<TimeNodeModel> m_createdTimeNode;
 };
 
 class CreateEventState : public CommonState
@@ -112,10 +138,7 @@ class CreateEventState : public CommonState
         CreateEventState(ObjectPath&& scenarioPath,
                          iscore::CommandStack& stack,
                          QState* parent);
-
-
     private:
-        ObjectPath m_scenarioPath;
         RealtimeMacroCommandDispatcher m_dispatcher;
 };
 
@@ -124,54 +147,27 @@ class CreateEventState : public CommonState
 
 
 ////////////////////////
-struct Cancel_Event : public QEvent
+
+template<int N>
+struct NumberedEvent : public QEvent
 {
-        Cancel_Event():
-            QEvent{QEvent::Type(QEvent::User+100)}
-        { }
+        static constexpr const int user_type = N;
+        NumberedEvent():
+            QEvent{QEvent::Type(QEvent::User + N)} { }
 };
-
-class Cancel_Transition : public QAbstractTransition
-{
-        Q_OBJECT
-    public:
-        using QAbstractTransition::QAbstractTransition;
-
-    protected:
-        virtual bool eventTest(QEvent *e)
-        { return e->type() == QEvent::Type(QEvent::User+100); }
-
-        virtual void onTransition(QEvent * ev)
-        { }
-};
-
-
-struct Release_Event : public QEvent
-{
-        Release_Event():
-            QEvent{QEvent::Type(QEvent::User+1000)}
-        { }
-};
-
-class Release_Transition : public QAbstractTransition
-{
-        Q_OBJECT
-    protected:
-        virtual bool eventTest(QEvent *e)
-        { return e->type() == QEvent::Type(QEvent::User+1000); }
-
-        virtual void onTransition(QEvent * ev)
-        { }
-};
-
 
 template<typename Event>
 class MatchedTransition : public QAbstractTransition
 {
     protected:
-        virtual bool eventTest(QEvent *e)
+        virtual bool eventTest(QEvent *e) override
         { return e->type() == QEvent::Type(QEvent::User + Event::user_type); }
+
+        virtual void onTransition(QEvent *event) override { }
 };
+
+using Cancel_Event = NumberedEvent<100>;
+using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 template<typename Event>
 class AbstractScenarioTransition : public MatchedTransition<Event>
@@ -187,13 +183,14 @@ class AbstractScenarioTransition : public MatchedTransition<Event>
 };
 
 
+
+
 ////////////
+
 template<int N>
-struct Positioned_Event : public QEvent
+struct Positioned_Event : public NumberedEvent<N>
 {
-        static constexpr const int user_type = N;
         Positioned_Event(const TimeValue& newdate, double newy):
-            QEvent{QEvent::Type(QEvent::User + N)},
             date{newdate},
             y{newy}
         {
@@ -242,16 +239,15 @@ class ClickOnNothing_Transition : public AbstractScenarioTransition<ClickOnNothi
         virtual void onTransition(QEvent * ev)
         {
             auto qev = static_cast<ClickOnNothing_Event*>(ev);
+            this->state().clear();
 
             // TODO this should instead be set within the state ?
-            this->state().firstEvent = id_type<EventModel>(0);
-            this->state().eventDate = qev->date;
+            this->state().clickedEvent = id_type<EventModel>(0);
+            this->state().date = qev->date;
             this->state().ypos =  qev->y;
         }
 };
 
-
-////////////////////////
 class ClickOnTimeNode_Transition : public AbstractScenarioTransition<ClickOnTimeNode_Event>
 {
     public:
@@ -260,13 +256,15 @@ class ClickOnTimeNode_Transition : public AbstractScenarioTransition<ClickOnTime
     protected:
         virtual void onTransition(QEvent * ev)
         {
-            //auto qev = static_cast<ScenarioClickOnTimeNode_QEvent*>(ev);
-            //state().press(qev->m_id, qev->m_date, qev->m_ypos);
+            auto qev = static_cast<ClickOnTimeNode_Event*>(ev);
+            this->state().clear();
+
+            this->state().clickedTimeNode = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
         }
 };
 
-
-////////////////////////
 class ClickOnEvent_Transition : public AbstractScenarioTransition<ClickOnEvent_Event>
 {
     public:
@@ -276,14 +274,14 @@ class ClickOnEvent_Transition : public AbstractScenarioTransition<ClickOnEvent_E
         virtual void onTransition(QEvent * ev)
         {
             auto qev = static_cast<ClickOnEvent_Event*>(ev);
+            this->state().clear();
 
-            this->state().firstEvent = qev->id;
-            this->state().eventDate = qev->date;
-            this->state().ypos =  qev->y;
+            this->state().clickedEvent = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
         }
 };
 
-////////////////
 class ClickOnConstraint_Transition : public AbstractScenarioTransition<ClickOnConstraint_Event>
 {
     public:
@@ -292,13 +290,17 @@ class ClickOnConstraint_Transition : public AbstractScenarioTransition<ClickOnCo
     protected:
         virtual void onTransition(QEvent * ev)
         {
-            //auto qev = static_cast<ScenarioClickOnTimeNode_QEvent*>(ev);
-            //state().press(qev->m_id, qev->m_date, qev->m_ypos);
+            auto qev = static_cast<ClickOnConstraint_Event*>(ev);
+            this->state().clear();
+
+            this->state().clickedConstraint = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
         }
 };
 
 ////////////////////////
-class Move_Transition : public AbstractScenarioTransition<MoveOnNothing_Event>
+class MoveOnNothing_Transition : public AbstractScenarioTransition<MoveOnNothing_Event>
 {
     public:
         using AbstractScenarioTransition::AbstractScenarioTransition;
@@ -308,31 +310,91 @@ class Move_Transition : public AbstractScenarioTransition<MoveOnNothing_Event>
         {
             auto qev = static_cast<MoveOnNothing_Event*>(ev);
 
-            this->state().eventDate = qev->date;
+            this->state().date = qev->date;
             this->state().ypos =  qev->y;
         }
 };
 
-
-
-struct HoverEvent_Event : public QEvent
+class MoveOnTimeNode_Transition : public AbstractScenarioTransition<MoveOnTimeNode_Event>
 {
-        HoverEvent_Event(const EventModel& ev):
-            QEvent{QEvent::Type(QEvent::User+50)},
-            m_event{ev}
-        {
-        }
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
 
-        const EventModel& m_event;
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<MoveOnTimeNode_Event*>(ev);
+
+            this->state().hoveredTimeNode = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
+        }
 };
 
-struct HoverTimeNode_Event : public QEvent
+class MoveOnEvent_Transition : public AbstractScenarioTransition<MoveOnEvent_Event>
 {
-        HoverTimeNode_Event(const TimeNodeModel& tn):
-            QEvent{QEvent::Type(QEvent::User+51)},
-            m_timenode{tn}
-        {
-        }
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
 
-        const TimeNodeModel& m_timenode;
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<MoveOnEvent_Event*>(ev);
+
+            this->state().hoveredEvent = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
+        }
 };
+
+
+////////////////////////
+
+class ReleaseOnNothing_Transition : public AbstractScenarioTransition<ReleaseOnNothing_Event>
+{
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<ReleaseOnNothing_Event*>(ev);
+
+            this->state().date = qev->date;
+            this->state().ypos =  qev->y;
+        }
+};
+
+class ReleaseOnTimeNode_Transition : public AbstractScenarioTransition<ReleaseOnTimeNode_Event>
+{
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<ReleaseOnTimeNode_Event*>(ev);
+
+            this->state().hoveredTimeNode = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
+        }
+};
+
+class ReleaseOnEvent_Transition : public AbstractScenarioTransition<ReleaseOnEvent_Event>
+{
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<ReleaseOnEvent_Event*>(ev);
+
+            this->state().hoveredEvent = qev->id;
+            this->state().date = qev->date;
+            this->state().ypos = qev->y;
+        }
+};
+
+

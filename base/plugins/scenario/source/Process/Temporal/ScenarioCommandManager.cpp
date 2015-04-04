@@ -276,43 +276,37 @@ void ScenarioCommandManager::on_scenarioPressed(const QPointF& point)
 
 void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
 {
+    auto date = TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio);
+    auto y    = point.y() /  m_presenter.m_view->boundingRect().height();
     auto collidingEvents = getCollidingModels(m_presenter.m_events, m_createEvent->createdEvent());
     if(!collidingEvents.empty())
     {
-        /*
         auto model = collidingEvents.first();
-        m_sm.postEvent(new ScenarioMoveOverEvent_QEvent{
-                           model->id(),
-                           model->date(),
-                           model->heightPercentage()});
+        m_sm.postEvent(new MoveOnEvent_Event{
+                           model->id(), date, y});
 
         return;
-        */
     }
 
     auto collidingTimeNodes = getCollidingModels(m_presenter.m_timeNodes, m_createEvent->createdTimeNode());
     if(!collidingTimeNodes.empty())
     {
-        /*
         auto model = collidingTimeNodes.first();
-        m_sm.postEvent(new ScenarioMoveOverTimeNode_QEvent{
-                           model->id(),
-                           model->date(),
-                           model->heightPercentage()});
+        m_sm.postEvent(new MoveOnTimeNode_Event{
+                           model->id(), date, y});
 
         return;
-        */
     }
 
-    m_sm.postEvent(new MoveOnNothing_Event{
-                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                       point.y() /  m_presenter.m_view->boundingRect().height()});
+    m_sm.postEvent(new MoveOnNothing_Event{date, y});
 }
 
 // TODO on_scenarioMoved instead?
 void ScenarioCommandManager::on_scenarioReleased(const QPointF& point)
 {
-    m_sm.postEvent(new Release_Event);
+    m_sm.postEvent(new ReleaseOnNothing_Event{
+                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                       point.y() /  m_presenter.m_view->boundingRect().height()});
 
     /*
     EventData data {};

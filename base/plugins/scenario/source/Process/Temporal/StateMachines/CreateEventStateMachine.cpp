@@ -23,8 +23,7 @@ class ReleasedState : public QState
 };
 
 CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandStack& stack, QState* parent):
-    CommonState{parent},
-    m_scenarioPath{std::move(scenarioPath)},
+    CommonState{std::move(scenarioPath), parent},
     m_dispatcher{stack, nullptr}
 {
     using namespace Scenario::Command;
@@ -35,17 +34,17 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
         QState* movingState = new MovingState{mainState};
         QState* releasedState = new ReleasedState{mainState};
 
-        auto tr1 = new Release_Transition;
+        auto tr1 = new ReleaseOnNothing_Transition{*this};
         tr1->setTargetState(releasedState);
         pressedState->addTransition(tr1);
-        auto tr2 = new Release_Transition;
+        auto tr2 = new ReleaseOnNothing_Transition{*this};
         tr2->setTargetState(releasedState);
         movingState->addTransition(tr2);
 
-        auto tr3 = new Move_Transition{*this};
+        auto tr3 = new MoveOnNothing_Transition{*this};
         tr3->setTargetState(movingState);
         pressedState->addTransition(tr3);
-        auto tr4 = new Move_Transition{*this};
+        auto tr4 = new MoveOnNothing_Transition{*this};
         tr4->setTargetState(movingState);
         movingState->addTransition(tr4);
 
@@ -57,11 +56,11 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
         {
             auto init = new CreateEventAfterEvent{
                                 ObjectPath{m_scenarioPath},
-                                firstEvent,
-                                eventDate,
+                                clickedEvent,
+                                date,
                                 ypos};
             m_createdEvent = init->createdEvent();
-            m_createTimeNode = init->createdTimeNode();
+            m_createdTimeNode = init->createdTimeNode();
 
             m_dispatcher.submitCommand(init);
         });
@@ -72,7 +71,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
                         new MoveEvent{
                                 ObjectPath{m_scenarioPath},
                                 m_createdEvent,
-                                eventDate,
+                                date,
                                 ypos});
         });
 
