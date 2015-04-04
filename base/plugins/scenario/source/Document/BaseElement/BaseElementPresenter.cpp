@@ -258,7 +258,7 @@ BaseElementModel* BaseElementPresenter::model() const
 
 double BaseElementPresenter::height() const
 {
-    return m_displayedConstraintPresenter->abstractConstraintView()->height();
+    return m_displayedConstraintPresenter->view()->height();
 }
 
 BaseElementView* BaseElementPresenter::view() const

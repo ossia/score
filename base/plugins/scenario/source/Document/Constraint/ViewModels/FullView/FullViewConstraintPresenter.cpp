@@ -35,16 +35,16 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
 {
-    if(view(this))
+    if(::view(this))
     {
-        auto sc = view(this)->scene();
+        auto sc = ::view(this)->scene();
 
-        if(sc && sc->items().contains(view(this)))
+        if(sc && sc->items().contains(::view(this)))
         {
-            sc->removeItem(view(this));
+            sc->removeItem(::view(this));
         }
 
-        view(this)->deleteLater();
+        ::view(this)->deleteLater();
     }
 }
 

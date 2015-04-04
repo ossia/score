@@ -19,7 +19,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     QObject* parent) :
     AbstractConstraintPresenter {"TemporalConstraintPresenter", cstr_model, cstr_view, parent}
 {
-    connect(view(this), &TemporalConstraintView::constraintMoved,
+    connect(::view(this), &TemporalConstraintView::constraintMoved,
     [&](QPointF p)
     {
         ConstraintData data {};
@@ -29,13 +29,13 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         emit constraintMoved(data);
     });
 
-    connect(view(this), &TemporalConstraintView::constraintReleased,
+    connect(::view(this), &TemporalConstraintView::constraintReleased,
             this,		&TemporalConstraintPresenter::constraintReleased);
 
-    connect(view(this), &TemporalConstraintView::constraintHoverEnter,
+    connect(::view(this), &TemporalConstraintView::constraintHoverEnter,
             this,       &TemporalConstraintPresenter::constraintHoverEnter);
 
-    connect(view(this), &TemporalConstraintView::constraintHoverLeave,
+    connect(::view(this), &TemporalConstraintView::constraintHoverLeave,
             this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
     if(viewModel(this)->isBoxShown())
@@ -48,15 +48,15 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
 {
-    if(view(this))
+    if(::view(this))
     {
-        auto sc = view(this)->scene();
+        auto sc = ::view(this)->scene();
 
-        if(sc && sc->items().contains(view(this)))
+        if(sc && sc->items().contains(::view(this)))
         {
-            sc->removeItem(view(this));
+            sc->removeItem(::view(this));
         }
 
-        view(this)->deleteLater();
+        ::view(this)->deleteLater();
     }
 }

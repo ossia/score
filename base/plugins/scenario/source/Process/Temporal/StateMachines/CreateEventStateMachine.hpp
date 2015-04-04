@@ -86,9 +86,7 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 
 
 #include <QAbstractTransition>
-
 #include <Document/Event/EventData.hpp>
-// Note : objectpath should be at creation
 class CreateEventState : public QState
 {
         Q_OBJECT
@@ -101,10 +99,16 @@ class CreateEventState : public QState
         TimeValue eventDate;
         double ypos{};
 
+        const auto& createdEvent() const
+        { return m_createdEvent; }
+        const auto& createdTimeNode() const
+        { return m_createTimeNode; }
+
     private:
         ObjectPath m_scenarioPath;
         RealtimeMacroCommandDispatcher m_dispatcher;
         id_type<EventModel> m_createdEvent;
+        id_type<TimeNodeModel> m_createTimeNode;
 };
 
 
@@ -206,7 +210,7 @@ class ScenarioClickOnNothing_Transition : public AbstractScenarioTransition
 ////////////////////////
 struct ScenarioClickOnTimeNode_QEvent : public QEvent
 {
-        ScenarioClickOnTimeNode_QEvent(id_type<TimeNodeModel>& tn_id,
+        ScenarioClickOnTimeNode_QEvent(const id_type<TimeNodeModel>& tn_id,
                                        const TimeValue& newdate,
                                        double newy):
             QEvent{QEvent::Type(QEvent::User+2)},
@@ -275,7 +279,40 @@ class ScenarioClickOnEvent_Transition : public AbstractScenarioTransition
         }
 };
 
+////////////////
+struct ScenarioClickOnConstraint_QEvent : public QEvent
+{
+        ScenarioClickOnConstraint_QEvent(const id_type<ConstraintModel>& tn_id,
+                                         const TimeValue& newdate,
+                                         double newy):
+            QEvent{QEvent::Type(QEvent::User+5)},
+            m_id{tn_id},
+            m_date{newdate},
+            m_ypos{newy}
+        {
+        }
 
+        id_type<ConstraintModel> m_id;
+        TimeValue m_date;
+        double m_ypos{};
+};
+
+class ScenarioClickOnConstraint_Transition : public AbstractScenarioTransition
+{
+        Q_OBJECT
+    public:
+        using AbstractScenarioTransition::AbstractScenarioTransition;
+
+    protected:
+        virtual bool eventTest(QEvent *e)
+        { return e->type() == QEvent::Type(QEvent::User+5); }
+
+        virtual void onTransition(QEvent * ev)
+        {
+            //auto qev = static_cast<ScenarioClickOnTimeNode_QEvent*>(ev);
+            //state().press(qev->m_id, qev->m_date, qev->m_ypos);
+        }
+};
 ////////////////////////
 struct ScenarioMoveOverNothing_QEvent : public QEvent
 {
@@ -313,7 +350,7 @@ class ScenarioMove_Transition : public AbstractScenarioTransition
 struct ScenarioHoverEvent_QEvent : public QEvent
 {
         ScenarioHoverEvent_QEvent(const EventModel& ev):
-            QEvent{QEvent::Type(QEvent::User+5)},
+            QEvent{QEvent::Type(QEvent::User+50)},
             m_event{ev}
         {
         }
@@ -324,7 +361,7 @@ struct ScenarioHoverEvent_QEvent : public QEvent
 struct ScenarioHoverTimeNode_QEvent : public QEvent
 {
         ScenarioHoverTimeNode_QEvent(const TimeNodeModel& tn):
-            QEvent{QEvent::Type(QEvent::User+6)},
+            QEvent{QEvent::Type(QEvent::User+51)},
             m_timenode{tn}
         {
         }

@@ -38,7 +38,6 @@ class ScenarioCommandManager : public QObject
         bool ongoingCommand();
 
     private:
-
         template<typename View, typename Array>
         auto getPresenterFromView(const View* v, const Array& arr)
         {
@@ -50,11 +49,19 @@ class ScenarioCommandManager : public QObject
             return *it;
         }
 
-        template<typename EventFun, typename TimeNodeFun, typename NothingFun>
-        void mapItemToAction(QGraphicsItem* pressedItem, EventFun&& ev_fun, TimeNodeFun&& tn_fun, NothingFun&& nothing_fun);
+        template<typename EventFun,
+                 typename TimeNodeFun,
+                 typename ConstraintFun,
+                 typename NothingFun>
+        void mapItemToAction(QGraphicsItem* pressedItem,
+                             EventFun&& ev_fun,
+                             TimeNodeFun&& tn_fun,
+                             ConstraintFun&& cst_fun,
+                             NothingFun&& nothing_fun);
+
+        auto itemUnderMouse(const QPointF& point);
 
         EventData m_lastData {};
-
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;

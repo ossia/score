@@ -192,16 +192,48 @@ void ScenarioCommandManager::createConstraint(EventData data)
     */
 }
 
-template<typename EventFun, typename TimeNodeFun, typename NothingFun>
-void ScenarioCommandManager::mapItemToAction(QGraphicsItem* pressedItem, EventFun&& ev_fun, TimeNodeFun&& tn_fun, NothingFun&& nothing_fun)
+
+template<typename PresenterArray, typename IdToIgnore>
+auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id)
+{
+    using namespace std;
+
+    QList<decltype(array[0]->model())> colliding;
+    for(const auto& elt : array)
+    {
+        if((!bool(id) || id != elt->id()) && elt->view()->isUnderMouse())
+        {
+            colliding.push_back(elt->model());
+        }
+    }
+    // TODO sort the elements according to their Z pos.
+
+    return colliding;
+}
+
+
+template<typename EventFun,
+         typename TimeNodeFun,
+         typename ConstraintFun,
+         typename NothingFun>
+void ScenarioCommandManager::mapItemToAction(
+        QGraphicsItem* pressedItem,
+        EventFun&& ev_fun,
+        TimeNodeFun&& tn_fun,
+        ConstraintFun&& cst_fun,
+        NothingFun&& nothing_fun)
 {
     if(auto ev = dynamic_cast<EventView*>(pressedItem))
     {
-        ev_fun(getPresenterFromView(ev, m_presenter.m_events)->model());
+        ev_fun(getPresenterFromView(ev, m_presenter.m_events)->model()->id());
     }
     else if(auto tn = dynamic_cast<TimeNodeView*>(pressedItem))
     {
-        tn_fun(getPresenterFromView(tn, m_presenter.m_timeNodes)->model());
+        tn_fun(getPresenterFromView(tn, m_presenter.m_timeNodes)->model()->id());
+    }
+    else if(auto cst = dynamic_cast<AbstractConstraintView*>(pressedItem))
+    {
+        cst_fun(getPresenterFromView(cst, m_presenter.m_constraints)->abstractConstraintViewModel()->model()->id());
     }
     else
     {
@@ -209,71 +241,72 @@ void ScenarioCommandManager::mapItemToAction(QGraphicsItem* pressedItem, EventFu
     }
 }
 
+auto ScenarioCommandManager::itemUnderMouse(const QPointF& point)
+{
+    return m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform());
+}
+
 void ScenarioCommandManager::on_scenarioPressed(const QPointF& point)
 {
-    mapItemToAction(m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform()),
-    [&] (EventModel* model)
+    auto date = TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio);
+    auto y = point.y() /  m_presenter.m_view->boundingRect().height();
+
+    mapItemToAction(itemUnderMouse(point),
+    [&] (const auto& id)
     {
         m_sm.postEvent(new ScenarioClickOnEvent_QEvent{
-                           model->id(),
-                           model->date(),
-                           model->heightPercentage()});
+                           id, date, y});
     },
-    [&] (TimeNodeModel* model)
+    [&] (const auto& id)
     {
-
+        m_sm.postEvent(new ScenarioClickOnTimeNode_QEvent{
+                        id, date, y});
+    },
+    [&] (const auto& id)
+    {
+        m_sm.postEvent(new ScenarioClickOnConstraint_QEvent{
+                           id, date, y});
     },
     [&] ()
     {
-        m_sm.postEvent(new ScenarioClickOnNothing_QEvent{
-                           TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                           point.y() /  m_presenter.m_view->boundingRect().height()});
+        m_sm.postEvent(new ScenarioClickOnNothing_QEvent{date, y});
     });
 }
 
+
 void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
 {
-    // We have to get the topmost item we're colliding with which isn't being created.
-    /*
-    auto eventTN = findById(m_presenter.m_events, data.eventClickedId)->model()->timeNode();
-    QList<TimeNodePresenter*> collidingTimeNodes;
-    copy_if(begin(m_presenter.m_timeNodes), end(m_presenter.m_timeNodes), std::back_inserter(collidingTimeNodes),
-            [=](TimeNodePresenter * tn)
+    auto collidingEvents = getCollidingModels(m_presenter.m_events, m_createEvent->createdEvent());
+    if(!collidingEvents.empty())
     {
-        if (eventTN != tn->id())
-            return tn->view()->isUnderMouse();
-        return false;
-    });
-
-    */
-
-    //qDebug() << collidingTimeNodes;
-    mapItemToAction(m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform()),
-    [&] (EventModel* model)
-    {
-        qDebug() << 1;
         /*
+        auto model = collidingEvents.first();
         m_sm.postEvent(new ScenarioMoveOverEvent_QEvent{
                            model->id(),
                            model->date(),
                            model->heightPercentage()});
-                           */
-    },
-    [&] (TimeNodeModel* model)
+
+        return;
+        */
+    }
+
+    auto collidingTimeNodes = getCollidingModels(m_presenter.m_timeNodes, m_createEvent->createdTimeNode());
+    if(!collidingTimeNodes.empty())
     {
+        /*
+        auto model = collidingTimeNodes.first();
+        m_sm.postEvent(new ScenarioMoveOverTimeNode_QEvent{
+                           model->id(),
+                           model->date(),
+                           model->heightPercentage()});
 
-        qDebug() << 2;
-    },
-    [&] ()
-    {
+        return;
+        */
+    }
 
-        qDebug() << 3;
-        m_sm.postEvent(new ScenarioMoveOverNothing_QEvent{
-                           TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                           point.y() /  m_presenter.m_view->boundingRect().height()});
-    });
-
-
+    m_sm.postEvent(new ScenarioMoveOverNothing_QEvent{
+                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
+                       point.y() /  m_presenter.m_view->boundingRect().height()});
 }
 
 // TODO on_scenarioMoved instead?

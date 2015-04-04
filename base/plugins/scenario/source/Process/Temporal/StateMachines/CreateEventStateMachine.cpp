@@ -61,6 +61,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath, iscore::CommandSta
                                 eventDate,
                                 ypos};
             m_createdEvent = init->createdEvent();
+            m_createTimeNode = init->createdTimeNode();
 
             m_dispatcher.submitCommand(init);
         });

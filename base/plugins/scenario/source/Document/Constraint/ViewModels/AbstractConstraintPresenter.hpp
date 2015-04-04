@@ -48,7 +48,7 @@ class AbstractConstraintPresenter : public NamedObject
         AbstractConstraintViewModel* abstractConstraintViewModel() const
         { return m_viewModel; }
 
-        AbstractConstraintView* abstractConstraintView() const
+        AbstractConstraintView* view() const
         { return m_view; }
 
         void on_zoomRatioChanged(ZoomRatio val);
@@ -93,5 +93,5 @@ typename T::view_model_type* viewModel(T* obj)
 template<typename T>
 typename T::view_type* view(T* obj)
 {
-    return static_cast<typename T::view_type*>(obj->abstractConstraintView());
+    return static_cast<typename T::view_type*>(obj->view());
 }
