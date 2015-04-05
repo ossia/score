@@ -88,6 +88,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
             m_view,             &TemporalScenarioView::lock);
     connect(model(m_viewModel), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
+
+    m_sm.start();
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()

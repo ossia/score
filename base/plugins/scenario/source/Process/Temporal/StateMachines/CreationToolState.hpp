@@ -22,9 +22,9 @@ class CreationToolState : public QState
     public:
         CreationToolState(ScenarioStateMachine& sm);
 
-        void on_scenarioPressed(const QPointF& point);
-        void on_scenarioMoved(const QPointF& point);
-        void on_scenarioReleased(const QPointF& point);
+        void on_scenarioPressed();
+        void on_scenarioMoved();
+        void on_scenarioReleased();
 
     private:
         template<typename View, typename Array>
@@ -50,6 +50,8 @@ class CreationToolState : public QState
 
         auto itemUnderMouse(const QPointF& point);
 
+
+        QStateMachine ct_sm;
         CreateEventState* m_createEvent;
         ScenarioStateMachine& m_sm;
 };

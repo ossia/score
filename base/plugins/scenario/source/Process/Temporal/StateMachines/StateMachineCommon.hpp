@@ -70,12 +70,11 @@ class AbstractScenarioTransition : public MatchedTransition<Event>
 
 ////////////
 template<typename Element, int N>
-struct PositionedOn_Event : public Positioned_Event<N>
+struct PositionedOn_Event : public PositionedEvent<N>
 {
         PositionedOn_Event(const id_type<Element>& tn_id,
-                           const TimeValue& newdate,
-                           double newy):
-            Positioned_Event<N>{newdate, newy},
+                           const ScenarioPoint& sp):
+            PositionedEvent<N>{sp},
             id{tn_id}
         {
         }
@@ -85,17 +84,17 @@ struct PositionedOn_Event : public Positioned_Event<N>
 
 // Events
 using Cancel_Event = NumberedEvent<10>;
-using ClickOnNothing_Event = Positioned_Event<11>;
+using ClickOnNothing_Event = PositionedEvent<11>;
 using ClickOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 12>;
 using ClickOnEvent_Event = PositionedOn_Event<EventModel, 13>;
 using ClickOnConstraint_Event = PositionedOn_Event<ConstraintModel, 14>;
 
-using MoveOnNothing_Event = Positioned_Event<15>;
+using MoveOnNothing_Event = PositionedEvent<15>;
 using MoveOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 16>;
 using MoveOnEvent_Event = PositionedOn_Event<EventModel, 17>;
 using MoveOnConstraint_Event = PositionedOn_Event<ConstraintModel, 18>;
 
-using ReleaseOnNothing_Event = Positioned_Event<19>;
+using ReleaseOnNothing_Event = PositionedEvent<19>;
 using ReleaseOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 20>;
 using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 21>;
 using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;

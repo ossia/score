@@ -23,19 +23,29 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
     connect(m_presenter.m_view,       &TemporalScenarioView::scenarioPressed,
             [=] (const QPointF& point)
-    { this->postEvent(new ScenarioPress_Event(QPointFToScenarioPoint(point))); });
+    {
+        scenePoint = m_presenter.m_view->mapToScene(point);
+        scenarioPoint = QPointFToScenarioPoint(point);
+        this->postEvent(new ScenarioPress_Event);
+    });
     connect(m_presenter.m_view,       &TemporalScenarioView::scenarioReleased,
             [=] (const QPointF& point)
-    { this->postEvent(new ScenarioRelease_Event(QPointFToScenarioPoint(point))); });
+    {
+        scenePoint = m_presenter.m_view->mapToScene(point);
+        scenarioPoint = QPointFToScenarioPoint(point);
+        this->postEvent(new ScenarioRelease_Event);
+    });
     connect(m_presenter.m_view,       &TemporalScenarioView::scenarioMoved,
             [=] (const QPointF& point)
-    { this->postEvent(new ScenarioMove_Event(QPointFToScenarioPoint(point))); });
+    {
+        scenePoint = m_presenter.m_view->mapToScene(point);
+        scenarioPoint = QPointFToScenarioPoint(point);
+        this->postEvent(new ScenarioMove_Event);
+    });
 
     auto createState = new CreationToolState{*this};
     this->addState(createState);
     this->setInitialState(createState);
-
-    start();
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

@@ -35,22 +35,36 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     m_sm{sm}
 {
     // The base states of the tool
-    QState* creationState_wait = new QState{this};
+    QState* creationState_wait = new QState;
     m_createEvent = new CreateEventState{
                     iscore::IDocument::path(m_sm.model()),
-                    m_sm.commandStack(),
-                    this};
+                    m_sm.commandStack(), nullptr};
 
-    // Add transitions for press, move, release events.
-    // they end up on the relevant methods here.
-    /*
-    auto t_click = new ScenarioPress_Transition{*this};
-    auto t_move = new ScenarioMove_Transition{*this};
-    auto t_rel = new ScenarioRelease_Transition{*this};
+    m_createEvent->addTransition(m_createEvent, SIGNAL(finished()), creationState_wait);
 
-*/
+    auto t_click = new ScenarioPress_Transition;
+    t_click->setTargetState(this); // Check the tool
+    connect(t_click, &QAbstractTransition::triggered,
+            [&] () {
+        on_scenarioPressed();
+    });
+    this->addTransition(t_click);
+    auto t_move = new ScenarioMove_Transition;
+    t_move->setTargetState(this); // Check the tool
+    connect(t_move, &QAbstractTransition::triggered,
+            [&] () {
+        on_scenarioMoved();
+    });
+    this->addTransition(t_move);
 
-    this->setInitialState(creationState_wait);
+    auto t_rel = new ScenarioRelease_Transition;
+    t_rel->setTargetState(this); // Check the tool
+    connect(t_rel, &QAbstractTransition::triggered,
+            [&] () {
+        on_scenarioReleased();
+    });
+    this->addTransition(t_rel);
+
     auto t1 = new ClickOnEvent_Transition(*m_createEvent);
     t1->setTargetState(m_createEvent);
     creationState_wait->addTransition(t1);
@@ -61,7 +75,13 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
     // TODO ClickOnTimeNode_Transition
 
-    m_createEvent->addTransition(m_createEvent, SIGNAL(finished()), creationState_wait);
+
+    ct_sm.addState(creationState_wait);
+    ct_sm.addState(m_createEvent);
+
+    ct_sm.setInitialState(creationState_wait);
+    ct_sm.start();
+
 }
 
 template<typename PresenterArray, typename IdToIgnore>
@@ -103,7 +123,7 @@ void CreationToolState::mapItemToAction(
         tn_fun(getPresenterFromView(tn, m_sm.presenter().timeNodes())->model()->id());
     }
     else if(auto cst = dynamic_cast<AbstractConstraintView*>(pressedItem))
-    {
+    { // TODO Unnecessary
         cst_fun(getPresenterFromView(cst, m_sm.presenter().constraints())->abstractConstraintViewModel()->model()->id());
     }
     else
@@ -114,79 +134,72 @@ void CreationToolState::mapItemToAction(
 
 auto CreationToolState::itemUnderMouse(const QPointF& point)
 {
-    return m_sm.presenter().view().scene()->itemAt(
-                m_sm.presenter().view().mapToScene(point),
-                QTransform());
+    return m_sm.presenter().view().scene()->itemAt(point, QTransform());
 }
 
-void CreationToolState::on_scenarioPressed(const QPointF& point)
+void CreationToolState::on_scenarioPressed()
 {
-    auto date = TimeValue::fromMsecs(point.x() * m_sm.presenter().zoomRatio());
-    auto y = point.y() /  m_sm.presenter().view().boundingRect().height();
-
-    mapItemToAction(itemUnderMouse(point),
+    mapItemToAction(itemUnderMouse(m_sm.scenePoint),
     [&] (const auto& id)
-    { m_sm.postEvent(new ClickOnEvent_Event{id, date, y}); },
+    { ct_sm.postEvent(new ClickOnEvent_Event{id, m_sm.scenarioPoint}); },
     [&] (const auto& id)
-    { m_sm.postEvent(new ClickOnTimeNode_Event{id, date, y}); },
+    { ct_sm.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] (const auto& id)
-    { m_sm.postEvent(new ClickOnConstraint_Event{id, date, y}); },
+    { ct_sm.postEvent(new ClickOnConstraint_Event{id, m_sm.scenarioPoint}); }, // TODO Unnecessary
     [&] ()
-    { m_sm.postEvent(new ClickOnNothing_Event{date, y}); });
+    { ct_sm.postEvent(new ClickOnNothing_Event{m_sm.scenarioPoint}); });
 }
 
 
-void CreationToolState::on_scenarioMoved(const QPointF& point)
+void CreationToolState::on_scenarioMoved()
 {
-    auto date = TimeValue::fromMsecs(point.x() * m_sm.presenter().zoomRatio());
-    auto y = point.y() /  m_sm.presenter().view().boundingRect().height();
-
-    auto collidingEvents = getCollidingModels(m_sm.presenter().events(), m_createEvent->createdEvent());
+    auto collidingEvents = getCollidingModels(m_sm.presenter().events(),
+                                              m_createEvent->createdEvent());
     if(!collidingEvents.empty())
     {
         auto model = collidingEvents.first();
 
-        m_sm.postEvent(new MoveOnEvent_Event{
-                           model->id(), date, y});
+        ct_sm.postEvent(new MoveOnEvent_Event{
+                           model->id(), m_sm.scenarioPoint});
 
         return;
     }
 
-    auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(), m_createEvent->createdTimeNode());
+    auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(),
+                                                 m_createEvent->createdTimeNode());
     if(!collidingTimeNodes.empty())
     {
         auto model = collidingTimeNodes.first();
 
-        m_sm.postEvent(new MoveOnTimeNode_Event{
-                           model->id(), date, y});
+        ct_sm.postEvent(new MoveOnTimeNode_Event{
+                           model->id(), m_sm.scenarioPoint});
 
         return;
     }
 
-    m_sm.postEvent(new MoveOnNothing_Event{date, y});
+    ct_sm.postEvent(new MoveOnNothing_Event{m_sm.scenarioPoint});
 }
 
-void CreationToolState::on_scenarioReleased(const QPointF& point)
+void CreationToolState::on_scenarioReleased()
 {
-    auto date = TimeValue::fromMsecs(point.x() * m_sm.presenter().zoomRatio());
-    auto y    = point.y() /  m_sm.presenter().view().boundingRect().height();
-
-    auto collidingEvents = getCollidingModels(m_sm.presenter().events(), m_createEvent->createdEvent());
+    auto collidingEvents = getCollidingModels(m_sm.presenter().events(),
+                                              m_createEvent->createdEvent());
     if(!collidingEvents.empty())
     {
         auto model = collidingEvents.first();
-        m_sm.postEvent(new ReleaseOnEvent_Event{model->id(), date, y});
+        ct_sm.postEvent(new ReleaseOnEvent_Event{model->id(), m_sm.scenarioPoint});
 
         return;
     }
 
-    auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(), m_createEvent->createdTimeNode());
+    auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(),
+                                                 m_createEvent->createdTimeNode());
     if(!collidingTimeNodes.empty())
     {
         auto model = collidingTimeNodes.first();
-        m_sm.postEvent(new ReleaseOnTimeNode_Event{model->id(), date, y});
+        ct_sm.postEvent(new ReleaseOnTimeNode_Event{model->id(), m_sm.scenarioPoint});
 
         return;
     }
-    m_sm.postEvent(new ReleaseOnNothing_Event{date, y});
+    ct_sm.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint});
 }

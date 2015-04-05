@@ -11,7 +11,8 @@ class ScenarioModel;
 class ScenarioStateMachine : public QStateMachine
 {
     public:
-        ScenarioPoint currentMousePoint;
+        QPointF scenePoint;
+        ScenarioPoint scenarioPoint;
 
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 

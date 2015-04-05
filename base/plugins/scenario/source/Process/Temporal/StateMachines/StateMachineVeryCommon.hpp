@@ -19,14 +19,14 @@ struct NumberedEvent : public QEvent
 };
 
 template<int N>
-struct Positioned_Event : public NumberedEvent<N>
+struct PositionedEvent : public NumberedEvent<N>
 {
-        Positioned_Event(const TimeValue& newdate, double newy):
+        PositionedEvent(const TimeValue& newdate, double newy):
             point{newdate, newy}
         {
         }
 
-        Positioned_Event(const ScenarioPoint& pt):
+        PositionedEvent(const ScenarioPoint& pt):
             point(pt)
         {
         }
@@ -46,6 +46,10 @@ class MatchedTransition : public QAbstractTransition
 
 
 // Not specialized
-using ScenarioPress_Event = Positioned_Event<1>;
-using ScenarioMove_Event = Positioned_Event<2>;
-using ScenarioRelease_Event = Positioned_Event<3>;
+using ScenarioPress_Event = NumberedEvent<1>;
+using ScenarioMove_Event = NumberedEvent<2>;
+using ScenarioRelease_Event = NumberedEvent<3>;
+
+using ScenarioPress_Transition = MatchedTransition<ScenarioPress_Event>;
+using ScenarioMove_Transition = MatchedTransition<ScenarioMove_Event>;
+using ScenarioRelease_Transition = MatchedTransition<ScenarioRelease_Event>;
