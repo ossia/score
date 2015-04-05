@@ -1,4 +1,4 @@
-#include "CreateEventStateMachine.hpp"
+#include "CreateEventState.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
