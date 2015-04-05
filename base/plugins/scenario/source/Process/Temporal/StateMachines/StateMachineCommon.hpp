@@ -1,17 +1,11 @@
 #pragma once
+#include "StateMachineVeryCommon.hpp"
 #include <QStateMachine>
 #include <QState>
 #include <QAbstractTransition>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
-
-// A coordinate : (t, y)
-struct ScenarioPoint
-{
-        TimeValue date;
-        double y;
-};
 
 class CommonState : public QState
 {
@@ -29,8 +23,7 @@ class CommonState : public QState
             clickedTimeNode = id_type<TimeNodeModel>{};
             clickedConstraint = id_type<ConstraintModel>{};
 
-            date = TimeValue{};
-            ypos = 0;
+            point = ScenarioPoint{};
 
         }
 
@@ -42,8 +35,7 @@ class CommonState : public QState
         id_type<TimeNodeModel> hoveredTimeNode;
         id_type<ConstraintModel> hoveredConstraint;
 
-        TimeValue date;
-        double ypos{};
+        ScenarioPoint point;
 
         const auto& createdEvent() const
         { return m_createdEvent; }
@@ -59,26 +51,6 @@ class CommonState : public QState
 
 ////////////////////////
 
-template<int N>
-struct NumberedEvent : public QEvent
-{
-        static constexpr const int user_type = N;
-        NumberedEvent():
-            QEvent{QEvent::Type(QEvent::User + N)} { }
-};
-
-template<typename Event>
-class MatchedTransition : public QAbstractTransition
-{
-    protected:
-        virtual bool eventTest(QEvent *e) override
-        { return e->type() == QEvent::Type(QEvent::User + Event::user_type); }
-
-        virtual void onTransition(QEvent *event) override { }
-};
-
-using Cancel_Event = NumberedEvent<100>;
-using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 template<typename Event>
 class AbstractScenarioTransition : public MatchedTransition<Event>
@@ -97,25 +69,6 @@ class AbstractScenarioTransition : public MatchedTransition<Event>
 
 
 ////////////
-
-template<int N>
-struct Positioned_Event : public NumberedEvent<N>
-{
-        Positioned_Event(const TimeValue& newdate, double newy):
-            date{newdate},
-            y{newy}
-        {
-        }
-
-        Positioned_Event(const ScenarioPoint& pt):
-            date{pt.date},
-            y{pt.y}
-        {
-        }
-
-        TimeValue date;
-        double y{};
-};
 template<typename Element, int N>
 struct PositionedOn_Event : public Positioned_Event<N>
 {
@@ -130,26 +83,26 @@ struct PositionedOn_Event : public Positioned_Event<N>
         id_type<Element> id;
 };
 
-// Specialized
-using ClickOnNothing_Event = Positioned_Event<1>;
-using ClickOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 2>;
-using ClickOnEvent_Event = PositionedOn_Event<EventModel, 3>;
-using ClickOnConstraint_Event = PositionedOn_Event<ConstraintModel, 4>;
+// Events
+using Cancel_Event = NumberedEvent<10>;
+using ClickOnNothing_Event = Positioned_Event<11>;
+using ClickOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 12>;
+using ClickOnEvent_Event = PositionedOn_Event<EventModel, 13>;
+using ClickOnConstraint_Event = PositionedOn_Event<ConstraintModel, 14>;
 
-using MoveOnNothing_Event = Positioned_Event<5>;
-using MoveOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 6>;
-using MoveOnEvent_Event = PositionedOn_Event<EventModel, 7>;
-using MoveOnConstraint_Event = PositionedOn_Event<ConstraintModel, 8>;
+using MoveOnNothing_Event = Positioned_Event<15>;
+using MoveOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 16>;
+using MoveOnEvent_Event = PositionedOn_Event<EventModel, 17>;
+using MoveOnConstraint_Event = PositionedOn_Event<ConstraintModel, 18>;
 
-using ReleaseOnNothing_Event = Positioned_Event<9>;
-using ReleaseOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 10>;
-using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 11>;
-using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 12>;
+using ReleaseOnNothing_Event = Positioned_Event<19>;
+using ReleaseOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 20>;
+using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 21>;
+using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;
 
-// Not specialized
-using ScenarioPress_Event = Positioned_Event<13>;
-using ScenarioMove_Event = Positioned_Event<14>;
-using ScenarioRelease_Event = Positioned_Event<15>;
+// Transitions
+
+using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 ///////////
 class ClickOnNothing_Transition : public AbstractScenarioTransition<ClickOnNothing_Event>
@@ -165,8 +118,7 @@ class ClickOnNothing_Transition : public AbstractScenarioTransition<ClickOnNothi
 
             // TODO this should instead be set within the state ?
             this->state().clickedEvent = id_type<EventModel>(0);
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -182,8 +134,7 @@ class ClickOnTimeNode_Transition : public AbstractScenarioTransition<ClickOnTime
             this->state().clear();
 
             this->state().clickedTimeNode = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -199,8 +150,7 @@ class ClickOnEvent_Transition : public AbstractScenarioTransition<ClickOnEvent_E
             this->state().clear();
 
             this->state().clickedEvent = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -216,8 +166,7 @@ class ClickOnConstraint_Transition : public AbstractScenarioTransition<ClickOnCo
             this->state().clear();
 
             this->state().clickedConstraint = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -232,8 +181,7 @@ class MoveOnNothing_Transition : public AbstractScenarioTransition<MoveOnNothing
         {
             auto qev = static_cast<MoveOnNothing_Event*>(ev);
 
-            this->state().date = qev->date;
-            this->state().ypos =  qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -248,8 +196,7 @@ class MoveOnTimeNode_Transition : public AbstractScenarioTransition<MoveOnTimeNo
             auto qev = static_cast<MoveOnTimeNode_Event*>(ev);
 
             this->state().hoveredTimeNode = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -264,8 +211,7 @@ class MoveOnEvent_Transition : public AbstractScenarioTransition<MoveOnEvent_Eve
             auto qev = static_cast<MoveOnEvent_Event*>(ev);
 
             this->state().hoveredEvent = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -281,8 +227,7 @@ class ReleaseOnNothing_Transition : public AbstractScenarioTransition<ReleaseOnN
         {
             auto qev = static_cast<ReleaseOnNothing_Event*>(ev);
 
-            this->state().date = qev->date;
-            this->state().ypos =  qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -297,8 +242,7 @@ class ReleaseOnTimeNode_Transition : public AbstractScenarioTransition<ReleaseOn
             auto qev = static_cast<ReleaseOnTimeNode_Event*>(ev);
 
             this->state().hoveredTimeNode = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 
@@ -313,8 +257,7 @@ class ReleaseOnEvent_Transition : public AbstractScenarioTransition<ReleaseOnEve
             auto qev = static_cast<ReleaseOnEvent_Event*>(ev);
 
             this->state().hoveredEvent = qev->id;
-            this->state().date = qev->date;
-            this->state().ypos = qev->y;
+            this->state().point = qev->point;
         }
 };
 

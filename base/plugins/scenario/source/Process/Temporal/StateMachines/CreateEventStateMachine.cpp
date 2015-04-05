@@ -130,8 +130,8 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
                         new MoveEvent{
                                 ObjectPath{m_scenarioPath},
                                 m_createdEvent,
-                                date,
-                                ypos});
+                                point.date,
+                                point.y});
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
@@ -141,7 +141,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
                             ObjectPath{m_scenarioPath},
                             m_createdEvent,
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
-                            ypos});
+                            point.y});
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
@@ -169,8 +169,8 @@ void CreateEventState::createEventFromEventOnNothing()
     auto init = new Scenario::Command::CreateEventAfterEvent{
                         ObjectPath{m_scenarioPath},
                         clickedEvent,
-                        date,
-                        ypos};
+                        point.date,
+                        point.y};
     m_createdEvent = init->createdEvent();
     m_createdTimeNode = init->createdTimeNode();
 
@@ -183,8 +183,8 @@ void CreateEventState::createEventFromEventOnTimeNode()
                    ObjectPath{m_scenarioPath},
                    clickedEvent,
                    hoveredTimeNode,
-                   date,
-                   ypos);
+                   point.date,
+                   point.y);
 
     m_createdEvent = cmd->createdEvent();
     m_createdTimeNode = id_type<TimeNodeModel>{};

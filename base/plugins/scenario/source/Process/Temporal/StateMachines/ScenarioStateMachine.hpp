@@ -1,12 +1,18 @@
 #pragma once
 
+#include "StateMachineVeryCommon.hpp"
+
 #include <iscore/command/OngoingCommandManager.hpp>
+
 #include <QStateMachine>
+
 class TemporalScenarioPresenter;
 class ScenarioModel;
 class ScenarioStateMachine : public QStateMachine
 {
     public:
+        ScenarioPoint currentMousePoint;
+
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 
         TemporalScenarioPresenter& presenter()

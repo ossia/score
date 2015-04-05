@@ -41,7 +41,14 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
                     m_sm.commandStack(),
                     this};
 
+    // Add transitions for press, move, release events.
+    // they end up on the relevant methods here.
+    /*
+    auto t_click = new ScenarioPress_Transition{*this};
+    auto t_move = new ScenarioMove_Transition{*this};
+    auto t_rel = new ScenarioRelease_Transition{*this};
 
+*/
 
     this->setInitialState(creationState_wait);
     auto t1 = new ClickOnEvent_Transition(*m_createEvent);
