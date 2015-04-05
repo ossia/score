@@ -23,7 +23,6 @@
 
 #include "ProcessInterface/ZoomHelper.hpp"
 
-#include "ScenarioCommandManager.hpp"
 #include "ScenarioSelectionManager.hpp"
 #include "ScenarioViewInterface.hpp"
 
@@ -46,9 +45,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
     m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
     m_view {static_cast<TemporalScenarioView*>(view) },
-    m_cmdManager{new ScenarioCommandManager{*this}},
     m_selManager{new ScenarioSelectionManager{this}},
     m_viewInterface{new ScenarioViewInterface{this}},
+    m_sm{*this},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     /////// Setup of existing data
@@ -84,8 +83,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-    connect(m_view, &TemporalScenarioView::scenarioMoved,
-            m_cmdManager, &ScenarioCommandManager::on_scenarioMoved);
 
     connect(model(m_viewModel), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);
@@ -95,7 +92,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
-    delete m_cmdManager;
     delete m_viewInterface;
 
     if(m_view)

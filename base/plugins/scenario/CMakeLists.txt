@@ -23,8 +23,8 @@ file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.c
 add_library(ProcessLibrary ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_link_libraries(ProcessLibrary Qt5::Core Qt5::Widgets iscore_lib)
 install(TARGETS ProcessLibrary
-		LIBRARY DESTINATION ./
-		ARCHIVE DESTINATION static_lib/)
+    LIBRARY DESTINATION ./
+    ARCHIVE DESTINATION static_lib/)
 
 
 ### Plugin ###
@@ -33,12 +33,12 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
 add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
-									   iscore_lib
-									   InspectorLibrary ProcessLibrary DeviceExplorerLibrary  StateLibrary)
+                     iscore_lib
+                     InspectorLibrary ProcessLibrary DeviceExplorerLibrary  StateLibrary)
 
 
 install(TARGETS scenario_process
-		LIBRARY DESTINATION plugins/
-		ARCHIVE DESTINATION static_plugins/)
+    LIBRARY DESTINATION plugins/
+    ARCHIVE DESTINATION static_plugins/)
 
-add_subdirectory(tests)
+#add_subdirectory(tests)

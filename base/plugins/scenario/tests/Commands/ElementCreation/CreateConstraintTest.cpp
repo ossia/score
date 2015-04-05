@@ -1,6 +1,5 @@
 #include "QtTest/QTest"
 
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -25,7 +24,7 @@ class CreateConstraintTest: public QObject
             data.relativeY = 0.8;
             data.endTimeNodeId = id_type<TimeNodeModel>(-1);
 
-            CreateEvent eventCmd(
+            CreateEventAfterEvent eventCmd(
             {
                 {"ScenarioModel", {0}},
             }, data);

@@ -4,7 +4,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
+#include <Commands/Scenario/Displacement/MoveEvent.hpp>
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -71,7 +71,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
         movingOnNothingState->addTransition(t_move_nothing_timenode);
 
         connect(t_move_nothing_timenode, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventOnTimeNode(); });
+                [&] () {  m_dispatcher.rollback(); createEventFromEventOnTimeNode(); });
 
 
 
@@ -82,7 +82,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
         movingOnEventState->addTransition(t_move_event_nothing);
 
         connect(t_move_event_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback();  createEventOnNothing(); });
+                [&] () {  m_dispatcher.rollback();  createEventFromEventOnNothing(); });
 
         // No need to do anything when staying on event.
 
@@ -92,7 +92,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
         movingOnEventState->addTransition(t_move_event_timenode);
 
         connect(t_move_event_timenode, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventOnTimeNode(); });
+                [&] () {  m_dispatcher.rollback(); createEventFromEventOnTimeNode(); });
 
 
 
@@ -103,7 +103,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
         movingOnTimeNodeState->addTransition(t_move_timenode_nothing);
 
         connect(t_move_timenode_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventOnNothing(); });
+                [&] () {  m_dispatcher.rollback(); createEventFromEventOnNothing(); });
 
 
         // MoveOnTimeNode -> MoveOnEvent
@@ -122,7 +122,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
 
         // What happens in each state.
         QObject::connect(pressedState, &QState::entered,
-                         this, &CreateEventState::createEventOnNothing);
+                         this, &CreateEventState::createEventFromEventOnNothing);
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
@@ -162,7 +162,9 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
     setInitialState(mainState);
 }
 
-void CreateEventState::createEventOnNothing()
+
+// Note : clickedEvent is set at startEvent if clicking in the background.
+void CreateEventState::createEventFromEventOnNothing()
 {
     auto init = new Scenario::Command::CreateEventAfterEvent{
                         ObjectPath{m_scenarioPath},
@@ -175,7 +177,7 @@ void CreateEventState::createEventOnNothing()
     m_dispatcher.submitCommand(init);
 }
 
-void CreateEventState::createEventOnTimeNode()
+void CreateEventState::createEventFromEventOnTimeNode()
 {
     auto cmd = new Scenario::Command::CreateEventAfterEventOnTimeNode(
                    ObjectPath{m_scenarioPath},
@@ -188,6 +190,20 @@ void CreateEventState::createEventOnTimeNode()
     m_createdTimeNode = id_type<TimeNodeModel>{};
     m_dispatcher.submitCommand(cmd);
 }
+
+
+void CreateEventState::createEventFromTimeNodeOnNothing()
+{
+    // TODO Faire CreateEventAfterTimeNode
+    // Macro : CreateEventOnTimeNode, followed by CreateEventAfterEvent[OnTimeNode], followed by Move...;
+    // Maybe use a set of ObjectIdentifier for the createdEvents / timenodes ??
+}
+
+void CreateEventState::createEventFromTimeNodeOnTimeNode()
+{
+    // TODO
+}
+
 
 void CreateEventState::createConstraintBetweenEvents()
 {

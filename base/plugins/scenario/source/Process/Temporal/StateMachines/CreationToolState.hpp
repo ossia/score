@@ -1,9 +1,10 @@
 #pragma once
 #include <QObject>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include "CreateEventStateMachine.hpp"
 #include <Document/Event/EventData.hpp>
 #include <QStateMachine>
-class TemporalScenarioPresenter;
+class ScenarioStateMachine;
 
 namespace iscore
 {
@@ -16,11 +17,10 @@ class TimeNodePresenter;
 class TemporalConstraintPresenter;
 class QPointF;
 
-#include "StateMachines/CreateEventStateMachine.hpp"
-class ScenarioCommandManager : public QObject
+class CreationToolState : public QState
 {
     public:
-        ScenarioCommandManager(TemporalScenarioPresenter& presenter);
+        CreationToolState(ScenarioStateMachine& sm);
 
         void on_scenarioPressed(const QPointF& point);
         void on_scenarioMoved(const QPointF& point);
@@ -50,11 +50,6 @@ class ScenarioCommandManager : public QObject
 
         auto itemUnderMouse(const QPointF& point);
 
-        EventData m_lastData {};
-        TemporalScenarioPresenter& m_presenter;
-        iscore::CommandStack& m_commandStack;
-
         CreateEventState* m_createEvent;
-
-        QStateMachine m_sm;
+        ScenarioStateMachine& m_sm;
 };

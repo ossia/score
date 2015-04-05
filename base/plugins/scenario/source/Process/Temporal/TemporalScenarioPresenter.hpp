@@ -4,6 +4,8 @@
 #include <Document/Event/EventData.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 
+#include "StateMachines/ScenarioStateMachine.hpp"
+
 namespace iscore
 {
     class SerializableCommand;
@@ -21,7 +23,6 @@ class EventModel;
 class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
-class ScenarioCommandManager;
 class ScenarioSelectionManager;
 class ScenarioViewInterface;
 struct EventData;
@@ -32,7 +33,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
 
-        friend class ScenarioCommandManager;
+        friend class ScenarioStateMachine;
         friend class ScenarioViewInterface;
         friend class ScenarioSelectionManager;
 
@@ -56,6 +57,18 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         virtual void on_zoomRatioChanged(ZoomRatio val) override;
 
         void focus();
+
+        const std::vector<EventPresenter*>& events() const
+        { return m_events; }
+        const std::vector<TimeNodePresenter*>& timeNodes() const
+        { return m_timeNodes; }
+        const std::vector<TemporalConstraintPresenter*>& constraints() const
+        { return m_constraints; }
+
+        const TemporalScenarioView& view() const
+        { return *m_view; }
+        const ZoomRatio& zoomRatio() const
+        { return m_zoomRatio; }
 
     signals:
         void linesExtremityScaled(int, int);
@@ -92,9 +105,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
         void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
 
-        ScenarioCommandManager* m_cmdManager{};
         ScenarioSelectionManager* m_selManager{};
         ScenarioViewInterface* m_viewInterface{};
+        ScenarioStateMachine m_sm;
 
         FocusDispatcher m_focusDispatcher;
 };
