@@ -100,7 +100,6 @@ using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 21>;
 using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;
 
 // Transitions
-
 using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 ///////////

@@ -21,11 +21,6 @@ struct NumberedEvent : public QEvent
 template<int N>
 struct PositionedEvent : public NumberedEvent<N>
 {
-        PositionedEvent(const TimeValue& newdate, double newy):
-            point{newdate, newy}
-        {
-        }
-
         PositionedEvent(const ScenarioPoint& pt):
             point(pt)
         {

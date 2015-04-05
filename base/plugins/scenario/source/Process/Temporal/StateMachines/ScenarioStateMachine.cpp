@@ -17,6 +17,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 {
     auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
     {
+        // TODO : why isn't this mapped to scene pos, and why does it work ?
         return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
                 point.y() /  m_presenter.view().boundingRect().height()};
     };
