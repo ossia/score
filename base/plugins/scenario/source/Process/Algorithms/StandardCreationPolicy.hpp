@@ -85,8 +85,21 @@ inline EventModel& CreateTimenodeAndEvent(id_type<EventModel> ev_id,
     return CreateEventMin::redo(ev_id, tn, y, s);
 }
 
+inline void CreateConstraintAndEvent(id_type<ConstraintModel> id_cst,
+                                     id_type<AbstractConstraintViewModel> id_fv,
+                                     EventModel& sev,
+                                     TimeNodeModel& tn,
+                                     id_type<EventModel> ev_id,
+                                     const TimeValue& date,
+                                     double y,
+                                     ScenarioModel& s)
+{
+    CreateConstraintMin::redo(id_cst, id_fv, sev, CreateEventMin::redo(ev_id, tn, y, s), y, s);
+}
 
-inline void createTimenodeConstraintAndEvent(id_type<ConstraintModel> id_cst,
+
+
+inline void CreateTimenodeConstraintAndEvent(id_type<ConstraintModel> id_cst,
                                       id_type<AbstractConstraintViewModel> id_fv,
                                       EventModel& sev,
                                       id_type<EventModel> ev_id,

@@ -40,7 +40,7 @@ class CreateEventAfterEventOnTimeNodeTest : public QObject
                 CreateEventAfterEventOnTimeNode cmd(
                 {
                     {"ScenarioModel", {0}},
-                },  data );
+                },  scenar->startEvent()->id(), eventCmd.createdTimeNode(), TimeValue::fromMsecs(10), 0.4);
 
                 cmd.redo();
                 QCOMPARE((int) scenar->events().size(), 3 );

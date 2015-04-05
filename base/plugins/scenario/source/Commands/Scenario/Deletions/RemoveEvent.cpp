@@ -126,7 +126,7 @@ void RemoveEvent::undo()
 void RemoveEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    StandardRemovalPolicy::removeEvent(*scenar, m_evId);
+    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_evId);
 }
 
 bool RemoveEvent::mergeWith(const Command* other)

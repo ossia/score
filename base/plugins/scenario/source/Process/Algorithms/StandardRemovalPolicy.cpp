@@ -37,8 +37,8 @@ void StandardRemovalPolicy::removeConstraint(ScenarioModel& scenario,
     scenario.removeConstraint(cstr);
 }
 
-void StandardRemovalPolicy::removeEvent(ScenarioModel& scenario,
-                                        id_type<EventModel> eventId)
+void StandardRemovalPolicy::removeEventAndConstraints(ScenarioModel& scenario,
+                                                      id_type<EventModel> eventId)
 {
     auto ev = scenario.event(eventId);
 

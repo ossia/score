@@ -27,7 +27,7 @@ void CreateEventOnTimeNode::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
+    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_createdEventId);
 }
 
 void CreateEventOnTimeNode::redo()

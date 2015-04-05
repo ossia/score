@@ -11,6 +11,6 @@ namespace StandardRemovalPolicy
     void removeConstraint(ScenarioModel& scenario,
                           id_type<ConstraintModel> constraintId);
 
-    void removeEvent(ScenarioModel& scenario,
+    void removeEventAndConstraints(ScenarioModel& scenario,
                      id_type<EventModel> eventId);
 }

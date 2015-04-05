@@ -48,13 +48,13 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
 void CreateEventAfterEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    StandardRemovalPolicy::removeEvent(*scenar, m_createdEventId);
+    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    createTimenodeConstraintAndEvent(m_createdConstraintId,
+    CreateTimenodeConstraintAndEvent(m_createdConstraintId,
                                      m_createdConstraintFullViewId,
                                      *scenar->event(m_firstEventId),
                                      m_createdEventId,

@@ -23,14 +23,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ConstraintData.hpp"
 
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint.hpp"
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
-#include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
-#include "Commands/Scenario/Displacement/MoveConstraint.hpp"
-#include "Commands/TimeNode/MergeTimeNodes.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -46,23 +38,8 @@ using namespace iscore;
 ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presenter) :
     QObject{&presenter},
     m_presenter{presenter},
-    m_commandStack{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
-    m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()},
-    m_creationCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Simple>{
-                                m_presenter.m_viewModel->sharedProcessModel(),
-                                m_locker,
-                                m_commandStack,
-                                this}},
-    m_moveCommandDispatcher{new LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>{
-                            m_presenter.m_viewModel->sharedProcessModel(),
-                            m_locker,
-                            m_commandStack,
-                            this}},
-    m_instantCommandDispatcher{new CommandDispatcher<SendStrategy::Simple>{
-                               m_commandStack,
-                               this}}
+    m_commandStack{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->commandStack()}
 {
-
     // TODO make it more generic (maybe with a QAction ?)
     connect(m_presenter.m_view, &TemporalScenarioView::deletePressed,
             this, [&] ()
@@ -108,10 +85,6 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
     m_sm.addState(creationState);
     //m_sm.addState(moveState);
 
-    // TODO utiiser events et postEvent (avec les id des timenode, event, sous lesquelles on se trouve)
-    // pour faire évoluer la machine correctement
-    // peu importe l'outil dans lequel on se trouve
-
     m_sm.setInitialState(creationState);
     auto t1 = new ClickOnEvent_Transition(*m_createEvent);
     t1->setTargetState(m_createEvent);
@@ -120,7 +93,6 @@ ScenarioCommandManager::ScenarioCommandManager(TemporalScenarioPresenter& presen
     auto t2 = new ClickOnNothing_Transition(*m_createEvent);
     t2->setTargetState(m_createEvent);
     creationState_wait->addTransition(t2);
-    //creationState_wait->addTransition(m_presenter.m_view, SIGNAL(scenarioPressed(QPointF)), m_createEvent);
     m_createEvent->addTransition(m_createEvent, SIGNAL(finished()), creationState_wait);
 
     m_sm.start();
@@ -178,7 +150,9 @@ void ScenarioCommandManager::mapItemToAction(
 
 auto ScenarioCommandManager::itemUnderMouse(const QPointF& point)
 {
-    return m_presenter.m_view->scene()->itemAt(m_presenter.m_view->mapToScene(point), QTransform());
+    return m_presenter.m_view->scene()->itemAt(
+                m_presenter.m_view->mapToScene(point),
+                QTransform());
 }
 
 void ScenarioCommandManager::on_scenarioPressed(const QPointF& point)
@@ -188,24 +162,13 @@ void ScenarioCommandManager::on_scenarioPressed(const QPointF& point)
 
     mapItemToAction(itemUnderMouse(point),
     [&] (const auto& id)
-    {
-        m_sm.postEvent(new ClickOnEvent_Event{
-                           id, date, y});
-    },
+    { m_sm.postEvent(new ClickOnEvent_Event{id, date, y}); },
     [&] (const auto& id)
-    {
-        m_sm.postEvent(new ClickOnTimeNode_Event{
-                        id, date, y});
-    },
+    { m_sm.postEvent(new ClickOnTimeNode_Event{id, date, y}); },
     [&] (const auto& id)
-    {
-        m_sm.postEvent(new ClickOnConstraint_Event{
-                           id, date, y});
-    },
+    { m_sm.postEvent(new ClickOnConstraint_Event{id, date, y}); },
     [&] ()
-    {
-        m_sm.postEvent(new ClickOnNothing_Event{date, y});
-    });
+    { m_sm.postEvent(new ClickOnNothing_Event{date, y}); });
 }
 
 
@@ -213,10 +176,12 @@ void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
 {
     auto date = TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio);
     auto y    = point.y() /  m_presenter.m_view->boundingRect().height();
+
     auto collidingEvents = getCollidingModels(m_presenter.m_events, m_createEvent->createdEvent());
     if(!collidingEvents.empty())
     {
         auto model = collidingEvents.first();
+
         m_sm.postEvent(new MoveOnEvent_Event{
                            model->id(), date, y});
 
@@ -227,6 +192,7 @@ void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
     if(!collidingTimeNodes.empty())
     {
         auto model = collidingTimeNodes.first();
+
         m_sm.postEvent(new MoveOnTimeNode_Event{
                            model->id(), date, y});
 
@@ -238,8 +204,25 @@ void ScenarioCommandManager::on_scenarioMoved(const QPointF& point)
 
 void ScenarioCommandManager::on_scenarioReleased(const QPointF& point)
 {
-    m_sm.postEvent(new ReleaseOnNothing_Event{
-                       TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio),
-                       point.y() /  m_presenter.m_view->boundingRect().height()});
+    auto date = TimeValue::fromMsecs(point.x() * m_presenter.m_zoomRatio);
+    auto y    = point.y() /  m_presenter.m_view->boundingRect().height();
 
+    auto collidingEvents = getCollidingModels(m_presenter.m_events, m_createEvent->createdEvent());
+    if(!collidingEvents.empty())
+    {
+        auto model = collidingEvents.first();
+        m_sm.postEvent(new ReleaseOnEvent_Event{model->id(), date, y});
+
+        return;
+    }
+
+    auto collidingTimeNodes = getCollidingModels(m_presenter.m_timeNodes, m_createEvent->createdTimeNode());
+    if(!collidingTimeNodes.empty())
+    {
+        auto model = collidingTimeNodes.first();
+        m_sm.postEvent(new ReleaseOnTimeNode_Event{model->id(), date, y});
+
+        return;
+    }
+    m_sm.postEvent(new ReleaseOnNothing_Event{date, y});
 }

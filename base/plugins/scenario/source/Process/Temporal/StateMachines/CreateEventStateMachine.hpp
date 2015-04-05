@@ -8,13 +8,13 @@
 #include <Commands/Scenario/Creations/CreateEvent.hpp>
 #include <Commands/Scenario/Displacement/MoveEvent.hpp>
 
-class CreateEventAggregate : public iscore::AggregateCommand
+class MetaCreateEvent : public iscore::AggregateCommand
 {
     public:
-        CreateEventAggregate(iscore::SerializableCommand* creation, iscore::SerializableCommand* move):
+        MetaCreateEvent(iscore::SerializableCommand* creation, iscore::SerializableCommand* move):
             iscore::AggregateCommand{"ScenarioControl",
-                                     "CreateEventAggregate",
-                                     "CreateEventAggregate_desc",
+                                     "MetaCreateEvent",
+                                     "MetaCreateEvent_desc",
                                      creation, move}
         {
 
@@ -23,7 +23,6 @@ class CreateEventAggregate : public iscore::AggregateCommand
 
 class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 {
-
     public:
         template<typename... Args>
         RealtimeMacroCommandDispatcher(Args&&... args):
@@ -35,6 +34,10 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 
             connect(this, &RealtimeMacroCommandDispatcher::commit,
                     this, &RealtimeMacroCommandDispatcher::commit_impl,
+                    Qt::DirectConnection);
+
+            connect(this, &RealtimeMacroCommandDispatcher::rollback,
+                    this, &RealtimeMacroCommandDispatcher::rollback_impl,
                     Qt::DirectConnection);
         }
 
@@ -70,12 +73,28 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
             else
             {
                 // Send an Aggregate made with the two commands.
-                auto cmd = new CreateEventAggregate{m_base, m_continuous};
+                auto cmd = new MetaCreateEvent{m_base, m_continuous};
                 SendStrategy::Quiet::send(stack(), cmd);
             }
 
             m_base = nullptr;
             m_continuous = nullptr;
+        }
+
+        void rollback_impl()
+        {
+            if(m_base)
+            {
+                m_base->undo();
+                delete m_base;
+                m_base = nullptr;
+            }
+
+            if(m_continuous)
+            {
+                delete m_continuous;
+                m_continuous = nullptr;
+            }
         }
 
         iscore::SerializableCommand* m_base{};
@@ -133,12 +152,16 @@ class CommonState : public QState
 
 class CreateEventState : public CommonState
 {
-        Q_OBJECT
     public:
         CreateEventState(ObjectPath&& scenarioPath,
                          iscore::CommandStack& stack,
                          QState* parent);
+
     private:
+        void createEventOnNothing();
+        void createEventOnTimeNode();
+        void createConstraintBetweenEvents();
+
         RealtimeMacroCommandDispatcher m_dispatcher;
 };
 
@@ -349,7 +372,6 @@ class MoveOnEvent_Transition : public AbstractScenarioTransition<MoveOnEvent_Eve
 
 
 ////////////////////////
-
 class ReleaseOnNothing_Transition : public AbstractScenarioTransition<ReleaseOnNothing_Event>
 {
     public:
@@ -395,6 +417,24 @@ class ReleaseOnEvent_Transition : public AbstractScenarioTransition<ReleaseOnEve
             this->state().date = qev->date;
             this->state().ypos = qev->y;
         }
+};
+
+class ReleaseOnAnything_Transition : public QAbstractTransition
+{
+    protected:
+        bool eventTest(QEvent *e) override
+        {
+            using namespace std;
+            static const constexpr int types[] = {
+                QEvent::User + ReleaseOnNothing_Event::user_type,
+                QEvent::User + ReleaseOnEvent_Event::user_type,
+                QEvent::User + ReleaseOnTimeNode_Event::user_type,
+                QEvent::User + ReleaseOnConstraint_Event::user_type};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent *event) override { }
 };
 
 

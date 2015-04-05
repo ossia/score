@@ -22,7 +22,6 @@ class ScenarioCommandManager : public QObject
     public:
         ScenarioCommandManager(TemporalScenarioPresenter& presenter);
 
-        void createConstraint(EventData);
         void on_scenarioPressed(const QPointF& point);
         void on_scenarioMoved(const QPointF& point);
         void on_scenarioReleased(const QPointF& point);
@@ -54,11 +53,6 @@ class ScenarioCommandManager : public QObject
         EventData m_lastData {};
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
-        iscore::ObjectLocker& m_locker;
-        LockingOngoingCommandDispatcher<MergeStrategy::Simple>* m_creationCommandDispatcher{};
-        LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo>* m_moveCommandDispatcher{};
-        CommandDispatcher<SendStrategy::Simple>* m_instantCommandDispatcher{};
-
 
         CreateEventState* m_createEvent;
 

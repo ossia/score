@@ -6,7 +6,6 @@
 #include <tuple>
 
 class EventModel;
-struct EventData;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class ProcessViewModelInterface;
