@@ -1,6 +1,6 @@
 #include "MoveToolState.hpp"
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
-#include "States/MoveState.hpp"
+#include "States/MoveStates.hpp"
 
 MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     GenericToolState{sm}
