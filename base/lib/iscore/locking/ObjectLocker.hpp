@@ -39,6 +39,14 @@ namespace iscore
                 ser.readFrom(m_path);
             }
 
+            LockHelper(ObjectPath&& path, ObjectLocker& locker):
+                m_path{std::move(path)},
+                m_locker{locker}
+            {
+                Serializer<DataStream> ser {&m_serializedPath};
+                ser.readFrom(m_path);
+            }
+
             ~LockHelper()
             {
                 if(m_locked)

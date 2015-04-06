@@ -2,7 +2,6 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ConstraintData.hpp"
 
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
@@ -12,14 +11,17 @@ using namespace Scenario::Command;
 // @todo : maybe should we use deplacement value and not absolute ending point.
 // @todo : don't allow too small translation on t axis, so user can move a constraint only on vertical, without changing any duration.
 
-MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath, ConstraintData d) :
+MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
+                               const id_type<ConstraintModel>& id,
+                               const TimeValue& date,
+                               double y) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
 m_path {std::move(scenarioPath) },
-m_constraintId {d.id},
-m_newHeightPosition {d.relativeY},
-m_newX {d.dDate}
+m_constraintId {id},
+m_newHeightPosition {y},
+m_newX {date}
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto cst = scenar->constraint(m_constraintId);

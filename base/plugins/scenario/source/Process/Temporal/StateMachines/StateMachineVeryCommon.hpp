@@ -18,15 +18,26 @@ struct NumberedEvent : public QEvent
             QEvent{QEvent::Type(QEvent::User + N)} { }
 };
 
-template<int N>
-struct PositionedEvent : public NumberedEvent<N>
+struct PositionedEventBase : public QEvent
 {
-        PositionedEvent(const ScenarioPoint& pt):
+        PositionedEventBase(const ScenarioPoint& pt, QEvent::Type type):
+            QEvent{type},
             point(pt)
-        {
-        }
+        { }
 
         ScenarioPoint point;
+};
+
+// We avoid virtual inheritance (with Numbered event);
+// this replicates a tiny bit of code.
+template<int N>
+struct PositionedEvent : public PositionedEventBase
+{
+        static constexpr const int user_type = N;
+        PositionedEvent(const ScenarioPoint& pt):
+            PositionedEventBase{pt, QEvent::Type(QEvent::User + N)}
+        {
+        }
 };
 
 template<typename Event>

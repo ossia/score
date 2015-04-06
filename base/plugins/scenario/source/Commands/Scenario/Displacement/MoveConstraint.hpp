@@ -17,7 +17,10 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(MoveConstraint, "ScenarioControl")
-                MoveConstraint(ObjectPath&& scenarioPath, ConstraintData d);
+                MoveConstraint(ObjectPath&& scenarioPath,
+                        const id_type<ConstraintModel>& id,
+                        const TimeValue& date,
+                        double y);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;

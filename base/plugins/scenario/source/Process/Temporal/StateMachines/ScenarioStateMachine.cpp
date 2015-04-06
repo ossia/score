@@ -1,5 +1,7 @@
 #include "ScenarioStateMachine.hpp"
-#include "CreationToolState.hpp"
+#include "Tools/CreationToolState.hpp"
+#include "Tools/MoveToolState.hpp"
+#include "Tools/SelectionToolState.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
@@ -8,12 +10,14 @@
 #include <Process/ScenarioModel.hpp>
 
 #include "StateMachineCommon.hpp"
+#include <QKeyEventTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):
     m_presenter{presenter},
     m_commandStack{
         iscore::IDocument::documentFromObject(
-            m_presenter.m_viewModel->sharedProcessModel())->commandStack()}
+            m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
+    m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()}
 {
     auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
     {
@@ -46,7 +50,17 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
     auto createState = new CreationToolState{*this};
     this->addState(createState);
-    this->setInitialState(createState);
+
+    auto moveState = new MoveToolState{*this};
+    this->addState(moveState);
+
+    auto trans1 = new QKeyEventTransition(moveState, QEvent::KeyPress, Qt::Key_M, createState);
+    auto trans2 = new QKeyEventTransition(createState, QEvent::KeyRelease, Qt::Key_M, moveState);
+    createState->start();
+    moveState->start();
+
+
+    this->setInitialState(moveState);
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

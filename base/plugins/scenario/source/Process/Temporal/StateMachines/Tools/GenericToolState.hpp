@@ -18,8 +18,6 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
-#include "CreateEventState.hpp"
-
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <QObject>
 #include <QStateMachine>
@@ -29,8 +27,6 @@ namespace iscore
 {
     class SerializableCommand;
 }
-
-class CreateEventState;
 
 template<typename PresenterArray, typename IdToIgnore>
 auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id)
@@ -56,9 +52,8 @@ class GenericToolState : public QState
 {
     protected:
         template<typename View, typename Array>
-        auto getPresenterFromView(const View* v, const Array& arr)
+        auto getPresenterFromView(const View* v, const Array& arr) const
         {
-            // TODO : filter the elements currently being created ?
             auto it = std::find_if(begin(arr), end(arr),
                                    [&] (const typename Array::value_type& val)
             { return val->view() == v; });
@@ -71,23 +66,24 @@ class GenericToolState : public QState
                  typename ConstraintFun,
                  typename NothingFun>
         void mapTopItem(
-                QGraphicsItem* pressedItem,
+                const QGraphicsItem* pressedItem,
                 EventFun&& ev_fun,
                 TimeNodeFun&& tn_fun,
                 ConstraintFun&& cst_fun,
-                NothingFun&& nothing_fun)
+                NothingFun&& nothing_fun) const
         {
-            if(auto ev = dynamic_cast<EventView*>(pressedItem))
+            if(auto ev = dynamic_cast<const EventView*>(pressedItem))
             {
                 ev_fun(getPresenterFromView(ev, m_sm.presenter().events())->model()->id());
             }
-            else if(auto tn = dynamic_cast<TimeNodeView*>(pressedItem))
+            else if(auto tn = dynamic_cast<const TimeNodeView*>(pressedItem))
             {
                 tn_fun(getPresenterFromView(tn, m_sm.presenter().timeNodes())->model()->id());
             }
-            else if(auto cst = dynamic_cast<AbstractConstraintView*>(pressedItem))
-            { // TODO Unnecessary
-                cst_fun(getPresenterFromView(cst, m_sm.presenter().constraints())->abstractConstraintViewModel()->model()->id());
+            else if(auto cst = dynamic_cast<const AbstractConstraintView*>(pressedItem))
+            {
+                cst_fun(getPresenterFromView(cst, m_sm.presenter().constraints())
+                            ->abstractConstraintViewModel()->model()->id());
             }
             else
             {
@@ -95,23 +91,15 @@ class GenericToolState : public QState
             }
         }
 
-        auto itemUnderMouse(const QPointF& point)
+        auto itemUnderMouse(const QPointF& point) const
         {
             return m_sm.presenter().view().scene()->itemAt(point, QTransform());
         }
 
     public:
-        GenericToolState(ScenarioStateMachine& sm) :
+        GenericToolState(const ScenarioStateMachine& sm) :
             m_sm{sm}
         {
-            // The base states of the tool
-            m_waitState = new QState;
-            m_baseState = new CreateEventState{
-                            iscore::IDocument::path(m_sm.model()),
-                            m_sm.commandStack(), nullptr};
-
-            m_baseState->addTransition(m_baseState, SIGNAL(finished()), m_waitState);
-
             // Press
             auto t_click = new ScenarioPress_Transition;
             t_click->setTargetState(this); // Check the tool
@@ -133,48 +121,21 @@ class GenericToolState : public QState
                     [&] () { on_scenarioReleased(); });
             this->addTransition(t_rel);
 
-            ct_sm.addState(m_waitState);
-            ct_sm.addState(m_baseState);
 
-            ct_sm.setInitialState(m_waitState);
-            ct_sm.start();
-
+            m_waitState = new QState;
+            m_localSM.addState(m_waitState);
+            m_localSM.setInitialState(m_waitState);
         }
 
-        template<typename EventFun,
-                 typename TimeNodeFun,
-                 typename NothingFun>
-        void mapWithCollision(
-                EventFun&& ev_fun,
-                TimeNodeFun&& tn_fun,
-                NothingFun&& nothing_fun)
-        {
-            auto collidingEvents = getCollidingModels(m_sm.presenter().events(),
-                                                      m_baseState->createdEvent());
-            if(!collidingEvents.empty())
-            {
-                ev_fun(collidingEvents.first()->id());
-                return;
-            }
-
-            auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(),
-                                                         m_baseState->createdTimeNode());
-            if(!collidingTimeNodes.empty())
-            {
-                tn_fun(collidingTimeNodes.first()->id());
-                return;
-            }
-
-            nothing_fun();
-        }
+        void start()
+        { m_localSM.start(); }
 
     protected:
         virtual void on_scenarioPressed() = 0;
         virtual void on_scenarioMoved() = 0;
         virtual void on_scenarioReleased() = 0;
 
-        QStateMachine ct_sm;
+        QStateMachine m_localSM;
         QState* m_waitState;
-        CreateEventState* m_baseState;
-        ScenarioStateMachine& m_sm;
+        const ScenarioStateMachine& m_sm;
 };

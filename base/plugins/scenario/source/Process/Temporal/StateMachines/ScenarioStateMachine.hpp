@@ -16,14 +16,17 @@ class ScenarioStateMachine : public QStateMachine
 
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 
-        TemporalScenarioPresenter& presenter()
+        const TemporalScenarioPresenter& presenter() const
         { return m_presenter; }
         const ScenarioModel& model() const;
 
-        iscore::CommandStack& commandStack()
+        iscore::CommandStack& commandStack() const
         { return m_commandStack; }
+        iscore::ObjectLocker& locker() const
+        { return m_locker; }
 
     private:
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
+        iscore::ObjectLocker& m_locker;
 };

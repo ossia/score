@@ -14,7 +14,6 @@ TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent) :
     AbstractConstraintView {parent}
 {
     this->setParentItem(parent);
-    this->setFlag(ItemIsSelectable);
 
     this->setZValue(parent->zValue() + 1);
 }

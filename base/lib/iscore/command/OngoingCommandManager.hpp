@@ -207,9 +207,9 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
 {
     public:
         template<typename... Args>
-        LockingOngoingCommandDispatcher(QObject* objectToLock, iscore::ObjectLocker& locker, Args&&... args):
+        LockingOngoingCommandDispatcher(ObjectPath&& pathToLock, iscore::ObjectLocker& locker, Args&&... args):
             ITransactionalCommandDispatcher{std::forward<Args&&>(args)...},
-            m_locker{objectToLock, locker}
+            m_locker{std::move(pathToLock), locker}
         {
             connect(this, &LockingOngoingCommandDispatcher::submitCommand,
                     this, &LockingOngoingCommandDispatcher::send_impl,

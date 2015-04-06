@@ -51,18 +51,24 @@ class CommonState : public QState
 
 ////////////////////////
 
-
-template<typename Event>
-class AbstractScenarioTransition : public MatchedTransition<Event>
+template<typename T>
+class GenericTransition : public T
 {
     public:
-        AbstractScenarioTransition(CommonState& state):
+        GenericTransition(CommonState& state):
                     m_state{state} { }
 
         CommonState& state() const { return m_state; }
 
     private:
         CommonState& m_state;
+};
+
+template<typename Event>
+class MatchedScenarioTransition : public GenericTransition<MatchedTransition<Event>>
+{
+    public:
+        using GenericTransition<MatchedTransition<Event>>::GenericTransition;
 };
 
 
@@ -103,10 +109,10 @@ using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;
 using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 ///////////
-class ClickOnNothing_Transition : public AbstractScenarioTransition<ClickOnNothing_Event>
+class ClickOnNothing_Transition : public MatchedScenarioTransition<ClickOnNothing_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -120,10 +126,10 @@ class ClickOnNothing_Transition : public AbstractScenarioTransition<ClickOnNothi
         }
 };
 
-class ClickOnTimeNode_Transition : public AbstractScenarioTransition<ClickOnTimeNode_Event>
+class ClickOnTimeNode_Transition : public MatchedScenarioTransition<ClickOnTimeNode_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -136,10 +142,10 @@ class ClickOnTimeNode_Transition : public AbstractScenarioTransition<ClickOnTime
         }
 };
 
-class ClickOnEvent_Transition : public AbstractScenarioTransition<ClickOnEvent_Event>
+class ClickOnEvent_Transition : public MatchedScenarioTransition<ClickOnEvent_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -152,10 +158,10 @@ class ClickOnEvent_Transition : public AbstractScenarioTransition<ClickOnEvent_E
         }
 };
 
-class ClickOnConstraint_Transition : public AbstractScenarioTransition<ClickOnConstraint_Event>
+class ClickOnConstraint_Transition : public MatchedScenarioTransition<ClickOnConstraint_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -169,10 +175,10 @@ class ClickOnConstraint_Transition : public AbstractScenarioTransition<ClickOnCo
 };
 
 ////////////////////////
-class MoveOnNothing_Transition : public AbstractScenarioTransition<MoveOnNothing_Event>
+class MoveOnNothing_Transition : public MatchedScenarioTransition<MoveOnNothing_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -183,10 +189,10 @@ class MoveOnNothing_Transition : public AbstractScenarioTransition<MoveOnNothing
         }
 };
 
-class MoveOnTimeNode_Transition : public AbstractScenarioTransition<MoveOnTimeNode_Event>
+class MoveOnTimeNode_Transition : public MatchedScenarioTransition<MoveOnTimeNode_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -198,10 +204,10 @@ class MoveOnTimeNode_Transition : public AbstractScenarioTransition<MoveOnTimeNo
         }
 };
 
-class MoveOnEvent_Transition : public AbstractScenarioTransition<MoveOnEvent_Event>
+class MoveOnEvent_Transition : public MatchedScenarioTransition<MoveOnEvent_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -213,12 +219,53 @@ class MoveOnEvent_Transition : public AbstractScenarioTransition<MoveOnEvent_Eve
         }
 };
 
-
-////////////////////////
-class ReleaseOnNothing_Transition : public AbstractScenarioTransition<ReleaseOnNothing_Event>
+class MoveOnConstraint_Transition : public MatchedScenarioTransition<MoveOnConstraint_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<MoveOnConstraint_Event*>(ev);
+
+            this->state().hoveredConstraint= qev->id;
+            this->state().point = qev->point;
+        }
+};
+
+
+class MoveOnAnything_Transition : public GenericTransition<QAbstractTransition>
+{
+    public:
+        using GenericTransition<QAbstractTransition>::GenericTransition;
+
+    protected:
+        bool eventTest(QEvent *e) override
+        {
+            using namespace std;
+            static const constexpr int types[] = {
+                QEvent::User + MoveOnNothing_Event::user_type,
+                QEvent::User + MoveOnEvent_Event::user_type,
+                QEvent::User + MoveOnTimeNode_Event::user_type,
+                QEvent::User + MoveOnConstraint_Event::user_type};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent *event) override
+        {
+            auto qev = static_cast<PositionedEventBase*>(event);
+
+            this->state().point = qev->point;
+        }
+};
+
+////////////////////////
+class ReleaseOnNothing_Transition : public MatchedScenarioTransition<ReleaseOnNothing_Event>
+{
+    public:
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -229,10 +276,10 @@ class ReleaseOnNothing_Transition : public AbstractScenarioTransition<ReleaseOnN
         }
 };
 
-class ReleaseOnTimeNode_Transition : public AbstractScenarioTransition<ReleaseOnTimeNode_Event>
+class ReleaseOnTimeNode_Transition : public MatchedScenarioTransition<ReleaseOnTimeNode_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
@@ -244,10 +291,10 @@ class ReleaseOnTimeNode_Transition : public AbstractScenarioTransition<ReleaseOn
         }
 };
 
-class ReleaseOnEvent_Transition : public AbstractScenarioTransition<ReleaseOnEvent_Event>
+class ReleaseOnEvent_Transition : public MatchedScenarioTransition<ReleaseOnEvent_Event>
 {
     public:
-        using AbstractScenarioTransition::AbstractScenarioTransition;
+        using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
         virtual void onTransition(QEvent * ev)
