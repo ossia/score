@@ -10,4 +10,8 @@ class SelectionToolState : public GenericToolState
         void on_scenarioMoved() override;
         void on_scenarioReleased() override;
 
+    private:
+        QState* m_singleSelection{};
+        QState* m_multiSelection{};
+
 };

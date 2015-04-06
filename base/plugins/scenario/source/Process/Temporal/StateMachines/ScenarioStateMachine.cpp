@@ -54,6 +54,9 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto moveState = new MoveToolState{*this};
     this->addState(moveState);
 
+    auto selectState = new SelectionToolState{*this};
+    this->addState(selectState);
+
     auto trans1 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyPress, Qt::Key_M, createState);
     trans1->setTargetState(moveState);
     auto trans2 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_M, moveState);
