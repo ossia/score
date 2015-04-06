@@ -4,7 +4,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 include_directories(${CMAKE_SOURCE_DIR})

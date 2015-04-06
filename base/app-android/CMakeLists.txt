@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
  
 project(iscore_app_android)
 
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml Network )
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml Network )
 #~ 
 #~ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/base/app-android/libs/${ARM_TARGET}/)
 #~ SET(CMAKE_SKIP_BUILD_RPATH FALSE)

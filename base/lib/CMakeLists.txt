@@ -5,7 +5,7 @@ project(iscore_core)
 set(ISCORE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/plugins")
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets )
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets )
 
 if(NOT Boost_FOUND)
 		message("The network plugin requires boost to build")

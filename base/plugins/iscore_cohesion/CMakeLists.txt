@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0042 NEW)
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets Xml)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml)
 
 find_package(Jamoma 0.6)
 if(NOT ${Jamoma_FOUND})

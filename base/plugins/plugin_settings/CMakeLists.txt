@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(plugin_settings_plugin)
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 include_directories(.)

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(StateTests)
 
 
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Test)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Test)
 
 function(addStateTest TESTNAME TESTSRCS)
 		add_executable(State_${TESTNAME} ${TESTSRCS})

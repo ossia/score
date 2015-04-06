@@ -6,7 +6,7 @@ set(CMAKE_AUTOUIC ON)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 
 # Inspector interface
 file(GLOB_RECURSE INTERFACE_SRCS

@@ -3,7 +3,7 @@ project(ScenarioTests)
 
 include_directories("${CMAKE_SOURCE_DIR}/base")
 
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Test)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Test)
 
 function(addIScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})

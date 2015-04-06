@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5 5.2 REQUIRED COMPONENTS Core Widgets PrintSupport)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets PrintSupport)
 
 # Files & main target
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
