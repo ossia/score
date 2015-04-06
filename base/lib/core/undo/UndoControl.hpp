@@ -11,7 +11,7 @@ namespace iscore
             ~UndoControl();
 
             void populateMenus(MenubarManager*) override;
-            void populateToolbars() override;
+            void populateToolbars(QToolBar*) override;
 
 
         protected:

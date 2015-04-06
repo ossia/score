@@ -9,7 +9,6 @@ class AutomationControl : public iscore::PluginControlInterface
         virtual ~AutomationControl() = default;
 
         virtual void populateMenus(iscore::MenubarManager*) override { }
-        virtual void populateToolbars() override { }
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;

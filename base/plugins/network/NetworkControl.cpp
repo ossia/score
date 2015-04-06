@@ -61,10 +61,6 @@ void NetworkControl::populateMenus(MenubarManager* menu)
                                        connectLocal);
 }
 
-void NetworkControl::populateToolbars()
-{
-}
-
 #include "Repartition/session/ClientSessionBuilder.hpp"
 void NetworkControl::setupClientConnection(QString ip, int port)
 {

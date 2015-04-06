@@ -9,7 +9,6 @@ class InspectorControl : public iscore::PluginControlInterface
         InspectorControl();
 
         virtual void populateMenus(iscore::MenubarManager*) override;
-        virtual void populateToolbars() override;
 
         InspectorWidgetList* widgetList() const;
 

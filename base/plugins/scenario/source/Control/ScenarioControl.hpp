@@ -8,7 +8,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         ScenarioControl(QObject* parent);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
-        virtual void populateToolbars() override;
+        virtual void populateToolbars(QToolBar* bar) override;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;

@@ -81,6 +81,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
+    connect(m_view, &TemporalScenarioView::scenarioPressed, [&] (const QPointF&)
+    {
+        m_focusDispatcher.focus(m_viewModel);
+    });
+
 
     connect(model(m_viewModel), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);
@@ -216,6 +221,8 @@ void TemporalScenarioPresenter::on_askUpdate()
 void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
                                                    id_type<TimeNodeModel> timeNodeId)
 {
+    // TODO why does the model changes here ?????????
+    // TODO make the models const* to prevent this...
     auto event = findById(m_events, eventId);
     event->model()->changeTimeNode(timeNodeId);
 }
@@ -242,8 +249,6 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     {   m_viewInterface->on_hoverOnEvent(event_presenter->id(), false); });
 
     m_events.push_back(event_presenter);
-
-    // TODO see with state machine instead. m_selManager->setup(event_presenter);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)

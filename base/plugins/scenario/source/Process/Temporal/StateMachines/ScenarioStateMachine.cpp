@@ -11,6 +11,7 @@
 
 #include "StateMachineCommon.hpp"
 #include <QKeyEventTransition>
+#include <QSignalTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):
     m_presenter{presenter},
@@ -61,6 +62,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     this->addState(selectState);
 
     // TODO Toolbar instead
+    /*
     auto trans1 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyPress, Qt::Key_M, createState);
     trans1->setTargetState(moveState);
     auto trans2 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_M, moveState);
@@ -70,7 +72,10 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     trans3->setTargetState(selectState);
     auto trans4 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_S, selectState);
     trans4->setTargetState(createState);
-
+    */
+    this->addTransition(this, SIGNAL(setCreateState()), createState);
+    this->addTransition(this, SIGNAL(setMoveState()), moveState);
+    this->addTransition(this, SIGNAL(setSelectState()), selectState);
     createState->start();
     moveState->start();
     selectState->start();

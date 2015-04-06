@@ -24,8 +24,11 @@ ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
                                QObject* parent)
 {
     if(auto vm = dynamic_cast<TemporalScenarioViewModel*>(pvm))
-        return new TemporalScenarioPresenter {vm, view, parent};
-
+    {
+        auto pres = new TemporalScenarioPresenter {vm, view, parent};
+        vm->setPresenter(pres);
+        return pres;
+    }
     return nullptr;
 }
 

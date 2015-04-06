@@ -10,6 +10,7 @@ class TemporalScenarioPresenter;
 class ScenarioModel;
 class ScenarioStateMachine : public QStateMachine
 {
+        Q_OBJECT
     public:
         QPointF scenePoint;
         ScenarioPoint scenarioPoint;
@@ -25,6 +26,10 @@ class ScenarioStateMachine : public QStateMachine
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
+    signals:
+        void setCreateState();
+        void setSelectState();
+        void setMoveState();
     private:
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;

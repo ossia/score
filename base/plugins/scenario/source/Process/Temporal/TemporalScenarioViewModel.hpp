@@ -5,7 +5,7 @@
 class ScenarioModel;
 class BoxModel;
 class TemporalConstraintViewModel;
-
+class TemporalScenarioPresenter;
 
 class ConstraintModel;
 
@@ -15,7 +15,14 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         Q_OBJECT
         friend QDataStream& operator >> (QDataStream& s, TemporalScenarioViewModel& pvm);
 
+        TemporalScenarioPresenter* m_presenter{};
     public:
+        // TODO UGLYY
+        void setPresenter(TemporalScenarioPresenter* p)
+        { m_presenter = p; }
+        TemporalScenarioPresenter* presenter() const
+        { return m_presenter; }
+
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
         // using event_type = TemporalEventViewModel;

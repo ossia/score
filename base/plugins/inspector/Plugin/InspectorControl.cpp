@@ -11,10 +11,6 @@ void InspectorControl::populateMenus(iscore::MenubarManager*)
 {
 }
 
-void InspectorControl::populateToolbars()
-{
-}
-
 InspectorWidgetList* InspectorControl::widgetList() const
 {
     return m_widgetList;

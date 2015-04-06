@@ -175,10 +175,36 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
                                        ViewMenuElement::Windows,
                                        elementsToJson);
 }
-
-void ScenarioControl::populateToolbars()
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include <QToolBar>
+void ScenarioControl::populateToolbars(QToolBar* bar)
 {
+    // TODO make a method of this
+    auto focusedScenarioStateMachine = [this] () -> ScenarioStateMachine& {
+        auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        return static_cast<TemporalScenarioViewModel*>(model.focusedViewModel())->presenter()->stateMachine();
+    };
+
+    // TODO disable when no focused view model
+    auto createtool = bar->addAction(tr("Create"));
+    connect(createtool, &QAction::triggered, [=] ()
+    {
+        emit focusedScenarioStateMachine().setCreateState();
+    });
+    auto movetool = bar->addAction(tr("Move"));
+    connect(movetool, &QAction::triggered, [=] ()
+    {
+        emit focusedScenarioStateMachine().setMoveState();
+    });
+    auto selecttool = bar->addAction(tr("Select"));
+    connect(selecttool, &QAction::triggered, [=] ()
+    {
+        emit focusedScenarioStateMachine().setSelectState();
+    });
 }
+
 
 // Defined in CommandNames.cpp
 iscore::SerializableCommand* makeCommandByName(const QString& name);

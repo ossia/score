@@ -44,7 +44,7 @@ void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
                                        m_redoAction);
 }
 
-void iscore::UndoControl::populateToolbars()
+void iscore::UndoControl::populateToolbars(QToolBar*)
 {
 }
 

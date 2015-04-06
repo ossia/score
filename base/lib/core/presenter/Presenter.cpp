@@ -43,14 +43,16 @@ Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
     registerPanel(new UndoPanelFactory);
 }
 
+#include <QToolBar>
 void Presenter::registerPluginControl(PluginControlInterface* cmd)
 {
     cmd->setParent(this);  // Ownership transfer
     cmd->setPresenter(this);
 
     cmd->populateMenus(&m_menubar);
-    cmd->populateToolbars();
-
+    QToolBar* bar = new QToolBar;
+    cmd->populateToolbars(bar);
+    m_view->addToolBar(bar);
     m_customControls.push_back(cmd);
 }
 

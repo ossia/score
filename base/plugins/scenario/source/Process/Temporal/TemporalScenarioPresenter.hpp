@@ -70,6 +70,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         const ZoomRatio& zoomRatio() const
         { return m_zoomRatio; }
 
+        ScenarioStateMachine& stateMachine()
+        { return m_sm; }
+
     signals:
         void linesExtremityScaled(int, int);
 

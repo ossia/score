@@ -15,7 +15,6 @@ class NetworkControl : public iscore::PluginControlInterface
     public:
         NetworkControl();
         virtual void populateMenus(iscore::MenubarManager*) override;
-        virtual void populateToolbars() override;
 
     public slots:
         void setupClientConnection(QString ip, int port);
