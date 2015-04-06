@@ -50,8 +50,6 @@ class MatchedTransition : public QAbstractTransition
         virtual void onTransition(QEvent *event) override { }
 };
 
-
-// Not specialized
 using ScenarioPress_Event = NumberedEvent<1>;
 using ScenarioMove_Event = NumberedEvent<2>;
 using ScenarioRelease_Event = NumberedEvent<3>;

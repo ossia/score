@@ -27,6 +27,8 @@ CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
 
 void CreationToolState::on_scenarioPressed()
 {
+    // TODO Do some checking here to see if we're in the bounds of the scenario.
+
     // TODO if one day we're feeling hardcore, maybe
     // make a variadic template that can match the lambdas
     // to the correct behaviour ?

@@ -69,6 +69,7 @@ void ScenarioSelectionManager::setSelectionArea(const QRectF& area)
     QPainterPath path{};
     path.addRect(area);
     Selection sel{};
+    // TODO check that they are in the current plug-in!!!!!!!
     for (auto item : m_presenter->m_view->scene()->items(path))
     {
         EventView* itemEv = dynamic_cast<EventView*>(item);
