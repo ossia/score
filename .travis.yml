@@ -1,9 +1,10 @@
 before_install:
     - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    - sudo add-apt-repository --yes ppa:beineri/opt-qt532
+    - sudo add-apt-repository --yes ppa:beineri/opt-qt541
 
     - sudo apt-get update -qq
-    - sudo apt-get install -qq qt53-meta-full libboost-dev libavahi-compat-libdnssd-dev
+    - sudo apt-get install -qq qt54-meta-full libboost-dev 
+libavahi-compat-libdnssd-dev
 
     - wget https://www.dropbox.com/s/e0o670ve6gv1dgt/cmake-3.0.2-Linux-x86_64.tar.gz?dl=1 -O cmake-3.0.2-Linux-x86_64.tar.gz
     - tar zxf cmake-3.0.2-Linux-x86_64.tar.gz
@@ -12,7 +13,7 @@ before_install:
     - sudo dpkg -i gcc_4.9.1-1_amd64.deb
 
 script:
-    - source /opt/qt53/bin/qt53-env.sh
+    - source /opt/qt54/bin/qt54-env.sh
     - cmake-3.0.2-Linux-x86_64/bin/cmake .
     - make
 # Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
