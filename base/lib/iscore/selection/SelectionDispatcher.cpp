@@ -28,7 +28,7 @@ void SelectionDispatcher::setAndCommit(const Selection& s)
     m_stack.push(s);
     m_selection.clear();
 }
-
+/*
 void SelectionDispatcher::commit()
 {
     // TODO this should merge the states corresponding
@@ -37,7 +37,7 @@ void SelectionDispatcher::commit()
     m_stack.push(m_selection);
     m_selection.clear();
 }
-
+*/
 iscore::SelectionStack &SelectionDispatcher::stack() const
 {
     return m_stack;

@@ -3,23 +3,17 @@
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
 #include <iscore/selection/SelectionDispatcher.hpp>
-class SelectConstraintState : public CommonState
-{
-    public:
-        SelectConstraintState(iscore::SelectionDispatcher& dispatcher,
-                              QState* parent);
-};
 
-class SelectEventState : public CommonState
+class TemporalScenarioPresenter;
+class SelectAreaState : public QState
 {
     public:
-        SelectEventState(iscore::SelectionDispatcher& dispatcher,
-                              QState* parent);
-};
+        SelectAreaState(const TemporalScenarioPresenter& presenter,
+                        iscore::SelectionDispatcher& dispatcher);
 
-class SelectTimeNodeState : public CommonState
-{
-    public:
-        SelectTimeNodeState(iscore::SelectionDispatcher& dispatcher,
-                              QState* parent);
+    private:
+        void setSelectionArea(const QRectF& area);
+
+        const TemporalScenarioPresenter& m_presenter;
+        iscore::SelectionDispatcher& m_dispatcher;
 };

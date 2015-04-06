@@ -17,6 +17,8 @@ CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
 
     auto t2 = new ClickOnNothing_Transition(*m_baseState);
     t2->setTargetState(m_baseState);
+    connect(t2, &QAbstractTransition::triggered, [&] ()
+    { m_baseState->clickedEvent = id_type<EventModel>(0); });
     m_waitState->addTransition(t2);
 
 

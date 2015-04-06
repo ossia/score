@@ -54,10 +54,10 @@ class GenericToolState : public QState
         template<typename View, typename Array>
         auto getPresenterFromView(const View* v, const Array& arr) const
         {
-            auto it = std::find_if(begin(arr), end(arr),
+            auto it = std::find_if(std::begin(arr), std::end(arr),
                                    [&] (const typename Array::value_type& val)
             { return val->view() == v; });
-            Q_ASSERT(it != end(arr));
+            Q_ASSERT(it != std::end(arr));
             return *it;
         }
 

@@ -58,14 +58,14 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         void focus();
 
-        const std::vector<EventPresenter*>& events() const
+        const QList<EventPresenter*>& events() const
         { return m_events; }
-        const std::vector<TimeNodePresenter*>& timeNodes() const
+        const QList<TimeNodePresenter*>& timeNodes() const
         { return m_timeNodes; }
-        const std::vector<TemporalConstraintPresenter*>& constraints() const
+        const QList<TemporalConstraintPresenter*>& constraints() const
         { return m_constraints; }
 
-        const TemporalScenarioView& view() const
+        TemporalScenarioView& view() const
         { return *m_view; }
         const ZoomRatio& zoomRatio() const
         { return m_zoomRatio; }
@@ -91,9 +91,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
     protected:
         // TODO faire passer l'abstract et utiliser des free functions de cast
-        std::vector<TemporalConstraintPresenter*> m_constraints;
-        std::vector<EventPresenter*> m_events;
-        std::vector<TimeNodePresenter*> m_timeNodes;
+        QList<TemporalConstraintPresenter*> m_constraints;
+        QList<EventPresenter*> m_events;
+        QList<TimeNodePresenter*> m_timeNodes;
 
         ZoomRatio m_zoomRatio {1};
 

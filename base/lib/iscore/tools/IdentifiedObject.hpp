@@ -199,31 +199,13 @@ void removeById(Vector& c, id_T id)
     });
 }
 
-template<typename hasId>
-void removeFromVectorWithId(std::vector<hasId*>& v, int id)
-{
-    auto it = std::find_if(std::begin(v),
-                           std::end(v),
-                           [id](hasId const * elt)
-    {
-        return elt->id() == id;
-    });
-
-    if(it != std::end(v))
-    {
-        delete *it;
-        v.erase(it);
-    }
-}
-
-
-template<typename hasId, typename id_T>
-void removeFromVectorWithId(std::vector<hasId*>& v,
+template<typename Vector, typename id_T>
+void removeFromVectorWithId(Vector& v,
                             id_T id)
 {
     auto it = std::find_if(std::begin(v),
                            std::end(v),
-                           [id](hasId const * elt)
+                           [id](const typename Vector::value_type& elt)
     {
         return elt->id() == id;
     });

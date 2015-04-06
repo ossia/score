@@ -26,7 +26,7 @@ namespace iscore
             void setAndCommit(const Selection&);
 
             // Sends the whole selection
-            void commit();
+            //void commit();
 
             iscore::SelectionStack& stack() const;
 

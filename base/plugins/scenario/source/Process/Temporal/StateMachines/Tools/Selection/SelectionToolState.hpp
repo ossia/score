@@ -1,5 +1,6 @@
 #pragma once
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 class SelectionToolState : public GenericToolState
 {
@@ -10,8 +11,13 @@ class SelectionToolState : public GenericToolState
         void on_scenarioMoved() override;
         void on_scenarioReleased() override;
 
+        void setSelectionArea(const QRectF& area);
+
+
     private:
         QState* m_singleSelection{};
         QState* m_multiSelection{};
+
+        iscore::SelectionDispatcher m_dispatcher;
 
 };

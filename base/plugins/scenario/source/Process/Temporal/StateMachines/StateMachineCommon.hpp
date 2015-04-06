@@ -120,8 +120,6 @@ class ClickOnNothing_Transition : public MatchedScenarioTransition<ClickOnNothin
             auto qev = static_cast<ClickOnNothing_Event*>(ev);
             this->state().clear();
 
-            // TODO this should instead be set within the state ?
-            this->state().clickedEvent = id_type<EventModel>(0);
             this->state().point = qev->point;
         }
 };
