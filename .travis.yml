@@ -3,8 +3,7 @@ before_install:
     - sudo add-apt-repository --yes ppa:beineri/opt-qt541
 
     - sudo apt-get update -qq
-    - sudo apt-get install -qq qt54-meta-full libboost-dev 
-libavahi-compat-libdnssd-dev
+    - sudo apt-get install -qq qt54-meta-full libboost-dev libavahi-compat-libdnssd-dev
 
     - wget https://www.dropbox.com/s/e0o670ve6gv1dgt/cmake-3.0.2-Linux-x86_64.tar.gz?dl=1 -O cmake-3.0.2-Linux-x86_64.tar.gz
     - tar zxf cmake-3.0.2-Linux-x86_64.tar.gz
