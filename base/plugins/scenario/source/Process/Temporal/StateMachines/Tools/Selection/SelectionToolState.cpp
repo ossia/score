@@ -33,17 +33,56 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
 
     /// Area
     auto selectionAreaState = new QState;
-    auto t_press_nothing = new ScenarioPress_Transition;
-    t_press_nothing->setTargetState(selectionAreaState);
-    m_waitState->addTransition(t_press_nothing);
     m_localSM.addState(selectionAreaState);
 
+    auto t_wait_press = new ScenarioPress_Transition;
+    t_wait_press->setTargetState(selectionAreaState);
+    m_waitState->addTransition(t_wait_press);
+
+
+    // States
     auto pressAreaSelection = new QState{selectionAreaState};
     selectionAreaState->setInitialState(pressAreaSelection);
-
     auto moveAreaSelection = new QState{selectionAreaState};
-
     auto releaseAreaSelection = new QState{selectionAreaState};
+
+    // Transitions
+    auto t_press_move = new ScenarioMove_Transition;
+    t_press_move->setTargetState(moveAreaSelection);
+    pressAreaSelection->addTransition(t_press_move);
+
+    auto t_move_move = new ScenarioMove_Transition;
+    t_move_move->setTargetState(moveAreaSelection);
+    moveAreaSelection->addTransition(t_move_move);
+
+    auto t_move_release = new ScenarioRelease_Transition;
+    t_move_release->setTargetState(releaseAreaSelection);
+    moveAreaSelection->addTransition(t_move_release);
+
+    releaseAreaSelection->addTransition(m_waitState);
+
+    // Operations
+    connect(pressAreaSelection, &QState::entered,
+            [&] () {
+        m_initialPoint = m_sm.scenePoint;
+    });
+    connect(moveAreaSelection, &QState::entered,
+            [&] () {
+        m_movePoint = m_sm.scenePoint;
+        // TODO careful if m_movepoint is not top left ?
+        m_sm.presenter().view().setSelectionArea({m_sm.presenter().view().mapFromScene(m_initialPoint),
+                                                  m_sm.presenter().view().mapFromScene(m_movePoint)});
+        setSelectionArea({m_initialPoint, m_movePoint});
+    });
+
+    connect(releaseAreaSelection, &QState::entered,
+            [&] () {
+        m_sm.presenter().view().setSelectionArea(QRectF{});
+        // TODO cleanup ?
+    });
+
+
+    // TODO rollback
 }
 
 
@@ -187,7 +226,9 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
             }
         }
     }
-    m_dispatcher.set(sel);
+
+    // TODO if m_multiSelection->active()
+    m_dispatcher.setAndCommit(sel);
     // TODO focus();
 }
 

@@ -20,4 +20,7 @@ class SelectionToolState : public GenericToolState
 
         iscore::SelectionDispatcher m_dispatcher;
 
+        QPointF m_initialPoint;
+        QPointF m_movePoint;
+
 };

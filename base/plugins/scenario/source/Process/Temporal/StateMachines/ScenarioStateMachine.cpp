@@ -68,9 +68,11 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
     createState->start();
     moveState->start();
+    selectState->start();
 
 
-    this->setInitialState(createState);
+
+    this->setInitialState(selectState);
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

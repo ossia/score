@@ -32,13 +32,11 @@ void TemporalScenarioView::paint(QPainter* painter,
         painter->drawRect(boundingRect());
     }
 
-    // TODO if(m_selectArea != QRectF{})
-    /*
-    if(m_clicked)
+    if(m_selectArea != QRectF{})
     {
         painter->setPen(Qt::black);
         painter->drawRect(m_selectArea);
-    }*/
+    }
 }
 
 
