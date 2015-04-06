@@ -1,5 +1,4 @@
 #include "SelectionToolState.hpp"
-#include "SelectStates.hpp"
 #include <QKeyEventTransition>
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"

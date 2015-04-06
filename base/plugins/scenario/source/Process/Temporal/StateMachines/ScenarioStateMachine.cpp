@@ -66,13 +66,18 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto trans2 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_M, moveState);
     trans2->setTargetState(createState);
 
+    auto trans3 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyPress, Qt::Key_S, createState);
+    trans3->setTargetState(selectState);
+    auto trans4 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_S, selectState);
+    trans4->setTargetState(createState);
+
     createState->start();
     moveState->start();
     selectState->start();
 
 
 
-    this->setInitialState(selectState);
+    this->setInitialState(createState);
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const
