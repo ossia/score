@@ -1,5 +1,5 @@
 #pragma once
-#include "GenericToolState.hpp"
+#include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 
 class SelectionToolState : public GenericToolState
 {

@@ -67,7 +67,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
         auto scenar = m_model->parentScenario();
         if (scenar)
             connect(tnBtn,  &QPushButton::clicked,
-                    [=] () { selectionDispatcher()->send(Selection{scenar->timeNode(timeNode)}); });
+                    [=] () { selectionDispatcher()->setAndCommit(Selection{scenar->timeNode(timeNode)}); });
     }
 
     m_properties.push_back(tnWid);
@@ -184,7 +184,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->setAndCommit(Selection{scenar->constraint(cstr)});
             });
 
 
@@ -210,7 +210,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                selectionDispatcher()->send(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->setAndCommit(Selection{scenar->constraint(cstr)});
             });
 
             // Start state of next

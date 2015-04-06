@@ -49,6 +49,20 @@ class ScenarioSelectionManager : public QObject
             return sel;
         }
 
+        template<typename ElementPresenter>
+        void setup(ElementPresenter* elt)
+        {
+            connect(elt, &ElementPresenter::pressed,
+                    [=]()
+            {
+                m_selectionDispatcher.set(
+                            filterSelections(elt->model(),
+                                             m_scenario->selectedChildren()));
+                focus();
+            });
+        }
+
+
         void setSelectionArea(const QRectF& area);
         void selectConstraint(TemporalConstraintPresenter* cstr);
     private:

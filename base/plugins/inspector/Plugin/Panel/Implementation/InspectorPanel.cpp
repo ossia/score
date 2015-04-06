@@ -47,6 +47,6 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
         // need m_tabWidget.movable() = false !
         Selection sel = objects;
         sel.removeAt(index);
-        m_selectionDispatcher.send(sel);
+        m_selectionDispatcher.setAndCommit(sel);
     });
 }

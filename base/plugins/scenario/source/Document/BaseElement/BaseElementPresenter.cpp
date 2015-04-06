@@ -84,13 +84,13 @@ void BaseElementPresenter::selectAll()
 {
     if(model()->focusedViewModel())
     {
-        m_selectionDispatcher.send(model()->focusedProcess()->selectableChildren());
+        m_selectionDispatcher.setAndCommit(model()->focusedProcess()->selectableChildren());
     }
 }
 
 void BaseElementPresenter::deselectAll()
 {
-    m_selectionDispatcher.send({});
+    m_selectionDispatcher.setAndCommit({});
 }
 
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)

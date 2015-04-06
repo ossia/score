@@ -50,5 +50,5 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
 void FullViewConstraintPresenter::on_pressed()
 {
-    m_selectionDispatcher.send({this->model()});
+    m_selectionDispatcher.setAndCommit({this->model()});
 }

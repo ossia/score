@@ -23,7 +23,6 @@
 
 #include "ProcessInterface/ZoomHelper.hpp"
 
-#include "ScenarioSelectionManager.hpp"
 #include "ScenarioViewInterface.hpp"
 
 #include <iscore/selection/Selection.hpp>
@@ -45,7 +44,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
     m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
     m_view {static_cast<TemporalScenarioView*>(view) },
-    m_selManager{new ScenarioSelectionManager{this}},
     m_viewInterface{new ScenarioViewInterface{this}},
     m_sm{*this},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
@@ -300,8 +298,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
         m_viewInterface->on_hoverOnConstraint(constraint_presenter->model()->id(), false);
     });
 
-    m_selManager->selectConstraint(constraint_presenter);
-
+    // TODO Select constraint here.
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
     m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
 }

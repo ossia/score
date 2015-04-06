@@ -1,6 +1,6 @@
-#include "ScenarioSelectionManager.hpp"
-#include "TemporalScenarioPresenter.hpp"
-#include "TemporalScenarioViewModel.hpp"
+#include "SelectionManager.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 
 
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
@@ -35,7 +35,7 @@ ScenarioSelectionManager::ScenarioSelectionManager(TemporalScenarioPresenter* pr
     connect(m_presenter->m_view,       &TemporalScenarioView::scenarioPressed,
             this, [&] (QPointF)
     {
-        // TODO state machine : only if we are not in a "create event" state
+        // TODO state machine : only if we are not in the selection state
         deselectAll();
         focus();
     });
@@ -111,7 +111,7 @@ void ScenarioSelectionManager::setSelectionArea(const QRectF& area)
             }
         }
     }
-    m_selectionDispatcher.send(sel);
+    m_selectionDispatcher.set(sel);
     focus();
 }
 
@@ -122,5 +122,5 @@ void ScenarioSelectionManager::focus()
 
 void ScenarioSelectionManager::selectConstraint(TemporalConstraintPresenter *cstr)
 {
-    m_selectionDispatcher.send(Selection{cstr->model()});
+    m_selectionDispatcher.set(Selection{cstr->model()});
 }

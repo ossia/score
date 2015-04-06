@@ -107,7 +107,10 @@ void TimeNodeInspectorWidget::updateDisplayedValues(TimeNodeModel* timeNode)
             m_eventList->addContent(eventWid);
 
             connect(eventWid, &EventShortCut::eventSelected,
-                    [=]() {   selectionDispatcher()->send(Selection{evModel}); });
+                    [=]()
+            {
+                selectionDispatcher()->setAndCommit(Selection{evModel});
+            });
         }
     }
 }

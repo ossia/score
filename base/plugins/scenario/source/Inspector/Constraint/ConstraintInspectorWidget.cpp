@@ -311,14 +311,19 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     {
         start->setText(QString::number(*sev.val()));
         connect(start, &QPushButton::clicked,
-                [=]() { selectionDispatcher()->send(Selection{scenar->event(sev)}); });
+                [=]() {
+            selectionDispatcher()->setAndCommit(Selection{scenar->event(sev)});
+        });
     }
 
     if(eev)
     {
         end->setText(QString::number(*eev.val()));
         connect(end, &QPushButton::clicked,
-                [=]() { selectionDispatcher()->send(Selection{scenar->event(eev)}); });
+                [=]()
+        {
+            selectionDispatcher()->setAndCommit(Selection{scenar->event(eev)});
+        });
     }
 
     eventLay->addRow("Start Event", start);

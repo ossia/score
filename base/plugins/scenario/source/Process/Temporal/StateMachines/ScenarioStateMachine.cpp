@@ -1,7 +1,7 @@
 #include "ScenarioStateMachine.hpp"
 #include "Tools/CreationToolState.hpp"
 #include "Tools/MoveToolState.hpp"
-#include "Tools/SelectionToolState.hpp"
+#include "Tools/Selection/SelectionToolState.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
@@ -19,6 +19,9 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
             m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
     m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()}
 {
+    // TODO maybe we should directly map
+    // the mouseEvent coming from the view,
+    // with a QMouseEventTransition (or a derived member) ?
     auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
     {
         // TODO : why isn't this mapped to scene pos, and why does it work ?
@@ -57,6 +60,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto selectState = new SelectionToolState{*this};
     this->addState(selectState);
 
+    // TODO Toolbar instead
     auto trans1 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyPress, Qt::Key_M, createState);
     trans1->setTargetState(moveState);
     auto trans2 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_M, moveState);
