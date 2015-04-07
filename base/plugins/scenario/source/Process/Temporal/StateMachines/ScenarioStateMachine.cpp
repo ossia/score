@@ -1,7 +1,7 @@
 #include "ScenarioStateMachine.hpp"
 #include "Tools/CreationToolState.hpp"
 #include "Tools/MoveToolState.hpp"
-#include "Tools/Selection/SelectionToolState.hpp"
+#include "Tools/SelectionToolState.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
