@@ -71,3 +71,12 @@ void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
     contextMenu.addAction(m_clearAction);
     contextMenu.exec(event->screenPos());
 }
+
+void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
+{
+    QGraphicsObject::keyPressEvent(event);
+    if(event->key() == Qt::Key_Escape)
+    {
+        emit escPressed();
+    }
+}

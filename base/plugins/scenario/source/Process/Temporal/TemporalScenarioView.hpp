@@ -28,6 +28,7 @@ class TemporalScenarioView : public ProcessViewInterface
 
         void deletePressed();
         void clearPressed();
+        void escPressed();
 
     public slots:
         void lock()
@@ -46,6 +47,8 @@ class TemporalScenarioView : public ProcessViewInterface
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+
+        virtual void keyPressEvent(QKeyEvent *event) override;
 
     private:
         QPointF m_clickedPoint {};

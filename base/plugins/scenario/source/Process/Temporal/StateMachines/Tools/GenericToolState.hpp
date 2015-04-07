@@ -106,24 +106,21 @@ class GenericToolState : public QState
         GenericToolState(const ScenarioStateMachine& sm) :
             m_sm{sm}
         {
-            // Press
-            auto t_click = make_transition<ScenarioPress_Transition>(this, this);
+            auto t_click = make_transition<Press_Transition>(this, this);
             connect(t_click, &QAbstractTransition::triggered,
                     [&] () { on_scenarioPressed(); });
 
-            // Move
-            auto t_move = make_transition<ScenarioMove_Transition>(this, this);
+            auto t_move = make_transition<Move_Transition>(this, this);
             connect(t_move, &QAbstractTransition::triggered,
                     [&] () { on_scenarioMoved(); });
 
-            // Release
-            auto t_rel = make_transition<ScenarioRelease_Transition>(this, this);
+            auto t_rel = make_transition<Release_Transition>(this, this);
             connect(t_rel, &QAbstractTransition::triggered,
                     [&] () { on_scenarioReleased(); });
 
-            m_waitState = new QState;
-            m_localSM.addState(m_waitState);
-            m_localSM.setInitialState(m_waitState);
+            auto t_cancel = make_transition<Cancel_Transition>(this, this);
+            connect(t_cancel, &QAbstractTransition::triggered,
+                    [&] () { m_localSM.postEvent(new Cancel_Event); });
         }
 
         void start()
@@ -135,6 +132,5 @@ class GenericToolState : public QState
         virtual void on_scenarioReleased() = 0;
 
         QStateMachine m_localSM;
-        QState* m_waitState;
         const ScenarioStateMachine& m_sm;
 };

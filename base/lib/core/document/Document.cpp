@@ -161,11 +161,11 @@ void Document::init()
     connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
             [&] (const Selection& s)
             {
-                m_model->setNewSelection(s);
                 for(auto& panel : m_model->panels())
                 {
                     panel->setNewSelection(s);
                 }
+                m_model->setNewSelection(s);
             });
 }
 

@@ -48,9 +48,8 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
         make_transition<ReleaseOnAnything_Transition>(
                     moving , released);
 
-        QObject::connect(moving  , &QState::entered, [&] ()
+        QObject::connect(moving, &QState::entered, [&] ()
         {
-            // Note : store the offset when pressed.
             m_dispatcher.submitCommand(
                         new MoveConstraint{
                             ObjectPath{m_scenarioPath},
@@ -66,8 +65,7 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
     }
 
     QState* rollbackState = new QState{this};
-    // TODO use event instead.
-    // mainState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    make_transition<Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
@@ -127,8 +125,7 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
     }
 
     QState* rollbackState = new QState{this};
-    // TODO use event instead.
-    // mainState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    make_transition<Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
@@ -194,8 +191,7 @@ MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandS
     }
 
     QState* rollbackState = new QState{this};
-    // TODO use event instead.
-    // mainState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    make_transition<Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {

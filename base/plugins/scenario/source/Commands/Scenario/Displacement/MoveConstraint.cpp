@@ -32,7 +32,6 @@ m_newX {date}
 void MoveConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
             m_constraintId,
             m_oldX,
@@ -43,9 +42,6 @@ void MoveConstraint::undo()
 void MoveConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-
-    m_oldHeightPosition = scenar->constraint(m_constraintId)->heightPercentage();
-
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
             m_constraintId,
             m_newX,

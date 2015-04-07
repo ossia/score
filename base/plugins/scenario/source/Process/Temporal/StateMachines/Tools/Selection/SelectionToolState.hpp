@@ -23,4 +23,5 @@ class SelectionToolState : public GenericToolState
         QPointF m_initialPoint;
         QPointF m_movePoint;
 
+        QState* m_waitState{};
 };

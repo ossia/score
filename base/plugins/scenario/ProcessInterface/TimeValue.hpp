@@ -12,6 +12,7 @@ template<typename T>
 class TimeValue_T
 {
     public:
+        static constexpr TimeValue_T zero() {return ZeroTime{}; }
         static TimeValue_T fromMsecs(T msecs)
         {
             TimeValue_T time;
@@ -19,26 +20,26 @@ class TimeValue_T
             return time;
         }
 
-        TimeValue_T() = default;
-        TimeValue_T(PositiveInfinity) :
+        constexpr TimeValue_T() = default;
+        constexpr TimeValue_T(PositiveInfinity) :
             m_impl {}
         { }
 
-        TimeValue_T(ZeroTime) :
+        constexpr TimeValue_T(ZeroTime) :
             m_impl {0}
         { }
 
         // These two overloads are here to please coverity...
-        TimeValue_T(std::chrono::seconds&& dur) :
+        constexpr TimeValue_T(std::chrono::seconds&& dur) :
             m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
         { }
-        TimeValue_T(std::chrono::milliseconds&& dur) :
+        constexpr TimeValue_T(std::chrono::milliseconds&& dur) :
             m_impl {dur.count() }
         { }
 
         template<typename Duration,
                  typename std::enable_if<std::is_class<Duration>::value>::type* = nullptr>
-        TimeValue_T(Duration && dur) :
+        constexpr TimeValue_T(Duration && dur) :
             m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }
         { }
 

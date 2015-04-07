@@ -45,6 +45,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void setDisplayedConstraint(ConstraintModel*);
 
     signals:
+        void focusMe();
         void focusedViewModelChanged();
 
     public slots:

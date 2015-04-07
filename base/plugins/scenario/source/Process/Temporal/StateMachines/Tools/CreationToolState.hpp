@@ -39,5 +39,6 @@ class CreationToolState : public GenericToolState
             nothing_fun();
         }
 
-        CreateEventState* m_baseState{};
+        CreateState* m_baseState{};
+        QState* m_waitState{};
 };

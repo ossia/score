@@ -17,4 +17,5 @@ class MoveToolState : public GenericToolState
         MoveConstraintState* m_moveConstraint{};
         MoveEventState* m_moveEvent{};
         MoveTimeNodeState* m_moveTimeNode{};
+        QState* m_waitState{};
 };

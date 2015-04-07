@@ -5,6 +5,10 @@
 MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     GenericToolState{sm}
 {
+    m_waitState = new QState;
+    m_localSM.addState(m_waitState);
+    m_localSM.setInitialState(m_waitState);
+
     /// Constraint
     m_moveConstraint =
             new MoveConstraintState{

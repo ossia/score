@@ -15,7 +15,7 @@
 
 #include <QFinalState>
 
-CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
+CreateState::CreateState(ObjectPath &&scenarioPath,
                                    iscore::CommandStack& stack,
                                    QState* parent):
     CommonState{std::move(scenarioPath), parent},
@@ -115,7 +115,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
 
         // What happens in each state.
         QObject::connect(pressedState, &QState::entered,
-                         this, &CreateEventState::createEventFromEventOnNothing);
+                         this, &CreateState::createEventFromEventOnNothing);
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
@@ -144,8 +144,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
     }
 
     QState* rollbackState = new QState{this};
-    // TODO use event instead.
-    // mainState->addTransition(this, SIGNAL(cancel()), rollbackState);
+    make_transition<Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
@@ -157,7 +156,7 @@ CreateEventState::CreateEventState(ObjectPath &&scenarioPath,
 
 
 // Note : clickedEvent is set at startEvent if clicking in the background.
-void CreateEventState::createEventFromEventOnNothing()
+void CreateState::createEventFromEventOnNothing()
 {
     auto init = new Scenario::Command::CreateEventAfterEvent{
                 ObjectPath{m_scenarioPath},
@@ -170,7 +169,7 @@ void CreateEventState::createEventFromEventOnNothing()
     m_dispatcher.submitCommand(init);
 }
 
-void CreateEventState::createEventFromEventOnTimeNode()
+void CreateState::createEventFromEventOnTimeNode()
 {
     auto cmd = new Scenario::Command::CreateEventAfterEventOnTimeNode(
                    ObjectPath{m_scenarioPath},
@@ -185,20 +184,20 @@ void CreateEventState::createEventFromEventOnTimeNode()
 }
 
 
-void CreateEventState::createEventFromTimeNodeOnNothing()
+void CreateState::createEventFromTimeNodeOnNothing()
 {
     // TODO Faire CreateEventAfterTimeNode
     // Macro : CreateEventOnTimeNode, followed by CreateEventAfterEvent[OnTimeNode], followed by Move...;
     // Maybe use a set of ObjectIdentifier for the createdEvents / timenodes ??
 }
 
-void CreateEventState::createEventFromTimeNodeOnTimeNode()
+void CreateState::createEventFromTimeNodeOnTimeNode()
 {
     // TODO
 }
 
 
-void CreateEventState::createConstraintBetweenEvents()
+void CreateState::createConstraintBetweenEvents()
 {
     auto cmd = new Scenario::Command::CreateConstraint(
                    ObjectPath{m_scenarioPath},

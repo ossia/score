@@ -90,7 +90,6 @@ struct PositionedOn_Event : public PositionedEvent<N>
 };
 
 // Events
-using Cancel_Event = NumberedEvent<10>;
 using ClickOnNothing_Event = PositionedEvent<11>;
 using ClickOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 12>;
 using ClickOnEvent_Event = PositionedOn_Event<EventModel, 13>;
@@ -107,7 +106,6 @@ using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 21>;
 using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;
 
 // Transitions
-using Cancel_Transition = MatchedTransition<Cancel_Event>;
 
 ///////////
 class ClickOnNothing_Transition : public MatchedScenarioTransition<ClickOnNothing_Event>

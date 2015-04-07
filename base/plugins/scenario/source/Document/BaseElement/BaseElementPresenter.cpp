@@ -48,7 +48,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(view(), &BaseElementView::horizontalZoomChanged,
             this,	&BaseElementPresenter::on_zoomSliderChanged);
 
-    // TODO same for height
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
             this, &BaseElementPresenter::on_viewSizeChanged);
 
@@ -63,11 +62,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     setDisplayedConstraint(model()->constraintModel());
 
-
-    // Use the default value in the slider.
-    /*
-    on_horizontalZoomChanged(m_horizontalZoomValue);
-    */
+    connect(model(), &BaseElementModel::focusMe,
+            this, [&] () { view()->view()->setFocus(); });
 }
 
 ConstraintModel* BaseElementPresenter::displayedConstraint() const
@@ -158,6 +154,7 @@ void BaseElementPresenter::setMillisPerPixel(double newFactor)
     m_localTimeRuler->setPixelPerMillis(1.0/newFactor);
 }
 
+#include <QApplication>
 void BaseElementPresenter::on_newSelection(Selection sel)
 {
     int scroll = m_localTimeRuler->totalScroll();
@@ -169,8 +166,8 @@ void BaseElementPresenter::on_newSelection(Selection sel)
 
     if (sel.isEmpty())
     {
-        m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
-        m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
+        m_localTimeRuler->setDuration(TimeValue::zero());
+        m_localTimeRuler->setStartPoint(TimeValue::zero());
     }
     else
     {

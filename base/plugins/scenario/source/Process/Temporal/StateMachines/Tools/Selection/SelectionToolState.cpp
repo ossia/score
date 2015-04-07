@@ -11,67 +11,95 @@
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include <QGraphicsScene>
+#include <QFinalState>
 
 SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
     GenericToolState{sm},
     m_dispatcher{iscore::IDocument::documentFromObject(m_sm.model())->selectionStack()}
 {
-    m_localSM.setChildMode(QState::ChildMode::ParallelStates);
-    // Multi-selection state
-    auto selectionModeState = new QState;
-    m_singleSelection = new QState{selectionModeState};
-    selectionModeState->setInitialState(m_singleSelection);
-    m_multiSelection = new QState{selectionModeState};
-    m_localSM.addState(selectionModeState);
+    auto metaSelectionState = new QState{&m_localSM};
+    m_localSM.setInitialState(metaSelectionState);
+    metaSelectionState->setChildMode(QState::ChildMode::ParallelStates);
+    metaSelectionState->setObjectName("metaSelectionState");
+    {
+        // Multi-selection state
+        auto selectionModeState = new QState{metaSelectionState};
+        selectionModeState->setObjectName("selectionModeState");
+        {
+            m_singleSelection = new QState{selectionModeState};
+            selectionModeState->setInitialState(m_singleSelection);
+            m_multiSelection = new QState{selectionModeState};
 
-    auto trans1 = new QKeyEventTransition(&m_sm.presenter().view(),
-                                          QEvent::KeyPress, Qt::Key_Control, m_singleSelection);
-    trans1->setTargetState(m_multiSelection);
-    auto trans2 = new QKeyEventTransition(&m_sm.presenter().view(),
-                                          QEvent::KeyRelease, Qt::Key_Control, m_multiSelection);
-    trans2->setTargetState(m_singleSelection);
-
-
-    /// Area
-    auto selectionAreaState = new QState;
-    m_localSM.addState(selectionAreaState);
-
-    auto t_wait_press = new ScenarioPress_Transition;
-    t_wait_press->setTargetState(selectionAreaState);
-    m_waitState->addTransition(t_wait_press);
+            auto trans1 = new QKeyEventTransition(&m_sm.presenter().view(),
+                                                  QEvent::KeyPress, Qt::Key_Control, m_singleSelection);
+            trans1->setTargetState(m_multiSelection);
+            auto trans2 = new QKeyEventTransition(&m_sm.presenter().view(),
+                                                  QEvent::KeyRelease, Qt::Key_Control, m_multiSelection);
+            trans2->setTargetState(m_singleSelection);
+        }
 
 
-    // States
-    auto pressAreaSelection = new QState{selectionAreaState};
-    selectionAreaState->setInitialState(pressAreaSelection);
-    auto moveAreaSelection = new QState{selectionAreaState};
-    auto releaseAreaSelection = new QState{selectionAreaState};
+        /// Area
+        auto selectionState = new QState{metaSelectionState};
+        selectionState->setObjectName("selectionState");
+        {
+            // Wait
+            m_waitState = new QState{selectionState};
+            m_waitState->setObjectName("m_waitState");
+            selectionState->setInitialState(m_waitState);
 
-    // Transitions
-    make_transition<ScenarioMove_Transition>(pressAreaSelection, moveAreaSelection);
-    make_transition<ScenarioRelease_Transition>(pressAreaSelection, releaseAreaSelection);
+            // Area
+            auto selectionAreaState = new QState{selectionState};
+            selectionAreaState->setObjectName("selectionAreaState");
 
-    make_transition<ScenarioMove_Transition>(moveAreaSelection, moveAreaSelection);
-    make_transition<ScenarioRelease_Transition>(moveAreaSelection, releaseAreaSelection);
+            make_transition<Press_Transition>(m_waitState, selectionAreaState);
+            selectionAreaState->addTransition(selectionAreaState, SIGNAL(finished()), m_waitState);
+            {
+                // States
+                auto pressAreaSelection = new QState{selectionAreaState};
+                pressAreaSelection->setObjectName("pressAreaSelection");
+                selectionAreaState->setInitialState(pressAreaSelection);
+                auto moveAreaSelection = new QState{selectionAreaState};
+                moveAreaSelection->setObjectName("moveAreaSelection");
+                auto releaseAreaSelection = new QFinalState{selectionAreaState};
+                releaseAreaSelection->setObjectName("releaseAreaSelection");
 
-    releaseAreaSelection->addTransition(m_waitState);
+                // Transitions
+                make_transition<Move_Transition>(pressAreaSelection, moveAreaSelection);
+                make_transition<Release_Transition>(pressAreaSelection, releaseAreaSelection);
 
-    // Operations
-    connect(pressAreaSelection, &QState::entered,
-            [&] () { m_initialPoint = m_sm.scenePoint; });
-    connect(moveAreaSelection, &QState::entered,
-            [&] () {
-        m_movePoint = m_sm.scenePoint;
-        m_sm.presenter().view().setSelectionArea(
-                    QRectF{m_sm.presenter().view().mapFromScene(m_initialPoint),
-                           m_sm.presenter().view().mapFromScene(m_movePoint)}.normalized());
-        setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
-    });
+                make_transition<Move_Transition>(moveAreaSelection, moveAreaSelection);
+                make_transition<Release_Transition>(moveAreaSelection, releaseAreaSelection);
 
-    connect(releaseAreaSelection, &QState::entered,
-            [&] () { m_sm.presenter().view().setSelectionArea(QRectF{}); });
+                // Operations
+                connect(pressAreaSelection, &QState::entered,
+                        [&] () { m_initialPoint = m_sm.scenePoint; });
+                connect(moveAreaSelection, &QState::entered,
+                        [&] () {
+                    m_movePoint = m_sm.scenePoint;
+                    m_sm.presenter().view().setSelectionArea(
+                                QRectF{m_sm.presenter().view().mapFromScene(m_initialPoint),
+                                       m_sm.presenter().view().mapFromScene(m_movePoint)}.normalized());
+                    setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
+                });
 
-    // TODO rollback
+                connect(releaseAreaSelection, &QState::entered,
+                        [&] () { m_sm.presenter().view().setSelectionArea(QRectF{}); });
+            }
+
+            // Deselection
+            auto deselectState = new QState{selectionState};
+            deselectState->setObjectName("deselectState");
+            make_transition<Cancel_Transition>(selectionAreaState, deselectState);
+            make_transition<Cancel_Transition>(m_waitState, deselectState);
+            deselectState->addTransition(m_waitState);
+            connect(deselectState, &QAbstractState::entered,
+                    [&] () {
+                m_dispatcher.setAndCommit(Selection{});
+                m_sm.presenter().view().setSelectionArea(QRectF{});
+            });
+        }
+    }
 }
 
 
@@ -109,7 +137,7 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 void SelectionToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const auto& id) // Event
+               [&] (const auto& id) // Event
     {
         using namespace std;
         const auto& elts = m_sm.presenter().events();
@@ -148,25 +176,25 @@ void SelectionToolState::on_scenarioPressed()
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
-    [&] () { m_localSM.postEvent(new ScenarioPress_Event); });
+    [&] () { m_localSM.postEvent(new Press_Event); });
 }
 
 void SelectionToolState::on_scenarioMoved()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
+               [&] (const auto&) {},
     [&] (const auto&) {},
     [&] (const auto&) {},
-    [&] (const auto&) {},
-    [&] () { m_localSM.postEvent(new ScenarioMove_Event); });
+    [&] () { m_localSM.postEvent(new Move_Event); });
 }
 
 void SelectionToolState::on_scenarioReleased()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
+               [&] (const auto&) {},
     [&] (const auto&) {},
     [&] (const auto&) {},
-    [&] (const auto&) {},
-    [&] () { m_localSM.postEvent(new ScenarioRelease_Event); });
+    [&] () { m_localSM.postEvent(new Release_Event); });
 }
 
 void SelectionToolState::setSelectionArea(const QRectF& area)

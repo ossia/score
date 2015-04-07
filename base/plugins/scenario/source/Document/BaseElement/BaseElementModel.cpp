@@ -198,6 +198,8 @@ void BaseElementModel::setNewSelection(const Selection& s)
         m_focusedProcess = newProc;
         m_focusedProcess->setSelection(s);
     }
+
+    emit focusMe();
 }
 
 void BaseElementModel::setDisplayedConstraint(ConstraintModel *constraint)

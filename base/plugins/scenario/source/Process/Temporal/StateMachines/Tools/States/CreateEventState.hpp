@@ -96,12 +96,12 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
 };
 
 
-class CreateEventState : public CommonState
+class CreateState : public CommonState
 {
     public:
-        CreateEventState(ObjectPath&& scenarioPath,
-                         iscore::CommandStack& stack,
-                         QState* parent);
+        CreateState(ObjectPath&& scenarioPath,
+                    iscore::CommandStack& stack,
+                    QState* parent);
 
     private:
         void createEventFromEventOnNothing();
