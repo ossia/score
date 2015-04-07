@@ -50,8 +50,6 @@ void iscore::UndoControl::populateToolbars(QToolBar*)
 
 void iscore::UndoControl::on_presenterChanged()
 {
-    connect(presenter(), &Presenter::currentDocumentChanged,
-            this, &UndoControl::on_documentChanged);
 }
 
 

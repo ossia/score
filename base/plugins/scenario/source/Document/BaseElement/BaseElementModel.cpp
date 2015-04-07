@@ -50,7 +50,8 @@ BaseElementModel::BaseElementModel(QVariant data,
 
     m_baseConstraint->setObjectName("BaseConstraintModel");
 }
-
+#include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
     m_baseConstraint {new ConstraintModel{
@@ -63,6 +64,7 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     m_baseConstraint->setObjectName("BaseConstraintModel");
 
     initializeNewDocument(m_baseConstraint->fullView());
+    setFocusedViewModel(m_baseConstraint->boxes().front()->decks().front()->processViewModels().front());
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)

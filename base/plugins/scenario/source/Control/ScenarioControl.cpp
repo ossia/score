@@ -188,21 +188,39 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     };
 
     // TODO disable when no focused view model
-    auto createtool = bar->addAction(tr("Create"));
+    // 2 cases :
+    //  1. Document change
+    //  2. Process View Model change
+
+    m_scenarioActionGroup = new QActionGroup(bar);
+    m_scenarioActionGroup->setEnabled(false);
+    auto createtool = new QAction(tr("Create"), m_scenarioActionGroup);
+    createtool->setCheckable(true);
     connect(createtool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setCreateState();
     });
-    auto movetool = bar->addAction(tr("Move"));
+
+    auto movetool = new QAction(tr("Move"), m_scenarioActionGroup);
+    movetool->setCheckable(true);
     connect(movetool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setMoveState();
     });
-    auto selecttool = bar->addAction(tr("Select"));
+
+    auto selecttool = new QAction(tr("Select"), m_scenarioActionGroup);
+    selecttool->setCheckable(true);
+    selecttool->setChecked(true);
     connect(selecttool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setSelectState();
     });
+
+    // TODO add a deck move & deck remove tool; same for box.
+    // When in these tools, the "modifiable" area becomes greyed in whole.
+    // Also add a mode for "scale / change duration"
+    on_presenterChanged();
+    bar->addActions(m_scenarioActionGroup->actions());
 }
 
 
@@ -220,4 +238,42 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
 
     cmd->deserialize(data);
     return cmd;
+}
+
+void ScenarioControl::on_newDocument(iscore::Document* doc)
+{
+    qDebug() << Q_FUNC_INFO;
+    on_presenterChanged();
+}
+
+void ScenarioControl::on_presenterChanged()
+{
+    // Check the current focused view model of this document
+    // If it is a scenario, we enable the actiongroup, else we disable it.
+    if(!m_scenarioActionGroup) return;
+    if(!currentDocument())
+    {
+        m_scenarioActionGroup->setEnabled(false);
+        return;
+    }
+
+    auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+
+    this->disconnect(m_toolbarConnection);
+    m_toolbarConnection = connect(&model,  &BaseElementModel::focusedViewModelChanged,
+                                  this, [&] ()
+    {
+        auto onScenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
+        m_scenarioActionGroup->setEnabled(onScenario);
+    });
+}
+
+void ScenarioControl::on_documentChanged(Document* doc)
+{
+    on_presenterChanged();
+
+    auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+    auto onScenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
+
+    m_scenarioActionGroup->setEnabled(onScenario);
 }

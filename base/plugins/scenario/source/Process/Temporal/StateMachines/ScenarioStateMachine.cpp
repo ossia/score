@@ -52,6 +52,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         this->postEvent(new ScenarioMove_Event);
     });
 
+
     auto createState = new CreationToolState{*this};
     this->addState(createState);
 
@@ -73,16 +74,26 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto trans4 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyRelease, Qt::Key_S, selectState);
     trans4->setTargetState(createState);
     */
-    this->addTransition(this, SIGNAL(setCreateState()), createState);
-    this->addTransition(this, SIGNAL(setMoveState()), moveState);
-    this->addTransition(this, SIGNAL(setSelectState()), selectState);
+    auto t_move_create = new QSignalTransition(this, SIGNAL(setCreateState()), moveState);
+    t_move_create->setTargetState(createState);
+    auto t_move_select = new QSignalTransition(this, SIGNAL(setSelectState()), moveState);
+    t_move_select->setTargetState(selectState);
+
+    auto t_select_create = new QSignalTransition(this, SIGNAL(setCreateState()), selectState);
+    t_select_create->setTargetState(createState);
+    auto t_select_move = new QSignalTransition(this, SIGNAL(setMoveState()), selectState);
+    t_select_move->setTargetState(moveState);
+
+    auto t_create_move = new QSignalTransition(this, SIGNAL(setMoveState()), createState);
+    t_create_move->setTargetState(moveState);
+    auto t_create_select = new QSignalTransition(this, SIGNAL(setSelectState()), createState);
+    t_create_select->setTargetState(selectState);
+
     createState->start();
     moveState->start();
     selectState->start();
 
-
-
-    this->setInitialState(createState);
+    this->setInitialState(selectState);
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

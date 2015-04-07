@@ -102,7 +102,7 @@ DeviceEditDialog::updateProtocolWidget()
 
     if(m_protocolWidget)
     {
-// TODO
+        // TODO restore the old settings
         /*
         if(! m_previousSettings.at(m_index).empty())
         {

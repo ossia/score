@@ -2,6 +2,7 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 
+class QActionGroup;
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
@@ -20,6 +21,13 @@ class ScenarioControl : public iscore::PluginControlInterface
             return m_processList;
         }
 
+    protected:
+        virtual void on_newDocument(iscore::Document* doc) override;
+        virtual void on_presenterChanged() override;
+        virtual void on_documentChanged(iscore::Document* doc) override;
+
     private:
         ProcessList* m_processList {};
+        QActionGroup* m_scenarioActionGroup{};
+        QMetaObject::Connection m_toolbarConnection;
 };

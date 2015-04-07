@@ -87,7 +87,10 @@ void Presenter::setCurrentDocument(Document* doc)
         m_currentDocument->bindPanelPresenter(pair.first);
     }
 
-    emit currentDocumentChanged(m_currentDocument);
+    for(PluginControlInterface* ctrl : m_customControls)
+    {
+        ctrl->on_documentChanged(m_currentDocument);
+    }
 }
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
