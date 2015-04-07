@@ -2,7 +2,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-struct ConstraintData;
 class ConstraintModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
