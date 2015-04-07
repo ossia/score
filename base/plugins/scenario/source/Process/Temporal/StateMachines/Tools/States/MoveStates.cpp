@@ -11,7 +11,10 @@
 
 #include <QFinalState>
 
-MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath, iscore::CommandStack& stack, iscore::ObjectLocker& locker, QState* parent):
+MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
+                                         iscore::CommandStack& stack,
+                                         iscore::ObjectLocker& locker,
+                                         QState* parent):
     CommonState{ObjectPath{scenarioPath}, parent},
     m_dispatcher{std::move(scenarioPath), locker, stack, this}
 {
@@ -20,17 +23,17 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath, iscore::Comm
 
     QState* mainState = new QState{this};
     {
-        QState* pressedConstraintState = new QState{mainState};
-        QState* releasedState = new QState{mainState};
-        QState* movingConstraint = new QState{mainState};
+        QState* pressed = new QState{mainState};
+        QState* released = new QState{mainState};
+        QState* moving = new QState{mainState};
 
         // General setup
-        mainState->setInitialState(pressedConstraintState);
-        releasedState->addTransition(finalState);
+        mainState->setInitialState(pressed);
+        released->addTransition(finalState);
 
         auto t_pressed =
                 make_transition<MoveOnAnything_Transition>(
-                    pressedConstraintState, movingConstraint, *this);
+                    pressed, moving , *this);
         connect(t_pressed, &QAbstractTransition::triggered, [&] ()
         {
             auto scenar = m_scenarioPath.find<ScenarioModel>();
@@ -39,13 +42,13 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath, iscore::Comm
         });
 
         make_transition<ReleaseOnAnything_Transition>(
-                    pressedConstraintState, finalState);
+                    pressed, finalState);
         make_transition<MoveOnAnything_Transition>(
-                    movingConstraint, movingConstraint, *this);
+                    moving , moving , *this);
         make_transition<ReleaseOnAnything_Transition>(
-                    movingConstraint, releasedState);
+                    moving , released);
 
-        QObject::connect(movingConstraint , &QState::entered, [&] ()
+        QObject::connect(moving  , &QState::entered, [&] ()
         {
             // Note : store the offset when pressed.
             m_dispatcher.submitCommand(
@@ -56,7 +59,7 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath, iscore::Comm
                             point.y});
         });
 
-        QObject::connect(releasedState, &QState::entered, [&] ()
+        QObject::connect(released, &QState::entered, [&] ()
         {
             m_dispatcher.commit();
         });
@@ -89,31 +92,25 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
 
     QState* mainState = new QState{this};
     {
-        QState* pressedEventState = new QState{mainState};
-        QState* releasedState = new QState{mainState};
-        QState* movingEvent = new QState{mainState};
+        QState* pressed = new QState{mainState};
+        QState* released = new QState{mainState};
+        QState* moving = new QState{mainState};
 
         // General setup
-        mainState->setInitialState(pressedEventState);
-        releasedState->addTransition(finalState);
+        mainState->setInitialState(pressed);
+        released->addTransition(finalState);
 
-        // Pressed -> ...
-        auto t_pressed_event = new MoveOnAnything_Transition{*this};
-        t_pressed_event->setTargetState(movingEvent);
-        pressedEventState->addTransition(t_pressed_event);
-
-        // Moving -> ...
-        auto t_moving_event = new MoveOnAnything_Transition{*this};
-        t_moving_event->setTargetState(movingEvent);
-        movingEvent->addTransition(t_moving_event);
-
-        // Release
-        auto t_release = new ReleaseOnAnything_Transition;
-        t_release->setTargetState(releasedState);
-        mainState->addTransition(t_release);
+        make_transition<MoveOnAnything_Transition>(
+                    pressed, moving, *this);
+        make_transition<ReleaseOnAnything_Transition>(
+                    pressed, finalState);
+        make_transition<MoveOnAnything_Transition>(
+                    moving, moving, *this);
+        make_transition<ReleaseOnAnything_Transition>(
+                    moving, released);
 
         // What happens in each state.
-        QObject::connect(movingEvent, &QState::entered, [&] ()
+        QObject::connect(moving, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand(
                         new MoveEvent{
@@ -123,7 +120,7 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
                             point.y});
         });
 
-        QObject::connect(releasedState, &QState::entered, [&] ()
+        QObject::connect(released, &QState::entered, [&] ()
         {
             m_dispatcher.commit();
         });
@@ -156,43 +153,41 @@ MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandS
 
     QState* mainState = new QState{this};
     {
-        QState* pressedTimeNodeState = new QState{mainState};
-        QState* releasedState = new QState{mainState};
-        QState* movingTimeNode = new QState{mainState};
-        mainState->setInitialState(pressedTimeNodeState);
+        QState* pressed = new QState{mainState};
+        QState* released = new QState{mainState};
+        QState* moving = new QState{mainState};
+        mainState->setInitialState(pressed);
 
         // General setup
-        releasedState->addTransition(finalState);
+        released->addTransition(finalState);
 
-        // Pressed -> ...
-        auto t_pressed_timenode = new MoveOnAnything_Transition{*this};
-        t_pressed_timenode->setTargetState(movingTimeNode);
-        pressedTimeNodeState->addTransition(t_pressed_timenode);
-
-        // Moving -> ...
-        auto t_moving_timenode = new MoveOnAnything_Transition{*this};
-        t_moving_timenode->setTargetState(movingTimeNode);
-        movingTimeNode->addTransition(t_moving_timenode);
-
-        // Release
-        auto t_release = new ReleaseOnAnything_Transition;
-        t_release->setTargetState(releasedState);
-        mainState->addTransition(t_release);
+        make_transition<MoveOnAnything_Transition>(
+                    pressed, moving, *this);
+        make_transition<ReleaseOnAnything_Transition>(
+                    pressed, finalState);
+        make_transition<MoveOnAnything_Transition>(
+                    moving, moving, *this);
+        make_transition<ReleaseOnAnything_Transition>(
+                    moving, released);
 
         // What happens in each state.
-        QObject::connect(movingTimeNode, &QState::entered, [&] ()
+        QObject::connect(moving, &QState::entered, [&] ()
         {
-            /* TODO
+            // Get the 1st event on the timenode.
+            auto scenar = m_scenarioPath.find<ScenarioModel>();
+            auto tn = scenar->timeNode(clickedTimeNode);
+            auto ev_id = tn->events().first();
+
+
             m_dispatcher.submitCommand(
                         new MoveTimeNode{
                             ObjectPath{m_scenarioPath},
-                            m_createdEvent,
-                            m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
-                            point.y});
-                            */
+                            ev_id,
+                            point.date,
+                            scenar->event(ev_id)->heightPercentage()});
         });
 
-        QObject::connect(releasedState, &QState::entered, [&] ()
+        QObject::connect(released, &QState::entered, [&] ()
         {
             m_dispatcher.commit();
         });
