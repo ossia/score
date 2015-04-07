@@ -11,6 +11,10 @@ class MoveConstraintState : public CommonState
                   QState* parent);
 
         LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_dispatcher;
+
+    private:
+        TimeValue m_constraintInitialClickDate;
+        TimeValue m_constraintInitialStartDate;
 };
 
 class MoveEventState : public CommonState

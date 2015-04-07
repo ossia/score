@@ -62,7 +62,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto selectState = new SelectionToolState{*this};
     this->addState(selectState);
 
-    // TODO Toolbar instead
     /*
     auto trans1 = new QKeyEventTransition(m_presenter.m_view, QEvent::KeyPress, Qt::Key_M, createState);
     trans1->setTargetState(moveState);

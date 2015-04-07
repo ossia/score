@@ -16,9 +16,11 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
     GenericToolState{sm},
     m_dispatcher{iscore::IDocument::documentFromObject(m_sm.model())->selectionStack()}
 {
+    m_localSM.setChildMode(QState::ChildMode::ParallelStates);
     // Multi-selection state
     auto selectionModeState = new QState;
     m_singleSelection = new QState{selectionModeState};
+    selectionModeState->setInitialState(m_singleSelection);
     m_multiSelection = new QState{selectionModeState};
     m_localSM.addState(selectionModeState);
 
@@ -46,45 +48,34 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
     auto releaseAreaSelection = new QState{selectionAreaState};
 
     // Transitions
-    auto t_press_move = new ScenarioMove_Transition;
-    t_press_move->setTargetState(moveAreaSelection);
-    pressAreaSelection->addTransition(t_press_move);
+    make_transition<ScenarioMove_Transition>(pressAreaSelection, moveAreaSelection);
+    make_transition<ScenarioRelease_Transition>(pressAreaSelection, releaseAreaSelection);
 
-    auto t_move_move = new ScenarioMove_Transition;
-    t_move_move->setTargetState(moveAreaSelection);
-    moveAreaSelection->addTransition(t_move_move);
-
-    auto t_move_release = new ScenarioRelease_Transition;
-    t_move_release->setTargetState(releaseAreaSelection);
-    moveAreaSelection->addTransition(t_move_release);
+    make_transition<ScenarioMove_Transition>(moveAreaSelection, moveAreaSelection);
+    make_transition<ScenarioRelease_Transition>(moveAreaSelection, releaseAreaSelection);
 
     releaseAreaSelection->addTransition(m_waitState);
 
     // Operations
     connect(pressAreaSelection, &QState::entered,
-            [&] () {
-        m_initialPoint = m_sm.scenePoint;
-    });
+            [&] () { m_initialPoint = m_sm.scenePoint; });
     connect(moveAreaSelection, &QState::entered,
             [&] () {
         m_movePoint = m_sm.scenePoint;
-        // TODO careful if m_movepoint is not top left ?
-        m_sm.presenter().view().setSelectionArea({m_sm.presenter().view().mapFromScene(m_initialPoint),
-                                                  m_sm.presenter().view().mapFromScene(m_movePoint)});
-        setSelectionArea({m_initialPoint, m_movePoint});
+        m_sm.presenter().view().setSelectionArea(
+                    QRectF{m_sm.presenter().view().mapFromScene(m_initialPoint),
+                           m_sm.presenter().view().mapFromScene(m_movePoint)}.normalized());
+        setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
     });
 
     connect(releaseAreaSelection, &QState::entered,
-            [&] () {
-        m_sm.presenter().view().setSelectionArea(QRectF{});
-        // TODO cleanup ?
-    });
-
+            [&] () { m_sm.presenter().view().setSelectionArea(QRectF{}); });
 
     // TODO rollback
 }
 
 
+// TODO do the same with a group (for the case of adding a selection area).
 template<typename T>
 Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 {

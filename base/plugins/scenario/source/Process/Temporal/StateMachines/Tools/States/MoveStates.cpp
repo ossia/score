@@ -28,29 +28,31 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath, iscore::Comm
         mainState->setInitialState(pressedConstraintState);
         releasedState->addTransition(finalState);
 
-        // Pressed -> ...
-        auto t_pressed_constraint = new MoveOnAnything_Transition{*this};
-        t_pressed_constraint->setTargetState(movingConstraint);
-        pressedConstraintState->addTransition(t_pressed_constraint);
+        auto t_pressed =
+                make_transition<MoveOnAnything_Transition>(
+                    pressedConstraintState, movingConstraint, *this);
+        connect(t_pressed, &QAbstractTransition::triggered, [&] ()
+        {
+            auto scenar = m_scenarioPath.find<ScenarioModel>();
+            m_constraintInitialStartDate= scenar->constraint(clickedConstraint)->startDate();
+            m_constraintInitialClickDate = point.date;
+        });
 
-        // Moving -> ...
-        auto t_moving_constraint = new MoveOnAnything_Transition{*this};
-        t_moving_constraint->setTargetState(movingConstraint);
-        movingConstraint->addTransition(t_moving_constraint);
-
-        // Release
-        auto t_release = new ReleaseOnAnything_Transition;
-        t_release->setTargetState(releasedState);
-        mainState->addTransition(t_release);
-
+        make_transition<ReleaseOnAnything_Transition>(
+                    pressedConstraintState, finalState);
+        make_transition<MoveOnAnything_Transition>(
+                    movingConstraint, movingConstraint, *this);
+        make_transition<ReleaseOnAnything_Transition>(
+                    movingConstraint, releasedState);
 
         QObject::connect(movingConstraint , &QState::entered, [&] ()
         {
+            // Note : store the offset when pressed.
             m_dispatcher.submitCommand(
                         new MoveConstraint{
                             ObjectPath{m_scenarioPath},
                             clickedConstraint,
-                            point.date,
+                            m_constraintInitialStartDate + (point.date - m_constraintInitialClickDate),
                             point.y});
         });
 

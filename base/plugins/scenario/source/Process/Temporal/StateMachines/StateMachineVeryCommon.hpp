@@ -1,6 +1,7 @@
 #pragma once
 #include <QEvent>
 #include <QAbstractTransition>
+#include <QState>
 #include <ProcessInterface/TimeValue.hpp>
 
 // A coordinate : (t, y)
@@ -49,6 +50,15 @@ class MatchedTransition : public QAbstractTransition
 
         virtual void onTransition(QEvent *event) override { }
 };
+
+template<typename Transition, typename SourceState, typename TargetState, typename... Args>
+Transition* make_transition(SourceState source, TargetState dest, Args&&... args)
+{
+    auto t = new Transition{std::forward<Args>(args)...};
+    t->setTargetState(dest);
+    source->addTransition(t);
+    return t;
+}
 
 using ScenarioPress_Event = NumberedEvent<1>;
 using ScenarioMove_Event = NumberedEvent<2>;

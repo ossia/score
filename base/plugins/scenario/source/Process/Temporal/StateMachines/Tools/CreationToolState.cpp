@@ -9,18 +9,17 @@ CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
                     iscore::IDocument::path(m_sm.model()),
                     m_sm.commandStack(), nullptr};
 
-    m_baseState->addTransition(m_baseState, SIGNAL(finished()), m_waitState);
 
-    auto t1 = new ClickOnEvent_Transition(*m_baseState);
-    t1->setTargetState(m_baseState);
-    m_waitState->addTransition(t1);
-
-    auto t2 = new ClickOnNothing_Transition(*m_baseState);
-    t2->setTargetState(m_baseState);
-    connect(t2, &QAbstractTransition::triggered, [&] ()
+    // Wait -> ...
+    make_transition<ClickOnEvent_Transition>(m_waitState, m_baseState, *m_baseState);
+    auto t_click_nothing = make_transition<ClickOnNothing_Transition>(m_waitState,
+                                                                      m_baseState,
+                                                                      *m_baseState);
+    connect(t_click_nothing, &QAbstractTransition::triggered, [&] ()
     { m_baseState->clickedEvent = id_type<EventModel>(0); });
-    m_waitState->addTransition(t2);
 
+    // On finish
+    m_baseState->addTransition(m_baseState, SIGNAL(finished()), m_waitState);
 
     m_localSM.addState(m_baseState);
 

@@ -6,51 +6,54 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     GenericToolState{sm}
 {
     /// Constraint
-    m_moveConstraintState =
+    m_moveConstraint =
             new MoveConstraintState{
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),
                   nullptr};
 
-    m_moveConstraintState->addTransition(m_moveConstraintState, SIGNAL(finished()), m_waitState);
-
-    auto t_press_constraint = new ClickOnConstraint_Transition(*m_moveConstraintState);
-    t_press_constraint->setTargetState(m_moveConstraintState);
-    m_waitState->addTransition(t_press_constraint);
-    m_localSM.addState(m_moveConstraintState);
+    make_transition<ClickOnConstraint_Transition>(m_waitState,
+                                                  m_moveConstraint,
+                                                  *m_moveConstraint);
+    m_moveConstraint->addTransition(m_moveConstraint,
+                                    SIGNAL(finished()),
+                                    m_waitState);
+    m_localSM.addState(m_moveConstraint);
 
 
     /// Event
-    m_moveEventState =
+    m_moveEvent =
             new MoveEventState{
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),
                   nullptr};
 
-    m_moveEventState->addTransition(m_moveEventState, SIGNAL(finished()), m_waitState);
-
-    auto t_press_event = new ClickOnEvent_Transition(*m_moveEventState);
-    t_press_event->setTargetState(m_moveEventState);
-    m_waitState->addTransition(t_press_event);
-    m_localSM.addState(m_moveEventState);
+    make_transition<ClickOnEvent_Transition>(m_waitState,
+                                             m_moveEvent,
+                                             *m_moveEvent);
+    m_moveEvent->addTransition(m_moveEvent,
+                               SIGNAL(finished()),
+                               m_waitState);
+    m_localSM.addState(m_moveEvent);
 
 
     /// TimeNode
-    m_moveTimeNodeState =
+    m_moveTimeNode =
             new MoveTimeNodeState{
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),
                   nullptr};
 
-    m_moveTimeNodeState->addTransition(m_moveTimeNodeState, SIGNAL(finished()), m_waitState);
-
-    auto t_press_timenode = new ClickOnTimeNode_Transition(*m_moveTimeNodeState);
-    t_press_timenode ->setTargetState(m_moveTimeNodeState);
-    m_waitState->addTransition(t_press_timenode);
-    m_localSM.addState(m_moveTimeNodeState);
+    make_transition<ClickOnTimeNode_Transition>(m_waitState,
+                                             m_moveTimeNode,
+                                             *m_moveTimeNode);
+    m_moveTimeNode->addTransition(m_moveTimeNode,
+                                  SIGNAL(finished()),
+                                  m_waitState);
+    m_localSM.addState(m_moveTimeNode);
 }
 
 void MoveToolState::on_scenarioPressed()

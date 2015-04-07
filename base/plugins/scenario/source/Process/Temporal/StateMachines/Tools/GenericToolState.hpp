@@ -101,26 +101,19 @@ class GenericToolState : public QState
             m_sm{sm}
         {
             // Press
-            auto t_click = new ScenarioPress_Transition;
-            t_click->setTargetState(this); // Check the tool
+            auto t_click = make_transition<ScenarioPress_Transition>(this, this);
             connect(t_click, &QAbstractTransition::triggered,
                     [&] () { on_scenarioPressed(); });
-            this->addTransition(t_click);
 
             // Move
-            auto t_move = new ScenarioMove_Transition;
-            t_move->setTargetState(this); // Check the tool
+            auto t_move = make_transition<ScenarioMove_Transition>(this, this);
             connect(t_move, &QAbstractTransition::triggered,
                     [&] () { on_scenarioMoved(); });
-            this->addTransition(t_move);
 
             // Release
-            auto t_rel = new ScenarioRelease_Transition;
-            t_rel->setTargetState(this); // Check the tool
+            auto t_rel = make_transition<ScenarioRelease_Transition>(this, this);
             connect(t_rel, &QAbstractTransition::triggered,
                     [&] () { on_scenarioReleased(); });
-            this->addTransition(t_rel);
-
 
             m_waitState = new QState;
             m_localSM.addState(m_waitState);

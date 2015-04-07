@@ -14,7 +14,7 @@ class MoveToolState : public GenericToolState
         void on_scenarioReleased() override;
 
     private:
-        MoveConstraintState* m_moveConstraintState{};
-        MoveEventState* m_moveEventState{};
-        MoveTimeNodeState* m_moveTimeNodeState{};
+        MoveConstraintState* m_moveConstraint{};
+        MoveEventState* m_moveEvent{};
+        MoveTimeNodeState* m_moveTimeNode{};
 };
