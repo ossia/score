@@ -4,7 +4,6 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
-struct EventData;
 class EventModel;
 class TimeNodeModel;
 

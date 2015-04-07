@@ -6,7 +6,6 @@
 #include <tuple>
 #include <ProcessInterface/TimeValue.hpp>
 
-struct EventData;
 class EventModel;
 class ProcessViewModelInterface;
 class AbstractConstraintViewModel;

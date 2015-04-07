@@ -5,7 +5,6 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include "MoveEvent.hpp"
 
-struct EventData;
 class EventModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -19,7 +18,10 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveTimeNode();
-                MoveTimeNode(ObjectPath&& scenarioPath, EventData data);
+                MoveTimeNode(ObjectPath&& scenarioPath,
+                             id_type<EventModel> eventId,
+                             const TimeValue& date,
+                             double height);
                 ~MoveTimeNode();
                 virtual void undo() override;
                 virtual void redo() override;

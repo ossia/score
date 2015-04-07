@@ -32,14 +32,12 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue durati
 {
 
     auto constraint = constraintPath.find<ConstraintModel>();
-    EventData endEventData{};
-    endEventData.dDate = constraint->startDate() + duration;
-    endEventData.relativeY = constraint->heightPercentage();
-    endEventData.eventClickedId = constraint->endEvent();
-
     m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
 
-    // TODO m_cmd = new MoveEvent{iscore::IDocument::path(constraint->parent()), endEventData};
+    m_cmd = new MoveEvent(iscore::IDocument::path(constraint->parent()),
+                          constraint->endEvent(),
+                          constraint->startDate() + duration,
+                          constraint->heightPercentage());
 }
 
 void ResizeConstraint::undo()

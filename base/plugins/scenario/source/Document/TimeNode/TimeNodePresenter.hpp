@@ -7,7 +7,6 @@
 class TimeNodeView;
 class TimeNodeModel;
 class EventModel;
-struct EventData;
 
 class TimeNodePresenter :  public NamedObject
 {

@@ -17,11 +17,14 @@ MoveTimeNode::MoveTimeNode():
 {
 }
 
-MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath, EventData data) :
+MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath,
+                           id_type<EventModel> eventId,
+                           const TimeValue& date,
+                           double height):
     SerializableCommand{"ScenarioControl",
                         className(),
-                        description()}// ,
-   // TODO better m_cmd{new MoveEvent{std::move(scenarioPath), data}}
+                        description()},
+   m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height}}
 {
 }
 

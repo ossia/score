@@ -25,8 +25,6 @@ class TimeNodePresenter;
 class ConstraintModel;
 class ScenarioSelectionManager;
 class ScenarioViewInterface;
-struct EventData;
-struct ConstraintData;
 class SelectionDispatcher;
 
 class TemporalScenarioPresenter : public ProcessPresenterInterface
