@@ -69,7 +69,7 @@ void MoveToolState::on_scenarioPressed()
     { m_localSM.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] (const auto& id)
     { m_localSM.postEvent(new ClickOnConstraint_Event{id, m_sm.scenarioPoint}); },
-    [&] () { }); // TODO last case should not need to be here.
+    [&] () { });
 }
 
 void MoveToolState::on_scenarioMoved()

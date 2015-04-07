@@ -9,24 +9,34 @@ CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
     m_localSM.addState(m_waitState);
     m_localSM.setInitialState(m_waitState);
 
-    m_baseState = new CreateState{
+    /// Create from an event
+    m_createFromEventState = new CreateFromEventState{
                     iscore::IDocument::path(m_sm.model()),
                     m_sm.commandStack(), nullptr};
 
-    make_transition<ClickOnEvent_Transition>(m_waitState, m_baseState, *m_baseState);
+    make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
+    m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 
     auto t_click_nothing = make_transition<ClickOnNothing_Transition>(m_waitState,
-                                                                      m_baseState,
-                                                                      *m_baseState);
+                                                                      m_createFromEventState,
+                                                                      *m_createFromEventState);
     connect(t_click_nothing, &QAbstractTransition::triggered, [&] ()
-    { m_baseState->clickedEvent = id_type<EventModel>(0); });
+    { m_createFromEventState->clickedEvent = id_type<EventModel>(0); });
+    m_localSM.addState(m_createFromEventState);
 
-    // On finish
-    m_baseState->addTransition(m_baseState, SIGNAL(finished()), m_waitState);
+    /// Create from a timenode
+    /*
+    auto createFromTimeNodeState = new CreateFromTimeNodeState{
+                    iscore::IDocument::path(m_sm.model()),
+                    m_sm.commandStack(), nullptr};
+    make_transition<ClickOnTimeNode_Transition>(m_waitState,
+                                                createFromTimeNodeState,
+                                                *createFromTimeNodeState);
+    createFromTimeNodeState->addTransition(createFromTimeNodeState, SIGNAL(finished()), m_waitState);
+    m_localSM.addState(createFromTimeNodeState);
+    */
 
-    m_localSM.addState(m_baseState);
 
-    // TODO ClickOnTimeNode_Transition
 }
 
 void CreationToolState::on_scenarioPressed()
@@ -50,7 +60,9 @@ void CreationToolState::on_scenarioMoved()
     [&] (const auto& id)
     { m_localSM.postEvent(new MoveOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] ()
-    { m_localSM.postEvent(new MoveOnNothing_Event{m_sm.scenarioPoint}); });
+    { m_localSM.postEvent(new MoveOnNothing_Event{m_sm.scenarioPoint}); },
+    m_createFromEventState->createdEvent(),
+    m_createFromEventState->createdTimeNode());
 }
 
 void CreationToolState::on_scenarioReleased()
@@ -61,5 +73,7 @@ void CreationToolState::on_scenarioReleased()
     [&] (const auto& id)
     { m_localSM.postEvent(new ReleaseOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] ()
-    { m_localSM.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint}); });
+    { m_localSM.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint}); },
+    m_createFromEventState->createdEvent(),
+    m_createFromEventState->createdTimeNode());
 }

@@ -47,7 +47,6 @@ void ResizeConstraint::undo()
 
 void ResizeConstraint::redo()
 {
-    m_cmd->init();
     m_cmd->redo();
 }
 

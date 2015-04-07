@@ -25,7 +25,6 @@ class CommonState : public QState
             clickedConstraint = id_type<ConstraintModel>{};
 
             point = ScenarioPoint();
-
         }
 
         id_type<EventModel> clickedEvent;
@@ -38,14 +37,25 @@ class CommonState : public QState
 
         ScenarioPoint point;
 
-        const auto& createdEvent() const
-        { return m_createdEvent; }
-        const auto& createdTimeNode() const
-        { return m_createdTimeNode; }
-
     protected:
         ObjectPath m_scenarioPath;
+};
 
+class CreationState : public CommonState
+{
+    public:
+        using CommonState::CommonState;
+        const auto& createdEvent() const
+        { return m_createdEvent; }
+        void setCreatedEvent(const id_type<EventModel>& id)
+        { m_createdEvent = id; }
+
+        const auto& createdTimeNode() const
+        { return m_createdTimeNode; }
+        void setCreatedTimeNode(const id_type<TimeNodeModel>& id)
+        { m_createdTimeNode = id; }
+
+    private:
         id_type<EventModel> m_createdEvent;
         id_type<TimeNodeModel> m_createdTimeNode;
 };

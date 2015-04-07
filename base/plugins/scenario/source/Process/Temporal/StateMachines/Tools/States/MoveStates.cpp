@@ -82,11 +82,6 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
 {
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
-    connect(finalState, &QState::entered, [&] ()
-    {
-        m_createdEvent = id_type<EventModel>{};
-        m_createdTimeNode = id_type<TimeNodeModel>{};
-    });
 
     QState* mainState = new QState{this};
     {
@@ -142,11 +137,6 @@ MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandS
 {
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
-    connect(finalState, &QState::entered, [&] ()
-    {
-        m_createdEvent = id_type<EventModel>{};
-        m_createdTimeNode = id_type<TimeNodeModel>{};
-    });
 
     QState* mainState = new QState{this};
     {

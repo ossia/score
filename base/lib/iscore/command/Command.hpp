@@ -88,15 +88,6 @@ namespace iscore
             {
                 m_canMerge = false;
             }
-            virtual bool init()
-            {
-                return false;
-            }
-
-            virtual bool finish()
-            {
-                return false;
-            }
 
             virtual void undo() = 0;
             virtual void redo() = 0;

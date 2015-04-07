@@ -2,6 +2,77 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
+
+
+// YES.
+class MultiCommandDispatcher : public QObject
+{
+        Q_OBJECT
+    public:
+        MultiCommandDispatcher(iscore::CommandStack& stack):
+            m_stack{stack}
+        {
+
+        }
+
+        iscore::CommandStack& stack() const
+        { return m_stack; }
+
+        void submitCommand(iscore::SerializableCommand* cmd)
+        {
+            if(m_cmds.empty())
+            {
+                cmd->redo();
+                m_cmds.append(cmd);
+            }
+            else
+            {
+                iscore::SerializableCommand* last = m_cmds.last();
+                if(last->mergeWith(cmd))
+                {
+                    last->redo();
+                    delete cmd;
+                }
+                else
+                {
+                    cmd->redo();
+                    m_cmds.append(cmd);
+                }
+            }
+        }
+
+        void commit()
+        {
+            // TODO put in a proper command.
+            iscore::AggregateCommand* theCmd = new iscore::AggregateCommand("ScenarioControl", "ZeCommand", "TODO Desc");
+
+            for(auto& cmd : m_cmds)
+            {
+                theCmd->addCommand(cmd);
+            }
+
+            SendStrategy::Quiet::send(stack(), theCmd);
+            m_cmds.clear();
+        }
+
+        void rollback()
+        {
+            for(int i = m_cmds.size() - 1; i >= 0; --i)
+            {
+                m_cmds[i]->undo();
+                delete m_cmds[i];
+            }
+
+            m_cmds.clear();
+        }
+
+
+    private:
+        iscore::CommandStack& m_stack;
+        QList<iscore::SerializableCommand*> m_cmds;
+};
+
+/*
 class MetaCreateEvent : public iscore::AggregateCommand
 {
     public:
@@ -94,12 +165,12 @@ class RealtimeMacroCommandDispatcher : public ITransactionalCommandDispatcher
         iscore::SerializableCommand* m_base{};
         iscore::SerializableCommand* m_continuous{};
 };
+*/
 
-
-class CreateState : public CommonState
+class CreateFromEventState : public CreationState
 {
     public:
-        CreateState(ObjectPath&& scenarioPath,
+        CreateFromEventState(ObjectPath&& scenarioPath,
                     iscore::CommandStack& stack,
                     QState* parent);
 
@@ -107,9 +178,24 @@ class CreateState : public CommonState
         void createEventFromEventOnNothing();
         void createEventFromEventOnTimeNode();
 
-        void createEventFromTimeNodeOnNothing();
-        void createEventFromTimeNodeOnTimeNode();
         void createConstraintBetweenEvents();
 
-        RealtimeMacroCommandDispatcher m_dispatcher;
+        MultiCommandDispatcher m_dispatcher;
 };
+
+class CreateFromTimeNodeState : public CreationState
+{
+    public:
+        CreateFromTimeNodeState(ObjectPath&& scenarioPath,
+                    iscore::CommandStack& stack,
+                    QState* parent);
+
+    private:
+        void createEventFromTimeNodeOnNothing();
+        void createEventFromTimeNodeOnTimeNode();
+
+        void createConstraintBetweenEvents();
+
+        MultiCommandDispatcher m_dispatcher;
+};
+

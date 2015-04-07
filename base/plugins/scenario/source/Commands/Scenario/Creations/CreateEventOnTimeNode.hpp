@@ -18,7 +18,10 @@ namespace Scenario
             #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(CreateEventOnTimeNode, "ScenarioControl")
-                CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<TimeNodeModel> timeNodeId, double heightPosition);
+                CreateEventOnTimeNode(
+                    ObjectPath&& scenarioPath,
+                    id_type<TimeNodeModel> timeNodeId,
+                    double heightPosition);
 
                 virtual void undo() override;
                 virtual void redo() override;

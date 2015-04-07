@@ -18,18 +18,18 @@ class CreationToolState : public GenericToolState
         void mapWithCollision(
                 EventFun&& ev_fun,
                 TimeNodeFun&& tn_fun,
-                NothingFun&& nothing_fun)
+                NothingFun&& nothing_fun,
+                const id_type<EventModel>& createdEvent,
+                const id_type<TimeNodeModel>& createdTimeNode)
         {
-            auto collidingEvents = getCollidingModels(m_sm.presenter().events(),
-                                                      m_baseState->createdEvent());
+            auto collidingEvents = getCollidingModels(m_sm.presenter().events(), createdEvent);
             if(!collidingEvents.empty())
             {
                 ev_fun(collidingEvents.first()->id());
                 return;
             }
 
-            auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(),
-                                                         m_baseState->createdTimeNode());
+            auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(), createdTimeNode);
             if(!collidingTimeNodes.empty())
             {
                 tn_fun(collidingTimeNodes.first()->id());
@@ -39,6 +39,6 @@ class CreationToolState : public GenericToolState
             nothing_fun();
         }
 
-        CreateState* m_baseState{};
+        CreateFromEventState* m_createFromEventState{};
         QState* m_waitState{};
 };

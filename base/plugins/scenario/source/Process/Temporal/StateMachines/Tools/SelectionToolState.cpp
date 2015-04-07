@@ -247,7 +247,6 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
 
     // TODO if m_multiSelection->active()
     m_dispatcher.setAndCommit(sel);
-    // TODO focus();
 }
 
 

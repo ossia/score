@@ -67,7 +67,6 @@ namespace CommitStrategy
             static void commit(iscore::CommandStack& stack, iscore::SerializableCommand* cmd)
             {
                 cmd->undo();
-                cmd->init();
                 SendStrategy::Simple::send(stack, cmd);
             }
     };
@@ -245,7 +244,6 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
             if(!ongoing())
             {
                 m_ongoingCommand = cmd;
-                m_ongoingCommand->init();
                 m_ongoingCommand->redo();
                 m_ongoing = true;
 
@@ -265,7 +263,6 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
         {
             if(ongoing())
             {
-                m_ongoingCommand->finish();
                 CommitStrategy_T::commit(stack(), m_ongoingCommand);
                 m_ongoingCommand = nullptr;
                 m_ongoing = false;
