@@ -28,9 +28,8 @@ Application::Application(int& argc, char** argv) :
     m_settings = std::make_unique<Settings> (this);
 
     // MVP
-    m_model = new Model{this};
     m_view = new View{this};
-    m_presenter = new Presenter{m_model, m_view, this};
+    m_presenter = new Presenter{m_view, this};
 
     // Plugins
     m_pluginManager.reloadPlugins();

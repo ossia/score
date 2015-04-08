@@ -9,7 +9,6 @@
 
 namespace iscore
 {
-    class Model;
     class Presenter;
     class View;
     class ChildEventFilter;
@@ -52,7 +51,6 @@ namespace iscore
             std::unique_ptr<Settings> m_settings; // Global settings
 
             // MVP
-            Model* m_model {};
             View* m_view {};
             Presenter* m_presenter {};
 

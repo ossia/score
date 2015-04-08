@@ -23,9 +23,8 @@
 
 using namespace iscore;
 
-Presenter::Presenter(Model* model, View* view, QObject* arg_parent) :
+Presenter::Presenter(View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
-    m_model {model},
     m_view {view},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}

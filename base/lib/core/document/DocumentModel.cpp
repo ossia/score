@@ -27,7 +27,6 @@ DocumentModel::DocumentModel(QVariant data,
         QVector<QPair<QString, QByteArray>> panelModels;
         QDataStream wr(full);
         wr >> doc >> panelModels;
-        // TODO check hash
 
 
         m_model = fact->makeModel(this, doc);

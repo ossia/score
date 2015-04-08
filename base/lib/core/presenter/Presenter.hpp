@@ -11,7 +11,6 @@ namespace iscore
 {
     class SerializableCommand;
     class PluginControlInterface;
-    class Model;
     class View;
     class PanelFactoryInterface;
     class PanelPresenterInterface;
@@ -28,7 +27,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            Presenter(iscore::Model* model, iscore::View* view, QObject* parent);
+            Presenter(iscore::View* view, QObject* parent);
 
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
@@ -67,7 +66,6 @@ namespace iscore
             void addDocument(Document* doc);
             void setupMenus();
 
-            Model* m_model {};
             View* m_view {};
             MenubarManager m_menubar;
             QList<Document*> m_documents{};

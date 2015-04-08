@@ -57,12 +57,6 @@ Document::~Document()
     delete m_presenter;
 }
 
-// TODO the Document should receive the list of the current panels.
-// If a panel is closed or so, its model is deleted in all documents.
-// If a panel is opened, its model should be created in all documents,
-// and if a new document is created, it should be created with models for all panels.
-// When the current document changes, the global Presenter should
-// setup the correct links between the Panels ({presenter,view}) and the displayed document.
 void Document::setupNewPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
 {
     auto model = factory->makeModel(m_model);
@@ -144,14 +138,13 @@ QByteArray Document::saveAsByteArray()
     auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
     writer << hash;
 
-/*
- * TODO Save this, too.
+    /*
     QVector<QPair<QString, QByteArray>> documentPluginModels;
     std::transform(begin(model()->panels()),
                    end(model()->panels()),
                    std::back_inserter(panelModels),
                    [] (DocumentDelegatePluginModel* plugin) {  return QPair<QString, QByteArray>{plugin->objectName(), plugin->toByteArray()}; });
-                  */
+    */
 
     return global;
 }

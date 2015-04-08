@@ -22,7 +22,6 @@ const SerializableCommand* CommandStack::command(int index) const
 
 void CommandStack::setIndex(int index)
 {
-    // TODO send this by network, too
     while(index >= 0 && currentIndex() != index)
     {
         if(index < currentIndex())
