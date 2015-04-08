@@ -31,6 +31,7 @@
 #include "Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Scenario/Creations/CreateEventOnTimeNode.hpp"
+#include "Scenario/Creations/CreationMetaCommand.hpp"
 #include "Scenario/Deletions/ClearConstraint.hpp"
 #include "Scenario/Deletions/ClearEvent.hpp"
 #include "Scenario/Deletions/RemoveConstraint.hpp"
@@ -72,6 +73,7 @@ const char* Scenario::Command::CreateConstraint::className() { return "CreateCon
 const char* Scenario::Command::CreateEventAfterEvent::className() { return "CreateEventAfterEvent"; }
 const char* Scenario::Command::CreateEventAfterEventOnTimeNode::className() { return "CreateEventAfterEventOnTimeNode"; }
 const char* Scenario::Command::CreateEventOnTimeNode::className() { return "CreateEventOnTimeNode"; }
+const char* Scenario::Command::CreationMetaCommand::className() { return "CreationMetaCommand"; }
 
 const char* Scenario::Command::Cut::className() { return "Cut"; }
 const char* Scenario::Command::HideBoxInViewModel::className() { return "HideBoxInViewModel"; }
@@ -144,6 +146,7 @@ QString Scenario::Command::CreateConstraint::description() { return QObject::tr(
 QString Scenario::Command::CreateEventAfterEvent::description() { return QObject::tr("CreateEventAfterEvent"); }
 QString Scenario::Command::CreateEventAfterEventOnTimeNode::description() { return QObject::tr("CreateEventAfterEventOnTimeNode"); }
 QString Scenario::Command::CreateEventOnTimeNode::description() { return QObject::tr("CreateEventOnTimeNode"); }
+QString Scenario::Command::CreationMetaCommand::description() { return QObject::tr("CreationMetaCommand"); }
 
 QString Scenario::Command::Cut::description() { return "Cut"; }
 QString Scenario::Command::HideBoxInViewModel::description() { return QObject::tr("HideBoxInViewModel"); }
@@ -242,6 +245,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == CreateEventAfterEvent::className()) return new CreateEventAfterEvent;
     else if(name == CreateEventAfterEventOnTimeNode::className()) return new CreateEventAfterEventOnTimeNode;
     else if(name == CreateEventOnTimeNode::className()) return new CreateEventOnTimeNode;
+    else if(name == CreationMetaCommand::className()) return new CreationMetaCommand;
 
     else if(name == HideBoxInViewModel::className()) return new HideBoxInViewModel;
 
