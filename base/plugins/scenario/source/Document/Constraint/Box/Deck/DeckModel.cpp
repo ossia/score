@@ -67,7 +67,6 @@ void DeckModel::selectForEdition(id_type<ProcessViewModelInterface> processViewI
 {
     if(!processViewId.val())
     {
-        // TODO no pvm
         return;
     }
 
@@ -116,8 +115,6 @@ void DeckModel::setHeight(int arg)
 ConstraintModel* DeckModel::parentConstraint() const
 {
     return static_cast<ConstraintModel*>(parent()->parent());
-    // TODO Is there a better way to do this ? Without breaking encapsulation ?
-    // And without generating another ton of code from constraintmodel to deckmodel ?
 }
 
 int DeckModel::height() const

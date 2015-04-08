@@ -67,7 +67,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
     {
         auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
 
-        // TODO Operate at the document level instead.
         if(!savename.isEmpty())
         {
             QFile f(savename);
@@ -187,11 +186,6 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         return static_cast<TemporalScenarioViewModel*>(model.focusedViewModel())->presenter()->stateMachine();
     };
 
-    // TODO disable when no focused view model
-    // 2 cases :
-    //  1. Document change
-    //  2. Process View Model change
-
     m_scenarioActionGroup = new QActionGroup(bar);
     m_scenarioActionGroup->setEnabled(false);
     auto createtool = new QAction(tr("Create"), m_scenarioActionGroup);
@@ -216,9 +210,6 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setSelectState();
     });
 
-    // TODO add a deck move & deck remove tool; same for box.
-    // When in these tools, the "modifiable" area becomes greyed in whole.
-    // Also add a mode for "scale / change duration"
     on_presenterChanged();
     bar->addActions(m_scenarioActionGroup->actions());
 }

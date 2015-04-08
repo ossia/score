@@ -84,7 +84,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
     ev.setCondition(m_obj["Condition"].toString());
     ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>> (m_obj["TimeNode"].toObject()));
 
-    /* TODO
+    /* TODO JSON State deserialization
     QJsonArray states = m_obj["States"].toArray();
 
     for(auto json_vref : states)

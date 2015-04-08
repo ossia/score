@@ -180,11 +180,6 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
 
     m_box->on_zoomRatioChanged(m_zoomRatio);
 
-    // TODO Bof. Peut-être faire remonter juste si un process est sélectionné ??
-    // Même pas : la sélection fait partie du modèle.
-    //connect(m_box, &BoxPresenter::elementSelected,
-    //        this,  &AbstractConstraintPresenter::elementSelected);
-
     connect(m_box, &BoxPresenter::askUpdate,
             this,  &AbstractConstraintPresenter::updateHeight);
 }

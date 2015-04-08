@@ -114,7 +114,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
 
     // metadata
     m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
-    m_metadata->setType(ConstraintModel::prettyName()); // TODO le faire automatiquement avec T::className
+    m_metadata->setType(ConstraintModel::prettyName());
 
     m_metadata->setupConnections(object);
 

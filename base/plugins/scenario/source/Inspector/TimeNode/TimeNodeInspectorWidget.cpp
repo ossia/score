@@ -60,7 +60,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
 
     // metadata
     m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
-    m_metadata->setType(TimeNodeModel::prettyName()); // TODO le faire automatiquement avec T::className
+    m_metadata->setType(TimeNodeModel::prettyName());
 
     m_metadata->setupConnections(m_model);
 

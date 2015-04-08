@@ -55,17 +55,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         Selectable selection;
         ModelMetadata metadata;
 
-        // TODO use Qt's instead
-        static constexpr const char * className()
-        { return "ConstraintModel"; }
         static QString prettyName()
         { return QObject::tr("Constraint"); }
 
 
         /** The class **/
-        ConstraintModel(id_type<ConstraintModel>,
-                        id_type<AbstractConstraintViewModel> fullViewId, // TODO is this id necessary ? Maybe {} would be enough...
-                        QObject* parent); // TODO remove
         ConstraintModel(id_type<ConstraintModel>,
                         id_type<AbstractConstraintViewModel> fullViewId,
                         double yPos,

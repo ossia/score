@@ -8,8 +8,8 @@ class ConstraintModel;
 
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
-// TODO with composition instead of inheritance it would maybe be cleaner
-// and allow us to use "traditional" copy ctors instead ?
+
+// Note : the DeckModel is assumed to be in a Box, itself in a Constraint.
 class DeckModel : public IdentifiedObject<DeckModel>
 {
         Q_OBJECT
@@ -56,7 +56,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
         ConstraintModel* parentConstraint() const;
 
         int height() const;
-        // TODO put the position in the box.
+
         id_type<ProcessViewModelInterface> editedProcessViewModel() const
         {
             return m_editedProcessViewModelId;

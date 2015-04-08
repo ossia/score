@@ -15,7 +15,7 @@ namespace Scenario
             public:
                 static const char * className()
                 {
-                    return QString{"ChangeElementName_%1"}.arg(T::className()).toLatin1();
+                    return QString{"ChangeElementName_%1"}.arg(T::staticMetaObject.className()).toLatin1();
                 }
                 static QString description()
                 {

@@ -304,8 +304,12 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     });
 
     // TODO Select constraint here.
-    m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->endEvent())->model()->timeNode());
-    m_viewInterface->updateTimeNode(findById(m_events, constraint_view_model->model()->startEvent())->model()->timeNode());
+    m_viewInterface->updateTimeNode(findById(m_events,
+                                             constraint_view_model->model()->endEvent())
+                                        ->model()->timeNode());
+    m_viewInterface->updateTimeNode(findById(m_events,
+                                             constraint_view_model->model()->startEvent())
+                                        ->model()->timeNode());
 }
 
 void TemporalScenarioPresenter::focus()

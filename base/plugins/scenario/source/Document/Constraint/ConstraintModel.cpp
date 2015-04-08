@@ -8,31 +8,18 @@
 #include <iscore/tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-//#include <API/Headers/Editor/TimeBox.h>
-
 #include <QDebug>
 
 
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,
+                                 double yPos,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    //m_timeBox {new OSSIA::TimeBox},
-    m_fullViewModel
-{
-    new FullViewConstraintViewModel{fullViewId, this, this}
-}
+    m_fullViewModel{new FullViewConstraintViewModel{fullViewId, this, this}}
 {
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
-}
-
-ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
-                                 id_type<AbstractConstraintViewModel> fullViewId,
-                                 double yPos,
-                                 QObject* parent) :
-    ConstraintModel {id, fullViewId, parent}
-{
     setHeightPercentage(yPos);
 }
 

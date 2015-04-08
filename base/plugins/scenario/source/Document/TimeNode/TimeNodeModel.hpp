@@ -23,8 +23,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         Selectable selection;
         ModelMetadata metadata;
 
-        static constexpr const char * className()
-        { return "TimeNodeModel"; }
         static QString prettyName()
         { return QObject::tr("Time Node"); }
 

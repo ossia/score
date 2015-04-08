@@ -10,9 +10,7 @@ EventView::EventView(QGraphicsObject* parent) :
 {
     this->setParentItem(parent);
 
-    // TODO hack. How to do it properly ? should events be "over" constraints ? maybe +1.5 ?
     this->setZValue(parent->zValue() + 2);
-
     this->setAcceptHoverEvents(true);
 
     m_color = Qt::black;

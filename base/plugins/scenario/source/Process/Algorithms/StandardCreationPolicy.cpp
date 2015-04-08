@@ -67,6 +67,7 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
     auto eev = scenario.event(endEventId);
     auto constraint = new ConstraintModel {newConstraintModelId,
                       newConstraintFullViewId,
+                      (sev->heightPercentage() + eev->heightPercentage()) / 2.,
                       &scenario};
 
     // Error checking if it did not go well ? Rollback ?
@@ -79,7 +80,6 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
     constraint->setDefaultDuration(constraint_duration);
     constraint->setMinDuration(constraint_duration);
     constraint->setMaxDuration(constraint_duration);
-    constraint->setHeightPercentage((sev->heightPercentage() + eev->heightPercentage()) / 2.);
 
     sev->addNextConstraint(newConstraintModelId);
     eev->addPreviousConstraint(newConstraintModelId);

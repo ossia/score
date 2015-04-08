@@ -42,7 +42,6 @@ NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
     connect(&m_document->commandStack(), &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->master()->sendMessage(m_session->makeMessage("/redo")); });
-    //TODO SetUndoIndex
 
     // TODO : messages : peut-être utiliser des tuples en tant que structures ?
     // Cela permettrait de spécifier les types proprement ?

@@ -39,8 +39,6 @@ class EventModel : public IdentifiedObject<EventModel>
         Selectable selection;
         ModelMetadata metadata;
 
-        static constexpr const char * className()
-        { return "EventModel"; }
         static QString prettyName()
         { return QObject::tr("Event"); }
 

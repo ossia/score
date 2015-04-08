@@ -47,7 +47,7 @@ void SplitTimeNode::redo()
     auto originalTN = scenar->timeNode(m_originalTimeNodeId);
 
     // TODO set the correct position here.
-    auto& tn = CreateTimeNodeMin::redo(m_newTimeNodeId, originalTN->date(), 0.5, *scenar);
+    auto& tn = CreateTimeNodeMin::redo(m_newTimeNodeId, originalTN->date(), 0.5, * scenar);
 
     for (auto& eventId : m_eventsInNewTimeNode)
     {

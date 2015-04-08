@@ -121,7 +121,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
 
     // metadata
     m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
-    m_metadata->setType(EventModel::prettyName()); // TODO le faire automatiquement avec T::className
+    m_metadata->setType(EventModel::prettyName());
 
     m_metadata->setupConnections(m_model);
 
