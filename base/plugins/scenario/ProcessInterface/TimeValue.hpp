@@ -55,7 +55,7 @@ class TimeValue_T
             return !isInfinite() && (msec() == 0);
         }
 
-        int msec() const
+        double msec() const
         {
             return *m_impl;
         }
@@ -72,7 +72,7 @@ class TimeValue_T
 
         QTime toQTime()
         {
-            return QTime(0,0,0,0).addMSecs(*m_impl);
+            return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
         }
 
         void addMSecs(int msecs)

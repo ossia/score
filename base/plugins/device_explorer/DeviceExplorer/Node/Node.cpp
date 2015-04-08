@@ -222,7 +222,7 @@ QJsonObject nodeToJson(const Node* n)
     obj["IOType"] = n->ioType();
     obj["MinValue"] = n->minValue();
     obj["MaxValue"] = n->maxValue();
-    obj["Priority"] = (int) n->priority();
+    obj["Priority"] = static_cast<int>(n->priority());
 
     if(n->isDevice())
     {

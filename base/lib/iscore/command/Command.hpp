@@ -20,8 +20,8 @@
     auto hash = fn(className()); \
     int32_t theUid = \
         hash <= numeric_limits<int32_t>::max() ? \
-            (int32_t) hash : \
-            (int32_t) (hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min(); \
+            static_cast<int32_t>(hash) : \
+            static_cast<int32_t>(hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min(); \
          return theUid; \
     } \
     private:
@@ -101,8 +101,8 @@ namespace iscore
                 auto hash = fn(this->name().toStdString());
                 int32_t theUid =
                     hash <= numeric_limits<int32_t>::max() ?
-                        (int32_t) hash :
-                        (int32_t) (hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min();
+                        static_cast<int32_t>(hash) :
+                        static_cast<int32_t>(hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min();
                 return theUid;
             }
 
@@ -110,7 +110,7 @@ namespace iscore
         protected:
             quint32 timestamp() const
             {
-                return m_timestamp.count();
+                return static_cast<quint32>(m_timestamp.count());
             }
 
             void setTimestamp(quint32 stmp)

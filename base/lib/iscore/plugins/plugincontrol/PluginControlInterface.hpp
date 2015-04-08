@@ -30,7 +30,7 @@ namespace iscore
             using NamedObject::NamedObject;
             virtual ~PluginControlInterface() = default;
             virtual void populateMenus(iscore::MenubarManager*) = 0;
-            virtual void populateToolbars(QToolBar* bar) {}
+            virtual void populateToolbars(QToolBar*) {}
 
             Presenter* presenter() const
             {
@@ -44,8 +44,8 @@ namespace iscore
             }
 
             virtual SerializableCommand* instantiateUndoCommand(
-                    const QString& name,
-                    const QByteArray& data)
+                    const QString& /*name*/,
+                    const QByteArray& /*data*/)
             {
                 return nullptr;
             }

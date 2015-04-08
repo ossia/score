@@ -99,8 +99,10 @@ inline int32_t getNextId()
     return dist(gen);
 }
 
-inline int getNextId(const std::vector<int>& ids)
+template<typename Vector>
+inline int getNextId(const Vector& ids)
 {
+    using namespace std;
     int id {};
 
     do
@@ -135,7 +137,7 @@ template<typename T>
 id_type<T> getStrongId(const QVector<T*>& v)
 {
     using namespace std;
-    vector<int> ids(v.size());   // Map reduce
+    QVector<int> ids(v.size());   // Map reduce
 
     transform(begin(v),
               end(v),

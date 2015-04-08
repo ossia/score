@@ -20,7 +20,7 @@ void SerializableCommand::deserialize(const QByteArray& arr)
     QDataStream s(arr);
     s.setVersion(QDataStream::Qt_5_3);
 
-    int stmp;
+    quint32 stmp;
     s >> stmp;
 
     setTimestamp(stmp);
