@@ -1,16 +1,18 @@
 
-#include "DeviceExplorerRemoveCommand.hpp"
+#include "Remove.hpp"
 
 #include <iostream> //DEBUG
 
-DeviceExplorerRemoveCommand::DeviceExplorerRemoveCommand()
+using namespace DeviceExplorer::Command;
+
+Remove::Remove()
     : iscore::SerializableCommand("", "Remove ", "")
 {
 
 }
 
 void
-DeviceExplorerRemoveCommand::set(const QModelIndex& parentIndex, int row,
+Remove::set(const QModelIndex& parentIndex, int row,
                                  const QByteArray& data,
                                  const QString& text,
                                  DeviceExplorerModel* model)
@@ -26,7 +28,7 @@ DeviceExplorerRemoveCommand::set(const QModelIndex& parentIndex, int row,
 
 
 void
-DeviceExplorerRemoveCommand::undo()
+Remove::undo()
 {
     Q_ASSERT(m_model);
 
@@ -37,7 +39,7 @@ DeviceExplorerRemoveCommand::undo()
 }
 
 void
-DeviceExplorerRemoveCommand::redo()
+Remove::redo()
 {
     Q_ASSERT(m_model);
     QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
@@ -56,14 +58,14 @@ DeviceExplorerRemoveCommand::redo()
 }
 
 bool
-DeviceExplorerRemoveCommand::mergeWith(const Command* /*other*/)
+Remove::mergeWith(const Command* /*other*/)
 {
     return false;
 }
 
 
 void
-DeviceExplorerRemoveCommand::serializeImpl(QDataStream& d) const
+Remove::serializeImpl(QDataStream& d) const
 {
     DeviceExplorerModel::serializePath(d, m_parentPath);
     d << (qint32) m_row;
@@ -74,7 +76,7 @@ DeviceExplorerRemoveCommand::serializeImpl(QDataStream& d) const
 }
 
 void
-DeviceExplorerRemoveCommand::deserializeImpl(QDataStream& d)
+Remove::deserializeImpl(QDataStream& d)
 {
     DeviceExplorerModel::deserializePath(d, m_parentPath);
     qint32 v;

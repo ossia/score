@@ -7,6 +7,16 @@ namespace iscore
 {
     class CommandStack;
 }
+namespace DeviceExplorer {
+    namespace Command {
+        class Move;
+        class Insert;
+        class Remove;
+        class Copy;
+        class Cut;
+        class Paste;
+    }
+}
 
 class Node;
 class DeviceExplorerView;
@@ -16,12 +26,12 @@ class DeviceExplorerModel : public QAbstractItemModel
 {
         Q_OBJECT
 
-        friend class DeviceExplorerMoveCommand;
-        friend class DeviceExplorerInsertCommand;
-        friend class DeviceExplorerRemoveCommand;
-        friend class DeviceExplorerCopyCommand;
-        friend class DeviceExplorerCutCommand;
-        friend class DeviceExplorerPasteCommand;
+        friend class DeviceExplorer::Command::Move;
+        friend class DeviceExplorer::Command::Insert;
+        friend class DeviceExplorer::Command::Remove;
+        friend class DeviceExplorer::Command::Copy;
+        friend class DeviceExplorer::Command::Cut;
+        friend class DeviceExplorer::Command::Paste;
 
     public:
 

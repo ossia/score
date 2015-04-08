@@ -1,15 +1,16 @@
 
-#include "DeviceExplorerPasteCommand.hpp"
+#include "Paste.hpp"
 
+using namespace DeviceExplorer::Command;
 
-DeviceExplorerPasteCommand::DeviceExplorerPasteCommand()
+Paste::Paste()
     : iscore::SerializableCommand("", "Paste ", "")
 {
 
 }
 
 void
-DeviceExplorerPasteCommand::set(const QModelIndex& parentIndex, int row,
+Paste::set(const QModelIndex& parentIndex, int row,
                                 const QString& text,
                                 DeviceExplorerModel* model)
 {
@@ -23,7 +24,7 @@ DeviceExplorerPasteCommand::set(const QModelIndex& parentIndex, int row,
 
 
 void
-DeviceExplorerPasteCommand::undo()
+Paste::undo()
 {
     Q_ASSERT(m_model);
 
@@ -36,7 +37,7 @@ DeviceExplorerPasteCommand::undo()
 }
 
 void
-DeviceExplorerPasteCommand::redo()
+Paste::redo()
 {
     Q_ASSERT(m_model);
     QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
@@ -48,13 +49,13 @@ DeviceExplorerPasteCommand::redo()
 }
 
 bool
-DeviceExplorerPasteCommand::mergeWith(const Command* /*other*/)
+Paste::mergeWith(const Command* /*other*/)
 {
     return false;
 }
 
 void
-DeviceExplorerPasteCommand::serializeImpl(QDataStream& d) const
+Paste::serializeImpl(QDataStream& d) const
 {
     DeviceExplorerModel::serializePath(d, m_parentPath);
     d << (qint32) m_row;
@@ -65,7 +66,7 @@ DeviceExplorerPasteCommand::serializeImpl(QDataStream& d) const
 }
 
 void
-DeviceExplorerPasteCommand::deserializeImpl(QDataStream& d)
+Paste::deserializeImpl(QDataStream& d)
 {
     DeviceExplorerModel::deserializePath(d, m_parentPath);
     qint32 v;

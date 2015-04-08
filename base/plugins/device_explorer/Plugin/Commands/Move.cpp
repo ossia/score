@@ -1,16 +1,18 @@
 
-#include "DeviceExplorerMoveCommand.hpp"
+#include "Move.hpp"
 
 #include <iostream> //DEBUG
 
-DeviceExplorerMoveCommand::DeviceExplorerMoveCommand()
+using namespace DeviceExplorer::Command;
+
+Move::Move()
     : iscore::SerializableCommand("", "Move ", "")
 {
 
 }
 
 void
-DeviceExplorerMoveCommand::set(const QModelIndex& srcParentIndex, int srcRow, int count,
+Move::set(const QModelIndex& srcParentIndex, int srcRow, int count,
                                const QModelIndex& dstParentIndex, int dstRow,
                                const QString& text,
                                DeviceExplorerModel* model)
@@ -28,7 +30,7 @@ DeviceExplorerMoveCommand::set(const QModelIndex& srcParentIndex, int srcRow, in
 
 
 void
-DeviceExplorerMoveCommand::undo()
+Move::undo()
 {
     Q_ASSERT(m_model);
 
@@ -41,7 +43,7 @@ DeviceExplorerMoveCommand::undo()
 }
 
 void
-DeviceExplorerMoveCommand::redo()
+Move::redo()
 {
     Q_ASSERT(m_model);
     QModelIndex srcParentIndex = m_model->pathToIndex(m_srcParentPath);
@@ -52,13 +54,13 @@ DeviceExplorerMoveCommand::redo()
 }
 
 bool
-DeviceExplorerMoveCommand::mergeWith(const Command* /*other*/)
+Move::mergeWith(const Command* /*other*/)
 {
     return false;
 }
 
 void
-DeviceExplorerMoveCommand::serializeImpl(QDataStream& d) const
+Move::serializeImpl(QDataStream& d) const
 {
     DeviceExplorerModel::serializePath(d, m_srcParentPath);
     DeviceExplorerModel::serializePath(d, m_dstParentPath);
@@ -68,7 +70,7 @@ DeviceExplorerMoveCommand::serializeImpl(QDataStream& d) const
 }
 
 void
-DeviceExplorerMoveCommand::deserializeImpl(QDataStream& d)
+Move::deserializeImpl(QDataStream& d)
 {
     DeviceExplorerModel::deserializePath(d, m_srcParentPath);
     DeviceExplorerModel::deserializePath(d, m_dstParentPath);

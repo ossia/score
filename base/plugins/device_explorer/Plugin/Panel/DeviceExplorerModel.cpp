@@ -13,10 +13,12 @@
 
 
 #include <core/command/CommandStack.hpp>
-#include "Commands/DeviceExplorerMoveCommand.hpp"
-#include "Commands/DeviceExplorerInsertCommand.hpp"
-#include "Commands/DeviceExplorerCutCommand.hpp"
-#include "Commands/DeviceExplorerPasteCommand.hpp"
+#include "Commands/Move.hpp"
+#include "Commands/Insert.hpp"
+#include "Commands/Cut.hpp"
+#include "Commands/Paste.hpp"
+
+using namespace DeviceExplorer::Command;
 
 enum
 {
@@ -1055,7 +1057,7 @@ DeviceExplorerModel::cut(const QModelIndex& index)
         return index;
     }
 
-    DeviceExplorerCutCommand* cmd = new DeviceExplorerCutCommand;
+    Cut* cmd = new Cut;
 
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
     cmd->set(index.parent(), index.row(), tr("Cut %1").arg(name), this);
@@ -1191,7 +1193,7 @@ DeviceExplorerModel::paste(const QModelIndex& index)
     }
 
 
-    DeviceExplorerPasteCommand* cmd = new DeviceExplorerPasteCommand;
+    Paste* cmd = new Paste;
 
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
     cmd->set(index.parent(), index.row(), tr("Paste %1").arg(name), this);
@@ -1389,7 +1391,7 @@ DeviceExplorerModel::moveUp(const QModelIndex& index)
     int rowParent = grandparent->indexOfChild(parent);
     QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
-    DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
+    Move* cmd = new Move;
     cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow, tr("Move up %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -1431,7 +1433,7 @@ DeviceExplorerModel::moveDown(const QModelIndex& index)
     int rowParent = grandparent->indexOfChild(parent);
     QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
-    DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
+    Move* cmd = new Move;
     cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow + 1, tr("Move down %1").arg(n->name()) , this);
     //newRow+1 because moved before, cf doc.
     Q_ASSERT(m_cmdQ);
@@ -1484,7 +1486,7 @@ DeviceExplorerModel::promote(const QModelIndex& index)  //== moveLeft
     QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
     QModelIndex dstParentIndex = createIndex(rowGrandParent, 0 , grandParent);
 
-    DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
+    Move* cmd = new Move;
     cmd->set(srcParentIndex, row, 1, dstParentIndex, rowParent + 1, tr("Promote %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -1533,7 +1535,7 @@ DeviceExplorerModel::demote(const QModelIndex& index)  //== moveRight
     QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
     QModelIndex dstParentIndex = createIndex(row - 1, 0, sibling);
 
-    DeviceExplorerMoveCommand* cmd = new DeviceExplorerMoveCommand;
+    Move* cmd = new Move;
     cmd->set(srcParentIndex, row, 1, dstParentIndex, sibling->childCount(), tr("Demote %1").arg(n->name()) , this);
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -1756,8 +1758,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         {
             row = parentNode->childCount();    //parent.isValid() ? parent.row() : parentNode->childCount();
         }
-
-        DeviceExplorerInsertCommand* cmd = new DeviceExplorerInsertCommand;
+        DeviceExplorer::Command::Insert* cmd = new DeviceExplorer::Command::Insert;
         const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
         cmd->set(parentIndex, row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), this);
         Q_ASSERT(m_cmdQ);

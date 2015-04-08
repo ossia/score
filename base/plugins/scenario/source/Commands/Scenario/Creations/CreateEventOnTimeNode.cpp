@@ -47,11 +47,11 @@ bool CreateEventOnTimeNode::mergeWith(const Command *other)
 
 void CreateEventOnTimeNode::serializeImpl(QDataStream &s) const
 {
-    s << m_path << m_timeNodeId << m_heightPosition;
+    s << m_path << m_timeNodeId << m_heightPosition << m_createdEventId;
 }
 
 void CreateEventOnTimeNode::deserializeImpl(QDataStream &s)
 {
-    s >> m_path >> m_timeNodeId >> m_heightPosition;
+    s >> m_path >> m_timeNodeId >> m_heightPosition >> m_createdEventId;
 }
 

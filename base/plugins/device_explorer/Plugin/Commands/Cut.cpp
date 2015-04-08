@@ -1,15 +1,16 @@
 
-#include "DeviceExplorerCutCommand.hpp"
+#include "Cut.hpp"
 
+using namespace DeviceExplorer::Command;
 
-DeviceExplorerCutCommand::DeviceExplorerCutCommand()
+Cut::Cut()
     : iscore::SerializableCommand("", "Cut ", "")
 {
 
 }
 
 void
-DeviceExplorerCutCommand::set(const QModelIndex& parentIndex, int row,
+Cut::set(const QModelIndex& parentIndex, int row,
                               const QString& text,
                               DeviceExplorerModel* model)
 {
@@ -23,7 +24,7 @@ DeviceExplorerCutCommand::set(const QModelIndex& parentIndex, int row,
 
 
 void
-DeviceExplorerCutCommand::undo()
+Cut::undo()
 {
     Q_ASSERT(m_model);
 
@@ -50,7 +51,7 @@ DeviceExplorerCutCommand::undo()
 }
 
 void
-DeviceExplorerCutCommand::redo()
+Cut::redo()
 {
     Q_ASSERT(m_model);
     QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
@@ -62,14 +63,14 @@ DeviceExplorerCutCommand::redo()
 }
 
 bool
-DeviceExplorerCutCommand::mergeWith(const Command* /*other*/)
+Cut::mergeWith(const Command* /*other*/)
 {
     return false;
 }
 
 
 void
-DeviceExplorerCutCommand::serializeImpl(QDataStream& d) const
+Cut::serializeImpl(QDataStream& d) const
 {
     DeviceExplorerModel::serializePath(d, m_parentPath);
     d << (qint32) m_row;
@@ -80,7 +81,7 @@ DeviceExplorerCutCommand::serializeImpl(QDataStream& d) const
 }
 
 void
-DeviceExplorerCutCommand::deserializeImpl(QDataStream& d)
+Cut::deserializeImpl(QDataStream& d)
 {
     DeviceExplorerModel::deserializePath(d, m_parentPath);
     qint32 v;

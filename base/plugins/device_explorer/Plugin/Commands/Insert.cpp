@@ -1,15 +1,16 @@
 
-#include "DeviceExplorerInsertCommand.hpp"
+#include "Insert.hpp"
 
+using namespace DeviceExplorer::Command;
 
-DeviceExplorerInsertCommand::DeviceExplorerInsertCommand()
+Insert::Insert()
     : iscore::SerializableCommand("", "Insert ", "")
 {
 
 }
 
 void
-DeviceExplorerInsertCommand::set(const QModelIndex& parentIndex, int row,
+Insert::set(const QModelIndex& parentIndex, int row,
                                  const QByteArray& data,
                                  const QString& text,
                                  DeviceExplorerModel* model)
@@ -25,7 +26,7 @@ DeviceExplorerInsertCommand::set(const QModelIndex& parentIndex, int row,
 
 
 void
-DeviceExplorerInsertCommand::undo()
+Insert::undo()
 {
     Q_ASSERT(m_model);
 
@@ -38,7 +39,7 @@ DeviceExplorerInsertCommand::undo()
 }
 
 void
-DeviceExplorerInsertCommand::redo()
+Insert::redo()
 {
     Q_ASSERT(m_model);
     QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
@@ -48,14 +49,14 @@ DeviceExplorerInsertCommand::redo()
 }
 
 bool
-DeviceExplorerInsertCommand::mergeWith(const Command* /*other*/)
+Insert::mergeWith(const Command* /*other*/)
 {
     return false;
 }
 
 
 void
-DeviceExplorerInsertCommand::serializeImpl(QDataStream& d) const
+Insert::serializeImpl(QDataStream& d) const
 {
     DeviceExplorerModel::serializePath(d, m_parentPath);
     d << (qint32) m_row;
@@ -66,7 +67,7 @@ DeviceExplorerInsertCommand::serializeImpl(QDataStream& d) const
 }
 
 void
-DeviceExplorerInsertCommand::deserializeImpl(QDataStream& d)
+Insert::deserializeImpl(QDataStream& d)
 {
     DeviceExplorerModel::deserializePath(d, m_parentPath);
     qint32 v;
