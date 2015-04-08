@@ -3,7 +3,6 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Document/Event/EventData.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
 using namespace iscore;

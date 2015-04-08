@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include "Document/Event/EventData.hpp"
 
 class EventModel;
 class EventView;

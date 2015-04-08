@@ -4,8 +4,6 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include <QGraphicsScene>
 
-#include "Document/Event/EventData.hpp"
-
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
                                      TimeNodeView* view,
                                      QObject* parent) :

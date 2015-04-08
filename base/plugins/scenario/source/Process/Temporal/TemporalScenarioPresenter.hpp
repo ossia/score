@@ -1,7 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <Document/Event/EventData.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 
 #include "StateMachines/ScenarioStateMachine.hpp"

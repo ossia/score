@@ -4,7 +4,6 @@
 #include <iscore/selection/Selection.hpp>
 #include <vector>
 
-#include "Document/Constraint/ConstraintData.hpp"
 #include "ProcessInterface/TimeValue.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 

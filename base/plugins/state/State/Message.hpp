@@ -1,7 +1,6 @@
 #pragma once
 #include <QVariant>
 #include <QObject>
-#include <State/StateInterface.hpp>
 
 struct Message
 {

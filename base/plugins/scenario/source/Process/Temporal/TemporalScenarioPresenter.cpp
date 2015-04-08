@@ -8,14 +8,12 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ConstraintData.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventPresenter.hpp"
 #include "Document/Event/EventView.hpp"
-#include "Document/Event/EventData.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"

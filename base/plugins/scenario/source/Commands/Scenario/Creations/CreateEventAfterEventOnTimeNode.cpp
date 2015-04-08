@@ -3,7 +3,6 @@
 #include "source/Process/ScenarioModel.hpp"
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Event/EventData.hpp"
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 #include "source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"

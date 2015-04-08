@@ -2,7 +2,6 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/EventData.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "iscore/document/DocumentInterface.hpp"
 

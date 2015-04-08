@@ -2,7 +2,6 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Document/Event/EventData.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
 using namespace iscore;

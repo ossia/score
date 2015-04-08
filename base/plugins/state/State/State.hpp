@@ -3,8 +3,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include <State/StateInterface.hpp>
-
 class State
 {       friend
         void Visitor<Reader<DataStream>>::readFrom<State>(const State& mess);
