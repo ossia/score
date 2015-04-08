@@ -1,6 +1,5 @@
 #include <core/application/Application.hpp>
 
-#include <core/model/Model.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <iscore/tools/utilsCPP11.hpp>

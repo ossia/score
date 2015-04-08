@@ -17,6 +17,7 @@ void ObjectLocker::on_lock(QByteArray arr)
 
     auto obj = objectToLock.find<QObject>();
     // TODO it would be better to have a "lockable" concept / mixin to cast to.
+    // Or maybe only the ProcessSharedModel could be locked ? It would be much simpler...
     QMetaObject::invokeMethod(obj, "lock");
     */
 }

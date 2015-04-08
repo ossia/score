@@ -3,7 +3,6 @@
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
-#include <core/model/Model.hpp>
 
 #include <iscore/plugins/panel/PanelFactoryInterface.hpp>
 #include <iscore/plugins/panel/PanelPresenterInterface.hpp>
