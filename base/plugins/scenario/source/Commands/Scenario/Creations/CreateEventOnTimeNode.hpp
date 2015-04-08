@@ -27,6 +27,9 @@ namespace Scenario
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
 
+                auto createdEventId() const
+                { return m_createdEventId; }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;

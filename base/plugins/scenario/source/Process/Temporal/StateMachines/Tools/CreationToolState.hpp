@@ -40,5 +40,6 @@ class CreationToolState : public GenericToolState
         }
 
         CreateFromEventState* m_createFromEventState{};
+        CreateFromTimeNodeState* m_createFromTimeNodeState{};
         QState* m_waitState{};
 };

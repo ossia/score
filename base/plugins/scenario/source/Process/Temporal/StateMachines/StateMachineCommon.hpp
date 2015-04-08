@@ -24,7 +24,7 @@ class CommonState : public QState
             clickedTimeNode = id_type<TimeNodeModel>{};
             clickedConstraint = id_type<ConstraintModel>{};
 
-            point = ScenarioPoint();
+            currentPoint = ScenarioPoint();
         }
 
         id_type<EventModel> clickedEvent;
@@ -35,7 +35,7 @@ class CommonState : public QState
         id_type<TimeNodeModel> hoveredTimeNode;
         id_type<ConstraintModel> hoveredConstraint;
 
-        ScenarioPoint point;
+        ScenarioPoint currentPoint;
 
     protected:
         ObjectPath m_scenarioPath;
@@ -129,7 +129,7 @@ class ClickOnNothing_Transition : public MatchedScenarioTransition<ClickOnNothin
             auto qev = static_cast<ClickOnNothing_Event*>(ev);
             this->state().clear();
 
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -145,7 +145,7 @@ class ClickOnTimeNode_Transition : public MatchedScenarioTransition<ClickOnTimeN
             this->state().clear();
 
             this->state().clickedTimeNode = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -161,7 +161,7 @@ class ClickOnEvent_Transition : public MatchedScenarioTransition<ClickOnEvent_Ev
             this->state().clear();
 
             this->state().clickedEvent = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -177,7 +177,7 @@ class ClickOnConstraint_Transition : public MatchedScenarioTransition<ClickOnCon
             this->state().clear();
 
             this->state().clickedConstraint = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -192,7 +192,7 @@ class MoveOnNothing_Transition : public MatchedScenarioTransition<MoveOnNothing_
         {
             auto qev = static_cast<MoveOnNothing_Event*>(ev);
 
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -207,7 +207,7 @@ class MoveOnTimeNode_Transition : public MatchedScenarioTransition<MoveOnTimeNod
             auto qev = static_cast<MoveOnTimeNode_Event*>(ev);
 
             this->state().hoveredTimeNode = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -222,7 +222,7 @@ class MoveOnEvent_Transition : public MatchedScenarioTransition<MoveOnEvent_Even
             auto qev = static_cast<MoveOnEvent_Event*>(ev);
 
             this->state().hoveredEvent = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -237,7 +237,7 @@ class MoveOnConstraint_Transition : public MatchedScenarioTransition<MoveOnConst
             auto qev = static_cast<MoveOnConstraint_Event*>(ev);
 
             this->state().hoveredConstraint= qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -264,7 +264,7 @@ class MoveOnAnything_Transition : public GenericTransition<QAbstractTransition>
         {
             auto qev = static_cast<PositionedEventBase*>(event);
 
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -279,7 +279,7 @@ class ReleaseOnNothing_Transition : public MatchedScenarioTransition<ReleaseOnNo
         {
             auto qev = static_cast<ReleaseOnNothing_Event*>(ev);
 
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -294,7 +294,7 @@ class ReleaseOnTimeNode_Transition : public MatchedScenarioTransition<ReleaseOnT
             auto qev = static_cast<ReleaseOnTimeNode_Event*>(ev);
 
             this->state().hoveredTimeNode = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 
@@ -309,7 +309,7 @@ class ReleaseOnEvent_Transition : public MatchedScenarioTransition<ReleaseOnEven
             auto qev = static_cast<ReleaseOnEvent_Event*>(ev);
 
             this->state().hoveredEvent = qev->id;
-            this->state().point = qev->point;
+            this->state().currentPoint = qev->point;
         }
 };
 

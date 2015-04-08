@@ -38,7 +38,7 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
         {
             auto scenar = m_scenarioPath.find<ScenarioModel>();
             m_constraintInitialStartDate= scenar->constraint(clickedConstraint)->startDate();
-            m_constraintInitialClickDate = point.date;
+            m_constraintInitialClickDate = currentPoint.date;
         });
 
         make_transition<ReleaseOnAnything_Transition>(
@@ -54,8 +54,8 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
                         new MoveConstraint{
                             ObjectPath{m_scenarioPath},
                             clickedConstraint,
-                            m_constraintInitialStartDate + (point.date - m_constraintInitialClickDate),
-                            point.y});
+                            m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
+                            currentPoint.y});
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -109,8 +109,8 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
                         new MoveEvent{
                             ObjectPath{m_scenarioPath},
                             clickedEvent,
-                            point.date,
-                            point.y});
+                            currentPoint.date,
+                            currentPoint.y});
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -170,7 +170,7 @@ MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandS
                         new MoveTimeNode{
                             ObjectPath{m_scenarioPath},
                             ev_id,
-                            point.date,
+                            currentPoint.date,
                             scenar->event(ev_id)->heightPercentage()});
         });
 

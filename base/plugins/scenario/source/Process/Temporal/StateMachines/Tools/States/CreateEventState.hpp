@@ -191,11 +191,17 @@ class CreateFromTimeNodeState : public CreationState
                     QState* parent);
 
     private:
-        void createEventFromTimeNodeOnNothing();
-        void createEventFromTimeNodeOnTimeNode();
+        void createSingleEventOnTimeNode();
+
+        void createEventFromEventOnNothing();
+        void createEventFromEventOnTimenode();
 
         void createConstraintBetweenEvents();
 
+
         MultiCommandDispatcher m_dispatcher;
+
+        ScenarioPoint m_clickedPoint;
+        id_type<EventModel> m_createdFirstEvent;
 };
 
