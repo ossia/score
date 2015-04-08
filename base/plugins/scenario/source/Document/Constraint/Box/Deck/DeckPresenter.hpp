@@ -29,6 +29,11 @@ class DeckPresenter : public NamedObject
         void setWidth(int w);
         void setVerticalPosition(int h);
 
+        // Sets the enabled - disabled graphism for
+        // the deck move tool
+        void enable();
+        void disable();
+
     signals:
         void askUpdate();
 

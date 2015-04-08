@@ -1,10 +1,34 @@
 #pragma once
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 
-class MoveDeckToolState : public GenericToolState
+
+class GenericToolStateBase : public QState
+{
+    protected:
+        auto itemUnderMouse(const QPointF& point) const
+        {
+            return m_sm.presenter().view().scene()->itemAt(point, QTransform());
+        }
+
+    public:
+        GenericToolStateBase(const ScenarioStateMachine& sm) :
+            m_sm{sm}
+        {
+        }
+
+
+    protected:
+        virtual void on_scenarioPressed() = 0;
+        virtual void on_scenarioMoved() = 0;
+        virtual void on_scenarioReleased() = 0;
+
+        const ScenarioStateMachine& m_sm;
+};
+
+class MoveDeckToolState : public GenericToolStateBase
 {
     public:
-        MoveDeckToolState(ScenarioStateMachine& sm);
+        MoveDeckToolState(const ScenarioStateMachine &sm);
 
         void on_scenarioPressed() override;
         void on_scenarioMoved() override;

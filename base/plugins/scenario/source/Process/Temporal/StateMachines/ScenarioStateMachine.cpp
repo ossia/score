@@ -2,6 +2,7 @@
 #include "Tools/CreationToolState.hpp"
 #include "Tools/MoveToolState.hpp"
 #include "Tools/SelectionToolState.hpp"
+#include "Tools/MoveDeckToolState.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
@@ -61,21 +62,37 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     auto selectState = new SelectionToolState{*this};
     this->addState(selectState);
 
+    auto moveDeckState = new MoveDeckToolState{*this};
+    this->addState(moveDeckState);
+
     // TODO how to avoid the combinatorial explosion ?
     auto t_move_create = new QSignalTransition(this, SIGNAL(setCreateState()), moveState);
     t_move_create->setTargetState(createState);
     auto t_move_select = new QSignalTransition(this, SIGNAL(setSelectState()), moveState);
     t_move_select->setTargetState(selectState);
+    auto t_move_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), moveState);
+    t_move_deckmove->setTargetState(moveDeckState);
 
     auto t_select_create = new QSignalTransition(this, SIGNAL(setCreateState()), selectState);
     t_select_create->setTargetState(createState);
     auto t_select_move = new QSignalTransition(this, SIGNAL(setMoveState()), selectState);
     t_select_move->setTargetState(moveState);
+    auto t_select_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), selectState);
+    t_select_deckmove->setTargetState(moveDeckState);
 
     auto t_create_move = new QSignalTransition(this, SIGNAL(setMoveState()), createState);
     t_create_move->setTargetState(moveState);
     auto t_create_select = new QSignalTransition(this, SIGNAL(setSelectState()), createState);
     t_create_select->setTargetState(selectState);
+    auto t_create_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), createState);
+    t_create_deckmove->setTargetState(moveDeckState);
+
+    auto t_movedeck_create = new QSignalTransition(this, SIGNAL(setCreateState()), moveDeckState);
+    t_movedeck_create->setTargetState(createState);
+    auto t_movedeck_select = new QSignalTransition(this, SIGNAL(setSelectState()), moveDeckState);
+    t_movedeck_select->setTargetState(selectState);
+    auto t_movedeck_move = new QSignalTransition(this, SIGNAL(setMoveState()), moveDeckState);
+    t_movedeck_move->setTargetState(moveState);
 
     createState->start();
     moveState->start();

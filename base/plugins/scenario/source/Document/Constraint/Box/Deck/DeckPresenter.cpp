@@ -97,6 +97,16 @@ void DeckPresenter::setVerticalPosition(int pos)
     }
 }
 
+void DeckPresenter::enable()
+{
+    m_view->enable();
+}
+
+void DeckPresenter::disable()
+{
+    m_view->disable();
+}
+
 
 void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
 {

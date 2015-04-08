@@ -13,7 +13,6 @@
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
-#include "Commands/CreatesStatesFromParameters.hpp"
 #include "Commands/CreateStatesFromParametersInEvents.hpp"
 
 #include "iscore/document/DocumentInterface.hpp"

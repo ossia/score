@@ -30,6 +30,8 @@ class ScenarioStateMachine : public QStateMachine
         void setCreateState();
         void setSelectState();
         void setMoveState();
+        void setDeckMoveState();
+
     private:
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;

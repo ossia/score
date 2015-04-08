@@ -30,6 +30,9 @@ class BoxPresenter : public NamedObject
         void setWidth(int);
 
         id_type<BoxModel> id() const;
+        auto decks() const
+        { return m_decks; }
+
 
     signals:
         void askUpdate();

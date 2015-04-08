@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
+class DeckOverlay;
 class DeckView : public QGraphicsObject
 {
         Q_OBJECT
@@ -25,6 +26,9 @@ class DeckView : public QGraphicsObject
         void setWidth(int width);
         int width() const;
 
+        void enable();
+        void disable();
+
     signals:
         void bottomHandleSelected();
         void bottomHandleChanged(int newHeight);
@@ -38,5 +42,6 @@ class DeckView : public QGraphicsObject
     private:
         int m_height {};
         int m_width {};
+        DeckOverlay* m_overlay{};
 };
 

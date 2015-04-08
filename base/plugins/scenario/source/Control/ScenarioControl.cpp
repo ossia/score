@@ -202,6 +202,13 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setMoveState();
     });
 
+    auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioActionGroup);
+    deckmovetool->setCheckable(true);
+    connect(deckmovetool, &QAction::triggered, [=] ()
+    {
+        emit focusedScenarioStateMachine().setDeckMoveState();
+    });
+
     auto selecttool = new QAction(tr("Select"), m_scenarioActionGroup);
     selecttool->setCheckable(true);
     selecttool->setChecked(true);
@@ -209,6 +216,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     {
         emit focusedScenarioStateMachine().setSelectState();
     });
+
+
 
     on_presenterChanged();
     bar->addActions(m_scenarioActionGroup->actions());

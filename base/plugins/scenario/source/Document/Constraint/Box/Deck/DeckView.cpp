@@ -6,6 +6,30 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
+class DeckOverlay : public QGraphicsItem
+{
+        DeckView* m_view{};
+    public:
+        DeckOverlay(DeckView* parent):
+            QGraphicsItem{parent},
+            m_view{parent}
+        {
+            this->setZValue(1000);
+            this->setPos(0, 0);
+
+        }
+        virtual QRectF boundingRect() const override
+        {
+            return m_view->boundingRect();
+        }
+        virtual void paint(QPainter *painter,
+                           const QStyleOptionGraphicsItem *option, QWidget *widget) override
+        {
+            painter->setBrush(QColor(200, 200, 200, 200));
+            painter->drawRect(boundingRect());
+        }
+};
+
 DeckView::DeckView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
 {
@@ -51,6 +75,23 @@ void DeckView::setWidth(int width)
 int DeckView::width() const
 {
     return m_width;
+}
+
+void DeckView::enable()
+{
+    delete m_overlay;for(QGraphicsItem* item : childItems())
+    {
+        item->setEnabled(true);
+    }
+}
+
+void DeckView::disable()
+{
+    m_overlay = new DeckOverlay{this};
+    for(QGraphicsItem* item : childItems())
+    {
+        item->setEnabled(false);
+    }
 }
 
 void DeckView::mousePressEvent(QGraphicsSceneMouseEvent* event)
