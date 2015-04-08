@@ -15,13 +15,12 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
              << ev.nextConstraints()
              << ev.heightPercentage();
 
-    m_stream << ev.date(); // should be in OSSIA API
+    m_stream << ev.date();
     m_stream << ev.condition();
     m_stream << ev.timeNode();
 
     m_stream << ev.states();
 
-    // TODO save OSSIA::TimeNode
     insertDelimiter();
 }
 
@@ -36,7 +35,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
              >> nextCstr
              >> heightPercentage;
 
-    m_stream >> date; // should be in OSSIA API
+    m_stream >> date;
     m_stream >> condition;
     m_stream >> timenode;
 
@@ -51,9 +50,6 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     m_stream >> states;
     ev.replaceStates(states);
 
-    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
-    // TODO load the timenode
-
     checkDelimiter();
 }
 
@@ -67,19 +63,17 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
     m_obj["PreviousConstraints"] = toJsonArray(ev.previousConstraints());
     m_obj["NextConstraints"] = toJsonArray(ev.nextConstraints());
     m_obj["HeightPercentage"] = ev.heightPercentage();
-    m_obj["Date"] = toJsonObject(ev.date());   // should be in OSSIA API
+    m_obj["Date"] = toJsonObject(ev.date());
     m_obj["Condition"] = ev.condition();
     m_obj["TimeNode"] = toJsonObject(ev.timeNode());
 
     m_obj["States"] = toJsonArray(ev.states());
-
-    // TODO save OSSIA::TimeNode
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 {
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
-    ;
+
     fromJsonArray(m_obj["PreviousConstraints"].toArray(), prevCstr);
     fromJsonArray(m_obj["NextConstraints"].toArray(), nextCstr);
     ev.m_previousConstraints = std::move(prevCstr);
@@ -100,5 +94,4 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
         ev.addState(state);
     }
 */
-    //ev.setOSSIATimeNode(new OSSIA::TimeNode);
 }

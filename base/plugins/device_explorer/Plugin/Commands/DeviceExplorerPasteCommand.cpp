@@ -56,9 +56,6 @@ DeviceExplorerPasteCommand::mergeWith(const Command* /*other*/)
 void
 DeviceExplorerPasteCommand::serializeImpl(QDataStream& d) const
 {
-    //TODO: should we pass the model ? how ???
-    //TODO: should we serialize text() or is it serialized by base class ?
-
     DeviceExplorerModel::serializePath(d, m_parentPath);
     d << (qint32) m_row;
 
@@ -70,9 +67,6 @@ DeviceExplorerPasteCommand::serializeImpl(QDataStream& d) const
 void
 DeviceExplorerPasteCommand::deserializeImpl(QDataStream& d)
 {
-    //TODO: should we pass the model ? how ???
-    //TODO: should we serialize text() or is it serialized by base class ?
-
     DeviceExplorerModel::deserializePath(d, m_parentPath);
     qint32 v;
     d >> v;

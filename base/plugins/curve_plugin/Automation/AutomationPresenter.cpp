@@ -53,8 +53,6 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
         m_commandDispatcher->submitCommand(cmd);
     });
 
-    // TODO suppression
-
     connect(m_curve, &QCustomPlotCurve::mousePressed,
             this, [&] ()
     {

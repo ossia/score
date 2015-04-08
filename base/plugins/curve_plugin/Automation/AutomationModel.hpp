@@ -2,7 +2,6 @@
 
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 
-// TODO Curvature
 /**
  * @brief The AutomationModel class
  *
