@@ -8,9 +8,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& deckPath) :
-    SerializableCommand {"ScenarioControl",
-                         className(),
-                         description()}
+    SerializableCommand {"ScenarioControl", className(), description()}
 {
     auto boxPath = deckPath.vec();
     auto lastId = boxPath.takeLast();
@@ -19,15 +17,15 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& deckPath) :
 
     auto box = m_path.find<BoxModel>();
     m_position = box->deckPosition(m_deckId);
+
+    Serializer<DataStream> s{&m_serializedDeckData};
+    s.readFrom(*box->deck(m_deckId));
 }
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId) :
-    SerializableCommand {"ScenarioControl",
-    "RemoveDeckFromBox",
-    QObject::tr("Remove deck")
-},
-m_path {boxPath},
-m_deckId {deckId}
+    SerializableCommand {"ScenarioControl", className(), description()},
+    m_path {boxPath},
+    m_deckId {deckId}
 {
     auto box = m_path.find<BoxModel>();
     Serializer<DataStream> s{&m_serializedDeckData};

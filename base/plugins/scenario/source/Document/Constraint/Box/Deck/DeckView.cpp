@@ -6,35 +6,11 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-class DeckOverlay : public QGraphicsItem
+
+DeckView::DeckView(const DeckPresenter &pres, QGraphicsObject* parent) :
+    QGraphicsObject {parent},
+    presenter{pres}
 {
-        DeckView* m_view{};
-    public:
-        DeckOverlay(DeckView* parent):
-            QGraphicsItem{parent},
-            m_view{parent}
-        {
-            this->setZValue(1000);
-            this->setPos(0, 0);
-
-        }
-        virtual QRectF boundingRect() const override
-        {
-            return m_view->boundingRect();
-        }
-        virtual void paint(QPainter *painter,
-                           const QStyleOptionGraphicsItem *option, QWidget *widget) override
-        {
-            painter->setBrush(QColor(200, 200, 200, 200));
-            painter->drawRect(boundingRect());
-        }
-};
-
-DeckView::DeckView(QGraphicsObject* parent) :
-    QGraphicsObject {parent}
-{
-    this->setParentItem(parent);
-
     this->setZValue(parent->zValue() + 1);
 }
 
@@ -79,33 +55,42 @@ int DeckView::width() const
 
 void DeckView::enable()
 {
-    delete m_overlay;for(QGraphicsItem* item : childItems())
+    for(QGraphicsItem* item : childItems())
     {
         item->setEnabled(true);
+        item->setVisible(true);
+        item->setFlag(ItemStacksBehindParent, false);
     }
+    delete m_overlay;
 }
 
 void DeckView::disable()
 {
-    m_overlay = new DeckOverlay{this};
     for(QGraphicsItem* item : childItems())
     {
         item->setEnabled(false);
+        item->setVisible(false);
+        item->setFlag(ItemStacksBehindParent, true);
     }
+    m_overlay = new DeckOverlay{this};
 }
 
+// TODO handle this via state-machine...
 void DeckView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     emit bottomHandleSelected();
+    event->ignore();
 }
 
 void DeckView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     emit bottomHandleChanged(event->pos().y() - boundingRect().y());
+    event->ignore();
 }
 
 void DeckView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit bottomHandleReleased();
+    event->ignore();
 }
 

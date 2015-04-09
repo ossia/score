@@ -103,13 +103,9 @@ void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
 
 void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 {
-    auto deckView = new DeckView {m_view};
-    deckView->setPos(0, 0);
-
     auto deckPres = new DeckPresenter {deckModel,
-                                       deckView,
-                                       this
-                                      };
+                                       m_view,
+                                       this};
     m_decks.push_back(deckPres);
     deckPres->on_zoomRatioChanged(m_zoomRatio);
 

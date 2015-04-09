@@ -2,12 +2,15 @@
 #include <QGraphicsObject>
 
 class DeckOverlay;
+class DeckPresenter;
 class DeckView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
-        DeckView(QGraphicsObject* parent);
+        const DeckPresenter& presenter;
+
+        DeckView(const DeckPresenter&pres, QGraphicsObject* parent);
         virtual ~DeckView() = default;
 
         virtual QRectF boundingRect() const override;
@@ -45,3 +48,35 @@ class DeckView : public QGraphicsObject
         DeckOverlay* m_overlay{};
 };
 
+#include <QPainter>
+#include <QGraphicsSceneMouseEvent>
+class DeckOverlay : public QGraphicsItem
+{
+    public:
+        const DeckView& deckView;
+        DeckOverlay(DeckView* parent):
+            QGraphicsItem{parent},
+            deckView{*parent}
+        {
+            this->setZValue(1000);
+            this->setPos(0, 0);
+        }
+
+        virtual QRectF boundingRect() const override
+        {
+            return deckView.boundingRect();
+        }
+
+        virtual void paint(QPainter *painter,
+                           const QStyleOptionGraphicsItem *option,
+                           QWidget *widget) override
+        {
+            painter->setBrush(QColor(200, 200, 200, 200));
+            painter->drawRect(boundingRect());
+        }
+
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev)
+        {
+            ev->ignore();
+        }
+};

@@ -13,17 +13,19 @@ namespace iscore
 class ProcessPresenterInterface;
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
+class BoxView;
 class DeckPresenter : public NamedObject
 {
         Q_OBJECT
 
     public:
         DeckPresenter(DeckModel* model,
-                      DeckView* view,
+                      BoxView* view,
                       QObject* parent);
         virtual ~DeckPresenter();
 
         id_type<DeckModel> id() const;
+        const DeckModel& model() const;
         int height() const; // Return the height of the view
 
         void setWidth(int w);

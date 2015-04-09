@@ -47,7 +47,6 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if(event->button() == Qt::LeftButton)
     {
         emit scenarioPressed(event->pos());
-        m_clicked = true;
     }
 }
 

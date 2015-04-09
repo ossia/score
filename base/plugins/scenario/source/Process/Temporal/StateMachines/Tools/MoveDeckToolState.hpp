@@ -1,6 +1,6 @@
 #pragma once
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
-
+#include <iscore/command/OngoingCommandManager.hpp>
 
 class GenericToolStateBase : public QState
 {
@@ -25,6 +25,7 @@ class GenericToolStateBase : public QState
         const ScenarioStateMachine& m_sm;
 };
 
+class DeckModel;
 class MoveDeckToolState : public GenericToolStateBase
 {
     public:
@@ -36,4 +37,7 @@ class MoveDeckToolState : public GenericToolStateBase
 
     private:
         QState* m_waitState{};
+        ObjectPath m_sourceDeck;
+
+        CommandDispatcher<> m_dispatcher;
 };

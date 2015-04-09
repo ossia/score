@@ -17,18 +17,21 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
 
+#include "Document/Constraint/Box/BoxView.hpp"
 #include <QGraphicsScene>
 
 using namespace Scenario;
 
 DeckPresenter::DeckPresenter(DeckModel* model,
-                             DeckView* view,
+                             BoxView *view,
                              QObject* parent) :
     NamedObject {"DeckPresenter", parent},
     m_model {model},
-    m_view {view},
+    m_view {new DeckView{*this, view}},
     m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model)->commandStack(), this}}
 {
+    m_view->setPos(0, 0);
+
     for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
     {
         on_processViewModelCreated_impl(proc_vm);
@@ -74,6 +77,9 @@ id_type<DeckModel> DeckPresenter::id() const
 {
     return m_model->id();
 }
+
+const DeckModel &DeckPresenter::model() const
+{ return *m_model; }
 
 int DeckPresenter::height() const
 {
