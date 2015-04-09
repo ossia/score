@@ -2,6 +2,7 @@
 #include <QKeyEventTransition>
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
+#include "Process/ScenarioGlobalCommandManager.hpp"
 
 #include "Document/Event/EventPresenter.hpp"
 #include "Document/Event/EventView.hpp"
@@ -39,7 +40,7 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
         }
 
 
-        /// Area
+        /// Proper selection stuff
         auto selectionState = new QState{metaSelectionState};
         selectionState->setObjectName("selectionState");
         {
@@ -98,7 +99,24 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
                 m_dispatcher.setAndCommit(Selection{});
                 m_sm.presenter().view().setSelectionArea(QRectF{});
             });
+
+            // Actions on selected elements
+            auto t_delete = new QKeyEventTransition(
+                        &m_sm.presenter().view(), QEvent::KeyPress, Qt::Key_Delete, m_waitState);
+            connect(t_delete, &QAbstractTransition::triggered, [&] () {
+                ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
+                mgr.deleteSelection(m_sm.model());
+            });
+
+            auto t_deleteContent = new QKeyEventTransition(
+                        &m_sm.presenter().view(), QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
+            connect(t_deleteContent, &QAbstractTransition::triggered, [&] () {
+                ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
+                mgr.clearContentFromSelection(m_sm.model());
+            });
+
         }
+
     }
 }
 
