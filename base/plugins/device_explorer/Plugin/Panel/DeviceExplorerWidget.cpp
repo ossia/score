@@ -391,6 +391,7 @@ DeviceExplorerWidget::addSibling()
     //getModel()->addNode(index, DeviceExplorerModel::AsSibling)  ;
 }
 
+#include "Commands/AddAddress.hpp"
 void
 DeviceExplorerWidget::addAddress(int insertType)
 {
@@ -406,12 +407,14 @@ DeviceExplorerWidget::addAddress(int insertType)
 
     if(code == QDialog::Accepted)
     {
-        QList<QString> addressSettings = m_addressDialog->getSettings();
+        const QList<QString> addressSettings = m_addressDialog->getSettings();
         Q_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-        model()->addAddress(index, insert, addressSettings);
+        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::AddAddress{iscore::IDocument::path(model()), index, insert, addressSettings });
+//        model()->addAddress(index, insert, addressSettings);
         //TODO: we should set the focus on this Node & expand it
         //m_ntView->setCurrentIndex(?)
+        updateActions();
     }
 
 }

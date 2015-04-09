@@ -359,52 +359,47 @@ int DeviceExplorerModel::addDevice(Node* deviceNode)
     return row;
 }
 
-void
-DeviceExplorerModel::addAddress(QModelIndex index, DeviceExplorerModel::Insert insert, const QList<QString>& addressSettings)
+Node* DeviceExplorerModel::addAddress(Node* parentNode, const QList<QString>& addressSettings)
 {
-    if(! index.isValid())
-    {
-        return;
-    }
+    Q_ASSERT(parentNode);
+    Q_ASSERT(parentNode != m_rootNode);
 
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-    Q_ASSERT(n != m_rootNode);
+    int row = parentNode->childCount(); //insert as last child
 
-    Node* parent = nullptr;
-    int row = 0;
+    Node* grandparent = parentNode->parent();
+    Q_ASSERT(grandparent);
+    int rowParent = grandparent->indexOfChild(parentNode);
+    QModelIndex parentIndex = createIndex(rowParent, 0, parentNode);
 
-    if(insert == AsSibling)
-    {
-        parent = n->parent();
+    beginInsertRows(parentIndex, row, row);
 
-        if(parent == m_rootNode)
-        {
-            return;    //we cannot add an address at the device level.
-        }
+    auto node = makeNode(addressSettings);
+    parentNode->insertChild(row, node);
 
-        Q_ASSERT(parent);
-        row = parent->indexOfChild(n) + 1;  //insert after index.
-    }
-    else if(insert == AsChild)
-    {
-        parent = n;
-        row = n->childCount(); //insert as last child
-    }
+    endInsertRows();
 
-    Q_ASSERT(parent);
+    return node;
+}
+
+void DeviceExplorerModel::removeLeave(Node* node)
+{
+    Q_ASSERT(node);
+    Q_ASSERT(node != m_rootNode);
+
+    Node* parent = node->parent();
+
     Q_ASSERT(parent != m_rootNode);
     Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
     int rowParent = grandparent->indexOfChild(parent);
     QModelIndex parentIndex = createIndex(rowParent, 0, parent);
 
-    beginInsertRows(parentIndex, row, row);
+    int row = parent->indexOfChild(node);
 
-    auto node = makeNode(addressSettings);
-    parent->insertChild(row, node);
+    beginRemoveRows(parentIndex, row, row);
+    parent->removeChild(node);
+    endRemoveRows();
 
-    endInsertRows();
 }
 
 
@@ -1858,6 +1853,34 @@ DeviceExplorerModel::pathToIndex(const DeviceExplorerModel::Path& path)
     for(int i = 0; i < pathSize; ++i)
     {
         iter = index(path[i], 0, iter);
+    }
+
+    return iter;
+}
+
+DeviceExplorerModel::Path DeviceExplorerModel::pathFromNode(Node &node)
+{
+    Path path;
+    Node* iter = &node;
+
+    while(! iter->isDevice())
+    {
+        path.prepend(iter->parent()->indexOfChild(iter));
+        iter = iter->parent();
+    }
+    path.prepend(iter->parent()->indexOfChild(iter));
+
+    return path;
+}
+
+Node* DeviceExplorerModel::pathToNode(const DeviceExplorerModel::Path &path)
+{
+    Node *iter = rootNode();
+    const int pathSize = path.size();
+
+    for (int i = 0; i < pathSize; ++i)
+    {
+        iter = iter->childAt(path[i]);
     }
 
     return iter;
