@@ -4,7 +4,6 @@
 #include <iscore/selection/Selection.hpp>
 #include "State/ProcessStateDataInterface.hpp"
 
-class ProcessExecutor;
 class QDataStream;
 
 class ProcessViewModelInterface;

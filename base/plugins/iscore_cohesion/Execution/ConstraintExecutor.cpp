@@ -5,8 +5,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ScenarioExecutor.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "../curve_plugin/Automation/AutomationExecutor.hpp"
-#include "../curve_plugin/Automation/AutomationModel.hpp"
+#include "AutomationExecutor.hpp"
+#include <Automation/AutomationModel.hpp>
 ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
     m_constraint{cm}
 {

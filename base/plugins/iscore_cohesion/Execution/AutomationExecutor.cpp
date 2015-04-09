@@ -1,7 +1,7 @@
 #include "AutomationExecutor.hpp"
-#include "AutomationModel.hpp"
-// TODO put this somewhere else.
-#include<Plugin/DeviceExplorerPlugin.hpp>
+
+#include <Automation/AutomationModel.hpp>
+#include <Plugin/DeviceExplorerPlugin.hpp>
 
 void AutomationExecutor::start()
 {
