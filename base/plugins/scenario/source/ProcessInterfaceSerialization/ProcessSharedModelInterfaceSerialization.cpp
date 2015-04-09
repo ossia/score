@@ -9,8 +9,8 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& process)
 {
     // To allow recration using createProcess
-    m_stream << process.processName()
-             << process.duration();
+    m_stream << process.processName();
+    readFrom(process.duration());
 
     readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
 
@@ -29,9 +29,8 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 {
     QString processName;
     TimeValue duration;
-    deserializer.m_stream
-            >> processName
-            >> duration;
+    deserializer.m_stream >> processName;
+    deserializer.writeTo(duration);
 
     auto model = ProcessList::getFactory(processName)
                  ->makeModel(DataStream::type(),

@@ -21,7 +21,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 {
     bool inf;
-    int msec;
+    double msec;
     m_stream >> inf;
 
     if(!inf)
@@ -57,6 +57,6 @@ void Visitor<Writer<JSON>>::writeTo(TimeValue& tv)
     }
     else
     {
-        tv.setMSecs(m_obj["Time"].toInt());
+        tv.setMSecs(m_obj["Time"].toDouble());
     }
 }
