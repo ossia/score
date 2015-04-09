@@ -69,6 +69,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
              << constraint.minDuration()
              << constraint.maxDuration();
 
+    m_stream << constraint.isRigid();
+
     insertDelimiter();
 }
 
@@ -108,16 +110,21 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     constraint.setStartEvent(startId);
     constraint.setEndEvent(endId);
 
-    // Things that should be queried from the API :
     TimeValue width {}, startDate {}, minDur {}, maxDur {};
     m_stream >> width
              >> startDate
              >> minDur
              >> maxDur;
+
+    bool rigidity;
+    m_stream >> rigidity;
+
     constraint.setDefaultDuration(width);
     constraint.setStartDate(startDate);
     constraint.setMinDuration(minDur);
     constraint.setMaxDuration(maxDur);
+
+    constraint.setRigid(rigidity);
 
     checkDelimiter();
 }
@@ -156,13 +163,12 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 
     m_obj["FullView"] = toJsonObject(*constraint.fullView());
 
-    // API Object
-    // s << i.apiObject()->save();
-    // Things that should be queried from the API :
     m_obj["DefaultDuration"] = toJsonObject(constraint.defaultDuration());
     m_obj["StartDate"] = toJsonObject(constraint.startDate());
     m_obj["MinDuration"] = toJsonObject(constraint.minDuration());
     m_obj["MaxDuration"] = toJsonObject(constraint.maxDuration());
+
+    m_obj["Rigidity"] = constraint.isRigid();
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
@@ -188,14 +194,15 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
         constraint.addBox(new BoxModel(deserializer, &constraint));
     }
 
-    constraint.setFullView(new FullViewConstraintViewModel {Deserializer<JSON>{m_obj["FullView"].toObject() },
-                           &constraint,
-                           &constraint
-                                                           });
+    constraint.setFullView(new FullViewConstraintViewModel {
+                               Deserializer<JSON>{m_obj["FullView"].toObject() },
+                               &constraint,
+                               &constraint});
 
-    // Things that should be queried from the API :
     constraint.setDefaultDuration(fromJsonObject<TimeValue> (m_obj["DefaultDuration"].toObject()));
     constraint.setStartDate(fromJsonObject<TimeValue> (m_obj["StartDate"].toObject()));
     constraint.setMinDuration(fromJsonObject<TimeValue> (m_obj["MinDuration"].toObject()));
     constraint.setMaxDuration(fromJsonObject<TimeValue> (m_obj["MaxDuration"].toObject()));
+
+    constraint.setRigid(m_obj["Rigidity"].toBool());
 }

@@ -148,7 +148,7 @@ class TimeValue_T
             return *this < other || *this == other;
         }
 
-        TimeValue_T operator+ (const TimeValue_T& other)
+        TimeValue_T operator+ (const TimeValue_T& other) const
         {
             TimeValue_T res {PositiveInfinity{}};
 
@@ -161,7 +161,7 @@ class TimeValue_T
             return res;
         }
 
-        TimeValue_T operator* (double other)
+        TimeValue_T operator* (double other) const
         {
             TimeValue_T res {PositiveInfinity{}};
 
@@ -179,7 +179,7 @@ class TimeValue_T
             return double(m_impl.get()) / double(other.m_impl.get());
         }
 
-        TimeValue_T operator- (const TimeValue_T& other)
+        TimeValue_T operator- (const TimeValue_T& other) const
         {
             TimeValue_T res {PositiveInfinity{}};
 
@@ -192,7 +192,7 @@ class TimeValue_T
             return res;
         }
 
-        TimeValue_T operator- ()
+        TimeValue_T operator- () const
         {
             TimeValue_T res{ZeroTime{}};
             TimeValue_T zero{ZeroTime{}};

@@ -207,7 +207,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
             cstrBtn->setFlat(true);
             m_nextConstraints->addContent(cstrBtn);
 
-            connect(cstrBtn, &QPushButton::clicked,
+            connect(cstrBtn, &QPushButton::clicked, this,
                     [ = ]()
             {
                 selectionDispatcher()->setAndCommit(Selection{scenar->constraint(cstr)});

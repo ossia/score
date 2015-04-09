@@ -76,10 +76,9 @@ void StandardCreationPolicy::createConstraintBetweenEvents(
     constraint->setEndEvent(eev->id());
 
     constraint->setStartDate(sev->date());
-    auto constraint_duration = eev->date() - sev->date();
-    constraint->setDefaultDuration(constraint_duration);
-    constraint->setMinDuration(constraint_duration);
-    constraint->setMaxDuration(constraint_duration);
+
+    ConstraintModel::Algorithms::changeAllDurations(*constraint,
+                                                    eev->date() - sev->date());
 
     sev->addNextConstraint(newConstraintModelId);
     eev->addPreviousConstraint(newConstraintModelId);
@@ -178,10 +177,8 @@ ConstraintModel&CreateConstraintMin::redo(id_type<ConstraintModel> id,
     constraint->setStartEvent(sev.id());
     constraint->setEndEvent(eev.id());
 
-    auto dur = eev.date() - sev.date();
-    constraint->setDefaultDuration(dur);
-    constraint->setMinDuration(dur);
-    constraint->setMaxDuration(dur);
+    ConstraintModel::Algorithms::changeAllDurations(*constraint,
+                                                    eev.date() - sev.date());
     constraint->setStartDate(sev.date());
 
     s.addConstraint(constraint);

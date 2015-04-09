@@ -52,7 +52,7 @@ namespace StandardDisplacementPolicy
             }
             if(! (constraint->defaultDuration() - newDuration).isZero())
             {
-                constraint->setDefaultDuration(newDuration);
+                ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
                 for(auto& process : constraint->processes())
                 {
                     scaleMethod(process, newDuration);
@@ -100,7 +100,7 @@ namespace StandardDisplacementPolicy
                 {
                     constraint->setStartDate(startEventDate);
 
-                    constraint->setDefaultDuration(newDuration);
+                    ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
                     for(auto& process : constraint->processes())
                     {
                         scaleMethod(process, newDuration);

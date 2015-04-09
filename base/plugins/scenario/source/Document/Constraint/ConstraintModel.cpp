@@ -228,35 +228,10 @@ TimeValue ConstraintModel::maxDuration() const
     return m_maxDuration;
 }
 
-
-void ConstraintModel::setDefaultDurationInBounds(TimeValue arg)
-{
-    if(m_defaultDuration != arg)
-    {
-        // Rigid
-        if(m_defaultDuration == m_minDuration && m_defaultDuration == m_maxDuration)
-        {
-            setMinDuration(arg);
-            setMaxDuration(arg);
-
-            m_defaultDuration = arg;
-            emit defaultDurationChanged(arg);
-        }
-        else if(arg >= m_minDuration && arg <= m_maxDuration)
-        {
-            m_defaultDuration = arg;
-            emit defaultDurationChanged(arg);
-        }
-    }
-}
-
 void ConstraintModel::setDefaultDuration(TimeValue arg)
 {
     if(m_defaultDuration != arg)
     {
-        setMinDuration(minDuration() + (arg - defaultDuration()));
-        setMaxDuration(maxDuration() + (arg - defaultDuration()));
-
         m_defaultDuration = arg;
         emit defaultDurationChanged(arg);
     }
@@ -278,4 +253,13 @@ void ConstraintModel::setMaxDuration(TimeValue arg)
         m_maxDuration = arg;
         emit maxDurationChanged(arg);
     }
+}
+
+void ConstraintModel::setRigid(bool arg)
+{
+    if (m_rigidity == arg)
+        return;
+
+    m_rigidity = arg;
+    emit rigidityChanged(arg);
 }

@@ -23,10 +23,8 @@ RemoveEvent::RemoveEvent(const ObjectPath &scenarioPath, EventModel *event):
 }
 
 RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event) :
-    SerializableCommand{"ScenarioControl",
-                        className(),
-                        description()},
-m_path {std::move(scenarioPath) }
+    SerializableCommand{"ScenarioControl", className(), description()},
+    m_path {std::move(scenarioPath) }
 {
     QByteArray arr;
     Serializer<DataStream> s{&arr};
@@ -89,7 +87,7 @@ void RemoveEvent::undo()
     {
         Deserializer<DataStream> s{&scstr.first};
         auto cstr = new ConstraintModel(s, scenar);
-        qDebug() << "Restoring constraint" << cstr->id();
+
         scenar->addConstraint(cstr);
 
         // adding constraint to second extremity event

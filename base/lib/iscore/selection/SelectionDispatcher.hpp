@@ -19,6 +19,5 @@ namespace iscore
 
     private:
             iscore::SelectionStack& m_stack;
-            Selection m_selection;
     };
 }

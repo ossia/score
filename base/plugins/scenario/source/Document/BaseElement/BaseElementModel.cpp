@@ -60,7 +60,7 @@ BaseElementModel::BaseElementModel(QObject* parent) :
                             0,
                             this}}
 {
-    m_baseConstraint->setDefaultDuration(std::chrono::minutes{3});
+    ConstraintModel::Algorithms::changeAllDurations(*m_baseConstraint, std::chrono::minutes{3});
     m_baseConstraint->setObjectName("BaseConstraintModel");
 
     initializeNewDocument(m_baseConstraint->fullView());

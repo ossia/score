@@ -50,7 +50,47 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                    WRITE setPlayDuration
                    NOTIFY playDurationChanged)
 
+        Q_PROPERTY(bool isRigid
+                   READ isRigid
+                   WRITE setRigid
+                   NOTIFY rigidityChanged)
+
     public:
+        class Algorithms
+        {
+            public:
+            static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time)
+            {
+                if(cstr.defaultDuration() != time)
+                {
+                    // Rigid
+                    if(cstr.isRigid())
+                    {
+                        cstr.setMinDuration(time);
+                        cstr.setMaxDuration(time);
+
+                        cstr.setDefaultDuration(time);
+                    }
+                    else // The checking must be done elsewhere if(arg >= m_minDuration && arg <= m_maxDuration)
+                    {
+                        cstr.setDefaultDuration(time);
+                    }
+                }
+            }
+
+            static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time)
+            {
+                if(cstr.defaultDuration() != time)
+                {
+                    cstr.setMinDuration(cstr.minDuration() + (time - cstr.defaultDuration()));
+                    cstr.setMaxDuration(cstr.maxDuration() + (time - cstr.defaultDuration()));
+
+                    cstr.setDefaultDuration(time);
+                }
+            }
+        };
+
+
         /** Properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
@@ -153,6 +193,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_playDuration;
         }
 
+        bool isRigid() const
+        {
+            return m_rigidity;
+        }
+
     signals:
         void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
         void processRemoved(id_type<ProcessSharedModelInterface> processId);
@@ -170,14 +215,13 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void maxDurationChanged(TimeValue arg);
         void startDateChanged(TimeValue arg);
 
-        void selectedChildrenChanged(ProcessSharedModelInterface* proc);
-
         void playDurationChanged(TimeValue arg);
+
+        void rigidityChanged(bool arg);
 
     public slots:
         void setHeightPercentage(double arg);
 
-        void setDefaultDurationInBounds(TimeValue defaultDuration);
         void setDefaultDuration(TimeValue defaultDuration);
         void setMinDuration(TimeValue arg);
         void setMaxDuration(TimeValue arg);
@@ -190,6 +234,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             m_playDuration = arg;
             emit playDurationChanged(arg);
         }
+
+        void setRigid(bool arg);
 
     private slots:
         void on_destroyedViewModel(QObject*);
@@ -220,4 +266,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         double m_heightPercentage {0.5};
         TimeValue m_playDuration;
+        bool m_rigidity;
 };
+
+

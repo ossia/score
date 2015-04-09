@@ -40,7 +40,13 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     {
         c = Qt::red;
     }
-    QPen playedPen{Qt::green};
+    QPen playedPen{
+        QBrush{Qt::green},
+        4,
+        Qt::SolidLine,
+        Qt::RoundCap,
+        Qt::RoundJoin
+    };
 
     (m_moving ? c.setAlphaF(0.4) : c.setAlphaF(1.0));
 

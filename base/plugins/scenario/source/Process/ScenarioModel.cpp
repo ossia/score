@@ -94,7 +94,9 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
     {
         constraint->setStartDate(constraint->startDate() * scale);
         // Note : scale the min / max.
-        constraint->setDefaultDuration(constraint->defaultDuration() * scale);
+
+        ConstraintModel::Algorithms::changeAllDurations(*constraint,
+                                                        constraint->defaultDuration() * scale);
         emit constraintMoved(constraint->id());
     }
 
