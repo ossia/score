@@ -58,9 +58,10 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         // Returns the row (useful for undo)
         int addDevice(Node* deviceNode);
-        void addAddress(QModelIndex index,
-                        DeviceExplorerModel::Insert insert,
+        Node *addAddress(Node * parentNode,
                         const QList<QString>& addressSettings);
+
+        void removeLeave(Node *node);
 
 
         int columnCount() const;
@@ -129,8 +130,12 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getIOTypeColumn() const;
         int getNameColumn() const;
 
-    protected:
         typedef QList<int> Path;
+        Node* nodeFromModelIndex(const QModelIndex& index) const;
+        Path pathFromNode(Node &node);
+        Node *pathToNode(const Path& path);
+
+    protected:
         Path pathFromIndex(const QModelIndex& index);
         QModelIndex pathToIndex(const Path& path);
 
@@ -174,7 +179,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 
     private:
         Node* createRootNode() const;
-        Node* nodeFromModelIndex(const QModelIndex& index) const;
 
         void setColumnValue(Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;

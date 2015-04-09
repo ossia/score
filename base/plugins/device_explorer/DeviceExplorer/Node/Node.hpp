@@ -66,6 +66,8 @@ class Node
         const DeviceSettings& deviceSettings() const;
         Node* clone() const;
 
+        QString path() const;
+
 
     protected:
         QString m_name;
@@ -82,6 +84,5 @@ class Node
 
 QJsonObject nodeToJson(const Node* n);
 QDataStream& operator<<(QDataStream& s, const Node& n);
-
 
 Node* makeNode(const QList<QString>& addressSettings);

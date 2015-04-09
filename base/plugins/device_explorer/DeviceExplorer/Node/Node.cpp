@@ -207,6 +207,25 @@ Node* Node::clone() const
     return n;
 }
 
+QString Node::path() const
+{
+    QString path = name();
+    path.prepend(this->name());
+
+    Node* cur = this->parent();
+
+    while (!cur->isDevice())
+    {
+        path.prepend("/");
+        path.prepend(cur->name());
+        cur = cur->parent();
+    }
+    path.prepend("/");
+    path.prepend(cur->name());
+
+    return path;
+}
+
 
 QJsonObject nodeToJson(const Node* n)
 {
