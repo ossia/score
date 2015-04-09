@@ -206,6 +206,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
         // Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
+        // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 
         id_type<EventModel> m_startEvent {};

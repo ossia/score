@@ -7,8 +7,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include <API/Headers/Editor/Scenario.h>
-
 #include <QDebug>
 
 ScenarioModel::ScenarioModel(TimeValue duration,

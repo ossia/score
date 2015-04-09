@@ -64,9 +64,6 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     m_stream	<< constraint.startEvent();
     m_stream	<< constraint.endEvent();
 
-    // API Object
-    // s << i.apiObject()->save();
-    // Things that should be queried from the API :
     m_stream << constraint.defaultDuration()
              << constraint.startDate()
              << constraint.minDuration()

@@ -97,11 +97,11 @@ void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, Scenar
     {
         if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {
-            auto cvm_id = identifierOfViewModelFromSharedModel(temporalSVM);
+            auto svm_id = identifierOfViewModelFromSharedModel(temporalSVM);
 
-            if(vms.contains(cvm_id))
+            if(vms.contains(svm_id))
             {
-                Deserializer<DataStream> d(&(vms[cvm_id].second));
+                Deserializer<DataStream> d(&(vms[svm_id].second));
                 auto cstr = createConstraintViewModel(d, temporalSVM);
                 temporalSVM->addConstraintViewModel(cstr);
             }
