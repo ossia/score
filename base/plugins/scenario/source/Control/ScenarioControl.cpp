@@ -178,6 +178,11 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <QToolBar>
+enum ScenarioAction
+{
+    Create, Move, DeckMove, Select
+};
+
 void ScenarioControl::populateToolbars(QToolBar* bar)
 {
     // TODO make a method of this
@@ -190,6 +195,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     m_scenarioActionGroup->setEnabled(false);
     auto createtool = new QAction(tr("Create"), m_scenarioActionGroup);
     createtool->setCheckable(true);
+    createtool->setData(QVariant::fromValue((int)ScenarioAction::Create));
     connect(createtool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setCreateState();
@@ -197,6 +203,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
 
     auto movetool = new QAction(tr("Move"), m_scenarioActionGroup);
     movetool->setCheckable(true);
+    movetool->setData(QVariant::fromValue((int)ScenarioAction::Move));
     connect(movetool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setMoveState();
@@ -204,6 +211,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
 
     auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioActionGroup);
     deckmovetool->setCheckable(true);
+    deckmovetool->setData(QVariant::fromValue((int)ScenarioAction::DeckMove));
     connect(deckmovetool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setDeckMoveState();
@@ -212,6 +220,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     auto selecttool = new QAction(tr("Select"), m_scenarioActionGroup);
     selecttool->setCheckable(true);
     selecttool->setChecked(true);
+    selecttool->setData(QVariant::fromValue((int)ScenarioAction::Select));
     connect(selecttool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setSelectState();
@@ -263,8 +272,39 @@ void ScenarioControl::on_presenterChanged()
     m_toolbarConnection = connect(&model,  &BaseElementModel::focusedViewModelChanged,
                                   this, [&] ()
     {
-        auto onScenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
-        m_scenarioActionGroup->setEnabled(onScenario);
+        // Get the process viewmodel
+        auto scenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
+        m_scenarioActionGroup->setEnabled(scenario);
+        if(scenario)
+        {
+            // Set the current state on the statemachine.
+            for(QAction* action : m_scenarioActionGroup->actions())
+            {
+                if(action->isChecked())
+                {
+                    switch(action->data().toInt())
+                    {
+                        case ScenarioAction::Create:
+                            scenario->presenter()->stateMachine().setCreateState();
+                            break;
+                        case ScenarioAction::DeckMove:
+                            scenario->presenter()->stateMachine().setDeckMoveState();
+                            break;
+                        case ScenarioAction::Move:
+                            scenario->presenter()->stateMachine().setMoveState();
+                            break;
+                        case ScenarioAction::Select:
+                            scenario->presenter()->stateMachine().setSelectState();
+                            break;
+
+                        default:
+                            Q_ASSERT(false);
+                            break;
+                    }
+                }
+            }
+        }
+
     });
 }
 

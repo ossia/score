@@ -39,7 +39,6 @@ BaseElementModel::BaseElementModel(QVariant data,
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
-        qDebug() << data.toJsonObject();
         m_baseConstraint = new ConstraintModel{Deserializer<JSON>{data.toJsonObject()}, this};
     }
     else
