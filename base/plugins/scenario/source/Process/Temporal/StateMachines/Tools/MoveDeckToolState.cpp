@@ -1,6 +1,7 @@
 #include "MoveDeckToolState.hpp"
 #include "Commands/Constraint/Box/MoveDeck.hpp"
 #include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
@@ -16,7 +17,11 @@
 
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     GenericStateBase{sm},
-    m_dispatcher{m_sm.commandStack(), nullptr}
+    m_dispatcher{m_sm.commandStack(), nullptr},
+    m_ongoingDispatcher{iscore::IDocument::path(m_sm.model()),
+                        m_sm.locker(),
+                        m_sm.commandStack(),
+                        nullptr}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
     // TODO check the enablement of a deck when it is created.
@@ -97,8 +102,37 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
                         resizeDeck,
                         *resizeDeck);
 
+            auto press = new QState{resizeDeck};
+            resizeDeck->setInitialState(press);
+            auto move = new QState{resizeDeck};
+            auto release = new QFinalState{resizeDeck};
 
+            make_transition<Move_Transition>(press, move);
+            make_transition<Move_Transition>(move, move);
+            make_transition<Release_Transition>(press, release);
+            make_transition<Release_Transition>(move, release);
 
+            connect(press, &QAbstractState::entered, [=] ()
+            {
+                m_originalPoint = m_sm.scenePoint;
+                m_originalHeight = resizeDeck->currentDeck.find<DeckModel>()->height();
+            });
+
+            connect(move, &QAbstractState::entered, [=] ( )
+            {
+                auto val = std::max(20.0, m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
+                auto cmd = new Scenario::Command::ResizeDeckVertically {
+                                ObjectPath{resizeDeck->currentDeck},
+                                val};
+
+                m_ongoingDispatcher.submitCommand(cmd);
+                return;
+            });
+
+            connect(release, &QAbstractState::entered, [=] ()
+            {
+                m_ongoingDispatcher.commit();
+            });
         }
         resizeDeck->addTransition(resizeDeck, SIGNAL(finished()), m_waitState);
     }

@@ -43,4 +43,8 @@ class MoveDeckToolState : public GenericStateBase
         QState* m_waitState{};
 
         CommandDispatcher<> m_dispatcher;
+        LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_ongoingDispatcher;
+
+        QPointF m_originalPoint;
+        double m_originalHeight;
 };
