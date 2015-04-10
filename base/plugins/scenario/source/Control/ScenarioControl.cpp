@@ -251,7 +251,6 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
 
 void ScenarioControl::on_newDocument(iscore::Document* doc)
 {
-    qDebug() << Q_FUNC_INFO;
     on_presenterChanged();
 }
 
