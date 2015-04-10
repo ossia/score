@@ -18,23 +18,23 @@ class DeckView : public QGraphicsObject
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
 
-        static constexpr int borderHeight()
+        static constexpr double handleHeight()
         {
-            return 5;
+            return 5.;
         }
 
-        void setHeight(int height);
-        int height() const;
+        void setHeight(qreal height);
+        qreal height() const;
 
-        void setWidth(int width);
-        int width() const;
+        void setWidth(qreal width);
+        qreal width() const;
 
         void enable();
         void disable();
 
     signals:
         void bottomHandleSelected();
-        void bottomHandleChanged(int newHeight);
+        void bottomHandleChanged(double newHeight);
         void bottomHandleReleased();
 
     protected:
@@ -43,8 +43,8 @@ class DeckView : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
     private:
-        int m_height {};
-        int m_width {};
+        qreal m_height {};
+        qreal m_width {};
         DeckOverlay* m_overlay{};
 };
 
@@ -64,7 +64,9 @@ class DeckOverlay : public QGraphicsItem
 
         virtual QRectF boundingRect() const override
         {
-            return deckView.boundingRect();
+            auto rect = deckView.boundingRect();
+            rect.setHeight(rect.height() - deckView.handleHeight());
+            return rect;
         }
 
         virtual void paint(QPainter *painter,
@@ -75,7 +77,7 @@ class DeckOverlay : public QGraphicsItem
             painter->drawRect(boundingRect());
         }
 
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev)
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
         {
             ev->ignore();
         }

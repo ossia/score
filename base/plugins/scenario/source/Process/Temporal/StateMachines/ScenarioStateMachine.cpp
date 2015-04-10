@@ -97,7 +97,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     createState->start();
     moveState->start();
     selectState->start();
-
+    moveDeckState->start();
     this->setInitialState(selectState);
 }
 

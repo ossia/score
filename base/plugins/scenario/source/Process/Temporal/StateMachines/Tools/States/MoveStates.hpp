@@ -2,7 +2,7 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
-class MoveConstraintState : public CommonState
+class MoveConstraintState : public CommonScenarioState
 {
     public:
         MoveConstraintState(ObjectPath&& scenarioPath,
@@ -17,7 +17,7 @@ class MoveConstraintState : public CommonState
         TimeValue m_constraintInitialStartDate;
 };
 
-class MoveEventState : public CommonState
+class MoveEventState : public CommonScenarioState
 {
     public:
         MoveEventState(ObjectPath&& scenarioPath,
@@ -28,7 +28,7 @@ class MoveEventState : public CommonState
         LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_dispatcher;
 };
 
-class MoveTimeNodeState : public CommonState
+class MoveTimeNodeState : public CommonScenarioState
 {
     public:
         MoveTimeNodeState(ObjectPath&& scenarioPath,

@@ -28,8 +28,8 @@ class DeckPresenter : public NamedObject
         const DeckModel& model() const;
         int height() const; // Return the height of the view
 
-        void setWidth(int w);
-        void setVerticalPosition(int h);
+        void setWidth(double w);
+        void setVerticalPosition(double h);
 
         // Sets the enabled - disabled graphism for
         // the deck move tool
@@ -44,12 +44,12 @@ class DeckPresenter : public NamedObject
         void on_processViewModelCreated(id_type<ProcessViewModelInterface> processId);
         void on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId);
         void on_processViewModelSelected(id_type<ProcessViewModelInterface> processId);
-        void on_heightChanged(int height);
+        void on_heightChanged(double height);
         void on_parentGeometryChanged();
 
         // From View
         void on_bottomHandleSelected();
-        void on_bottomHandleChanged(int newHeight);
+        void on_bottomHandleChanged(double newHeight);
         void on_bottomHandleReleased();
 
         void on_zoomRatioChanged(ZoomRatio);

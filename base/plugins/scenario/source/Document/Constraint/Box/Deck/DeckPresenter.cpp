@@ -86,13 +86,13 @@ int DeckPresenter::height() const
     return m_view->height();
 }
 
-void DeckPresenter::setWidth(int w)
+void DeckPresenter::setWidth(double w)
 {
     m_view->setWidth(w);
     updateProcessesShape();
 }
 
-void DeckPresenter::setVerticalPosition(int pos)
+void DeckPresenter::setVerticalPosition(double pos)
 {
     auto view_pos = m_view->pos();
 
@@ -155,7 +155,7 @@ void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterfac
     }
 }
 
-void DeckPresenter::on_heightChanged(int height)
+void DeckPresenter::on_heightChanged(double height)
 {
     m_view->setHeight(height);
     updateProcessesShape();
@@ -173,7 +173,7 @@ void DeckPresenter::on_bottomHandleSelected()
 
 }
 
-void DeckPresenter::on_bottomHandleChanged(int newHeight)
+void DeckPresenter::on_bottomHandleChanged(double newHeight)
 {
     on_heightChanged(newHeight);
 }
@@ -182,8 +182,9 @@ void DeckPresenter::on_bottomHandleReleased()
 {
     auto path = iscore::IDocument::path(m_model);
 
-    auto cmd = new Command::ResizeDeckVertically {std::move(path),
-               m_view->height()};
+    auto cmd = new Command::ResizeDeckVertically {
+                    std::move(path),
+                    m_view->height()};
     emit m_commandDispatcher->submitCommand(cmd);
 }
 
@@ -217,7 +218,7 @@ void DeckPresenter::updateProcessesShape()
 {
     for(ProcessPresenterInterface* proc : m_processes)
     {
-        proc->setHeight(height() - DeckView::borderHeight());
+        proc->setHeight(height() - DeckView::handleHeight());
         proc->setWidth(m_view->width());
         proc->parentGeometryChanged();
     }

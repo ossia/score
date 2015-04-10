@@ -51,6 +51,8 @@ struct PositionedEvent : public PositionedEventBase
 template<typename Event>
 class MatchedTransition : public QAbstractTransition
 {
+    public:
+        using event_type = Event;
     protected:
         virtual bool eventTest(QEvent *e) override
         { return e->type() == QEvent::Type(QEvent::User + Event::user_type); }

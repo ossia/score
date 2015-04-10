@@ -19,7 +19,7 @@ namespace Scenario
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(ResizeDeckVertically, "ScenarioControl")
                 ResizeDeckVertically(ObjectPath&& deckPath,
-                                     int newSize);
+                                     double newSize);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -32,8 +32,8 @@ namespace Scenario
             private:
                 ObjectPath m_path;
 
-                int m_originalSize {};
-                int m_newSize {};
+                double m_originalSize {};
+                double m_newSize {};
         };
     }
 }

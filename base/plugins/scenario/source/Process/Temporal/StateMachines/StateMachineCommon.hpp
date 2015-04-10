@@ -4,14 +4,17 @@
 #include <QState>
 #include <QAbstractTransition>
 #include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
+
+
 // TODO optimize this when we have all the tools
-class CommonState : public QState
+class CommonScenarioState : public QState
 {
     public:
-        CommonState(ObjectPath&& scenar, QState* parent):
+        CommonScenarioState(ObjectPath&& scenar, QState* parent):
             QState{parent},
             m_scenarioPath{std::move(scenar)}
         { }
@@ -41,10 +44,10 @@ class CommonState : public QState
         ObjectPath m_scenarioPath;
 };
 
-class CreationState : public CommonState
+class CreationState : public CommonScenarioState
 {
     public:
-        using CommonState::CommonState;
+        using CommonScenarioState::CommonScenarioState;
         const auto& createdEvent() const
         { return m_createdEvent; }
         void setCreatedEvent(const id_type<EventModel>& id)
@@ -62,17 +65,19 @@ class CreationState : public CommonState
 
 ////////////////////////
 
+// TODO rename in something like CreateMove transition...
+// Or something that means that it will operate on constraint, event, etc...
 template<typename T>
 class GenericTransition : public T
 {
     public:
-        GenericTransition(CommonState& state):
+        GenericTransition(CommonScenarioState& state):
                     m_state{state} { }
 
-        CommonState& state() const { return m_state; }
+        CommonScenarioState& state() const { return m_state; }
 
     private:
-        CommonState& m_state;
+        CommonScenarioState& m_state;
 };
 
 template<typename Event>
@@ -87,9 +92,9 @@ class MatchedScenarioTransition : public GenericTransition<MatchedTransition<Eve
 
 ////////////
 template<typename Element, int N>
-struct PositionedOn_Event : public PositionedEvent<N>
+struct PositionedWithId_Event : public PositionedEvent<N>
 {
-        PositionedOn_Event(const id_type<Element>& tn_id,
+        PositionedWithId_Event(const id_type<Element>& tn_id,
                            const ScenarioPoint& sp):
             PositionedEvent<N>{sp},
             id{tn_id}
@@ -99,21 +104,52 @@ struct PositionedOn_Event : public PositionedEvent<N>
         id_type<Element> id;
 };
 
+
+template<typename Element, int N>
+struct PositionedWithPath_Event : public PositionedEvent<N>
+{
+        PositionedWithPath_Event(const ObjectPath& p,
+                                 const ScenarioPoint& sp):
+            PositionedEvent<N>{sp},
+            path{p}
+        {
+        }
+
+        ObjectPath path;
+};
+
 // Events
-using ClickOnNothing_Event = PositionedEvent<11>;
-using ClickOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 12>;
-using ClickOnEvent_Event = PositionedOn_Event<EventModel, 13>;
-using ClickOnConstraint_Event = PositionedOn_Event<ConstraintModel, 14>;
+enum ScenarioElement {
+    Nothing, TimeNode, Event, Constraint, Deck, DeckHandle
+};
+enum Modifier
+{ Click = 100, Move = 200, Release = 300 };
 
-using MoveOnNothing_Event = PositionedEvent<15>;
-using MoveOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 16>;
-using MoveOnEvent_Event = PositionedOn_Event<EventModel, 17>;
-using MoveOnConstraint_Event = PositionedOn_Event<ConstraintModel, 18>;
+using ClickOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Click>;
+using ClickOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Click>;
+using ClickOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Click>;
+using ClickOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Click>;
 
-using ReleaseOnNothing_Event = PositionedEvent<19>;
-using ReleaseOnTimeNode_Event = PositionedOn_Event<TimeNodeModel, 20>;
-using ReleaseOnEvent_Event = PositionedOn_Event<EventModel, 21>;
-using ReleaseOnConstraint_Event = PositionedOn_Event<ConstraintModel, 22>;
+using ClickOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Click>;
+using ClickOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Click>;
+
+
+using MoveOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Move>;
+using MoveOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Move>;
+using MoveOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Move>;
+using MoveOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Move>;
+
+using MoveOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Move>;
+using MoveOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Move>;
+
+
+using ReleaseOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Release>;
+using ReleaseOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Release>;
+using ReleaseOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Release>;
+using ReleaseOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Release>;
+
+using ReleaseOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Release>;
+using ReleaseOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Release>;
 
 // Transitions
 
@@ -180,6 +216,71 @@ class ClickOnConstraint_Transition : public MatchedScenarioTransition<ClickOnCon
             this->state().currentPoint = qev->point;
         }
 };
+
+
+
+
+class DeckState : public QState
+{
+    public:
+        DeckState(QState* parent):
+            QState{parent}
+        { }
+
+
+
+        ObjectPath currentDeck;
+        ScenarioPoint currentPoint;
+};
+
+class ClickOnDeck_Transition : public MatchedTransition<ClickOnDeck_Event>
+{
+    public:
+        ClickOnDeck_Transition(DeckState& state):
+            m_state{state}
+        {
+
+        }
+
+        DeckState& state() const { return m_state; }
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<event_type*>(ev);
+
+            this->state().currentDeck = qev->path;
+            this->state().currentPoint = qev->point;
+        }
+
+    private:
+        DeckState& m_state;
+};
+
+class ClickOnDeckHandle_Transition : public MatchedTransition<ClickOnDeckHandle_Event>
+{
+    public:
+        ClickOnDeckHandle_Transition(DeckState& state):
+            m_state{state}
+        {
+
+        }
+
+        DeckState& state() const { return m_state; }
+
+    protected:
+        virtual void onTransition(QEvent * ev)
+        {
+            auto qev = static_cast<event_type*>(ev);
+
+            this->state().currentDeck = qev->path;
+            this->state().currentPoint = qev->point;
+        }
+
+    private:
+        DeckState& m_state;
+};
+
 
 ////////////////////////
 class MoveOnNothing_Transition : public MatchedScenarioTransition<MoveOnNothing_Event>

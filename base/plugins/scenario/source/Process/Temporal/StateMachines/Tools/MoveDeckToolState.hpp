@@ -2,7 +2,7 @@
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 
-class GenericToolStateBase : public QState
+class GenericStateBase : public QState
 {
     protected:
         auto itemUnderMouse(const QPointF& point) const
@@ -11,7 +11,7 @@ class GenericToolStateBase : public QState
         }
 
     public:
-        GenericToolStateBase(const ScenarioStateMachine& sm) :
+        GenericStateBase(const ScenarioStateMachine& sm) :
             m_sm{sm}
         {
         }
@@ -22,11 +22,12 @@ class GenericToolStateBase : public QState
         virtual void on_scenarioMoved() = 0;
         virtual void on_scenarioReleased() = 0;
 
+        QStateMachine m_localSM;
         const ScenarioStateMachine& m_sm;
 };
 
 class DeckModel;
-class MoveDeckToolState : public GenericToolStateBase
+class MoveDeckToolState : public GenericStateBase
 {
     public:
         MoveDeckToolState(const ScenarioStateMachine &sm);
@@ -35,9 +36,11 @@ class MoveDeckToolState : public GenericToolStateBase
         void on_scenarioMoved() override;
         void on_scenarioReleased() override;
 
+        void start()
+        { m_localSM.start(); }
+
     private:
         QState* m_waitState{};
-        ObjectPath m_sourceDeck;
 
         CommandDispatcher<> m_dispatcher;
 };

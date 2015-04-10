@@ -16,39 +16,36 @@ DeckView::DeckView(const DeckPresenter &pres, QGraphicsObject* parent) :
 
 QRectF DeckView::boundingRect() const
 {
-    return {0, 0,
-            qreal(m_width),
-            qreal(m_height)
-           };
+    return {0, 0, m_width, m_height};
 }
 
 void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     auto rect = boundingRect();
     painter->drawRect(rect);
-    painter->setBrush(QBrush {Qt::lightGray});
+    painter->setBrush(QBrush {Qt::darkGray});
 
-    painter->drawRect(0, rect.height() - borderHeight(), rect.width(), borderHeight());
+    painter->drawRect(0, rect.height() - handleHeight(), rect.width(), handleHeight());
 }
 
-void DeckView::setHeight(int height)
+void DeckView::setHeight(qreal height)
 {
     prepareGeometryChange();
     m_height = height;
 }
 
-int DeckView::height() const
+qreal DeckView::height() const
 {
     return m_height;
 }
 
-void DeckView::setWidth(int width)
+void DeckView::setWidth(qreal width)
 {
     prepareGeometryChange();
     m_width = width;
 }
 
-int DeckView::width() const
+qreal DeckView::width() const
 {
     return m_width;
 }

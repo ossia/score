@@ -6,7 +6,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
-                                           int newSize) :
+                                           double newSize) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
