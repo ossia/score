@@ -47,11 +47,6 @@ class DeckPresenter : public NamedObject
         void on_heightChanged(double height);
         void on_parentGeometryChanged();
 
-        // From View
-        void on_bottomHandleSelected();
-        void on_bottomHandleChanged(double newHeight);
-        void on_bottomHandleReleased();
-
         void on_zoomRatioChanged(ZoomRatio);
 
     private:

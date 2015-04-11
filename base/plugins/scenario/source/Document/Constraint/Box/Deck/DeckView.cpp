@@ -71,23 +71,3 @@ void DeckView::disable()
     }
     m_overlay = new DeckOverlay{this};
 }
-
-// TODO handle this via state-machine...
-void DeckView::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit bottomHandleSelected();
-    event->ignore();
-}
-
-void DeckView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit bottomHandleChanged(event->pos().y() - boundingRect().y());
-    event->ignore();
-}
-
-void DeckView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit bottomHandleReleased();
-    event->ignore();
-}
-

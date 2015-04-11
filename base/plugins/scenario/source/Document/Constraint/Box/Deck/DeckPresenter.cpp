@@ -48,13 +48,6 @@ DeckPresenter::DeckPresenter(DeckModel* model,
     connect(m_model, &DeckModel::heightChanged,
     this,	 &DeckPresenter::on_heightChanged);
 
-    connect(m_view, &DeckView::bottomHandleChanged,
-    this,	&DeckPresenter::on_bottomHandleChanged);
-    connect(m_view, &DeckView::bottomHandleReleased,
-    this,	&DeckPresenter::on_bottomHandleReleased);
-    connect(m_view, &DeckView::bottomHandleSelected,
-    this,	&DeckPresenter::on_bottomHandleSelected);
-
     m_view->setHeight(m_model->height());
 }
 
@@ -166,26 +159,6 @@ void DeckPresenter::on_heightChanged(double height)
 void DeckPresenter::on_parentGeometryChanged()
 {
     updateProcessesShape();
-}
-
-void DeckPresenter::on_bottomHandleSelected()
-{
-
-}
-
-void DeckPresenter::on_bottomHandleChanged(double newHeight)
-{
-    on_heightChanged(newHeight);
-}
-
-void DeckPresenter::on_bottomHandleReleased()
-{
-    auto path = iscore::IDocument::path(m_model);
-
-    auto cmd = new Command::ResizeDeckVertically {
-                    std::move(path),
-                    m_view->height()};
-    emit m_commandDispatcher->submitCommand(cmd);
 }
 
 void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)

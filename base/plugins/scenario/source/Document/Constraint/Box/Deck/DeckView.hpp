@@ -32,16 +32,6 @@ class DeckView : public QGraphicsObject
         void enable();
         void disable();
 
-    signals:
-        void bottomHandleSelected();
-        void bottomHandleChanged(double newHeight);
-        void bottomHandleReleased();
-
-    protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-        void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-
     private:
         qreal m_height {};
         qreal m_width {};
