@@ -116,8 +116,14 @@ inline int getNextId(const Vector& ids)
     return id;
 }
 
-template<typename T>
-id_type<T> getStrongId(const std::vector<T*>& v)
+template<typename Vector,
+         typename std::enable_if<
+                    std::is_pointer<
+                      typename Vector::value_type
+                    >::value
+                  >::type* = nullptr>
+auto getStrongId(const Vector& v)
+    -> id_type<typename std::remove_pointer<typename Vector::value_type>::type>
 {
     using namespace std;
     vector<int> ids(v.size());   // Map reduce
@@ -125,39 +131,29 @@ id_type<T> getStrongId(const std::vector<T*>& v)
     transform(begin(v),
               end(v),
               begin(ids),
-              [](const T * elt)
+              [](const typename Vector::value_type& elt)
     {
         return * (elt->id().val());
     });
 
-    return id_type<T> {getNextId(ids) };
+    return id_type<typename std::remove_pointer<typename Vector::value_type>::type> {getNextId(ids)};
 }
 
-template<typename T>
-id_type<T> getStrongId(const QVector<T*>& v)
+template<typename Vector,
+         typename std::enable_if<
+                    not std::is_pointer<
+                      typename Vector::value_type
+                    >::value
+                  >::type* = nullptr>
+auto getStrongId(const Vector& ids) ->
+    typename Vector::value_type
 {
     using namespace std;
-    QVector<int> ids(v.size());   // Map reduce
-
-    transform(begin(v),
-              end(v),
-              begin(ids),
-              [](const T * elt)
-    {
-        return * (elt->id().val());
-    });
-
-    return id_type<T> {getNextId(ids) };
-}
-
-template<typename T>
-id_type<T> getStrongId(const std::vector<id_type<T>>& ids)
-{
-    id_type<T> id {};
+    typename Vector::value_type id {};
 
     do
     {
-        id = id_type<T> {getNextId() };
+        id = typename Vector::value_type{getNextId() };
     }
     while(find(begin(ids),
                end(ids),
@@ -165,24 +161,6 @@ id_type<T> getStrongId(const std::vector<id_type<T>>& ids)
 
     return id;
 }
-
-template<typename T>
-id_type<T> getStrongId(const QVector<id_type<T>>& ids)
-{
-    using namespace std;
-    id_type<T> id {};
-
-    do
-    {
-        id = id_type<T> {getNextId() };
-    }
-    while(find(begin(ids),
-               end(ids),
-               id) != end(ids));
-
-    return id;
-}
-
 
 template <typename Vector, typename id_T>
 void removeById(Vector& c, id_T id)
