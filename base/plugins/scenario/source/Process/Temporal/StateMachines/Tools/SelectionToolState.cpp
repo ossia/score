@@ -217,51 +217,50 @@ void SelectionToolState::on_scenarioReleased()
 
 void SelectionToolState::setSelectionArea(const QRectF& area)
 {
+    using namespace std;
     QPainterPath path;
     path.addRect(area);
     Selection sel;
+    const auto& events = m_sm.presenter().events();
+    const auto& timenodes = m_sm.presenter().timeNodes();
+    const auto& cstrs = m_sm.presenter().constraints();
 
-    for (auto item : m_sm.presenter().view().scene()->items(path))
+    const auto items = m_sm.presenter().view().scene()->items(path);
+
+
+    for (const auto& item : items)
     {
-        EventView* itemEv = dynamic_cast<EventView*>(item);
-        auto itemCstr = dynamic_cast<TemporalConstraintView*>(item);
-        auto itemTn = dynamic_cast<TimeNodeView*>(item);
-
-        if (itemEv)
+        auto ev_it = find_if(events.cbegin(),
+                             events.cend(),
+                             [&] (EventPresenter* p) { return p->view() == item; });
+        if(ev_it != events.cend())
         {
-            for (EventPresenter* event : m_sm.presenter().events())
-            {
-                if (event->view() == itemEv)
-                {
-                    sel.push_back(event->model());
-                    break;
-                }
-            }
-        }
-        else if (itemCstr)
-        {
-            for (TemporalConstraintPresenter* cstr : m_sm.presenter().constraints())
-            {
-                if (view(cstr) == itemCstr)
-                {
-                    sel.push_back(viewModel(cstr)->model());
-                    break;
-                }
-            }
-        }
-
-        else if (itemTn)
-        {
-            for (TimeNodePresenter* tn : m_sm.presenter().timeNodes())
-            {
-                if (tn->view() == item)
-                {
-                    sel.push_back(tn->model());
-                    break;
-                }
-            }
+            sel.push_back((*ev_it)->model());
         }
     }
+
+    for (const auto& item : items)
+    {
+        auto tn_it = find_if(timenodes.cbegin(),
+                             timenodes.cend(),
+                             [&] (TimeNodePresenter* p) { return p->view() == item; });
+        if(tn_it != timenodes.cend())
+        {
+            sel.push_back((*tn_it)->model());
+        }
+    }
+
+    for (const auto& item : items)
+    {
+        auto cst_it = find_if(cstrs.begin(),
+                              cstrs.end(),
+                              [&] (TemporalConstraintPresenter* p) { return p->view() == item; });
+        if(cst_it != cstrs.end())
+        {
+            sel.push_back((*cst_it)->model());
+        }
+    }
+
 
     // TODO if m_multiSelection->active()
     m_dispatcher.setAndCommit(sel);

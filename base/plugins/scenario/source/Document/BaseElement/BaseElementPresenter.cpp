@@ -229,14 +229,17 @@ void BaseElementPresenter::updateGrid()
 {
     QPainterPath grid;
     double x = 0;
+    const auto theHeight = height();
+    const auto trWidth = m_mainTimeRuler->view()->width();
+    const auto trSp = m_mainTimeRuler->view()->graduationSpacing();
 
-    while (x < m_mainTimeRuler->view()->width())
+    while (x < trWidth)
     {
-        grid.addRect(x, 0, 1, height());
-        x += m_mainTimeRuler->view()->graduationSpacing();
+        grid.addRect(x, 0, 1, theHeight);
+        x += trSp;
     }
 
-    view()->view()->setGrid(grid);
+    view()->view()->setGrid(std::move(grid));
 }
 
 void BaseElementPresenter::updateRect(QRectF rect)

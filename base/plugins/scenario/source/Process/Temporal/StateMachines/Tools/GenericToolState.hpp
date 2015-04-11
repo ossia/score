@@ -27,16 +27,29 @@ namespace iscore
 {
     class SerializableCommand;
 }
+/*
+void getCollidingEvents(TemporalScenarioPresenter* pres, const id_type<EventModel>& toIgnore, QPointF scenePos)
+{
+    // Make a rect at mouse pose
+    pres->view().scene()->items(scenePos);
+}
+*/
+
+template<typename Element>
+bool isUnderMouse(Element ev, const QPointF& scenePos)
+{
+    return ev->mapRectToScene(ev->boundingRect()).contains(scenePos);
+}
 
 template<typename PresenterArray, typename IdToIgnore>
-auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id)
+auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const QPointF& scenePoint)
 {
     using namespace std;
-
     QList<decltype(array[0]->model())> colliding;
+
     for(const auto& elt : array)
     {
-        if((!bool(id) || id != elt->id()) && elt->view()->isUnderMouse())
+        if((!bool(id) || id != elt->id()) && isUnderMouse(elt->view(), scenePoint))
         {
             colliding.push_back(elt->model());
         }

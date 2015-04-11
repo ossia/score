@@ -3,16 +3,25 @@
 #include <QResizeEvent>
 
 #include <QPainter>
-
+#include <QOpenGLWidget>
 class SizeNotifyingGraphicsView : public QGraphicsView
 {
         Q_OBJECT
     public:
-        using QGraphicsView::QGraphicsView;
-
-        void setGrid(QPainterPath newGrid)
+        SizeNotifyingGraphicsView(QGraphicsScene* parent):
+            QGraphicsView{parent}
         {
-            m_grid = newGrid;
+            /*
+            setViewport(new QOpenGLWidget);
+            //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+            setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+            setAlignment(Qt::AlignTop | Qt::AlignLeft);
+            */
+        }
+
+        void setGrid(QPainterPath&& newGrid)
+        {
+            m_grid = std::move(newGrid);
             update();
         }
 
@@ -34,9 +43,14 @@ class SizeNotifyingGraphicsView : public QGraphicsView
 
         virtual void drawBackground(QPainter * painter, const QRectF & rect) override
         {
-            painter->fillRect(rect, QBrush{Qt::lightGray});
-            painter->setPen(QPen(QBrush(Qt::gray), 1, Qt::DashLine));
+            painter->fillRect(rect, m_bgBrush);
+            painter->setPen(m_bgPen);
             painter->drawPath(m_grid);
         }
+
+
+    private:
         QPainterPath m_grid;
+        const QBrush m_bgBrush{Qt::lightGray};
+        const QPen m_bgPen{QBrush(Qt::gray), 1, Qt::DashLine};
 };
