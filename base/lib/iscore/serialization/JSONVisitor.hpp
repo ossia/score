@@ -74,9 +74,12 @@ class Visitor<Writer<JSON>>
             if(init)
             {
                 val = m_obj["IdentifierValue"].toInt();
+                obj.setVal(val);
             }
-
-            obj.setVal(boost::optional<int32_t> {init, val});
+            else
+            {
+                obj.unset();
+            }
         }
 
         template<typename T>

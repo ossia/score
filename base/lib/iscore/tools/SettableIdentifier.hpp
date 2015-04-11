@@ -45,6 +45,11 @@ class id
             m_id = val;
         }
 
+        void unset()
+        {
+            m_id = value_type();
+        }
+
     private:
         value_type m_id {};
 };

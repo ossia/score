@@ -12,7 +12,7 @@ id_type<BoxModel> AbstractConstraintViewModel::shownBox() const
 
 void AbstractConstraintViewModel::hideBox()
 {
-    m_shownBox.setVal(boost::optional<int32_t> {});
+    m_shownBox.unset();
     emit boxHidden();
 }
 

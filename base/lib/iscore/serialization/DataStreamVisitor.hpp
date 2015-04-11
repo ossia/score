@@ -73,9 +73,12 @@ class Visitor<Writer<DataStream>>
             if(init)
             {
                 m_stream >> val;
+                obj.setVal(val);
             }
-
-            obj.setVal(boost::optional<int32_t> {init, val});
+            else
+            {
+                obj.unset();
+            }
         }
 
         template<typename T>
