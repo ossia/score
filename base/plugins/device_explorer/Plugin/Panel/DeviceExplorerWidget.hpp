@@ -44,6 +44,8 @@ class DeviceExplorerWidget : public QWidget
         void addChild();
         void addSibling();
 
+        void removeNode();
+
         void filterChanged();
 
         void updateActions();
@@ -60,8 +62,6 @@ class DeviceExplorerWidget : public QWidget
         void addAddress(int insertType);
 
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
-
-    protected:
 
         DeviceExplorerView* m_ntView;
         DeviceExplorerFilterProxyModel* m_proxyModel;
@@ -82,6 +82,8 @@ class DeviceExplorerWidget : public QWidget
         QAction* m_moveDownAction;
         QAction* m_promoteAction;
         QAction* m_demoteAction;
+
+        QAction* m_removeNodeAction;
 
         QComboBox* m_columnCBox;
         QLineEdit* m_nameLEdit;

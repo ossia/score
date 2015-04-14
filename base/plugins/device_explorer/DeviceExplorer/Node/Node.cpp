@@ -282,6 +282,41 @@ QDataStream& operator<<(QDataStream& s, const Node& n)
     return s;
 }
 
+
+QDataStream& operator>>(QDataStream &s, Node &n)
+{
+    QString name, value;
+    int io;
+    float min, max;
+    unsigned int prio;
+    bool isDev;
+    int settings;
+    int childCount;
+    Node child;
+
+    s >> name >> value >> io >> min >> max >> prio >> isDev;
+    if (isDev)
+    {
+        s >> settings;
+    }
+    s >> childCount;
+    for (int i = 0; i < childCount; ++i)
+    {
+        s >> child;
+        n.addChild(&child);
+    }
+
+    n.setName(name);
+    n.setValue(value);
+    n.setIOType(static_cast<Node::IOType>(io));
+    n.setMinValue(min);
+    n.setMaxValue(max);
+    n.setPriority(prio);
+
+    return s;
+}
+
+
 #include <QDebug>
 namespace
 {
