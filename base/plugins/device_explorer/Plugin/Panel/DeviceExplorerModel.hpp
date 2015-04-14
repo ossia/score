@@ -60,8 +60,9 @@ class DeviceExplorerModel : public QAbstractItemModel
         int addDevice(Node* deviceNode);
         Node *addAddress(Node * parentNode,
                         const QList<QString>& addressSettings);
+        void addAddress(Node* parentNode, Node* node);
 
-        void removeLeave(Node *node);
+        void removeNode(Node *node);
 
 
         int columnCount() const;

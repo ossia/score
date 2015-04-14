@@ -33,8 +33,6 @@ DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
 
 {
     buildGUI();
-    ;
-
 }
 
 void
@@ -407,7 +405,7 @@ DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNode()
 {
-    //m_cmdDispatcher->submitCommand(new Remove{});
+    m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), m_ntView->selectedIndex()});
 }
 
 void

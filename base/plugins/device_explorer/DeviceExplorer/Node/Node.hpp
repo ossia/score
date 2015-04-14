@@ -64,9 +64,8 @@ class Node
         bool isEditable() const;
         bool isDevice() const;
         const DeviceSettings& deviceSettings() const;
+        const QList<QString> addressSettings() const;
         Node* clone() const;
-
-        QString path() const;
 
 
     protected:

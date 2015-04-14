@@ -17,7 +17,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
 
-                Remove(ObjectPath&& device_tree, Node* node);
+                Remove(ObjectPath&& device_tree, QModelIndex index);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -30,9 +30,12 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_deviceTree;
                 DeviceExplorerModel::Path m_parentPath;
+                QList<QString> m_addressSettings;
+                QVector<Node*> m_children;
+                int m_nodeIndex;
 
                 //QByteArray m_serializedNode;
-                Node m_node;
+                Node* m_node;
         };
     }
 }

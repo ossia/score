@@ -381,7 +381,27 @@ Node* DeviceExplorerModel::addAddress(Node* parentNode, const QList<QString>& ad
     return node;
 }
 
-void DeviceExplorerModel::removeLeave(Node* node)
+void DeviceExplorerModel::addAddress(Node *parentNode, Node *node)
+{
+    Q_ASSERT(parentNode);
+    Q_ASSERT(parentNode != m_rootNode);
+
+    int row = parentNode->childCount(); //insert as last child
+
+    Node* grandparent = parentNode->parent();
+    Q_ASSERT(grandparent);
+    int rowParent = grandparent->indexOfChild(parentNode);
+    QModelIndex parentIndex = createIndex(rowParent, 0, parentNode);
+
+    beginInsertRows(parentIndex, row, row);
+
+    parentNode->insertChild(row, node);
+//    node->setParent(parentNode);
+
+    endInsertRows();
+}
+
+void DeviceExplorerModel::removeNode(Node* node)
 {
     Q_ASSERT(node);
     Q_ASSERT(node != m_rootNode);
@@ -399,7 +419,6 @@ void DeviceExplorerModel::removeLeave(Node* node)
     beginRemoveRows(parentIndex, row, row);
     parent->removeChild(node);
     endRemoveRows();
-
 }
 
 

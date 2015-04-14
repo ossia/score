@@ -192,38 +192,36 @@ const DeviceSettings& Node::deviceSettings() const
     return m_deviceSettings;
 }
 
+const QList<QString> Node::addressSettings() const
+{
+    QList<QString> list;
+    list.push_back(m_name);
+    list.push_back(m_value);
+    list.push_back(QString(ioType()));
+    list.push_back(QString::number(m_min));
+    list.push_back(QString::number(m_max));
+    list.push_back("unit");
+    list.push_back("clipmode");
+    list.push_back(QString::number(m_priority));
+    list.push_back("tags");
+
+    return list;
+}
+
 Node* Node::clone() const
 {
     Node* n = new Node(*this);
-    const int numChildren = n->childCount();
+    const int numChildren = this->childCount();
     n->m_children.clear();
     n->m_children.reserve(numChildren);
 
     for(int i = 0; i < numChildren; ++i)
     {
-        n->m_children.append(m_children.at(i)->clone());
+        (this->childAt(i)->clone())->setParent(n);
+        //n->childAt(i)->setParent(n);
     }
 
     return n;
-}
-
-QString Node::path() const
-{
-    QString path = name();
-    path.prepend(this->name());
-
-    Node* cur = this->parent();
-
-    while (!cur->isDevice())
-    {
-        path.prepend("/");
-        path.prepend(cur->name());
-        cur = cur->parent();
-    }
-    path.prepend("/");
-    path.prepend(cur->name());
-
-    return path;
 }
 
 
@@ -346,6 +344,7 @@ namespace
 Node* makeNode(const QList<QString>& addressSettings)
 {
     Q_ASSERT(addressSettings.size() >= 2);
+
     QString name = addressSettings.at(0);
     QString valueType = addressSettings.at(1);
 
