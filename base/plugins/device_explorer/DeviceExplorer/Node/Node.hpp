@@ -63,6 +63,7 @@ class Node
 
         bool isEditable() const;
         bool isDevice() const;
+        void setDeviceSettings(DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
         const QList<QString> addressSettings() const;
         Node* clone() const;

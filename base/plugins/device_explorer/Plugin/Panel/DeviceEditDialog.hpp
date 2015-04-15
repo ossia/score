@@ -20,7 +20,8 @@ class DeviceEditDialog : public QDialog
 
         DeviceSettings getSettings() const;
 
-        void setSettings(QList<QString>& settings);
+        void setSettings(DeviceSettings& settings);
+
 
     protected slots:
 

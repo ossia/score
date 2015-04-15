@@ -52,6 +52,8 @@ DeviceExplorerWidget::buildGUI()
     m_redoAction = m_cmdQ->createRedoAction(this, tr("&Redo"));
     m_redoAction->setShortcuts(QKeySequence::Redo);*/
 
+    m_editAction = new QAction(tr("Edit"), this);
+    m_editAction->setShortcut(QKeySequence(Qt::Key_Return));
 
     m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
     m_copyAction->setShortcut(QKeySequence::Copy);
@@ -71,6 +73,7 @@ DeviceExplorerWidget::buildGUI()
     m_demoteAction = new QAction(QIcon(":/resources/images/demote.png"), tr("Demote"), this);
     m_demoteAction->setShortcut(QKeySequence(tr("Alt+Right")));
 
+    m_editAction->setEnabled(false);
     m_removeNodeAction->setEnabled(false);
     m_copyAction->setEnabled(false);
     m_cutAction->setEnabled(false);
@@ -80,6 +83,8 @@ DeviceExplorerWidget::buildGUI()
     m_promoteAction->setEnabled(false);
     m_demoteAction->setEnabled(false);
 
+
+    connect(m_editAction, SIGNAL(triggered()), this, SLOT(edit()));
     connect(m_copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     connect(m_cutAction, SIGNAL(triggered()), this, SLOT(cut()));
     connect(m_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
@@ -209,6 +214,8 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     //TODO: decide which actions to show according to what's possible ?
     QMenu contextMenu(this);
+    contextMenu.addAction(m_editAction);
+    contextMenu.addSeparator();
     contextMenu.addAction(m_addDeviceAction);
     contextMenu.addAction(m_addSiblingAction);
     contextMenu.addAction(m_addChildAction);
@@ -300,6 +307,7 @@ DeviceExplorerWidget::updateActions()
                 m_removeNodeAction->setEnabled(false);
             }
 
+            m_editAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
             m_copyAction->setEnabled(true);
             m_cutAction->setEnabled(true);
@@ -308,6 +316,7 @@ DeviceExplorerWidget::updateActions()
         }
         else
         {
+            m_editAction->setEnabled(false);
             m_copyAction->setEnabled(false);
             m_cutAction->setEnabled(false);
             m_promoteAction->setEnabled(false);
@@ -320,6 +329,7 @@ DeviceExplorerWidget::updateActions()
     }
     else
     {
+        m_editAction->setEnabled(false);
         m_copyAction->setEnabled(false);
         m_cutAction->setEnabled(false);
         m_promoteAction->setEnabled(false);
@@ -361,6 +371,31 @@ DeviceExplorerWidget::loadModel(const QString filename)
 
     return loadOk;
 
+}
+
+void DeviceExplorerWidget::edit()
+{
+    Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    if ( model()->isDevice(m_ntView->selectedIndex()))
+    {
+        if(! m_deviceDialog)
+        {
+            m_deviceDialog = new DeviceEditDialog(this);
+        }
+        // TODO : gestion des noms ... (chargés seulement à la deuxième ouverture de la fenêtre)
+        auto set = select->deviceSettings();
+        m_deviceDialog->setSettings(set);
+
+        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
+
+        if(code == QDialog::Accepted)
+        {
+            auto deviceSettings = m_deviceDialog->getSettings();
+            select->setDeviceSettings(deviceSettings);
+        }
+
+        updateActions();
+    }
 }
 
 void

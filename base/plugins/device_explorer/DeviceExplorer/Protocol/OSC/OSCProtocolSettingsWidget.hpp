@@ -14,7 +14,7 @@ class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
 
         virtual DeviceSettings getSettings() const override;
 
-        virtual void setSettings(const QList<QString>& settings) override;
+        virtual void setSettings(const DeviceSettings& settings) override;
 
     protected slots:
         void openFileDialog();

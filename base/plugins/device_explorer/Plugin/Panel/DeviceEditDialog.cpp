@@ -56,9 +56,6 @@ DeviceEditDialog::buildGUI()
     //TODO ???
     //connect(this, SIGNAL(accepted()), &updater, SLOT(update()));
 
-
-
-
 }
 
 void
@@ -131,14 +128,15 @@ DeviceSettings DeviceEditDialog::getSettings() const
 }
 
 void
-DeviceEditDialog::setSettings(QList<QString>& settings)
+DeviceEditDialog::setSettings(DeviceSettings &settings)
 {
-    Q_ASSERT(settings.size() >= 1);
 
-    const QString protocol = settings.at(0);
+    const QString protocol = settings.protocol;
     const int index = m_protocolCBox->findText(protocol);
     Q_ASSERT(index != -1);
     Q_ASSERT(index < m_protocolCBox->count());
 
     m_protocolCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+
+    m_protocolWidget->setSettings(settings);
 }

@@ -29,6 +29,7 @@ class DeviceExplorerWidget : public QWidget
         bool loadModel(const QString filename);
 
     public slots:
+        void edit();
         void copy();
         void cut();
         void paste();
@@ -71,6 +72,7 @@ class DeviceExplorerWidget : public QWidget
 //  QAction *m_undoAction;
 //  QAction *m_redoAction;
 
+        QAction* m_editAction;
         QAction* m_addDeviceAction;
         QAction* m_addSiblingAction;
         QAction* m_addChildAction;

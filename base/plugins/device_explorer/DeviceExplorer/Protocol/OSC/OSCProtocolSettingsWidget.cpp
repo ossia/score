@@ -89,14 +89,23 @@ DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 }
 
 void
-OSCProtocolSettingsWidget::setSettings(const QList<QString>& settings)
+OSCProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
 {
+/*
     Q_ASSERT(settings.size() == 5);
-    m_deviceNameEdit->setText(settings.at(0));
-    m_portOutputSBox->setValue(settings.at(1).toInt());
-    m_portInputSBox->setValue(settings.at(2).toInt());
-    m_localHostEdit->setText(settings.at(3));
+
     m_namespaceFilePathEdit->setText(settings.at(4));
+*/
+    m_deviceNameEdit->setText(settings.name);
+    OSCSpecificSettings osc;
+    if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
+    {
+        osc = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
+        m_portInputSBox->setValue(osc.inputPort);
+        m_portOutputSBox->setValue(osc.outputPort);
+        m_localHostEdit->setText(osc.host);
+    }
+
 }
 
 

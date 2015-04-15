@@ -187,6 +187,11 @@ bool Node::isDevice() const
     return false;
 }
 
+void Node::setDeviceSettings(DeviceSettings &settings)
+{
+    m_deviceSettings = settings;
+}
+
 const DeviceSettings& Node::deviceSettings() const
 {
     return m_deviceSettings;
