@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QColor>
+#include <QVariant>
 
 /**
  * @brief The ModelMetadata class
@@ -55,6 +56,25 @@ class ModelMetadata : public QObject
         QColor color() const;
         QString label() const;
 
+        template<typename T>
+        void addPluginMetadata(const T& data)
+        {
+            m_pluginsMetadata.push_back(QVariant::fromValue(data));
+        }
+
+        template<typename T>
+        void updatePluginMetadata(const T& data)
+        {
+            for(QVariant& elt : m_pluginsMetadata)
+            {
+                if(elt.canConvert<T>())
+                    elt = data;
+            }
+        }
+
+        const QList<QVariant>& pluginMetadata() const
+        { return m_pluginsMetadata; }
+
     signals:
         void nameChanged(QString arg);
         void commentChanged(QString arg);
@@ -74,6 +94,8 @@ class ModelMetadata : public QObject
         QString m_comment;
         QColor m_color {Qt::black};
         QString m_label;
+
+        QList<QVariant> m_pluginsMetadata;
 };
 
 Q_DECLARE_METATYPE(ModelMetadata)

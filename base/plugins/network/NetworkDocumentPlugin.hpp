@@ -16,6 +16,7 @@ class NetworkDocumentClientPlugin : public iscore::DocumentDelegatePluginModel
     public:
         NetworkDocumentClientPlugin(ClientSession* s, NetworkControl* control, iscore::Document* doc);
 
+        // TODO recursively connect to each new Scenario process?
 
     private:
         ClientSession* m_session{};
