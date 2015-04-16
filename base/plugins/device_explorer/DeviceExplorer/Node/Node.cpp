@@ -139,6 +139,10 @@ unsigned int Node::priority() const
 void Node::setName(const QString& name)
 {
     m_name = name;
+    if (isDevice())
+    {
+        m_deviceSettings.name = name;
+    }
 }
 
 void Node::setValue(const QString& value)
@@ -190,6 +194,7 @@ bool Node::isDevice() const
 void Node::setDeviceSettings(DeviceSettings &settings)
 {
     m_deviceSettings = settings;
+    setName(settings.name);
 }
 
 const DeviceSettings& Node::deviceSettings() const

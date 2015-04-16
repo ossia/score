@@ -17,6 +17,7 @@
 #include "Commands/Insert.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/Paste.hpp"
+#include "Commands/EditData.hpp"
 
 using namespace DeviceExplorer::Command;
 
@@ -785,17 +786,12 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
 
-    Node* node = nodeFromModelIndex(index);
-
-    if(! node)
+    if(! nodeFromModelIndex(index))
     {
         return false;
     }
 
     bool changed = false;
-    QModelIndex changedTopLeft = index;
-    QModelIndex changedBottomRight = index;
-
 
     //TODO: check what's editable or not !!!
 
@@ -807,8 +803,44 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                node->setName(s);
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
                 changed = true;
+            }
+        }
+
+        if(index.column() == IOTYPE_COLUMN)
+        {
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
+            changed = true;
+        }
+    }
+
+    return changed; //false;
+}
+
+bool
+DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
+{
+    return false; //we prevent editing the (column) headers
+}
+
+void DeviceExplorerModel::editData(const QModelIndex &index, const QVariant &value, int role)
+{
+    //TODO: check what's editable or not !!!
+
+    Node* node = nodeFromModelIndex(index);
+    QModelIndex changedTopLeft = index;
+    QModelIndex changedBottomRight = index;
+
+    if(role == Qt::EditRole)
+    {
+        if(index.column() == NAME_COLUMN)
+        {
+            const QString s = value.toString();
+
+            if(! s.isEmpty())
+            {
+                node->setName(s);
             }
         }
 
@@ -828,37 +860,18 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
             {
                 node->setIOType(Node::InOut);
             }
-
-            changed = true;
         }
-
-
     }
-
 
     //NON ! emitDatachanged devrait être fait pour tous les indices des fils !!!
 
-    if(changed)
     {
-
-        {
-            Node* n1 = nodeFromModelIndex(changedTopLeft);
-            Node* n2 = nodeFromModelIndex(changedBottomRight);
-            std::cerr << "DeviceExplorerModel::setData i1=(" << n1->name().toStdString() << ", " << changedTopLeft.row() << ", " << changedTopLeft.column() << ") i2=" << n2->name().toStdString() << ", " << changedBottomRight.row() << ", " << changedBottomRight.column() << ")\n";
-        }
-
-        emit dataChanged(changedTopLeft, changedBottomRight);
-        return changed; //true;
+        Node* n1 = nodeFromModelIndex(changedTopLeft);
+        Node* n2 = nodeFromModelIndex(changedBottomRight);
+        std::cerr << "DeviceExplorerModel::setData i1=(" << n1->name().toStdString() << ", " << changedTopLeft.row() << ", " << changedTopLeft.column() << ") i2=(" << n2->name().toStdString() << ", " << changedBottomRight.row() << ", " << changedBottomRight.column() << ")\n";
     }
 
-
-    return changed; //false;
-}
-
-bool
-DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
-{
-    return false; //we prevent editing the (column) headers
+    emit dataChanged(changedTopLeft, changedBottomRight);
 }
 
 
