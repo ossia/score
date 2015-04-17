@@ -14,7 +14,7 @@
 NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
                                                          NetworkControl* control,
                                                          iscore::Document* doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc},
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentMasterPlugin", doc},
     m_session{s},
     m_control{control},
     m_document{doc},

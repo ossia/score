@@ -15,7 +15,8 @@ class Group : public IdentifiedObject<Group>
         Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     public:
         Group(QString name, id_type<Group> id, QObject* parent):
-            IdentifiedObject<Group>{id, "Group", parent}
+            IdentifiedObject<Group>{id, "Group", parent},
+            m_name{name}
         {
 
         }

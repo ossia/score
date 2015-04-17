@@ -40,11 +40,17 @@ namespace iscore
 
 
             void addPluginModel(DocumentDelegatePluginModel* m)
-            { m_pluginModels.append(m); }
+            {
+                m_pluginModels.append(m);
+                emit pluginModelsChanged();
+            }
 
             const auto& pluginModels() { return m_pluginModels; }
 
             DocumentDelegatePluginModel* pluginModel(QString name) const;
+
+        signals:
+            void pluginModelsChanged();
 
         public slots:
             void setNewSelection(const Selection&);

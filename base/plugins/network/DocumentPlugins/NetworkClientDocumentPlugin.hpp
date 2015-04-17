@@ -20,12 +20,18 @@ class NetworkDocumentClientPlugin : public iscore::DocumentDelegatePluginModel
         bool canMakeMetadata(const QString &) override;
         QVariant makeMetadata(const QString &) override;
 
+        GroupManager* groupManager() const
+        { return m_groups; }
+
+        ClientSession* session() const
+        { return m_session; }
+
     private:
         ClientSession* m_session{};
         NetworkControl* m_control{};
         iscore::Document* m_document{};
 
-        std::vector<Group*> m_groups;
+        GroupManager* m_groups;
 
 };
 

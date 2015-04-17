@@ -30,9 +30,15 @@ class Session : public IdentifiedObject<Session>
             return *m_client;
         }
 
-        QList<RemoteClient*>& remoteClients()
+        const QList<RemoteClient*>& remoteClients() const
         {
             return m_remoteClients;
+        }
+
+        void addClient(RemoteClient* clt)
+        {
+            m_remoteClients.append(clt);
+            emit clientsChanged();
         }
 
         NetworkMessage makeMessage(QString address);
@@ -49,6 +55,9 @@ class Session : public IdentifiedObject<Session>
 
             return m;
         }
+
+    signals:
+        void clientsChanged();
 
     public slots:
         void validateMessage(NetworkMessage m);

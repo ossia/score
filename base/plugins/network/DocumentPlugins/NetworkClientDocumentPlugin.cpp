@@ -17,7 +17,7 @@
 NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
                                                          NetworkControl *control,
                                                          iscore::Document *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc},
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentClientPlugin", doc},
     m_session{s},
     m_control{control},
     m_document{doc}
