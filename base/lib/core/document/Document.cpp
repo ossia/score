@@ -20,14 +20,19 @@
 using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentview, QObject* parent) :
     NamedObject {"Document", parent},
-    m_objectLocker{this},
-    m_model {new DocumentModel{factory, this}},
-    m_view {new DocumentView{factory, this, parentview}},
-    m_presenter {new DocumentPresenter{factory,
-                                       m_model,
-                                       m_view,
-                                       this}}
+    m_objectLocker{this}
 {
+    // Note : we have to separate allocation
+    // because the model delegates init might call IDocument::path()
+    // which requires the pointer to m_model to be intialized.
+    std::allocator<DocumentModel> allocator;
+    m_model = allocator.allocate(1);
+    allocator.construct(m_model, factory, this);
+    m_view = new DocumentView{factory, this, parentview};
+    m_presenter = new DocumentPresenter{factory,
+            m_model,
+            m_view,
+            this};
     init();
 }
 

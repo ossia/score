@@ -3,7 +3,8 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 
-#include "NetworkDocumentPlugin.hpp"
+#include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
+#include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
 #include "Repartition/session/ClientSession.hpp"
 #include "Repartition/session/MasterSession.hpp"
 #include "Serialization/NetworkServer.hpp"

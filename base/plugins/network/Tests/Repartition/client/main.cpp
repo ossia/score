@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     return 0;
 
     //////////////////////////////////////////////////////
-    /*
+
         ClientSessionBuilder sessionBuilder(5678,
                                             "Session Maitre",
                                             "master",

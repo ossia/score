@@ -126,6 +126,7 @@ Selection ScenarioModel::selectableChildren() const
 }
 
 // Since we don't have c++14 & auto in lambdas..
+// TODO do it.
 template<typename InputVec, typename OutputVec>
 void copySelected(const InputVec& in, OutputVec& out)
 {
@@ -196,8 +197,29 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 }
 
 ///////// ADDITION //////////
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+template<typename Element>
+void ScenarioModel::initPlugins(Element* e)
+{
+    // This part is a bit ugly.
+    // We initialize the potential plug-ins of this document with this object.
+    // TODO for now we cannot do this in the ctor of a constraint model, because it is not
+    // yet in a document at the creation. (documentFromObject does not work in ctor of DocumentModel)
+    iscore::Document* doc = iscore::IDocument::documentFromObject(this);
+
+    for(auto& plugin : doc->model()->pluginModels())
+    {
+        if(plugin->canMakeMetadata(Element::staticMetaObject.className()))
+            e->metadata.addPluginMetadata(plugin->makeMetadata(Element::staticMetaObject.className()));
+    }
+}
+
+// TODO if we go pass-by-value, use std::move here.
 void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
+    initPlugins(constraint);
     m_constraints.push_back(constraint);
 
     emit constraintCreated(constraint->id());
@@ -205,6 +227,7 @@ void ScenarioModel::addConstraint(ConstraintModel* constraint)
 
 void ScenarioModel::addEvent(EventModel* event)
 {
+    initPlugins(event);
     m_events.push_back(event);
 
     emit eventCreated(event->id());
@@ -212,6 +235,7 @@ void ScenarioModel::addEvent(EventModel* event)
 
 void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 {
+    initPlugins(timeNode);
     m_timeNodes.push_back(timeNode);
 
     emit timeNodeCreated(timeNode->id());

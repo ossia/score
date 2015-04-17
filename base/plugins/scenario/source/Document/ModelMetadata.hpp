@@ -59,7 +59,11 @@ class ModelMetadata : public QObject
         template<typename T>
         void addPluginMetadata(const T& data)
         {
+            Q_ASSERT(std::none_of(std::begin(m_pluginsMetadata),
+                                  std::end(m_pluginsMetadata),
+                                  [&] (const QVariant& var) { return var.canConvert<T>(); }));
             m_pluginsMetadata.push_back(QVariant::fromValue(data));
+            emit pluginMetaDataChanged();
         }
 
         template<typename T>
@@ -68,11 +72,15 @@ class ModelMetadata : public QObject
             for(QVariant& elt : m_pluginsMetadata)
             {
                 if(elt.canConvert<T>())
-                    elt = data;
+                {
+                    elt = QVariant::fromValue(data);
+                    emit pluginMetaDataChanged();
+                }
             }
+
         }
 
-        const QList<QVariant>& pluginMetadata() const
+        const QList<QVariant>& pluginMetadatas() const
         { return m_pluginsMetadata; }
 
     signals:
@@ -81,6 +89,7 @@ class ModelMetadata : public QObject
         void colorChanged(QColor arg);
         void labelChanged(QString arg);
         void metadataChanged();
+        void pluginMetaDataChanged();
 
     public slots:
         void setName(QString arg);
