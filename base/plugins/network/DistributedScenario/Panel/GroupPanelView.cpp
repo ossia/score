@@ -12,17 +12,38 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QTableWidget>
-#include <QItemDelegate>
-
+#include "GroupTableCheckbox.hpp"
 #include "GroupPanelModel.hpp"
-class GroupTableWidgetItem : public QItemDelegate
-{
 
+#include "DistributedScenario/Commands/AddClientToGroup.hpp"
+#include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
+
+class GroupHeaderItem : public QTableWidgetItem
+{
+    public:
+        template<typename... Args>
+        GroupHeaderItem(const Group& group, Args&&... args):
+            QTableWidgetItem{group.name(), std::forward<Args>(args)...},
+            group{group.id()}
+        {
+
+        }
+
+        const id_type<Group> group;
 };
 
-class GroupTableItemModel : public QAbstractTableModel
+class SessionHeaderItem : public QTableWidgetItem
 {
+    public:
+        template<typename... Args>
+        SessionHeaderItem(const Client& client, Args&&... args):
+            QTableWidgetItem{client.name(), std::forward<Args>(args)...},
+            client{client.id()}
+        {
 
+        }
+
+        const id_type<Client> client;
 };
 
 class GroupTableWidget : public QWidget
@@ -39,40 +60,55 @@ class GroupTableWidget : public QWidget
             connect(m_session, &Session::clientsChanged, this, &GroupTableWidget::setup);
 
             this->setLayout(new QGridLayout);
+            this->layout()->addWidget(new QLabel{"Execution table"});
             this->layout()->addWidget(m_table);
+
+            setup();
         }
 
         void setup()
         {
-            // Headers
-            m_table->insertRow(0);
-            m_table->insertColumn(0);
 
             // Groups
             for(int i = 0; i < m_mgr->groups().size(); i++)
             {
-                m_table->insertColumn(1);
+                m_table->insertColumn(i);
+                m_table->setHorizontalHeaderItem(i, new GroupHeaderItem{*m_mgr->groups()[i]});
             }
 
             // Clients
-            m_table->insertRow(1); // Local client
+            m_table->insertRow(0); // Local client
+            m_table->setVerticalHeaderItem(0, new SessionHeaderItem{m_session->localClient()});
 
             for(int i = 0; i < m_session->remoteClients().size(); i++)
             {
-                m_table->insertRow(2);
+                m_table->insertRow(i + 1);
+                m_table->setVerticalHeaderItem(i + 1, new SessionHeaderItem{*m_session->remoteClients()[i]});
             }
 
-            // Set the data
-            m_table->item(0, 0)->setText("");
-            for(int i = 1; i <= m_mgr->groups().size(); i++)
+            //Set the data
+            for(int i = 0; i < m_mgr->groups().size(); i++)
             {
-                m_table->item(0, i)->setText(m_mgr->groups()[i]->name());
-            }
+                for(int j = 0; j < m_session->remoteClients().size() + 1; j++)
+                {
+                    auto cb =  new GroupTableCheckbox;
+                    m_table->setCellWidget(j, i, cb);
+                    connect(cb, &GroupTableCheckbox::stateChanged, this, [] (int state)
+                    {
+                        // Lookup id's from the row / column headers
+                        if(state)
+                        {
 
-            m_table->item(0, 1)->setText("Local");
-            for(int i = 2; i <= m_session->remoteClients().size(); i++)
-            {
-                m_table->item(0, i)->setText(m_mgr->groups()[i]->name());
+                        }
+                        else
+                        {
+
+                        }
+
+
+                    });
+
+                }
             }
 
         }
@@ -140,7 +176,7 @@ class GroupPanelPresenter : public iscore::PanelPresenterInterface
 {
     public:
         GroupPanelPresenter(iscore::Presenter* parent_presenter,
-                           iscore::PanelViewInterface* view):
+                            iscore::PanelViewInterface* view):
             iscore::PanelPresenterInterface{parent_presenter, view}
         {
         }
@@ -179,7 +215,7 @@ iscore::PanelViewInterface*GroupPanelFactory::makeView(iscore::View* v)
 }
 
 iscore::PanelPresenterInterface*GroupPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
-                                                                iscore::PanelViewInterface* view)
+                                                                 iscore::PanelViewInterface* view)
 {
     return new GroupPanelPresenter{parent_presenter, view};
 }

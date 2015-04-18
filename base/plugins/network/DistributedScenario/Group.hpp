@@ -38,6 +38,7 @@ class Group : public IdentifiedObject<Group>
         void addClient(id_type<Client> clt)
         {
             m_executingClients.push_back(clt);
+            emit clientsChanged();
         }
 
         void removeClient(id_type<Client> clt)
@@ -46,12 +47,14 @@ class Group : public IdentifiedObject<Group>
             Q_ASSERT(it != std::end(m_executingClients));
 
             m_executingClients.erase(it);
+            emit clientsChanged();
         }
 
         const auto& clients() const { return m_executingClients; }
 
     signals:
         void nameChanged(QString arg);
+        void clientsChanged();
 
     private:
         QString m_name;

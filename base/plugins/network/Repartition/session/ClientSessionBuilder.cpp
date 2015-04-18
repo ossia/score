@@ -53,7 +53,10 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
     }
     else if(m.address == "/session/document")
     {
-        m_session = new ClientSession(new RemoteClient(m_mastersocket, m_masterId),
+        auto remoteClient = new RemoteClient(m_mastersocket, m_masterId);
+        // TODO transmit the name
+        remoteClient->setName("RemoteTODO");
+        m_session = new ClientSession(remoteClient,
                                       new LocalClient(m_clientId),
                                       m_sessionId,
                                       nullptr);

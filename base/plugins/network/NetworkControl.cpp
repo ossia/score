@@ -41,6 +41,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
             [&] ()
     {
         auto clt = new LocalClient(id_type<Client>(0));
+        clt->setName(tr("Local"));
         auto serv = new MasterSession(currentDocument(), clt, id_type<Session>(1234));
         auto plug = new NetworkDocumentMasterPlugin{serv, this, currentDocument()};
         currentDocument()->model()->addPluginModel(plug);

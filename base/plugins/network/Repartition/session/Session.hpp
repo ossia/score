@@ -30,6 +30,11 @@ class Session : public IdentifiedObject<Session>
             return *m_client;
         }
 
+        const LocalClient& localClient() const
+        {
+            return *m_client;
+        }
+
         const QList<RemoteClient*>& remoteClients() const
         {
             return m_remoteClients;
