@@ -11,13 +11,14 @@
 #include <core/document/DocumentPresenter.hpp>
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
+#include <core/document/DocumentModel.hpp>
 
 
 
 NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
                                                          NetworkControl *control,
                                                          iscore::Document *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentClientPlugin", doc},
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentClientPlugin", doc->model()},
     m_session{s},
     m_control{control},
     m_document{doc}

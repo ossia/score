@@ -10,11 +10,12 @@
 #include <core/document/DocumentPresenter.hpp>
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
+#include <core/document/DocumentModel.hpp>
 
 NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
                                                          NetworkControl* control,
                                                          iscore::Document* doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentMasterPlugin", doc},
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentMasterPlugin", doc->model()},
     m_session{s},
     m_control{control},
     m_document{doc},

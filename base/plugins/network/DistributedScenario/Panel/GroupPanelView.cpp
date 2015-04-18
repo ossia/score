@@ -18,6 +18,7 @@
 #include "DistributedScenario/Commands/AddClientToGroup.hpp"
 #include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
 
+#include <iscore/command/OngoingCommandManager.hpp>
 class GroupHeaderItem : public QTableWidgetItem
 {
     public:
@@ -93,19 +94,22 @@ class GroupTableWidget : public QWidget
                 {
                     auto cb =  new GroupTableCheckbox;
                     m_table->setCellWidget(j, i, cb);
-                    connect(cb, &GroupTableCheckbox::stateChanged, this, [] (int state)
+                    connect(cb, &GroupTableCheckbox::stateChanged, this, [=] (int state)
                     {
                         // Lookup id's from the row / column headers
+                        auto group  = static_cast<GroupHeaderItem*>(m_table->horizontalHeaderItem(i))->group;
+                        auto client = static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j))->client;
+
                         if(state)
                         {
-
+                             auto cmd = new AddClientToGroup(ObjectPath{m_managerPath}, client, group);
+                             m_dispatcher.submitCommand(cmd);
                         }
                         else
                         {
-
+                            auto cmd = new RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
+                            m_dispatcher.submitCommand(cmd);
                         }
-
-
                     });
 
                 }
@@ -116,6 +120,11 @@ class GroupTableWidget : public QWidget
     private:
         const GroupManager* m_mgr;
         const Session* m_session;
+
+        ObjectPath m_managerPath{iscore::IDocument::path(m_mgr)};
+        CommandDispatcher<> m_dispatcher{iscore::IDocument::documentFromObject(m_mgr)->commandStack(), nullptr};
+
+
 };
 
 class GroupWidget : public QWidget

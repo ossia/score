@@ -79,7 +79,7 @@ class GroupManager : public IdentifiedObject<GroupManager>
         Q_OBJECT
     public:
         GroupManager(QObject* parent):
-            IdentifiedObject<GroupManager>{id_type<GroupManager>{}, "GroupManager", parent}
+            IdentifiedObject<GroupManager>{id_type<GroupManager>{0}, "GroupManager", parent}
         {
 
         }
