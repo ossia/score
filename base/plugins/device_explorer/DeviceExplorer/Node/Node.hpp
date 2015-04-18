@@ -63,10 +63,10 @@ class Node
 
         bool isEditable() const;
         bool isDevice() const;
+        void setDeviceSettings(DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
+        const QList<QString> addressSettings() const;
         Node* clone() const;
-
-        QString path() const;
 
 
     protected:
@@ -84,5 +84,6 @@ class Node
 
 QJsonObject nodeToJson(const Node* n);
 QDataStream& operator<<(QDataStream& s, const Node& n);
+QDataStream& operator>>(QDataStream& s, Node& n);
 
 Node* makeNode(const QList<QString>& addressSettings);

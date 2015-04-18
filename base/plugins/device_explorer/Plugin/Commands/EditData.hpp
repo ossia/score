@@ -1,23 +1,24 @@
 #pragma once
-
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-#include "Panel/DeviceExplorerModel.hpp"
+#include "Plugin/Panel/DeviceExplorerModel.hpp"
+
 #include <DeviceExplorer/Node/Node.hpp>
 
 namespace DeviceExplorer
 {
     namespace Command
     {
-
-        class Remove : public iscore::SerializableCommand
+        class EditData : public iscore::SerializableCommand
         {
             ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
-
-                Remove(ObjectPath&& device_tree, QModelIndex index);
+                ISCORE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
+                EditData(ObjectPath&& device_tree,
+                            QModelIndex index,
+                            QVariant value,
+                            int role);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -27,15 +28,13 @@ namespace DeviceExplorer
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;
 
-            protected:
+            private:
                 ObjectPath m_deviceTree;
-                DeviceExplorerModel::Path m_parentPath;
-                QList<QString> m_addressSettings;
-                QVector<Node*> m_children;
-                int m_nodeIndex;
-
-                //QByteArray m_serializedNode;
-                Node* m_node;
+                DeviceExplorerModel::Path m_nodePath;
+                QVariant m_oldValue;
+                QVariant m_newValue;
+                int m_role;
         };
     }
 }
+

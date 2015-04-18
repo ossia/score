@@ -51,6 +51,13 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 ///Functions that operate on collections of identified objects.
 ///
 ////////////////////////////////////////////////
+
+template<typename T, typename U>
+bool operator==(const T* obj, const id_type<U>& id)
+{
+    return obj->id() == id;
+}
+
 template<typename Container>
 typename Container::value_type findById(const Container& c, int32_t id)
 {
@@ -72,13 +79,7 @@ typename Container::value_type findById(const Container& c, int32_t id)
 template<typename Container, typename id_T>
 typename Container::value_type findById(const Container& c, id_T id)
 {
-    auto it = std::find_if(std::begin(c),
-                           std::end(c),
-                           [&id](typename Container::value_type model)
-    {
-        return model->id() == id;
-    });
-
+    auto it = std::find(std::begin(c), std::end(c), id);
     if(it != std::end(c))
     {
         return *it;
@@ -183,13 +184,7 @@ template<typename Vector, typename id_T>
 void removeFromVectorWithId(Vector& v,
                             id_T id)
 {
-    auto it = std::find_if(std::begin(v),
-                           std::end(v),
-                           [id](const typename Vector::value_type& elt)
-    {
-        return elt->id() == id;
-    });
-
+    auto it = std::find(std::begin(v), std::end(v), id);
     if(it != std::end(v))
     {
         delete *it;

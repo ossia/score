@@ -26,6 +26,16 @@ bool loadJSON(QJsonDocument* doc)
     return true;
 }
 
+QString numberToQString(double nb)
+{
+    QString str = QLocale("fr_FR").toString(nb);
+    if (str.indexOf(",") == -1)
+    {
+        str += QString(",0");
+    }
+    return str;
+}
+
 void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument* doc)
 {
     for(auto child : children)
@@ -166,11 +176,13 @@ QString JSONToZeroTwo(QJsonObject base)
     */
     QDomElement iscore = domdoc.createElement("i-score");
     iscore.setAttribute("ip", "127.0.0.1");
+    iscore.setAttribute("port", "13580");
     osc.appendChild(iscore);
 
     QDomElement minuit = domdoc.createElement("protocol");
     minuit.setAttribute("name", "Minuit");
     dom_root.appendChild(minuit);
+
     iscore = domdoc.createElement("i-score");
     iscore.setAttribute("ip", "127.0.0.1");
     iscore.setAttribute("port", "13579");
@@ -204,7 +216,7 @@ QString JSONToZeroTwo(QJsonObject base)
     dom_scenar.setAttribute("mute", "0");
     dom_scenar.setAttribute("color", "255 0 100");
     dom_scenar.setAttribute("version", "0.3");
-    dom_scenar.setAttribute("viewZoom", "1,000000 1,000000");
+    dom_scenar.setAttribute("viewZoom", "0,125000 1,000000");
     dom_scenar.setAttribute("viewPosition", "0 0");
     dom_root.appendChild(dom_scenar);
 
@@ -226,7 +238,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
     // coeff pour ajuster la mise à l'échelle
     const int TIMECOEFF = 1;
-    const int YCOEFF = 600;
+    const int YCOEFF = 1500;
 
     /*
      besoin de créer des faux events :
@@ -255,16 +267,19 @@ QString JSONToZeroTwo(QJsonObject base)
 
     for(auto dev : j_root)
     {
-        QJsonArray device = dev.toObject() ["DeviceSettings"].toArray();
-        QString protocol = device[0].toString();
-        QString devName = device[1].toString();
+        QString protocol = QString("OSC"); //device[0].toString();
+        QString devName = dev.toObject()["Name"].toString();
         dom_devAppli.setAttribute("name", devName);
 
         if(protocol == "OSC")
         {
-            QString port = device[2].toString() + QString("u ") + device[3].toString() + QString("u");
+//            QString port = dev.toObject()["InputPort"].toString() + QString("u ") + device[3].toString() + QString("u");
+            // TODO : mettre les deviceSettings dans le JSON !!
+            QString port = QString("9997u 9996u");
+
             QDomElement oscDev = domdoc.createElement(devName);
-            oscDev.setAttribute("ip", device[4].toString());
+ //           oscDev.setAttribute("ip", device[4].toString());
+            oscDev.setAttribute("ip", QString("127.0.0.1"));
             oscDev.setAttribute("port", port);
             osc.appendChild(oscDev);
         }
@@ -303,7 +318,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString id = "j"; // identifiant 0.2 commencent par un j ...
                 id += QString::number(idNode["IdentifierValue"].toInt());
 
-                QString date = QString::number(int(j_ev["Date"].toObject() ["Time"].toInt() / TIMECOEFF + DELTAT));
+                QString date = QString::number(int(j_ev["Date"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT));
                 date += "u";    // position 0.2 finissent par u ...
 
                 // dans le noeud "Scenario"
@@ -327,10 +342,10 @@ QString JSONToZeroTwo(QJsonObject base)
                     {
                         auto j_rootState = state.toObject();
                         qDebug() << j_rootState;
-                        auto j_state = j_rootState["State"].toObject();
-                        auto j_msg = j_state["Data"].toArray();
+                        auto j_msg = j_rootState["Data"].toObject();
 
-                        QString msg = j_msg.first().toString();
+                        QString msg = j_msg["Address"].toString();
+                        qDebug() << msg;
                         QString address = msg;
                         address.truncate(msg.indexOf(" "));
                         address.remove(0, 1);
@@ -434,9 +449,9 @@ QString JSONToZeroTwo(QJsonObject base)
                 boxEnd += QString::number(endEv);
 
 
-                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toInt() / TIMECOEFF - deltaDuration));
+                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration));
                 min += "u";
-                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toInt() / TIMECOEFF - deltaDuration));
+                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration));
                 max += "u";
 
                 QString y = QString::number(int (j_cstr["HeightPercentage"].toDouble() * YCOEFF));
@@ -449,7 +464,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString boxStart = interStart;
                 boxStart += QString::number(idIndent);
                 idIndent++;
-                QString date = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toInt() / TIMECOEFF + DELTAT + deltaDuration));
+                QString date = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT + deltaDuration));
                 date += "u";
 
                 QDomElement dom_event = domdoc.createElement("event");
@@ -501,9 +516,10 @@ QString JSONToZeroTwo(QJsonObject base)
 
                         for(auto point : autom["Points"].toArray())
                         {
-                            points += QLocale("fr_FR").toString(point.toObject() ["k"].toDouble());
+                            points += numberToQString(point.toObject() ["k"].toDouble());
+
                             points += " ";
-                            points += QLocale("fr_FR").toString(point.toObject() ["v"].toDouble());
+                            points += numberToQString(point.toObject() ["v"].toDouble());
                             points += " ";
                             points += "1,000000 ";
 

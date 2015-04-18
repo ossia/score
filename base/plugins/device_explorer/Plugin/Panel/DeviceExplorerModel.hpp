@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QAbstractItemModel>
+#include <iscore/command/OngoingCommandManager.hpp>
+
 #include <QStack>
 
 namespace iscore
@@ -60,8 +62,9 @@ class DeviceExplorerModel : public QAbstractItemModel
         int addDevice(Node* deviceNode);
         Node *addAddress(Node * parentNode,
                         const QList<QString>& addressSettings);
+        void addAddress(Node* parentNode, Node* node);
 
-        void removeLeave(Node *node);
+        void removeNode(Node *node);
 
 
         int columnCount() const;
@@ -114,6 +117,8 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
+        void editData(const QModelIndex& index, const QVariant& value, int role);
+
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
         bool undoMoveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstRow);
 
@@ -135,9 +140,10 @@ class DeviceExplorerModel : public QAbstractItemModel
         Path pathFromNode(Node &node);
         Node *pathToNode(const Path& path);
 
-    protected:
         Path pathFromIndex(const QModelIndex& index);
         QModelIndex pathToIndex(const Path& path);
+
+    protected:
 
         static void serializePath(QDataStream& d, const DeviceExplorerModel::Path& p);
         static void deserializePath(QDataStream& d, DeviceExplorerModel::Path& p);

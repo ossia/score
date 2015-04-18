@@ -32,7 +32,7 @@ void AddAddress::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
     Node* parent = explorer->pathToNode(m_parentNodePath);
-    explorer->removeLeave(parent->childAt(m_createdNodeIndex));
+    explorer->removeNode(parent->childAt(m_createdNodeIndex));
 }
 
 void AddAddress::redo()

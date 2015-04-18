@@ -7,6 +7,8 @@
 
 #include <ProcessInterface/TimeValue.hpp>
 
+#include <iterator>
+
 namespace OSSIA
 {
     class Scenario;
@@ -148,7 +150,10 @@ class ScenarioModel : public ProcessSharedModelInterface
         {
             return QObject::event(e);
         }
+
     private:
+        template<typename Element> void initPlugins(Element* e);
+
         void makeViewModel_impl(view_model_type*);
 
         std::vector<ConstraintModel*> m_constraints;
@@ -164,10 +169,10 @@ template<typename Vector>
 Vector selectedElements(const Vector& in)
 {
     Vector out;
-    std::copy_if(begin(in),
-                 end(in),
+    std::copy_if(std::begin(in),
+                 std::end(in),
                  back_inserter(out),
-                 [](typename Vector::value_type c)
+                 [](const typename Vector::value_type& c)
     {
         return c->selection.get();
     });

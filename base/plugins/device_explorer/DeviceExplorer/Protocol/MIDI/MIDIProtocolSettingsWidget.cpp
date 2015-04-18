@@ -59,8 +59,9 @@ DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 }
 
 void
-MIDIProtocolSettingsWidget::setSettings(const QList<QString>& settings)
+MIDIProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
 {
+    /*
     Q_ASSERT(settings.size() == 2);
 
     if(settings.at(1) == "In")
@@ -71,14 +72,26 @@ MIDIProtocolSettingsWidget::setSettings(const QList<QString>& settings)
     {
         m_outButton->setChecked(true);
     }
-
-    int index = m_deviceCBox->findText(settings.at(0));
+*/
+    int index = m_deviceCBox->findText(settings.name);
 
     if(index >= 0 && index < m_deviceCBox->count())
     {
         m_deviceCBox->setCurrentIndex(index);
     }
 
+    if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
+    {
+        MIDISpecificSettings midi = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+        if(midi.io == MIDISpecificSettings::IO::In)
+        {
+            m_inButton->setChecked(true);
+        }
+        else
+        {
+            m_outButton->setChecked(true);
+        }
+    }
 }
 
 

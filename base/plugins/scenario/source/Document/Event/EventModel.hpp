@@ -1,9 +1,10 @@
 #pragma once
+#include "Document/ModelMetadata.hpp"
+
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "Document/ModelMetadata.hpp"
 #include <iscore/selection/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 

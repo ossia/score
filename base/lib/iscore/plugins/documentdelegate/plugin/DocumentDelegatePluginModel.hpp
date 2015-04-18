@@ -9,5 +9,8 @@ namespace iscore
         public:
             using NamedObject::NamedObject;
             virtual ~DocumentDelegatePluginModel() = default;
+
+            virtual bool canMakeMetadata(const QString&) { return false; }
+            virtual QVariant makeMetadata(const QString&) { return QVariant{}; }
     };
 }

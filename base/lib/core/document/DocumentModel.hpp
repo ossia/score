@@ -30,32 +30,34 @@ namespace iscore
                 return m_model;
             }
 
+
             void addPanel(PanelModelInterface* m)
-            {
-                m_panelModels.append(m);
-            }
+            { m_panelModels.append(m); }
+
+            const auto& panels() const { return m_panelModels; }
+
+            PanelModelInterface* panel(QString name) const;
+
 
             void addPluginModel(DocumentDelegatePluginModel* m)
             {
                 m_pluginModels.append(m);
+                emit pluginModelsChanged();
             }
 
-            const QList<PanelModelInterface*>& panels() const
-            {
-                return m_panelModels;
-            }
-
-            // Returns a Panel by name.
-            PanelModelInterface* panel(QString name) const;
+            const auto& pluginModels() { return m_pluginModels; }
 
             DocumentDelegatePluginModel* pluginModel(QString name) const;
+
+        signals:
+            void pluginModelsChanged();
 
         public slots:
             void setNewSelection(const Selection&);
 
         private:
-            DocumentDelegateModelInterface* m_model{};
             QList<PanelModelInterface*> m_panelModels;
             QList<DocumentDelegatePluginModel*> m_pluginModels;
+            DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
     };
 }

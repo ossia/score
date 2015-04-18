@@ -17,6 +17,10 @@
 
 #include <core/command/CommandStack.hpp>
 
+#include <Commands/AddDevice.hpp>
+#include "Commands/AddAddress.hpp"
+#include "Commands/Remove.hpp"
+
 #include <QDebug>
 
 #include <iostream> //DEBUG
@@ -29,8 +33,6 @@ DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
 
 {
     buildGUI();
-    ;
-
 }
 
 void
@@ -50,6 +52,8 @@ DeviceExplorerWidget::buildGUI()
     m_redoAction = m_cmdQ->createRedoAction(this, tr("&Redo"));
     m_redoAction->setShortcuts(QKeySequence::Redo);*/
 
+    m_editAction = new QAction(tr("Edit"), this);
+    m_editAction->setShortcut(QKeySequence(Qt::Key_Return));
 
     m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
     m_copyAction->setShortcut(QKeySequence::Copy);
@@ -57,6 +61,8 @@ DeviceExplorerWidget::buildGUI()
     m_cutAction->setShortcut(QKeySequence::Cut);
     m_pasteAction = new QAction(QIcon(":/resources/images/paste.png"), tr("Paste"), this);
     m_pasteAction->setShortcut(QKeySequence::Paste);
+    m_removeNodeAction = new QAction(tr("Remove"), this);
+    m_removeNodeAction->setShortcut(QKeySequence::Delete);
 
     m_moveUpAction = new QAction(QIcon(":/resources/images/up.png"), tr("Move up"), this);
     m_moveUpAction->setShortcut(QKeySequence(tr("Alt+Up")));
@@ -67,6 +73,8 @@ DeviceExplorerWidget::buildGUI()
     m_demoteAction = new QAction(QIcon(":/resources/images/demote.png"), tr("Demote"), this);
     m_demoteAction->setShortcut(QKeySequence(tr("Alt+Right")));
 
+    m_editAction->setEnabled(false);
+    m_removeNodeAction->setEnabled(false);
     m_copyAction->setEnabled(false);
     m_cutAction->setEnabled(false);
     m_pasteAction->setEnabled(false);
@@ -75,6 +83,8 @@ DeviceExplorerWidget::buildGUI()
     m_promoteAction->setEnabled(false);
     m_demoteAction->setEnabled(false);
 
+
+    connect(m_editAction, SIGNAL(triggered()), this, SLOT(edit()));
     connect(m_copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     connect(m_cutAction, SIGNAL(triggered()), this, SLOT(cut()));
     connect(m_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
@@ -82,6 +92,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_moveDownAction, SIGNAL(triggered()), this, SLOT(moveDown()));
     connect(m_promoteAction, SIGNAL(triggered()), this, SLOT(promote()));
     connect(m_demoteAction, SIGNAL(triggered()), this, SLOT(demote()));
+    connect(m_removeNodeAction, SIGNAL(triggered()), this, SLOT(removeNode()));
 
     /*
     QPushButton *addDeviceButton = new QPushButton(this);
@@ -127,6 +138,8 @@ DeviceExplorerWidget::buildGUI()
     addMenu->addAction(m_addDeviceAction);
     addMenu->addAction(m_addSiblingAction);
     addMenu->addAction(m_addChildAction);
+    addMenu->addSeparator();
+    addMenu->addAction(m_removeNodeAction);
 
     addButton->setMenu(addMenu);
 
@@ -201,6 +214,8 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     //TODO: decide which actions to show according to what's possible ?
     QMenu contextMenu(this);
+    contextMenu.addAction(m_editAction);
+    contextMenu.addSeparator();
     contextMenu.addAction(m_addDeviceAction);
     contextMenu.addAction(m_addSiblingAction);
     contextMenu.addAction(m_addChildAction);
@@ -213,7 +228,8 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.addAction(m_moveDownAction);
     contextMenu.addAction(m_promoteAction);
     contextMenu.addAction(m_demoteAction);
-    contextMenu.addSeparator();/*
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_removeNodeAction);/*
   contextMenu.addAction(m_undoAction);
   contextMenu.addAction(m_redoAction);*/
 
@@ -281,14 +297,17 @@ DeviceExplorerWidget::updateActions()
                 m_addSiblingAction->setEnabled(true);
                 m_promoteAction->setEnabled(true);
                 m_demoteAction->setEnabled(true);
+                m_removeNodeAction->setEnabled(true);
             }
             else
             {
                 m_addSiblingAction->setEnabled(false);
                 m_promoteAction->setEnabled(false);
                 m_demoteAction->setEnabled(false);
+                m_removeNodeAction->setEnabled(false);
             }
 
+            m_editAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
             m_copyAction->setEnabled(true);
             m_cutAction->setEnabled(true);
@@ -297,23 +316,27 @@ DeviceExplorerWidget::updateActions()
         }
         else
         {
+            m_editAction->setEnabled(false);
             m_copyAction->setEnabled(false);
             m_cutAction->setEnabled(false);
             m_promoteAction->setEnabled(false);
             m_demoteAction->setEnabled(false);
             m_moveUpAction->setEnabled(false);
             m_moveDownAction->setEnabled(false);
+            m_removeNodeAction->setEnabled(false);
         }
 
     }
     else
     {
+        m_editAction->setEnabled(false);
         m_copyAction->setEnabled(false);
         m_cutAction->setEnabled(false);
         m_promoteAction->setEnabled(false);
         m_demoteAction->setEnabled(false);
         m_moveUpAction->setEnabled(false);
         m_moveDownAction->setEnabled(false);
+        m_removeNodeAction->setEnabled(false);
     }
 
 
@@ -350,7 +373,31 @@ DeviceExplorerWidget::loadModel(const QString filename)
 
 }
 
-#include <Commands/AddDevice.hpp>
+void DeviceExplorerWidget::edit()
+{
+    Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    if ( model()->isDevice(m_ntView->selectedIndex()))
+    {
+        if(! m_deviceDialog)
+        {
+            m_deviceDialog = new DeviceEditDialog(this);
+        }
+        // TODO : gestion des noms ... (chargés seulement à la deuxième ouverture de la fenêtre)
+        auto set = select->deviceSettings();
+        m_deviceDialog->setSettings(set);
+
+        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
+
+        if(code == QDialog::Accepted)
+        {
+            auto deviceSettings = m_deviceDialog->getSettings();
+            select->setDeviceSettings(deviceSettings);
+        }
+
+        updateActions();
+    }
+}
+
 void
 DeviceExplorerWidget::addDevice()
 {
@@ -391,7 +438,11 @@ DeviceExplorerWidget::addSibling()
     //getModel()->addNode(index, DeviceExplorerModel::AsSibling)  ;
 }
 
-#include "Commands/AddAddress.hpp"
+void DeviceExplorerWidget::removeNode()
+{
+    m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), m_ntView->selectedIndex()});
+}
+
 void
 DeviceExplorerWidget::addAddress(int insertType)
 {

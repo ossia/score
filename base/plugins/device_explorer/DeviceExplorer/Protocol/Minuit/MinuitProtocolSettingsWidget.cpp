@@ -72,11 +72,14 @@ DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 }
 
 void
-MinuitProtocolSettingsWidget::setSettings(const QList<QString>& settings)
+MinuitProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
 {
-    Q_ASSERT(m_deviceNameEdit);
-    Q_ASSERT(settings.size() == 3);
-    m_deviceNameEdit->setText(settings.at(0));
-    m_portOutputSBox->setValue(settings.at(1).toInt());
-    m_localHostEdit->setText(settings.at(2));
+    m_deviceNameEdit->setText(settings.name);
+    MinuitSpecificSettings minuit;
+    if(settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
+    {
+        minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
+        m_portOutputSBox->setValue(minuit.port);
+        m_localHostEdit->setText(minuit.host);
+    }
 }

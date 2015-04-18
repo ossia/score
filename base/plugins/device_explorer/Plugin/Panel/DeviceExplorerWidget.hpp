@@ -29,6 +29,7 @@ class DeviceExplorerWidget : public QWidget
         bool loadModel(const QString filename);
 
     public slots:
+        void edit();
         void copy();
         void cut();
         void paste();
@@ -43,6 +44,8 @@ class DeviceExplorerWidget : public QWidget
         void addDevice();
         void addChild();
         void addSibling();
+
+        void removeNode();
 
         void filterChanged();
 
@@ -61,8 +64,6 @@ class DeviceExplorerWidget : public QWidget
 
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
 
-    protected:
-
         DeviceExplorerView* m_ntView;
         DeviceExplorerFilterProxyModel* m_proxyModel;
         DeviceEditDialog* m_deviceDialog;
@@ -71,6 +72,7 @@ class DeviceExplorerWidget : public QWidget
 //  QAction *m_undoAction;
 //  QAction *m_redoAction;
 
+        QAction* m_editAction;
         QAction* m_addDeviceAction;
         QAction* m_addSiblingAction;
         QAction* m_addChildAction;
@@ -82,6 +84,8 @@ class DeviceExplorerWidget : public QWidget
         QAction* m_moveDownAction;
         QAction* m_promoteAction;
         QAction* m_demoteAction;
+
+        QAction* m_removeNodeAction;
 
         QComboBox* m_columnCBox;
         QLineEdit* m_nameLEdit;

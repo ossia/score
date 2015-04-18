@@ -2,6 +2,7 @@
 
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include "DistributedScenario/Group.hpp"
 
 class NetworkControl;
 class ClientSession;
@@ -10,20 +11,6 @@ namespace iscore
 {
     class Document;
 }
-class NetworkDocumentClientPlugin : public iscore::DocumentDelegatePluginModel
-{
-        Q_OBJECT
-    public:
-        NetworkDocumentClientPlugin(ClientSession* s, NetworkControl* control, iscore::Document* doc);
-
-
-    private:
-        ClientSession* m_session{};
-        NetworkControl* m_control{};
-        iscore::Document* m_document{};
-};
-
-
 
 class NetworkDocumentMasterPlugin : public iscore::DocumentDelegatePluginModel
 {
@@ -31,8 +18,19 @@ class NetworkDocumentMasterPlugin : public iscore::DocumentDelegatePluginModel
     public:
         NetworkDocumentMasterPlugin(MasterSession* s, NetworkControl* control, iscore::Document* doc);
 
+        bool canMakeMetadata(const QString &) override;
+        QVariant makeMetadata(const QString &) override;
+
+        GroupManager* groupManager() const
+        { return m_groups; }
+
+        MasterSession* session() const
+        { return m_session; }
+
     private:
         MasterSession* m_session{};
         NetworkControl* m_control{};
         iscore::Document* m_document{};
+
+        GroupManager* m_groups;
 };

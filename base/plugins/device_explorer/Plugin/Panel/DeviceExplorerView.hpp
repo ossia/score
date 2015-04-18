@@ -33,6 +33,7 @@ class DeviceExplorerView : public QTreeView
         void demote();
 
         QModelIndexList selectedIndexes() const override;
+        QModelIndex selectedIndex() const;
 
     signals:
         void selectionChanged();
@@ -47,7 +48,6 @@ class DeviceExplorerView : public QTreeView
 
         //virtual void closeEvent(QCloseEvent *event) override;
 
-        QModelIndex selectedIndex() const;
         void setSelectedIndex(const QModelIndex& index);
 
         void installStyleSheet();

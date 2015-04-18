@@ -31,12 +31,9 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 QList<int> m_parentNodePath;
-                //QModelIndex m_index;
-                //DeviceExplorerModel::Insert m_insert;
                 QList<QString> m_addressSettings;
                 int m_createdNodeIndex;
 
-                //QModelIndex m_createdIndex;
         };
     }
 }

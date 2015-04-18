@@ -30,7 +30,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
     layout->addWidget(addText);
 
     connect(addButton, &QToolButton::pressed,
-    [ = ]()
+            [ = ]()
     {
         QStringList available_models;
 
@@ -45,11 +45,11 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
         for(auto& process : shared_process_list)
         {
             auto it = std::find_if(std::begin(already_displayed_processes),
-            std::end(already_displayed_processes),
-            [&process](ProcessViewModelInterface * pvm)
+                                   std::end(already_displayed_processes),
+                                   [&process](ProcessViewModelInterface * pvm)
             {
-                return pvm->sharedProcessModel()->id() == process->id();
-            });
+                    return pvm->sharedProcessModel()->id() == process->id();
+        });
 
             if(it == std::end(already_displayed_processes))
             {
@@ -61,13 +61,15 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
         if(available_models.size() > 0)
         {
             bool ok = false;
-            auto process_name = QInputDialog::getItem(this,
-                                QObject::tr("Choose a process id"),
-                                QObject::tr("Choose a process id"),
-                                available_models,
-                                0,
-                                false,
-                                &ok);
+            auto process_name =
+                    QInputDialog::getItem(
+                        this,
+                        QObject::tr("Choose a process id"),
+                        QObject::tr("Choose a process id"),
+                        available_models,
+                        0,
+                        false,
+                        &ok);
 
             if(ok)
                 parentDeck->createProcessViewModel(id_type<ProcessSharedModelInterface> {process_name.toInt() });

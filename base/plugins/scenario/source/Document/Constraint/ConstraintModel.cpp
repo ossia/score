@@ -10,7 +10,6 @@
 
 #include <QDebug>
 
-
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,
                                  double yPos,
@@ -26,8 +25,7 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
 ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  id_type<ConstraintModel> id,
                                  QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}//,
-//m_timeBox {new OSSIA::TimeBox}
+    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
     metadata = source->metadata;
 
@@ -59,7 +57,6 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
 
 ConstraintModel::~ConstraintModel()
 {
-    //delete m_timeBox;
 }
 
 

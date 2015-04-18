@@ -12,6 +12,6 @@ class ProtocolSettingsWidget : public QWidget
         ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
         virtual DeviceSettings getSettings() const = 0;
-        virtual void setSettings(const QList<QString>& settings) = 0;
+        virtual void setSettings(const DeviceSettings& settings) = 0;
 };
 

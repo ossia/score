@@ -27,7 +27,7 @@ void MasterSession::broadcast(NetworkMessage m)
 
 void MasterSession::transmit(id_type<Client> sender, NetworkMessage m)
 {
-    for(auto& client : remoteClients())
+    for(const auto& client : remoteClients())
     {
         if(client->id() != sender)
             client->sendMessage(m);
@@ -51,5 +51,5 @@ void MasterSession::on_clientReady(RemoteClientBuilder* bldr, RemoteClient* clt)
     connect(clt, &RemoteClient::messageReceived,
             this, &Session::validateMessage, Qt::QueuedConnection);
 
-    remoteClients().push_back(clt);
+    addClient(clt);
 }
