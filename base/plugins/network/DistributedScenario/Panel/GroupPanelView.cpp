@@ -69,7 +69,6 @@ class GroupTableWidget : public QWidget
 
         void setup()
         {
-
             // Groups
             for(int i = 0; i < m_mgr->groups().size(); i++)
             {
@@ -88,6 +87,7 @@ class GroupTableWidget : public QWidget
             }
 
             //Set the data
+            using namespace std;
             for(int i = 0; i < m_mgr->groups().size(); i++)
             {
                 for(int j = 0; j < m_session->remoteClients().size() + 1; j++)
@@ -100,13 +100,19 @@ class GroupTableWidget : public QWidget
                         auto group  = static_cast<GroupHeaderItem*>(m_table->horizontalHeaderItem(i))->group;
                         auto client = static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j))->client;
 
+                        // Find if we have to perform the change.
+                        auto groupclients = m_mgr->group(group)->clients();
+                        auto it = std::find(begin(groupclients), end(groupclients), client);
+
                         if(state)
                         {
+                             if(it != end(groupclients)) return;
                              auto cmd = new AddClientToGroup(ObjectPath{m_managerPath}, client, group);
                              m_dispatcher.submitCommand(cmd);
                         }
                         else
                         {
+                            if(it == end(groupclients)) return;
                             auto cmd = new RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
                             m_dispatcher.submitCommand(cmd);
                         }
@@ -115,9 +121,46 @@ class GroupTableWidget : public QWidget
                 }
             }
 
+            // Handlers
+
+            delete m_groupConnectionContext;
+            m_groupConnectionContext = new QObject;
+
+            auto findCheckbox = [this] (int i, id_type<Client> theClient)
+            {
+                if(theClient == m_session->localClient().id())
+                {
+                    return static_cast<GroupTableCheckbox*>(m_table->cellWidget(0, i));
+                }
+
+                for(int j = 0; j < m_session->remoteClients().size(); j++)
+                {
+                    if(static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j))->client == theClient)
+                    {
+                        return static_cast<GroupTableCheckbox*>(m_table->cellWidget(j+1, i));
+                    }
+                }
+            };
+
+            for(int i = 0; i < m_mgr->groups().size(); i++)
+            {
+                connect(m_mgr->groups()[i], &Group::clientAdded,
+                        m_groupConnectionContext, [=] (id_type<Client> addedClient)
+                {
+                    findCheckbox(i, addedClient)->setState(Qt::Checked);
+                });
+
+                connect(m_mgr->groups()[i], &Group::clientRemoved,
+                        m_groupConnectionContext, [=] (id_type<Client> removedClient)
+                {
+                    findCheckbox(i, removedClient)->setState(Qt::Unchecked);
+                });
+            }
+
         }
 
     private:
+        QObject* m_groupConnectionContext{};
         const GroupManager* m_mgr;
         const Session* m_session;
 
