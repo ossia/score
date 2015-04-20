@@ -7,6 +7,8 @@ TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double y
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
+
+    initPlugins(this, parent);
 }
 
 #include "Process/ScenarioModel.hpp"

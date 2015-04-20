@@ -152,8 +152,6 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
     private:
-        template<typename Element> void initPlugins(Element* e);
-
         void makeViewModel_impl(view_model_type*);
 
         std::vector<ConstraintModel*> m_constraints;

@@ -3,6 +3,7 @@
 #include <settings_impl/NetworkSettings.hpp>
 #include "DistributedScenario/Panel/GroupPanelView.hpp"
 
+#include "DistributedScenario/Group.hpp"
 #define PROCESS_NAME "Network Process"
 
 NetworkPlugin::NetworkPlugin() :
@@ -11,6 +12,7 @@ NetworkPlugin::NetworkPlugin() :
 iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
     setObjectName("NetworkPlugin");
+    qRegisterMetaTypeStreamOperators<GroupMetadata>();
 }
 
 // Interfaces implementations :
@@ -31,5 +33,6 @@ iscore::PanelFactoryInterface *NetworkPlugin::panel_make(QString name)
     {
         return new GroupPanelFactory;
     }
+    return nullptr;
 }
 

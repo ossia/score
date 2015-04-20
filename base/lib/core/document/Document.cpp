@@ -14,11 +14,12 @@
 
 #include <QDebug>
 #include <QLayout>
-#include <QCryptographicHash>
 #include <QJsonDocument>
 
 using namespace iscore;
-Document::Document(DocumentDelegateFactoryInterface* factory, QWidget* parentview, QObject* parent) :
+Document::Document(DocumentDelegateFactoryInterface* factory,
+                   QWidget* parentview,
+                   QObject* parent) :
     NamedObject {"Document", parent},
     m_objectLocker{this}
 {
@@ -52,6 +53,19 @@ Document::Document(QVariant data,
     init();
 }
 
+void Document::init()
+{
+    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
+            this, [&] (const Selection& s)
+            {
+                for(auto& panel : m_model->panels())
+                {
+                    panel->setNewSelection(s);
+                }
+                m_model->setNewSelection(s);
+            });
+}
+
 Document::~Document()
 {
     // We need a custom destructor because
@@ -62,7 +76,8 @@ Document::~Document()
     delete m_presenter;
 }
 
-void Document::setupNewPanel(PanelPresenterInterface* pres, PanelFactoryInterface* factory)
+void Document::setupNewPanel(PanelPresenterInterface* pres,
+                             PanelFactoryInterface* factory)
 {
     auto model = factory->makeModel(m_model);
     m_model->addPanel(model);
@@ -80,90 +95,3 @@ void Document::bindPanelPresenter(PanelPresenterInterface* pres)
 
     pres->setModel(*localmodel);
 }
-
-QByteArray Document::saveDocumentModelAsByteArray()
-{
-    return m_model->modelDelegate()->toByteArray();
-}
-
-QJsonObject Document::saveDocumentModelAsJson()
-{
-    return m_model->modelDelegate()->toJson();
-}
-
-
-QJsonObject Document::savePanelAsJson(const QString& panel)
-{
-    return m_model->modelDelegate()->toJson();
-}
-
-QByteArray Document::savePanelAsByteArray(const QString& panel)
-{
-    using namespace std;
-    auto panelmodel = find_if(begin(model()->panels()),
-                              end(model()->panels()),
-                              [&] (PanelModelInterface* model) { return model->objectName() == panel;});
-
-    return (*panelmodel)->toByteArray();
-}
-
-QJsonObject Document::saveAsJson()
-{
-    QJsonObject complete;
-    complete["Scenario"] = saveDocumentModelAsJson();
-    for(auto panel : model()->panels())
-    {
-        complete[panel->objectName()] = panel->toJson();
-    }
-
-    return complete;
-}
-
-QByteArray Document::saveAsByteArray()
-{
-    using namespace std;
-    QByteArray global;
-    QDataStream writer(&global, QIODevice::WriteOnly);
-
-    auto docByteArray = saveDocumentModelAsByteArray();
-
-    QVector<QPair<QString, QByteArray>> panelModels;
-    std::transform(begin(model()->panels()),
-                   end(model()->panels()),
-                   std::back_inserter(panelModels),
-                   [] (PanelModelInterface* panel)
-    { return QPair<QString, QByteArray>{
-            panel->objectName(),
-            panel->toByteArray()};
-    });
-
-    writer << docByteArray;
-    writer << panelModels;
-
-    auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
-    writer << hash;
-
-    /*
-    QVector<QPair<QString, QByteArray>> documentPluginModels;
-    std::transform(begin(model()->panels()),
-                   end(model()->panels()),
-                   std::back_inserter(panelModels),
-                   [] (DocumentDelegatePluginModel* plugin) {  return QPair<QString, QByteArray>{plugin->objectName(), plugin->toByteArray()}; });
-    */
-
-    return global;
-}
-
-void Document::init()
-{
-    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
-            [&] (const Selection& s)
-            {
-                for(auto& panel : m_model->panels())
-                {
-                    panel->setNewSelection(s);
-                }
-                m_model->setNewSelection(s);
-            });
-}
-

@@ -11,6 +11,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
 
+    m_stream << ev.metadata;
+
     m_stream << ev.previousConstraints()
              << ev.nextConstraints()
              << ev.heightPercentage();
@@ -26,11 +28,14 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
+    m_stream >> ev.metadata;
+
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
     double heightPercentage;
     TimeValue date;
     QString condition;
     id_type<TimeNodeModel> timenode;
+
     m_stream >> prevCstr
              >> nextCstr
              >> heightPercentage;
@@ -59,6 +64,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
+    m_obj["Metadata"] = toJsonObject(ev.metadata);
 
     m_obj["PreviousConstraints"] = toJsonArray(ev.previousConstraints());
     m_obj["NextConstraints"] = toJsonArray(ev.nextConstraints());
@@ -72,6 +78,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
 
 template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 {
+    ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
+
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
 
     fromJsonArray(m_obj["PreviousConstraints"].toArray(), prevCstr);

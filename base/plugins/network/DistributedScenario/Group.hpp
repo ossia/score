@@ -2,6 +2,30 @@
 #include <QString>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include "Repartition/client/Client.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
+class Group;
+
+// Goes into the constraints, events, etc.
+struct GroupMetadata
+{
+        friend QDataStream &operator<<(QDataStream &out, const GroupMetadata &myObj)
+        {
+            Serializer<DataStream> s{out.device()};
+            s.readFrom(myObj.id);
+            return out;
+        }
+
+        friend QDataStream &operator>>(QDataStream &in, GroupMetadata &myObj)
+        {
+            Deserializer<DataStream> s{in.device()};
+            s.writeTo(myObj.id);
+            return in;
+        }
+
+    id_type<Group> id;
+};
+Q_DECLARE_METATYPE(GroupMetadata)
 
 // Groups : registered in the session
 // Permissions ? for now we will just have, for each constraint in a score,
@@ -65,12 +89,6 @@ class Group : public IdentifiedObject<Group>
         std::vector<id_type<Client>> m_executingClients;
 };
 
-// Goes into the constraints, events, etc.
-struct GroupMetadata
-{
-    id_type<Group> id;
-};
-Q_DECLARE_METATYPE(GroupMetadata)
 
 // TODO Metadata GUI (combobox)
 // TODO Commands (changeEventGroup, changeConstraintGroup...)

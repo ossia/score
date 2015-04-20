@@ -4,31 +4,6 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
-
-
-// TODO put them in their own folder.
-QDataStream& operator<< (QDataStream& s, const ModelMetadata& m)
-{
-    s << m.name() << m.comment() << m.color() << m.label();
-
-    return s;
-}
-
-QDataStream& operator>> (QDataStream& s, ModelMetadata& m)
-{
-    QString name, comment, label;
-    QColor color;
-    s >> name >> comment >> color >> label;
-
-    m.setName(name);
-    m.setComment(comment);
-    m.setColor(color);
-    m.setLabel(label);
-
-    return s;
-}
-
-
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 
@@ -61,8 +36,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     readFrom(*constraint.fullView());
 
     // Events
-    m_stream	<< constraint.startEvent();
-    m_stream	<< constraint.endEvent();
+    m_stream << constraint.startEvent();
+    m_stream << constraint.endEvent();
 
     m_stream << constraint.defaultDuration()
              << constraint.startDate()
@@ -136,7 +111,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
-    m_obj["Metadata"] = QVariant::fromValue(constraint.metadata).toJsonObject();
+    m_obj["Metadata"] = toJsonObject(constraint.metadata);
     m_obj["HeightPercentage"] = constraint.heightPercentage();
     m_obj["StartEvent"] = toJsonObject(constraint.startEvent());
     m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
@@ -173,7 +148,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 {
-    constraint.metadata = QJsonValue(m_obj["Metadata"]).toVariant().value<ModelMetadata>();
+    constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
     constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
     constraint.setStartEvent(fromJsonObject<id_type<EventModel>> (m_obj["StartEvent"].toObject()));
     constraint.setEndEvent(fromJsonObject<id_type<EventModel>> (m_obj["EndEvent"].toObject()));
