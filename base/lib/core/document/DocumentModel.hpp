@@ -1,8 +1,6 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <set>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 namespace iscore
 {
@@ -31,23 +29,15 @@ namespace iscore
             }
 
 
-            void addPanel(PanelModelInterface* m)
-            { m_panelModels.append(m); }
-
+            // Panel models
+            void addPanel(PanelModelInterface* m);
             const auto& panels() const { return m_panelModels; }
+            PanelModelInterface* panel(const QString& name) const;
 
-            PanelModelInterface* panel(QString name) const;
-
-
-            void addPluginModel(DocumentDelegatePluginModel* m)
-            {
-                m_pluginModels.append(m);
-                emit pluginModelsChanged();
-            }
-
+            // Plugin models
+            void addPluginModel(DocumentDelegatePluginModel* m);
             const auto& pluginModels() { return m_pluginModels; }
-
-            DocumentDelegatePluginModel* pluginModel(QString name) const;
+            DocumentDelegatePluginModel* pluginModel(const QString& name) const;
 
         signals:
             void pluginModelsChanged();

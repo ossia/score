@@ -20,6 +20,8 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
     setHeightPercentage(yPos);
+
+    initPlugins(this, parent);
 }
 
 ConstraintModel::ConstraintModel(ConstraintModel* source,

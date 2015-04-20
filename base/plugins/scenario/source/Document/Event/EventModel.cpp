@@ -16,6 +16,7 @@ EventModel::EventModel(id_type<EventModel> id,
     m_heightPercentage{yPos}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
+    initPlugins(this, parent);
 }
 
 EventModel::EventModel(EventModel* source,

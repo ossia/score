@@ -3,6 +3,8 @@
 #include <QColor>
 #include <QVariant>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 /**
  * @brief The ModelMetadata class
  *
@@ -11,6 +13,12 @@
  */
 class ModelMetadata : public QObject
 {
+
+        friend void Visitor<Reader<DataStream>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
+        friend void Visitor<Reader<JSON>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<ModelMetadata> (ModelMetadata& ev);
+        friend void Visitor<Writer<JSON>>::writeTo<ModelMetadata> (ModelMetadata& ev);
+
         Q_OBJECT
         Q_PROPERTY(QString name
                    READ name
@@ -108,3 +116,23 @@ class ModelMetadata : public QObject
 };
 
 Q_DECLARE_METATYPE(ModelMetadata)
+
+
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+template<typename Element> void initPlugins(Element* e, QObject* obj)
+{
+    // This part is a bit ugly.
+    // We initialize the potential plug-ins of this document with this object.
+    // TODO for now we cannot do this in the ctor of a constraint model, because it is not
+    // yet in a document at the creation. (documentFromObject does not work in ctor of DocumentModel)
+    iscore::Document* doc = iscore::IDocument::documentFromObject(obj);
+
+    for(auto& plugin : doc->model()->pluginModels())
+    {
+        if(plugin->canMakeMetadata(Element::staticMetaObject.className()))
+            e->metadata.addPluginMetadata(plugin->makeMetadata(Element::staticMetaObject.className()));
+    }
+}

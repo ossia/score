@@ -51,7 +51,6 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 ///Functions that operate on collections of identified objects.
 ///
 ////////////////////////////////////////////////
-
 template<typename T, typename U>
 bool operator==(const T* obj, const id_type<U>& id)
 {

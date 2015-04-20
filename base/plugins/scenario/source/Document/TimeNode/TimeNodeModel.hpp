@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include "Document/ModelMetadata.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 class EventModel;
 class ScenarioModel;

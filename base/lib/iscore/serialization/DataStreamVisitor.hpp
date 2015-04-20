@@ -23,6 +23,11 @@ class Visitor<Reader<DataStream>>
             m_stream.setVersion(QDataStream::Qt_5_3);
         }
 
+        Visitor<Reader<DataStream>> (QIODevice* dev) :
+                                     m_stream {dev}
+        {
+        }
+
         template<typename T>
         void readFrom(const id_type<T>& obj)
         {
@@ -62,6 +67,13 @@ class Visitor<Writer<DataStream>>
         {
             m_stream.setVersion(QDataStream::Qt_5_3);
         }
+
+
+        Visitor<Writer<DataStream>> (QIODevice* dev) :
+                                     m_stream {dev}
+        {
+        }
+
 
         template<typename T>
         void writeTo(id_type<T>& obj)
@@ -111,20 +123,15 @@ class Visitor<Writer<DataStream>>
 template<typename T>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
-    QByteArray ar;
-    Visitor<Reader<DataStream>> reader(&ar);
+    Visitor<Reader<DataStream>> reader(stream.device());
     reader.readFrom(obj);
-
-    stream << ar;
     return stream;
 }
 
 template<typename T>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
-    QByteArray ar;
-    stream >> ar;
-    Visitor<Writer<DataStream>> writer(&ar);
+    Visitor<Writer<DataStream>> writer(stream.device());
     writer.writeTo(obj);
 
     return stream;

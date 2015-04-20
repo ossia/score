@@ -3,8 +3,6 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
-#include <exception>
-
 
 using namespace iscore;
 
@@ -15,35 +13,13 @@ DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
 {
 }
 
-DocumentModel::DocumentModel(QVariant data,
-                             DocumentDelegateFactoryInterface* fact,
-                             QObject* parent) :
-    IdentifiedObject {id_type<DocumentModel>(getNextId()), "DocumentModel", parent}
+void DocumentModel::addPanel(PanelModelInterface *m)
 {
-    if(data.canConvert(QMetaType::QByteArray))
-    {
-        auto full = data.toByteArray();
-        QByteArray doc;
-        QVector<QPair<QString, QByteArray>> panelModels;
-        QDataStream wr(full);
-        wr >> doc >> panelModels;
-
-
-        m_model = fact->makeModel(this, doc);
-    }
-    else if(data.canConvert(QMetaType::QJsonObject))
-    {
-        auto json = data.toJsonObject();
-        m_model = fact->makeModel(this, json["Scenario"].toObject());
-    }
-    else
-    {
-        qFatal("Could not load DocumentModel");
-        return;
-    }
+    m_panelModels.append(m);
 }
 
-PanelModelInterface* DocumentModel::panel(QString name) const
+
+PanelModelInterface* DocumentModel::panel(const QString &name) const
 {
     using namespace std;
     auto it = find_if(begin(m_panelModels),
@@ -56,7 +32,13 @@ PanelModelInterface* DocumentModel::panel(QString name) const
     return it != end(m_panelModels) ? *it : nullptr;
 }
 
-DocumentDelegatePluginModel*DocumentModel::pluginModel(QString name) const
+void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
+{
+    m_pluginModels.append(m);
+    emit pluginModelsChanged();
+}
+
+DocumentDelegatePluginModel*DocumentModel::pluginModel(const QString &name) const
 {
     using namespace std;
     auto it = find_if(begin(m_pluginModels),
