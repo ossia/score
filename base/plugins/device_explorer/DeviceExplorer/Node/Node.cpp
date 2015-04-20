@@ -1,5 +1,10 @@
 #include "Node.hpp"
 #include <QJsonArray>
+
+#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
+
 // TODO replace INVALID_stuff with boost::optional values.
 QString Node::INVALID_STR = "-_-";
 float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
@@ -202,8 +207,25 @@ const DeviceSettings& Node::deviceSettings() const
     return m_deviceSettings;
 }
 
-const QList<QString> Node::addressSettings() const
+void Node::setAddressSettings(AddressSettings &settings)
 {
+    m_addressSettings = settings;
+}
+
+const AddressSettings Node::addressSettings() const
+{
+    AddressSettings settings;
+    settings.ioType = ioType();
+    settings.name = m_name;
+    settings.priority = m_priority;
+    settings.tags = QString("tags"); // TODO
+    settings.value = QVariant::fromValue(m_value);
+    settings.valueType = QString("Int"); // TODO
+
+    // TODO : specific settings
+
+    return settings; // use m_addressSettings
+/*
     QList<QString> list;
     list.push_back(m_name);
     list.push_back(m_value);
@@ -216,6 +238,7 @@ const QList<QString> Node::addressSettings() const
     list.push_back("tags");
 
     return list;
+*/
 }
 
 Node* Node::clone() const
@@ -351,57 +374,78 @@ namespace
     }
 }
 
-Node* makeNode(const QList<QString>& addressSettings)
+Node* makeNode(const AddressSettings &addressSettings)
 {
-    Q_ASSERT(addressSettings.size() >= 2);
-
-    QString name = addressSettings.at(0);
-    QString valueType = addressSettings.at(1);
+    QString name = addressSettings.name;
+    QString valueType = addressSettings.valueType;
 
     Node* node = new Node(name, nullptr);  //build without parent otherwise appended at the end
 
     if(valueType == "Int")
     {
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString valueMin = addressSettings.at(4);
-        QString valueMax = addressSettings.at(5);
-        QString unite = addressSettings.at(6);
-        QString clipMode = addressSettings.at(7);
-        QString priority = addressSettings.at(8);
-        QString tags = addressSettings.at(9);
-        node->setValue(value);
+        if (addressSettings.value.canConvert<int>())
+        {
+            QString value = QString::number(addressSettings.value.value<int>());
+            node->setValue(value);
+        }
+        if(addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+        {
+            AddressIntSettings iSettings = addressSettings.addressSpecificSettings.value<AddressIntSettings>();
+
+            int valueMin = iSettings.min;
+            int valueMax = iSettings.max;
+            QString unite = iSettings.unit;
+            QString clipMode = iSettings.clipMode;
+
+            node->setMinValue(valueMin);
+            node->setMaxValue(valueMax);
+        }
+        int priority = addressSettings.priority;
+        QString tags = addressSettings.tags;
+        QString ioType = addressSettings.ioType;
+
         setIOType(node, ioType);
-        node->setMinValue(valueMin.toUInt());
-        node->setMaxValue(valueMax.toUInt());
-        node->setPriority(priority.toUInt());
+        node->setPriority(priority);
         //TODO: other columns
     }
     else if(valueType == "Float")
     {
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString valueMin = addressSettings.at(4);
-        QString valueMax = addressSettings.at(5);
-        QString unite = addressSettings.at(6);
-        QString clipMode = addressSettings.at(7);
-        QString priority = addressSettings.at(8);
-        QString tags = addressSettings.at(9);
-        node->setValue(value);
+        if (addressSettings.value.canConvert<float>())
+        {
+            QString value = QString::number(addressSettings.value.value<float>());
+            node->setValue(value);
+        }
+        if(addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+        {
+            AddressFloatSettings fSettings = addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
+
+            float valueMin = fSettings.min;
+            float valueMax = fSettings.max;
+            QString unite = fSettings.unit;
+            QString clipMode = fSettings.clipMode;
+
+            node->setMinValue(valueMin);
+            node->setMaxValue(valueMax);
+        }
+        int priority = addressSettings.priority;
+        QString tags = addressSettings.tags;
+        QString ioType = addressSettings.ioType;
+
         setIOType(node, ioType);
-        node->setMinValue(valueMin.toFloat());
-        node->setMaxValue(valueMax.toFloat());
-        node->setPriority(priority.toUInt());
+        node->setPriority(priority);
         //TODO: other columns
     }
     else if(valueType == "String")
     {
-        QString ioType = addressSettings.at(2);
-        QString value = addressSettings.at(3);
-        QString priority = addressSettings.at(4);
-        QString tags = addressSettings.at(5);
-        node->setValue(value);
-        node->setPriority(priority.toUInt());
+        if(addressSettings.value.canConvert<QString>())
+        {
+            QString value = addressSettings.value.value<QString>();
+            node->setValue(value);
+        }
+        QString ioType = addressSettings.ioType;
+        int priority = addressSettings.priority;
+        QString tags = addressSettings.tags;
+        node->setPriority(priority);
         setIOType(node, ioType);
     }
 

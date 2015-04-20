@@ -360,7 +360,7 @@ int DeviceExplorerModel::addDevice(Node* deviceNode)
     return row;
 }
 
-Node* DeviceExplorerModel::addAddress(Node* parentNode, const QList<QString>& addressSettings)
+Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &addressSettings)
 {
     Q_ASSERT(parentNode);
     Q_ASSERT(parentNode != m_rootNode);

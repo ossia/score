@@ -1,6 +1,7 @@
 #pragma once
 #include <QString>
 #include <QVariant>
+
 struct DeviceSettings
 {
         QString protocol;

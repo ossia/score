@@ -6,7 +6,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLineEdit;
 class QSpinBox;
-
+struct AddressSettings;
 
 class AddressFloatSettingsWidget : public AddressSettingsWidget
 {
@@ -14,9 +14,9 @@ class AddressFloatSettingsWidget : public AddressSettingsWidget
         AddressFloatSettingsWidget(QWidget* parent = nullptr);
 
         //TODO: use QVariant instead ???
-        virtual QList<QString> getSettings() const override;
+        virtual AddressSettings getSettings() const override;
 
-        virtual void setSettings(const QList<QString>& settings) override;
+        virtual void setSettings(const AddressSettings& settings) override;
 
     protected:
 

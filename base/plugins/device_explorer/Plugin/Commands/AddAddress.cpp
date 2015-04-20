@@ -7,13 +7,14 @@ using namespace DeviceExplorer::Command;
 const char* AddAddress::className() { return "AddAddress"; }
 QString AddAddress::description() { return "TODO"; }
 
-AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplorerModel::Insert insert, const QList<QString> &addressSettings):
+AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
                                 description()},
-    m_deviceTree{device_tree},
-    m_addressSettings{addressSettings}
+    m_deviceTree{device_tree}
 {
+    m_addressSettings = addressSettings;
+
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
 
     Node* parentNode;

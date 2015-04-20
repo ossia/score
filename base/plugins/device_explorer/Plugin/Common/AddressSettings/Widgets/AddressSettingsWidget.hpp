@@ -4,6 +4,7 @@
 #include <QList>
 #include <QString>
 
+struct AddressSettings;
 
 class AddressSettingsWidget : public QWidget
 {
@@ -11,8 +12,8 @@ class AddressSettingsWidget : public QWidget
         AddressSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
         // TODO
-        virtual QList<QString> getSettings() const = 0;
-        virtual void setSettings(const QList<QString>& settings) = 0;
+        virtual AddressSettings getSettings() const = 0;
+        virtual void setSettings(const AddressSettings& settings) = 0;
 
 };
 

@@ -14,11 +14,11 @@ class MinuitDevice : public DeviceInterface
             //OSC oscDeviceParameters{settings.host, settings.inputPort, settings.outputPort};
 
         }
-        virtual void addPath(const AddressSettings& address) override
+/*        virtual void addPath(const AddressSettings& address) override
         {
 
         }
-
+*/
         virtual void removePath(const QString& path) override
         {
 

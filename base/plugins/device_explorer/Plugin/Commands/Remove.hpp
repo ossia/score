@@ -30,7 +30,7 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_deviceTree;
                 DeviceExplorerModel::Path m_parentPath;
-                QList<QString> m_addressSettings;
+                AddressSettings m_addressSettings;
                 QVector<Node*> m_children;
                 int m_nodeIndex;
 

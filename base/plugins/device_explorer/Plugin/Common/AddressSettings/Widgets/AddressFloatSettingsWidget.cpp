@@ -9,6 +9,8 @@
 #include <QSpinBox>
 
 #include <Common/CommonTypes.hpp>
+#include "Common/AddressSettings/AddressSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
 
 AddressFloatSettingsWidget::AddressFloatSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
@@ -109,11 +111,16 @@ AddressFloatSettingsWidget::setDefaults()
     m_tagsEdit->setText("");
 }
 
-QList<QString>
-AddressFloatSettingsWidget::getSettings() const
+AddressSettings AddressFloatSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_ioTypeCBox);
 
+    AddressSettings settings;
+    settings.ioType = m_ioTypeCBox->currentText();
+    settings.priority = m_prioritySBox->value();
+    settings.tags = m_tagsEdit->text();
+    settings.valueType = QString(tr("Float"));
+/*
     QList<QString> list;
     list.append(m_ioTypeCBox->currentText());
     list.append(QString::number(m_valueSBox->value()));
@@ -123,18 +130,16 @@ AddressFloatSettingsWidget::getSettings() const
     list.append(m_clipModeCBox->currentText());
     list.append(QString::number(m_prioritySBox->value()));
     list.append(m_tagsEdit->text());   //TODO: TagListWidget
-
-    return list;
+*/
+    return settings;
 }
 
 void
-AddressFloatSettingsWidget::setSettings(const QList<QString>& settings)
+AddressFloatSettingsWidget::setSettings(const AddressSettings &settings)
 {
     Q_ASSERT(m_ioTypeCBox);
 
-    Q_ASSERT(settings.size() == 8);
-
-    const QString& ioTypeString = settings.at(0);
+    const QString& ioTypeString = settings.ioType;
     const int ioTypeIndex = m_ioTypeCBox->findText(ioTypeString);
 
     if(ioTypeIndex != -1)
@@ -146,37 +151,51 @@ AddressFloatSettingsWidget::setSettings(const QList<QString>& settings)
         qDebug() << tr("Unknown I/O type: %1").arg(ioTypeString) << "\n";
     }
 
-    m_valueSBox->setValue(settings.at(1).toInt());
-    m_minSBox->setValue(settings.at(2).toInt());
-    m_maxSBox->setValue(settings.at(3).toInt());
-
-    const QString& unitString = settings.at(4);
-    const int unitIndex = m_unitCBox->findText(unitString);
-
-    if(unitIndex != -1)
+    if(settings.addressSpecificSettings.canConvert<AddressFloatSettings>())
     {
-        m_unitCBox->setCurrentIndex(unitIndex);
+        AddressFloatSettings fSettings = settings.addressSpecificSettings.value<AddressFloatSettings>();
+
+        if (settings.value.canConvert<float>())
+        {
+            float val = settings.value.value<float>();
+            m_valueSBox->setValue(val);
+        }
+
+        m_minSBox->setValue(fSettings.min);
+        m_maxSBox->setValue(fSettings.max);
+
+        const QString& unitString = fSettings.unit;
+        const int unitIndex = m_unitCBox->findText(unitString);
+
+        if(unitIndex != -1)
+        {
+            m_unitCBox->setCurrentIndex(unitIndex);
+        }
+        else
+        {
+            qDebug() << tr("Unknown unit type: %1").arg(unitString) << "\n";
+        }
+
+        const QString& clipModeString = fSettings.clipMode ;
+        const int clipModeIndex = m_clipModeCBox->findText(clipModeString);
+
+        if(clipModeIndex != -1)
+        {
+            m_clipModeCBox->setCurrentIndex(clipModeIndex);
+        }
+        else
+        {
+            qDebug() << tr("Unknown clip mode: %1").arg(clipModeString) << "\n";
+        }
     }
     else
     {
-        qDebug() << tr("Unknown unit type: %1").arg(unitString) << "\n";
+        qDebug() << tr("Error when loading address specific settings") << "\n";
     }
 
-    const QString& clipModeString = settings.at(5);
-    const int clipModeIndex = m_clipModeCBox->findText(clipModeString);
+    m_prioritySBox->setValue(settings.priority);
 
-    if(clipModeIndex != -1)
-    {
-        m_clipModeCBox->setCurrentIndex(clipModeIndex);
-    }
-    else
-    {
-        qDebug() << tr("Unknown clip mode: %1").arg(clipModeString) << "\n";
-    }
-
-    m_prioritySBox->setValue(settings.at(6).toInt());
-
-    m_tagsEdit->setText(settings.at(7));
+    m_tagsEdit->setText(settings.tags );
 }
 
 

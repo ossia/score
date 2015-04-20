@@ -396,6 +396,25 @@ void DeviceExplorerWidget::edit()
 
         updateActions();
     }
+    else
+    {
+        if (! m_addressDialog)
+        {
+            m_addressDialog = new AddressEditDialog(this);
+        }
+        auto settings = select->addressSettings();
+        m_addressDialog->setSettings(settings);
+
+        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
+
+        if(code == QDialog::Accepted)
+        {
+            auto addressSettings = m_addressDialog->getSettings();
+            select->setAddressSettings(addressSettings);
+        }
+
+        updateActions();
+    }
 }
 
 void
@@ -458,7 +477,7 @@ DeviceExplorerWidget::addAddress(int insertType)
 
     if(code == QDialog::Accepted)
     {
-        const QList<QString> addressSettings = m_addressDialog->getSettings();
+        const AddressSettings addressSettings = m_addressDialog->getSettings();
         Q_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
         m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::AddAddress{iscore::IDocument::path(model()), index, insert, addressSettings });

@@ -5,6 +5,7 @@
 #include <QStringList>
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
+#include "Common/AddressSettings/AddressSettings.hpp"
 /**
  * Note: JM : the Commands should operat on the Node hierarchy.
  * When updated, a Node should update both :
@@ -65,7 +66,8 @@ class Node
         bool isDevice() const;
         void setDeviceSettings(DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
-        const QList<QString> addressSettings() const;
+        void setAddressSettings(AddressSettings& settings);
+        const AddressSettings addressSettings() const;
         Node* clone() const;
 
 
@@ -80,10 +82,11 @@ class Node
         QList<Node*> m_children;
 
         DeviceSettings m_deviceSettings;
+        AddressSettings m_addressSettings;
 };
 
 QJsonObject nodeToJson(const Node* n);
 QDataStream& operator<<(QDataStream& s, const Node& n);
 QDataStream& operator>>(QDataStream& s, Node& n);
 
-Node* makeNode(const QList<QString>& addressSettings);
+Node* makeNode(const AddressSettings& addressSettings);

@@ -6,6 +6,10 @@
 #include <QLabel>
 #include <QLineEdit>
 
+#include "Common/AddressSettings/AddressSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
 #include "Common/AddressSettings/AddressSettingsFactory.hpp"
 #include "Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
 #include<iostream>
@@ -77,7 +81,7 @@ AddressEditDialog::initAvailableValueTypes()
 
     for(int i = 0; i < m_valueTypeCBox->count(); ++i)
     {
-        m_previousSettings.append(QList<QString>());
+        m_previousSettings.append(AddressSettings());
     }
 
     m_index = m_valueTypeCBox->currentIndex();
@@ -106,7 +110,7 @@ AddressEditDialog::updateNodeWidget()
     {
 
         //set previous settings for this protocol if any
-        if(! m_previousSettings.at(m_index).empty())
+        if(! m_previousSettings.at(m_index).name.isEmpty())
         {
             m_addressWidget->setSettings(m_previousSettings.at(m_index));
         }
@@ -118,30 +122,28 @@ AddressEditDialog::updateNodeWidget()
 }
 
 
-QList<QString>
-AddressEditDialog::getSettings() const
+AddressSettings AddressEditDialog::getSettings() const
 {
-    QList<QString> settings;
+    AddressSettings settings;
 
     if(m_addressWidget)
     {
         settings = m_addressWidget->getSettings();
     }
 
-    settings.insert(0, m_nameEdit->text());   //name as first element
-    settings.insert(1, m_valueTypeCBox->currentText());   //valueType as second element
+    settings.name = m_nameEdit->text();
+    settings.value = QVariant::fromValue(m_valueTypeCBox->currentText());
+
     return settings;
 }
 
 void
-AddressEditDialog::setSettings(QList<QString>& settings)
+AddressEditDialog::setSettings(AddressSettings& settings)
 {
-    Q_ASSERT(settings.size() >= 2);
-
-    const QString name = settings.at(0);
+    const QString name = settings.name;
     m_nameEdit->setText(name);
 
-    const QString valueType = settings.at(1);
+    const QString valueType = settings.valueType;
     const int index = m_valueTypeCBox->findText(valueType);
     Q_ASSERT(index != -1);
     Q_ASSERT(index < m_valueTypeCBox->count());

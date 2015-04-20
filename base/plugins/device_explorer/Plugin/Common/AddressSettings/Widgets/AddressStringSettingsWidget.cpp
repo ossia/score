@@ -8,6 +8,8 @@
 #include <QSpinBox>
 
 #include <Common/CommonTypes.hpp>
+#include "Common/AddressSettings/AddressSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
 
 
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
@@ -71,27 +73,32 @@ AddressStringSettingsWidget::setDefaults()
     m_tagsEdit->setText("");
 }
 
-QList<QString>
-AddressStringSettingsWidget::getSettings() const
+AddressSettings AddressStringSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_ioTypeCBox);
 
+    AddressSettings settings;
+    settings.ioType = m_ioTypeCBox->currentText();
+    settings.priority = m_prioritySBox->value();
+    settings.tags = m_tagsEdit->text();
+    settings.valueType = QString("String");
+/*
     QList<QString> list;
     list.append(m_ioTypeCBox->currentText());
     list.append(m_valueEdit->text());
     list.append(QString::number(m_prioritySBox->value()));
     list.append(m_tagsEdit->text());   //TODO: TagListWidget
-    return list;
+*/
+    return settings;
 }
 
 void
-AddressStringSettingsWidget::setSettings(const QList<QString>& settings)
+AddressStringSettingsWidget::setSettings(const AddressSettings &settings)
 {
     Q_ASSERT(m_ioTypeCBox);
 
-    Q_ASSERT(settings.size() == 4);
 
-    const QString& ioTypeString = settings.at(0);
+    const QString& ioTypeString = settings.ioType;
     const int ioTypeIndex = m_ioTypeCBox->findText(ioTypeString);
 
     if(ioTypeIndex != -1)
@@ -103,11 +110,15 @@ AddressStringSettingsWidget::setSettings(const QList<QString>& settings)
         qDebug() << tr("Unknown I/O type: %1").arg(ioTypeString) << "\n";
     }
 
-    m_valueEdit->setText(settings.at(1));
+    if(settings.value.canConvert<QString>())
+    {
+        QString val = settings.value.value<QString>();
+        m_valueEdit->setText(val);
+    }
 
-    m_prioritySBox->setValue(settings.at(2).toInt());
+    m_prioritySBox->setValue(settings.priority);
 
-    m_tagsEdit->setText(settings.at(3));
+    m_tagsEdit->setText(settings.tags);
 }
 
 

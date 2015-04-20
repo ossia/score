@@ -16,13 +16,13 @@ class OSCDevice : public DeviceInterface
             //OSSIA::OSC oscDeviceParameter{settings.host.toStdString(), settings.inputPort, settings.outputPort};
             //m_device = OSSIA::Device::create(oscDeviceParameter);
         }
-
+/*
         virtual void addPath(const AddressSettings& address) override
         {
             //auto node = m_device->emplace(m_device->begin(), address.path.toStdString());
             //node->createAddress(static_cast<OSSIA::AddressValue::Type>(address.type));
         }
-
+*/
         virtual void removePath(const QString& path) override
         {
 

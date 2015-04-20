@@ -18,7 +18,7 @@ namespace DeviceExplorer
                 AddAddress(ObjectPath&& device_tree,
                                     QModelIndex index,
                                     DeviceExplorerModel::Insert insert,
-                                    const QList<QString>& addressSettings);
+                                    const AddressSettings& addressSettings);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,7 +31,7 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 QList<int> m_parentNodePath;
-                QList<QString> m_addressSettings;
+                AddressSettings m_addressSettings;
                 int m_createdNodeIndex;
 
         };

@@ -15,12 +15,12 @@ class MIDIDevice : public DeviceInterface
 
         }
 
-
+/*
         virtual void addPath(const AddressSettings& address) override
         {
 
         }
-
+*/
         virtual void removePath(const QString& path) override
         {
 

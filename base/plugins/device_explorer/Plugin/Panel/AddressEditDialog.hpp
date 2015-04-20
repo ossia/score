@@ -4,6 +4,7 @@ class QComboBox;
 class QGridLayout;
 class QLineEdit;
 class AddressSettingsWidget;
+class AddressSettings;
 
 #include <QDialog>
 #include <QList>
@@ -20,9 +21,9 @@ class AddressEditDialog : public QDialog
         ~AddressEditDialog();
 
         // TODO
-        QList<QString> getSettings() const;
+        AddressSettings getSettings() const;
 
-        void setSettings(QList<QString>& settings);
+        void setSettings(AddressSettings &settings);
 
     protected slots:
 
@@ -39,7 +40,7 @@ class AddressEditDialog : public QDialog
         QComboBox* m_valueTypeCBox;
         AddressSettingsWidget* m_addressWidget;
         QGridLayout* m_gLayout;
-        QList<QList<QString>> m_previousSettings;
+        QList<AddressSettings> m_previousSettings;
         int m_index;
 };
 

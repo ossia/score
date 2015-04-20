@@ -238,7 +238,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
     // coeff pour ajuster la mise à l'échelle
     const int TIMECOEFF = 1;
-    const int YCOEFF = 1500;
+    const int YCOEFF = 2000;
 
     /*
      besoin de créer des faux events :
@@ -252,7 +252,7 @@ QString JSONToZeroTwo(QJsonObject base)
     */
 
     int idIndent = 10; // utilisé pour créer des identifiants des nouveaux "fakes" events
-    const int DELTAT = 100; // translate tout le scénario (évite le GRIP du début)
+    const int DELTAT = 500; // translate tout le scénario (évite le GRIP du début)
     int deltaDuration = 1; // durée de l'intervalle artificiel
 
 

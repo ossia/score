@@ -22,7 +22,7 @@ namespace DeviceExplorer {
 
 class Node;
 class DeviceExplorerView;
-
+struct AddressSettings;
 
 class DeviceExplorerModel : public QAbstractItemModel
 {
@@ -61,7 +61,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         // Returns the row (useful for undo)
         int addDevice(Node* deviceNode);
         Node *addAddress(Node * parentNode,
-                        const QList<QString>& addressSettings);
+                        const AddressSettings& addressSettings);
         void addAddress(Node* parentNode, Node* node);
 
         void removeNode(Node *node);
