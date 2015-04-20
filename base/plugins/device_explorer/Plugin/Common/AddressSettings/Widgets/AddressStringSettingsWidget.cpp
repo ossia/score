@@ -66,7 +66,7 @@ AddressStringSettingsWidget::setDefaults()
     m_valueEdit->setText("");
 
     m_prioritySBox->setMinimum(0);
-    m_prioritySBox->setMaximum(10000);  //?
+    m_prioritySBox->setMaximum(std::numeric_limits<int>::max());
     m_prioritySBox->setSingleStep(1);
     m_prioritySBox->setValue(0);
 
@@ -82,13 +82,8 @@ AddressSettings AddressStringSettingsWidget::getSettings() const
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
     settings.valueType = QString("String");
-/*
-    QList<QString> list;
-    list.append(m_ioTypeCBox->currentText());
-    list.append(m_valueEdit->text());
-    list.append(QString::number(m_prioritySBox->value()));
-    list.append(m_tagsEdit->text());   //TODO: TagListWidget
-*/
+    //TODO: TagListWidget
+
     return settings;
 }
 

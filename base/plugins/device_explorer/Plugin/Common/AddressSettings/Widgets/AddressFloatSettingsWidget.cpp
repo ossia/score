@@ -90,13 +90,15 @@ AddressFloatSettingsWidget::setDefaults()
     m_ioTypeCBox->setCurrentIndex(0);
 
     m_valueSBox->setValue(0.0);
+    m_valueSBox->setMinimum(-std::numeric_limits<double>::infinity());
+    m_valueSBox->setMaximum(std::numeric_limits<double>::infinity());
 
-    m_minSBox->setMinimum(-100000.0);  //?
-    m_minSBox->setMaximum(100000.0);  //?
+    m_minSBox->setMinimum(-std::numeric_limits<double>::infinity());
+    m_minSBox->setMaximum(std::numeric_limits<double>::infinity());
     m_minSBox->setValue(0.0);
 
-    m_maxSBox->setMinimum(-100000.0);  //?
-    m_maxSBox->setMaximum(100000.0);  //?
+    m_maxSBox->setMinimum(-std::numeric_limits<double>::infinity());
+    m_maxSBox->setMaximum(std::numeric_limits<double>::infinity());
     m_maxSBox->setValue(1.0);
 
     m_unitCBox->setCurrentIndex(0);
@@ -104,7 +106,7 @@ AddressFloatSettingsWidget::setDefaults()
     m_clipModeCBox->setCurrentIndex(0);
 
     m_prioritySBox->setMinimum(0);
-    m_prioritySBox->setMaximum(10000);  //?
+    m_prioritySBox->setMaximum(std::numeric_limits<int>::max());
     m_prioritySBox->setSingleStep(1);
     m_prioritySBox->setValue(0);
 
@@ -120,17 +122,17 @@ AddressSettings AddressFloatSettingsWidget::getSettings() const
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
     settings.valueType = QString(tr("Float"));
-/*
-    QList<QString> list;
-    list.append(m_ioTypeCBox->currentText());
-    list.append(QString::number(m_valueSBox->value()));
-    list.append(QString::number(m_minSBox->value()));
-    list.append(QString::number(m_maxSBox->value()));
-    list.append(m_unitCBox->currentText());
-    list.append(m_clipModeCBox->currentText());
-    list.append(QString::number(m_prioritySBox->value()));
-    list.append(m_tagsEdit->text());   //TODO: TagListWidget
-*/
+    settings.value = m_valueSBox->value();
+
+    AddressFloatSettings fs;
+    fs.clipMode = m_clipModeCBox->currentText();
+    fs.max = m_maxSBox->value();
+    fs.min = m_minSBox->value();
+    fs.unit = m_unitCBox->currentText();
+
+    settings.addressSpecificSettings = QVariant::fromValue(fs);
+
+    //TODO: TagListWidget
     return settings;
 }
 

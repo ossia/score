@@ -7,6 +7,6 @@
 
 struct AddressStringSettings
 {
-    QString value; // useless
+    QString value{""}; // useless
 };
 Q_DECLARE_METATYPE(AddressStringSettings)

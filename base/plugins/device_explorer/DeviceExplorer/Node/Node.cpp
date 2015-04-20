@@ -148,31 +148,90 @@ void Node::setName(const QString& name)
     {
         m_deviceSettings.name = name;
     }
+    else
+    {
+        m_addressSettings.name = name;
+    }
 }
 
 void Node::setValue(const QString& value)
 {
     m_value = value;
+    m_addressSettings.value = QVariant::fromValue(value);
+}
+
+void Node::setValueType(const QString &value)
+{
+    m_addressSettings.valueType = value;
+    if(value == QString("Float"))
+    {
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
+    }
+    if(value == QString("Int"))
+    {
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
+    }
+    if(value == QString("String"))
+    {
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressStringSettings{});
+    }
 }
 
 void Node::setIOType(const Node::IOType ioType)
 {
     m_ioType = ioType;
+    if(ioType == Node::IOType::In)
+    {
+        m_addressSettings.ioType = QString("In");
+    }
+    if(ioType == Node::IOType::Out)
+    {
+        m_addressSettings.ioType = QString("Out");
+    }
+    if(ioType == Node::IOType::InOut)
+    {
+        m_addressSettings.ioType = QString("In/Out");
+    }
 }
 
 void Node::setMinValue(float minV)
 {
     m_min = minV;
+    if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+    {
+        AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
+        fs.min = minV;
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(fs);
+    }
+    if (m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+    {
+        AddressIntSettings is = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
+        is.min = minV;
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(is);
+    }
 }
 
 void Node::setMaxValue(float maxV)
 {
     m_max = maxV;
+    if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+    {
+        AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
+        fs.max = maxV;
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(fs);
+    }
+    if (m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+    {
+        AddressIntSettings is = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
+        is.max = maxV;
+        m_addressSettings.addressSpecificSettings = QVariant::fromValue(is);
+    }
 }
 
 void Node::setPriority(unsigned int priority)
 {
     m_priority = priority;
+    m_addressSettings.priority = priority;
 }
 
 bool Node::isSelectable() const
@@ -207,38 +266,17 @@ const DeviceSettings& Node::deviceSettings() const
     return m_deviceSettings;
 }
 
-void Node::setAddressSettings(AddressSettings &settings)
+void Node::setAddressSettings(const AddressSettings &settings)
 {
+    m_addressSettings.name = name();
     m_addressSettings = settings;
 }
 
-const AddressSettings Node::addressSettings() const
+const AddressSettings Node::addressSettings()
 {
-    AddressSettings settings;
-    settings.ioType = ioType();
-    settings.name = m_name;
-    settings.priority = m_priority;
-    settings.tags = QString("tags"); // TODO
-    settings.value = QVariant::fromValue(m_value);
-    settings.valueType = QString("Int"); // TODO
+    m_addressSettings.name = m_name;
 
-    // TODO : specific settings
-
-    return settings; // use m_addressSettings
-/*
-    QList<QString> list;
-    list.push_back(m_name);
-    list.push_back(m_value);
-    list.push_back(QString(ioType()));
-    list.push_back(QString::number(m_min));
-    list.push_back(QString::number(m_max));
-    list.push_back("unit");
-    list.push_back("clipmode");
-    list.push_back(QString::number(m_priority));
-    list.push_back("tags");
-
-    return list;
-*/
+    return m_addressSettings;
 }
 
 Node* Node::clone() const
@@ -448,6 +486,8 @@ Node* makeNode(const AddressSettings &addressSettings)
         node->setPriority(priority);
         setIOType(node, ioType);
     }
+
+    node->setAddressSettings(addressSettings);
 
     return node;
 }

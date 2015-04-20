@@ -382,7 +382,6 @@ void DeviceExplorerWidget::edit()
         {
             m_deviceDialog = new DeviceEditDialog(this);
         }
-        // TODO : gestion des noms ... (chargés seulement à la deuxième ouverture de la fenêtre)
         auto set = select->deviceSettings();
         m_deviceDialog->setSettings(set);
 
@@ -472,6 +471,8 @@ DeviceExplorerWidget::addAddress(int insertType)
     {
         m_addressDialog = new AddressEditDialog(this);
     }
+    AddressSettings defSettings = m_addressDialog->getDefaultSettings();
+    m_addressDialog->setSettings(defSettings);
 
     QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
 

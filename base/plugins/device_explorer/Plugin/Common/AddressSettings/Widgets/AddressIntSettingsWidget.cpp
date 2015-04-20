@@ -88,13 +88,15 @@ AddressIntSettingsWidget::setDefaults()
     m_ioTypeCBox->setCurrentIndex(0);
 
     m_valueSBox->setValue(0);
+    m_valueSBox->setMinimum(-std::numeric_limits<int>::max());
+    m_valueSBox->setMaximum(std::numeric_limits<int>::max());
 
-    m_minSBox->setMinimum(-100000);  //?
-    m_minSBox->setMaximum(100000);  //?
+    m_minSBox->setMinimum(-std::numeric_limits<int>::max());
+    m_minSBox->setMaximum(std::numeric_limits<int>::max());
     m_minSBox->setValue(0);
 
-    m_maxSBox->setMinimum(-100000);  //?
-    m_maxSBox->setMaximum(100000);  //?
+    m_maxSBox->setMinimum(-std::numeric_limits<int>::max());
+    m_maxSBox->setMaximum(std::numeric_limits<int>::max());
     m_maxSBox->setValue(100);
 
     m_unitCBox->setCurrentIndex(0);
@@ -102,7 +104,7 @@ AddressIntSettingsWidget::setDefaults()
     m_clipModeCBox->setCurrentIndex(0);
 
     m_prioritySBox->setMinimum(0);
-    m_prioritySBox->setMaximum(10000);  //?
+    m_prioritySBox->setMaximum(std::numeric_limits<int>::max());
     m_prioritySBox->setSingleStep(1);
     m_prioritySBox->setValue(0);
 
@@ -117,18 +119,18 @@ AddressSettings AddressIntSettingsWidget::getSettings() const
     settings.ioType = m_ioTypeCBox->currentText();
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
+    settings.value = m_valueSBox->value();
     settings.valueType = QString("Int");
-/*
-    QList<QString> list;
-    list.append(m_ioTypeCBox->currentText());
-    list.append(QString::number(m_valueSBox->value()));
-    list.append(QString::number(m_minSBox->value()));
-    list.append(QString::number(m_maxSBox->value()));
-    list.append(m_unitCBox->currentText());
-    list.append(m_clipModeCBox->currentText());
-    list.append(QString::number(m_prioritySBox->value()));
-    list.append(m_tagsEdit->text());   //TODO: TagListWidget
-*/
+
+    AddressIntSettings is;
+    is.clipMode = m_clipModeCBox->currentText();
+    is.max = m_maxSBox->value();
+    is.min = m_minSBox->value();
+    is.unit = m_unitCBox->currentText();
+
+    settings.addressSpecificSettings = QVariant::fromValue(is);
+
+    // TODO specific settings
     return settings;
 }
 
@@ -153,9 +155,9 @@ AddressIntSettingsWidget::setSettings(const AddressSettings &settings)
     {
         AddressIntSettings iSettings = settings.addressSpecificSettings.value<AddressIntSettings>();
 
-        if (settings.value.canConvert<int>())
+        if (settings.value.canConvert<float>())
         {
-            int val = settings.value.value<int>();
+            int val = settings.value.value<float>();
             m_valueSBox->setValue(val);
         }
 

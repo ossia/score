@@ -55,6 +55,7 @@ class Node
 
         void setName(const QString& name);
         void setValue(const QString& value);
+        void setValueType(const QString& value);
         void setIOType(const Node::IOType ioType);
         void setMinValue(float minV);
         void setMaxValue(float maxV);
@@ -66,8 +67,8 @@ class Node
         bool isDevice() const;
         void setDeviceSettings(DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
-        void setAddressSettings(AddressSettings& settings);
-        const AddressSettings addressSettings() const;
+        void setAddressSettings(const AddressSettings& settings);
+        const AddressSettings addressSettings();
         Node* clone() const;
 
 

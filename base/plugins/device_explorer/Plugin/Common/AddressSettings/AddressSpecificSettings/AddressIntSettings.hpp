@@ -5,9 +5,9 @@
 
 struct AddressIntSettings
 {
-    int min;
-    int max;
-    QString clipMode;
-    QString unit;
+    int min{0};
+    int max{0};
+    QString clipMode{""};
+    QString unit{""};
 };
 Q_DECLARE_METATYPE(AddressIntSettings)

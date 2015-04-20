@@ -4,11 +4,11 @@ class QComboBox;
 class QGridLayout;
 class QLineEdit;
 class AddressSettingsWidget;
-class AddressSettings;
 
 #include <QDialog>
 #include <QList>
 #include <QString>
+#include "Common/AddressSettings/AddressSettings.hpp"
 
 
 class AddressEditDialog : public QDialog
@@ -22,6 +22,7 @@ class AddressEditDialog : public QDialog
 
         // TODO
         AddressSettings getSettings() const;
+        AddressSettings getDefaultSettings() const;
 
         void setSettings(AddressSettings &settings);
 
@@ -39,6 +40,7 @@ class AddressEditDialog : public QDialog
         QLineEdit* m_nameEdit;
         QComboBox* m_valueTypeCBox;
         AddressSettingsWidget* m_addressWidget;
+        AddressSettings m_defaultSettings;
         QGridLayout* m_gLayout;
         QList<AddressSettings> m_previousSettings;
         int m_index;

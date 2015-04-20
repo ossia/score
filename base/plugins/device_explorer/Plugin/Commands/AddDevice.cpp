@@ -15,13 +15,15 @@ Node* makeDeviceNode(const DeviceSettings& device)
         if(device.protocol == "Minuit" || device.protocol == "OSC")
         {
             Node* node1 = new Node("debug1", node);
+            node1->setValueType("Int");
             node1->setValue("10");
             node1->setIOType(Node::In);
-            node1->setMinValue(0.f);
-            node1->setMaxValue(0.f);
+            node1->setMinValue(0);
+            node1->setMaxValue(10);
             node1->setPriority(1);
 
             Node* node2 = new Node("debug2", node);
+            node2->setValueType("Float");
             node2->setValue("13.7");
             node2->setIOType(Node::Out);
             node2->setMinValue(0.f);
@@ -32,6 +34,7 @@ Node* makeDeviceNode(const DeviceSettings& device)
         if(device.protocol == "OSC" || device.protocol == "MIDI")
         {
             Node* node3 = new Node("debug3", node);
+            node3->setValueType("Float");
             node3->setValue("13");
             node3->setIOType(Node::InOut);
             node3->setMinValue(0.f);
@@ -39,6 +42,7 @@ Node* makeDeviceNode(const DeviceSettings& device)
             node3->setPriority(2);
 
             Node* node4 = new Node("debug4", node3);
+            node4->setValueType("Float");
             node4->setValue("11");
             node4->setIOType(Node::InOut);
             node4->setMinValue(1.f);
@@ -48,6 +52,7 @@ Node* makeDeviceNode(const DeviceSettings& device)
             if(device.protocol == "OSC")
             {
                 Node* node5 = new Node("debug5", node4);
+                node5->setValueType("Float");
                 node5->setValue("777");
                 node5->setIOType(Node::In);
                 node5->setMinValue(1.f);
@@ -55,6 +60,7 @@ Node* makeDeviceNode(const DeviceSettings& device)
                 node5->setPriority(3);
 
                 Node* node6 = new Node("debug6", node5);
+                node6->setValueType("Float");
                 node6->setValue("777");
                 node6->setIOType(Node::In);
                 node6->setMinValue(1.f);
@@ -62,6 +68,7 @@ Node* makeDeviceNode(const DeviceSettings& device)
                 node6->setPriority(3);
 
                 Node* node7 = new Node("debug7", node5);
+                node7->setValueType("Float");
                 node7->setValue("754");
                 node7->setIOType(Node::Out);
                 node7->setMinValue(1.33f);

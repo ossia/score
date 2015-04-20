@@ -6,7 +6,6 @@
 #include <QLabel>
 #include <QLineEdit>
 
-#include "Common/AddressSettings/AddressSettings.hpp"
 #include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
 #include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
 #include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
@@ -66,7 +65,7 @@ AddressEditDialog::buildGUI()
     }
 
     m_nameEdit->setText("addr");
-
+    m_defaultSettings = getSettings();
 }
 
 void
@@ -108,13 +107,13 @@ AddressEditDialog::updateNodeWidget()
 
     if(m_addressWidget)
     {
-
+/*
         //set previous settings for this protocol if any
         if(! m_previousSettings.at(m_index).name.isEmpty())
         {
             m_addressWidget->setSettings(m_previousSettings.at(m_index));
         }
-
+//*/
         m_gLayout->addWidget(m_addressWidget, 2, 0, 1, 2);
         updateGeometry();
     }
@@ -132,9 +131,13 @@ AddressSettings AddressEditDialog::getSettings() const
     }
 
     settings.name = m_nameEdit->text();
-    settings.value = QVariant::fromValue(m_valueTypeCBox->currentText());
 
     return settings;
+}
+
+AddressSettings AddressEditDialog::getDefaultSettings() const
+{
+    return m_defaultSettings;
 }
 
 void
@@ -147,6 +150,8 @@ AddressEditDialog::setSettings(AddressSettings& settings)
     const int index = m_valueTypeCBox->findText(valueType);
     Q_ASSERT(index != -1);
     Q_ASSERT(index < m_valueTypeCBox->count());
-
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
+
+    m_addressWidget->setSettings(settings);
+
 }
