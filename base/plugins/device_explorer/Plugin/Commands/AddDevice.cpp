@@ -13,7 +13,7 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
-    QString valueType{"In/Out"};
+    QString valueType{"Float"};
     QString value{"0"};
     int priority;
     float min{0};
@@ -41,6 +41,7 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 
     Node* treeNode = new Node{name, parentNode};
     treeNode->setValueType(valueType);
+    treeNode->setIOType(QString("In/Out"));
     treeNode->setPriority(priority);
     treeNode->setValue(value);
     treeNode->setMaxValue(max);
@@ -152,7 +153,11 @@ Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
         QDomElement application = doc.firstChildElement("application");
         QDomElement dom_node = application.firstChildElement("");
 
-        convertFromDomElement(dom_node, node);
+        while(!dom_node.isNull())
+        {
+            convertFromDomElement(dom_node, node);
+            dom_node = dom_node.nextSiblingElement("");
+        }
 
     }
 
