@@ -88,6 +88,11 @@ DeviceSettings OSCProtocolSettingsWidget::getSettings() const
     return s;
 }
 
+QString OSCProtocolSettingsWidget::getPath() const
+{
+    return m_namespaceFilePathEdit->text();
+}
+
 void
 OSCProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
 {
@@ -109,7 +114,6 @@ OSCProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
 }
 
 
-
 void
 OSCProtocolSettingsWidget::openFileDialog()
 {
@@ -119,5 +123,4 @@ OSCProtocolSettingsWidget::openFileDialog()
     {
         m_namespaceFilePathEdit->setText(fileName);
     }
-
 }

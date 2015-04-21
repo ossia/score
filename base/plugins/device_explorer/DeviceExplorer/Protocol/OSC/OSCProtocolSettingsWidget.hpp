@@ -13,6 +13,7 @@ class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
         OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
         virtual DeviceSettings getSettings() const override;
+        virtual QString getPath() const override;
 
         virtual void setSettings(const DeviceSettings& settings) override;
 

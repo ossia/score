@@ -19,6 +19,7 @@ class DeviceEditDialog : public QDialog
         ~DeviceEditDialog();
 
         DeviceSettings getSettings() const;
+        QString getPath() const;
 
         void setSettings(DeviceSettings& settings);
 

@@ -429,8 +429,9 @@ DeviceExplorerWidget::addDevice()
     if(code == QDialog::Accepted)
     {
         auto deviceSettings = m_deviceDialog->getSettings();
+        auto path = m_deviceDialog->getPath();
         Q_ASSERT(model());
-        m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings});
+        m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings, path});
         //TODO: we should set the focus on this Node & expand it
         //m_ntView->setCurrentIndex(?)
     }
@@ -457,7 +458,8 @@ DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNode()
 {
-    m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), m_ntView->selectedIndex()});
+    if(! model()->nodeFromModelIndex(m_ntView->selectedIndex())->isDevice())
+        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), m_ntView->selectedIndex()});
 }
 
 void

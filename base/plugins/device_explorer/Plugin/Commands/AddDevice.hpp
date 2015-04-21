@@ -9,7 +9,9 @@ class AddDevice : public iscore::SerializableCommand
         public:
             ISCORE_COMMAND_DEFAULT_CTOR(AddDevice, "DeviceExplorerControl")
         AddDevice(ObjectPath&& device_tree,
-                  const DeviceSettings& parameters);
+                  const DeviceSettings& parameters,
+                  const QString& filePath = QString(""));
+
 
         virtual void undo() override;
         virtual void redo() override;
@@ -22,6 +24,7 @@ class AddDevice : public iscore::SerializableCommand
     private:
         ObjectPath m_deviceTree;
         DeviceSettings m_parameters;
+        QString m_filePath{};
 
         int m_row{};
 };
