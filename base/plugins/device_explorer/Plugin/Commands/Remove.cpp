@@ -16,7 +16,15 @@ Remove::Remove(ObjectPath &&device_tree, QModelIndex index):
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
     Node *node = explorer->nodeFromModelIndex(index);
-    m_parentPath = explorer->pathFromNode(*(node->parent()));
+
+    if (! node->isDevice())
+    {
+        m_parentPath = explorer->pathFromNode(*(node->parent()));
+    }
+    else
+    {
+        m_parentPath.clear();
+    }
     m_addressSettings = node->addressSettings();
     m_nodeIndex = explorer->pathToNode(m_parentPath)->indexOfChild(node);
     m_node = node->clone();

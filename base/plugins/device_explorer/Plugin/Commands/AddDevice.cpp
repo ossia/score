@@ -6,9 +6,59 @@
 
 #include <Plugin/DeviceExplorerPlugin.hpp>
 
-Node* makeDeviceNode(const DeviceSettings& device)
+#include <QFile>
+#include <QtXml/QtXml>
+
+void convertFromDomElement(QDomElement dom_element, Node* parentNode)
+{
+    QDomElement dom_child = dom_element.firstChildElement("");
+    QString name;
+    QString valueType{"In/Out"};
+    QString value{"0"};
+    int priority;
+    float min{0};
+    float max{100};
+
+    if(dom_element.hasAttribute("address"))
+    {
+        name = dom_element.attribute("address");
+    }
+    else
+    {
+        name = dom_element.tagName();
+    }
+
+    priority = dom_element.attribute("priority").toInt();
+
+    QString bounds = dom_element.attribute("rangeBounds");
+    QString minB = bounds;
+    minB.truncate(bounds.indexOf(" "));
+    bounds.remove(0, minB.length() + 1);
+    min = minB.toFloat();
+    max = bounds.toFloat();
+
+    value = dom_element.attribute("valueDefault");
+
+    Node* treeNode = new Node{name, parentNode};
+    treeNode->setValueType(valueType);
+    treeNode->setPriority(priority);
+    treeNode->setValue(value);
+    treeNode->setMaxValue(max);
+    treeNode->setMinValue(min);
+
+    while(!dom_child.isNull() && dom_element.hasChildNodes())
+    {
+        convertFromDomElement(dom_child, treeNode);
+
+        dom_child = dom_child.nextSibling().toElement();
+    }
+    return;
+}
+
+Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
 {
     Node* node = new Node(device, device.name, nullptr);
+    if (filePath.isEmpty())
     {
         //DEBUG: arbitrary population of the tree
 
@@ -77,18 +127,48 @@ Node* makeDeviceNode(const DeviceSettings& device)
             }
         }
     }
+    else
+    {
+        // ouverture d'un xml
+        QFile doc_xml(filePath);
+        if(!doc_xml.open(QIODevice::ReadOnly))
+        {
+            qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
+            doc_xml.close();
+            return node;
+        }
+        QDomDocument* domDoc = new QDomDocument;
+        if(!domDoc->setContent(&doc_xml))
+        {
+            qDebug() << "Erreur : Impossible de charger le ficher XML";
+            doc_xml.close();
+            return node;
+        }
+        doc_xml.close();
+
+        // extraction des données
+
+        QDomElement doc = domDoc->documentElement();
+        QDomElement application = doc.firstChildElement("application");
+        QDomElement dom_node = application.firstChildElement("");
+
+        convertFromDomElement(dom_node, node);
+
+    }
 
     return node;
 }
 
+
 const char* AddDevice::className() { return "AddDevice"; }
-QString AddDevice::description() { return "TODO"; }
-AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters):
+QString AddDevice::description() { return "Add a device"; }
+AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters, const QString &filePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
                                 description()},
     m_deviceTree{device_tree},
-    m_parameters(parameters)
+    m_parameters(parameters),
+    m_filePath{filePath}
 {
 
 }
@@ -111,7 +191,8 @@ void AddDevice::redo()
     SingletonDeviceList::instance().addDevice(dev);
 
     // Put it in the tree.
-    auto node = makeDeviceNode(m_parameters);
+
+    auto node = makeDeviceNode(m_parameters, m_filePath);
     m_row = explorer->addDevice(node);
 }
 

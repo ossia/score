@@ -127,6 +127,11 @@ DeviceSettings DeviceEditDialog::getSettings() const
     return settings;
 }
 
+QString DeviceEditDialog::getPath() const
+{
+    return m_protocolWidget->getPath();
+}
+
 void
 DeviceEditDialog::setSettings(DeviceSettings &settings)
 {
