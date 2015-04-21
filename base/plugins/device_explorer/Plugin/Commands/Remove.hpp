@@ -31,7 +31,6 @@ namespace DeviceExplorer
                 ObjectPath m_deviceTree;
                 DeviceExplorerModel::Path m_parentPath;
                 AddressSettings m_addressSettings;
-                QVector<Node*> m_children;
                 int m_nodeIndex;
 
                 //QByteArray m_serializedNode;

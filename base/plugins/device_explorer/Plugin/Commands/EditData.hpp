@@ -31,6 +31,7 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 DeviceExplorerModel::Path m_nodePath;
+                QModelIndex m_index;
                 QVariant m_oldValue;
                 QVariant m_newValue;
                 int m_role;

@@ -12,6 +12,7 @@ EditData::EditData(ObjectPath &&device_tree, QModelIndex index, QVariant value, 
                                 className(),
                                 description()},
     m_deviceTree{device_tree},
+    m_index{index},
     m_newValue{value},
     m_role{role}
 {
@@ -23,13 +24,13 @@ EditData::EditData(ObjectPath &&device_tree, QModelIndex index, QVariant value, 
 void EditData::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->editData(explorer->pathToIndex(m_nodePath), m_oldValue, m_role);
+    explorer->editData(m_index, m_oldValue, m_role);
 }
 
 void EditData::redo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->editData(explorer->pathToIndex(m_nodePath), m_newValue, m_role);
+    explorer->editData(m_index, m_newValue, m_role);
 }
 
 bool EditData::mergeWith(const iscore::Command *other)

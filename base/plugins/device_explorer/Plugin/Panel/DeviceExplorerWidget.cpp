@@ -411,7 +411,6 @@ void DeviceExplorerWidget::edit()
             auto addressSettings = m_addressDialog->getSettings();
             select->setAddressSettings(addressSettings);
         }
-
         updateActions();
     }
 }

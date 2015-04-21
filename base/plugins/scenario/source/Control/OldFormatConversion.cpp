@@ -293,7 +293,7 @@ QString JSONToZeroTwo(QJsonObject base)
     }
 
 
-    QJsonObject scenar = base["Scenario"].toObject();
+    QJsonObject scenar = base["Document"].toObject();
 
     QJsonArray processes = scenar["Processes"].toArray();
 

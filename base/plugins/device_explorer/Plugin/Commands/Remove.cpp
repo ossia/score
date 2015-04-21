@@ -19,8 +19,6 @@ Remove::Remove(ObjectPath &&device_tree, QModelIndex index):
     m_parentPath = explorer->pathFromNode(*(node->parent()));
     m_addressSettings = node->addressSettings();
     m_nodeIndex = explorer->pathToNode(m_parentPath)->indexOfChild(node);
-    m_children.clear();
-//    saveChildren(node);
     m_node = node->clone();
 }
 

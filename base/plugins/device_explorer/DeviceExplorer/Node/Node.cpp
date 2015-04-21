@@ -46,6 +46,10 @@ void Node::setParent(Node* parent)
     m_parent->addChild(this);
 }
 
+ /* *************************************************************
+  * ACCESSORS
+  * ************************************************************/
+
 Node* Node::parent() const
 {
     return m_parent;
@@ -75,6 +79,10 @@ QList<Node*> Node::children() const
 {
     return m_children;
 }
+
+/* *************************************************************
+ *
+ * ************************************************************/
 
 void Node::insertChild(int index, Node* n)
 {
@@ -111,6 +119,9 @@ void Node::removeChild(Node* child)
     m_children.removeAll(child);
 }
 
+/* *************************************************************
+ * COLUMNS ACCESSORS
+ * ************************************************************/
 QString Node::name() const
 {
     return m_name;
@@ -140,6 +151,10 @@ unsigned int Node::priority() const
 {
     return m_priority;
 }
+
+/* *************************************************************
+ * COLUMNS MODIFIERS
+ * ************************************************************/
 
 void Node::setName(const QString& name)
 {
@@ -194,6 +209,23 @@ void Node::setIOType(const Node::IOType ioType)
     }
 }
 
+void Node::setIOType(const QString ioType)
+{
+    m_addressSettings.ioType = ioType;
+    if(ioType == QString("In"))
+    {
+        m_ioType = Node::IOType::In;
+    }
+    if(ioType == QString("In/Out"))
+    {
+        m_ioType = Node::IOType::InOut;
+    }
+    if(ioType == QString("Out"))
+    {
+        m_ioType = Node::IOType::Out;
+    }
+}
+
 void Node::setMinValue(float minV)
 {
     m_min = minV;
@@ -234,6 +266,8 @@ void Node::setPriority(unsigned int priority)
     m_addressSettings.priority = priority;
 }
 
+// ******************************************************************
+
 bool Node::isSelectable() const
 {
     return true;
@@ -268,8 +302,36 @@ const DeviceSettings& Node::deviceSettings() const
 
 void Node::setAddressSettings(const AddressSettings &settings)
 {
-    m_addressSettings.name = name();
-    m_addressSettings = settings;
+    setName(settings.name);
+    setValueType(settings.valueType);
+    setIOType(settings.ioType);
+    setPriority(settings.priority);
+
+    if(settings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+    {
+        AddressFloatSettings fs = settings.addressSpecificSettings.value<AddressFloatSettings>();
+        setMaxValue(fs.max);
+        setMinValue(fs.min);
+    }
+    else if(settings.addressSpecificSettings.canConvert<AddressIntSettings>())
+    {
+        AddressIntSettings is = settings.addressSpecificSettings.value<AddressIntSettings>();
+        setMaxValue(is.max);
+        setMinValue(is.min);
+    }
+
+    if(settings.value.canConvert<float>())
+    {
+        float f = settings.value.value<float>();
+        setValue(QString::number(f));
+    }
+    else if(settings.value.canConvert<int>())
+    {
+        int i = settings.value.value<int>();
+        setValue(QString::number(i));
+    }
+
+    m_addressSettings = settings; // TODO : si tous les set sont bien fait, pas necessaires
 }
 
 const AddressSettings Node::addressSettings()

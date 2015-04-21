@@ -57,6 +57,7 @@ class Node
         void setValue(const QString& value);
         void setValueType(const QString& value);
         void setIOType(const Node::IOType ioType);
+        void setIOType(const QString ioType);
         void setMinValue(float minV);
         void setMaxValue(float maxV);
         void setPriority(unsigned int priority);

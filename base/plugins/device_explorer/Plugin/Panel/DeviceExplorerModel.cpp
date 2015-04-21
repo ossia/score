@@ -332,10 +332,6 @@ DeviceExplorerModel::getColumns() const
     return l;
 }
 
-
-/**
- * TODO : should be called with a Node* instead
- */
 int DeviceExplorerModel::addDevice(Node* deviceNode)
 {
 
@@ -397,7 +393,6 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node)
     beginInsertRows(parentIndex, row, row);
 
     parentNode->insertChild(row, node);
-//    node->setParent(parentNode);
 
     endInsertRows();
 }
