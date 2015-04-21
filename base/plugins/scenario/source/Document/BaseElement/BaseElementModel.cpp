@@ -150,6 +150,7 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
     }
 }
 
+// TODO these two are inconsistent. Review needed.
 QByteArray BaseElementModel::toByteArray()
 {
     QByteArray arr;
