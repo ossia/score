@@ -9,6 +9,7 @@
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
 
+#include <State/State.hpp>
 #include <State/Message.hpp>
 
 ScenarioPlugin::ScenarioPlugin() :
@@ -24,6 +25,8 @@ m_control {new ScenarioControl{nullptr}}
     // TODO there should be another way... :'(
     QMetaType::registerComparators<Message>();
     QMetaType::registerComparators<MessageList>();
+    qRegisterMetaTypeStreamOperators<State>();
+    qRegisterMetaTypeStreamOperators<StateList>();
     qRegisterMetaTypeStreamOperators<Message>();
     qRegisterMetaTypeStreamOperators<MessageList>();
 }

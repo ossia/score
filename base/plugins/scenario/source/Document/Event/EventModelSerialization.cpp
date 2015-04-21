@@ -92,14 +92,11 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
     ev.setCondition(m_obj["Condition"].toString());
     ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>> (m_obj["TimeNode"].toObject()));
 
-    /* TODO JSON State deserialization
-    QJsonArray states = m_obj["States"].toArray();
-
-    for(auto json_vref : states)
+    QList<State> states;
+    for(QJsonValue json_val : m_obj["States"].toArray())
     {
-        Deserializer<JSON> deserializer {json_vref.toObject() };
-        FakeState* state = new FakeState {deserializer, &ev};
-        ev.addState(state);
+        states.push_back(fromJsonObject<State>(json_val.toObject()));
     }
-*/
+
+    ev.replaceStates(states);
 }
