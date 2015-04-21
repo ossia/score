@@ -196,6 +196,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     auto createtool = new QAction(tr("Create"), m_scenarioActionGroup);
     createtool->setCheckable(true);
     createtool->setData(QVariant::fromValue((int)ScenarioAction::Create));
+    createtool->setShortcutContext(Qt::ApplicationShortcut);
+    createtool->setShortcut(tr("Alt+c"));
     connect(createtool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setCreateState();
@@ -204,6 +206,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     auto movetool = new QAction(tr("Move"), m_scenarioActionGroup);
     movetool->setCheckable(true);
     movetool->setData(QVariant::fromValue((int)ScenarioAction::Move));
+    movetool->setShortcutContext(Qt::ApplicationShortcut);
+    movetool->setShortcut(tr("Alt+v"));
     connect(movetool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setMoveState();
@@ -212,6 +216,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioActionGroup);
     deckmovetool->setCheckable(true);
     deckmovetool->setData(QVariant::fromValue((int)ScenarioAction::DeckMove));
+    deckmovetool->setShortcutContext(Qt::ApplicationShortcut);
+    deckmovetool->setShortcut(tr("Alt+b"));
     connect(deckmovetool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setDeckMoveState();
@@ -221,6 +227,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     selecttool->setCheckable(true);
     selecttool->setChecked(true);
     selecttool->setData(QVariant::fromValue((int)ScenarioAction::Select));
+    selecttool->setShortcutContext(Qt::ApplicationShortcut);
+    selecttool->setShortcut(tr("Alt+n"));
     connect(selecttool, &QAction::triggered, [=] ()
     {
         emit focusedScenarioStateMachine().setSelectState();

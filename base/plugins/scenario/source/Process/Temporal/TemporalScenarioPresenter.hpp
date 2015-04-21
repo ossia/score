@@ -91,6 +91,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
     protected:
         // TODO faire passer l'abstract et utiliser des free functions de cast
+        // TODO boost::multi_index_container
         std::vector<TemporalConstraintPresenter*> m_constraints;
         std::vector<EventPresenter*> m_events;
         std::vector<TimeNodePresenter*> m_timeNodes;
