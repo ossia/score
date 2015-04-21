@@ -20,4 +20,10 @@ namespace iscore
             virtual QJsonObject toJson() const = 0;
             virtual QByteArray toByteArray() const = 0;
     };
+
+    class DocumentDelegatePluginModelFactory
+    {
+        public:
+            virtual DocumentDelegatePluginModel* make(QVariant data, QObject* parent) = 0;
+    };
 }

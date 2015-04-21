@@ -29,14 +29,26 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     }
 }
 
-bool NetworkDocumentPlugin::canMakeMetadataWidget(const QVariant &) const
+bool NetworkDocumentPlugin::canMakeMetadataWidget(const QVariant& var) const
 {
-    return false;
+    return var.canConvert<GroupMetadata>();
 }
 
-QWidget *NetworkDocumentPlugin::makeMetadataWidget(const QVariant &) const
+#include <QVBoxLayout>
+#include <QLabel>
+class GroupMetadataWidget : public QWidget
 {
-    return nullptr;
+    public:
+        GroupMetadataWidget(const GroupMetadata& groupmetadata)
+        {
+            this->setLayout(new QVBoxLayout);
+            this->layout()->addWidget(new QLabel{QString::number(groupmetadata.id.val().get())});
+        }
+};
+
+QWidget *NetworkDocumentPlugin::makeMetadataWidget(const QVariant& var) const
+{
+    return new GroupMetadataWidget(var.value<GroupMetadata>());
 }
 
 QJsonObject NetworkDocumentPlugin::toJson() const
@@ -58,7 +70,7 @@ QVariant NetworkDocumentPlugin::makeMetadata(const QString &str) const
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        return QVariant::fromValue(GroupMetadata());
+        return QVariant::fromValue(GroupMetadata{m_groups->groups()[0]->id()});
     }
 
     Q_ASSERT(false);

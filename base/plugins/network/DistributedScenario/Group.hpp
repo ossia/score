@@ -7,6 +7,7 @@
 class Group;
 
 // Goes into the constraints, events, etc.
+// TODO this needs to be a QObject in order to be able to be updated.
 struct GroupMetadata
 {
         friend QDataStream &operator<<(QDataStream &out, const GroupMetadata &myObj)

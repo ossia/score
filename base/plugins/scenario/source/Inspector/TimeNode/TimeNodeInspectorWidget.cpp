@@ -59,7 +59,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
     updateDisplayedValues(object);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
     m_metadata->setType(TimeNodeModel::prettyName());
 
     m_metadata->setupConnections(m_model);
