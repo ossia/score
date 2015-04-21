@@ -1,31 +1,22 @@
 #include "NetworkMasterDocumentPlugin.hpp"
 
 
-#include <Repartition/session/MasterSession.hpp>
 #include <Repartition/client/RemoteClient.hpp>
 #include <Serialization/MessageMapper.hpp>
 
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
+
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
-#include <core/document/DocumentModel.hpp>
 
 NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
-                                                         NetworkControl* control,
                                                          iscore::Document* doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentMasterPlugin", doc->model()},
     m_session{s},
-    m_control{control},
-    m_document{doc},
-    m_groups{new GroupManager{this}}
+    m_document{doc}
 {
-    // Group set-up
-    auto baseGroup = new Group{"Default", id_type<Group>{0}, this};
-    baseGroup->addClient(m_session->localClient().id());
-    m_groups->addGroup(baseGroup);
-
     /////////////////////////////////////////////////////////////////////////////
     /// From the master to the clients
     /////////////////////////////////////////////////////////////////////////////
@@ -107,17 +98,3 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     // TODO Changing groups is a Command
 }
 
-bool NetworkDocumentMasterPlugin::canMakeMetadata(const QString & str)
-{
-    return str == "ConstraintModel" || str == "EventModel";
-}
-
-QVariant NetworkDocumentMasterPlugin::makeMetadata(const QString & str)
-{
-    if(str == "ConstraintModel" || str == "EventModel")
-    {
-        return QVariant::fromValue(GroupMetadata());
-    }
-
-    Q_ASSERT(false);
-}

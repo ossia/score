@@ -26,21 +26,11 @@ void GroupPanelModel::scanPlugins()
     auto pluginModels = static_cast<iscore::DocumentModel*>(parent())->pluginModels();
     for(auto& plug : pluginModels)
     {
-        if(plug->objectName() == "NetworkDocumentClientPlugin")
+        if(plug->objectName() == "NetworkDocumentPlugin")
         {
-            auto netplug = static_cast<NetworkDocumentClientPlugin*>(plug);
+            auto netplug = static_cast<NetworkDocumentPlugin*>(plug);
             m_currentManager = netplug->groupManager();
-            m_currentSession = netplug->session();
-
-            emit update();
-            break;
-        }
-        else if(plug->objectName() == "NetworkDocumentMasterPlugin")
-        {
-            qDebug("da");
-            auto netplug = static_cast<NetworkDocumentMasterPlugin*>(plug);
-            m_currentManager = netplug->groupManager();
-            m_currentSession = netplug->session();
+            m_currentSession = netplug->policy()->session();
 
             emit update();
             break;

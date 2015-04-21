@@ -60,6 +60,29 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, Q
     metadataLayout->addWidget(descriptionWidget);
     metadataLayout->addWidget(comments);
 
+
+    // We initialize the potential plug-ins of this document with this object's metadata if necessary.
+    //iscore::Document* doc = iscore::IDocument::documentFromObject(obj);
+
+
+    for(auto& plugdata : metadata->pluginMetadatas())
+    {
+        //for(auto& plugin : doc->model()->pluginModels())
+        {
+            //if(plugin-)
+
+        }
+    }
+    //for(auto& plugin : doc->model()->pluginModels())
+    {
+        /*
+        auto widg = plugin->makeWidget()
+        if(plugin->canMakeMetadata(Element::staticMetaObject.className()))
+            metadata->addPluginMetadata(plugin->makeMetadata(Element::staticMetaObject.className()));
+        */
+    }
+
+
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,
             [ = ]()
     {
