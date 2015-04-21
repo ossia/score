@@ -12,7 +12,6 @@ NetworkPlugin::NetworkPlugin() :
 iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
     setObjectName("NetworkPlugin");
-    qRegisterMetaTypeStreamOperators<GroupMetadata>();
 }
 
 // Interfaces implementations :

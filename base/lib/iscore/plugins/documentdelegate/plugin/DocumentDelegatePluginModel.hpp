@@ -4,6 +4,14 @@
 
 namespace iscore
 {
+    class ElementPluginModel : public QObject
+    {
+        public:
+            using QObject::QObject;
+
+            virtual QString plugin() const = 0;
+    };
+
     // TODO : make it take a DocumentModel necessarily as parent.
     class DocumentDelegatePluginModel : public NamedObject
     {
@@ -12,10 +20,9 @@ namespace iscore
             using NamedObject::NamedObject;
             virtual ~DocumentDelegatePluginModel() = default;
 
-            virtual bool canMakeMetadata(const QString&) const = 0;
-            virtual QVariant makeMetadata(const QString&) const = 0;
-            virtual bool canMakeMetadataWidget(const QVariant&) const = 0;
-            virtual QWidget* makeMetadataWidget(const QVariant&) const = 0;
+            virtual QString metadataName() const = 0;
+            virtual ElementPluginModel* makeMetadata(const QString&) const = 0;
+            virtual QWidget* makeMetadataWidget(const ElementPluginModel*) const = 0;
 
             virtual QJsonObject toJson() const = 0;
             virtual QByteArray toByteArray() const = 0;

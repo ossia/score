@@ -11,27 +11,26 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     m_policy{policy},
     m_groups{new GroupManager{this}}
 {
+    using namespace std;
+
     // Base group set-up
     auto baseGroup = new Group{"Default", id_type<Group>{0}, groupManager()};
     baseGroup->addClient(m_policy->session()->localClient().id());
     groupManager()->addGroup(baseGroup);
 
-    // Setup of pre-existing scenario elements.
+    // Create it for each constraint / event.
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        constraint->metadata.addPluginMetadata(this->makeMetadata("ConstraintModel"));
+        if(constraint->metadata.canAddMetadata(metadataName()))
+            constraint->metadata.addPluginMetadata(this->makeMetadata("ConstraintModel"));
     }
     auto events = doc->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        event->metadata.addPluginMetadata(this->makeMetadata("EventModel"));
+        if(event->metadata.canAddMetadata(metadataName()))
+            event->metadata.addPluginMetadata(this->makeMetadata("EventModel"));
     }
-}
-
-bool NetworkDocumentPlugin::canMakeMetadataWidget(const QVariant& var) const
-{
-    return var.canConvert<GroupMetadata>();
 }
 
 #include <QVBoxLayout>
@@ -42,13 +41,13 @@ class GroupMetadataWidget : public QWidget
         GroupMetadataWidget(const GroupMetadata& groupmetadata)
         {
             this->setLayout(new QVBoxLayout);
-            this->layout()->addWidget(new QLabel{QString::number(groupmetadata.id.val().get())});
+            this->layout()->addWidget(new QLabel{QString::number(groupmetadata.id().val().get())});
         }
 };
 
-QWidget *NetworkDocumentPlugin::makeMetadataWidget(const QVariant& var) const
+QWidget *NetworkDocumentPlugin::makeMetadataWidget(const iscore::ElementPluginModel *var) const
 {
-    return new GroupMetadataWidget(var.value<GroupMetadata>());
+    return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var));
 }
 
 QJsonObject NetworkDocumentPlugin::toJson() const
@@ -61,17 +60,12 @@ QByteArray NetworkDocumentPlugin::toByteArray() const
     return {};
 }
 
-bool NetworkDocumentPlugin::canMakeMetadata(const QString &str) const
-{
-    return str == "ConstraintModel" || str == "EventModel";
-}
-
-QVariant NetworkDocumentPlugin::makeMetadata(const QString &str) const
+iscore::ElementPluginModel* NetworkDocumentPlugin::makeMetadata(const QString &str) const
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        return QVariant::fromValue(GroupMetadata{m_groups->groups()[0]->id()});
+        return new GroupMetadata{m_groups->groups()[0]->id()};
     }
 
-    Q_ASSERT(false);
+    return nullptr;
 }

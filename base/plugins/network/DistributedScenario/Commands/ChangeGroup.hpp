@@ -17,7 +17,7 @@ class ChangeGroup : public iscore::SerializableCommand
             {
                 if(elt.canConvert<GroupMetadata>())
                 {
-                    m_oldGroup = elt.value<GroupMetadata>().id;
+                    m_oldGroup = elt.value<GroupMetadata>().m_id;
                     break;
                 }
             }

@@ -24,11 +24,14 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
     public:
         NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::Document *doc);
 
-        bool canMakeMetadata(const QString & str) const override;
-        QVariant makeMetadata(const QString & str) const override;
+        QString metadataName() const override
+        {
+            return GroupMetadata::staticPluginName();
+        }
 
-        virtual bool canMakeMetadataWidget(const QVariant &) const override;
-        virtual QWidget *makeMetadataWidget(const QVariant &) const override;
+        iscore::ElementPluginModel* makeMetadata(const QString & str) const override;
+        virtual QWidget *makeMetadataWidget(const iscore::ElementPluginModel*) const override;
+
         virtual QJsonObject toJson() const override;
         virtual QByteArray toByteArray() const override;
 

@@ -70,9 +70,10 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, Q
     {
         for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
         {
-            if(plugin->canMakeMetadataWidget(plugdata))
+            auto md = plugin->makeMetadataWidget(plugdata);
+            if(md)
             {
-                metadataLayout->addWidget(plugin->makeMetadataWidget(plugdata));
+                metadataLayout->addWidget(md);
                 break;
             }
         }

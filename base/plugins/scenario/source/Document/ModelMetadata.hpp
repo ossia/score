@@ -6,16 +6,14 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
 // TODO put in a scenario plugin interface
 /**
  * @brief The ModelMetadata class
- *
- * Metadata for the constraint, in order to make ConstraintModel lighter
- *
  */
 class ModelMetadata : public QObject
 {
-
         friend void Visitor<Reader<DataStream>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
         friend void Visitor<Reader<JSON>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<ModelMetadata> (ModelMetadata& ev);
@@ -66,31 +64,23 @@ class ModelMetadata : public QObject
         QColor color() const;
         QString label() const;
 
-        template<typename T>
-        void addPluginMetadata(const T& data)
+        bool canAddMetadata(const QString& name)
         {
-            Q_ASSERT(std::none_of(std::begin(m_pluginsMetadata),
-                                  std::end(m_pluginsMetadata),
-                                  [&] (const QVariant& var) { return var.canConvert<T>(); }));
-            m_pluginsMetadata.push_back(QVariant::fromValue(data));
+            using namespace std;
+            return none_of(begin(m_pluginsMetadata),
+                           end(m_pluginsMetadata),
+                           [&] (iscore::ElementPluginModel* p)
+            { return p->plugin() == name; });
+        }
+
+        void addPluginMetadata(iscore::ElementPluginModel* data)
+        {
+            data->setParent(this);
+            m_pluginsMetadata.push_back(data);
             emit pluginMetaDataChanged();
         }
 
-        template<typename T>
-        void updatePluginMetadata(const T& data)
-        {
-            for(QVariant& elt : m_pluginsMetadata)
-            {
-                if(elt.canConvert<T>())
-                {
-                    elt = QVariant::fromValue(data);
-                    emit pluginMetaDataChanged();
-                }
-            }
-
-        }
-
-        const QList<QVariant>& pluginMetadatas() const
+        const auto& pluginMetadatas() const
         { return m_pluginsMetadata; }
 
     signals:
@@ -114,7 +104,7 @@ class ModelMetadata : public QObject
         QColor m_color {Qt::black};
         QString m_label;
 
-        QList<QVariant> m_pluginsMetadata;
+        QList<iscore::ElementPluginModel*> m_pluginsMetadata;
 };
 
 Q_DECLARE_METATYPE(ModelMetadata)
@@ -124,14 +114,21 @@ Q_DECLARE_METATYPE(ModelMetadata)
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-template<typename Element> void initPlugins(Element* e, QObject* obj)
+template<typename Element>
+void initPlugins(Element* e, QObject* obj)
 {
     // We initialize the potential plug-ins of this document with this object's metadata if necessary.
     iscore::Document* doc = iscore::IDocument::documentFromObject(obj);
 
     for(auto& plugin : doc->model()->pluginModels())
     {
-        if(plugin->canMakeMetadata(Element::staticMetaObject.className()))
-            e->metadata.addPluginMetadata(plugin->makeMetadata(Element::staticMetaObject.className()));
+        // Check if it is not already existing in this element.
+        if(!e->metadata.canAddMetadata(plugin->metadataName()))
+            continue;
+
+        // Create and add it.
+        auto metadata = plugin->makeMetadata(Element::staticMetaObject.className());
+        if(metadata)
+            e->metadata.addPluginMetadata(metadata);
     }
 }

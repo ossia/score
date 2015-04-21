@@ -2,31 +2,8 @@
 #include <QString>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include "Repartition/client/Client.hpp"
-#include <iscore/serialization/DataStreamVisitor.hpp>
+#include "GroupMetadata.hpp"
 
-class Group;
-
-// Goes into the constraints, events, etc.
-// TODO this needs to be a QObject in order to be able to be updated.
-struct GroupMetadata
-{
-        friend QDataStream &operator<<(QDataStream &out, const GroupMetadata &myObj)
-        {
-            Serializer<DataStream> s{out.device()};
-            s.readFrom(myObj.id);
-            return out;
-        }
-
-        friend QDataStream &operator>>(QDataStream &in, GroupMetadata &myObj)
-        {
-            Deserializer<DataStream> s{in.device()};
-            s.writeTo(myObj.id);
-            return in;
-        }
-
-    id_type<Group> id;
-};
-Q_DECLARE_METATYPE(GroupMetadata)
 
 // Groups : registered in the session
 // Permissions ? for now we will just have, for each constraint in a score,

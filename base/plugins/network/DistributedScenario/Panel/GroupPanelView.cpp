@@ -140,6 +140,8 @@ class GroupTableWidget : public QWidget
                         return static_cast<GroupTableCheckbox*>(m_table->cellWidget(j+1, i));
                     }
                 }
+
+                Q_ASSERT(false);
             };
 
             for(int i = 0; i < m_mgr->groups().size(); i++)
