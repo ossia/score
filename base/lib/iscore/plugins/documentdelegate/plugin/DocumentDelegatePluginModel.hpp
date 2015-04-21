@@ -1,17 +1,10 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <QJsonObject>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 
 namespace iscore
 {
-    class ElementPluginModel : public QObject
-    {
-        public:
-            using QObject::QObject;
-
-            virtual QString plugin() const = 0;
-    };
-
     // TODO : make it take a DocumentModel necessarily as parent.
     class DocumentDelegatePluginModel : public NamedObject
     {
@@ -22,6 +15,10 @@ namespace iscore
 
             virtual QString metadataName() const = 0;
             virtual ElementPluginModel* makeMetadata(const QString&) const = 0;
+            virtual ElementPluginModel* makeMetadata(const QString&,
+                                                     SerializationIdentifier identifier,
+                                                     void* data) const = 0;
+
             virtual QWidget* makeMetadataWidget(const ElementPluginModel*) const = 0;
 
             virtual QJsonObject toJson() const = 0;

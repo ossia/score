@@ -3,6 +3,7 @@
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
@@ -45,6 +46,12 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
              << constraint.maxDuration();
 
     m_stream << constraint.isRigid();
+
+    m_stream << constraint.pluginMetadatas().size();
+    for(auto& plug : constraint.pluginMetadatas())
+    {
+        readFrom(*plug);
+    }
 
     insertDelimiter();
 }
@@ -101,6 +108,19 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     constraint.setRigid(rigidity);
 
+    // TODO put this behaviour in an encapsulated sub-class instead.
+    int plugin_count;
+    m_stream >> plugin_count;
+
+    for(; plugin_count -- > 0;)
+    {
+        constraint.addPluginMetadata(
+                    deserializeElementPluginModel(*this,
+                                                  ConstraintModel::staticMetaObject.className(),
+                                                  &constraint));
+    }
+
+
     checkDelimiter();
 }
 
@@ -117,24 +137,11 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
     m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
 
     // Processes
-    QJsonArray process_array;
-
-    for(auto process : constraint.processes())
-    {
-        process_array.push_back(toJsonObject(*process));
-    }
-
-    m_obj["Processes"] = process_array;
+    m_obj["Processes"] = toJsonArray(constraint.processes());
 
     // Boxes
-    QJsonArray box_array;
+    m_obj["Boxes"] = toJsonArray(constraint.boxes());
 
-    for(auto box : constraint.boxes())
-    {
-        box_array.push_back(toJsonObject(*box));
-    }
-
-    m_obj["Boxes"] = box_array;
 
     m_obj["FullView"] = toJsonObject(*constraint.fullView());
 
@@ -144,6 +151,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
     m_obj["MaxDuration"] = toJsonObject(constraint.maxDuration());
 
     m_obj["Rigidity"] = constraint.isRigid();
+
+    m_obj["PluginsMetadata"] = toJsonArray(constraint.pluginMetadatas());
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
@@ -155,7 +164,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 
     QJsonArray process_array = m_obj["Processes"].toArray();
 
-    for(auto json_vref : process_array)
+    for(const auto& json_vref : process_array)
     {
         Deserializer<JSON> deserializer {json_vref.toObject() };
         constraint.addProcess(createProcess(deserializer, &constraint));
@@ -163,7 +172,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 
     QJsonArray box_array = m_obj["Boxes"].toArray();
 
-    for(auto json_vref : box_array)
+    for(const auto& json_vref : box_array)
     {
         Deserializer<JSON> deserializer {json_vref.toObject() };
         constraint.addBox(new BoxModel(deserializer, &constraint));
@@ -180,4 +189,17 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
     constraint.setMaxDuration(fromJsonObject<TimeValue> (m_obj["MaxDuration"].toObject()));
 
     constraint.setRigid(m_obj["Rigidity"].toBool());
+
+
+    QJsonArray plugin_array = m_obj["PluginsMetadata"].toArray();
+
+    for(const auto& json_vref : plugin_array)
+    {
+        Deserializer<JSON> deserializer{json_vref.toObject()};
+        qDebug() << Q_FUNC_INFO << "TODO";
+        constraint.addPluginMetadata(
+                    deserializeElementPluginModel(*this,
+                                                  ConstraintModel::staticMetaObject.className(),
+                                                  &constraint));
+    }
 }

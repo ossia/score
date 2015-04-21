@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 class Group;
@@ -7,32 +8,18 @@ class Group;
 // Goes into the constraints, events, etc.
 class GroupMetadata : public iscore::ElementPluginModel
 {
-        friend QDataStream &operator<<(QDataStream &out, const GroupMetadata &myObj)
-        {
-            Serializer<DataStream> s{out.device()};
-            s.readFrom(myObj.m_id);
-            return out;
-        }
-
-        friend QDataStream &operator>>(QDataStream &in, GroupMetadata &myObj)
-        {
-            Deserializer<DataStream> s{in.device()};
-            s.writeTo(myObj.m_id);
-            return in;
-        }
+        Q_OBJECT
 
     id_type<Group> m_id;
     public:
         static constexpr const char* staticPluginName() { return "Network"; }
 
-        GroupMetadata(id_type<Group> id):
-            m_id{id}
-        {
+        GroupMetadata(id_type<Group> id);
 
-        }
+        QString plugin() const override;
 
-        QString plugin() const override
-        { return staticPluginName(); }
+        virtual void serialize(SerializationIdentifier identifier,
+                               void* data) const override;
 
         const auto& id() const
         { return m_id; }
@@ -41,9 +28,5 @@ class GroupMetadata : public iscore::ElementPluginModel
         void groupChanged();
 
     public slots:
-        void setGroup(const id_type<Group>& id)
-        {
-            m_id = id;
-            emit groupChanged();
-        }
+        void setGroup(const id_type<Group>& id);
 };

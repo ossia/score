@@ -30,6 +30,11 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         }
 
         iscore::ElementPluginModel* makeMetadata(const QString & str) const override;
+        virtual iscore::ElementPluginModel* makeMetadata(
+                                                 const QString&,
+                                                 SerializationIdentifier identifier,
+                                                 void* data) const override;
+
         virtual QWidget *makeMetadataWidget(const iscore::ElementPluginModel*) const override;
 
         virtual QJsonObject toJson() const override;

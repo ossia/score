@@ -22,14 +22,14 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        if(constraint->metadata.canAddMetadata(metadataName()))
-            constraint->metadata.addPluginMetadata(this->makeMetadata("ConstraintModel"));
+        if(constraint->canAddMetadata(metadataName()))
+            constraint->addPluginMetadata(this->makeMetadata("ConstraintModel"));
     }
     auto events = doc->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        if(event->metadata.canAddMetadata(metadataName()))
-            event->metadata.addPluginMetadata(this->makeMetadata("EventModel"));
+        if(event->canAddMetadata(metadataName()))
+            event->addPluginMetadata(this->makeMetadata("EventModel"));
     }
 }
 
@@ -67,5 +67,11 @@ iscore::ElementPluginModel* NetworkDocumentPlugin::makeMetadata(const QString &s
         return new GroupMetadata{m_groups->groups()[0]->id()};
     }
 
+    return nullptr;
+}
+
+iscore::ElementPluginModel*NetworkDocumentPlugin::makeMetadata(const QString&, SerializationIdentifier identifier, void* data) const
+{
+    qDebug() << Q_FUNC_INFO << "todo";
     return nullptr;
 }

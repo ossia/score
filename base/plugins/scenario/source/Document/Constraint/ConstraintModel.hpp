@@ -31,6 +31,14 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT
 
+        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
+
+        signals:
+            void pluginMetaDataChanged();
+        // Note : does not work in macro :(
+
+    private:
+
         // TODO must go in view model
         Q_PROPERTY(double heightPercentage
                    READ heightPercentage

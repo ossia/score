@@ -4,7 +4,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
 include_directories(${CMAKE_SOURCE_DIR})
@@ -21,7 +21,7 @@ add_library(DeviceExplorerLibrary
 
 set_property(TARGET DeviceExplorerLibrary APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(DeviceExplorerLibrary Qt5::Core Qt5::Widgets iscore_lib  StateLibrary)
+target_link_libraries(DeviceExplorerLibrary Qt5::Core Qt5::Widgets  Qt5::Xml iscore_lib  StateLibrary)
 
 install(TARGETS DeviceExplorerLibrary
     LIBRARY DESTINATION .

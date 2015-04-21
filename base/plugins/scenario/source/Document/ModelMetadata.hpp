@@ -64,32 +64,12 @@ class ModelMetadata : public QObject
         QColor color() const;
         QString label() const;
 
-        bool canAddMetadata(const QString& name)
-        {
-            using namespace std;
-            return none_of(begin(m_pluginsMetadata),
-                           end(m_pluginsMetadata),
-                           [&] (iscore::ElementPluginModel* p)
-            { return p->plugin() == name; });
-        }
-
-        void addPluginMetadata(iscore::ElementPluginModel* data)
-        {
-            data->setParent(this);
-            m_pluginsMetadata.push_back(data);
-            emit pluginMetaDataChanged();
-        }
-
-        const auto& pluginMetadatas() const
-        { return m_pluginsMetadata; }
-
     signals:
         void nameChanged(QString arg);
         void commentChanged(QString arg);
         void colorChanged(QColor arg);
         void labelChanged(QString arg);
         void metadataChanged();
-        void pluginMetaDataChanged();
 
     public slots:
         void setName(QString arg);
@@ -103,12 +83,32 @@ class ModelMetadata : public QObject
         QString m_comment;
         QColor m_color {Qt::black};
         QString m_label;
-
-        QList<iscore::ElementPluginModel*> m_pluginsMetadata;
 };
 
 Q_DECLARE_METATYPE(ModelMetadata)
 
+
+#define ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE \
+    public: \
+        bool canAddMetadata(const QString& name) \
+        { \
+            using namespace std; \
+            return none_of(begin(m_pluginsMetadata), \
+                           end(m_pluginsMetadata),  \
+                           [&] (iscore::ElementPluginModel* p)  \
+            { return p->plugin() == name; }); \
+        } \
+ \
+        void addPluginMetadata(iscore::ElementPluginModel* data) \
+        { \
+            data->setParent(this); \
+            m_pluginsMetadata.push_back(data); \
+            emit pluginMetaDataChanged(); \
+        } \
+ \
+        const auto& pluginMetadatas() const \
+        { return m_pluginsMetadata; } \
+    private: QList<iscore::ElementPluginModel*> m_pluginsMetadata; \
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -123,12 +123,12 @@ void initPlugins(Element* e, QObject* obj)
     for(auto& plugin : doc->model()->pluginModels())
     {
         // Check if it is not already existing in this element.
-        if(!e->metadata.canAddMetadata(plugin->metadataName()))
+        if(!e->canAddMetadata(plugin->metadataName()))
             continue;
 
         // Create and add it.
-        auto metadata = plugin->makeMetadata(Element::staticMetaObject.className());
-        if(metadata)
-            e->metadata.addPluginMetadata(metadata);
+        auto plugElement = plugin->makeMetadata(Element::staticMetaObject.className());
+        if(plugElement)
+            e->addPluginMetadata(plugElement);
     }
 }

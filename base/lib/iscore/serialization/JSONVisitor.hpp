@@ -145,14 +145,37 @@ QJsonArray toJsonArray(const std::vector<T*>& array)
     return arr;
 }
 
-template<typename T>
+template<typename T,
+         typename std::enable_if<
+                    not std::is_pointer<
+                      typename T::value_type
+                    >::value
+                  >::type* = nullptr>
 QJsonArray toJsonArray(const T& array)
 {
     QJsonArray arr;
 
-    for(auto elt : array)
+    for(auto& elt : array)
     {
         arr.append(toJsonObject(elt));
+    }
+
+    return arr;
+}
+
+template<typename T,
+         typename std::enable_if<
+                    std::is_pointer<
+                      typename T::value_type
+                    >::value
+                  >::type* = nullptr>
+QJsonArray toJsonArray(const T& array)
+{
+    QJsonArray arr;
+
+    for(auto& elt : array)
+    {
+        arr.append(toJsonObject(*elt));
     }
 
     return arr;

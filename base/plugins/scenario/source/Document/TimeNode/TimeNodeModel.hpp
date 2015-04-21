@@ -13,6 +13,14 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
 
+        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
+
+        signals:
+            void pluginMetaDataChanged();
+        // Note : does not work in macro :(
+
+
+
         friend void Visitor<Reader<DataStream>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
         friend void Visitor<Reader<JSON>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<TimeNodeModel> (TimeNodeModel& ev);
@@ -37,8 +45,11 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
             vis.writeTo(*this);
         }
 
+
+        // Utility
         ScenarioModel* parentScenario() const;
 
+        // Data of the TimeNode
         void addEvent(id_type<EventModel>);
         bool removeEvent(id_type<EventModel>);
 

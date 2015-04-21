@@ -22,6 +22,14 @@ class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
 
+        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
+
+        signals:
+            void pluginMetaDataChanged();
+        // Note : does not work in macro :(
+
+    private:
+
         Q_PROPERTY(double heightPercentage
                    READ heightPercentage
                    WRITE setHeightPercentage

@@ -62,6 +62,7 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, Q
     metadataLayout->addWidget(comments);
 
 
+    /*
     // We initialize the potential plug-ins of this document with this object's metadata if necessary.
     iscore::Document* doc = iscore::IDocument::documentFromObject(docObject);
 
@@ -78,6 +79,7 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, Q
             }
         }
     }
+    */
 
 
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,

@@ -39,7 +39,6 @@ QByteArray Document::savePanelAsByteArray(const QString& panel)
 QJsonObject Document::saveAsJson()
 {
     QJsonObject complete;
-    complete["Document"] = saveDocumentModelAsJson();
     for(auto panel : model()->panels())
     {
         complete[panel->objectName()] = panel->toJson();
@@ -49,6 +48,8 @@ QJsonObject Document::saveAsJson()
     {
         complete[plugin->objectName()] = plugin->toJson();
     }
+
+    complete["Document"] = saveDocumentModelAsJson();
 
     return complete;
 }
@@ -117,17 +118,26 @@ DocumentModel::DocumentModel(QVariant data,
         writer << doc << panelModels << documentPluginModels;
         Q_ASSERT(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) == hash);
 
-        // Load the data
+        qDebug() << Q_FUNC_INFO << "TODO Load panel models and plugin models";
+
+        // Note : this *has* to be in this order, because
+        // the plugin models might put some data in the
+        // document that requires the plugin models to be loaded
+        // in order to be deserialized.
+        //for(auto& panel : panelModels)
+        //{
+        //}
+
+        // Load the document model
         m_model = fact->makeModel(this, doc);
 
-        for(auto& panel : panelModels)
-        {
 
-        }
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
         auto json = data.toJsonObject();
+        qDebug() << Q_FUNC_INFO << "TODO Load panel models and plugin models";
+
         m_model = fact->makeModel(this, json["Document"].toObject());
     }
     else

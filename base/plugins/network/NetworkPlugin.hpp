@@ -34,9 +34,9 @@ class NetworkPlugin :
         // PanelFactoryInterface_QtInterface interface
     public:
         // TODO replace this by a "Make all panel" interface
-        virtual QStringList panel_list() const
+        virtual QStringList panel_list() const override
         {
             return {"GroupPanel"};
         }
-        virtual iscore::PanelFactoryInterface *panel_make(QString name);
+        virtual iscore::PanelFactoryInterface *panel_make(QString name) override;
 };
