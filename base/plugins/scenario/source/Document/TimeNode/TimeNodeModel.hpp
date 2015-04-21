@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include "Document/ModelMetadata.hpp"
+#include <source/Document/ModelMetadata.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>

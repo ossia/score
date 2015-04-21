@@ -43,8 +43,9 @@ void NetworkControl::populateMenus(MenubarManager* menu)
         auto clt = new LocalClient(id_type<Client>(0));
         clt->setName(tr("Local"));
         auto serv = new MasterSession(currentDocument(), clt, id_type<Session>(1234));
-        auto plug = new NetworkDocumentMasterPlugin{serv, this, currentDocument()};
-        currentDocument()->model()->addPluginModel(plug);
+        auto policy = new NetworkDocumentMasterPlugin{serv, currentDocument()};
+        auto realplug = new NetworkDocumentPlugin(policy, currentDocument());
+        currentDocument()->model()->addPluginModel(realplug);
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -87,7 +88,9 @@ void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, Clien
         auto cmd = presenter()->instantiateUndoCommand(elt.first.first, elt.first.second, elt.second);
         doc->commandStack().pushQuiet(cmd);
     }
-    doc->model()->addPluginModel(new NetworkDocumentClientPlugin{builtSession, this, doc});
+    auto realplug = new NetworkDocumentPlugin(new NetworkDocumentClientPlugin{builtSession, doc},
+                                              currentDocument());
+    doc->model()->addPluginModel(realplug);
 
     delete sessionBuilder;
 

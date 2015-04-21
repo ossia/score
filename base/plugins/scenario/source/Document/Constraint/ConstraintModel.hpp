@@ -1,9 +1,10 @@
 #pragma once
+#include <source/Document/ModelMetadata.hpp>
+
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include "Document/ModelMetadata.hpp"
 #include <iscore/serialization/VisitorInterface.hpp>
-#include "ProcessInterface/TimeValue.hpp"
+#include <ProcessInterface/TimeValue.hpp>
 
 #include <iscore/selection/Selectable.hpp>
 #include <QColor>

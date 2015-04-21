@@ -12,9 +12,10 @@
 #include <QVBoxLayout>
 #include <QColorDialog>
 #include <QToolButton>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 
-MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QWidget* parent) :
+MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QObject *docObject, QWidget* parent) :
     QWidget(parent),
     m_metadata {metadata},
     m_commandDispatcher{m}
@@ -59,6 +60,24 @@ MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, Q
     metadataLayout->addLayout(typeLay);
     metadataLayout->addWidget(descriptionWidget);
     metadataLayout->addWidget(comments);
+
+
+    // We initialize the potential plug-ins of this document with this object's metadata if necessary.
+    iscore::Document* doc = iscore::IDocument::documentFromObject(docObject);
+
+
+    for(auto& plugdata : metadata->pluginMetadatas())
+    {
+        for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        {
+            if(plugin->canMakeMetadataWidget(plugdata))
+            {
+                metadataLayout->addWidget(plugin->makeMetadataWidget(plugdata));
+                break;
+            }
+        }
+    }
+
 
     connect(m_scriptingNameLine, &QLineEdit::editingFinished,
             [ = ]()

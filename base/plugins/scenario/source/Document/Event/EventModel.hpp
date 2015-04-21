@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/ModelMetadata.hpp"
+#include <source/Document/ModelMetadata.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

@@ -120,7 +120,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     areaLayout()->addStretch();
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
     m_metadata->setType(EventModel::prettyName());
 
     m_metadata->setupConnections(m_model);

@@ -5,6 +5,8 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
+// TODO put in a scenario plugin interface
 /**
  * @brief The ModelMetadata class
  *
@@ -124,10 +126,7 @@ Q_DECLARE_METATYPE(ModelMetadata)
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 template<typename Element> void initPlugins(Element* e, QObject* obj)
 {
-    // This part is a bit ugly.
-    // We initialize the potential plug-ins of this document with this object.
-    // TODO for now we cannot do this in the ctor of a constraint model, because it is not
-    // yet in a document at the creation. (documentFromObject does not work in ctor of DocumentModel)
+    // We initialize the potential plug-ins of this document with this object's metadata if necessary.
     iscore::Document* doc = iscore::IDocument::documentFromObject(obj);
 
     for(auto& plugin : doc->model()->pluginModels())

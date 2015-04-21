@@ -1,7 +1,6 @@
 #include "NetworkClientDocumentPlugin.hpp"
 
 #include <Repartition/session/MasterSession.hpp>
-#include <Repartition/session/ClientSession.hpp>
 #include <Repartition/client/RemoteClient.hpp>
 #include <Repartition/session/ClientSessionBuilder.hpp>
 #include <Serialization/MessageMapper.hpp>
@@ -16,11 +15,8 @@
 
 
 NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
-                                                         NetworkControl *control,
                                                          iscore::Document *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentClientPlugin", doc->model()},
     m_session{s},
-    m_control{control},
     m_document{doc}
 {
     /////////////////////////////////////////////////////////////////////////////
@@ -93,16 +89,3 @@ NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
         m_document->locker().on_unlock(data);
     });
 }
-
-bool NetworkDocumentClientPlugin::canMakeMetadata(const QString &)
-{
-    qDebug() << Q_FUNC_INFO;
-    return false;
-}
-
-QVariant NetworkDocumentClientPlugin::makeMetadata(const QString &)
-{
-    qDebug() << Q_FUNC_INFO;
-    return QVariant{};
-}
-

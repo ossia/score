@@ -113,7 +113,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     areaLayout()->addStretch(1);
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), this};
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
     m_metadata->setType(ConstraintModel::prettyName());
 
     m_metadata->setupConnections(object);
