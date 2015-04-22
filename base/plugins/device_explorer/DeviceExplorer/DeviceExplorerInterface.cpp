@@ -27,17 +27,19 @@ DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
 
 QJsonObject DeviceExplorer::toJson(DeviceExplorerModel* deviceExplorer)
 {
-    return nodeToJson(deviceExplorer->rootNode());
+    Serializer<JSON> ser;
+    if(deviceExplorer->rootNode())
+        ser.readFrom(*deviceExplorer->rootNode());
+    return ser.m_obj;
 }
 
 
 QByteArray DeviceExplorer::toByteArray(DeviceExplorerModel* deviceExplorer)
 {
     QByteArray b;
-    QDataStream s(&b, QIODevice::WriteOnly);
+    Serializer<DataStream> ser(&b);
     if(deviceExplorer->rootNode())
-        s << *deviceExplorer->rootNode();
-
+        ser.readFrom(*deviceExplorer->rootNode());
     return b;
 }
 

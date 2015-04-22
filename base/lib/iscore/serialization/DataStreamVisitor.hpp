@@ -120,6 +120,7 @@ class Visitor<Writer<DataStream>>
         QDataStream m_stream;
 };
 
+
 template<typename T>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
@@ -136,3 +137,7 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
 
     return stream;
 }
+
+
+Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)
+Q_DECLARE_METATYPE(Visitor<Writer<DataStream>>*)

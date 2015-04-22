@@ -18,4 +18,9 @@ class OSCProtocolFactory : public ProtocolFactoryInterface
         {
             return new OSCProtocolSettingsWidget;
         }
+
+        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        {
+            return makeProtocolSpecificSettings_T<OSCSpecificSettings>(source);
+        }
 };

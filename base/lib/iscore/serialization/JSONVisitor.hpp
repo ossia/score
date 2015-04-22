@@ -291,3 +291,7 @@ void fromJsonArray(QJsonArray&& json_arr, T& arr)
     }
 }
 
+
+Q_DECLARE_METATYPE(Visitor<Reader<JSON>>*)
+Q_DECLARE_METATYPE(Visitor<Writer<JSON>>*)
+

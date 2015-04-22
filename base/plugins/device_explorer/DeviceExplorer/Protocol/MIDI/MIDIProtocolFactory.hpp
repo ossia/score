@@ -14,8 +14,13 @@ class MIDIProtocolFactory : public ProtocolFactoryInterface
             return new MIDIDevice{settings};
         }
 
-        virtual ProtocolSettingsWidget* makeSettingsWidget() override
+        ProtocolSettingsWidget* makeSettingsWidget() override
         {
             return new MIDIProtocolSettingsWidget;
+        }
+
+        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        {
+            return makeProtocolSpecificSettings_T<MIDISpecificSettings>(source);
         }
 };

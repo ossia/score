@@ -1,5 +1,6 @@
 #pragma once
 #include <QMetaType>
+#include <QJsonObject>
 
 struct MIDISpecificSettings
 {

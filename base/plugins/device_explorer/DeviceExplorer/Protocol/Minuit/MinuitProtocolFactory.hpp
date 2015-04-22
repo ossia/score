@@ -18,4 +18,9 @@ class MinuitProtocolFactory : public ProtocolFactoryInterface
         {
             return new MinuitProtocolSettingsWidget;
         }
+
+        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        {
+            return makeProtocolSpecificSettings_T<MinuitSpecificSettings>(source);
+        }
 };

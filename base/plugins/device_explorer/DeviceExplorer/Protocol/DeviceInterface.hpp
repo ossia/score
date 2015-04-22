@@ -29,6 +29,4 @@ class DeviceInterface : public QObject
 
     private:
         DeviceSettings m_settings;
-
-
 };
