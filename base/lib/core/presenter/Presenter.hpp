@@ -35,7 +35,7 @@ namespace iscore
 
 
             void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
-            Document* loadDocument(QVariant data,
+            Document* loadDocument(const QVariant &data,
                               iscore::DocumentDelegateFactoryInterface* doctype);
 
             Document* currentDocument() const;
@@ -59,11 +59,19 @@ namespace iscore
                 return m_availableDocuments;
             }
 
+            auto panelFactories() const
+            {
+                using namespace std;
+                QList<PanelFactoryInterface*> lst;
+                transform(begin(m_panelPresenters), end(m_panelPresenters), back_inserter(lst),
+                          [] (const auto& elt) { return elt.second; });
+                return lst;
+            }
+
         signals:
             void currentDocumentChanged(Document* newDoc);
 
         private:
-            void addDocument(Document* doc);
             void setupMenus();
 
             View* m_view {};

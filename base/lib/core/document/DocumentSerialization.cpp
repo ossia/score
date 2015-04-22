@@ -5,6 +5,8 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
+#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
 #include <QCryptographicHash>
 using namespace iscore;
@@ -93,13 +95,14 @@ QByteArray Document::saveAsByteArray()
     return global;
 }
 
-
+#include <iscore/presenter/PresenterInterface.hpp>
 // Document model
-DocumentModel::DocumentModel(QVariant data,
+DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
     IdentifiedObject {id_type<DocumentModel>(getNextId()), "DocumentModel", parent}
 {
+    using namespace std;
     if(data.canConvert(QMetaType::QByteArray))
     {
         auto full = data.toByteArray();
@@ -124,8 +127,16 @@ DocumentModel::DocumentModel(QVariant data,
         // the plugin models might put some data in the
         // document that requires the plugin models to be loaded
         // in order to be deserialized.
-        for(auto& panel : panelModels)
+        auto factories = iscore::IPresenter::panelFactories();
+        for(const auto& panel : panelModels)
         {
+            auto factory = *find_if(begin(factories),
+                                   end(factories),
+                                   [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == panel.first; });
+            if(auto pnl = factory->makeModel(panel.second, this))
+                addPanel(pnl);
+            else
+                addPanel(factory->makeModel(this));
         }
 
         // Load the document model

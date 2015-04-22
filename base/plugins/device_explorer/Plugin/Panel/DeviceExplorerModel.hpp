@@ -40,6 +40,8 @@ class DeviceExplorerModel : public QAbstractItemModel
         enum Insert {AsSibling, AsChild};
 
         explicit DeviceExplorerModel(QObject* parent = 0);
+        DeviceExplorerModel(const QVariant& data, QObject* parent);
+
         ~DeviceExplorerModel();
 
         Node* rootNode() const

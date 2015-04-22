@@ -22,7 +22,6 @@ namespace iscore
             View(QObject* parent);
 
             void addDocumentView(iscore::DocumentView*);
-            void setCentralView();
             void setupPanelView(PanelViewInterface* v);
 
             void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);

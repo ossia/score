@@ -12,3 +12,11 @@ iscore::IPresenter::instantiateUndoCommand(const QString& parent_name,
             name,
             data);
 }
+
+
+
+QList<iscore::PanelFactoryInterface*>
+iscore::IPresenter::panelFactories()
+{
+    return qApp->findChild<iscore::Presenter*> ("Presenter")->panelFactories();
+}

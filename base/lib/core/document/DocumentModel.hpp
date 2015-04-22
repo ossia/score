@@ -19,7 +19,7 @@ namespace iscore
         public:
             DocumentModel(DocumentDelegateFactoryInterface* fact,
                           QObject* parent);
-            DocumentModel(QVariant data,
+            DocumentModel(const QVariant &data,
                           DocumentDelegateFactoryInterface* fact,
                           QObject* parent);
 

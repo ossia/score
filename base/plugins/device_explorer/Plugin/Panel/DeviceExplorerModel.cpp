@@ -137,6 +137,43 @@ DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
 
 }
 
+DeviceExplorerModel::DeviceExplorerModel(const QVariant& data, QObject* parent)
+    : QAbstractItemModel(parent),
+      m_rootNode(nullptr),
+      m_lastCutNodeIsCopied(false),
+      m_cmdQ(nullptr),
+      m_cachedResult(true)
+{
+    this->setObjectName("DeviceExplorerModel");
+
+    HEADERS[NAME_COLUMN] = tr("Address");
+    HEADERS[VALUE_COLUMN] = tr("Value");
+    HEADERS[IOTYPE_COLUMN] = tr("I/O");
+    HEADERS[MIN_COLUMN] = tr("min");
+    HEADERS[MAX_COLUMN] = tr("max");
+    HEADERS[PRIORITY_COLUMN] = tr("priority");
+
+
+    beginResetModel();
+
+    m_rootNode = new Node;
+    if(data.canConvert<QByteArray>())
+    {
+        Deserializer<DataStream> des(data.value<QByteArray>());
+        des.writeTo(*m_rootNode);
+    }
+    else if(data.canConvert<QJsonObject>())
+    {
+        Deserializer<JSON> des(data.value<QJsonObject>());
+        des.writeTo(*m_rootNode);
+    }
+
+
+    endResetModel();
+
+
+}
+
 DeviceExplorerModel::~DeviceExplorerModel()
 {
     delete m_rootNode;

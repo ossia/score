@@ -37,19 +37,21 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     init();
 }
 
-Document::Document(QVariant data,
+Document::Document(const QVariant& data,
                    DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
                    QObject* parent):
     NamedObject {"Document", parent},
-    m_objectLocker{this},
-    m_model {new DocumentModel{data, factory, this}},
-    m_view {new DocumentView{factory, this, parentview}},
-    m_presenter {new DocumentPresenter{factory,
-                                       m_model,
-                                       m_view,
-                                       this}}
+    m_objectLocker{this}
 {
+    std::allocator<DocumentModel> allocator;
+    m_model = allocator.allocate(1);
+    allocator.construct(m_model, data, factory, this);
+    m_view = new DocumentView{factory, this, parentview};
+    m_presenter = new DocumentPresenter{factory,
+                    m_model,
+                    m_view,
+                    this};
     init();
 }
 
@@ -79,8 +81,7 @@ Document::~Document()
 void Document::setupNewPanel(PanelPresenterInterface* pres,
                              PanelFactoryInterface* factory)
 {
-    auto model = factory->makeModel(m_model);
-    m_model->addPanel(model);
+    m_model->addPanel(factory->makeModel(m_model));
 }
 
 void Document::bindPanelPresenter(PanelPresenterInterface* pres)

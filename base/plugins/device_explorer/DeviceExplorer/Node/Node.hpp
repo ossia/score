@@ -87,9 +87,4 @@ class Node
         AddressSettings m_addressSettings;
 };
 
-/*
-QJsonObject nodeToJson(const Node* n);
-QDataStream& operator<<(QDataStream& s, const Node& n);
-QDataStream& operator>>(QDataStream& s, Node& n);
-*/
 Node* makeNode(const AddressSettings& addressSettings);

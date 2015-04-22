@@ -29,8 +29,15 @@ QWidget* DeviceExplorerPanelView::getWidget()
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(DocumentModel* parent) :
     iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
-m_model {new DeviceExplorerModel{this}}
+    m_model {new DeviceExplorerModel{this}}
 {
+}
+
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(const QVariant &data, DocumentModel *parent):
+    iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
+    m_model {new DeviceExplorerModel{data, this}}
+{
+
 }
 
 QJsonObject DeviceExplorerPanelModel::toJson()
@@ -90,7 +97,7 @@ iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel
     return new DeviceExplorerPanelModel {parent};
 }
 
-PanelModelInterface *DeviceExplorerPanelFactory::makeModel(QVariant data, DocumentModel *parent)
+PanelModelInterface *DeviceExplorerPanelFactory::makeModel(const QVariant &data, DocumentModel *parent)
 {
-    return new DeviceExplorerPanelModel {parent};
+    return new DeviceExplorerPanelModel {data, parent};
 }

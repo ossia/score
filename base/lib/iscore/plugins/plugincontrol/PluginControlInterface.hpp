@@ -57,7 +57,6 @@ namespace iscore
 
 
             // TODO protected
-            virtual void on_newDocument(iscore::Document* doc) {}
             virtual void on_documentChanged(iscore::Document*) {}
 
         protected:

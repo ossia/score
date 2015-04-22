@@ -257,11 +257,6 @@ iscore::SerializableCommand* ScenarioControl::instantiateUndoCommand(const QStri
     return cmd;
 }
 
-void ScenarioControl::on_newDocument(iscore::Document* doc)
-{
-    on_presenterChanged();
-}
-
 void ScenarioControl::on_presenterChanged()
 {
     // Check the current focused view model of this document

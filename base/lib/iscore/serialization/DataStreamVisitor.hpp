@@ -67,6 +67,11 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         {
             m_stream.setVersion(QDataStream::Qt_5_3);
         }
+        Visitor<Writer<DataStream>> (const QByteArray& array) :
+                                     m_stream {array}
+        {
+            m_stream.setVersion(QDataStream::Qt_5_3);
+        }
 
 
         Visitor<Writer<DataStream>> (QIODevice* dev) :

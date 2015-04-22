@@ -24,7 +24,9 @@ class DeviceExplorerPanelModel : public iscore::PanelModelInterface
 {
         friend class DeviceExplorerPanelPresenter;
     public:
+
         DeviceExplorerPanelModel(iscore::DocumentModel* parent);
+        DeviceExplorerPanelModel(const QVariant& data, iscore::DocumentModel* parent);
 
         QJsonObject toJson() override;
         QByteArray toByteArray() override;
@@ -63,6 +65,7 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
 {
         // PanelFactoryInterface interface
     public:
+        QString name() const override { return "DeviceExplorerPanelModel"; }
         iscore::PanelViewInterface* makeView(iscore::View*) override;
         iscore::PanelPresenterInterface* makePresenter(
                 iscore::Presenter* parent_presenter,
@@ -70,6 +73,6 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
         iscore::PanelModelInterface* makeModel(
                 iscore::DocumentModel*) override;
         iscore::PanelModelInterface* makeModel(
-                QVariant data,
+                const QVariant& data,
                 iscore::DocumentModel* parent) override;
 };

@@ -18,11 +18,13 @@ namespace iscore
     class PanelFactoryInterface
     {
         public:
+            virtual QString name() const = 0;
+
             virtual ~PanelFactoryInterface() = default;
             virtual PanelViewInterface* makeView(View* parent) = 0;
             virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter,
                     PanelViewInterface* view) = 0;
             virtual PanelModelInterface* makeModel(DocumentModel* parent) = 0;
-            virtual PanelModelInterface* makeModel(QVariant data, DocumentModel* parent) { return nullptr; }
+            virtual PanelModelInterface* makeModel(const QVariant& data, DocumentModel* parent) { return nullptr; }
     };
 }

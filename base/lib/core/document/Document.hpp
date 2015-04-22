@@ -26,7 +26,7 @@ namespace iscore
                      QWidget* parentview,
                      QObject* parent);
 
-            Document(QVariant data,
+            Document(const QVariant& data,
                      DocumentDelegateFactoryInterface* type,
                      QWidget* parentview,
                      QObject* parent);

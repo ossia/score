@@ -5,8 +5,9 @@
 class UndoPanelFactory : public iscore::PanelFactoryInterface
 {
     public:
-        virtual iscore::PanelViewInterface* makeView(iscore::View*) override;
-        virtual iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
+        QString name() const override { return "UndoPanelModel"; }
+        iscore::PanelViewInterface* makeView(iscore::View*) override;
+        iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
                                                                iscore::PanelViewInterface* view) override;
-        virtual iscore::PanelModelInterface* makeModel(iscore::DocumentModel*) override;
+        iscore::PanelModelInterface* makeModel(iscore::DocumentModel*) override;
 };

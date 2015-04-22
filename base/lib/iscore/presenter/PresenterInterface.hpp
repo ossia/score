@@ -5,6 +5,7 @@ namespace iscore
 {
     class SerializableCommand;
 
+    class PanelFactoryInterface;
     namespace IPresenter
     {
         /**
@@ -19,5 +20,7 @@ namespace iscore
         instantiateUndoCommand(const QString& parent_name,
                                const QString& name,
                                const QByteArray& data);
+
+        QList<iscore::PanelFactoryInterface*> panelFactories();
     }
 }

@@ -93,20 +93,8 @@ void Presenter::setCurrentDocument(Document* doc)
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 {
-    addDocument(new Document{doctype, m_view, this});
-}
+    auto doc = new Document{doctype, m_view, this};
 
-Document* Presenter::loadDocument(QVariant data,
-                                  DocumentDelegateFactoryInterface* doctype)
-{
-    auto doc = new Document{data, doctype, m_view, this};
-    addDocument(doc);
-
-    return doc;
-}
-
-void Presenter::addDocument(Document* doc)
-{
     m_documents.push_back(doc);
 
     for(auto& panel : m_panelPresenters)
@@ -114,15 +102,22 @@ void Presenter::addDocument(Document* doc)
         doc->setupNewPanel(panel.first, panel.second);
     }
 
-    for(auto& control : m_customControls)
-    {
-        control->on_newDocument(doc);
-    }
-
     m_view->addDocumentView(doc->view());
 
-    if(!currentDocument())
-        setCurrentDocument(doc);
+    setCurrentDocument(doc);
+}
+
+Document* Presenter::loadDocument(const QVariant& data,
+                                  DocumentDelegateFactoryInterface* doctype)
+{
+    auto doc = new Document{data, doctype, m_view, this};
+
+    m_documents.push_back(doc);
+    m_view->addDocumentView(doc->view());
+
+    setCurrentDocument(doc);
+
+    return doc;
 }
 
 // TODO make a class whose purpose is to instantiate commands.
@@ -199,10 +194,8 @@ void Presenter::setupMenus()
             QFile f(loadname);
             if(f.open(QIODevice::ReadOnly))
             {
-                QByteArray saveData = f.readAll();
-                auto doc = QJsonDocument::fromJson(saveData);
+                auto doc = QJsonDocument::fromJson(f.readAll());
                 loadDocument(doc.object(), m_availableDocuments.front());
-
             }
         }
     });
