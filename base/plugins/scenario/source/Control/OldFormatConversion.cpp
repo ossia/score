@@ -26,6 +26,7 @@ bool loadJSON(QJsonDocument* doc)
     return true;
 }
 
+// séparateur décimal = virgule ! Et virgule *obligatoire* (1,0 et non 1)
 QString numberToQString(double nb)
 {
     QString str = QLocale("fr_FR").toString(nb);
@@ -351,54 +352,6 @@ QString JSONToZeroTwo(QJsonObject base)
                         address.remove(0, 1);
                         address.insert(address.indexOf("/"), ":");
 
-                        /*
-                                                QString currentNode;
-
-                                                // dans le nom application correspondant au device (ici device OSC)
-                                                QDomElement prevNode = dom_devAppli;
-                                                for (int i=0; i < address.count("/"); i++ )
-                                                {
-                                                    currentNode = address.section("/",i+1, i+1);
-
-                                                    auto elt = prevNode.firstChildElement("node");
-                                                    int max = prevNode.childNodes().size();
-                                                    int j{0};
-                                                    while (!elt.isNull() && (elt.attribute("address") != currentNode) && j<max)
-                                                    {
-                                                        elt.nextSiblingElement("node");
-                                                        j++;
-                                                    }
-
-                                                    if (elt.attribute("address") == currentNode)
-                                                    {
-                                                        prevNode = elt;
-                                                    }
-                                                    else
-                                                    {
-                                                        QDomElement dom_devNode = domdoc.createElement("node");
-                                                            dom_devNode.setAttribute("address", currentNode);
-                                                            dom_devNode.setAttribute("object", "Data");
-                                                            dom_devNode.setAttribute("service", "parameter");
-                                                            dom_devNode.setAttribute("dataspace", "none");
-                                                            dom_devNode.setAttribute("type", "generic");
-                                                            dom_devNode.setAttribute("valueStepsize", "0,100000");
-                                                            dom_devNode.setAttribute("priority", "0");
-                                                            dom_devNode.setAttribute("rangeClipmode", "none");
-                                                            dom_devNode.setAttribute("valueDefault", "0,000000");
-                                                            dom_devNode.setAttribute("rangeBounds", "0. 1.");
-                                                            dom_devNode.setAttribute("tags", "0");
-                                                            dom_devNode.setAttribute("repetitionsFilter", "0");
-                                                            dom_devNode.setAttribute("dataspaceUnit", "none");
-                                                            dom_devNode.setAttribute("rampDrive", "none");
-                                                            dom_devNode.setAttribute("active", "1");
-                                                            dom_devNode.setAttribute("rampFunction", "none");
-                                                            prevNode.appendChild(dom_devNode);
-                                                            prevNode = dom_devNode;
-                                                    }
-                                                }
-                        //*/
-
-
                         QString value = msg.remove(0, address.length() + 1);
 
 //                       address = "oscDevice:" + address;
@@ -430,14 +383,30 @@ QString JSONToZeroTwo(QJsonObject base)
 
             QJsonArray constraints = j_proc["Constraints"].toArray();
 
+            QMap<int, int> endEventUsed;
+
             for(auto constraint : constraints)
             {
+                int convergence = 1; // permet de faire les convergences
                 auto j_cstr = constraint.toObject();
                 auto idNode = j_cstr["Identifier"].toObject();
                 auto endEvent = j_cstr["EndEvent"].toObject();
                 auto startEvent = j_cstr["StartEvent"].toObject();
 
                 int endEv = endEvent["IdentifierValue"].toInt();
+                int boxEndEv = endEv;
+
+                if(! endEventUsed.contains(endEv))
+                {
+                    int endEventDate = int(j_cstr["StartDate"].toObject() ["Time"].toDouble() + j_cstr["DefaultDuration"].toObject()["Time"].toDouble());
+                    endEventUsed[endEv] = (endEventDate / TIMECOEFF + DELTAT);
+                }
+                else
+                {
+                    boxEndEv -= idIndent;
+                    idIndent++;
+                    convergence = 2;
+                }
 
                 QString boxName = "box_";
                 boxName += QString::number(idNode["IdentifierValue"].toInt());
@@ -446,12 +415,15 @@ QString JSONToZeroTwo(QJsonObject base)
                 interStart += QString::number(startEvent["IdentifierValue"].toInt());
 
                 QString boxEnd = "j";
-                boxEnd += QString::number(endEv);
+                boxEnd += QString::number(boxEndEv);
+
+                QString interEnd = "j";
+                interEnd += QString::number(endEv);
 
 
-                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration));
+                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration * convergence));
                 min += "u";
-                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration));
+                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration * convergence));
                 max += "u";
 
                 QString y = QString::number(int (j_cstr["HeightPercentage"].toDouble() * YCOEFF));
@@ -464,19 +436,32 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString boxStart = interStart;
                 boxStart += QString::number(idIndent);
                 idIndent++;
-                QString date = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT + deltaDuration));
-                date += "u";
+                QString startDate = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT + deltaDuration));
+                startDate += "u";
 
                 QDomElement dom_event = domdoc.createElement("event");
                 dom_event.setAttribute("name", boxStart);
-                dom_event.setAttribute("date", date);
+                dom_event.setAttribute("date", startDate);
                 dom_event.setAttribute("mute", "0");
                 // ne doit pas prendre de condition (condition sur l'event de fin de la contrainte précédente)
                 dom_scenar.appendChild(dom_event);
 
                 /* **********************************************************************
-                ** noeuds de boîte, sous-scenario et intervalle le cas échéant
+                ** event artificiel de fin (si convergence) : on change son id et on le décale en temps
                 ** **********************************************************************/
+
+                if (convergence == 2)
+                {
+                    QString endDate = QString::number(endEventUsed.value(endEv) - deltaDuration);
+                    endDate += "u";
+
+                    QDomElement dom_endEvent = domdoc.createElement("event");
+                    dom_endEvent.setAttribute("name", boxEnd);
+                    dom_endEvent.setAttribute("date", endDate);
+                    dom_endEvent.setAttribute("mute", "0");
+                    dom_scenar.appendChild(dom_endEvent);
+                }
+
 
                 QDomElement dom_box = domdoc.createElement("Automation");
                 dom_box.setAttribute("name", boxName);
@@ -532,7 +517,7 @@ QString JSONToZeroTwo(QJsonObject base)
                         DefaultCurve.setAttribute("active", "1");
                         DefaultCurve.setAttribute("redundancy", "0");
                         DefaultCurve.setAttribute("sampleRate", "40u");
-                        DefaultCurve.setAttribute("function", points);  // WARNING : virgule comme separateur decimal !!
+                        DefaultCurve.setAttribute("function", points);
 
                         DefaultIndex.appendChild(DefaultCurve);
                         dom_box.appendChild(DefaultIndex);
@@ -540,6 +525,9 @@ QString JSONToZeroTwo(QJsonObject base)
                     }
                 }
 
+                /* **********************************************************************
+                **  intervalle le cas échéant
+                ** **********************************************************************/
 
                 // pas d'intervalle à partir de l'origine
                 if(startEvent["IdentifierValue"].toInt())
@@ -548,6 +536,21 @@ QString JSONToZeroTwo(QJsonObject base)
                     dom_interval.setAttribute("name", "interval");
                     dom_interval.setAttribute("start", interStart);
                     dom_interval.setAttribute("end", boxStart);
+                    dom_interval.setAttribute("durationMin", "1u");
+                    dom_interval.setAttribute("durationMax", "1u");
+                    dom_interval.setAttribute("mute", "0");
+                    dom_interval.setAttribute("color", "255 255 255");
+                    dom_interval.setAttribute("verticalPosition", "0u");
+                    dom_interval.setAttribute("verticalSize", "1u");
+                    dom_scenar.appendChild(dom_interval);
+                }
+                // si convergence, intervalle à la fin
+                if(convergence == 2)
+                {
+                    QDomElement dom_interval = domdoc.createElement("Interval");
+                    dom_interval.setAttribute("name", "interval");
+                    dom_interval.setAttribute("start", boxEnd);
+                    dom_interval.setAttribute("end", interEnd);
                     dom_interval.setAttribute("durationMin", "1u");
                     dom_interval.setAttribute("durationMax", "1u");
                     dom_interval.setAttribute("mute", "0");
