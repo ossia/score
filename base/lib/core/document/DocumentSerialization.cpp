@@ -124,21 +124,19 @@ DocumentModel::DocumentModel(QVariant data,
         // the plugin models might put some data in the
         // document that requires the plugin models to be loaded
         // in order to be deserialized.
-        //for(auto& panel : panelModels)
-        //{
-        //}
+        for(auto& panel : panelModels)
+        {
+        }
 
         // Load the document model
-        m_model = fact->makeModel(this, doc);
-
-
+        m_model = fact->makeModel(doc, this);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
         auto json = data.toJsonObject();
         qDebug() << Q_FUNC_INFO << "TODO Load panel models and plugin models";
 
-        m_model = fact->makeModel(this, json["Document"].toObject());
+        m_model = fact->makeModel(json["Document"].toObject(), this);
     }
     else
     {

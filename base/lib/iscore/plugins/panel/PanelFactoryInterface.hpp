@@ -1,4 +1,5 @@
 #pragma once
+#include <QVariant>
 
 namespace iscore
 {
@@ -22,5 +23,6 @@ namespace iscore
             virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter,
                     PanelViewInterface* view) = 0;
             virtual PanelModelInterface* makeModel(DocumentModel* parent) = 0;
+            virtual PanelModelInterface* makeModel(QVariant data, DocumentModel* parent) { return nullptr; }
     };
 }

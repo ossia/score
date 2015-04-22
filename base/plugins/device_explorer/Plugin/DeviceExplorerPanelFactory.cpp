@@ -89,3 +89,8 @@ iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel
 {
     return new DeviceExplorerPanelModel {parent};
 }
+
+PanelModelInterface *DeviceExplorerPanelFactory::makeModel(QVariant data, DocumentModel *parent)
+{
+    return new DeviceExplorerPanelModel {parent};
+}

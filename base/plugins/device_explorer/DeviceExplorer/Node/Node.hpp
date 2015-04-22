@@ -87,6 +87,7 @@ class Node
         AddressSettings m_addressSettings;
 };
 
+// TODO NodeSerialization.cpp
 QJsonObject nodeToJson(const Node* n);
 QDataStream& operator<<(QDataStream& s, const Node& n);
 QDataStream& operator>>(QDataStream& s, Node& n);
