@@ -14,7 +14,16 @@ class GroupMetadata : public iscore::ElementPluginModel
     public:
         static constexpr const char* staticPluginName() { return "Network"; }
 
-        GroupMetadata(id_type<Group> id);
+        GroupMetadata(id_type<Group> id, QObject* parent);
+        iscore::ElementPluginModel* clone(QObject* parent) const override;
+
+        template<typename DeserializerVisitor>
+        GroupMetadata(DeserializerVisitor&& vis, QObject* parent) :
+            iscore::ElementPluginModel{parent}
+        {
+            vis.writeTo(*this);
+        }
+
 
         QString plugin() const override;
 

@@ -42,7 +42,10 @@ ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInte
         scenario->addEvent(new EventModel {event, event->id(), scenario});
     }
 
-    //TODO addTimeNode ????
+    for(TimeNodeModel* timenode : m_timeNodes)
+    {
+        scenario->addTimeNode(new TimeNodeModel {timenode, timenode->id(), scenario});
+    }
 
     scenario->m_startEventId = m_startEventId;
     scenario->m_endEventId = m_endEventId;

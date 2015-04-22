@@ -175,5 +175,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 
     constraint.setRigid(m_obj["Rigidity"].toBool());
 
-    constraint.m_pluginModelList = new iscore::ElementPluginModelList{*this, &constraint};
+
+    Deserializer<JSON> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    constraint.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
 }

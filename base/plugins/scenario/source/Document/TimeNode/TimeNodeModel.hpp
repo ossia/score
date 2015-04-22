@@ -39,6 +39,13 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
             vis.writeTo(*this);
         }
 
+        TimeNodeModel(TimeNodeModel* source, id_type<TimeNodeModel> id, QObject* parent):
+            TimeNodeModel{id, source->date(), source->y(), parent}
+        {
+            m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
+            m_events = source->m_events;
+        }
+
 
         // Utility
         ScenarioModel* parentScenario() const;
@@ -47,8 +54,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void addEvent(id_type<EventModel>);
         bool removeEvent(id_type<EventModel>);
 
-        double top() const;
-        double bottom() const;
         TimeValue date() const;
 
         void setDate(TimeValue);
@@ -73,9 +78,5 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         double m_y {0.0};
 
         QVector<id_type<EventModel>> m_events;
-
-        // @todo : maybe not useful ...
-        double m_topY {0.0};
-        double m_bottomY {0.0};
 };
 

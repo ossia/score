@@ -34,16 +34,6 @@ bool TimeNodeModel::removeEvent(id_type<EventModel> eventId)
     return false;
 }
 
-double TimeNodeModel::top() const
-{
-    return m_topY;
-}
-
-double TimeNodeModel::bottom() const
-{
-    return m_bottomY;
-}
-
 TimeValue TimeNodeModel::date() const
 {
     return m_date;

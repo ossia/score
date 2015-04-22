@@ -14,13 +14,19 @@ namespace iscore
             virtual ~DocumentDelegatePluginModel() = default;
 
             virtual QString metadataName() const = 0;
-            virtual ElementPluginModel* makeMetadata(const QString&) const = 0;
-            virtual ElementPluginModel* makeMetadata(const QString&,
+            virtual ElementPluginModel* makeElementPlugin(const QString&,
+                                                     QObject* parent) = 0;
+            virtual ElementPluginModel* makeElementPlugin(const QString&,
                                                      SerializationIdentifier identifier,
-                                                     void* data) const = 0;
+                                                     void* data,
+                                                     QObject* parent) = 0;
 
-            virtual QWidget* makeMetadataWidget(const ElementPluginModel*) const = 0;
+            virtual ElementPluginModel* cloneElementPlugin(iscore::ElementPluginModel*,
+                                                              QObject* parent) = 0;
 
+            virtual QWidget* makeElementPluginWidget(const ElementPluginModel*) const = 0;
+
+            // TODO use the other way.
             virtual QJsonObject toJson() const = 0;
             virtual QByteArray toByteArray() const = 0;
     };

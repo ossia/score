@@ -1,10 +1,17 @@
 #include "GroupMetadata.hpp"
 
 
-GroupMetadata::GroupMetadata(id_type<Group> id):
+GroupMetadata::GroupMetadata(id_type<Group> id, QObject* parent):
+    iscore::ElementPluginModel{parent},
     m_id{id}
 {
 
+}
+
+iscore::ElementPluginModel *GroupMetadata::clone(QObject *parent) const
+{
+    auto grp = new GroupMetadata{this->id(), parent};
+    return grp;
 }
 
 QString GroupMetadata::plugin() const
@@ -29,6 +36,9 @@ void GroupMetadata::serialize(SerializationIdentifier identifier, void* data) co
 
 void GroupMetadata::setGroup(const id_type<Group>& id)
 {
-    m_id = id;
-    emit groupChanged();
+    if(id != m_id)
+    {
+        m_id = id;
+        emit groupChanged();
+    }
 }

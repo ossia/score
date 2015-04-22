@@ -29,13 +29,20 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
             return GroupMetadata::staticPluginName();
         }
 
-        iscore::ElementPluginModel* makeMetadata(const QString & str) const override;
-        virtual iscore::ElementPluginModel* makeMetadata(
-                                                 const QString&,
-                                                 SerializationIdentifier identifier,
-                                                 void* data) const override;
+        iscore::ElementPluginModel* makeElementPlugin(
+                const QString & str,
+                QObject* parent) override;
 
-        virtual QWidget *makeMetadataWidget(const iscore::ElementPluginModel*) const override;
+        iscore::ElementPluginModel* makeElementPlugin(
+                const QString&,
+                SerializationIdentifier identifier,
+                void* data,
+                QObject* parent) override;
+
+        iscore::ElementPluginModel* cloneElementPlugin(iscore::ElementPluginModel*,
+                                                QObject* parent) override;
+
+        virtual QWidget *makeElementPluginWidget(const iscore::ElementPluginModel*) const override;
 
         virtual QJsonObject toJson() const override;
         virtual QByteArray toByteArray() const override;

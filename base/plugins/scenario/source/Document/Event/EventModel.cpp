@@ -28,7 +28,7 @@ EventModel::EventModel(EventModel* source,
                 source->heightPercentage(),
                 parent}
 {
-    // TODO clone pluginModelList
+    m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     m_previousConstraints = source->previousConstraints();
     m_nextConstraints = source->nextConstraints();
 

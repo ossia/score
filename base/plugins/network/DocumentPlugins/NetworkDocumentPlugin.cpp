@@ -25,13 +25,13 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     for(ConstraintModel* constraint : constraints)
     {
         if(constraint->pluginModelList().canAdd(metadataName()))
-            constraint->pluginModelList().add(makeMetadata("ConstraintModel"));
+            constraint->pluginModelList().add(makeElementPlugin("ConstraintModel", &constraint->pluginModelList()));
     }
     auto events = doc->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
         if(event->pluginModelList().canAdd(metadataName()))
-            event->pluginModelList().add(makeMetadata("EventModel"));
+            event->pluginModelList().add(makeElementPlugin("EventModel", &event->pluginModelList()));
     }
 }
 
@@ -47,7 +47,7 @@ class GroupMetadataWidget : public QWidget
         }
 };
 
-QWidget *NetworkDocumentPlugin::makeMetadataWidget(const iscore::ElementPluginModel *var) const
+QWidget *NetworkDocumentPlugin::makeElementPluginWidget(const iscore::ElementPluginModel *var) const
 {
     return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var));
 }
@@ -62,18 +62,45 @@ QByteArray NetworkDocumentPlugin::toByteArray() const
     return {};
 }
 
-iscore::ElementPluginModel* NetworkDocumentPlugin::makeMetadata(const QString &str) const
+iscore::ElementPluginModel* NetworkDocumentPlugin::makeElementPlugin(const QString &str,
+                                                                QObject* parent)
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        return new GroupMetadata{m_groups->groups()[0]->id()};
+        return new GroupMetadata{m_groups->groups()[0]->id(), parent};
+        qDebug() << Q_FUNC_INFO << "todo connect";
     }
 
     return nullptr;
 }
 
-iscore::ElementPluginModel*NetworkDocumentPlugin::makeMetadata(const QString&, SerializationIdentifier identifier, void* data) const
+iscore::ElementPluginModel*NetworkDocumentPlugin::makeElementPlugin(const QString& str,
+                                                               SerializationIdentifier identifier,
+                                                               void* data,
+                                                               QObject* parent)
 {
-    qDebug() << Q_FUNC_INFO << "todo";
+    if(str == "ConstraintModel" || str == "EventModel")
+    {
+        if(identifier == DataStream::type())
+        {
+            return new GroupMetadata(*static_cast<Visitor<Writer<DataStream>>*>(data), parent);
+        }
+        else if(identifier == JSON::type())
+        {
+            return new GroupMetadata(*static_cast<Visitor<Writer<JSON>>*>(data), parent);
+        }
+    }
+    return nullptr;
+}
+
+
+iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(iscore::ElementPluginModel* elt, QObject *parent)
+{
+    if(elt->plugin() == GroupMetadata::staticPluginName())
+    {
+        qDebug() << Q_FUNC_INFO << "todo connect";
+        return elt->clone(parent);
+    }
+
     return nullptr;
 }

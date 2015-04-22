@@ -4,6 +4,24 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
+iscore::ElementPluginModelList::ElementPluginModelList(ElementPluginModelList* source,
+                                                       QObject *parent):
+    QObject{parent}
+{
+    // Used for cloning.
+    iscore::Document* doc = iscore::IDocument::documentFromObject(source);
+    for(ElementPluginModel* elt : source->m_list)
+    {
+        for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        {
+            if(plugin->metadataName() == elt->plugin())
+            {
+                m_list.append(plugin->cloneElementPlugin(elt, parent));
+            }
+        }
+    }
+}
+
 iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QObject *parent):
     QObject{parent}
 {
@@ -17,7 +35,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
             continue;
 
         // Create and add it.
-        auto plugElement = plugin->makeMetadata(parent->metaObject()->className());
+        auto plugElement = plugin->makeElementPlugin(parent->metaObject()->className(), this);
         if(plugElement)
             add(plugElement);
     }
@@ -38,7 +56,6 @@ bool iscore::ElementPluginModelList::canAdd(const QString &name) const
 
 void iscore::ElementPluginModelList::add(iscore::ElementPluginModel *data)
 {
-    data->setParent(this);
     m_list.push_back(data);
     emit pluginMetaDataChanged();
 }

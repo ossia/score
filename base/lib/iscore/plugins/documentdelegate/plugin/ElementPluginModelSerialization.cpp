@@ -39,9 +39,11 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     {
         if(plugin->metadataName() == savedName)
         {
-            model = plugin->makeMetadata(elementName,
-                                         DataStream::type(),
-                                         static_cast<void*>(&deserializer));
+            model = plugin->makeElementPlugin(
+                        elementName,
+                        DataStream::type(),
+                        static_cast<void*>(&deserializer),
+                        parent);
             break;
         }
     }
@@ -66,9 +68,11 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     {
         if(plugin->metadataName() == savedName)
         {
-            model = plugin->makeMetadata(elementName,
-                                         JSON::type(),
-                                         static_cast<void*>(&deserializer));
+            model = plugin->makeElementPlugin(
+                        elementName,
+                        JSON::type(),
+                        static_cast<void*>(&deserializer),
+                        parent);
             break;
         }
     }

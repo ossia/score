@@ -30,7 +30,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
-    // TODO clone m_pluginModelList
+    m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
 
     for(auto& box : source->boxes())

@@ -106,5 +106,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 
     ev.replaceStates(states);
 
-    ev.m_pluginModelList = new iscore::ElementPluginModelList{*this, &ev};
+    Deserializer<JSON> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    ev.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
 }
