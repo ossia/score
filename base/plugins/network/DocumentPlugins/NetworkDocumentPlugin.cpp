@@ -5,6 +5,8 @@
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 
+#include <core/document/DocumentModel.hpp>
+
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore::Document *doc):
     iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc->model()},
@@ -22,14 +24,14 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        if(constraint->canAddMetadata(metadataName()))
-            constraint->addPluginMetadata(this->makeMetadata("ConstraintModel"));
+        if(constraint->pluginModelList().canAdd(metadataName()))
+            constraint->pluginModelList().add(makeMetadata("ConstraintModel"));
     }
     auto events = doc->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        if(event->canAddMetadata(metadataName()))
-            event->addPluginMetadata(this->makeMetadata("EventModel"));
+        if(event->pluginModelList().canAdd(metadataName()))
+            event->pluginModelList().add(makeMetadata("EventModel"));
     }
 }
 

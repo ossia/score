@@ -10,6 +10,8 @@
 
 #include <unordered_map>
 #include <State/State.hpp>
+
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
 {
     class TimeNode;
@@ -21,12 +23,6 @@ class ScenarioModel;
 class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
-
-        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
-
-        signals:
-            void pluginMetaDataChanged();
-        // Note : does not work in macro :(
 
     private:
 
@@ -40,6 +36,8 @@ class EventModel : public IdentifiedObject<EventModel>
                    WRITE setCondition
                    NOTIFY conditionChanged)
 
+        friend void Visitor<Reader<DataStream>>::readFrom<EventModel> (const EventModel& ev);
+        friend void Visitor<Reader<JSON>>::readFrom<EventModel> (const EventModel& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<EventModel> (EventModel& ev);
         friend void Visitor<Writer<JSON>>::writeTo<EventModel> (EventModel& ev);
 
@@ -100,6 +98,8 @@ class EventModel : public IdentifiedObject<EventModel>
         // TODO use a stronger type for the condition.
         QString condition() const;
 
+        auto& pluginModelList() { return *m_pluginModelList; }
+
     public slots:
         void setHeightPercentage(double arg);
         void setDate(const TimeValue& date);
@@ -113,6 +113,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void dateChanged();
 
     private:
+        iscore::ElementPluginModelList* m_pluginModelList{};
         id_type<TimeNodeModel> m_timeNode {};
 
         QVector<id_type<ConstraintModel>> m_previousConstraints;

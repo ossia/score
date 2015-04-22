@@ -8,6 +8,8 @@
 #include <iscore/tools/utilsCPP11.hpp>
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 #include <QDebug>
 
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
@@ -15,13 +17,12 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  double yPos,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
+    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, this, this}}
 {
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
     setHeightPercentage(yPos);
-
-    initPlugins(this, parent);
 }
 
 ConstraintModel::ConstraintModel(ConstraintModel* source,
@@ -29,6 +30,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
+    // TODO clone m_pluginModelList
     metadata = source->metadata;
 
     for(auto& box : source->boxes())
@@ -43,7 +45,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
 
     // NOTE : we do not copy the view models on which this constraint does not have ownership,
     // this is the job of a command.
-    // However, the full view constraint must be copied.
+    // However, the full view constraint must be copied since we have ownership of it.
 
     m_fullViewModel = source->fullView()->clone(source->fullView()->id(), this, this);
 
@@ -57,9 +59,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
     m_heightPercentage = source->heightPercentage();
 }
 
-ConstraintModel::~ConstraintModel()
-{
-}
+
 
 
 void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel)

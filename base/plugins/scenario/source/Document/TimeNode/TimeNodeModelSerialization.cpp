@@ -14,6 +14,8 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
              << timenode.m_y
              << timenode.m_events;
 
+    readFrom(*timenode.m_pluginModelList);
+
     insertDelimiter();
 }
 
@@ -27,6 +29,8 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
              >> timenode.m_date
              >> timenode.m_y
              >> timenode.m_events;
+
+    timenode.m_pluginModelList = new iscore::ElementPluginModelList{*this, &timenode};
 
     checkDelimiter();
 }
@@ -42,6 +46,8 @@ void Visitor<Reader<JSON>>::readFrom(const TimeNodeModel& timenode)
     m_obj["Date"] = toJsonObject(timenode.date());
     m_obj["Y"] = timenode.y();
     m_obj["Events"] = toJsonArray(timenode.m_events);
+
+    m_obj["PluginsMetadata"] = toJsonObject(*timenode.m_pluginModelList);
 }
 
 template<>
@@ -55,4 +61,6 @@ void Visitor<Writer<JSON>>::writeTo(TimeNodeModel& timenode)
     timenode.m_y = m_obj["Y"].toDouble();
 
     fromJsonArray(m_obj["Events"].toArray(), timenode.m_events);
+
+    m_obj["PluginsMetadata"] = toJsonObject(*timenode.m_pluginModelList);
 }

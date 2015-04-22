@@ -47,11 +47,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 
     m_stream << constraint.isRigid();
 
-    m_stream << constraint.pluginMetadatas().size();
-    for(auto& plug : constraint.pluginMetadatas())
-    {
-        readFrom(*plug);
-    }
+    readFrom(*constraint.m_pluginModelList);
 
     insertDelimiter();
 }
@@ -108,18 +104,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     constraint.setRigid(rigidity);
 
-    // TODO put this behaviour in an encapsulated sub-class instead.
-    int plugin_count;
-    m_stream >> plugin_count;
-
-    for(; plugin_count -- > 0;)
-    {
-        constraint.addPluginMetadata(
-                    deserializeElementPluginModel(*this,
-                                                  ConstraintModel::staticMetaObject.className(),
-                                                  &constraint));
-    }
-
+    constraint.m_pluginModelList = new iscore::ElementPluginModelList{*this, &constraint};
 
     checkDelimiter();
 }
@@ -152,7 +137,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 
     m_obj["Rigidity"] = constraint.isRigid();
 
-    m_obj["PluginsMetadata"] = toJsonArray(constraint.pluginMetadatas());
+    m_obj["PluginsMetadata"] = toJsonObject(*constraint.m_pluginModelList);
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
@@ -190,16 +175,5 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 
     constraint.setRigid(m_obj["Rigidity"].toBool());
 
-
-    QJsonArray plugin_array = m_obj["PluginsMetadata"].toArray();
-
-    for(const auto& json_vref : plugin_array)
-    {
-        Deserializer<JSON> deserializer{json_vref.toObject()};
-        qDebug() << Q_FUNC_INFO << "TODO";
-        constraint.addPluginMetadata(
-                    deserializeElementPluginModel(*this,
-                                                  ConstraintModel::staticMetaObject.className(),
-                                                  &constraint));
-    }
+    constraint.m_pluginModelList = new iscore::ElementPluginModelList{*this, &constraint};
 }

@@ -1,18 +1,18 @@
 #include "TimeNodeModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 
 TimeNodeModel::TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double ypos, QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
+    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
     m_date{date},
     m_y{ypos}
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
-
-    initPlugins(this, parent);
 }
 
 #include "Process/ScenarioModel.hpp"
-ScenarioModel *TimeNodeModel::parentScenario() const
+ScenarioModel* TimeNodeModel::parentScenario() const
 {
     return dynamic_cast<ScenarioModel*>(parent());
 }

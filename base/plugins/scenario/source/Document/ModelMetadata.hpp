@@ -8,7 +8,6 @@
 
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
-// TODO put in a scenario plugin interface
 /**
  * @brief The ModelMetadata class
  */
@@ -87,48 +86,3 @@ class ModelMetadata : public QObject
 
 Q_DECLARE_METATYPE(ModelMetadata)
 
-
-#define ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE \
-    public: \
-        bool canAddMetadata(const QString& name) \
-        { \
-            using namespace std; \
-            return none_of(begin(m_pluginsMetadata), \
-                           end(m_pluginsMetadata),  \
-                           [&] (iscore::ElementPluginModel* p)  \
-            { return p->plugin() == name; }); \
-        } \
- \
-        void addPluginMetadata(iscore::ElementPluginModel* data) \
-        { \
-            data->setParent(this); \
-            m_pluginsMetadata.push_back(data); \
-            emit pluginMetaDataChanged(); \
-        } \
- \
-        const auto& pluginMetadatas() const \
-        { return m_pluginsMetadata; } \
-    private: QList<iscore::ElementPluginModel*> m_pluginsMetadata; \
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-template<typename Element>
-void initPlugins(Element* e, QObject* obj)
-{
-    // We initialize the potential plug-ins of this document with this object's metadata if necessary.
-    iscore::Document* doc = iscore::IDocument::documentFromObject(obj);
-
-    for(auto& plugin : doc->model()->pluginModels())
-    {
-        // Check if it is not already existing in this element.
-        if(!e->canAddMetadata(plugin->metadataName()))
-            continue;
-
-        // Create and add it.
-        auto plugElement = plugin->makeMetadata(Element::staticMetaObject.className());
-        if(plugElement)
-            e->addPluginMetadata(plugElement);
-    }
-}

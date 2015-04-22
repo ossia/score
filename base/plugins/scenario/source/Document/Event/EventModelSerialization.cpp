@@ -23,6 +23,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
     m_stream << ev.states();
 
+    readFrom(*ev.m_pluginModelList);
+
     insertDelimiter();
 }
 
@@ -55,6 +57,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     m_stream >> states;
     ev.replaceStates(states);
 
+    ev.m_pluginModelList = new iscore::ElementPluginModelList{*this, &ev};
+
     checkDelimiter();
 }
 
@@ -74,6 +78,8 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
     m_obj["TimeNode"] = toJsonObject(ev.timeNode());
 
     m_obj["States"] = toJsonArray(ev.states());
+
+    m_obj["PluginsMetadata"] = toJsonObject(*ev.m_pluginModelList);
 }
 
 template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
@@ -99,4 +105,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
     }
 
     ev.replaceStates(states);
+
+    ev.m_pluginModelList = new iscore::ElementPluginModelList{*this, &ev};
 }

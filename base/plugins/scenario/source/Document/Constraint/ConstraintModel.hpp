@@ -7,6 +7,8 @@
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <iscore/selection/Selectable.hpp>
+
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <QColor>
 #include <vector>
 
@@ -31,13 +33,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT
 
-        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
-
-        signals:
-            void pluginMetaDataChanged();
-        // Note : does not work in macro :(
-
-    private:
+        friend void Visitor<Reader<DataStream>>::readFrom<ConstraintModel> (const ConstraintModel& ev);
+        friend void Visitor<Reader<JSON>>::readFrom<ConstraintModel> (const ConstraintModel& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<ConstraintModel> (ConstraintModel& ev);
+        friend void Visitor<Writer<JSON>>::writeTo<ConstraintModel> (ConstraintModel& ev);
 
         // TODO must go in view model
         Q_PROPERTY(double heightPercentage
@@ -119,7 +118,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ConstraintModel(ConstraintModel* source,
                         id_type<ConstraintModel> id,
                         QObject* parent);
-        ~ConstraintModel();
 
         // Serialization
         template<typename DeserializerVisitor>
@@ -158,27 +156,19 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         BoxModel* box(id_type<BoxModel> id) const;
         ProcessSharedModelInterface* process(id_type<ProcessSharedModelInterface> processId) const;
 
-        OSSIA::TimeBox* apiObject()
-        {
-            return m_timeBox;
-        }
-
         // Copies are done because there might be a loop
         // that might change the vector, and invalidate the
         // iterators, leading to a crash quite difficult to debug.
-        std::vector<BoxModel*> boxes() const
-        {
-            return m_boxes;
-        }
-        std::vector<ProcessSharedModelInterface*> processes() const
-        {
-            return m_processes;
-        }
+        auto boxes() const
+        { return m_boxes; }
 
-        const QVector<AbstractConstraintViewModel*>& viewModels() const
-        {
-            return m_constraintViewModels;
-        }
+        auto processes() const
+        { return m_processes; }
+
+        // Here we won't remove / add things from the outside so it is safe to
+        // return a reference
+        const auto& viewModels() const
+        { return m_constraintViewModels; }
 
         TimeValue startDate() const;
         void setStartDate(TimeValue start);
@@ -206,6 +196,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         {
             return m_rigidity;
         }
+
+        auto& pluginModelList() { return *m_pluginModelList; }
 
     signals:
         void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
@@ -250,7 +242,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void on_destroyedViewModel(QObject*);
 
     private:
-        OSSIA::TimeBox* m_timeBox {}; // Manages the duration
+        iscore::ElementPluginModelList* m_pluginModelList{};
 
         std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
         std::vector<ProcessSharedModelInterface*> m_processes;
@@ -267,9 +259,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         id_type<EventModel> m_startEvent {};
         id_type<EventModel> m_endEvent {};
 
-        TimeValue m_defaultDuration {std::chrono::milliseconds{200}};
-        TimeValue m_minDuration {m_defaultDuration};
-        TimeValue m_maxDuration {m_defaultDuration};
+        TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
+        TimeValue m_minDuration{m_defaultDuration};
+        TimeValue m_maxDuration{m_defaultDuration};
 
         TimeValue m_x {}; // origin
 
@@ -277,5 +269,3 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         TimeValue m_playDuration;
         bool m_rigidity;
 };
-
-

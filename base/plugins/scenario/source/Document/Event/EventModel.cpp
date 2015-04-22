@@ -4,6 +4,7 @@
 #include <State/State.hpp>
 
 #include <API/Headers/Editor/TimeNode.h>
+#include <iscore/document/DocumentInterface.hpp>
 
 #include <QVector>
 
@@ -12,11 +13,11 @@ EventModel::EventModel(id_type<EventModel> id,
                        double yPos,
                        QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
+    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
     m_timeNode{timenode},
     m_heightPercentage{yPos}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
-    initPlugins(this, parent);
 }
 
 EventModel::EventModel(EventModel* source,
@@ -27,6 +28,7 @@ EventModel::EventModel(EventModel* source,
                 source->heightPercentage(),
                 parent}
 {
+    // TODO clone pluginModelList
     m_previousConstraints = source->previousConstraints();
     m_nextConstraints = source->nextConstraints();
 

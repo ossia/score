@@ -7,19 +7,13 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
+
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 class EventModel;
 class ScenarioModel;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
-
-        ISCORE_SCENARIO_PLUGINELEMENT_INTERFACE
-
-        signals:
-            void pluginMetaDataChanged();
-        // Note : does not work in macro :(
-
-
 
         friend void Visitor<Reader<DataStream>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
         friend void Visitor<Reader<JSON>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
@@ -67,11 +61,14 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         QVector<id_type<EventModel>> events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
+        auto& pluginModelList() { return *m_pluginModelList; }
+
     signals:
         void dateChanged();
         void newEvent(id_type<EventModel> eventId);
 
     private:
+        iscore::ElementPluginModelList* m_pluginModelList{};
         TimeValue m_date {std::chrono::seconds{0}};
         double m_y {0.0};
 

@@ -14,4 +14,5 @@ class ElementPluginModel : public QObject
         virtual void serialize(SerializationIdentifier identifier,
                                void* data) const = 0;
 };
+
 }
