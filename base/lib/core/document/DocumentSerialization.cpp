@@ -121,7 +121,6 @@ DocumentModel::DocumentModel(const QVariant& data,
         writer << doc << panelModels << documentPluginModels;
         Q_ASSERT(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) == hash);
 
-        qDebug() << Q_FUNC_INFO << "TODO Load panel models and plugin models";
 
         // Note : this *has* to be in this order, because
         // the plugin models might put some data in the
@@ -133,19 +132,43 @@ DocumentModel::DocumentModel(const QVariant& data,
             auto factory = *find_if(begin(factories),
                                    end(factories),
                                    [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == panel.first; });
+
+            // Note : here we handle the case where the plug-in is not able to
+            // load data; generally because it is not useful (e.g. undo panel model...)
             if(auto pnl = factory->makeModel(panel.second, this))
                 addPanel(pnl);
             else
                 addPanel(factory->makeModel(this));
         }
 
+        qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
+
         // Load the document model
         m_model = fact->makeModel(doc, this);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
-        auto json = data.toJsonObject();
-        qDebug() << Q_FUNC_INFO << "TODO Load panel models and plugin models";
+        QJsonObject json = data.toJsonObject();
+
+        auto factories = iscore::IPresenter::panelFactories();
+        for(const auto& key : json.keys())
+        {
+            auto factory_it = find_if(begin(factories),
+                                   end(factories),
+                                   [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == key; });
+            if(factory_it != end(factories))
+            {
+                auto factory = *factory_it;
+                // Note : here we handle the case where the plug-in is not able to
+                // load data; generally because it is not useful (e.g. undo panel model...)
+                if(auto pnl = factory->makeModel(json[key].toObject(), this))
+                    addPanel(pnl);
+                else
+                    addPanel(factory->makeModel(this));
+            }
+        }
+
+        qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
 
         m_model = fact->makeModel(json["Document"].toObject(), this);
     }
