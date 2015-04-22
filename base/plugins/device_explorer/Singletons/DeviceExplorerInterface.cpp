@@ -2,7 +2,7 @@
 
 #include "../Plugin/DeviceExplorerPanelFactory.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
-#include "Node/Node.hpp"
+#include <DeviceExplorer/Node/Node.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>

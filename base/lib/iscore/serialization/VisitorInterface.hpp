@@ -1,7 +1,13 @@
 #pragma once
 
+class AbstractVisitor
+{
+    public:
+        virtual ~AbstractVisitor() = default;
+};
+
 template<typename VisitorType>
-class Visitor
+class Visitor : public AbstractVisitor
 {
 };
 

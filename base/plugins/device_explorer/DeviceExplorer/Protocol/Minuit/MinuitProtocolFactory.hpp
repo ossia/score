@@ -19,8 +19,13 @@ class MinuitProtocolFactory : public ProtocolFactoryInterface
             return new MinuitProtocolSettingsWidget;
         }
 
-        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        QVariant makeProtocolSpecificSettings(AbstractVisitor* visitor) const override
         {
-            return makeProtocolSpecificSettings_T<MinuitSpecificSettings>(source);
+            return makeProtocolSpecificSettings_T<MinuitSpecificSettings>(visitor);
+        }
+
+        void serializeProtocolSpecificSettings(const QVariant& data, AbstractVisitor* visitor) const override
+        {
+            serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
         }
 };

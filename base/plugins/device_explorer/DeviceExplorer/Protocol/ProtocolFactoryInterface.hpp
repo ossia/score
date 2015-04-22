@@ -16,26 +16,44 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
 
         virtual DeviceInterface* makeDevice(const DeviceSettings& settings) = 0;
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
-        // Make widget
-        // Make device
 
-        virtual QVariant makeProtocolSpecificSettings(QVariant source) const = 0;
+        // Save
+        virtual void serializeProtocolSpecificSettings(const QVariant& data, AbstractVisitor* visitor) const = 0;
 
         template<typename T>
-        QVariant makeProtocolSpecificSettings_T(QVariant source) const override
+        void serializeProtocolSpecificSettings_T(const QVariant& data, AbstractVisitor* visitor) const
         {
-            if(source.canConvert<Visitor<Writer<DataStream>>*>())
+            if(auto ser = dynamic_cast<Visitor<Reader<DataStream>>*>(visitor))
             {
-                auto deser = source.value<Visitor<Writer<DataStream>>*>();
+                ser->readFrom(data.value<T>());
+            }
+            else if(auto ser = dynamic_cast<Visitor<Reader<JSON>>*>(visitor))
+            {
+                ser->readFrom(data.value<T>());
+            }
+            else
+            {
+                Q_ASSERT(false);
+            }
+        }
+
+
+        // Load
+        virtual QVariant makeProtocolSpecificSettings(AbstractVisitor* visitor) const = 0;
+
+        template<typename T>
+        QVariant makeProtocolSpecificSettings_T(AbstractVisitor* visitor) const
+        {
+            if(auto deser = dynamic_cast<Visitor<Writer<DataStream>>*>(visitor))
+            {
                 T settings;
-                // TODO deser->writeTo(settings);
+                deser->writeTo(settings);
                 return QVariant::fromValue(settings);
             }
-            else if(source.canConvert<Visitor<Writer<JSON>>*>())
+            else if(auto deser = dynamic_cast<Visitor<Writer<JSON>>*>(visitor))
             {
-                auto deser = source.value<Visitor<Writer<DataStream>>*>();
                 T settings;
-                // TODO deser->writeTo(settings);
+                deser->writeTo(settings);
                 return QVariant::fromValue(settings);
             }
 

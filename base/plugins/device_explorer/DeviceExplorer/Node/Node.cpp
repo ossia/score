@@ -289,7 +289,7 @@ bool Node::isDevice() const
     return false;
 }
 
-void Node::setDeviceSettings(DeviceSettings &settings)
+void Node::setDeviceSettings(const DeviceSettings &settings)
 {
     m_deviceSettings = settings;
     setName(settings.name);

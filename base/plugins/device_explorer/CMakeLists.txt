@@ -10,14 +10,13 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Test Xml)
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/API)
 include_directories(${CMAKE_SOURCE_DIR}/API/Headers)
+
 ### Library ###
-find_package(Qt5Test)
 file(GLOB_RECURSE INTERFACE_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
 
-add_library(DeviceExplorerLibrary
-      ${INTERFACE_SRCS})
+add_library(DeviceExplorerLibrary ${INTERFACE_SRCS})
 
 set_property(TARGET DeviceExplorerLibrary APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -27,7 +26,21 @@ install(TARGETS DeviceExplorerLibrary
     LIBRARY DESTINATION .
     ARCHIVE DESTINATION static_lib/)
 
+### Singletons ###
+add_library(DeviceExplorerSingleton
+    "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/NodeSerialization.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/DeviceExplorerInterface.cpp")
+
+target_link_libraries(DeviceExplorerSingleton DeviceExplorerLibrary)
+
+install(TARGETS DeviceExplorerSingleton
+    LIBRARY DESTINATION .
+    ARCHIVE DESTINATION static_lib/)
+
 ### Plugin ###
+find_package(Qt5Test)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Plugin")
 file(GLOB_RECURSE PLUGIN_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.cpp"
@@ -39,7 +52,7 @@ add_library(device_explorer_plugin
       ${PLUGIN_SRCS}
       ${EXPLORER_RESOURCES_RCC})
 
-target_link_libraries(device_explorer_plugin DeviceExplorerLibrary Qt5::Test)
+target_link_libraries(device_explorer_plugin DeviceExplorerSingleton Qt5::Test)
 
 
 install(TARGETS device_explorer_plugin

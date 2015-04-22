@@ -19,8 +19,13 @@ class OSCProtocolFactory : public ProtocolFactoryInterface
             return new OSCProtocolSettingsWidget;
         }
 
-        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        QVariant makeProtocolSpecificSettings(AbstractVisitor* visitor) const override
         {
-            return makeProtocolSpecificSettings_T<OSCSpecificSettings>(source);
+            return makeProtocolSpecificSettings_T<OSCSpecificSettings>(visitor);
+        }
+
+        void serializeProtocolSpecificSettings(const QVariant& data, AbstractVisitor* visitor) const override
+        {
+            serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
         }
 };

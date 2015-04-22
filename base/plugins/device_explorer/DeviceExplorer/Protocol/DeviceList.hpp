@@ -1,5 +1,6 @@
 #pragma once
 #include <QList>
+#include <QDebug>
 #include <DeviceExplorer/Protocol/DeviceInterface.hpp>
 
 class DeviceList

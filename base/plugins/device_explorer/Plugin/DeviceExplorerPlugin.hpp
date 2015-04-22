@@ -3,17 +3,9 @@
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <DeviceExplorer/Protocol/ProtocolList.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
+#include "Singletons/SingletonProtocolList.hpp"
 
-class SingletonProtocolList
-{
-    public:
-        static ProtocolList& instance();
-
-    private:
-        static ProtocolList m_instance;
-};
 
 class SingletonDeviceList
 {
@@ -114,8 +106,4 @@ class DeviceExplorerPlugin :
 
         // Contains the OSC, MIDI, Minuit factories
         virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
-
-    private:
-        SingletonProtocolList m_protocols;
-
 };

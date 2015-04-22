@@ -66,7 +66,7 @@ class Node
 
         bool isEditable() const;
         bool isDevice() const;
-        void setDeviceSettings(DeviceSettings& settings);
+        void setDeviceSettings(const DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
         void setAddressSettings(const AddressSettings& settings);
         const AddressSettings addressSettings();

@@ -26,7 +26,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <DeviceExplorer/DeviceCompleter.hpp>
-#include <DeviceExplorer/DeviceExplorerInterface.hpp>
+#include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?

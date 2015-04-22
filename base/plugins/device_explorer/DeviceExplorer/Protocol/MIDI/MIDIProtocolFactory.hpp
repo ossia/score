@@ -19,8 +19,13 @@ class MIDIProtocolFactory : public ProtocolFactoryInterface
             return new MIDIProtocolSettingsWidget;
         }
 
-        QVariant makeProtocolSpecificSettings(QVariant source) const override
+        QVariant makeProtocolSpecificSettings(AbstractVisitor* visitor) const override
         {
-            return makeProtocolSpecificSettings_T<MIDISpecificSettings>(source);
+            return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
+        }
+
+        void serializeProtocolSpecificSettings(const QVariant& data, AbstractVisitor* visitor) const override
+        {
+            serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
         }
 };

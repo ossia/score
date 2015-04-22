@@ -2,7 +2,7 @@
 #include "../Automation/AutomationModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "../Commands/ChangeAddress.hpp"
-#include <DeviceExplorer/DeviceExplorerInterface.hpp>
+#include <Singletons/DeviceExplorerInterface.hpp>
 #include <DeviceExplorer/DeviceCompleter.hpp>
 
 //#include "../device_explorer/Panel/DeviceExplorerModel.hpp"

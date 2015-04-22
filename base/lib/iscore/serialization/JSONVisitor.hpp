@@ -19,7 +19,7 @@ class JSON
 };
 
 template<>
-class Visitor<Reader<JSON>>
+class Visitor<Reader<JSON>> : public AbstractVisitor
 {
     public:
         template<typename T>
@@ -50,7 +50,7 @@ class Visitor<Reader<JSON>>
 };
 
 template<>
-class Visitor<Writer<JSON>>
+class Visitor<Writer<JSON>> : public AbstractVisitor
 {
     public:
         Visitor<Writer<JSON>>() = default;

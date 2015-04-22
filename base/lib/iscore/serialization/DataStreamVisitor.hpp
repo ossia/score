@@ -14,7 +14,7 @@ class DataStream
 
 
 template<>
-class Visitor<Reader<DataStream>>
+class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
         Visitor<Reader<DataStream>> (QByteArray* array) :
@@ -58,7 +58,7 @@ class Visitor<Reader<DataStream>>
 };
 
 template<>
-class Visitor<Writer<DataStream>>
+class Visitor<Writer<DataStream>> : public AbstractVisitor
 {
     public:
         // TODO a const ref is sufficient here

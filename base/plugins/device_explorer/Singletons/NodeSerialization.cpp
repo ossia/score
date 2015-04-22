@@ -1,14 +1,21 @@
-#include "Node.hpp"
+#include <DeviceExplorer/Node/Node.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
+#include "DeviceExplorerPlugin.hpp"
+#include "DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp"
+#include <DeviceExplorer/Protocol/ProtocolList.hpp>
+
 
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const DeviceSettings& n)
 {
     m_stream << n.name
-             << n.protocol
-             << n.deviceSpecificSettings;
+             << n.protocol;
+
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this);
 
     insertDelimiter();
 }
@@ -18,40 +25,53 @@ void Visitor<Writer<DataStream>>::writeTo(DeviceSettings& n)
     m_stream >> n.name
              >> n.protocol;
 
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this);
+
     checkDelimiter();
 }
 template<>
 void Visitor<Reader<JSON>>::readFrom(const DeviceSettings& n)
 {
+    m_obj["Name"] = n.name;
+    m_obj["Protocol"] = n.protocol;
 
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this);
 }
+
 template<>
 void Visitor<Writer<JSON>>::writeTo(DeviceSettings& n)
 {
+    n.name = m_obj["Name"].toString();
+    n.protocol = m_obj["Protocol"].toString();
 
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this);
 }
 
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
 {
-
+    qDebug() << Q_FUNC_INFO << "TODO";
     insertDelimiter();
 }
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
 {
-
+    qDebug() << Q_FUNC_INFO << "TODO";
     checkDelimiter();
 }
 template<>
 void Visitor<Reader<JSON>>::readFrom(const AddressSettings& n)
 {
-
+    qDebug() << Q_FUNC_INFO << "TODO";
 }
 template<>
 void Visitor<Writer<JSON>>::writeTo(AddressSettings& n)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
 }
 
 
@@ -136,6 +156,27 @@ void Visitor<Reader<JSON>>::readFrom(const Node& n)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(Node& timenode)
+void Visitor<Writer<JSON>>::writeTo(Node& n)
 {
+    n.setName(m_obj["Name"].toString());
+    n.setValue(m_obj["Value"].toString());
+    n.setIOType(static_cast<Node::IOType>(m_obj["IOType"].toInt()));
+    n.setMinValue(m_obj["MinValue"].toInt());
+    n.setMaxValue(m_obj["MaxValue"].toInt());
+    n.setPriority(m_obj["Priority"].toInt());
+
+    if(m_obj.contains("DeviceSettings"))
+    {
+        n.setDeviceSettings(fromJsonObject<DeviceSettings>(m_obj["DeviceSettings"].toObject()));
+    }
+
+    for (const auto& val : m_obj["Children"].toArray())
+    {
+        Node* child = new Node;
+        Deserializer<JSON> nodeWriter(val.toObject());
+
+        nodeWriter.writeTo(*child);
+        n.addChild(child);
+    }
+
 }

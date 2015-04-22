@@ -6,11 +6,6 @@ using namespace iscore;
 #include <DeviceExplorer/Protocol/OSC/OSCProtocolFactory.hpp>
 #include <DeviceExplorer/Protocol/ProtocolList.hpp>
 
-ProtocolList  SingletonProtocolList::m_instance;
-ProtocolList& SingletonProtocolList::instance()
-{
-    return m_instance;
-}
 
 DeviceList  SingletonDeviceList::m_instance;
 DeviceList& SingletonDeviceList::instance()
