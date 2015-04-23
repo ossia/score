@@ -108,14 +108,12 @@ DocumentModel::DocumentModel(const QVariant& data,
     using namespace std;
     if(data.canConvert(QMetaType::QByteArray))
     {
-        auto full = data.toByteArray();
-
         // Deserialize the first parts
         QByteArray doc;
         QVector<QPair<QString, QByteArray>> panelModels, documentPluginModels;
         QByteArray hash;
 
-        QDataStream wr{full};
+        QDataStream wr{data.toByteArray()};
         wr >> doc >> panelModels >> documentPluginModels >> hash;
 
         // Perform hash verification
