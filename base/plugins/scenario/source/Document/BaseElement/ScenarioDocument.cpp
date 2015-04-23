@@ -27,7 +27,7 @@ ScenarioDocument::makeModel(iscore::DocumentModel* parent)
     return new BaseElementModel {parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocument::makeModel(QVariant data, iscore::DocumentModel* parent)
+iscore::DocumentDelegateModelInterface* ScenarioDocument::makeModel(const VisitorVariant& vis, iscore::DocumentModel* parent)
 {
-    return new BaseElementModel {data, parent};
+    return new BaseElementModel {vis, parent};
 }

@@ -33,21 +33,28 @@ DeviceExplorerPanelModel::DeviceExplorerPanelModel(DocumentModel* parent) :
 {
 }
 
-DeviceExplorerPanelModel::DeviceExplorerPanelModel(const QVariant &data, DocumentModel *parent):
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(const VisitorVariant& data, DocumentModel *parent):
     iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{data, this}}
 {
 
 }
 
-QJsonObject DeviceExplorerPanelModel::toJson()
+void DeviceExplorerPanelModel::serialize(const VisitorVariant &vis) const
 {
-    return DeviceExplorer::toJson(m_model);
-}
-
-QByteArray DeviceExplorerPanelModel::toByteArray()
-{
-    return DeviceExplorer::toByteArray(m_model);
+    if(vis.identifier == DataStream::type())
+    {
+        auto& ser = *static_cast<DataStream::Reader*>(vis.visitor);
+        ser.m_stream << (bool) m_model->rootNode();
+        if(m_model->rootNode())
+            ser.readFrom(*m_model->rootNode());
+    }
+    else if(vis.identifier == JSON::type())
+    {
+        auto& ser = *static_cast<JSON::Reader*>(vis.visitor);
+        if(m_model->rootNode())
+            ser.readFrom(*m_model->rootNode());
+    }
 }
 
 
@@ -97,7 +104,7 @@ iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel
     return new DeviceExplorerPanelModel {parent};
 }
 
-PanelModelInterface *DeviceExplorerPanelFactory::makeModel(const QVariant &data, DocumentModel *parent)
+PanelModelInterface *DeviceExplorerPanelFactory::makeModel(const VisitorVariant& data, DocumentModel *parent)
 {
     return new DeviceExplorerPanelModel {data, parent};
 }

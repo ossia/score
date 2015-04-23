@@ -13,8 +13,7 @@ namespace iscore
             using NamedObject::NamedObject;
             virtual ~PanelModelInterface() = default;
 
-            virtual QJsonObject toJson() { return QJsonObject{}; }
-            virtual QByteArray toByteArray() { return QByteArray{}; }
+            virtual void serialize(const VisitorVariant&) const {}
 
         public slots:
             virtual void setNewSelection(const Selection&) { }

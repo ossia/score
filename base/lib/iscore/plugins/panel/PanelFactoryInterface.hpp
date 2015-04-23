@@ -1,5 +1,6 @@
 #pragma once
-#include <QVariant>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <QString>
 
 namespace iscore
 {
@@ -21,10 +22,18 @@ namespace iscore
             virtual QString name() const = 0;
 
             virtual ~PanelFactoryInterface() = default;
-            virtual PanelViewInterface* makeView(View* parent) = 0;
-            virtual PanelPresenterInterface* makePresenter(Presenter* parent_presenter,
+            virtual PanelViewInterface* makeView(
+                    View* parent) = 0;
+
+            virtual PanelPresenterInterface* makePresenter(
+                    Presenter* parent_presenter,
                     PanelViewInterface* view) = 0;
-            virtual PanelModelInterface* makeModel(DocumentModel* parent) = 0;
-            virtual PanelModelInterface* makeModel(const QVariant& data, DocumentModel* parent) { return nullptr; }
+
+            virtual PanelModelInterface* makeModel(
+                    DocumentModel* parent) = 0;
+
+            virtual PanelModelInterface* makeModel(
+                    const VisitorVariant& data,
+                    DocumentModel* parent) { return nullptr; }
     };
 }

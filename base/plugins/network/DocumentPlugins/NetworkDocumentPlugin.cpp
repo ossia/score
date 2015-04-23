@@ -52,16 +52,6 @@ QWidget *NetworkDocumentPlugin::makeElementPluginWidget(const iscore::ElementPlu
     return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var));
 }
 
-QJsonObject NetworkDocumentPlugin::toJson() const
-{
-    return {};
-}
-
-QByteArray NetworkDocumentPlugin::toByteArray() const
-{
-    return {};
-}
-
 iscore::ElementPluginModel*
 NetworkDocumentPlugin::makeElementPlugin(const QString &str,
                                          QObject* parent)

@@ -137,7 +137,7 @@ DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
 
 }
 
-DeviceExplorerModel::DeviceExplorerModel(const QVariant& data, QObject* parent)
+DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* parent)
     : QAbstractItemModel(parent),
       m_rootNode(nullptr),
       m_lastCutNodeIsCopied(false),
@@ -157,20 +157,19 @@ DeviceExplorerModel::DeviceExplorerModel(const QVariant& data, QObject* parent)
     beginResetModel();
 
     m_rootNode = new Node;
-    if(data.canConvert<QByteArray>())
+    if(vis.identifier == DataStream::type())
     {
-        Deserializer<DataStream> des(data.value<QByteArray>());
+        auto des = static_cast<DataStream::Writer*>(vis.visitor);
         bool b;
-        des.m_stream >> b;
+        des->m_stream >> b;
         if(b)
-            des.writeTo(*m_rootNode);
+            des->writeTo(*m_rootNode);
     }
-    else if(data.canConvert<QJsonObject>())
+    else if(vis.identifier == JSON::type())
     {
-        Deserializer<JSON> des(data.value<QJsonObject>());
-        des.writeTo(*m_rootNode);
+        auto des = static_cast<JSON::Writer*>(vis.visitor);
+        des->writeTo(*m_rootNode);
     }
-
 
     endResetModel();
 

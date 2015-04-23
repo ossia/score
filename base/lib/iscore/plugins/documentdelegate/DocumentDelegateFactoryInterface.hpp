@@ -1,5 +1,5 @@
 #pragma once
-#include <QVariant>
+#include <iscore/serialization/VisitorInterface.hpp>
 class QByteArray;
 
 namespace iscore
@@ -20,13 +20,18 @@ namespace iscore
     {
         public:
             virtual ~DocumentDelegateFactoryInterface() = default;
-            virtual DocumentDelegateViewInterface* makeView(DocumentView* parent) = 0;
-            virtual DocumentDelegatePresenterInterface* makePresenter(DocumentPresenter* parent_presenter,
+            virtual DocumentDelegateViewInterface* makeView(
+                    DocumentView* parent) = 0;
+            virtual DocumentDelegatePresenterInterface* makePresenter(
+                    DocumentPresenter* parent_presenter,
                     DocumentDelegateModelInterface* model,
                     DocumentDelegateViewInterface* view) = 0;
 
-            virtual DocumentDelegateModelInterface* makeModel(DocumentModel* parent) = 0;
-            virtual DocumentDelegateModelInterface* makeModel(QVariant data, DocumentModel* parent) = 0;
+            virtual DocumentDelegateModelInterface* makeModel(
+                    DocumentModel* parent) = 0;
+            virtual DocumentDelegateModelInterface* makeModel(
+                    const VisitorVariant&,
+                    DocumentModel* parent) = 0;
     };
 
 }

@@ -28,9 +28,7 @@ class DocumentDelegatePluginModel : public NamedObject
 
         virtual QWidget* makeElementPluginWidget(const ElementPluginModel*) const = 0;
 
-        // TODO use the other way.
-        virtual QJsonObject toJson() const = 0;
-        virtual QByteArray toByteArray() const = 0;
+        virtual void serialize(const VisitorVariant&) const = 0;
 };
 
 class DocumentDelegatePluginModelFactory

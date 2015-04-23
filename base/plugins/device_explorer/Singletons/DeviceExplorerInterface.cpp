@@ -24,27 +24,6 @@ DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
     return getModel(iscore::IDocument::documentFromObject(object));
 }
 
-
-QJsonObject DeviceExplorer::toJson(DeviceExplorerModel* deviceExplorer)
-{
-    Serializer<JSON> ser;
-    if(deviceExplorer->rootNode())
-        ser.readFrom(*deviceExplorer->rootNode());
-    return ser.m_obj;
-}
-
-
-QByteArray DeviceExplorer::toByteArray(DeviceExplorerModel* deviceExplorer)
-{
-    QByteArray b;
-    Serializer<DataStream> ser(&b);
-    ser.m_stream << (bool) deviceExplorer->rootNode();
-    if(deviceExplorer->rootNode())
-        ser.readFrom(*deviceExplorer->rootNode());
-    return b;
-}
-
-
 QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 {
     QModelIndex index = m;

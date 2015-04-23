@@ -4,16 +4,18 @@
 class ScenarioDocument : public iscore::DocumentDelegateFactoryInterface
 {
     public:
-        virtual iscore::DocumentDelegateViewInterface*
-        makeView(iscore::DocumentView* parent) override;
+        iscore::DocumentDelegateViewInterface* makeView(
+                iscore::DocumentView* parent) override;
 
-        virtual iscore::DocumentDelegatePresenterInterface*
-        makePresenter(iscore::DocumentPresenter* parent_presenter,
-                      iscore::DocumentDelegateModelInterface* model,
-                      iscore::DocumentDelegateViewInterface* view) override;
+        iscore::DocumentDelegatePresenterInterface* makePresenter(
+                iscore::DocumentPresenter* parent_presenter,
+                iscore::DocumentDelegateModelInterface* model,
+                iscore::DocumentDelegateViewInterface* view) override;
 
-        virtual iscore::DocumentDelegateModelInterface*
-        makeModel(iscore::DocumentModel* parent) override;
-        virtual iscore::DocumentDelegateModelInterface*
-        makeModel(QVariant data, iscore::DocumentModel* parent) override;
+        iscore::DocumentDelegateModelInterface* makeModel(
+                iscore::DocumentModel* parent) override;
+
+        iscore::DocumentDelegateModelInterface* makeModel(
+                const VisitorVariant&,
+                iscore::DocumentModel* parent) override;
 };

@@ -45,9 +45,10 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         virtual QWidget *makeElementPluginWidget(
                 const iscore::ElementPluginModel*) const override;
 
-        virtual QJsonObject toJson() const override;
-        virtual QByteArray toByteArray() const override;
-
+        void serialize(const VisitorVariant&) const override
+        {
+            qDebug() << Q_FUNC_INFO << "TODO";
+        }
 
 
         GroupManager* groupManager() const

@@ -22,33 +22,6 @@
 
 using namespace Scenario;
 
-BaseElementModel::BaseElementModel(QVariant data,
-                                   QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0),
-                                            "BaseElementModel",
-                                            parent}
-{
-    if(data.canConvert(QMetaType::QByteArray))
-    {
-        id_type<iscore::DocumentDelegateModelInterface> id;
-        auto arr = data.toByteArray();
-        Deserializer<DataStream> deser{&arr};
-        deser.writeTo(id);
-        this->setId(std::move(id));
-        m_baseConstraint = new ConstraintModel{deser, this};
-    }
-    else if(data.canConvert(QMetaType::QJsonObject))
-    {
-        m_baseConstraint = new ConstraintModel{Deserializer<JSON>{data.toJsonObject()}, this};
-    }
-    else
-    {
-        qFatal("Could not load BaseElementModel");
-        return;
-    }
-
-    m_baseConstraint->setObjectName("BaseConstraintModel");
-}
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 BaseElementModel::BaseElementModel(QObject* parent) :
@@ -141,6 +114,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
+
 void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
     if(proc != m_focusedViewModel)
@@ -150,24 +124,7 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
     }
 }
 
-// TODO these two are inconsistent. Review needed.
-QByteArray BaseElementModel::toByteArray()
-{
-    QByteArray arr;
-    Serializer<DataStream> s {&arr};
-    s.readFrom(this->id());
-    s.readFrom(*constraintModel());
 
-    return arr;
-}
-
-QJsonObject BaseElementModel::toJson()
-{
-    Serializer<JSON> s;
-    s.readFrom(*constraintModel());
-
-    return s.m_obj;
-}
 
 void BaseElementModel::setNewSelection(const Selection& s)
 {
