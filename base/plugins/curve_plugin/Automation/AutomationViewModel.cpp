@@ -39,7 +39,7 @@ ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy()
     return new AutomationPanelProxy{this};
 }
 
-void AutomationViewModel::serialize(SerializationIdentifier identifier, void* data) const
+void AutomationViewModel::serialize(const VisitorVariant&) const
 {
 }
 

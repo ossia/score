@@ -7,7 +7,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt)
 {
     m_stream << elt.plugin();
-    elt.serialize(DataStream::type(), static_cast<void*>(this));
+    elt.serialize(this->toVariant());
 
     insertDelimiter();
 }
@@ -16,7 +16,7 @@ template<>
 void Visitor<Reader<JSON>>::readFrom(const iscore::ElementPluginModel& elt)
 {
     m_obj["Name"] = elt.plugin();
-    elt.serialize(JSON::type(), static_cast<void*>(this));
+    elt.serialize(this->toVariant());
 }
 
 #include <core/document/Document.hpp>
@@ -41,8 +41,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         {
             model = plugin->makeElementPlugin(
                         elementName,
-                        DataStream::type(),
-                        static_cast<void*>(&deserializer),
+                        deserializer.toVariant(),
                         parent);
             break;
         }
@@ -70,8 +69,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         {
             model = plugin->makeElementPlugin(
                         elementName,
-                        JSON::type(),
-                        static_cast<void*>(&deserializer),
+                        deserializer.toVariant(),
                         parent);
             break;
         }

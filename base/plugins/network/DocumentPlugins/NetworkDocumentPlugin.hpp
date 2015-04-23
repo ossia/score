@@ -35,14 +35,15 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         iscore::ElementPluginModel* makeElementPlugin(
                 const QString&,
-                SerializationIdentifier identifier,
-                void* data,
+                const VisitorVariant&,
                 QObject* parent) override;
 
-        iscore::ElementPluginModel* cloneElementPlugin(iscore::ElementPluginModel*,
-                                                QObject* parent) override;
+        iscore::ElementPluginModel* cloneElementPlugin(
+                iscore::ElementPluginModel*,
+                QObject* parent) override;
 
-        virtual QWidget *makeElementPluginWidget(const iscore::ElementPluginModel*) const override;
+        virtual QWidget *makeElementPluginWidget(
+                const iscore::ElementPluginModel*) const override;
 
         virtual QJsonObject toJson() const override;
         virtual QByteArray toByteArray() const override;

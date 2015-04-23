@@ -70,7 +70,7 @@ class DistributedScenario : public ProcessSharedModelInterface
             m_model->setSelection(s);
         }
 
-        void serialize(SerializationIdentifier identifier, void* data) const
+        void serialize(const VisitorVariant& data) const
         {
             m_model->serialize(identifier, data);
 

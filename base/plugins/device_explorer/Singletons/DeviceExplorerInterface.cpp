@@ -38,6 +38,7 @@ QByteArray DeviceExplorer::toByteArray(DeviceExplorerModel* deviceExplorer)
 {
     QByteArray b;
     Serializer<DataStream> ser(&b);
+    ser.m_stream << (bool) deviceExplorer->rootNode();
     if(deviceExplorer->rootNode())
         ser.readFrom(*deviceExplorer->rootNode());
     return b;

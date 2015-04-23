@@ -74,17 +74,6 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
         scenario.m_timeNodes.push_back(tnmodel);
     }
 
-    // Recreate the API
-    /*for(ConstraintModel* constraint : scenario.m_constraints)
-    {
-        auto sev = scenario.event(constraint->startEvent());
-        auto eev = scenario.event(constraint->endEvent());
-
-        scenario.m_scenario->addTimeBox(*constraint->apiObject(),
-                                        *sev->apiObject(),
-                                        *eev->apiObject());
-    }*/
-
     checkDelimiter();
 }
 
@@ -111,93 +100,91 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
     for(auto json_vref : m_obj["Constraints"].toArray())
     {
         auto constraint = new ConstraintModel {Deserializer<JSON>{json_vref.toObject() },
-                                               &scenario
-                                              };
+                          &scenario
+    };
         scenario.addConstraint(constraint);
     }
 
     for(auto json_vref : m_obj["Events"].toArray())
     {
-        auto evmodel = new EventModel {Deserializer<JSON>{json_vref.toObject() },
-                                       &scenario
-                                      };
+        auto evmodel = new EventModel {
+                       Deserializer<JSON>{json_vref.toObject() },
+                       &scenario};
+
         scenario.addEvent(evmodel);
     }
 
     for(auto json_vref : m_obj["TimeNodes"].toArray())
     {
-        auto tnmodel = new TimeNodeModel {Deserializer<JSON>{json_vref.toObject() },
-                                          &scenario
-                                         };
+        auto tnmodel = new TimeNodeModel {
+                       Deserializer<JSON>{json_vref.toObject() },
+                       &scenario};
 
         scenario.m_timeNodes.push_back(tnmodel);
     }
-
-    // Recreate the API
-    /*for(ConstraintModel* constraint : scenario.m_constraints)
-    {
-        auto sev = scenario.event(constraint->startEvent());
-        auto eev = scenario.event(constraint->endEvent());
-
-        scenario.m_scenario->addTimeBox(*constraint->apiObject(),
-                                        *sev->apiObject(),
-                                        *eev->apiObject());
-    }*/
 }
 
 
 
-void ScenarioModel::serialize(SerializationIdentifier identifier,
-                              void* data) const
+void ScenarioModel::serialize(const VisitorVariant& vis) const
 {
-    if(identifier == DataStream::type())
+    switch(vis.identifier)
     {
-        static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
-        return;
-    }
-    else if(identifier == JSON::type())
-    {
-        static_cast<Serializer<JSON>*>(data)->readFrom(*this);
-        return;
+        case DataStream::type():
+        {
+            static_cast<DataStream::Reader*>(vis.visitor)->readFrom(*this);
+            return;
+        }
+        case JSON::type():
+        {
+            static_cast<JSON::Reader*>(vis.visitor)->readFrom(*this);
+            return;
+        }
     }
 
     throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
 }
 
 #include "ScenarioFactory.hpp"
-ProcessSharedModelInterface* ScenarioFactory::makeModel(SerializationIdentifier identifier,
-        void* data,
+ProcessSharedModelInterface* ScenarioFactory::makeModel(
+        const VisitorVariant& vis,
         QObject* parent)
 {
-    if(identifier == DataStream::type())
+
+    switch(vis.identifier)
     {
-        return new ScenarioModel {*static_cast<Deserializer<DataStream>*>(data), parent};
-    }
-    else if(identifier == JSON::type())
-    {
-        return new ScenarioModel {*static_cast<Deserializer<JSON>*>(data), parent};
+        case DataStream::type():
+        {
+            return new ScenarioModel {*static_cast<DataStream::Writer*>(vis.visitor), parent};
+        }
+        case JSON::type():
+        {
+            return new ScenarioModel {*static_cast<JSON::Writer*>(vis.visitor), parent};
+        }
     }
 
     throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
 }
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel(SerializationIdentifier identifier,
-        void* data,
+ProcessViewModelInterface* ScenarioModel::makeViewModel(
+        const VisitorVariant& vis,
         QObject* parent)
 {
-    if(identifier == DataStream::type())
+    if(vis.identifier == DataStream::type())
     {
-        auto scen = new TemporalScenarioViewModel(*static_cast<Deserializer<DataStream>*>(data),
-                this,
-                parent);
+        auto scen = new TemporalScenarioViewModel(
+                        *static_cast<DataStream::Writer*>(vis.visitor),
+                        this,
+                        parent);
         makeViewModel_impl(scen);
         return scen;
     }
-    else if(identifier == JSON::type())
+    else if(vis.identifier == JSON::type())
     {
-        auto scen = new TemporalScenarioViewModel(*static_cast<Deserializer<JSON>*>(data),
-                this,
-                parent);
+        auto scen = new TemporalScenarioViewModel(
+                        *static_cast<JSON::Writer*>(vis.visitor),
+                        this,
+                        parent);
         makeViewModel_impl(scen);
         return scen;
     }

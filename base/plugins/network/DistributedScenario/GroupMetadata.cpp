@@ -19,16 +19,17 @@ QString GroupMetadata::plugin() const
     return staticPluginName();
 }
 
-void GroupMetadata::serialize(SerializationIdentifier identifier, void* data) const
+void GroupMetadata::serialize(const VisitorVariant& vis) const
 {
-    if(identifier == DataStream::type())
+    if(vis.identifier == DataStream::type())
     {
-        static_cast<Visitor<Reader<DataStream>>*>(data)->readFrom(*this);
-
+        static_cast<DataStream::Reader*>(vis.visitor)->readFrom(*this);
+        return;
     }
-    else if(identifier == JSON::type())
+    else if(vis.identifier == JSON::type())
     {
-        static_cast<Visitor<Reader<JSON>>*>(data)->readFrom(*this);
+        static_cast<JSON::Reader*>(vis.visitor)->readFrom(*this);
+        return;
     }
 
     Q_ASSERT(false);

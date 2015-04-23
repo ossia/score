@@ -13,8 +13,7 @@ class ElementPluginModel : public QObject
 
         virtual QString plugin() const = 0;
 
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const = 0;
+        virtual void serialize(const VisitorVariant&) const = 0;
 };
 
 }

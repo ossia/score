@@ -48,8 +48,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
                                                          QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.
-        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                                                         void* data,
+        virtual ProcessViewModelInterface* makeViewModel(const VisitorVariant&,
                                                          QObject* parent) = 0;
 
         // "Copy" factory. TODO replace by clone methode on PVM ?
@@ -100,8 +99,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         virtual void setSelection(const Selection& s) = 0;
 
         // protected:
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const = 0;
+        virtual void serialize(const VisitorVariant& vis) const = 0;
 
     protected:
         void addViewModel(ProcessViewModelInterface* m)

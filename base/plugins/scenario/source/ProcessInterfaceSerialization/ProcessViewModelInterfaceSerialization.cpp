@@ -18,8 +18,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
     // ProcessViewModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    processViewModel.serialize(DataStream::type(),
-                               static_cast<void*>(this));
+    processViewModel.serialize(toVariant());
 
     insertDelimiter();
 }
@@ -33,8 +32,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
     deserializer.m_stream >> sharedProcessId;
 
     auto process = constraint->process(sharedProcessId);
-    auto viewmodel = process->makeViewModel(DataStream::type(),
-                                            static_cast<void*>(&deserializer),
+    auto viewmodel = process->makeViewModel(deserializer.toVariant(),
                                             parent);
 
     deserializer.checkDelimiter();
@@ -54,8 +52,7 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processVie
     // ProcessViewModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    processViewModel.serialize(JSON::type(),
-                               static_cast<void*>(this));
+    processViewModel.serialize(toVariant());
 }
 
 template<>
@@ -67,8 +64,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<JSON>& deserializ
     fromJsonObject(deserializer.m_obj["SharedProcessId"].toObject(), sharedProcessId);
 
     auto process = constraint->process(sharedProcessId);
-    auto viewmodel = process->makeViewModel(JSON::type(),
-                                            static_cast<void*>(&deserializer),
+    auto viewmodel = process->makeViewModel(deserializer.toVariant(),
                                             parent);
 
     return viewmodel;

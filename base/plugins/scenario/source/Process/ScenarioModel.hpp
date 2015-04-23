@@ -138,12 +138,11 @@ class ScenarioModel : public ProcessSharedModelInterface
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                                                         void* data,
-                                                         QObject* parent) override;
+        virtual ProcessViewModelInterface* makeViewModel(
+                const VisitorVariant& vis,
+                QObject* parent) override;
 
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const override;
+        virtual void serialize(const VisitorVariant&) const override;
 
         // To prevent warnings in Clang
         virtual bool event(QEvent* e) override

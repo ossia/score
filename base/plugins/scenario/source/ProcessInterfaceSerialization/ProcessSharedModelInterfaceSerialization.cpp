@@ -17,8 +17,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& pr
     // ProcessSharedModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    process.serialize(DataStream::type(),
-                      static_cast<void*>(this));
+    process.serialize(toVariant());
 
     insertDelimiter();
 }
@@ -33,8 +32,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
     deserializer.writeTo(duration);
 
     auto model = ProcessList::getFactory(processName)
-                 ->makeModel(DataStream::type(),
-                             static_cast<void*>(&deserializer),
+                 ->makeModel(deserializer.toVariant(),
                              parent);
 
     model->setDuration(duration);
@@ -57,18 +55,18 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
     // ProcessSharedModelInterface doesn't have any particular data to save
 
     // Save the subclass
-    process.serialize(JSON::type(),
-                      static_cast<void*>(this));
+    process.serialize(toVariant());
 }
 
 template<>
 ProcessSharedModelInterface* createProcess(Deserializer<JSON>& deserializer,
         QObject* parent)
 {
-    auto model = ProcessList::getFactory(deserializer.m_obj["ProcessName"].toString())
-                 ->makeModel(JSON::type(),
-                             static_cast<void*>(&deserializer),
-                             parent);
+    auto model = ProcessList::getFactory(
+                     deserializer.m_obj["ProcessName"].toString())
+                        ->makeModel(
+                            deserializer.toVariant(),
+                            parent);
 
     model->setDuration(fromJsonObject<TimeValue> (deserializer.m_obj["Duration"].toObject()));
 

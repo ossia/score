@@ -27,8 +27,7 @@ class AutomationViewModel : public ProcessViewModelInterface
 
         virtual ProcessViewModelPanelProxy* make_panelProxy();
 
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const;
+        virtual void serialize(const VisitorVariant&) const;
 
         AutomationModel* model();
 };

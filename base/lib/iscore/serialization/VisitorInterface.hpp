@@ -2,8 +2,6 @@
 
 class AbstractVisitor
 {
-    public:
-        virtual ~AbstractVisitor() = default;
 };
 
 template<typename VisitorType>
@@ -28,3 +26,9 @@ template<typename T>
 using Deserializer = Visitor<Writer<T>>;
 
 using SerializationIdentifier = int;
+
+struct VisitorVariant
+{
+        AbstractVisitor* visitor{};
+        SerializationIdentifier identifier;
+};

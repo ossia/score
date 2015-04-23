@@ -9,10 +9,16 @@
 template<typename T>
 T fromJsonObject(QJsonObject&& json);
 
+class JSON;
+template<> class Visitor<Reader<JSON>>;
+template<> class Visitor<Writer<JSON>>;
+
 class JSON
 {
     public:
-        static SerializationIdentifier type()
+        using Reader = Visitor<Reader<JSON>>;
+        using Writer = Visitor<Writer<JSON>>;
+        static constexpr SerializationIdentifier type()
         {
             return 1;
         }
@@ -22,6 +28,7 @@ template<>
 class Visitor<Reader<JSON>> : public AbstractVisitor
 {
     public:
+        VisitorVariant toVariant() { return {this, JSON::type()}; }
         template<typename T>
         void readFrom(const T&);
 
@@ -52,7 +59,9 @@ class Visitor<Reader<JSON>> : public AbstractVisitor
 template<>
 class Visitor<Writer<JSON>> : public AbstractVisitor
 {
+
     public:
+        VisitorVariant toVariant() { return {this, JSON::type()}; }
         Visitor<Writer<JSON>>() = default;
         Visitor<Writer<JSON>> (const QJsonObject& obj) :
                                m_obj {obj}
@@ -91,6 +100,7 @@ class Visitor<Writer<JSON>> : public AbstractVisitor
 
         QJsonObject m_obj;
 };
+
 
 template<typename T>
 QJsonObject toJsonObject(const T& obj)

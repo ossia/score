@@ -27,8 +27,7 @@ class GroupMetadata : public iscore::ElementPluginModel
 
         QString plugin() const override;
 
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const override;
+        virtual void serialize(const VisitorVariant&) const override;
 
         const auto& id() const
         { return m_id; }

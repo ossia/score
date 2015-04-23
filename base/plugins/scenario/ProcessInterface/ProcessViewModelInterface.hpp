@@ -20,8 +20,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         }
 
         // protected:
-        virtual void serialize(SerializationIdentifier identifier,
-                               void* data) const = 0;
+        virtual void serialize(const VisitorVariant&) const = 0;
 
         virtual ProcessViewModelPanelProxy* make_panelProxy() = 0;
 
@@ -42,7 +41,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
                                   ProcessSharedModelInterface* sharedProcess,
                                   QObject* parent) :
             IdentifiedObject<ProcessViewModelInterface> {vis, parent},
-        m_sharedProcessModel {sharedProcess}
+            m_sharedProcessModel {sharedProcess}
         {
             // Nothing else to load
         }

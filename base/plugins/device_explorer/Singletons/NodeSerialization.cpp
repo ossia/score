@@ -15,7 +15,7 @@ void Visitor<Reader<DataStream>>::readFrom(const DeviceSettings& n)
              << n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
-    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this);
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
 
     insertDelimiter();
 }
@@ -26,7 +26,7 @@ void Visitor<Writer<DataStream>>::writeTo(DeviceSettings& n)
              >> n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
-    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this);
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
 
     checkDelimiter();
 }
@@ -37,7 +37,7 @@ void Visitor<Reader<JSON>>::readFrom(const DeviceSettings& n)
     m_obj["Protocol"] = n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
-    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this);
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
 }
 
 template<>
@@ -47,7 +47,7 @@ void Visitor<Writer<JSON>>::writeTo(DeviceSettings& n)
     n.protocol = m_obj["Protocol"].toString();
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
-    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this);
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
 }
 
 

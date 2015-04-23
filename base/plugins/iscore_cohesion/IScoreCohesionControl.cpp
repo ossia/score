@@ -8,7 +8,7 @@
 #include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "../scenario/source/Document/Event/EventModel.hpp"
 #include "../scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
-#include <DeviceExplorer/DeviceExplorerInterface.hpp>
+#include "Singletons/DeviceExplorerInterface.hpp"
 
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>

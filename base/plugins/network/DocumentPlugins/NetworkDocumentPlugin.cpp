@@ -62,8 +62,9 @@ QByteArray NetworkDocumentPlugin::toByteArray() const
     return {};
 }
 
-iscore::ElementPluginModel* NetworkDocumentPlugin::makeElementPlugin(const QString &str,
-                                                                QObject* parent)
+iscore::ElementPluginModel*
+NetworkDocumentPlugin::makeElementPlugin(const QString &str,
+                                         QObject* parent)
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
@@ -74,20 +75,19 @@ iscore::ElementPluginModel* NetworkDocumentPlugin::makeElementPlugin(const QStri
     return nullptr;
 }
 
-iscore::ElementPluginModel*NetworkDocumentPlugin::makeElementPlugin(const QString& str,
-                                                               SerializationIdentifier identifier,
-                                                               void* data,
-                                                               QObject* parent)
+iscore::ElementPluginModel*
+NetworkDocumentPlugin::makeElementPlugin(const QString& str,
+                                         const VisitorVariant& vis,
+                                         QObject* parent)
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        if(identifier == DataStream::type())
+        switch(vis.identifier)
         {
-            return new GroupMetadata(*static_cast<Visitor<Writer<DataStream>>*>(data), parent);
-        }
-        else if(identifier == JSON::type())
-        {
-            return new GroupMetadata(*static_cast<Visitor<Writer<JSON>>*>(data), parent);
+            case DataStream::type():
+                return new GroupMetadata(*static_cast<DataStream::Writer*>(vis.visitor), parent);
+            case JSON::type():
+                return new GroupMetadata(*static_cast<JSON::Writer*>(vis.visitor), parent);
         }
     }
     return nullptr;

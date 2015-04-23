@@ -34,14 +34,16 @@ class AutomationModel : public ProcessSharedModelInterface
         //// ProcessSharedModelInterface ////
         QString processName() const override;
 
-        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                                                 QObject* parent) override;
-        ProcessViewModelInterface* makeViewModel(SerializationIdentifier identifier,
-                                                 void* data,
-                                                 QObject* parent) override;
-        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
-                                                 const ProcessViewModelInterface* source,
-                                                 QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(
+                id_type<ProcessViewModelInterface> viewModelId,
+                QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(
+                const VisitorVariant&,
+                QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(
+                id_type<ProcessViewModelInterface> newId,
+                const ProcessViewModelInterface* source,
+                QObject* parent) override;
 
         void setDurationAndScale(TimeValue newDuration) override;
         void setDurationAndGrow(TimeValue newDuration) override;
@@ -51,7 +53,7 @@ class AutomationModel : public ProcessSharedModelInterface
         QList<QObject*> selectedChildren() const override { return {}; }
         void setSelection(const Selection&) override { }
 
-        void serialize(SerializationIdentifier identifier, void* data) const override;
+        void serialize(const VisitorVariant& vis) const override;
 
         /// States
         ProcessStateDataInterface* startState() const override;

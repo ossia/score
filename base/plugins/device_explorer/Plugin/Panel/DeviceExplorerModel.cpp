@@ -160,7 +160,10 @@ DeviceExplorerModel::DeviceExplorerModel(const QVariant& data, QObject* parent)
     if(data.canConvert<QByteArray>())
     {
         Deserializer<DataStream> des(data.value<QByteArray>());
-        des.writeTo(*m_rootNode);
+        bool b;
+        des.m_stream >> b;
+        if(b)
+            des.writeTo(*m_rootNode);
     }
     else if(data.canConvert<QJsonObject>())
     {

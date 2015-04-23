@@ -3,20 +3,27 @@
 #include "iscore/serialization/VisitorInterface.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
 
+class DataStream;
+template<> class Visitor<Reader<DataStream>>;
+template<> class Visitor<Writer<DataStream>>;
+
 class DataStream
 {
     public:
-        static SerializationIdentifier type()
+        using Reader = Visitor<Reader<DataStream>>;
+        using Writer = Visitor<Writer<DataStream>>;
+        static constexpr SerializationIdentifier type()
         {
             return 2;
         }
 };
 
-
 template<>
 class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
+        VisitorVariant toVariant() { return {this, DataStream::type()}; }
+
         Visitor<Reader<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::WriteOnly}
         {
@@ -61,6 +68,7 @@ template<>
 class Visitor<Writer<DataStream>> : public AbstractVisitor
 {
     public:
+        VisitorVariant toVariant() { return {this, DataStream::type()}; }
         // TODO a const ref is sufficient here
         Visitor<Writer<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::ReadOnly}

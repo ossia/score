@@ -45,18 +45,16 @@ void Visitor<Writer<JSON>>::writeTo(AutomationModel& autom)
 
 
 
-void AutomationModel::serialize(SerializationIdentifier identifier,
-                                void* data) const
+void AutomationModel::serialize(const VisitorVariant& vis) const
 {
-    if(identifier == DataStream::type())
+    switch(vis.identifier)
     {
-        static_cast<Serializer<DataStream>*>(data)->readFrom(*this);
-        return;
-    }
-    else if(identifier == JSON::type())
-    {
-        static_cast<Serializer<JSON>*>(data)->readFrom(*this);
-        return;
+        case DataStream::type():
+            static_cast<DataStream::Reader*>(vis.visitor)->readFrom(*this);
+            return;
+        case JSON::type():
+            static_cast<JSON::Reader*>(vis.visitor)->readFrom(*this);
+            return;
     }
 
     throw std::runtime_error("AutomationModel only supports DataStream & JSON serialization");
@@ -64,41 +62,51 @@ void AutomationModel::serialize(SerializationIdentifier identifier,
 
 
 
-ProcessSharedModelInterface* AutomationFactory::makeModel(SerializationIdentifier identifier,
-        void* data,
+ProcessSharedModelInterface* AutomationFactory::makeModel(
+        const VisitorVariant& vis,
         QObject* parent)
 {
-    if(identifier == DataStream::type())
+    switch(vis.identifier)
     {
-        return new AutomationModel {*static_cast<Deserializer<DataStream>*>(data), parent};
-    }
-    else if(identifier == JSON::type())
-    {
-        return new AutomationModel {*static_cast<Deserializer<JSON>*>(data), parent};
+        case DataStream::type():
+            return new AutomationModel {
+                *static_cast<DataStream::Writer*>(vis.visitor),
+                parent};
+        case JSON::type():
+            return new AutomationModel {
+                *static_cast<JSON::Writer*>(vis.visitor),
+                parent};
     }
 
     throw std::runtime_error("Automation only supports DataStream & JSON serialization");
 }
 
-ProcessViewModelInterface* AutomationModel::makeViewModel(SerializationIdentifier identifier,
-        void* data,
+ProcessViewModelInterface* AutomationModel::makeViewModel(
+        const VisitorVariant& vis,
         QObject* parent)
 {
-    if(identifier == DataStream::type())
+    switch(vis.identifier)
     {
-        auto autom = new AutomationViewModel(*static_cast<Deserializer<DataStream>*>(data),
-                                             this,
-                                             parent);
-        addViewModel(autom);
-        return autom;
-    }
-    else if(identifier == JSON::type())
-    {
-        auto autom = new AutomationViewModel(*static_cast<Deserializer<JSON>*>(data),
-                                             this,
-                                             parent);
-        addViewModel(autom);
-        return autom;
+        case DataStream::type():
+        {
+            auto autom = new AutomationViewModel {
+                         *static_cast<DataStream::Writer*>(vis.visitor),
+                         this,
+                         parent};
+
+            addViewModel(autom);
+            return autom;
+        }
+        case JSON::type():
+        {
+            auto autom = new AutomationViewModel {
+                         *static_cast<JSON::Writer*>(vis.visitor),
+                         this,
+                         parent};
+
+            addViewModel(autom);
+            return autom;
+        }
     }
 
     throw std::runtime_error("Automation ViewModel only supports DataStream & JSON serialization");

@@ -18,46 +18,54 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
         // Save
-        virtual void serializeProtocolSpecificSettings(const QVariant& data, AbstractVisitor* visitor) const = 0;
+        virtual void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const = 0;
 
         template<typename T>
-        void serializeProtocolSpecificSettings_T(const QVariant& data, AbstractVisitor* visitor) const
+        void serializeProtocolSpecificSettings_T(const QVariant& data, const VisitorVariant& visitor) const
         {
-            if(auto ser = dynamic_cast<Visitor<Reader<DataStream>>*>(visitor))
+            switch(visitor.identifier)
             {
-                ser->readFrom(data.value<T>());
-            }
-            else if(auto ser = dynamic_cast<Visitor<Reader<JSON>>*>(visitor))
-            {
-                ser->readFrom(data.value<T>());
-            }
-            else
-            {
-                Q_ASSERT(false);
+                case DataStream::type():
+                {
+                    static_cast<DataStream::Reader*>(visitor.visitor)->readFrom(data.value<T>());
+                    break;
+                }
+                case JSON::type():
+                {
+                    static_cast<JSON::Reader*>(visitor.visitor)->readFrom(data.value<T>());
+                    break;
+                }
+                default:
+                    Q_ASSERT(false);
             }
         }
 
 
         // Load
-        virtual QVariant makeProtocolSpecificSettings(AbstractVisitor* visitor) const = 0;
+        virtual QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
 
         template<typename T>
-        QVariant makeProtocolSpecificSettings_T(AbstractVisitor* visitor) const
+        QVariant makeProtocolSpecificSettings_T(const VisitorVariant& visitor) const
         {
-            if(auto deser = dynamic_cast<Visitor<Writer<DataStream>>*>(visitor))
+            T settings;
+
+            switch(visitor.identifier)
             {
-                T settings;
-                deser->writeTo(settings);
-                return QVariant::fromValue(settings);
-            }
-            else if(auto deser = dynamic_cast<Visitor<Writer<JSON>>*>(visitor))
-            {
-                T settings;
-                deser->writeTo(settings);
-                return QVariant::fromValue(settings);
+                case DataStream::type():
+                {
+                    static_cast<DataStream::Writer*>(visitor.visitor)->writeTo(settings);
+                    break;
+                }
+                case JSON::type():
+                {
+                    static_cast<JSON::Writer*>(visitor.visitor)->writeTo(settings);
+                    break;
+                }
+                default:
+                    Q_ASSERT(false);
             }
 
-            Q_ASSERT(false);
+            return QVariant::fromValue(settings);
         }
 
 };
