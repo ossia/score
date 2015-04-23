@@ -16,8 +16,8 @@ template<> class Visitor<Writer<JSON>>;
 class JSON
 {
     public:
-        using Reader = Visitor<Reader<JSON>>;
-        using Writer = Visitor<Writer<JSON>>;
+        using Serializer = Visitor<Reader<JSON>>;
+        using Deserializer = Visitor<Writer<JSON>>;
         static constexpr SerializationIdentifier type()
         {
             return 1;
