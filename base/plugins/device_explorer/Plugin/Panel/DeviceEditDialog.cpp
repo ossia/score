@@ -52,10 +52,6 @@ DeviceEditDialog::buildGUI()
         Q_ASSERT(m_protocolCBox->currentIndex() == 0);
         updateProtocolWidget();
     }
-
-    //TODO ???
-    //connect(this, SIGNAL(accepted()), &updater, SLOT(update()));
-
 }
 
 void
@@ -99,14 +95,6 @@ DeviceEditDialog::updateProtocolWidget()
 
     if(m_protocolWidget)
     {
-        // TODO restore the old settings
-        /*
-        if(! m_previousSettings.at(m_index).empty())
-        {
-            m_protocolWidget->setSettings(m_previousSettings.at(m_index));
-        }
-        */
-
         m_gLayout->addWidget(m_protocolWidget, 1, 0, 1, 2);
         updateGeometry();
     }

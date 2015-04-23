@@ -130,7 +130,6 @@ AddressSettings AddressIntSettingsWidget::getSettings() const
 
     settings.addressSpecificSettings = QVariant::fromValue(is);
 
-    // TODO specific settings
     return settings;
 }
 

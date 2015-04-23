@@ -20,7 +20,7 @@ BaseElementModel::BaseElementModel(const VisitorVariant& vis,
     else if(vis.identifier == JSON::type())
     {
         auto des = static_cast<JSON::Deserializer*>(vis.visitor);
-        m_baseConstraint = new ConstraintModel{Deserializer<JSON>{des->m_obj["Data"].toObject()}, this};
+        m_baseConstraint = new ConstraintModel{Deserializer<JSON>{des->m_obj["Constraint"].toObject()}, this};
     }
     else
     {
@@ -43,6 +43,6 @@ void BaseElementModel::serialize(const VisitorVariant& vis) const
     {
         auto& ser = *static_cast<JSON::Serializer*>(vis.visitor);
         ser.readFrom(this->id());
-        ser.m_obj["Data"] = toJsonObject(*constraintModel());
+        ser.m_obj["Constraint"] = toJsonObject(*constraintModel());
     }
 }

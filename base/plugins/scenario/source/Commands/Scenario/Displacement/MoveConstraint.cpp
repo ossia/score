@@ -8,9 +8,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-// @todo : maybe should we use deplacement value and not absolute ending point.
-// @todo : don't allow too small translation on t axis, so user can move a constraint only on vertical, without changing any duration.
-
 MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
                                const id_type<ConstraintModel>& id,
                                const TimeValue& date,

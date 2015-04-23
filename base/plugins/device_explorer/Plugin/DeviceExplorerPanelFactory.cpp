@@ -75,8 +75,6 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
 {
     auto v = static_cast<DeviceExplorerPanelView*>(view());
     auto m = static_cast<DeviceExplorerPanelModel*>(model());
-
-    // TODO make a function to get the document here
     auto doc = IDocument::documentFromObject(model());
     m->m_model->setCommandQueue(&doc->commandStack());
     v->m_widget->setModel(m->m_model);
