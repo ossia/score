@@ -52,6 +52,7 @@ class Node
         float minValue() const;
         float maxValue() const;
         unsigned int priority() const;
+        QString tags() const;
 
         void setName(const QString& name);
         void setValue(const QString& value);
@@ -61,6 +62,7 @@ class Node
         void setMinValue(float minV);
         void setMaxValue(float maxV);
         void setPriority(unsigned int priority);
+        void setTags(const QString &tags);
 
         bool isSelectable() const; //TODO: or has a child of ioType != Node::In !!!
 
@@ -72,14 +74,14 @@ class Node
         const AddressSettings addressSettings();
         Node* clone() const;
 
-
-    protected:
+protected:
         QString m_name;
         QString m_value;
         IOType m_ioType {};
         float m_min {};
         float m_max {};
         unsigned int m_priority {};
+        QString m_tags;
         Node* m_parent {};
         QList<Node*> m_children;
 

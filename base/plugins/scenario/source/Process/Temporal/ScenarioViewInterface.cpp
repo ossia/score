@@ -48,7 +48,6 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
     // TODO mode fantome a revoir
 //    ev->view()->setMoving(m_presenter->ongoingCommand());
 
-    // @todo change when multiple event on a same timeNode
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
     timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
                               rect.height() * timeNode->model()->y()});
