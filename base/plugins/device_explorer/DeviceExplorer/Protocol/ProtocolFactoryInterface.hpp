@@ -27,12 +27,12 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
             {
                 case DataStream::type():
                 {
-                    static_cast<DataStream::Reader*>(visitor.visitor)->readFrom(data.value<T>());
+                    static_cast<DataStream::Serializer*>(visitor.visitor)->readFrom(data.value<T>());
                     break;
                 }
                 case JSON::type():
                 {
-                    static_cast<JSON::Reader*>(visitor.visitor)->readFrom(data.value<T>());
+                    static_cast<JSON::Serializer*>(visitor.visitor)->readFrom(data.value<T>());
                     break;
                 }
                 default:
@@ -53,12 +53,12 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
             {
                 case DataStream::type():
                 {
-                    static_cast<DataStream::Writer*>(visitor.visitor)->writeTo(settings);
+                    static_cast<DataStream::Deserializer*>(visitor.visitor)->writeTo(settings);
                     break;
                 }
                 case JSON::type():
                 {
-                    static_cast<JSON::Writer*>(visitor.visitor)->writeTo(settings);
+                    static_cast<JSON::Deserializer*>(visitor.visitor)->writeTo(settings);
                     break;
                 }
                 default:

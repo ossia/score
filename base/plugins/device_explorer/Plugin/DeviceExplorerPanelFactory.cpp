@@ -44,14 +44,14 @@ void DeviceExplorerPanelModel::serialize(const VisitorVariant &vis) const
 {
     if(vis.identifier == DataStream::type())
     {
-        auto& ser = *static_cast<DataStream::Reader*>(vis.visitor);
+        auto& ser = *static_cast<DataStream::Serializer*>(vis.visitor);
         ser.m_stream << (bool) m_model->rootNode();
         if(m_model->rootNode())
             ser.readFrom(*m_model->rootNode());
     }
     else if(vis.identifier == JSON::type())
     {
-        auto& ser = *static_cast<JSON::Reader*>(vis.visitor);
+        auto& ser = *static_cast<JSON::Serializer*>(vis.visitor);
         if(m_model->rootNode())
             ser.readFrom(*m_model->rootNode());
     }

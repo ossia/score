@@ -10,8 +10,8 @@ template<> class Visitor<Writer<DataStream>>;
 class DataStream
 {
     public:
-        using Reader = Visitor<Reader<DataStream>>;
-        using Writer = Visitor<Writer<DataStream>>;
+        using Serializer = Visitor<Reader<DataStream>>;
+        using Deserializer = Visitor<Writer<DataStream>>;
         static constexpr SerializationIdentifier type()
         {
             return 2;

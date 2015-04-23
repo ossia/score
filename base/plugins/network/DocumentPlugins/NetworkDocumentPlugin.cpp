@@ -75,9 +75,9 @@ NetworkDocumentPlugin::makeElementPlugin(const QString& str,
         switch(vis.identifier)
         {
             case DataStream::type():
-                return new GroupMetadata(*static_cast<DataStream::Writer*>(vis.visitor), parent);
+                return new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor), parent);
             case JSON::type():
-                return new GroupMetadata(*static_cast<JSON::Writer*>(vis.visitor), parent);
+                return new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor), parent);
         }
     }
     return nullptr;

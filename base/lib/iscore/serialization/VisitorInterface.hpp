@@ -29,6 +29,6 @@ using SerializationIdentifier = int;
 
 struct VisitorVariant
 {
-        AbstractVisitor* visitor{};
+        AbstractVisitor* visitor;
         SerializationIdentifier identifier;
 };

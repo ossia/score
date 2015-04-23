@@ -137,7 +137,7 @@ DocumentModel::DocumentModel(const QVariant& data,
             // Note : here we handle the case where the plug-in is not able to
             // load data; generally because it is not useful (e.g. undo panel model...)
 
-            DataStream::Writer panel_writer{panel.second};
+            DataStream::Deserializer panel_writer{panel.second};
             if(auto pnl = factory->makeModel(panel_writer.toVariant(), this))
                 addPanel(pnl);
             else
@@ -148,7 +148,7 @@ DocumentModel::DocumentModel(const QVariant& data,
 
         // Load the document model
 
-        DataStream::Writer doc_writer{doc};
+        DataStream::Deserializer doc_writer{doc};
         m_model = fact->makeModel(doc_writer.toVariant(), this);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
@@ -167,7 +167,7 @@ DocumentModel::DocumentModel(const QVariant& data,
                 // Note : here we handle the case where the plug-in is not able to
                 // load data; generally because it is not useful (e.g. undo panel model...)
 
-                JSON::Writer panel_writer{json[key].toObject()};
+                JSON::Deserializer panel_writer{json[key].toObject()};
                 if(auto pnl = factory->makeModel(panel_writer.toVariant(), this))
                     addPanel(pnl);
                 else
@@ -177,7 +177,7 @@ DocumentModel::DocumentModel(const QVariant& data,
 
         qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
 
-        JSON::Writer doc_writer{json["Document"].toObject()};
+        JSON::Deserializer doc_writer{json["Document"].toObject()};
         m_model = fact->makeModel(doc_writer.toVariant(), this);
     }
     else
