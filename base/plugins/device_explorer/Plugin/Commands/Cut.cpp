@@ -42,6 +42,10 @@ Cut::undo()
     {
         //we undo a cut of the previous last child
         index = parentIndex.child(m_row - 1, 0);
+        if(!index.isValid())
+        {
+            index = parentIndex;
+        }
         Q_ASSERT(index.isValid());
         result = m_model->pasteAfter_aux(index);
     }

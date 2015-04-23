@@ -5,7 +5,7 @@
 using namespace DeviceExplorer::Command;
 
 const char* AddAddress::className() { return "AddAddress"; }
-QString AddAddress::description() { return "TODO"; }
+QString AddAddress::description() { return "Add an address"; }
 
 AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",

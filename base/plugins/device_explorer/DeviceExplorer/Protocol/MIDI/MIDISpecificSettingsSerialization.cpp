@@ -6,7 +6,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const MIDISpecificSettings& n)
 {
-    m_stream << static_cast<int>(n.io);
+    m_stream << static_cast<int>(n.io) << endpoint;
     insertDelimiter();
 }
 
@@ -14,7 +14,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(MIDISpecificSettings& n)
 {
     int io;
-    m_stream >> io;
+    m_stream >> io >> endpoint;
     n.io = static_cast<MIDISpecificSettings::IO>(io);
     checkDelimiter();
 }

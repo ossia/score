@@ -40,6 +40,7 @@ void View::addDocumentView(DocumentView* doc)
     doc->setParent(this);
     m_tabWidget->addTab(doc, "Document");
     m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
+    m_tabWidget->setTabsClosable(true);
 }
 
 
