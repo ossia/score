@@ -10,11 +10,10 @@ class GroupMetadata : public iscore::ElementPluginModel
 {
         Q_OBJECT
 
-    id_type<Group> m_id;
     public:
         static constexpr const char* staticPluginName() { return "Network"; }
 
-        GroupMetadata(id_type<Group> id, QObject* parent);
+        GroupMetadata(const QString& str, id_type<Group> id, QObject* parent);
         GroupMetadata* clone(QObject* parent) const override;
 
         template<typename DeserializerVisitor>
@@ -24,17 +23,22 @@ class GroupMetadata : public iscore::ElementPluginModel
             vis.writeTo(*this);
         }
 
-
         QString plugin() const override;
-
         virtual void serialize(const VisitorVariant&) const override;
 
         const auto& id() const
         { return m_id; }
+
+        QString parentName() const
+        { return m_parentName; }
 
     signals:
         void groupChanged(id_type<Group>);
 
     public slots:
         void setGroup(const id_type<Group>& id);
+
+    private:
+        QString m_parentName;
+        id_type<Group> m_id;
 };

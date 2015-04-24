@@ -17,7 +17,7 @@ GroupWidget::GroupWidget(Group* group, QWidget* parent):
     auto remove = new QPushButton(QObject::tr("Remove"));
     lay->addWidget(remove);
 
-    // TODO connect
+    // TODO connect add/remove group
 }
 
 id_type<Group> GroupWidget::id() const

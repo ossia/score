@@ -8,8 +8,10 @@ class ChangeConstraintGroup : public ChangeGroup<ConstraintModel>
     public:
         template<typename... Args>
         ChangeConstraintGroup(Args&&... args):
-            ChangeGroup<ConstraintModel>{std::forward<Args>(args), "ChangeConstraintGroup", "ChangeConstraintGroup_desc"}
+            ChangeGroup<ConstraintModel>{std::forward<Args>(args)...,
+                                         "ChangeConstraintGroup",
+                                         "ChangeConstraintGroup_desc"}
         {
 
         }
-}
+};

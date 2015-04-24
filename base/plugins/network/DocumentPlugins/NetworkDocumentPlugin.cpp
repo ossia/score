@@ -42,7 +42,7 @@ QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
         const iscore::ElementPluginModel *var,
         QWidget* widg) const
 {
-    return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var), widg);
+    return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var), m_groups, widg);
 }
 
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
@@ -58,7 +58,7 @@ NetworkDocumentPlugin::makeElementPlugin(const QString &str,
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        auto plug = new GroupMetadata{m_groups->defaultGroup(), parent};
+        auto plug = new GroupMetadata{str, m_groups->defaultGroup(), parent};
 
         setupGroupPlugin(plug);
 
@@ -79,10 +79,12 @@ NetworkDocumentPlugin::makeElementPlugin(const QString& str,
         switch(vis.identifier)
         {
             case DataStream::type():
-                plug = new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor), parent);
+                plug = new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor),
+                                         parent);
                 break;
             case JSON::type():
-                plug = new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor), parent);
+                plug = new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor),
+                                         parent);
                 break;
         }
 

@@ -1,8 +1,9 @@
 #include "GroupMetadata.hpp"
 
 
-GroupMetadata::GroupMetadata(id_type<Group> id, QObject* parent):
+GroupMetadata::GroupMetadata(const QString& parentName, id_type<Group> id, QObject* parent):
     iscore::ElementPluginModel{parent},
+    m_parentName{parentName},
     m_id{id}
 {
 
@@ -10,7 +11,7 @@ GroupMetadata::GroupMetadata(id_type<Group> id, QObject* parent):
 
 GroupMetadata* GroupMetadata::clone(QObject *parent) const
 {
-    auto grp = new GroupMetadata{this->id(), parent};
+    auto grp = new GroupMetadata{parentName(), this->id(), parent};
     return grp;
 }
 
