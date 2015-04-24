@@ -85,23 +85,33 @@ class GroupManager : public IdentifiedObject<GroupManager>
         void addGroup(Group* group)
         {
             m_groups.push_back(group);
-            emit groupsChanged();
+            emit groupAdded(group->id());
         }
 
         void removeGroup(id_type<Group> group)
         {
-            qDebug() << Q_FUNC_INFO << "TODO";
-            emit groupsChanged();
+            using namespace std;
+
+            auto it = find(begin(m_groups), end(m_groups), group);
+            m_groups.erase(it);
+
+            emit groupRemoved(group);
+
+            (*it)->deleteLater();
         }
 
         const auto& groups() const
         { return m_groups; }
 
+        auto defaultGroup() const
+        { return m_groups[0]->id(); }
+
         auto group(const id_type<Group>& id) const
         { return *std::find(std::begin(m_groups), std::end(m_groups), id); }
 
     signals:
-        void groupsChanged();
+        void groupAdded(id_type<Group>);
+        void groupRemoved(id_type<Group>);
 
     private:
         std::vector<Group*> m_groups;

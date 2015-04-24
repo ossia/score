@@ -40,16 +40,44 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
 class GroupMetadataWidget : public QWidget
 {
     public:
-        GroupMetadataWidget(const GroupMetadata& groupmetadata)
+        GroupMetadataWidget(const GroupMetadata& groupmetadata, QWidget* widg):
+            QWidget{widg}
         {
             this->setLayout(new QVBoxLayout);
-            this->layout()->addWidget(new QLabel{QString::number(groupmetadata.id().val().get())});
+
+            connect(&groupmetadata, &GroupMetadata::groupChanged,
+                    this, [=] (const id_type<Group>& grp)
+            {
+                updateLabel(grp);
+            });
+
+            updateLabel(groupmetadata.id());
         }
+
+    private:
+        void updateLabel(const id_type<Group>& id)
+        {
+            delete m_label;
+            m_label = new QLabel{"Group: " + QString::number(id.val().get())};
+
+            this->layout()->addWidget(m_label);
+        }
+
+        QLabel* m_label{};
 };
 
-QWidget *NetworkDocumentPlugin::makeElementPluginWidget(const iscore::ElementPluginModel *var) const
+QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
+        const iscore::ElementPluginModel *var,
+        QWidget* widg) const
 {
-    return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var));
+    return new GroupMetadataWidget(static_cast<const GroupMetadata&>(*var), widg);
+}
+
+void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
+{
+    connect(m_groups, &GroupManager::groupRemoved,
+            plug, [=] (const id_type<Group>& id)
+    { if(plug->id() == id) plug->setGroup(m_groups->defaultGroup()); });
 }
 
 iscore::ElementPluginModel*
@@ -58,8 +86,11 @@ NetworkDocumentPlugin::makeElementPlugin(const QString &str,
 {
     if(str == "ConstraintModel" || str == "EventModel")
     {
-        return new GroupMetadata{m_groups->groups()[0]->id(), parent};
-        qDebug() << Q_FUNC_INFO << "todo connect";
+        auto plug = new GroupMetadata{m_groups->defaultGroup(), parent};
+
+        setupGroupPlugin(plug);
+
+        return plug;
     }
 
     return nullptr;
@@ -70,17 +101,24 @@ NetworkDocumentPlugin::makeElementPlugin(const QString& str,
                                          const VisitorVariant& vis,
                                          QObject* parent)
 {
+    GroupMetadata* plug{};
     if(str == "ConstraintModel" || str == "EventModel")
     {
         switch(vis.identifier)
         {
             case DataStream::type():
-                return new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor), parent);
+                plug = new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor), parent);
+                break;
             case JSON::type():
-                return new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor), parent);
+                plug = new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor), parent);
+                break;
         }
+
+        if(plug)
+            setupGroupPlugin(plug);
     }
-    return nullptr;
+
+    return plug;
 }
 
 
@@ -88,8 +126,9 @@ iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(iscore::El
 {
     if(elt->plugin() == GroupMetadata::staticPluginName())
     {
-        qDebug() << Q_FUNC_INFO << "todo connect";
-        return elt->clone(parent);
+        auto newelt = static_cast<GroupMetadata*>(elt)->clone(parent);
+        setupGroupPlugin(newelt);
+        return newelt;
     }
 
     return nullptr;

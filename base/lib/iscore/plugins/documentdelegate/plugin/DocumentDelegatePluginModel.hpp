@@ -26,7 +26,7 @@ class DocumentDelegatePluginModel : public NamedObject
                 iscore::ElementPluginModel*,
                 QObject* parent) = 0;
 
-        virtual QWidget* makeElementPluginWidget(const ElementPluginModel*) const = 0;
+        virtual QWidget* makeElementPluginWidget(const ElementPluginModel*, QWidget* parent) const = 0;
 
         virtual void serialize(const VisitorVariant&) const = 0;
 };

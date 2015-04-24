@@ -108,6 +108,24 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     m_properties.push_back(m_boxSection);
     m_properties.push_back(m_boxWidget);
 
+    // Plugins
+    iscore::Document* doc = iscore::IDocument::documentFromObject(object);
+
+    for(auto& plugdata : object->pluginModelList().list())
+    {
+        for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        {
+            auto md = plugin->makeElementPluginWidget(plugdata, this);
+            if(md)
+            {
+                m_properties.push_back(md);
+                break;
+            }
+        }
+    }
+
+
+
     // Display data
     updateSectionsView(areaLayout(), m_properties);
     areaLayout()->addStretch(1);

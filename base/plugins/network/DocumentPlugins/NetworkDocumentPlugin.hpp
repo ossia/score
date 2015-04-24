@@ -43,7 +43,7 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
                 QObject* parent) override;
 
         virtual QWidget *makeElementPluginWidget(
-                const iscore::ElementPluginModel*) const override;
+                const iscore::ElementPluginModel*, QWidget* widg) const override;
 
         void serialize(const VisitorVariant&) const override
         {
@@ -57,6 +57,8 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         auto policy() const { return m_policy; }
 
     private:
+        void setupGroupPlugin(GroupMetadata* grp);
+
         NetworkPluginPolicy* m_policy;
         GroupManager* m_groups;
 

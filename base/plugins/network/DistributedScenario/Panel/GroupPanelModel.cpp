@@ -21,7 +21,6 @@ GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
 
 void GroupPanelModel::scanPlugins()
 {
-    qDebug(Q_FUNC_INFO);
     m_currentManager = nullptr;
     auto pluginModels = static_cast<iscore::DocumentModel*>(parent())->pluginModels();
     for(auto& plug : pluginModels)

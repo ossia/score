@@ -8,7 +8,7 @@ GroupMetadata::GroupMetadata(id_type<Group> id, QObject* parent):
 
 }
 
-iscore::ElementPluginModel *GroupMetadata::clone(QObject *parent) const
+GroupMetadata* GroupMetadata::clone(QObject *parent) const
 {
     auto grp = new GroupMetadata{this->id(), parent};
     return grp;
@@ -40,6 +40,6 @@ void GroupMetadata::setGroup(const id_type<Group>& id)
     if(id != m_id)
     {
         m_id = id;
-        emit groupChanged();
+        emit groupChanged(id);
     }
 }

@@ -11,12 +11,14 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QTableWidget>
 #include "GroupTableCheckbox.hpp"
 #include "GroupPanelModel.hpp"
 
 #include "DistributedScenario/Commands/AddClientToGroup.hpp"
 #include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
+#include "DistributedScenario/Commands/CreateGroup.hpp"
 
 #include <iscore/command/OngoingCommandManager.hpp>
 class GroupHeaderItem : public QTableWidgetItem
@@ -52,12 +54,14 @@ class GroupTableWidget : public QWidget
         QTableWidget* m_table{new QTableWidget};
 
     public:
+#include "DistributedScenario/Commands/CreateGroup.hpp"
         GroupTableWidget(const GroupManager* mgr, const Session* session, QWidget* parent):
             QWidget{parent},
             m_mgr{mgr},
             m_session{session}
         {
-            connect(m_mgr, &GroupManager::groupsChanged, this, &GroupTableWidget::setup);
+            connect(m_mgr, &GroupManager::groupAdded, this, &GroupTableWidget::setup);
+            connect(m_mgr, &GroupManager::groupRemoved, this, &GroupTableWidget::setup);
             connect(m_session, &Session::clientsChanged, this, &GroupTableWidget::setup);
 
             this->setLayout(new QGridLayout);
@@ -70,7 +74,7 @@ class GroupTableWidget : public QWidget
         void setup()
         {
             // Groups
-            for(int i = 0; i < m_mgr->groups().size(); i++)
+            for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
             {
                 m_table->insertColumn(i);
                 m_table->setHorizontalHeaderItem(i, new GroupHeaderItem{*m_mgr->groups()[i]});
@@ -88,7 +92,7 @@ class GroupTableWidget : public QWidget
 
             //Set the data
             using namespace std;
-            for(int i = 0; i < m_mgr->groups().size(); i++)
+            for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
             {
                 for(int j = 0; j < m_session->remoteClients().size() + 1; j++)
                 {
@@ -144,7 +148,7 @@ class GroupTableWidget : public QWidget
                 Q_ASSERT(false);
             };
 
-            for(int i = 0; i < m_mgr->groups().size(); i++)
+            for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
             {
                 connect(m_mgr->groups()[i], &Group::clientAdded,
                         m_groupConnectionContext, [=] (id_type<Client> addedClient)
@@ -168,15 +172,14 @@ class GroupTableWidget : public QWidget
 
         ObjectPath m_managerPath{iscore::IDocument::path(m_mgr)};
         CommandDispatcher<> m_dispatcher{iscore::IDocument::documentFromObject(m_mgr)->commandStack(), nullptr};
-
-
 };
 
 class GroupWidget : public QWidget
 {
     public:
         GroupWidget(Group* group, QWidget* parent):
-            QWidget{parent}
+            QWidget{parent},
+            m_group{group}
         {
             auto lay = new QHBoxLayout{this};
             lay->addWidget(new QLabel{group->name()});
@@ -187,6 +190,57 @@ class GroupWidget : public QWidget
             auto remove = new QPushButton(QObject::tr("Remove"));
             lay->addWidget(remove);
         }
+
+        auto id() const
+        { return m_group->id(); }
+
+    private:
+        Group* m_group;
+};
+
+
+class GroupListWidget : public QWidget
+{
+    public:
+        GroupListWidget(const GroupManager* mgr, QWidget* parent):
+            QWidget{parent},
+            m_mgr{mgr}
+        {
+            this->setLayout(new QVBoxLayout);
+            for(auto& group : m_mgr->groups())
+            {
+                auto widg = new GroupWidget{group, this};
+                this->layout()->addWidget(widg);
+                m_widgets.append(widg);
+            }
+
+            connect(m_mgr, &GroupManager::groupAdded, this, &GroupListWidget::addGroup);
+            connect(m_mgr, &GroupManager::groupRemoved, this, &GroupListWidget::removeGroup);
+        }
+
+    private:
+        void addGroup(const id_type<Group>& id)
+        {
+            auto widg = new GroupWidget{m_mgr->group(id), this};
+            this->layout()->addWidget(widg);
+            m_widgets.append(widg);
+        }
+
+        void removeGroup(const id_type<Group>& id)
+        {
+            using namespace std;
+            auto it = find_if(begin(m_widgets),
+                              end(m_widgets),
+                              [&] (GroupWidget* widg)
+            { return widg->id() == id; } );
+
+            m_widgets.removeOne(*it);
+            delete *it;
+
+        }
+
+        const GroupManager* m_mgr{};
+        QList<GroupWidget*> m_widgets;
 };
 
 class GroupPanelView : public iscore::PanelViewInterface
@@ -208,21 +262,49 @@ class GroupPanelView : public iscore::PanelViewInterface
 
         void setView(const GroupManager* mgr, const Session* session)
         {
-            for(auto& group : mgr->groups())
-            {
-                m_widget->layout()->addWidget(new GroupWidget{group, m_widget});
-            }
+            // Make the containing widget
+            delete m_subWidget;
+            m_subWidget = new QWidget;
 
-            m_widget->layout()->addWidget(new GroupTableWidget{mgr, session, m_widget});
+            auto lay = new QVBoxLayout;
+            m_subWidget->setLayout(lay);
+
+            m_widget->layout()->addWidget(m_subWidget);
+
+            // The sub-widgets (group data presentation)
+            m_widget->layout()->addWidget(new GroupListWidget{mgr, m_subWidget});
+
+            // Add group button
+            auto button = new QPushButton{tr("Add group")};
+            ObjectPath mgrpath{iscore::IDocument::path(mgr)};
+            connect(button, &QPushButton::pressed, this, [=] ( )
+            {
+                bool ok;
+                QString text = QInputDialog::getText(m_widget, tr("New group"),
+                                                     tr("Group name:"), QLineEdit::Normal, "", &ok);
+                if (ok && !text.isEmpty())
+                {
+                    auto cmd = new CreateGroup{ObjectPath{mgrpath}, text};
+
+                    CommandDispatcher<> dispatcher{
+                        iscore::IDocument::documentFromObject(mgr)->commandStack(),
+                                nullptr};
+                    dispatcher.submitCommand(cmd);
+                }
+            });
+            m_subWidget->layout()->addWidget(button);
+
+            // Group table
+            m_subWidget->layout()->addWidget(new GroupTableWidget{mgr, session, m_widget});
         }
 
         void setEmptyView()
         {
-
+            delete m_subWidget;
         }
 
     private:
-        QWidget* m_widget{};
+        QWidget* m_widget{}, *m_subWidget{};
 };
 
 

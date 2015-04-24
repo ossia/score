@@ -24,7 +24,7 @@ class CreateGroup : public iscore::SerializableCommand
         virtual void redo() override
         {
             auto mgr = m_path.find<GroupManager>();
-            mgr->addGroup(new Group{groupName, m_newGroupId, mgr});
+            mgr->addGroup(new Group{m_name, m_newGroupId, mgr});
         }
 
         virtual bool mergeWith(const iscore::Command*) override
