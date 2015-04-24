@@ -1,13 +1,26 @@
 #pragma once
+#include <iscore/plugins/panel/PanelViewInterface.hpp>
+class GroupManager;
+class Session;
 
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+namespace iscore
+{
+    class View;
+}
 
-class GroupPanelFactory : public iscore::PanelFactoryInterface
+class GroupPanelView : public iscore::PanelViewInterface
 {
     public:
-        QString name() const override { return "GroupPanelModel"; }
-        virtual iscore::PanelViewInterface* makeView(iscore::View*) override;
-        virtual iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
-                                                               iscore::PanelViewInterface* view) override;
-        virtual iscore::PanelModelInterface* makeModel(iscore::DocumentModel*) override;
+        GroupPanelView(iscore::View* v);
+
+        QWidget* getWidget() override;
+        Qt::DockWidgetArea defaultDock() const override;
+
+        void setView(const GroupManager* mgr,
+                     const Session* session);
+
+        void setEmptyView();
+
+    private:
+        QWidget* m_widget{}, *m_subWidget{};
 };

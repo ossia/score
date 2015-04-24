@@ -1,7 +1,7 @@
 #include <NetworkPlugin.hpp>
 #include <NetworkControl.hpp>
 #include <settings_impl/NetworkSettings.hpp>
-#include "DistributedScenario/Panel/GroupPanelView.hpp"
+#include "DistributedScenario/Panel/GroupPanelFactory.hpp"
 
 #include "DistributedScenario/Group.hpp"
 #define PROCESS_NAME "Network Process"
