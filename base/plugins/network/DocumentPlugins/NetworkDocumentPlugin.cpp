@@ -1,5 +1,6 @@
 #include "NetworkDocumentPlugin.hpp"
 #include "Repartition/session/Session.hpp"
+#include "DistributedScenario/GroupManager.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Event/EventModel.hpp"

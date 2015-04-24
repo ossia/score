@@ -1,5 +1,5 @@
 #include "GroupListWidget.hpp"
-#include "DistributedScenario/Group.hpp"
+#include "DistributedScenario/GroupManager.hpp"
 #include "GroupWidget.hpp"
 
 #include <QVBoxLayout>

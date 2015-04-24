@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include "DistributedScenario/Group.hpp"
+#include "DistributedScenario/GroupManager.hpp"
 
 class AddClientToGroup : public iscore::SerializableCommand
 {

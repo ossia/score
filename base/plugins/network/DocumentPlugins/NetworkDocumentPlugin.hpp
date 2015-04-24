@@ -8,6 +8,8 @@ class NetworkControl;
 class ClientSession;
 class MasterSession;
 class Session;
+class GroupManager;
+
 namespace iscore
 {
     class Document;
