@@ -31,7 +31,6 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QStateMachine>
-// TODO use state machine for selection (ctrl / not ctrl)
 #include <QtMath>
 #include "iscore/command/SerializableCommand.hpp"
 #include <iscore/document/DocumentInterface.hpp>

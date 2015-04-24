@@ -274,13 +274,14 @@ QString JSONToZeroTwo(QJsonObject base)
 
         if(protocol == "OSC")
         {
-//            QString port = dev.toObject()["InputPort"].toString() + QString("u ") + device[3].toString() + QString("u");
-            // TODO : mettre les deviceSettings dans le JSON !!
-            QString port = QString("9997u 9996u");
+            auto devSettings = dev.toObject()["DeviceSettings"].toObject();
+            QString port = QString::number(devSettings["InputPort"].toInt()) + QString("u ");
+            port += QString::number(devSettings["OutputPort"].toInt()) + QString("u");
+
+            QString host = devSettings["Host"].toString();
 
             QDomElement oscDev = domdoc.createElement(devName);
- //           oscDev.setAttribute("ip", device[4].toString());
-            oscDev.setAttribute("ip", QString("127.0.0.1"));
+             oscDev.setAttribute("ip", host);
             oscDev.setAttribute("port", port);
             osc.appendChild(oscDev);
         }
@@ -295,8 +296,9 @@ QString JSONToZeroTwo(QJsonObject base)
 
 
     QJsonObject scenar = base["Document"].toObject();
+    QJsonObject mainCstr = scenar["Constraint"].toObject();
 
-    QJsonArray processes = scenar["Processes"].toArray();
+    QJsonArray processes = mainCstr["Processes"].toArray();
 
     for(auto process : processes)
     {

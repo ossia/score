@@ -152,6 +152,11 @@ unsigned int Node::priority() const
     return m_priority;
 }
 
+QString Node::tags() const
+{
+    return m_tags;
+}
+
 /* *************************************************************
  * COLUMNS MODIFIERS
  * ************************************************************/
@@ -266,6 +271,12 @@ void Node::setPriority(unsigned int priority)
     m_addressSettings.priority = priority;
 }
 
+void Node::setTags(const QString &tags)
+{
+    m_tags = tags;
+    m_addressSettings.tags = tags;
+}
+
 // ******************************************************************
 
 bool Node::isSelectable() const
@@ -306,18 +317,34 @@ void Node::setAddressSettings(const AddressSettings &settings)
     setValueType(settings.valueType);
     setIOType(settings.ioType);
     setPriority(settings.priority);
+    setTags(settings.tags);
 
     if(settings.addressSpecificSettings.canConvert<AddressFloatSettings>())
     {
         AddressFloatSettings fs = settings.addressSpecificSettings.value<AddressFloatSettings>();
         setMaxValue(fs.max);
         setMinValue(fs.min);
+
+        if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+        {
+            AddressFloatSettings mfs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
+            mfs.clipMode = fs.clipMode;
+            mfs.unit = fs.unit;
+            m_addressSettings.addressSpecificSettings = QVariant::fromValue(mfs);
+        }
     }
     else if(settings.addressSpecificSettings.canConvert<AddressIntSettings>())
     {
         AddressIntSettings is = settings.addressSpecificSettings.value<AddressIntSettings>();
         setMaxValue(is.max);
         setMinValue(is.min);
+        if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+        {
+            AddressIntSettings mis = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
+            mis.clipMode = is.clipMode;
+            mis.unit = is.unit;
+            m_addressSettings.addressSpecificSettings = QVariant::fromValue(mis);
+        }
     }
 
     if(settings.value.canConvert<float>())
@@ -330,8 +357,6 @@ void Node::setAddressSettings(const AddressSettings &settings)
         int i = settings.value.value<int>();
         setValue(QString::number(i));
     }
-
-    m_addressSettings = settings; // TODO : si tous les set sont bien fait, pas necessaires
 }
 
 const AddressSettings Node::addressSettings()
@@ -357,13 +382,12 @@ Node* Node::clone() const
     return n;
 }
 
-
 #include <QDebug>
 namespace
 {
-    void setIOType(Node* n, const QString& type)
-    {
-        Q_ASSERT(n);
+void setIOType(Node* n, const QString& type)
+{
+    Q_ASSERT(n);
 
         if(type == "In")
         {

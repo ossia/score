@@ -5,7 +5,7 @@
 using namespace DeviceExplorer::Command;
 
 const char* EditData::className() { return "EditData"; }
-QString EditData::description() { return "TODO"; }
+QString EditData::description() { return "Edit data"; }
 
 EditData::EditData(ObjectPath &&device_tree, QModelIndex index, QVariant value, int role):
     iscore::SerializableCommand{"DeviceExplorerControl",
