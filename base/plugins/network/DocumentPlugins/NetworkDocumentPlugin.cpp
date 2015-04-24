@@ -8,6 +8,8 @@
 
 #include <core/document/DocumentModel.hpp>
 
+#include "DistributedScenario/GroupMetadataWidget.hpp"
+
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore::Document *doc):
     iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc->model()},
@@ -35,37 +37,6 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
             event->pluginModelList().add(makeElementPlugin("EventModel", &event->pluginModelList()));
     }
 }
-
-#include <QVBoxLayout>
-#include <QLabel>
-class GroupMetadataWidget : public QWidget
-{
-    public:
-        GroupMetadataWidget(const GroupMetadata& groupmetadata, QWidget* widg):
-            QWidget{widg}
-        {
-            this->setLayout(new QVBoxLayout);
-
-            connect(&groupmetadata, &GroupMetadata::groupChanged,
-                    this, [=] (const id_type<Group>& grp)
-            {
-                updateLabel(grp);
-            });
-
-            updateLabel(groupmetadata.id());
-        }
-
-    private:
-        void updateLabel(const id_type<Group>& id)
-        {
-            delete m_label;
-            m_label = new QLabel{"Group: " + QString::number(id.val().get())};
-
-            this->layout()->addWidget(m_label);
-        }
-
-        QLabel* m_label{};
-};
 
 QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
         const iscore::ElementPluginModel *var,
