@@ -20,7 +20,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelL
 
     for(; plugin_count -- > 0;)
     {
-        elts.add(deserializeElementPluginModel(*this, elts.parentObjectName(), &elts));
+        elts.add(deserializeElementPluginModel(*this, elts.parent(), &elts)); // Note : QObject::parent() is dangerous.
     }
 
     checkDelimiter();
@@ -39,6 +39,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(iscore::ElementPluginModelList& e
     {
         Deserializer<JSON> deserializer{json_vref.toObject()};
 
-        elts.add(deserializeElementPluginModel(deserializer, elts.parentObjectName(), &elts));
+        elts.add(deserializeElementPluginModel(deserializer, elts.parent(), &elts));
     }
 }

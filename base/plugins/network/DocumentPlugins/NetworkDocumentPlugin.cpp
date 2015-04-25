@@ -28,13 +28,15 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy, iscore
     for(ConstraintModel* constraint : constraints)
     {
         if(constraint->pluginModelList().canAdd(metadataName()))
-            constraint->pluginModelList().add(makeElementPlugin("ConstraintModel", &constraint->pluginModelList()));
+            constraint->pluginModelList().add(makeElementPlugin(constraint, &constraint->pluginModelList()));
     }
     auto events = doc->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
         if(event->pluginModelList().canAdd(metadataName()))
-            event->pluginModelList().add(makeElementPlugin("EventModel", &event->pluginModelList()));
+        {
+            event->pluginModelList().add(makeElementPlugin(event, &event->pluginModelList()));
+        }
     }
 }
 
@@ -49,16 +51,18 @@ void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
 {
     connect(m_groups, &GroupManager::groupRemoved,
             plug, [=] (const id_type<Group>& id)
-    { if(plug->id() == id) plug->setGroup(m_groups->defaultGroup()); });
+    { if(plug->group() == id) plug->setGroup(m_groups->defaultGroup()); });
 }
 
 iscore::ElementPluginModel*
-NetworkDocumentPlugin::makeElementPlugin(const QString &str,
-                                         QObject* parent)
+NetworkDocumentPlugin::makeElementPlugin(
+        const QObject* element,
+        QObject* parent)
 {
-    if(str == "ConstraintModel" || str == "EventModel")
+    if((element->metaObject()->className() == QString{"ConstraintModel"})
+    || (element->metaObject()->className() == QString{"EventModel"}))
     {
-        auto plug = new GroupMetadata{str, m_groups->defaultGroup(), parent};
+        auto plug = new GroupMetadata{element, m_groups->defaultGroup(), parent};
 
         setupGroupPlugin(plug);
 
@@ -69,22 +73,28 @@ NetworkDocumentPlugin::makeElementPlugin(const QString &str,
 }
 
 iscore::ElementPluginModel*
-NetworkDocumentPlugin::makeElementPlugin(const QString& str,
-                                         const VisitorVariant& vis,
-                                         QObject* parent)
+NetworkDocumentPlugin::makeElementPlugin(
+        const QObject* element,
+        const VisitorVariant& vis,
+        QObject* parent)
 {
     GroupMetadata* plug{};
-    if(str == "ConstraintModel" || str == "EventModel")
+    if(element->staticMetaObject.className() == QString{"ConstraintModel"}
+    || element->staticMetaObject.className() == QString{"EventModel"})
     {
         switch(vis.identifier)
         {
             case DataStream::type():
-                plug = new GroupMetadata(*static_cast<DataStream::Deserializer*>(vis.visitor),
-                                         parent);
+                plug = new GroupMetadata{
+                            element,
+                            *static_cast<DataStream::Deserializer*>(vis.visitor),
+                            parent};
                 break;
             case JSON::type():
-                plug = new GroupMetadata(*static_cast<JSON::Deserializer*>(vis.visitor),
-                                         parent);
+                plug = new GroupMetadata{
+                            element,
+                            *static_cast<JSON::Deserializer*>(vis.visitor),
+                            parent};
                 break;
         }
 
@@ -96,11 +106,14 @@ NetworkDocumentPlugin::makeElementPlugin(const QString& str,
 }
 
 
-iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(iscore::ElementPluginModel* elt, QObject *parent)
+iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(
+        const QObject* element,
+        iscore::ElementPluginModel* elt,
+        QObject *parent)
 {
     if(elt->plugin() == GroupMetadata::staticPluginName())
     {
-        auto newelt = static_cast<GroupMetadata*>(elt)->clone(parent);
+        auto newelt = static_cast<GroupMetadata*>(elt)->clone(element, parent);
         setupGroupPlugin(newelt);
         return newelt;
     }

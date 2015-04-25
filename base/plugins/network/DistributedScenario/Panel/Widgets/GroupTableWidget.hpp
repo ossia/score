@@ -4,7 +4,8 @@
 class QTableWidget;
 class GroupManager;
 class Session;
-
+class GroupTableCheckbox;
+class Client;
 class GroupTableWidget : public QWidget
 {
     public:
@@ -13,6 +14,10 @@ class GroupTableWidget : public QWidget
         void setup();
 
     private:
+        GroupTableCheckbox* findCheckbox(int i, id_type<Client> theClient) const;
+
+        void on_checkboxChanged(int i, int j, int state);
+
         QTableWidget* m_table{};
         QObject* m_groupConnectionContext{};
         const GroupManager* m_mgr;

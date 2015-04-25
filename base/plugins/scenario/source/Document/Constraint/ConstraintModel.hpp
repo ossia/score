@@ -197,7 +197,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_rigidity;
         }
 
-        auto& pluginModelList() { return *m_pluginModelList; }
+        iscore::ElementPluginModelList& pluginModelList() { return *m_pluginModelList; }
 
     signals:
         void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);

@@ -16,7 +16,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(ElementPluginModelList* s
         {
             if(plugin->metadataName() == elt->plugin())
             {
-                m_list.append(plugin->cloneElementPlugin(elt, parent));
+                add(plugin->cloneElementPlugin(parent, elt, this)); // Note : QObject::parent() is dangerous
             }
         }
     }
@@ -35,7 +35,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
             continue;
 
         // Create and add it.
-        auto plugElement = plugin->makeElementPlugin(parent->metaObject()->className(), this);
+        auto plugElement = plugin->makeElementPlugin(parent, this);
         if(plugElement)
             add(plugElement);
     }
@@ -56,6 +56,7 @@ bool iscore::ElementPluginModelList::canAdd(const QString &name) const
 
 void iscore::ElementPluginModelList::add(iscore::ElementPluginModel *data)
 {
+    Q_ASSERT(data);
     m_list.push_back(data);
     emit pluginMetaDataChanged();
 }

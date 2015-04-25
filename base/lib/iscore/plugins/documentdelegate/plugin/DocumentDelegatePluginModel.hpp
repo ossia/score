@@ -15,15 +15,16 @@ class DocumentDelegatePluginModel : public NamedObject
 
         virtual QString metadataName() const = 0;
         virtual ElementPluginModel* makeElementPlugin(
-                const QString&,
+                const QObject* element,
                 QObject* parent) = 0;
         virtual ElementPluginModel* makeElementPlugin(
-                const QString&,
+                const QObject* element,
                 const VisitorVariant&,
                 QObject* parent) = 0;
 
         virtual ElementPluginModel* cloneElementPlugin(
-                iscore::ElementPluginModel*,
+                const QObject* element,
+                iscore::ElementPluginModel* source,
                 QObject* parent) = 0;
 
         virtual QWidget* makeElementPluginWidget(const ElementPluginModel*, QWidget* parent) const = 0;

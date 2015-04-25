@@ -24,7 +24,8 @@ namespace iscore
             bool canAdd(const QString& name) const;
             void add(iscore::ElementPluginModel* data);
 
-            const auto& list() const { return m_list; }
+            const QList<iscore::ElementPluginModel*>& list() const
+            { return m_list; }
 
         signals:
             void pluginMetaDataChanged();

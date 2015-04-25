@@ -7,5 +7,5 @@ class ElementPluginModel;
 template<typename T>
 iscore::ElementPluginModel* deserializeElementPluginModel(
         Deserializer<T>& deserializer,
-        const QString& elementName,
+        const QObject* element,
         QObject* parent);

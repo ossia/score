@@ -6,14 +6,14 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const GroupMetadata& elt)
 {
-    readFrom(elt.id());
+    readFrom(elt.group());
     insertDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSON>>::readFrom(const GroupMetadata& elt)
 {
-    m_obj["Id"] = toJsonObject(elt.id());
+    m_obj["Id"] = toJsonObject(elt.group());
 }
 
 

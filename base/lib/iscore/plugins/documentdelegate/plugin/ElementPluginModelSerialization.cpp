@@ -26,7 +26,7 @@ void Visitor<Reader<JSON>>::readFrom(const iscore::ElementPluginModel& elt)
 template<>
 iscore::ElementPluginModel* deserializeElementPluginModel(
         Deserializer<DataStream>& deserializer,
-        const QString& elementName,
+        const QObject* element,
         QObject* parent)
 {
     QString savedName;
@@ -40,7 +40,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         if(plugin->metadataName() == savedName)
         {
             model = plugin->makeElementPlugin(
-                        elementName,
+                        element,
                         deserializer.toVariant(),
                         parent);
             break;
@@ -55,7 +55,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
 template<>
 iscore::ElementPluginModel* deserializeElementPluginModel(
         Deserializer<JSON>& deserializer,
-        const QString& elementName,
+        const QObject* element,
         QObject* parent)
 {
     QString savedName = deserializer.m_obj["Name"].toString();
@@ -68,7 +68,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         if(plugin->metadataName() == savedName)
         {
             model = plugin->makeElementPlugin(
-                        elementName,
+                        element,
                         deserializer.toVariant(),
                         parent);
             break;

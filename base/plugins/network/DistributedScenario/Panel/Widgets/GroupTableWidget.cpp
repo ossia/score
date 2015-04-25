@@ -60,75 +60,70 @@ void GroupTableWidget::setup()
 
     //Set the data
     using namespace std;
-    for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
+    for(int row = 0; row < m_session->remoteClients().size() + 1; row++)
     {
-        for(int j = 0; j < m_session->remoteClients().size() + 1; j++)
+        for(unsigned int col = 0; col < m_mgr->groups().size(); col++)
         {
-            auto cb =  new GroupTableCheckbox;
-            m_table->setCellWidget(j, i, cb);
-            connect(cb, &GroupTableCheckbox::stateChanged, this, [=] (int state)
-            {
-                // Lookup id's from the row / column headers
-                auto group  = static_cast<GroupHeaderItem*>(m_table->horizontalHeaderItem(i))->group;
-                auto client = static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j))->client;
-
-                // Find if we have to perform the change.
-                auto groupclients = m_mgr->group(group)->clients();
-                auto it = std::find(begin(groupclients), end(groupclients), client);
-
-                if(state)
-                {
-                    if(it != end(groupclients)) return;
-                    auto cmd = new AddClientToGroup(ObjectPath{m_managerPath}, client, group);
-                    m_dispatcher.submitCommand(cmd);
-                }
-                else
-                {
-                    if(it == end(groupclients)) return;
-                    auto cmd = new RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
-                    m_dispatcher.submitCommand(cmd);
-                }
-            });
-
+            auto cb = new GroupTableCheckbox;
+            m_table->setCellWidget(row, col, cb);
+            connect(cb, &GroupTableCheckbox::stateChanged,
+                    this, [=] (int state)
+            { on_checkboxChanged(row, col, state); });
         }
     }
 
     // Handlers
-
-    delete m_groupConnectionContext;
-    m_groupConnectionContext = new QObject;
-
-    auto findCheckbox = [this] (int i, id_type<Client> theClient)
-    {
-        if(theClient == m_session->localClient().id())
-        {
-            return static_cast<GroupTableCheckbox*>(m_table->cellWidget(0, i));
-        }
-
-        for(int j = 0; j < m_session->remoteClients().size(); j++)
-        {
-            if(static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j))->client == theClient)
-            {
-                return static_cast<GroupTableCheckbox*>(m_table->cellWidget(j+1, i));
-            }
-        }
-
-        Q_ASSERT(false);
-    };
-
     for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
     {
         connect(m_mgr->groups()[i], &Group::clientAdded,
-                m_groupConnectionContext, [=] (id_type<Client> addedClient)
-        {
-            findCheckbox(i, addedClient)->setState(Qt::Checked);
-        });
+                m_table, [=] (id_type<Client> addedClient)
+        { findCheckbox(i, addedClient)->setState(Qt::Checked); });
 
         connect(m_mgr->groups()[i], &Group::clientRemoved,
-                m_groupConnectionContext, [=] (id_type<Client> removedClient)
-        {
-            findCheckbox(i, removedClient)->setState(Qt::Unchecked);
-        });
+                m_table, [=] (id_type<Client> removedClient)
+        { findCheckbox(i, removedClient)->setState(Qt::Unchecked); });
     }
 
+}
+
+GroupTableCheckbox* GroupTableWidget::findCheckbox(int i,  id_type<Client> theClient) const
+{
+    if(theClient == m_session->localClient().id())
+    {
+        auto widg = m_table->cellWidget(0, i);
+        return static_cast<GroupTableCheckbox*>(widg);
+    }
+
+    for(int j = 0; j < m_session->remoteClients().size(); j++)
+    {
+        if(static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(j+1))->client == theClient)
+        {
+            return static_cast<GroupTableCheckbox*>(m_table->cellWidget(j+1, i));
+        }
+    }
+
+    Q_ASSERT(false);
+}
+
+void GroupTableWidget::on_checkboxChanged(int i, int j, int state)
+{
+    // Lookup id's from the row / column headers
+    auto client = static_cast<SessionHeaderItem*>(m_table->verticalHeaderItem(i))->client;
+    auto group  = static_cast<GroupHeaderItem*>(m_table->horizontalHeaderItem(j))->group;
+
+    // Find if we have to perform the change.
+    auto client_is_in_group = m_mgr->group(group)->clients().contains(client);
+
+    if(state)
+    {
+        if(client_is_in_group) return;
+        auto cmd = new AddClientToGroup(ObjectPath{m_managerPath}, client, group);
+        m_dispatcher.submitCommand(cmd);
+    }
+    else
+    {
+        if(!client_is_in_group) return;
+        auto cmd = new RemoveClientFromGroup(ObjectPath{m_managerPath}, client, group);
+        m_dispatcher.submitCommand(cmd);
+    }
 }

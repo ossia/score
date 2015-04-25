@@ -32,15 +32,16 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         }
 
         iscore::ElementPluginModel* makeElementPlugin(
-                const QString & str,
+                const QObject* element,
                 QObject* parent) override;
 
         iscore::ElementPluginModel* makeElementPlugin(
-                const QString&,
+                const QObject* element,
                 const VisitorVariant&,
                 QObject* parent) override;
 
         iscore::ElementPluginModel* cloneElementPlugin(
+                const QObject* element,
                 iscore::ElementPluginModel*,
                 QObject* parent) override;
 

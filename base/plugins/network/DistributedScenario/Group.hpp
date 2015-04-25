@@ -35,5 +35,5 @@ class Group : public IdentifiedObject<Group>
         QString m_name;
         id_type<Group> m_id {};
 
-        std::vector<id_type<Client>> m_executingClients;
+        QVector<id_type<Client>> m_executingClients;
 };

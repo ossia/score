@@ -24,6 +24,7 @@ class GroupMetadataWidget : public QWidget
     private:
         void updateLabel(const id_type<Group>& id);
 
+        const GroupMetadata& m_object;
         const GroupManager* m_groups{};
         QComboBox* m_combo{};
 };
