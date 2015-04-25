@@ -36,6 +36,7 @@ namespace iscore
             void insertActionIntoMenubar(PositionedMenuAction);
 
             void activeDocumentChanged(Document*);
+            void closeRequested(Document*);
 
 
         private:

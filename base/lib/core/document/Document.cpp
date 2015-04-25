@@ -76,6 +76,7 @@ Document::~Document()
     // (Else we would have to fine-grain the deletion of the selection stack).
 
     delete m_presenter;
+    delete m_view;
 }
 
 void Document::setupNewPanel(PanelPresenterInterface* pres,

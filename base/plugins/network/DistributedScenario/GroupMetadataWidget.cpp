@@ -28,7 +28,6 @@ GroupMetadataWidget::GroupMetadataWidget(
     connect(&groupmetadata, &GroupMetadata::groupChanged,
             this, [=] (const id_type<Group>& grp)
     {
-        qDebug() << "in lambda" << grp;
         updateLabel(grp);
     });
 

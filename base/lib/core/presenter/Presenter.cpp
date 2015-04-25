@@ -37,6 +37,9 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     connect(m_view, &View::activeDocumentChanged,
             this,   &Presenter::setCurrentDocument);
 
+    connect(m_view, &View::closeRequested,
+            this,   &Presenter::closeDocument);
+
     registerPluginControl(new UndoControl{this});
     registerPanel(new UndoPanelFactory);
 }
@@ -89,6 +92,11 @@ void Presenter::setCurrentDocument(Document* doc)
     {
         ctrl->on_documentChanged(m_currentDocument);
     }
+}
+
+void Presenter::closeDocument(Document* doc)
+{
+    delete doc;
 }
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)

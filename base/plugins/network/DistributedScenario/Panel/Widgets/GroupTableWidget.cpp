@@ -58,7 +58,7 @@ void GroupTableWidget::setup()
         m_table->setVerticalHeaderItem(i + 1, new SessionHeaderItem{*m_session->remoteClients()[i]});
     }
 
-    //Set the data
+    // Set the data
     using namespace std;
     for(int row = 0; row < m_session->remoteClients().size() + 1; row++)
     {

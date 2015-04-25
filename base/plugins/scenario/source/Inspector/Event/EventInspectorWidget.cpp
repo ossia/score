@@ -29,6 +29,11 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
+
+#include "iscore/document/DocumentInterface.hpp"
+#include "core/document/DocumentModel.hpp"
+#include "core/document/Document.hpp"
+
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
     InspectorWidgetBase {object, parent},
@@ -116,6 +121,24 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     m_properties.push_back(m_prevConstraints);
     m_properties.push_back(m_nextConstraints);
 
+
+    // Plugins (TODO factorize with ConstraintInspectorWidget)
+    iscore::Document* doc = iscore::IDocument::documentFromObject(object);
+
+    for(auto& plugdata : object->pluginModelList().list())
+    {
+        for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        {
+            auto md = plugin->makeElementPluginWidget(plugdata, this);
+            if(md)
+            {
+                m_properties.push_back(md);
+                break;
+            }
+        }
+    }
+
+    // Display data
     updateSectionsView(areaLayout(), m_properties);
     areaLayout()->addStretch();
 

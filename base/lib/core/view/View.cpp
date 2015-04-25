@@ -31,7 +31,17 @@ View::View(QObject* parent) :
     connect(m_tabWidget, &QTabWidget::currentChanged,
             [&] (int index) {
            auto view = static_cast<DocumentView*>(m_tabWidget->widget(index));
+           if(!view)
+               return;
            emit activeDocumentChanged(view->document());
+    });
+
+
+    connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
+    {
+        auto docview = static_cast<DocumentView*>(m_tabWidget->widget(index));
+        m_tabWidget->removeTab(index);
+        emit closeRequested(docview->document());
     });
 }
 
