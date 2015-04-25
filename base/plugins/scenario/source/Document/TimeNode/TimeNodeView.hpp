@@ -2,14 +2,18 @@
 #include <QGraphicsObject>
 #include <QMouseEvent>
 
-
+class TimeNodePresenter;
 class TimeNodeView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
-        TimeNodeView(QGraphicsObject* parent);
-        ~TimeNodeView() override = default ;
+        TimeNodeView(const TimeNodePresenter& presenter,
+                     QGraphicsObject* parent);
+        ~TimeNodeView() override = default;
+
+        const auto& presenter() const
+        { return m_presenter;}
 
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
@@ -36,6 +40,7 @@ class TimeNodeView : public QGraphicsObject
         void changeColor(QColor);
 
     private:
+        const TimeNodePresenter& m_presenter;
         int m_top {0};
         int m_bottom {0};
 

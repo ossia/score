@@ -111,11 +111,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
     auto constraintViewModel = m_displayedConstraint->fullView();
 
-    auto cstrView = new FullViewConstraintView {this->view()->baseObject() };
-
     delete m_displayedConstraintPresenter;
     m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-                                     cstrView,
+                                     this->view()->baseObject(),
                                      this};
 
     m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model()->startDate());

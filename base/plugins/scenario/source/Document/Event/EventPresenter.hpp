@@ -4,13 +4,15 @@
 
 class EventModel;
 class EventView;
-
+class TemporalScenarioPresenter;
 class EventPresenter : public NamedObject
 {
         Q_OBJECT
 
     public:
-        EventPresenter(EventModel* model, EventView* view, QObject* parent);
+        EventPresenter(EventModel* model,
+                       QGraphicsObject* parentview,
+                       QObject* parent);
         virtual ~EventPresenter();
 
         id_type<EventModel> id() const;

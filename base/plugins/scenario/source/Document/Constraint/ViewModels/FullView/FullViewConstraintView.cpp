@@ -1,6 +1,7 @@
 #include "FullViewConstraintView.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include "FullViewConstraintViewModel.hpp"
+#include "FullViewConstraintPresenter.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -10,8 +11,8 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-FullViewConstraintView::FullViewConstraintView(QGraphicsObject* parent) :
-    AbstractConstraintView {parent}
+FullViewConstraintView::FullViewConstraintView(const FullViewConstraintPresenter& presenter, QGraphicsObject* parent) :
+    AbstractConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
     this->setFlag(ItemIsSelectable);

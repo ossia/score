@@ -12,7 +12,9 @@ class TimeNodePresenter :  public NamedObject
 {
         Q_OBJECT
     public:
-        explicit TimeNodePresenter(TimeNodeModel* model, TimeNodeView* view, QObject* parent);
+        explicit TimeNodePresenter(TimeNodeModel* model,
+                                   QGraphicsObject* parentview,
+                                   QObject* parent);
         ~TimeNodePresenter();
 
         id_type<TimeNodeModel> id() const;
@@ -21,8 +23,8 @@ class TimeNodePresenter :  public NamedObject
             return *id().val();
         }
 
-        TimeNodeModel* model();
-        TimeNodeView* view();
+        TimeNodeModel* model() const;
+        TimeNodeView* view() const;
 
     signals:
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);

@@ -146,7 +146,6 @@ void TemporalScenarioPresenter::parentGeometryChanged()
 
 }
 
-// TODO : mettre dans ScenarioViewInterface ?
 void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
@@ -230,12 +229,14 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 {
     auto rect = m_view->boundingRect();
 
-    auto event_view = new EventView {m_view};
     auto event_presenter = new EventPresenter {event_model,
-                           event_view,
+                           m_view,
                            this};
-    event_view->setPos({rect.x() + event_model->date().toPixels(m_zoomRatio),
-                        rect.y() + rect.height() * event_model->heightPercentage() });
+
+    event_presenter
+            ->view()
+            ->setPos({rect.x() + event_model->date().toPixels(m_zoomRatio),
+                      rect.y() + rect.height() * event_model->heightPercentage() });
 
     connect(event_presenter,    &EventPresenter::eventHoverEnter,
             [=] ()
@@ -252,33 +253,33 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
 {
     auto rect = m_view->boundingRect();
 
-    auto timeNode_view = new TimeNodeView {m_view};
-    auto timeNode_presenter = new TimeNodePresenter {timeNode_model,
-                              timeNode_view,
-                              this};
+    auto timeNode_presenter = new TimeNodePresenter {
+            timeNode_model,
+            m_view,
+            this};
 
-    timeNode_view->setPos({timeNode_model->date().toPixels(m_zoomRatio),
-                           timeNode_model->y() * rect.height()});
+    timeNode_presenter
+            ->view()
+            ->setPos({timeNode_model->date().toPixels(m_zoomRatio),
+                      timeNode_model->y() * rect.height()});
 
     m_timeNodes.push_back(timeNode_presenter);
     m_viewInterface->updateTimeNode(timeNode_model->id());
 
     connect(timeNode_presenter, &TimeNodePresenter::eventAdded,
             this,               &TemporalScenarioPresenter::addTimeNodeToEvent);
-
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
 {
     auto rect = m_view->boundingRect();
 
-    auto constraint_view = new TemporalConstraintView {m_view};
     auto constraint_presenter = new TemporalConstraintPresenter{
                                 constraint_view_model,
-                                constraint_view,
+                                m_view,
                                 this};
 
-    constraint_view->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
+    constraint_presenter->view()->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
 
     constraint_presenter->on_zoomRatioChanged(m_zoomRatio);

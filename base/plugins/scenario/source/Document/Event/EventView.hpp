@@ -2,14 +2,17 @@
 #include <QGraphicsObject>
 #include <QMouseEvent>
 #include <QKeyEvent>
-
+class EventPresenter;
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
-        EventView(QGraphicsObject* parent);
+        EventView(const EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
+
+        const auto& presenter() const
+        { return m_presenter;}
 
         QRectF boundingRect() const override;
         void paint(QPainter* painter,
@@ -46,6 +49,7 @@ class EventView : public QGraphicsObject
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
     private:
+        const EventPresenter& m_presenter;
         QPointF m_clickedPoint {};
         QColor m_color;
 

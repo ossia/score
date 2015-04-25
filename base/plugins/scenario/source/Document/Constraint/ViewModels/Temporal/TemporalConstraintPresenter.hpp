@@ -26,7 +26,7 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
         using view_type = TemporalConstraintView;
 
         TemporalConstraintPresenter(TemporalConstraintViewModel* viewModel,
-                                    TemporalConstraintView* view,
+                                    QGraphicsObject* parentobject,
                                     QObject* parent);
         virtual ~TemporalConstraintPresenter();
 

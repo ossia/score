@@ -7,11 +7,11 @@
 #include <QGraphicsScene>
 
 EventPresenter::EventPresenter(EventModel* model,
-                               EventView* view,
+                               QGraphicsObject* parentview,
                                QObject* parent) :
     NamedObject {"EventPresenter", parent},
     m_model {model},
-    m_view {view}
+    m_view {new EventView{*this, parentview}}
 {
     // The scenario catches this :
     connect(&m_model->selection, &Selectable::changed,

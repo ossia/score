@@ -15,11 +15,13 @@
 #include <QDebug>
 #include <QGraphicsScene>
 
-FullViewConstraintPresenter::FullViewConstraintPresenter(
-    FullViewConstraintViewModel* cstr_model,
-    FullViewConstraintView* cstr_view,
-    QObject* parent) :
-    AbstractConstraintPresenter {"FullViewConstraintPresenter", cstr_model, cstr_view, parent},
+FullViewConstraintPresenter::FullViewConstraintPresenter(FullViewConstraintViewModel* cstr_model,
+                                                         QGraphicsObject *parentobject,
+                                                         QObject* parent) :
+    AbstractConstraintPresenter {"FullViewConstraintPresenter",
+                                 cstr_model,
+                                 new FullViewConstraintView{*this, parentobject},
+                                 parent},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model->model())->selectionStack()}
 {
     if(viewModel(this)->isBoxShown())
@@ -29,7 +31,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 
     updateHeight();
 
-    connect(cstr_view, &FullViewConstraintView::constraintPressed,
+    connect(::view(this), &FullViewConstraintView::constraintPressed,
             this,      &FullViewConstraintPresenter::on_pressed);
 }
 

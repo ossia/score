@@ -5,11 +5,11 @@
 #include <QGraphicsScene>
 
 TimeNodePresenter::TimeNodePresenter(TimeNodeModel* model,
-                                     TimeNodeView* view,
+                                     QGraphicsObject *parentview,
                                      QObject* parent) :
     NamedObject {"TimeNodePresenter", parent},
     m_model {model},
-    m_view {view}
+    m_view {new TimeNodeView{*this, parentview}}
 {
     connect(&m_model->selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
@@ -42,12 +42,12 @@ id_type<TimeNodeModel> TimeNodePresenter::id() const
     return m_model->id();
 }
 
-TimeNodeModel* TimeNodePresenter::model()
+TimeNodeModel* TimeNodePresenter::model() const
 {
     return m_model;
 }
 
-TimeNodeView* TimeNodePresenter::view()
+TimeNodeView* TimeNodePresenter::view() const
 {
     return m_view;
 }

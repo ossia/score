@@ -2,13 +2,15 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 
 class FullViewConstraintViewModel;
+class FullViewConstraintPresenter;
 
 class FullViewConstraintView : public AbstractConstraintView
 {
         Q_OBJECT
 
     public:
-        FullViewConstraintView(QGraphicsObject* parent);
+        FullViewConstraintView(const FullViewConstraintPresenter &presenter,
+                               QGraphicsObject* parent);
 
         virtual ~FullViewConstraintView() = default;
 
@@ -23,5 +25,6 @@ class FullViewConstraintView : public AbstractConstraintView
     private:
         QPointF m_clickedPoint {};
 
+        // TODO nothing to do here
         FullViewConstraintViewModel* m_viewModel {};
 };

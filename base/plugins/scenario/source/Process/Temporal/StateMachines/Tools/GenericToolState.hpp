@@ -64,17 +64,6 @@ auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const
 class GenericToolState : public QState
 {
     protected:
-        template<typename View, typename Array>
-        auto getPresenterFromView(const View* v, const Array& arr) const
-        {
-            // TODO optimize this by putting a pointer to the presenter in the view...
-            auto it = std::find_if(std::begin(arr), std::end(arr),
-                                   [&] (const typename Array::value_type& val)
-            { return val->view() == v; });
-
-            return it != std::end(arr) ? *it : nullptr;
-        }
-
         template<typename EventFun,
                  typename TimeNodeFun,
                  typename ConstraintFun,
@@ -91,18 +80,15 @@ class GenericToolState : public QState
             // Check if it is in our scenario.
             if(auto ev = dynamic_cast<const EventView*>(pressedItem))
             {
-                if(auto pres = getPresenterFromView(ev, m_sm.presenter().events()))
-                    ev_fun(pres->model()->id());
+                ev_fun(ev->presenter().model()->id());
             }
             else if(auto tn = dynamic_cast<const TimeNodeView*>(pressedItem))
             {
-                if(auto pres = getPresenterFromView(tn, m_sm.presenter().timeNodes()))
-                    tn_fun(pres->model()->id());
+                tn_fun(tn->presenter().model()->id());
             }
             else if(auto cst = dynamic_cast<const AbstractConstraintView*>(pressedItem))
             {
-                if(auto pres = getPresenterFromView(cst, m_sm.presenter().constraints()))
-                    cst_fun(pres->abstractConstraintViewModel()->model()->id());
+                cst_fun(cst->presenter().abstractConstraintViewModel()->model()->id());
             }
             else
             {

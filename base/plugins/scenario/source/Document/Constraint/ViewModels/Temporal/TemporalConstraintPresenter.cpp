@@ -13,11 +13,13 @@
 #include <QDebug>
 #include <QGraphicsScene>
 
-TemporalConstraintPresenter::TemporalConstraintPresenter(
-    TemporalConstraintViewModel* cstr_model,
-    TemporalConstraintView* cstr_view,
+TemporalConstraintPresenter::TemporalConstraintPresenter(TemporalConstraintViewModel* cstr_model,
+    QGraphicsObject *parentobject,
     QObject* parent) :
-    AbstractConstraintPresenter {"TemporalConstraintPresenter", cstr_model, cstr_view, parent}
+    AbstractConstraintPresenter {"TemporalConstraintPresenter",
+                                 cstr_model,
+                                 new TemporalConstraintView{*this, parentobject},
+                                 parent}
 {
     connect(::view(this), &TemporalConstraintView::constraintHoverEnter,
             this,       &TemporalConstraintPresenter::constraintHoverEnter);

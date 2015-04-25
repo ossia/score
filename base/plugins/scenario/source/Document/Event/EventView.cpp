@@ -5,8 +5,10 @@
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
 
-EventView::EventView(QGraphicsObject* parent) :
-    QGraphicsObject {parent}
+EventView::EventView(const EventPresenter& presenter,
+                     QGraphicsObject* parent) :
+    QGraphicsObject {parent},
+    m_presenter{presenter}
 {
     this->setParentItem(parent);
 

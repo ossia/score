@@ -24,7 +24,6 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
                         nullptr}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
-    // TODO check the enablement of a deck when it is created.
     connect(this, &QState::entered,
             [&] ()
     {

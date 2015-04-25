@@ -1,14 +1,14 @@
 #pragma once
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 
-class TemporalConstraintViewModel;
-
+class TemporalConstraintPresenter;
 class TemporalConstraintView : public AbstractConstraintView
 {
         Q_OBJECT
 
     public:
-        TemporalConstraintView(QGraphicsObject* parent);
+        TemporalConstraintView(const TemporalConstraintPresenter& presenter,
+                               QGraphicsObject* parent);
 
         virtual ~TemporalConstraintView() = default;
 

@@ -1,7 +1,8 @@
 #include "AbstractConstraintView.hpp"
 
-AbstractConstraintView::AbstractConstraintView(QGraphicsObject* parent) :
-    QGraphicsObject {parent}
+AbstractConstraintView::AbstractConstraintView(const AbstractConstraintPresenter& presenter, QGraphicsObject* parent) :
+    QGraphicsObject {parent},
+    m_presenter{presenter}
 {
     setAcceptHoverEvents(true);
 }

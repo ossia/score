@@ -6,15 +6,20 @@
 #include <ProcessInterface/TimeValue.hpp>
 
 class AbstractConstraintViewModel;
-
+class AbstractConstraintPresenter;
 class AbstractConstraintView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
-        AbstractConstraintView(QGraphicsObject* parent);
+        AbstractConstraintView(const AbstractConstraintPresenter& presenter,
+                               QGraphicsObject* parent);
 
         virtual ~AbstractConstraintView() = default;
+
+        const auto& presenter() const
+        { return m_presenter;}
+
 
         virtual void setInfinite(bool);
         bool infinite() const
@@ -89,6 +94,7 @@ class AbstractConstraintView : public QGraphicsObject
         };
 
     private:
+        const AbstractConstraintPresenter& m_presenter;
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};

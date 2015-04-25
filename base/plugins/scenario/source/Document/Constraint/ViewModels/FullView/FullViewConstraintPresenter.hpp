@@ -29,7 +29,7 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
         using view_type = FullViewConstraintView;
 
         FullViewConstraintPresenter(FullViewConstraintViewModel* viewModel,
-                                    FullViewConstraintView* view,
+                                    QGraphicsObject* parentobject,
                                     QObject* parent);
         virtual ~FullViewConstraintPresenter();
 

@@ -6,8 +6,10 @@
 
 #include <QDebug>
 
-TimeNodeView::TimeNodeView(QGraphicsObject* parent) :
-    QGraphicsObject {parent}
+TimeNodeView::TimeNodeView(const TimeNodePresenter& presenter,
+                           QGraphicsObject* parent) :
+    QGraphicsObject {parent},
+    m_presenter{presenter}
 {
     this->setParentItem(parent);
     this->setZValue(parent->zValue() + 1.5);

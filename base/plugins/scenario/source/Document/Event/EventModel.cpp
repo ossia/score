@@ -63,27 +63,27 @@ void EventModel::addPreviousConstraint(id_type<ConstraintModel> constraint)
     m_previousConstraints.push_back(constraint);
 }
 
-// TODO refactor this with a small template
-bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelete)
+template<typename Vec>
+bool removeConstraint(Vec& constraints, const id_type<ConstraintModel>& constraintToDelete)
 {
-    if(m_nextConstraints.indexOf(constraintToDelete) >= 0)
+    auto index = constraints.indexOf(constraintToDelete);
+    if(index >= 0)
     {
-        m_nextConstraints.remove(nextConstraints().indexOf(constraintToDelete));
+        constraints.remove(index);
         return true;
     }
 
     return false;
 }
 
+bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelete)
+{
+    return removeConstraint(m_nextConstraints, constraintToDelete);
+}
+
 bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToDelete)
 {
-    if(m_previousConstraints.indexOf(constraintToDelete) >= 0)
-    {
-        m_previousConstraints.remove(m_previousConstraints.indexOf(constraintToDelete));
-        return true;
-    }
-
-    return false;
+    return removeConstraint(m_previousConstraints, constraintToDelete);
 }
 
 void EventModel::changeTimeNode(id_type<TimeNodeModel> newTimeNodeId)
@@ -120,7 +120,7 @@ void EventModel::translate(const TimeValue& deltaTime)
     setDate(m_date + deltaTime);
 }
 
-// Maybe remove the need for this by passing to the scenario instead ?
+// TODO Maybe remove the need for this by passing to the scenario instead ?
 #include "Process/ScenarioModel.hpp"
 ScenarioModel* EventModel::parentScenario() const
 {

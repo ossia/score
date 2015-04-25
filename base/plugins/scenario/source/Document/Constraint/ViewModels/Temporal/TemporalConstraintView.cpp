@@ -1,6 +1,7 @@
 #include "TemporalConstraintView.hpp"
 
 #include "TemporalConstraintViewModel.hpp"
+#include "TemporalConstraintPresenter.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -10,8 +11,8 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-TemporalConstraintView::TemporalConstraintView(QGraphicsObject* parent) :
-    AbstractConstraintView {parent}
+TemporalConstraintView::TemporalConstraintView(const TemporalConstraintPresenter &presenter, QGraphicsObject* parent) :
+    AbstractConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
 
