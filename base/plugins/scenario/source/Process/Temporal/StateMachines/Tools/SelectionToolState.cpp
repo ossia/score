@@ -200,18 +200,18 @@ void SelectionToolState::on_scenarioPressed()
 void SelectionToolState::on_scenarioMoved()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto&) {},
-    [&] (const auto&) {},
-    [&] (const auto&) {},
+               [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
+    [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
+    [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
     [&] () { m_localSM.postEvent(new Move_Event); });
 }
 
 void SelectionToolState::on_scenarioReleased()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto&) {},
-    [&] (const auto&) {},
-    [&] (const auto&) {},
+               [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
+    [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
+    [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
     [&] () { m_localSM.postEvent(new Release_Event); });
 }
 
