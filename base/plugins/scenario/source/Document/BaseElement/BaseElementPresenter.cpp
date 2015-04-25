@@ -205,7 +205,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         return 5 + duration / viewWidth;
     };
 
-    setMillisPerPixel(mapZoom(1.0 - newzoom, 1./90., computedMax()));
+    setMillisPerPixel(mapZoom(1.0 - newzoom, 2., computedMax()));
 
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
     updateGrid();
