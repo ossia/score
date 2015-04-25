@@ -60,8 +60,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         auto dragDeck = new DeckState{&m_localSM};
         {
             // Enter the state
-            auto t_wait_click =
-                    make_transition<ClickOnDeck_Transition>(
+            make_transition<ClickOnDeck_Transition>(
                         m_waitState,
                         dragDeck,
                         *dragDeck);
@@ -96,8 +95,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     {
         auto resizeDeck = new DeckState{&m_localSM};
         {
-            auto t_wait_click =
-                    make_transition<ClickOnDeckHandle_Transition>(
+            make_transition<ClickOnDeckHandle_Transition>(
                         m_waitState,
                         resizeDeck,
                         *resizeDeck);

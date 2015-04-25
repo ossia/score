@@ -22,9 +22,9 @@ class TemporalScenarioView : public ProcessViewInterface
         }
 
     signals:
-        void scenarioPressed(QPointF);
-        void scenarioReleased(QPointF);
-        void scenarioMoved(QPointF);
+        void scenarioPressed(const QPointF&);
+        void scenarioReleased(const QPointF&);
+        void scenarioMoved(const QPointF&);
 
         void deletePressed();
         void clearPressed();

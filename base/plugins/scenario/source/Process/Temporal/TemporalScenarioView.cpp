@@ -13,13 +13,13 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
     ProcessViewInterface {parent}
 {
     this->setParentItem(parent);
-    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+    this->setFlags(ItemClipsChildrenToShape);// | ItemIsSelectable | ItemIsFocusable);
 
     this->setZValue(parent->zValue() + 1);
 
     m_clearAction = new QAction("clear contents", this);
     connect(m_clearAction,  &QAction::triggered,
-    this,           &TemporalScenarioView::clearPressed);
+            this,           &TemporalScenarioView::clearPressed);
 }
 
 void TemporalScenarioView::paint(QPainter* painter,
@@ -42,25 +42,18 @@ void TemporalScenarioView::paint(QPainter* painter,
 
 void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    QGraphicsObject::mousePressEvent(event);
-
     if(event->button() == Qt::LeftButton)
-    {
-        emit scenarioPressed(event->pos());
-    }
+        emit scenarioPressed(event->scenePos());
 }
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    QGraphicsObject::mouseMoveEvent(event);
-    emit scenarioMoved(event->pos());
+    emit scenarioMoved(event->scenePos());
 }
 
 void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    QGraphicsObject::mouseReleaseEvent(event);
-
-    emit scenarioReleased(event->pos());
+    emit scenarioReleased(event->scenePos());
 }
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

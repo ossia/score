@@ -54,9 +54,8 @@ class DeckOverlay : public QGraphicsItem
 
         virtual QRectF boundingRect() const override
         {
-            auto rect = deckView.boundingRect();
-            rect.setHeight(rect.height() - deckView.handleHeight());
-            return rect;
+            const auto& rect = deckView.boundingRect();
+            return {0, 0, rect.width(), rect.height() - deckView.handleHeight()};
         }
 
         virtual void paint(QPainter *painter,
