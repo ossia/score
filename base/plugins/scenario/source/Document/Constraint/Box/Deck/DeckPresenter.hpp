@@ -13,6 +13,7 @@ namespace iscore
 class ProcessPresenterInterface;
 class ProcessSharedModelInterface;
 class ProcessViewModelInterface;
+class ProcessViewInterface;
 class BoxView;
 class DeckPresenter : public NamedObject
 {
@@ -56,7 +57,7 @@ class DeckPresenter : public NamedObject
 
         DeckModel* m_model{};
         DeckView* m_view{};
-        QVector<ProcessPresenterInterface*> m_processes;
+        QVector<QPair<ProcessPresenterInterface*, ProcessViewInterface*>> m_processes;
 
         ICommandDispatcher* m_commandDispatcher{};
 

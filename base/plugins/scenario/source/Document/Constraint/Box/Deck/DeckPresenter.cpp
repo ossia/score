@@ -115,13 +115,14 @@ void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface
 void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
 {
     vec_erase_remove_if(m_processes,
-                        [&processId](ProcessPresenterInterface * pres)
+                        [&processId](auto pair)
     {
-        bool to_delete = pres->viewModelId() == processId;
+        bool to_delete = pair.first->viewModelId() == processId;
 
         if(to_delete)
         {
-            delete pres;
+            delete pair.second;
+            delete pair.first;
         }
 
         return to_delete;
@@ -135,15 +136,15 @@ void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface
 void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterface> processId)
 {
     // Put the selected one at z+1 and the others at z+2; set "disabled" graphics mode.
-    for(auto& pvm : m_processes)
+    for(auto& pair : m_processes)
     {
-        if(pvm->viewModelId() == processId)
+        if(pair.first->viewModelId() == processId)
         {
-            pvm->putToFront();
+            pair.first->putToFront();
         }
         else
         {
-            pvm->putBehind();
+            pair.first->putBehind();
         }
     }
 }
@@ -165,9 +166,9 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
 
-    for(ProcessPresenterInterface* proc : m_processes)
+    for(auto pair: m_processes)
     {
-        proc->on_zoomRatioChanged(m_zoomRatio);
+        pair.first->on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
@@ -178,21 +179,21 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     auto factory = ProcessList::getFactory(procname);
 
     auto proc_view = factory->makeView(proc_vm, m_view);
-    auto presenter = factory->makePresenter(proc_vm, proc_view, this);
+    auto proc_pres = factory->makePresenter(proc_vm, proc_view, this);
 
-    presenter->on_zoomRatioChanged(m_zoomRatio);
+    proc_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    m_processes.push_back(presenter);
+    m_processes.push_back({proc_pres, proc_view});
     updateProcessesShape();
 }
 
 // TODO generalize this in a mapToRectangle function
 void DeckPresenter::updateProcessesShape()
 {
-    for(ProcessPresenterInterface* proc : m_processes)
+    for(auto& pair : m_processes)
     {
-        proc->setHeight(height() - DeckView::handleHeight());
-        proc->setWidth(m_view->width());
-        proc->parentGeometryChanged();
+        pair.first->setHeight(height() - DeckView::handleHeight());
+        pair.first->setWidth(m_view->width());
+        pair.first->parentGeometryChanged();
     }
 }
