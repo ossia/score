@@ -17,7 +17,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplor
 
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
 
-    Node* parentNode;
+    Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
         parentNode = explorer->nodeFromModelIndex(index);

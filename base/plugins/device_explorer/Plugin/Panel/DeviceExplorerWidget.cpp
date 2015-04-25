@@ -444,13 +444,13 @@ DeviceExplorerWidget::addDevice()
 void
 DeviceExplorerWidget::addChild()
 {
-    addAddress(DeviceExplorerModel::AsChild);
+    addAddress(DeviceExplorerModel::Insert::AsChild);
 }
 
 void
 DeviceExplorerWidget::addSibling()
 {
-    addAddress(DeviceExplorerModel::AsSibling);
+    addAddress(DeviceExplorerModel::Insert::AsSibling);
 
     //QModelIndex index = m_ntView->currentIndex();
     //getModel()->addNode(index, DeviceExplorerModel::AsSibling)  ;
@@ -463,11 +463,8 @@ void DeviceExplorerWidget::removeNode()
 }
 
 void
-DeviceExplorerWidget::addAddress(int insertType)
+DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
 {
-    DeviceExplorerModel::Insert insert = static_cast<DeviceExplorerModel::Insert>(insertType);
-
-
     if(! m_addressDialog)
     {
         m_addressDialog = new AddressEditDialog(this);

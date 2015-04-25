@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <iscore/command/OngoingCommandManager.hpp>
 
+#include "DeviceExplorerModel.hpp"
 class DeviceExplorerView;
 class DeviceExplorerModel;
 class DeviceExplorerFilterProxyModel;
@@ -60,7 +61,7 @@ class DeviceExplorerWidget : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        void addAddress(int insertType);
+        void addAddress(DeviceExplorerModel::Insert insertType);
 
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
 

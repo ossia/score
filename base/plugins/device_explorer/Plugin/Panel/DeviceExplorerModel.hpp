@@ -37,7 +37,7 @@ class DeviceExplorerModel : public QAbstractItemModel
 
     public:
 
-        enum Insert {AsSibling, AsChild};
+        enum class Insert {AsSibling, AsChild};
 
         explicit DeviceExplorerModel(QObject* parent = 0);
         DeviceExplorerModel(const VisitorVariant& data, QObject* parent);
