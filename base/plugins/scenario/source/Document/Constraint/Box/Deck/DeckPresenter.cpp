@@ -27,8 +27,7 @@ DeckPresenter::DeckPresenter(DeckModel* model,
                              QObject* parent) :
     NamedObject {"DeckPresenter", parent},
     m_model {model},
-    m_view {new DeckView{*this, view}},
-    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model)->commandStack(), this}}
+    m_view {new DeckView{*this, view}}
 {
     m_view->setPos(0, 0);
 
@@ -115,7 +114,7 @@ void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface
 void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
 {
     vec_erase_remove_if(m_processes,
-                        [&processId](auto pair)
+                        [&processId](auto& pair)
     {
         bool to_delete = pair.first->viewModelId() == processId;
 
@@ -166,7 +165,7 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
 
-    for(auto pair: m_processes)
+    for(auto& pair: m_processes)
     {
         pair.first->on_zoomRatioChanged(m_zoomRatio);
     }

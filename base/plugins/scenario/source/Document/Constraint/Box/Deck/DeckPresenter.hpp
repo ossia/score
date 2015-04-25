@@ -59,8 +59,6 @@ class DeckPresenter : public NamedObject
         DeckView* m_view{};
         QVector<QPair<ProcessPresenterInterface*, ProcessViewInterface*>> m_processes;
 
-        ICommandDispatcher* m_commandDispatcher{};
-
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the deckView is being resized.
 

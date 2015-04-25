@@ -16,10 +16,10 @@
 
 BoxPresenter::BoxPresenter(BoxModel* model,
                            BoxView* view,
-                           QObject* parent) :
+                           QObject* parent):
     NamedObject {"BoxPresenter", parent},
-            m_model {model},
-m_view {view}
+    m_model {model},
+    m_view {view}
 {
     for(auto& deckModel : m_model->decks())
     {
