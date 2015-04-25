@@ -31,10 +31,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
         {
             if(!constraint->box()) continue;
-            for(DeckPresenter* deck : constraint->box()->decks())
-            {
-                deck->disable();
-            }
+            constraint->box()->setDisabledDeckState();
         }
     });
     connect(this, &QState::exited,
@@ -43,10 +40,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
         {
             if(!constraint->box()) continue;
-            for(DeckPresenter* deck : constraint->box()->decks())
-            {
-                deck->enable();
-            }
+            constraint->box()->setEnabledDeckState();
         }
     });
 

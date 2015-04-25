@@ -33,6 +33,9 @@ class BoxPresenter : public NamedObject
         auto decks() const
         { return m_decks; }
 
+        void setDisabledDeckState();
+        void setEnabledDeckState();
+
 
     signals:
         void askUpdate();

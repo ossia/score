@@ -52,23 +52,35 @@ qreal DeckView::width() const
 
 void DeckView::enable()
 {
+    if(!m_overlay)
+        return;
+
+    this->update();
+
     for(QGraphicsItem* item : childItems())
     {
         item->setEnabled(true);
         item->setVisible(true);
         item->setFlag(ItemStacksBehindParent, false);
     }
+
     delete m_overlay;
+    m_overlay = nullptr;
+
+    this->update();
 }
 
 void DeckView::disable()
 {
+    delete m_overlay;
+
     for(QGraphicsItem* item : childItems())
     {
         item->setEnabled(false);
         item->setVisible(false);
         item->setFlag(ItemStacksBehindParent, true);
     }
+
     m_overlay = new DeckOverlay{this};
 }
 

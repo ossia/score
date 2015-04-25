@@ -21,6 +21,19 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
             m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
     m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()}
 {
+     createState = new CreationToolState{*this};
+     this->addState(createState);
+
+     moveState = new MoveToolState{*this};
+     this->addState(moveState);
+
+     selectState = new SelectionToolState{*this};
+     this->addState(selectState);
+
+     moveDeckState = new MoveDeckToolState{*this};
+     this->addState(moveDeckState);
+
+
     auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
     {
         return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
@@ -52,17 +65,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
             [=] () { this->postEvent(new Cancel_Event); });
 
 
-    auto createState = new CreationToolState{*this};
-    this->addState(createState);
-
-    auto moveState = new MoveToolState{*this};
-    this->addState(moveState);
-
-    auto selectState = new SelectionToolState{*this};
-    this->addState(selectState);
-
-    auto moveDeckState = new MoveDeckToolState{*this};
-    this->addState(moveDeckState);
 
     // TODO how to avoid the combinatorial explosion ?
     auto t_move_create = new QSignalTransition(this, SIGNAL(setCreateState()), moveState);
@@ -102,3 +104,17 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
 const ScenarioModel& ScenarioStateMachine::model() const
 { return static_cast<ScenarioModel&>(*m_presenter.m_viewModel->sharedProcessModel()); }
+
+ScenarioStateMachine::State ScenarioStateMachine::currentState() const
+{
+    if(createState->active())
+        return State::Create;
+    if(selectState->active())
+        return State::Select;
+    if(moveState->active())
+        return State::Move;
+    if(moveDeckState->active())
+        return State::MoveDeck;
+
+    Q_ASSERT(false);
+}

@@ -89,6 +89,22 @@ id_type<BoxModel> BoxPresenter::id() const
     return m_model->id();
 }
 
+void BoxPresenter::setDisabledDeckState()
+{
+    for(auto& deck : decks())
+    {
+        deck->disable();
+    }
+}
+
+void BoxPresenter::setEnabledDeckState()
+{
+    for(auto& deck : decks())
+    {
+        deck->enable();
+    }
+}
+
 void BoxPresenter::on_durationChanged(TimeValue duration)
 {
     m_duration = duration;
@@ -101,6 +117,7 @@ void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
     on_askUpdate();
 }
 
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
 void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 {
     auto deckPres = new DeckPresenter {deckModel,
@@ -111,6 +128,17 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
 
     connect(deckPres, &DeckPresenter::askUpdate,
             this,     &BoxPresenter::on_askUpdate);
+
+
+    // Set the correct view for the deck graphically if we're in a scenario
+    auto scenario = dynamic_cast<TemporalScenarioPresenter*>(this->parent()->parent());
+    if(!scenario)
+        return;
+
+    if(scenario->stateMachine().currentState() == ScenarioStateMachine::State::MoveDeck)
+    {
+        deckPres->disable();
+    }
 }
 
 void BoxPresenter::on_deckRemoved(id_type<DeckModel> deckId)

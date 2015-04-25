@@ -98,11 +98,23 @@ void DeckPresenter::setVerticalPosition(double pos)
 void DeckPresenter::enable()
 {
     m_view->enable();
+    for(auto& pair : m_processes)
+    {
+        pair.first->parentGeometryChanged();
+    }
+
+    m_enabled = true;
 }
 
 void DeckPresenter::disable()
 {
     m_view->disable();
+    for(auto& pair : m_processes)
+    {
+        pair.first->parentGeometryChanged();
+    }
+
+    m_enabled = false;
 }
 
 
@@ -181,6 +193,12 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     auto proc_pres = factory->makePresenter(proc_vm, proc_view, this);
 
     proc_pres->on_zoomRatioChanged(m_zoomRatio);
+
+    // TODO optimize... For now it's a quick hack.
+    if(m_enabled)
+        m_view->enable();
+    else
+        m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
     updateProcessesShape();

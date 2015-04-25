@@ -8,10 +8,15 @@
 
 class TemporalScenarioPresenter;
 class ScenarioModel;
+class CreationToolState;
+class MoveToolState;
+class SelectionToolState;
+class MoveDeckToolState;
 class ScenarioStateMachine : public QStateMachine
 {
         Q_OBJECT
     public:
+        enum class State { Create, Select, Move, MoveDeck };
         QPointF scenePoint;
         ScenarioPoint scenarioPoint;
 
@@ -26,6 +31,8 @@ class ScenarioStateMachine : public QStateMachine
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
+        State currentState() const;
+
     signals:
         void setCreateState();
         void setSelectState();
@@ -36,4 +43,9 @@ class ScenarioStateMachine : public QStateMachine
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
+
+        CreationToolState* createState{};
+        MoveToolState* moveState{};
+        SelectionToolState* selectState{};
+        MoveDeckToolState* moveDeckState{};
 };

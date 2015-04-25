@@ -63,5 +63,7 @@ class DeckPresenter : public NamedObject
         int m_currentResizingValue {}; // Used when the deckView is being resized.
 
         ZoomRatio m_zoomRatio {};
+
+        bool m_enabled{true};
 };
 
