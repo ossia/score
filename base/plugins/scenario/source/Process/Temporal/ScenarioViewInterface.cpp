@@ -45,9 +45,6 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
                         rect.height() * ev->model()->heightPercentage()
                        });
 
-    // TODO mode fantome a revoir
-//    ev->view()->setMoving(m_presenter->ongoingCommand());
-
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
     timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
                               rect.height() * timeNode->model()->y()});
@@ -86,9 +83,6 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
             view(pres)->setMaxWidth(cstr_model->maxDuration().isInfinite(),
                                     cstr_model->maxDuration().isInfinite()? -1 :
                                         cstr_model->maxDuration().toPixels(msPerPixel));
-
-            // TODO mode fantome a revoir
-//            view(pres)->setMoving(m_presenter->ongoingCommand());
 
             auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
@@ -147,9 +141,6 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
     max -= timeNode->model()->y();
 
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
-
-    // TODO mode fantome a revoir
-    //    timeNode->view()->setMoving(m_presenter->ongoingCommand());
 }
 
 void ScenarioViewInterface::on_hoverOnConstraint(id_type<ConstraintModel> constraintId, bool enter)

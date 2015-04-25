@@ -12,7 +12,6 @@ class AddressStringSettingsWidget : public AddressSettingsWidget
     public:
         AddressStringSettingsWidget(QWidget* parent = nullptr);
 
-        //TODO: use QVariant instead ???
         virtual AddressSettings getSettings() const override;
 
         virtual void setSettings(const AddressSettings& settings) override;

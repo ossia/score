@@ -82,8 +82,6 @@ void FullViewConstraintView::paint(QPainter* painter,
                           0);
     }
 
-    // TODO max -> +inf
-
     QLinearGradient gradient {qreal(maxWidth()), 0, qreal(maxWidth() + 200), 0};
     gradient.setColorAt(0, Qt::black);
     gradient.setColorAt(1, Qt::transparent);

@@ -217,8 +217,7 @@ void TemporalScenarioPresenter::on_askUpdate()
 void TemporalScenarioPresenter::addTimeNodeToEvent(id_type<EventModel> eventId,
                                                    id_type<TimeNodeModel> timeNodeId)
 {
-    // TODO why does the model changes here ?????????
-    // TODO make the models const* to prevent this...
+    // TODO why does the model changes here ?????????  make the models const* to prevent this... and change model in the command
     auto event = findById(m_events, eventId);
     event->model()->changeTimeNode(timeNodeId);
 }

@@ -59,6 +59,7 @@ QStringList ScenarioPlugin::panel_list() const
     // TODO Later
     // return {"ProcessPanel"};
 
+    qDebug() << Q_FUNC_INFO << "TODO";
     return {};
 }
 

@@ -34,7 +34,6 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
     {
         QStringList available_models;
 
-        // TODO put this part in DeckModel if it is required elsewhere.
         // 1. List the processes in the model.
         auto shared_process_list = parentDeck->model()->parentConstraint()->processes();
 

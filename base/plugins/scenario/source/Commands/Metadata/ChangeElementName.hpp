@@ -7,7 +7,6 @@ namespace Scenario
 {
     namespace Command
     {
-        // TODO pass the id as template parameter too.
         template<class T>
         class ChangeElementName : public iscore::SerializableCommand
         {

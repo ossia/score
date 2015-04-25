@@ -86,5 +86,5 @@ void DeckInspectorSection::on_processViewModelCreated(id_type<ProcessViewModelIn
 
 void DeckInspectorSection::on_processViewModelRemoved(id_type<ProcessViewModelInterface> pvmId)
 {
-    // TODO
+    qDebug() << Q_FUNC_INFO << "TODO";
 }

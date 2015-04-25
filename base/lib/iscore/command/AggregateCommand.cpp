@@ -5,6 +5,8 @@ using namespace iscore;
 
 // TODO Optimize by putting the instantiation of the commands in
 // the ctor / after deserialization so that it occurs only once.
+
+// More generally, commands should take real values as arguments (not objectpaths, etc.)
 void AggregateCommand::undo()
 {
     for(int i = m_serializedCommands.size() - 1; i >= 0; --i)

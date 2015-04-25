@@ -194,7 +194,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
 
     proc_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    // TODO optimize... For now it's a quick hack.
     if(m_enabled)
         m_view->enable();
     else
@@ -204,7 +203,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     updateProcessesShape();
 }
 
-// TODO generalize this in a mapToRectangle function
 void DeckPresenter::updateProcessesShape()
 {
     for(auto& pair : m_processes)
