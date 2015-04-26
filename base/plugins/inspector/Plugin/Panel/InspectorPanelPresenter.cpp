@@ -13,12 +13,22 @@ InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
 void InspectorPanelPresenter::on_modelChanged()
 {
     using namespace iscore;
-    auto doc = IDocument::documentFromObject(model());
-    auto panelview = static_cast<InspectorPanelView*>(view());
-    auto panelmodel = static_cast<InspectorPanelModel*>(model());
-    panelview->setCurrentDocument(doc);
+    if(model())
+    {
+        auto doc = IDocument::documentFromObject(model());
+        auto panelview = static_cast<InspectorPanelView *>(view());
+        auto panelmodel = static_cast<InspectorPanelModel *>(model());
+        panelview->setCurrentDocument(doc);
 
-    disconnect(m_mvConnection);
-    m_mvConnection = connect(panelmodel, &InspectorPanelModel::selectionChanged,
-                             panelview,  &InspectorPanelView::setNewSelection);
+        disconnect(m_mvConnection);
+        m_mvConnection = connect(panelmodel, &InspectorPanelModel::selectionChanged,
+                                 panelview, &InspectorPanelView::setNewSelection);
+    }
+    else
+    {
+        auto panelview = static_cast<InspectorPanelView *>(view());
+        panelview->setCurrentDocument(nullptr);
+
+        disconnect(m_mvConnection);
+    }
 }

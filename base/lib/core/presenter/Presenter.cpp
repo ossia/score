@@ -82,7 +82,7 @@ void Presenter::setCurrentDocument(Document* doc)
         m_currentDocument->bindPanelPresenter(pair.first);
     }
 
-    for(PluginControlInterface* ctrl : m_customControls)
+    for(auto& ctrl : m_customControls)
     {
         ctrl->on_documentChanged(m_currentDocument);
     }
@@ -90,6 +90,25 @@ void Presenter::setCurrentDocument(Document* doc)
 
 void Presenter::closeDocument(Document* doc)
 {
+    m_documents.removeOne(doc);
+
+    if(m_documents.size() > 0)
+    {
+        setCurrentDocument(m_documents.last());
+    }
+    else
+    {
+        for(auto& pair : m_panelPresenters)
+        {
+            pair.first->setModel(nullptr);
+        }
+
+        for(auto& ctrl : m_customControls)
+        {
+            ctrl->on_documentChanged(nullptr);
+        }
+    }
+
     delete doc;
 }
 

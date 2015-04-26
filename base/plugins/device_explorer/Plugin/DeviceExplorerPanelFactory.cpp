@@ -74,10 +74,17 @@ DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* pa
 void DeviceExplorerPanelPresenter::on_modelChanged()
 {
     auto v = static_cast<DeviceExplorerPanelView*>(view());
-    auto m = static_cast<DeviceExplorerPanelModel*>(model());
-    auto doc = IDocument::documentFromObject(model());
-    m->m_model->setCommandQueue(&doc->commandStack());
-    v->m_widget->setModel(m->m_model);
+    if(model())
+    {
+        auto m = static_cast<DeviceExplorerPanelModel *>(model());
+        auto doc = IDocument::documentFromObject(model());
+        m->m_model->setCommandQueue(&doc->commandStack());
+        v->m_widget->setModel(m->m_model);
+    }
+    else
+    {
+        v->m_widget->setModel(nullptr);
+    }
 }
 
 

@@ -166,9 +166,12 @@ DeviceExplorerView::setModel(QAbstractItemModel* model)
     (void) new ModelTest(model, this);
     #endif
 
-    setInitialColumnsSizes();
-    restoreSettings();
-    initActions(); //after restoreSettings() to have actions correctly initialized
+    if(model)
+    {
+        setInitialColumnsSizes();
+        restoreSettings();
+        initActions(); //after restoreSettings() to have actions correctly initialized
+    }
 }
 
 void
@@ -181,9 +184,12 @@ DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
     (void) new ModelTest(model->sourceModel(), this);
     #endif
 
-    setInitialColumnsSizes();
-    restoreSettings();
-    initActions(); //after restoreSettings() to have actions correctly initialized
+    if(model)
+    {
+        setInitialColumnsSizes();
+        restoreSettings();
+        initActions(); //after restoreSettings() to have actions correctly initialized
+    }
 }
 
 DeviceExplorerModel*

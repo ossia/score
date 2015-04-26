@@ -65,6 +65,13 @@ void iscore::UndoControl::on_documentChanged(Document* newDoc)
         disconnect(connection);
     m_connections.clear();
 
+    if(!newDoc)
+    {
+        m_undoAction->setEnabled(false);
+        m_redoAction->setEnabled(false);
+        return;
+    }
+
     // Redo the connections
     auto stack = &newDoc->commandStack();
     m_connections.push_back(

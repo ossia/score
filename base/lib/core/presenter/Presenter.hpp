@@ -61,7 +61,7 @@ namespace iscore
                 return m_availableDocuments;
             }
 
-            auto panelFactories() const
+            QList<PanelFactoryInterface*> panelFactories() const
             {
                 using namespace std;
                 QList<PanelFactoryInterface*> lst;

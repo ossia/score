@@ -234,25 +234,31 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 void
 DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 {
-    if(m_proxyModel)
+    if (m_proxyModel)
     {
         delete m_proxyModel;    //? will also delete previous model ??
     }
 
-    Q_ASSERT(model);
-    m_proxyModel = new DeviceExplorerFilterProxyModel(this);
-    m_proxyModel->setSourceModel(model);
-    m_ntView->setModel(m_proxyModel);
-    model->setView(m_ntView);
+    if (model)
+    {
+        m_proxyModel = new DeviceExplorerFilterProxyModel(this);
+        m_proxyModel->setSourceModel(model);
+        m_ntView->setModel(m_proxyModel);
+        model->setView(m_ntView);
 
 
-    delete m_cmdDispatcher;
-    m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
-        iscore::IDocument::documentFromObject(model)->commandStack()};
+        delete m_cmdDispatcher;
+        m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
+                iscore::IDocument::documentFromObject(model)->commandStack()};
 
-    populateColumnCBox();
+        populateColumnCBox();
 
-    updateActions();
+        updateActions();
+    }
+    else
+    {
+        m_ntView->setModel((QAbstractItemModel*)nullptr);
+    }
 }
 
 void
