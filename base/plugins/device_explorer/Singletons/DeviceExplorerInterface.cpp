@@ -15,12 +15,6 @@ QString DeviceExplorer::explorerName()
     return "DeviceExplorerModel";
 }
 
-
-DeviceExplorerModel* DeviceExplorer::getModel(QObject* object)
-{
-    return getModel(iscore::IDocument::documentFromObject(object));
-}
-
 QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 {
     QModelIndex index = m;
@@ -45,11 +39,3 @@ Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
 
     return mess;
 }
-
-DeviceExplorerModel *DeviceExplorer::getModel(iscore::Document *doc)
-{
-    return static_cast<DeviceExplorerPanelModel*>(
-                doc->model()
-                   ->panel(DeviceExplorer::panelName()))->deviceExplorer();;
-}
-

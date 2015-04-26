@@ -19,7 +19,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
-                     iscore_lib InspectorLibrary DeviceExplorerSingleton ProcessLibrary)
+                     iscore_lib InspectorLibrary DeviceExplorerSingleton DeviceExplorerLibrary device_explorer_plugin ProcessLibrary)
 
 
 install(TARGETS ${PROJECT_NAME}

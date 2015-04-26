@@ -9,7 +9,8 @@
 #include <QPushButton>
 #include <QInputDialog>
 
-GroupPanelView::GroupPanelView(iscore::View* v):
+GroupPanelView::GroupPanelView(QObject* v):
+    iscore::PanelViewInterface{v},
     m_widget{new QWidget}
 {
     setObjectName(tr("Groups"));

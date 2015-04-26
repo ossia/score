@@ -137,13 +137,13 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
 
-    for(auto constraint : m_constraints)
+    for(auto& constraint : m_constraints)
     {
         constraint->on_zoomRatioChanged(m_zoomRatio);
         m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
     }
 
-    for(auto event : m_events)
+    for(auto& event : m_events)
     {
         m_viewInterface->on_eventMoved(event->id());
     }

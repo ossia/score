@@ -4,6 +4,9 @@
 #include "GroupPanelPresenter.hpp"
 #include "GroupPanelView.hpp"
 
+#include <core/view/View.hpp>
+// TODO review if it is really useful to make the panel view with iscore::View
+
 iscore::PanelViewInterface*GroupPanelFactory::makeView(iscore::View* v)
 {
     return new GroupPanelView{v};

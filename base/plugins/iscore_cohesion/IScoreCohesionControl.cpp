@@ -125,7 +125,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = DeviceExplorer::getModel(currentDocument());
+    auto device_explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto addresses = device_explorer->selectedIndexes();
 
     MacroCommandDispatcher macro(new CreateCurvesFromAddressesInConstraints,
@@ -165,7 +165,7 @@ void IScoreCohesionControl::snapshotParametersInEvents()
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = DeviceExplorer::getModel(currentDocument());
+    auto device_explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto indexes = device_explorer->selectedIndexes();
 
     MessageList messages;

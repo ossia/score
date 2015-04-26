@@ -12,7 +12,6 @@
 #include <core/document/DocumentView.hpp>
 
 #include <core/undo/UndoControl.hpp>
-#include <core/undo/UndoView.hpp>
 
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -36,9 +35,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 
     connect(m_view, &View::closeRequested,
             this,   &Presenter::closeDocument);
-
-    registerPluginControl(new UndoControl{this});
-    registerPanel(new UndoPanelFactory);
 }
 
 #include <QToolBar>

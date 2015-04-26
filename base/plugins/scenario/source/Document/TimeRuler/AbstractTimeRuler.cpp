@@ -2,7 +2,8 @@
 
 #include "AbstractTimeRulerView.hpp"
 
-AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent) :
+AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
+    QObject{parent},
     m_view{view}
 {
     m_graduationsSpacing.push_back( {0.2, TimeValue{std::chrono::seconds (60)} });

@@ -127,7 +127,7 @@ void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface
 
         if(to_delete)
         {
-            delete pair.second;
+            // No need to delete the view, the process presenters already do it.
             delete pair.first;
         }
 

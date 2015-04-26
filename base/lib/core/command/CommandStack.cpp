@@ -9,6 +9,15 @@ CommandStack::CommandStack(QObject* parent) :
     this->setParent(parent);
 }
 
+CommandStack::~CommandStack()
+{
+    for(auto& elt : m_undoable)
+        delete elt;
+    for(auto& elt : m_redoable)
+        delete elt;
+
+}
+
 const SerializableCommand* CommandStack::command(int index) const
 {
     if(index < m_undoable.size())

@@ -14,9 +14,14 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
 
     this->setZValue(parent->zValue() + 1);
 
-    m_clearAction = new QAction("clear contents", this);
+    m_clearAction = new QAction{tr("Clear content"), this};
     connect(m_clearAction,  &QAction::triggered,
             this,           &TemporalScenarioView::clearPressed);
+}
+
+TemporalScenarioView::~TemporalScenarioView()
+{
+	delete m_clearAction;
 }
 
 void TemporalScenarioView::paint(QPainter* painter,

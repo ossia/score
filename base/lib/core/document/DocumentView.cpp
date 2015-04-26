@@ -14,6 +14,7 @@ DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
     m_view{fact->makeView(this)}
 
 {
+    m_view->setParent(this);
     setObjectName("DocumentView");
     setLayout(new QGridLayout{this});
     layout()->setContentsMargins(0, 0, 0, 0);

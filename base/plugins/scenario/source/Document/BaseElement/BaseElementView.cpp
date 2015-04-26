@@ -12,7 +12,7 @@
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget{}},
-    m_scene {new QGraphicsScene{this}},
+    m_scene {new QGraphicsScene{m_widget}},
     m_view {new SizeNotifyingGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject{}},
     m_addressBar {new AddressBar{nullptr}},

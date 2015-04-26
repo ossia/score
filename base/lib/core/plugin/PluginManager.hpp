@@ -4,6 +4,7 @@
 #include <QMap>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
 
 namespace iscore
 {
@@ -42,6 +43,12 @@ namespace iscore
             {
                 return m_pluginsOnSystem;
             }
+
+            void addControl(PluginControlInterface* p)
+            { m_commandList.push_back(p); }
+
+            void addPanel(PanelFactoryInterface* p)
+            { m_panelList.push_back(p); }
 
         private:
             // We need a list for all the plug-ins present on the system even if we do not load them.

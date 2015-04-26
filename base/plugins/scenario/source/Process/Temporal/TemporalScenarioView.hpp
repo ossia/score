@@ -10,10 +10,9 @@ class TemporalScenarioView : public ProcessViewInterface
 
     public:
         TemporalScenarioView(QGraphicsObject* parent);
+        ~TemporalScenarioView();
 
-        virtual ~TemporalScenarioView() = default;
-
-        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
         void setSelectionArea(const QRectF& rect)
         {

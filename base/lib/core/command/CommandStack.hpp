@@ -17,6 +17,7 @@ namespace iscore
             Q_OBJECT
         public:
             CommandStack(QObject* parent = nullptr);
+            ~CommandStack();
 
             bool canUndo() const
             {

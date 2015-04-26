@@ -4,9 +4,8 @@ class ProcessViewModelInterface;
 namespace iscore
 {
     class Document;
+    class DocumentDelegateModelInterface;
 }
-class BaseElementModel;
-
 // Sets the focus on a scenario document.
 class FocusDispatcher : public QObject
 {
@@ -18,5 +17,5 @@ class FocusDispatcher : public QObject
         void focus(ProcessViewModelInterface* obj);
 
     private:
-        BaseElementModel& m_baseElementModel;
+        iscore::DocumentDelegateModelInterface& m_baseElementModel;
 };

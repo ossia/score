@@ -15,7 +15,8 @@
 class UndoPanelView : public iscore::PanelViewInterface
 {
     public:
-        UndoPanelView(iscore::View* v):
+        UndoPanelView(QObject* v):
+            iscore::PanelViewInterface{v},
             m_widget{new QWidget}
         {
             setObjectName(tr("Undo / Redo"));
@@ -74,6 +75,7 @@ class UndoPanelPresenter : public iscore::PanelPresenterInterface
 
 };
 
+#include <core/view/View.hpp>
 iscore::PanelViewInterface*UndoPanelFactory::makeView(iscore::View* v)
 {
     return new UndoPanelView{v};

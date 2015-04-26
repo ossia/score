@@ -5,7 +5,7 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <DeviceExplorer/DeviceCompleter.hpp>
 
-//#include "../device_explorer/Panel/DeviceExplorerModel.hpp"
+#include "../../device_explorer/Plugin/Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/QMenuView/qmenuview.h>
 
 #include <QVBoxLayout>
@@ -47,7 +47,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automation
 
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    auto deviceexplorer = DeviceExplorer::getModel(automationModel);
+    auto deviceexplorer = iscore::IDocument::documentFromObject(automationModel)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
     if(deviceexplorer)
     {

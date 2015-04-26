@@ -2,6 +2,10 @@
 
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
+
+#include <core/undo/UndoView.hpp>
+#include <core/undo/UndoControl.hpp>
+
 using namespace iscore;
 
 
@@ -30,6 +34,9 @@ Application::Application(int& argc, char** argv) :
 
     // Plugins
     m_pluginManager.reloadPlugins();
+    m_pluginManager.addControl(new UndoControl{m_presenter});
+    m_pluginManager.addPanel(new UndoPanelFactory);
+
     loadPluginData();
 
     // View
@@ -42,7 +49,8 @@ Application::Application(int& argc, char** argv) :
 Application::~Application()
 {
     this->setParent(nullptr);
-    m_app->deleteLater();
+    delete m_presenter;
+    delete m_app;//m_app->deleteLater();
 }
 
 void Application::loadPluginData()

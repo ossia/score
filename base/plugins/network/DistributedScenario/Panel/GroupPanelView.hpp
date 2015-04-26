@@ -11,7 +11,7 @@ namespace iscore
 class GroupPanelView : public iscore::PanelViewInterface
 {
     public:
-        GroupPanelView(iscore::View* v);
+        GroupPanelView(QObject* v);
 
         QWidget* getWidget() override;
         Qt::DockWidgetArea defaultDock() const override;

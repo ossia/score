@@ -101,16 +101,18 @@ namespace iscore
             virtual bool mergeWith(const Command*) = 0;
 
 
-            int32_t uid() const
+            auto uid() const
             {
                 using namespace std;
                 hash<string> fn;
-                auto hash = fn(this->name().toStdString());
+                return fn(this->name().toStdString());
+                /*
                 int32_t theUid =
                     hash <= numeric_limits<int32_t>::max() ?
                         static_cast<int32_t>(hash) :
                         static_cast<int32_t>(hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min();
                 return theUid;
+                * */
             }
 
 

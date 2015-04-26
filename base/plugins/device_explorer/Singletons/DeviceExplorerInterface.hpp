@@ -19,10 +19,6 @@ namespace DeviceExplorer
     QString panelName();
     QString explorerName();
 
-    // Object inside a document.
-    DeviceExplorerModel* getModel(QObject* object);
-    DeviceExplorerModel* getModel(iscore::Document* object);
-
     QString addressFromModelIndex(const QModelIndex& index);
     Message messageFromModelIndex(const QModelIndex& index);
 }

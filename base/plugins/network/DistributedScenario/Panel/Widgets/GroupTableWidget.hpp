@@ -19,7 +19,6 @@ class GroupTableWidget : public QWidget
         void on_checkboxChanged(int i, int j, int state);
 
         QTableWidget* m_table{};
-        QObject* m_groupConnectionContext{};
         const GroupManager* m_mgr;
         const Session* m_session;
 

@@ -10,6 +10,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 
+#include "base/plugins/device_explorer/Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -87,7 +88,7 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
 
     m_addressLineEdit = new QLineEdit{addAddressWidget};
 
-    auto deviceexplorer = DeviceExplorer::getModel(m_model);
+    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
     if(deviceexplorer)
     {
