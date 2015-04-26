@@ -2,13 +2,8 @@
 #include "PluginSettingsModel.hpp"
 #include "PluginSettingsView.hpp"
 
-#include <core/settings/SettingsPresenter.hpp>
 #include "commands/BlacklistCommand.hpp"
 
-/*#include "commands/ClientPortChangedCommand.hpp"
-#include "commands/MasterPortChangedCommand.hpp"
-#include "commands/ClientNameChangedCommand.hpp"
-*/
 using namespace iscore;
 
 PluginSettingsPresenter::PluginSettingsPresenter(SettingsPresenter* parent,
@@ -71,7 +66,6 @@ void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 }
 
 #include <QApplication>
-#include <QStyle>
 QIcon PluginSettingsPresenter::settingsIcon()
 {
     return QApplication::style()->standardIcon(QStyle::SP_CommandLink);

@@ -3,12 +3,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 
-#include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include <iscore/tools/utilsCPP11.hpp>
-
-#include <QDebug>
 
 DeckModel::DeckModel(id_type<DeckModel> id, BoxModel* parent) :
     IdentifiedObject<DeckModel> {id, "DeckModel", parent}

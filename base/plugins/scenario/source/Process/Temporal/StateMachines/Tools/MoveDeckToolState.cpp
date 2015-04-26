@@ -1,18 +1,13 @@
 #include "MoveDeckToolState.hpp"
 #include "Commands/Constraint/Box/MoveDeck.hpp"
-#include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/TemporalScenarioView.hpp"
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
-#include <iscore/document/DocumentInterface.hpp>
 #include <QFinalState>
 
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):

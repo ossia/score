@@ -10,20 +10,15 @@
 
 #include "AddressEditDialog.hpp"
 #include "DeviceEditDialog.hpp"
-#include "DeviceExplorerModel.hpp"
+
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "IOTypeDelegate.hpp"
 
-#include <core/command/CommandStack.hpp>
 
 #include <Commands/AddDevice.hpp>
 #include "Commands/AddAddress.hpp"
 #include "Commands/Remove.hpp"
-
-#include <QDebug>
-
-#include <iostream> //DEBUG
 
 
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)

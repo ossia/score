@@ -4,13 +4,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
-#include <iscore/command/SerializableCommand.hpp>
-
-#include <QDebug>
 #include <QGraphicsScene>
 
 TemporalConstraintPresenter::TemporalConstraintPresenter(TemporalConstraintViewModel* cstr_model,

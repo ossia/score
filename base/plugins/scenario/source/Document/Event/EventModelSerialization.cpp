@@ -2,10 +2,6 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/Event/EventModel.hpp"
 
-#include <State/State.hpp>
-
-#include <API/Headers/Editor/TimeNode.h>
-
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {

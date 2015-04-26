@@ -10,29 +10,20 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 
-#include <State/State.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
 #include <QLayout>
-#include <QFormLayout>
-#include <QWidget>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QCompleter>
-#include <QToolButton>
 
 #include <Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
 #include <DeviceExplorer/DeviceCompleter.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
-
-#include "iscore/document/DocumentInterface.hpp"
 #include "core/document/DocumentModel.hpp"
-#include "core/document/Document.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
@@ -168,7 +159,6 @@ void EventInspectorWidget::addState(const State& state)
 }
 
 #include <Inspector/InspectorWidgetList.hpp>
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
 void EventInspectorWidget::updateDisplayedValues(EventModel* event)
 {
     // Cleanup

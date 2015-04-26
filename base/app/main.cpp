@@ -1,4 +1,3 @@
-#include <iostream>
 #include <core/application/Application.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS)
@@ -15,7 +14,6 @@ Q_IMPORT_PLUGIN(IScoreCohesion)
 #endif
 #endif
 
-#include <QStyleFactory>
 int main(int argc, char** argv)
 {
     iscore::Application app(argc, argv);

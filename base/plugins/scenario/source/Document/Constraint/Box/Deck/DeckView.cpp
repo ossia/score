@@ -3,8 +3,6 @@
 #include <iscore/tools/NamedObject.hpp>
 
 #include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <QPainter>
 
 
 DeckView::DeckView(const DeckPresenter &pres, QGraphicsObject* parent) :

@@ -1,9 +1,6 @@
 #include "MoveStates.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
 
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveTimeNode.hpp"

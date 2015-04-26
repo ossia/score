@@ -1,20 +1,11 @@
 #include "InspectorSectionWidget.hpp"
 #include "InspectorWidgetBase.hpp"
 
-#include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+
 #include <QLayout>
 #include <QLineEdit>
 #include <QTextEdit>
-#include <QLabel>
-#include <QPushButton>
-#include <QSpacerItem>
 #include <QScrollArea>
-#include <QScrollBar>
-#include <QDebug>
-#include <QColorDialog>
-#include <QVector>
 
 InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
     QWidget(parent),

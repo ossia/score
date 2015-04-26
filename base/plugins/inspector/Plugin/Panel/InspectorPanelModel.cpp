@@ -1,7 +1,6 @@
 #include "InspectorPanelModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
-#include <QDebug>
 
 InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
     iscore::PanelModelInterface {"InspectorPanelModel", nullptr}

@@ -5,10 +5,8 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
-#include <iscore/tools/utilsCPP11.hpp>
+
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
 
 using namespace iscore;

@@ -1,6 +1,5 @@
 #include <core/command/CommandStack.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <QDebug>
+
 using namespace iscore;
 
 CommandStack::CommandStack(QObject* parent) :

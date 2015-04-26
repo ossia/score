@@ -2,17 +2,12 @@
 
 #include <QLabel>
 #include <QGridLayout>
-#include <QGraphicsScene>
-#include <QGraphicsItem>
+
 #include "Widgets/DoubleSlider.hpp"
 #include "Widgets/AddressBar.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
-#include <QSlider>
-#include <QDebug>
-#include <QPushButton>
-#include <QScrollBar>
 
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},

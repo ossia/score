@@ -1,12 +1,8 @@
 #include "EventModel.hpp"
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Process/ScenarioModel.hpp>
-#include <State/State.hpp>
 
-#include <API/Headers/Editor/TimeNode.h>
 #include <iscore/document/DocumentInterface.hpp>
-
-#include <QVector>
 
 EventModel::EventModel(id_type<EventModel> id,
                        id_type<TimeNodeModel> timenode,
@@ -121,7 +117,6 @@ void EventModel::translate(const TimeValue& deltaTime)
 }
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
-#include "Process/ScenarioModel.hpp"
 ScenarioModel* EventModel::parentScenario() const
 {
     return dynamic_cast<ScenarioModel*>(parent());

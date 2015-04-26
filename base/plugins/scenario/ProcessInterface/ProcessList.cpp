@@ -1,6 +1,5 @@
 #include "ProcessList.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
-#include <algorithm>
 
 ProcessList::ProcessList(NamedObject* parent) :
     NamedObject {"ProcessList", parent}

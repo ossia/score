@@ -5,7 +5,7 @@ set(APPNAME "i-score")
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Network Xml)
 
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")

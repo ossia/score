@@ -2,7 +2,6 @@
 #include <iscore/selection/SelectionStack.hpp>
 #include <QToolButton>
 #include <QHBoxLayout>
-#include <QDebug>
 
 SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack& s,
                                            QWidget* parent):

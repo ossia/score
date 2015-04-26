@@ -1,6 +1,5 @@
 #include "CreationToolState.hpp"
 
-#include "States/CreateEventState.hpp"
 
 CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
     GenericToolState{sm}

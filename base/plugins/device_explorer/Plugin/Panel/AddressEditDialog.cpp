@@ -6,12 +6,8 @@
 #include <QLabel>
 #include <QLineEdit>
 
-#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
-#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
-#include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
 #include "Common/AddressSettings/AddressSettingsFactory.hpp"
 #include "Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
-#include<iostream>
 
 AddressEditDialog::AddressEditDialog(QWidget* parent)
     : QDialog(parent),

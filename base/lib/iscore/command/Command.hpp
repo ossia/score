@@ -43,6 +43,13 @@ namespace iscore
     class Command
     {
         public:
+            Command(const char* parname, const char* cmdname, QString text) :
+                m_name {cmdname},
+                m_parentName {parname},
+                m_text{text}
+            {
+            }
+
             Command(QString parname, QString cmdname, QString text) :
                 m_name {cmdname},
                 m_parentName {parname},

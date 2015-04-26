@@ -3,7 +3,7 @@
 #include "Panel/DeviceExplorerWidget.hpp"
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <core/view/View.hpp>
 using namespace iscore;

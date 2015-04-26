@@ -5,7 +5,6 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
 #include <Plugin/DeviceExplorerPlugin.hpp>
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 

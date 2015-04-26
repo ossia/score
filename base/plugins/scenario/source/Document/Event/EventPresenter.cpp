@@ -3,7 +3,6 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventView.hpp"
 
-#include <QPointF>
 #include <QGraphicsScene>
 
 EventPresenter::EventPresenter(EventModel* model,

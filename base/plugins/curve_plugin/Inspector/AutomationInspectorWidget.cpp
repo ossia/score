@@ -8,13 +8,9 @@
 //#include "../device_explorer/Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/QMenuView/qmenuview.h>
 
-#include <QLabel>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
 
 
 #include <QApplication>

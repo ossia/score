@@ -7,7 +7,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QMenu>
-#include <QDebug>
 
 TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
     ProcessViewInterface {parent}

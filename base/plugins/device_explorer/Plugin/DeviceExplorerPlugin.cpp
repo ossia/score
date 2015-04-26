@@ -4,7 +4,6 @@ using namespace iscore;
 #include <DeviceExplorer/Protocol/MIDI/MIDIProtocolFactory.hpp>
 #include <DeviceExplorer/Protocol/Minuit/MinuitProtocolFactory.hpp>
 #include <DeviceExplorer/Protocol/OSC/OSCProtocolFactory.hpp>
-#include <DeviceExplorer/Protocol/ProtocolList.hpp>
 
 
 DeviceList  SingletonDeviceList::m_instance;

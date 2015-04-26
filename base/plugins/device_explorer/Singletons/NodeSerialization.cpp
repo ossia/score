@@ -4,7 +4,6 @@
 
 #include "DeviceExplorerPlugin.hpp"
 #include "DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp"
-#include <DeviceExplorer/Protocol/ProtocolList.hpp>
 
 
 
@@ -126,7 +125,9 @@ void Visitor<Writer<DataStream>>::writeTo(Node& n)
         n.addChild(child);
     }
 
-    n.setDeviceSettings(settings);
+    if(isDev)
+        n.setDeviceSettings(settings);
+
     n.setName(name);
     n.setValue(value);
     n.setIOType(static_cast<Node::IOType>(io));

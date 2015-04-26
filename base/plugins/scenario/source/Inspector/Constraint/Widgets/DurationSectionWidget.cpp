@@ -10,8 +10,6 @@
 #include "Commands/ResizeBaseConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
 
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QToolButton>

@@ -9,10 +9,7 @@
 #include <QLineEdit>
 #include <QFormLayout>
 
-#include <QVBoxLayout>
 #include <QColorDialog>
-#include <QToolButton>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 
 MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QObject *docObject, QWidget* parent) :

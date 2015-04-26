@@ -7,8 +7,6 @@
 #include "Commands/Scenario/Deletions/ClearEvent.hpp"
 
 #include "Commands/RemoveMultipleElements.hpp"
-#include "Process/ScenarioModel.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
 

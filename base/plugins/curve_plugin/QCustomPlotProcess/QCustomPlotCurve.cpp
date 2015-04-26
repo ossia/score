@@ -1,7 +1,5 @@
 #include "QCustomPlotCurve.hpp"
 
-#include <QGraphicsProxyWidget>
-#include <QPainter>
 static const QColor outerColor{200, 30, 0};
 static const QColor innerColor{255, 200, 200};
 

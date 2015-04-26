@@ -8,7 +8,6 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxView.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 
 #include "Document/Event/EventModel.hpp"
@@ -19,21 +18,9 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
-#include "ProcessInterface/ZoomHelper.hpp"
-
 #include "ScenarioViewInterface.hpp"
 
-#include <iscore/selection/Selection.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
-
-#include <QDebug>
-#include <QRectF>
-#include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <QStateMachine>
-#include <QtMath>
-#include "iscore/command/SerializableCommand.hpp"
-#include <iscore/document/DocumentInterface.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* process_view_model,
                                                      ProcessViewInterface* view,

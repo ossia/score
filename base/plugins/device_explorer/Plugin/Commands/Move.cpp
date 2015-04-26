@@ -1,8 +1,6 @@
 
 #include "Move.hpp"
 
-#include <iostream> //DEBUG
-
 using namespace DeviceExplorer::Command;
 
 Move::Move()

@@ -1,6 +1,5 @@
 #include "ProtocolList.hpp"
 #include "ProtocolFactoryInterface.hpp"
-#include <algorithm>
 
 QStringList ProtocolList::protocols() const
 {

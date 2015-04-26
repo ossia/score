@@ -1,6 +1,5 @@
 #include "TemporalConstraintViewModel.hpp"
 
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
 
 template<>

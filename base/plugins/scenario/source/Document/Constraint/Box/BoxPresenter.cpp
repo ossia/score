@@ -6,12 +6,8 @@
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ZoomHelper.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
-
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
 #include <QGraphicsScene>
 
 BoxPresenter::BoxPresenter(BoxModel* model,

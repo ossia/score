@@ -16,27 +16,20 @@
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "iscore/selection/SelectionDispatcher.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Process/ScenarioModel.hpp"
 
-#include <iscore/tools/ObjectPath.hpp>
-#include "iscore/document/DocumentInterface.hpp"
 #include "core/document/DocumentModel.hpp"
-#include "core/document/Document.hpp"
 
 #include <QFrame>
 #include <QLineEdit>
 #include <QLayout>
 #include <QFormLayout>
-#include <QWidget>
 #include <QToolButton>
 #include <QPushButton>
-#include <QLabel>
 
 using namespace Scenario::Command;
 using namespace iscore;

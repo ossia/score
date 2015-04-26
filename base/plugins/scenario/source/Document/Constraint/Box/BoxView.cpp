@@ -4,7 +4,6 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
-#include <QDebug>
 #include <QGraphicsSceneMouseEvent>
 
 BoxView::BoxView(QGraphicsObject* parent) :

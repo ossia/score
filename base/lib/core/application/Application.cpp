@@ -2,8 +2,6 @@
 
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
-#include <iscore/tools/ObjectIdentifier.hpp>
 using namespace iscore;
 
 
@@ -37,7 +35,8 @@ Application::Application(int& argc, char** argv) :
     // View
     m_view->show();
 
-    m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
+    if(!m_pluginManager.m_documentPanelList.empty())
+        m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
 }
 
 Application::~Application()

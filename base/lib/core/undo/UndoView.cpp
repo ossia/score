@@ -3,10 +3,8 @@
 #include <iscore/plugins/panel/PanelPresenterInterface.hpp>
 #include <iscore/plugins/panel/PanelViewInterface.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
 
 #include <QUndoView>
 #include <QVBoxLayout>

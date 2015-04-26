@@ -2,11 +2,8 @@
 
 #include "../Plugin/DeviceExplorerPanelFactory.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
+
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
 
 QString DeviceExplorer::panelName()
 {

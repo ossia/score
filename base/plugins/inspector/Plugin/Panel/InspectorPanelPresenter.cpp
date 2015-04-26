@@ -1,11 +1,8 @@
 #include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelView.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/selection/SelectionStack.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
-#include <core/document/Document.hpp>
 InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
         iscore::PanelViewInterface* view) :
     iscore::PanelPresenterInterface {parent, view}

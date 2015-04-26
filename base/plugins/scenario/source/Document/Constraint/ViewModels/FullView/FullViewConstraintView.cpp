@@ -1,15 +1,10 @@
 #include "FullViewConstraintView.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include "FullViewConstraintViewModel.hpp"
 #include "FullViewConstraintPresenter.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QDebug>
-#include <QWidget>
-#include <QGraphicsProxyWidget>
-#include <QPushButton>
 
 FullViewConstraintView::FullViewConstraintView(const FullViewConstraintPresenter& presenter, QGraphicsObject* parent) :
     AbstractConstraintView {presenter, parent}

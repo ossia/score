@@ -239,7 +239,6 @@ void QMenuView::setRootIndex(const QModelIndex& index)
  *
  * Default root index is QModelIndex()
  */
-#include <QGenericMatrix>
 QModelIndex QMenuView::rootIndex() const
 {
     return d->m_root;

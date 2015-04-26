@@ -15,12 +15,8 @@
 #include <ProcessInterface/ProcessViewInterface.hpp>
 #include <ProcessInterface/ProcessFactoryInterface.hpp>
 
-
-#include <iscore/document/DocumentInterface.hpp>
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
 
-#include <QDebug>
-#include <QGraphicsScene>
 
 ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelViewInterface* view):
     iscore::PanelPresenterInterface{parent_presenter, view},

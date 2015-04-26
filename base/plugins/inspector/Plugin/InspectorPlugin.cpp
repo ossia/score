@@ -1,6 +1,5 @@
 #include "InspectorPlugin.hpp"
 #include "InspectorControl.hpp"
-#include <Inspector/InspectorWidgetList.hpp>
 
 #include "Panel/InspectorPanelFactory.hpp"
 using namespace iscore;

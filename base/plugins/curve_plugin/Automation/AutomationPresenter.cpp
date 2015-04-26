@@ -14,9 +14,6 @@
 #include <QGraphicsSceneMouseEvent>
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
-#include <ProcessInterface/ZoomHelper.hpp>
-#include <QGraphicsScene>
-
 
 AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                          ProcessViewInterface* view,

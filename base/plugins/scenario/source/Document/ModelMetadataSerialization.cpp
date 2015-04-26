@@ -1,9 +1,5 @@
 #include "ModelMetadata.hpp"
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ModelMetadata& md)
 {

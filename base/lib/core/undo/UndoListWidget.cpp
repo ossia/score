@@ -1,6 +1,5 @@
 #include "UndoListWidget.hpp"
 #include <core/command/CommandStack.hpp>
-#include <QDebug>
 using namespace iscore;
 
 UndoListWidget::UndoListWidget(iscore::CommandStack* s):

@@ -1,6 +1,5 @@
 #include "PluginSettingsView.hpp"
 #include <QGridLayout>
-#include <QLabel>
 #include "PluginSettingsPresenter.hpp"
 #include "PluginSettingsModel.hpp"
 /*#include "commands/ClientPortChangedCommand.hpp"

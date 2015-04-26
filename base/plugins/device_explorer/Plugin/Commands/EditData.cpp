@@ -1,6 +1,4 @@
 #include "EditData.hpp"
-#include "Panel/DeviceExplorerModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
 
 using namespace DeviceExplorer::Command;
 

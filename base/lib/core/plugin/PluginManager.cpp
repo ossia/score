@@ -15,9 +15,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
-#include <QDebug>
 #include <QSettings>
-#include <QStaticPlugin>
 
 using namespace iscore;
 

@@ -9,7 +9,6 @@
 
 #include <Common/CommonTypes.hpp>
 #include "Common/AddressSettings/AddressSettings.hpp"
-#include "Common/AddressSettings/AddressSpecificSettings/AddressStringSettings.hpp"
 
 
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)

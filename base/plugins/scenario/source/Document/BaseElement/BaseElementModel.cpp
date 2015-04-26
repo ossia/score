@@ -2,9 +2,7 @@
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
-#include <iscore/serialization/JSONVisitor.hpp>
 
-#include <iostream>
 #include <iscore/document/DocumentInterface.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
@@ -14,7 +12,6 @@
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
-#include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
@@ -22,8 +19,6 @@
 
 using namespace Scenario;
 
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
     m_baseConstraint {new ConstraintModel{

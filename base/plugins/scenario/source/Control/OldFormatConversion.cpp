@@ -9,23 +9,6 @@
 #include <QJsonArray>
 
 
-bool loadJSON(QJsonDocument* doc)
-{
-    QFile loadFile("../fichiers-tests/testConverter");
-
-    if(!loadFile.open(QIODevice::ReadOnly))
-    {
-        qWarning("Couldn't open save file.");
-        return false;
-    }
-
-    QByteArray saveData = loadFile.readAll();
-
-    *doc = QJsonDocument::fromJson(saveData);
-
-    return true;
-}
-
 // séparateur décimal = virgule ! Et virgule *obligatoire* (1,0 et non 1)
 QString numberToQString(double nb)
 {

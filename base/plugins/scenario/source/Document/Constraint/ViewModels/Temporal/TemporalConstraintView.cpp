@@ -6,10 +6,6 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QDebug>
-#include <QWidget>
-#include <QGraphicsProxyWidget>
-#include <QPushButton>
 
 TemporalConstraintView::TemporalConstraintView(const TemporalConstraintPresenter &presenter, QGraphicsObject* parent) :
     AbstractConstraintView {presenter, parent}

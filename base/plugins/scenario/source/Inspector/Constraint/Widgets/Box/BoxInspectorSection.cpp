@@ -11,7 +11,6 @@
 
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 
-#include "iscore/document/DocumentInterface.hpp"
 #include <QtWidgets/QVBoxLayout>
 #include <QFrame>
 

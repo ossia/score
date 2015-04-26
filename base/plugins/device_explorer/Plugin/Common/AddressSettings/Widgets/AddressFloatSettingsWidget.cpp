@@ -6,7 +6,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QSpinBox>
 
 #include <Common/CommonTypes.hpp>
 #include "Common/AddressSettings/AddressSettings.hpp"

@@ -1,5 +1,4 @@
 #include "ReorderWidget.hpp"
-#include <QListWidget>
 
 ReorderWidget::ReorderWidget(QWidget* parent) :
     QWidget(parent)

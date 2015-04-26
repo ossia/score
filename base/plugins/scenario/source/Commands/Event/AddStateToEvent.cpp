@@ -2,8 +2,6 @@
 
 #include "Document/Event/EventModel.hpp"
 
-#include <QDebug>
-
 using namespace iscore;
 using namespace Scenario::Command;
 

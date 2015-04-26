@@ -1,5 +1,4 @@
 #include "MenubarManager.hpp"
-#include <QStringList>
 #include <functional>
 
 using namespace iscore;

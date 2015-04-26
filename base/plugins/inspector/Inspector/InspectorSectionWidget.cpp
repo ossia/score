@@ -1,13 +1,9 @@
 #include "InspectorSectionWidget.hpp"
 
 #include <QLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
 #include <QPushButton>
-#include <QDebug>
-#include <QScrollArea>
-#include <QScrollBar>
 
 InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     QWidget(parent)

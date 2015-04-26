@@ -9,8 +9,6 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxView.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventPresenter.hpp"
@@ -20,10 +18,7 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
-#include "QRectF"
-#include "QPainterPath"
-#include "QGraphicsScene"
-#include <iscore/selection/Selection.hpp>
+#include <QGraphicsScene>
 
 ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presenter) :
     QObject{presenter},

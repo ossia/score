@@ -12,11 +12,6 @@
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
-#include "iscore/document/DocumentInterface.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
-
 #include "Document/Constraint/Box/BoxView.hpp"
 #include <QGraphicsScene>
 

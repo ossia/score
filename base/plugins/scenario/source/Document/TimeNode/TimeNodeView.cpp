@@ -2,9 +2,6 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QPointF>
-
-#include <QDebug>
 
 TimeNodeView::TimeNodeView(const TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :

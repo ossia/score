@@ -3,12 +3,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 
-#include <iscore/selection/SelectionStack.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-
-#include <QPushButton>
 #include <QVBoxLayout>
-#include <QScrollArea>
 #include <QTabWidget>
 
 InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :

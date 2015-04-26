@@ -1,8 +1,6 @@
 
 #include "Remove.hpp"
 
-#include <iostream> //DEBUG
-
 using namespace DeviceExplorer::Command;
 
 const char* Remove::className() { return "Remove"; }

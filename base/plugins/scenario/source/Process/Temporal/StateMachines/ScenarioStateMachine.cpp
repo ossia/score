@@ -3,15 +3,7 @@
 #include "Tools/MoveToolState.hpp"
 #include "Tools/SelectionToolState.hpp"
 #include "Tools/MoveDeckToolState.hpp"
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/TemporalScenarioView.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
-#include <Process/ScenarioModel.hpp>
 
-#include "StateMachineCommon.hpp"
-#include <QKeyEventTransition>
 #include <QSignalTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):

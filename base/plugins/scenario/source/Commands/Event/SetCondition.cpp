@@ -1,9 +1,6 @@
 #include "SetCondition.hpp"
 
 #include "Document/Event/EventModel.hpp"
-#include <State/State.hpp>
-
-#include <QDebug>
 
 using namespace iscore;
 using namespace Scenario::Command;

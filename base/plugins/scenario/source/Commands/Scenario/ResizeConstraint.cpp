@@ -8,7 +8,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-#include <ProcessInterface/TimeValue.hpp>
 ResizeConstraint::ResizeConstraint() :
     SerializableCommand{"ScenarioControl",
                         className(),

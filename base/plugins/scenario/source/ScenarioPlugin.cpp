@@ -1,5 +1,4 @@
 #include <ScenarioPlugin.hpp>
-#include <QStringList>
 #include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioFactory.hpp>
 #include <Panel/ProcessPanelFactory.hpp>

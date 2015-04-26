@@ -3,8 +3,6 @@
 #include <QPainter>
 #include <QGraphicsScene>
 
-#include <QDebug>
-
 AbstractTimeRulerView::AbstractTimeRulerView() :
     m_width{800},
     m_graduationsSpacing{10},

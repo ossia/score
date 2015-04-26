@@ -8,7 +8,6 @@
 #include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
-#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 
 #include "source/Commands/Scenario/Displacement/MoveEvent.hpp"
 

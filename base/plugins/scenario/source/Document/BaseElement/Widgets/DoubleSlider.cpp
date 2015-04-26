@@ -2,7 +2,7 @@
 #include <QSlider>
 #include <numeric>
 #include <QGridLayout>
-#include <QDebug>
+
 static const constexpr double max = std::numeric_limits<int>::max();
 
 DoubleSlider::DoubleSlider(QWidget* parent):

@@ -2,7 +2,6 @@
 
 #include <QPainter>
 
-#include <QDebug>
 #include <QGraphicsScene>
 
 TimeRulerView::TimeRulerView() :

@@ -7,12 +7,6 @@
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "ProcessInterface/ZoomHelper.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
-
-#include <iscore/command/SerializableCommand.hpp>
-
-#include <QDebug>
 #include <QGraphicsScene>
 
 /**

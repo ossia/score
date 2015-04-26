@@ -1,17 +1,7 @@
 #include "SelectionToolState.hpp"
 #include <QKeyEventTransition>
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
 
-#include "Document/Event/EventPresenter.hpp"
-#include "Document/Event/EventView.hpp"
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "Document/TimeNode/TimeNodePresenter.hpp"
-#include "Document/TimeNode/TimeNodeView.hpp"
-#include <QGraphicsScene>
 #include <QFinalState>
 
 SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):

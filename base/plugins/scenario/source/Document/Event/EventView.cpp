@@ -2,7 +2,6 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
-#include <QDebug>
 #include <QGraphicsSceneMouseEvent>
 
 EventView::EventView(const EventPresenter& presenter,

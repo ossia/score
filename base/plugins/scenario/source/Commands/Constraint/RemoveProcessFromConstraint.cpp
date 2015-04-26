@@ -5,8 +5,6 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
 
-#include <QDebug>
-
 using namespace iscore;
 using namespace Scenario::Command;
 

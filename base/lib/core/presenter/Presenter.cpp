@@ -1,5 +1,4 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <iscore/command/Command.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
@@ -14,9 +13,7 @@
 
 #include <core/undo/UndoControl.hpp>
 #include <core/undo/UndoView.hpp>
-#include <functional>
 
-#include <QKeySequence>
 #include <QFileDialog>
 #include <QJsonDocument>
 

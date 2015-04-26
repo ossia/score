@@ -1,15 +1,11 @@
 #include "CreateEventState.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
 
 #include <Commands/Scenario/Displacement/MoveEvent.hpp>
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"

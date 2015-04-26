@@ -10,8 +10,6 @@
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp"
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp"
-#include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
-#include "ProcessInterface/ZoomHelper.hpp"
 #include "Widgets/ProgressBar.hpp"
 
 // TODO put this somewhere else
@@ -20,9 +18,6 @@
 #include <ProcessInterface/ProcessSharedModelInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include <QSlider>
-#include <QGraphicsView>
-#include <QGraphicsScene>
 
 using namespace iscore;
 

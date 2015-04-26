@@ -8,18 +8,11 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
 
-#include <iscore/menu/MenuInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/presenter/MenubarManager.hpp>
 
 #include "Control/OldFormatConversion.hpp"
 
-#include <QAction>
 #include <QFile>
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QTextBlock>
 #include <QJsonDocument>
 #include <QGridLayout>
@@ -176,7 +169,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 }
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <QToolBar>
 // TODO use the one in ScenarioStateMachine
 enum ScenarioAction

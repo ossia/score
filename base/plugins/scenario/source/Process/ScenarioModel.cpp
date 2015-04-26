@@ -7,9 +7,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include <QDebug>
-
-
 ScenarioModel::ScenarioModel(TimeValue duration,
                              id_type<ProcessSharedModelInterface> id,
                              QObject* parent) :
@@ -226,7 +223,6 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 }
 
 ///////// DELETION //////////
-#include <iscore/tools/utilsCPP11.hpp>
 void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 {;
     auto constraintId = cstr->id();

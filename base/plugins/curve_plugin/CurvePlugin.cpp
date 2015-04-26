@@ -4,7 +4,6 @@
 #include "Inspector/AutomationStateInspectorFactory.hpp"
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"
-#include <QVector>
 
 CurvePlugin::CurvePlugin() :
     QObject {}

@@ -4,12 +4,6 @@
 
 class GenericStateBase : public QState
 {
-    protected:
-        auto itemUnderMouse(const QPointF& point) const
-        {
-            return m_sm.presenter().view().scene()->itemAt(point, QTransform());
-        }
-
     public:
         GenericStateBase(const ScenarioStateMachine& sm) :
             m_sm{sm}

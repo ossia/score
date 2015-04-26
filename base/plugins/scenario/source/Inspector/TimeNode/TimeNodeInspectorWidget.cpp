@@ -11,19 +11,12 @@
 
 #include "Commands/TimeNode/SplitTimeNode.hpp"
 
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/selection/SelectionDispatcher.hpp"
-
-#include <iostream>
 #include <QLabel>
 #include <QLineEdit>
 #include <QLayout>
-#include <QFormLayout>
-#include <QWidget>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QCompleter>
-#include <QCheckBox>
 
 using namespace Scenario::Command;
 

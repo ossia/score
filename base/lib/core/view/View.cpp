@@ -10,8 +10,6 @@
 #include <iscore/plugins/panel/PanelViewInterface.hpp>
 #include <iscore/plugins/panel/PanelPresenterInterface.hpp>
 
-#include <QTabWidget>
-
 using namespace iscore;
 
 View::View(QObject* parent) :

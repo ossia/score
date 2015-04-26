@@ -1,6 +1,4 @@
 #include "UndoControl.hpp"
-#include <iscore/menu/MenuInterface.hpp>
-#include <core/command/CommandStack.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
 iscore::UndoControl::UndoControl(QObject* parent):

@@ -3,9 +3,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Deck/DeckModel.hpp"
 
-#include <iscore/tools/utilsCPP11.hpp>
-
-#include <QDebug>
 
 BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}

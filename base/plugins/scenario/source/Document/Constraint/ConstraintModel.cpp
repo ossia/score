@@ -5,12 +5,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
-#include <iscore/tools/utilsCPP11.hpp>
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
-
 #include <iscore/document/DocumentInterface.hpp>
-
-#include <QDebug>
 
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,

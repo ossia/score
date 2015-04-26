@@ -8,13 +8,9 @@
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
-#include <QDebug>
 #include <QLayout>
-#include <QJsonDocument>
 
 using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory,
