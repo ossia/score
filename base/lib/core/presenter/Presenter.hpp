@@ -65,8 +65,10 @@ namespace iscore
             {
                 using namespace std;
                 QList<PanelFactoryInterface*> lst;
-                transform(begin(m_panelPresenters), end(m_panelPresenters), back_inserter(lst),
-                          [] (const auto& elt) { return elt.second; });
+                transform(begin(m_panelPresenters), end(m_panelPresenters),
+                          back_inserter(lst),
+                          [] (const QPair<PanelPresenterInterface*,
+                        PanelFactoryInterface*>& elt) { return elt.second; });
                 return lst;
             }
 

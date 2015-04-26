@@ -39,11 +39,11 @@ CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
 void CreationToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new ClickOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<ConstraintModel>& id)
     { },
     [&] ()
     { m_localSM.postEvent(new ClickOnNothing_Event{m_sm.scenarioPoint}); });
@@ -58,9 +58,9 @@ void CreationToolState::on_scenarioMoved()
             : static_cast<const CreationState&>(*m_createFromTimeNodeState);
 };
     mapWithCollision(
-                [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new MoveOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new MoveOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] ()
     { m_localSM.postEvent(new MoveOnNothing_Event{m_sm.scenarioPoint}); },
@@ -77,9 +77,9 @@ void CreationToolState::on_scenarioReleased()
             : static_cast<const CreationState&>(*m_createFromTimeNodeState);
 };
     mapWithCollision(
-                [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new ReleaseOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new ReleaseOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] ()
     { m_localSM.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint}); },

@@ -57,7 +57,8 @@ class DeckPresenter : public NamedObject
 
         DeckModel* m_model{};
         DeckView* m_view{};
-        QVector<QPair<ProcessPresenterInterface*, ProcessViewInterface*>> m_processes;
+        using ProcessPair = QPair<ProcessPresenterInterface*, ProcessViewInterface*>;
+        QVector<ProcessPair> m_processes;
 
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the deckView is being resized.
