@@ -85,8 +85,8 @@ void AutomationPresenter::putBehind()
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
-    on_modelPointsChanged();
 
+    m_curve->redraw();
     m_curve->setSize({m_view->width(), m_view->height()});
 }
 

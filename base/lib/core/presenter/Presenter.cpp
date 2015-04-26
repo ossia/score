@@ -44,9 +44,10 @@ void Presenter::registerPluginControl(PluginControlInterface* cmd)
     cmd->setPresenter(this);
 
     cmd->populateMenus(&m_menubar);
-    QToolBar* bar = new QToolBar;
-    cmd->populateToolbars(bar);
-    m_view->addToolBar(bar);
+    auto bars = cmd->makeToolbars();
+    for(auto& bar : bars)
+        m_view->addToolBar(bar);
+
     m_customControls.push_back(cmd);
 }
 

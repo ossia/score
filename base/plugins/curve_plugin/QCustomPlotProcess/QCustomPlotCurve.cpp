@@ -175,7 +175,7 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
     m_points->setZValue(2);
 }
 
-void QCustomPlotCurve::setPoints(QList<QPointF> list)
+void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
 {
     // QCustomPlot
     QVector<double> x, y;
@@ -210,6 +210,16 @@ void QCustomPlotCurve::setPoints(QList<QPointF> list)
     }
 
     m_backedUpPoint = invalid_point;
+
+    update();
+}
+
+void QCustomPlotCurve::redraw()
+{
+    m_plot->replot();
+
+    // The static points
+    m_points->setPoints(pointsToPixels(*m_plot->graph()->data()));
 
     update();
 }

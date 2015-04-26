@@ -176,7 +176,7 @@ enum ScenarioAction
     Create, Move, DeckMove, Select
 };
 
-void ScenarioControl::populateToolbars(QToolBar* bar)
+QList<QToolBar*> ScenarioControl::makeToolbars()
 {
     // TODO make a method of this
     auto focusedScenarioStateMachine = [this] () -> ScenarioStateMachine& {
@@ -184,6 +184,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         return static_cast<TemporalScenarioViewModel*>(model.focusedViewModel())->presenter()->stateMachine();
     };
 
+    QToolBar* bar = new QToolBar;
     // The tools
     m_scenarioToolActionGroup = new QActionGroup{bar};
     m_scenarioToolActionGroup->setEnabled(false);
@@ -250,6 +251,8 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
     bar->addActions(m_scenarioToolActionGroup->actions());
     bar->addSeparator();
     bar->addActions(m_scenarioScaleModeActionGroup->actions());
+
+    return {bar};
 }
 
 

@@ -13,7 +13,7 @@ class QCustomPlotCurve : public QGraphicsObject
     public:
         QCustomPlotCurve(QGraphicsItem* parent);
 
-        void setPoints(QList<QPointF> list);
+        void setPoints(const QList<QPointF>& list);
         void setSize(const QSizeF& size);
 
 
@@ -26,6 +26,8 @@ class QCustomPlotCurve : public QGraphicsObject
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
         {
         }
+
+        void redraw();
 
     signals:
         void pointMovingFinished(double oldx, double newx, double newy);

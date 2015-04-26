@@ -30,7 +30,7 @@ namespace iscore
             using NamedObject::NamedObject;
             virtual ~PluginControlInterface() = default;
             virtual void populateMenus(iscore::MenubarManager*) = 0;
-            virtual void populateToolbars(QToolBar*) {}
+            virtual QList<QToolBar*> makeToolbars() { return {}; }
 
             Presenter* presenter() const
             {
