@@ -11,8 +11,7 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
     QWidget(parent),
     _inspectedObject {inspectedObj},
     m_commandDispatcher{inspectedObj
-                          ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack(),
-                                                  this}
+                          ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack()}
                           : nullptr},
     m_selectionDispatcher{inspectedObj
                            ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack()}
@@ -38,8 +37,11 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
     updateSectionsView(_layout, _sections);
 
     _scrollAreaLayout->addStretch();
+}
 
-
+InspectorWidgetBase::~InspectorWidgetBase()
+{
+    delete m_commandDispatcher;
 }
 
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
@@ -74,4 +76,5 @@ QObject* InspectorWidgetBase::inspectedObject() const
 {
     return _inspectedObject;
 }
+
 

@@ -13,6 +13,9 @@ class DurationSectionWidget : public InspectorSectionWidget
     public:
         DurationSectionWidget(ConstraintInspectorWidget* parent);
 
+
+    virtual ~DurationSectionWidget();
+
     private slots:
 
         void minDurationSpinboxChanged(int val);
@@ -40,5 +43,5 @@ class DurationSectionWidget : public InspectorSectionWidget
         TimeValue m_max;
         TimeValue m_default;
 
-        OngoingCommandDispatcher<MergeStrategy::Simple>* m_cmdManager{};
+        OngoingCommandDispatcher<MergeStrategy::Simple>*m_cmdDispatcher{};
 };

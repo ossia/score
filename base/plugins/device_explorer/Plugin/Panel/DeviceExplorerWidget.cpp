@@ -248,8 +248,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 
     delete m_cmdDispatcher;
     m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
-        iscore::IDocument::documentFromObject(model)->commandStack(),
-                this};
+        iscore::IDocument::documentFromObject(model)->commandStack()};
 
     populateColumnCBox();
 
@@ -553,4 +552,9 @@ DeviceExplorerWidget::filterChanged()
 
     m_proxyModel->setFilterRegExp(regExp);
 
+}
+
+DeviceExplorerWidget::~DeviceExplorerWidget()
+{
+    delete m_cmdDispatcher;
 }

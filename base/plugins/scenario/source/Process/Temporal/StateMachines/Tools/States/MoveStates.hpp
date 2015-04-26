@@ -12,7 +12,7 @@ class MoveConstraintState : public CommonScenarioState
                             iscore::ObjectLocker& locker,
                             QState* parent);
 
-        LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_dispatcher;
+    LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_dispatcher;
 
     private:
         TimeValue m_constraintInitialClickDate;

@@ -73,13 +73,10 @@ namespace CommitStrategy
 }
 
 
-class ICommandDispatcher : public QObject
+class ICommandDispatcher
 {
-        Q_OBJECT
     public:
-        ICommandDispatcher(iscore::CommandStack& stack,
-                           QObject* parent):
-            QObject{parent},
+        ICommandDispatcher(iscore::CommandStack& stack):
             m_stack{stack}
         {
 
@@ -87,9 +84,6 @@ class ICommandDispatcher : public QObject
 
         iscore::CommandStack& stack() const
         { return m_stack; }
-
-    signals:
-        void submitCommand(iscore::SerializableCommand* cmd);
 
     private:
         iscore::CommandStack& m_stack;
@@ -103,43 +97,23 @@ class CommandDispatcher : public ICommandDispatcher
         CommandDispatcher(Args&&... args):
             ICommandDispatcher{std::forward<Args&&>(args)...}
         {
-            connect(this, &CommandDispatcher::submitCommand, this,
-                    [&] (iscore::SerializableCommand* cmd) { SendStrategy::send(stack(), cmd); },
-                    Qt::DirectConnection);
         }
-};
 
-class ITransactionalCommandDispatcher : public ICommandDispatcher
-{
-        Q_OBJECT
-    public:
-        using ICommandDispatcher::ICommandDispatcher;
-
-    signals:
-        void commit();
-        void rollback();
+        void submitCommand(iscore::SerializableCommand* cmd)
+        {
+            SendStrategy::send(stack(), cmd);
+        }
 };
 
 
 template<typename MergeStrategy_T = MergeStrategy::Simple, typename CommitStrategy_T = CommitStrategy::UndoRedo>
-class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
+class OngoingCommandDispatcher : public ICommandDispatcher
 {
     public:
         template<typename... Args>
         OngoingCommandDispatcher(Args&&... args):
-            ITransactionalCommandDispatcher{std::forward<Args&&>(args)...}
+            ICommandDispatcher{std::forward<Args&&>(args)...}
         {
-            connect(this, &OngoingCommandDispatcher::submitCommand,
-                    this, &OngoingCommandDispatcher::send_impl,
-                    Qt::DirectConnection);
-
-            connect(this, &OngoingCommandDispatcher::commit,
-                    this, &OngoingCommandDispatcher::commit_impl,
-                    Qt::DirectConnection);
-
-            connect(this, &OngoingCommandDispatcher::rollback,
-                    this, &OngoingCommandDispatcher::rollback_impl,
-                    Qt::DirectConnection);
         }
 
         const iscore::SerializableCommand* command() const
@@ -156,8 +130,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
         bool ongoing() const
         { return m_ongoing; }
 
-    private:
-        void send_impl(iscore::SerializableCommand* cmd)
+        void submitCommand(iscore::SerializableCommand* cmd)
         {
             Q_ASSERT(cmd != nullptr);
             if(!ongoing())
@@ -173,7 +146,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
             }
         }
 
-        void commit_impl()
+        void commit()
         {
             if(ongoing())
             {
@@ -183,7 +156,7 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
             }
         }
 
-        void rollback_impl()
+        void rollback()
         {
             if(ongoing())
             {
@@ -202,25 +175,14 @@ class OngoingCommandDispatcher : public ITransactionalCommandDispatcher
 
 #include <iscore/locking/ObjectLocker.hpp>
 template<typename MergeStrategy_T = MergeStrategy::Simple, typename CommitStrategy_T = CommitStrategy::UndoRedo>
-class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
+class LockingOngoingCommandDispatcher : public ICommandDispatcher
 {
     public:
         template<typename... Args>
         LockingOngoingCommandDispatcher(ObjectPath&& pathToLock, iscore::ObjectLocker& locker, Args&&... args):
-            ITransactionalCommandDispatcher{std::forward<Args&&>(args)...},
+                ICommandDispatcher{std::forward<Args&&>(args)...},
             m_locker{std::move(pathToLock), locker}
         {
-            connect(this, &LockingOngoingCommandDispatcher::submitCommand,
-                    this, &LockingOngoingCommandDispatcher::send_impl,
-                    Qt::DirectConnection);
-
-            connect(this, &LockingOngoingCommandDispatcher::commit,
-                    this, &LockingOngoingCommandDispatcher::commit_impl,
-                    Qt::DirectConnection);
-
-            connect(this, &LockingOngoingCommandDispatcher::rollback,
-                    this, &LockingOngoingCommandDispatcher::rollback_impl,
-                    Qt::DirectConnection);
         }
 
         const iscore::SerializableCommand* command() const
@@ -237,8 +199,7 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
         bool ongoing() const
         { return m_ongoing; }
 
-    private:
-        void send_impl(iscore::SerializableCommand* cmd)
+        void submitCommand(iscore::SerializableCommand* cmd)
         {
             Q_ASSERT(cmd != nullptr);
             if(!ongoing())
@@ -259,7 +220,7 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
             }
         }
 
-        void commit_impl()
+        void commit()
         {
             if(ongoing())
             {
@@ -271,7 +232,7 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
             }
         }
 
-        void rollback_impl()
+        void rollback()
         {
             if(ongoing())
             {
@@ -296,31 +257,23 @@ class LockingOngoingCommandDispatcher : public ITransactionalCommandDispatcher
 
 
 
-class MacroCommandDispatcher : public ITransactionalCommandDispatcher
+class MacroCommandDispatcher : public ICommandDispatcher
 {
     public:
         template<typename... Args>
         MacroCommandDispatcher(iscore::AggregateCommand* aggregate, Args&&... args):
-            ITransactionalCommandDispatcher{std::forward<Args&&>(args)...},
+                ICommandDispatcher{std::forward<Args&&>(args)...},
             m_aggregateCommand{aggregate}
         {
-            connect(this, &MacroCommandDispatcher::submitCommand,
-                    this, &MacroCommandDispatcher::send_impl,
-                    Qt::DirectConnection);
-
-            connect(this, &MacroCommandDispatcher::commit,
-                    this, &MacroCommandDispatcher::commit_impl,
-                    Qt::DirectConnection);
         }
 
 
-    private:
-        void send_impl(iscore::SerializableCommand* cmd)
+        void submitCommand(iscore::SerializableCommand* cmd)
         {
             m_aggregateCommand->addCommand(cmd);
         }
 
-        void commit_impl()
+        void commit()
         {
             if(m_aggregateCommand)
             {

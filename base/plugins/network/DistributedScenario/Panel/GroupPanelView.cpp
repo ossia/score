@@ -56,8 +56,7 @@ void GroupPanelView::setView(const GroupManager* mgr,
             auto cmd = new CreateGroup{ObjectPath{mgrpath}, text};
 
             CommandDispatcher<> dispatcher{
-                iscore::IDocument::documentFromObject(mgr)->commandStack(),
-                        nullptr};
+                iscore::IDocument::documentFromObject(mgr)->commandStack()};
             dispatcher.submitCommand(cmd);
         }
     });

@@ -21,7 +21,7 @@ GroupTableWidget::GroupTableWidget(const GroupManager* mgr, const Session* sessi
     m_mgr{mgr},
     m_session{session},
     m_managerPath{iscore::IDocument::path(m_mgr)},
-    m_dispatcher{iscore::IDocument::documentFromObject(m_mgr)->commandStack(), nullptr}
+    m_dispatcher{iscore::IDocument::documentFromObject(m_mgr)->commandStack()}
 {
     connect(m_mgr, &GroupManager::groupAdded, this, &GroupTableWidget::setup);
     connect(m_mgr, &GroupManager::groupRemoved, this, &GroupTableWidget::setup);

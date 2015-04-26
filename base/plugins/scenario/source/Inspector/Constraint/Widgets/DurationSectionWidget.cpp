@@ -22,9 +22,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent},
-    m_cmdManager{new OngoingCommandDispatcher<MergeStrategy::Simple>{
-                            IDocument::documentFromObject(m_model)->commandStack(),
-                            this}}
+    m_cmdDispatcher{new OngoingCommandDispatcher<MergeStrategy::Simple>{
+                            IDocument::documentFromObject(m_model)->commandStack()}}
 {
     QWidget* widg{new QWidget{this}};
     QGridLayout* lay = new QGridLayout{widg};
@@ -83,8 +82,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
                        iscore::IDocument::path(m_model),
                        newTime);
 
-        m_cmdManager->submitCommand(cmd);
-        m_cmdManager->commit();
+        m_cmdDispatcher->submitCommand(cmd);
+        m_cmdDispatcher->commit();
     });
 
 
@@ -130,7 +129,7 @@ void DurationSectionWidget::minDurationSpinboxChanged(int val)
                    iscore::IDocument::path(m_model),
                    std::chrono::milliseconds {val});
 
-    emit m_cmdManager->submitCommand(cmd);
+    emit m_cmdDispatcher->submitCommand(cmd);
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
@@ -139,7 +138,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
                    iscore::IDocument::path(m_model),
                    std::chrono::milliseconds {val});
 
-    emit m_cmdManager->submitCommand(cmd);
+    emit m_cmdDispatcher->submitCommand(cmd);
 }
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
@@ -160,7 +159,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
                     std::chrono::milliseconds {val});
     }
 
-    emit m_cmdManager->submitCommand(cmd);
+    emit m_cmdDispatcher->submitCommand(cmd);
 }
 
 void DurationSectionWidget::rigidCheckboxToggled(bool b)
@@ -218,17 +217,22 @@ void DurationSectionWidget::on_durationsChanged()
     if (m_default.toQTime() != m_valueSpin->time())
     {
         defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
-        m_cmdManager->commit();
+        m_cmdDispatcher->commit();
     }
 
     if (m_min.toQTime() != m_minSpin->time())
     {
         minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
-        m_cmdManager->commit();
+        m_cmdDispatcher->commit();
 
     }if (m_max.toQTime() != m_maxSpin->time())
     {
         maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
-        m_cmdManager->commit();
+        m_cmdDispatcher->commit();
     }
+}
+
+DurationSectionWidget::~DurationSectionWidget()
+{
+    delete m_cmdDispatcher;
 }

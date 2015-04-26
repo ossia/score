@@ -52,7 +52,7 @@ void GroupMetadataWidget::on_indexChanged(int)
     if(m_object.group() != data)
     {
         auto doc = iscore::IDocument::documentFromObject(m_groups);
-        CommandDispatcher<> dispatcher{doc->commandStack(), nullptr};
+        CommandDispatcher<> dispatcher{doc->commandStack()};
         dispatcher.submitCommand(
                     new ChangeGroup{
                         iscore::IDocument::path(m_object.element()),

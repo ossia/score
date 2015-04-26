@@ -24,7 +24,7 @@ class MetadataWidget : public QWidget
         Q_OBJECT
 
     public:
-        explicit MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QObject* docObject, QWidget* parent = 0);
+        explicit MetadataWidget(ModelMetadata* metadata, CommandDispatcher<>* m, QObject* docObject, QWidget* parent = 0);
 
         QString scriptingName() const;
 
@@ -79,7 +79,7 @@ class MetadataWidget : public QWidget
 
     private:
         ModelMetadata* m_metadata;
-        ICommandDispatcher* m_commandDispatcher;
+        CommandDispatcher<>* m_commandDispatcher;
 
         QLabel* m_typeLb {};
         QLineEdit* m_scriptingNameLine {};

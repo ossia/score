@@ -12,11 +12,10 @@
 
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     GenericStateBase{sm},
-    m_dispatcher{m_sm.commandStack(), nullptr},
+    m_dispatcher{m_sm.commandStack()},
     m_ongoingDispatcher{iscore::IDocument::path(m_sm.model()),
                         m_sm.locker(),
-                        m_sm.commandStack(),
-                        nullptr}
+                        m_sm.commandStack()}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
     connect(this, &QState::entered,

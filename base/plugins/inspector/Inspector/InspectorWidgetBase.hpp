@@ -34,6 +34,7 @@ class InspectorWidgetBase : public QWidget
          * \param parent The parent Widget
          */
         explicit InspectorWidgetBase(QObject* inspectedObj, QWidget* parent);
+        ~InspectorWidgetBase();
 
     public slots:
         void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
@@ -50,7 +51,7 @@ class InspectorWidgetBase : public QWidget
             return _scrollAreaLayout;
         }
 
-        ICommandDispatcher* commandDispatcher() const
+        CommandDispatcher<>* commandDispatcher() const
         { return m_commandDispatcher; }
 
         iscore::SelectionDispatcher* selectionDispatcher() const
@@ -58,7 +59,7 @@ class InspectorWidgetBase : public QWidget
 
     private:
         QObject* _inspectedObject {};
-        ICommandDispatcher* m_commandDispatcher{};
+        CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* _scrollAreaLayout {};
 

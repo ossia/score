@@ -1,13 +1,14 @@
 #pragma once
 #include <ProcessInterface/ProcessPresenterInterface.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 
 class QCustomPlotCurve;
 class QCPGraph;
 class ProcessViewInterface;
 class AutomationViewModel;
 class AutomationView;
-class ICommandDispatcher;
+
 class AutomationPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
@@ -36,7 +37,7 @@ class AutomationPresenter : public ProcessPresenterInterface
 
         QCustomPlotCurve* m_curve{};
 
-        ICommandDispatcher* m_commandDispatcher{};
+        CommandDispatcher<> m_commandDispatcher;
         FocusDispatcher m_focusDispatcher;
 
         ZoomRatio m_zoomRatio {};

@@ -14,7 +14,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
     CommonScenarioState{ObjectPath{scenarioPath}, parent},
-    m_dispatcher{std::move(scenarioPath), locker, stack, this}
+    m_dispatcher{std::move(scenarioPath), locker, stack}
 {
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
@@ -81,7 +81,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                                iscore::ObjectLocker& locker,
                                QState* parent):
     CommonScenarioState{ObjectPath{scenarioPath}, parent},
-    m_dispatcher{std::move(scenarioPath), locker, stack, this}
+    m_dispatcher{std::move(scenarioPath), locker, stack}
 {
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
@@ -141,7 +141,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
     CommonScenarioState{ObjectPath{scenarioPath}, parent},
-    m_dispatcher{std::move(scenarioPath), locker, stack, this}
+    m_dispatcher{std::move(scenarioPath), locker, stack}
 {
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};

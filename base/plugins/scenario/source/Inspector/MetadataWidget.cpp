@@ -12,7 +12,7 @@
 #include <QColorDialog>
 
 
-MetadataWidget::MetadataWidget(ModelMetadata* metadata, ICommandDispatcher* m, QObject *docObject, QWidget* parent) :
+MetadataWidget::MetadataWidget(ModelMetadata* metadata, CommandDispatcher<>* m, QObject *docObject, QWidget* parent) :
     QWidget(parent),
     m_metadata {metadata},
     m_commandDispatcher{m}

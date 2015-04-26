@@ -22,7 +22,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     m_viewModel {static_cast<AutomationViewModel*>(model) },
     m_view {static_cast<AutomationView*>(view) },
     m_curve{new QCustomPlotCurve{m_view}},
-    m_commandDispatcher{new CommandDispatcher<>{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack(), this}},
+    m_commandDispatcher{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack()},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
     connect(m_viewModel->model(), &AutomationModel::pointsChanged,
@@ -37,7 +37,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                                  newx,
                                  1.0 - newy};
 
-        m_commandDispatcher->submitCommand(cmd);
+        m_commandDispatcher.submitCommand(cmd);
     });
 
     connect(m_curve, &QCustomPlotCurve::pointCreated,
@@ -47,7 +47,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
                    pt.x(),
                    1.0 - pt.y()};
 
-        m_commandDispatcher->submitCommand(cmd);
+        m_commandDispatcher.submitCommand(cmd);
     });
 
     connect(m_curve, &QCustomPlotCurve::mousePressed,

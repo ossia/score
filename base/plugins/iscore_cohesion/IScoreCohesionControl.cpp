@@ -128,9 +128,8 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     auto device_explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto addresses = device_explorer->selectedIndexes();
 
-    MacroCommandDispatcher macro(new CreateCurvesFromAddressesInConstraints,
-                                 currentDocument()->commandStack(),
-                                 nullptr);
+    MacroCommandDispatcher macro{new CreateCurvesFromAddressesInConstraints,
+                                 currentDocument()->commandStack()};
     for(auto& constraint : selected_constraints)
     {
         QStringList l;
@@ -173,9 +172,8 @@ void IScoreCohesionControl::snapshotParametersInEvents()
         messages.push_back(DeviceExplorer::messageFromModelIndex(index));
 
 
-    MacroCommandDispatcher macro(new CreateStatesFromParametersInEvents,
-                                 currentDocument()->commandStack(),
-                                 nullptr);
+    MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
+                                 currentDocument()->commandStack()};
     for(auto& event : selected_events)
     {
         auto cmd = new Scenario::Command::AddStateToEvent{

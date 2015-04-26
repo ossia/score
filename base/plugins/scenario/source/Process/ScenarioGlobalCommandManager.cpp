@@ -20,8 +20,7 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
     auto eventsToRemove = selectedElements(scenario.events());
 
     MacroCommandDispatcher cleaner(new RemoveMultipleElements,
-                                   m_commandStack,
-                                   nullptr);
+                                   m_commandStack);
 
     // 3. Create a Delete command for each. For now : only emptying.
     for(auto& constraint : constraintsToRemove)
@@ -48,8 +47,7 @@ void ScenarioGlobalCommandManager::deleteSelection(const ScenarioModel &scenario
     {
         // TODO maybe use templates to specify the command ?
         MacroCommandDispatcher cleaner{new RemoveMultipleElements,
-                                       m_commandStack,
-                                       nullptr};
+                                       m_commandStack};
 
         auto scenarPath = path(scenario);
 
