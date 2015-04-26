@@ -157,4 +157,5 @@ void BaseElementModel::setNewSelection(const Selection& s)
 void BaseElementModel::setDisplayedConstraint(ConstraintModel *constraint)
 {
     m_displayedConstraint = constraint;
+    setFocusedViewModel(nullptr);
 }
