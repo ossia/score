@@ -87,6 +87,7 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
     for(TimeNodeModel* timenode : m_timeNodes)
     {
         timenode->setDate(timenode->date() * scale);
+        // TODO why not timeNodeMoved?
     }
 
     for(EventModel* event : m_events)
@@ -108,15 +109,37 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
     this->setDuration(newDuration);
 }
 
+#include "Algorithms/StandardDisplacementPolicy.hpp"
 void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
-    // Here and in setDurationAndShrink, this should "drag" the last timenode.
+    ///* Should work but does not ?
+    /*StandardDisplacementPolicy::setEventPosition(*this,
+                                                 endEvent()->id(),
+                                                 newDuration,
+                                                 endEvent()->heightPercentage(),
+                                                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+     { p->expandProcess(ExpandMode::Grow, t); }); */
+
+    endEvent()->setDate(newDuration);
+    timeNode(endEvent()->timeNode())->setDate(newDuration);
+    emit eventMoved(endEvent()->id());
+    this->setDuration(newDuration);
 }
 
 void ScenarioModel::setDurationAndShrink(TimeValue newDuration)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    ///* Should work but does not ?
+    /* StandardDisplacementPolicy::setEventPosition(*this,
+                                                 endEvent()->id(),
+                                                 newDuration,
+                                                 endEvent()->heightPercentage(),
+                                                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+     { p->expandProcess(ExpandMode::Grow, t); }); */
+
+    endEvent()->setDate(newDuration);
+    timeNode(endEvent()->timeNode())->setDate(newDuration);
+    emit eventMoved(endEvent()->id());
+    this->setDuration(newDuration);
 }
 
 Selection ScenarioModel::selectableChildren() const

@@ -130,7 +130,7 @@ Tool ScenarioStateMachine::tool() const
     if(moveDeckState->active())
         return Tool::MoveDeck;
 
-    Q_ASSERT(false);
+    return Tool::Select;
 }
 
 ExpandMode ScenarioStateMachine::expandMode() const
@@ -140,5 +140,5 @@ ExpandMode ScenarioStateMachine::expandMode() const
     if(growState->active())
         return ExpandMode::Grow;
 
-    Q_ASSERT(false);
+    return ExpandMode::Scale;
 }
