@@ -137,7 +137,7 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewMod
 }
 
 
-
+// TODO fix memory leak
 ProcessStateDataInterface* AutomationModel::startState() const
 {
     return new AutomationState{this, 0.};

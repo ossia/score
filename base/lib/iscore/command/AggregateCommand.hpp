@@ -27,6 +27,7 @@ namespace iscore
                 m_serializedCommands.push_front({{cmd->parentName(), cmd->name() },
                     cmd->serialize()
                 });
+                delete cmd;
             }
 
             virtual void undo() override;
@@ -38,6 +39,7 @@ namespace iscore
                 m_serializedCommands.push_back({{cmd->parentName(), cmd->name() },
                     cmd->serialize()
                 });
+                delete cmd;
             }
 
         protected:

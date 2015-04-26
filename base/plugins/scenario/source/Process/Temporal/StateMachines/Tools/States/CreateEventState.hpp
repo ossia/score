@@ -12,6 +12,14 @@ class MultiCommandDispatcher
         {
 
         }
+    
+        ~MultiCommandDispatcher()
+        {
+            for(int i = m_cmds.size() - 1; i >= 0; --i)
+            {
+                delete m_cmds[i];
+            }
+         }
 
         iscore::CommandStack& stack() const
         { return m_stack; }
