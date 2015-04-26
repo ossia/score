@@ -30,31 +30,31 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         moveDeckState->setParent(toolState);
 
 
-        auto QPointFToScenarioPoint = [&] (const QPointF& point)
+        auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
         {
-            return ScenarioPoint{TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
-                        (point.y() - 25.) /  m_presenter.view().boundingRect().height()};
+            return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
+                    point.y() / m_presenter.view().boundingRect().height()};
         };
 
         connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,
                 [=] (const QPointF& point)
         {
             scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(point);
+            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
             this->postEvent(new Press_Event);
         });
         connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
                 [=] (const QPointF& point)
         {
             scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(point);
+            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
             this->postEvent(new Release_Event);
         });
         connect(m_presenter.m_view, &TemporalScenarioView::scenarioMoved,
                 [=] (const QPointF& point)
         {
             scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(point);
+            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
             this->postEvent(new Move_Event);
         });
         connect(m_presenter.m_view, &TemporalScenarioView::escPressed,
@@ -122,7 +122,7 @@ Tool ScenarioStateMachine::tool() const
     if(moveDeckState->active())
         return Tool::MoveDeck;
 
-    Q_ASSERT(false);
+    return Tool::Select;
 }
 
 ExpandMode ScenarioStateMachine::expandMode() const
@@ -132,5 +132,5 @@ ExpandMode ScenarioStateMachine::expandMode() const
     if(growState->active())
         return ExpandMode::Grow;
 
-    Q_ASSERT(false);
+    return ExpandMode::Scale;
 }
