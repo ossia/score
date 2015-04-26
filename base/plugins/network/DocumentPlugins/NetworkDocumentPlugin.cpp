@@ -87,13 +87,13 @@ NetworkDocumentPlugin::makeElementPlugin(
             case DataStream::type():
                 plug = new GroupMetadata{
                             element,
-                            *static_cast<DataStream::Deserializer*>(vis.visitor),
+                            static_cast<DataStream::Deserializer&>(vis.visitor),
                             parent};
                 break;
             case JSON::type():
                 plug = new GroupMetadata{
                             element,
-                            *static_cast<JSON::Deserializer*>(vis.visitor),
+                            static_cast<JSON::Deserializer&>(vis.visitor),
                             parent};
                 break;
         }

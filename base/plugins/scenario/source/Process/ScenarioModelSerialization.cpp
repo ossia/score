@@ -132,12 +132,12 @@ void ScenarioModel::serialize(const VisitorVariant& vis) const
     {
         case DataStream::type():
         {
-            static_cast<DataStream::Serializer*>(vis.visitor)->readFrom(*this);
+            static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
             return;
         }
         case JSON::type():
         {
-            static_cast<JSON::Serializer*>(vis.visitor)->readFrom(*this);
+            static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
             return;
         }
     }
@@ -155,11 +155,11 @@ ProcessSharedModelInterface* ScenarioFactory::makeModel(
     {
         case DataStream::type():
         {
-            return new ScenarioModel {*static_cast<DataStream::Deserializer*>(vis.visitor), parent};
+            return new ScenarioModel {static_cast<DataStream::Deserializer&>(vis.visitor), parent};
         }
         case JSON::type():
         {
-            return new ScenarioModel {*static_cast<JSON::Deserializer*>(vis.visitor), parent};
+            return new ScenarioModel {static_cast<JSON::Deserializer&>(vis.visitor), parent};
         }
     }
 
@@ -173,7 +173,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(
     if(vis.identifier == DataStream::type())
     {
         auto scen = new TemporalScenarioViewModel(
-                        *static_cast<DataStream::Deserializer*>(vis.visitor),
+                        static_cast<DataStream::Deserializer&>(vis.visitor),
                         this,
                         parent);
         makeViewModel_impl(scen);
@@ -182,7 +182,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(
     else if(vis.identifier == JSON::type())
     {
         auto scen = new TemporalScenarioViewModel(
-                        *static_cast<JSON::Deserializer*>(vis.visitor),
+                        static_cast<JSON::Deserializer&>(vis.visitor),
                         this,
                         parent);
         makeViewModel_impl(scen);

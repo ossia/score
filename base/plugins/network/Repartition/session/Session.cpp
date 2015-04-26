@@ -11,6 +11,11 @@ Session::Session(LocalClient* client, id_type<Session> id, QObject* parent):
 {
 }
 
+Session::~Session()
+{
+    delete m_mapper;
+    delete m_validator;
+}
 
 NetworkMessage Session::makeMessage(QString address)
 {

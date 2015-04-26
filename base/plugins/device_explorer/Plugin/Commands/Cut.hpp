@@ -30,10 +30,10 @@ namespace DeviceExplorer
 
 
             protected:
-                DeviceExplorerModel* m_model;
+                DeviceExplorerModel* m_model{};
                 QByteArray m_data;
                 DeviceExplorerModel::Path m_parentPath;
-                int m_row;
+                int m_row{};
         };
 
     }

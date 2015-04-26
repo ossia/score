@@ -22,7 +22,11 @@ template<>
 class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
-        VisitorVariant toVariant() { return {this, DataStream::type()}; }
+        VisitorVariant toVariant() { return {*this, DataStream::type()}; }
+
+        Visitor<Reader<DataStream>>() = default;
+        Visitor<Reader<DataStream>>(const Visitor<Reader<DataStream>>&) = delete;
+        Visitor<Reader<DataStream>>& operator=(const Visitor<Reader<DataStream>>&) = delete;
 
         Visitor<Reader<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::WriteOnly}
@@ -68,7 +72,12 @@ template<>
 class Visitor<Writer<DataStream>> : public AbstractVisitor
 {
     public:
-        VisitorVariant toVariant() { return {this, DataStream::type()}; }
+        VisitorVariant toVariant() { return {*this, DataStream::type()}; }
+
+        Visitor<Writer<DataStream>>() = default;
+        Visitor<Writer<DataStream>>(const Visitor<Writer<DataStream>>&) = delete;
+        Visitor<Writer<DataStream>>& operator=(const Visitor<Writer<DataStream>>&) = delete;
+
         // TODO a const ref is sufficient here
         Visitor<Writer<DataStream>> (QByteArray* array) :
                                      m_stream {array, QIODevice::ReadOnly}

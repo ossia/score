@@ -7,7 +7,7 @@ class ClickableLabel : public QLabel
 
         Q_PROPERTY(int index READ index WRITE setIndex)
 
-        int m_index;
+        int m_index{};
 
     public:
         explicit ClickableLabel(QString text, QWidget* parent);

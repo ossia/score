@@ -40,7 +40,7 @@ namespace Scenario
                 TimeValue m_oldX {};
                 TimeValue m_newX {};
 
-                ExpandMode m_mode;
+                ExpandMode m_mode{ExpandMode::Scale};
         };
     }
 }

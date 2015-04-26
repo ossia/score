@@ -11,8 +11,8 @@ struct NetworkMessage
         NetworkMessage(Session& s, QString&& addr, QByteArray&& data);
 
         QString address;
-        int sessionId;
-        int clientId;
+        int sessionId{};
+        int clientId{};
         QByteArray data;
 };
 

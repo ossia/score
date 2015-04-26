@@ -36,5 +36,5 @@ class MoveDeckToolState : public GenericStateBase
         LockingOngoingCommandDispatcher<MergeStrategy::Simple, CommitStrategy::Redo> m_ongoingDispatcher;
 
         QPointF m_originalPoint;
-        double m_originalHeight;
+        double m_originalHeight{};
 };

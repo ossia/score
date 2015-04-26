@@ -30,12 +30,12 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             protected:
-                DeviceExplorerModel* m_model;
+                DeviceExplorerModel* m_model{};
                 DeviceExplorerModel::Path m_srcParentPath;
                 DeviceExplorerModel::Path m_dstParentPath;
-                int m_srcRow;
-                int m_dstRow;
-                int m_count;
+                int m_srcRow{};
+                int m_dstRow{};
+                int m_count{};
         };
     }
 }

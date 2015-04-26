@@ -25,6 +25,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
     }
 
     Q_ASSERT(false);
+    return nullptr;
 }
 
 ChangeGroup::ChangeGroup(ObjectPath &&path, id_type<Group> newGroup):

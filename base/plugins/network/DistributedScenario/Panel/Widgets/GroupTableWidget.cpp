@@ -102,6 +102,7 @@ GroupTableCheckbox* GroupTableWidget::findCheckbox(int i,  id_type<Client> theCl
     }
 
     Q_ASSERT(false);
+    return nullptr;
 }
 
 void GroupTableWidget::on_checkboxChanged(int i, int j, int state)

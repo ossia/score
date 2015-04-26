@@ -68,12 +68,12 @@ void TemporalScenarioViewModel::serialize(const VisitorVariant& vis) const
 {
     if(vis.identifier == DataStream::type())
     {
-        static_cast<DataStream::Serializer*>(vis.visitor)->readFrom(*this);
+        static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
     else if(vis.identifier == JSON::type())
     {
-        static_cast<JSON::Serializer*>(vis.visitor)->readFrom(*this);
+        static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
 

@@ -50,10 +50,10 @@ void AutomationModel::serialize(const VisitorVariant& vis) const
     switch(vis.identifier)
     {
         case DataStream::type():
-            static_cast<DataStream::Serializer*>(vis.visitor)->readFrom(*this);
+            static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
             return;
         case JSON::type():
-            static_cast<JSON::Serializer*>(vis.visitor)->readFrom(*this);
+            static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
             return;
     }
 
@@ -70,11 +70,11 @@ ProcessSharedModelInterface* AutomationFactory::makeModel(
     {
         case DataStream::type():
             return new AutomationModel {
-                *static_cast<DataStream::Deserializer*>(vis.visitor),
+                static_cast<DataStream::Deserializer&>(vis.visitor),
                 parent};
         case JSON::type():
             return new AutomationModel {
-                *static_cast<JSON::Deserializer*>(vis.visitor),
+                static_cast<JSON::Deserializer&>(vis.visitor),
                 parent};
     }
 
@@ -90,7 +90,7 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(
         case DataStream::type():
         {
             auto autom = new AutomationViewModel {
-                         *static_cast<DataStream::Deserializer*>(vis.visitor),
+                         static_cast<DataStream::Deserializer&>(vis.visitor),
                          this,
                          parent};
 
@@ -100,7 +100,7 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(
         case JSON::type():
         {
             auto autom = new AutomationViewModel {
-                         *static_cast<JSON::Deserializer*>(vis.visitor),
+                         static_cast<JSON::Deserializer&>(vis.visitor),
                          this,
                          parent};
 

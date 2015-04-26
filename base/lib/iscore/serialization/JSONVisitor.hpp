@@ -28,7 +28,11 @@ template<>
 class Visitor<Reader<JSON>> : public AbstractVisitor
 {
     public:
-        VisitorVariant toVariant() { return {this, JSON::type()}; }
+        Visitor<Reader<JSON>>() = default;
+        Visitor<Reader<JSON>>(const Visitor<Reader<JSON>>&) = delete;
+        Visitor<Reader<JSON>>& operator=(const Visitor<Reader<JSON>>&) = delete;
+
+        VisitorVariant toVariant() { return {*this, JSON::type()}; }
         template<typename T>
         void readFrom(const T&);
 
@@ -59,10 +63,13 @@ class Visitor<Reader<JSON>> : public AbstractVisitor
 template<>
 class Visitor<Writer<JSON>> : public AbstractVisitor
 {
-
     public:
-        VisitorVariant toVariant() { return {this, JSON::type()}; }
+        VisitorVariant toVariant() { return {*this, JSON::type()}; }
+
         Visitor<Writer<JSON>>() = default;
+        Visitor<Writer<JSON>>(const Visitor<Reader<JSON>>&) = delete;
+        Visitor<Writer<JSON>>& operator=(const Visitor<Writer<JSON>>&) = delete;
+
         Visitor<Writer<JSON>> (const QJsonObject& obj) :
                                m_obj {obj}
         {}

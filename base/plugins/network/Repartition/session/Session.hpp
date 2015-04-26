@@ -14,6 +14,7 @@ class Session : public IdentifiedObject<Session>
         Session(LocalClient* client,
                 id_type<Session> id,
                 QObject* parent = nullptr);
+        ~Session();
 
 
         MessageValidator& validator()

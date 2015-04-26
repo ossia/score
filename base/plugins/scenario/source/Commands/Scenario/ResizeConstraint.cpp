@@ -19,8 +19,7 @@ ResizeConstraint::ResizeConstraint() :
 
 ResizeConstraint::~ResizeConstraint()
 {
-    // TODO gare aux fuite mémoire !
-//	delete m_cmd;
+    delete m_cmd;
 }
 
 ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,

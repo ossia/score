@@ -152,16 +152,16 @@ DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* par
     m_rootNode = new Node;
     if(vis.identifier == DataStream::type())
     {
-        auto des = static_cast<DataStream::Deserializer*>(vis.visitor);
+        auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
         bool b;
-        des->m_stream >> b;
+        des.m_stream >> b;
         if(b)
-            des->writeTo(*m_rootNode);
+            des.writeTo(*m_rootNode);
     }
     else if(vis.identifier == JSON::type())
     {
-        auto des = static_cast<JSON::Deserializer*>(vis.visitor);
-        des->writeTo(*m_rootNode);
+        auto& des = static_cast<JSON::Deserializer&>(vis.visitor);
+        des.writeTo(*m_rootNode);
     }
 
     endResetModel();

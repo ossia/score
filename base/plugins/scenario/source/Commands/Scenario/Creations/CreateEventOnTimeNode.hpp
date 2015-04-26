@@ -37,7 +37,7 @@ namespace Scenario
             private:
                 ObjectPath m_path;
                 id_type<TimeNodeModel> m_timeNodeId;
-                double m_heightPosition;
+                double m_heightPosition{};
 
                 id_type<EventModel> m_createdEventId;
         };

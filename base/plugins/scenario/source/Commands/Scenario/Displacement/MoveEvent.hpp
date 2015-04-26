@@ -42,7 +42,7 @@ namespace Scenario
                 double m_newHeightPosition {};
                 TimeValue m_newDate {};
 
-                ExpandMode m_mode;
+                ExpandMode m_mode{ExpandMode::Scale};
 
                 QVector<id_type<TimeNodeModel>> m_movableTimenodes;
         };
