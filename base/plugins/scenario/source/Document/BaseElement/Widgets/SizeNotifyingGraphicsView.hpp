@@ -11,6 +11,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
         SizeNotifyingGraphicsView(QGraphicsScene* parent):
             QGraphicsView{parent}
         {
+            this->setCacheMode(QGraphicsView::CacheBackground);
             /*
             setViewport(new QOpenGLWidget);
             //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
