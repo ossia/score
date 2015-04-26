@@ -36,11 +36,6 @@ namespace iscore
                 clearPlugins();
             }
 
-            QMap<QString, QObject*> availablePlugins() const
-            {
-                return m_availablePlugins;
-            }
-
             void reloadPlugins();
 
             QStringList pluginsOnSystem() const

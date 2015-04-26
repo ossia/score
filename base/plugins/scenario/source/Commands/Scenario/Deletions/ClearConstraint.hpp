@@ -34,7 +34,7 @@ namespace Scenario
                 QVector<QByteArray> m_serializedBoxes;
                 QVector<QByteArray> m_serializedProcesses;
 
-                QMap<std::tuple<int, int, int>, QPair<bool, int>> m_scenarioViewModelsBoxMappings;
+                // TODO QMap<std::tuple<int, int, int>, QPair<bool, int>> m_scenarioViewModelsBoxMappings;
         };
     }
 }

@@ -12,7 +12,6 @@
 #include "ModelTest/modeltest.h"
 #endif
 
-#include <QDebug>
 #include <iostream> //DEBUG
 
 namespace
@@ -226,14 +225,7 @@ DeviceExplorerView::initActions()
         QAction* a = new QAction(model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
         a->setCheckable(true);
 
-        if(isColumnHidden(i))
-        {
-            a->setChecked(false);
-        }
-        else
-        {
-            a->setChecked(true);
-        }
+        a->setChecked(!isColumnHidden(i));
 
         connect(a, SIGNAL(toggled(bool)), this, SLOT(columnVisibilityChanged(bool)));
         m_actions.append(a);

@@ -68,8 +68,6 @@ namespace Scenario
 
                 QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};
-
-                TimeValue m_oldTime {};
         };
     }
 }

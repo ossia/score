@@ -26,7 +26,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
                                                      ProcessViewInterface* view,
                                                      QObject* parent) :
     ProcessPresenterInterface {"TemporalScenarioPresenter", parent},
-    m_viewModel {static_cast<TemporalScenarioViewModel*>(process_view_model) },
+    m_viewModel {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view) },
     m_viewInterface{new ScenarioViewInterface{this}},
     m_sm{*this},

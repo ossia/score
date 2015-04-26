@@ -32,7 +32,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automation
     vec.push_back(widg);
 
     // LineEdit (QComplete it?)
-    auto m_lineEdit = new QLineEdit;
+    m_lineEdit = new QLineEdit;
     m_lineEdit->setText(m_model->address());
     connect(m_model, SIGNAL(addressChanged(QString)),
             m_lineEdit,	SLOT(setText(QString)));

@@ -1,7 +1,6 @@
 #include "ClientSessionBuilder.hpp"
 
 #include "ClientSession.hpp"
-#include "../client/RemoteClient.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
 ClientSessionBuilder::ClientSessionBuilder(QString ip, int port)

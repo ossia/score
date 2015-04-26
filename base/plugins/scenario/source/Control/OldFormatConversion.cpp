@@ -22,7 +22,7 @@ QString numberToQString(double nb)
 
 void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument* doc)
 {
-    for(auto child : children)
+    for(const auto& child : children)
     {
         QDomElement dom_devNode = doc->createElement("node");
         dom_devNode.setAttribute("address", child.toObject() ["Name"].toString());
@@ -247,9 +247,9 @@ QString JSONToZeroTwo(QJsonObject base)
     // BOUCLE POUR LES DEVICES
     //////////////////////////////////////////////////////////////////////////////
 
-    QJsonArray j_root = base["DeviceExplorerPanelModel"].toObject() ["Children"].toArray();
+    QJsonArray j_root = base["DeviceExplorerPanelModel"].toObject().value("Children").toArray();
 
-    for(auto dev : j_root)
+    for(const auto& dev : j_root)
     {
         QString protocol = QString("OSC"); //device[0].toString();
         QString devName = dev.toObject()["Name"].toString();
@@ -283,7 +283,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
     QJsonArray processes = mainCstr["Processes"].toArray();
 
-    for(auto process : processes)
+    for(const auto& process : processes)
     {
         auto j_proc = process.toObject();
 
@@ -296,7 +296,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
             QJsonArray events = j_proc["Events"].toArray();
 
-            for(auto event : events)
+            for(const auto& event : events)
             {
                 auto j_ev = event.toObject();
                 auto idNode = j_ev["Identifier"].toObject();
@@ -324,7 +324,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
                 if(states.size())
                 {
-                    for(auto state : states)
+                    for(const auto& state : states)
                     {
                         auto j_rootState = state.toObject();
                         qDebug() << j_rootState;
@@ -370,7 +370,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
             QMap<int, int> endEventUsed;
 
-            for(auto constraint : constraints)
+            for(const auto& constraint : constraints)
             {
                 int convergence = 1; // permet de faire les convergences
                 auto j_cstr = constraint.toObject();
@@ -472,7 +472,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
                 QJsonArray cstrProcesses = j_cstr["Processes"].toArray();
 
-                for(auto cstrProcess : cstrProcesses)
+                for(const auto& cstrProcess : cstrProcesses)
                 {
                     auto autom = cstrProcess.toObject();
 

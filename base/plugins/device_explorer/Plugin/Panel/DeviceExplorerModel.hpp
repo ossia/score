@@ -190,7 +190,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void setColumnValue(Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;
-        QModelIndex moveChildAmongSiblings(Node* parent, int oldRow, int newRow);
 
 
         Node* m_rootNode;

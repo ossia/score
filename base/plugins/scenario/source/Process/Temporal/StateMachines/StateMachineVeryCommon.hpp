@@ -7,13 +7,6 @@
 // A coordinate : (t, y)
 struct ScenarioPoint
 {
-        ScenarioPoint() = default;
-        ScenarioPoint(const ScenarioPoint&) = default;
-        ScenarioPoint(ScenarioPoint&&) = default;
-
-        ScenarioPoint& operator=(const ScenarioPoint&) = default;
-        ScenarioPoint& operator=(ScenarioPoint&&) = default;
-
         TimeValue date;
         double y;
 };

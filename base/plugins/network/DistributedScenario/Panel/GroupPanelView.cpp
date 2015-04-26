@@ -1,15 +1,11 @@
 #include "GroupPanelView.hpp"
 
-#include "Widgets/GroupTableCheckbox.hpp"
 #include "Widgets/GroupListWidget.hpp"
 #include "Widgets/GroupTableWidget.hpp"
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/Commands/CreateGroup.hpp"
 
-#include <iscore/command/OngoingCommandManager.hpp>
-
 #include <QVBoxLayout>
-#include <QLabel>
 #include <QPushButton>
 #include <QInputDialog>
 

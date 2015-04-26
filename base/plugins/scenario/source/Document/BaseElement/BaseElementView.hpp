@@ -52,7 +52,6 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
     signals:
         void horizontalZoomChanged(double newZoom);
-        void verticalZoomChanged(int newZoom);
         void horizontalPositionChanged(int);
 
     private:

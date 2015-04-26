@@ -31,10 +31,8 @@ class AddProcessToConstraintTest: public QObject
                         ObjectPath { {"ConstraintModel", {1}} });
             boxCmd.redo();
 
-            AddProcessToConstraint cmd(
-            {
-                {"ConstraintModel", {1}}
-            }, "Scenario");
+            AddProcessToConstraint cmd{
+            { {"ConstraintModel", {1}} }, "Scenario"};
 
             cmd.redo();
             QCOMPARE((int) cstrModel->processes().size(), 1 );

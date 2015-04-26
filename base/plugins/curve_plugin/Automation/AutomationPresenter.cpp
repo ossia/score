@@ -6,7 +6,7 @@
 
 #include "../Commands/AddPoint.hpp"
 #include "../Commands/MovePoint.hpp"
-#include "../Commands/RemovePoint.hpp"
+// TODO #include "../Commands/RemovePoint.hpp"
 
 
 #include <iscore/document/DocumentInterface.hpp>

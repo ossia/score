@@ -5,7 +5,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "ConstraintExecutor.hpp"
 #include <Plugin/DeviceExplorerPlugin.hpp>
-#include <State/Message.hpp>
+
 #include <set>
 
 

@@ -12,10 +12,6 @@ class GenericStateBase : public QState
 
 
     protected:
-        virtual void on_scenarioPressed() = 0;
-        virtual void on_scenarioMoved() = 0;
-        virtual void on_scenarioReleased() = 0;
-
         QStateMachine m_localSM;
         const ScenarioStateMachine& m_sm;
 };
@@ -26,9 +22,9 @@ class MoveDeckToolState : public GenericStateBase
     public:
         MoveDeckToolState(const ScenarioStateMachine &sm);
 
-        void on_scenarioPressed() override;
-        void on_scenarioMoved() override;
-        void on_scenarioReleased() override;
+        void on_scenarioPressed();
+        void on_scenarioMoved();
+        void on_scenarioReleased();
 
         void start()
         { m_localSM.start(); }

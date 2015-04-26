@@ -8,7 +8,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& pvm)
 {
     auto constraints = constraintsViewModels(pvm);
 
-    m_stream << (int) constraints.size();
+    m_stream << constraints.size();
 
     for(auto constraint : constraints)
     {
@@ -53,7 +53,7 @@ void Visitor<Writer<JSON>>::writeTo(TemporalScenarioViewModel& pvm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 
-    for(auto json_vref : arr)
+    for(const auto& json_vref : arr)
     {
         Deserializer<JSON> deserializer {json_vref.toObject() };
         auto cstrvm = createConstraintViewModel(deserializer,

@@ -1,4 +1,5 @@
 #pragma once
+/*
 #include "Group.hpp"
 #include <source/Process/ScenarioModel.hpp>
 #include <unordered_map>
@@ -77,3 +78,4 @@ class DistributedScenario : public ProcessSharedModelInterface
             // TODO Serialize our own info.
         }
 };
+*/

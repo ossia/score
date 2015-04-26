@@ -36,12 +36,12 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
     auto rect = m_presenter->m_view->boundingRect();
     auto ev = findById(m_presenter->m_events, eventId);
 
-    ev->view()->setPos({qreal(ev->model()->date().msec() / m_presenter->m_zoomRatio),
+    ev->view()->setPos({(ev->model()->date().msec() / m_presenter->m_zoomRatio),
                         rect.height() * ev->model()->heightPercentage()
                        });
 
     auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
-    timeNode->view()->setPos({qreal(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
+    timeNode->view()->setPos({(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
                               rect.height() * timeNode->model()->y()});
 
     updateTimeNode(timeNode->id());

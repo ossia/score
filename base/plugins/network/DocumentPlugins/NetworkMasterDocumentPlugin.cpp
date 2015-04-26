@@ -1,11 +1,8 @@
 #include "NetworkMasterDocumentPlugin.hpp"
 
-
-#include <Repartition/client/RemoteClient.hpp>
 #include <Serialization/MessageMapper.hpp>
 
 #include <iscore/presenter/PresenterInterface.hpp>
-#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 

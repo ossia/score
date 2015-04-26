@@ -9,8 +9,6 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "Commands/ChangeGroup.hpp"
 
-#include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Event/EventModel.hpp"
 
 Q_DECLARE_METATYPE(id_type<Group>)
 

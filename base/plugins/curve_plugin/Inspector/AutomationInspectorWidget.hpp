@@ -17,6 +17,6 @@ class AutomationInspectorWidget : public InspectorWidgetBase
         void createViewInNewDeck(QString);
 
     private:
-        QLineEdit* m_lineEdit {};
+        QLineEdit* m_lineEdit{};
         AutomationModel* m_model {};
 };

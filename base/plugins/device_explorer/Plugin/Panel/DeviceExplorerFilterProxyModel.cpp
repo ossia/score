@@ -37,12 +37,7 @@ DeviceExplorerFilterProxyModel::filterAcceptsRow(int srcRow,
         }
 
     //Accept if any of the children is accepted on its own
-    if(hasAcceptedChildren(srcRow, srcParent))
-    {
-        return true;
-    }
-
-    return false;
+    return hasAcceptedChildren(srcRow, srcParent);
 }
 
 bool

@@ -1,6 +1,4 @@
 #include "IScoreCohesionControl.hpp"
-#include <iscore/menu/MenuInterface.hpp>
-#include <core/presenter/MenubarManager.hpp>
 #include <QApplication>
 
 #include "../scenario/source/Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
@@ -15,20 +13,15 @@
 
 #include "Commands/CreateStatesFromParametersInEvents.hpp"
 
-#include "iscore/document/DocumentInterface.hpp"
-#include "iscore/command/OngoingCommandManager.hpp"
-#include "iscore/selection/SelectionStack.hpp"
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
-#include "FakeEngine.hpp"
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
-#include <QTemporaryFile>
 #include <Execution/Execution.hpp>
 
 // TODO : snapshot : doit être un mode d'édition particulier
 // on enregistre l'état précédent et on crée les courbes correspondantes
-#include <QAction>
+
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
     iscore::PluginControlInterface {"IScoreCohesionControl", parent}
@@ -109,7 +102,6 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
 }
 
 #include <core/document/DocumentModel.hpp>
-#include <Document/BaseElement/BaseElementPresenter.hpp>
 void IScoreCohesionControl::on_currentTimeChanged(double t)
 {
     auto bep = static_cast<BaseElementPresenter*>(currentDocument()->presenter()->presenterDelegate());

@@ -26,7 +26,6 @@ class TemporalScenarioView : public ProcessViewInterface
         void scenarioReleased(const QPointF&);
         void scenarioMoved(const QPointF&);
 
-        void deletePressed();
         void clearPressed();
         void escPressed();
 
@@ -51,11 +50,9 @@ class TemporalScenarioView : public ProcessViewInterface
         virtual void keyPressEvent(QKeyEvent *event) override;
 
     private:
-        QPointF m_clickedPoint {};
         QRectF m_selectArea;
 
         QAction* m_clearAction {};
 
         bool m_lock {};
-        bool m_clicked {false};
 };

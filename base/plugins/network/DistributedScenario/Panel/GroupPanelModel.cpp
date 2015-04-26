@@ -7,8 +7,6 @@
 
 #include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
 #include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
-#include "Repartition/session/ClientSession.hpp"
-#include "Repartition/session/MasterSession.hpp"
 
 GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
     iscore::PanelModelInterface{"GroupPanelModel", model}

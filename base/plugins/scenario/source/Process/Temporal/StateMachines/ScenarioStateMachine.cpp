@@ -30,9 +30,9 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         moveDeckState->setParent(toolState);
 
 
-        auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
+        auto QPointFToScenarioPoint = [&] (const QPointF& point)
         {
-            return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
+            return ScenarioPoint{TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
                         (point.y() - 25.) /  m_presenter.view().boundingRect().height()};
         };
 

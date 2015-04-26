@@ -1,7 +1,5 @@
 #include "TemporalScenarioView.hpp"
 
-#include <iscore/tools/NamedObject.hpp>
-
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>

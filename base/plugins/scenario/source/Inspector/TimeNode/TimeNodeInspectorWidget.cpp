@@ -15,7 +15,6 @@
 #include <QLineEdit>
 #include <QLayout>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QCompleter>
 
 using namespace Scenario::Command;

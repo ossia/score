@@ -13,7 +13,6 @@ class ConstraintModel;
 class TemporalScenarioViewModel : public AbstractScenarioViewModel
 {
         Q_OBJECT
-        friend QDataStream& operator >> (QDataStream& s, TemporalScenarioViewModel& pvm);
 
         TemporalScenarioPresenter* m_presenter{};
     public:

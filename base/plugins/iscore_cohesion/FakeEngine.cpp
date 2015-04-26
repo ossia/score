@@ -3,14 +3,11 @@
 #include "TTModular.h"
 #include "TTScore.h"
 #include <iostream>
-#include <QString>
-#include <string>
 
 
 #include <QDir>
 #include <QApplication>
 #include <QDebug>
-#include <thread>
 
 void FakeEngine::runThread(QString scoreFilePath)
 {

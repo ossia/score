@@ -1,18 +1,11 @@
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
-#include <cassert>
+
 #include <iostream>
 
-
-#include <QFont>
-#include <QBrush>
 #include <QMimeData>
 
-#include <QDebug>
-
-
-#include <core/command/CommandStack.hpp>
 #include "Commands/Move.hpp"
 #include "Commands/Insert.hpp"
 #include "Commands/Cut.hpp"
@@ -195,7 +188,6 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
 
 //TODO:REMOVE
 
-#include <QTextStream>
 #include <QFile>
 
 //TODO:REMOVE
@@ -984,14 +976,7 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
     Node* parent = n->parent();
     Q_ASSERT(parent);
 
-    if(parent == m_rootNode)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return parent == m_rootNode;
 }
 
 bool
