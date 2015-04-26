@@ -27,6 +27,7 @@ ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
     {
         auto pres = new TemporalScenarioPresenter {vm, view, parent};
         vm->setPresenter(pres);
+        static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
     }
     return nullptr;

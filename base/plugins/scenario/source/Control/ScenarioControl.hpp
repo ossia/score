@@ -30,4 +30,6 @@ class ScenarioControl : public iscore::PluginControlInterface
         QActionGroup* m_scenarioToolActionGroup{};
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QMetaObject::Connection m_toolbarConnection;
+
+        QAction* selecttool{};
 };

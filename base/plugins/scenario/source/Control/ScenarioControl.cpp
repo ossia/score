@@ -239,7 +239,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
                 emit { focusedScenarioStateMachine().setDeckMoveState(); }
     });
 
-    auto selecttool = new QAction(tr("Select"), m_scenarioToolActionGroup);
+    selecttool = new QAction(tr("Select"), m_scenarioToolActionGroup);
     selecttool->setCheckable(true);
     selecttool->setChecked(true);
     selecttool->setData(QVariant::fromValue((int) ScenarioAction::Select));
@@ -310,6 +310,7 @@ void ScenarioControl::on_presenterChanged()
     { return; }
     if (!currentDocument())
     {
+        selecttool->setChecked(true);
         m_scenarioToolActionGroup->setEnabled(false);
         return;
     }
@@ -363,5 +364,6 @@ void ScenarioControl::on_documentChanged(Document *doc)
     auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
     auto onScenario = dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel());
 
+    selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(onScenario);
 }

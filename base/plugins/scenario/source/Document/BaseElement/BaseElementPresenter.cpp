@@ -34,7 +34,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this} },
     m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this} }
 {
-
     connect(&(m_selectionDispatcher.stack()),  &SelectionStack::currentSelectionChanged,
             this,   &BaseElementPresenter::on_newSelection);
 
@@ -87,7 +86,7 @@ void BaseElementPresenter::deselectAll()
 void BaseElementPresenter::setDisplayedObject(ObjectPath path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
-            || path.vec().last().objectName() == "BaseConstraintModel")
+    || path.vec().last().objectName() == "BaseConstraintModel")
     {
         setDisplayedConstraint(path.find<ConstraintModel>());
     }

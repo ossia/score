@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QEvent>
 
+class TemporalScenarioPresenter;
 class TemporalScenarioView : public ProcessViewInterface
 {
         Q_OBJECT
@@ -18,6 +19,11 @@ class TemporalScenarioView : public ProcessViewInterface
         {
             m_selectArea = rect;
             update();
+        }
+
+        void setPresenter(TemporalScenarioPresenter* pres)
+        {
+            m_pres = pres;
         }
 
     signals:
@@ -54,4 +60,5 @@ class TemporalScenarioView : public ProcessViewInterface
         QAction* m_clearAction {};
 
         bool m_lock {};
+        TemporalScenarioPresenter* m_pres{};
 };

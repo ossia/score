@@ -6,6 +6,8 @@
 #include <QKeyEvent>
 #include <QMenu>
 
+#include "TemporalScenarioPresenter.hpp"
+
 TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
     ProcessViewInterface {parent}
 {

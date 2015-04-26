@@ -152,7 +152,8 @@ void SelectionToolState::on_scenarioPressed()
         auto elt = find_if(begin(elts),
                            end(elts),
                            [&] (EventPresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        if(elt == end(elts))
+            return;
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
@@ -165,7 +166,8 @@ void SelectionToolState::on_scenarioPressed()
         auto elt = find_if(begin(elts),
                            end(elts),
                            [&] (TimeNodePresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        if(elt == end(elts))
+            return;
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
@@ -178,7 +180,8 @@ void SelectionToolState::on_scenarioPressed()
         auto elt = find_if(begin(elts),
                            end(elts),
                            [&] (TemporalConstraintPresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        if(elt == end(elts))
+            return;
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
