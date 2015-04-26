@@ -6,6 +6,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -16,7 +17,7 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
                          description()},
 m_path {std::move(constraintPath) }
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    ConstraintModel* constraint = m_path.find<ConstraintModel>();
 
     for(const BoxModel* box : constraint->boxes())
     {
@@ -34,12 +35,16 @@ m_path {std::move(constraintPath) }
         m_serializedProcesses.push_back(arr);
     }
 
-    // @todo save the mapping in the parent scenario view models.
+    // TODO save view model data instead
+    for(const auto& viewmodel : constraint->viewModels())
+    {
+        m_boxMappings.insert(viewmodel->id(), viewmodel->shownBox());
+    }
 }
 
 void ClearConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    ConstraintModel* constraint = m_path.find<ConstraintModel>();
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
@@ -51,6 +56,14 @@ void ClearConstraint::undo()
     {
         Deserializer<DataStream> s {&serializedBox};
         constraint->addBox(new BoxModel {s, constraint});
+    }
+
+    auto bit = constraint->viewModels().begin(), eit = constraint->viewModels().end();
+    for(const auto& cvmid : m_boxMappings.keys())
+    {
+        auto it = std::find(bit, eit, cvmid);
+        Q_ASSERT(it != eit);
+        (*it)->showBox(m_boxMappings.value(cvmid));
     }
 }
 
@@ -76,10 +89,10 @@ bool ClearConstraint::mergeWith(const Command* other)
 
 void ClearConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_serializedBoxes << m_serializedProcesses;
+    s << m_path << m_serializedBoxes << m_serializedProcesses << m_boxMappings;
 }
 
 void ClearConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_serializedBoxes >> m_serializedProcesses;
+    s >> m_path >> m_serializedBoxes >> m_serializedProcesses >> m_boxMappings;
 }

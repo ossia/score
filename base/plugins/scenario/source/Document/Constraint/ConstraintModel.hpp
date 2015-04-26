@@ -167,7 +167,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference
-        const auto& viewModels() const
+        const QVector<AbstractConstraintViewModel*>& viewModels() const
         { return m_constraintViewModels; }
 
         TimeValue startDate() const;

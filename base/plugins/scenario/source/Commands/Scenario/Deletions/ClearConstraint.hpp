@@ -4,7 +4,8 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
-
+class AbstractConstraintViewModel;
+class BoxModel;
 namespace Scenario
 {
     namespace Command
@@ -34,7 +35,7 @@ namespace Scenario
                 QVector<QByteArray> m_serializedBoxes;
                 QVector<QByteArray> m_serializedProcesses;
 
-                // TODO QMap<std::tuple<int, int, int>, QPair<bool, int>> m_scenarioViewModelsBoxMappings;
+                QMap<id_type<AbstractConstraintViewModel>, id_type<BoxModel>> m_boxMappings;
         };
     }
 }
