@@ -44,7 +44,6 @@ class EventView : public QGraphicsObject
 
     public slots:
         void changeColor(QColor);
-        void setMoving(bool arg);
         void setShadow(bool arg);
 
     protected:
@@ -56,7 +55,6 @@ class EventView : public QGraphicsObject
         QPointF m_clickedPoint {};
         QColor m_color;
 
-        bool m_moving {false};
         bool m_shadow {false};
         bool m_selected{};
 };

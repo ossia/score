@@ -46,12 +46,6 @@ class InspectorSectionWidget : public QWidget
 
         void removeAll();
 
-        //! insert newWidget at the index rank in the main layout
-        void insertInSection(int index, QWidget* newWidget);
-
-        void nameEditEnable();
-        void nameEditDisable();
-
     private:
         QWidget* _container = nullptr;
         QVBoxLayout* _containerLayout = nullptr; /*!< main layout */

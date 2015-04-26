@@ -42,57 +42,6 @@ InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent)
 
 }
 
-
-void InspectorWidgetBase::addNewSection(QString sectionName,
-                                        QWidget* content)
-{
-    InspectorSectionWidget* section = new InspectorSectionWidget(sectionName, this);
-    section->addContent(content);
-    _scrollAreaLayout->addWidget(section);
-}
-
-void InspectorWidgetBase::addSubSection(QString parentSection,
-                                        QString subSection,
-                                        InspectorSectionWidget* content)
-{
-    InspectorSectionWidget* section = findChild<InspectorSectionWidget*>(parentSection);
-
-    if(section != nullptr)
-    {
-        {
-            content->renameSection(subSection);
-            content->setObjectName(subSection);
-            section->addContent(content);
-        }
-    }
-}
-
-void InspectorWidgetBase::insertSection(int index,
-                                        QString name,
-                                        QWidget* content)
-{
-    if(index < 0)
-    {
-        index += _scrollAreaLayout->count();
-    }
-
-    InspectorSectionWidget* section = new InspectorSectionWidget(this);
-    section->renameSection(name);
-    section->setObjectName(name);
-
-    if(content)
-    {
-        section->addContent(content);
-    }
-
-    _scrollAreaLayout->insertWidget(index, section);
-}
-
-void InspectorWidgetBase::removeSection(QString sectionName)
-{
-
-}
-
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
                                              QVector<QWidget*>& contents)
 {

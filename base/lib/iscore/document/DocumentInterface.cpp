@@ -52,22 +52,6 @@ const QList<iscore::PanelModelInterface*>& iscore::IDocument::panels(const iscor
     return d->model()->panels();
 }
 
-
-iscore::PanelModelInterface* iscore::IDocument::panel(const QString& name, const iscore::Document* d)
-{
-    using namespace std;
-    auto panels = d->model()->panels();
-
-    auto it = find_if(begin(panels), end(panels),
-                      [name](PanelModelInterface* panel)
-    {
-              return panel->objectName() == name;
-    });
-
-    return (it != end(panels) ? *it : nullptr);
-}
-
-
 ObjectPath iscore::IDocument::path(const QObject &obj)
 {
     return path(&obj);

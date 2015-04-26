@@ -118,21 +118,3 @@ void InspectorSectionWidget::removeAll()
         delete item;
     }
 }
-
-void InspectorSectionWidget::insertInSection(int index, QWidget* newWidget)
-{
-    _containerLayout->insertWidget(index, newWidget);
-    _container->setLayout(_containerLayout);
-}
-
-void InspectorSectionWidget::nameEditEnable()
-{
-//	_sectionTitle->show();
-//	_sectionTitle->setFocus();
-}
-
-void InspectorSectionWidget::nameEditDisable()
-{
-//	_sectionTitle->hide();
-//	_buttonTitle->setText (_sectionTitle->text() );
-}

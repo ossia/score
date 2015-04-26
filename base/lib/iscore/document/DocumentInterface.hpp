@@ -35,7 +35,6 @@ namespace iscore
         //// Various getters ////
         // Panel models
         const QList<PanelModelInterface*>& panels(const Document* d);
-        PanelModelInterface* panel(const QString& name, const Document* d);
 
         // Presenter of a document plugin.
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);

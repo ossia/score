@@ -267,5 +267,5 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         double m_heightPercentage {0.5};
         TimeValue m_playDuration;
-        bool m_rigidity;
+        bool m_rigidity{true};
 };

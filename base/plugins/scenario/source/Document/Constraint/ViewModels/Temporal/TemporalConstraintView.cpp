@@ -45,8 +45,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
         Qt::RoundJoin
     };
 
-    (m_moving ? c.setAlphaF(0.4) : c.setAlphaF(1.0));
-
     m_solidPen.setColor(c);
     m_dashPen.setColor(c);
 
@@ -111,12 +109,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     }
 
 
-}
-
-void TemporalConstraintView::setMoving(bool arg)
-{
-    m_moving = arg;
-    update();
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

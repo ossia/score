@@ -36,35 +36,6 @@ class InspectorWidgetBase : public QWidget
         explicit InspectorWidgetBase(QObject* inspectedObj, QWidget* parent);
 
     public slots:
-
-        // Manage Sections
-
-        /*!
-         * \brief addNewSection Add an InspectorSectionWidget in the main widget
-         * \param sectionName The name of this new section.
-         * \param content The Widget.
-         */
-        void addNewSection(QString sectionName, QWidget* content = 0);
-
-        /*!
-         * \brief addSubSection Add an InspectorSectionWidget in the choose InspectorSectionWidget
-         *
-         * \param parentSection The name of the parent InspectorSectionWidget
-         * \param subSection The name of the new InspectorSectionWidget
-         * \param content The InspectorSectionWidget
-         */
-        void addSubSection(QString parentSection, QString subSection, InspectorSectionWidget* content);
-
-        /*!
-         * \brief insertSection Insert a InspectorSectionWidget in the main widget
-         *
-         * \param index Index
-         * \param name The name of the new Widget
-         * \param content The widget
-         */
-        void insertSection(int index, QString name, QWidget* content = 0);
-
-        void removeSection(QString sectionName);  //todo
         void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
 
         void addHeader(QWidget* header);

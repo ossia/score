@@ -37,35 +37,16 @@ void EventView::paint(QPainter* painter,
     {
         pen_color = Qt::cyan;
     }
-
-    /*	else if(parentItem()->isSelected())
-        {
-            pen_color = Qt::cyan;
-        }
-    */
-    //painter->drawRect(boundingRect());
-
-    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(1.0));
-
     // Ball
     painter->setBrush(pen_color);
     painter->setPen(pen_color);
     painter->drawEllipse(boundingRect().center(), 5, 5);
-
-//	painter->setPen(QPen(QBrush(QColor(0,0,0)), 1, Qt::SolidLine));
-
 }
 
 void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
-}
-
-void EventView::setMoving(bool arg)
-{
-    m_moving = arg;
-    update();
 }
 
 void EventView::setShadow(bool arg)
