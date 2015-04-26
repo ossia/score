@@ -11,14 +11,16 @@ using namespace Scenario::Command;
 MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
                                const id_type<ConstraintModel>& id,
                                const TimeValue& date,
-                               double y) :
+                               double y,
+                               ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
-m_path {std::move(scenarioPath) },
-m_constraintId {id},
-m_newHeightPosition {y},
-m_newX {date}
+    m_path {std::move(scenarioPath) },
+    m_constraintId {id},
+    m_newHeightPosition {y},
+    m_newX {date},
+    m_mode{mode}
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto cst = scenar->constraint(m_constraintId);
@@ -30,20 +32,22 @@ void MoveConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
-            m_constraintId,
-            m_oldX,
-            m_oldHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                      m_constraintId,
+                                                      m_oldX,
+                                                      m_oldHeightPosition,
+                                                      [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+          { p->expandProcess(m_mode, t); });
 }
 
 void MoveConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
     StandardDisplacementPolicy::setConstraintPosition(*scenar,
-            m_constraintId,
-            m_newX,
-            m_newHeightPosition,
-            [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                      m_constraintId,
+                                                      m_newX,
+                                                      m_newHeightPosition,
+                                                      [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+          { p->expandProcess(m_mode, t); });
 }
 
 bool MoveConstraint::mergeWith(const Command* other)
@@ -64,11 +68,13 @@ bool MoveConstraint::mergeWith(const Command* other)
 void MoveConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_constraintId
-      << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX;
+      << m_oldHeightPosition << m_newHeightPosition << m_oldX << m_newX << (int)m_mode;
 }
 
 void MoveConstraint::deserializeImpl(QDataStream& s)
 {
+    int mode;
     s >> m_path >> m_constraintId
-      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX;
+            >> m_oldHeightPosition >> m_newHeightPosition >> m_oldX >> m_newX >> mode;
+    m_mode = static_cast<ExpandMode>(mode);
 }

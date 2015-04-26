@@ -2,7 +2,7 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 #include "Commands/Scenario/Creations/CreationMetaCommand.hpp"
-
+class ScenarioStateMachine;
 // Creates commands on a list.
 class MultiCommandDispatcher
 {
@@ -72,9 +72,11 @@ class MultiCommandDispatcher
 class CreateFromEventState : public CreationState
 {
     public:
-        CreateFromEventState(ObjectPath&& scenarioPath,
-                    iscore::CommandStack& stack,
-                    QState* parent);
+        CreateFromEventState(
+                const ScenarioStateMachine& stateMachine,
+                ObjectPath&& scenarioPath,
+                iscore::CommandStack& stack,
+                QState* parent);
 
     private:
         void createEventFromEventOnNothing();
@@ -88,9 +90,11 @@ class CreateFromEventState : public CreationState
 class CreateFromTimeNodeState : public CreationState
 {
     public:
-        CreateFromTimeNodeState(ObjectPath&& scenarioPath,
-                    iscore::CommandStack& stack,
-                    QState* parent);
+        CreateFromTimeNodeState(
+                const ScenarioStateMachine& stateMachine,
+                ObjectPath&& scenarioPath,
+                iscore::CommandStack& stack,
+                QState* parent);
 
     private:
         void createSingleEventOnTimeNode();

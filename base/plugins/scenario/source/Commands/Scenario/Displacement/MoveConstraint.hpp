@@ -2,6 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+#include <ProcessInterface/ExpandMode.hpp>
 class ConstraintModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -16,10 +17,12 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(MoveConstraint, "ScenarioControl")
-                MoveConstraint(ObjectPath&& scenarioPath,
-                        const id_type<ConstraintModel>& id,
-                        const TimeValue& date,
-                        double y);
+                MoveConstraint(
+                    ObjectPath&& scenarioPath,
+                    const id_type<ConstraintModel>& id,
+                    const TimeValue& date,
+                    double y,
+                    ExpandMode mode);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
@@ -36,6 +39,8 @@ namespace Scenario
                 double m_newHeightPosition {};
                 TimeValue m_oldX {};
                 TimeValue m_newX {};
+
+                ExpandMode m_mode;
         };
     }
 }

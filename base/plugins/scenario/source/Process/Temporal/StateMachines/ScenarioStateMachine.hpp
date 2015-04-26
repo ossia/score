@@ -1,5 +1,6 @@
 #pragma once
-
+#include "Tool.hpp"
+#include <ProcessInterface/ExpandMode.hpp>
 #include "StateMachineVeryCommon.hpp"
 
 #include <iscore/command/OngoingCommandManager.hpp>
@@ -16,7 +17,6 @@ class ScenarioStateMachine : public QStateMachine
 {
         Q_OBJECT
     public:
-        enum class State { Create, Select, Move, MoveDeck };
         QPointF scenePoint;
         ScenarioPoint scenarioPoint;
 
@@ -31,13 +31,17 @@ class ScenarioStateMachine : public QStateMachine
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
-        State currentState() const;
+        Tool tool() const;
+        ExpandMode expandMode() const;
 
     signals:
         void setCreateState();
         void setSelectState();
         void setMoveState();
         void setDeckMoveState();
+
+        void setScaleState();
+        void setGrowState();
 
     private:
         TemporalScenarioPresenter& m_presenter;
@@ -48,4 +52,7 @@ class ScenarioStateMachine : public QStateMachine
         MoveToolState* moveState{};
         SelectionToolState* selectState{};
         MoveDeckToolState* moveDeckState{};
+
+        QState* scaleState{};
+        QState* growState{};
 };

@@ -1,4 +1,5 @@
 #include "CreateEventState.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
@@ -15,9 +16,11 @@
 
 #include <QFinalState>
 
-CreateFromEventState::CreateFromEventState(ObjectPath &&scenarioPath,
-                                           iscore::CommandStack& stack,
-                                           QState* parent):
+CreateFromEventState::CreateFromEventState(
+        const ScenarioStateMachine& stateMachine,
+        ObjectPath &&scenarioPath,
+        iscore::CommandStack& stack,
+        QState* parent):
     CreationState{std::move(scenarioPath), parent},
     m_dispatcher{stack}
 {
@@ -124,7 +127,8 @@ CreateFromEventState::CreateFromEventState(ObjectPath &&scenarioPath,
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             currentPoint.date,
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
@@ -134,7 +138,8 @@ CreateFromEventState::CreateFromEventState(ObjectPath &&scenarioPath,
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
@@ -197,9 +202,11 @@ void CreateFromEventState::createConstraintBetweenEvents()
 
 
 
-CreateFromTimeNodeState::CreateFromTimeNodeState(ObjectPath &&scenarioPath,
-                                                 iscore::CommandStack& stack,
-                                                 QState* parent):
+CreateFromTimeNodeState::CreateFromTimeNodeState(
+        const ScenarioStateMachine& stateMachine,
+        ObjectPath &&scenarioPath,
+        iscore::CommandStack& stack,
+        QState* parent):
     CreationState{std::move(scenarioPath), parent},
     m_dispatcher{stack}
 {
@@ -364,7 +371,8 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(ObjectPath &&scenarioPath,
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             currentPoint.date,
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
@@ -374,7 +382,8 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(ObjectPath &&scenarioPath,
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()

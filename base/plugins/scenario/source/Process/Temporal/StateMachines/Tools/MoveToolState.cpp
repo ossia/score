@@ -10,8 +10,10 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     m_localSM.setInitialState(m_waitState);
 
     /// Constraint
+    /// //TODO remove useless arguments to ctor
     m_moveConstraint =
             new MoveConstraintState{
+                  m_sm,
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),
@@ -29,6 +31,7 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     /// Event
     m_moveEvent =
             new MoveEventState{
+                  m_sm,
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),
@@ -46,6 +49,7 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     /// TimeNode
     m_moveTimeNode =
             new MoveTimeNodeState{
+                  m_sm,
                   iscore::IDocument::path(m_sm.model()),
                   m_sm.commandStack(),
                   m_sm.locker(),

@@ -27,6 +27,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     private:
         ProcessList* m_processList {};
-        QActionGroup* m_scenarioActionGroup{};
+        QActionGroup* m_scenarioToolActionGroup{};
+        QActionGroup* m_scenarioScaleModeActionGroup{};
         QMetaObject::Connection m_toolbarConnection;
 };

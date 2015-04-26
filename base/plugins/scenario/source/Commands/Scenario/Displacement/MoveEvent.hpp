@@ -3,6 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include <ProcessInterface/ExpandMode.hpp>
 
 class EventModel;
 class TimeNodeModel;
@@ -21,7 +22,8 @@ namespace Scenario
                 MoveEvent(ObjectPath&& scenarioPath,
                   id_type<EventModel> eventId,
                   const TimeValue& date,
-                  double height);
+                  double height,
+                  ExpandMode mode);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -39,6 +41,8 @@ namespace Scenario
                 double m_oldHeightPosition {};
                 double m_newHeightPosition {};
                 TimeValue m_newDate {};
+
+                ExpandMode m_mode;
 
                 QVector<id_type<TimeNodeModel>> m_movableTimenodes;
         };

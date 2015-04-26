@@ -24,7 +24,9 @@ ResizeConstraint::~ResizeConstraint()
 //	delete m_cmd;
 }
 
-ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration) :
+ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
+                                   TimeValue duration,
+                                   ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()}
@@ -36,7 +38,8 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath, TimeValue durati
     m_cmd = new MoveEvent(iscore::IDocument::path(constraint->parent()),
                           constraint->endEvent(),
                           constraint->startDate() + duration,
-                          constraint->heightPercentage());
+                          constraint->heightPercentage(),
+                          mode);
 }
 
 void ResizeConstraint::undo()

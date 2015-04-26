@@ -11,14 +11,16 @@ using namespace Scenario::Command;
 MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
                      id_type<EventModel> eventId,
                      const TimeValue& date,
-                     double height) :
+                     double height,
+                     ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
     m_path {std::move(scenarioPath)},
     m_eventId {eventId},
     m_newHeightPosition {height},
-    m_newDate {date}
+    m_newDate {date},
+    m_mode{mode}
 {
     auto scenar = m_path.find<ScenarioModel>();
     auto ev = scenar->event(m_eventId);
@@ -35,7 +37,8 @@ void MoveEvent::undo()
     StandardDisplacementPolicy::updatePositions(*scenar,
                                                 m_movableTimenodes,
                                                 m_oldDate - event->date(),
-                                                [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+    { p->expandProcess(m_mode, t); });
 }
 
 void MoveEvent::redo()
@@ -51,8 +54,8 @@ void MoveEvent::redo()
     StandardDisplacementPolicy::updatePositions(*scenar,
                                                 m_movableTimenodes,
                                                 m_newDate - event->date(),
-                                                [] (ProcessSharedModelInterface* p, TimeValue t)
-    { p->setDurationAndScale(t); });
+                                                [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+    { p->expandProcess(m_mode, t); });
 }
 
 bool MoveEvent::mergeWith(const Command* other)
@@ -78,12 +81,14 @@ void MoveEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_eventId
       << m_oldHeightPosition << m_newHeightPosition << m_oldDate << m_newDate
-      << m_movableTimenodes ;
+      << m_movableTimenodes << (int)m_mode;
 }
 
 void MoveEvent::deserializeImpl(QDataStream& s)
 {
+    int mode;
     s >> m_path >> m_eventId
       >> m_oldHeightPosition >> m_newHeightPosition >> m_oldDate >> m_newDate
-      >> m_movableTimenodes;
+      >> m_movableTimenodes >> mode;
+    m_mode = static_cast<ExpandMode>(mode);
 }

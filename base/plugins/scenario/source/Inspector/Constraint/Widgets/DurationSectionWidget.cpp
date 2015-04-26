@@ -151,14 +151,15 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     if(m_model->objectName() != "BaseConstraintModel")
     {
         cmd = new ResizeConstraint(
-                  iscore::IDocument::path(m_model),
-                  std::chrono::milliseconds {val});
+                    iscore::IDocument::path(m_model),
+                    std::chrono::milliseconds {val},
+                    ExpandMode::Scale);
     }
     else
     {
         cmd = new ResizeBaseConstraint(
-                  iscore::IDocument::path(m_model),
-                  std::chrono::milliseconds {val});
+                    iscore::IDocument::path(m_model),
+                    std::chrono::milliseconds {val});
     }
 
     emit m_cmdManager->submitCommand(cmd);

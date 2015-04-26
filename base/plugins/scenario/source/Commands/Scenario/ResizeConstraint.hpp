@@ -25,7 +25,9 @@ namespace Scenario
             public:
                 ResizeConstraint();
                 ~ResizeConstraint();
-                ResizeConstraint(ObjectPath&& constraintPath, TimeValue duration);
+                ResizeConstraint(ObjectPath&& constraintPath,
+                                 TimeValue duration,
+                                 ExpandMode mode);
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;

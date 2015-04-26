@@ -178,6 +178,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager* menu)
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <QToolBar>
+// TODO use the one in ScenarioStateMachine
 enum ScenarioAction
 {
     Create, Move, DeckMove, Select
@@ -191,9 +192,10 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         return static_cast<TemporalScenarioViewModel*>(model.focusedViewModel())->presenter()->stateMachine();
     };
 
-    m_scenarioActionGroup = new QActionGroup(bar);
-    m_scenarioActionGroup->setEnabled(false);
-    auto createtool = new QAction(tr("Create"), m_scenarioActionGroup);
+    // The tools
+    m_scenarioToolActionGroup = new QActionGroup{bar};
+    m_scenarioToolActionGroup->setEnabled(false);
+    auto createtool = new QAction(tr("Create"), m_scenarioToolActionGroup);
     createtool->setCheckable(true);
     createtool->setData(QVariant::fromValue((int)ScenarioAction::Create));
     createtool->setShortcutContext(Qt::ApplicationShortcut);
@@ -203,7 +205,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setCreateState();
     });
 
-    auto movetool = new QAction(tr("Move"), m_scenarioActionGroup);
+    auto movetool = new QAction(tr("Move"), m_scenarioToolActionGroup);
     movetool->setCheckable(true);
     movetool->setData(QVariant::fromValue((int)ScenarioAction::Move));
     movetool->setShortcutContext(Qt::ApplicationShortcut);
@@ -213,7 +215,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setMoveState();
     });
 
-    auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioActionGroup);
+    auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioToolActionGroup);
     deckmovetool->setCheckable(true);
     deckmovetool->setData(QVariant::fromValue((int)ScenarioAction::DeckMove));
     deckmovetool->setShortcutContext(Qt::ApplicationShortcut);
@@ -223,7 +225,7 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setDeckMoveState();
     });
 
-    auto selecttool = new QAction(tr("Select"), m_scenarioActionGroup);
+    auto selecttool = new QAction(tr("Select"), m_scenarioToolActionGroup);
     selecttool->setCheckable(true);
     selecttool->setChecked(true);
     selecttool->setData(QVariant::fromValue((int)ScenarioAction::Select));
@@ -234,10 +236,28 @@ void ScenarioControl::populateToolbars(QToolBar* bar)
         emit focusedScenarioStateMachine().setSelectState();
     });
 
+    // The action modes
+    m_scenarioScaleModeActionGroup = new QActionGroup{bar};
+    auto scale = new QAction(tr("Scale"), m_scenarioScaleModeActionGroup);
+    scale->setCheckable(true);
+    scale->setChecked(true);
+    scale->setShortcutContext(Qt::ApplicationShortcut);
+    scale->setShortcut(tr("Alt+Shift+S"));
+    connect(scale, &QAction::triggered, [=] () { emit focusedScenarioStateMachine().setScaleState(); });
+
+
+    auto grow = new QAction(tr("Grow/Shrink"), m_scenarioScaleModeActionGroup);
+    grow->setCheckable(true);
+    grow->setShortcutContext(Qt::ApplicationShortcut);
+    grow->setShortcut(tr("Alt+Shift+D"));
+    connect(grow, &QAction::triggered, [=] () { emit focusedScenarioStateMachine().setGrowState(); });
 
 
     on_presenterChanged();
-    bar->addActions(m_scenarioActionGroup->actions());
+
+    bar->addActions(m_scenarioToolActionGroup->actions());
+    bar->addSeparator();
+    bar->addActions(m_scenarioScaleModeActionGroup->actions());
 }
 
 
@@ -261,10 +281,10 @@ void ScenarioControl::on_presenterChanged()
 {
     // Check the current focused view model of this document
     // If it is a scenario, we enable the actiongroup, else we disable it.
-    if(!m_scenarioActionGroup) return;
+    if(!m_scenarioToolActionGroup) return;
     if(!currentDocument())
     {
-        m_scenarioActionGroup->setEnabled(false);
+        m_scenarioToolActionGroup->setEnabled(false);
         return;
     }
 
@@ -276,11 +296,11 @@ void ScenarioControl::on_presenterChanged()
     {
         // Get the process viewmodel
         auto scenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
-        m_scenarioActionGroup->setEnabled(scenario);
+        m_scenarioToolActionGroup->setEnabled(scenario);
         if(scenario)
         {
             // Set the current state on the statemachine.
-            for(QAction* action : m_scenarioActionGroup->actions())
+            for(QAction* action : m_scenarioToolActionGroup->actions())
             {
                 if(action->isChecked())
                 {
@@ -317,5 +337,5 @@ void ScenarioControl::on_documentChanged(Document* doc)
     auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
     auto onScenario = dynamic_cast<TemporalScenarioViewModel*>(model.focusedViewModel());
 
-    m_scenarioActionGroup->setEnabled(onScenario);
+    m_scenarioToolActionGroup->setEnabled(onScenario);
 }

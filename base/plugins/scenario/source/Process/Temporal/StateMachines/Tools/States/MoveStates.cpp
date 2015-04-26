@@ -1,5 +1,5 @@
 #include "MoveStates.hpp"
-
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
@@ -11,7 +11,8 @@
 
 #include <QFinalState>
 
-MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
+MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
+                                         ObjectPath&& scenarioPath,
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
@@ -55,7 +56,8 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
                             ObjectPath{m_scenarioPath},
                             clickedConstraint,
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -76,7 +78,11 @@ MoveConstraintState::MoveConstraintState(ObjectPath&& scenarioPath,
 }
 
 
-MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& stack, iscore::ObjectLocker& locker, QState* parent):
+MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
+                               ObjectPath&& scenarioPath,
+                               iscore::CommandStack& stack,
+                               iscore::ObjectLocker& locker,
+                               QState* parent):
     CommonScenarioState{ObjectPath{scenarioPath}, parent},
     m_dispatcher{std::move(scenarioPath), locker, stack, this}
 {
@@ -110,7 +116,8 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
                             ObjectPath{m_scenarioPath},
                             clickedEvent,
                             currentPoint.date,
-                            currentPoint.y});
+                            currentPoint.y,
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -131,7 +138,11 @@ MoveEventState::MoveEventState(ObjectPath&& scenarioPath, iscore::CommandStack& 
 }
 
 
-MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandStack& stack, iscore::ObjectLocker& locker, QState* parent):
+MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
+                                     ObjectPath&& scenarioPath,
+                                     iscore::CommandStack& stack,
+                                     iscore::ObjectLocker& locker,
+                                     QState* parent):
     CommonScenarioState{ObjectPath{scenarioPath}, parent},
     m_dispatcher{std::move(scenarioPath), locker, stack, this}
 {
@@ -171,7 +182,8 @@ MoveTimeNodeState::MoveTimeNodeState(ObjectPath&& scenarioPath, iscore::CommandS
                             ObjectPath{m_scenarioPath},
                             ev_id,
                             currentPoint.date,
-                            scenar->event(ev_id)->heightPercentage()});
+                            scenar->event(ev_id)->heightPercentage(),
+                            stateMachine.expandMode()});
         });
 
         QObject::connect(released, &QState::entered, [&] ()

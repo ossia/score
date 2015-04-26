@@ -21,7 +21,8 @@ namespace Scenario
                 MoveTimeNode(ObjectPath&& scenarioPath,
                              id_type<EventModel> eventId,
                              const TimeValue& date,
-                             double height);
+                             double height,
+                             ExpandMode mode);
                 ~MoveTimeNode();
                 virtual void undo() override;
                 virtual void redo() override;

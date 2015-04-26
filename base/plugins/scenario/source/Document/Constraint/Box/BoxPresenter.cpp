@@ -135,7 +135,7 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
     if(!scenario)
         return;
 
-    if(scenario->stateMachine().currentState() == ScenarioStateMachine::State::MoveDeck)
+    if(scenario->stateMachine().tool() == Tool::MoveDeck)
     {
         deckPres->disable();
     }

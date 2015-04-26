@@ -4,6 +4,8 @@
 #include <iscore/selection/Selection.hpp>
 #include "State/ProcessStateDataInterface.hpp"
 
+#include <ProcessInterface/ExpandMode.hpp>
+
 class QDataStream;
 
 class ProcessViewModelInterface;
@@ -76,6 +78,21 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 
         // Does nothing if newDuration > currentDuration
         virtual void setDurationAndShrink(TimeValue newDuration) = 0;
+
+        void expandProcess(ExpandMode mode, const TimeValue& t)
+        {
+            if(mode == ExpandMode::Scale)
+            {
+                setDurationAndScale(t);
+            }
+            else
+            {
+                if(duration() < t)
+                    setDurationAndGrow(t);
+                else
+                    setDurationAndShrink(t);
+            }
+        }
 
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.

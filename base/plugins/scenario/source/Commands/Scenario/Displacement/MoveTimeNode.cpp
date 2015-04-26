@@ -19,11 +19,12 @@ MoveTimeNode::MoveTimeNode():
 MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath,
                            id_type<EventModel> eventId,
                            const TimeValue& date,
-                           double height):
+                           double height,
+                           ExpandMode mode):
     SerializableCommand{"ScenarioControl",
                         className(),
                         description()},
-   m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height}}
+   m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height, mode}}
 {
 }
 
