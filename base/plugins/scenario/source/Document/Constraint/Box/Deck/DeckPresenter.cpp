@@ -121,7 +121,7 @@ void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface
 void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
 {
     vec_erase_remove_if(m_processes,
-                        [&processId](auto& pair)
+                        [&processId](ProcessPair& pair)
     {
         bool to_delete = pair.first->viewModelId() == processId;
 

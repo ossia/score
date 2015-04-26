@@ -10,7 +10,10 @@ class TimeNodeView : public QGraphicsObject
     public:
         TimeNodeView(const TimeNodePresenter& presenter,
                      QGraphicsObject* parent);
-        ~TimeNodeView() override = default;
+        ~TimeNodeView() = default;
+
+        int type() const override
+        { return QGraphicsItem::UserType + 3; }
 
         const auto& presenter() const
         { return m_presenter;}

@@ -145,7 +145,7 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 void SelectionToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto& id) // Event
+    [&] (const id_type<EventModel>& id) // Event
     {
         using namespace std;
         const auto& elts = m_sm.presenter().events();
@@ -158,7 +158,7 @@ void SelectionToolState::on_scenarioPressed()
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
-    [&] (const auto& id) // TimeNode
+    [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
         using namespace std;
         const auto& elts = m_sm.presenter().timeNodes();
@@ -171,7 +171,7 @@ void SelectionToolState::on_scenarioPressed()
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
-    [&] (const auto& id) // Constraint
+    [&] (const id_type<ConstraintModel>& id) // Constraint
     {
         using namespace std;
         const auto& elts = m_sm.presenter().constraints();
@@ -190,18 +190,18 @@ void SelectionToolState::on_scenarioPressed()
 void SelectionToolState::on_scenarioMoved()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
-    [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
-    [&] (const auto&) { m_localSM.postEvent(new Move_Event); },
+    [&] (const id_type<EventModel>&) { m_localSM.postEvent(new Move_Event); },
+    [&] (const id_type<TimeNodeModel>&) { m_localSM.postEvent(new Move_Event); },
+    [&] (const id_type<ConstraintModel>&) { m_localSM.postEvent(new Move_Event); },
     [&] () { m_localSM.postEvent(new Move_Event); });
 }
 
 void SelectionToolState::on_scenarioReleased()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-               [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
-    [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
-    [&] (const auto&) { m_localSM.postEvent(new Release_Event); },
+    [&] (const id_type<EventModel>&) { m_localSM.postEvent(new Release_Event); },
+    [&] (const id_type<TimeNodeModel>&) { m_localSM.postEvent(new Release_Event); },
+    [&] (const id_type<ConstraintModel>&) { m_localSM.postEvent(new Release_Event); },
     [&] () { m_localSM.postEvent(new Release_Event); });
 }
 

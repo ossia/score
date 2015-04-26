@@ -69,11 +69,11 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
 void MoveToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new ClickOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<ConstraintModel>& id)
     { m_localSM.postEvent(new ClickOnConstraint_Event{id, m_sm.scenarioPoint}); },
     [&] () { });
 }
@@ -81,11 +81,11 @@ void MoveToolState::on_scenarioPressed()
 void MoveToolState::on_scenarioMoved()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new MoveOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new MoveOnTimeNode_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<ConstraintModel>& id)
     { m_localSM.postEvent(new MoveOnConstraint_Event{id, m_sm.scenarioPoint}); },
     [&] ()
     { m_localSM.postEvent(new MoveOnNothing_Event{m_sm.scenarioPoint}); });
@@ -94,11 +94,11 @@ void MoveToolState::on_scenarioMoved()
 void MoveToolState::on_scenarioReleased()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const auto& id)
+    [&] (const id_type<EventModel>& id)
     { m_localSM.postEvent(new ReleaseOnEvent_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<TimeNodeModel>& id)
     { m_localSM.postEvent(new ReleaseOnTimeNode_Event{id, m_sm.scenarioPoint}); },
-    [&] (const auto& id)
+    [&] (const id_type<ConstraintModel>& id)
     { m_localSM.postEvent(new ReleaseOnConstraint_Event{id, m_sm.scenarioPoint}); },
     [&] ()
     { m_localSM.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint}); });

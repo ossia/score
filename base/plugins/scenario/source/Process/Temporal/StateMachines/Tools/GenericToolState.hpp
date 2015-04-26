@@ -27,13 +27,6 @@ namespace iscore
 {
     class SerializableCommand;
 }
-/*
-void getCollidingEvents(TemporalScenarioPresenter* pres, const id_type<EventModel>& toIgnore, QPointF scenePos)
-{
-    // Make a rect at mouse pose
-    pres->view().scene()->items(scenePos);
-}
-*/
 
 template<typename Element>
 bool isUnderMouse(Element ev, const QPointF& scenePos)
@@ -75,47 +68,56 @@ class GenericToolState : public QState
                 ConstraintFun&& cst_fun,
                 NothingFun&& nothing_fun) const
         {
+            if(!pressedItem)
+            {
+                nothing_fun(); // TODO or return ?
+                return;
+            }
+
             // Each time :
             // Check if it is an event / timenode / constraint
             // Check if it is in our scenario.
-            if(auto ev = dynamic_cast<const EventView*>(pressedItem))
+            switch(pressedItem->type())
             {
-                ev_fun(ev->presenter().model()->id());
-            }
-            else if(auto tn = dynamic_cast<const TimeNodeView*>(pressedItem))
-            {
-                tn_fun(tn->presenter().model()->id());
-            }
-            else if(auto cst = dynamic_cast<const AbstractConstraintView*>(pressedItem))
-            {
-                cst_fun(cst->presenter().abstractConstraintViewModel()->model()->id());
-            }
-            else
-            {
-                nothing_fun();
+                case QGraphicsItem::UserType + 1:
+                    ev_fun(static_cast<const EventView*>(pressedItem)->presenter().model()->id());
+                    break;
+
+                case QGraphicsItem::UserType + 2:
+                    cst_fun(static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel()->model()->id());
+                    break;
+
+                case QGraphicsItem::UserType + 3:
+                    tn_fun(static_cast<const TimeNodeView*>(pressedItem)->presenter().model()->id());
+                    break;
+
+                default:
+                    nothing_fun();
+                    break;
             }
         }
 
         auto itemUnderMouse(const QPointF& point) const
         {
-            return m_sm.presenter().view().scene()->itemAt(point, QTransform());
+            return m_scene.itemAt(point, QTransform());
         }
 
     public:
         GenericToolState(const ScenarioStateMachine& sm) :
-            m_sm{sm}
+            m_sm{sm},
+            m_scene{*m_sm.presenter().view().scene()}
         {
             auto t_click = make_transition<Press_Transition>(this, this);
             connect(t_click, &QAbstractTransition::triggered,
-                    [&] () { on_scenarioPressed(); });
+                    this,    &GenericToolState::on_scenarioPressed);
 
             auto t_move = make_transition<Move_Transition>(this, this);
             connect(t_move, &QAbstractTransition::triggered,
-                    [&] () { on_scenarioMoved(); });
+                    this,   &GenericToolState::on_scenarioMoved);
 
             auto t_rel = make_transition<Release_Transition>(this, this);
             connect(t_rel, &QAbstractTransition::triggered,
-                    [&] () { on_scenarioReleased(); });
+                    this,  &GenericToolState::on_scenarioReleased);
 
             auto t_cancel = make_transition<Cancel_Transition>(this, this);
             connect(t_cancel, &QAbstractTransition::triggered,
@@ -132,4 +134,5 @@ class GenericToolState : public QState
 
         QStateMachine m_localSM;
         const ScenarioStateMachine& m_sm;
+        const QGraphicsScene& m_scene;
 };

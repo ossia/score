@@ -11,6 +11,9 @@ class EventView : public QGraphicsObject
         EventView(const EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
+        int type() const override
+        { return QGraphicsItem::UserType + 1; }
+
         const auto& presenter() const
         { return m_presenter;}
 
