@@ -1,8 +1,10 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
+#include "DeviceExplorer/NodePath.hpp"
 
 namespace DeviceExplorer
 {
@@ -15,9 +17,9 @@ namespace DeviceExplorer
 
                 Paste();
 
-                void set(const QModelIndex& parentIndex, int row,
+                void set(const Path& parentPath, int row,
                          const QString& text,
-                         DeviceExplorerModel* model);
+                         ObjectPath&& modelPath);
 
 
                 virtual void undo() override;
@@ -31,9 +33,9 @@ namespace DeviceExplorer
 
 
             protected:
-                DeviceExplorerModel* m_model{};
+                ObjectPath m_model{};
                 QByteArray m_data;
-                DeviceExplorerModel::Path m_parentPath;
+                Path m_parentPath;
                 int m_row{};
         };
     }

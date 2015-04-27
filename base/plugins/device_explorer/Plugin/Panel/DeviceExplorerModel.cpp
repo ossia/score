@@ -542,6 +542,12 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
     return COLUMN_COUNT;
 }
 
+QVariant DeviceExplorerModel::getData(Path node, int column, int role)
+{
+    QModelIndex index = createIndex(pathToIndex(node).row(), column, pathToNode(node)->parent());
+    return data(index, role);
+}
+
 // must return an invalid QVariant for cases not handled
 QVariant
 DeviceExplorerModel::data(const QModelIndex& index, int role) const
@@ -829,14 +835,14 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), pathFromIndex(index), index.column(), value, role});
                 changed = true;
             }
         }
 
         if(index.column() == IOTYPE_COLUMN)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), pathFromIndex(index), index.column(), value, role});
             changed = true;
         }
     }
@@ -850,11 +856,14 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const QModelIndex &index, const QVariant &value, int role)
+void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
     //TODO: check what's editable or not !!!
+    QModelIndex nodeIndex = pathToIndex(path);
+    Node* node = nodeFromModelIndex(nodeIndex);
 
-    Node* node = nodeFromModelIndex(index);
+    QModelIndex index = createIndex(nodeIndex.row(), column, node->parent());
+
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
 
@@ -1106,7 +1115,7 @@ DeviceExplorerModel::cut(const QModelIndex& index)
     Cut* cmd = new Cut;
 
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
-    cmd->set(index.parent(), index.row(), tr("Cut %1").arg(name), this);
+    cmd->set(pathFromIndex(index.parent()), index.row(), tr("Cut %1").arg(name), iscore::IDocument::path(this));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -1242,7 +1251,7 @@ DeviceExplorerModel::paste(const QModelIndex& index)
     Paste* cmd = new Paste;
 
     QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
-    cmd->set(index.parent(), index.row(), tr("Paste %1").arg(name), this);
+    cmd->set(pathFromIndex(index.parent()), index.row(), tr("Paste %1").arg(name), iscore::IDocument::path(this));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -1434,11 +1443,9 @@ DeviceExplorerModel::moveUp(const QModelIndex& index)
 
     Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
-    int rowParent = grandparent->indexOfChild(parent);
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
     Move* cmd = new Move;
-    cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow, tr("Move up %1").arg(n->name()) , this);
+    cmd->set(pathFromNode(*parent), oldRow, 1, pathFromNode(*parent), newRow, tr("Move up %1").arg(n->name()) , iscore::IDocument::path(this));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -1476,11 +1483,9 @@ DeviceExplorerModel::moveDown(const QModelIndex& index)
 
     Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
-    int rowParent = grandparent->indexOfChild(parent);
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
 
     Move* cmd = new Move;
-    cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow + 1, tr("Move down %1").arg(n->name()) , this);
+    cmd->set(pathFromNode(*parent), oldRow, 1, pathFromNode(*parent), newRow + 1, tr("Move down %1").arg(n->name()) , iscore::IDocument::path(this));
     //newRow+1 because moved before, cf doc.
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -1522,18 +1527,11 @@ DeviceExplorerModel::promote(const QModelIndex& index)  //== moveLeft
         return index;    //We cannot move an Address at Device level.
     }
 
-    Node* grandGrandParent = grandParent->parent();
-
-
     int row = parent->indexOfChild(n);
     int rowParent = grandParent->indexOfChild(parent);
-    int rowGrandParent = grandGrandParent->indexOfChild(grandParent);
-
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-    QModelIndex dstParentIndex = createIndex(rowGrandParent, 0 , grandParent);
 
     Move* cmd = new Move;
-    cmd->set(srcParentIndex, row, 1, dstParentIndex, rowParent + 1, tr("Promote %1").arg(n->name()) , this);
+    cmd->set(pathFromNode(*parent), row, 1, pathFromNode(*grandParent), rowParent + 1, tr("Promote %1").arg(n->name()) , iscore::IDocument::path(this));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -1575,14 +1573,8 @@ DeviceExplorerModel::demote(const QModelIndex& index)  //== moveRight
     Node* sibling = parent->childAt(row - 1);
     Q_ASSERT(sibling);
 
-    Node* grandParent = parent->parent();
-    int rowParent = grandParent->indexOfChild(parent);
-
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-    QModelIndex dstParentIndex = createIndex(row - 1, 0, sibling);
-
     Move* cmd = new Move;
-    cmd->set(srcParentIndex, row, 1, dstParentIndex, sibling->childCount(), tr("Demote %1").arg(n->name()) , this);
+    cmd->set(pathFromNode(*parent), row, 1, pathFromNode(*sibling), sibling->childCount(), tr("Demote %1").arg(n->name()) , iscore::IDocument::path(this));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -1806,7 +1798,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         }
         DeviceExplorer::Command::Insert* cmd = new DeviceExplorer::Command::Insert;
         const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
-        cmd->set(parentIndex, row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), this);
+        cmd->set(pathFromNode(*parentNode), row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), iscore::IDocument::path(this));
         Q_ASSERT(m_cmdQ);
         m_cmdQ->redoAndPush(cmd);
 
@@ -1880,7 +1872,7 @@ DeviceExplorerModel::setCachedResult(Result r)
     m_cachedResult = r;
 }
 
-DeviceExplorerModel::Path
+Path
 DeviceExplorerModel::pathFromIndex(const QModelIndex& index)
 {
     Path path;
@@ -1896,7 +1888,7 @@ DeviceExplorerModel::pathFromIndex(const QModelIndex& index)
 }
 
 QModelIndex
-DeviceExplorerModel::pathToIndex(const DeviceExplorerModel::Path& path)
+DeviceExplorerModel::pathToIndex(const Path& path)
 {
     QModelIndex iter;
     const int pathSize = path.size();
@@ -1909,7 +1901,7 @@ DeviceExplorerModel::pathToIndex(const DeviceExplorerModel::Path& path)
     return iter;
 }
 
-DeviceExplorerModel::Path DeviceExplorerModel::pathFromNode(Node &node)
+Path DeviceExplorerModel::pathFromNode(Node &node)
 {
     Path path;
     Node* iter = &node;
@@ -1924,7 +1916,7 @@ DeviceExplorerModel::Path DeviceExplorerModel::pathFromNode(Node &node)
     return path;
 }
 
-Node* DeviceExplorerModel::pathToNode(const DeviceExplorerModel::Path &path)
+Node* DeviceExplorerModel::pathToNode(const Path &path)
 {
     Node *iter = rootNode();
     const int pathSize = path.size();
@@ -1938,7 +1930,7 @@ Node* DeviceExplorerModel::pathToNode(const DeviceExplorerModel::Path &path)
 }
 
 void
-DeviceExplorerModel::serializePath(QDataStream& d, const DeviceExplorerModel::Path& p)
+DeviceExplorerModel::serializePath(QDataStream& d, const Path& p)
 {
     const int size = p.size();
     d << (qint32) size;
@@ -1950,7 +1942,7 @@ DeviceExplorerModel::serializePath(QDataStream& d, const DeviceExplorerModel::Pa
 }
 
 void
-DeviceExplorerModel::deserializePath(QDataStream& d, DeviceExplorerModel::Path& p)
+DeviceExplorerModel::deserializePath(QDataStream& d, Path& p)
 {
     qint32 size;
     d >> size;
@@ -1966,7 +1958,7 @@ DeviceExplorerModel::deserializePath(QDataStream& d, DeviceExplorerModel::Path& 
 
 
 void
-DeviceExplorerModel::debug_printPath(const DeviceExplorerModel::Path& path)
+DeviceExplorerModel::debug_printPath(const Path& path)
 {
     const int pathSize = path.size();
 

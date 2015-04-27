@@ -6,14 +6,14 @@ using namespace DeviceExplorer::Command;
 const char* Remove::className() { return "Remove"; }
 QString Remove::description() { return "Remove Node"; }
 
-Remove::Remove(ObjectPath &&device_tree, QModelIndex index):
+Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                             className(),
                             description()},
     m_deviceTree{device_tree}
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node *node = explorer->nodeFromModelIndex(index);
+    Node *node = explorer->pathToNode(nodePath);
 
     if (! node->isDevice())
     {

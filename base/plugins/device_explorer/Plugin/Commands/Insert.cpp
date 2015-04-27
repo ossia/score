@@ -10,15 +10,14 @@ Insert::Insert()
 }
 
 void
-Insert::set(const QModelIndex& parentIndex, int row,
+Insert::set(const Path &parentPath, int row,
                                  const QByteArray& data,
                                  const QString& text,
-                                 DeviceExplorerModel* model)
+                                 ObjectPath&& modelPath)
 {
-    Q_ASSERT(model);
-    m_model = model;
+    m_model = modelPath;
     m_data = data;
-    m_parentPath = model->pathFromIndex(parentIndex);
+    m_parentPath = parentPath;
     m_row = row;
 
     setText(text);
@@ -28,24 +27,26 @@ Insert::set(const QModelIndex& parentIndex, int row,
 void
 Insert::undo()
 {
-    Q_ASSERT(m_model);
+    auto model = m_model.find<DeviceExplorerModel>();
+    Q_ASSERT(model);
 
-    QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
-    const bool result = m_model->removeRows(m_row, 1, parentIndex);
+    const bool result = model->removeRows(m_row, 1, parentIndex);
 
-    m_model->setCachedResult(result);
+    model->setCachedResult(result);
 
 }
 
 void
 Insert::redo()
 {
-    Q_ASSERT(m_model);
-    QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
+    auto model = m_model.find<DeviceExplorerModel>();
+    Q_ASSERT(model);
+    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
-    const bool result = m_model->insertTreeData(parentIndex, m_row, m_data);
-    m_model->setCachedResult(result);
+    const bool result = model->insertTreeData(parentIndex, m_row, m_data);
+    model->setCachedResult(result);
 }
 
 bool

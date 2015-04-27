@@ -458,8 +458,9 @@ DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNode()
 {
-    if(! model()->nodeFromModelIndex(m_ntView->selectedIndex())->isDevice())
-        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), m_ntView->selectedIndex()});
+    Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    if(! n->isDevice())
+        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), model()->pathFromNode(*n)});
 }
 
 void
@@ -479,7 +480,7 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
         const AddressSettings addressSettings = m_addressDialog->getSettings();
         Q_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::AddAddress{iscore::IDocument::path(model()), index, insert, addressSettings });
+        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::AddAddress{iscore::IDocument::path(model()), model()->pathFromIndex(index), insert, addressSettings });
 //        model()->addAddress(index, insert, addressSettings);
         //TODO: we should set the focus on this Node & expand it
         //m_ntView->setCurrentIndex(?)

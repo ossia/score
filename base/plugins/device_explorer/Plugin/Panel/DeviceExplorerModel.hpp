@@ -2,6 +2,7 @@
 
 #include <QAbstractItemModel>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include <DeviceExplorer/NodePath.hpp>
 
 #include <QStack>
 
@@ -111,6 +112,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int rowCount(const QModelIndex& parent) const override;
         int columnCount(const QModelIndex& parent) const override;
 
+        QVariant getData(Path node, int column, int role);
         QVariant data(const QModelIndex& index, int role) const override;
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
@@ -119,7 +121,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
-        void editData(const QModelIndex& index, const QVariant& value, int role);
+        void editData(const Path &path, int column, const QVariant& value, int role);
 
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
         bool undoMoveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstRow);
@@ -137,7 +139,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getIOTypeColumn() const;
         int getNameColumn() const;
 
-        typedef QList<int> Path;
+//        typedef QList<int> Path;
         Node* nodeFromModelIndex(const QModelIndex& index) const;
         Path pathFromNode(Node &node);
         Node *pathToNode(const Path& path);
@@ -147,8 +149,8 @@ class DeviceExplorerModel : public QAbstractItemModel
 
     protected:
 
-        static void serializePath(QDataStream& d, const DeviceExplorerModel::Path& p);
-        static void deserializePath(QDataStream& d, DeviceExplorerModel::Path& p);
+        static void serializePath(QDataStream& d, const Path& p);
+        static void deserializePath(QDataStream& d, Path& p);
 
         struct Result
         {

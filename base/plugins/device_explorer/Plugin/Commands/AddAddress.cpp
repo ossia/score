@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 const char* AddAddress::className() { return "AddAddress"; }
 QString AddAddress::description() { return "Add an address"; }
 
-AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
+AddAddress::AddAddress(ObjectPath &&device_tree, Path nodePath, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
                                 description()},
@@ -18,11 +18,11 @@ AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplor
     Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
-        parentNode = explorer->nodeFromModelIndex(index);
+        parentNode = explorer->pathToNode(nodePath);
     }
     else if (insert == DeviceExplorerModel::Insert::AsSibling)
     {
-        parentNode = explorer->nodeFromModelIndex(index)->parent();
+        parentNode = explorer->pathToNode(nodePath)->parent();
     }
     m_parentNodePath = explorer->pathFromNode(*parentNode);
 }

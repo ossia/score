@@ -5,6 +5,7 @@
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
+#include "DeviceExplorer/NodePath.hpp"
 
 namespace DeviceExplorer
 {
@@ -16,7 +17,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
                 AddAddress(ObjectPath&& device_tree,
-                                    QModelIndex index,
+                                    Path nodePath,
                                     DeviceExplorerModel::Insert insert,
                                     const AddressSettings& addressSettings);
 
@@ -30,7 +31,7 @@ namespace DeviceExplorer
 
             private:
                 ObjectPath m_deviceTree;
-                QList<int> m_parentNodePath;
+                Path m_parentNodePath;
                 AddressSettings m_addressSettings;
                 int m_createdNodeIndex;
 
