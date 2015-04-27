@@ -71,6 +71,11 @@ void CommandStack::push(SerializableCommand* cmd)
     emit localCommand(cmd);
     updateStack([&] ()
     {
+        // We lose the state we saved
+        if(currentIndex() < m_savedIndex)
+            setSavedIndex(-1);
+
+        // Push operation
         m_undoable.push(cmd);
 
         qDeleteAll(m_redoable);
@@ -88,9 +93,19 @@ void CommandStack::pushQuiet(SerializableCommand* cmd)
 {
     updateStack([&] ()
     {
+        // We lose the state we saved
+        if(currentIndex() < m_savedIndex)
+            setSavedIndex(-1);
+
+        // Push operation
         m_undoable.push(cmd);
 
         qDeleteAll(m_redoable);
         m_redoable.clear();
     });
+}
+
+void CommandStack::setSavedIndex(int index)
+{
+    m_savedIndex = index;
 }

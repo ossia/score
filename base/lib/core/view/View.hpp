@@ -26,6 +26,8 @@ namespace iscore
 
             void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
 
+            void closeDocument(iscore::DocumentView* doc);
+
         signals:
             /**
              * @brief insertActionIntoMenubar

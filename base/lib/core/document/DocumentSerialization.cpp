@@ -46,6 +46,8 @@ QJsonObject Document::saveAsJson()
 
     complete["Document"] = saveDocumentModelAsJson();
 
+    // Indicate in the stack that the current position is saved
+    m_commandStack.markCurrentIndexAsSaved();
     return complete;
 }
 
@@ -95,6 +97,8 @@ QByteArray Document::saveAsByteArray()
     auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
     writer << hash;
 
+    // Indicate in the stack that the current position is saved
+    m_commandStack.markCurrentIndexAsSaved();
     return global;
 }
 

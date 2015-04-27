@@ -37,9 +37,7 @@ View::View(QObject* parent) :
 
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
     {
-        auto docview = static_cast<DocumentView*>(m_tabWidget->widget(index));
-        m_tabWidget->removeTab(index);
-        emit closeRequested(docview->document());
+        emit closeRequested(static_cast<DocumentView*>(m_tabWidget->widget(index))->document());
     });
 }
 
@@ -79,5 +77,17 @@ void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
 
         if(m_rightWidgets.size() > 1)
             tabifyDockWidget(m_rightWidgets.first(), dial);
+    }
+}
+
+void View::closeDocument(DocumentView *doc)
+{
+    for(int i = 0; i < m_tabWidget->count(); i++)
+    {
+        if(doc == m_tabWidget->widget(i))
+        {
+            m_tabWidget->removeTab(i);
+            return;
+        }
     }
 }

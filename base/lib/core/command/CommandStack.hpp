@@ -46,9 +46,19 @@ namespace iscore
             }
 
             const iscore::SerializableCommand* command(int index) const;
-            int currentIndex()
+            int currentIndex() const
             {
                 return m_undoable.size();
+            }
+
+            void markCurrentIndexAsSaved()
+            {
+                setSavedIndex(currentIndex());
+            }
+
+            bool isAtSavedIndex() const
+            {
+                return currentIndex() == m_savedIndex;
             }
 
         signals:
@@ -122,6 +132,7 @@ namespace iscore
             }
 
         private:
+            void setSavedIndex(int index);
 
             // c is of type void(void)
             template<typename Callable>
@@ -154,5 +165,7 @@ namespace iscore
 
             QStack<SerializableCommand*> m_undoable;
             QStack<SerializableCommand*> m_redoable;
+
+            int m_savedIndex{};
     };
 }

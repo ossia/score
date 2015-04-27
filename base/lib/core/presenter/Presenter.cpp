@@ -88,8 +88,36 @@ void Presenter::setCurrentDocument(Document* doc)
     }
 }
 
+#include <QMessageBox>
 void Presenter::closeDocument(Document* doc)
 {
+    // Warn the user if he might loose data
+    if(!doc->commandStack().isAtSavedIndex())
+    {
+        QMessageBox msgBox;
+        msgBox.setText(tr("The document has been modified."));
+        msgBox.setInformativeText(tr("Do you want to save your changes?"));
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Save);
+        int ret = msgBox.exec();
+        switch (ret)
+        {
+        case QMessageBox::Save:
+            saveAsJson(doc);
+            break;
+        case QMessageBox::Discard:
+            // Do nothing
+            break;
+        case QMessageBox::Cancel:
+            return;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Close operation
+    m_view->closeDocument(doc->view());
     m_documents.removeOne(doc);
 
     if(m_documents.size() > 0)
@@ -110,6 +138,34 @@ void Presenter::closeDocument(Document* doc)
     }
 
     delete doc;
+}
+
+void Presenter::saveAsBinary(Document * doc)
+{
+    auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save (Binary)"));
+
+    if(!savename.isEmpty())
+    {
+        QFile f(savename);
+        f.open(QIODevice::WriteOnly);
+        f.write(doc->saveAsByteArray());
+    }
+}
+
+void Presenter::saveAsJson(Document * doc)
+{
+    auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save (JSON)"));
+
+    if(!savename.isEmpty())
+    {
+        QFile f(savename);
+        f.open(QIODevice::WriteOnly);
+
+        QJsonDocument json_doc;
+        json_doc.setObject(doc->saveAsJson());
+
+        f.write(json_doc.toJson());
+    }
 }
 
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
@@ -193,14 +249,7 @@ void Presenter::setupMenus()
                                         FileMenuElement::Save,
                                         [this]()
     {
-        auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save (Binary)"));
-
-        if(!savename.isEmpty())
-        {
-            QFile f(savename);
-            f.open(QIODevice::WriteOnly);
-            f.write(currentDocument()->saveAsByteArray());
-        }
+        saveAsBinary(currentDocument());
     });
 
 
@@ -229,18 +278,7 @@ void Presenter::setupMenus()
     connect(toJson, &QAction::triggered,
             [this]()
     {
-        auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save (JSON)"));
-
-        if(!savename.isEmpty())
-        {
-            QFile f(savename);
-            f.open(QIODevice::WriteOnly);
-
-            QJsonDocument doc;
-            doc.setObject(currentDocument()->saveAsJson());
-
-            f.write(doc.toJson());
-        }
+        saveAsJson(currentDocument());
     });
 
     m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
