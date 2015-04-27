@@ -75,7 +75,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
     return scen;
 }
 
-void ScenarioModel::setDurationAndScale(TimeValue newDuration)
+void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 {
     double scale =  newDuration / duration();
 
@@ -100,6 +100,12 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
 
         ConstraintModel::Algorithms::changeAllDurations(*constraint,
                                                         constraint->defaultDuration() * scale);
+
+        for(auto& process : constraint->processes())
+        {
+            process->setDurationAndScale(constraint->defaultDuration() * scale);
+        }
+
         emit constraintMoved(constraint->id());
     }
 
@@ -107,7 +113,7 @@ void ScenarioModel::setDurationAndScale(TimeValue newDuration)
 }
 
 #include "Algorithms/StandardDisplacementPolicy.hpp"
-void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
+void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     ///* Should work but does not ?
     /*StandardDisplacementPolicy::setEventPosition(*this,
@@ -123,7 +129,7 @@ void ScenarioModel::setDurationAndGrow(TimeValue newDuration)
     this->setDuration(newDuration);
 }
 
-void ScenarioModel::setDurationAndShrink(TimeValue newDuration)
+void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     ///* Should work but does not ?
     /* StandardDisplacementPolicy::setEventPosition(*this,

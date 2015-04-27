@@ -52,9 +52,9 @@ class ScenarioModel : public ProcessSharedModelInterface
                                                  const ProcessViewModelInterface* source,
                                                  QObject* parent) override;
 
-        void setDurationAndScale(TimeValue newDuration) override;
-        void setDurationAndGrow(TimeValue newDuration) override;
-        void setDurationAndShrink(TimeValue newDuration) override;
+        void setDurationAndScale(const TimeValue& newDuration) override;
+        void setDurationAndGrow(const TimeValue& newDuration) override;
+        void setDurationAndShrink(const TimeValue& newDuration) override;
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;

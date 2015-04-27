@@ -71,13 +71,13 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         //   setDurationWithScale(2); setDurationWithScale(3);
         // yields the same result as :
         //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationAndScale(TimeValue newDuration) = 0;
+        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
 
         // Does nothing if newDuration < currentDuration
-        virtual void setDurationAndGrow(TimeValue newDuration) = 0;
+        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
 
         // Does nothing if newDuration > currentDuration
-        virtual void setDurationAndShrink(TimeValue newDuration) = 0;
+        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
 
         void expandProcess(ExpandMode mode, const TimeValue& t)
         {

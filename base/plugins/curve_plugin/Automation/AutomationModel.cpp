@@ -28,7 +28,7 @@ QString AutomationModel::processName() const
     return "Automation";
 }
 
-void AutomationModel::setDurationAndScale(TimeValue newDuration)
+void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // Due to the way the plug-in is done, we have to think backwards :
     // The data is between 0 and 1, and the duration sets the time it takes
@@ -42,7 +42,7 @@ void AutomationModel::setDurationAndScale(TimeValue newDuration)
     // into account the seconds <-> pixel ratio, and the zoom.
 }
 
-void AutomationModel::setDurationAndGrow(TimeValue newDuration)
+void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     double scale = duration() / newDuration;
 
@@ -85,7 +85,7 @@ void AutomationModel::setDurationAndGrow(TimeValue newDuration)
     }
 }
 
-void AutomationModel::setDurationAndShrink(TimeValue newDuration)
+void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
 {
     double scale = duration() / newDuration;
     if(scale > 1)
