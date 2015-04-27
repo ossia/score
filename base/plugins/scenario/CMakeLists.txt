@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterface" PARENT_SCOPE)
 
 # Packages
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml Test)
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
