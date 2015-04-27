@@ -64,7 +64,7 @@ const char* Scenario::Command::ClearConstraint::className() { return "ClearConst
 const char* Scenario::Command::ClearEvent::className() { return "ClearEvent"; }
 
 // COPY
-const char* Scenario::Command::CopyBox::className() { return "CopyBox"; }
+const char* Scenario::Command::DuplicateBox::className() { return "DuplicateBox"; }
 const char* Scenario::Command::CopyDeck::className() { return "CopyDeck"; }
 const char* Scenario::Command::CopyProcessViewModel::className() { return "CopyProcessViewModel"; }
 
@@ -137,7 +137,7 @@ QString Scenario::Command::ClearConstraint::description() { return QObject::tr("
 QString Scenario::Command::ClearEvent::description() { return QObject::tr("ClearEvent"); }
 
 // COPY
-QString Scenario::Command::CopyBox::description() { return QObject::tr("Copy a box"); }
+QString Scenario::Command::DuplicateBox::description() { return QObject::tr("Copy a box"); }
 QString Scenario::Command::CopyDeck::description() { return QObject::tr("CopyDeck"); }
 QString Scenario::Command::CopyProcessViewModel::description() { return QObject::tr("CopyProcessViewModel"); }
 
@@ -236,7 +236,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == ClearEvent::className()) return new ClearEvent;
 
     // COPY
-    else if(name == CopyBox::className()) return new CopyBox;
+    else if(name == DuplicateBox::className()) return new DuplicateBox;
     else if(name == CopyDeck::className()) return new CopyDeck;
     else if(name == CopyProcessViewModel::className()) return new CopyProcessViewModel;
 

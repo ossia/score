@@ -14,13 +14,13 @@ namespace Scenario
          *
          * Copy a Box inside the same constraint
          */
-        class CopyBox : public iscore::SerializableCommand
+        class DuplicateBox : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CopyBox, "ScenarioControl")
-                CopyBox(ObjectPath&& boxToCopy);
+                ISCORE_COMMAND_DEFAULT_CTOR(DuplicateBox, "ScenarioControl")
+                DuplicateBox(ObjectPath&& boxToCopy);
 
                 virtual void undo() override;
                 virtual void redo() override;

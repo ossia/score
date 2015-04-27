@@ -6,7 +6,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyBox::CopyBox(ObjectPath&& boxToCopy) :
+DuplicateBox::DuplicateBox(ObjectPath&& boxToCopy) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
@@ -18,7 +18,7 @@ m_boxPath {boxToCopy}
     m_newBoxId = getStrongId(constraint->boxes());
 }
 
-void CopyBox::undo()
+void DuplicateBox::undo()
 {
     auto box = m_boxPath.find<BoxModel>();
     auto constraint = box->constraint();
@@ -26,24 +26,24 @@ void CopyBox::undo()
     constraint->removeBox(m_newBoxId);
 }
 
-void CopyBox::redo()
+void DuplicateBox::redo()
 {
     auto box = m_boxPath.find<BoxModel>();
     auto constraint = box->constraint();
     constraint->addBox(new BoxModel {box, m_newBoxId, constraint});
 }
 
-bool CopyBox::mergeWith(const Command* other)
+bool DuplicateBox::mergeWith(const Command* other)
 {
     return false;
 }
 
-void CopyBox::serializeImpl(QDataStream& s) const
+void DuplicateBox::serializeImpl(QDataStream& s) const
 {
     s << m_boxPath << m_newBoxId;
 }
 
-void CopyBox::deserializeImpl(QDataStream& s)
+void DuplicateBox::deserializeImpl(QDataStream& s)
 {
     s >> m_boxPath >> m_newBoxId;
 }
