@@ -46,7 +46,7 @@ ScenarioControl::ScenarioControl(QObject *parent) :
 
 }
 
-QJsonObject ScenarioControl::convertSelectedElementsToJson()
+QJsonObject ScenarioControl::copySelectedElementsToJson()
 {
     QJsonObject base;
 
@@ -73,6 +73,11 @@ QJsonObject ScenarioControl::convertSelectedElementsToJson()
         base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
     }
     return base;
+}
+
+QJsonObject ScenarioControl::cutSelectedElementsToJson()
+{
+
 }
 
 #include <Commands/Constraint/CopyBox.hpp>
@@ -153,7 +158,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     connect(copyConstraintContent, &QAction::triggered,
             [this]()
     {
-        QJsonDocument doc{convertSelectedElementsToJson()};
+        QJsonDocument doc{copySelectedElementsToJson()};
         auto clippy = QApplication::clipboard();
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
@@ -203,7 +208,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     connect(elementsToJson, &QAction::triggered,
             [this]()
     {
-        QJsonDocument doc{convertSelectedElementsToJson()};
+        QJsonDocument doc{copySelectedElementsToJson()};
         auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
 
         s->show();

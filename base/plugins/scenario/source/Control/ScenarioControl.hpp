@@ -28,7 +28,8 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     private:
         ScenarioModel* focusedScenario();
-        QJsonObject convertSelectedElementsToJson();
+        QJsonObject copySelectedElementsToJson();
+        QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);
 
         ProcessList* m_processList {};
