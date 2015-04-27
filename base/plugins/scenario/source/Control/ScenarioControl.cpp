@@ -181,6 +181,7 @@ enum ScenarioAction
     Create, Move, DeckMove, Select
 };
 
+
 QList<QToolBar *> ScenarioControl::makeToolbars()
 {
     // TODO make a method of this
@@ -256,6 +257,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     auto scale = new QAction(tr("Scale"), m_scenarioScaleModeActionGroup);
     scale->setCheckable(true);
     scale->setChecked(true);
+    scale->setData(QVariant::fromValue(ExpandMode::Scale));
     scale->setShortcutContext(Qt::ApplicationShortcut);
     scale->setShortcut(tr("Alt+Shift+S"));
     connect(scale, &QAction::triggered, [=]()
@@ -267,6 +269,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
 
     auto grow = new QAction(tr("Grow/Shrink"), m_scenarioScaleModeActionGroup);
     grow->setCheckable(true);
+    grow->setData(QVariant::fromValue(ExpandMode::Grow));
     grow->setShortcutContext(Qt::ApplicationShortcut);
     grow->setShortcut(tr("Alt+Shift+D"));
     connect(grow, &QAction::triggered, [=]()
@@ -312,6 +315,7 @@ void ScenarioControl::on_presenterChanged()
     {
         selecttool->setChecked(true);
         m_scenarioToolActionGroup->setEnabled(false);
+        m_scenarioScaleModeActionGroup->setEnabled(false);
         return;
     }
 
@@ -320,41 +324,62 @@ void ScenarioControl::on_presenterChanged()
     this->disconnect(m_toolbarConnection);
     m_toolbarConnection = connect(&model, &BaseElementModel::focusedViewModelChanged,
                                   this, [&]()
-                                  {
-                                      // Get the process viewmodel
-                                      auto scenario = dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel());
-                                      m_scenarioToolActionGroup->setEnabled(scenario);
-                                      if (scenario)
-                                      {
-                                          // Set the current state on the statemachine.
-                                          for (QAction *action : m_scenarioToolActionGroup->actions())
-                                          {
-                                              if (action->isChecked())
-                                              {
-                                                  switch (action->data().toInt())
-                                                  {
-                                                      case ScenarioAction::Create:
-                                                          scenario->presenter()->stateMachine().setCreateState();
-                                                          break;
-                                                      case ScenarioAction::DeckMove:
-                                                          scenario->presenter()->stateMachine().setDeckMoveState();
-                                                          break;
-                                                      case ScenarioAction::Move:
-                                                          scenario->presenter()->stateMachine().setMoveState();
-                                                          break;
-                                                      case ScenarioAction::Select:
-                                                          scenario->presenter()->stateMachine().setSelectState();
-                                                          break;
+    {
+        // Get the process viewmodel
+        auto scenario = dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel());
+        m_scenarioToolActionGroup->setEnabled(scenario);
+        m_scenarioScaleModeActionGroup->setEnabled(scenario);
+        if (scenario)
+        {
+            // Set the current state on the statemachine.
+            for (QAction *action : m_scenarioToolActionGroup->actions())
+            {
+                if (action->isChecked())
+                {
+                    switch (action->data().toInt())
+                    {
+                        case ScenarioAction::Create:
+                            scenario->presenter()->stateMachine().setCreateState();
+                            break;
+                        case ScenarioAction::DeckMove:
+                            scenario->presenter()->stateMachine().setDeckMoveState();
+                            break;
+                        case ScenarioAction::Move:
+                            scenario->presenter()->stateMachine().setMoveState();
+                            break;
+                        case ScenarioAction::Select:
+                            scenario->presenter()->stateMachine().setSelectState();
+                            break;
 
-                                                      default:
-                                                          Q_ASSERT(false);
-                                                          break;
-                                                  }
-                                              }
-                                          }
-                                      }
+                        default:
+                            Q_ASSERT(false);
+                            break;
+                    }
+                }
+            }
 
-                                  });
+            for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+            {
+                if (action->isChecked())
+                {
+                    switch (action->data().toInt())
+                    {
+                        case ExpandMode::Scale:
+                            scenario->presenter()->stateMachine().setScaleState();
+                            break;
+                        case ExpandMode::Grow:
+                            scenario->presenter()->stateMachine().setGrowState();
+                            break;
+
+                        default:
+                            Q_ASSERT(false);
+                            break;
+                    }
+                }
+            }
+        }
+
+    });
 }
 
 void ScenarioControl::on_documentChanged(Document *doc)
@@ -366,4 +391,5 @@ void ScenarioControl::on_documentChanged(Document *doc)
 
     selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(onScenario);
+    m_scenarioScaleModeActionGroup->setEnabled(onScenario);
 }

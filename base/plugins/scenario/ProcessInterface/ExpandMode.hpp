@@ -1,2 +1,5 @@
 #pragma once
-enum class ExpandMode { Scale, Grow };
+#include <QMetaType>
+
+enum ExpandMode { Scale, Grow };
+Q_DECLARE_METATYPE(ExpandMode)
