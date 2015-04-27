@@ -40,12 +40,7 @@ class Visitor<Reader<JSON>> : public AbstractVisitor
         template<typename T>
         void readFrom(const id_type<T>& obj)
         {
-            m_obj["IdentifierSet"] = bool (obj.val());
-
-            if(obj.val())
-            {
-                m_obj["IdentifierValue"] = *obj.val();
-            }
+            readFrom(obj.val());
         }
 
 
@@ -53,8 +48,7 @@ class Visitor<Reader<JSON>> : public AbstractVisitor
         void readFrom(const IdentifiedObject<T>& obj)
         {
             readFrom(static_cast<const NamedObject&>(obj));
-
-            m_obj["Identifier"] = toJsonObject(obj.id());
+            readFrom(obj.id().val());
         }
 
         QJsonObject m_obj;
@@ -84,26 +78,20 @@ class Visitor<Writer<JSON>> : public AbstractVisitor
         template<typename T>
         void writeTo(id_type<T>& obj)
         {
-            bool init = m_obj["IdentifierSet"].toBool();
-            int32_t val {};
-
-            if(init)
-            {
-                val = m_obj["IdentifierValue"].toInt();
-                obj.setVal(val);
-            }
-            else
-            {
-                obj.unset();
-            }
+            typename id_type<T>::value_type id_impl;
+            writeTo(id_impl);
+            obj.setVal(std::move(id_impl));
         }
 
         template<typename T>
         void writeTo(IdentifiedObject<T>& obj)
         {
-            obj.setId(fromJsonObject<id_type<T>> (m_obj["Identifier"].toObject()));
+            typename id_type<T>::value_type id_impl;
+            writeTo(id_impl);
+            id_type<T> id;
+            id.setVal(std::move(id_impl));
+            obj.setId(std::move(id));
         }
-
 
         QJsonObject m_obj;
 };

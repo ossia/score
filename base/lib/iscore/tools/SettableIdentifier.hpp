@@ -2,11 +2,11 @@
 #include <boost/optional.hpp>
 #include <QDebug>
 
-template<typename tag, typename value_type>
+template<typename tag, typename impl>
 class id
 {
     public:
-
+        using value_type = impl;
         explicit id() = default;
         explicit id(value_type val) : m_id {val} { }
 
