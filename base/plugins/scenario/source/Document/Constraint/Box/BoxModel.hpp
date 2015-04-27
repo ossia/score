@@ -23,7 +23,10 @@ class BoxModel : public IdentifiedObject<BoxModel>
         BoxModel(id_type<BoxModel> id, QObject* parent);
 
         // Copy
-        BoxModel(BoxModel* source, id_type<BoxModel> id, QObject* parent);
+        BoxModel(BoxModel* source,
+                 id_type<BoxModel> id,
+                 std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+                 QObject* parent);
 
         template<typename Impl>
         BoxModel(Deserializer<Impl>& vis, QObject* parent) :

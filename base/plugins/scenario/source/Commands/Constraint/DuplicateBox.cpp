@@ -1,7 +1,8 @@
-#include "CopyBox.hpp"
+#include "DuplicateBox.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -30,7 +31,10 @@ void DuplicateBox::redo()
 {
     auto box = m_boxPath.find<BoxModel>();
     auto constraint = box->constraint();
-    constraint->addBox(new BoxModel {box, m_newBoxId, constraint});
+    constraint->addBox(new BoxModel {box,
+                                     m_newBoxId,
+                                     &DeckModel::copyViewModelsInSameConstraint,
+                                     constraint});
 }
 
 bool DuplicateBox::mergeWith(const Command* other)

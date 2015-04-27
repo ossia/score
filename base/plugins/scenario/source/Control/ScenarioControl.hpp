@@ -3,6 +3,7 @@
 #include "ProcessInterface/ProcessList.hpp"
 
 class QActionGroup;
+class ScenarioModel;
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
@@ -26,6 +27,10 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged(iscore::Document* doc) override;
 
     private:
+        ScenarioModel* focusedScenario();
+        QJsonObject convertSelectedElementsToJson();
+        void writeJsonToSelectedElements(const QJsonObject &obj);
+
         ProcessList* m_processList {};
         QActionGroup* m_scenarioToolActionGroup{};
         QActionGroup* m_scenarioScaleModeActionGroup{};

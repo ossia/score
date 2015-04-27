@@ -20,10 +20,16 @@ class DeckModel : public IdentifiedObject<DeckModel>
                    NOTIFY heightChanged)
 
     public:
-        DeckModel(id_type<DeckModel> id, BoxModel* parent);
+        DeckModel(id_type<DeckModel> id,
+                  BoxModel* parent);
 
         // Copy
-        DeckModel(DeckModel* source, id_type<DeckModel> id, BoxModel* parent);
+        DeckModel(std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+                  DeckModel* source,
+                  id_type<DeckModel> id,
+                  BoxModel* parent);
+
+        static void copyViewModelsInSameConstraint(DeckModel&, DeckModel&);
 
         template<typename Impl>
         DeckModel(Deserializer<Impl>& vis, QObject* parent) :

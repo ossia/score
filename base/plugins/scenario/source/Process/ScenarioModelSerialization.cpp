@@ -100,9 +100,9 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 
     for(auto json_vref : m_obj["Constraints"].toArray())
     {
-        auto constraint = new ConstraintModel {Deserializer<JSONObject>{json_vref.toObject() },
-                          &scenario
-    };
+        auto constraint = new ConstraintModel{
+                Deserializer<JSONObject>{json_vref.toObject() },
+                &scenario};
         scenario.addConstraint(constraint);
     }
 

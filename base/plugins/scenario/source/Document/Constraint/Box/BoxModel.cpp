@@ -10,15 +10,20 @@ BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent) :
 
 }
 
-BoxModel::BoxModel(BoxModel* source, id_type<BoxModel> id, QObject* parent) :
+BoxModel::BoxModel(BoxModel *source,
+                   id_type<BoxModel> id,
+                   std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+                   QObject *parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
     for(auto& deck : source->m_decks)
     {
-        addDeck(new DeckModel {deck, deck->id(), this},
-        source->deckPosition(deck->id()));
+        addDeck(new DeckModel{pvmCopyMethod, deck, deck->id(), this},
+                source->deckPosition(deck->id()));
     }
 }
+
+
 
 ConstraintModel* BoxModel::constraint() const
 {

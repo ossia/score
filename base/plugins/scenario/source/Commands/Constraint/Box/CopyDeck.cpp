@@ -24,12 +24,14 @@ void CopyDeck::undo()
     targetBox->removeDeck(m_newDeckId);
 }
 
+
 void CopyDeck::redo()
 {
     auto sourceDeck = m_deckPath.find<DeckModel>();
     auto targetBox = m_targetBoxPath.find<BoxModel>();
 
-    targetBox->addDeck(new DeckModel {sourceDeck,
+    targetBox->addDeck(new DeckModel {&DeckModel::copyViewModelsInSameConstraint,
+                                      sourceDeck,
                                       m_newDeckId,
                                       targetBox});
 }

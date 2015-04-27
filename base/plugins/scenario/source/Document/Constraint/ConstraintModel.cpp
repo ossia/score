@@ -25,6 +25,8 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    /* TODO constraint copy
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
 
@@ -52,6 +54,7 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
     m_maxDuration = source->maxDuration();
     m_x = source->m_x;
     m_heightPercentage = source->heightPercentage();
+    */
 }
 
 

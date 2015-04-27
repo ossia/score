@@ -12,6 +12,7 @@
 #include "Constraint/Box/MoveDeck.hpp"
 #include "Constraint/Box/RemoveDeckFromBox.hpp"
 #include "Constraint/CopyBox.hpp"
+#include "Constraint/DuplicateBox.hpp"
 #include "Constraint/MergeBoxes.hpp"
 #include "Constraint/RemoveBoxFromConstraint.hpp"
 #include "Constraint/RemoveProcessFromConstraint.hpp"
@@ -65,6 +66,7 @@ const char* Scenario::Command::ClearEvent::className() { return "ClearEvent"; }
 
 // COPY
 const char* Scenario::Command::DuplicateBox::className() { return "DuplicateBox"; }
+const char* Scenario::Command::CopyConstraintContent::className() { return "CopyConstraintContent"; }
 const char* Scenario::Command::CopyDeck::className() { return "CopyDeck"; }
 const char* Scenario::Command::CopyProcessViewModel::className() { return "CopyProcessViewModel"; }
 
@@ -138,6 +140,7 @@ QString Scenario::Command::ClearEvent::description() { return QObject::tr("Clear
 
 // COPY
 QString Scenario::Command::DuplicateBox::description() { return QObject::tr("Copy a box"); }
+QString Scenario::Command::CopyConstraintContent::description() { return QObject::tr("Copy constraint content"); }
 QString Scenario::Command::CopyDeck::description() { return QObject::tr("CopyDeck"); }
 QString Scenario::Command::CopyProcessViewModel::description() { return QObject::tr("CopyProcessViewModel"); }
 
@@ -237,6 +240,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
 
     // COPY
     else if(name == DuplicateBox::className()) return new DuplicateBox;
+    else if(name == CopyConstraintContent::className()) return new CopyConstraintContent;
     else if(name == CopyDeck::className()) return new CopyDeck;
     else if(name == CopyProcessViewModel::className()) return new CopyProcessViewModel;
 

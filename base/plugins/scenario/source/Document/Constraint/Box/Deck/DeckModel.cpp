@@ -11,19 +11,28 @@ DeckModel::DeckModel(id_type<DeckModel> id, BoxModel* parent) :
 {
 }
 
-DeckModel::DeckModel(DeckModel* source, id_type<DeckModel> id, BoxModel* parent) :
+DeckModel::DeckModel(
+        std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+        DeckModel *source,
+        id_type<DeckModel> id,
+        BoxModel *parent):
     IdentifiedObject<DeckModel> {id, "DeckModel", parent},
-                 m_editedProcessViewModelId {source->editedProcessViewModel() }, // Keep the same id.
-m_height {source->height() }
+    m_editedProcessViewModelId {source->editedProcessViewModel() }, // Keep the same id.
+    m_height {source->height() }
 {
-    for(ProcessViewModelInterface* pvm : source->processViewModels())
+    pvmCopyMethod(*source, *this);
+}
+
+void DeckModel::copyViewModelsInSameConstraint(DeckModel &source, DeckModel &target)
+{
+    for(ProcessViewModelInterface* pvm : source.processViewModels())
     {
         // We can safely reuse the same id since it's in a different deck.
         auto proc = pvm->sharedProcessModel();
-        addProcessViewModel(
-            proc->makeViewModel(pvm->id(),
-        pvm,
-        this));
+        target.addProcessViewModel(
+                    proc->makeViewModel(pvm->id(),
+                                        pvm,
+                                        &target));
     }
 }
 

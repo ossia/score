@@ -18,7 +18,8 @@
 #include <QGridLayout>
 #include <QTextEdit>
 #include <QDialogButtonBox>
-
+#include <QApplication>
+#include <QClipboard>
 class TextDialog : public QDialog
 {
     public:
@@ -45,16 +46,59 @@ ScenarioControl::ScenarioControl(QObject *parent) :
 
 }
 
+QJsonObject ScenarioControl::convertSelectedElementsToJson()
+{
+    QJsonObject base;
+
+    if (auto sm = focusedScenario())
+    {
+        auto arrayToJson = [](auto &&selected)
+        {
+            QJsonArray array;
+            if (!selected.empty())
+            {
+                for (auto &element : selected)
+                {
+                    Visitor<Reader<JSONObject>> jr;
+                    jr.readFrom(*element);
+                    array.push_back(jr.m_obj);
+                }
+            }
+
+            return array;
+        };
+
+        base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
+        base["Events"] = arrayToJson(selectedElements(sm->events()));
+        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
+    }
+    return base;
+}
+
+#include <Commands/Constraint/CopyBox.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
+void ScenarioControl::writeJsonToSelectedElements(const QJsonObject& obj)
+{
+    if (auto sm = focusedScenario())
+    {
+        auto selectedConstraints = selectedElements(sm->constraints());
+        for(auto json_vref : obj["Constraints"].toArray())
+        {
+            for(auto& constraint : selectedConstraints)
+            {
+                auto cmd = new Scenario::Command::CopyConstraintContent{
+                        json_vref.toObject(),
+                        iscore::IDocument::path(constraint)};
+
+                CommandDispatcher<> dispatcher{this->currentDocument()->commandStack()};
+                dispatcher.submitCommand(cmd);
+            }
+        }
+    }
+}
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
-    auto focusedScenario = [this]()
-    {
-        auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        return dynamic_cast<ScenarioModel *>(model.focusedViewModel()->sharedProcessModel());
-    };
-
-    // File
-
+    ///// File /////
     // Export in old format
     auto toZeroTwo = new QAction("To i-score 0.2", this);
     connect(toZeroTwo, &QAction::triggered,
@@ -75,10 +119,11 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        toZeroTwo);
 
 
-    // Edit
+    ///// Edit /////
+    // Remove
     QAction *removeElements = new QAction{tr("Remove scenario elements"), this};
     connect(removeElements, &QAction::triggered,
-            [this, focusedScenario]()
+            [this]()
             {
                 if (auto sm = focusedScenario())
                 {
@@ -92,7 +137,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     QAction *clearElements = new QAction{tr("Clear scenario elements"), this};
     connect(clearElements, &QAction::triggered,
-            [this, focusedScenario]()
+            [this]()
             {
                 if (auto sm = focusedScenario())
                 {
@@ -103,7 +148,32 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        clearElements);
 
-    // View
+    // Copy-paste
+    QAction *copyConstraintContent = new QAction{tr("Copy constraint content"), this};
+    connect(copyConstraintContent, &QAction::triggered,
+            [this]()
+    {
+        QJsonDocument doc{convertSelectedElementsToJson()};
+        auto clippy = QApplication::clipboard();
+        clippy->setText(doc.toJson(QJsonDocument::Indented));
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       copyConstraintContent);
+
+
+    QAction *pasteConstraintContent = new QAction{tr("Paste constraint content"), this};
+    connect(pasteConstraintContent, &QAction::triggered,
+            [this]()
+    {
+        writeJsonToSelectedElements(
+                    QJsonDocument::fromJson(
+                        QApplication::clipboard()->text().toLatin1()).object());
+    });
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       pasteConstraintContent);
+
+    ///// View /////
     QAction *selectAll = new QAction{tr("Select all"), this};
     connect(selectAll, &QAction::triggered,
             [this]()
@@ -131,40 +201,13 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     QAction *elementsToJson = new QAction{tr("Convert selection to JSON"), this};
     connect(elementsToJson, &QAction::triggered,
-            [this, focusedScenario]()
-            {
-                if (auto sm = focusedScenario())
-                {
-                    auto arrayToJson = [](auto &&selected)
-                    {
-                        QJsonArray array;
-                        if (!selected.empty())
-                        {
-                            for (auto &element : selected)
-                            {
-                                Visitor<Reader<JSONObject>> jr;
-                                jr.readFrom(*element);
-                                array.push_back(jr.m_obj);
-                            }
-                        }
+            [this]()
+    {
+        QJsonDocument doc{convertSelectedElementsToJson()};
+        auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
 
-                        return array;
-                    };
-
-
-                    QJsonObject base;
-                    base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
-                    base["Events"] = arrayToJson(selectedElements(sm->events()));
-                    base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
-
-
-                    QJsonDocument doc;
-                    doc.setObject(base);
-                    auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
-
-                    s->show();
-                }
-            });
+        s->show();
+    });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
@@ -186,7 +229,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
 {
     // TODO make a method of this
 
-    auto focusedScenario = [this]() -> bool
+    auto focusedScenarioViewModel = [this]() -> bool
     {
         if (!currentDocument())
         {
@@ -214,7 +257,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     createtool->setShortcut(tr("Alt+c"));
     connect(createtool, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit { focusedScenarioStateMachine().setCreateState(); }
     });
 
@@ -225,7 +268,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     movetool->setShortcut(tr("Alt+v"));
     connect(movetool, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit { focusedScenarioStateMachine().setMoveState(); }
     });
 
@@ -236,7 +279,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     deckmovetool->setShortcut(tr("Alt+b"));
     connect(deckmovetool, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit { focusedScenarioStateMachine().setDeckMoveState(); }
     });
 
@@ -248,7 +291,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     selecttool->setShortcut(tr("Alt+n"));
     connect(selecttool, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit { focusedScenarioStateMachine().setSelectState(); }
     });
 
@@ -262,7 +305,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     scale->setShortcut(tr("Alt+Shift+S"));
     connect(scale, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit { focusedScenarioStateMachine().setScaleState(); }
     });
 
@@ -274,7 +317,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     grow->setShortcut(tr("Alt+Shift+D"));
     connect(grow, &QAction::triggered, [=]()
     {
-        if (focusedScenario())
+        if (focusedScenarioViewModel())
                 emit focusedScenarioStateMachine().setGrowState();
     });
 
@@ -392,4 +435,10 @@ void ScenarioControl::on_documentChanged(Document *doc)
     selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(onScenario);
     m_scenarioScaleModeActionGroup->setEnabled(onScenario);
+}
+
+ScenarioModel *ScenarioControl::focusedScenario()
+{
+    auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+    return dynamic_cast<ScenarioModel *>(model.focusedViewModel()->sharedProcessModel());
 }
