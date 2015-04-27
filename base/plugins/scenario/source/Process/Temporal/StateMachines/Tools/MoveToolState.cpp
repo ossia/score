@@ -70,40 +70,11 @@ void MoveToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
     [&] (const id_type<EventModel>& id)
-    {
-        using namespace std;
-        const auto& elts = m_sm.presenter().events();
-        auto elt = find_if(begin(elts),
-                           end(elts),
-                           [&] (EventPresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
-
-        m_localSM.postEvent(new ClickOnEvent_Event{id, m_sm.scenarioPoint});
-    },
+    { m_localSM.postEvent(new ClickOnEvent_Event{id, m_sm.scenarioPoint}); },
     [&] (const id_type<TimeNodeModel>& id)
-    {
-        using namespace std;
-        const auto& elts = m_sm.presenter().timeNodes();
-        auto elt = find_if(begin(elts),
-                           end(elts),
-                           [&] (TimeNodePresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
-
-        m_localSM.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint});
-    },
+    { m_localSM.postEvent(new ClickOnTimeNode_Event{id, m_sm.scenarioPoint}); },
     [&] (const id_type<ConstraintModel>& id)
-    {
-        using namespace std;
-        const auto& elts = m_sm.presenter().constraints();
-        auto elt = find_if(begin(elts),
-                           end(elts),
-                           [&] (TemporalConstraintPresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
-        m_localSM.postEvent(new ClickOnConstraint_Event{id, m_sm.scenarioPoint});
-    },
+    { m_localSM.postEvent(new ClickOnConstraint_Event{id, m_sm.scenarioPoint}); },
     [&] () { });
 }
 

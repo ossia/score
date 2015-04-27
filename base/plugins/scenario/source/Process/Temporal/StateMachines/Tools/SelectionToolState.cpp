@@ -144,16 +144,14 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 
 void SelectionToolState::on_scenarioPressed()
 {
+    using namespace std;
     mapTopItem(itemUnderMouse(m_sm.scenePoint),
     [&] (const id_type<EventModel>& id) // Event
     {
-        using namespace std;
         const auto& elts = m_sm.presenter().events();
-        auto elt = find_if(begin(elts),
-                           end(elts),
+        auto elt = find_if(begin(elts), end(elts),
                            [&] (EventPresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
+        Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
@@ -161,13 +159,10 @@ void SelectionToolState::on_scenarioPressed()
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
-        using namespace std;
         const auto& elts = m_sm.presenter().timeNodes();
-        auto elt = find_if(begin(elts),
-                           end(elts),
+        auto elt = find_if(begin(elts), end(elts),
                            [&] (TimeNodePresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
+        Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
@@ -175,13 +170,10 @@ void SelectionToolState::on_scenarioPressed()
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
-        using namespace std;
         const auto& elts = m_sm.presenter().constraints();
-        auto elt = find_if(begin(elts),
-                           end(elts),
+        auto elt = find_if(begin(elts), end(elts),
                            [&] (TemporalConstraintPresenter* e) { return e->id() == id;});
-        if(elt == end(elts))
-            return;
+        Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
                                                    m_sm.model().selectedChildren(),
