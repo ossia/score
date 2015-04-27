@@ -27,6 +27,8 @@ AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automation
 
     auto widg = new QWidget;
     auto vlay = new QVBoxLayout{widg};
+    vlay->setSpacing(0);
+    vlay->setContentsMargins(0,0,0,0);
     auto hlay = new QHBoxLayout{};
 
     vec.push_back(widg);

@@ -30,7 +30,6 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 
     private:
-        QLabel* m_valueLabel {};
         ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
 

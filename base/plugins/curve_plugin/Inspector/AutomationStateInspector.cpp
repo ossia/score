@@ -22,6 +22,5 @@ AutomationStateInspector::AutomationStateInspector(AutomationState* object, QWid
 
 void AutomationStateInspector::on_stateChanged()
 {
-    QString text = m_state->point() == 0. ? tr("Start state: ") : tr("End state: ");
-    m_label->setText(text + m_state->message().toString());
+    m_label->setText(m_state->message().toString());
 }

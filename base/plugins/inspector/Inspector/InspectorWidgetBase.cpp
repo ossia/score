@@ -10,33 +10,35 @@
 InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
     QWidget(parent),
     _inspectedObject {inspectedObj},
-    m_commandDispatcher{inspectedObj
+    m_commandDispatcher(inspectedObj
                           ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack()}
-                          : nullptr},
-    m_selectionDispatcher{inspectedObj
+                          : nullptr),
+    m_selectionDispatcher(inspectedObj
                            ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack()}
-                           : nullptr}
+                           : nullptr)
 
 {
     _layout = new QVBoxLayout;
     _layout->setContentsMargins(0,1,0,0);
     setLayout(_layout);
+    _layout->setMargin(0);
+    _layout->setSpacing(0);
 
 
     // scroll Area
-    _scrollAreaLayout = new QVBoxLayout;
+    m_scrollAreaLayout = new QVBoxLayout;
+    m_scrollAreaLayout->setMargin(0);
+    m_scrollAreaLayout->setSpacing(0);
     QScrollArea* scrollArea = new QScrollArea;
     QWidget* scrollAreaContentWidget = new QWidget;
     scrollArea->setWidgetResizable(true);
 
-    scrollAreaContentWidget->setLayout(_scrollAreaLayout);
+    scrollAreaContentWidget->setLayout(m_scrollAreaLayout);
     scrollArea->setWidget(scrollAreaContentWidget);
 
     _sections.push_back(scrollArea);
 
     updateSectionsView(_layout, _sections);
-
-    _scrollAreaLayout->addStretch();
 }
 
 InspectorWidgetBase::~InspectorWidgetBase()
@@ -59,6 +61,23 @@ void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
     {
         layout->addWidget(section);
     }
+}
+
+void InspectorWidgetBase::updateAreaLayout(QVector<QWidget*>& contents)
+{
+    while(! m_scrollAreaLayout->isEmpty())
+    {
+        auto item = m_scrollAreaLayout->takeAt(0);
+
+        delete item->widget();
+        delete item;
+    }
+
+    for(auto& section : contents)
+    {
+        m_scrollAreaLayout->addWidget(section);
+    }
+    m_scrollAreaLayout->addStretch(1);
 }
 
 void InspectorWidgetBase::addHeader(QWidget* header)

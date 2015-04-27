@@ -17,6 +17,7 @@
 #include <QLayout>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QFormLayout>
 #include <QCompleter>
 
 #include <Process/ScenarioModel.hpp>
@@ -36,26 +37,35 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     setParent(parent);
 
     connect(m_model, &EventModel::messagesChanged,
-            this, &EventInspectorWidget::updateInspector);
+            this,    &EventInspectorWidget::updateInspector);
+    connect (object, &EventModel::dateChanged,
+             this,   &EventInspectorWidget::modelDateChanged);
+
+    ////// HEADER
+    // metadata
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
+    m_metadata->setType(EventModel::prettyName());
+
+    m_metadata->setupConnections(m_model);
+
+    addHeader(m_metadata);
+
+
+
+    ////// BODY
+    /// Information
+    auto infoWidg = new QWidget;
+    auto infoLay = new QFormLayout;
+    infoWidg->setLayout(infoLay);
 
     // date
-    auto dateWid = new QWidget{this};
-    auto dateLay = new QHBoxLayout{dateWid};
-    auto dateTitle = new QLabel{tr("default date : ")};
-    m_date = new QLabel{QString::number(object->date().msec()) };
-    dateLay->addWidget(dateTitle);
-    dateLay->addWidget(m_date);
-
-    m_properties.push_back(dateWid);
+    m_date = new QLabel{QString::number(object->date().msec())} ;
+    infoLay->addRow(tr("Default date"), m_date);
 
     // timeNode
-
-    QWidget* tnWid = new QWidget {this};
-    QHBoxLayout* tnLay = new QHBoxLayout {tnWid};
-    QPushButton* tnBtn = new QPushButton {tr("None"), tnWid};
+    QPushButton* tnBtn = new QPushButton {tr("None")};
+    tnBtn->setStyleSheet ("text-align: left");
     tnBtn->setFlat(true);
-    tnLay->addWidget(new QLabel{tr("TimeNode :"), tnWid});
-    tnLay->addWidget(tnBtn);
 
     auto timeNode = m_model->timeNode();
     if(timeNode)
@@ -66,10 +76,14 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
             connect(tnBtn,  &QPushButton::clicked,
                     [=] () { selectionDispatcher()->setAndCommit(Selection{scenar->timeNode(timeNode)}); });
     }
+    infoLay->addRow(tr("TimeNode"), tnBtn);
 
-    m_properties.push_back(tnWid);
+    m_properties.push_back(infoWidg);
 
-    // Condition
+    // Separator
+    m_properties.push_back(new Separator {this});
+
+    /// Condition
     m_conditionWidget = new QLineEdit{this};
     connect(m_conditionWidget, SIGNAL(editingFinished()),
             this,			 SLOT(on_conditionChanged()));
@@ -77,6 +91,9 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
     m_properties.push_back(new QLabel{tr("Condition")});
     m_properties.push_back(m_conditionWidget);
+
+    // Separator
+    m_properties.push_back(new Separator {this});
 
     // State
     m_addressesWidget = new QWidget{this};
@@ -107,12 +124,17 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     m_properties.push_back(m_addressesWidget);
     m_properties.push_back(addAddressWidget);
 
+    // Separator
+    m_properties.push_back(new Separator {this});
+
     // Constraint list
     m_prevConstraints = new InspectorSectionWidget{tr("Previous Constraints") };
-    m_nextConstraints = new InspectorSectionWidget{tr("Next Constraints") };
     m_properties.push_back(m_prevConstraints);
+    m_nextConstraints = new InspectorSectionWidget{tr("Next Constraints") };
     m_properties.push_back(m_nextConstraints);
 
+    // Separator
+    m_properties.push_back(new Separator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     iscore::Document* doc = iscore::IDocument::documentFromObject(object);
@@ -130,23 +152,11 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
         }
     }
 
-    // Display data
-    updateSectionsView(areaLayout(), m_properties);
-    areaLayout()->addStretch();
-
-    // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
-    m_metadata->setType(EventModel::prettyName());
-
-    m_metadata->setupConnections(m_model);
-
-    addHeader(m_metadata);
-
-    // display data
     updateDisplayedValues(object);
 
-    connect (object,   &EventModel::dateChanged,
-             this,      &EventInspectorWidget::modelDateChanged);
+
+    // Display data
+    updateAreaLayout(m_properties);
 }
 
 #include <State/Widgets/StateWidget.hpp>

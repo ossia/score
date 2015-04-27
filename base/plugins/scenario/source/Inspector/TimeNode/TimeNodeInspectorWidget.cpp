@@ -44,8 +44,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
     m_properties.push_back(dateWid);
     m_properties.push_back(m_eventList);
 
-    updateSectionsView(areaLayout(), m_properties);
-    areaLayout()->addStretch();
+    updateAreaLayout(m_properties);
 
     // display data
     updateDisplayedValues(object);

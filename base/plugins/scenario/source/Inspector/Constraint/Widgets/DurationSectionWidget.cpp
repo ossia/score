@@ -14,9 +14,8 @@
 #include <QSpinBox>
 #include <QToolButton>
 #include <QLabel>
-#include <QGridLayout>
+#include <QFormLayout>
 #include <QTimeEdit>
-
 using namespace iscore;
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) :
     InspectorSectionWidget {"Durations", parent},
@@ -26,11 +25,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
                             IDocument::documentFromObject(m_model)->commandStack()}}
 {
     QWidget* widg{new QWidget{this}};
-    QGridLayout* lay = new QGridLayout{widg};
+    QFormLayout* lay = new QFormLayout{widg};
     lay->setContentsMargins(0, 0, 0 , 0);
+    lay->setVerticalSpacing(0);
     widg->setLayout(lay);
 
-    m_valueLabel = new QLabel{"Default: "};
     m_minSpin = new QTimeEdit{};
     m_maxSpin = new QTimeEdit{};
     m_valueSpin = new QTimeEdit{};
@@ -97,17 +96,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
     m_valueSpin->setTime(m_default.toQTime());
 
-    lay->addWidget(rigid_checkbox, 0, 0);
-    lay->addWidget(timeValidation, 0, 1);
-    lay->addWidget(new QLabel{tr("Min duration") }, 1, 0);
-    lay->addWidget(m_minSpin, 1, 1);
-    lay->addWidget(new QLabel{tr("Max duration") }, 2, 0);
-    lay->addWidget(m_maxSpin, 2, 1);
-    lay->addWidget(m_infinite, 2, 2);
-
-    lay->addWidget(m_valueLabel, 3, 0);
-    lay->addWidget(m_valueSpin, 3, 1);
-
+    lay->addRow(rigid_checkbox, m_infinite);
+    lay->addRow(tr("Min duration"), m_minSpin);
+    lay->addRow(tr("Max duration"), m_maxSpin);
+    lay->addRow(tr("Default"), m_valueSpin);
+    lay->addRow(timeValidation);
 
     connect(timeValidation, &QToolButton::clicked,
             this,           &DurationSectionWidget::on_durationsChanged);

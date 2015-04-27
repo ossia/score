@@ -13,8 +13,6 @@ InspectorPanelView::InspectorPanelView(iscore::View* parent) :
     this->setObjectName(tr("Inspector"));
     auto lay = new QVBoxLayout{m_widget};
     m_widget->setLayout(lay);
-    m_widget->setMinimumWidth(350);
-    m_widget->setMaximumWidth(350);
 }
 
 QWidget* InspectorPanelView::getWidget()

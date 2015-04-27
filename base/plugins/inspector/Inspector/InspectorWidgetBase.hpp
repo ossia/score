@@ -4,7 +4,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
-class QVBoxLayout;
+#include <QVBoxLayout>
 class QLineEdit;
 class QLabel;
 class QTextEdit;
@@ -38,6 +38,7 @@ class InspectorWidgetBase : public QWidget
 
     public slots:
         void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
+        void updateAreaLayout(QVector<QWidget*>& contents);
 
         void addHeader(QWidget* header);
 
@@ -48,7 +49,7 @@ class InspectorWidgetBase : public QWidget
         // getters
         QVBoxLayout* areaLayout()
         {
-            return _scrollAreaLayout;
+            return m_scrollAreaLayout;
         }
 
         CommandDispatcher<>* commandDispatcher() const
@@ -61,7 +62,7 @@ class InspectorWidgetBase : public QWidget
         QObject* _inspectedObject {};
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
-        QVBoxLayout* _scrollAreaLayout {};
+        QVBoxLayout* m_scrollAreaLayout {};
 
         QVector<QWidget*> _sections {};
         QColor _currentColor {Qt::gray};
@@ -73,4 +74,20 @@ class InspectorWidgetBase : public QWidget
         };
 
         QVBoxLayout* _layout {};
+};
+
+#include <QFrame>
+class Separator : public QWidget
+{
+    public:
+        Separator(QWidget* parent) :
+            QWidget {parent}
+        {
+            this->setLayout(new QVBoxLayout);
+            QFrame* f = new QFrame;
+            this->layout()->addWidget(f);
+
+            f->setFrameShape(QFrame::HLine);
+            f->setLineWidth(2);
+        }
 };

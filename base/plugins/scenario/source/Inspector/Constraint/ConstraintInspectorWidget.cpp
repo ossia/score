@@ -36,16 +36,7 @@ using namespace iscore;
 using namespace iscore::IDocument;
 
 
-class Separator : public QFrame
-{
-    public:
-        Separator(QWidget* parent) :
-            QFrame {parent}
-        {
-            setFrameShape(QFrame::HLine);
-            setLineWidth(2);
-        }
-};
+
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent) :
     InspectorWidgetBase(object, parent)
@@ -54,6 +45,17 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     setInspectedObject(object);
     m_currentConstraint = object;
 
+    ////// HEADER
+    // metadata
+    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
+    m_metadata->setType(ConstraintModel::prettyName());
+
+    m_metadata->setupConnections(object);
+
+    addHeader(m_metadata);
+
+
+    ////// BODY
     QPushButton* setAsDisplayedConstraint = new QPushButton {"Full view", this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
@@ -117,22 +119,10 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
         }
     }
 
-
-
-    // Display data
-    updateSectionsView(areaLayout(), m_properties);
-    areaLayout()->addStretch(1);
-
-    // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
-    m_metadata->setType(ConstraintModel::prettyName());
-
-    m_metadata->setupConnections(object);
-
-    addHeader(m_metadata);
-
     updateDisplayedValues(object);
 
+    // Display data
+    updateAreaLayout(m_properties);
 }
 
 ConstraintModel* ConstraintInspectorWidget::model() const
@@ -276,17 +266,22 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
     newProc->addContent(widg);
 
     // Start & end state
+    QWidget* stateWidget = new QWidget;
+    QFormLayout* stateLayout = new QFormLayout;
+    stateWidget->setLayout(stateLayout);
     if(auto start = process->startState())
     {
         auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, newProc);
-        newProc->addContent(startWidg);
+        stateLayout->addRow(tr("Start state"), startWidg);
     }
 
     if(auto end = process->endState())
     {
         auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, newProc);
-        newProc->addContent(endWidg);
+        stateLayout->addRow(tr("End state"), endWidg);
     }
+    newProc->addContent(stateWidget);
+
 
     m_processesSectionWidgets.push_back(newProc);
     m_processSection->addContent(newProc);
@@ -311,8 +306,12 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
     QFormLayout* eventLay = new QFormLayout {eventWid};
-    QPushButton* start = new QPushButton{tr("None"), eventWid};
-    QPushButton* end = new QPushButton {tr("None"), eventWid};
+    eventLay->setVerticalSpacing(0);
+
+    QPushButton* start = new QPushButton{tr("None")};
+    start->setStyleSheet ("text-align: left");
+    QPushButton* end = new QPushButton {tr("None")};
+    end->setStyleSheet ("text-align: left");
     start->setFlat(true);
     end->setFlat(true);
 
@@ -321,6 +320,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     if(sev)
     {
         start->setText(QString::number(*sev.val()));
+
         connect(start, &QPushButton::clicked,
                 [=]() {
             selectionDispatcher()->setAndCommit(Selection{scenar->event(sev)});
@@ -337,8 +337,8 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
         });
     }
 
-    eventLay->addRow("Start Event", start);
-    eventLay->addRow("End Event", end);
+    eventLay->addRow(tr("Start Event"), start);
+    eventLay->addRow(tr("End Event"), end);
 
     return eventWid;
 }

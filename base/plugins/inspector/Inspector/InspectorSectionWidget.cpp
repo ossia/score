@@ -11,14 +11,18 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     // HEADER : arrow button and name
     QWidget* title = new QWidget;
     QHBoxLayout* titleLayout = new QHBoxLayout;
+    titleLayout->setContentsMargins(0,0,0,0);
 
     _btn = new QToolButton;
+    _btn->setAutoRaise(true);
 
     _buttonTitle = new QPushButton;
     _buttonTitle->setFlat(true);
     _buttonTitle->setText("section name");
     _buttonTitle->setStyleSheet("text-align: left;");
-    _buttonTitle->setLayout(new QVBoxLayout);
+    auto buttontitle_lay = new QVBoxLayout;
+    buttontitle_lay->setSpacing(0);
+    _buttonTitle->setLayout(buttontitle_lay);
 //	_buttonTitle->layout()->addWidget (_sectionTitle);
 //    _buttonTitle->layout()->setMargin(0);
 //	_sectionTitle->hide();
@@ -26,21 +30,24 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     titleLayout->addWidget(_btn);
     titleLayout->addWidget(_buttonTitle);
     title->setLayout(titleLayout);
+    titleLayout->setSpacing(0);
 
     // CONTENT
     _container = new QWidget;
-    _container->setContentsMargins(0,1,0,0);
+    _container->setContentsMargins(0,0,0,0);
     _containerLayout = new QVBoxLayout;
-    _containerLayout->setContentsMargins(5,1,0,0);
+    _containerLayout->setContentsMargins(5,0,0,0);
     _containerLayout->addStretch();
+    _containerLayout->setSpacing(0);
     _container->setLayout(_containerLayout);
 
     // GENERAL
     QVBoxLayout* globalLayout = new QVBoxLayout;
     globalLayout->addWidget(title);
     globalLayout->addWidget(_container);
-    globalLayout->setContentsMargins(0,1,0,0);
-    this->setContentsMargins(0,1,0,0);
+    globalLayout->setContentsMargins(0,0,0,0);
+    globalLayout->setSpacing(0);
+    this->setContentsMargins(0,0,0,0);
 
     connect(_btn, SIGNAL(released()), this, SLOT(expand()));
     connect(_buttonTitle, SIGNAL(clicked()), this, SLOT(expand()));
