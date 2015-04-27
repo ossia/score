@@ -30,9 +30,9 @@ void GroupMetadata::serialize(const VisitorVariant& vis) const
         static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
+        static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
 

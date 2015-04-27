@@ -20,13 +20,13 @@ void Visitor<Writer<DataStream>>::writeTo(MIDISpecificSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const MIDISpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const MIDISpecificSettings& n)
 {
     m_obj["IO"] = static_cast<int>(n.io);
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(MIDISpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(MIDISpecificSettings& n)
 {
     n.io = static_cast<MIDISpecificSettings::IO>(m_obj["IO"].toInt());
 }

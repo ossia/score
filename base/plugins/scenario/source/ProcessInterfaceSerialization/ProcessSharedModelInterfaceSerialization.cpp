@@ -44,7 +44,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
+void Visitor<Reader<JSONObject>>::readFrom(const ProcessSharedModelInterface& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = process.processName();
@@ -59,7 +59,7 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessSharedModelInterface& process)
 }
 
 template<>
-ProcessSharedModelInterface* createProcess(Deserializer<JSON>& deserializer,
+ProcessSharedModelInterface* createProcess(Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
     auto model = ProcessList::getFactory(

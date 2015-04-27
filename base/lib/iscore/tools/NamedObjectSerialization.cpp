@@ -18,13 +18,13 @@ void Visitor<Writer<DataStream>>::writeTo(NamedObject& namedObject)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const NamedObject& namedObject)
+void Visitor<Reader<JSONObject>>::readFrom(const NamedObject& namedObject)
 {
     m_obj["ObjectName"] = namedObject.objectName();
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(NamedObject& namedObject)
+void Visitor<Writer<JSONObject>>::writeTo(NamedObject& namedObject)
 {
     namedObject.setObjectName(m_obj["ObjectName"].toString());
 

@@ -8,9 +8,9 @@ void Visitor<Reader<DataStream>>::readFrom(const GroupMetadata& elt)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const GroupMetadata& elt)
+void Visitor<Reader<JSONObject>>::readFrom(const GroupMetadata& elt)
 {
-    m_obj["Id"] = toJsonObject(elt.group());
+    m_obj["Group"] = toJsonValue(elt.group());
 }
 
 
@@ -25,7 +25,7 @@ void Visitor<Writer<DataStream>>::writeTo(GroupMetadata& elt)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(GroupMetadata& elt)
+void Visitor<Writer<JSONObject>>::writeTo(GroupMetadata& elt)
 {
-    elt.setGroup(fromJsonObject<id_type<Group>>(m_obj["Id"].toObject()));
+    elt.setGroup(fromJsonValue<id_type<Group>>(m_obj["Group"]));
 }

@@ -30,9 +30,9 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
                     static_cast<DataStream::Serializer&>(visitor.visitor).readFrom(data.value<T>());
                     break;
                 }
-                case JSON::type():
+                case JSONObject::type():
                 {
-                    static_cast<JSON::Serializer&>(visitor.visitor).readFrom(data.value<T>());
+                    static_cast<JSONObject::Serializer&>(visitor.visitor).readFrom(data.value<T>());
                     break;
                 }
                 default:
@@ -56,9 +56,9 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
                     static_cast<DataStream::Deserializer&>(visitor.visitor).writeTo(settings);
                     break;
                 }
-                case JSON::type():
+                case JSONObject::type():
                 {
-                    static_cast<JSON::Deserializer&>(visitor.visitor).writeTo(settings);
+                    static_cast<JSONObject::Deserializer&>(visitor.visitor).writeTo(settings);
                     break;
                 }
                 default:

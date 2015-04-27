@@ -32,12 +32,12 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TimeNodeModel& timenode)
+void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<TimeNodeModel>&>(timenode));
     m_obj["Metadata"] = toJsonObject(timenode.metadata);
 
-    m_obj["Date"] = toJsonObject(timenode.date());
+    m_obj["Date"] = toJsonValue(timenode.date());
     m_obj["Y"] = timenode.y();
     m_obj["Events"] = toJsonArray(timenode.m_events);
 
@@ -45,15 +45,15 @@ void Visitor<Reader<JSON>>::readFrom(const TimeNodeModel& timenode)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(TimeNodeModel& timenode)
+void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
 {
     timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    timenode.m_date = fromJsonObject<TimeValue> (m_obj["Date"].toObject());
+    timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
     timenode.m_y = m_obj["Y"].toDouble();
 
-    fromJsonArray(m_obj["Events"].toArray(), timenode.m_events);
+    fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
 
-    Deserializer<JSON> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
     timenode.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
 }

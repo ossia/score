@@ -36,7 +36,7 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioViewModel& pvm)
+void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& pvm)
 {
     QJsonArray arr;
 
@@ -49,13 +49,13 @@ void Visitor<Reader<JSON>>::readFrom(const TemporalScenarioViewModel& pvm)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(TemporalScenarioViewModel& pvm)
+void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& pvm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 
     for(const auto& json_vref : arr)
     {
-        Deserializer<JSON> deserializer {json_vref.toObject() };
+        Deserializer<JSONObject> deserializer {json_vref.toObject() };
         auto cstrvm = createConstraintViewModel(deserializer,
                                                 &pvm);
         pvm.addConstraintViewModel(cstrvm);
@@ -71,9 +71,9 @@ void TemporalScenarioViewModel::serialize(const VisitorVariant& vis) const
         static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
+        static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
         return;
     }
 

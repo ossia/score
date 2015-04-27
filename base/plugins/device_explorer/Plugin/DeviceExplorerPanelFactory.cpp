@@ -49,9 +49,9 @@ void DeviceExplorerPanelModel::serialize(const VisitorVariant &vis) const
         if(m_model->rootNode())
             ser.readFrom(*m_model->rootNode());
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        auto& ser = static_cast<JSON::Serializer&>(vis.visitor);
+        auto& ser = static_cast<JSONObject::Serializer&>(vis.visitor);
         if(m_model->rootNode())
             ser.readFrom(*m_model->rootNode());
     }

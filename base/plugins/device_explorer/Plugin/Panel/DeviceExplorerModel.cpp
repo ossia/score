@@ -158,9 +158,9 @@ DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* par
         if(b)
             des.writeTo(*m_rootNode);
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        auto& des = static_cast<JSON::Deserializer&>(vis.visitor);
+        auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
         des.writeTo(*m_rootNode);
     }
 

@@ -90,10 +90,10 @@ NetworkDocumentPlugin::makeElementPlugin(
                             static_cast<DataStream::Deserializer&>(vis.visitor),
                             parent};
                 break;
-            case JSON::type():
+            case JSONObject::type():
                 plug = new GroupMetadata{
                             element,
-                            static_cast<JSON::Deserializer&>(vis.visitor),
+                            static_cast<JSONObject::Deserializer&>(vis.visitor),
                             parent};
                 break;
         }

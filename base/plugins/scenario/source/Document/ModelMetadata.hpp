@@ -14,9 +14,9 @@
 class ModelMetadata : public QObject
 {
         friend void Visitor<Reader<DataStream>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
-        friend void Visitor<Reader<JSON>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<ModelMetadata> (ModelMetadata& ev);
-        friend void Visitor<Writer<JSON>>::writeTo<ModelMetadata> (ModelMetadata& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<ModelMetadata> (ModelMetadata& ev);
 
         Q_OBJECT
         Q_PROPERTY(QString name

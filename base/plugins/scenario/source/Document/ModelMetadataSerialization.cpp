@@ -23,7 +23,7 @@ void Visitor<Writer<DataStream>>::writeTo(ModelMetadata& md)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ModelMetadata& md)
+void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
 {
     m_obj["ScriptingName"] = md.m_scriptingName;
     m_obj["Comment"] = md.m_comment;
@@ -38,7 +38,7 @@ void Visitor<Reader<JSON>>::readFrom(const ModelMetadata& md)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(ModelMetadata& md)
+void Visitor<Writer<JSONObject>>::writeTo(ModelMetadata& md)
 {
     md.m_scriptingName = m_obj["ScriptingName"].toString();
     md.m_comment = m_obj["Comment"].toString();

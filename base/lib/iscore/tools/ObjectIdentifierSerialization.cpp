@@ -17,14 +17,14 @@ void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ObjectIdentifier& obj)
+void Visitor<Reader<JSONObject>>::readFrom(const ObjectIdentifier& obj)
 {
     m_obj["ObjectName"] = obj.m_objectName;
     m_obj["ObjectId"] = toJsonObject(obj.m_id);
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(ObjectIdentifier& obj)
+void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
 {
     obj.m_objectName = m_obj["ObjectName"].toString();
     fromJsonObject(m_obj["ObjectId"].toObject(), obj.m_id);

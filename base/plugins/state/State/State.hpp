@@ -7,11 +7,11 @@ class State
 {       friend
         void Visitor<Reader<DataStream>>::readFrom<State>(const State& mess);
         friend
-        void Visitor<Reader<JSON>>::readFrom<State>(const State& mess);
+        void Visitor<Reader<JSONObject>>::readFrom<State>(const State& mess);
         friend
         void Visitor<Writer<DataStream>>::writeTo<State>(State& mess);
         friend
-        void Visitor<Writer<JSON>>::writeTo<State>(State& mess);
+        void Visitor<Writer<JSONObject>>::writeTo<State>(State& mess);
 
     public:
         State() = default;

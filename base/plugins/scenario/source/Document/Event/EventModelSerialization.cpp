@@ -61,7 +61,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 
 
 
-template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
     m_obj["Metadata"] = toJsonObject(ev.metadata);
@@ -69,30 +69,26 @@ template<> void Visitor<Reader<JSON>>::readFrom(const EventModel& ev)
     m_obj["PreviousConstraints"] = toJsonArray(ev.previousConstraints());
     m_obj["NextConstraints"] = toJsonArray(ev.nextConstraints());
     m_obj["HeightPercentage"] = ev.heightPercentage();
-    m_obj["Date"] = toJsonObject(ev.date());
+    m_obj["Date"] = toJsonValue(ev.date());
     m_obj["Condition"] = ev.condition();
-    m_obj["TimeNode"] = toJsonObject(ev.timeNode());
+    m_obj["TimeNode"] = toJsonValue(ev.timeNode());
 
     m_obj["States"] = toJsonArray(ev.states());
 
     m_obj["PluginsMetadata"] = toJsonObject(*ev.m_pluginModelList);
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
+template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
 {
     ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
-
-    fromJsonArray(m_obj["PreviousConstraints"].toArray(), prevCstr);
-    fromJsonArray(m_obj["NextConstraints"].toArray(), nextCstr);
-    ev.m_previousConstraints = std::move(prevCstr);
-    ev.m_nextConstraints = std::move(nextCstr);
+    fromJsonValueArray(m_obj["PreviousConstraints"].toArray(), ev.m_previousConstraints);
+    fromJsonValueArray(m_obj["NextConstraints"].toArray(), ev.m_nextConstraints);
 
     ev.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-    ev.setDate(fromJsonObject<TimeValue> (m_obj["Date"].toObject()));
+    ev.setDate(fromJsonValue<TimeValue> (m_obj["Date"]));
     ev.setCondition(m_obj["Condition"].toString());
-    ev.changeTimeNode(fromJsonObject<id_type<TimeNodeModel>> (m_obj["TimeNode"].toObject()));
+    ev.changeTimeNode(fromJsonValue<id_type<TimeNodeModel>> (m_obj["TimeNode"]));
 
     QList<State> states;
     for(QJsonValue json_val : m_obj["States"].toArray())
@@ -102,6 +98,6 @@ template<> void Visitor<Writer<JSON>>::writeTo(EventModel& ev)
 
     ev.replaceStates(states);
 
-    Deserializer<JSON> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
     ev.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
 }

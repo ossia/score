@@ -23,17 +23,17 @@ class SerializationTest: public QObject
 
             State s(m);
 
-            Serializer<JSON> js;
+            Serializer<JSONObject> js;
             js.readFrom(s);
             qDebug() << js.m_obj;
 
             State s2(s);
-            Serializer<JSON> js2;
+            Serializer<JSONObject> js2;
             js2.readFrom(s2);
             qDebug() << js2.m_obj;
 
 
-            Deserializer<JSON> jd(js.m_obj);
+            Deserializer<JSONObject> jd(js.m_obj);
             State s3;
             jd.writeTo(s3);
 

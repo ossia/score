@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "Process/AbstractScenarioViewModel.hpp"
@@ -34,13 +35,11 @@ createConstraintViewModel(Deserializer<DataStream>& deserializer,
 
 template<typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_view_model_type*
-createConstraintViewModel(Deserializer<JSON>& deserializer,
+createConstraintViewModel(Deserializer<JSONObject>& deserializer,
                           ScenarioViewModelType* svm)
 {
     // Deserialize the required identifier
-    id_type<ConstraintModel> constraint_model_id;
-    fromJsonObject(deserializer.m_obj["ConstraintId"].toObject(), constraint_model_id);
-
+    auto constraint_model_id = fromJsonValue<id_type<ConstraintModel>>(deserializer.m_obj["ConstraintId"]);
     auto constraint = model(svm)->constraint(constraint_model_id);
 
     // Make it

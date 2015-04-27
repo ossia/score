@@ -2,6 +2,7 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 
 template<>
@@ -38,7 +39,7 @@ void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TimeValue& tv)
+void Visitor<Reader<JSONObject>>::readFrom(const TimeValue& tv)
 {
     if(tv.isInfinite())
     {
@@ -51,7 +52,7 @@ void Visitor<Reader<JSON>>::readFrom(const TimeValue& tv)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(TimeValue& tv)
+void Visitor<Writer<JSONObject>>::writeTo(TimeValue& tv)
 {
     if(m_obj["Time"].toString() == "inf")
     {
@@ -60,5 +61,32 @@ void Visitor<Writer<JSON>>::writeTo(TimeValue& tv)
     else
     {
         tv.setMSecs(m_obj["Time"].toDouble());
+    }
+}
+
+
+template<>
+void Visitor<Reader<JSONValue>>::readFrom(const TimeValue& tv)
+{
+    if(tv.isInfinite())
+    {
+        val = "inf";
+    }
+    else
+    {
+        val = tv.msec();
+    }
+}
+
+template<>
+void Visitor<Writer<JSONValue>>::writeTo(TimeValue& tv)
+{
+    if(val.toString() == "inf")
+    {
+        tv = TimeValue {PositiveInfinity{}};
+    }
+    else
+    {
+        tv.setMSecs(val.toDouble());
     }
 }

@@ -19,9 +19,9 @@
 class ObjectIdentifier
 {
         friend Serializer<DataStream>;
-        friend Serializer<JSON>;
+        friend Serializer<JSONObject>;
         friend Deserializer<DataStream>;
-        friend Deserializer<JSON>;
+        friend Deserializer<JSONObject>;
 
         friend bool operator== (const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
         {

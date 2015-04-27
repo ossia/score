@@ -31,8 +31,8 @@ class ScenarioModel : public ProcessSharedModelInterface
 
         friend void Visitor<Reader<DataStream>>::readFrom<ScenarioModel> (const ScenarioModel&);
         friend void Visitor<Writer<DataStream>>::writeTo<ScenarioModel> (ScenarioModel&);
-        friend void Visitor<Reader<JSON>>::readFrom<ScenarioModel> (const ScenarioModel&);
-        friend void Visitor<Writer<JSON>>::writeTo<ScenarioModel> (ScenarioModel&);
+        friend void Visitor<Reader<JSONObject>>::readFrom<ScenarioModel> (const ScenarioModel&);
+        friend void Visitor<Writer<JSONObject>>::writeTo<ScenarioModel> (ScenarioModel&);
         friend class ScenarioFactory;
 
     public:

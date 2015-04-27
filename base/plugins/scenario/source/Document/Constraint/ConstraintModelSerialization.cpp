@@ -113,13 +113,13 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 
 
-template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constraint)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
     m_obj["Metadata"] = toJsonObject(constraint.metadata);
     m_obj["HeightPercentage"] = constraint.heightPercentage();
-    m_obj["StartEvent"] = toJsonObject(constraint.startEvent());
-    m_obj["EndEvent"] = toJsonObject(constraint.endEvent());
+    m_obj["StartEvent"] = toJsonValue(constraint.startEvent());
+    m_obj["EndEvent"] = toJsonValue(constraint.endEvent());
 
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes());
@@ -130,28 +130,28 @@ template<> void Visitor<Reader<JSON>>::readFrom(const ConstraintModel& constrain
 
     m_obj["FullView"] = toJsonObject(*constraint.fullView());
 
-    m_obj["DefaultDuration"] = toJsonObject(constraint.defaultDuration());
-    m_obj["StartDate"] = toJsonObject(constraint.startDate());
-    m_obj["MinDuration"] = toJsonObject(constraint.minDuration());
-    m_obj["MaxDuration"] = toJsonObject(constraint.maxDuration());
+    m_obj["DefaultDuration"] = toJsonValue(constraint.defaultDuration());
+    m_obj["StartDate"] = toJsonValue(constraint.startDate());
+    m_obj["MinDuration"] = toJsonValue(constraint.minDuration());
+    m_obj["MaxDuration"] = toJsonValue(constraint.maxDuration());
 
     m_obj["Rigidity"] = constraint.isRigid();
 
     m_obj["PluginsMetadata"] = toJsonObject(*constraint.m_pluginModelList);
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
+template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
     constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-    constraint.setStartEvent(fromJsonObject<id_type<EventModel>> (m_obj["StartEvent"].toObject()));
-    constraint.setEndEvent(fromJsonObject<id_type<EventModel>> (m_obj["EndEvent"].toObject()));
+    constraint.setStartEvent(fromJsonValue<id_type<EventModel>> (m_obj["StartEvent"]));
+    constraint.setEndEvent(fromJsonValue<id_type<EventModel>> (m_obj["EndEvent"]));
 
     QJsonArray process_array = m_obj["Processes"].toArray();
 
     for(const auto& json_vref : process_array)
     {
-        Deserializer<JSON> deserializer {json_vref.toObject() };
+        Deserializer<JSONObject> deserializer {json_vref.toObject() };
         constraint.addProcess(createProcess(deserializer, &constraint));
     }
 
@@ -159,23 +159,23 @@ template<> void Visitor<Writer<JSON>>::writeTo(ConstraintModel& constraint)
 
     for(const auto& json_vref : box_array)
     {
-        Deserializer<JSON> deserializer {json_vref.toObject() };
+        Deserializer<JSONObject> deserializer {json_vref.toObject() };
         constraint.addBox(new BoxModel(deserializer, &constraint));
     }
 
     constraint.setFullView(new FullViewConstraintViewModel {
-                               Deserializer<JSON>{m_obj["FullView"].toObject() },
+                               Deserializer<JSONObject>{m_obj["FullView"].toObject() },
                                &constraint,
                                &constraint});
 
-    constraint.setDefaultDuration(fromJsonObject<TimeValue> (m_obj["DefaultDuration"].toObject()));
-    constraint.setStartDate(fromJsonObject<TimeValue> (m_obj["StartDate"].toObject()));
-    constraint.setMinDuration(fromJsonObject<TimeValue> (m_obj["MinDuration"].toObject()));
-    constraint.setMaxDuration(fromJsonObject<TimeValue> (m_obj["MaxDuration"].toObject()));
+    constraint.setDefaultDuration(fromJsonValue<TimeValue> (m_obj["DefaultDuration"]));
+    constraint.setStartDate(fromJsonValue<TimeValue> (m_obj["StartDate"]));
+    constraint.setMinDuration(fromJsonValue<TimeValue> (m_obj["MinDuration"]));
+    constraint.setMaxDuration(fromJsonValue<TimeValue> (m_obj["MaxDuration"]));
 
     constraint.setRigid(m_obj["Rigidity"].toBool());
 
 
-    Deserializer<JSON> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
     constraint.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
 }

@@ -13,7 +13,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const iscore::ElementPluginModel& elt)
+void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModel& elt)
 {
     m_obj["Name"] = elt.plugin();
     elt.serialize(this->toVariant());
@@ -54,7 +54,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
 
 template<>
 iscore::ElementPluginModel* deserializeElementPluginModel(
-        Deserializer<JSON>& deserializer,
+        Deserializer<JSONObject>& deserializer,
         const QObject* element,
         QObject* parent)
 {

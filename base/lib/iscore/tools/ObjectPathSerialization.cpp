@@ -15,13 +15,13 @@ void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ObjectPath& path)
+void Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
 {
     m_obj["Identifiers"] = toJsonArray(path.m_objectIdentifiers);
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(ObjectPath& path)
+void Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
 {
     fromJsonArray(m_obj["Identifiers"].toArray(), path.m_objectIdentifiers);
 }

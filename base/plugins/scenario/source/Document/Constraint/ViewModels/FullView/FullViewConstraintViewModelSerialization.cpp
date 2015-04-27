@@ -9,7 +9,7 @@ void Visitor<Reader<DataStream>>::readFrom(const FullViewConstraintViewModel& co
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const FullViewConstraintViewModel& constraint)
+void Visitor<Reader<JSONObject>>::readFrom(const FullViewConstraintViewModel& constraint)
 {
     readFrom(static_cast<const AbstractConstraintViewModel&>(constraint));
 }

@@ -38,7 +38,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BoxModel& box)
 }
 
 
-template<> void Visitor<Reader<JSON>>::readFrom(const BoxModel& box)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const BoxModel& box)
 {
     readFrom(static_cast<const IdentifiedObject<BoxModel>&>(box));
 
@@ -61,7 +61,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const BoxModel& box)
     m_obj["DecksPositions"] = positions;
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(BoxModel& box)
+template<> void Visitor<Writer<JSONObject>>::writeTo(BoxModel& box)
 {
     QJsonArray decks = m_obj["Decks"].toArray();
     QJsonArray decksPositions = m_obj["DecksPositions"].toArray();
@@ -74,7 +74,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(BoxModel& box)
 
     for(int i = 0; i < decks.size(); i++)
     {
-        Deserializer<JSON> deserializer {decks[i].toObject() };
+        Deserializer<JSONObject> deserializer {decks[i].toObject() };
         auto deck = new DeckModel {deserializer, &box};
         box.addDeck(deck, list.indexOf(deck->id()));
     }

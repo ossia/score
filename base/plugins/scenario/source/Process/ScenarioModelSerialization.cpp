@@ -3,6 +3,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "ScenarioModel.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
@@ -81,10 +82,10 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ScenarioModel& scenario)
+void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 {
-    m_obj["StartEventId"] = toJsonObject(scenario.m_startEventId);
-    m_obj["EndEventId"] = toJsonObject(scenario.m_endEventId);
+    m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
+    m_obj["EndEventId"] = toJsonValue(scenario.m_endEventId);
 
     m_obj["Constraints"] = toJsonArray(scenario.constraints());
     m_obj["Events"] = toJsonArray(scenario.events());
@@ -92,14 +93,14 @@ void Visitor<Reader<JSON>>::readFrom(const ScenarioModel& scenario)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
+void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 {
-    scenario.m_startEventId = fromJsonObject<id_type<EventModel>> (m_obj["StartEventId"].toObject());
-    scenario.m_endEventId = fromJsonObject<id_type<EventModel>> (m_obj["EndEventId"].toObject());
+    scenario.m_startEventId = fromJsonValue<id_type<EventModel>> (m_obj["StartEventId"]);
+    scenario.m_endEventId = fromJsonValue<id_type<EventModel>> (m_obj["EndEventId"]);
 
     for(auto json_vref : m_obj["Constraints"].toArray())
     {
-        auto constraint = new ConstraintModel {Deserializer<JSON>{json_vref.toObject() },
+        auto constraint = new ConstraintModel {Deserializer<JSONObject>{json_vref.toObject() },
                           &scenario
     };
         scenario.addConstraint(constraint);
@@ -108,7 +109,7 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
     for(auto json_vref : m_obj["Events"].toArray())
     {
         auto evmodel = new EventModel {
-                       Deserializer<JSON>{json_vref.toObject() },
+                       Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
         scenario.addEvent(evmodel);
@@ -117,7 +118,7 @@ void Visitor<Writer<JSON>>::writeTo(ScenarioModel& scenario)
     for(auto json_vref : m_obj["TimeNodes"].toArray())
     {
         auto tnmodel = new TimeNodeModel {
-                       Deserializer<JSON>{json_vref.toObject() },
+                       Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
         scenario.m_timeNodes.push_back(tnmodel);
@@ -135,9 +136,9 @@ void ScenarioModel::serialize(const VisitorVariant& vis) const
             static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
             return;
         }
-        case JSON::type():
+        case JSONObject::type():
         {
-            static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
+            static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
             return;
         }
     }
@@ -157,9 +158,9 @@ ProcessSharedModelInterface* ScenarioFactory::makeModel(
         {
             return new ScenarioModel {static_cast<DataStream::Deserializer&>(vis.visitor), parent};
         }
-        case JSON::type():
+        case JSONObject::type():
         {
-            return new ScenarioModel {static_cast<JSON::Deserializer&>(vis.visitor), parent};
+            return new ScenarioModel {static_cast<JSONObject::Deserializer&>(vis.visitor), parent};
         }
     }
 
@@ -179,10 +180,10 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(
         makeViewModel_impl(scen);
         return scen;
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
         auto scen = new TemporalScenarioViewModel(
-                        static_cast<JSON::Deserializer&>(vis.visitor),
+                        static_cast<JSONObject::Deserializer&>(vis.visitor),
                         this,
                         parent);
         makeViewModel_impl(scen);

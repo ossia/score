@@ -30,7 +30,7 @@ void Visitor<Writer<DataStream>>::writeTo(DeviceSettings& n)
     checkDelimiter();
 }
 template<>
-void Visitor<Reader<JSON>>::readFrom(const DeviceSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const DeviceSettings& n)
 {
     m_obj["Name"] = n.name;
     m_obj["Protocol"] = n.protocol;
@@ -40,7 +40,7 @@ void Visitor<Reader<JSON>>::readFrom(const DeviceSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(DeviceSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(DeviceSettings& n)
 {
     n.name = m_obj["Name"].toString();
     n.protocol = m_obj["Protocol"].toString();
@@ -63,12 +63,12 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
     checkDelimiter();
 }
 template<>
-void Visitor<Reader<JSON>>::readFrom(const AddressSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
 }
 template<>
-void Visitor<Writer<JSON>>::writeTo(AddressSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
 }
@@ -139,7 +139,7 @@ void Visitor<Writer<DataStream>>::writeTo(Node& n)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const Node& n)
+void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 {
     m_obj["Name"] = n.name();
     m_obj["Value"] = n.value();
@@ -157,7 +157,7 @@ void Visitor<Reader<JSON>>::readFrom(const Node& n)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(Node& n)
+void Visitor<Writer<JSONObject>>::writeTo(Node& n)
 {
     if(m_obj.contains("DeviceSettings"))
     {
@@ -174,7 +174,7 @@ void Visitor<Writer<JSON>>::writeTo(Node& n)
     for (const auto& val : m_obj["Children"].toArray())
     {
         Node* child = new Node;
-        Deserializer<JSON> nodeWriter(val.toObject());
+        Deserializer<JSONObject> nodeWriter(val.toObject());
 
         nodeWriter.writeTo(*child);
         n.addChild(child);

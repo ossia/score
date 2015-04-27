@@ -142,7 +142,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                         {
                             for (auto &element : selected)
                             {
-                                Visitor<Reader<JSON>> jr;
+                                Visitor<Reader<JSONObject>> jr;
                                 jr.readFrom(*element);
                                 array.push_back(jr.m_obj);
                             }

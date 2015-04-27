@@ -18,14 +18,14 @@ void Visitor<Writer<DataStream>>::writeTo(MinuitSpecificSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const MinuitSpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const MinuitSpecificSettings& n)
 {
     m_obj["Port"] = n.port;
     m_obj["Host"] = n.host;
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(MinuitSpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(MinuitSpecificSettings& n)
 {
     n.port = m_obj["Port"].toInt();
     n.host = m_obj["Host"].toString();

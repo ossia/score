@@ -12,7 +12,7 @@ void Visitor<Reader<DataStream>>::readFrom(const State& state)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const State& state)
+void Visitor<Reader<JSONObject>>::readFrom(const State& state)
 {
     m_obj["Type"] = int(state.data().userType());
     if(state.data().canConvert<State>())
@@ -46,7 +46,7 @@ void Visitor<Writer<DataStream>>::writeTo(State& state)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(State& state)
+void Visitor<Writer<JSONObject>>::writeTo(State& state)
 {
     QString t = QVariant::typeToName(m_obj["Type"].toInt());
     if("State" == t)
@@ -85,7 +85,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const Message& mess)
+void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
     m_obj["Address"] = mess.address;
     m_obj["Value"] = mess.value.toString();
@@ -100,7 +100,7 @@ void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(Message& mess)
+void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
     mess.address = m_obj["Address"].toString();
     mess.value = QJsonValue(m_obj["Value"]).toVariant();

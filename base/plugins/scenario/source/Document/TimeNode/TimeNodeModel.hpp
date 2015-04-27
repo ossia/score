@@ -16,9 +16,9 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         Q_OBJECT
 
         friend void Visitor<Reader<DataStream>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
-        friend void Visitor<Reader<JSON>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<TimeNodeModel> (const TimeNodeModel& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<TimeNodeModel> (TimeNodeModel& ev);
-        friend void Visitor<Writer<JSON>>::writeTo<TimeNodeModel> (TimeNodeModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<TimeNodeModel> (TimeNodeModel& ev);
 
     public:
         /** Properties of the class **/

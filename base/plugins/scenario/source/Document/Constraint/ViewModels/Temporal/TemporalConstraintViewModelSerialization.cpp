@@ -9,7 +9,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalConstraintViewModel& co
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const TemporalConstraintViewModel& constraint)
+void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& constraint)
 {
     readFrom(static_cast<const AbstractConstraintViewModel&>(constraint));
 }

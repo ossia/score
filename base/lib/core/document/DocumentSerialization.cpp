@@ -22,7 +22,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 
 QJsonObject Document::saveDocumentModelAsJson()
 {
-    Serializer<JSON> s;
+    Serializer<JSONObject> s;
     m_model->modelDelegate()->serialize(s.toVariant());
     return s.m_obj;
 }
@@ -32,14 +32,14 @@ QJsonObject Document::saveAsJson()
     QJsonObject complete;
     for(const auto& panel : model()->panels())
     {
-        Serializer<JSON> s;
+        Serializer<JSONObject> s;
         panel->serialize(s.toVariant());
         complete[panel->objectName()] = s.m_obj;
     }
 
     for(const auto& plugin : model()->pluginModels())
     {
-        Serializer<JSON> s;
+        Serializer<JSONObject> s;
         plugin->serialize(s.toVariant());
         complete[plugin->objectName()] = s.m_obj;
     }
@@ -167,7 +167,7 @@ DocumentModel::DocumentModel(const QVariant& data,
                 // Note : here we handle the case where the plug-in is not able to
                 // load data; generally because it is not useful (e.g. undo panel model...)
 
-                JSON::Deserializer panel_writer{json[key].toObject()};
+                JSONObject::Deserializer panel_writer{json[key].toObject()};
                 if(auto pnl = factory->makeModel(panel_writer.toVariant(), this))
                     addPanel(pnl);
                 else
@@ -177,7 +177,7 @@ DocumentModel::DocumentModel(const QVariant& data,
 
         qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
 
-        JSON::Deserializer doc_writer{json["Document"].toObject()};
+        JSONObject::Deserializer doc_writer{json["Document"].toObject()};
         m_model = fact->makeModel(doc_writer.toVariant(), this);
     }
     else

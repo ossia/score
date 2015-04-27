@@ -22,7 +22,7 @@ void Visitor<Writer<DataStream>>::writeTo(OSCSpecificSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const OSCSpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const OSCSpecificSettings& n)
 {
     m_obj["OutputPort"] = n.outputPort;
     m_obj["InputPort"] = n.inputPort;
@@ -30,7 +30,7 @@ void Visitor<Reader<JSON>>::readFrom(const OSCSpecificSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(OSCSpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(OSCSpecificSettings& n)
 {
     n.outputPort = m_obj["OutputPort"].toInt();
     n.inputPort = m_obj["InputPort"].toInt();

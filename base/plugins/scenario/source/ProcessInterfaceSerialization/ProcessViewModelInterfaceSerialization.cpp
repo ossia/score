@@ -2,6 +2,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& processViewModel)
@@ -38,11 +39,11 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModelInterface& processViewModel)
 {
     // To allow recration using createProcessViewModel.
     // This supposes that the process is stored inside a Constraint.
-    m_obj["SharedProcessId"] = toJsonObject(processViewModel.sharedProcessModel()->id());
+    m_obj["SharedProcessId"] = toJsonValue(processViewModel.sharedProcessModel()->id());
 
     readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
 
@@ -53,14 +54,12 @@ void Visitor<Reader<JSON>>::readFrom(const ProcessViewModelInterface& processVie
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<JSON>& deserializer,
+ProcessViewModelInterface* createProcessViewModel(Deserializer<JSONObject>& deserializer,
         ConstraintModel* constraint,
         QObject* parent)
 {
-    id_type<ProcessSharedModelInterface> sharedProcessId;
-    fromJsonObject(deserializer.m_obj["SharedProcessId"].toObject(), sharedProcessId);
-
-    auto process = constraint->process(sharedProcessId);
+    auto process = constraint->process(
+                fromJsonValue<id_type<ProcessSharedModelInterface>>(deserializer.m_obj["SharedProcessId"]));
     auto viewmodel = process->makeViewModel(deserializer.toVariant(),
                                             parent);
 

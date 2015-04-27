@@ -36,20 +36,19 @@ void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const AbstractConstraintViewModel& cvm)
+void Visitor<Reader<JSONObject>>::readFrom(const AbstractConstraintViewModel& cvm)
 {
-    m_obj["ConstraintId"] = toJsonObject(cvm.model()->id());
+    m_obj["ConstraintId"] = toJsonValue(cvm.model()->id());
 
     readFrom(static_cast<const IdentifiedObject<AbstractConstraintViewModel>&>(cvm));
 
-    m_obj["ShownBox"] = toJsonObject(cvm.shownBox());
+    m_obj["ShownBox"] = toJsonValue(cvm.shownBox());
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(AbstractConstraintViewModel& cvm)
+void Visitor<Writer<JSONObject>>::writeTo(AbstractConstraintViewModel& cvm)
 {
-    id_type<BoxModel> id;
-    fromJsonObject(m_obj["ShownBox"].toObject(), id);
+    auto id = fromJsonValue<id_type<BoxModel>>(m_obj["ShownBox"]);
 
     if(id.val())
     {

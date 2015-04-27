@@ -26,18 +26,18 @@ template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelL
     checkDelimiter();
 }
 
-template<> void Visitor<Reader<JSON>>::readFrom(const iscore::ElementPluginModelList& elts)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
     m_obj["PluginsMetadata"] = toJsonArray(elts.list());
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(iscore::ElementPluginModelList& elts)
+template<> void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelList& elts)
 {
     QJsonArray plugin_array = m_obj["PluginsMetadata"].toArray();
 
     for(const auto& json_vref : plugin_array)
     {
-        Deserializer<JSON> deserializer{json_vref.toObject()};
+        Deserializer<JSONObject> deserializer{json_vref.toObject()};
 
         elts.add(deserializeElementPluginModel(deserializer, elts.parent(), &elts));
     }

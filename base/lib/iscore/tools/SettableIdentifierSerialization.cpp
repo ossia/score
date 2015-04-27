@@ -1,5 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 #include "SettableIdentifier.hpp"
 
 
@@ -34,7 +35,7 @@ void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
 }
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const boost::optional<int32_t>& obj)
+void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
 {
     if(obj)
     {
@@ -42,19 +43,46 @@ void Visitor<Reader<JSON>>::readFrom(const boost::optional<int32_t>& obj)
     }
     else
     {
-        m_obj["id"] = "None";
+        m_obj["id"] = "none";
     }
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(boost::optional<int32_t>& obj)
+void Visitor<Writer<JSONObject>>::writeTo(boost::optional<int32_t>& obj)
 {
-    if(m_obj["id"].toString() == "None")
+    if(m_obj["id"].toString() == "none")
     {
         obj = boost::none_t {};
     }
     else
     {
         obj = m_obj["id"].toInt();
+    }
+}
+
+
+template<>
+void Visitor<Reader<JSONValue>>::readFrom(const boost::optional<int32_t>& obj)
+{
+    if(obj)
+    {
+        val = get(obj);
+    }
+    else
+    {
+        val = "none";
+    }
+}
+
+template<>
+void Visitor<Writer<JSONValue>>::writeTo(boost::optional<int32_t>& obj)
+{
+    if(val.toString() == "none")
+    {
+        obj = boost::none_t {};
+    }
+    else
+    {
+        obj = val.toInt();
     }
 }

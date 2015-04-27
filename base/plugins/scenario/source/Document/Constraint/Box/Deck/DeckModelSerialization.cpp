@@ -3,6 +3,7 @@
 #include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 {
@@ -52,11 +53,11 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 
 
 
-template<> void Visitor<Reader<JSON>>::readFrom(const DeckModel& deck)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const DeckModel& deck)
 {
     readFrom(static_cast<const IdentifiedObject<DeckModel>&>(deck));
 
-    m_obj["EditedProcess"] = toJsonObject(deck.editedProcessViewModel());
+    m_obj["EditedProcess"] = toJsonValue(deck.editedProcessViewModel());
     m_obj["Height"] = deck.height();
 
     QJsonArray arr;
@@ -69,7 +70,7 @@ template<> void Visitor<Reader<JSON>>::readFrom(const DeckModel& deck)
     m_obj["ProcessViewModels"] = arr;
 }
 
-template<> void Visitor<Writer<JSON>>::writeTo(DeckModel& deck)
+template<> void Visitor<Writer<JSONObject>>::writeTo(DeckModel& deck)
 {
     QJsonArray arr = m_obj["ProcessViewModels"].toArray();
 
@@ -77,7 +78,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(DeckModel& deck)
 
     for(auto json_vref : arr)
     {
-        Deserializer<JSON> deserializer {json_vref.toObject() };
+        Deserializer<JSONObject> deserializer {json_vref.toObject() };
         auto pvm = createProcessViewModel(deserializer,
                                           cstr,
                                           &deck);
@@ -85,8 +86,7 @@ template<> void Visitor<Writer<JSON>>::writeTo(DeckModel& deck)
     }
 
     deck.setHeight(m_obj["Height"].toInt());
-
-    id_type<ProcessViewModelInterface> editedPvm;
-    fromJsonObject(m_obj["EditedProcess"].toObject(), editedPvm);
-    deck.selectForEdition(editedPvm);
+    deck.selectForEdition(
+                fromJsonValue<id_type<ProcessViewModelInterface>>(
+                    m_obj["EditedProcess"]));
 }

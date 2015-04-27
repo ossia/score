@@ -30,17 +30,31 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const AutomationModel& autom)
+void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 {
     m_obj["Address"] = autom.address();
-    m_obj["Points"] = toJsonMap(autom.points());
+    QJsonArray vals;
+    QMap<double, double>::const_iterator pt = autom.points().constBegin();
+    while (pt != autom.points().constEnd())
+    {
+        vals.push_back(QJsonArray{pt.key(), pt.value()});
+        ++pt;
+    }
+
+    m_obj["Points"] = vals;
+
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(AutomationModel& autom)
+void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 {
     autom.setAddress(m_obj["Address"].toString());
-    autom.setPoints(fromJsonMap<double> (m_obj["Points"].toArray()));
+    QJsonArray vals = m_obj["Points"].toArray();
+    for(int i = 0; i < vals.size(); i++)
+    {
+        auto pt = vals[i].toArray();
+        autom.addPoint(pt[0].toDouble(), pt[1].toDouble());
+    }
 }
 
 
@@ -52,8 +66,8 @@ void AutomationModel::serialize(const VisitorVariant& vis) const
         case DataStream::type():
             static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
             return;
-        case JSON::type():
-            static_cast<JSON::Serializer&>(vis.visitor).readFrom(*this);
+        case JSONObject::type():
+            static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
             return;
     }
 
@@ -72,9 +86,9 @@ ProcessSharedModelInterface* AutomationFactory::makeModel(
             return new AutomationModel {
                 static_cast<DataStream::Deserializer&>(vis.visitor),
                 parent};
-        case JSON::type():
+        case JSONObject::type():
             return new AutomationModel {
-                static_cast<JSON::Deserializer&>(vis.visitor),
+                static_cast<JSONObject::Deserializer&>(vis.visitor),
                 parent};
     }
 
@@ -97,10 +111,10 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(
             addViewModel(autom);
             return autom;
         }
-        case JSON::type():
+        case JSONObject::type():
         {
             auto autom = new AutomationViewModel {
-                         static_cast<JSON::Deserializer&>(vis.visitor),
+                         static_cast<JSONObject::Deserializer&>(vis.visitor),
                          this,
                          parent};
 
@@ -129,11 +143,11 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& pvm)
 
 
 template<>
-void Visitor<Reader<JSON>>::readFrom(const AutomationViewModel& pvm)
+void Visitor<Reader<JSONObject>>::readFrom(const AutomationViewModel& pvm)
 {
 }
 
 template<>
-void Visitor<Writer<JSON>>::writeTo(AutomationViewModel& pvm)
+void Visitor<Writer<JSONObject>>::writeTo(AutomationViewModel& pvm)
 {
 }

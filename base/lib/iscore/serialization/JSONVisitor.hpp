@@ -1,5 +1,6 @@
 #pragma once
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/JSONValueVisitor.hpp>
+
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -9,15 +10,15 @@
 template<typename T>
 T fromJsonObject(QJsonObject&& json);
 
-class JSON;
-template<> class Visitor<Reader<JSON>>;
-template<> class Visitor<Writer<JSON>>;
+class JSONObject;
+template<> class Visitor<Reader<JSONObject>>;
+template<> class Visitor<Writer<JSONObject>>;
 
-class JSON
+class JSONObject
 {
     public:
-        using Serializer = Visitor<Reader<JSON>>;
-        using Deserializer = Visitor<Writer<JSON>>;
+        using Serializer = Visitor<Reader<JSONObject>>;
+        using Deserializer = Visitor<Writer<JSONObject>>;
         static constexpr SerializationIdentifier type()
         {
             return 1;
@@ -25,24 +26,16 @@ class JSON
 };
 
 template<>
-class Visitor<Reader<JSON>> : public AbstractVisitor
+class Visitor<Reader<JSONObject>> : public AbstractVisitor
 {
     public:
-        Visitor<Reader<JSON>>() = default;
-        Visitor<Reader<JSON>>(const Visitor<Reader<JSON>>&) = delete;
-        Visitor<Reader<JSON>>& operator=(const Visitor<Reader<JSON>>&) = delete;
+        Visitor<Reader<JSONObject>>() = default;
+        Visitor<Reader<JSONObject>>(const Visitor<Reader<JSONObject>>&) = delete;
+        Visitor<Reader<JSONObject>>& operator=(const Visitor<Reader<JSONObject>>&) = delete;
 
-        VisitorVariant toVariant() { return {*this, JSON::type()}; }
+        VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
         template<typename T>
         void readFrom(const T&);
-
-
-        template<typename T>
-        void readFrom(const id_type<T>& obj)
-        {
-            readFrom(obj.val());
-        }
-
 
         template<typename T>
         void readFrom(const IdentifiedObject<T>& obj)
@@ -55,33 +48,25 @@ class Visitor<Reader<JSON>> : public AbstractVisitor
 };
 
 template<>
-class Visitor<Writer<JSON>> : public AbstractVisitor
+class Visitor<Writer<JSONObject>> : public AbstractVisitor
 {
     public:
-        VisitorVariant toVariant() { return {*this, JSON::type()}; }
+        VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
-        Visitor<Writer<JSON>>() = default;
-        Visitor<Writer<JSON>>(const Visitor<Reader<JSON>>&) = delete;
-        Visitor<Writer<JSON>>& operator=(const Visitor<Writer<JSON>>&) = delete;
+        Visitor<Writer<JSONObject>>() = default;
+        Visitor<Writer<JSONObject>>(const Visitor<Reader<JSONObject>>&) = delete;
+        Visitor<Writer<JSONObject>>& operator=(const Visitor<Writer<JSONObject>>&) = delete;
 
-        Visitor<Writer<JSON>> (const QJsonObject& obj) :
+        Visitor<Writer<JSONObject>> (const QJsonObject& obj) :
                                m_obj {obj}
         {}
 
-        Visitor<Writer<JSON>> (QJsonObject&& obj) :
+        Visitor<Writer<JSONObject>> (QJsonObject&& obj) :
                                m_obj {std::move(obj) }
         {}
 
         template<typename T>
         void writeTo(T&);
-
-        template<typename T>
-        void writeTo(id_type<T>& obj)
-        {
-            typename id_type<T>::value_type id_impl;
-            writeTo(id_impl);
-            obj.setVal(std::move(id_impl));
-        }
 
         template<typename T>
         void writeTo(IdentifiedObject<T>& obj)
@@ -96,11 +81,10 @@ class Visitor<Writer<JSON>> : public AbstractVisitor
         QJsonObject m_obj;
 };
 
-
 template<typename T>
 QJsonObject toJsonObject(const T& obj)
 {
-    Visitor<Reader<JSON>> reader;
+    Visitor<Reader<JSONObject>> reader;
     reader.readFrom(obj);
 
     return reader.m_obj;
@@ -109,7 +93,7 @@ QJsonObject toJsonObject(const T& obj)
 template<typename T>
 void fromJsonObject(QJsonObject&& json, T& obj)
 {
-    Visitor<Writer<JSON>> writer {json};
+    Visitor<Writer<JSONObject>> writer {json};
     writer.writeTo(obj);
 }
 
@@ -117,7 +101,7 @@ template<typename T>
 T fromJsonObject(QJsonObject&& json)
 {
     T obj;
-    Visitor<Writer<JSON>> writer {json};
+    Visitor<Writer<JSONObject>> writer {json};
     writer.writeTo(obj);
 
     return obj;
@@ -135,31 +119,19 @@ inline QJsonArray toJsonArray(const QVector<int>& array)
     return arr;
 }
 
-template<typename T>
-QJsonArray toJsonArray(const QVector<T*>& array)
+template<template<typename U> class T, typename V>
+QJsonArray toJsonArray(const T<id_type<V>>& array)
 {
     QJsonArray arr;
 
-    for(auto elt : array)
+    for(const auto& elt : array)
     {
-        arr.append(toJsonObject(*elt));
+        arr.append(toJsonValue(elt));
     }
 
     return arr;
 }
 
-template<typename T>
-QJsonArray toJsonArray(const std::vector<T*>& array)
-{
-    QJsonArray arr;
-
-    for(auto elt : array)
-    {
-        arr.append(toJsonObject(*elt));
-    }
-
-    return arr;
-}
 
 template<typename T,
          typename std::enable_if<
@@ -171,7 +143,7 @@ QJsonArray toJsonArray(const T& array)
 {
     QJsonArray arr;
 
-    for(auto& elt : array)
+    for(const auto& elt : array)
     {
         arr.append(toJsonObject(elt));
     }
@@ -189,7 +161,7 @@ QJsonArray toJsonArray(const T& array)
 {
     QJsonArray arr;
 
-    for(auto& elt : array)
+    for(const auto& elt : array)
     {
         arr.append(toJsonObject(*elt));
     }
@@ -273,6 +245,15 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
     return map;
 }
 
+template<template<typename U> class T, typename V>
+void fromJsonArray(QJsonArray&& json_arr, const T<id_type<V>>& arr)
+{
+    for(const auto& elt : json_arr)
+    {
+        arr.push_back(fromJsonValue<id_type<V>>(elt));
+    }
+}
+
 inline void fromJsonArray(QJsonArray&& json_arr, QVector<int>& arr)
 {
     for(const auto& elt : json_arr)
@@ -280,6 +261,8 @@ inline void fromJsonArray(QJsonArray&& json_arr, QVector<int>& arr)
         arr.push_back(elt.toInt());
     }
 }
+
+
 
 template<typename T>
 void fromJsonArray(QJsonArray&& json_arr, T& arr)
@@ -293,6 +276,6 @@ void fromJsonArray(QJsonArray&& json_arr, T& arr)
 }
 
 
-Q_DECLARE_METATYPE(Visitor<Reader<JSON>>*)
-Q_DECLARE_METATYPE(Visitor<Writer<JSON>>*)
+Q_DECLARE_METATYPE(Visitor<Reader<JSONObject>>*)
+Q_DECLARE_METATYPE(Visitor<Writer<JSONObject>>*)
 

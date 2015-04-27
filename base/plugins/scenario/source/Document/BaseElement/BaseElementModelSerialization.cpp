@@ -17,11 +17,11 @@ BaseElementModel::BaseElementModel(const VisitorVariant& vis,
 
         m_baseConstraint = new ConstraintModel{des, this};
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        auto& des = static_cast<JSON::Deserializer&>(vis.visitor);
+        auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
         // TODO id
-        m_baseConstraint = new ConstraintModel{Deserializer<JSON>{des.m_obj["Constraint"].toObject()}, this};
+        m_baseConstraint = new ConstraintModel{Deserializer<JSONObject>{des.m_obj["Constraint"].toObject()}, this};
     }
     else
     {
@@ -40,10 +40,10 @@ void BaseElementModel::serialize(const VisitorVariant& vis) const
         ser.readFrom(this->id());
         ser.readFrom(*constraintModel());
     }
-    else if(vis.identifier == JSON::type())
+    else if(vis.identifier == JSONObject::type())
     {
-        auto& ser = static_cast<JSON::Serializer&>(vis.visitor);
-        ser.readFrom(this->id());
+        auto& ser = static_cast<JSONObject::Serializer&>(vis.visitor);
+        ser.m_obj["id"] = toJsonValue(this->id());
         ser.m_obj["Constraint"] = toJsonObject(*constraintModel());
     }
 }

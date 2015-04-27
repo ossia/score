@@ -18,9 +18,9 @@
 class ObjectPath
 {
         friend Serializer<DataStream>;
-        friend Serializer<JSON>;
+        friend Serializer<JSONObject>;
         friend Deserializer<DataStream>;
-        friend Deserializer<JSON>;
+        friend Deserializer<JSONObject>;
 
         friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
         {

@@ -37,9 +37,9 @@ class EventModel : public IdentifiedObject<EventModel>
                    NOTIFY conditionChanged)
 
         friend void Visitor<Reader<DataStream>>::readFrom<EventModel> (const EventModel& ev);
-        friend void Visitor<Reader<JSON>>::readFrom<EventModel> (const EventModel& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<EventModel> (const EventModel& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<EventModel> (EventModel& ev);
-        friend void Visitor<Writer<JSON>>::writeTo<EventModel> (EventModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<EventModel> (EventModel& ev);
 
     public:
         /** Public properties of the class **/
