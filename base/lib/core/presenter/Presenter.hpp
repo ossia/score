@@ -43,8 +43,12 @@ namespace iscore
 
             void closeDocument(Document*);
 
-            void saveAsBinary(Document*);
-            void saveAsJson(Document*);
+
+            void saveBinary(Document*);
+            void saveJson(Document*);
+
+            void loadBinary();
+            void loadJson();
 
             /**
              * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
