@@ -25,8 +25,6 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
             m_viewModel {model},
             m_view {view}
 {
-    connect(m_view, &AbstractConstraintView::constraintPressed,
-            this,   &AbstractConstraintPresenter::pressed);
     connect(&m_viewModel->model()->selection, &Selectable::changed,
             m_view, &AbstractConstraintView::setSelected);
 

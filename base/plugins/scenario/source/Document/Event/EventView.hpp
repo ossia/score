@@ -8,35 +8,23 @@ class EventView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        EventView(const EventPresenter& presenter, QGraphicsObject* parent);
+        EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override
-        { return QGraphicsItem::UserType + 1; }
+        int type() const override;
 
-        const auto& presenter() const
-        { return m_presenter;}
+        const EventPresenter& presenter() const;
 
         QRectF boundingRect() const override;
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
                    QWidget* widget) override;
 
-        void setSelected(bool selected)
-        {
-            m_selected = selected;
-            update();
-        }
+        void setSelected(bool selected);
 
-        bool isSelected() const
-        {
-            return m_selected;
-        }
+        bool isSelected() const;
 
-        bool isShadow() const
-        {
-            return m_shadow;
-        }
+        bool isShadow() const;
 
     signals:
         void eventHoverEnter();
@@ -47,11 +35,15 @@ class EventView : public QGraphicsObject
         void setShadow(bool arg);
 
     protected:
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
     private:
-        const EventPresenter& m_presenter;
+        EventPresenter& m_presenter;
         QPointF m_clickedPoint {};
         QColor m_color;
 

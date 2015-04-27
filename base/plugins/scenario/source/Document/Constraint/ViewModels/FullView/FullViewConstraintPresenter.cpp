@@ -27,7 +27,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(FullViewConstraintViewM
 
     updateHeight();
 
-    connect(::view(this), &FullViewConstraintView::constraintPressed,
+    connect(::view(this), &FullViewConstraintView::fullViewPressed,
             this,      &FullViewConstraintPresenter::on_pressed);
 }
 

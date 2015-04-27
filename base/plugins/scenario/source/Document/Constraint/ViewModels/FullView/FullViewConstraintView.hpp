@@ -9,7 +9,7 @@ class FullViewConstraintView : public AbstractConstraintView
         Q_OBJECT
 
     public:
-        FullViewConstraintView(const FullViewConstraintPresenter &presenter,
+        FullViewConstraintView(FullViewConstraintPresenter &presenter,
                                QGraphicsObject* parent);
 
         virtual ~FullViewConstraintView() = default;
@@ -18,6 +18,9 @@ class FullViewConstraintView : public AbstractConstraintView
         virtual void paint(QPainter* painter,
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
+
+    signals:
+        void fullViewPressed();
 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* m) override;

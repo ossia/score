@@ -56,7 +56,10 @@ class AbstractConstraintPresenter : public NamedObject
         id_type<ConstraintModel> id() const;
 
     signals:
-        void pressed();
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
+
         void askUpdate();
         void heightChanged();
 

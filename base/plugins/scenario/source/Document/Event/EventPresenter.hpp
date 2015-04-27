@@ -23,6 +23,10 @@ class EventPresenter : public NamedObject
         bool isSelected() const;
 
     signals:
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
+
         void eventHoverEnter();
         void eventHoverLeave();
 

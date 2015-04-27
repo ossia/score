@@ -7,7 +7,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 
-TemporalConstraintView::TemporalConstraintView(const TemporalConstraintPresenter &presenter, QGraphicsObject* parent) :
+TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
+                                               QGraphicsObject* parent) :
     AbstractConstraintView {presenter, parent}
 {
     this->setParentItem(parent);

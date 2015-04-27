@@ -27,6 +27,10 @@ class TimeNodePresenter :  public NamedObject
         TimeNodeView* view() const;
 
     signals:
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
+
         void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
 
     public slots:

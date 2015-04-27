@@ -6,7 +6,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 
-FullViewConstraintView::FullViewConstraintView(const FullViewConstraintPresenter& presenter, QGraphicsObject* parent) :
+FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
+                                               QGraphicsObject* parent) :
     AbstractConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
@@ -93,5 +94,5 @@ void FullViewConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
     QGraphicsObject::mousePressEvent(m);
 
     m_clickedPoint = m->pos();
-    emit constraintPressed();
+    emit fullViewPressed();
 }

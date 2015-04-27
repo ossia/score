@@ -2,8 +2,8 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-
-TimeNodeView::TimeNodeView(const TimeNodePresenter& presenter,
+#include "TimeNodePresenter.hpp"
+TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
@@ -64,4 +64,20 @@ void TimeNodeView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
+}
+
+
+void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.pressed(event->scenePos());
+}
+
+void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.moved(event->scenePos());
+}
+
+void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.released(event->scenePos());
 }

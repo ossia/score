@@ -3,8 +3,9 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include "EventPresenter.hpp"
 
-EventView::EventView(const EventPresenter& presenter,
+EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
@@ -15,6 +16,14 @@ EventView::EventView(const EventPresenter& presenter,
     this->setAcceptHoverEvents(true);
 
     m_color = Qt::black;
+}
+
+int EventView::type() const
+{ return QGraphicsItem::UserType + 1; }
+
+const EventPresenter& EventView::presenter() const
+{
+    return m_presenter;
 }
 
 QRectF EventView::boundingRect() const
@@ -43,6 +52,22 @@ void EventView::paint(QPainter* painter,
     painter->drawEllipse(boundingRect().center(), 5, 5);
 }
 
+void EventView::setSelected(bool selected)
+{
+    m_selected = selected;
+    update();
+}
+
+bool EventView::isSelected() const
+{
+    return m_selected;
+}
+
+bool EventView::isShadow() const
+{
+    return m_shadow;
+}
+
 void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
@@ -53,6 +78,21 @@ void EventView::setShadow(bool arg)
 {
     m_shadow = arg;
     update();
+}
+
+void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.pressed(event->scenePos());
+}
+
+void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.moved(event->scenePos());
+}
+
+void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.released(event->scenePos());
 }
 
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

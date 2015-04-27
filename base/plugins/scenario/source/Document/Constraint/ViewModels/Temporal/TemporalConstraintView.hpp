@@ -7,7 +7,7 @@ class TemporalConstraintView : public AbstractConstraintView
         Q_OBJECT
 
     public:
-        TemporalConstraintView(const TemporalConstraintPresenter& presenter,
+        TemporalConstraintView(TemporalConstraintPresenter& presenter,
                                QGraphicsObject* parent);
 
         virtual ~TemporalConstraintView() = default;

@@ -8,7 +8,7 @@ class TimeNodeView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        TimeNodeView(const TimeNodePresenter& presenter,
+        TimeNodeView(TimeNodePresenter& presenter,
                      QGraphicsObject* parent);
         ~TimeNodeView() = default;
 
@@ -42,8 +42,13 @@ class TimeNodeView : public QGraphicsObject
     public slots:
         void changeColor(QColor);
 
+    protected:
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
     private:
-        const TimeNodePresenter& m_presenter;
+        TimeNodePresenter& m_presenter;
         int m_top {0};
         int m_bottom {0};
 

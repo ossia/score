@@ -1,6 +1,6 @@
 #include "AbstractConstraintView.hpp"
-
-AbstractConstraintView::AbstractConstraintView(const AbstractConstraintPresenter& presenter, QGraphicsObject* parent) :
+#include "AbstractConstraintPresenter.hpp"
+AbstractConstraintView::AbstractConstraintView(AbstractConstraintPresenter& presenter, QGraphicsObject* parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
 {
@@ -50,4 +50,20 @@ void AbstractConstraintView::setPlayDuration(double width)
 {
     m_playDuration = width;
     update();
+}
+
+#include <QGraphicsSceneMouseEvent>
+void AbstractConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.pressed(event->scenePos());
+}
+
+void AbstractConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.moved(event->scenePos());
+}
+
+void AbstractConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit m_presenter.released(event->scenePos());
 }

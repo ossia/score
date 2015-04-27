@@ -12,7 +12,7 @@ class AbstractConstraintView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        AbstractConstraintView(const AbstractConstraintPresenter& presenter,
+        AbstractConstraintView(AbstractConstraintPresenter& presenter,
                                QGraphicsObject* parent);
 
         int type() const override
@@ -75,10 +75,11 @@ class AbstractConstraintView : public QGraphicsObject
             return m_playDuration;
         }
 
-    signals:
-        void constraintPressed();
-
     protected:
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
         QPen m_solidPen
         {
             QBrush{Qt::black},
@@ -97,7 +98,7 @@ class AbstractConstraintView : public QGraphicsObject
         };
 
     private:
-        const AbstractConstraintPresenter& m_presenter;
+        AbstractConstraintPresenter& m_presenter;
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};
