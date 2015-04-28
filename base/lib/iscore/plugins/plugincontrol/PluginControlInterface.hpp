@@ -5,6 +5,7 @@ class QToolBar;
 
 namespace iscore
 {
+    class DocumentDelegatePluginModel;
     class SerializableCommand;
     class Presenter;
     class MenubarManager;
@@ -31,10 +32,13 @@ namespace iscore
             virtual void populateMenus(iscore::MenubarManager*) { }
             virtual QList<QToolBar*> makeToolbars() { return {}; }
 
+            virtual DocumentDelegatePluginModel* loadDocumentPlugin(
+                    const VisitorVariant& var,
+                    QObject* parent)
+            { return nullptr; }
+
             Presenter* presenter() const
-            {
-                return m_presenter;
-            }
+            { return m_presenter; }
 
             void setPresenter(Presenter* p)
             {
@@ -45,14 +49,9 @@ namespace iscore
             virtual SerializableCommand* instantiateUndoCommand(
                     const QString& /*name*/,
                     const QByteArray& /*data*/)
-            {
-                return nullptr;
-            }
-
+            { return nullptr; }
             Document* currentDocument() const
-            {
-                return m_presenter->currentDocument();
-            }
+            { return m_presenter->currentDocument(); }
 
 
             // TODO protected

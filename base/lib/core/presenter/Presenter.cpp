@@ -48,7 +48,7 @@ void Presenter::registerPluginControl(PluginControlInterface* cmd)
     for(auto& bar : bars)
         m_view->addToolBar(bar);
 
-    m_customControls.push_back(cmd);
+    m_controls.push_back(cmd);
 }
 
 void Presenter::registerPanel(PanelFactoryInterface* factory)
@@ -69,6 +69,16 @@ void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel
     m_availableDocuments.push_back(docpanel);
 }
 
+const std::vector<PluginControlInterface *> &Presenter::pluginControls() const
+{
+    return m_controls;
+}
+
+const std::vector<DocumentDelegateFactoryInterface *>& Presenter::availableDocuments() const
+{
+    return m_availableDocuments;
+}
+
 Document *Presenter::currentDocument() const
 {
     return m_currentDocument;
@@ -82,7 +92,7 @@ void Presenter::setCurrentDocument(Document* doc)
         m_currentDocument->bindPanelPresenter(pair.first);
     }
 
-    for(auto& ctrl : m_customControls)
+    for(auto& ctrl : m_controls)
     {
         ctrl->on_documentChanged(m_currentDocument);
     }
@@ -131,7 +141,7 @@ void Presenter::closeDocument(Document* doc)
             pair.first->setModel(nullptr);
         }
 
-        for(auto& ctrl : m_customControls)
+        for(auto& ctrl : m_controls)
         {
             ctrl->on_documentChanged(nullptr);
         }
@@ -255,7 +265,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
                                                                const QString& name,
                                                                const QByteArray& data)
 {
-    for(auto& ccmd : m_customControls)
+    for(auto& ccmd : m_controls)
     {
         if(ccmd->objectName() == parent_name)
         {

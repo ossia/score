@@ -7,7 +7,9 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const NetworkDocumentPlugin& elt)
 {
     readFrom(static_cast<const NamedObject&>(elt));
-    //m_stream << elt.clients();
+    readFrom(*elt.groupManager());
+
+    // Note : we do not save the policy since it will be different on each computer.
     insertDelimiter();
 }
 

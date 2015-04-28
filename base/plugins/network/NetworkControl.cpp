@@ -48,10 +48,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
 
     QAction* connectLocal = new QAction {tr("Join local"), this};
     connect(connectLocal, &QAction::triggered, this,
-            [&] ()
-    {
-        setupClientConnection("127.0.0.1", 9090);
-    });
+            [&] () { setupClientConnection("127.0.0.1", 9090); });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
@@ -71,7 +68,9 @@ void NetworkControl::setupClientConnection(QString ip, int port)
     m_sessionBuilder->initiateConnection();
 }
 
-void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession)
+void NetworkControl::on_sessionBuilt(
+        ClientSessionBuilder* sessionBuilder,
+        ClientSession* builtSession)
 {
     auto doc = presenter()->loadDocument(
                    m_sessionBuilder->documentData(),
@@ -79,11 +78,13 @@ void NetworkControl::on_sessionBuilt(ClientSessionBuilder* sessionBuilder, Clien
 
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
-        auto cmd = presenter()->instantiateUndoCommand(elt.first.first, elt.first.second, elt.second);
+        auto cmd = presenter()->instantiateUndoCommand(elt.first.first,
+                                                       elt.first.second,
+                                                       elt.second);
         doc->commandStack().pushQuiet(cmd);
     }
+
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel("NetworkDocumentPlugin"));
     np->setPolicy(new NetworkDocumentClientPlugin{builtSession, doc});
     delete sessionBuilder;
-
 }

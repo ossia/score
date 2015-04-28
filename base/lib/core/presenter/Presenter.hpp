@@ -29,11 +29,16 @@ namespace iscore
         public:
             Presenter(iscore::View* view, QObject* parent);
 
+            // Register data from plugins
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
             void registerDocumentPanel(DocumentDelegateFactoryInterface*);
 
+            // Getters for plugin-registered things
+            const std::vector<PluginControlInterface*>& pluginControls() const;
+            const std::vector<DocumentDelegateFactoryInterface *> &availableDocuments() const;
 
+            // Document management
             void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
             Document* loadDocument(const QVariant &data,
                               iscore::DocumentDelegateFactoryInterface* doctype);
@@ -43,7 +48,7 @@ namespace iscore
 
             void closeDocument(Document*);
 
-
+            // Methods to save and load
             void saveBinary(Document*);
             void saveJson(Document*);
 
@@ -62,11 +67,6 @@ namespace iscore
             instantiateUndoCommand(const QString& parent_name,
                                    const QString& name,
                                    const QByteArray& data);
-
-            std::vector<DocumentDelegateFactoryInterface*> availableDocuments() const
-            {
-                return m_availableDocuments;
-            }
 
             QList<PanelFactoryInterface*> panelFactories() const
             {
@@ -90,7 +90,7 @@ namespace iscore
             QList<Document*> m_documents{};
             Document* m_currentDocument{};
 
-            std::vector<PluginControlInterface*> m_customControls;
+            std::vector<PluginControlInterface*> m_controls;
             std::vector<DocumentDelegateFactoryInterface*> m_availableDocuments;
 
             // TODO instead put the factory as a member function?

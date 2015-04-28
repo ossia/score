@@ -6,6 +6,7 @@ namespace iscore
     class SerializableCommand;
 
     class PanelFactoryInterface;
+    class PluginControlInterface;
     namespace IPresenter
     {
         /**
@@ -22,5 +23,6 @@ namespace iscore
                                const QByteArray& data);
 
         QList<iscore::PanelFactoryInterface*> panelFactories();
+        const std::vector<iscore::PluginControlInterface*>& pluginControls();
     }
 }

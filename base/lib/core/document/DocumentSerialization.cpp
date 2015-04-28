@@ -135,6 +135,7 @@ Document::Document(const QVariant& data,
 
 
 #include <iscore/presenter/PresenterInterface.hpp>
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 // Load document model
 DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
@@ -165,12 +166,13 @@ DocumentModel::DocumentModel(const QVariant& data,
         // Note : this *has* to be in this order, because
         // the plugin models might put some data in the
         // document that requires the plugin models to be loaded
-        // in order to be deserialized.
-        auto factories = iscore::IPresenter::panelFactories();
+        // in order to be deserialized. (e.g. the groups for the network)
+        // First load the panels
+        auto panel_factories = iscore::IPresenter::panelFactories();
         for(const auto& panel : panelModels)
         {
-            auto factory = *find_if(begin(factories),
-                                   end(factories),
+            auto factory = *find_if(begin(panel_factories),
+                                   end(panel_factories),
                                    [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == panel.first; });
 
             // Note : here we handle the case where the plug-in is not able to
@@ -183,22 +185,29 @@ DocumentModel::DocumentModel(const QVariant& data,
                 addPanel(factory->makeModel(this));
         }
 
-        qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
-        for(const auto& plugin : documentPluginModels)
+        // Load the plugin models now
+        auto plugin_control = iscore::IPresenter::pluginControls();
+        for(const auto& plugin_raw : documentPluginModels)
         {
-
-
+            DataStream::Deserializer plug_writer{plugin_raw.second};
+            for(iscore::PluginControlInterface* control : plugin_control)
+            {
+                if(auto loaded_plug = control->loadDocumentPlugin(plug_writer.toVariant(), this))
+                {
+                    addPluginModel(loaded_plug);
+                }
+            }
         }
 
         // Load the document model
-
         DataStream::Deserializer doc_writer{doc};
         m_model = fact->loadModel(doc_writer.toVariant(), this);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
         QJsonObject json = data.toJsonObject();
-
+        // TODO put them in sub-objects, else the iteration will take ages.
+        // Load the panels
         auto factories = iscore::IPresenter::panelFactories();
         for(const auto& key : json.keys())
         {
@@ -219,8 +228,22 @@ DocumentModel::DocumentModel(const QVariant& data,
             }
         }
 
-        qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
+        // Load the plug-in models
+        auto plugin_control = iscore::IPresenter::pluginControls();
+        for(const auto& key : json.keys())
+        {
+            JSONObject::Deserializer plug_writer{json[key].toObject()};
+            for(iscore::PluginControlInterface* control : plugin_control)
+            {
+                if(auto loaded_plug = control->loadDocumentPlugin(plug_writer.toVariant(), this))
+                {
+                    addPluginModel(loaded_plug);
+                }
+            }
+        }
 
+
+        // Load the model
         JSONObject::Deserializer doc_writer{json["Document"].toObject()};
         m_model = fact->loadModel(doc_writer.toVariant(), this);
     }

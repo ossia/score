@@ -15,7 +15,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     auto constraints = scenario.constraints();
     m_stream << (int) constraints.size();
 
-    for(auto constraint : constraints)
+    for(const auto& constraint : constraints)
     {
         readFrom(*constraint);
     }
@@ -24,15 +24,16 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     auto events = scenario.events();
     m_stream << (int) events.size();
 
-    for(auto event : events)
+    for(const auto& event : events)
     {
         readFrom(*event);
     }
 
+    // Timenodes
     auto timenodes = scenario.timeNodes();
     m_stream << (int) timenodes.size();
 
-    for(auto timenode : timenodes)
+    for(const auto& timenode : timenodes)
     {
         readFrom(*timenode);
     }
@@ -66,6 +67,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
         scenario.addEvent(evmodel);
     }
 
+    // Timenodes
     int timenode_count;
     m_stream >> timenode_count;
 
@@ -98,7 +100,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
     scenario.m_startEventId = fromJsonValue<id_type<EventModel>> (m_obj["StartEventId"]);
     scenario.m_endEventId = fromJsonValue<id_type<EventModel>> (m_obj["EndEventId"]);
 
-    for(auto json_vref : m_obj["Constraints"].toArray())
+    for(const auto& json_vref : m_obj["Constraints"].toArray())
     {
         auto constraint = new ConstraintModel{
                 Deserializer<JSONObject>{json_vref.toObject() },
@@ -106,7 +108,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         scenario.addConstraint(constraint);
     }
 
-    for(auto json_vref : m_obj["Events"].toArray())
+    for(const auto& json_vref : m_obj["Events"].toArray())
     {
         auto evmodel = new EventModel {
                        Deserializer<JSONObject>{json_vref.toObject() },
@@ -115,7 +117,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         scenario.addEvent(evmodel);
     }
 
-    for(auto json_vref : m_obj["TimeNodes"].toArray())
+    for(const auto& json_vref : m_obj["TimeNodes"].toArray())
     {
         auto tnmodel = new TimeNodeModel {
                        Deserializer<JSONObject>{json_vref.toObject() },

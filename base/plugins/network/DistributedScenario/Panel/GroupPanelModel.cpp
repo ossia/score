@@ -23,9 +23,8 @@ void GroupPanelModel::scanPlugins()
     auto pluginModels = static_cast<iscore::DocumentModel*>(parent())->pluginModels();
     for(auto& plug : pluginModels)
     {
-        if(plug->objectName() == "NetworkDocumentPlugin")
+        if(auto netplug = dynamic_cast<NetworkDocumentPlugin*>(plug))
         {
-            auto netplug = static_cast<NetworkDocumentPlugin*>(plug);
             m_currentManager = netplug->groupManager();
             m_currentSession = netplug->policy()->session();
 
