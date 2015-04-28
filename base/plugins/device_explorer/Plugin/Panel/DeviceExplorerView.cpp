@@ -6,6 +6,7 @@
 #include <QSettings>
 
 #include "DeviceExplorerModel.hpp"
+#include "DeviceExplorerCommandCreator.hpp"
 #include "DeviceExplorerFilterProxyModel.hpp"
 
 #ifdef MODEL_TEST
@@ -386,45 +387,45 @@ void
 DeviceExplorerView::copy()
 {
     Q_ASSERT(model());
-    setSelectedIndex(model()->copy(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->copy(selectedIndex()));
 }
 
 void
 DeviceExplorerView::cut()
 {
     Q_ASSERT(model());
-    setSelectedIndex(model()->cut(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->cut(selectedIndex()));
 }
 
 void
 DeviceExplorerView::paste()
 {
     Q_ASSERT(model());
-    setSelectedIndex(model()->paste(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->paste(selectedIndex()));
 }
 
 void
 DeviceExplorerView::moveUp()
 {
-    setSelectedIndex(model()->moveUp(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->moveUp(selectedIndex()));
     //model()->moveUp(selectedIndex());
 }
 
 void
 DeviceExplorerView::moveDown()
 {
-    setSelectedIndex(model()->moveDown(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->moveDown(selectedIndex()));
 }
 
 void
 DeviceExplorerView::promote()
 {
-    setSelectedIndex(model()->promote(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->promote(selectedIndex()));
 }
 
 void
 DeviceExplorerView::demote()
 {
-    setSelectedIndex(model()->demote(selectedIndex()));
+    setSelectedIndex(model()->cmdCreator()->demote(selectedIndex()));
 }
 

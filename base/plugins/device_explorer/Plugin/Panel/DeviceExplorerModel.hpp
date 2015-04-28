@@ -23,6 +23,7 @@ namespace DeviceExplorer {
 
 class Node;
 class DeviceExplorerView;
+class DeviceExplorerCommandCreator;
 struct AddressSettings;
 
 class DeviceExplorerModel : public QAbstractItemModel
@@ -35,6 +36,8 @@ class DeviceExplorerModel : public QAbstractItemModel
         friend class DeviceExplorer::Command::Copy;
         friend class DeviceExplorer::Command::Cut;
         friend class DeviceExplorer::Command::Paste;
+
+        friend class DeviceExplorerCommandCreator;
 
     public:
 
@@ -82,31 +85,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool insertTreeData(const QModelIndex& parent, int row, const QByteArray& data);
 
 
-        /*
-          The following methods return a QModelIndex that can be used as the new selection.
-         */
-
-        QModelIndex copy(const QModelIndex& index);
-        QModelIndex cut(const QModelIndex& index);
-        QModelIndex paste(const QModelIndex& index);
-
-        //Move up node at @a index among siblings
-        QModelIndex moveUp(const QModelIndex& index);
-
-        //Move down node at @a index among siblings
-        QModelIndex moveDown(const QModelIndex& index);
-
-        //Move node at @a index at its parent level,
-        //i.e., making node a child of its grandparent
-        // and the next sibling of its parent.
-        QModelIndex promote(const QModelIndex& index);
-
-        //Move node at @a index as child of its up sibling
-        QModelIndex demote(const QModelIndex& index);
-
-
-
-
         QModelIndex index(int row, int column, const QModelIndex& parent) const override;
         QModelIndex parent(const QModelIndex& child) const override;
         int rowCount(const QModelIndex& parent) const override;
@@ -146,6 +124,8 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         Path pathFromIndex(const QModelIndex& index);
         QModelIndex pathToIndex(const Path& path);
+
+        DeviceExplorerCommandCreator* cmdCreator();
 
     protected:
 
@@ -187,22 +167,22 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void setCachedResult(Result r);
 
+        typedef QPair<Node*, bool> CutElt;
+        QStack<CutElt> m_cutNodes;
+        bool m_lastCutNodeIsCopied;
+
     private:
         Node* createRootNode() const;
 
         void setColumnValue(Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
-
         Node* m_rootNode;
 
-        typedef QPair<Node*, bool> CutElt;
-        QStack<CutElt> m_cutNodes;
-        bool m_lastCutNodeIsCopied;
-
         iscore::CommandStack* m_cmdQ;
-        Result m_cachedResult;
 
         DeviceExplorerView* m_view {};
+
+        DeviceExplorerCommandCreator* m_cmdCreator;
 };
 
