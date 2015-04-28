@@ -109,7 +109,8 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
-
+#include <core/document/Document.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
     auto updateDeckFocus = [&] (bool b)
@@ -128,6 +129,10 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
         // Disable the focus on previously focused view model
         updateDeckFocus(false);
 
+        // Deselect
+        iscore::SelectionDispatcher selectionDispatcher(iscore::IDocument::documentFromObject(*this)->selectionStack());
+        selectionDispatcher.setAndCommit({});
+
         // Assign
         m_focusedViewModel = proc;
 
@@ -137,7 +142,6 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
         emit focusedViewModelChanged();
     }
 }
-
 
 
 void BaseElementModel::setNewSelection(const Selection& s)
