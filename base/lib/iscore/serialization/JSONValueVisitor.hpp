@@ -112,7 +112,7 @@ T fromJsonValue(const QJsonValue& json)
 template<typename T>
 void fromJsonValue(QJsonValueRef&& json, T& val)
 {
-    Visitor<Writer<JSONValue>> writer {static_cast<QJsonValue&&>(json)};
+    Visitor<Writer<JSONValue>> writer {static_cast<QJsonValue>(json)};
     writer.writeTo(val);
 }
 
@@ -127,7 +127,7 @@ template<typename T>
 T fromJsonValue(QJsonValueRef&& json)
 {
     T val;
-    Visitor<Writer<JSONValue>> writer {static_cast<QJsonValue&&>(json)};
+    Visitor<Writer<JSONValue>> writer {static_cast<QJsonValue>(json)};
     writer.writeTo(val);
     return val;
 }
