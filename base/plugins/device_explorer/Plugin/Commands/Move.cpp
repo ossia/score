@@ -61,8 +61,8 @@ Move::mergeWith(const Command* /*other*/)
 void
 Move::serializeImpl(QDataStream& d) const
 {
-    DeviceExplorerModel::serializePath(d, m_srcParentPath);
-    DeviceExplorerModel::serializePath(d, m_dstParentPath);
+    m_srcParentPath.serializePath(d);
+    m_dstParentPath.serializePath(d);
     d << (qint32) m_srcRow;
     d << (qint32) m_dstRow;
     d << (qint32) m_count;
@@ -71,8 +71,8 @@ Move::serializeImpl(QDataStream& d) const
 void
 Move::deserializeImpl(QDataStream& d)
 {
-    DeviceExplorerModel::deserializePath(d, m_srcParentPath);
-    DeviceExplorerModel::deserializePath(d, m_dstParentPath);
+    m_srcParentPath.deserializePath(d);
+    m_dstParentPath.deserializePath(d);
     qint32 v;
     d >> v;
     m_srcRow = v;

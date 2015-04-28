@@ -12,13 +12,33 @@ namespace iscore
 }
 namespace DeviceExplorer {
     namespace Command {
-        class Move;
         class Insert;
-        class Remove;
-        class Copy;
         class Cut;
         class Paste;
     }
+    struct Result
+    {
+        Result(bool ok_ = true, const QModelIndex& index_ = QModelIndex())
+            : ok(ok_), index(index_)
+        {}
+
+        Result(const QModelIndex& index_)
+            : ok(true), index(index_)
+        {}
+
+        //Type-cast operators
+        operator bool() const
+        {
+            return ok;
+        }
+        operator QModelIndex() const
+        {
+            return index;
+        }
+
+        bool ok;
+        QModelIndex index;
+    };
 }
 
 class Node;
@@ -30,13 +50,9 @@ class DeviceExplorerModel : public QAbstractItemModel
 {
         Q_OBJECT
 
-        friend class DeviceExplorer::Command::Move;
         friend class DeviceExplorer::Command::Insert;
-        friend class DeviceExplorer::Command::Remove;
-        friend class DeviceExplorer::Command::Copy;
         friend class DeviceExplorer::Command::Cut;
         friend class DeviceExplorer::Command::Paste;
-
         friend class DeviceExplorerCommandCreator;
 
     public:
@@ -59,7 +75,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         }
 
         QModelIndexList selectedIndexes() const;
-
 
         void setCommandQueue(iscore::CommandStack* q);
         bool load(const QString& filename);
@@ -122,46 +137,16 @@ class DeviceExplorerModel : public QAbstractItemModel
         QModelIndex pathToIndex(const Path& path);
 
         DeviceExplorerCommandCreator* cmdCreator();
+        void setCachedResult(DeviceExplorer::Result r);
 
     protected:
 
-        static void serializePath(QDataStream& d, const Path& p);
-        static void deserializePath(QDataStream& d, Path& p);
-
-        struct Result
-        {
-            Result(bool ok_ = true, const QModelIndex& index_ = QModelIndex())
-                : ok(ok_), index(index_)
-            {}
-
-            Result(const QModelIndex& index_)
-                : ok(true), index(index_)
-            {}
-
-            //Type-cast operators
-            operator bool() const
-            {
-                return ok;
-            }
-            operator QModelIndex() const
-            {
-                return index;
-            }
-
-            bool ok;
-            QModelIndex index;
-
-        };
-
-        DeviceExplorerModel::Result cut_aux(const QModelIndex& index);
-        DeviceExplorerModel::Result paste_aux(const QModelIndex& index, bool after);
-        DeviceExplorerModel::Result pasteBefore_aux(const QModelIndex& index);
-        DeviceExplorerModel::Result pasteAfter_aux(const QModelIndex& index);
-
+        DeviceExplorer::Result cut_aux(const QModelIndex& index);
+        DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);
+        DeviceExplorer::Result pasteBefore_aux(const QModelIndex& index);
+        DeviceExplorer::Result pasteAfter_aux(const QModelIndex& index);
 
         void debug_printPath(const Path& path);
-
-        void setCachedResult(Result r);
 
         typedef QPair<Node*, bool> CutElt;
         QStack<CutElt> m_cutNodes;

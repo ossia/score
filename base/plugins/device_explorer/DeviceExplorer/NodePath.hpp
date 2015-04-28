@@ -27,6 +27,10 @@ class Path
         void clear();
         void reserve(int size);
 
+        void serializePath(QDataStream& d) const;
+        void deserializePath(QDataStream& d);
+
+
     private:
         QList<int> m_path;
 };

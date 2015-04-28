@@ -30,7 +30,7 @@ Paste::undo()
     QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row + 1, 0);  //+1 because pasteAfter
-    const DeviceExplorerModel::Result result = model->cut_aux(index);
+    const DeviceExplorer::Result result = model->cut_aux(index);
     model->setCachedResult(result);
 
 }
@@ -43,7 +43,7 @@ Paste::redo()
     QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
-    const DeviceExplorerModel::Result result = model->pasteAfter_aux(index);
+    const DeviceExplorer::Result result = model->pasteAfter_aux(index);
     model->setCachedResult(result);
 
 }
@@ -57,7 +57,7 @@ Paste::mergeWith(const Command* /*other*/)
 void
 Paste::serializeImpl(QDataStream& d) const
 {
-    DeviceExplorerModel::serializePath(d, m_parentPath);
+    m_parentPath.serializePath(d);
     d << (qint32) m_row;
 
     d << (qint32) m_data.size();
@@ -68,7 +68,7 @@ Paste::serializeImpl(QDataStream& d) const
 void
 Paste::deserializeImpl(QDataStream& d)
 {
-    DeviceExplorerModel::deserializePath(d, m_parentPath);
+    m_parentPath.deserializePath(d);
     qint32 v;
     d >> v;
     m_row = v;

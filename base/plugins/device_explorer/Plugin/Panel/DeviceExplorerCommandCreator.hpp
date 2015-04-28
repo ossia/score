@@ -56,12 +56,12 @@ class DeviceExplorerCommandCreator : public QObject
         //Move node at @a index as child of its up sibling
         QModelIndex demote(const QModelIndex& index);
 
-        void setCachedResult(DeviceExplorerModel::Result r);
+        void setCachedResult(DeviceExplorer::Result r);
 
         typedef QPair<Node*, bool> CutElt;
 
     protected:
-        DeviceExplorerModel::Result m_cachedResult;
+        DeviceExplorer::Result m_cachedResult;
 
     private:
         DeviceExplorerModel* m_model;

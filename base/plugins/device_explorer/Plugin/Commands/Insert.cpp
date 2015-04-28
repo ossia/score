@@ -59,7 +59,7 @@ Insert::mergeWith(const Command* /*other*/)
 void
 Insert::serializeImpl(QDataStream& d) const
 {
-    DeviceExplorerModel::serializePath(d, m_parentPath);
+    m_parentPath.serializePath(d);
     d << (qint32) m_row;
 
     d << (qint32) m_data.size();
@@ -70,7 +70,7 @@ Insert::serializeImpl(QDataStream& d) const
 void
 Insert::deserializeImpl(QDataStream& d)
 {
-    DeviceExplorerModel::deserializePath(d, m_parentPath);
+    m_parentPath.deserializePath(d);
     qint32 v;
     d >> v;
     m_row = v;

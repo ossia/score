@@ -286,7 +286,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     return m_model->pathToIndex(newPath);
 }
 
-void DeviceExplorerCommandCreator::setCachedResult(DeviceExplorerModel::Result r)
+void DeviceExplorerCommandCreator::setCachedResult(DeviceExplorer::Result r)
 {
     m_cachedResult = r;
 }

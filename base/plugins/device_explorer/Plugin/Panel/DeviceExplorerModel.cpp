@@ -7,10 +7,7 @@
 
 #include <QMimeData>
 
-#include "Commands/Move.hpp"
 #include "Commands/Insert.hpp"
-#include "Commands/Cut.hpp"
-#include "Commands/Paste.hpp"
 #include "Commands/EditData.hpp"
 
 using namespace DeviceExplorer::Command;
@@ -1019,12 +1016,12 @@ DeviceExplorerModel::hasCut() const
 
 */
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::cut_aux(const QModelIndex& index)
 {
     if(!index.isValid())
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
 
@@ -1093,17 +1090,17 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
 
 */
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
 {
     if(m_cutNodes.isEmpty())
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
     if(! index.isValid() && ! m_cutNodes.top().second)  //we can not pass addresses at top level
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
 
@@ -1170,13 +1167,13 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
     return createIndex(row, 0, child);
 }
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::pasteAfter_aux(const QModelIndex& index)
 {
     return paste_aux(index, true);
 }
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::pasteBefore_aux(const QModelIndex& index)
 {
     return paste_aux(index, false);
@@ -1619,7 +1616,7 @@ DeviceExplorerModel::insertTreeData(const QModelIndex& parent, int row, const QB
 }
 
 void
-DeviceExplorerModel::setCachedResult(Result r)
+DeviceExplorerModel::setCachedResult(DeviceExplorer::Result r)
 {
     m_cmdCreator->setCachedResult(r);
 }
@@ -1642,34 +1639,6 @@ DeviceExplorerCommandCreator *DeviceExplorerModel::cmdCreator()
 {
     return m_cmdCreator;
 }
-
-void
-DeviceExplorerModel::serializePath(QDataStream& d, const Path& p)
-{
-    const int size = p.size();
-    d << (qint32) size;
-
-    for(int i = 0; i < size; ++i)
-    {
-        d << (qint32) p.at(i);
-    }
-}
-
-void
-DeviceExplorerModel::deserializePath(QDataStream& d, Path& p)
-{
-    qint32 size;
-    d >> size;
-    p.reserve(size);
-
-    for(int i = 0; i < size; ++i)
-    {
-        qint32 v;
-        d >> v;
-        p.append(v);
-    }
-}
-
 
 void
 DeviceExplorerModel::debug_printPath(const Path& path)
