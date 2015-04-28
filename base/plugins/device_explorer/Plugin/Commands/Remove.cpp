@@ -10,10 +10,11 @@ Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                             className(),
                             description()},
-    m_deviceTree{device_tree}
+    m_deviceTree{device_tree},
+    m_nodePath{nodePath}
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node *node = explorer->pathToNode(nodePath);
+    Node *node = explorer->pathToNode(m_nodePath);
 
     if (! node->isDevice())
     {
@@ -25,7 +26,6 @@ Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     }
     m_addressSettings = node->addressSettings();
     m_nodeIndex = explorer->pathToNode(m_parentPath)->indexOfChild(node);
-    m_node = node->clone();
 }
 
 void
@@ -38,8 +38,12 @@ Remove::undo()
 void
 Remove::redo()
 {
+
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
+    Node *node = explorer->pathToNode(m_nodePath);
+    m_node = node->clone();
     Node* parent = explorer->pathToNode(m_parentPath);
+
     explorer->removeNode(parent->childAt(m_nodeIndex));
 }
 

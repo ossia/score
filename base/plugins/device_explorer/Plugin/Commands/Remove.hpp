@@ -31,10 +31,11 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_deviceTree;
                 Path m_parentPath;
+                Path m_nodePath;
                 AddressSettings m_addressSettings;
                 int m_nodeIndex{};
 
-                //QByteArray m_serializedNode;
+                //TODO : QByteArray m_serializedNode;
                 Node* m_node{};
         };
     }
