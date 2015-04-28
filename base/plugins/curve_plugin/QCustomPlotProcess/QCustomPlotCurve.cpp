@@ -226,9 +226,9 @@ void QCustomPlotCurve::redraw()
 
 void QCustomPlotCurve::setSize(const QSizeF& size)
 {
-    prepareGeometryChange();
-    if(size.width() == 0 || size.height() == 0)
+    if(size.width() <= 0 || size.height() <= 0)
         return;
+    prepareGeometryChange();
 
     m_size = size;
 

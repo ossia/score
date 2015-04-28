@@ -64,13 +64,11 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
                                                         const ProcessViewModelInterface* source,
                                                         QObject* parent)
 {
-    auto scen = new TemporalScenarioViewModel
-    {
+    auto scen = new TemporalScenarioViewModel{
                 static_cast<const TemporalScenarioViewModel*>(source),
                 newId,
                 this,
-                parent
-};
+                parent};
     makeViewModel_impl(scen);
     return scen;
 }

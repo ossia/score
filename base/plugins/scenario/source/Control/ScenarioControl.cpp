@@ -444,6 +444,7 @@ void ScenarioControl::on_documentChanged(Document *doc)
 
 ScenarioModel *ScenarioControl::focusedScenario()
 {
-    auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    return dynamic_cast<ScenarioModel *>(model.focusedViewModel()->sharedProcessModel());
+    auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+    auto sm = dynamic_cast<ProcessViewModelInterface*>(model.focusedViewModel());
+    return sm ? dynamic_cast<ScenarioModel *>(sm->sharedProcessModel()) : nullptr;
 }

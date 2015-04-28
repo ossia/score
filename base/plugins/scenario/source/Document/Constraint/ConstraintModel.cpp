@@ -3,10 +3,11 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
-
+#include "ProcessInterface/ProcessViewModelInterface.hpp"
 ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
                                  id_type<AbstractConstraintViewModel> fullViewId,
                                  double yPos,
@@ -25,20 +26,38 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
-    /* TODO constraint copy
+    qDebug() << "Loading constraint" << this;
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
 
-    for(auto& box : source->boxes())
+    // For an explanation of this, see CopyConstraintContent command
+    std::map<ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
+
+    // Clone the processes
+    auto src_procs = source->processes();
+    for(auto i = src_procs.size(); i --> 0; )
     {
-        addBox(new BoxModel {box, box->id(), this});
+        auto process = src_procs[i];
+        auto newproc = process->clone(process->id(), this);
+
+        processPairs.insert(std::make_pair(process, newproc));
+        addProcess(newproc);
     }
 
-    for(auto& process : source->processes())
+    for(auto& box : source->boxes())
     {
-        addProcess(process->clone(process->id(), this));
+        addBox(new BoxModel {box, box->id(), [&] (DeckModel& source, DeckModel& target)
+                             {
+                                 for(auto& pvm : source.processViewModels())
+                                 {
+                                     // We can safely reuse the same id since it's in a different deck.
+                                     auto proc = processPairs[pvm->sharedProcessModel()];
+                                     // TODO harmonize the order of parameters (source first, then new id)
+                                     target.addProcessViewModel(proc->makeViewModel(pvm->id(), pvm, &target));
+                                 }
+                             }, this});
     }
+
 
     // NOTE : we do not copy the view models on which this constraint does not have ownership,
     // this is the job of a command.
@@ -54,7 +73,6 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
     m_maxDuration = source->maxDuration();
     m_x = source->m_x;
     m_heightPercentage = source->heightPercentage();
-    */
 }
 
 
