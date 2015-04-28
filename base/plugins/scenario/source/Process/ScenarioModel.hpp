@@ -151,6 +151,9 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
     private:
+        ScenarioModel(ScenarioModel* source,
+                      id_type<ProcessSharedModelInterface> id,
+                      QObject* parent);
         void makeViewModel_impl(view_model_type*);
 
         std::vector<ConstraintModel*> m_constraints;

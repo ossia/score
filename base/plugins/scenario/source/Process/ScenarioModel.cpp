@@ -25,29 +25,33 @@ ScenarioModel::ScenarioModel(TimeValue duration,
 
 }
 
+ScenarioModel::ScenarioModel(ScenarioModel* source,
+                             id_type<ProcessSharedModelInterface> id,
+                             QObject* parent) :
+    ProcessSharedModelInterface {source->duration(), id, "ScenarioModel", parent}
+{
+    for(ConstraintModel* constraint : source->m_constraints)
+    {
+        addConstraint(new ConstraintModel {constraint, constraint->id(), this});
+    }
+
+    for(EventModel* event : source->m_events)
+    {
+        addEvent(new EventModel {event, event->id(), this});
+    }
+
+    for(TimeNodeModel* timenode : source->m_timeNodes)
+    {
+        addTimeNode(new TimeNodeModel {timenode, timenode->id(), this});
+    }
+
+    m_startEventId = source->m_startEventId;
+    m_endEventId = source->m_endEventId;
+}
+
 ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)
 {
-    auto scenario = new ScenarioModel {this->duration(), newId, newParent};
-
-    for(ConstraintModel* constraint : m_constraints)
-    {
-        scenario->addConstraint(new ConstraintModel {constraint, constraint->id(), scenario});
-    }
-
-    for(EventModel* event : m_events)
-    {
-        scenario->addEvent(new EventModel {event, event->id(), scenario});
-    }
-
-    for(TimeNodeModel* timenode : m_timeNodes)
-    {
-        scenario->addTimeNode(new TimeNodeModel {timenode, timenode->id(), scenario});
-    }
-
-    scenario->m_startEventId = m_startEventId;
-    scenario->m_endEventId = m_endEventId;
-
-    return scenario;
+    return new ScenarioModel {this, newId, newParent};
 }
 
 ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,

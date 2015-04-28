@@ -46,31 +46,45 @@ ScenarioControl::ScenarioControl(QObject *parent) :
 
 }
 
+template<typename Selected_T>
+auto arrayToJson(Selected_T &&selected)
+{
+    QJsonArray array;
+    if (!selected.empty())
+    {
+        for (auto &element : selected)
+        {
+            Visitor<Reader<JSONObject>> jr;
+            jr.readFrom(*element);
+            array.push_back(jr.m_obj);
+        }
+    }
+
+    return array;
+}
+
 QJsonObject ScenarioControl::copySelectedElementsToJson()
 {
     QJsonObject base;
 
     if (auto sm = focusedScenario())
     {
-        auto arrayToJson = [](auto &&selected)
-        {
-            QJsonArray array;
-            if (!selected.empty())
-            {
-                for (auto &element : selected)
-                {
-                    Visitor<Reader<JSONObject>> jr;
-                    jr.readFrom(*element);
-                    array.push_back(jr.m_obj);
-                }
-            }
-
-            return array;
-        };
-
         base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
         base["Events"] = arrayToJson(selectedElements(sm->events()));
         base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
+    }
+    else
+    {
+        // Full-view copy
+        auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+        if(bem.constraintModel()->selection.get())
+        {
+            QJsonArray arr;
+            Visitor<Reader<JSONObject>> jr;
+            jr.readFrom(*bem.constraintModel());
+            arr.push_back(jr.m_obj);
+            base["Constraints"] = arr;
+        }
     }
     return base;
 }
@@ -109,6 +123,7 @@ void ScenarioControl::writeJsonToSelectedElements(const QJsonObject& obj)
         }
     }
 }
+
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// File /////

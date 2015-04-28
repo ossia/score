@@ -73,6 +73,9 @@ void CopyConstraintContent::redo()
 
         processPairs.insert(std::make_pair(sourceproc, newproc));
         trg_constraint->addProcess(newproc);
+
+        // Resize the processes according to the new constraint.
+        newproc->setDurationAndScale(trg_constraint->defaultDuration());
     }
 
     // Clone the boxes

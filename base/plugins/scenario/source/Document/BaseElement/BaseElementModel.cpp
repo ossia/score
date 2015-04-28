@@ -134,7 +134,15 @@ void BaseElementModel::setNewSelection(const Selection& s)
     }
     else if(s.first() == m_displayedConstraint)
     {
+        if(m_focusedProcess)
+        {
+            m_focusedProcess->setSelection({});
+            m_focusedProcess = nullptr;
+        }
+        setFocusedViewModel(nullptr);
+
         m_displayedConstraint->selection.set(true);
+
     }
     else
     {

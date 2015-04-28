@@ -29,6 +29,15 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
 
+    m_startEvent = source->startEvent();
+    m_endEvent = source->endEvent();
+
+    m_defaultDuration = source->defaultDuration();
+    m_minDuration = source->minDuration();
+    m_maxDuration = source->maxDuration();
+    m_x = source->m_x;
+    m_heightPercentage = source->heightPercentage();
+
     // For an explanation of this, see CopyConstraintContent command
     std::map<ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
 
@@ -41,6 +50,8 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
 
         processPairs.insert(std::make_pair(process, newproc));
         addProcess(newproc);
+
+        // We don't need to resize them since the new constraint will have the same duration.
     }
 
     for(auto& box : source->boxes())
@@ -63,15 +74,6 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
     // However, the full view constraint must be copied since we have ownership of it.
 
     m_fullViewModel = source->fullView()->clone(source->fullView()->id(), this, this);
-
-    m_startEvent = source->startEvent();
-    m_endEvent = source->endEvent();
-
-    m_defaultDuration = source->defaultDuration();
-    m_minDuration = source->minDuration();
-    m_maxDuration = source->maxDuration();
-    m_x = source->m_x;
-    m_heightPercentage = source->heightPercentage();
 }
 
 
