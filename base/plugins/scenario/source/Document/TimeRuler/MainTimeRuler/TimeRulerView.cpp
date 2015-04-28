@@ -8,7 +8,7 @@ TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
     m_height = -3 * m_graduationHeight;
-    m_textPosition = 1.5 * m_graduationHeight;
+    m_textPosition = 1.05 * m_graduationHeight;
     m_color = QColor(50, 0, 155);
 }
 

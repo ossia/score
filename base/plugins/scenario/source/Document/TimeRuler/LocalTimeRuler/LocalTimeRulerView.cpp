@@ -4,7 +4,7 @@ LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()
 {
     m_graduationHeight = 10;
-    m_textPosition = 3 * m_graduationHeight;
+    m_textPosition = 1.5 * m_graduationHeight;
     m_height = 3 * m_graduationHeight;
     m_color = QColor{155,0,70};
     m_timeFormat = "ss''''z";

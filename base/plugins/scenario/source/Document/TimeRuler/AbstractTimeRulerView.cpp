@@ -21,9 +21,9 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(QBrush(m_color), 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
-    for (auto mark : m_marks)
+    for (const auto& mark : m_marks)
     {
-        painter->drawText(m_marks.key(mark) , m_textPosition, mark.toString(m_timeFormat) );
+        painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat) );
     }
 
 }
