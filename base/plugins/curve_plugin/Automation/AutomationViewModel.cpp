@@ -41,6 +41,7 @@ ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy()
 
 void AutomationViewModel::serialize(const VisitorVariant&) const
 {
+    // Nothing to save
 }
 
 AutomationModel* AutomationViewModel::model()

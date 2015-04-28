@@ -137,44 +137,19 @@ ProcessSharedModelInterface* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
-
-    switch(vis.identifier)
-    {
-        case DataStream::type():
-        {
-            return new ScenarioModel {static_cast<DataStream::Deserializer&>(vis.visitor), parent};
-        }
-        case JSONObject::type():
-        {
-            return new ScenarioModel {static_cast<JSONObject::Deserializer&>(vis.visitor), parent};
-        }
-    }
-
-    throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
+    { return new ScenarioModel{deserializer, parent};});
 }
 
 ProcessViewModelInterface* ScenarioModel::loadViewModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
-    if(vis.identifier == DataStream::type())
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto scen = new TemporalScenarioViewModel(
-                        static_cast<DataStream::Deserializer&>(vis.visitor),
-                        this,
-                        parent);
-        makeViewModel_impl(scen);
+        auto scen = new TemporalScenarioViewModel{
+                            deserializer, this, parent};
+        this->makeViewModel_impl(scen);
         return scen;
-    }
-    else if(vis.identifier == JSONObject::type())
-    {
-        auto scen = new TemporalScenarioViewModel(
-                        static_cast<JSONObject::Deserializer&>(vis.visitor),
-                        this,
-                        parent);
-        makeViewModel_impl(scen);
-        return scen;
-    }
-
-    throw std::runtime_error("ScenarioViewModels only supports DataStream & JSON serialization");
+    });
 }

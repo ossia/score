@@ -39,6 +39,7 @@ TheClass& deserialize_dyn(const VisitorVariant& vis, TheClass& s)
             Q_ASSERT(false);
     }
 }
+
 template<typename TheClass>
 TheClass deserialize_dyn(const VisitorVariant& vis)
 {
@@ -55,6 +56,26 @@ TheClass deserialize_dyn(const VisitorVariant& vis)
         {
             static_cast<JSONObject::Deserializer&>(vis.visitor).writeTo(s);
             return s;
+        }
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+template<typename Functor>
+auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
+{
+    switch(vis.identifier)
+    {
+        case DataStream::type():
+        {
+            return fun(static_cast<DataStream::Deserializer&>(vis.visitor));
+            break;
+        }
+        case JSONObject::type():
+        {
+            return fun(static_cast<JSONObject::Deserializer&>(vis.visitor));
+            break;
         }
         default:
             Q_ASSERT(false);

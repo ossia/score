@@ -58,72 +58,33 @@ void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 }
 
 
-
+// Dynamic stuff
+#include <iscore/serialization/VisitorCommon.hpp>
 void AutomationModel::serialize(const VisitorVariant& vis) const
 {
-    switch(vis.identifier)
-    {
-        case DataStream::type():
-            static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
-            return;
-        case JSONObject::type():
-            static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
-            return;
-    }
-
-    throw std::runtime_error("AutomationModel only supports DataStream & JSON serialization");
+    serialize_dyn(vis, *this);
 }
-
-
 
 ProcessSharedModelInterface* AutomationFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
-    switch(vis.identifier)
-    {
-        case DataStream::type():
-            return new AutomationModel {
-                static_cast<DataStream::Deserializer&>(vis.visitor),
-                parent};
-        case JSONObject::type():
-            return new AutomationModel {
-                static_cast<JSONObject::Deserializer&>(vis.visitor),
-                parent};
-    }
-
-    throw std::runtime_error("Automation only supports DataStream & JSON serialization");
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
+    { return new AutomationModel{deserializer, parent};});
 }
 
 ProcessViewModelInterface* AutomationModel::loadViewModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
-    switch(vis.identifier)
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        case DataStream::type():
-        {
-            auto autom = new AutomationViewModel {
-                         static_cast<DataStream::Deserializer&>(vis.visitor),
-                         this,
-                         parent};
+        auto autom = new AutomationViewModel{
+                        deserializer, this, parent};
 
-            addViewModel(autom);
-            return autom;
-        }
-        case JSONObject::type():
-        {
-            auto autom = new AutomationViewModel {
-                         static_cast<JSONObject::Deserializer&>(vis.visitor),
-                         this,
-                         parent};
-
-            addViewModel(autom);
-            return autom;
-        }
-    }
-
-    throw std::runtime_error("Automation ViewModel only supports DataStream & JSON serialization");
+        this->addViewModel(autom);
+        return autom;
+    });
 }
 
 

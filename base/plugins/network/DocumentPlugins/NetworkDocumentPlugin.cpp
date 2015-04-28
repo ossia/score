@@ -107,21 +107,8 @@ NetworkDocumentPlugin::loadElementPlugin(
     if(element->staticMetaObject.className() == QString{"ConstraintModel"}
     || element->staticMetaObject.className() == QString{"EventModel"})
     {
-        switch(vis.identifier)
-        {
-            case DataStream::type():
-                plug = new GroupMetadata{
-                            element,
-                            static_cast<DataStream::Deserializer&>(vis.visitor),
-                            parent};
-                break;
-            case JSONObject::type():
-                plug = new GroupMetadata{
-                            element,
-                            static_cast<JSONObject::Deserializer&>(vis.visitor),
-                            parent};
-                break;
-        }
+        plug = deserialize_dyn(vis, [&] (auto&& deserializer)
+        { return new GroupMetadata{element, deserializer, parent}; });
 
         if(plug)
             setupGroupPlugin(plug);
