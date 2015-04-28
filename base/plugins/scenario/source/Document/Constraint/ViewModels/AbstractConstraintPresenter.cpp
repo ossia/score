@@ -27,10 +27,6 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
             m_viewModel {model},
             m_view {view}
 {
-    Q_ASSERT(dynamic_cast<TemporalConstraintViewModel*>(m_viewModel) || dynamic_cast<FullViewConstraintViewModel*>(m_viewModel));
-    Q_ASSERT(m_viewModel->model());
-    qDebug() << "Making view model" << (void*)m_viewModel->model();
-
     connect(&m_viewModel->model()->selection, &Selectable::changed,
             m_view, &AbstractConstraintView::setSelected);
 

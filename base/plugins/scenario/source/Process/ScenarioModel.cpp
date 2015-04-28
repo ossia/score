@@ -11,7 +11,6 @@ ScenarioModel::ScenarioModel(TimeValue duration,
                              id_type<ProcessSharedModelInterface> id,
                              QObject* parent) :
     ProcessSharedModelInterface {duration, id, "ScenarioModel", parent},
-    //m_scenario{nullptr},
     m_startEventId{0}, // Always
     m_endEventId{1}
 {

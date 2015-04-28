@@ -26,7 +26,6 @@ ConstraintModel::ConstraintModel(ConstraintModel* source,
                                  QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
-    qDebug() << "Loading constraint" << this;
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
 
