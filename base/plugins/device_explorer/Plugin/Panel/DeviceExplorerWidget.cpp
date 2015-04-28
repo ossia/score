@@ -8,16 +8,16 @@
 #include <QPushButton>
 #include <QLineEdit>
 
-#include "AddressEditDialog.hpp"
-#include "DeviceEditDialog.hpp"
+#include "Widgets/AddressEditDialog.hpp"
+#include "Widgets/DeviceEditDialog.hpp"
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "IOTypeDelegate.hpp"
 
 
-#include <Commands/AddDevice.hpp>
-#include "Commands/AddAddress.hpp"
+#include <Commands/Add/AddDevice.hpp>
+#include "Commands/Add/AddAddress.hpp"
 #include "Commands/Remove.hpp"
 
 
