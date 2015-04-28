@@ -67,6 +67,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         {
         }
 
+        // Load
         template<typename Impl>
         AbstractScenarioViewModel(Deserializer<Impl>& vis,
                                   ProcessSharedModelInterface* sharedProcess,
@@ -76,7 +77,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
                                       parent
         }
         {
-            // No data to save (the constraints vector will be rebuilt by the subclass accordingly.
+            // No data to save (the constraints vector will be rebuilt by the subclass accordingly.)
         }
 
         QVector<AbstractConstraintViewModel*> m_constraints;

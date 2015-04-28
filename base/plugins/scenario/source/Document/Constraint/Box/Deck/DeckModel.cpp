@@ -30,7 +30,7 @@ void DeckModel::copyViewModelsInSameConstraint(DeckModel &source, DeckModel &tar
         // We can safely reuse the same id since it's in a different deck.
         auto proc = pvm->sharedProcessModel();
         target.addProcessViewModel(
-                    proc->makeViewModel(pvm->id(),
+                    proc->cloneViewModel(pvm->id(),
                                         pvm,
                                         &target));
     }

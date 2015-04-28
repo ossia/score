@@ -76,7 +76,7 @@ void AutomationModel::serialize(const VisitorVariant& vis) const
 
 
 
-ProcessSharedModelInterface* AutomationFactory::makeModel(
+ProcessSharedModelInterface* AutomationFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -95,7 +95,7 @@ ProcessSharedModelInterface* AutomationFactory::makeModel(
     throw std::runtime_error("Automation only supports DataStream & JSON serialization");
 }
 
-ProcessViewModelInterface* AutomationModel::makeViewModel(
+ProcessViewModelInterface* AutomationModel::loadViewModel(
         const VisitorVariant& vis,
         QObject* parent)
 {

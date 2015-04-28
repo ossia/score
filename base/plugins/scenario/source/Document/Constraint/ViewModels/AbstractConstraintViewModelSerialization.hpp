@@ -12,7 +12,7 @@ class AbstractConstraintViewModel;
 // Load a single constraint view model.
 template<typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_view_model_type*
-createConstraintViewModel(Deserializer<DataStream>& deserializer,
+loadConstraintViewModel(Deserializer<DataStream>& deserializer,
                           ScenarioViewModelType* svm)
 {
     // Deserialize the required identifier
@@ -35,7 +35,7 @@ createConstraintViewModel(Deserializer<DataStream>& deserializer,
 
 template<typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_view_model_type*
-createConstraintViewModel(Deserializer<JSONObject>& deserializer,
+loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
                           ScenarioViewModelType* svm)
 {
     // Deserialize the required identifier

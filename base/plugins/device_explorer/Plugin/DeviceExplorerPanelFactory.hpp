@@ -71,7 +71,7 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
                 iscore::PanelViewInterface* view) override;
         iscore::PanelModelInterface* makeModel(
                 iscore::DocumentModel*) override;
-        iscore::PanelModelInterface* makeModel(
+        iscore::PanelModelInterface* loadModel(
                 const VisitorVariant& data,
                 iscore::DocumentModel* parent) override;
 };

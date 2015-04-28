@@ -29,7 +29,7 @@ namespace iscore
 
             virtual DocumentDelegateModelInterface* makeModel(
                     DocumentModel* parent) = 0;
-            virtual DocumentDelegateModelInterface* makeModel(
+            virtual DocumentDelegateModelInterface* loadModel(
                     const VisitorVariant&,
                     DocumentModel* parent) = 0;
     };

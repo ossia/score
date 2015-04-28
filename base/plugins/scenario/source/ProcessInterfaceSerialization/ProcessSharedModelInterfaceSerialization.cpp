@@ -32,7 +32,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
     deserializer.writeTo(duration);
 
     auto model = ProcessList::getFactory(processName)
-                 ->makeModel(deserializer.toVariant(),
+                 ->loadModel(deserializer.toVariant(),
                              parent);
 
     model->setDuration(duration);
@@ -64,7 +64,7 @@ ProcessSharedModelInterface* createProcess(Deserializer<JSONObject>& deserialize
 {
     auto model = ProcessList::getFactory(
                      deserializer.m_obj["ProcessName"].toString())
-                        ->makeModel(
+                        ->loadModel(
                             deserializer.toVariant(),
                             parent);
 

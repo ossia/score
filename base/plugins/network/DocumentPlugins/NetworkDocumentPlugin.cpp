@@ -73,7 +73,7 @@ NetworkDocumentPlugin::makeElementPlugin(
 }
 
 iscore::ElementPluginModel*
-NetworkDocumentPlugin::makeElementPlugin(
+NetworkDocumentPlugin::loadElementPlugin(
         const QObject* element,
         const VisitorVariant& vis,
         QObject* parent)

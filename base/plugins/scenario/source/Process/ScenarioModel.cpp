@@ -63,7 +63,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModel
 }
 
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+ProcessViewModelInterface* ScenarioModel::cloneViewModel(id_type<ProcessViewModelInterface> newId,
                                                         const ProcessViewModelInterface* source,
                                                         QObject* parent)
 {

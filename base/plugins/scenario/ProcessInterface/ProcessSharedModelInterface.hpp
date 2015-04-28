@@ -50,11 +50,11 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
                                                          QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.
-        virtual ProcessViewModelInterface* makeViewModel(const VisitorVariant&,
+        virtual ProcessViewModelInterface* loadViewModel(const VisitorVariant&,
                                                          QObject* parent) = 0;
 
         // "Copy" factory. TODO replace by clone methode on PVM ?
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+        virtual ProcessViewModelInterface* cloneViewModel(id_type<ProcessViewModelInterface> newId,
                                                          const ProcessViewModelInterface* source,
                                                          QObject* parent) = 0;
 

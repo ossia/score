@@ -102,8 +102,40 @@ QByteArray Document::saveAsByteArray()
     return global;
 }
 
+
+// Load document
+#include <core/document/DocumentView.hpp>
+#include <core/document/DocumentPresenter.hpp>
+Document::Document(const QVariant& data,
+                   DocumentDelegateFactoryInterface* factory,
+                   QWidget* parentview,
+                   QObject* parent):
+    NamedObject {"Document", parent},
+    m_objectLocker{this}
+{
+    std::allocator<DocumentModel> allocator;
+    m_model = allocator.allocate(1);
+    try
+    {
+        allocator.construct(m_model, data, factory, this);
+    }
+    catch(...)
+    {
+        allocator.deallocate(m_model, 1);
+        throw;
+    }
+
+    m_view = new DocumentView{factory, this, parentview};
+    m_presenter = new DocumentPresenter{factory,
+                    m_model,
+                    m_view,
+                    this};
+    init();
+}
+
+
 #include <iscore/presenter/PresenterInterface.hpp>
-// Document model
+// Load document model
 DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
@@ -124,7 +156,10 @@ DocumentModel::DocumentModel(const QVariant& data,
         QByteArray verif_arr;
         QDataStream writer(&verif_arr, QIODevice::WriteOnly);
         writer << doc << panelModels << documentPluginModels;
-        Q_ASSERT(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) == hash);
+        if(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) != hash)
+        {
+            throw std::runtime_error("Invalid file.");
+        }
 
 
         // Note : this *has* to be in this order, because
@@ -142,18 +177,22 @@ DocumentModel::DocumentModel(const QVariant& data,
             // load data; generally because it is not useful (e.g. undo panel model...)
 
             DataStream::Deserializer panel_writer{panel.second};
-            if(auto pnl = factory->makeModel(panel_writer.toVariant(), this))
+            if(auto pnl = factory->loadModel(panel_writer.toVariant(), this))
                 addPanel(pnl);
             else
                 addPanel(factory->makeModel(this));
         }
 
         qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
+        for(const auto& plugin : documentPluginModels)
+        {
+
+        }
 
         // Load the document model
 
         DataStream::Deserializer doc_writer{doc};
-        m_model = fact->makeModel(doc_writer.toVariant(), this);
+        m_model = fact->loadModel(doc_writer.toVariant(), this);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
@@ -172,7 +211,7 @@ DocumentModel::DocumentModel(const QVariant& data,
                 // load data; generally because it is not useful (e.g. undo panel model...)
 
                 JSONObject::Deserializer panel_writer{json[key].toObject()};
-                if(auto pnl = factory->makeModel(panel_writer.toVariant(), this))
+                if(auto pnl = factory->loadModel(panel_writer.toVariant(), this))
                     addPanel(pnl);
                 else
                     addPanel(factory->makeModel(this));
@@ -182,11 +221,10 @@ DocumentModel::DocumentModel(const QVariant& data,
         qDebug() << Q_FUNC_INFO << "TODO Load plugin models";
 
         JSONObject::Deserializer doc_writer{json["Document"].toObject()};
-        m_model = fact->makeModel(doc_writer.toVariant(), this);
+        m_model = fact->loadModel(doc_writer.toVariant(), this);
     }
     else
     {
         qFatal("Could not load DocumentModel");
-        return;
     }
 }

@@ -33,24 +33,6 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     init();
 }
 
-Document::Document(const QVariant& data,
-                   DocumentDelegateFactoryInterface* factory,
-                   QWidget* parentview,
-                   QObject* parent):
-    NamedObject {"Document", parent},
-    m_objectLocker{this}
-{
-    std::allocator<DocumentModel> allocator;
-    m_model = allocator.allocate(1);
-    allocator.construct(m_model, data, factory, this);
-    m_view = new DocumentView{factory, this, parentview};
-    m_presenter = new DocumentPresenter{factory,
-                    m_model,
-                    m_view,
-                    this};
-    init();
-}
-
 void Document::init()
 {
     connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,

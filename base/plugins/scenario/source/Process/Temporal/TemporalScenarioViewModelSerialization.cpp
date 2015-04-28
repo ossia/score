@@ -26,7 +26,7 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
 
     for(; count -- > 0;)
     {
-        auto cstr = createConstraintViewModel(*this, &pvm);
+        auto cstr = loadConstraintViewModel(*this, &pvm);
         pvm.addConstraintViewModel(cstr);
     }
 
@@ -56,7 +56,7 @@ void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& pvm)
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto cstrvm = createConstraintViewModel(deserializer,
+        auto cstrvm = loadConstraintViewModel(deserializer,
                                                 &pvm);
         pvm.addConstraintViewModel(cstrvm);
     }

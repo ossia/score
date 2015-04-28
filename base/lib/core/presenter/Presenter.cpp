@@ -233,6 +233,7 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 
 Document* Presenter::loadDocument(const QVariant& data,
                                   DocumentDelegateFactoryInterface* doctype)
+try
 {
     auto doc = new Document{data, doctype, m_view, this};
 
@@ -242,6 +243,11 @@ Document* Presenter::loadDocument(const QVariant& data,
     setCurrentDocument(doc);
 
     return doc;
+}
+catch(std::runtime_error& e)
+{
+    QMessageBox::warning(nullptr, QObject::tr("Error"), e.what());
+    return nullptr;
 }
 
 // TODO make a class whose purpose is to instantiate commands.

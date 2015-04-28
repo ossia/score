@@ -32,7 +32,7 @@ void CopyProcessViewModel::redo()
 
     auto proc = sourcePVM->sharedProcessModel();
     targetDeck->addProcessViewModel(
-        proc->makeViewModel(m_newProcessViewModelId,
+        proc->cloneViewModel(m_newProcessViewModelId,
                             sourcePVM,
                             targetDeck));
 }

@@ -31,7 +31,7 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
                 QObject* parent) = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual ProcessSharedModelInterface* makeModel(
+        virtual ProcessSharedModelInterface* loadModel(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 

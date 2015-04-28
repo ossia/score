@@ -97,7 +97,7 @@ void CopyConstraintContent::redo()
                         // We can safely reuse the same id since it's in a different deck.
                         auto proc = processPairs[pvm->sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.addProcessViewModel(proc->makeViewModel(pvm->id(), pvm, &target));
+                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), pvm, &target));
                     }
                 },
                 trg_constraint};

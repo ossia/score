@@ -15,7 +15,7 @@ class ScenarioDocument : public iscore::DocumentDelegateFactoryInterface
         iscore::DocumentDelegateModelInterface* makeModel(
                 iscore::DocumentModel* parent) override;
 
-        iscore::DocumentDelegateModelInterface* makeModel(
+        iscore::DocumentDelegateModelInterface* loadModel(
                 const VisitorVariant&,
                 iscore::DocumentModel* parent) override;
 };

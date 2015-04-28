@@ -39,7 +39,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     {
         if(plugin->metadataName() == savedName)
         {
-            model = plugin->makeElementPlugin(
+            model = plugin->loadElementPlugin(
                         element,
                         deserializer.toVariant(),
                         parent);
@@ -67,7 +67,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     {
         if(plugin->metadataName() == savedName)
         {
-            model = plugin->makeElementPlugin(
+            model = plugin->loadElementPlugin(
                         element,
                         deserializer.toVariant(),
                         parent);

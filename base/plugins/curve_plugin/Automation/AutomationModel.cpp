@@ -123,13 +123,15 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     }
 }
 
-ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+ProcessViewModelInterface* AutomationModel::makeViewModel(
+        id_type<ProcessViewModelInterface> viewModelId,
         QObject* parent)
 {
     return new AutomationViewModel {this, viewModelId, parent};
 }
 
-ProcessViewModelInterface* AutomationModel::makeViewModel(id_type<ProcessViewModelInterface> newId,
+ProcessViewModelInterface* AutomationModel::cloneViewModel(
+        id_type<ProcessViewModelInterface> newId,
         const ProcessViewModelInterface* source,
         QObject* parent)
 {

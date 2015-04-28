@@ -147,7 +147,7 @@ void ScenarioModel::serialize(const VisitorVariant& vis) const
 }
 
 #include "ScenarioFactory.hpp"
-ProcessSharedModelInterface* ScenarioFactory::makeModel(
+ProcessSharedModelInterface* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -167,7 +167,7 @@ ProcessSharedModelInterface* ScenarioFactory::makeModel(
     throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
 }
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel(
+ProcessViewModelInterface* ScenarioModel::loadViewModel(
         const VisitorVariant& vis,
         QObject* parent)
 {

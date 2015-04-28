@@ -32,7 +32,7 @@ namespace iscore
             virtual PanelModelInterface* makeModel(
                     DocumentModel* parent) = 0;
 
-            virtual PanelModelInterface* makeModel(
+            virtual PanelModelInterface* loadModel(
                     const VisitorVariant& data,
                     DocumentModel* parent) { return nullptr; }
     };

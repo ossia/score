@@ -109,7 +109,7 @@ iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel
     return new DeviceExplorerPanelModel {parent};
 }
 
-PanelModelInterface *DeviceExplorerPanelFactory::makeModel(const VisitorVariant& data, DocumentModel *parent)
+PanelModelInterface *DeviceExplorerPanelFactory::loadModel(const VisitorVariant& data, DocumentModel *parent)
 {
     return new DeviceExplorerPanelModel {data, parent};
 }

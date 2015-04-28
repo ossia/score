@@ -30,7 +30,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
     deserializer.m_stream >> sharedProcessId;
 
     auto process = constraint->process(sharedProcessId);
-    auto viewmodel = process->makeViewModel(deserializer.toVariant(),
+    auto viewmodel = process->loadViewModel(deserializer.toVariant(),
                                             parent);
 
     deserializer.checkDelimiter();
@@ -60,7 +60,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<JSONObject>& dese
 {
     auto process = constraint->process(
                 fromJsonValue<id_type<ProcessSharedModelInterface>>(deserializer.m_obj["SharedProcessId"]));
-    auto viewmodel = process->makeViewModel(deserializer.toVariant(),
+    auto viewmodel = process->loadViewModel(deserializer.toVariant(),
                                             parent);
 
     return viewmodel;

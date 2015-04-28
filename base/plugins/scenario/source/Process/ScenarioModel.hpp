@@ -48,7 +48,7 @@ class ScenarioModel : public ProcessSharedModelInterface
         ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
                                                  QObject* parent) override;
 
-        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> newId,
+        ProcessViewModelInterface* cloneViewModel(id_type<ProcessViewModelInterface> newId,
                                                  const ProcessViewModelInterface* source,
                                                  QObject* parent) override;
 
@@ -138,7 +138,7 @@ class ScenarioModel : public ProcessSharedModelInterface
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelInterface* makeViewModel(
+        virtual ProcessViewModelInterface* loadViewModel(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 

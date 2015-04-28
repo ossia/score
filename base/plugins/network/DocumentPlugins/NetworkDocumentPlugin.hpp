@@ -35,7 +35,7 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
                 const QObject* element,
                 QObject* parent) override;
 
-        iscore::ElementPluginModel* makeElementPlugin(
+        iscore::ElementPluginModel* loadElementPlugin(
                 const QObject* element,
                 const VisitorVariant&,
                 QObject* parent) override;
@@ -57,7 +57,8 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         GroupManager* groupManager() const
         { return m_groups; }
 
-        auto policy() const { return m_policy; }
+        NetworkPluginPolicy* policy() const
+        { return m_policy; }
 
     private:
         void setupGroupPlugin(GroupMetadata* grp);

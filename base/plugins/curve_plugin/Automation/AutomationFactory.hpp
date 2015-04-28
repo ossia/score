@@ -14,7 +14,7 @@ class AutomationFactory : public ProcessFactoryInterface
                 id_type<ProcessSharedModelInterface> id,
                 QObject* parent) override;
 
-        virtual ProcessSharedModelInterface* makeModel(
+        virtual ProcessSharedModelInterface* loadModel(
                 const VisitorVariant&,
                 QObject* parent) override;
 

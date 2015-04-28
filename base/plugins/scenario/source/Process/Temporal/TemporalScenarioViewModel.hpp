@@ -30,11 +30,13 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
                                   ScenarioModel* model,
                                   QObject* parent);
 
+        // Copy
         TemporalScenarioViewModel(const TemporalScenarioViewModel* source,
                                   id_type<ProcessViewModelInterface> id,
                                   ScenarioModel* model,
                                   QObject* parent);
 
+        // Load
         template<typename Impl>
         TemporalScenarioViewModel(Deserializer<Impl>& vis,
                                   ScenarioModel* model,
