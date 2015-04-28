@@ -23,7 +23,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
 
 TemporalScenarioView::~TemporalScenarioView()
 {
-	delete m_clearAction;
+    delete m_clearAction;
 }
 
 void TemporalScenarioView::paint(QPainter* painter,
@@ -38,7 +38,9 @@ void TemporalScenarioView::paint(QPainter* painter,
 
     if(m_selectArea != QRectF{})
     {
-        painter->setPen(Qt::black);
+        painter->setCompositionMode(QPainter::CompositionMode_Xor);
+        painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+
         painter->drawRect(m_selectArea);
     }
 }

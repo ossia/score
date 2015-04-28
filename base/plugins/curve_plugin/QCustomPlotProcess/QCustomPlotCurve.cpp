@@ -193,9 +193,12 @@ void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
     graph->setPen(QPen(outerColor, 3));
     graph->setLineStyle(QCPGraph::lsLine);
 
-    m_plot->xAxis->setAutoTicks(false);
-    m_plot->yAxis->setAutoTicks(false);
+    m_plot->xAxis->setTicks(false);
+    m_plot->xAxis->setVisible(false);
     m_plot->xAxis->setRange(0, 1);
+
+    m_plot->yAxis->setTicks(false);
+    m_plot->yAxis->setVisible(false);
     m_plot->yAxis->setRange(0, 1);
 
     m_plot->replot();

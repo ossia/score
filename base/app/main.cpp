@@ -14,11 +14,11 @@ Q_IMPORT_PLUGIN(IScoreCohesion)
 #endif
 #endif
 
+#include <QStyleFactory>
 int main(int argc, char** argv)
 {
     iscore::Application app(argc, argv);
-
-    /* Theming
+/*
     qApp->setStyle(QStyleFactory::create("Fusion"));
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(53,53,53));
@@ -38,6 +38,6 @@ int main(int argc, char** argv)
     qApp->setPalette(darkPalette);
 
     qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
-    */
+*/
     return app.exec();
 }

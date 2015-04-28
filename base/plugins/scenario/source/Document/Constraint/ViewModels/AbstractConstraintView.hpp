@@ -83,7 +83,7 @@ class AbstractConstraintView : public QGraphicsObject
         QPen m_solidPen
         {
             QBrush{Qt::black},
-            4,
+            2,
             Qt::SolidLine,
             Qt::RoundCap,
             Qt::RoundJoin
@@ -91,7 +91,7 @@ class AbstractConstraintView : public QGraphicsObject
         QPen m_dashPen
         {
             QBrush{Qt::black},
-            4,
+            2,
             Qt::DashLine,
             Qt::RoundCap,
             Qt::RoundJoin

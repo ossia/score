@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QApplication>
 
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
@@ -23,20 +24,18 @@ QRectF TemporalConstraintView::boundingRect() const
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    QColor c = Qt::black;
+    QPalette palette{QApplication::palette()};
+    QColor constraintColor =
+        isSelected()
+            ? palette.highlight().color()
+            : (shadow()
+               ? palette.highlight().color().lighter()
+               : Qt::black);
 
-    if(isSelected())
-    {
-        c = Qt::blue;
-    }
-    else if (shadow())
-    {
-        c = Qt::cyan;
-    }
 
     if(defaultWidth() < 0)
     {
-        c = Qt::red;
+        constraintColor = Qt::red;
     }
     QPen playedPen{
         QBrush{Qt::green},
@@ -46,13 +45,14 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
         Qt::RoundJoin
     };
 
-    m_solidPen.setColor(c);
-    m_dashPen.setColor(c);
+    m_solidPen.setColor(constraintColor);
+    m_dashPen.setColor(constraintColor);
 
     if(minWidth() == maxWidth())
     {
         painter->setPen(playedPen);
         painter->drawLine(0, 0, playDuration(), 0);
+
         painter->setPen(m_solidPen);
         painter->drawLine(playDuration(), 0, defaultWidth(), 0);
     }
@@ -66,7 +66,7 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 
         QPen pen = m_dashPen;
         QLinearGradient gradient(minWidth(), 0, defaultWidth(), 0);
-        gradient.setColorAt(0, c);
+        gradient.setColorAt(0, constraintColor);
         gradient.setColorAt(1, Qt::transparent);
 
 

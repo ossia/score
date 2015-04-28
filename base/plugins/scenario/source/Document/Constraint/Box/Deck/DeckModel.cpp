@@ -117,6 +117,15 @@ void DeckModel::setHeight(int arg)
     }
 }
 
+void DeckModel::setFocus(bool arg)
+{
+    if (m_focus == arg)
+        return;
+
+    m_focus = arg;
+    emit focusChanged(arg);
+}
+
 ConstraintModel* DeckModel::parentConstraint() const
 {
     return static_cast<ConstraintModel*>(parent()->parent());
@@ -125,6 +134,11 @@ ConstraintModel* DeckModel::parentConstraint() const
 int DeckModel::height() const
 {
     return m_height;
+}
+
+bool DeckModel::focus() const
+{
+    return m_focus;
 }
 
 ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm)

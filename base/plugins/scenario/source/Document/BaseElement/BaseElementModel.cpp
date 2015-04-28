@@ -112,9 +112,28 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
 void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
+    auto updateDeckFocus = [&] (bool b)
+    {
+        if(m_focusedViewModel)
+        {
+            if(auto deck = dynamic_cast<DeckModel*>(m_focusedViewModel->parent()))
+            {
+                deck->setFocus(b);
+            }
+        }
+    };
+
     if(proc != m_focusedViewModel)
     {
+        // Disable the focus on previously focused view model
+        updateDeckFocus(false);
+
+        // Assign
         m_focusedViewModel = proc;
+
+        // Enable focus on the new viewmodel
+        updateDeckFocus(true);
+
         emit focusedViewModelChanged();
     }
 }

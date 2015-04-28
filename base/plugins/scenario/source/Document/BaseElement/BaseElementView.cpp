@@ -21,7 +21,8 @@ BaseElementView::BaseElementView(QObject* parent) :
 {
     // Configuration
     m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark()});
-    m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    m_view->setRenderHints(QPainter::Antialiasing | /*QPainter::SmoothPixmapTransform | */QPainter::TextAntialiasing);
+    m_view->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
     m_timeRulersView = new QGraphicsView{m_scene};

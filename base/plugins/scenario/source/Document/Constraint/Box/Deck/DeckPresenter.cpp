@@ -32,16 +32,18 @@ DeckPresenter::DeckPresenter(DeckModel* model,
     }
 
     connect(m_model, &DeckModel::processViewModelCreated,
-    this,	 &DeckPresenter::on_processViewModelCreated);
+            this,    &DeckPresenter::on_processViewModelCreated);
     connect(m_model, &DeckModel::processViewModelRemoved,
-    this,	 &DeckPresenter::on_processViewModelDeleted);
+            this,    &DeckPresenter::on_processViewModelDeleted);
 
     connect(m_model, &DeckModel::processViewModelSelected,
-    this,	 &DeckPresenter::on_processViewModelSelected);
+            this,    &DeckPresenter::on_processViewModelSelected);
 
     connect(m_model, &DeckModel::heightChanged,
-    this,	 &DeckPresenter::on_heightChanged);
+            this,    &DeckPresenter::on_heightChanged);
 
+    connect(m_model, &DeckModel::focusChanged,
+            m_view,  &DeckView::setFocus);
     m_view->setHeight(m_model->height());
 }
 

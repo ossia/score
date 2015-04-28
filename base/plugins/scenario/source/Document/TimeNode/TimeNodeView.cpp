@@ -2,6 +2,7 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QApplication>
 #include "TimeNodePresenter.hpp"
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :
@@ -21,30 +22,21 @@ void TimeNodeView::paint(QPainter* painter,
 {
     QColor pen_color = m_color;
 
+
     if(isSelected())
     {
-        pen_color = Qt::blue;
+        pen_color = QApplication::palette().highlight().color();
     }
 
-    /*    else if(parentItem()->isSelected())
-        {
-            pen_color = Qt::cyan;
-        }
-    */
-    (m_moving ? pen_color.setAlphaF(0.4) : pen_color.setAlphaF(0.7));
-    painter->setBrush(pen_color);
-    painter->setPen(QPen(QBrush(pen_color), 5, Qt::SolidLine));
+    QPen pen{QBrush(pen_color), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    painter->setPen(pen);
 
     painter->drawLine(0, m_top, 0, m_bottom);
-
-//    painter->setPen(QPen(QBrush(QColor(0,200,0)), 1, Qt::SolidLine));
-//    painter->drawRect(boundingRect());
-
 }
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -5, (qreal) m_top, 10, (qreal)(m_bottom - m_top) };
+    return { -5., (qreal) m_top, 5., (qreal)(m_bottom - m_top) };
 }
 
 void TimeNodeView::setExtremities(int top, int bottom)

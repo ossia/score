@@ -32,10 +32,13 @@ class DeckView : public QGraphicsObject
         void enable();
         void disable();
 
+        void setFocus(bool b);
+
     private:
         qreal m_height {};
         qreal m_width {};
         DeckOverlay* m_overlay{};
+        bool m_focus{false};
 };
 
 #include <QPainter>
@@ -52,22 +55,11 @@ class DeckOverlay : public QGraphicsItem
             this->setPos(0, 0);
         }
 
-        virtual QRectF boundingRect() const override
-        {
-            const auto& rect = deckView.boundingRect();
-            return {0, 0, rect.width(), rect.height() - deckView.handleHeight()};
-        }
+        virtual QRectF boundingRect() const override;
 
         virtual void paint(QPainter *painter,
                            const QStyleOptionGraphicsItem *option,
-                           QWidget *widget) override
-        {
-            painter->setBrush(QColor(200, 200, 200, 200));
-            painter->drawRect(boundingRect());
-        }
+                           QWidget *widget) override;
 
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
-        {
-            ev->ignore();
-        }
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
 };

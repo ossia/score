@@ -19,6 +19,11 @@ class DeckModel : public IdentifiedObject<DeckModel>
                    WRITE setHeight
                    NOTIFY heightChanged)
 
+        Q_PROPERTY(bool focus
+                   READ focus
+                   WRITE setFocus
+                   NOTIFY focusChanged)
+
     public:
         DeckModel(id_type<DeckModel> id,
                   BoxModel* parent);
@@ -61,12 +66,14 @@ class DeckModel : public IdentifiedObject<DeckModel>
          */
         ConstraintModel* parentConstraint() const;
 
-        int height() const;
 
         id_type<ProcessViewModelInterface> editedProcessViewModel() const
         {
             return m_editedProcessViewModelId;
         }
+
+        int height() const;
+        bool focus() const;
 
     signals:
         void processViewModelCreated(id_type<ProcessViewModelInterface> processViewModelId);
@@ -74,17 +81,20 @@ class DeckModel : public IdentifiedObject<DeckModel>
         void processViewModelSelected(id_type<ProcessViewModelInterface> processViewModelId);
 
         void heightChanged(int arg);
+        void focusChanged(bool arg);
 
     public slots:
         void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> sharedProcessId);
 
         void setHeight(int arg);
+        void setFocus(bool arg);
 
     private:
         id_type<ProcessViewModelInterface> m_editedProcessViewModelId {};
         std::vector<ProcessViewModelInterface*> m_processViewModels;
 
         int m_height {200};
+        bool m_focus{false};
 };
 
 /**

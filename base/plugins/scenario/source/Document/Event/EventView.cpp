@@ -4,7 +4,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
-
+#include <QApplication>
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -28,7 +28,7 @@ const EventPresenter& EventView::presenter() const
 
 QRectF EventView::boundingRect() const
 {
-    return { -5, -5, 10, 10};
+    return { -3, -3, 6, 6};
 }
 
 void EventView::paint(QPainter* painter,
@@ -40,16 +40,16 @@ void EventView::paint(QPainter* painter,
     // Rect
     if(isSelected())
     {
-        pen_color = Qt::blue;
+        pen_color = QApplication::palette().highlight().color();
     }
     else if (isShadow())
     {
-        pen_color = Qt::cyan;
+        pen_color = QApplication::palette().highlight().color().lighter();
     }
     // Ball
     painter->setBrush(pen_color);
     painter->setPen(pen_color);
-    painter->drawEllipse(boundingRect().center(), 5, 5);
+    painter->drawEllipse(boundingRect().center(), 3, 3);
 }
 
 void EventView::setSelected(bool selected)

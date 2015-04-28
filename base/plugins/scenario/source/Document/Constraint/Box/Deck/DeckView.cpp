@@ -3,7 +3,7 @@
 #include <iscore/tools/NamedObject.hpp>
 
 #include <QGraphicsScene>
-
+#include <QApplication>
 
 DeckView::DeckView(const DeckPresenter &pres, QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -19,11 +19,16 @@ QRectF DeckView::boundingRect() const
 
 void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    auto rect = boundingRect();
-    painter->drawRect(rect);
-    painter->setBrush(QBrush {Qt::darkGray});
 
+    auto rect = boundingRect();
+    QPalette palette{QApplication::palette()};
+
+    painter->setPen(QPen{m_focus? palette.highlight().color() : Qt::black});
+    painter->drawRect(rect);
+
+    painter->setBrush(palette.midlight());
     painter->drawRect(0, rect.height() - handleHeight(), rect.width(), handleHeight());
+
 }
 
 void DeckView::setHeight(qreal height)
@@ -82,4 +87,31 @@ void DeckView::disable()
     m_overlay = new DeckOverlay{this};
 }
 
+void DeckView::setFocus(bool b)
+{
+    m_focus = b;
+    update();
+}
 
+
+
+
+QRectF DeckOverlay::boundingRect() const
+{
+    const auto& rect = deckView.boundingRect();
+    return {0, 0, rect.width(), rect.height() - deckView.handleHeight()};
+}
+
+void DeckOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    QPalette palette{QApplication::palette()};
+
+    painter->setPen(Qt::black);
+    painter->setBrush(QColor(200, 200, 200, 200));
+    painter->drawRect(boundingRect());
+}
+
+void DeckOverlay::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+{
+    ev->ignore();
+}

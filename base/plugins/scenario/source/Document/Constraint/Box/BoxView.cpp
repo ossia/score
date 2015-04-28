@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QApplication>
 
 BoxView::BoxView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
@@ -29,11 +30,13 @@ void BoxView::paint(QPainter* painter,
     QFont f;
     f.setBold(true);
 
+
+    QPalette palette{QApplication::palette()};
+
     painter->setFont(f);
-    painter->setBrush(Qt::gray);
+    painter->setBrush(palette.background());
     painter->setPen(Qt::black);
     painter->drawRect(header);
+    painter->setPen(palette.text().color());
     painter->drawText(header, Qt::AlignCenter, m_text);
-    //painter->drawText(boundingRect(), "Box");
-    //painter->drawRect(boundingRect());
 }
