@@ -63,6 +63,8 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
 {
     delete m_policy;
     m_policy = pol;
+
+    emit sessionChanged();
 }
 
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)

@@ -44,7 +44,6 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
         s >> id; // The offered client id
         m_clientId = id_type<Client>(id);
 
-        // TODO ask with additional data
         NetworkMessage join;
         join.address = "/session/join";
         join.clientId = m_clientId.val().get();
@@ -56,12 +55,12 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
     {
         auto remoteClient = new RemoteClient(m_mastersocket, m_masterId);
         // TODO transmit the name
-        remoteClient->setName("RemoteTODO");
+        remoteClient->setName("RemoteMaster");
         m_session = new ClientSession(remoteClient,
                                       new LocalClient(m_clientId),
                                       m_sessionId,
                                       nullptr);
-
+        m_session->localClient().setName(QString{"Client.%1"}.arg(m_clientId.val().get()));
 
         QDataStream s{m.data};
         s >> m_commandStack >> m_documentData;

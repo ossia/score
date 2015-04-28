@@ -28,6 +28,15 @@ void GroupPanelModel::scanPlugins()
             if(!netplug->policy())
                 continue;
 
+
+            connect(netplug, &NetworkDocumentPlugin::sessionChanged,
+                    this, [=] () {
+                m_currentManager = netplug->groupManager();
+                m_currentSession = netplug->policy()->session();
+
+                emit update();
+            });
+
             m_currentManager = netplug->groupManager();
             m_currentSession = netplug->policy()->session();
 

@@ -69,6 +69,9 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         NetworkPluginPolicy* policy() const
         { return m_policy; }
 
+    signals:
+        void sessionChanged();
+
     private:
         void setupGroupPlugin(GroupMetadata* grp);
 

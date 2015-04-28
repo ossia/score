@@ -28,6 +28,8 @@ Qt::DockWidgetArea GroupPanelView::defaultDock() const
     return Qt::LeftDockWidgetArea;
 }
 
+#include "Repartition/session/Session.hpp"
+#include <QLabel>
 void GroupPanelView::setView(const GroupManager* mgr,
                              const Session* session)
 {
@@ -41,6 +43,7 @@ void GroupPanelView::setView(const GroupManager* mgr,
     m_widget->layout()->addWidget(m_subWidget);
 
     // The sub-widgets (group data presentation)
+    m_subWidget->layout()->addWidget(new QLabel{session->metaObject()->className()});
     m_subWidget->layout()->addWidget(new GroupListWidget{mgr, m_subWidget});
 
     // Add group button

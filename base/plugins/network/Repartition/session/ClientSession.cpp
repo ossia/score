@@ -7,6 +7,7 @@ ClientSession::ClientSession(RemoteClient* master,
     Session{client, id, parent},
     m_master{master}
 {
+    addClient(master);
     connect(master, &RemoteClient::messageReceived,
             this, &Session::validateMessage, Qt::QueuedConnection);
 }
