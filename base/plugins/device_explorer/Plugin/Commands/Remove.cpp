@@ -11,28 +11,28 @@ Remove::Remove(ObjectPath &&device_tree, Path nodePath):
                             className(),
                             description()},
     m_deviceTree{device_tree},
-    m_nodePath{nodePath}
+    m_nodePath{nodePath},
+    m_nodeIndex{m_nodePath.back()}
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node *node = explorer->pathToNode(m_nodePath);
+    Node *node = m_nodePath.toNode(explorer->rootNode());
 
     if (! node->isDevice())
     {
-        m_parentPath = explorer->pathFromNode(*(node->parent()));
+        m_parentPath = Path{node->parent()};
     }
     else
     {
         m_parentPath.clear();
     }
     m_addressSettings = node->addressSettings();
-    m_nodeIndex = explorer->pathToNode(m_parentPath)->indexOfChild(node);
 }
 
 void
 Remove::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->addAddress(explorer->pathToNode(m_parentPath), m_node);
+    explorer->addAddress(m_parentPath.toNode(explorer->rootNode()), m_node);
 }
 
 void
@@ -40,9 +40,9 @@ Remove::redo()
 {
 
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node *node = explorer->pathToNode(m_nodePath);
+    Node *node = m_nodePath.toNode(explorer->rootNode());
     m_node = node->clone();
-    Node* parent = explorer->pathToNode(m_parentPath);
+    Node* parent = m_parentPath.toNode(explorer->rootNode());
 
     explorer->removeNode(parent->childAt(m_nodeIndex));
 }

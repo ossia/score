@@ -64,7 +64,7 @@ QModelIndex DeviceExplorerCommandCreator::cut(const QModelIndex &index)
     Cut* cmd = new Cut;
 
     QString name = (index.isValid() ? m_model->nodeFromModelIndex(index)->name() : "");
-    cmd->set(m_model->pathFromIndex(index.parent()), index.row(),
+    cmd->set(Path{index.parent()}, index.row(),
              tr("Cut %1").arg(name), iscore::IDocument::path(m_model));
 
     Q_ASSERT(m_cmdQ);
@@ -96,7 +96,7 @@ QModelIndex DeviceExplorerCommandCreator::paste(const QModelIndex &index)
     Paste* cmd = new Paste;
 
     QString name = (index.isValid() ? m_model->nodeFromModelIndex(index)->name() : "");
-    cmd->set(m_model->pathFromIndex(index.parent()), index.row(),
+    cmd->set(Path{index.parent()}, index.row(),
              tr("Paste %1").arg(name), iscore::IDocument::path(m_model));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -130,8 +130,8 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     Q_ASSERT(grandparent);
 
     Move* cmd = new Move;
-    cmd->set(m_model->pathFromNode(*parent), oldRow, 1,
-             m_model->pathFromNode(*parent), newRow,
+    cmd->set(Path(parent), oldRow, 1,
+             Path(parent), newRow,
              tr("Move up %1").arg(n->name()) , iscore::IDocument::path(m_model));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -142,7 +142,7 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
         m_cachedResult = true;
         return index;
     }
-    Path path = m_model->pathFromNode(*n);
+    Path path{n};
     path.back()--;
 
     return m_model->pathToIndex(path); // (newRow, 0, n);
@@ -173,8 +173,8 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     Q_ASSERT(grandparent);
 
     Move* cmd = new Move;
-    cmd->set(m_model->pathFromNode(*parent), oldRow, 1,
-             m_model->pathFromNode(*parent), newRow + 1,
+    cmd->set(Path(parent), oldRow, 1,
+             Path(parent), newRow + 1,
              tr("Move down %1").arg(n->name()) , iscore::IDocument::path(m_model));
     //newRow+1 because moved before, cf doc.
     Q_ASSERT(m_cmdQ);
@@ -187,7 +187,7 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
         return index;
     }
 
-    Path path = m_model->pathFromNode(*n);
+    Path path{n};
     path.back()++;  // path become the new path
     return m_model->pathToIndex(path);
 }
@@ -221,9 +221,9 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     int rowParent = grandParent->indexOfChild(parent);
 
     Move* cmd = new Move;
-    Path parentPath = m_model->pathFromNode(*parent);
+    Path parentPath = Path(parent);
     cmd->set(parentPath, row, 1,
-             m_model->pathFromNode(*grandParent), rowParent + 1,
+             Path(grandParent), rowParent + 1,
              tr("Promote %1").arg(n->name()) , iscore::IDocument::path(m_model));
     Q_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -267,8 +267,8 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     Q_ASSERT(sibling);
 
     Move* cmd = new Move;
-    Path newPath = m_model->pathFromNode(*sibling);
-    cmd->set(m_model->pathFromNode(*parent), row, 1,
+    Path newPath{sibling};
+    cmd->set(Path(parent), row, 1,
              newPath , sibling->childCount(),
              tr("Demote %1").arg(n->name()) , iscore::IDocument::path(m_model));
     Q_ASSERT(m_cmdQ);

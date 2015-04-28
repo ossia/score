@@ -119,10 +119,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 
 //        typedef QList<int> Path;
         Node* nodeFromModelIndex(const QModelIndex& index) const;
-        Path pathFromNode(Node &node);
-        Node *pathToNode(const Path& path);
-
-        Path pathFromIndex(const QModelIndex& index);
         QModelIndex pathToIndex(const Path& path);
 
         DeviceExplorerCommandCreator* cmdCreator();

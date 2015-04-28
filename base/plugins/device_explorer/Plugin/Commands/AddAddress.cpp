@@ -18,28 +18,28 @@ AddAddress::AddAddress(ObjectPath &&device_tree, Path nodePath, DeviceExplorerMo
     Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
-        parentNode = explorer->pathToNode(nodePath);
+        parentNode =  nodePath.toNode(explorer->rootNode());
     }
     else if (insert == DeviceExplorerModel::Insert::AsSibling)
     {
-        parentNode = explorer->pathToNode(nodePath)->parent();
+        parentNode =  nodePath.toNode(explorer->rootNode())->parent();
     }
-    m_parentNodePath = explorer->pathFromNode(*parentNode);
+    m_parentNodePath = Path{parentNode};
 }
 
 void AddAddress::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* parent = explorer->pathToNode(m_parentNodePath);
+    Node* parent = m_parentNodePath.toNode(explorer->rootNode());
     explorer->removeNode(parent->childAt(m_createdNodeIndex));
 }
 
 void AddAddress::redo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* newNode = explorer->addAddress( explorer->pathToNode(m_parentNodePath), m_addressSettings);
+    Node* newNode = explorer->addAddress( m_parentNodePath.toNode(explorer->rootNode()), m_addressSettings);
 
-    m_createdNodeIndex = explorer->pathToNode(m_parentNodePath)->indexOfChild(newNode);
+    m_createdNodeIndex = m_parentNodePath.toNode(explorer->rootNode())->indexOfChild(newNode);
 }
 
 bool AddAddress::mergeWith(const iscore::Command *other)

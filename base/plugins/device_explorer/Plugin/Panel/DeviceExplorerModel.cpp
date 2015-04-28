@@ -546,7 +546,7 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
 
 QVariant DeviceExplorerModel::getData(Path node, int column, int role)
 {
-    QModelIndex index = createIndex(pathToIndex(node).row(), column, pathToNode(node)->parent());
+    QModelIndex index = createIndex(pathToIndex(node).row(), column, node.toNode(rootNode())->parent());
     return data(index, role);
 }
 
@@ -837,14 +837,14 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), pathFromIndex(index), index.column(), value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
                 changed = true;
             }
         }
 
         if(index.column() == IOTYPE_COLUMN)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), pathFromIndex(index), index.column(), value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
             changed = true;
         }
     }
@@ -1550,7 +1550,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         }
         DeviceExplorer::Command::Insert* cmd = new DeviceExplorer::Command::Insert;
         const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
-        cmd->set(pathFromNode(*parentNode), row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), iscore::IDocument::path(this));
+        cmd->set(Path(parentNode), row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), iscore::IDocument::path(this));
         Q_ASSERT(m_cmdQ);
         m_cmdQ->redoAndPush(cmd);
 
@@ -1624,21 +1624,6 @@ DeviceExplorerModel::setCachedResult(Result r)
     m_cmdCreator->setCachedResult(r);
 }
 
-Path
-DeviceExplorerModel::pathFromIndex(const QModelIndex& index)
-{
-    Path path;
-    QModelIndex iter = index;
-
-    while(iter.isValid())
-    {
-        path.prepend(iter.row());
-        iter = iter.parent();
-    }
-
-    return path;
-}
-
 QModelIndex
 DeviceExplorerModel::pathToIndex(const Path& path)
 {
@@ -1647,7 +1632,7 @@ DeviceExplorerModel::pathToIndex(const Path& path)
 
     for(int i = 0; i < pathSize; ++i)
     {
-        iter = index(path[i], 0, iter);
+        iter = index(path.at(i), 0, iter);
     }
 
     return iter;
@@ -1656,34 +1641,6 @@ DeviceExplorerModel::pathToIndex(const Path& path)
 DeviceExplorerCommandCreator *DeviceExplorerModel::cmdCreator()
 {
     return m_cmdCreator;
-}
-
-Path DeviceExplorerModel::pathFromNode(Node &node)
-{
-    Path path;
-    Node* iter = &node;
-
-    while(! iter->isDevice())
-    {
-        path.prepend(iter->parent()->indexOfChild(iter));
-        iter = iter->parent();
-    }
-    path.prepend(iter->parent()->indexOfChild(iter));
-
-    return path;
-}
-
-Node* DeviceExplorerModel::pathToNode(const Path &path)
-{
-    Node *iter = rootNode();
-    const int pathSize = path.size();
-
-    for (int i = 0; i < pathSize; ++i)
-    {
-        iter = iter->childAt(path[i]);
-    }
-
-    return iter;
 }
 
 void
@@ -1721,7 +1678,7 @@ DeviceExplorerModel::debug_printPath(const Path& path)
 
     for(int i = 0; i < pathSize; ++i)
     {
-        std::cerr << path[i] << " ";
+        std::cerr << path.at(i) << " ";
     }
 
     std::cerr << "\n";
