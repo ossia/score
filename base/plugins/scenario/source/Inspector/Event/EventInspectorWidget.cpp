@@ -21,7 +21,8 @@
 #include <QCompleter>
 
 #include <Process/ScenarioModel.hpp>
-#include <DeviceExplorer/DeviceCompleter.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
@@ -40,6 +41,11 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
             this,    &EventInspectorWidget::updateInspector);
     connect (object, &EventModel::dateChanged,
              this,   &EventInspectorWidget::modelDateChanged);
+
+    // Completion - only available if there is a device explorer
+    auto deviceexplorer =
+            iscore::IDocument::documentFromObject(m_model)
+                ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
     ////// HEADER
     // metadata
@@ -84,13 +90,28 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     m_properties.push_back(new Separator {this});
 
     /// Condition
-    m_conditionWidget = new QLineEdit{this};
-    connect(m_conditionWidget, SIGNAL(editingFinished()),
+    m_conditionLineEdit = new QLineEdit{this};
+    connect(m_conditionLineEdit, SIGNAL(editingFinished()),
             this,			 SLOT(on_conditionChanged()));
 
     // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
     m_properties.push_back(new QLabel{tr("Condition")});
-    m_properties.push_back(m_conditionWidget);
+    m_properties.push_back(m_conditionLineEdit);
+
+    if(deviceexplorer)
+    {
+        auto completer = new DeviceCompleter {deviceexplorer, this};
+        m_conditionLineEdit->setCompleter(completer);
+
+        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
+        connect(pb, &DeviceExplorerMenuButton::addressChosen,
+                this, [&] (const QString& addr)
+        {
+            m_conditionLineEdit->setText(addr);
+        });
+        m_properties.push_back(pb);
+    }
+
 
     // Separator
     m_properties.push_back(new Separator {this});
@@ -101,28 +122,35 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     m_addressesWidget->setLayout(dispLayout);
 
     QWidget* addAddressWidget = new QWidget{this};
-    auto addLayout = new QHBoxLayout{addAddressWidget};
+    auto addLayout = new QGridLayout{addAddressWidget};
 
-    m_addressLineEdit = new QLineEdit{addAddressWidget};
+    m_stateLineEdit = new QLineEdit{addAddressWidget};
 
-    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
-    if(deviceexplorer)
-    {
-        auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_addressLineEdit->setCompleter(completer);
-    }
 
 
     auto ok_button = new QPushButton{"Add", addAddressWidget};
     connect(ok_button, &QPushButton::clicked,
             this,	   &EventInspectorWidget::on_addAddressClicked);
-    addLayout->addWidget(m_addressLineEdit);
-    addLayout->addWidget(ok_button);
+    addLayout->addWidget(m_stateLineEdit, 0, 0);
+    addLayout->addWidget(ok_button, 0, 1);
 
     m_properties.push_back(new QLabel{"States"});
     m_properties.push_back(m_addressesWidget);
     m_properties.push_back(addAddressWidget);
+
+    if(deviceexplorer)
+    {
+        auto completer = new DeviceCompleter {deviceexplorer, this};
+        m_stateLineEdit->setCompleter(completer);
+
+        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
+        connect(pb, &DeviceExplorerMenuButton::addressChosen,
+                this, [&] (const QString& addr)
+        {
+            m_stateLineEdit->setText(addr);
+        });
+        addLayout->addWidget(pb, 1, 0, 1, 2);
+    }
 
     // Separator
     m_properties.push_back(new Separator {this});
@@ -250,7 +278,7 @@ void EventInspectorWidget::updateDisplayedValues(EventModel* event)
         }
 
 
-        m_conditionWidget->setText(event->condition());
+        m_conditionLineEdit->setText(event->condition());
     }
 }
 
@@ -259,18 +287,18 @@ using namespace iscore::IDocument;
 using namespace Scenario;
 void EventInspectorWidget::on_addAddressClicked()
 {
-    auto txt = m_addressLineEdit->text();
+    auto txt = m_stateLineEdit->text();
     // TODO Faire fonction pour parser texte en message.
     Message m; m.address = txt;
     auto cmd = new Command::AddStateToEvent{path(m_model), m};
 
     emit commandDispatcher()->submitCommand(cmd);
-    m_addressLineEdit->clear();
+    m_stateLineEdit->clear();
 }
 
 void EventInspectorWidget::on_conditionChanged()
 {
-    auto txt = m_conditionWidget->text();
+    auto txt = m_conditionLineEdit->text();
 
     if(txt == m_model->condition())
     {

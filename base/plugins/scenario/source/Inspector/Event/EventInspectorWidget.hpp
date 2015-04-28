@@ -39,8 +39,8 @@ class EventInspectorWidget : public InspectorWidgetBase
         std::vector<QWidget*> m_addresses;
 
         QLabel* m_date {};
-        QLineEdit* m_conditionWidget {};
-        QLineEdit* m_addressLineEdit {};
+        QLineEdit* m_conditionLineEdit {};
+        QLineEdit* m_stateLineEdit {};
         QWidget* m_addressesWidget{};
         EventModel* m_model {};
 
