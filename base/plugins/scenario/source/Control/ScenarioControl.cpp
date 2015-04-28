@@ -77,7 +77,15 @@ QJsonObject ScenarioControl::copySelectedElementsToJson()
 
 QJsonObject ScenarioControl::cutSelectedElementsToJson()
 {
+    auto obj = copySelectedElementsToJson();
 
+    if (auto sm = focusedScenario())
+    {
+        ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
+        mgr.clearContentFromSelection(*sm);
+    }
+
+    return obj;
 }
 
 #include <Commands/Constraint/CopyBox.hpp>
@@ -127,6 +135,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     ///// Edit /////
     // Remove
     QAction *removeElements = new QAction{tr("Remove scenario elements"), this};
+    removeElements->setShortcut(QKeySequence::Delete);
     connect(removeElements, &QAction::triggered,
             [this]()
             {
@@ -141,6 +150,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
 
     QAction *clearElements = new QAction{tr("Clear scenario elements"), this};
+    clearElements->setShortcut(Qt::Key_Backspace);
     connect(clearElements, &QAction::triggered,
             [this]()
             {
@@ -154,7 +164,9 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        clearElements);
 
     // Copy-paste
-    QAction *copyConstraintContent = new QAction{tr("Copy constraint content"), this};
+    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu, EditMenuElement::Separator_Copy);
+    QAction *copyConstraintContent = new QAction{tr("Copy"), this};
+    copyConstraintContent->setShortcut(QKeySequence::Copy);
     connect(copyConstraintContent, &QAction::triggered,
             [this]()
     {
@@ -166,8 +178,21 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        copyConstraintContent);
 
+    QAction *cutConstraintContent = new QAction{tr("Cut"), this};
+    cutConstraintContent->setShortcut(QKeySequence::Cut);
+    connect(cutConstraintContent, &QAction::triggered,
+            [this]()
+    {
+        QJsonDocument doc{cutSelectedElementsToJson()};
+        auto clippy = QApplication::clipboard();
+        clippy->setText(doc.toJson(QJsonDocument::Indented));
+    });
 
-    QAction *pasteConstraintContent = new QAction{tr("Paste constraint content"), this};
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       cutConstraintContent);
+
+    QAction *pasteConstraintContent = new QAction{tr("Paste"), this};
+    pasteConstraintContent->setShortcut(QKeySequence::Paste);
     connect(pasteConstraintContent, &QAction::triggered,
             [this]()
     {
@@ -180,6 +205,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     ///// View /////
     QAction *selectAll = new QAction{tr("Select all"), this};
+    selectAll->setShortcut(QKeySequence::SelectAll);
     connect(selectAll, &QAction::triggered,
             [this]()
             {
@@ -193,6 +219,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
 
     QAction *deselectAll = new QAction{tr("Deselect all"), this};
+    deselectAll->setShortcut(QKeySequence::Deselect);
     connect(deselectAll, &QAction::triggered,
             [this]()
             {
@@ -229,6 +256,20 @@ enum ScenarioAction
     Create, Move, DeckMove, Select
 };
 
+template<typename Data>
+QAction* makeToolbarAction(const QString& name,
+                           QObject* parent,
+                           const Data& data,
+                           const QString& shortcut)
+{
+    auto act = new QAction{name, parent};
+    act->setCheckable(true);
+    act->setData(QVariant::fromValue((int) data));
+    act->setShortcutContext(Qt::ApplicationShortcut);
+    act->setShortcut(shortcut);
+
+    return act;
+}
 
 QList<QToolBar *> ScenarioControl::makeToolbars()
 {
@@ -245,7 +286,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
         return dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel()) != nullptr;
     };
 
-    auto focusedScenarioStateMachine = [this]() -> ScenarioStateMachine &
+    auto stateMachine = [this]() -> ScenarioStateMachine &
     {
         auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
         return static_cast<TemporalScenarioViewModel *>(model.focusedViewModel())->presenter()->stateMachine();
@@ -255,76 +296,60 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     // The tools
     m_scenarioToolActionGroup = new QActionGroup{bar};
     m_scenarioToolActionGroup->setEnabled(false);
-    auto createtool = new QAction(tr("Create"), m_scenarioToolActionGroup);
-    createtool->setCheckable(true);
-    createtool->setData(QVariant::fromValue((int) ScenarioAction::Create));
-    createtool->setShortcutContext(Qt::ApplicationShortcut);
-    createtool->setShortcut(tr("Alt+c"));
-    connect(createtool, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit { focusedScenarioStateMachine().setCreateState(); }
-    });
 
-    auto movetool = new QAction(tr("Move"), m_scenarioToolActionGroup);
-    movetool->setCheckable(true);
-    movetool->setData(QVariant::fromValue((int) ScenarioAction::Move));
-    movetool->setShortcutContext(Qt::ApplicationShortcut);
-    movetool->setShortcut(tr("Alt+v"));
-    connect(movetool, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit { focusedScenarioStateMachine().setMoveState(); }
-    });
-
-    auto deckmovetool = new QAction(tr("Move Deck"), m_scenarioToolActionGroup);
-    deckmovetool->setCheckable(true);
-    deckmovetool->setData(QVariant::fromValue((int) ScenarioAction::DeckMove));
-    deckmovetool->setShortcutContext(Qt::ApplicationShortcut);
-    deckmovetool->setShortcut(tr("Alt+b"));
-    connect(deckmovetool, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit { focusedScenarioStateMachine().setDeckMoveState(); }
-    });
-
-    selecttool = new QAction(tr("Select"), m_scenarioToolActionGroup);
-    selecttool->setCheckable(true);
+    selecttool = makeToolbarAction(
+                tr("Select"),
+                m_scenarioToolActionGroup,
+                ScenarioAction::Select,
+                tr("Alt+x"));
     selecttool->setChecked(true);
-    selecttool->setData(QVariant::fromValue((int) ScenarioAction::Select));
-    selecttool->setShortcutContext(Qt::ApplicationShortcut);
-    selecttool->setShortcut(tr("Alt+n"));
     connect(selecttool, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit { focusedScenarioStateMachine().setSelectState(); }
-    });
+    { if (focusedScenarioViewModel()) stateMachine().setSelectState(); });
+
+    auto createtool = makeToolbarAction(
+                tr("Create"),
+                m_scenarioToolActionGroup,
+                ScenarioAction::Create,
+                tr("Alt+c"));
+    connect(createtool, &QAction::triggered, [=]()
+    { if (focusedScenarioViewModel()) stateMachine().setCreateState(); });
+
+    auto movetool = makeToolbarAction(
+                tr("Move"),
+                m_scenarioToolActionGroup,
+                ScenarioAction::Move,
+                tr("Alt+v"));
+    connect(movetool, &QAction::triggered, [=]()
+    { if (focusedScenarioViewModel()) stateMachine().setMoveState(); } );
+
+    auto deckmovetool = makeToolbarAction(
+                tr("Move Deck"),
+                m_scenarioToolActionGroup,
+                ScenarioAction::DeckMove,
+                tr("Alt+b"));
+    connect(deckmovetool, &QAction::triggered, [=]()
+    { if (focusedScenarioViewModel()) stateMachine().setDeckMoveState(); });
+
 
     // The action modes
     m_scenarioScaleModeActionGroup = new QActionGroup{bar};
-    auto scale = new QAction(tr("Scale"), m_scenarioScaleModeActionGroup);
-    scale->setCheckable(true);
+
+    auto scale = makeToolbarAction(
+                tr("Scale"),
+                m_scenarioScaleModeActionGroup,
+                ExpandMode::Scale,
+                tr("Alt+Shift+S"));
     scale->setChecked(true);
-    scale->setData(QVariant::fromValue(ExpandMode::Scale));
-    scale->setShortcutContext(Qt::ApplicationShortcut);
-    scale->setShortcut(tr("Alt+Shift+S"));
     connect(scale, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit { focusedScenarioStateMachine().setScaleState(); }
-    });
+    { if (focusedScenarioViewModel()) stateMachine().setScaleState(); });
 
-
-    auto grow = new QAction(tr("Grow/Shrink"), m_scenarioScaleModeActionGroup);
-    grow->setCheckable(true);
-    grow->setData(QVariant::fromValue(ExpandMode::Grow));
-    grow->setShortcutContext(Qt::ApplicationShortcut);
-    grow->setShortcut(tr("Alt+Shift+D"));
+    auto grow = makeToolbarAction(
+                tr("Grow/Shrink"),
+                m_scenarioScaleModeActionGroup,
+                ExpandMode::Grow,
+                tr("Alt+Shift+D"));
     connect(grow, &QAction::triggered, [=]()
-    {
-        if (focusedScenarioViewModel())
-                emit focusedScenarioStateMachine().setGrowState();
-    });
+    { if (focusedScenarioViewModel()) stateMachine().setGrowState(); });
 
 
     on_presenterChanged();

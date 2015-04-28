@@ -34,6 +34,8 @@ iscore::UndoControl::~UndoControl()
 void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
 {
     ////// Edit //////
+    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       EditMenuElement::Separator_Undo);
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        EditMenuElement::Undo,
                                        m_undoAction);

@@ -30,6 +30,11 @@ namespace iscore
 
     enum class EditMenuElement
     {
+        Separator_Copy,
+        Copy,
+        Cut,
+        Paste,
+        Separator_Undo,
         Undo,
         Redo
     };
@@ -42,6 +47,13 @@ namespace iscore
     enum class SettingsMenuElement
     {
         Settings
+    };
+
+
+    enum class AboutMenuElement
+    {
+        Help,
+        About
     };
 
     /**
@@ -67,5 +79,6 @@ namespace iscore
             static const std::map<EditMenuElement, QString> m_editMap;
             static const std::map<ViewMenuElement, QString> m_viewMap;
             static const std::map<SettingsMenuElement, QString> m_settingsMap;
+            static const std::map<AboutMenuElement, QString> m_aboutMap;
     };
 }

@@ -327,4 +327,8 @@ void Presenter::setupMenus()
                                         SettingsMenuElement::Settings,
                                         std::bind(&SettingsView::exec,
                                                   qobject_cast<Application*> (parent())->settings()->view()));
+
+    ////// About /////
+    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
+                                        AboutMenuElement::About, [] () { QMessageBox::about(nullptr, tr("About i-score"), tr("With love and sweat from the i-score team.")); });
 }
