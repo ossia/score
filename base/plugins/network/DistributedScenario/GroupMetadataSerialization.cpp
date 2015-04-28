@@ -8,13 +8,6 @@ void Visitor<Reader<DataStream>>::readFrom(const GroupMetadata& elt)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const GroupMetadata& elt)
-{
-    m_obj["Group"] = toJsonValue(elt.group());
-}
-
-
-template<>
 void Visitor<Writer<DataStream>>::writeTo(GroupMetadata& elt)
 {
     id_type<Group> id;
@@ -22,6 +15,13 @@ void Visitor<Writer<DataStream>>::writeTo(GroupMetadata& elt)
     elt.setGroup(id);
 
     checkDelimiter();
+}
+
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const GroupMetadata& elt)
+{
+    m_obj["Group"] = toJsonValue(elt.group());
 }
 
 template<>

@@ -75,7 +75,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
 
     m_obj["States"] = toJsonArray(ev.states());
 
-    m_obj["PluginsMetadata"] = toJsonObject(*ev.m_pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(*ev.m_pluginModelList);
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
@@ -98,6 +98,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
 
     ev.replaceStates(states);
 
-    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     ev.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
 }

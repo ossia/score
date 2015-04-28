@@ -21,7 +21,6 @@ namespace iscore
      */
     class PluginControlInterface : public NamedObject
     {
-            Q_OBJECT
             // Menus : trouver un moyen pour créer automatiquement si n'existe pas ?
             // Dire chemin : File/Export/SomeCustomExport ?
             // Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
@@ -29,7 +28,7 @@ namespace iscore
         public:
             using NamedObject::NamedObject;
             virtual ~PluginControlInterface() = default;
-            virtual void populateMenus(iscore::MenubarManager*) = 0;
+            virtual void populateMenus(iscore::MenubarManager*) { }
             virtual QList<QToolBar*> makeToolbars() { return {}; }
 
             Presenter* presenter() const

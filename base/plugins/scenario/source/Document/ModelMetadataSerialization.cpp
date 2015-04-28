@@ -28,11 +28,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
     m_obj["ScriptingName"] = md.m_scriptingName;
     m_obj["Comment"] = md.m_comment;
 
-    QJsonObject color;
-    color["R"] = md.m_color.red();
-    color["G"] = md.m_color.green();
-    color["B"] = md.m_color.blue();
-    m_obj["Color"] = color;
+    m_obj["Color"] = QJsonArray {md.m_color.red(), md.m_color.green(), md.m_color.blue()};
 
     m_obj["Label"] = md.m_label;
 }
@@ -43,8 +39,8 @@ void Visitor<Writer<JSONObject>>::writeTo(ModelMetadata& md)
     md.m_scriptingName = m_obj["ScriptingName"].toString();
     md.m_comment = m_obj["Comment"].toString();
 
-    QJsonObject color = m_obj["Color"].toObject();
-    md.m_color = QColor(color["R"].toInt(), color["G"].toInt(), color["B"].toInt());
+    QJsonArray color = m_obj["Color"].toArray();
+    md.m_color = QColor(color[0].toInt(), color[1].toInt(), color[2].toInt());
 
     md.m_label = m_obj["Label"].toString();
 }

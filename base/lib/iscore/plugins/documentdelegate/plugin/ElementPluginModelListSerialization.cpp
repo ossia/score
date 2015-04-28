@@ -42,3 +42,21 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelL
         elts.add(deserializeElementPluginModel(deserializer, elts.parent(), &elts));
     }
 }
+
+
+template<> void Visitor<Reader<JSONValue>>::readFrom(const iscore::ElementPluginModelList& elts)
+{
+    val = toJsonArray(elts.list());
+}
+
+template<> void Visitor<Writer<JSONValue>>::writeTo(iscore::ElementPluginModelList& elts)
+{
+    QJsonArray plugin_array = val.toArray();
+
+    for(const auto& json_vref : plugin_array)
+    {
+        Deserializer<JSONObject> deserializer{json_vref.toObject()};
+
+        elts.add(deserializeElementPluginModel(deserializer, elts.parent(), &elts));
+    }
+}

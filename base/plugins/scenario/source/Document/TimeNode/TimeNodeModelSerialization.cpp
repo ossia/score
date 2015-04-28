@@ -41,7 +41,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
     m_obj["Y"] = timenode.y();
     m_obj["Events"] = toJsonArray(timenode.m_events);
 
-    m_obj["PluginsMetadata"] = toJsonObject(*timenode.m_pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(*timenode.m_pluginModelList);
 }
 
 template<>
@@ -54,6 +54,6 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
 
     fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
 
-    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     timenode.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
 }

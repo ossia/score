@@ -1,5 +1,5 @@
 #include "GroupMetadata.hpp"
-
+#include <iscore/serialization/VisitorCommon.hpp>
 
 GroupMetadata::GroupMetadata(
         const QObject* element,
@@ -25,18 +25,7 @@ QString GroupMetadata::plugin() const
 
 void GroupMetadata::serialize(const VisitorVariant& vis) const
 {
-    if(vis.identifier == DataStream::type())
-    {
-        static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
-        return;
-    }
-    else if(vis.identifier == JSONObject::type())
-    {
-        static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
-        return;
-    }
-
-    Q_ASSERT(false);
+    serialize_dyn(vis, *this);
 }
 
 void GroupMetadata::setGroup(const id_type<Group>& id)

@@ -7,10 +7,6 @@ InspectorControl::InspectorControl() :
 {
 }
 
-void InspectorControl::populateMenus(iscore::MenubarManager*)
-{
-}
-
 InspectorWidgetList* InspectorControl::widgetList() const
 {
     return m_widgetList;

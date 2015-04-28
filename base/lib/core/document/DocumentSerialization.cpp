@@ -187,6 +187,7 @@ DocumentModel::DocumentModel(const QVariant& data,
         for(const auto& plugin : documentPluginModels)
         {
 
+
         }
 
         // Load the document model

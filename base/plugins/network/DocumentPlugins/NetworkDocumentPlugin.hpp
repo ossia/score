@@ -26,6 +26,11 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
     public:
         NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::Document *doc);
 
+        // Loading has to be in two steps since the plugin policy is different from the client
+        // and server.
+        NetworkDocumentPlugin(VisitorVariant& loader, iscore::Document* doc);
+        void setPolicy(NetworkPluginPolicy*);
+
         QString metadataName() const override
         {
             return GroupMetadata::staticPluginName();
@@ -48,10 +53,7 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         virtual QWidget *makeElementPluginWidget(
                 const iscore::ElementPluginModel*, QWidget* widg) const override;
 
-        void serialize(const VisitorVariant&) const override
-        {
-            qDebug() << Q_FUNC_INFO << "TODO";
-        }
+        void serialize(const VisitorVariant&) const override;
 
 
         GroupManager* groupManager() const

@@ -126,24 +126,10 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 }
 
 
-
+#include <iscore/serialization/VisitorCommon.hpp>
 void ScenarioModel::serialize(const VisitorVariant& vis) const
 {
-    switch(vis.identifier)
-    {
-        case DataStream::type():
-        {
-            static_cast<DataStream::Serializer&>(vis.visitor).readFrom(*this);
-            return;
-        }
-        case JSONObject::type():
-        {
-            static_cast<JSONObject::Serializer&>(vis.visitor).readFrom(*this);
-            return;
-        }
-    }
-
-    throw std::runtime_error("ScenarioProcessModel only supports DataStream & JSON serialization");
+    serialize_dyn(vis, *this);
 }
 
 #include "ScenarioFactory.hpp"

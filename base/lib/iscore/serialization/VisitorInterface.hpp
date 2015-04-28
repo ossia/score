@@ -32,3 +32,4 @@ struct VisitorVariant
         AbstractVisitor& visitor;
         const SerializationIdentifier identifier;
 };
+

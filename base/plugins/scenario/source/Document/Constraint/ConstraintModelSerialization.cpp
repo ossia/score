@@ -137,7 +137,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
 
     m_obj["Rigidity"] = constraint.isRigid();
 
-    m_obj["PluginsMetadata"] = toJsonObject(*constraint.m_pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(*constraint.m_pluginModelList);
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
@@ -176,6 +176,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
     constraint.setRigid(m_obj["Rigidity"].toBool());
 
 
-    Deserializer<JSONObject> elementPluginDeserializer(m_obj["PluginsMetadata"].toObject());
+    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     constraint.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
 }

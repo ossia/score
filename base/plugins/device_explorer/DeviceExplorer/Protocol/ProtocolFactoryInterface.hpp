@@ -5,8 +5,7 @@
 #include <QVariant>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
 class DeviceInterface;
 class ProtocolFactoryInterface : public iscore::FactoryInterface
@@ -20,24 +19,11 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
         // Save
         virtual void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const = 0;
 
+        // TODO these are not necessary anymore
         template<typename T>
         void serializeProtocolSpecificSettings_T(const QVariant& data, const VisitorVariant& visitor) const
         {
-            switch(visitor.identifier)
-            {
-                case DataStream::type():
-                {
-                    static_cast<DataStream::Serializer&>(visitor.visitor).readFrom(data.value<T>());
-                    break;
-                }
-                case JSONObject::type():
-                {
-                    static_cast<JSONObject::Serializer&>(visitor.visitor).readFrom(data.value<T>());
-                    break;
-                }
-                default:
-                    Q_ASSERT(false);
-            }
+            serialize_dyn(visitor, data.value<T>());
         }
 
 
@@ -45,27 +31,9 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
         virtual QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
 
         template<typename T>
-        QVariant makeProtocolSpecificSettings_T(const VisitorVariant& visitor) const
+        QVariant makeProtocolSpecificSettings_T(const VisitorVariant& vis) const
         {
-            T settings;
-
-            switch(visitor.identifier)
-            {
-                case DataStream::type():
-                {
-                    static_cast<DataStream::Deserializer&>(visitor.visitor).writeTo(settings);
-                    break;
-                }
-                case JSONObject::type():
-                {
-                    static_cast<JSONObject::Deserializer&>(visitor.visitor).writeTo(settings);
-                    break;
-                }
-                default:
-                    Q_ASSERT(false);
-            }
-
-            return QVariant::fromValue(settings);
+            return QVariant::fromValue(deserialize_dyn<T>(vis));
         }
 
 };

@@ -15,15 +15,30 @@ class Group : public IdentifiedObject<Group>
 {
         Q_OBJECT
         Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+
+        friend void Visitor<Reader<DataStream>>::readFrom<Group>(const Group& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<Group>(const Group& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<Group>(Group& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<Group>(Group& ev);
+
     public:
         Group(QString name, id_type<Group> id, QObject* parent);
+
+        template<typename Deserializer>
+        Group(Deserializer&& vis, QObject* parent) :
+            IdentifiedObject<Group> {vis, parent}
+        {
+            vis.writeTo(*this);
+        }
+
 
         QString name() const;
         void setName(QString arg);
 
         void addClient(id_type<Client> clt);
         void removeClient(id_type<Client> clt);
-        const auto& clients() const { return m_executingClients; }
+        const QVector<id_type<Client>>& clients() const
+        { return m_executingClients; }
 
     signals:
         void nameChanged(QString arg);

@@ -8,7 +8,10 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
     public:
         IScoreCohesionControl(QObject* parent);
         void populateMenus(iscore::MenubarManager*) override;
-        iscore::SerializableCommand* instantiateUndoCommand(const QString& name, const QByteArray& data) override;
+
+        iscore::SerializableCommand* instantiateUndoCommand(
+                const QString& name,
+                const QByteArray& data) override;
 
     public slots:
         void on_currentTimeChanged(double);
