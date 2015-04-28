@@ -36,12 +36,22 @@ bool EditData::mergeWith(const iscore::Command *other)
     return false;
 }
 
-void EditData::serializeImpl(QDataStream &) const
+void EditData::serializeImpl(QDataStream &d) const
 {
-
+    d << m_deviceTree;
+    m_nodePath.serializePath(d);
+    d << m_column;
+    d << m_oldValue; // TODO QVariants serialization
+    d << m_newValue;
+    d << m_role;
 }
 
-void EditData::deserializeImpl(QDataStream &)
+void EditData::deserializeImpl(QDataStream &d)
 {
-
+    d >> m_deviceTree;
+    m_nodePath.deserializePath(d);
+    d >> m_column;
+    d >> m_oldValue;
+    d >> m_newValue;
+    d >> m_role;
 }

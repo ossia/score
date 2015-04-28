@@ -57,6 +57,7 @@ Paste::mergeWith(const Command* /*other*/)
 void
 Paste::serializeImpl(QDataStream& d) const
 {
+    d << m_model;
     m_parentPath.serializePath(d);
     d << (qint32) m_row;
 
@@ -68,6 +69,7 @@ Paste::serializeImpl(QDataStream& d) const
 void
 Paste::deserializeImpl(QDataStream& d)
 {
+    d >> m_model;
     m_parentPath.deserializePath(d);
     qint32 v;
     d >> v;

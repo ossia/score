@@ -132,7 +132,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getIOTypeColumn() const;
         int getNameColumn() const;
 
-//        typedef QList<int> Path;
         Node* nodeFromModelIndex(const QModelIndex& index) const;
         QModelIndex pathToIndex(const Path& path);
 

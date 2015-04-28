@@ -57,11 +57,20 @@ Remove::mergeWith(const Command* /*other*/)
 void
 Remove::serializeImpl(QDataStream& d) const
 {
+    d << m_deviceTree;
+    m_parentPath.serializePath(d);
+    m_nodePath.serializePath(d);
 
+    d << m_nodeIndex;
+    // TODO serialisation of node
 }
 
 void
 Remove::deserializeImpl(QDataStream& d)
 {
+    d >> m_deviceTree;
+    m_parentPath.deserializePath(d);
+    m_nodePath.deserializePath(d);
 
+    d >> m_nodeIndex;
 }

@@ -3,6 +3,9 @@
 #include <DeviceExplorer/Node/Node.hpp>
 #include "DeviceExplorerCommandCreator.hpp"
 
+#include "BinaryReader.hpp"
+#include "BinaryWriter.hpp"
+
 #include <iostream>
 
 #include <QMimeData>
@@ -26,89 +29,6 @@ enum
 
 
 static QString HEADERS[COLUMN_COUNT];
-
-
-class BinaryWriter
-{
-        QDataStream& m_stream;
-
-    public:
-        BinaryWriter(QDataStream& stream)
-            : m_stream(stream)
-        {
-
-        }
-
-        void write(const Node* n)
-        {
-            Q_ASSERT(n);
-
-            m_stream << n->name();
-            //TODO: type !
-            m_stream << n->value();
-            m_stream << (qint32) n->ioType();
-            m_stream << n->minValue();
-            m_stream << n->maxValue();
-            m_stream << (quint32) n->priority();
-            //TODO: cropMode, tags, ...
-
-            m_stream << (quint32) n->childCount();
-            foreach(Node * child, n->children())
-            write(child);
-
-        }
-
-};
-
-class BinaryReader
-{
-        QDataStream& m_stream;
-
-    public:
-        BinaryReader(QDataStream& stream)
-            : m_stream(stream)
-        {
-        }
-
-        void read(Node* parent)
-        {
-            Q_ASSERT(parent);
-
-            QString name;
-            m_stream >> name;
-
-            Node* n = new Node(name, parent);
-
-            //TODO: type !
-            QString value;
-            m_stream >> value;
-            qint32 ioType;
-            m_stream >> ioType;
-            float minValue, maxValue;
-            m_stream >> minValue;
-            m_stream >> maxValue;
-            quint32 priority;
-            m_stream >> priority;
-            //TODO: cropMode, tags, ...
-
-            n->setValue(value);
-            n->setIOType(static_cast<Node::IOType>(ioType));
-            n->setMinValue(minValue);
-            n->setMaxValue(maxValue);
-            n->setPriority(priority);
-
-            quint32 childCount;
-            m_stream >> childCount;
-
-            for(quint32 i = 0; i < childCount; ++i)
-            {
-                read(n);
-            }
-
-        }
-};
-
-
 
 DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
     : QAbstractItemModel(parent),

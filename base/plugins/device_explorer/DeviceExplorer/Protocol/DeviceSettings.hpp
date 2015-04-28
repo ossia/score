@@ -7,4 +7,5 @@ struct DeviceSettings
         QString protocol;
         QString name;
         QVariant deviceSpecificSettings;
+        //TODO : serialisation
 };

@@ -61,6 +61,7 @@ Move::mergeWith(const Command* /*other*/)
 void
 Move::serializeImpl(QDataStream& d) const
 {
+    d << m_model;
     m_srcParentPath.serializePath(d);
     m_dstParentPath.serializePath(d);
     d << (qint32) m_srcRow;
@@ -71,6 +72,7 @@ Move::serializeImpl(QDataStream& d) const
 void
 Move::deserializeImpl(QDataStream& d)
 {
+    d >> m_model;
     m_srcParentPath.deserializePath(d);
     m_dstParentPath.deserializePath(d);
     qint32 v;
