@@ -43,6 +43,7 @@ class Session : public IdentifiedObject<Session>
 
         void addClient(RemoteClient* clt)
         {
+            clt->setParent(this);
             m_remoteClients.append(clt);
             emit clientsChanged();
         }

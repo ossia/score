@@ -33,8 +33,9 @@ namespace iscore
             virtual QList<QToolBar*> makeToolbars() { return {}; }
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
+                    const QString& name,
                     const VisitorVariant& var,
-                    QObject* parent)
+                    iscore::DocumentModel *parent)
             { return nullptr; }
 
             Presenter* presenter() const

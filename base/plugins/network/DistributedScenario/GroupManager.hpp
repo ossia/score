@@ -9,6 +9,13 @@ class GroupManager : public IdentifiedObject<GroupManager>
     public:
         GroupManager(QObject* parent);
 
+        template<typename Deserializer>
+        GroupManager(Deserializer&& vis, QObject* parent) :
+            IdentifiedObject<GroupManager> {vis, parent}
+        {
+            vis.writeTo(*this);
+        }
+
         void addGroup(Group* group);
         void removeGroup(id_type<Group> group);
 

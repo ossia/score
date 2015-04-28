@@ -9,15 +9,15 @@
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 
-NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
-                                                         iscore::Document* doc):
-    m_session{s},
-    m_document{doc}
+MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
+                                         iscore::CommandStack& stack,
+                                         iscore::ObjectLocker& locker):
+    m_session{s}
 {
     /////////////////////////////////////////////////////////////////////////////
     /// From the master to the clients
     /////////////////////////////////////////////////////////////////////////////
-    connect(&m_document->commandStack(), &iscore::CommandStack::localCommand,
+    connect(&stack, &iscore::CommandStack::localCommand,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->broadcast(
@@ -28,18 +28,18 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     });
 
     // Undo-redo
-    connect(&m_document->commandStack(), &iscore::CommandStack::localUndo,
+    connect(&stack, &iscore::CommandStack::localUndo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/undo")); });
-    connect(&m_document->commandStack(), &iscore::CommandStack::localRedo,
+    connect(&stack, &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/redo")); });
 
     // Lock - unlock
-    connect(&m_document->locker(), &iscore::ObjectLocker::lock,
+    connect(&locker, &iscore::ObjectLocker::lock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/lock", arr)); });
-    connect(&m_document->locker(), &iscore::ObjectLocker::unlock,
+    connect(&locker, &iscore::ObjectLocker::unlock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/unlock", arr)); });
 
@@ -53,7 +53,7 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
         QDataStream s{m.data};
         s >> parentName >> name >> data;
 
-        m_document->commandStack().redoAndPushQuiet(
+        stack.redoAndPushQuiet(
                     iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
 
 
@@ -64,12 +64,12 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
     // Undo-redo
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {
-        m_document->commandStack().undoQuiet();
+        stack.undoQuiet();
         m_session->transmit(id_type<Client>(m.clientId), m);
     });
     s->mapper().addHandler("/redo", [&] (NetworkMessage m)
     {
-        m_document->commandStack().redoQuiet();
+        stack.redoQuiet();
         m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
@@ -79,7 +79,7 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
         QDataStream s{m.data};
         QByteArray data;
         s >> data;
-        m_document->locker().on_lock(data);
+        locker.on_lock(data);
         m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
@@ -88,10 +88,8 @@ NetworkDocumentMasterPlugin::NetworkDocumentMasterPlugin(MasterSession* s,
         QDataStream s{m.data};
         QByteArray data;
         s >> data;
-        m_document->locker().on_unlock(data);
+        locker.on_unlock(data);
         m_session->transmit(id_type<Client>(m.clientId), m);
     });
-
-    // TODO Changing groups is a Command
 }
 

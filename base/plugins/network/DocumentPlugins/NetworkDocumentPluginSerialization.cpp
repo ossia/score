@@ -1,4 +1,6 @@
 #include "NetworkDocumentPlugin.hpp"
+#include "PlaceholderNetworkPolicy.hpp"
+#include "DistributedScenario/GroupManager.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
@@ -6,8 +8,8 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const NetworkDocumentPlugin& elt)
 {
-    readFrom(static_cast<const NamedObject&>(elt));
     readFrom(*elt.groupManager());
+    readFrom(*elt.policy());
 
     // Note : we do not save the policy since it will be different on each computer.
     insertDelimiter();
@@ -16,20 +18,23 @@ void Visitor<Reader<DataStream>>::readFrom(const NetworkDocumentPlugin& elt)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(NetworkDocumentPlugin& elt)
 {
-    //m_stream >> elt.m_name >> elt.m_executingClients;
+    elt.m_groups = new GroupManager{*this, &elt};
+    elt.m_policy = new PlaceholderNetworkPolicy{*this, &elt};
+
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const NetworkDocumentPlugin& elt)
 {
-    readFrom(static_cast<const NamedObject&>(elt));
-    //m_obj["Clients"] = toJsonArray(elt.clients());
+    readFrom(*elt.groupManager());
+    readFrom(*elt.policy());
 }
 
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(NetworkDocumentPlugin& elt)
 {
-    //fromJsonValueArray(m_obj["Clients"].toArray(), elt.m_executingClients);
+    elt.m_groups = new GroupManager{*this, &elt};
+    elt.m_policy = new PlaceholderNetworkPolicy{*this, &elt};
 }

@@ -9,6 +9,7 @@ GroupManager::GroupManager(QObject* parent):
 
 void GroupManager::addGroup(Group* group)
 {
+    qDebug( ) << "Adding group to " << (void* ) this;
     m_groups.push_back(group);
     emit groupAdded(group->id());
 }
@@ -32,6 +33,8 @@ Group* GroupManager::group(const id_type<Group>& id) const
 
 id_type<Group> GroupManager::defaultGroup() const
 {
+
+    qDebug( ) << "Asking group at " << (void* ) this;
     return m_groups[0]->id();
 }
 

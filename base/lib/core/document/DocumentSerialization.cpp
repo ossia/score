@@ -16,6 +16,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 {
     QByteArray arr;
     Serializer<DataStream> s{&arr};
+    s.readFrom(m_model->id());
     m_model->modelDelegate()->serialize(s.toVariant());
     return arr;
 }
@@ -23,6 +24,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 QJsonObject Document::saveDocumentModelAsJson()
 {
     Serializer<JSONObject> s;
+    s.m_obj["DocumentId"] = toJsonValue(model()->id());
     m_model->modelDelegate()->serialize(s.toVariant());
     return s.m_obj;
 }
@@ -162,12 +164,25 @@ DocumentModel::DocumentModel(const QVariant& data,
             throw std::runtime_error("Invalid file.");
         }
 
-
         // Note : this *has* to be in this order, because
         // the plugin models might put some data in the
         // document that requires the plugin models to be loaded
         // in order to be deserialized. (e.g. the groups for the network)
-        // First load the panels
+        // First load the plugin models
+        auto plugin_control = iscore::IPresenter::pluginControls();
+        for(const auto& plugin_raw : documentPluginModels)
+        {
+            DataStream::Deserializer plug_writer{plugin_raw.second};
+            for(iscore::PluginControlInterface* control : plugin_control)
+            {
+                if(auto loaded_plug = control->loadDocumentPlugin(plugin_raw.first, plug_writer.toVariant(), this))
+                {
+                    addPluginModel(loaded_plug);
+                }
+            }
+        }
+
+        // Load the panels now
         auto panel_factories = iscore::IPresenter::panelFactories();
         for(const auto& panel : panelModels)
         {
@@ -185,28 +200,34 @@ DocumentModel::DocumentModel(const QVariant& data,
                 addPanel(factory->makeModel(this));
         }
 
-        // Load the plugin models now
+        // Load the document model
+        id_type<DocumentModel> docid;
+
+        DataStream::Deserializer doc_writer{doc};
+        doc_writer.writeTo(docid);
+        this->setId(std::move(docid));
+        m_model = fact->loadModel(doc_writer.toVariant(), this);
+    }
+    else if(data.canConvert(QMetaType::QJsonObject))
+    {
+        QJsonObject json = data.toJsonObject();
+        this->setId(fromJsonValue<id_type<DocumentModel>>(json["DocumentId"]));
+
+        // TODO put them in sub-objects, else the iteration will take ages.
+        // Load the plug-in models
         auto plugin_control = iscore::IPresenter::pluginControls();
-        for(const auto& plugin_raw : documentPluginModels)
+        for(const auto& key : json.keys())
         {
-            DataStream::Deserializer plug_writer{plugin_raw.second};
+            JSONObject::Deserializer plug_writer{json[key].toObject()};
             for(iscore::PluginControlInterface* control : plugin_control)
             {
-                if(auto loaded_plug = control->loadDocumentPlugin(plug_writer.toVariant(), this))
+                if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), this))
                 {
                     addPluginModel(loaded_plug);
                 }
             }
         }
 
-        // Load the document model
-        DataStream::Deserializer doc_writer{doc};
-        m_model = fact->loadModel(doc_writer.toVariant(), this);
-    }
-    else if(data.canConvert(QMetaType::QJsonObject))
-    {
-        QJsonObject json = data.toJsonObject();
-        // TODO put them in sub-objects, else the iteration will take ages.
         // Load the panels
         auto factories = iscore::IPresenter::panelFactories();
         for(const auto& key : json.keys())
@@ -225,20 +246,6 @@ DocumentModel::DocumentModel(const QVariant& data,
                     addPanel(pnl);
                 else
                     addPanel(factory->makeModel(this));
-            }
-        }
-
-        // Load the plug-in models
-        auto plugin_control = iscore::IPresenter::pluginControls();
-        for(const auto& key : json.keys())
-        {
-            JSONObject::Deserializer plug_writer{json[key].toObject()};
-            for(iscore::PluginControlInterface* control : plugin_control)
-            {
-                if(auto loaded_plug = control->loadDocumentPlugin(plug_writer.toVariant(), this))
-                {
-                    addPluginModel(loaded_plug);
-                }
             }
         }
 

@@ -9,6 +9,7 @@ Session::Session(LocalClient* client, id_type<Session> id, QObject* parent):
     m_mapper{new MessageMapper},
     m_validator{new MessageValidator(*this, mapper())}
 {
+    m_client->setParent(this);
 }
 
 Session::~Session()

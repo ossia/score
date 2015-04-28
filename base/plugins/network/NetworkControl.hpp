@@ -3,6 +3,10 @@
 
 class ClientSessionBuilder;
 class ClientSession;
+namespace iscore
+{
+class DocumentDelegatePluginModel;
+}
 
 #ifdef USE_ZEROCONF
 class ZeroconfBrowser;
@@ -21,6 +25,11 @@ class NetworkControl : public iscore::PluginControlInterface
         void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
 
     private:
+        virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
+                const QString& name,
+                const VisitorVariant& var,
+                iscore::DocumentModel *parent) override;
+
         iscore::Presenter* m_presenter {};
         ClientSessionBuilder* m_sessionBuilder{};
 

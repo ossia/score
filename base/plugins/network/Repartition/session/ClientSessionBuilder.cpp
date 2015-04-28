@@ -40,7 +40,9 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
         m_sessionId.setVal(m.sessionId); // The session offered
         m_masterId.setVal(m.clientId); // Message is from the master
         QDataStream s(m.data);
-        s >> m_clientId; // The offered client id
+        int32_t id;
+        s >> id; // The offered client id
+        m_clientId = id_type<Client>(id);
 
         // TODO ask with additional data
         NetworkMessage join;

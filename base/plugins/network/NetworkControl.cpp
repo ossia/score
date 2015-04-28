@@ -37,8 +37,8 @@ void NetworkControl::populateMenus(MenubarManager* menu)
         auto clt = new LocalClient(id_type<Client>(0));
         clt->setName(tr("Local"));
         auto serv = new MasterSession(currentDocument(), clt, id_type<Session>(1234));
-        auto policy = new NetworkDocumentMasterPlugin{serv, currentDocument()};
-        auto realplug = new NetworkDocumentPlugin(policy, currentDocument());
+        auto policy = new MasterNetworkPolicy{serv, currentDocument()->commandStack(), currentDocument()->locker()};
+        auto realplug = new NetworkDocumentPlugin{policy, currentDocument()->model()};
         currentDocument()->model()->addPluginModel(realplug);
     });
 
@@ -85,6 +85,16 @@ void NetworkControl::on_sessionBuilt(
     }
 
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel("NetworkDocumentPlugin"));
-    np->setPolicy(new NetworkDocumentClientPlugin{builtSession, doc});
+    np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
+}
+
+DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &name,
+                                                                const VisitorVariant &var,
+                                                                iscore::DocumentModel *parent)
+{
+    if(name != NetworkDocumentPlugin::staticMetaObject.className())
+        return nullptr;
+
+    return new NetworkDocumentPlugin{var, parent};
 }

@@ -7,16 +7,18 @@
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 
 #include "DistributedScenario/GroupMetadataWidget.hpp"
 
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
-                                             iscore::Document *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc->model()},
+                                             iscore::DocumentModel *doc):
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc},
     m_policy{policy},
     m_groups{new GroupManager{this}}
 {
+    m_policy->setParent(this);
     using namespace std;
 
     // Base group set-up
@@ -33,7 +35,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
                         makeElementPlugin(constraint,
                                           &constraint->pluginModelList()));
     }
-    auto events = doc->findChildren<EventModel*>("EventModel");
+    auto events = doc->modelDelegate()->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
         if(event->pluginModelList().canAdd(metadataName()))
@@ -44,14 +46,14 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     }
 }
 
-NetworkDocumentPlugin::NetworkDocumentPlugin(VisitorVariant &loader,
-                                             iscore::Document *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc->model()}
+#include <iscore/serialization/VisitorCommon.hpp>
+NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
+                                             iscore::DocumentModel *doc):
+    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc}
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    deserialize_dyn(loader, *this);
 }
 
-#include <iscore/serialization/VisitorCommon.hpp>
 void NetworkDocumentPlugin::serialize(const VisitorVariant & vis) const
 {
     serialize_dyn(vis, *this);
@@ -59,18 +61,9 @@ void NetworkDocumentPlugin::serialize(const VisitorVariant & vis) const
 
 void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
 {
+    delete m_policy;
     m_policy = pol;
 }
-
-QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
-        const iscore::ElementPluginModel *var,
-        QWidget* widg) const
-{
-    return new GroupMetadataWidget{
-                static_cast<const GroupMetadata&>(*var), m_groups, widg};
-}
-
-
 
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
 {
@@ -79,6 +72,9 @@ void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
     { if(plug->group() == id) plug->setGroup(m_groups->defaultGroup()); });
 }
 
+
+
+////// Methods relative to GroupMetadata //////
 iscore::ElementPluginModel*
 NetworkDocumentPlugin::makeElementPlugin(
         const QObject* element,
@@ -103,18 +99,18 @@ NetworkDocumentPlugin::loadElementPlugin(
         const VisitorVariant& vis,
         QObject* parent)
 {
-    GroupMetadata* plug{};
-    if(element->staticMetaObject.className() == QString{"ConstraintModel"}
-    || element->staticMetaObject.className() == QString{"EventModel"})
+    if(element->metaObject()->className() == QString{"ConstraintModel"}
+    || element->metaObject()->className() == QString{"EventModel"})
     {
-        plug = deserialize_dyn(vis, [&] (auto&& deserializer)
+        auto plug = deserialize_dyn(vis, [&] (auto&& deserializer)
         { return new GroupMetadata{element, deserializer, parent}; });
 
-        if(plug)
-            setupGroupPlugin(plug);
+        setupGroupPlugin(plug);
+
+        return plug;
     }
 
-    return plug;
+    return nullptr;
 }
 
 
@@ -132,3 +128,14 @@ iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(
 
     return nullptr;
 }
+
+
+////// Method relative to GRoupMetadataWidget //////
+QWidget *NetworkDocumentPlugin::makeElementPluginWidget(
+        const iscore::ElementPluginModel *var,
+        QWidget* widg) const
+{
+    return new GroupMetadataWidget{
+                static_cast<const GroupMetadata&>(*var), m_groups, widg};
+}
+

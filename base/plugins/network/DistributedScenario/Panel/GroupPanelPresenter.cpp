@@ -19,6 +19,7 @@ void GroupPanelPresenter::on_modelChanged()
     auto gmodel = static_cast<GroupPanelModel*>(model());
     connect(gmodel, &GroupPanelModel::update,
             this, &GroupPanelPresenter::on_update);
+    on_update();
 }
 
 void GroupPanelPresenter::on_update()

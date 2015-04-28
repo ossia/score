@@ -17,6 +17,12 @@ class RemoteClient : public Client
                     this,     SIGNAL(messageReceived(NetworkMessage)));
         }
 
+        template<typename Deserializer>
+        RemoteClient(Deserializer&& vis, QObject* parent) :
+            Client {vis, parent}
+        {
+        }
+
         void sendMessage(NetworkMessage m)
         {
             m_socket->sendMessage(m);

@@ -12,7 +12,7 @@
 
 
 
-NetworkDocumentClientPlugin::NetworkDocumentClientPlugin(ClientSession* s,
+ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
                                                          iscore::Document *doc):
     m_session{s},
     m_document{doc}

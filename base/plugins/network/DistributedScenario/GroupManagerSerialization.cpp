@@ -35,14 +35,14 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const GroupManager& elt)
 {
     readFrom(static_cast<const IdentifiedObject<GroupManager>&>(elt));
-    m_obj["Groups"] = toJsonArray(elt.groups());
+    m_obj["GroupList"] = toJsonArray(elt.groups());
 }
 
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(GroupManager& elt)
 {
-    auto arr = m_obj["Groups"].toArray();
+    auto arr = m_obj["GroupList"].toArray();
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject()};

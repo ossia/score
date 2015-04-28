@@ -15,6 +15,13 @@ class LocalClient : public Client
                     this, SIGNAL(createNewClient(QTcpSocket*)));
         }
 
+        template<typename Deserializer>
+        LocalClient(Deserializer&& vis, QObject* parent) :
+            Client {vis, parent}
+        {
+        }
+
+
         int localPort()
         {
             return m_server->port();

@@ -2,10 +2,10 @@
 #include "NetworkDocumentPlugin.hpp"
 
 #include <Repartition/session/ClientSession.hpp>
-class NetworkDocumentClientPlugin : public NetworkPluginPolicy
+class ClientNetworkPolicy : public NetworkPluginPolicy
 {
     public:
-        NetworkDocumentClientPlugin(ClientSession* s, iscore::Document* doc);
+        ClientNetworkPolicy(ClientSession* s, iscore::Document* doc);
 
         ClientSession* session() const
         { return m_session; }

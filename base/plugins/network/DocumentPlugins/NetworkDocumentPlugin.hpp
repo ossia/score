@@ -3,6 +3,7 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 
 #include "DistributedScenario/Group.hpp"
+#include <iscore/serialization/VisitorCommon.hpp>
 
 class NetworkControl;
 class ClientSession;
@@ -18,17 +19,23 @@ namespace iscore
 class NetworkPluginPolicy : public QObject
 {
     public:
+        using QObject::QObject;
         virtual Session* session() const = 0;
 };
 
 class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
+        Q_OBJECT
+        friend void Visitor<Reader<DataStream>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<NetworkDocumentPlugin>(NetworkDocumentPlugin& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<NetworkDocumentPlugin>(NetworkDocumentPlugin& ev);
     public:
-        NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::Document *doc);
+        NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::DocumentModel *doc);
 
         // Loading has to be in two steps since the plugin policy is different from the client
         // and server.
-        NetworkDocumentPlugin(VisitorVariant& loader, iscore::Document* doc);
+        NetworkDocumentPlugin(const VisitorVariant& loader, iscore::DocumentModel* doc);
         void setPolicy(NetworkPluginPolicy*);
 
         QString metadataName() const override
@@ -65,8 +72,8 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
     private:
         void setupGroupPlugin(GroupMetadata* grp);
 
-        NetworkPluginPolicy* m_policy;
-        GroupManager* m_groups;
+        NetworkPluginPolicy* m_policy{};
+        GroupManager* m_groups{};
 
 };
 

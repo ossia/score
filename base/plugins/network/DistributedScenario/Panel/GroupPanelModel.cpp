@@ -25,6 +25,9 @@ void GroupPanelModel::scanPlugins()
     {
         if(auto netplug = dynamic_cast<NetworkDocumentPlugin*>(plug))
         {
+            if(!netplug->policy())
+                continue;
+
             m_currentManager = netplug->groupManager();
             m_currentSession = netplug->policy()->session();
 
