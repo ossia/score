@@ -993,6 +993,144 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
 }
 
 
+namespace
+{
+    const QString MimeTypeDevice = "application/DeviceExplorer.device.z";
+    const QString MimeTypeAddress = "application/DeviceExplorer.address.z";
+
+    const int compressionLevel = 6; //[0:no comrpession/fast ; 9:high compression/slow], -1: default zlib compression
+}
+
+
+/*
+Drag and drop works by deleting the dragged items and creating a new set of dropped items that match those dragged.
+I will/may call insertRows(), removeRows(), dropMimeData(), ...
+We define two MimeTypes : MimeTypeDevice & MimeTypeAddress.
+It allows to distinguish whether we are drag'n dropping devices or addresses.
+ */
+
+
+Qt::DropActions
+DeviceExplorerModel::supportedDropActions() const
+{
+    return (Qt::CopyAction | Qt::MoveAction);
+}
+
+//Default supportedDragActions() implementation returns supportedDropActions().
+
+Qt::DropActions
+DeviceExplorerModel::supportedDragActions() const
+{
+    return (Qt::CopyAction | Qt::MoveAction);
+}
+
+
+QStringList
+DeviceExplorerModel::mimeTypes() const
+{
+    return QStringList() << MimeTypeDevice << MimeTypeAddress; //TODO: add an xml MimeType to support drop of namespace XML file ?
+}
+
+//method called when a drag is initiated
+QMimeData*
+DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
+{
+    Q_ASSERT(indexes.count());
+
+    //we drag only one node (and its children recursively).
+    if(indexes.count() != 1)
+    {
+        return nullptr;
+    }
+
+    const QModelIndex index = indexes.at(0);
+
+    Node* n = nodeFromModelIndex(index);
+
+    if(n)
+    {
+
+        Q_ASSERT(n != m_rootNode);  //m_rootNode not displayed thus should not be draggable
+
+        QByteArray dataC;
+        /*
+        QByteArray data;
+        QDataStream stream(&data, QIODevice::WriteOnly);
+        BinaryWriter bw(stream);
+        bw.write(n);
+        std::cerr<<"mimeData(): before compression: size="<<data.size()<<" capacity="<<data.capacity()<<"\n";
+        dataC = qCompress(data, compressionLevel);
+        std::cerr<<"mimeData(): after compression: size="<<dataC.size()<<" capacity="<<dataC.capacity()<<"\n";
+        */
+        #ifndef QT_NO_DEBUG
+        const bool getOk =
+        #endif
+            getTreeData(index, dataC);
+        Q_ASSERT(getOk);
+
+        QMimeData* mimeData = new QMimeData;
+
+        if(n->isDevice())
+        {
+            mimeData->setData(MimeTypeDevice, dataC);
+        }
+        else
+        {
+            mimeData->setData(MimeTypeAddress, dataC);
+        }
+
+        return mimeData;
+    }
+
+    return nullptr;
+}
+
+
+bool
+DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
+                                     Qt::DropAction action,
+                                     int /*row*/, int /*column*/, const QModelIndex& parent) const
+{
+    if(action == Qt::IgnoreAction)
+    {
+        return true;
+    }
+
+    if(action != Qt::MoveAction && action != Qt::CopyAction)
+    {
+        std::cerr << "dropMimeData(): not Qt::MoveAction or Qt::CopyAction ! NOT DONE \n";
+        return false;
+    }
+
+    if(! mimeData || (! mimeData->hasFormat(MimeTypeDevice) && ! mimeData->hasFormat(MimeTypeAddress)))
+    {
+        return false;
+    }
+
+
+    Node* parentNode = nodeFromModelIndex(parent);
+
+    if(mimeData->hasFormat(MimeTypeAddress))
+    {
+        if(parentNode == m_rootNode)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        Q_ASSERT(mimeData->hasFormat(MimeTypeDevice));
+
+        if(parentNode != m_rootNode)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 //method called when a drop occurs
 //return true if drop really handled, false otherwise.
 //
