@@ -3,6 +3,7 @@
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 #include "Singletons/SingletonProtocolList.hpp"
 
@@ -83,14 +84,16 @@ class DeviceExplorerPlugin :
     public QObject,
     public iscore::PanelFactoryInterface_QtInterface,
     public iscore::FactoryFamily_QtInterface,
-    public iscore::FactoryInterface_QtInterface
+    public iscore::FactoryInterface_QtInterface,
+    public iscore::PluginControlInterface_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID PanelFactoryInterface_QtInterface_iid)
         Q_INTERFACES(
                 iscore::PanelFactoryInterface_QtInterface
                 iscore::FactoryFamily_QtInterface
-                iscore::FactoryInterface_QtInterface)
+                iscore::FactoryInterface_QtInterface
+                iscore::PluginControlInterface_QtInterface)
 
     public:
         DeviceExplorerPlugin();
@@ -106,4 +109,7 @@ class DeviceExplorerPlugin :
 
         // Contains the OSC, MIDI, Minuit factories
         virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
+
+        // Control
+        virtual iscore::PluginControlInterface* control_make() override;
 };

@@ -209,6 +209,7 @@ bool AddDevice::mergeWith(const iscore::Command* other)
 void AddDevice::serializeImpl(QDataStream& d) const
 {
     d << m_deviceTree;
+    d << m_parameters;
     d << m_filePath;
 
     d << m_row;
@@ -217,6 +218,7 @@ void AddDevice::serializeImpl(QDataStream& d) const
 void AddDevice::deserializeImpl(QDataStream& d)
 {
     d >> m_deviceTree;
+    d >> m_parameters;
     d >> m_filePath;
 
     d >> m_row;

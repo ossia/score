@@ -38,17 +38,17 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 }
 
 #include <QToolBar>
-void Presenter::registerPluginControl(PluginControlInterface* cmd)
+void Presenter::registerPluginControl(PluginControlInterface* ctrl)
 {
-    cmd->setParent(this);  // Ownership transfer
-    cmd->setPresenter(this);
+    ctrl->setParent(this);  // Ownership transfer
+    ctrl->setPresenter(this);
 
-    cmd->populateMenus(&m_menubar);
-    auto bars = cmd->makeToolbars();
+    ctrl->populateMenus(&m_menubar);
+    auto bars = ctrl->makeToolbars();
     for(auto& bar : bars)
         m_view->addToolBar(bar);
 
-    m_controls.push_back(cmd);
+    m_controls.push_back(ctrl);
 }
 
 void Presenter::registerPanel(PanelFactoryInterface* factory)

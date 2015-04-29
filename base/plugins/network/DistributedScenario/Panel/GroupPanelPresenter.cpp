@@ -16,6 +16,9 @@ QString GroupPanelPresenter::modelObjectName() const
 
 void GroupPanelPresenter::on_modelChanged()
 {
+    if(!model())
+        return;
+
     auto gmodel = static_cast<GroupPanelModel*>(model());
     connect(gmodel, &GroupPanelModel::update,
             this, &GroupPanelPresenter::on_update);

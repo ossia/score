@@ -33,8 +33,6 @@ Group* GroupManager::group(const id_type<Group>& id) const
 
 id_type<Group> GroupManager::defaultGroup() const
 {
-
-    qDebug( ) << "Asking group at " << (void* ) this;
     return m_groups[0]->id();
 }
 

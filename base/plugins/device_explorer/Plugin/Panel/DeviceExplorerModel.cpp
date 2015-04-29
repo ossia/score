@@ -84,6 +84,7 @@ DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* par
 
     endResetModel();
 
+    m_cmdCreator = new DeviceExplorerCommandCreator{this};
 
 }
 
