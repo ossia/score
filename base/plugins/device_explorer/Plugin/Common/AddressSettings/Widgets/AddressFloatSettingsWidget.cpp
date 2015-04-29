@@ -120,7 +120,7 @@ AddressSettings AddressFloatSettingsWidget::getSettings() const
     settings.ioType = m_ioTypeCBox->currentText();
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
-    settings.valueType = QString(tr("Float"));
+    settings.valueType = QString("Float");
     settings.value = m_valueSBox->value();
 
     AddressFloatSettings fs;

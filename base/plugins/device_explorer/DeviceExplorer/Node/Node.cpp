@@ -10,13 +10,10 @@ QString Node::INVALID_STR = "-_-";
 float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
 
-Node::Node(const QString& name, Node* parent)
-    : m_name(name),
-      m_ioType(Invalid),
-      m_min(INVALID_FLOAT),
-      m_max(INVALID_FLOAT),
+Node::Node(const QString& name, Node* parent):
       m_parent(parent)
 {
+    m_addressSettings.name = name;
     if(m_parent)
     {
         m_parent->addChild(this);
@@ -28,6 +25,7 @@ Node::Node(const DeviceSettings& devices,
            Node* parent) :
     Node {name, parent}
 {
+    m_addressSettings.name = name;
     m_deviceSettings = devices;
 }
 
@@ -124,37 +122,74 @@ void Node::removeChild(Node* child)
  * ************************************************************/
 QString Node::name() const
 {
-    return m_name;
+    return m_addressSettings.name;
 }
 
 QString Node::value() const
 {
-    return m_value;
+    return  m_addressSettings.value.toString();
 }
 
 Node::IOType Node::ioType() const
 {
-    return m_ioType;
+    if(m_addressSettings.ioType == "In")
+    {
+        return Node::IOType::In;
+    }
+    if(m_addressSettings.ioType == "Out")
+    {
+        return Node::IOType::Out;
+    }
+    if(m_addressSettings.ioType == "In/Out")
+    {
+        return Node::IOType::InOut;
+    }
+
+    return Node::IOType::Invalid;
 }
 
 float Node::minValue() const
 {
-    return m_min;
+    if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+    {
+        return m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>().min;
+    }
+    else if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+    {
+        return m_addressSettings.addressSpecificSettings.value<AddressIntSettings>().min;
+    }
+    else
+    {
+        // String
+        return 0;
+    }
 }
 
 float Node::maxValue() const
 {
-    return m_max;
+    if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
+    {
+        return m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>().max;
+    }
+    else if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
+    {
+        return m_addressSettings.addressSpecificSettings.value<AddressIntSettings>().max;
+    }
+    else
+    {
+        // String
+        return 0;
+    }
 }
 
 unsigned int Node::priority() const
 {
-    return m_priority;
+    return m_addressSettings.priority;
 }
 
 QString Node::tags() const
 {
-    return m_tags;
+    return m_addressSettings.tags;
 }
 
 /* *************************************************************
@@ -163,7 +198,6 @@ QString Node::tags() const
 
 void Node::setName(const QString& name)
 {
-    m_name = name;
     if (isDevice())
     {
         m_deviceSettings.name = name;
@@ -176,7 +210,6 @@ void Node::setName(const QString& name)
 
 void Node::setValue(const QString& value)
 {
-    m_value = value;
     m_addressSettings.value = QVariant::fromValue(value);
 }
 
@@ -193,13 +226,12 @@ void Node::setValueType(const QString &value)
     }
     if(value == QString("String"))
     {
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressStringSettings{});
+        // Nothing to do
     }
 }
 
 void Node::setIOType(const Node::IOType ioType)
 {
-    m_ioType = ioType;
     if(ioType == Node::IOType::In)
     {
         m_addressSettings.ioType = QString("In");
@@ -217,23 +249,10 @@ void Node::setIOType(const Node::IOType ioType)
 void Node::setIOType(const QString ioType)
 {
     m_addressSettings.ioType = ioType;
-    if(ioType == QString("In"))
-    {
-        m_ioType = Node::IOType::In;
-    }
-    if(ioType == QString("In/Out"))
-    {
-        m_ioType = Node::IOType::InOut;
-    }
-    if(ioType == QString("Out"))
-    {
-        m_ioType = Node::IOType::Out;
-    }
 }
 
 void Node::setMinValue(float minV)
 {
-    m_min = minV;
     if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
     {
         AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
@@ -250,7 +269,6 @@ void Node::setMinValue(float minV)
 
 void Node::setMaxValue(float maxV)
 {
-    m_max = maxV;
     if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
     {
         AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
@@ -267,13 +285,11 @@ void Node::setMaxValue(float maxV)
 
 void Node::setPriority(unsigned int priority)
 {
-    m_priority = priority;
     m_addressSettings.priority = priority;
 }
 
 void Node::setTags(const QString &tags)
 {
-    m_tags = tags;
     m_addressSettings.tags = tags;
 }
 
@@ -287,7 +303,7 @@ bool Node::isSelectable() const
 
 bool Node::isEditable() const
 {
-    return m_ioType == Node::Out || m_ioType == Node::Invalid;
+    return m_addressSettings.ioType == "Out" ||  m_addressSettings.ioType == "Invalid";
 }
 
 bool Node::isDevice() const
@@ -361,8 +377,6 @@ void Node::setAddressSettings(const AddressSettings &settings)
 
 const AddressSettings Node::addressSettings()
 {
-    m_addressSettings.name = m_name;
-
     return m_addressSettings;
 }
 

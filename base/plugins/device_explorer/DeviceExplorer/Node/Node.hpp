@@ -75,13 +75,6 @@ class Node
         Node* clone() const;
 
 protected:
-        QString m_name;
-        QString m_value;
-        IOType m_ioType {};
-        float m_min {};
-        float m_max {};
-        unsigned int m_priority {};
-        QString m_tags;
         Node* m_parent {};
         QList<Node*> m_children;
 
