@@ -95,7 +95,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         void editData(const Path &path, int column, const QVariant& value, int role);
 
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
-        bool undoMoveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstRow);
 
 
         //virtual bool insertRows(int row, int count, const QModelIndex &parent) override;

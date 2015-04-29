@@ -35,7 +35,25 @@ Move::undo()
     QModelIndex srcParentIndex = model->pathToIndex(m_srcParentPath);
     QModelIndex dstParentIndex = model->pathToIndex(m_dstParentPath);
 
-    const bool result = model->undoMoveRows(srcParentIndex, m_srcRow, m_count, dstParentIndex, m_dstRow);
+    int src = m_dstRow;
+    int dst = m_srcRow;
+
+    // There are pb when moving under a same parent :
+    // all next items are changing row
+    if (srcParentIndex == dstParentIndex)
+    {
+        if(m_srcRow > m_dstRow)
+        {
+            dst = m_srcRow + m_count;
+        }
+        else
+        {
+            src = m_dstRow - m_count;
+        }
+    }
+
+    const bool result = model->moveRows(dstParentIndex, src, m_count, srcParentIndex, dst);
+
     model->setCachedResult(result);
 
 }
