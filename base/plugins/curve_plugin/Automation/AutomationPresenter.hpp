@@ -16,6 +16,7 @@ class AutomationPresenter : public ProcessPresenterInterface
         AutomationPresenter(ProcessViewModelInterface* model,
                             ProcessViewInterface* view,
                             QObject* parent);
+        ~AutomationPresenter();
 
         virtual void setWidth(int width) override;
         virtual void setHeight(int height) override;

@@ -91,7 +91,7 @@ class ObjectPath
             return ptr;
         }
 
-        const ObjectIdentifierVector& vec()
+        const ObjectIdentifierVector& vec() const
         {
             return m_objectIdentifiers;
         }

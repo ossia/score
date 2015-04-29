@@ -28,11 +28,16 @@ namespace Scenario
                     AggregateCommand{"ScenarioControl",
                                      "MoveProcessViewModel",
                                      QObject::tr("Move a process view model"),
-                        new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetDeck) },
-                        new RemoveProcessViewModelFromDeck{ObjectPath{pvmToMove}}}
-                {
+                                     new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetDeck) }}
+        {
+            auto cmd = new RemoveProcessViewModelFromDeck{
+                    ObjectPath{pvmToMove},
+                    id_type<ProcessViewModelInterface>(
+                        ObjectIdentifierVector(pvmToMove.vec()).takeLast().id())};
+            addCommand(cmd);
 
-                }
+
+        }
         };
     }
 }

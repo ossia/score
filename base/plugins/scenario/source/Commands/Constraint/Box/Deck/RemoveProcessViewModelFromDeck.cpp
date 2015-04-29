@@ -8,26 +8,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(ObjectPath&& pvmPath) :
+RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
+        ObjectPath&& boxPath,
+        id_type<ProcessViewModelInterface> processViewId) :
     SerializableCommand {"ScenarioControl",
                          className(),
-                         description()}
-{
-    auto deckPath = pvmPath.vec();
-    auto lastId = deckPath.takeLast();
-    m_path = ObjectPath{std::move(deckPath) };
-    m_processViewId = id_type<ProcessViewModelInterface> (lastId.id());
-}
-
-RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
-    ObjectPath&& boxPath,
-    id_type<ProcessViewModelInterface> processViewId) :
-    SerializableCommand {"ScenarioControl",
-    "RemoveProcessViewModelFromDeck",
-    QObject::tr("Remove process view")
-},
-m_path {boxPath},
-m_processViewId {processViewId}
+                         description()},
+    m_path {boxPath},
+    m_processViewId {processViewId}
 {
     auto deck = m_path.find<DeckModel>();
 

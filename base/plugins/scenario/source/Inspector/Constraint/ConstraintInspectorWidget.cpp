@@ -257,18 +257,22 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
     }
 }
 
+#include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
 void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
 {
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process->processName());
 
     // Process
-    auto widg = InspectorWidgetList::makeInspectorWidget(process->processName(), process, newProc);
-    newProc->addContent(widg);
+    auto processWidget = InspectorWidgetList::makeInspectorWidget(process->processName(), process, newProc);
+    newProc->addContent(processWidget);
 
     // Start & end state
     QWidget* stateWidget = new QWidget;
     QFormLayout* stateLayout = new QFormLayout;
+    stateLayout->setSpacing(0);
+    stateLayout->setContentsMargins(0, 0, 0, 0);
     stateWidget->setLayout(stateLayout);
+
     if(auto start = process->startState())
     {
         auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, newProc);
@@ -282,11 +286,20 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface
     }
     newProc->addContent(stateWidget);
 
+    // Delete button
+    auto deleteButton = new QPushButton{"Delete"};
+    connect(deleteButton, &QPushButton::pressed, this, [=] ()
+    {
+        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), process->id()};
+        emit commandDispatcher()->submitCommand(cmd);
+    });
+    newProc->addContent(deleteButton);
 
+    // Global setup
     m_processesSectionWidgets.push_back(newProc);
     m_processSection->addContent(newProc);
 
-    connect(widg,   SIGNAL(createViewInNewDeck(QString)),
+    connect(processWidget,   SIGNAL(createViewInNewDeck(QString)),
             this,   SLOT(createProcessViewInNewDeck(QString)));
 }
 

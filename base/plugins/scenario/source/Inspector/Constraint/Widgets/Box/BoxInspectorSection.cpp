@@ -13,22 +13,10 @@
 
 #include <QtWidgets/QVBoxLayout>
 #include <QFrame>
+#include <QPushButton>
 
 using namespace Scenario::Command;
-
-class BoxSeparator : public QFrame
-{
-    public:
-        BoxSeparator(QWidget* parent) :
-            QFrame {parent}
-        {
-            setFrameStyle(QFrame::Raised);
-            setFrameShape(QFrame::HLine);
-            setLineWidth(2);
-        }
-};
-
-
+#include "Commands/Constraint/RemoveBoxFromConstraint.hpp"
 BoxInspectorSection::BoxInspectorSection(QString name,
                                          BoxModel* box,
                                          ConstraintInspectorWidget* parentConstraint) :
@@ -36,6 +24,13 @@ BoxInspectorSection::BoxInspectorSection(QString name,
     m_model {box},
     m_parent{parentConstraint}
 {
+    auto framewidg = new QFrame;
+    auto lay = new QVBoxLayout; lay->setContentsMargins(0, 0, 0, 0); lay->setSpacing(0);
+    framewidg->setLayout(lay);
+    framewidg->setFrameShape(QFrame::StyledPanel);
+    addContent(framewidg);
+
+    // Decks
     m_deckSection = new InspectorSectionWidget{"Decks", this};  // TODO Make a custom widget.
     m_deckSection->setObjectName("Decks");
 
@@ -51,9 +46,17 @@ BoxInspectorSection::BoxInspectorSection(QString name,
     }
 
     m_deckWidget = new AddDeckWidget{this};
-    addContent(m_deckSection);
-    addContent(m_deckWidget);
-    addContent(new BoxSeparator {this});
+    lay->addWidget(m_deckSection);
+    lay->addWidget(m_deckWidget);
+
+    // Delete button
+    auto deleteButton = new QPushButton{"Delete"};
+    connect(deleteButton, &QPushButton::pressed, this, [=] ()
+    {
+        auto cmd = new RemoveBoxFromConstraint{iscore::IDocument::path(parentConstraint->model()), box->id()};
+        emit m_parent->commandDispatcher()->submitCommand(cmd);
+    });
+    lay->addWidget(deleteButton);
 }
 
 void BoxInspectorSection::createDeck()

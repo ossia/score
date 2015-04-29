@@ -60,6 +60,21 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     on_modelPointsChanged();
 }
 
+AutomationPresenter::~AutomationPresenter()
+{
+    if(m_view)
+    {
+        auto sc = m_view->scene();
+
+        if(sc)
+        {
+            sc->removeItem(m_view);
+        }
+
+        m_view->deleteLater();
+    }
+}
+
 void AutomationPresenter::setWidth(int width)
 {
     m_view->setWidth(width);

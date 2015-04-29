@@ -41,19 +41,22 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
     m_processViewModels.push_back(viewmodel);
 
     emit processViewModelCreated(viewmodel->id());
+
+    if(m_processViewModels.size() == 1)
+        selectForEdition(viewmodel->id());
 }
 
 void DeckModel::deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewId)
 {
     auto pvm = processViewModel(processViewId);
 
-    emit processViewModelRemoved(processViewId);
-
     vec_erase_remove_if(m_processViewModels,
                         [&processViewId](ProcessViewModelInterface * model)
     {
         return model->id() == processViewId;
     });
+
+    emit processViewModelRemoved(processViewId);
 
 
     if(!m_processViewModels.empty())
@@ -70,10 +73,7 @@ void DeckModel::deleteProcessViewModel(id_type<ProcessViewModelInterface> proces
 
 void DeckModel::selectForEdition(id_type<ProcessViewModelInterface> processViewId)
 {
-    if(!processViewId.val())
-    {
-        return;
-    }
+    Q_ASSERT(processViewId.val());
 
     if(processViewId != m_editedProcessViewModelId)
     {

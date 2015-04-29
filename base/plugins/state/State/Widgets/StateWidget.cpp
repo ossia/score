@@ -10,7 +10,7 @@
 StateWidget::StateWidget(const State& state, QWidget* parent):
     QFrame{parent}
 {
-    this->setFrameShape(QFrame::Box);
+    this->setFrameShape(QFrame::StyledPanel);
     auto lay = new QGridLayout{this};
 
     lay->addWidget(new QLabel{tr("State")}, 0, 0);
