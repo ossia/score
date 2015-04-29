@@ -31,21 +31,23 @@ QJsonObject Document::saveDocumentModelAsJson()
 
 QJsonObject Document::saveAsJson()
 {
-    QJsonObject complete;
+    QJsonObject complete, json_panels, json_plugins;
     for(const auto& panel : model()->panels())
     {
         Serializer<JSONObject> s;
         panel->serialize(s.toVariant());
-        complete[panel->objectName()] = s.m_obj;
+        json_panels[panel->objectName()] = s.m_obj;
     }
 
     for(const auto& plugin : model()->pluginModels())
     {
         Serializer<JSONObject> s;
         plugin->serialize(s.toVariant());
-        complete[plugin->objectName()] = s.m_obj;
+        json_plugins[plugin->objectName()] = s.m_obj;
     }
 
+    complete["Panels"] = json_panels;
+    complete["Plugins"] = json_plugins;
     complete["Document"] = saveDocumentModelAsJson();
 
     // Indicate in the stack that the current position is saved
@@ -216,9 +218,10 @@ DocumentModel::DocumentModel(const QVariant& data,
         // TODO put them in sub-objects, else the iteration will take ages.
         // Load the plug-in models
         auto plugin_control = iscore::IPresenter::pluginControls();
-        for(const auto& key : json.keys())
+        auto json_plugins = json["Plugins"].toObject();
+        for(const auto& key : json_plugins.keys())
         {
-            JSONObject::Deserializer plug_writer{json[key].toObject()};
+            JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
             for(iscore::PluginControlInterface* control : plugin_control)
             {
                 if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), this))
@@ -229,8 +232,9 @@ DocumentModel::DocumentModel(const QVariant& data,
         }
 
         // Load the panels
+        auto json_panels = json["Panels"].toObject();
         auto factories = iscore::IPresenter::panelFactories();
-        for(const auto& key : json.keys())
+        for(const auto& key : json_panels.keys())
         {
             auto factory_it = find_if(begin(factories),
                                    end(factories),
@@ -241,7 +245,7 @@ DocumentModel::DocumentModel(const QVariant& data,
                 // Note : here we handle the case where the plug-in is not able to
                 // load data; generally because it is not useful (e.g. undo panel model...)
 
-                JSONObject::Deserializer panel_writer{json[key].toObject()};
+                JSONObject::Deserializer panel_writer{json_panels[key].toObject()};
                 if(auto pnl = factory->loadModel(panel_writer.toVariant(), this))
                     addPanel(pnl);
                 else

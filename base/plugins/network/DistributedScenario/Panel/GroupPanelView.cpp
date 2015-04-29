@@ -73,4 +73,5 @@ void GroupPanelView::setView(const GroupManager* mgr,
 void GroupPanelView::setEmptyView()
 {
     delete m_subWidget;
+    m_subWidget = nullptr;
 }

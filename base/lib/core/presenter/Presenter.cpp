@@ -248,7 +248,7 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 
 Document* Presenter::loadDocument(const QVariant& data,
                                   DocumentDelegateFactoryInterface* doctype)
-try
+//try
 {
     auto doc = new Document{data, doctype, m_view, this};
 
@@ -258,12 +258,13 @@ try
     setCurrentDocument(doc);
 
     return doc;
-}
+}/*
 catch(std::runtime_error& e)
 {
     QMessageBox::warning(nullptr, QObject::tr("Error"), e.what());
+    throw;
     return nullptr;
-}
+}*/
 
 // TODO make a class whose purpose is to instantiate commands.
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name,
