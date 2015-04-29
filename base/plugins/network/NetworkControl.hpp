@@ -19,6 +19,9 @@ class NetworkControl : public iscore::PluginControlInterface
     public:
         NetworkControl();
         virtual void populateMenus(iscore::MenubarManager*) override;
+        iscore::SerializableCommand* instantiateUndoCommand(
+                const QString&,
+                const QByteArray&) override;
 
     public slots:
         void setupClientConnection(QString ip, int port);

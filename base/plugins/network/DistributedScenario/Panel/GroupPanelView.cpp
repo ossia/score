@@ -29,6 +29,7 @@ Qt::DockWidgetArea GroupPanelView::defaultDock() const
 }
 
 #include "Repartition/session/Session.hpp"
+#include "DistributedScenario/GroupManager.hpp"
 #include <QLabel>
 void GroupPanelView::setView(const GroupManager* mgr,
                              const Session* session)

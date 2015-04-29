@@ -14,8 +14,7 @@
 #include <QLabel>
 #include <QGridLayout>
 
-
-
+#include "DistributedScenario/GroupManager.hpp"
 GroupTableWidget::GroupTableWidget(const GroupManager* mgr, const Session* session, QWidget* parent):
     QWidget{parent},
     m_mgr{mgr},

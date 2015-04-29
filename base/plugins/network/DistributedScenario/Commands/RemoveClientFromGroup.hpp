@@ -2,43 +2,26 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include "DistributedScenario/Group.hpp"
 
+class Client;
+class Group;
 class RemoveClientFromGroup : public iscore::SerializableCommand
 {
+        ISCORE_COMMAND_DECL("RemoveClientFromGroup", "RemoveClientFromGroup")
     public:
-        RemoveClientFromGroup(ObjectPath&& groupMgrPath, id_type<Client> client, id_type<Group> group):
-            iscore::SerializableCommand{"NetworkControl", "RemoveClientFromGroup", "RemoveClientFromGroup_desc"},
-            m_path{std::move(groupMgrPath)},
-            m_client{client},
-            m_group{group}
-        {
-        }
+        ISCORE_COMMAND_DEFAULT_CTOR(RemoveClientFromGroup, "NetworkControl")
+        RemoveClientFromGroup(
+                ObjectPath&& groupMgrPath,
+                id_type<Client> client,
+                id_type<Group> group);
 
-        virtual void undo() override
-        {
-            m_path.find<GroupManager>()->group(m_group)->addClient(m_client);
-        }
+        virtual void undo() override;
+        virtual void redo() override;
 
-        virtual void redo() override
-        {
-            m_path.find<GroupManager>()->group(m_group)->removeClient(m_client);
-        }
+        virtual bool mergeWith(const iscore::Command*) override;
 
-        virtual bool mergeWith(const iscore::Command*) override
-        {
-            return false;
-        }
-
-        virtual void serializeImpl(QDataStream & s) const override
-        {
-            s << m_path << m_client << m_group;
-        }
-
-        virtual void deserializeImpl(QDataStream & s) override
-        {
-            s >> m_path >> m_client >> m_group;
-        }
+        virtual void serializeImpl(QDataStream & s) const override;
+        virtual void deserializeImpl(QDataStream & s) override;
 
     private:
         ObjectPath m_path;

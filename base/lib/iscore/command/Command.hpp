@@ -26,6 +26,23 @@
     } \
     private:
 
+#define ISCORE_COMMAND_DECL(name, desc) \
+    public: \
+        static const char* className() { return name; } \
+        static QString description() { return desc; }  \
+    static int32_t static_uid() \
+    { \
+    using namespace std; \
+    hash<string> fn; \
+    auto hash = fn(className()); \
+    int32_t theUid = \
+        hash <= numeric_limits<int32_t>::max() ? \
+            static_cast<int32_t>(hash) : \
+            static_cast<int32_t>(hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min(); \
+         return theUid; \
+    } \
+    private:
+
 namespace iscore
 {
     /**

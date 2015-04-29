@@ -13,7 +13,7 @@
 using namespace iscore;
 
 NetworkControl::NetworkControl() :
-    PluginControlInterface {"NetworkCommand", nullptr}
+    PluginControlInterface {"NetworkControl", nullptr}
 {
 #ifdef USE_ZEROCONF
     m_zeroconfBrowser = new ZeroconfBrowser{this};
@@ -97,4 +97,47 @@ DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &n
         return nullptr;
 
     return new NetworkDocumentPlugin{var, parent};
+}
+
+
+#include "DistributedScenario/Commands/AddClientToGroup.hpp"
+#include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
+
+#include "DistributedScenario/Commands/CreateGroup.hpp"
+#include "DistributedScenario/Commands/RemoveGroup.hpp"
+
+#include "DistributedScenario/Commands/ChangeGroup.hpp"
+SerializableCommand*NetworkControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
+{
+    iscore::SerializableCommand* cmd {};
+
+    if(name == "AddClientToGroup")
+    {
+        cmd = new AddClientToGroup;
+    }
+    else if(name == "RemoveClientFromGroup")
+    {
+        cmd = new RemoveClientFromGroup;
+    }
+    else if(name == "CreateGroup")
+    {
+        cmd = new CreateGroup;
+    }
+    /*else if(name == "RemoveGroup")
+    {
+        cmd = new RemoveGroup;
+    }*/
+    else if(name == "ChangeGroup")
+    {
+        cmd = new ChangeGroup;
+    }
+
+    else
+    {
+        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
+        return nullptr;
+    }
+
+    cmd->deserialize(data);
+    return cmd;
 }

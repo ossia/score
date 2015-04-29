@@ -2,45 +2,22 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include "DistributedScenario/GroupManager.hpp"
 
+class Group;
 class CreateGroup : public iscore::SerializableCommand
 {
+        ISCORE_COMMAND_DECL("CreateGroup", "CreateGroup")
     public:
-        CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
-            iscore::SerializableCommand{"NetworkControl", "CreateGroup", "CreateGroup_desc"},
-            m_path{groupMgrPath},
-            m_name{groupName}
-        {
-            auto mgr = m_path.find<GroupManager>();
-            m_newGroupId = getStrongId(mgr->groups());
-        }
+        ISCORE_COMMAND_DEFAULT_CTOR(CreateGroup, "NetworkControl")
+        CreateGroup(ObjectPath&& groupMgrPath, QString groupName);
 
-        virtual void undo() override
-        {
-            m_path.find<GroupManager>()->removeGroup(m_newGroupId);
-        }
+        virtual void undo() override;
+        virtual void redo() override;
 
-        virtual void redo() override
-        {
-            auto mgr = m_path.find<GroupManager>();
-            mgr->addGroup(new Group{m_name, m_newGroupId, mgr});
-        }
+        virtual bool mergeWith(const iscore::Command*) override;
 
-        virtual bool mergeWith(const iscore::Command*) override
-        {
-            return false;
-        }
-
-        virtual void serializeImpl(QDataStream & s) const override
-        {
-            s << m_path << m_name << m_newGroupId;
-        }
-
-        virtual void deserializeImpl(QDataStream & s) override
-        {
-            s >> m_path >> m_name >> m_newGroupId;
-        }
+        virtual void serializeImpl(QDataStream & s) const override;
+        virtual void deserializeImpl(QDataStream & s) override;
 
     private:
         ObjectPath m_path;
