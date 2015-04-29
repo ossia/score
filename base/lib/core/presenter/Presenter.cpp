@@ -113,8 +113,10 @@ void Presenter::closeDocument(Document* doc)
         switch (ret)
         {
         case QMessageBox::Save:
-            saveJson(doc);
-            break;
+            if(saveJson(doc))
+                break;
+            else
+                return;
         case QMessageBox::Discard:
             // Do nothing
             break;
@@ -171,7 +173,7 @@ void Presenter::saveBinary(Document * doc)
     }
 }
 
-void Presenter::saveJson(Document * doc)
+bool Presenter::saveJson(Document * doc)
 {
     QFileDialog d{nullptr, tr("Save (JSON)")};
     d.setDefaultSuffix("scorejson");
@@ -193,7 +195,10 @@ void Presenter::saveJson(Document * doc)
 
             f.write(json_doc.toJson());
         }
+
+        return true;
     }
+    return false;
 }
 
 void Presenter::loadBinary()

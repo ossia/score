@@ -50,7 +50,7 @@ namespace iscore
 
             // Methods to save and load
             void saveBinary(Document*);
-            void saveJson(Document*);
+            bool saveJson(Document*);
 
             void loadBinary();
             void loadJson();
