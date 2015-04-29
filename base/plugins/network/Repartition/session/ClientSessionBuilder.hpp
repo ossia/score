@@ -19,12 +19,13 @@ class ClientSessionBuilder : public QObject
         const QList<QPair<QPair<QString, QString>, QByteArray> >& commandStackData() const;
 
     public slots:
-        void on_messageReceived(NetworkMessage m);
+        void on_messageReceived(const NetworkMessage& m);
 
     signals:
         void sessionReady(ClientSessionBuilder*, ClientSession*);
 
     private:
+        QString m_clientName{"A Client"};
         id_type<Client> m_masterId, m_clientId;
         id_type<Session> m_sessionId;
         NetworkSocket* m_mastersocket{};

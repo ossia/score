@@ -11,7 +11,7 @@ class NetworkSocket : public QObject
         NetworkSocket(QTcpSocket* sock, QObject* parent);
         NetworkSocket(QString ip, int port, QObject* parent);
 
-        void sendMessage(NetworkMessage);
+        void sendMessage(const NetworkMessage&);
 
     signals:
         void messageReceived(NetworkMessage);

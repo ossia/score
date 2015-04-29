@@ -17,7 +17,7 @@ class RemoteClientBuilder : public QObject
         void clientReady(RemoteClientBuilder* builder, RemoteClient*);
 
     public slots:
-        void on_messageReceived(NetworkMessage m);
+        void on_messageReceived(const NetworkMessage& m);
 
 
     private:
@@ -26,4 +26,5 @@ class RemoteClientBuilder : public QObject
         RemoteClient* m_remoteClient{};
 
         id_type<Client> m_clientId;
+        QString m_clientName;
 };

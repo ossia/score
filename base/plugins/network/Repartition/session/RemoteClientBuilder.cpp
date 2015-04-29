@@ -10,10 +10,14 @@ RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* soc
             this, SLOT(on_messageReceived(NetworkMessage)));
 }
 
-void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
+void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
 {
     if(m.address == "/session/askNewId")
     {
+        QDataStream s{m.data};
+        s >> m_clientName;
+
+        // TODO validation
         NetworkMessage idOffer;
         idOffer.address = "/session/idOffer";
         idOffer.sessionId = m_session.id().val().get();
@@ -27,9 +31,11 @@ void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
         }
 
         m_socket->sendMessage(idOffer);
+
     }
     else if(m.address == "/session/join")
     {
+        // TODO validation
         NetworkMessage doc;
         doc.address = "/session/document";
 
@@ -48,6 +54,7 @@ void RemoteClientBuilder::on_messageReceived(NetworkMessage m)
         m_socket->sendMessage(doc);
 
         m_remoteClient = new RemoteClient(m_socket, m_clientId);
+        m_remoteClient->setName(m_clientName);
         emit clientReady(this, m_remoteClient);
     }
 }

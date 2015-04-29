@@ -23,7 +23,7 @@ class RemoteClient : public Client
         {
         }
 
-        void sendMessage(NetworkMessage m)
+        void sendMessage(const NetworkMessage& m)
         {
             m_socket->sendMessage(m);
         }

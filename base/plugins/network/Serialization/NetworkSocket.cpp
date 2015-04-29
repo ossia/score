@@ -23,7 +23,7 @@ NetworkSocket::NetworkSocket(QString ip,
     }
 }
 
-void NetworkSocket::sendMessage(NetworkMessage mess)
+void NetworkSocket::sendMessage(const NetworkMessage &mess)
 {
     QByteArray b;
     QDataStream writer(&b, QIODevice::WriteOnly);

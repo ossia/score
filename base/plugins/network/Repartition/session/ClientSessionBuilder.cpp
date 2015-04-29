@@ -15,6 +15,11 @@ void ClientSessionBuilder::initiateConnection()
     // Todo only call this if the socket is ready.
     NetworkMessage askId;
     askId.address = "/session/askNewId";
+    {
+        QDataStream s{&askId.data, QIODevice::WriteOnly};
+        s << m_clientName;
+    }
+
     m_mastersocket->sendMessage(askId);
 }
 
@@ -33,7 +38,7 @@ const QList<QPair<QPair<QString, QString>, QByteArray> >& ClientSessionBuilder::
     return m_commandStack;
 }
 
-void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
+void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
 {
     if(m.address == "/session/idOffer")
     {
@@ -54,13 +59,12 @@ void ClientSessionBuilder::on_messageReceived(NetworkMessage m)
     else if(m.address == "/session/document")
     {
         auto remoteClient = new RemoteClient(m_mastersocket, m_masterId);
-        // TODO transmit the name
         remoteClient->setName("RemoteMaster");
         m_session = new ClientSession(remoteClient,
                                       new LocalClient(m_clientId),
                                       m_sessionId,
                                       nullptr);
-        m_session->localClient().setName(QString{"Client.%1"}.arg(m_clientId.val().get()));
+        m_session->localClient().setName(m_clientName);
 
         QDataStream s{m.data};
         s >> m_commandStack >> m_documentData;
