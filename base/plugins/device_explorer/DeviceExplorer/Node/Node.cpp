@@ -375,7 +375,7 @@ void Node::setAddressSettings(const AddressSettings &settings)
     }
 }
 
-const AddressSettings Node::addressSettings()
+const AddressSettings &Node::addressSettings() const
 {
     return m_addressSettings;
 }

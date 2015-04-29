@@ -10,6 +10,12 @@ class Path
 {
     public:
         Path();
+        Path(const QList<int>& other):
+            m_path{other}
+        {
+
+        }
+
         Path(QModelIndex index);
         Path(Node* node);
 
@@ -29,6 +35,9 @@ class Path
 
         void serializePath(QDataStream& d) const;
         void deserializePath(QDataStream& d);
+
+        QList<int> toList() const
+        { return m_path; }
 
 
     private:

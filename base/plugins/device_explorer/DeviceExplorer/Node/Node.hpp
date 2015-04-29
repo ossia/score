@@ -6,8 +6,10 @@
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include "Common/AddressSettings/AddressSettings.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 /**
- * Note: JM : the Commands should operat on the Node hierarchy.
+ * Note: JM : the Commands should operate on the Node hierarchy.
  * When updated, a Node should update both :
  *  - The DeviceExplorerModel (via signals / slots)
  *  - The sub-jacent Device.
@@ -16,6 +18,11 @@
  */
 class Node
 {
+        friend void Visitor<Reader<DataStream>>::readFrom<Node>(const Node& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<Node>(const Node& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<Node>(Node& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<Node>(Node& ev);
+
     public:
         static QString INVALID_STR;
         static float INVALID_FLOAT;
@@ -71,7 +78,7 @@ class Node
         void setDeviceSettings(const DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
         void setAddressSettings(const AddressSettings& settings);
-        const AddressSettings addressSettings();
+        const AddressSettings& addressSettings() const;
         Node* clone() const;
 
 protected:

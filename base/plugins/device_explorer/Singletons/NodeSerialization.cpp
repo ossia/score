@@ -8,12 +8,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 {
-    m_stream << n.name()
-             << n.value()
-             << static_cast<int>(n.ioType())
-             << n.minValue()
-             << n.maxValue()
-             << n.priority();
+    m_stream << n.addressSettings();
 
     m_stream << n.isDevice();
     if(n.isDevice())
@@ -33,18 +28,14 @@ void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Node& n)
 {
-    QString name, value;
-    int io;
-    float min, max;
-    unsigned int prio;
     bool isDev;
-    DeviceSettings settings;
     int childCount;
 
-    m_stream >> name >> value >> io >> min >> max >> prio >> isDev;
+    m_stream >> n.m_addressSettings
+             >> isDev;
     if (isDev)
     {
-        m_stream >> settings;
+        m_stream >> n.m_deviceSettings;
     }
 
     m_stream >> childCount;
@@ -55,28 +46,13 @@ void Visitor<Writer<DataStream>>::writeTo(Node& n)
         n.addChild(child);
     }
 
-    if(isDev)
-        n.setDeviceSettings(settings);
-
-    n.setName(name);
-    n.setValue(value);
-    n.setIOType(static_cast<Node::IOType>(io));
-    n.setMinValue(min);
-    n.setMaxValue(max);
-    n.setPriority(prio);
-
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 {
-    m_obj["Name"] = n.name();
-    m_obj["Value"] = n.value();
-    m_obj["IOType"] = n.ioType();
-    m_obj["MinValue"] = n.minValue();
-    m_obj["MaxValue"] = n.maxValue();
-    m_obj["Priority"] = static_cast<int>(n.priority());
+    m_obj["AddressSettings"] = toJsonObject(n.addressSettings());
 
     if(n.isDevice())
     {
@@ -89,17 +65,11 @@ void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Node& n)
 {
+    fromJsonObject(m_obj["AddressSettings"].toObject(), n.m_addressSettings);
     if(m_obj.contains("DeviceSettings"))
     {
         n.setDeviceSettings(fromJsonObject<DeviceSettings>(m_obj["DeviceSettings"].toObject()));
     }
-
-    n.setName(m_obj["Name"].toString());
-    n.setValue(m_obj["Value"].toString());
-    n.setIOType(static_cast<Node::IOType>(m_obj["IOType"].toInt()));
-    n.setMinValue(m_obj["MinValue"].toInt());
-    n.setMaxValue(m_obj["MaxValue"].toInt());
-    n.setPriority(m_obj["Priority"].toInt());
 
     for (const auto& val : m_obj["Children"].toArray())
     {
@@ -109,5 +79,4 @@ void Visitor<Writer<JSONObject>>::writeTo(Node& n)
         nodeWriter.writeTo(*child);
         n.addChild(child);
     }
-
 }

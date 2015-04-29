@@ -92,17 +92,20 @@ void Path::reserve(int size)
 
 void Path::serializePath(QDataStream &d) const
 {
+    d << m_path;/*
     const int size = m_path.size();
     d << (qint32) size;
 
     for(int i = 0; i < size; ++i)
     {
         d << (qint32) m_path.at(i);
-    }
+    }*/
 }
 
 void Path::deserializePath(QDataStream &d)
 {
+    d >> m_path;
+    /*
     qint32 size;
     d >> size;
     m_path.reserve(size);
@@ -113,5 +116,6 @@ void Path::deserializePath(QDataStream &d)
         d >> v;
         m_path.append(v);
     }
+    */
 }
 

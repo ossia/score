@@ -49,10 +49,12 @@ bool AddAddress::mergeWith(const iscore::Command *other)
 
 void AddAddress::serializeImpl(QDataStream &s) const
 {
-
+    s << m_deviceTree << m_parentNodePath.toList() << m_addressSettings << m_createdNodeIndex;
 }
 
-void AddAddress::deserializeImpl(QDataStream &s )
+void AddAddress::deserializeImpl(QDataStream &s)
 {
-
+    QList<int> path;
+    s >> m_deviceTree >> path >> m_addressSettings >> m_createdNodeIndex;
+    m_parentNodePath = path;
 }
