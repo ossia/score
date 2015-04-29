@@ -356,7 +356,8 @@ DeviceExplorerWidget::proxyModel()
     return m_proxyModel;
 }
 
-
+//TODO : UNUSED
+/*
 bool
 DeviceExplorerWidget::loadModel(const QString filename)
 {
@@ -372,7 +373,7 @@ DeviceExplorerWidget::loadModel(const QString filename)
     return loadOk;
 
 }
-
+*/
 void DeviceExplorerWidget::edit()
 {
     Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());

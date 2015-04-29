@@ -28,6 +28,22 @@ void DeviceExplorerCommandCreator::setCommandQueue(iscore::CommandStack *q)
     m_cmdQ = q;
 }
 
+/*
+  Copy|Cut / Paste behavior
+
+  We do not do : serialize for Copy, or serialize+remove for Cut
+  but we keep the nodes alive.
+  We think that deleting nodes may be costly.
+
+  We store cut nodes in m_cutNodes.
+
+  We need to store several cut nodes to be able to do several undos
+  on a CutCommands.
+  (Merge CutCommands together would not be a solution as they can be interlaced with other commands).
+
+  BUT IT MEANS that cut nodes are never deleted during the lifetime of the Model !
+
+*/
 QModelIndex DeviceExplorerCommandCreator::copy(const QModelIndex &index)
 {
     if(!index.isValid())

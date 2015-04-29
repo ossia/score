@@ -104,164 +104,6 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
     return m_view->selectedIndexes();
 }
 
-//TODO:REMOVE
-
-#include <QFile>
-
-//TODO:REMOVE
-static
-Node*
-readNode(QTextStream& in, Node* parent)
-{
-    //const int nbValues = 13;
-    QString name;
-    in >> name;
-
-    if(name.isEmpty())
-    {
-        return NULL;
-    }
-
-    if(in.status() != QTextStream::Ok)
-    {
-        std::cerr << "status not ok (2)\n";
-        exit(10);
-    }
-
-    if(in.atEnd())
-    {
-        return 0;
-    }
-
-    static const QString INVALID = "-_-";
-
-    if(name == INVALID)
-    {
-        return 0;
-    }
-
-    Node* node = new Node(name, parent);
-
-    QString value;
-    in >> value;
-
-    if(value != INVALID)
-    {
-        node->setValue(value);
-    }
-
-    QString startAssignation;
-    in >> startAssignation;
-
-    QString start;
-    in >> start;
-
-    QString interpolation;
-    in >> interpolation;
-
-    QString endAssignation;
-    in >> endAssignation;
-
-    QString end;
-    in >> end;
-
-    QString redundancy;
-    in >> redundancy;
-
-    QString sr;
-    in >> sr;
-
-    QString iotype;
-    in >> iotype;
-
-    if(iotype != INVALID)
-    {
-        if(iotype == "->")
-        {
-            node->setIOType(Node::In);
-        }
-        else if(iotype == "<-")
-        {
-            node->setIOType(Node::Out);
-        }
-        else if(iotype == "<->")
-        {
-            node->setIOType(Node::InOut);
-        }
-    }
-
-    QString minB;
-    in >> minB;
-
-    if(minB != INVALID)
-    {
-        node->setMinValue(minB.toFloat());
-    }
-
-    QString maxB;
-    in >> maxB;
-
-    if(maxB != INVALID)
-    {
-        node->setMaxValue(maxB.toFloat());
-    }
-
-    QString priority;
-    in >> priority;
-
-    if(priority != INVALID)
-    {
-        node->setPriority(priority.toInt());
-    }
-
-    int nbChildren = 0;
-    in >> nbChildren;
-
-    //node->_children.reserve(nbChildren);
-    for(int i = 0; i < nbChildren; ++i)
-    {
-        readNode(in, node);  //add read child to node.
-        //Node *n = readNode(in, node);
-        //if (n != nullptr)
-        // node->addChild(n);
-    }
-
-    return node;
-}
-
-bool
-DeviceExplorerModel::load(const QString& filename)
-{
-    QFile file(filename);
-
-    if(! file.open(QIODevice::ReadOnly))
-    {
-        return false;
-    }
-
-    QTextStream in(&file);
-
-    Node* node = readNode(in, nullptr);
-
-    if(node == nullptr)
-    {
-        std::cerr << "Error: unabel to read: " << filename.toStdString() << "\n";
-        return false;
-    }
-
-
-    beginResetModel();
-
-    delete m_rootNode;
-    m_rootNode = createRootNode();
-    m_rootNode->addChild(node);
-
-    endResetModel();
-
-
-    return true;
-}
-
 void
 DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
 {
@@ -284,23 +126,17 @@ DeviceExplorerModel::getColumns() const
 
 int DeviceExplorerModel::addDevice(Node* deviceNode)
 {
-
     if(m_rootNode == nullptr)
     {
         m_rootNode = createRootNode();
     }
-
     Q_ASSERT(m_rootNode);
-
-
-    //we always insert as last child of m_rootNode
-    //TODO: insert after current selected device ???
 
     int row = m_rootNode->childCount();
     QModelIndex parent; //invalid
-    beginInsertRows(parent, row, row);
-    deviceNode->setParent(m_rootNode);
 
+    beginInsertRows(parent, row, row);
+    m_rootNode->insertChild(row, deviceNode);
     endInsertRows();
 
     return row;
@@ -919,22 +755,6 @@ DeviceExplorerModel::hasCut() const
     return (! m_cutNodes.isEmpty());
 }
 
-/*
-  Copy|Cut / Paste behavior
-
-  We do not do : serialize for Copy, or serialize+remove for Cut
-  but we keep the nodes alive.
-  We think that deleting nodes may be costly.
-
-  We store cut nodes in m_cutNodes.
-
-  We need to store several cut nodes to be able to do several undos
-  on a CutCommands.
-  (Merge CutCommands together would not be a solution as they can be interlaced with other commands).
-
-  BUT IT MEANS that cut nodes are never deleted during the lifetime of the Model !
-
-*/
 
 DeviceExplorer::Result
 DeviceExplorerModel::cut_aux(const QModelIndex& index)

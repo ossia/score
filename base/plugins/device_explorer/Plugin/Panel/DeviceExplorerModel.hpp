@@ -4,6 +4,8 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <DeviceExplorer/NodePath.hpp>
 
+#include "Result.hpp"
+
 #include <QStack>
 
 namespace iscore
@@ -16,29 +18,6 @@ namespace DeviceExplorer {
         class Cut;
         class Paste;
     }
-    struct Result
-    {
-        Result(bool ok_ = true, const QModelIndex& index_ = QModelIndex())
-            : ok(ok_), index(index_)
-        {}
-
-        Result(const QModelIndex& index_)
-            : ok(true), index(index_)
-        {}
-
-        //Type-cast operators
-        operator bool() const
-        {
-            return ok;
-        }
-        operator QModelIndex() const
-        {
-            return index;
-        }
-
-        bool ok;
-        QModelIndex index;
-    };
 }
 
 class Node;
@@ -77,7 +56,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         QModelIndexList selectedIndexes() const;
 
         void setCommandQueue(iscore::CommandStack* q);
-        bool load(const QString& filename);
 
         // Returns the row (useful for undo)
         int addDevice(Node* deviceNode);
