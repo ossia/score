@@ -36,6 +36,7 @@ void EventView::setCondition(const QString &cond)
 {
     m_condition = cond;
     m_trigger->setVisible(!cond.isEmpty());
+    m_trigger->setToolTip(m_condition);
 }
 
 QRectF EventView::boundingRect() const
