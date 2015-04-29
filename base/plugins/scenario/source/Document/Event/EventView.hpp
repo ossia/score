@@ -3,6 +3,16 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 class EventPresenter;
+
+class TriggerView : public QGraphicsItem
+{
+    public:
+        using QGraphicsItem::QGraphicsItem;
+        QRectF boundingRect() const;
+        void paint(QPainter *painter,
+                   const QStyleOptionGraphicsItem *option,
+                   QWidget *widget);
+};
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
@@ -26,6 +36,9 @@ class EventView : public QGraphicsObject
 
         bool isShadow() const;
 
+        void setCondition(const QString& cond);
+        bool hasCondition() const;
+
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
@@ -44,10 +57,13 @@ class EventView : public QGraphicsObject
 
     private:
         EventPresenter& m_presenter;
+        QString m_condition;
         QPointF m_clickedPoint {};
         QColor m_color;
 
         bool m_shadow {false};
         bool m_selected{};
+
+        TriggerView* m_trigger{};
 };
 

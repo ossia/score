@@ -5,12 +5,18 @@
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
 #include <QApplication>
+
+
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
 {
+    m_trigger = new TriggerView(this);
+    m_trigger->setVisible(false);
+    m_trigger->setPos(0, -5);
     this->setParentItem(parent);
+
 
     this->setZValue(parent->zValue() + 2);
     this->setAcceptHoverEvents(true);
@@ -26,9 +32,15 @@ const EventPresenter& EventView::presenter() const
     return m_presenter;
 }
 
+void EventView::setCondition(const QString &cond)
+{
+    m_condition = cond;
+    m_trigger->setVisible(!cond.isEmpty());
+}
+
 QRectF EventView::boundingRect() const
 {
-    return { -3, -3, 6, 6};
+    return {-3, -3, 6, 6};
 }
 
 void EventView::paint(QPainter* painter,
@@ -46,10 +58,11 @@ void EventView::paint(QPainter* painter,
     {
         pen_color = QApplication::palette().highlight().color().lighter();
     }
+
     // Ball
     painter->setBrush(pen_color);
     painter->setPen(pen_color);
-    painter->drawEllipse(boundingRect().center(), 3, 3);
+    painter->drawEllipse({0., 0.}, 3., 3.);
 }
 
 void EventView::setSelected(bool selected)
@@ -66,6 +79,11 @@ bool EventView::isSelected() const
 bool EventView::isShadow() const
 {
     return m_shadow;
+}
+
+bool EventView::hasCondition() const
+{
+    return !m_condition.isEmpty();
 }
 
 void EventView::changeColor(QColor newColor)
@@ -105,4 +123,25 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsObject::hoverLeaveEvent(h);
     emit eventHoverLeave();
+}
+
+
+QRectF TriggerView::boundingRect() const
+{
+    return  QRectF{QPointF{-5, -10}, QSizeF{10, 10}};
+}
+
+
+void TriggerView::paint(QPainter *painter,
+                        const QStyleOptionGraphicsItem *option,
+                        QWidget *widget)
+{
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::darkGray);
+    static const QPointF triangle[3] = {
+        QPointF(0, 0),
+        QPointF(-5, -10),
+        QPointF(5, -10),
+    };
+    painter->drawPolygon(triangle, 3);
 }
