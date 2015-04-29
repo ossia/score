@@ -12,7 +12,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
     ProcessViewInterface {parent}
 {
     this->setParentItem(parent);
-    this->setFlags(ItemClipsChildrenToShape);// | ItemIsSelectable | ItemIsFocusable);
+    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 
     this->setZValue(parent->zValue() + 1);
 

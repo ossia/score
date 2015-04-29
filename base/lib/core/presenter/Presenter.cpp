@@ -274,6 +274,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
     }
 
     qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
+
     return nullptr;
 }
 

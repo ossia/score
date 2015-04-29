@@ -18,6 +18,7 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
         selectionModeState->setObjectName("selectionModeState");
         {
             m_singleSelection = new QState{selectionModeState};
+
             selectionModeState->setInitialState(m_singleSelection);
             m_multiSelection = new QState{selectionModeState};
 
@@ -111,9 +112,10 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
 }
 
 
-// TODO do the same with a group (for the case of adding a selection area).
 template<typename T>
-Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
+Selection filterSelections(T* pressedModel,
+                           Selection sel,
+                           bool cumulation)
 {
     if(!cumulation)
     {
@@ -138,6 +140,15 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
     }
 
     return sel;
+}
+
+
+
+Selection filterSelections(const Selection& newSelection,
+                           const Selection& currentSelection,
+                           bool cumulation)
+{
+    return cumulation ? (newSelection + currentSelection).toSet().toList() : newSelection;
 }
 
 
@@ -246,7 +257,9 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
         }
     }
 
-    m_dispatcher.setAndCommit(sel);
+    m_dispatcher.setAndCommit(filterSelections(sel,
+                                               m_sm.model().selectedChildren(),
+                                               m_multiSelection->active()));
 }
 
 
