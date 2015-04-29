@@ -27,7 +27,8 @@ namespace Scenario
                 ObjectPath m_path;
                 id_type<ProcessSharedModelInterface> m_processId;
 
-                QByteArray m_serializedProcessData; // Should be done in the constructor
+                QByteArray m_serializedProcessData;
+                QMap<std::tuple<int, int, int>, QByteArray>  m_serializedViewModels;
         };
     }
 }

@@ -127,7 +127,9 @@ ProcessViewModelInterface* AutomationModel::makeViewModel(
         id_type<ProcessViewModelInterface> viewModelId,
         QObject* parent)
 {
-    return new AutomationViewModel {this, viewModelId, parent};
+    auto vm = new AutomationViewModel{this, viewModelId, parent};
+    addViewModel(vm);
+    return vm;
 }
 
 ProcessViewModelInterface* AutomationModel::cloneViewModel(
@@ -135,7 +137,9 @@ ProcessViewModelInterface* AutomationModel::cloneViewModel(
         const ProcessViewModelInterface* source,
         QObject* parent)
 {
-    return new AutomationViewModel {static_cast<const AutomationViewModel*>(source), this, newId, parent};
+    auto vm = new AutomationViewModel {static_cast<const AutomationViewModel*>(source), this, newId, parent};
+    addViewModel(vm);
+    return vm;
 }
 
 

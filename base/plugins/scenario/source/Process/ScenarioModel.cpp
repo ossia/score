@@ -205,6 +205,7 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 
 void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {
+    // TODO this is dangerous since it has to be put for every process.
     addViewModel(scen);
 
     connect(scen, &TemporalScenarioViewModel::destroyed,

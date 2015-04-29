@@ -72,7 +72,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(ConstraintModel* co
         auto cstrVM = viewModel->constraint(constraint->id());
         if(auto temporalCstrVM = dynamic_cast<TemporalConstraintViewModel*>(cstrVM))
         {
-            auto pvm_id = identifierOfViewModelFromSharedModel(viewModel);
+            auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);
 
             QByteArray arr;
             Serializer<DataStream> cvmReader{&arr};
@@ -96,7 +96,7 @@ void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, Scenar
     {
         if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {
-            auto svm_id = identifierOfViewModelFromSharedModel(temporalSVM);
+            auto svm_id = identifierOfProcessViewModelFromConstraint(temporalSVM);
 
             if(vms.contains(svm_id))
             {

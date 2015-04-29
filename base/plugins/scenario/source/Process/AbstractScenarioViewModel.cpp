@@ -42,7 +42,7 @@ void createConstraintViewModels(ConstraintViewModelIdMap idMap,
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenario))
     {
-        auto pvm_id = identifierOfViewModelFromSharedModel(viewModel);
+        auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);
 
         if(idMap.contains(pvm_id))
         {

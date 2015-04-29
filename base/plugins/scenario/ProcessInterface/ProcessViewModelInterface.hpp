@@ -76,7 +76,8 @@ typename T::model_type& model(T& viewModel)
  *  * The deck identifier
  *  * The view model identifier
  */
-inline std::tuple<int, int, int> identifierOfViewModelFromSharedModel(ProcessViewModelInterface* pvm)
+// TODO this should be in DeckModel.hpp instead; makes no sense here.
+inline std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModelInterface* pvm)
 {
     // TODO - this only works in a scenario.
     auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());
