@@ -10,15 +10,13 @@ Paste::Paste()
 }
 
 void
-Paste::set(const QModelIndex& parentIndex, int row,
+Paste::set(const Path &parentPath, int row,
                                 const QString& text,
-                                DeviceExplorerModel* model)
+                                ObjectPath &&modelPath)
 {
-    Q_ASSERT(model);
-    m_model = model;
-    m_parentPath = model->pathFromIndex(parentIndex);
+    m_model = modelPath;
     m_row = row;
-
+    m_parentPath = parentPath;
     setText(text);
 }
 
@@ -26,25 +24,27 @@ Paste::set(const QModelIndex& parentIndex, int row,
 void
 Paste::undo()
 {
-    Q_ASSERT(m_model);
+    auto model = m_model.find<DeviceExplorerModel>();
+    Q_ASSERT(model);
 
-    QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row + 1, 0);  //+1 because pasteAfter
-    const DeviceExplorerModel::Result result = m_model->cut_aux(index);
-    m_model->setCachedResult(result);
+    const DeviceExplorer::Result result = model->cut_aux(index);
+    model->setCachedResult(result);
 
 }
 
 void
 Paste::redo()
 {
-    Q_ASSERT(m_model);
-    QModelIndex parentIndex = m_model->pathToIndex(m_parentPath);
+    auto model = m_model.find<DeviceExplorerModel>();
+    Q_ASSERT(model);
+    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
-    const DeviceExplorerModel::Result result = m_model->pasteAfter_aux(index);
-    m_model->setCachedResult(result);
+    const DeviceExplorer::Result result = model->pasteAfter_aux(index);
+    model->setCachedResult(result);
 
 }
 
@@ -57,7 +57,8 @@ Paste::mergeWith(const Command* /*other*/)
 void
 Paste::serializeImpl(QDataStream& d) const
 {
-    DeviceExplorerModel::serializePath(d, m_parentPath);
+    d << m_model;
+    m_parentPath.serializePath(d);
     d << (qint32) m_row;
 
     d << (qint32) m_data.size();
@@ -68,7 +69,8 @@ Paste::serializeImpl(QDataStream& d) const
 void
 Paste::deserializeImpl(QDataStream& d)
 {
-    DeviceExplorerModel::deserializePath(d, m_parentPath);
+    d >> m_model;
+    m_parentPath.deserializePath(d);
     qint32 v;
     d >> v;
     m_row = v;

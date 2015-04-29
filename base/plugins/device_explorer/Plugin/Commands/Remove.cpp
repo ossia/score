@@ -6,40 +6,44 @@ using namespace DeviceExplorer::Command;
 const char* Remove::className() { return "Remove"; }
 QString Remove::description() { return "Remove Node"; }
 
-Remove::Remove(ObjectPath &&device_tree, QModelIndex index):
+Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                             className(),
                             description()},
-    m_deviceTree{device_tree}
+    m_deviceTree{device_tree},
+    m_nodePath{nodePath},
+    m_nodeIndex{m_nodePath.back()}
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node *node = explorer->nodeFromModelIndex(index);
+    Node *node = m_nodePath.toNode(explorer->rootNode());
 
     if (! node->isDevice())
     {
-        m_parentPath = explorer->pathFromNode(*(node->parent()));
+        m_parentPath = Path{node->parent()};
     }
     else
     {
         m_parentPath.clear();
     }
     m_addressSettings = node->addressSettings();
-    m_nodeIndex = explorer->pathToNode(m_parentPath)->indexOfChild(node);
-    m_node = node->clone();
 }
 
 void
 Remove::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->addAddress(explorer->pathToNode(m_parentPath), m_node);
+    explorer->addAddress(m_parentPath.toNode(explorer->rootNode()), m_node);
 }
 
 void
 Remove::redo()
 {
+
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* parent = explorer->pathToNode(m_parentPath);
+    Node *node = m_nodePath.toNode(explorer->rootNode());
+    m_node = node->clone();
+    Node* parent = m_parentPath.toNode(explorer->rootNode());
+
     explorer->removeNode(parent->childAt(m_nodeIndex));
 }
 
@@ -53,11 +57,20 @@ Remove::mergeWith(const Command* /*other*/)
 void
 Remove::serializeImpl(QDataStream& d) const
 {
+    d << m_deviceTree;
+    m_parentPath.serializePath(d);
+    m_nodePath.serializePath(d);
 
+    d << m_nodeIndex;
+    // TODO serialisation of node
 }
 
 void
 Remove::deserializeImpl(QDataStream& d)
 {
+    d >> m_deviceTree;
+    m_parentPath.deserializePath(d);
+    m_nodePath.deserializePath(d);
 
+    d >> m_nodeIndex;
 }

@@ -2,6 +2,9 @@
 
 #include <QAbstractItemModel>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include <DeviceExplorer/NodePath.hpp>
+
+#include "Result.hpp"
 
 #include <QStack>
 
@@ -11,10 +14,7 @@ namespace iscore
 }
 namespace DeviceExplorer {
     namespace Command {
-        class Move;
         class Insert;
-        class Remove;
-        class Copy;
         class Cut;
         class Paste;
     }
@@ -22,18 +22,17 @@ namespace DeviceExplorer {
 
 class Node;
 class DeviceExplorerView;
+class DeviceExplorerCommandCreator;
 struct AddressSettings;
 
 class DeviceExplorerModel : public QAbstractItemModel
 {
         Q_OBJECT
 
-        friend class DeviceExplorer::Command::Move;
         friend class DeviceExplorer::Command::Insert;
-        friend class DeviceExplorer::Command::Remove;
-        friend class DeviceExplorer::Command::Copy;
         friend class DeviceExplorer::Command::Cut;
         friend class DeviceExplorer::Command::Paste;
+        friend class DeviceExplorerCommandCreator;
 
     public:
 
@@ -56,9 +55,7 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         QModelIndexList selectedIndexes() const;
 
-
         void setCommandQueue(iscore::CommandStack* q);
-        bool load(const QString& filename);
 
         // Returns the row (useful for undo)
         int addDevice(Node* deviceNode);
@@ -81,36 +78,12 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool insertTreeData(const QModelIndex& parent, int row, const QByteArray& data);
 
 
-        /*
-          The following methods return a QModelIndex that can be used as the new selection.
-         */
-
-        QModelIndex copy(const QModelIndex& index);
-        QModelIndex cut(const QModelIndex& index);
-        QModelIndex paste(const QModelIndex& index);
-
-        //Move up node at @a index among siblings
-        QModelIndex moveUp(const QModelIndex& index);
-
-        //Move down node at @a index among siblings
-        QModelIndex moveDown(const QModelIndex& index);
-
-        //Move node at @a index at its parent level,
-        //i.e., making node a child of its grandparent
-        // and the next sibling of its parent.
-        QModelIndex promote(const QModelIndex& index);
-
-        //Move node at @a index as child of its up sibling
-        QModelIndex demote(const QModelIndex& index);
-
-
-
-
         QModelIndex index(int row, int column, const QModelIndex& parent) const override;
         QModelIndex parent(const QModelIndex& child) const override;
         int rowCount(const QModelIndex& parent) const override;
         int columnCount(const QModelIndex& parent) const override;
 
+        QVariant getData(Path node, int column, int role);
         QVariant data(const QModelIndex& index, int role) const override;
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
@@ -119,10 +92,9 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
-        void editData(const QModelIndex& index, const QVariant& value, int role);
+        void editData(const Path &path, int column, const QVariant& value, int role);
 
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
-        bool undoMoveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstRow);
 
 
         //virtual bool insertRows(int row, int count, const QModelIndex &parent) override;
@@ -137,53 +109,24 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getIOTypeColumn() const;
         int getNameColumn() const;
 
-        typedef QList<int> Path;
         Node* nodeFromModelIndex(const QModelIndex& index) const;
-        Path pathFromNode(Node &node);
-        Node *pathToNode(const Path& path);
-
-        Path pathFromIndex(const QModelIndex& index);
         QModelIndex pathToIndex(const Path& path);
+
+        DeviceExplorerCommandCreator* cmdCreator();
+        void setCachedResult(DeviceExplorer::Result r);
 
     protected:
 
-        static void serializePath(QDataStream& d, const DeviceExplorerModel::Path& p);
-        static void deserializePath(QDataStream& d, DeviceExplorerModel::Path& p);
-
-        struct Result
-        {
-            Result(bool ok_ = true, const QModelIndex& index_ = QModelIndex())
-                : ok(ok_), index(index_)
-            {}
-
-            Result(const QModelIndex& index_)
-                : ok(true), index(index_)
-            {}
-
-            //Type-cast operators
-            operator bool() const
-            {
-                return ok;
-            }
-            operator QModelIndex() const
-            {
-                return index;
-            }
-
-            bool ok;
-            QModelIndex index;
-
-        };
-
-        DeviceExplorerModel::Result cut_aux(const QModelIndex& index);
-        DeviceExplorerModel::Result paste_aux(const QModelIndex& index, bool after);
-        DeviceExplorerModel::Result pasteBefore_aux(const QModelIndex& index);
-        DeviceExplorerModel::Result pasteAfter_aux(const QModelIndex& index);
-
+        DeviceExplorer::Result cut_aux(const QModelIndex& index);
+        DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);
+        DeviceExplorer::Result pasteBefore_aux(const QModelIndex& index);
+        DeviceExplorer::Result pasteAfter_aux(const QModelIndex& index);
 
         void debug_printPath(const Path& path);
 
-        void setCachedResult(Result r);
+        typedef QPair<Node*, bool> CutElt;
+        QStack<CutElt> m_cutNodes;
+        bool m_lastCutNodeIsCopied;
 
     private:
         Node* createRootNode() const;
@@ -191,16 +134,12 @@ class DeviceExplorerModel : public QAbstractItemModel
         void setColumnValue(Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
-
         Node* m_rootNode;
 
-        typedef QPair<Node*, bool> CutElt;
-        QStack<CutElt> m_cutNodes;
-        bool m_lastCutNodeIsCopied;
-
         iscore::CommandStack* m_cmdQ;
-        Result m_cachedResult;
 
         DeviceExplorerView* m_view {};
+
+        DeviceExplorerCommandCreator* m_cmdCreator;
 };
 

@@ -2,7 +2,7 @@
 #include <QString>
 #include <QList>
 #include <QJsonObject>
-#include <QStringList>
+//#include <QStringList>
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include "Common/AddressSettings/AddressSettings.hpp"

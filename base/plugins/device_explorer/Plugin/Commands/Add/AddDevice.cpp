@@ -206,12 +206,18 @@ bool AddDevice::mergeWith(const iscore::Command* other)
     return false;
 }
 
-void AddDevice::serializeImpl(QDataStream&) const
+void AddDevice::serializeImpl(QDataStream& d) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    d << m_deviceTree;
+    d << m_filePath;
+
+    d << m_row;
 }
 
-void AddDevice::deserializeImpl(QDataStream&)
+void AddDevice::deserializeImpl(QDataStream& d)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    d >> m_deviceTree;
+    d >> m_filePath;
+
+    d >> m_row;
 }

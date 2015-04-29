@@ -5,6 +5,7 @@
 
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
+#include "DeviceExplorer/NodePath.hpp"
 
 namespace DeviceExplorer
 {
@@ -17,7 +18,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
 
-                Remove(ObjectPath&& device_tree, QModelIndex index);
+                Remove(ObjectPath&& device_tree, Path nodePath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -29,11 +30,12 @@ namespace DeviceExplorer
 
             protected:
                 ObjectPath m_deviceTree;
-                DeviceExplorerModel::Path m_parentPath;
+                Path m_parentPath;
+                Path m_nodePath;
                 AddressSettings m_addressSettings;
                 int m_nodeIndex{};
 
-                //QByteArray m_serializedNode;
+                //TODO : QByteArray m_serializedNode;
                 Node* m_node{};
         };
     }

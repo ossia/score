@@ -1,15 +1,16 @@
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
+#include "DeviceExplorerCommandCreator.hpp"
+
+#include "BinaryReader.hpp"
+#include "BinaryWriter.hpp"
 
 #include <iostream>
 
 #include <QMimeData>
 
-#include "Commands/Move.hpp"
 #include "Commands/Insert.hpp"
-#include "Commands/Cut.hpp"
-#include "Commands/Paste.hpp"
 #include "Commands/EditData.hpp"
 
 using namespace DeviceExplorer::Command;
@@ -29,95 +30,11 @@ enum
 
 static QString HEADERS[COLUMN_COUNT];
 
-
-class BinaryWriter
-{
-        QDataStream& m_stream;
-
-    public:
-        BinaryWriter(QDataStream& stream)
-            : m_stream(stream)
-        {
-
-        }
-
-        void write(const Node* n)
-        {
-            Q_ASSERT(n);
-
-            m_stream << n->name();
-            //TODO: type !
-            m_stream << n->value();
-            m_stream << (qint32) n->ioType();
-            m_stream << n->minValue();
-            m_stream << n->maxValue();
-            m_stream << (quint32) n->priority();
-            //TODO: cropMode, tags, ...
-
-            m_stream << (quint32) n->childCount();
-            foreach(Node * child, n->children())
-            write(child);
-
-        }
-
-};
-
-class BinaryReader
-{
-        QDataStream& m_stream;
-
-    public:
-        BinaryReader(QDataStream& stream)
-            : m_stream(stream)
-        {
-        }
-
-        void read(Node* parent)
-        {
-            Q_ASSERT(parent);
-
-            QString name;
-            m_stream >> name;
-
-            Node* n = new Node(name, parent);
-
-            //TODO: type !
-            QString value;
-            m_stream >> value;
-            qint32 ioType;
-            m_stream >> ioType;
-            float minValue, maxValue;
-            m_stream >> minValue;
-            m_stream >> maxValue;
-            quint32 priority;
-            m_stream >> priority;
-            //TODO: cropMode, tags, ...
-
-            n->setValue(value);
-            n->setIOType(static_cast<Node::IOType>(ioType));
-            n->setMinValue(minValue);
-            n->setMaxValue(maxValue);
-            n->setPriority(priority);
-
-            quint32 childCount;
-            m_stream >> childCount;
-
-            for(quint32 i = 0; i < childCount; ++i)
-            {
-                read(n);
-            }
-
-        }
-};
-
-
-
 DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
     : QAbstractItemModel(parent),
-      m_rootNode(nullptr),
       m_lastCutNodeIsCopied(false),
-      m_cmdQ(nullptr),
-      m_cachedResult(true)
+      m_rootNode(nullptr),
+      m_cmdQ(nullptr)
 {
     this->setObjectName("DeviceExplorerModel");
 
@@ -128,14 +45,15 @@ DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
     HEADERS[MAX_COLUMN] = tr("max");
     HEADERS[PRIORITY_COLUMN] = tr("priority");
 
+    m_cmdCreator = new DeviceExplorerCommandCreator{this};
+
 }
 
 DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* parent)
     : QAbstractItemModel(parent),
-      m_rootNode(nullptr),
       m_lastCutNodeIsCopied(false),
-      m_cmdQ(nullptr),
-      m_cachedResult(true)
+      m_rootNode(nullptr),
+      m_cmdQ(nullptr)
 {
     this->setObjectName("DeviceExplorerModel");
 
@@ -186,168 +104,11 @@ QModelIndexList DeviceExplorerModel::selectedIndexes() const
     return m_view->selectedIndexes();
 }
 
-//TODO:REMOVE
-
-#include <QFile>
-
-//TODO:REMOVE
-static
-Node*
-readNode(QTextStream& in, Node* parent)
-{
-    //const int nbValues = 13;
-    QString name;
-    in >> name;
-
-    if(name.isEmpty())
-    {
-        return NULL;
-    }
-
-    if(in.status() != QTextStream::Ok)
-    {
-        std::cerr << "status not ok (2)\n";
-        exit(10);
-    }
-
-    if(in.atEnd())
-    {
-        return 0;
-    }
-
-    static const QString INVALID = "-_-";
-
-    if(name == INVALID)
-    {
-        return 0;
-    }
-
-    Node* node = new Node(name, parent);
-
-    QString value;
-    in >> value;
-
-    if(value != INVALID)
-    {
-        node->setValue(value);
-    }
-
-    QString startAssignation;
-    in >> startAssignation;
-
-    QString start;
-    in >> start;
-
-    QString interpolation;
-    in >> interpolation;
-
-    QString endAssignation;
-    in >> endAssignation;
-
-    QString end;
-    in >> end;
-
-    QString redundancy;
-    in >> redundancy;
-
-    QString sr;
-    in >> sr;
-
-    QString iotype;
-    in >> iotype;
-
-    if(iotype != INVALID)
-    {
-        if(iotype == "->")
-        {
-            node->setIOType(Node::In);
-        }
-        else if(iotype == "<-")
-        {
-            node->setIOType(Node::Out);
-        }
-        else if(iotype == "<->")
-        {
-            node->setIOType(Node::InOut);
-        }
-    }
-
-    QString minB;
-    in >> minB;
-
-    if(minB != INVALID)
-    {
-        node->setMinValue(minB.toFloat());
-    }
-
-    QString maxB;
-    in >> maxB;
-
-    if(maxB != INVALID)
-    {
-        node->setMaxValue(maxB.toFloat());
-    }
-
-    QString priority;
-    in >> priority;
-
-    if(priority != INVALID)
-    {
-        node->setPriority(priority.toInt());
-    }
-
-    int nbChildren = 0;
-    in >> nbChildren;
-
-    //node->_children.reserve(nbChildren);
-    for(int i = 0; i < nbChildren; ++i)
-    {
-        readNode(in, node);  //add read child to node.
-        //Node *n = readNode(in, node);
-        //if (n != nullptr)
-        // node->addChild(n);
-    }
-
-    return node;
-}
-
-bool
-DeviceExplorerModel::load(const QString& filename)
-{
-    QFile file(filename);
-
-    if(! file.open(QIODevice::ReadOnly))
-    {
-        return false;
-    }
-
-    QTextStream in(&file);
-
-    Node* node = readNode(in, nullptr);
-
-    if(node == nullptr)
-    {
-        std::cerr << "Error: unabel to read: " << filename.toStdString() << "\n";
-        return false;
-    }
-
-
-    beginResetModel();
-
-    delete m_rootNode;
-    m_rootNode = createRootNode();
-    m_rootNode->addChild(node);
-
-    endResetModel();
-
-
-    return true;
-}
-
 void
 DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
 {
     m_cmdQ = q;
+    m_cmdCreator->setCommandQueue(q);
 }
 
 QStringList
@@ -365,23 +126,17 @@ DeviceExplorerModel::getColumns() const
 
 int DeviceExplorerModel::addDevice(Node* deviceNode)
 {
-
     if(m_rootNode == nullptr)
     {
         m_rootNode = createRootNode();
     }
-
     Q_ASSERT(m_rootNode);
-
-
-    //we always insert as last child of m_rootNode
-    //TODO: insert after current selected device ???
 
     int row = m_rootNode->childCount();
     QModelIndex parent; //invalid
-    beginInsertRows(parent, row, row);
-    deviceNode->setParent(m_rootNode);
 
+    beginInsertRows(parent, row, row);
+    m_rootNode->insertChild(row, deviceNode);
     endInsertRows();
 
     return row;
@@ -540,6 +295,12 @@ int
 DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
 {
     return COLUMN_COUNT;
+}
+
+QVariant DeviceExplorerModel::getData(Path node, int column, int role)
+{
+    QModelIndex index = createIndex(pathToIndex(node).row(), column, node.toNode(rootNode())->parent());
+    return data(index, role);
 }
 
 // must return an invalid QVariant for cases not handled
@@ -829,14 +590,14 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
                 changed = true;
             }
         }
 
         if(index.column() == IOTYPE_COLUMN)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), index, value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
             changed = true;
         }
     }
@@ -850,11 +611,14 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const QModelIndex &index, const QVariant &value, int role)
+void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
     //TODO: check what's editable or not !!!
+    QModelIndex nodeIndex = pathToIndex(path);
+    Node* node = nodeFromModelIndex(nodeIndex);
 
-    Node* node = nodeFromModelIndex(index);
+    QModelIndex index = createIndex(nodeIndex.row(), column, node->parent());
+
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
 
@@ -991,57 +755,13 @@ DeviceExplorerModel::hasCut() const
     return (! m_cutNodes.isEmpty());
 }
 
-/*
-  Copy|Cut / Paste behavior
 
-  We do not do : serialize for Copy, or serialize+remove for Cut
-  but we keep the nodes alive.
-  We think that deleting nodes may be costly.
-
-  We store cut nodes in m_cutNodes.
-
-  We need to store several cut nodes to be able to do several undos
-  on a CutCommands.
-  (Merge CutCommands together would not be a solution as they can be interlaced with other commands).
-
-  BUT IT MEANS that cut nodes are never deleted during the lifetime of the Model !
-
-*/
-
-QModelIndex
-DeviceExplorerModel::copy(const QModelIndex& index)
-{
-    if(!index.isValid())
-    {
-        return Result(false, index);
-    }
-
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-
-    Node* copiedNode = n->clone();
-    const bool isDevice = n->isDevice();
-
-    if(! m_cutNodes.isEmpty() && m_lastCutNodeIsCopied)
-    {
-        //necessary to avoid that several successive copies fill m_cutNodes (copy is not a command)
-        Node* prevCopiedNode = m_cutNodes.pop().first;
-        delete prevCopiedNode;
-    }
-
-    m_cutNodes.push(CutElt(copiedNode, isDevice));
-    m_lastCutNodeIsCopied = true;
-
-    return index;
-}
-
-
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::cut_aux(const QModelIndex& index)
 {
     if(!index.isValid())
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
 
@@ -1095,31 +815,6 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     return QModelIndex();
 }
 
-QModelIndex
-DeviceExplorerModel::cut(const QModelIndex& index)
-{
-    if(!index.isValid())
-    {
-        return index;
-    }
-
-    Cut* cmd = new Cut;
-
-    QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
-    cmd->set(index.parent(), index.row(), tr("Cut %1").arg(name), this);
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return m_cachedResult.index;
-    }
-
-    return m_cachedResult.index;
-
-}
 
 /*
   Paste behavior.
@@ -1135,17 +830,17 @@ DeviceExplorerModel::cut(const QModelIndex& index)
 
 */
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
 {
     if(m_cutNodes.isEmpty())
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
     if(! index.isValid() && ! m_cutNodes.top().second)  //we can not pass addresses at top level
     {
-        return Result(false, index);
+        return DeviceExplorer::Result(false, index);
     }
 
 
@@ -1212,48 +907,16 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
     return createIndex(row, 0, child);
 }
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::pasteAfter_aux(const QModelIndex& index)
 {
     return paste_aux(index, true);
 }
 
-DeviceExplorerModel::Result
+DeviceExplorer::Result
 DeviceExplorerModel::pasteBefore_aux(const QModelIndex& index)
 {
     return paste_aux(index, false);
-}
-
-
-QModelIndex
-DeviceExplorerModel::paste(const QModelIndex& index)
-{
-    if(m_cutNodes.isEmpty())
-    {
-        return index;
-    }
-
-    if(! index.isValid() && ! m_cutNodes.top().second)  //we can not pass addresses at top level
-    {
-        return index;
-    }
-
-
-    Paste* cmd = new Paste;
-
-    QString name = (index.isValid() ? nodeFromModelIndex(index)->name() : "");
-    cmd->set(index.parent(), index.row(), tr("Paste %1").arg(name), this);
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return m_cachedResult.index;
-    }
-
-    return m_cachedResult.index;
 }
 
 bool
@@ -1329,273 +992,6 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
     return true;
 }
 
-bool
-DeviceExplorerModel::undoMoveRows(const QModelIndex& srcParentIndex, int srcRow, int count,
-                                  const QModelIndex& dstParentIndex, int dstRow)
-{
-    /*
-    Here parameters are passed in the same order (and with the same names)
-     than in moveRows().
-     That is we compute the undo operation of a moveRows called with these parameters.
-     Thus src & dst should be interpreted as source & destination for the original move operation.
-    */
-
-    if(!srcParentIndex.isValid() || !dstParentIndex.isValid())
-    {
-        return false;
-    }
-
-    if(srcParentIndex == dstParentIndex && (srcRow <= dstRow && dstRow <= srcRow + count - 1))
-    {
-        return false;
-    }
-
-    Node* srcParent = nodeFromModelIndex(srcParentIndex);
-    Q_ASSERT(srcParent);
-
-    /*
-    if (srcRow+count > srcParent->childCount())
-    return false;
-    */
-
-    if(srcParentIndex == dstParentIndex)
-    {
-        //move up or down inside the same parent
-
-        Node* parent = srcParent;
-        Q_ASSERT(parent);
-
-        if(srcRow > dstRow)
-        {
-
-            beginMoveRows(dstParentIndex, dstRow, dstRow + count - 1, srcParentIndex, srcRow + count);
-
-            for(int i = 0; i < count; ++i)
-            {
-                Node* n = parent->takeChild(dstRow);
-                parent->insertChild(srcRow + count - 1, n);
-            }
-        }
-        else
-        {
-            Q_ASSERT(srcRow < dstRow);
-
-            beginMoveRows(dstParentIndex, dstRow - count, dstRow - count + count - 1, srcParentIndex, srcRow);
-
-            for(int i = 0; i < count; ++i)
-            {
-
-                Node* n = parent->takeChild(dstRow - count + i);
-                parent->insertChild(srcRow + i, n);
-            }
-        }
-
-    }
-    else
-    {
-        //different parents
-
-        beginMoveRows(dstParentIndex, dstRow, dstRow + count - 1, srcParentIndex, srcRow);
-
-        Node* dstParent = nodeFromModelIndex(dstParentIndex);
-        Q_ASSERT(dstParent);
-        Q_ASSERT(dstParent != srcParent);
-
-        for(int i = 0; i < count; ++i)
-        {
-            Node* n = dstParent->takeChild(dstRow);
-            srcParent->insertChild(srcRow + i, n);
-        }
-
-    }
-
-    endMoveRows();
-
-    return true;
-}
-
-
-
-QModelIndex
-DeviceExplorerModel::moveUp(const QModelIndex& index)
-{
-    if(!index.isValid() || index.row() <= 0)
-    {
-        return index;
-    }
-
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-    Node* parent = n->parent();
-    Q_ASSERT(parent);
-
-    const int oldRow = index.row();
-    const int newRow = oldRow - 1;
-
-    Node* grandparent = parent->parent();
-    Q_ASSERT(grandparent);
-    int rowParent = grandparent->indexOfChild(parent);
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-
-    Move* cmd = new Move;
-    cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow, tr("Move up %1").arg(n->name()) , this);
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return index;
-    }
-
-    return createIndex(newRow, 0, n);
-}
-
-QModelIndex
-DeviceExplorerModel::moveDown(const QModelIndex& index)
-{
-    if(!index.isValid())
-    {
-        return index;
-    }
-
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-    Node* parent = n->parent();
-    Q_ASSERT(parent);
-
-    int oldRow = index.row();
-    Q_ASSERT(parent->indexOfChild(n) == oldRow);
-    int newRow = oldRow + 1;
-
-    if(newRow >= parent->childCount())
-    {
-        return index;
-    }
-
-    Node* grandparent = parent->parent();
-    Q_ASSERT(grandparent);
-    int rowParent = grandparent->indexOfChild(parent);
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-
-    Move* cmd = new Move;
-    cmd->set(srcParentIndex, oldRow, 1, srcParentIndex, newRow + 1, tr("Move down %1").arg(n->name()) , this);
-    //newRow+1 because moved before, cf doc.
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return index;
-    }
-
-    return createIndex(newRow, 0, n);
-}
-
-
-QModelIndex
-DeviceExplorerModel::promote(const QModelIndex& index)  //== moveLeft
-{
-    if(!index.isValid())
-    {
-        return index;
-    }
-
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-    Node* parent = n->parent();
-    Q_ASSERT(parent);
-
-    if(parent == m_rootNode)
-    {
-        return index;    // Already a top-level item
-    }
-
-    Node* grandParent = parent->parent();
-    Q_ASSERT(grandParent);
-
-    if(grandParent == m_rootNode)
-    {
-        return index;    //We cannot move an Address at Device level.
-    }
-
-    Node* grandGrandParent = grandParent->parent();
-
-
-    int row = parent->indexOfChild(n);
-    int rowParent = grandParent->indexOfChild(parent);
-    int rowGrandParent = grandGrandParent->indexOfChild(grandParent);
-
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-    QModelIndex dstParentIndex = createIndex(rowGrandParent, 0 , grandParent);
-
-    Move* cmd = new Move;
-    cmd->set(srcParentIndex, row, 1, dstParentIndex, rowParent + 1, tr("Promote %1").arg(n->name()) , this);
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return index;
-    }
-
-    return createIndex(rowParent + 1, 0, n);
-}
-
-QModelIndex
-DeviceExplorerModel::demote(const QModelIndex& index)  //== moveRight
-{
-    if(!index.isValid())
-    {
-        return index;
-    }
-
-    Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
-    Node* parent = n->parent();
-    Q_ASSERT(parent);
-
-    if(parent == m_rootNode)
-    {
-        return index;    //we can not demote/moveRight device nodes
-    }
-
-    int row = parent->indexOfChild(n);
-
-    if(row == 0)
-    {
-        return index;    // No preceding sibling to move this under
-    }
-
-    Node* sibling = parent->childAt(row - 1);
-    Q_ASSERT(sibling);
-
-    Node* grandParent = parent->parent();
-    int rowParent = grandParent->indexOfChild(parent);
-
-    QModelIndex srcParentIndex = createIndex(rowParent, 0, parent);
-    QModelIndex dstParentIndex = createIndex(row - 1, 0, sibling);
-
-    Move* cmd = new Move;
-    cmd->set(srcParentIndex, row, 1, dstParentIndex, sibling->childCount(), tr("Demote %1").arg(n->name()) , this);
-    Q_ASSERT(m_cmdQ);
-    m_cmdQ->redoAndPush(cmd);
-
-    if(! m_cachedResult)
-    {
-        delete m_cmdQ->command(0);
-        m_cachedResult = true;
-        return index;
-    }
-
-    return createIndex(sibling->childCount() - 1, 0, n);
-
-}
 
 namespace
 {
@@ -1609,11 +1005,8 @@ namespace
 /*
 Drag and drop works by deleting the dragged items and creating a new set of dropped items that match those dragged.
 I will/may call insertRows(), removeRows(), dropMimeData(), ...
-
-
 We define two MimeTypes : MimeTypeDevice & MimeTypeAddress.
 It allows to distinguish whether we are drag'n dropping devices or addresses.
-
  */
 
 
@@ -1806,14 +1199,14 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         }
         DeviceExplorer::Command::Insert* cmd = new DeviceExplorer::Command::Insert;
         const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
-        cmd->set(parentIndex, row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), this);
+        cmd->set(Path(parentNode), row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), iscore::IDocument::path(this));
         Q_ASSERT(m_cmdQ);
         m_cmdQ->redoAndPush(cmd);
 
-        if(! m_cachedResult)
+        if(! m_cmdCreator->m_cachedResult)
         {
             delete m_cmdQ->command(0);
-            m_cachedResult = true;
+            m_cmdCreator->m_cachedResult = true;
             return false;
         }
 
@@ -1875,104 +1268,38 @@ DeviceExplorerModel::insertTreeData(const QModelIndex& parent, int row, const QB
 }
 
 void
-DeviceExplorerModel::setCachedResult(Result r)
+DeviceExplorerModel::setCachedResult(DeviceExplorer::Result r)
 {
-    m_cachedResult = r;
-}
-
-DeviceExplorerModel::Path
-DeviceExplorerModel::pathFromIndex(const QModelIndex& index)
-{
-    Path path;
-    QModelIndex iter = index;
-
-    while(iter.isValid())
-    {
-        path.prepend(iter.row());
-        iter = iter.parent();
-    }
-
-    return path;
+    m_cmdCreator->setCachedResult(r);
 }
 
 QModelIndex
-DeviceExplorerModel::pathToIndex(const DeviceExplorerModel::Path& path)
+DeviceExplorerModel::pathToIndex(const Path& path)
 {
     QModelIndex iter;
     const int pathSize = path.size();
 
     for(int i = 0; i < pathSize; ++i)
     {
-        iter = index(path[i], 0, iter);
+        iter = index(path.at(i), 0, iter);
     }
 
     return iter;
 }
 
-DeviceExplorerModel::Path DeviceExplorerModel::pathFromNode(Node &node)
+DeviceExplorerCommandCreator *DeviceExplorerModel::cmdCreator()
 {
-    Path path;
-    Node* iter = &node;
-
-    while(! iter->isDevice())
-    {
-        path.prepend(iter->parent()->indexOfChild(iter));
-        iter = iter->parent();
-    }
-    path.prepend(iter->parent()->indexOfChild(iter));
-
-    return path;
-}
-
-Node* DeviceExplorerModel::pathToNode(const DeviceExplorerModel::Path &path)
-{
-    Node *iter = rootNode();
-    const int pathSize = path.size();
-
-    for (int i = 0; i < pathSize; ++i)
-    {
-        iter = iter->childAt(path[i]);
-    }
-
-    return iter;
+    return m_cmdCreator;
 }
 
 void
-DeviceExplorerModel::serializePath(QDataStream& d, const DeviceExplorerModel::Path& p)
-{
-    const int size = p.size();
-    d << (qint32) size;
-
-    for(int i = 0; i < size; ++i)
-    {
-        d << (qint32) p.at(i);
-    }
-}
-
-void
-DeviceExplorerModel::deserializePath(QDataStream& d, DeviceExplorerModel::Path& p)
-{
-    qint32 size;
-    d >> size;
-    p.reserve(size);
-
-    for(int i = 0; i < size; ++i)
-    {
-        qint32 v;
-        d >> v;
-        p.append(v);
-    }
-}
-
-
-void
-DeviceExplorerModel::debug_printPath(const DeviceExplorerModel::Path& path)
+DeviceExplorerModel::debug_printPath(const Path& path)
 {
     const int pathSize = path.size();
 
     for(int i = 0; i < pathSize; ++i)
     {
-        std::cerr << path[i] << " ";
+        std::cerr << path.at(i) << " ";
     }
 
     std::cerr << "\n";

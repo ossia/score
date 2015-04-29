@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 const char* AddAddress::className() { return "AddAddress"; }
 QString AddAddress::description() { return "Add an address"; }
 
-AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
+AddAddress::AddAddress(ObjectPath &&device_tree, Path nodePath, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
                                 description()},
@@ -18,28 +18,28 @@ AddAddress::AddAddress(ObjectPath &&device_tree, QModelIndex index, DeviceExplor
     Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
-        parentNode = explorer->nodeFromModelIndex(index);
+        parentNode =  nodePath.toNode(explorer->rootNode());
     }
     else if (insert == DeviceExplorerModel::Insert::AsSibling)
     {
-        parentNode = explorer->nodeFromModelIndex(index)->parent();
+        parentNode =  nodePath.toNode(explorer->rootNode())->parent();
     }
-    m_parentNodePath = explorer->pathFromNode(*parentNode);
+    m_parentNodePath = Path{parentNode};
 }
 
 void AddAddress::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* parent = explorer->pathToNode(m_parentNodePath);
+    Node* parent = m_parentNodePath.toNode(explorer->rootNode());
     explorer->removeNode(parent->childAt(m_createdNodeIndex));
 }
 
 void AddAddress::redo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* newNode = explorer->addAddress( explorer->pathToNode(m_parentNodePath), m_addressSettings);
+    Node* newNode = explorer->addAddress( m_parentNodePath.toNode(explorer->rootNode()), m_addressSettings);
 
-    m_createdNodeIndex = explorer->pathToNode(m_parentNodePath)->indexOfChild(newNode);
+    m_createdNodeIndex = m_parentNodePath.toNode(explorer->rootNode())->indexOfChild(newNode);
 }
 
 bool AddAddress::mergeWith(const iscore::Command *other)

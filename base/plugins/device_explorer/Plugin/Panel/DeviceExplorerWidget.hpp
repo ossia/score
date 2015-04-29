@@ -28,7 +28,7 @@ class DeviceExplorerWidget : public QWidget
 
         void setModel(DeviceExplorerModel* model);
 
-        bool loadModel(const QString filename);
+//        bool loadModel(const QString filename);
 
     public slots:
         void edit();
