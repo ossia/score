@@ -82,11 +82,8 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
             auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
             updateTimeNode(endTimeNode);
 
-            if(cstr_model->startDate().isZero())
-            {
-                auto startTimeNode = findById(m_presenter->m_events, cstr_model->startEvent())->model()->timeNode();
-                updateTimeNode(startTimeNode);
-            }
+            auto startTimeNode = findById(m_presenter->m_events, cstr_model->startEvent())->model()->timeNode();
+            updateTimeNode(startTimeNode);
         }
     }
 
