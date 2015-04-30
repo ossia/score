@@ -33,6 +33,7 @@ class MoveEventAndConstraint : public iscore::SerializableCommand
                 ExpandMode mode)
         {
             m_cmd->update(scenarioPath, eventId, date, height, mode);
+            m_constraintHeight = height;
         }
 
     protected:
@@ -42,6 +43,7 @@ class MoveEventAndConstraint : public iscore::SerializableCommand
     private:
         MoveEvent* m_cmd{};
         id_type<ConstraintModel> m_constraintId;
+        double m_constraintHeight{};
 };
 }
 }

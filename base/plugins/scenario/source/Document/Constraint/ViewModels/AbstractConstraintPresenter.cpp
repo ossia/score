@@ -37,6 +37,9 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(
     connect(m_viewModel->model(),   &ConstraintModel::maxDurationChanged,
     this,                           &AbstractConstraintPresenter::on_maxDurationChanged);
 
+    connect(m_viewModel->model(), &ConstraintModel::heightPercentageChanged,
+            this, &AbstractConstraintPresenter::heightPercentageChanged);
+
     connect(m_viewModel, &AbstractConstraintViewModel::boxShown,
     this,                &AbstractConstraintPresenter::on_boxShown);
     connect(m_viewModel, &AbstractConstraintViewModel::boxHidden,

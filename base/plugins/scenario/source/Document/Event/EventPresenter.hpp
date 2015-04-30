@@ -30,7 +30,7 @@ class EventPresenter : public NamedObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-        void linesExtremityChange(int, double);
+        void heightPercentageChanged();
 
     private:
         EventModel* m_model {};

@@ -9,26 +9,16 @@ using namespace iscore;
 // More generally, commands should take real values as arguments (not objectpaths, etc.)
 void AggregateCommand::undo()
 {
-    for(int i = m_serializedCommands.size() - 1; i >= 0; --i)
+    for(int i = m_cmds.size() - 1; i >= 0; --i)
     {
-        auto cmd = IPresenter::instantiateUndoCommand(
-                       m_serializedCommands[i].first.first,
-                       m_serializedCommands[i].first.second,
-                       m_serializedCommands[i].second);
-
-        cmd->undo();
+        m_cmds[i]->undo();
     }
 }
 
 void AggregateCommand::redo()
 {
-    for(auto& cmd_pack : m_serializedCommands)
+    for(auto& cmd : m_cmds)
     {
-        auto cmd = IPresenter::instantiateUndoCommand(
-                       cmd_pack.first.first,
-                       cmd_pack.first.second,
-                       cmd_pack.second);
-
         cmd->redo();
     }
 }
@@ -40,10 +30,44 @@ bool AggregateCommand::mergeWith(const Command* other)
 
 void AggregateCommand::serializeImpl(QDataStream& s) const
 {
-    s << m_serializedCommands;
+    // Meta-data : {{parent name, command name}, command data}
+    QList<
+            QPair<
+                QPair<
+                    QString,
+                    QString
+                >,
+                QByteArray
+            >
+    > serializedCommands;
+
+    for(auto& cmd : m_cmds)
+    {
+        serializedCommands.push_back({{cmd->parentName(), cmd->name() }, cmd->serialize()});
+    }
+
+    s << serializedCommands;
 }
 
 void AggregateCommand::deserializeImpl(QDataStream& s)
 {
-    s >> m_serializedCommands;
+    QList<
+            QPair<
+                QPair<
+                    QString,
+                    QString
+                >,
+                QByteArray
+            >
+    > serializedCommands;
+    s >> serializedCommands;
+
+    for(auto& cmd_pack : serializedCommands)
+    {
+        auto cmd = IPresenter::instantiateUndoCommand(
+                       cmd_pack.first.first,
+                       cmd_pack.first.second,
+                       cmd_pack.second);
+        m_cmds.push_back(cmd);
+    }
 }

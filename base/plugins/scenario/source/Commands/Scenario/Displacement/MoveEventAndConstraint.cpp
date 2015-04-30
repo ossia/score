@@ -26,7 +26,8 @@ MoveEventAndConstraint::MoveEventAndConstraint(
                         className(),
                         description()},
     m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height, mode}},
-    m_constraintId{constraintId}
+    m_constraintId{constraintId},
+    m_constraintHeight{height}
 {
 
 }
@@ -43,7 +44,7 @@ void MoveEventAndConstraint::redo()
     m_cmd->redo();
 
     auto scenar = m_cmd->path().find<ScenarioModel>();
-    scenar->constraint(m_constraintId)->setHeightPercentage(m_cmd->heightPosition());
+    scenar->constraint(m_constraintId)->setHeightPercentage(m_constraintHeight);
 }
 
 
@@ -55,14 +56,14 @@ bool MoveEventAndConstraint::mergeWith(const iscore::Command*)
 
 void MoveEventAndConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_cmd->serialize() << m_constraintId;
+    s << m_cmd->serialize() << m_constraintId << m_constraintHeight;
 }
 
 
 void MoveEventAndConstraint::deserializeImpl(QDataStream& s)
 {
     QByteArray a;
-    s >> a >> m_constraintId;
+    s >> a >> m_constraintId >> m_constraintHeight;
 
     m_cmd->deserialize(a);
 }

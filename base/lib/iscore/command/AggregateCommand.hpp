@@ -22,24 +22,16 @@ namespace iscore
                              const T& cmd, Args&& ... remaining) :
                 AggregateCommand {parname, cmdname, text, std::forward<Args> (remaining)...}
             {
-                // Because they will be called in reverse order due to constructor
-                // ordering, we push_front instead of push_back.
-                m_serializedCommands.push_front({{cmd->parentName(), cmd->name() },
-                    cmd->serialize()
-                });
-                delete cmd;
+                m_cmds.push_front(cmd);
             }
 
             virtual void undo() override;
             virtual void redo() override;
             virtual bool mergeWith(const Command* other) override;
 
-            void addCommand(const iscore::SerializableCommand* cmd)
+            void addCommand(iscore::SerializableCommand* cmd)
             {
-                m_serializedCommands.push_back({{cmd->parentName(), cmd->name() },
-                    cmd->serialize()
-                });
-                delete cmd;
+                m_cmds.push_back(cmd);
             }
 
         protected:
@@ -47,10 +39,6 @@ namespace iscore
             virtual void deserializeImpl(QDataStream&) override;
 
         private:
-            // Meta-data : {{parent name, command name}, command data}
-            QList<QPair<
-            QPair<QString,
-                  QString>,
-                  QByteArray>> m_serializedCommands;
+            QList<iscore::SerializableCommand*> m_cmds;
     };
 }

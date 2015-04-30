@@ -61,7 +61,8 @@ class AbstractConstraintPresenter : public NamedObject
         void released(const QPointF&);
 
         void askUpdate();
-        void heightChanged();
+        void heightChanged(); // The vertical size
+        void heightPercentageChanged(); // The vertical position
 
     public slots:
         void on_defaultDurationChanged(TimeValue val);
