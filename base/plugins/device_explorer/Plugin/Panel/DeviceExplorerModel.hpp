@@ -61,7 +61,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int addDevice(Node* deviceNode);
         Node *addAddress(Node * parentNode,
                         const AddressSettings& addressSettings);
-        void addAddress(Node* parentNode, Node* node);
+        void addAddress(Node* parentNode, Node* node, int row = -1);
 
         void removeNode(Node *node);
 

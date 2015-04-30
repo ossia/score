@@ -1,6 +1,9 @@
 
 #include "Remove.hpp"
 
+#include "Panel/BinaryReader.hpp"
+#include "Panel/BinaryWriter.hpp"
+
 using namespace DeviceExplorer::Command;
 
 const char* Remove::className() { return "Remove"; }
@@ -32,7 +35,7 @@ void
 Remove::undo()
 {
     auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->addAddress(m_parentPath.toNode(explorer->rootNode()), m_node);
+    explorer->addAddress(m_parentPath.toNode(explorer->rootNode()), m_node, m_nodeIndex);
 }
 
 void
@@ -62,7 +65,8 @@ Remove::serializeImpl(QDataStream& d) const
     m_nodePath.serializePath(d);
 
     d << m_nodeIndex;
-    // TODO serialisation of node
+    BinaryWriter bw{d};
+    bw.write(m_node);
 }
 
 void
@@ -73,4 +77,7 @@ Remove::deserializeImpl(QDataStream& d)
     m_nodePath.deserializePath(d);
 
     d >> m_nodeIndex;
+
+    BinaryReader br{d};
+    br.read(m_node->parent());
 }

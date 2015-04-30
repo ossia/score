@@ -32,6 +32,8 @@ class DeviceExplorerView : public QTreeView
         void promote();
         void demote();
 
+        void setSelectedIndex(const QModelIndex& index);
+
         QModelIndexList selectedIndexes() const override;
         QModelIndex selectedIndex() const;
 
@@ -47,8 +49,6 @@ class DeviceExplorerView : public QTreeView
     protected:
 
         //virtual void closeEvent(QCloseEvent *event) override;
-
-        void setSelectedIndex(const QModelIndex& index);
 
         void installStyleSheet();
 

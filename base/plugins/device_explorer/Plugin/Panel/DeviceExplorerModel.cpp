@@ -165,12 +165,15 @@ Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &a
     return node;
 }
 
-void DeviceExplorerModel::addAddress(Node *parentNode, Node *node)
+void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
 {
     Q_ASSERT(parentNode);
     Q_ASSERT(parentNode != m_rootNode);
 
-    int row = parentNode->childCount(); //insert as last child
+    if (row == -1)
+    {
+        row = parentNode->childCount(); //insert as last child
+    }
 
     Node* grandparent = parentNode->parent();
     Q_ASSERT(grandparent);
