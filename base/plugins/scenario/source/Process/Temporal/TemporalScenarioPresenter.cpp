@@ -197,6 +197,11 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractCo
 
         return to_delete;
     });
+    // TODO optimizeme
+    for(auto& tn : m_timeNodes)
+    {
+        m_viewInterface->updateTimeNode(tn->id());
+    }
 
     m_view->update();
 }
@@ -225,6 +230,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
     auto ev_pres = new EventPresenter {event_model,
                            m_view,
                            this};
+    m_events.push_back(ev_pres);
 
     ev_pres
             ->view()
@@ -253,7 +259,6 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
             [=] ()
     {   m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
 
-    m_events.push_back(ev_pres);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_model)
@@ -264,12 +269,12 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(TimeNodeModel* timeNode_
             timeNode_model,
             m_view,
             this};
+    m_timeNodes.push_back(tn_pres);
 
     tn_pres->view()
            ->setPos({timeNode_model->date().toPixels(m_zoomRatio),
                      timeNode_model->y() * rect.height()});
 
-    m_timeNodes.push_back(tn_pres);
     m_viewInterface->updateTimeNode(timeNode_model->id());
 
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
@@ -288,10 +293,14 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
                                 constraint_view_model,
                                 m_view,
                                 this};
+    m_constraints.push_back(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
     cst_pres->view()->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
+
+
+
 
     m_viewInterface->updateTimeNode(findById(m_events,
                                              constraint_view_model->model()->endEvent())
@@ -299,8 +308,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     m_viewInterface->updateTimeNode(findById(m_events,
                                              constraint_view_model->model()->startEvent())
                                         ->model()->timeNode());
-
-    m_constraints.push_back(cst_pres);
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
             this, [=] ()
