@@ -53,8 +53,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         virtual void on_zoomRatioChanged(ZoomRatio val) override;
 
-        void focus();
-
         const std::vector<EventPresenter*>& events() const
         { return m_events; }
         const std::vector<TimeNodePresenter*>& timeNodes() const

@@ -115,7 +115,7 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
 {
     auto updateDeckFocus = [&] (bool b)
     {
-        if(m_focusedViewModel)
+        if(m_focusedViewModel && m_focusedViewModel->parent())
         {
             if(auto deck = dynamic_cast<DeckModel*>(m_focusedViewModel->parent()))
             {
@@ -140,6 +140,11 @@ void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
         updateDeckFocus(true);
 
         emit focusedViewModelChanged();
+
+        if(m_focusedViewModel)
+        {
+            connect(m_focusedViewModel, &QObject::destroyed, this, [&] () { m_focusedViewModel = nullptr; });
+        }
     }
 }
 

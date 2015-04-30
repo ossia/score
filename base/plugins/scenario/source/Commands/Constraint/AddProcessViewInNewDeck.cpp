@@ -41,14 +41,11 @@ void AddProcessViewInNewDeck::undo()
 {
     auto constraint = m_path.find<ConstraintModel>();
     auto box = constraint->box(m_createdBoxId);
-    auto deck = box->deck(m_createdDeckId);
 
-    // Process view
-    deck->deleteProcessViewModel(m_createdProcessViewId);
-    // DECK
+    // Removing the deck is enough
     box->removeDeck(m_createdDeckId);
 
-    // BOX
+    // Remove the box
     if(!m_existingBox)
     {
         constraint->removeBox(m_createdBoxId);

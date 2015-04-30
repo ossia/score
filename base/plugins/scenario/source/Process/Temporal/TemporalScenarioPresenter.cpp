@@ -66,7 +66,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     connect(m_viewModel, &TemporalScenarioViewModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-    connect(m_view, &TemporalScenarioView::scenarioPressed, [&] (const QPointF&)
+    connect(m_view, &TemporalScenarioView::scenarioPressed,
+            this, [&] (const QPointF&)
     {
         m_focusDispatcher.focus(m_viewModel);
     });
@@ -365,11 +366,4 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
-
-
-}
-
-void TemporalScenarioPresenter::focus()
-{
-    m_focusDispatcher.focus(m_viewModel);
 }
