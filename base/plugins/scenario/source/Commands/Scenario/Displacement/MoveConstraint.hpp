@@ -11,12 +11,14 @@ namespace Scenario
 {
     namespace Command
     {
+        class MoveEvent;
         class MoveConstraint : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(MoveConstraint, "ScenarioControl")
+                MoveConstraint();
+                ~MoveConstraint();
                 MoveConstraint(
                     ObjectPath&& scenarioPath,
                     const id_type<ConstraintModel>& id,
@@ -32,15 +34,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
+                MoveEvent* m_cmd{};
                 ObjectPath m_path;
-                id_type<ConstraintModel> m_constraintId {};
-
-                double m_oldHeightPosition {};
-                double m_newHeightPosition {};
-                TimeValue m_oldX {};
-                TimeValue m_newX {};
-
-                ExpandMode m_mode{ExpandMode::Scale};
+                id_type<ConstraintModel> m_constraint;
+                double m_oldHeightPosition{},
+                       m_newHeightPosition{};
         };
     }
 }

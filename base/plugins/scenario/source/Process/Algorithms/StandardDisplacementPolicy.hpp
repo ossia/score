@@ -48,7 +48,6 @@ namespace StandardDisplacementPolicy
             if ( !(constraint->startDate() - startEventDate).isZero())
             {
                 constraint->setStartDate(startEventDate);
-                emit scenario.constraintMoved(constraint->id());
             }
             if(! (constraint->defaultDuration() - newDuration).isZero())
             {
@@ -57,8 +56,9 @@ namespace StandardDisplacementPolicy
                 {
                     scaleMethod(process, newDuration);
                 }
-                emit scenario.constraintMoved(constraint->id());
             }
+
+            emit scenario.constraintMoved(constraint->id());
         }
     }
 
