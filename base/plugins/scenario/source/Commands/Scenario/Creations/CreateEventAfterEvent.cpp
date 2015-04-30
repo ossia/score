@@ -68,17 +68,7 @@ void CreateEventAfterEvent::redo()
 
 bool CreateEventAfterEvent::mergeWith(const Command* other)
 {
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
-
-    auto cmd = static_cast<const CreateEventAfterEvent*>(other);
-    m_time = cmd->m_time;
-    m_heightPosition = cmd->m_heightPosition;
-
-    return true;
+    return false;
 }
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
@@ -97,12 +87,12 @@ void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
 void CreateEventAfterEvent::deserializeImpl(QDataStream& s)
 {
     s >> m_path
-            >> m_firstEventId
-            >> m_time
-            >> m_heightPosition
-            >> m_createdEventId
-            >> m_createdConstraintId
-            >> m_createdTimeNodeId
-            >> m_createdConstraintViewModelIDs
-            >> m_createdConstraintFullViewId;
+      >> m_firstEventId
+      >> m_time
+      >> m_heightPosition
+      >> m_createdEventId
+      >> m_createdConstraintId
+      >> m_createdTimeNodeId
+      >> m_createdConstraintViewModelIDs
+      >> m_createdConstraintFullViewId;
 }

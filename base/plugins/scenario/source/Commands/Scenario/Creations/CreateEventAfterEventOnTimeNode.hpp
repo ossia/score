@@ -39,13 +39,11 @@ namespace Scenario
                 CreateEventAfterEventOnTimeNode& operator= (CreateEventAfterEventOnTimeNode &&) = default;
 
                 id_type<EventModel> createdEvent() const
-                {
-                    return m_createdEventId;
-                }
+                { return m_createdEventId; }
                 id_type<TimeNodeModel> timeNode() const
-                {
-                    return m_timeNodeId;
-                }
+                { return m_timeNodeId; }
+                id_type<ConstraintModel> createdConstraint() const
+                { return m_createdConstraintId; }
 
                 virtual void undo() override;
                 virtual void redo() override;

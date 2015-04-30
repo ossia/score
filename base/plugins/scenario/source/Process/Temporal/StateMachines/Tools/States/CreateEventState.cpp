@@ -2,7 +2,8 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 
-#include <Commands/Scenario/Displacement/MoveEvent.hpp>
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEventAndConstraint.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -116,8 +117,9 @@ CreateFromEventState::CreateFromEventState(
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEventAndConstraint>(
                             ObjectPath{m_scenarioPath},
+                            createdConstraint(),
                             createdEvent(),
                             currentPoint.date,
                             currentPoint.y,
@@ -126,8 +128,9 @@ CreateFromEventState::CreateFromEventState(
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEventAndConstraint>(
                             ObjectPath{m_scenarioPath},
+                            createdConstraint(),
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
                             currentPoint.y,
@@ -155,15 +158,16 @@ CreateFromEventState::CreateFromEventState(
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void CreateFromEventState::createEventFromEventOnNothing()
 {
-    auto init = new CreateEventAfterEvent{
+    auto cmd = new CreateEventAfterEvent{
                 ObjectPath{m_scenarioPath},
                 clickedEvent,
                 currentPoint.date,
                 currentPoint.y};
-    setCreatedEvent(init->createdEvent());
-    setCreatedTimeNode(init->createdTimeNode());
+    setCreatedEvent(cmd->createdEvent());
+    setCreatedTimeNode(cmd->createdTimeNode());
+    setCreatedConstraint(cmd->createdConstraint());
 
-    m_dispatcher.submitCommand(init);
+    m_dispatcher.submitCommand(cmd);
 }
 
 void CreateFromEventState::createEventFromEventOnTimeNode()
@@ -177,17 +181,21 @@ void CreateFromEventState::createEventFromEventOnTimeNode()
 
     setCreatedEvent(cmd->createdEvent());
     setCreatedTimeNode(id_type<TimeNodeModel>{});
+    setCreatedConstraint(cmd->createdConstraint());
+
     m_dispatcher.submitCommand(cmd);
 }
 
-
-
 void CreateFromEventState::createConstraintBetweenEvents()
 {
-    m_dispatcher.submitCommand(new CreateConstraint{
-                ObjectPath{m_scenarioPath},
-                clickedEvent,
-                hoveredEvent});
+    auto cmd = new CreateConstraint{
+              ObjectPath{m_scenarioPath},
+              clickedEvent,
+              hoveredEvent};
+
+    setCreatedConstraint(cmd->createdConstraint());
+
+    m_dispatcher.submitCommand(cmd);
 }
 
 

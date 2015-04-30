@@ -10,7 +10,10 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-CreateEventOnTimeNode::CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<TimeNodeModel> timeNodeId, double heightPosition):
+CreateEventOnTimeNode::CreateEventOnTimeNode(
+        ObjectPath&& scenarioPath,
+        id_type<TimeNodeModel> timeNodeId,
+        double heightPosition):
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
@@ -20,24 +23,25 @@ CreateEventOnTimeNode::CreateEventOnTimeNode(ObjectPath&& scenarioPath, id_type<
 {
     auto scenar = m_path.find<ScenarioModel>();
     m_createdEventId = getStrongId(scenar->events());
-
 }
 
 void CreateEventOnTimeNode::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_createdEventId);
+    StandardRemovalPolicy::removeEventAndConstraints(
+                *scenar,
+                m_createdEventId);
 }
 
 void CreateEventOnTimeNode::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
     CreateEventMin::redo(
-                        m_createdEventId,
-                        *scenar->timeNode(m_timeNodeId),
-                        m_heightPosition,
-                        *scenar);
+                m_createdEventId,
+                *scenar->timeNode(m_timeNodeId),
+                m_heightPosition,
+                *scenar);
 }
 
 bool CreateEventOnTimeNode::mergeWith(const Command *other)
@@ -47,11 +51,17 @@ bool CreateEventOnTimeNode::mergeWith(const Command *other)
 
 void CreateEventOnTimeNode::serializeImpl(QDataStream &s) const
 {
-    s << m_path << m_timeNodeId << m_heightPosition << m_createdEventId;
+    s << m_path
+      << m_timeNodeId
+      << m_heightPosition
+      << m_createdEventId;
 }
 
 void CreateEventOnTimeNode::deserializeImpl(QDataStream &s)
 {
-    s >> m_path >> m_timeNodeId >> m_heightPosition >> m_createdEventId;
+    s >> m_path
+      >> m_timeNodeId
+      >> m_heightPosition
+      >> m_createdEventId;
 }
 

@@ -35,7 +35,7 @@ namespace Scenario
                             const id_type<EventModel>& ,
                             const TimeValue& date,
                             double height,
-                            ExpandMode )
+                            ExpandMode)
                 {
                     m_newDate = date;
                     m_newHeightPosition = height;
@@ -43,21 +43,17 @@ namespace Scenario
 
                 virtual bool mergeWith(const Command* other) override
                 {
-                    // Maybe set m_mergeable = false at the end ?
-                    if(other->uid() != uid())
-                    {
-                        return false;
-                    }
-
-                    auto cmd = static_cast<const MoveEvent*>(other);
-                    m_newDate = cmd->m_newDate;
-                    m_newHeightPosition = cmd->m_newHeightPosition;
-                    // The movable timenodes won't change.
-
-                    return true;
+                    Q_ASSERT(false);
+                    return false;
                 }
 
                 TimeValue m_oldDate {}; // TODO : bof bof !
+
+
+                const ObjectPath& path() const
+                { return m_path; }
+                double heightPosition() const
+                { return m_newHeightPosition; }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
@@ -73,7 +69,7 @@ namespace Scenario
 
                 ExpandMode m_mode{ExpandMode::Scale};
 
-                // Data to correctly restore the processes
+                // Data to correctly restore the processes on undo
                 QVector<id_type<TimeNodeModel>> m_movableTimenodes;
                 QVector<
                     QPair<
@@ -88,5 +84,6 @@ namespace Scenario
                      >
                > m_savedConstraints;
         };
+
     }
 }

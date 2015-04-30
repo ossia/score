@@ -58,9 +58,15 @@ class CreationState : public CommonScenarioState
         void setCreatedTimeNode(const id_type<TimeNodeModel>& id)
         { m_createdTimeNode = id; }
 
+        const auto& createdConstraint() const
+        { return m_createdConstraint; }
+        void setCreatedConstraint(const id_type<ConstraintModel>& id)
+        { m_createdConstraint = id; }
+
     private:
         id_type<EventModel> m_createdEvent;
         id_type<TimeNodeModel> m_createdTimeNode;
+        id_type<ConstraintModel> m_createdConstraint;
 };
 
 ////////////////////////

@@ -46,6 +46,7 @@
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
+#include "Scenario/Displacement/MoveEventAndConstraint.hpp"
 
 ///////////////////////////////////////////////////
 //              CLASS NAME
@@ -262,6 +263,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == MoveConstraint::className()) return new MoveConstraint;
     else if(name == MoveDeck::className()) return new MoveDeck;
     else if(name == MoveEvent::className()) return new MoveEvent;
+    else if(name == MoveEventAndConstraint::className()) return new MoveEventAndConstraint;
     else if(name == MoveProcessViewModel::className()) return new MoveProcessViewModel;
     else if(name == MoveTimeNode::className()) return new MoveTimeNode;
 
