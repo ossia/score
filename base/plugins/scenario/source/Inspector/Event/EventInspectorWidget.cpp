@@ -94,7 +94,6 @@ EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) 
     connect(m_conditionLineEdit, SIGNAL(editingFinished()),
             this,			 SLOT(on_conditionChanged()));
 
-    // TODO : attention, ordre de m_properties utilisé (dans addAddress() !! faudrait changer ...
     m_properties.push_back(new QLabel{tr("Condition")});
     m_properties.push_back(m_conditionLineEdit);
 
