@@ -13,7 +13,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setZValue(parent->zValue() + 1.5);
     this->setAcceptHoverEvents(true);
 
-    m_color = Qt::darkRed;
+    m_color = QColor::fromHslF(0, 0.3, 0.5);
 }
 
 void TimeNodeView::paint(QPainter* painter,
@@ -31,7 +31,7 @@ void TimeNodeView::paint(QPainter* painter,
     QPen pen{QBrush(pen_color), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
-    painter->drawLine(0, m_top, 0, m_bottom);
+    painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));
 }
 
 QRectF TimeNodeView::boundingRect() const
