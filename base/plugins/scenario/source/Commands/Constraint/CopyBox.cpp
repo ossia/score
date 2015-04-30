@@ -10,6 +10,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+// TODO rename file
 CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
                                              ObjectPath&& targetConstraint) :
     SerializableCommand {"ScenarioControl",
@@ -110,17 +111,34 @@ bool CopyConstraintContent::mergeWith(const Command* other)
     return false;
 }
 
+
+// TODO put me where I belong
+#include <QJsonDocument>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const QJsonObject& obj)
+{
+    QJsonDocument doc{obj};
+    m_stream << doc.toBinaryData();
+    insertDelimiter();
+}
+template<>
+void Visitor<Writer<DataStream>>::writeTo(QJsonObject& obj)
+{
+    QByteArray arr;
+    m_stream >> arr;
+
+    obj = QJsonDocument::fromBinaryData(arr).object();
+
+    checkDelimiter();
+}
+
 void CopyConstraintContent::serializeImpl(QDataStream& s) const
 {
-    QJsonDocument doc{m_source};
-
-    s << doc.toBinaryData() << m_target << m_boxIds << m_processIds;
+    s << m_source << m_target << m_boxIds << m_processIds;
 }
 
 void CopyConstraintContent::deserializeImpl(QDataStream& s)
 {
-    QByteArray arr;
-    s >> arr >> m_target >> m_boxIds >> m_processIds;
-
-    m_source = QJsonDocument::fromBinaryData(arr).object();
+    s >> m_source >> m_target >> m_boxIds >> m_processIds;
 }

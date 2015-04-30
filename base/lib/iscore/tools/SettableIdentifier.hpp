@@ -72,6 +72,12 @@ struct id_hash
     }
 };
 
+template<typename T>
+uint qHash(const id_type<T> id, uint seed)
+{
+    return qHash(id.val().get(), seed);
+}
+
 template<typename tag>
 QDebug operator<< (QDebug dbg, const id_type<tag>& c)
 {

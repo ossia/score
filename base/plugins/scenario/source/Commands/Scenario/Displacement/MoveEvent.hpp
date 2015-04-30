@@ -7,6 +7,9 @@
 
 class EventModel;
 class TimeNodeModel;
+class ConstraintModel;
+class AbstractConstraintViewModel;
+class BoxModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -44,7 +47,20 @@ namespace Scenario
 
                 ExpandMode m_mode{ExpandMode::Scale};
 
+                // Data to correctly restore the processes
                 QVector<id_type<TimeNodeModel>> m_movableTimenodes;
+                QVector<
+                    QPair<
+                        QPair<
+                            ObjectPath,
+                            QByteArray
+                        >, // The constraint data
+                        QMap< // Mapping for the view models of this constraint
+                            id_type<AbstractConstraintViewModel>,
+                            id_type<BoxModel>
+                        >
+                     >
+               > m_savedConstraints;
         };
     }
 }

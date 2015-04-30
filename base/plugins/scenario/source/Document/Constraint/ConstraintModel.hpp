@@ -131,7 +131,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         template<typename ViewModelType> // Arg might be an id or a datastream [
         ViewModelType* makeConstraintViewModel(id_type<AbstractConstraintViewModel> id, QObject* parent)
         {
-            auto viewmodel =  new ViewModelType {id, this, parent};
+            auto viewmodel = new ViewModelType {id, this, parent};
             setupConstraintViewModel(viewmodel);
             return viewmodel;
         }

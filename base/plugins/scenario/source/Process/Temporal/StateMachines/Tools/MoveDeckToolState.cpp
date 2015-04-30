@@ -72,9 +72,6 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
                     return;
                 }
             });
-
-
-
         }
         dragDeck->addTransition(dragDeck, SIGNAL(finished()), m_waitState);
     }
@@ -121,7 +118,6 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         }
         resizeDeck->addTransition(resizeDeck, SIGNAL(finished()), m_waitState);
     }
-
 
     auto on_press = new Press_Transition;
     this->addTransition(on_press);

@@ -31,22 +31,24 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
 void MoveConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    StandardDisplacementPolicy::setConstraintPosition(*scenar,
-                                                      m_constraintId,
-                                                      m_oldX,
-                                                      m_oldHeightPosition,
-                                                      [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+    StandardDisplacementPolicy::setConstraintPosition(
+                *scenar,
+                m_constraintId,
+                m_oldX,
+                m_oldHeightPosition,
+                [&] (ProcessSharedModelInterface* p, const TimeValue& t)
           { p->expandProcess(m_mode, t); });
 }
 
 void MoveConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    StandardDisplacementPolicy::setConstraintPosition(*scenar,
-                                                      m_constraintId,
-                                                      m_newX,
-                                                      m_newHeightPosition,
-                                                      [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+    StandardDisplacementPolicy::setConstraintPosition(
+                *scenar,
+                m_constraintId,
+                m_newX,
+                m_newHeightPosition,
+                [&] (ProcessSharedModelInterface* p, const TimeValue& t)
           { p->expandProcess(m_mode, t); });
 }
 

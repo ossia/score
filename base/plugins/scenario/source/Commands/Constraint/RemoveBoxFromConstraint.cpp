@@ -32,7 +32,9 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& boxPath) :
     }
 }
 
-RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId) :
+RemoveBoxFromConstraint::RemoveBoxFromConstraint(
+        ObjectPath&& constraintPath,
+        id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
