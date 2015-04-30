@@ -115,6 +115,18 @@ void TemporalScenarioPresenter::setWidth(int width)
 void TemporalScenarioPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
+
+    // Move all the elements accordingly
+    for(auto& constraint : m_constraints)
+    {
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+    }
+
+    for(auto& event : m_events)
+    {
+        m_viewInterface->on_eventMoved(event->id());
+    }
+
 }
 
 void TemporalScenarioPresenter::putToFront()
@@ -132,6 +144,16 @@ void TemporalScenarioPresenter::putBehind()
 void TemporalScenarioPresenter::parentGeometryChanged()
 {
     m_view->update();
+    // Move all the elements accordingly
+    for(auto& constraint : m_constraints)
+    {
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+    }
+
+    for(auto& event : m_events)
+    {
+        m_viewInterface->on_eventMoved(event->id());
+    }
 }
 
 void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
@@ -239,7 +261,9 @@ void TemporalScenarioPresenter::on_eventCreated_impl(EventModel* event_model)
 
     connect(ev_pres, &EventPresenter::heightPercentageChanged,
             this, [=] ()
-    { ev_pres->view()
+    {
+        auto rect = m_view->boundingRect();
+        ev_pres->view()
              ->setPos({rect.x() + event_model->date().toPixels(m_zoomRatio),
                        rect.y() + rect.height() * event_model->heightPercentage() });
 
@@ -312,6 +336,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
             this, [=] ()
     {
+        auto rect = m_view->boundingRect();
         cst_pres->view()->setPos({
          rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
          rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });

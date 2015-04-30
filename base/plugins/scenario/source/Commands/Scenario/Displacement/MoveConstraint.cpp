@@ -79,18 +79,8 @@ void MoveConstraint::redo()
 
 bool MoveConstraint::mergeWith(const Command* other)
 {
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
-
-    auto cmd = static_cast<const MoveConstraint*>(other);
-
-    m_cmd->mergeWith(cmd->m_cmd);
-    m_newHeightPosition = cmd->m_newHeightPosition;
-
-    return true;
+    Q_ASSERT(false);
+    return false;
 }
 
 void MoveConstraint::serializeImpl(QDataStream& s) const

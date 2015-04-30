@@ -17,18 +17,18 @@ void translateNextElements(ScenarioModel& scenario,
 namespace StandardDisplacementPolicy
 {
     // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
-    void getRelatedElements(ScenarioModel& scenario,
+void getRelatedElements(ScenarioModel& scenario,
                         id_type<TimeNodeModel> firstTimeNodeMovedId,
                         QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
 
 
     template<typename ProcessScaleMethod>
     void updatePositions(ScenarioModel& scenario,
-                          QVector<id_type<TimeNodeModel> > translatedTimeNodes,
-                          TimeValue deltaTime,
-                          ProcessScaleMethod&& scaleMethod)
+                         const QVector<id_type<TimeNodeModel> >& translatedTimeNodes,
+                         const TimeValue& deltaTime,
+                         ProcessScaleMethod&& scaleMethod)
     {
-        for (auto timeNode_id :translatedTimeNodes)
+        for (const auto& timeNode_id : translatedTimeNodes)
         {
             TimeNodeModel* timeNode = scenario.timeNode(timeNode_id);
             timeNode->setDate(timeNode->date() + deltaTime);
