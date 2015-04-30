@@ -130,7 +130,7 @@ void TemporalScenarioPresenter::putBehind()
 
 void TemporalScenarioPresenter::parentGeometryChanged()
 {
-
+    m_view->update();
 }
 
 void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
@@ -271,24 +271,24 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
                                 constraint_view_model,
                                 m_view,
                                 this};
+    cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
     cst_pres->view()->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
 
-    cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
     m_constraints.push_back(cst_pres);
 
 
-    connect(cst_pres,	&TemporalConstraintPresenter::askUpdate,
-            this,					&TemporalScenarioPresenter::on_askUpdate);
+    connect(cst_pres, &TemporalConstraintPresenter::askUpdate,
+            this,     &TemporalScenarioPresenter::on_askUpdate);
 
-    connect(cst_pres,   &TemporalConstraintPresenter::constraintHoverEnter,
+    connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter,
             [=] ()
     {
         m_viewInterface->on_hoverOnConstraint(cst_pres->model()->id(), true);
     });
-    connect(cst_pres,   &TemporalConstraintPresenter::constraintHoverLeave,
+    connect(cst_pres, &TemporalConstraintPresenter::constraintHoverLeave,
             [=] ()
     {
         m_viewInterface->on_hoverOnConstraint(cst_pres->model()->id(), false);

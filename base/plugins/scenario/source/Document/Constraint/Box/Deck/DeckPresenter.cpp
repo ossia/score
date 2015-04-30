@@ -189,8 +189,6 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
     auto proc_view = factory->makeView(proc_vm, m_view);
     auto proc_pres = factory->makePresenter(proc_vm, proc_view, this);
 
-    proc_pres->on_zoomRatioChanged(m_zoomRatio);
-
     if(m_enabled)
         m_view->enable();
     else
@@ -202,6 +200,8 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
         on_processViewModelSelected(proc_vm->id());
     }
     updateProcessesShape();
+
+    proc_pres->on_zoomRatioChanged(m_zoomRatio);
 }
 
 void DeckPresenter::updateProcessesShape()
