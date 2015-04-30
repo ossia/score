@@ -163,22 +163,6 @@ void MoveEvent::redo()
     { p->expandProcess(m_mode, t); });
 }
 
-bool MoveEvent::mergeWith(const Command* other)
-{
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
-
-    auto cmd = static_cast<const MoveEvent*>(other);
-    m_newDate = cmd->m_newDate;
-    m_newHeightPosition = cmd->m_newHeightPosition;
-    // The movable timenodes won't change.
-
-    return true;
-}
-
 void MoveEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_eventId

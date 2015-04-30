@@ -23,10 +23,17 @@ namespace Scenario
                              const TimeValue& date,
                              double height,
                              ExpandMode mode);
+
                 ~MoveTimeNode();
                 virtual void undo() override;
                 virtual void redo() override;
                 virtual bool mergeWith(const Command* other) override;
+
+                template<typename... Args>
+                void update(Args&&... args)
+                {
+                    m_cmd->update(std::forward<Args>(args)...);
+                }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

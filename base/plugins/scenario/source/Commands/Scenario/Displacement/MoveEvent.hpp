@@ -30,7 +30,33 @@ namespace Scenario
 
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
+
+                void update(const ObjectPath&,
+                            const id_type<EventModel>& ,
+                            const TimeValue& date,
+                            double height,
+                            ExpandMode )
+                {
+                    m_newDate = date;
+                    m_newHeightPosition = height;
+                }
+
+                virtual bool mergeWith(const Command* other) override
+                {
+                    // Maybe set m_mergeable = false at the end ?
+                    if(other->uid() != uid())
+                    {
+                        return false;
+                    }
+
+                    auto cmd = static_cast<const MoveEvent*>(other);
+                    m_newDate = cmd->m_newDate;
+                    m_newHeightPosition = cmd->m_newHeightPosition;
+                    // The movable timenodes won't change.
+
+                    return true;
+                }
+
                 TimeValue m_oldDate {}; // TODO : bof bof !
 
             protected:

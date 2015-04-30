@@ -6,12 +6,10 @@
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
-#include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
-#include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
 #include <QFinalState>
-
+using namespace Scenario::Command;
 CreateFromEventState::CreateFromEventState(
         const ScenarioStateMachine& stateMachine,
         ObjectPath &&scenarioPath,
@@ -118,29 +116,27 @@ CreateFromEventState::CreateFromEventState(
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand(
-                        new MoveEvent{
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             currentPoint.date,
                             currentPoint.y,
-                            stateMachine.expandMode()});
+                            stateMachine.expandMode());
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand(
-                        new MoveEvent{
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
                             currentPoint.y,
-                            stateMachine.expandMode()});
+                            stateMachine.expandMode());
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
         {
-            m_dispatcher.commit();
+            m_dispatcher.commit<Scenario::Command::CreationMetaCommand>();
         });
     }
 
@@ -159,7 +155,7 @@ CreateFromEventState::CreateFromEventState(
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void CreateFromEventState::createEventFromEventOnNothing()
 {
-    auto init = new Scenario::Command::CreateEventAfterEvent{
+    auto init = new CreateEventAfterEvent{
                 ObjectPath{m_scenarioPath},
                 clickedEvent,
                 currentPoint.date,
@@ -172,7 +168,7 @@ void CreateFromEventState::createEventFromEventOnNothing()
 
 void CreateFromEventState::createEventFromEventOnTimeNode()
 {
-    auto cmd = new Scenario::Command::CreateEventAfterEventOnTimeNode(
+    auto cmd = new CreateEventAfterEventOnTimeNode(
                    ObjectPath{m_scenarioPath},
                    clickedEvent,
                    hoveredTimeNode,
@@ -188,12 +184,10 @@ void CreateFromEventState::createEventFromEventOnTimeNode()
 
 void CreateFromEventState::createConstraintBetweenEvents()
 {
-    auto cmd = new Scenario::Command::CreateConstraint(
-                   ObjectPath{m_scenarioPath},
-                   clickedEvent,
-                   hoveredEvent);
-
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submitCommand(new CreateConstraint{
+                ObjectPath{m_scenarioPath},
+                clickedEvent,
+                hoveredEvent});
 }
 
 
@@ -362,29 +356,27 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand(
-                        new MoveEvent{
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             currentPoint.date,
                             currentPoint.y,
-                            stateMachine.expandMode()});
+                            stateMachine.expandMode());
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand(
-                        new MoveEvent{
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
                             currentPoint.y,
-                            stateMachine.expandMode()});
+                            stateMachine.expandMode());
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
         {
-            m_dispatcher.commit();
+            m_dispatcher.commit<Scenario::Command::CreationMetaCommand>();
         });
     }
 
@@ -402,7 +394,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
 void CreateFromTimeNodeState::createSingleEventOnTimeNode()
 {
     auto cmd =
-            new Scenario::Command::CreateEventOnTimeNode(
+            new CreateEventOnTimeNode(
                 ObjectPath{m_scenarioPath},
                 clickedTimeNode,
                 m_clickedPoint.y);
@@ -415,7 +407,7 @@ void CreateFromTimeNodeState::createEventFromEventOnNothing()
 {
     // If we start moving, we have to put a createEventAfterEvent.
     // Note : there will be two created events; how to prevent a mess in collision management ?
-    auto cmd = new Scenario::Command::CreateEventAfterEvent{
+    auto cmd = new CreateEventAfterEvent{
                ObjectPath{m_scenarioPath},
                m_createdFirstEvent,
                currentPoint.date,
@@ -428,7 +420,7 @@ void CreateFromTimeNodeState::createEventFromEventOnNothing()
 
 void CreateFromTimeNodeState::createEventFromEventOnTimenode()
 {
-    auto cmd = new Scenario::Command::CreateEventAfterEventOnTimeNode(
+    auto cmd = new CreateEventAfterEventOnTimeNode(
                    ObjectPath{m_scenarioPath},
                    m_createdFirstEvent,
                    hoveredTimeNode,
@@ -442,7 +434,7 @@ void CreateFromTimeNodeState::createEventFromEventOnTimenode()
 
 void CreateFromTimeNodeState::createConstraintBetweenEvents()
 {
-    auto cmd = new Scenario::Command::CreateConstraint(
+    auto cmd = new CreateConstraint(
                    ObjectPath{m_scenarioPath},
                    m_createdFirstEvent,
                    hoveredEvent);

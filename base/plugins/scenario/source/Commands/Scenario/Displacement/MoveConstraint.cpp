@@ -39,14 +39,26 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
     auto cst = scenar->constraint(m_constraint);
 
     auto event_id = cst->startEvent();
+
+    m_oldHeightPosition = cst->heightPercentage();
+    m_eventHeight = scenar->event(event_id)->heightPercentage();
+
     m_cmd = new MoveEvent{
             ObjectPath{m_path},
             event_id,
             date,
-            scenar->event(event_id)->heightPercentage(),
+            m_eventHeight,
             mode};
+}
 
-    m_oldHeightPosition = cst->heightPercentage();
+void MoveConstraint::update(const ObjectPath& path,
+                            const id_type<ConstraintModel>&,
+                            const TimeValue& date,
+                            double height,
+                            ExpandMode mode)
+{
+    m_cmd->update(path, id_type<EventModel>{}, date, m_eventHeight, mode);
+    m_newHeightPosition = height;
 }
 
 void MoveConstraint::undo()
