@@ -1,8 +1,51 @@
 #pragma once
 #include <QGraphicsObject>
 
-class DeckOverlay;
 class DeckPresenter;
+class DeckView;
+class DeckHandle : public QGraphicsItem
+{
+    public:
+        const DeckView& deckView;
+        DeckHandle(const DeckView& deckView,
+                   QGraphicsItem* parent);
+        static constexpr double handleHeight()
+        {
+            return 3.;
+        }
+
+        QRectF boundingRect() const;
+        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+        void setWidth(qreal width);
+
+    private:
+        qreal m_width {};
+};
+
+#include <QPainter>
+#include <QGraphicsSceneMouseEvent>
+class DeckOverlay : public QGraphicsItem
+{
+    public:
+        const DeckView& deckView;
+        DeckOverlay(DeckView* parent);
+
+        virtual QRectF boundingRect() const override;
+
+        void setHeight(qreal height);
+        void setWidth(qreal height);
+
+        virtual void paint(QPainter *painter,
+                           const QStyleOptionGraphicsItem *option,
+                           QWidget *widget) override;
+
+        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+
+    private:
+        DeckHandle* m_handle{};
+};
+
 class DeckView : public QGraphicsObject
 {
         Q_OBJECT
@@ -17,11 +60,6 @@ class DeckView : public QGraphicsObject
         virtual void paint(QPainter* painter,
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
-
-        static constexpr double handleHeight()
-        {
-            return 5.;
-        }
 
         void setHeight(qreal height);
         qreal height() const;
@@ -39,27 +77,4 @@ class DeckView : public QGraphicsObject
         qreal m_width {};
         DeckOverlay* m_overlay{};
         bool m_focus{false};
-};
-
-#include <QPainter>
-#include <QGraphicsSceneMouseEvent>
-class DeckOverlay : public QGraphicsItem
-{
-    public:
-        const DeckView& deckView;
-        DeckOverlay(DeckView* parent):
-            QGraphicsItem{parent},
-            deckView{*parent}
-        {
-            this->setZValue(1000);
-            this->setPos(0, 0);
-        }
-
-        virtual QRectF boundingRect() const override;
-
-        virtual void paint(QPainter *painter,
-                           const QStyleOptionGraphicsItem *option,
-                           QWidget *widget) override;
-
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
 };

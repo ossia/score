@@ -5,7 +5,7 @@ using namespace iscore;
 
 void SelectionDispatcher::setAndCommit(const Selection& s)
 {
-    m_stack.push(s);
+    m_stack.pushNewSelection(s);
 }
 
 iscore::SelectionStack &SelectionDispatcher::stack() const

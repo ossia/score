@@ -208,7 +208,7 @@ void DeckPresenter::updateProcessesShape()
 {
     for(auto& pair : m_processes)
     {
-        pair.first->setHeight(height() - DeckView::handleHeight());
+        pair.first->setHeight(height() - DeckHandle::handleHeight());
         pair.first->setWidth(m_view->width());
         pair.first->parentGeometryChanged();
     }

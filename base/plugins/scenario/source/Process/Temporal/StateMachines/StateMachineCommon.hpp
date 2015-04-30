@@ -126,7 +126,7 @@ struct PositionedWithPath_Event : public PositionedEvent<N>
 
 // Events
 enum ScenarioElement {
-    Nothing, TimeNode, Event, Constraint, Deck, DeckHandle
+    Nothing, TimeNode, Event, Constraint, DeckOverlay_e, DeckHandle_e
 };
 enum Modifier
 { Click = 100, Move = 200, Release = 300 };
@@ -136,8 +136,8 @@ using ClickOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioElem
 using ClickOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Click>;
 using ClickOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Click>;
 
-using ClickOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Click>;
-using ClickOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Click>;
+using ClickOnDeckOverlay_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Click>;
+using ClickOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Click>;
 
 
 using MoveOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Move>;
@@ -145,8 +145,8 @@ using MoveOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioEleme
 using MoveOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Move>;
 using MoveOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Move>;
 
-using MoveOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Move>;
-using MoveOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Move>;
+using MoveOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Move>;
+using MoveOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Move>;
 
 
 using ReleaseOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Release>;
@@ -154,8 +154,8 @@ using ReleaseOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioEl
 using ReleaseOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Release>;
 using ReleaseOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Release>;
 
-using ReleaseOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::Deck + Modifier::Release>;
-using ReleaseOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle + Modifier::Release>;
+using ReleaseOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Release>;
+using ReleaseOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Release>;
 
 // Transitions
 
@@ -239,10 +239,10 @@ class DeckState : public QState
         ScenarioPoint currentPoint;
 };
 
-class ClickOnDeck_Transition : public MatchedTransition<ClickOnDeck_Event>
+class ClickOnDeckOverlay_Transition : public MatchedTransition<ClickOnDeckOverlay_Event>
 {
     public:
-        ClickOnDeck_Transition(DeckState& state):
+        ClickOnDeckOverlay_Transition(DeckState& state):
             m_state{state}
         {
 

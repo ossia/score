@@ -3,6 +3,7 @@ using namespace iscore;
 
 SelectionStack::SelectionStack()
 {
+    connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push, Qt::QueuedConnection);
     m_unselectable.push({});
 }
 

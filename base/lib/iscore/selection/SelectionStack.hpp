@@ -14,8 +14,6 @@ namespace iscore
             bool canUnselect() const;
             bool canReselect() const;
 
-            // Select new objects
-            void push(const Selection& s);
 
             // Go to the previous set of selections
             void unselect();
@@ -29,12 +27,16 @@ namespace iscore
             Selection currentSelection() const;
 
         signals:
+            void pushNewSelection(const Selection& s);
             void currentSelectionChanged(const Selection&);
 
         private slots:
             void prune(QObject* p);
 
         private:
+            // Select new objects
+            void push(const Selection& s);
+
             // m_unselectable always contains the empty set at the beginning
             QStack<Selection> m_unselectable;
             QStack<Selection> m_reselectable;

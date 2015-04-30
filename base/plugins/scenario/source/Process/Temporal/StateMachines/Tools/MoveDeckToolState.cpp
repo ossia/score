@@ -47,7 +47,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         auto dragDeck = new DeckState{&m_localSM};
         {
             // Enter the state
-            make_transition<ClickOnDeck_Transition>(
+            make_transition<ClickOnDeckOverlay_Transition>(
                         m_waitState,
                         dragDeck,
                         *dragDeck);
@@ -126,14 +126,14 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         auto item = m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform());
         if(auto overlay = dynamic_cast<DeckOverlay*>(item))
         {
-            m_localSM.postEvent(new ClickOnDeck_Event{
+            m_localSM.postEvent(new ClickOnDeckOverlay_Event{
                                     iscore::IDocument::path(overlay->deckView.presenter.model()),
                                     m_sm.scenarioPoint});
         }
-        else if(auto deckview = dynamic_cast<DeckView*>(item))
+        else if(auto handle = dynamic_cast<DeckHandle*>(item))
         {
             m_localSM.postEvent(new ClickOnDeckHandle_Event{
-                                    iscore::IDocument::path(deckview->presenter.model()),
+                                    iscore::IDocument::path(handle->deckView.presenter.model()),
                                     m_sm.scenarioPoint});
 
         }
