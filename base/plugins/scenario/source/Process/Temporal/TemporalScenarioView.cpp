@@ -13,6 +13,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
 {
     this->setParentItem(parent);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+    this->setCursor(Qt::ArrowCursor);
 
     this->setZValue(parent->zValue() + 1);
 

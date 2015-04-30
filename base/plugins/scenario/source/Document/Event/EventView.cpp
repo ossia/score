@@ -16,6 +16,7 @@ EventView::EventView(EventPresenter& presenter,
     m_trigger->setVisible(false);
     m_trigger->setPos(0, -5);
     this->setParentItem(parent);
+    this->setCursor(Qt::CrossCursor);
 
 
     this->setZValue(parent->zValue() + 2);

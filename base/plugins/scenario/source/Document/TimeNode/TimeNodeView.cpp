@@ -12,6 +12,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setParentItem(parent);
     this->setZValue(parent->zValue() + 1.5);
     this->setAcceptHoverEvents(true);
+    this->setCursor(Qt::CrossCursor);
 
     m_color = QColor::fromHslF(0, 0.3, 0.5);
 }
