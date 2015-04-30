@@ -1,7 +1,8 @@
 #include "QCustomPlotCurve.hpp"
 
-static const QColor outerColor{200, 30, 0};
+static const QColor outerColor{QColor{200, 30, 0}};
 static const QColor innerColor{255, 200, 200};
+static const QColor disabledColor{QColor{100, 100, 100, 200}};
 
 double clamp(double val, double min, double max)
 {
@@ -106,6 +107,18 @@ class PointsLayer : public QGraphicsItem
 {
         QRectF m_rect;
     public:
+        void enable()
+        {
+            setVisible(true);
+            update();
+        }
+
+        void disable()
+        {
+            setVisible(false);
+            update();
+        }
+
         PointsLayer(QCustomPlotCurve* parent):
             QGraphicsItem{parent}
         {
@@ -137,7 +150,7 @@ class PointsLayer : public QGraphicsItem
             painter->setBrush(outerColor);
 
             for(auto pt : m_points)
-                painter->drawEllipse(pt, 5, 5);
+                painter->drawEllipse(pt, 3, 3);
         }
 
     private:
@@ -175,6 +188,23 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
     m_points->setZValue(2);
 }
 
+void QCustomPlotCurve::enable()
+{
+    m_pen = QPen{outerColor, 3};
+    m_plot->graph()->setPen(m_pen);
+    m_plot->replot();
+    m_points->enable();
+}
+
+void QCustomPlotCurve::disable()
+{
+    m_pen = disabledColor;
+    m_plot->graph()->setPen(m_pen);
+    m_plot->replot();
+    m_points->disable();
+    this->update();
+}
+
 void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
 {
     // QCustomPlot
@@ -184,7 +214,6 @@ void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
     {
         x.push_back(pt.x());
         y.push_back(1. - pt.y());
-
     }
 
     m_plot->removeGraph(0);
@@ -252,6 +281,15 @@ QList<QPointF> QCustomPlotCurve::pointsToPixels(const QCPDataMap& data)
                                 m_plot->yAxis->coordToPixel(pt.value)});
 
     return mappedPoints;
+}
+
+QRectF QCustomPlotCurve::boundingRect() const
+{
+    return {0, 0, m_size.width(), m_size.height()};
+}
+
+void QCustomPlotCurve::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
 }
 
 QDebug& operator<<(QDebug& d, const QCPData& data)

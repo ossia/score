@@ -42,8 +42,7 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 
     emit processViewModelCreated(viewmodel->id());
 
-    if(m_processViewModels.size() == 1)
-        selectForEdition(viewmodel->id());
+    selectForEdition(viewmodel->id());
 }
 
 void DeckModel::deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewId)

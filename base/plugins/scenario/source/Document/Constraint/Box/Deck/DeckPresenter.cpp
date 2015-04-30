@@ -143,7 +143,7 @@ void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface
 
 void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterface> processId)
 {
-    // Put the selected one at z+1 and the others at z+2; set "disabled" graphics mode.
+    // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     for(auto& pair : m_processes)
     {
         if(pair.first->viewModelId() == processId)
@@ -197,6 +197,10 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
+    if(m_model->editedProcessViewModel() == proc_vm->id())
+    {
+        on_processViewModelSelected(proc_vm->id());
+    }
     updateProcessesShape();
 }
 

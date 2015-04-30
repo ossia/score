@@ -13,19 +13,18 @@ class QCustomPlotCurve : public QGraphicsObject
     public:
         QCustomPlotCurve(QGraphicsItem* parent);
 
+        void enable();
+
+        void disable();
+
         void setPoints(const QList<QPointF>& list);
         void setSize(const QSizeF& size);
 
 
         QList<QPointF> pointsToPixels(const QCPDataMap& data);
-        QRectF boundingRect() const
-        {
-            return {0, 0, m_size.width(), m_size.height()};
-        }
+        QRectF boundingRect() const;
 
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-        {
-        }
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
         void redraw();
 
@@ -52,4 +51,6 @@ class QCustomPlotCurve : public QGraphicsObject
 
         QSizeF m_size;
         QPointF m_backedUpPoint{-1, -1};
+
+        QPen m_pen;
 };

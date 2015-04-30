@@ -56,6 +56,8 @@ class DeckModel : public IdentifiedObject<DeckModel>
          * the edited process when the interface is clicked.
          */
         void selectForEdition(id_type<ProcessViewModelInterface> processViewId);
+        id_type<ProcessViewModelInterface> editedProcessViewModel() const
+        { return m_editedProcessViewModelId; }
 
         const std::vector<ProcessViewModelInterface*>& processViewModels() const;
         ProcessViewModelInterface* processViewModel(id_type<ProcessViewModelInterface> processViewModelId) const;
@@ -67,10 +69,6 @@ class DeckModel : public IdentifiedObject<DeckModel>
         ConstraintModel* parentConstraint() const;
 
 
-        id_type<ProcessViewModelInterface> editedProcessViewModel() const
-        {
-            return m_editedProcessViewModelId;
-        }
 
         int height() const;
         bool focus() const;

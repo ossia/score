@@ -89,11 +89,13 @@ void AutomationPresenter::setHeight(int height)
 
 void AutomationPresenter::putToFront()
 {
+    m_curve->enable();
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
 }
 
 void AutomationPresenter::putBehind()
 {
+    m_curve->disable();
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
