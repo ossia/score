@@ -36,7 +36,7 @@ void TimeNodeView::paint(QPainter* painter,
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -5., (qreal) m_top, 5., (qreal)(m_bottom - m_top) };
+    return { -3., (qreal) m_top, 6., (qreal)(m_bottom - m_top) };
 }
 
 void TimeNodeView::setExtremities(int top, int bottom)
