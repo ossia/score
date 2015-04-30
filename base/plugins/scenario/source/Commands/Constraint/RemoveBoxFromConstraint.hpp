@@ -4,6 +4,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
+class AbstractConstraintViewModel;
 class BoxModel;
 namespace Scenario
 {
@@ -36,6 +37,8 @@ namespace Scenario
                 id_type<BoxModel> m_boxId {};
 
                 QByteArray m_serializedBoxData; // Should be done in the constructor
+
+                QMap<id_type<AbstractConstraintViewModel>, bool> m_boxMappings;
         };
     }
 }
