@@ -44,7 +44,8 @@ class BoxModel : public IdentifiedObject<BoxModel>
         void addDeck(DeckModel* m);  // No position : at the end
 
         void removeDeck(id_type<DeckModel> deckId);
-        void changeDeckOrder(id_type<DeckModel> deckId, int position);
+        void swapDecks(id_type<DeckModel> firstdeck,
+                       id_type<DeckModel> seconddeck);
 
         DeckModel* deck(id_type<DeckModel> deckId) const;
         int deckPosition(id_type<DeckModel> deckId) const

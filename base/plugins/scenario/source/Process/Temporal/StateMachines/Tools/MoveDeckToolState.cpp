@@ -8,6 +8,7 @@
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
+#include "Commands/Constraint/Box/SwapDecks.hpp"
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
 #include <QFinalState>
@@ -65,8 +66,24 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
             connect(release, &QAbstractState::entered, [=] ( )
             {
                 auto overlay = dynamic_cast<DeckOverlay*>(m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform()));
-                if(!overlay)
+                if(overlay)
                 {
+                    auto baseDeck = dragDeck->currentDeck.find<DeckModel>();
+                    auto& releasedDeck = overlay->deckView.presenter.model();
+                    // If it is the same, we do nothing.
+                    // If it is another, we swap them
+                    if(releasedDeck.id() != baseDeck->id()
+                    && releasedDeck.parent() == baseDeck->parent())
+                    {
+                        auto cmd = new Scenario::Command::SwapDecks{
+                                       iscore::IDocument::path(releasedDeck.parent()), // Box
+                                       baseDeck->id(), releasedDeck.id()};
+                        m_dispatcher.submitCommand(cmd);
+                    }
+                }
+                else
+                {
+                    // We throw it
                     auto cmd = new Scenario::Command::RemoveDeckFromBox(ObjectPath{dragDeck->currentDeck});
                     m_dispatcher.submitCommand(cmd);
                     return;

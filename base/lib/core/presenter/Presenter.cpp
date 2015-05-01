@@ -231,7 +231,6 @@ void Presenter::loadJson()
 void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 {
     auto doc = new Document{doctype, m_view, this};
-
     m_documents.push_back(doc);
 
     for(auto& panel : m_panelPresenters)
@@ -246,7 +245,7 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 
 Document* Presenter::loadDocument(const QVariant& data,
                                   DocumentDelegateFactoryInterface* doctype)
-//try
+try
 {
     auto doc = new Document{data, doctype, m_view, this};
 
@@ -256,18 +255,19 @@ Document* Presenter::loadDocument(const QVariant& data,
     setCurrentDocument(doc);
 
     return doc;
-}/*
+}
 catch(std::runtime_error& e)
 {
     QMessageBox::warning(nullptr, QObject::tr("Error"), e.what());
     throw;
     return nullptr;
-}*/
+}
 
 // TODO make a class whose purpose is to instantiate commands.
-iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& parent_name,
-                                                               const QString& name,
-                                                               const QByteArray& data)
+iscore::SerializableCommand* Presenter::instantiateUndoCommand(
+        const QString& parent_name,
+        const QString& name,
+        const QByteArray& data)
 {
     for(auto& ccmd : m_controls)
     {
@@ -278,6 +278,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(const QString& pa
     }
 
     qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
+    Q_ASSERT(false);
 
     return nullptr;
 }

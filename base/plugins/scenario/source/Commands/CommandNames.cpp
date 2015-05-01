@@ -10,6 +10,7 @@
 #include "Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Constraint/Box/MergeDecks.hpp"
 #include "Constraint/Box/MoveDeck.hpp"
+#include "Constraint/Box/SwapDecks.hpp"
 #include "Constraint/Box/RemoveDeckFromBox.hpp"
 #include "Constraint/CopyConstraintContent.hpp"
 #include "Constraint/DuplicateBox.hpp"
@@ -254,6 +255,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     // MOVE
     else if(name == MoveConstraint::className()) return new MoveConstraint;
     else if(name == MoveDeck::className()) return new MoveDeck;
+    else if(name == SwapDecks::className()) return new SwapDecks;
     else if(name == MoveEvent::className()) return new MoveEvent;
     else if(name == MoveEventAndConstraint::className()) return new MoveEventAndConstraint;
     else if(name == MoveProcessViewModel::className()) return new MoveProcessViewModel;

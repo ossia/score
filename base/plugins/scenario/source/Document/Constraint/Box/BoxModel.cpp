@@ -67,9 +67,11 @@ void BoxModel::removeDeck(id_type<DeckModel> deckId)
     delete removedDeck;
 }
 
-void BoxModel::changeDeckOrder(id_type<DeckModel> deckId, int position)
+void BoxModel::swapDecks(id_type<DeckModel> firstdeck,
+                         id_type<DeckModel> seconddeck)
 {
-    qDebug() << "TODO (will crash): " << Q_FUNC_INFO;
+    m_positions.swap(m_positions.indexOf(firstdeck), m_positions.indexOf(seconddeck));
+    emit deckPositionsChanged();
 }
 
 DeckModel* BoxModel::deck(id_type<DeckModel> deckId) const
