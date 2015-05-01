@@ -65,7 +65,7 @@ class TimeValue_T
             return double(*m_impl)/1000;
         }
 
-        double toPixels(ZoomRatio millisecondsPerPixel)
+        double toPixels(ZoomRatio millisecondsPerPixel) const
         {
             return *m_impl / millisecondsPerPixel;
         }

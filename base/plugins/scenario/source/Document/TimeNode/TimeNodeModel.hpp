@@ -30,7 +30,11 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
 
         /** The class **/
-        TimeNodeModel(id_type<TimeNodeModel> id, TimeValue date, double ypos, QObject* parent);
+        TimeNodeModel(
+                const id_type<TimeNodeModel>& id,
+                const TimeValue& date,
+                double ypos,
+                QObject* parent);
 
         template<typename DeserializerVisitor>
         TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :
@@ -39,38 +43,35 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
             vis.writeTo(*this);
         }
 
-        TimeNodeModel(TimeNodeModel* source, id_type<TimeNodeModel> id, QObject* parent):
-            TimeNodeModel{id, source->date(), source->y(), parent}
-        {
-            m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
-            m_events = source->m_events;
-        }
+        TimeNodeModel(
+                TimeNodeModel* source,
+                const id_type<TimeNodeModel>& id,
+                QObject* parent);
 
 
         // Utility
         ScenarioModel* parentScenario() const;
 
         // Data of the TimeNode
-        void addEvent(id_type<EventModel>);
-        bool removeEvent(id_type<EventModel>);
+        void addEvent(const id_type<EventModel>&);
+        bool removeEvent(const id_type<EventModel>&);
 
-        TimeValue date() const;
-
-        void setDate(TimeValue);
+        const TimeValue& date() const;
+        void setDate(const TimeValue&);
 
         bool isEmpty();
 
         double y() const;
         void setY(double y);
 
-        QVector<id_type<EventModel>> events() const;
+        const QVector<id_type<EventModel>>& events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
         auto& pluginModelList() { return *m_pluginModelList; }
 
     signals:
         void dateChanged();
-        void newEvent(id_type<EventModel> eventId);
+        void newEvent(const id_type<EventModel>& eventId);
 
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
