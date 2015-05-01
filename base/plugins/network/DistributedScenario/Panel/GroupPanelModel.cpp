@@ -8,6 +8,8 @@
 #include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
 #include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
 
+#include "GroupPanelId.hpp"
+
 GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
     iscore::PanelModelInterface{"GroupPanelModel", model}
 {
@@ -15,6 +17,12 @@ GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
             this, &GroupPanelModel::scanPlugins);
     scanPlugins();
 }
+
+GroupManager* GroupPanelModel::manager() const
+{ return m_currentManager; }
+
+Session* GroupPanelModel::session() const
+{ return m_currentSession; }
 
 
 void GroupPanelModel::scanPlugins()
@@ -44,4 +52,10 @@ void GroupPanelModel::scanPlugins()
             break;
         }
     }
+}
+
+
+int GroupPanelModel::panelId() const
+{
+    return GROUP_PANEL_ID;
 }

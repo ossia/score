@@ -1,6 +1,7 @@
 #include "GroupPanelPresenter.hpp"
 #include "GroupPanelModel.hpp"
 #include "GroupPanelView.hpp"
+#include "GroupPanelId.hpp"
 
 GroupPanelPresenter::GroupPanelPresenter(
         iscore::Presenter* parent_presenter,
@@ -9,9 +10,9 @@ GroupPanelPresenter::GroupPanelPresenter(
 {
 }
 
-QString GroupPanelPresenter::modelObjectName() const
+int GroupPanelPresenter::panelId() const
 {
-    return "GroupPanelModel";
+    return GROUP_PANEL_ID;
 }
 
 void GroupPanelPresenter::on_modelChanged()

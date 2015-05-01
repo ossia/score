@@ -17,6 +17,8 @@
 
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
 
+#include "ProcessPanelId.hpp"
+
 
 ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelViewInterface* view):
     iscore::PanelPresenterInterface{parent_presenter, view},
@@ -26,9 +28,9 @@ ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter
     panelview->scene()->addItem(m_obj);
 }
 
-QString ProcessPanelPresenter::modelObjectName() const
+int ProcessPanelPresenter::panelId() const
 {
-    return "ProcessPanelModel";
+    return PROCESS_PANEL_ID;
 }
 
 void ProcessPanelPresenter::on_modelChanged()

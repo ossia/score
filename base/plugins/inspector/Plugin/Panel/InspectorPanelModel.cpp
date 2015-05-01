@@ -1,4 +1,5 @@
 #include "InspectorPanelModel.hpp"
+#include "InspectorPanelId.hpp"
 
 #include <core/document/DocumentModel.hpp>
 
@@ -13,4 +14,9 @@ InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
 void InspectorPanelModel::setNewSelection(const Selection& s)
 {
     emit selectionChanged(s);
+}
+
+int InspectorPanelModel::panelId() const
+{
+    return INSPECTOR_PANEL_ID;
 }

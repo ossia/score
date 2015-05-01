@@ -24,7 +24,7 @@ namespace iscore
             virtual ~PanelPresenterInterface() = default;
 
             // The name of the model. TODO use an id instead.
-            virtual QString modelObjectName() const = 0;
+            virtual int panelId() const = 0;
 
             void setModel(PanelModelInterface* model)
             {

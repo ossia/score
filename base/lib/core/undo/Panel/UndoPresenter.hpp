@@ -7,7 +7,7 @@ class UndoPresenter : public iscore::PanelPresenterInterface
     UndoPresenter(iscore::Presenter *parent_presenter,
                        iscore::PanelViewInterface *view);
 
-    QString modelObjectName() const override;
+    int panelId() const override;
 
     void on_modelChanged() override;
 

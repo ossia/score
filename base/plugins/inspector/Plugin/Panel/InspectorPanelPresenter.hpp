@@ -8,10 +8,7 @@ class InspectorPanelPresenter : public iscore::PanelPresenterInterface
         InspectorPanelPresenter(iscore::Presenter* parent,
                                 iscore::PanelViewInterface* view);
 
-        QString modelObjectName() const override
-        {
-            return "InspectorPanelModel";
-        }
+        int panelId() const override;
 
         virtual void on_modelChanged() override;
 

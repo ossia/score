@@ -70,8 +70,9 @@ void Document::bindPanelPresenter(PanelPresenterInterface* pres)
                                    end(model()->panels()),
                                    [&] (PanelModelInterface* model)
     {
-        return model->objectName() == pres->modelObjectName();
+        return model->panelId() == pres->panelId();
     });
+    Q_ASSERT(localmodel != end(model()->panels()));
 
     pres->setModel(*localmodel);
 }

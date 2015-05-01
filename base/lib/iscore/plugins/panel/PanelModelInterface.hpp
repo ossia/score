@@ -11,7 +11,7 @@ namespace iscore
             Q_OBJECT
         public:
             using NamedObject::NamedObject;
-            virtual ~PanelModelInterface() = default;
+            virtual int panelId() const = 0;
 
             virtual void serialize(const VisitorVariant&) const {}
 

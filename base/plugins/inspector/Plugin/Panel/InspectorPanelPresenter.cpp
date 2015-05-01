@@ -1,6 +1,7 @@
 #include "InspectorPanelPresenter.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelView.hpp"
+#include "InspectorPanelId.hpp"
 
 #include <core/document/DocumentPresenter.hpp>
 InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
@@ -8,6 +9,11 @@ InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
     iscore::PanelPresenterInterface {parent, view}
 {
 
+}
+
+int InspectorPanelPresenter::panelId() const
+{
+    return INSPECTOR_PANEL_ID;
 }
 
 void InspectorPanelPresenter::on_modelChanged()

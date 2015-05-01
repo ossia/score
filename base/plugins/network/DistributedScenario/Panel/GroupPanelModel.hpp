@@ -9,10 +9,10 @@ class GroupPanelModel : public iscore::PanelModelInterface
     public:
         GroupPanelModel(iscore::DocumentModel* model);
 
-        auto manager() const
-        { return m_currentManager; }
-        auto session() const
-        { return m_currentSession; }
+        int panelId() const override;
+
+        GroupManager* manager() const;
+        Session* session() const;
 
     signals:
         void update();

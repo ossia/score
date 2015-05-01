@@ -1,6 +1,7 @@
 #include "DeviceExplorerPanelModel.hpp"
 
 #include "Panel/DeviceExplorerModel.hpp"
+#include "DeviceExplorerPanelId.hpp"
 #include <core/document/DocumentModel.hpp>
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
@@ -38,3 +39,9 @@ DeviceExplorerModel*DeviceExplorerPanelModel::deviceExplorer()
     return m_model;
 }
 
+
+
+int DeviceExplorerPanelModel::panelId() const
+{
+    return DEVICEEXPLORER_PANEL_ID;
+}

@@ -6,6 +6,8 @@
 #include "Panel/DeviceExplorerModel.hpp"
 #include "Panel/DeviceExplorerWidget.hpp"
 
+#include "DeviceExplorerPanelId.hpp"
+
 #include <core/document/DocumentModel.hpp>
 
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
@@ -31,9 +33,9 @@ void DeviceExplorerPanelPresenter::on_modelChanged()
     }
 }
 
-QString DeviceExplorerPanelPresenter::modelObjectName() const
+int DeviceExplorerPanelPresenter::panelId() const
 {
-    return "DeviceExplorerPanelModel";
+    return DEVICEEXPLORER_PANEL_ID;
 }
 
 

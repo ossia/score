@@ -39,6 +39,11 @@ int ProcessPanelView::priority() const
     return 10;
 }
 
+QString ProcessPanelView::prettyName() const
+{
+    return tr("Process");
+}
+
 QGraphicsScene*ProcessPanelView::scene() const
 {return m_scene;}
 

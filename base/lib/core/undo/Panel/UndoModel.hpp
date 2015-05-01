@@ -7,4 +7,5 @@ class UndoModel : public iscore::PanelModelInterface
 {
     public:
     UndoModel(iscore::DocumentModel *model);
+    int panelId() const override;
 };

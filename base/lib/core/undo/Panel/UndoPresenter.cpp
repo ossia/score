@@ -1,5 +1,6 @@
 #include "UndoPresenter.hpp"
 #include "UndoView.hpp"
+#include "UndoPanelId.hpp"
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -12,9 +13,9 @@ UndoPresenter::UndoPresenter(
 }
 
 
-QString UndoPresenter::modelObjectName() const
+int UndoPresenter::panelId() const
 {
-    return "UndoPanelModel";
+    return UNDO_PANEL_ID;
 }
 
 
