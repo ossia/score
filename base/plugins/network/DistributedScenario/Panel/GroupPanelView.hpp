@@ -16,6 +16,7 @@ class GroupPanelView : public iscore::PanelViewInterface
         QWidget* getWidget() override;
         Qt::DockWidgetArea defaultDock() const override;
         int priority() const override;
+        QString prettyName() const override;
 
         void setView(const GroupManager* mgr,
                      const Session* session);

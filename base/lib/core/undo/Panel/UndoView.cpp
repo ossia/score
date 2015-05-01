@@ -8,8 +8,6 @@ UndoView::UndoView(QObject* v) :
     iscore::PanelViewInterface{v},
     m_widget{new QWidget}
 {
-    // TODO replace by setVisibleName
-    setObjectName(tr("Undo / Redo"));
     m_widget->setLayout(new QVBoxLayout);
 }
 
@@ -28,6 +26,11 @@ Qt::DockWidgetArea UndoView::defaultDock() const
 int UndoView::priority() const
 {
     return 0;
+}
+
+QString UndoView::prettyName() const
+{
+    return tr("History");
 }
 
 

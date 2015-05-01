@@ -10,7 +10,6 @@ InspectorPanelView::InspectorPanelView(iscore::View* parent) :
     iscore::PanelViewInterface {parent},
     m_widget{new QWidget}
 {
-    this->setObjectName(tr("Inspector"));
     auto lay = new QVBoxLayout{m_widget};
     m_widget->setLayout(lay);
 }
@@ -28,6 +27,11 @@ Qt::DockWidgetArea InspectorPanelView::defaultDock() const
 int InspectorPanelView::priority() const
 {
     return 10;
+}
+
+QString InspectorPanelView::prettyName() const
+{
+    return tr("Inspector");
 }
 
 void InspectorPanelView::setCurrentDocument(iscore::Document* doc)

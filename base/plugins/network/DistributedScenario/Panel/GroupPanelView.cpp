@@ -13,7 +13,6 @@ GroupPanelView::GroupPanelView(QObject* v):
     iscore::PanelViewInterface{v},
     m_widget{new QWidget}
 {
-    setObjectName(tr("Groups"));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
 }
@@ -31,6 +30,11 @@ Qt::DockWidgetArea GroupPanelView::defaultDock() const
 int GroupPanelView::priority() const
 {
     return 1;
+}
+
+QString GroupPanelView::prettyName() const
+{
+    return tr("Groups");
 }
 
 #include "Repartition/session/Session.hpp"

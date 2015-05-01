@@ -7,7 +7,6 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
     iscore::PanelViewInterface {parent},
     m_widget {new DeviceExplorerWidget{parent}}
 {
-    setObjectName("Device Explorer");
 }
 
 QWidget* DeviceExplorerPanelView::getWidget()
@@ -23,4 +22,9 @@ Qt::DockWidgetArea DeviceExplorerPanelView::defaultDock() const
 int DeviceExplorerPanelView::priority() const
 {
     return 10;
+}
+
+QString DeviceExplorerPanelView::prettyName() const
+{
+    return tr("Devices");
 }

@@ -215,7 +215,6 @@ DocumentModel::DocumentModel(const QVariant& data,
         QJsonObject json = data.toJsonObject();
         this->setId(fromJsonValue<id_type<DocumentModel>>(json["DocumentId"]));
 
-        // TODO put them in sub-objects, else the iteration will take ages.
         // Load the plug-in models
         auto plugin_control = iscore::IPresenter::pluginControls();
         auto json_plugins = json["Plugins"].toObject();

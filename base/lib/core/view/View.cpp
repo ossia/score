@@ -53,7 +53,7 @@ void View::addDocumentView(DocumentView* doc)
 void View::setupPanelView(PanelViewInterface* v)
 {
     using namespace std;
-    QDockWidget* dial = new QDockWidget {v->objectName(), this};
+    QDockWidget* dial = new QDockWidget {v->prettyName(), this};
     dial->setWidget(v->getWidget());
 
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +

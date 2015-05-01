@@ -15,6 +15,7 @@ class DeviceExplorerPanelView : public iscore::PanelViewInterface
 
         Qt::DockWidgetArea defaultDock() const override;
         int priority() const override;
+        QString prettyName() const override;
 
     private:
         DeviceExplorerWidget* m_widget {};

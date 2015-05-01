@@ -14,6 +14,7 @@ class UndoView : public iscore::PanelViewInterface
         QWidget *getWidget() override;
         Qt::DockWidgetArea defaultDock() const override;
         int priority() const override;
+        QString prettyName() const override;
 
         void setStack(iscore::CommandStack *s);
 
