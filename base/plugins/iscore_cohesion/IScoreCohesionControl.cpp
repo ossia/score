@@ -17,6 +17,7 @@
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 #include "Commands/CreateCurveFromStates.hpp"
+#include <core/document/DocumentPresenter.hpp>
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <Execution/Execution.hpp>

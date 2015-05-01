@@ -18,9 +18,9 @@ GroupMetadata* GroupMetadata::clone(const QObject *element, QObject *parent) con
     return grp;
 }
 
-QString GroupMetadata::plugin() const
+int GroupMetadata::elementPluginId() const
 {
-    return staticPluginName();
+    return 1; // TODO put this in a header
 }
 
 void GroupMetadata::serialize(const VisitorVariant& vis) const

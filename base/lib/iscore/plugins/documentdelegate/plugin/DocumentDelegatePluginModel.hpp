@@ -13,7 +13,7 @@ class DocumentDelegatePluginModel : public NamedObject
         using NamedObject::NamedObject;
         virtual ~DocumentDelegatePluginModel() = default;
 
-        virtual QString metadataName() const = 0;
+        virtual int elementPluginId() const = 0;
         virtual ElementPluginModel* makeElementPlugin(
                 const QObject* element,
                 QObject* parent) = 0;

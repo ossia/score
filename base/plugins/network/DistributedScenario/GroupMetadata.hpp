@@ -11,7 +11,7 @@ class GroupMetadata : public iscore::ElementPluginModel
         Q_OBJECT
 
     public:
-        static constexpr const char* staticPluginName() { return "Network"; }
+        static constexpr int staticPluginId() { return 1; }
 
         GroupMetadata(
                 const QObject* element,
@@ -29,7 +29,7 @@ class GroupMetadata : public iscore::ElementPluginModel
             vis.writeTo(*this);
         }
 
-        QString plugin() const override;
+        int elementPluginId() const override;
         virtual void serialize(const VisitorVariant&) const override;
 
         const auto& group() const

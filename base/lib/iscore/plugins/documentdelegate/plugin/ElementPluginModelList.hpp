@@ -21,7 +21,8 @@ namespace iscore
 
             QString parentObjectName() const;
 
-            bool canAdd(const QString& name) const;
+            // Can add if no exisiting element plugins with this id.
+            bool canAdd(int pluginId) const;
             void add(iscore::ElementPluginModel* data);
 
             const QList<iscore::ElementPluginModel*>& list() const

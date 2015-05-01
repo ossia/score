@@ -11,48 +11,23 @@ namespace iscore
     {
             Q_OBJECT
         public:
-
             PanelPresenterInterface(Presenter* parent_presenter,
-                                    PanelViewInterface* view) :
-                QObject {parent_presenter},
-                m_view {view},
-                m_parentPresenter {parent_presenter}
-            {
+                                    PanelViewInterface* view);
 
-            }
-
-            virtual ~PanelPresenterInterface() = default;
-
-            // An identifier that is to be shared between this and the panel model.
             virtual int panelId() const = 0;
 
-            void setModel(PanelModelInterface* model)
-            {
-                m_model = model;
-                on_modelChanged();
-            }
-
-            PanelModelInterface* model() const
-            {
-                return m_model;
-            }
-
-            virtual void on_modelChanged() = 0;
+            void setModel(PanelModelInterface* model);
+            PanelModelInterface* model() const;
 
         protected:
-            PanelViewInterface* view() const
-            {
-                return m_view;
-            }
+            virtual void on_modelChanged() = 0;
 
-            Presenter* presenter() const
-            {
-                return m_parentPresenter;
-            }
+            PanelViewInterface* view() const;
+            Presenter* presenter() const;
 
         private:
-            PanelModelInterface* m_model {};
-            PanelViewInterface* m_view {};
-            Presenter* m_parentPresenter {};
+            PanelModelInterface* m_model{};
+            PanelViewInterface* m_view{};
+            Presenter* m_parentPresenter{};
     };
 }

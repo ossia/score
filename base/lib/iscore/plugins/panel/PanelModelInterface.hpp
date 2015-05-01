@@ -12,12 +12,10 @@ namespace iscore
         public:
             using NamedObject::NamedObject;
 
-            // An identifier that is to be shared between the panel presenter and this.
             virtual int panelId() const = 0;
-
-            virtual void serialize(const VisitorVariant&) const {}
+            virtual void serialize(const VisitorVariant&) const;
 
         public slots:
-            virtual void setNewSelection(const Selection&) { }
+            virtual void setNewSelection(const Selection&);
     };
 }

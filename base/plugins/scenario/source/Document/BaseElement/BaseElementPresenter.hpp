@@ -3,6 +3,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 class ProgressBar;
 namespace iscore
 {

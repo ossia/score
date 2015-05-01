@@ -12,7 +12,7 @@ class ElementPluginModel : public QObject
 
         virtual ElementPluginModel* clone(const QObject* element, QObject* parent) const = 0;
 
-        virtual QString plugin() const = 0;
+        virtual int elementPluginId() const = 0;
 
         virtual void serialize(const VisitorVariant&) const = 0;
 };

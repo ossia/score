@@ -30,7 +30,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        if(constraint->pluginModelList().canAdd(metadataName()))
+        if(constraint->pluginModelList().canAdd(elementPluginId()))
             constraint->pluginModelList().add(
                         makeElementPlugin(constraint,
                                           &constraint->pluginModelList()));
@@ -38,7 +38,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     auto events = doc->modelDelegate()->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        if(event->pluginModelList().canAdd(metadataName()))
+        if(event->pluginModelList().canAdd(elementPluginId()))
         {
             event->pluginModelList().add(
                         makeElementPlugin(event, &event->pluginModelList()));
@@ -65,6 +65,11 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
     m_policy = pol;
 
     emit sessionChanged();
+}
+
+int NetworkDocumentPlugin::elementPluginId() const
+{
+    return GroupMetadata::staticPluginId();
 }
 
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
@@ -121,7 +126,7 @@ iscore::ElementPluginModel *NetworkDocumentPlugin::cloneElementPlugin(
         iscore::ElementPluginModel* elt,
         QObject *parent)
 {
-    if(elt->plugin() == GroupMetadata::staticPluginName())
+    if(elt->elementPluginId() == GroupMetadata::staticPluginId())
     {
         auto newelt = static_cast<GroupMetadata*>(elt)->clone(element, parent);
         setupGroupPlugin(newelt);

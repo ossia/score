@@ -14,7 +14,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(ElementPluginModelList* s
     {
         for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
         {
-            if(plugin->metadataName() == elt->plugin())
+            if(plugin->elementPluginId() == elt->elementPluginId())
             {
                 add(plugin->cloneElementPlugin(parent, elt, this)); // Note : QObject::parent() is dangerous
             }
@@ -31,7 +31,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
     for(auto& plugin : doc->model()->pluginModels())
     {
         // Check if it is not already existing in this element.
-        if(!canAdd(plugin->metadataName()))
+        if(!canAdd(plugin->elementPluginId()))
             continue;
 
         // Create and add it.
@@ -46,12 +46,12 @@ QString iscore::ElementPluginModelList::parentObjectName() const
     return parent()->metaObject()->className();
 }
 
-bool iscore::ElementPluginModelList::canAdd(const QString &name) const
+bool iscore::ElementPluginModelList::canAdd(int pluginId) const
 {
     using namespace std;
     return none_of(begin(m_list), end(m_list),
                    [&] (iscore::ElementPluginModel* p)
-    { return p->plugin() == name; });
+    { return p->elementPluginId() == pluginId; });
 }
 
 void iscore::ElementPluginModelList::add(iscore::ElementPluginModel *data)

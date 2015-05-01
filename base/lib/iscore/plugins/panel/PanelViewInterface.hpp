@@ -9,7 +9,6 @@ namespace iscore
         public:
             using QObject::QObject;
 
-            virtual ~PanelViewInterface() = default;
             virtual QWidget* getWidget() = 0;
 
             virtual Qt::DockWidgetArea defaultDock() const = 0;

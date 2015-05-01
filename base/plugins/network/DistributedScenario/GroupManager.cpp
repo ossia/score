@@ -9,7 +9,6 @@ GroupManager::GroupManager(QObject* parent):
 
 void GroupManager::addGroup(Group* group)
 {
-    qDebug( ) << "Adding group to " << (void* ) this;
     m_groups.push_back(group);
     emit groupAdded(group->id());
 }

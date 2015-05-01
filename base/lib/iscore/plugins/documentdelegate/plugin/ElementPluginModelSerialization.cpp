@@ -6,7 +6,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt)
 {
-    m_stream << elt.plugin();
+    m_stream << elt.elementPluginId();
     elt.serialize(this->toVariant());
 
     insertDelimiter();
@@ -15,7 +15,7 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModel& elt)
 {
-    m_obj["Name"] = elt.plugin();
+    m_obj["PluginId"] = elt.elementPluginId();
     elt.serialize(this->toVariant());
 }
 
@@ -29,15 +29,15 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         const QObject* element,
         QObject* parent)
 {
-    QString savedName;
-    deserializer.m_stream >> savedName;
+    int pluginId;
+    deserializer.m_stream >> pluginId;
 
     iscore::Document* doc = iscore::IDocument::documentFromObject(parent);
 
     iscore::ElementPluginModel* model{};
     for(auto& plugin : doc->model()->pluginModels())
     {
-        if(plugin->metadataName() == savedName)
+        if(plugin->elementPluginId() == pluginId)
         {
             model = plugin->loadElementPlugin(
                         element,
@@ -58,14 +58,14 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
         const QObject* element,
         QObject* parent)
 {
-    QString savedName = deserializer.m_obj["Name"].toString();
+    int pluginId = deserializer.m_obj["PluginId"].toInt();
 
     iscore::Document* doc = iscore::IDocument::documentFromObject(parent);
 
     iscore::ElementPluginModel* model{};
     for(auto& plugin : doc->model()->pluginModels())
     {
-        if(plugin->metadataName() == savedName)
+        if(plugin->elementPluginId() == pluginId)
         {
             model = plugin->loadElementPlugin(
                         element,
