@@ -22,8 +22,6 @@ class MoveEventAndConstraint : public iscore::SerializableCommand
         void undo() override;
         void redo() override;
 
-        bool mergeWith(const iscore::Command*) override;
-
         void update(
                 const ObjectPath& scenarioPath,
                 const id_type<ConstraintModel>& constraintId,

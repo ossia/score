@@ -11,11 +11,6 @@ void AssignMessagesToState::redo()
 {
 }
 
-bool AssignMessagesToState::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AssignMessagesToState::serializeImpl(QDataStream&) const
 {
 }

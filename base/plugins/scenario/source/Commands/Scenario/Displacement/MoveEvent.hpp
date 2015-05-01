@@ -41,12 +41,6 @@ namespace Scenario
                     m_newHeightPosition = height;
                 }
 
-                virtual bool mergeWith(const Command* other) override
-                {
-                    Q_ASSERT(false);
-                    return false;
-                }
-
                 TimeValue m_oldDate {}; // TODO : bof bof !
 
 

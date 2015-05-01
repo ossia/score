@@ -14,7 +14,7 @@ namespace Scenario
             public:
                 static const char * className()
                 {
-					static QByteArray name = QString{"ChangeElementLabel_%1"}.arg(T::staticMetaObject.className()).toLatin1();
+                    static QByteArray name = QString{"ChangeElementLabel_%1"}.arg(T::staticMetaObject.className()).toLatin1();
                     return name.constData();
                 }
                 static QString description()
@@ -44,11 +44,6 @@ namespace Scenario
                 {
                     auto obj = m_path.find<T>();
                     obj->metadata.setLabel(m_newLabel);
-                }
-
-                virtual bool mergeWith(const Command* other) override
-                {
-                    return false;
                 }
 
             protected:

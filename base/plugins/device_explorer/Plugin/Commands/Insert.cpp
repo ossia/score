@@ -49,13 +49,6 @@ Insert::redo()
     model->setCachedResult(result);
 }
 
-bool
-Insert::mergeWith(const Command* /*other*/)
-{
-    return false;
-}
-
-
 void
 Insert::serializeImpl(QDataStream& d) const
 {

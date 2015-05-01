@@ -23,11 +23,6 @@ void AggregateCommand::redo()
     }
 }
 
-bool AggregateCommand::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AggregateCommand::serializeImpl(QDataStream& s) const
 {
     // Meta-data : {{parent name, command name}, command data}

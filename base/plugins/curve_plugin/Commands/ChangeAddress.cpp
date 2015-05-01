@@ -38,11 +38,6 @@ void ChangeAddress::redo()
     autom->setAddress(m_newAddr);
 }
 
-bool ChangeAddress::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void ChangeAddress::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_oldAddr << m_newAddr;

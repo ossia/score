@@ -47,13 +47,6 @@ void MoveEventAndConstraint::redo()
     scenar->constraint(m_constraintId)->setHeightPercentage(m_constraintHeight);
 }
 
-
-bool MoveEventAndConstraint::mergeWith(const iscore::Command*)
-{
-    return false;
-}
-
-
 void MoveEventAndConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_cmd->serialize() << m_constraintId << m_constraintHeight;

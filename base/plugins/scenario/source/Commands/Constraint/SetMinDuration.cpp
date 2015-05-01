@@ -27,18 +27,7 @@ void SetMinDuration::redo()
     constraint->setMinDuration(m_newDuration);
 }
 
-bool SetMinDuration::mergeWith(const Command* other)
-{
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto cmd = static_cast<const SetMinDuration*>(other);
-    m_newDuration = cmd->m_newDuration;
-
-    return true;
-}
 
 void SetMinDuration::serializeImpl(QDataStream& s) const
 {

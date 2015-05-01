@@ -25,7 +25,6 @@ namespace Scenario
 
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
 
                 auto createdEventId() const
                 { return m_createdEventId; }

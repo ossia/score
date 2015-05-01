@@ -32,18 +32,7 @@ void ResizeBaseConstraint::redo()
     constraint->setDefaultDuration(m_newDuration);
 }
 
-bool ResizeBaseConstraint::mergeWith(const Command* other)
-{
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto cmd = static_cast<const ResizeBaseConstraint*>(other);
-    m_newDuration = cmd->m_newDuration;
-
-    return true;
-}
 
 void ResizeBaseConstraint::serializeImpl(QDataStream& s) const
 {

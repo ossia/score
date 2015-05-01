@@ -68,11 +68,6 @@ void RemoveProcessFromConstraint::redo()
     // The view models will be deleted accordingly.
 }
 
-bool RemoveProcessFromConstraint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveProcessFromConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_processId << m_serializedProcessData << m_serializedViewModels;

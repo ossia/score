@@ -27,11 +27,6 @@ void RemoveStateFromEvent::redo()
     event->removeState(m_state);
 }
 
-bool RemoveStateFromEvent::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveStateFromEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_state;

@@ -23,7 +23,11 @@ namespace Scenario
 
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
+
+                void update(const ObjectPath&, double size)
+                {
+                    m_newSize = size;
+                }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

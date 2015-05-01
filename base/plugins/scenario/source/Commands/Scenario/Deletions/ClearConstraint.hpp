@@ -23,7 +23,6 @@ namespace Scenario
                 ClearConstraint(ObjectPath&& constraintPath);
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -13,9 +13,7 @@
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     GenericStateBase{sm},
     m_dispatcher{m_sm.commandStack()},
-    m_ongoingDispatcher{iscore::IDocument::path(m_sm.model()),
-                        m_sm.locker(),
-                        m_sm.commandStack()}
+    m_ongoingDispatcher{m_sm.commandStack()}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
     connect(this, &QState::entered,
@@ -102,12 +100,12 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
 
             connect(move, &QAbstractState::entered, [=] ( )
             {
-                auto val = std::max(20.0, m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
-                auto cmd = new Scenario::Command::ResizeDeckVertically {
-                                ObjectPath{resizeDeck->currentDeck},
-                                val};
+                auto val = std::max(20.0,
+                                    m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-                m_ongoingDispatcher.submitCommand(cmd);
+                m_ongoingDispatcher.submitCommand<Scenario::Command::ResizeDeckVertically>(
+                            ObjectPath{resizeDeck->currentDeck},
+                            val);
                 return;
             });
 

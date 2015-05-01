@@ -100,11 +100,6 @@ void RemoveEvent::redo()
     StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_evId);
 }
 
-bool RemoveEvent::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_evId << m_serializedEvent << m_serializedConstraints << m_serializedTimeNode ;

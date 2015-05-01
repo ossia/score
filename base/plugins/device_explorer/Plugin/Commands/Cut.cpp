@@ -66,13 +66,6 @@ Cut::redo()
 
 }
 
-bool
-Cut::mergeWith(const Command* /*other*/)
-{
-    return false;
-}
-
-
 void
 Cut::serializeImpl(QDataStream& d) const
 {

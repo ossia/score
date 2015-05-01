@@ -77,11 +77,6 @@ void MergeTimeNodes::redo()
     CreateTimeNodeMin::undo(m_movingTimeNodeId, *scenar);
 }
 
-bool MergeTimeNodes::mergeWith(const Command *other)
-{
-    return false;
-}
-
 void MergeTimeNodes::serializeImpl(QDataStream & s) const
 {
     s << m_path << m_aimedTimeNodeId << m_movingTimeNodeId << m_serializedTimeNode;

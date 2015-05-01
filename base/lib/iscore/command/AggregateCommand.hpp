@@ -27,7 +27,6 @@ namespace iscore
 
             virtual void undo() override;
             virtual void redo() override;
-            virtual bool mergeWith(const Command* other) override;
 
             void addCommand(iscore::SerializableCommand* cmd)
             {

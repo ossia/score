@@ -13,8 +13,11 @@ namespace MergeStrategy
         static void merge(iscore::Command* cmd,
                           iscore::Command* other)
         {
+            qDebug() << Q_FUNC_INFO << "TODO";
+            /*
             cmd->mergeWith(other);
             cmd->redo();
+            */
         }
     };
 
@@ -286,3 +289,58 @@ class MacroCommandDispatcher : public ICommandDispatcher
         iscore::AggregateCommand* m_aggregateCommand {};
 };
 
+
+
+
+class SingleOngoingCommandDispatcher
+{
+    public:
+        SingleOngoingCommandDispatcher(iscore::CommandStack& stack):
+            m_stack{stack}
+        {
+
+        }
+
+        ~SingleOngoingCommandDispatcher()
+        {
+            delete m_cmd;
+         }
+
+        iscore::CommandStack& stack() const
+        { return m_stack; }
+
+        template<typename TheCommand, typename... Args>
+        void submitCommand(Args&&... args)
+        {
+            if(!m_cmd)
+            {
+                auto cmd = new TheCommand(std::forward<Args>(args)...);
+                cmd->redo();
+                m_cmd = cmd;
+            }
+            else
+            {
+                Q_ASSERT(m_cmd->uid() == TheCommand::static_uid());
+                static_cast<TheCommand*>(m_cmd)->update(std::forward<Args>(args)...);
+                static_cast<TheCommand*>(m_cmd)->redo();
+            }
+        }
+
+        void commit()
+        {
+            SendStrategy::Simple::send(stack(), m_cmd);
+            m_cmd = nullptr;
+        }
+
+        void rollback()
+        {
+            m_cmd->undo();
+            delete m_cmd;
+            m_cmd = nullptr;
+        }
+
+
+    private:
+        iscore::CommandStack& m_stack;
+        iscore::SerializableCommand* m_cmd{};
+};

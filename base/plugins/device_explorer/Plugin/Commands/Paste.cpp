@@ -48,12 +48,6 @@ Paste::redo()
 
 }
 
-bool
-Paste::mergeWith(const Command* /*other*/)
-{
-    return false;
-}
-
 void
 Paste::serializeImpl(QDataStream& d) const
 {

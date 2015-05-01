@@ -66,20 +66,7 @@ void CreateEventAfterEventOnTimeNode::redo()
                                scenar);
 }
 
-bool CreateEventAfterEventOnTimeNode::mergeWith(const Command* other)
-{
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto cmd = static_cast<const CreateEventAfterEventOnTimeNode*>(other);
-    m_time = cmd->m_time;
-    m_heightPosition = cmd->m_heightPosition;
-
-    return true;
-}
 
 void CreateEventAfterEventOnTimeNode::serializeImpl(QDataStream& s) const
 {

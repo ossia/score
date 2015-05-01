@@ -24,11 +24,6 @@ void AddClientToGroup::redo()
     m_path.find<GroupManager>()->group(m_group)->addClient(m_client);
 }
 
-bool AddClientToGroup::mergeWith(const iscore::Command*)
-{
-    return false;
-}
-
 void AddClientToGroup::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_client << m_group;

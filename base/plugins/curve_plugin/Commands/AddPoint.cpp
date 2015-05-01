@@ -37,11 +37,6 @@ void AddPoint::redo()
     autom->addPoint(m_x, m_y);
 }
 
-bool AddPoint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddPoint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_x << m_y;

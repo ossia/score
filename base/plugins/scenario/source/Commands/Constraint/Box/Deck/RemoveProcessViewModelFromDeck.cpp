@@ -40,11 +40,6 @@ void RemoveProcessViewModelFromDeck::redo()
     deck->deleteProcessViewModel(m_processViewId);
 }
 
-bool RemoveProcessViewModelFromDeck::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveProcessViewModelFromDeck::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_processViewId << m_serializedProcessViewData;

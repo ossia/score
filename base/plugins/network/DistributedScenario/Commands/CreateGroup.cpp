@@ -24,11 +24,6 @@ void CreateGroup::redo()
     mgr->addGroup(new Group{m_name, m_newGroupId, mgr});
 }
 
-bool CreateGroup::mergeWith(const iscore::Command*)
-{
-    return false;
-}
-
 void CreateGroup::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_name << m_newGroupId;

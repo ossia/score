@@ -18,12 +18,14 @@ class ClientPortChangedCommand : public iscore::Command
 
         }
 
+        /*
         virtual bool mergeWith(const Command* other) override
         {
             auto cmd = static_cast<const ClientPortChangedCommand*>(other);
             m_newval = cmd->m_newval;
             return true;
         }
+        */
 
         virtual void undo() override
         {

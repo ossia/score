@@ -78,7 +78,6 @@ const char* Scenario::Command::CreateEventAfterEventOnTimeNode::className() { re
 const char* Scenario::Command::CreateEventOnTimeNode::className() { return "CreateEventOnTimeNode"; }
 const char* Scenario::Command::CreationMetaCommand::className() { return "CreationMetaCommand"; }
 
-const char* Scenario::Command::Cut::className() { return "Cut"; }
 const char* Scenario::Command::HideBoxInViewModel::className() { return "HideBoxInViewModel"; }
 
 // MERGE
@@ -92,8 +91,6 @@ const char* Scenario::Command::MoveDeck::className() { return "MoveDeck"; }
 const char* Scenario::Command::MoveEvent::className() { return "MoveEvent"; }
 const char* Scenario::Command::MoveProcessViewModel::className() { return "MoveProcessViewModel"; }
 const char* Scenario::Command::MoveTimeNode::className() { return "MoveTimeNode"; }
-
-const char* Scenario::Command::Paste::className() { return "Paste"; }
 
 // REMOVE
 const char* Scenario::Command::RemoveBoxFromConstraint::className() { return "RemoveBoxFromConstraint"; }
@@ -152,7 +149,6 @@ QString Scenario::Command::CreateEventAfterEventOnTimeNode::description() { retu
 QString Scenario::Command::CreateEventOnTimeNode::description() { return QObject::tr("CreateEventOnTimeNode"); }
 QString Scenario::Command::CreationMetaCommand::description() { return QObject::tr("CreationMetaCommand"); }
 
-QString Scenario::Command::Cut::description() { return "Cut"; }
 QString Scenario::Command::HideBoxInViewModel::description() { return QObject::tr("HideBoxInViewModel"); }
 
 // MERGE
@@ -166,8 +162,6 @@ QString Scenario::Command::MoveDeck::description() { return QObject::tr("MoveDec
 QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEvent"); }
 QString Scenario::Command::MoveProcessViewModel::description() { return QObject::tr("MoveProcessViewModel"); }
 QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
-
-QString Scenario::Command::Paste::description() { return "Paste"; }
 
 // REMOVE
 QString Scenario::Command::RemoveBoxFromConstraint::description() { return QObject::tr("RemoveBoxFromConstraint"); }

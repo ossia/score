@@ -44,11 +44,6 @@ void CreateEventOnTimeNode::redo()
                 *scenar);
 }
 
-bool CreateEventOnTimeNode::mergeWith(const Command *other)
-{
-    return false;
-}
-
 void CreateEventOnTimeNode::serializeImpl(QDataStream &s) const
 {
     s << m_path

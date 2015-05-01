@@ -36,11 +36,6 @@ void AddBoxToConstraint::redo()
     }
 }
 
-bool AddBoxToConstraint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddBoxToConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_createdBoxId;

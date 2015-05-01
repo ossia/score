@@ -50,13 +50,6 @@ Remove::redo()
     explorer->removeNode(parent->childAt(m_nodeIndex));
 }
 
-bool
-Remove::mergeWith(const Command* /*other*/)
-{
-    return false;
-}
-
-
 void
 Remove::serializeImpl(QDataStream& d) const
 {

@@ -31,7 +31,6 @@ namespace Scenario
 
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
 
                 id_type<ConstraintModel> createdConstraint() const
                 {

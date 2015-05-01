@@ -40,11 +40,6 @@ void AddProcessToConstraint::redo()
     constraint->addProcess(proc);
 }
 
-bool AddProcessToConstraint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddProcessToConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_processName << m_createdProcessId;

@@ -77,12 +77,6 @@ void MoveConstraint::redo()
     scenar->constraint(m_constraint)->setHeightPercentage(m_newHeightPosition);
 }
 
-bool MoveConstraint::mergeWith(const Command* other)
-{
-    Q_ASSERT(false);
-    return false;
-}
-
 void MoveConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_cmd->serialize() << m_newHeightPosition;

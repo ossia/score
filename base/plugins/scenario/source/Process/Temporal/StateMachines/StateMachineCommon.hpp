@@ -8,8 +8,6 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-
-
 // TODO optimize this when we have all the tools
 class CommonScenarioState : public QState
 {

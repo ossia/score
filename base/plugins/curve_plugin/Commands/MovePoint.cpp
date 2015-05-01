@@ -40,11 +40,6 @@ void MovePoint::redo()
     autom->movePoint(m_oldX, m_newX, m_newY);
 }
 
-bool MovePoint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void MovePoint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_oldX << m_oldY << m_newX << m_newY;

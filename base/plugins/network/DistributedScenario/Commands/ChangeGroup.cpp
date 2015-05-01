@@ -46,11 +46,6 @@ void ChangeGroup::redo()
     getGroupMetadata(m_path.find<QObject>())->setGroup(m_newGroup);
 }
 
-bool ChangeGroup::mergeWith(const iscore::Command *)
-{
-    return false;
-}
-
 void ChangeGroup::serializeImpl(QDataStream &s) const
 {
     s << m_path << m_newGroup << m_oldGroup;

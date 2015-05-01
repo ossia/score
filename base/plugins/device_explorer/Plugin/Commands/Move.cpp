@@ -70,12 +70,6 @@ Move::redo()
     model->setCachedResult(result);
 }
 
-bool
-Move::mergeWith(const Command* /*other*/)
-{
-    return false;
-}
-
 void
 Move::serializeImpl(QDataStream& d) const
 {

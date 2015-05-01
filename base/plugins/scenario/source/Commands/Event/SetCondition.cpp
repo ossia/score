@@ -29,11 +29,6 @@ void SetCondition::redo()
     event->setCondition(m_condition);
 }
 
-bool SetCondition::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void SetCondition::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_condition << m_previousCondition;

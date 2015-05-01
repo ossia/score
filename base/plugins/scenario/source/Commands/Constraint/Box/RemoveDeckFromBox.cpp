@@ -46,11 +46,6 @@ void RemoveDeckFromBox::redo()
     box->removeDeck(m_deckId);
 }
 
-bool RemoveDeckFromBox::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveDeckFromBox::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_deckId << m_serializedDeckData << m_position;

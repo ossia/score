@@ -106,12 +106,6 @@ void CopyConstraintContent::redo()
     }
 }
 
-bool CopyConstraintContent::mergeWith(const Command* other)
-{
-    return false;
-}
-
-
 // TODO put me where I belong
 #include <QJsonDocument>
 #include <iscore/serialization/DataStreamVisitor.hpp>

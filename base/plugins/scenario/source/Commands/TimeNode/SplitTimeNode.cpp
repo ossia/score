@@ -57,11 +57,6 @@ void SplitTimeNode::redo()
     }
 }
 
-bool SplitTimeNode::mergeWith(const Command *other)
-{
-    return false;
-}
-
 void SplitTimeNode::serializeImpl(QDataStream & s) const
 {
     s << m_path << m_originalTimeNodeId << m_eventsInNewTimeNode << m_newTimeNodeId ;

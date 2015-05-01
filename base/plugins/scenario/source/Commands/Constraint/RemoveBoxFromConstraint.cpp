@@ -73,11 +73,6 @@ void RemoveBoxFromConstraint::redo()
     constraint->removeBox(m_boxId);
 }
 
-bool RemoveBoxFromConstraint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveBoxFromConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_boxId << m_serializedBoxData << m_boxMappings;

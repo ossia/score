@@ -27,11 +27,6 @@ void AddStateToEvent::redo()
     event->addState(m_state);
 }
 
-bool AddStateToEvent::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddStateToEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_state;

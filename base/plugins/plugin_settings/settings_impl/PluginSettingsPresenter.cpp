@@ -52,8 +52,11 @@ PluginSettingsView* PluginSettingsPresenter::view()
     return static_cast<PluginSettingsView*>(m_view);
 }
 
+
 void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    /*
     if(!m_blacklistCommand)
     {
         m_blacklistCommand = cmd;
@@ -63,6 +66,7 @@ void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
         m_blacklistCommand->mergeWith(cmd);
         delete cmd;
     }
+    */
 }
 
 #include <QApplication>

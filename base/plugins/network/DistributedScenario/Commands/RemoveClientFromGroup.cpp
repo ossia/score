@@ -22,11 +22,6 @@ void RemoveClientFromGroup::redo()
     m_path.find<GroupManager>()->group(m_group)->removeClient(m_client);
 }
 
-bool RemoveClientFromGroup::mergeWith(const iscore::Command*)
-{
-    return false;
-}
-
 void RemoveClientFromGroup::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_client << m_group;

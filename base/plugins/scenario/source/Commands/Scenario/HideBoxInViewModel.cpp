@@ -36,11 +36,6 @@ void HideBoxInViewModel::redo()
     vm->hideBox();
 }
 
-bool HideBoxInViewModel::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void HideBoxInViewModel::serializeImpl(QDataStream& s) const
 {
     s << m_constraintViewModelPath

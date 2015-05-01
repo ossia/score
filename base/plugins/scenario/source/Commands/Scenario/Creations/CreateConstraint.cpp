@@ -59,19 +59,7 @@ void CreateConstraint::redo()
                                scenar);
 }
 
-bool CreateConstraint::mergeWith(const Command* other)
-{
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto cmd = static_cast<const CreateConstraint*>(other);
-    m_endEventId = cmd->m_endEventId;
-
-    return true;
-}
 
 void CreateConstraint::serializeImpl(QDataStream& s) const
 {

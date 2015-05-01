@@ -27,18 +27,7 @@ void SetMaxDuration::redo()
     constraint->setMaxDuration(m_newDuration);
 }
 
-bool SetMaxDuration::mergeWith(const Command* other)
-{
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto cmd = static_cast<const SetMaxDuration*>(other);
-    m_newDuration = cmd->m_newDuration;
-
-    return true;
-}
 
 void SetMaxDuration::serializeImpl(QDataStream& s) const
 {

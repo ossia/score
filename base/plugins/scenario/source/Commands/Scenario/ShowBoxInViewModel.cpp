@@ -48,11 +48,6 @@ void ShowBoxInViewModel::redo()
     constraint_vm->showBox(m_boxId);
 }
 
-bool ShowBoxInViewModel::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void ShowBoxInViewModel::serializeImpl(QDataStream& s) const
 {
     s << m_constraintViewModelPath

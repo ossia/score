@@ -16,7 +16,6 @@ namespace Scenario
                 RemoveStateFromEvent(ObjectPath&& eventPath, const State& state);
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

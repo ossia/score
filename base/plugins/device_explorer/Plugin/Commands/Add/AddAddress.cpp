@@ -42,11 +42,6 @@ void AddAddress::redo()
     m_createdNodeIndex = m_parentNodePath.toNode(explorer->rootNode())->indexOfChild(newNode);
 }
 
-bool AddAddress::mergeWith(const iscore::Command *other)
-{
-    return false;
-}
-
 void AddAddress::serializeImpl(QDataStream &s) const
 {
     s << m_deviceTree << m_parentNodePath.toList() << m_addressSettings << m_createdNodeIndex;

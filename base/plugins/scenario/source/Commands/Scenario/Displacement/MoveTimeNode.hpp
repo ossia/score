@@ -27,8 +27,6 @@ namespace Scenario
                 ~MoveTimeNode();
                 virtual void undo() override;
                 virtual void redo() override;
-                virtual bool mergeWith(const Command* other) override;
-
                 template<typename... Args>
                 void update(Args&&... args)
                 {

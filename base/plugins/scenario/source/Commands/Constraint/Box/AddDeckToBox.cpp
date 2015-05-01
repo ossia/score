@@ -30,11 +30,6 @@ void AddDeckToBox::redo()
                                });
 }
 
-bool AddDeckToBox::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddDeckToBox::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_createdDeckId;

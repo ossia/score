@@ -58,11 +58,6 @@ void RemoveConstraint::redo()
     StandardRemovalPolicy::removeConstraint(*scenar, m_cstrId);
 }
 
-bool RemoveConstraint::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void RemoveConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_cstrId << m_serializedConstraint << m_serializedConstraintViewModels << m_constraintFullViewId;

@@ -100,6 +100,8 @@ void NetworkSettingsPresenter::updateClientName()
 // Partie vue -> commande
 void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cmd)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    /*
     if(!m_masterportCommand)
     {
         m_masterportCommand = cmd;
@@ -109,9 +111,12 @@ void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cm
         m_masterportCommand->mergeWith(cmd);
         delete cmd;
     }
+    */
 }
 void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cmd)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    /*
     if(!m_clientportCommand)
     {
         m_clientportCommand = cmd;
@@ -121,9 +126,12 @@ void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cm
         m_clientportCommand->mergeWith(cmd);
         delete cmd;
     }
+    */
 }
 void NetworkSettingsPresenter::setClientNameCommand(ClientNameChangedCommand* cmd)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    /*
     if(!m_clientnameCommand)
     {
         m_clientnameCommand = cmd;
@@ -133,6 +141,7 @@ void NetworkSettingsPresenter::setClientNameCommand(ClientNameChangedCommand* cm
         m_clientnameCommand->mergeWith(cmd);
         delete cmd;
     }
+    */
 }
 
 

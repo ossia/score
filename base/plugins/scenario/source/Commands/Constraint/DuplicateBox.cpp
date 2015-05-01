@@ -37,11 +37,6 @@ void DuplicateBox::redo()
                                      constraint});
 }
 
-bool DuplicateBox::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void DuplicateBox::serializeImpl(QDataStream& s) const
 {
     s << m_boxPath << m_newBoxId;

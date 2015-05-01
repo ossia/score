@@ -12,11 +12,6 @@ void UnassignMessagesFromState::redo()
 {
 }
 
-bool UnassignMessagesFromState::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void UnassignMessagesFromState::serializeImpl(QDataStream&) const
 {
 }

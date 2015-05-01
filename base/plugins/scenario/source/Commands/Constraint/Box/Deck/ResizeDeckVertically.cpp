@@ -29,16 +29,7 @@ void ResizeDeckVertically::redo()
     deck->setHeight(m_newSize);
 }
 
-bool ResizeDeckVertically::mergeWith(const Command* other)
-{
-    if(other->uid() == this->uid())
-    {
-        auto other_c = static_cast<const ResizeDeckVertically*>(other);
-        m_newSize = other_c->m_newSize;
-        return true;
-    }
-    return false;
-}
+
 
 void ResizeDeckVertically::serializeImpl(QDataStream& s) const
 {

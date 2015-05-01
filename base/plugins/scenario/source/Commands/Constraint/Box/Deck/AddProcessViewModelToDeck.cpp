@@ -35,11 +35,6 @@ void AddProcessViewModelToDeck::redo()
     deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, deck));
 }
 
-bool AddProcessViewModelToDeck::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void AddProcessViewModelToDeck::serializeImpl(QDataStream& s) const
 {
     s << m_deckPath << m_processPath << m_createdProcessViewId;

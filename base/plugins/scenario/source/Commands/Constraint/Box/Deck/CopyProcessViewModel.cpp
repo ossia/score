@@ -37,11 +37,6 @@ void CopyProcessViewModel::redo()
                             targetDeck));
 }
 
-bool CopyProcessViewModel::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void CopyProcessViewModel::serializeImpl(QDataStream& s) const
 {
     s << m_pvmPath << m_targetDeckPath << m_newProcessViewModelId;

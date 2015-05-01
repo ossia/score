@@ -51,21 +51,7 @@ void ResizeConstraint::redo()
     m_cmd->redo();
 }
 
-bool ResizeConstraint::mergeWith(const Command* other)
-{
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    delete m_cmd;
-    auto cmd = static_cast<const ResizeConstraint*>(other);
-    m_cmd = cmd->m_cmd;
-
-    m_cmd->m_oldDate = m_oldEndDate;
-
-    return true;;
-}
 
 void ResizeConstraint::serializeImpl(QDataStream& s) const
 {

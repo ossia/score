@@ -66,11 +66,6 @@ void CreateEventAfterEvent::redo()
                                scenar);
 }
 
-bool CreateEventAfterEvent::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path

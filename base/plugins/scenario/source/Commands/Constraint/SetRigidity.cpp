@@ -59,11 +59,6 @@ void SetRigidity::redo()
     }
 }
 
-bool SetRigidity::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void SetRigidity::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_rigidity << m_oldMinDuration << m_oldMaxDuration;

@@ -36,11 +36,6 @@ void CopyDeck::redo()
                                       targetBox});
 }
 
-bool CopyDeck::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void CopyDeck::serializeImpl(QDataStream& s) const
 {
     s << m_deckPath << m_targetBoxPath << m_newDeckId;

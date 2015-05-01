@@ -31,11 +31,6 @@ void EditData::redo()
     explorer->editData(m_nodePath, m_column, m_newValue, m_role);
 }
 
-bool EditData::mergeWith(const iscore::Command *other)
-{
-    return false;
-}
-
 void EditData::serializeImpl(QDataStream &d) const
 {
     d << m_deviceTree;

@@ -41,14 +41,15 @@ void BlacklistCommand::redo()
     s.setValue("PluginSettings/Blacklist", newList);
 }
 
+/*
 bool BlacklistCommand::mergeWith(const Command* other)
 {
     // TODO
-    /*
-    if(other->uid() != uid())   // make sure other is also an AppendText command
-    {
-        return false;
-    }*/
+
+    //if(other->uid() != uid())   // make sure other is also an AppendText command
+    //{
+    //    return false;
+    //}
 
     auto cmd = static_cast<const BlacklistCommand*>(other);
 
@@ -59,3 +60,4 @@ bool BlacklistCommand::mergeWith(const Command* other)
 
     return true;
 }
+*/

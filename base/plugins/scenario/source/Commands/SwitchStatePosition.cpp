@@ -11,11 +11,6 @@ void SwitchStatePosition::redo()
 {
 }
 
-bool SwitchStatePosition::mergeWith(const Command* other)
-{
-    return false;
-}
-
 void SwitchStatePosition::serializeImpl(QDataStream&) const
 {
 }

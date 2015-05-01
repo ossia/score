@@ -201,11 +201,6 @@ void AddDevice::redo()
     m_row = explorer->addDevice(node);
 }
 
-bool AddDevice::mergeWith(const iscore::Command* other)
-{
-    return false;
-}
-
 void AddDevice::serializeImpl(QDataStream& d) const
 {
     d << m_deviceTree;

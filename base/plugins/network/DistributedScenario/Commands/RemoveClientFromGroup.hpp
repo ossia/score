@@ -18,8 +18,6 @@ class RemoveClientFromGroup : public iscore::SerializableCommand
         virtual void undo() override;
         virtual void redo() override;
 
-        virtual bool mergeWith(const iscore::Command*) override;
-
         virtual void serializeImpl(QDataStream & s) const override;
         virtual void deserializeImpl(QDataStream & s) override;
 

@@ -43,19 +43,7 @@ void MoveTimeNode::redo()
     m_cmd->redo();
 }
 
-bool MoveTimeNode::mergeWith(const Command* other)
-{
-    // Maybe set m_mergeable = false at the end ?
-    if(other->uid() != uid())
-    {
-        return false;
-    }
 
-    auto otherMove = static_cast<const MoveTimeNode*>(other);
-    m_cmd->mergeWith(otherMove->m_cmd);
-
-    return true;
-}
 
 void MoveTimeNode::serializeImpl(QDataStream& s) const
 {
