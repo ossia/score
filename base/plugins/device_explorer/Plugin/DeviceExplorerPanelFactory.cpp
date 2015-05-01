@@ -6,13 +6,19 @@
 #include "PanelBase/DeviceExplorerPanelModel.hpp"
 #include "PanelBase/DeviceExplorerPanelPresenter.hpp"
 #include "PanelBase/DeviceExplorerPanelView.hpp"
+#include "PanelBase/DeviceExplorerPanelId.hpp"
 using namespace iscore;
 
-//@todo split this in multiple files.
 
+QString DeviceExplorerPanelFactory::panelName() const
+{
+    return "DeviceExplorer";
+}
 
-
-
+int DeviceExplorerPanelFactory::panelId() const
+{
+    return DEVICEEXPLORER_PANEL_ID;
+}
 
 iscore::PanelViewInterface* DeviceExplorerPanelFactory::makeView(iscore::View* parent)
 {

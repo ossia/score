@@ -4,7 +4,8 @@
 class GroupPanelFactory : public iscore::PanelFactoryInterface
 {
     public:
-        QString name() const override { return "GroupPanelModel"; }
+        int panelId() const override;
+        QString panelName() const override;
         virtual iscore::PanelViewInterface* makeView(iscore::View*) override;
         virtual iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
                                                                iscore::PanelViewInterface* view) override;

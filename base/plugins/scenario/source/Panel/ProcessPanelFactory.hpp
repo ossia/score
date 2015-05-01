@@ -4,7 +4,8 @@
 class ProcessPanelFactory : public iscore::PanelFactoryInterface
 {
     public:
-        QString name() const override { return "ProcessPanelModel"; }
+        int panelId() const override;
+        QString panelName() const override;
         iscore::PanelViewInterface*makeView(iscore::View* parent) override;
         iscore::PanelPresenterInterface*makePresenter(iscore::Presenter* parent_presenter,
                                                       iscore::PanelViewInterface* view) override;

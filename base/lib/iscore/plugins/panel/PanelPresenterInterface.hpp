@@ -23,7 +23,7 @@ namespace iscore
 
             virtual ~PanelPresenterInterface() = default;
 
-            // The name of the model. TODO use an id instead.
+            // An identifier that is to be shared between this and the panel model.
             virtual int panelId() const = 0;
 
             void setModel(PanelModelInterface* model)

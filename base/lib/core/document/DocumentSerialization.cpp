@@ -8,6 +8,12 @@
 #include <iscore/plugins/panel/PanelFactoryInterface.hpp>
 
 #include <iscore/plugins/panel/PanelModelInterface.hpp>
+
+#include <core/document/DocumentView.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <iscore/presenter/PresenterInterface.hpp>
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+
 #include <QCryptographicHash>
 using namespace iscore;
 // Document stuff
@@ -31,12 +37,24 @@ QJsonObject Document::saveDocumentModelAsJson()
 
 QJsonObject Document::saveAsJson()
 {
+    using namespace std;
     QJsonObject complete, json_panels, json_plugins;
+
+    auto panel_factories = iscore::IPresenter::panelFactories();
     for(const auto& panel : model()->panels())
     {
         Serializer<JSONObject> s;
         panel->serialize(s.toVariant());
-        json_panels[panel->objectName()] = s.m_obj;
+
+        // Find the factory corresponding to the panel model
+
+        auto factory = find_if(
+                           begin(panel_factories),
+                           end(panel_factories),
+                           [&] (iscore::PanelFactoryInterface* fact)
+        { return fact->panelId() == panel->panelId(); });
+        Q_ASSERT(factory != end(panel_factories));
+        json_panels[(*factory)->panelName()] = s.m_obj;
     }
 
     for(const auto& plugin : model()->pluginModels())
@@ -65,7 +83,7 @@ QByteArray Document::saveAsByteArray()
     auto docByteArray = saveDocumentModelAsByteArray();
 
     // Save the panels
-    QVector<QPair<QString, QByteArray>> panelModels;
+    QVector<QPair<int, QByteArray>> panelModels;
     std::transform(begin(model()->panels()),
                    end(model()->panels()),
                    std::back_inserter(panelModels),
@@ -75,8 +93,8 @@ QByteArray Document::saveAsByteArray()
         Serializer<DataStream> s{&arr};
         panel->serialize(s.toVariant());
 
-        return QPair<QString, QByteArray>{
-            panel->objectName(),
+        return QPair<int, QByteArray>{
+            panel->panelId(),
             arr};
     });
 
@@ -108,8 +126,6 @@ QByteArray Document::saveAsByteArray()
 
 
 // Load document
-#include <core/document/DocumentView.hpp>
-#include <core/document/DocumentPresenter.hpp>
 Document::Document(const QVariant& data,
                    DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
@@ -138,8 +154,6 @@ Document::Document(const QVariant& data,
 }
 
 
-#include <iscore/presenter/PresenterInterface.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 // Load document model
 DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
@@ -151,7 +165,8 @@ DocumentModel::DocumentModel(const QVariant& data,
     {
         // Deserialize the first parts
         QByteArray doc;
-        QVector<QPair<QString, QByteArray>> panelModels, documentPluginModels;
+        QVector<QPair<int, QByteArray>> panelModels;
+        QVector<QPair<QString, QByteArray>> documentPluginModels;
         QByteArray hash;
 
         QDataStream wr{data.toByteArray()};
@@ -177,7 +192,10 @@ DocumentModel::DocumentModel(const QVariant& data,
             DataStream::Deserializer plug_writer{plugin_raw.second};
             for(iscore::PluginControlInterface* control : plugin_control)
             {
-                if(auto loaded_plug = control->loadDocumentPlugin(plugin_raw.first, plug_writer.toVariant(), this))
+                if(auto loaded_plug = control->loadDocumentPlugin(
+                            plugin_raw.first,
+                            plug_writer.toVariant(),
+                            this))
                 {
                     addPluginModel(loaded_plug);
                 }
@@ -188,9 +206,11 @@ DocumentModel::DocumentModel(const QVariant& data,
         auto panel_factories = iscore::IPresenter::panelFactories();
         for(const auto& panel : panelModels)
         {
-            auto factory = *find_if(begin(panel_factories),
-                                   end(panel_factories),
-                                   [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == panel.first; });
+            auto factory = *find_if(
+                               begin(panel_factories),
+                               end(panel_factories),
+                               [&] (iscore::PanelFactoryInterface* fact)
+            { return fact->panelId() == panel.first; });
 
             // Note : here we handle the case where the plug-in is not able to
             // load data; generally because it is not useful (e.g. undo panel model...)
@@ -237,7 +257,8 @@ DocumentModel::DocumentModel(const QVariant& data,
         {
             auto factory_it = find_if(begin(factories),
                                    end(factories),
-                                   [&] (iscore::PanelFactoryInterface* fact) { return fact->name() == key; });
+                                   [&] (iscore::PanelFactoryInterface* fact)
+            { return fact->panelName() == key; });
             if(factory_it != end(factories))
             {
                 auto factory = *factory_it;

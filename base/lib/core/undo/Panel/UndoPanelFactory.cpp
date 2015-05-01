@@ -2,8 +2,19 @@
 #include "UndoPresenter.hpp"
 #include "UndoModel.hpp"
 #include "UndoView.hpp"
+#include "UndoPanelId.hpp"
 
 #include <core/view/View.hpp>
+
+int UndoPanelFactory::panelId() const
+{
+    return UNDO_PANEL_ID;
+}
+
+QString UndoPanelFactory::panelName() const
+{
+    return "Undo";
+}
 
 iscore::PanelViewInterface *UndoPanelFactory::makeView(iscore::View *v)
 {

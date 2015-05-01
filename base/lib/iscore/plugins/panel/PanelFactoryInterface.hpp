@@ -19,7 +19,8 @@ namespace iscore
     class PanelFactoryInterface
     {
         public:
-            virtual QString name() const = 0;
+            virtual QString panelName() const = 0;
+            virtual int panelId() const = 0;
 
             virtual ~PanelFactoryInterface() = default;
             virtual PanelViewInterface* makeView(

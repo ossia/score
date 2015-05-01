@@ -11,6 +11,8 @@ namespace iscore
             Q_OBJECT
         public:
             using NamedObject::NamedObject;
+
+            // An identifier that is to be shared between the panel presenter and this.
             virtual int panelId() const = 0;
 
             virtual void serialize(const VisitorVariant&) const {}

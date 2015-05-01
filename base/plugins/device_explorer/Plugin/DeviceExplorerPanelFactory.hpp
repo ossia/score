@@ -4,8 +4,8 @@
 class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
 {
     public:
-        //TODO removeme
-        QString name() const override { return "DeviceExplorerPanelModel"; }
+        int panelId() const override;
+        QString panelName() const override;
 
 
         iscore::PanelViewInterface* makeView(iscore::View*) override;
@@ -19,4 +19,5 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
         iscore::PanelModelInterface* loadModel(
                 const VisitorVariant& data,
                 iscore::DocumentModel* parent) override;
+
 };

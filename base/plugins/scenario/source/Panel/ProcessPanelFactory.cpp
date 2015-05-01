@@ -2,9 +2,20 @@
 #include "ProcessPanelModel.hpp"
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
+#include "ProcessPanelId.hpp"
 
 #include <core/view/View.hpp>
 #include <core/document/DocumentModel.hpp>
+
+int ProcessPanelFactory::panelId() const
+{
+    return PROCESS_PANEL_ID;
+}
+
+QString ProcessPanelFactory::panelName() const
+{
+    return "ProcessPanelModel";
+}
 
 iscore::PanelViewInterface*ProcessPanelFactory::makeView(iscore::View* parent)
 {

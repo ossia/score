@@ -2,9 +2,19 @@
 #include "InspectorPanelView.hpp"
 #include "InspectorPanelModel.hpp"
 #include "InspectorPanelPresenter.hpp"
-//#include <Interval/objectinterval.hpp>
+#include "InspectorPanelId.hpp"
 using namespace iscore;
 
+
+int InspectorPanelFactory::panelId() const
+{
+    return INSPECTOR_PANEL_ID;
+}
+
+QString InspectorPanelFactory::panelName() const
+{
+    return "Inspector";
+}
 
 iscore::PanelViewInterface* InspectorPanelFactory::makeView(iscore::View* parent)
 {
