@@ -125,6 +125,10 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
     connect(deckPres, &DeckPresenter::askUpdate,
             this,     &BoxPresenter::on_askUpdate);
 
+    connect(deckPres, &DeckPresenter::pressed, this, &BoxPresenter::pressed);
+    connect(deckPres, &DeckPresenter::moved, this, &BoxPresenter::moved);
+    connect(deckPres, &DeckPresenter::released, this, &BoxPresenter::released);
+
 
     // Set the correct view for the deck graphically if we're in a scenario
     auto scenario = dynamic_cast<TemporalScenarioPresenter*>(this->parent()->parent());

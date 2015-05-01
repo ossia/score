@@ -13,6 +13,7 @@
 #include "ProcessInterface/ProcessSharedModelInterface.hpp"
 
 #include "Document/Constraint/Box/BoxView.hpp"
+#include "DeckHandle.hpp"
 #include <QGraphicsScene>
 
 using namespace Scenario;
@@ -99,6 +100,7 @@ void DeckPresenter::enable()
     {
         pair.first->parentGeometryChanged();
     }
+    on_processViewModelSelected(m_model->editedProcessViewModel());
 
     m_enabled = true;
 }
@@ -109,6 +111,7 @@ void DeckPresenter::disable()
     for(auto& pair : m_processes)
     {
         pair.first->parentGeometryChanged();
+        pair.first->putBehind();
     }
 
     m_enabled = false;

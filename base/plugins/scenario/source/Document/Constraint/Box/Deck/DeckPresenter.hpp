@@ -40,6 +40,10 @@ class DeckPresenter : public NamedObject
     signals:
         void askUpdate();
 
+        void pressed(const QPointF&) const;
+        void moved(const QPointF&) const;
+        void released(const QPointF&) const;
+
     public slots:
         // From Model
         void on_processViewModelCreated(id_type<ProcessViewModelInterface> processId);

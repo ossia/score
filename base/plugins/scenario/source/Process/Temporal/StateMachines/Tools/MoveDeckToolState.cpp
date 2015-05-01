@@ -2,6 +2,8 @@
 #include "Commands/Constraint/Box/MoveDeck.hpp"
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
+#include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
+#include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"

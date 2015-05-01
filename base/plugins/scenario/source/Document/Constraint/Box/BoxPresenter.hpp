@@ -40,6 +40,11 @@ class BoxPresenter : public NamedObject
     signals:
         void askUpdate();
 
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
+
+
     public slots:
         void on_durationChanged(TimeValue duration);
         void on_deckCreated(id_type<DeckModel> deckId);
