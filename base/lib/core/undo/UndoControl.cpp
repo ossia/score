@@ -44,14 +44,13 @@ void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
                                        m_redoAction);
 }
 
-#include <QToolBar>
-QList<QToolBar*> iscore::UndoControl::makeToolbars()
+QList<OrderedToolbar> iscore::UndoControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addAction(m_undoAction);
     bar->addAction(m_redoAction);
 
-    return {bar};
+    return {{3, bar}};
 }
 
 void iscore::UndoControl::on_presenterChanged()

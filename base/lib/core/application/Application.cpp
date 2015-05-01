@@ -65,6 +65,11 @@ void Application::loadPluginData()
         m_presenter->registerPluginControl(cmd);
     }
 
+    std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
+    for(auto& toolbar : m_presenter->toolbars())
+    {
+        m_view->addToolBar(toolbar.bar);
+    }
     for(auto& pnl : m_pluginManager.m_panelList)
     {
         m_presenter->registerPanel(pnl);

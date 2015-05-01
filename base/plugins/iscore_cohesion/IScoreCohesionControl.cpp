@@ -100,11 +100,11 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 }
 
 #include <QToolBar>
-QList<QToolBar*> IScoreCohesionControl::makeToolbars()
+QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot, m_interp});
-    return {bar};
+    return {{2, bar}};
 }
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)

@@ -293,7 +293,7 @@ ScenarioStateMachine& ScenarioControl::stateMachine() const
     return static_cast<TemporalScenarioViewModel *>(model.focusedViewModel())->presenter()->stateMachine();
 }
 
-QList<QToolBar *> ScenarioControl::makeToolbars()
+QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     // TODO make a method of this
 
@@ -374,7 +374,7 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
     bar->addSeparator();
     bar->addActions(m_scenarioScaleModeActionGroup->actions());
 
-    return {bar};
+    return {{1, bar}};
 }
 
 

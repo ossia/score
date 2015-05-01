@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <core/presenter/Presenter.hpp>
+#include <iscore/widgets/OrderedToolbar.hpp>
 class QToolBar;
 
 namespace iscore
@@ -30,7 +31,7 @@ namespace iscore
             using NamedObject::NamedObject;
             virtual ~PluginControlInterface() = default;
             virtual void populateMenus(iscore::MenubarManager*) { }
-            virtual QList<QToolBar*> makeToolbars() { return {}; }
+            virtual QList<OrderedToolbar> makeToolbars() { return {}; }
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,

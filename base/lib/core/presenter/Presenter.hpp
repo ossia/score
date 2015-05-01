@@ -7,6 +7,8 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+#include <iscore/widgets/OrderedToolbar.hpp>
+
 namespace iscore
 {
     class SerializableCommand;
@@ -55,6 +57,10 @@ namespace iscore
             void loadBinary();
             void loadJson();
 
+            // Toolbars
+            QList<OrderedToolbar>& toolbars()
+            { return m_toolbars; }
+
             /**
              * @brief instantiateUndoCommand Is used to generate a Command from its serialized data.
              * @param parent_name The name of the object able to generate the command. Must be a CustomCommand.
@@ -96,5 +102,7 @@ namespace iscore
             // TODO instead put the factory as a member function?
             QList<QPair<PanelPresenterInterface*,
                         PanelFactoryInterface*>> m_panelPresenters;
+
+            QList<OrderedToolbar> m_toolbars;
     };
 }

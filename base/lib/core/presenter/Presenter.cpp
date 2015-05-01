@@ -44,9 +44,7 @@ void Presenter::registerPluginControl(PluginControlInterface* ctrl)
     ctrl->setPresenter(this);
 
     ctrl->populateMenus(&m_menubar);
-    auto bars = ctrl->makeToolbars();
-    for(auto& bar : bars)
-        m_view->addToolBar(bar);
+    m_toolbars += ctrl->makeToolbars();
 
     m_controls.push_back(ctrl);
 }
