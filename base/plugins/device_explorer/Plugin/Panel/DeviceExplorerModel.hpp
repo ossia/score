@@ -142,4 +142,3 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         DeviceExplorerCommandCreator* m_cmdCreator;
 };
-

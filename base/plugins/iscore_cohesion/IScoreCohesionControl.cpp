@@ -6,6 +6,7 @@
 #include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "../scenario/source/Document/Event/EventModel.hpp"
 #include "../scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
+#include "../scenario/source/Process/ScenarioModel.hpp"
 #include "Singletons/DeviceExplorerInterface.hpp"
 
 // TODO Refactor in order to use the Node data structure instead.
@@ -15,9 +16,11 @@
 
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
+#include "Commands/CreateCurveFromStates.hpp"
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <Execution/Execution.hpp>
+#include <QKeySequence>
 
 // TODO : snapshot : doit être un mode d'édition particulier
 // on enregistre l'état précédent et on crée les courbes correspondantes
@@ -26,9 +29,27 @@ using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
     iscore::PluginControlInterface {"IScoreCohesionControl", parent}
 {
-
     connect(&m_engine, &FakeEngine::currentTimeChanged,
             this, &IScoreCohesionControl::on_currentTimeChanged);
+
+    m_snapshot = new QAction {tr("Snapshot in Event"), this};
+    m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
+    m_snapshot->setShortcut(tr("Ctrl+J"));
+    connect(m_snapshot, &QAction::triggered,
+            this, &IScoreCohesionControl::snapshotParametersInEvents);
+
+    m_interp = new QAction {tr("Interpolate states"), this};
+    m_interp->setShortcutContext(Qt::ApplicationShortcut);
+    m_interp->setShortcut(tr("Ctrl+K"));
+    connect(m_interp, &QAction::triggered,
+            this, &IScoreCohesionControl::interpolateStates);
+
+    m_curves = new QAction {tr("Create Curves"), this};
+    m_curves->setShortcutContext(Qt::ApplicationShortcut);
+    m_curves->setShortcut(tr("Ctrl+L"));
+    connect(m_curves, &QAction::triggered,
+            this, &IScoreCohesionControl::createCurvesFromAddresses);
+
 }
 
 void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
@@ -36,20 +57,15 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     // If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
     // We can add an option in the menu to generate curves from the selected addresses
     // in the current constraint.
-    QAction* curvesFromAddresses = new QAction {tr("Create Curves"), this};
-    connect(curvesFromAddresses, &QAction::triggered,
-            this,				 &IScoreCohesionControl::createCurvesFromAddresses);
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       curvesFromAddresses);
-
-
-    QAction* snapshot = new QAction {tr("Snapshot in Event"), this};
-    connect(snapshot, &QAction::triggered,
-            this,     &IScoreCohesionControl::snapshotParametersInEvents);
+                                       m_curves);
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       snapshot);
+                                       m_snapshot);
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       m_interp);
 
 
     QAction* play = new QAction {tr("Play in 0.2 engine"), this};
@@ -70,7 +86,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        play);
 
-    QAction* play2 = new QAction {tr("Play in test engine"), this};
+    QAction* play2 = new QAction {tr("Fake execution"), this};
     connect(play2, &QAction::triggered,
             [&] ()
     {
@@ -83,12 +99,21 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
                                        play2);
 }
 
+#include <QToolBar>
+QList<QToolBar*> IScoreCohesionControl::makeToolbars()
+{
+    QToolBar* bar = new QToolBar;
+    bar->addActions({m_curves, m_snapshot, m_interp});
+    return {bar};
+}
+
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
     iscore::SerializableCommand* cmd{};
     if(false);
     else if(name == "CreateCurvesFromAddresses") cmd = new CreateCurvesFromAddresses;
     else if(name == "CreateCurvesFromAddressesInConstraints") cmd = new CreateCurvesFromAddressesInConstraints;
+    else if(name == "InterpolateMacro") cmd = new InterpolateMacro;
     else if(name == "CreateStatesFromParametersInEvents") cmd = new CreateStatesFromParametersInEvents;;
 
     if(!cmd)
@@ -97,6 +122,7 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
         return nullptr;
     }
 
+    // TODO the "deserialize" should be outside.
     cmd->deserialize(data);
     return cmd;
 }
@@ -140,6 +166,106 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 
         auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(constraint), l};
         macro.submitCommand(cmd);
+    }
+
+    macro.commit();
+}
+
+#include <DeviceExplorer/Node/Node.hpp>
+void IScoreCohesionControl::interpolateStates()
+{
+    using namespace std;
+    // Fetch the selected constraints
+    auto sel = currentDocument()->
+                 selectionStack().
+                   currentSelection();
+
+    QList<ConstraintModel*> selected_constraints;
+    for(auto obj : sel)
+    {
+        // TODO replace with a virtual Element::type() which will be faster.
+        if(auto cst = dynamic_cast<ConstraintModel*>(obj))
+        {
+            if(cst->selection.get() && dynamic_cast<ScenarioModel*>(cst->parent()))
+            {
+                selected_constraints.push_back(cst);
+            }
+        }
+    }
+
+    // For each constraint, interpolate between the states in its start event and end event.
+
+    // TODO maybe template it instead?
+    MacroCommandDispatcher macro{new InterpolateMacro,
+                                 currentDocument()->commandStack()};
+    // They should all be in the same scenario so we can select the first.
+    ScenarioModel* scenar =
+            selected_constraints.empty()
+            ? nullptr
+            : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
+
+    // Needed to get the min / max of the addresses
+    auto device_explorer = currentDocument()
+                           ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    for(auto& constraint : selected_constraints)
+    {
+        // TODO state collapsing if twice the same message ?
+        // Check the states similar between its start and end event
+        auto startEvent = scenar->event(constraint->startEvent());
+        auto endEvent = scenar->event(constraint->endEvent());
+
+        QList<Message> startMessages;
+        for(auto& state : startEvent->states())
+        {
+            if(state.data().canConvert<Message>())
+            {
+                startMessages.push_back(state.data().value<Message>());
+            }
+            else if(state.data().canConvert<MessageList>())
+            {
+                startMessages += state.data().value<MessageList>();
+            }
+        }
+
+        QList<Message> endMessages;
+        for(auto& state : endEvent->states())
+        {
+            if(state.data().canConvert<Message>())
+            {
+                endMessages.push_back(state.data().value<Message>());
+            }
+            else if(state.data().canConvert<MessageList>())
+            {
+                endMessages += state.data().value<MessageList>();
+            }
+        }
+
+        for(auto& message : startMessages)
+        {
+            auto it = std::find_if(begin(endMessages),
+                                   end(endMessages),
+                         [&] (const Message& arg) { return message.address == arg.address; });
+
+            if(it != end(endMessages))
+            {
+
+                auto splt = message.address.split("/");
+                splt.removeFirst();
+                Node* n = getNodeFromString(device_explorer->rootNode(),
+                           std::move(splt));
+                // We scale between 0 (min) and 1 (max)
+                auto amplitude = n->maxValue() - n->minValue();
+                auto cmd = new CreateCurveFromStates{
+                           iscore::IDocument::path(constraint),
+                           message.address,
+                           message.value.toDouble() / amplitude,
+                           (*it).value.toDouble() / amplitude};
+                macro.submitCommand(cmd);
+
+            }
+        }
+
+
     }
 
     macro.commit();

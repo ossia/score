@@ -7,6 +7,17 @@ class CreateCurvesFromAddressesInConstraints : public iscore::AggregateCommand
         CreateCurvesFromAddressesInConstraints():
             AggregateCommand{"IScoreCohesionControl",
                              "CreateCurvesFromAddressesInConstraints",
-                             "TODO"}
+                             "CreateCurvesFromAddressesInConstraints"}
+        { }
+};
+
+
+class InterpolateMacro : public iscore::AggregateCommand
+{
+    public:
+        InterpolateMacro():
+            AggregateCommand{"IScoreCohesionControl",
+                             "InterpolateMacro",
+                             "InterpolateMacro"}
         { }
 };

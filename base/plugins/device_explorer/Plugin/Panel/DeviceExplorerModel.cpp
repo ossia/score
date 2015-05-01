@@ -13,6 +13,7 @@
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
 
+
 using namespace DeviceExplorer::Command;
 
 enum

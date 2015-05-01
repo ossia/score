@@ -8,6 +8,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
     public:
         IScoreCohesionControl(QObject* parent);
         void populateMenus(iscore::MenubarManager*) override;
+        QList<QToolBar*> makeToolbars() override;
 
         iscore::SerializableCommand* instantiateUndoCommand(
                 const QString& name,
@@ -18,8 +19,13 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
 
         void createCurvesFromAddresses();
         void snapshotParametersInEvents();
+        void interpolateStates();
 
     private:
         FakeEngine m_engine;
         QTemporaryFile m_scoreFile;
+
+        QAction* m_snapshot{};
+        QAction* m_curves{};
+        QAction* m_interp{};
 };

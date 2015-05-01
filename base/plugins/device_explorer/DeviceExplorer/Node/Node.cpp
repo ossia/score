@@ -501,3 +501,22 @@ Node* makeNode(const AddressSettings &addressSettings)
 
     return node;
 }
+
+
+Node* getNodeFromString(Node* n, QStringList&& parts)
+{
+    if(parts.size() == 0)
+        return n;
+
+    for(auto child : n->children())
+    {
+        if(child->name() == parts[0])
+        {
+            parts.removeFirst();
+            return getNodeFromString(child, std::move(parts));
+        }
+    }
+
+    Q_ASSERT(false);
+}
+

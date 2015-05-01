@@ -5,7 +5,7 @@
 //#include <QStringList>
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
-#include "Common/AddressSettings/AddressSettings.hpp"
+#include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 /**
@@ -90,3 +90,5 @@ protected:
 };
 
 Node* makeNode(const AddressSettings& addressSettings);
+
+Node* getNodeFromString(Node* n, QStringList&& str);

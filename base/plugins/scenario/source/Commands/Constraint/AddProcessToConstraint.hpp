@@ -24,6 +24,8 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
+                const ObjectPath& constraintPath() const
+                { return m_path; }
                 id_type<ProcessSharedModelInterface> processId() const
                 {
                     return m_createdProcessId;
