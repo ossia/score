@@ -45,7 +45,9 @@ class ScenarioModel : public ProcessSharedModelInterface
                                            QObject* newParent) override;
 
         //// ProcessSharedModelInterface specifics ////
+        QByteArray makeViewModelConstructionData() const override;
         ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+                                                 const QByteArray& constructionData,
                                                  QObject* parent) override;
 
         ProcessViewModelInterface* cloneViewModel(id_type<ProcessViewModelInterface> newId,

@@ -27,6 +27,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         // using event_type = TemporalEventViewModel;
 
         TemporalScenarioViewModel(id_type<ProcessViewModelInterface> id,
+                                  QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> constraintIds,
                                   ScenarioModel* model,
                                   QObject* parent);
 

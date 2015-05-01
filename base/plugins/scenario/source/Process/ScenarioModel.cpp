@@ -49,23 +49,50 @@ ScenarioModel::ScenarioModel(ScenarioModel* source,
     m_endEventId = source->m_endEventId;
 }
 
-ProcessSharedModelInterface* ScenarioModel::clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)
+ProcessSharedModelInterface* ScenarioModel::clone(
+        id_type<ProcessSharedModelInterface> newId,
+        QObject* newParent)
 {
     return new ScenarioModel {this, newId, newParent};
 }
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                                                        QObject* parent)
+QByteArray ScenarioModel::makeViewModelConstructionData() const
 {
-    auto scen = new TemporalScenarioViewModel {viewModelId, this, parent};
+    // For all existing constraints we need to generate corresponding
+    // view models ids. One day we may need to do this for events / time nodes too.
+    QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> map;
+    QVector<id_type<AbstractConstraintViewModel>> vec;
+    for(const auto& constraint : m_constraints)
+    {
+        auto id = getStrongId(vec);
+        vec.push_back(id);
+        map.insert(constraint->id(), id);
+    }
+
+    QByteArray arr;
+    QDataStream s{&arr, QIODevice::WriteOnly};
+    s << map;
+    return arr;
+}
+
+ProcessViewModelInterface* ScenarioModel::makeViewModel(
+        id_type<ProcessViewModelInterface> viewModelId,
+        const QByteArray& constructionData,
+        QObject* parent)
+{
+    QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> map;
+    QDataStream s{constructionData};
+    s >> map;
+    auto scen = new TemporalScenarioViewModel {viewModelId, map, this, parent};
     makeViewModel_impl(scen);
     return scen;
 }
 
 
-ProcessViewModelInterface* ScenarioModel::cloneViewModel(id_type<ProcessViewModelInterface> newId,
-                                                        const ProcessViewModelInterface* source,
-                                                        QObject* parent)
+ProcessViewModelInterface* ScenarioModel::cloneViewModel(
+        id_type<ProcessViewModelInterface> newId,
+        const ProcessViewModelInterface* source,
+        QObject* parent)
 {
     auto scen = new TemporalScenarioViewModel{
                 static_cast<const TemporalScenarioViewModel*>(source),

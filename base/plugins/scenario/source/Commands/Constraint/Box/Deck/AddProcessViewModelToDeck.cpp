@@ -19,6 +19,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
 {
     auto deck = m_deckPath.find<DeckModel>();
     m_createdProcessViewId = getStrongId(deck->processViewModels());
+    m_processData = m_processPath.find<ProcessSharedModelInterface>()->makeViewModelConstructionData();
 }
 
 void AddProcessViewModelToDeck::undo()
@@ -32,15 +33,15 @@ void AddProcessViewModelToDeck::redo()
     auto deck = m_deckPath.find<DeckModel>();
     auto proc = m_processPath.find<ProcessSharedModelInterface>();
 
-    deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, deck));
+    deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, m_processData, deck));
 }
 
 void AddProcessViewModelToDeck::serializeImpl(QDataStream& s) const
 {
-    s << m_deckPath << m_processPath << m_createdProcessViewId;
+    s << m_deckPath << m_processPath << m_processData << m_createdProcessViewId;
 }
 
 void AddProcessViewModelToDeck::deserializeImpl(QDataStream& s)
 {
-    s >> m_deckPath >> m_processPath >> m_createdProcessViewId;
+    s >> m_deckPath >> m_processPath >> m_processData >> m_createdProcessViewId;
 }

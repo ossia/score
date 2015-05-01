@@ -7,18 +7,24 @@
 
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 
-TemporalScenarioViewModel::TemporalScenarioViewModel(id_type<ProcessViewModelInterface> viewModelId,
+TemporalScenarioViewModel::TemporalScenarioViewModel(
+        id_type<ProcessViewModelInterface> viewModelId,
+        QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> > constraintIds,
         ScenarioModel* model,
         QObject* parent) :
     AbstractScenarioViewModel {viewModelId,
                               "TemporalScenarioViewModel",
                               model,
-                              parent
-}
+                              parent}
 {
+    for(auto& key : constraintIds.keys())
+    {
+        makeConstraintViewModel(key, constraintIds.value(key));
+    }
 }
 
-TemporalScenarioViewModel::TemporalScenarioViewModel(const TemporalScenarioViewModel* source,
+TemporalScenarioViewModel::TemporalScenarioViewModel(
+        const TemporalScenarioViewModel* source,
         id_type<ProcessViewModelInterface> id,
         ScenarioModel* newScenario,
         QObject* parent) :

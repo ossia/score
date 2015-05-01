@@ -44,9 +44,16 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         virtual ~ProcessSharedModelInterface() = default;
 
         //// View models interface
+        // For deterministic operation in a command,
+        // we have to generate some data (like ids...) before making a new view model.
+        // This data is valid for construction only for the current state
+        // of the scenario.
+        virtual QByteArray makeViewModelConstructionData() const { return {}; }
+
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
         virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
+                                                         const QByteArray& constructionData,
                                                          QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.

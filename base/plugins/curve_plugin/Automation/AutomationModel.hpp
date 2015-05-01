@@ -36,6 +36,7 @@ class AutomationModel : public ProcessSharedModelInterface
 
         ProcessViewModelInterface* makeViewModel(
                 id_type<ProcessViewModelInterface> viewModelId,
+                const QByteArray& constructionData,
                 QObject* parent) override;
         ProcessViewModelInterface* loadViewModel(
                 const VisitorVariant&,

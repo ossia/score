@@ -80,12 +80,10 @@ void CopyConstraintContent::redo()
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)
         {
-            qDebug("scale");
             newproc->setDurationAndScale(trg_constraint->defaultDuration());
         }
         else
         {
-            qDebug("grow");
             newproc->setDurationAndGrow(trg_constraint->defaultDuration());
         }
     }

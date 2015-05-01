@@ -35,6 +35,7 @@ AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath,
 
     m_createdDeckId = id_type<DeckModel> (getNextId());
     m_createdProcessViewId = id_type<ProcessViewModelInterface> (getNextId());
+    m_processData = constraint->process(m_sharedProcessModelId)->makeViewModelConstructionData();
 }
 
 void AddProcessViewInNewDeck::undo()
@@ -82,15 +83,29 @@ void AddProcessViewInNewDeck::redo()
     auto deck = box->deck(m_createdDeckId);
     auto proc = constraint->process(m_sharedProcessModelId);
 
-    deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, deck));
+    deck->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, m_processData, deck));
 }
 
 void AddProcessViewInNewDeck::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_existingBox << m_processId << m_createdBoxId << m_createdDeckId << m_createdProcessViewId << m_sharedProcessModelId;
+    s << m_path
+      << m_existingBox
+      << m_processId
+      << m_createdBoxId
+      << m_createdDeckId
+      << m_createdProcessViewId
+      << m_sharedProcessModelId
+      << m_processData;
 }
 
 void AddProcessViewInNewDeck::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_existingBox >> m_processId >> m_createdBoxId >> m_createdDeckId >> m_createdProcessViewId >> m_sharedProcessModelId;
+    s >> m_path
+      >> m_existingBox
+      >> m_processId
+      >> m_createdBoxId
+      >> m_createdDeckId
+      >> m_createdProcessViewId
+      >> m_sharedProcessModelId
+      >> m_processData;
 }

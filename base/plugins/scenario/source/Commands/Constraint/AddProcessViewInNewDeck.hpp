@@ -49,6 +49,8 @@ namespace Scenario
                 id_type<DeckModel> m_createdDeckId {};
                 id_type<ProcessViewModelInterface> m_createdProcessViewId {};
                 id_type<ProcessSharedModelInterface> m_sharedProcessModelId {};
+
+                QByteArray m_processData;
         };
     }
 }

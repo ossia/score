@@ -33,6 +33,8 @@ namespace Scenario
                 ObjectPath m_deckPath;
                 ObjectPath m_processPath;
 
+                QByteArray m_processData;
+
                 id_type<ProcessViewModelInterface> m_createdProcessViewId {};
         };
     }
