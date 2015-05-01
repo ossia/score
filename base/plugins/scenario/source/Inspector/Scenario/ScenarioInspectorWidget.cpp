@@ -7,7 +7,9 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 
-ScenarioInspectorWidget::ScenarioInspectorWidget(ScenarioModel* object, QWidget* parent) :
+ScenarioInspectorWidget::ScenarioInspectorWidget(
+        const ScenarioModel* object,
+        QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
 {

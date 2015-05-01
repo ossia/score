@@ -25,7 +25,6 @@ class EventModel : public IdentifiedObject<EventModel>
         Q_OBJECT
 
     private:
-
         Q_PROPERTY(double heightPercentage
                    READ heightPercentage
                    WRITE setHeightPercentage
@@ -52,14 +51,14 @@ class EventModel : public IdentifiedObject<EventModel>
         ScenarioModel* parentScenario() const;
 
         /** The class **/
-        EventModel(id_type<EventModel>,
-                   id_type<TimeNodeModel> timenode,
+        EventModel(const id_type<EventModel>&,
+                   const id_type<TimeNodeModel>& timenode,
                    double yPos,
                    QObject* parent);
 
         // Copy
-        EventModel(EventModel* source,
-                   id_type<EventModel>,
+        EventModel(const EventModel* source,
+                   const id_type<EventModel>&,
                    QObject* parent);
 
         template<typename DeserializerVisitor>
@@ -72,33 +71,34 @@ class EventModel : public IdentifiedObject<EventModel>
         // Constraints
         const QVector<id_type<ConstraintModel>>& previousConstraints() const;
         const QVector<id_type<ConstraintModel>>& nextConstraints() const;
-        QVector<id_type<ConstraintModel> > constraints();
+        QVector<id_type<ConstraintModel> > constraints() const;
 
-        void addNextConstraint(id_type<ConstraintModel>);
-        void addPreviousConstraint(id_type<ConstraintModel>);
-        bool removeNextConstraint(id_type<ConstraintModel>);
-        bool removePreviousConstraint(id_type<ConstraintModel>);
+        void addNextConstraint(const id_type<ConstraintModel>&);
+        void addPreviousConstraint(const id_type<ConstraintModel>&);
+        bool removeNextConstraint(const id_type<ConstraintModel>&);
+        bool removePreviousConstraint(const id_type<ConstraintModel>&);
 
         // Timenode
-        void changeTimeNode(id_type<TimeNodeModel>);
-        id_type<TimeNodeModel> timeNode() const;
+        void changeTimeNode(const id_type<TimeNodeModel>&);
+        const id_type<TimeNodeModel>& timeNode() const;
 
         // States
         const StateList& states() const;
-        void replaceStates(StateList newStates);
+        void replaceStates(const StateList& newStates);
         void addState(const State& s);
         void removeState(const State& s);
 
         // Other properties
         double heightPercentage() const;
 
-        TimeValue date() const;
+        const TimeValue& date() const;
         void translate(const TimeValue& deltaTime);
 
         // TODO use a stronger type for the condition.
-        QString condition() const;
+        const QString& condition() const;
 
         auto& pluginModelList() { return *m_pluginModelList; }
+        const auto& pluginModelList() const { return *m_pluginModelList; }
 
     public slots:
         void setHeightPercentage(double arg);
@@ -109,7 +109,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void selectionChanged(bool);
         void heightPercentageChanged(double arg);
         void messagesChanged();
-        void conditionChanged(QString arg);
+        void conditionChanged(const QString& arg);
         void dateChanged();
 
     private:

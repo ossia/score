@@ -1,3 +1,3 @@
 #pragma once
 #include <QObject>
-using Selection = QObjectList;
+using Selection = QList<const QObject*>;

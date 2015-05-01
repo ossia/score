@@ -84,9 +84,6 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         void on_askUpdate();
 
-    private slots:
-        void addTimeNodeToEvent(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
-
     protected:
         // TODO faire passer l'abstract et utiliser des free functions de cast
         // TODO boost::multi_index_container
@@ -100,9 +97,9 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         TemporalScenarioView* m_view;
 
     private:
-        void on_eventCreated_impl(EventModel* event_model);
+        void on_eventCreated_impl(const EventModel& event_model);
         void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
-        void on_timeNodeCreated_impl(TimeNodeModel* timeNode_model);
+        void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
 
         ScenarioViewInterface* m_viewInterface{};
         ScenarioStateMachine m_sm;

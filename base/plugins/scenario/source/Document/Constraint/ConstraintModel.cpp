@@ -8,10 +8,11 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
-                                 id_type<AbstractConstraintViewModel> fullViewId,
-                                 double yPos,
-                                 QObject* parent) :
+ConstraintModel::ConstraintModel(
+        const id_type<ConstraintModel>& id,
+        const id_type<AbstractConstraintViewModel>& fullViewId,
+        double yPos,
+        QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
     m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, this, this}}
@@ -21,9 +22,10 @@ ConstraintModel::ConstraintModel(id_type<ConstraintModel> id,
     setHeightPercentage(yPos);
 }
 
-ConstraintModel::ConstraintModel(ConstraintModel* source,
-                                 id_type<ConstraintModel> id,
-                                 QObject* parent) :
+ConstraintModel::ConstraintModel(
+        const ConstraintModel* source,
+        const id_type<ConstraintModel>& id,
+        QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
@@ -110,7 +112,7 @@ void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
     emit processCreated(model->processName(), model->id());
 }
 
-void ConstraintModel::removeProcess(id_type<ProcessSharedModelInterface> processId)
+void ConstraintModel::removeProcess(const id_type<ProcessSharedModelInterface>& processId)
 {
     auto proc = process(processId);
     vec_erase_remove_if(m_processes,
@@ -135,7 +137,7 @@ void ConstraintModel::addBox(BoxModel* box)
 }
 
 
-void ConstraintModel::removeBox(id_type<BoxModel> boxId)
+void ConstraintModel::removeBox(const id_type<BoxModel>& boxId)
 {
     auto b = box(boxId);
     vec_erase_remove_if(m_boxes,
@@ -148,32 +150,33 @@ void ConstraintModel::removeBox(id_type<BoxModel> boxId)
     delete b;
 }
 
-id_type<EventModel> ConstraintModel::startEvent() const
+const id_type<EventModel>& ConstraintModel::startEvent() const
 {
     return m_startEvent;
 }
 
-id_type<EventModel> ConstraintModel::endEvent() const
+const id_type<EventModel>& ConstraintModel::endEvent() const
 {
     return m_endEvent;
 }
 
-void ConstraintModel::setStartEvent(id_type<EventModel> e)
+void ConstraintModel::setStartEvent(const id_type<EventModel>& e)
 {
     m_startEvent = e;
 }
 
-void ConstraintModel::setEndEvent(id_type<EventModel> e)
+void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
 {
     m_endEvent = e;
 }
 
-BoxModel* ConstraintModel::box(id_type<BoxModel> id) const
+BoxModel* ConstraintModel::box(const id_type<BoxModel>& id) const
 {
     return findById(m_boxes, id);
 }
 
-ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModelInterface> processId) const
+ProcessSharedModelInterface* ConstraintModel::process(
+        const id_type<ProcessSharedModelInterface>& processId) const
 {
     return findById(m_processes, processId);
 }
@@ -181,18 +184,18 @@ ProcessSharedModelInterface* ConstraintModel::process(id_type<ProcessSharedModel
 
 
 
-TimeValue ConstraintModel::startDate() const
+const TimeValue& ConstraintModel::startDate() const
 {
     return m_x;
 }
 
-void ConstraintModel::setStartDate(TimeValue start)
+void ConstraintModel::setStartDate(const TimeValue& start)
 {
     m_x = start;
     emit startDateChanged(start);
 }
 
-void ConstraintModel::translate(TimeValue deltaTime)
+void ConstraintModel::translate(const TimeValue& deltaTime)
 {
     setStartDate(m_x + deltaTime);
 }
@@ -222,22 +225,22 @@ void ConstraintModel::setHeightPercentage(double arg)
 
 
 
-TimeValue ConstraintModel::defaultDuration() const
+const TimeValue& ConstraintModel::defaultDuration() const
 {
     return m_defaultDuration;
 }
 
-TimeValue ConstraintModel::minDuration() const
+const TimeValue& ConstraintModel::minDuration() const
 {
     return m_minDuration;
 }
 
-TimeValue ConstraintModel::maxDuration() const
+const TimeValue& ConstraintModel::maxDuration() const
 {
     return m_maxDuration;
 }
 
-void ConstraintModel::setDefaultDuration(TimeValue arg)
+void ConstraintModel::setDefaultDuration(const TimeValue& arg)
 {
     if(m_defaultDuration != arg)
     {
@@ -246,7 +249,7 @@ void ConstraintModel::setDefaultDuration(TimeValue arg)
     }
 }
 
-void ConstraintModel::setMinDuration(TimeValue arg)
+void ConstraintModel::setMinDuration(const TimeValue& arg)
 {
     if(m_minDuration != arg)
     {
@@ -255,7 +258,7 @@ void ConstraintModel::setMinDuration(TimeValue arg)
     }
 }
 
-void ConstraintModel::setMaxDuration(TimeValue arg)
+void ConstraintModel::setMaxDuration(const TimeValue& arg)
 {
     if(m_maxDuration != arg)
     {

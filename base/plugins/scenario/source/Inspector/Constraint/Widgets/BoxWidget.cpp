@@ -117,7 +117,7 @@ void BoxWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstr
     });
 }
 
-void BoxWidget::setModel(ConstraintModel* m)
+void BoxWidget::setModel(const ConstraintModel* m)
 {
     m_model = m;
     viewModelsChanged();

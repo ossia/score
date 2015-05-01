@@ -21,7 +21,7 @@ void SelectionStack::push(const Selection& s)
 {
     if(s.toSet() != m_unselectable.top().toSet())
     {
-        for(QObject* obj : s)
+        for(const QObject* obj : s)
         {
             connect(obj,  &QObject::destroyed,
                     this, &SelectionStack::prune);

@@ -25,9 +25,11 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent = 0);
+        explicit ConstraintInspectorWidget(
+                const ConstraintModel* object,
+                QWidget* parent = 0);
 
-        ConstraintModel* model() const;
+        const ConstraintModel* model() const;
 
     public slots:
         void reloadDisplayedValues()
@@ -35,7 +37,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
             updateDisplayedValues(m_currentConstraint);
         }
 
-        void updateDisplayedValues(ConstraintModel* obj);
+        void updateDisplayedValues(const ConstraintModel* obj);
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(QString processName);
@@ -60,7 +62,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
     private:
         QWidget* makeEventWidget(ScenarioModel*);
-        ConstraintModel* m_currentConstraint {};
+        const ConstraintModel* m_currentConstraint {};
         QVector<QMetaObject::Connection> m_connections;
 
         InspectorSectionWidget* m_eventsSection {};

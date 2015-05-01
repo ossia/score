@@ -10,15 +10,15 @@ class EventPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        EventPresenter(EventModel* model,
+        EventPresenter(const EventModel& model,
                        QGraphicsObject* parentview,
                        QObject* parent);
         virtual ~EventPresenter();
 
-        id_type<EventModel> id() const;
+        const id_type<EventModel>& id() const;
 
         EventView* view() const;
-        EventModel* model() const;
+        const EventModel& model() const;
 
         bool isSelected() const;
 
@@ -33,7 +33,7 @@ class EventPresenter : public NamedObject
         void heightPercentageChanged();
 
     private:
-        EventModel* m_model {};
+        const EventModel& m_model;
         EventView* m_view {};
 };
 

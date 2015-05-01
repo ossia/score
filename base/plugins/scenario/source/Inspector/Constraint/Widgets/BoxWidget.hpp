@@ -21,14 +21,14 @@ class BoxWidget : public QWidget
 
         void viewModelsChanged();
         void updateComboBox(LambdaFriendlyQComboBox*, AbstractConstraintViewModel* vm);
-        void setModel(ConstraintModel*);
+        void setModel(const ConstraintModel*);
 
         static const QString hiddenText;
 
 
     private:
         QWidget* m_comboBoxesWidget{};
-        ConstraintModel* m_model {};
+        const ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
 
 };

@@ -3,9 +3,10 @@
 
 #include <Document/Constraint/ConstraintModel.hpp>
 
-InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(QObject* sourceElement,
-                                                            QWidget* parent)
+InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
+        const QObject* sourceElement,
+        QWidget* parent)
 {
-    auto constraint = static_cast<ConstraintModel*>(sourceElement);
+    auto constraint = static_cast<const ConstraintModel*>(sourceElement);
     return new ConstraintInspectorWidget{constraint, parent};
 }

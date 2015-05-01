@@ -7,7 +7,9 @@
 #include <QTextEdit>
 #include <QScrollArea>
 
-InspectorWidgetBase::InspectorWidgetBase(QObject* inspectedObj, QWidget* parent) :
+InspectorWidgetBase::InspectorWidgetBase(
+        const QObject* inspectedObj,
+        QWidget* parent) :
     QWidget(parent),
     _inspectedObject {inspectedObj},
     m_commandDispatcher(inspectedObj
@@ -86,12 +88,13 @@ void InspectorWidgetBase::addHeader(QWidget* header)
     _layout->insertWidget(0, header);
 }
 
-void InspectorWidgetBase::setInspectedObject(QObject* object)
+// TODO replace with const reference and prevent this.
+void InspectorWidgetBase::setInspectedObject(const QObject* object)
 {
     _inspectedObject = object;
 }
 
-QObject* InspectorWidgetBase::inspectedObject() const
+const QObject* InspectorWidgetBase::inspectedObject() const
 {
     return _inspectedObject;
 }

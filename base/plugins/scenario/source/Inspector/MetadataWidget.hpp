@@ -24,7 +24,11 @@ class MetadataWidget : public QWidget
         Q_OBJECT
 
     public:
-        explicit MetadataWidget(ModelMetadata* metadata, CommandDispatcher<>* m, QObject* docObject, QWidget* parent = 0);
+        explicit MetadataWidget(
+                const ModelMetadata* metadata,
+                CommandDispatcher<>* m,
+                const QObject* docObject,
+                QWidget* parent = 0);
 
         QString scriptingName() const;
 
@@ -78,7 +82,7 @@ class MetadataWidget : public QWidget
         void colorChanged(QColor arg);
 
     private:
-        ModelMetadata* m_metadata;
+        const ModelMetadata* m_metadata;
         CommandDispatcher<>* m_commandDispatcher;
 
         QLabel* m_typeLb {};

@@ -22,14 +22,20 @@ class CreationToolState : public GenericToolState
                 const id_type<EventModel>& createdEvent,
                 const id_type<TimeNodeModel>& createdTimeNode)
         {
-            auto collidingEvents = getCollidingModels(m_sm.presenter().events(), createdEvent, m_sm.scenePoint);
+            auto collidingEvents = getCollidingModels(
+                                       m_sm.presenter().events(),
+                                       createdEvent,
+                                       m_sm.scenePoint);
             if(!collidingEvents.empty())
             {
                 ev_fun(collidingEvents.first()->id());
                 return;
             }
 
-            auto collidingTimeNodes = getCollidingModels(m_sm.presenter().timeNodes(), createdTimeNode, m_sm.scenePoint);
+            auto collidingTimeNodes = getCollidingModels(
+                                          m_sm.presenter().timeNodes(),
+                                          createdTimeNode,
+                                          m_sm.scenePoint);
             if(!collidingTimeNodes.empty())
             {
                 tn_fun(collidingTimeNodes.first()->id());

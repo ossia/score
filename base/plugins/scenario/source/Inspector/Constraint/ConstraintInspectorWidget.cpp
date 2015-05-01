@@ -38,7 +38,9 @@ using namespace iscore::IDocument;
 
 
 
-ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QWidget* parent) :
+ConstraintInspectorWidget::ConstraintInspectorWidget(
+        const ConstraintModel* object,
+        QWidget* parent) :
     InspectorWidgetBase(object, parent)
 {
     setObjectName("Constraint");
@@ -125,12 +127,12 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(ConstraintModel* object, QW
     updateAreaLayout(m_properties);
 }
 
-ConstraintModel* ConstraintInspectorWidget::model() const
+const ConstraintModel* ConstraintInspectorWidget::model() const
 {
     return m_currentConstraint;
 }
 
-void ConstraintInspectorWidget::updateDisplayedValues(ConstraintModel* constraint)
+void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* constraint)
 {
     // Cleanup the widgets
     for(auto& process : m_processesSectionWidgets)

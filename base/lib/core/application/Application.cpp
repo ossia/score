@@ -24,6 +24,7 @@ Application::Application(int& argc, char** argv) :
     QCoreApplication::setApplicationName("i-score");
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
+    qRegisterMetaType<Selection>("Selection");
 
     // Settings
     m_settings = std::make_unique<Settings> (this);

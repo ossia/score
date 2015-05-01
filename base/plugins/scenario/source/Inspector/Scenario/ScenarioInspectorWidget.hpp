@@ -7,12 +7,12 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit ScenarioInspectorWidget(ScenarioModel* object,
+        explicit ScenarioInspectorWidget(const ScenarioModel* object,
                                          QWidget* parent);
 
     signals:
         void createViewInNewDeck(QString);
 
     private:
-        ScenarioModel* m_model {};
+        const ScenarioModel* m_model {};
 };

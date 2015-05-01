@@ -38,13 +38,13 @@ template<typename PresenterArray, typename IdToIgnore>
 auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const QPointF& scenePoint)
 {
     using namespace std;
-    QList<decltype(array[0]->model())> colliding;
+    QList<typename std::add_pointer<decltype(array[0]->model())>::type> colliding;
 
     for(const auto& elt : array)
     {
         if((!bool(id) || id != elt->id()) && isUnderMouse(elt->view(), scenePoint))
         {
-            colliding.push_back(elt->model());
+            colliding.push_back(&elt->model());
         }
     }
     // TODO sort the elements according to their Z pos.
@@ -80,7 +80,7 @@ class GenericToolState : public QState
             switch(pressedItem->type())
             {
                 case QGraphicsItem::UserType + 1:
-                    ev_fun(static_cast<const EventView*>(pressedItem)->presenter().model()->id());
+                    ev_fun(static_cast<const EventView*>(pressedItem)->presenter().model().id());
                     break;
 
                 case QGraphicsItem::UserType + 2:
@@ -88,7 +88,7 @@ class GenericToolState : public QState
                     break;
 
                 case QGraphicsItem::UserType + 3:
-                    tn_fun(static_cast<const TimeNodeView*>(pressedItem)->presenter().model()->id());
+                    tn_fun(static_cast<const TimeNodeView*>(pressedItem)->presenter().model().id());
                     break;
 
                 default:

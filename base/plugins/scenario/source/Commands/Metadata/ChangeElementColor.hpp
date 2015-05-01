@@ -36,13 +36,13 @@ namespace Scenario
 
                 virtual void undo() override
                 {
-                    auto obj = m_path.find<T>();
+                    auto obj = m_path.find<typename std::remove_const<T>::type>();
                     obj->metadata.setColor(m_oldColor);
                 }
 
                 virtual void redo() override
                 {
-                    auto obj = m_path.find<T>();
+                    auto obj = m_path.find<typename std::remove_const<T>::type>();
                     obj->metadata.setColor(m_newColor);
                 }
 

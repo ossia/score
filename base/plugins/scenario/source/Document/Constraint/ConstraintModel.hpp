@@ -108,15 +108,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 
         /** The class **/
-        ConstraintModel(id_type<ConstraintModel>,
-                        id_type<AbstractConstraintViewModel> fullViewId,
+        ConstraintModel(const id_type<ConstraintModel>&,
+                        const id_type<AbstractConstraintViewModel>& fullViewId,
                         double yPos,
                         QObject* parent);
 
 
         // Copy
-        ConstraintModel(ConstraintModel* source,
-                        id_type<ConstraintModel> id,
+        ConstraintModel(const ConstraintModel* source,
+                        const id_type<ConstraintModel>& id,
                         QObject* parent);
 
         // Serialization
@@ -141,19 +141,20 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         // Sub-element creation
         void addProcess(ProcessSharedModelInterface*);
-        void removeProcess(id_type<ProcessSharedModelInterface> processId);
+        void removeProcess(const id_type<ProcessSharedModelInterface>& processId);
 
         void addBox(BoxModel*);
-        void removeBox(id_type<BoxModel> boxId);
+        void removeBox(const id_type<BoxModel>& boxId);
 
-        id_type<EventModel> startEvent() const;
-        id_type<EventModel> endEvent() const;
-        void setStartEvent(id_type<EventModel> eventId);  // Use ScenarioKey?
-        void setEndEvent(id_type<EventModel> eventId);  // Use ScenarioKey?
+        const id_type<EventModel>& startEvent() const;
+        const id_type<EventModel>& endEvent() const;
+        void setStartEvent(const id_type<EventModel>& eventId);
+        void setEndEvent(const id_type<EventModel>& eventId);
 
 
-        BoxModel* box(id_type<BoxModel> id) const;
-        ProcessSharedModelInterface* process(id_type<ProcessSharedModelInterface> processId) const;
+        BoxModel* box(const id_type<BoxModel>& id) const;
+        ProcessSharedModelInterface* process(
+                const id_type<ProcessSharedModelInterface>& processId) const;
 
         // Copies are done because there might be a loop
         // that might change the vector, and invalidate the
@@ -169,15 +170,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         const QVector<AbstractConstraintViewModel*>& viewModels() const
         { return m_constraintViewModels; }
 
-        TimeValue startDate() const;
-        void setStartDate(TimeValue start);
-        void translate(TimeValue deltaTime);
+        const TimeValue& startDate() const;
+        void setStartDate(const TimeValue& start);
+        void translate(const TimeValue& deltaTime);
 
         double heightPercentage() const;
 
-        TimeValue defaultDuration() const;
-        TimeValue minDuration() const;
-        TimeValue maxDuration() const;
+        const TimeValue& defaultDuration() const;
+        const TimeValue& minDuration() const;
+        const TimeValue& maxDuration() const;
 
         FullViewConstraintViewModel* fullView() const
         {
@@ -186,7 +187,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void setFullView(FullViewConstraintViewModel* fv);
 
-        TimeValue playDuration() const
+        const TimeValue& playDuration() const
         {
             return m_playDuration;
         }
@@ -197,36 +198,38 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         }
 
         iscore::ElementPluginModelList& pluginModelList() { return *m_pluginModelList; }
+        const iscore::ElementPluginModelList& pluginModelList() const { return *m_pluginModelList; }
 
     signals:
-        void processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
-        void processRemoved(id_type<ProcessSharedModelInterface> processId);
+        void processCreated(const QString& processName,
+                            const id_type<ProcessSharedModelInterface>& processId);
+        void processRemoved(const id_type<ProcessSharedModelInterface>& processId);
 
-        void boxCreated(id_type<BoxModel> boxId);
-        void boxRemoved(id_type<BoxModel> boxId);
+        void boxCreated(const id_type<BoxModel>& boxId);
+        void boxRemoved(const id_type<BoxModel>& boxId);
 
-        void viewModelCreated(id_type<AbstractConstraintViewModel>);
-        void viewModelRemoved(id_type<AbstractConstraintViewModel>);
+        void viewModelCreated(const id_type<AbstractConstraintViewModel>&);
+        void viewModelRemoved(const id_type<AbstractConstraintViewModel>&);
 
         void heightPercentageChanged(double arg);
 
-        void defaultDurationChanged(TimeValue arg);
-        void minDurationChanged(TimeValue arg);
-        void maxDurationChanged(TimeValue arg);
-        void startDateChanged(TimeValue arg);
+        void defaultDurationChanged(const TimeValue& arg);
+        void minDurationChanged(const TimeValue& arg);
+        void maxDurationChanged(const TimeValue& arg);
+        void startDateChanged(const TimeValue& arg);
 
-        void playDurationChanged(TimeValue arg);
+        void playDurationChanged(const TimeValue& arg);
 
         void rigidityChanged(bool arg);
 
     public slots:
         void setHeightPercentage(double arg);
 
-        void setDefaultDuration(TimeValue defaultDuration);
-        void setMinDuration(TimeValue arg);
-        void setMaxDuration(TimeValue arg);
+        void setDefaultDuration(const TimeValue& defaultDuration);
+        void setMinDuration(const TimeValue& arg);
+        void setMaxDuration(const TimeValue& arg);
 
-        void setPlayDuration(TimeValue arg)
+        void setPlayDuration(const TimeValue& arg)
         {
             if (m_playDuration == arg)
                 return;

@@ -3,7 +3,9 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-AutomationStateInspector::AutomationStateInspector(AutomationState* object, QWidget* parent):
+AutomationStateInspector::AutomationStateInspector(
+        const AutomationState* object,
+        QWidget* parent):
     InspectorWidgetBase{nullptr, parent}, // NOTE: this will crash if trying to send commands
     m_state{object},
     m_label{new QLabel}

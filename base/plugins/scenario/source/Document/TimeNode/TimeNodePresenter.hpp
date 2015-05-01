@@ -12,31 +12,32 @@ class TimeNodePresenter :  public NamedObject
 {
         Q_OBJECT
     public:
-        explicit TimeNodePresenter(TimeNodeModel* model,
-                                   QGraphicsObject* parentview,
-                                   QObject* parent);
+        TimeNodePresenter(const TimeNodeModel& model,
+                          QGraphicsObject* parentview,
+                          QObject* parent);
         ~TimeNodePresenter();
 
-        id_type<TimeNodeModel> id() const;
+        const id_type<TimeNodeModel>& id() const;
         int32_t id_val() const
         {
             return *id().val();
         }
 
-        TimeNodeModel* model() const;
+        const TimeNodeModel& model() const;
         TimeNodeView* view() const;
+
+        void on_eventAdded(const id_type<EventModel>& eventId);
 
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
         void released(const QPointF&);
 
-        void eventAdded(id_type<EventModel> eventId, id_type<TimeNodeModel> timeNodeId);
+        void eventAdded(const id_type<EventModel>& eventId,
+                        const id_type<TimeNodeModel>& timeNodeId);
 
-    public slots:
-        void on_eventAdded(id_type<EventModel> eventId);
 
     private:
-        TimeNodeModel* m_model {};
+        const TimeNodeModel& m_model;
         TimeNodeView* m_view {};
 };

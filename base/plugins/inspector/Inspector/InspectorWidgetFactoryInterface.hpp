@@ -33,5 +33,5 @@ class InspectorWidgetFactoryInterface : public iscore::FactoryInterface
         * @param sourceElement Element from which an inspector widget is to be made
         * @return An inspector widget corresponding to the object.
         */
-        virtual InspectorWidgetBase* makeWidget(QObject* sourceElement, QWidget* parent) = 0;
+        virtual InspectorWidgetBase* makeWidget(const QObject* sourceElement, QWidget* parent) = 0;
 };

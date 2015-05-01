@@ -60,7 +60,7 @@ class ScenarioModel : public ProcessSharedModelInterface
 
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
-        void setSelection(const Selection& s) override;
+        void setSelection(const Selection& s) const override;
 
         QString processName() const override
         { return "Scenario"; }

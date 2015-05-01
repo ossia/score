@@ -4,10 +4,11 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 
-EventModel::EventModel(id_type<EventModel> id,
-                       id_type<TimeNodeModel> timenode,
-                       double yPos,
-                       QObject* parent):
+EventModel::EventModel(
+        const id_type<EventModel>& id,
+        const id_type<TimeNodeModel>& timenode,
+        double yPos,
+        QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
     m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
     m_timeNode{timenode},
@@ -16,8 +17,8 @@ EventModel::EventModel(id_type<EventModel> id,
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
-EventModel::EventModel(EventModel* source,
-                       id_type<EventModel> id,
+EventModel::EventModel(const EventModel* source,
+                       const id_type<EventModel>& id,
                        QObject* parent) :
     EventModel {id,
                 source->timeNode(),
@@ -44,17 +45,17 @@ const QVector<id_type<ConstraintModel>>& EventModel::nextConstraints() const
     return m_nextConstraints;
 }
 
-QVector<id_type<ConstraintModel> > EventModel::constraints()
+QVector<id_type<ConstraintModel> > EventModel::constraints() const
 {
     return m_previousConstraints + m_nextConstraints;
 }
 
-void EventModel::addNextConstraint(id_type<ConstraintModel> constraint)
+void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 {
     m_nextConstraints.push_back(constraint);
 }
 
-void EventModel::addPreviousConstraint(id_type<ConstraintModel> constraint)
+void EventModel::addPreviousConstraint(const id_type<ConstraintModel>& constraint)
 {
     m_previousConstraints.push_back(constraint);
 }
@@ -72,22 +73,22 @@ bool removeConstraint(Vec& constraints, const id_type<ConstraintModel>& constrai
     return false;
 }
 
-bool EventModel::removeNextConstraint(id_type<ConstraintModel> constraintToDelete)
+bool EventModel::removeNextConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
     return removeConstraint(m_nextConstraints, constraintToDelete);
 }
 
-bool EventModel::removePreviousConstraint(id_type<ConstraintModel> constraintToDelete)
+bool EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
     return removeConstraint(m_previousConstraints, constraintToDelete);
 }
 
-void EventModel::changeTimeNode(id_type<TimeNodeModel> newTimeNodeId)
+void EventModel::changeTimeNode(const id_type<TimeNodeModel>& newTimeNodeId)
 {
     m_timeNode = newTimeNodeId;
 }
 
-id_type<TimeNodeModel> EventModel::timeNode() const
+const id_type<TimeNodeModel>& EventModel::timeNode() const
 {
     return m_timeNode;
 }
@@ -97,7 +98,7 @@ double EventModel::heightPercentage() const
     return m_heightPercentage;
 }
 
-TimeValue EventModel::date() const
+const TimeValue& EventModel::date() const
 {
     return m_date;
 }
@@ -122,7 +123,7 @@ ScenarioModel* EventModel::parentScenario() const
     return dynamic_cast<ScenarioModel*>(parent());
 }
 
-QString EventModel::condition() const
+const QString& EventModel::condition() const
 {
     return m_condition;
 }
@@ -132,7 +133,7 @@ const StateList& EventModel::states() const
     return m_states;
 }
 
-void EventModel::replaceStates(StateList newStates)
+void EventModel::replaceStates(const StateList& newStates)
 {
     m_states = newStates;
 }

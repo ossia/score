@@ -12,6 +12,8 @@
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp"
 #include "Widgets/ProgressBar.hpp"
 
+#include <ProcessInterface/ProcessViewModelInterface.hpp>
+
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
 
@@ -60,7 +62,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this, [&] () { view()->view()->setFocus(); });
 }
 
-ConstraintModel* BaseElementPresenter::displayedConstraint() const
+const ConstraintModel* BaseElementPresenter::displayedConstraint() const
 {
     return m_displayedConstraint;
 }
@@ -74,7 +76,7 @@ void BaseElementPresenter::selectAll()
 {
     if(model()->focusedViewModel())
     {
-        m_selectionDispatcher.setAndCommit(model()->focusedProcess()->selectableChildren());
+        m_selectionDispatcher.setAndCommit(model()->focusedViewModel()->sharedProcessModel()->selectableChildren());
     }
 }
 
@@ -92,7 +94,7 @@ void BaseElementPresenter::setDisplayedObject(ObjectPath path)
     }
 }
 
-void BaseElementPresenter::setDisplayedConstraint(ConstraintModel* c)
+void BaseElementPresenter::setDisplayedConstraint(const ConstraintModel* c)
 {
     if(c && c != m_displayedConstraint)
     {
@@ -170,7 +172,7 @@ void BaseElementPresenter::on_newSelection(Selection sel)
     }
     else
     {
-        if(auto cstr = dynamic_cast<ConstraintModel*>(sel.at(0)) )
+        if(auto cstr = dynamic_cast<const ConstraintModel*>(sel.at(0)) )
         {
             m_localTimeRuler->setDuration(cstr->defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());

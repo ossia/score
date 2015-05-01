@@ -143,10 +143,10 @@ void IScoreCohesionControl::createCurvesFromAddresses()
                  selectionStack().
                    currentSelection();
 
-    QList<ConstraintModel*> selected_constraints;
+    QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
     {
-        if(auto cst = dynamic_cast<ConstraintModel*>(obj))
+        if(auto cst = dynamic_cast<const ConstraintModel*>(obj))
             if(cst->selection.get())
                 selected_constraints.push_back(cst);
     }
@@ -181,11 +181,11 @@ void IScoreCohesionControl::interpolateStates()
                  selectionStack().
                    currentSelection();
 
-    QList<ConstraintModel*> selected_constraints;
+    QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
     {
         // TODO replace with a virtual Element::type() which will be faster.
-        if(auto cst = dynamic_cast<ConstraintModel*>(obj))
+        if(auto cst = dynamic_cast<const ConstraintModel*>(obj))
         {
             if(cst->selection.get() && dynamic_cast<ScenarioModel*>(cst->parent()))
             {
@@ -282,10 +282,10 @@ void IScoreCohesionControl::snapshotParametersInEvents()
                  selectionStack().
                    currentSelection();
 
-    QList<EventModel*> selected_events;
+    QList<const EventModel*> selected_events;
     for(auto obj : sel)
     {
-        if(auto ev = dynamic_cast<EventModel*>(obj))
+        if(auto ev = dynamic_cast<const EventModel*>(obj))
             if(ev->selection.get()) // TODO this should not be necessary?
                 selected_events.push_back(ev);
     }

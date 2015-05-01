@@ -36,13 +36,13 @@ void ScenarioViewInterface::on_eventMoved(id_type<EventModel> eventId)
     auto rect = m_presenter->m_view->boundingRect();
     auto ev = findById(m_presenter->m_events, eventId);
 
-    ev->view()->setPos({(ev->model()->date().msec() / m_presenter->m_zoomRatio),
-                        rect.height() * ev->model()->heightPercentage()
+    ev->view()->setPos({(ev->model().date().msec() / m_presenter->m_zoomRatio),
+                        rect.height() * ev->model().heightPercentage()
                        });
 
-    auto timeNode = findById(m_presenter->m_timeNodes, ev->model()->timeNode());
-    timeNode->view()->setPos({(timeNode->model()->date().msec() / m_presenter->m_zoomRatio),
-                              rect.height() * timeNode->model()->y()});
+    auto timeNode = findById(m_presenter->m_timeNodes, ev->model().timeNode());
+    timeNode->view()->setPos({(timeNode->model().date().msec() / m_presenter->m_zoomRatio),
+                              rect.height() * timeNode->model().y()});
 
     updateTimeNode(timeNode->id());
     m_presenter->m_view->update();
@@ -79,10 +79,12 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
                                     cstr_model->maxDuration().isInfinite()? -1 :
                                         cstr_model->maxDuration().toPixels(msPerPixel));
 
-            auto endTimeNode = findById(m_presenter->m_events, cstr_model->endEvent())->model()->timeNode();
+            auto endTimeNode = findById(m_presenter->m_events,
+                                        cstr_model->endEvent())->model().timeNode();
             updateTimeNode(endTimeNode);
 
-            auto startTimeNode = findById(m_presenter->m_events, cstr_model->startEvent())->model()->timeNode();
+            auto startTimeNode = findById(m_presenter->m_events,
+                                          cstr_model->startEvent())->model().timeNode();
             updateTimeNode(startTimeNode);
             break;
         }
@@ -106,10 +108,10 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
     double min = 1.0;
     double max = 0.0;
 
-    for(const auto& eventId : timeNode->model()->events())
+    for(const auto& eventId : timeNode->model().events())
     {
         auto event = findById(m_presenter->m_events, eventId);
-        double y = event->model()->heightPercentage();
+        double y = event->model().heightPercentage();
 
         update_min_max(y, min, max);
 
@@ -117,7 +119,7 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
         {
             ConstraintModel* cstr_model{cstr_pres->model()};
 
-            auto constraints = event->model()->previousConstraints() + event->model()->nextConstraints();
+            auto constraints = event->model().previousConstraints() + event->model().nextConstraints();
             for(const auto& cstrId : constraints)
             {
                 if(cstr_model->id() == cstrId)
@@ -131,8 +133,8 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
     }
 
-    min -= timeNode->model()->y();
-    max -= timeNode->model()->y();
+    min -= timeNode->model().y();
+    max -= timeNode->model().y();
 
     timeNode->view()->setExtremities(int (rect.height() * min), int (rect.height() * max));
 }
@@ -148,8 +150,8 @@ void ScenarioViewInterface::on_hoverOnConstraint(id_type<ConstraintModel> constr
 
 void ScenarioViewInterface::on_hoverOnEvent(id_type<EventModel> eventId, bool enter)
 {
-    auto event = findById(m_presenter->m_events, eventId)->model();
-    for (const auto& cstr : event->constraints())
+    const auto& event = findById(m_presenter->m_events, eventId)->model();
+    for (const auto& cstr : event.constraints())
     {
         auto cstrView = view(findById(m_presenter->m_constraints, cstr));
         cstrView->setShadow(enter);

@@ -33,13 +33,13 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
                              iscore::DocumentDelegateViewInterface* view);
         virtual ~BaseElementPresenter() = default;
 
-        ConstraintModel* displayedConstraint() const;
+        const ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
 
         // The height in pixels of the displayed constraint with its box.
         double height() const;
     public slots:
-        void setDisplayedConstraint(ConstraintModel*);
+        void setDisplayedConstraint(const ConstraintModel*);
         void setDisplayedObject(ObjectPath);
 
         void on_askUpdate();
@@ -69,7 +69,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         BaseElementView* view() const;
         FullViewConstraintPresenter* m_displayedConstraintPresenter {};
 
-        ConstraintModel* m_displayedConstraint {};
+        const ConstraintModel* m_displayedConstraint {};
         iscore::SelectionDispatcher m_selectionDispatcher;
 
         ProgressBar* m_progressBar{};

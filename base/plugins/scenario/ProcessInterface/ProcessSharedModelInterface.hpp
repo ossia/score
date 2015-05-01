@@ -120,7 +120,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         /// Selection
         virtual Selection selectableChildren() const = 0;
         virtual Selection selectedChildren() const = 0;
-        virtual void setSelection(const Selection& s) = 0;
+        virtual void setSelection(const Selection& s) const = 0;
 
         // protected:
         virtual void serialize(const VisitorVariant& vis) const = 0;
@@ -163,17 +163,33 @@ QVector<typename T::view_model_type*> viewModels(T* processModel)
 
 inline ProcessSharedModelInterface* parentProcess(QObject* obj)
 {
-    QString objName {obj ? obj->objectName() : "INVALID"};
-                     while(obj && !obj->inherits("ProcessSharedModelInterface"))
-                     {
-                         obj = obj->parent();
-                     }
+    QString objName (obj ? obj->objectName() : "INVALID");
+    while(obj && !obj->inherits("ProcessSharedModelInterface"))
+    {
+        obj = obj->parent();
+    }
 
-                                  if(!obj)
-                                      throw std::runtime_error(
-                                              QString("Object (name: %1) is not child of a Process!")
-                                              .arg(objName)
-                                              .toStdString());
+    if(!obj)
+        throw std::runtime_error(
+                QString("Object (name: %1) is not child of a Process!")
+                .arg(objName)
+                .toStdString());
 
-                                  return static_cast<ProcessSharedModelInterface*>(obj);
-                    }
+    return static_cast<ProcessSharedModelInterface*>(obj);
+}
+inline const ProcessSharedModelInterface* parentProcess(const QObject* obj)
+{
+    QString objName (obj ? obj->objectName() : "INVALID");
+    while(obj && !obj->inherits("ProcessSharedModelInterface"))
+    {
+        obj = obj->parent();
+    }
+
+    if(!obj)
+        throw std::runtime_error(
+                QString("Object (name: %1) is not child of a Process!")
+                .arg(objName)
+                .toStdString());
+
+    return static_cast<const ProcessSharedModelInterface*>(obj);
+}

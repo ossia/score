@@ -44,7 +44,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         }
 
         TimeNodeModel(
-                TimeNodeModel* source,
+                const TimeNodeModel* source,
                 const id_type<TimeNodeModel>& id,
                 QObject* parent);
 

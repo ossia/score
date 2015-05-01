@@ -7,8 +7,9 @@ class AutomationInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit AutomationInspectorWidget(AutomationModel* object,
-                                           QWidget* parent);
+        explicit AutomationInspectorWidget(
+                const AutomationModel* object,
+                QWidget* parent);
 
     public slots:
         void on_addressChange(const QString& newText);
@@ -18,5 +19,5 @@ class AutomationInspectorWidget : public InspectorWidgetBase
 
     private:
         QLineEdit* m_lineEdit{};
-        AutomationModel* m_model {};
+        const AutomationModel* m_model {};
 };

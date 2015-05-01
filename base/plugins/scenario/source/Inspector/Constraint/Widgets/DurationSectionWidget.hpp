@@ -30,7 +30,7 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 
     private:
-        ConstraintModel* m_model {};
+        const ConstraintModel* m_model {};
         ConstraintInspectorWidget* m_parent {};
 
         QTimeEdit* m_minSpin{};

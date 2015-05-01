@@ -36,11 +36,6 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ProcessViewModelInterface* focusedViewModel() const
         { return m_focusedViewModel; }
 
-        ProcessSharedModelInterface* focusedProcess() const
-        { return m_focusedProcess; }
-
-
-
 
         void setNewSelection(const Selection& s) override;
         void setDisplayedConstraint(ConstraintModel*);
@@ -58,6 +53,6 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
         // The process that contains the current selection.
         ProcessViewModelInterface* m_focusedViewModel{};
-        ProcessSharedModelInterface* m_focusedProcess{};
+        const ProcessSharedModelInterface* m_focusedProcess{};
 };
 

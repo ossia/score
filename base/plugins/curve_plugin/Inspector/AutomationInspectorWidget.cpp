@@ -15,8 +15,9 @@
 
 #include <QApplication>
 
-AutomationInspectorWidget::AutomationInspectorWidget(AutomationModel* automationModel,
-                                                     QWidget* parent) :
+AutomationInspectorWidget::AutomationInspectorWidget(
+        const AutomationModel* automationModel,
+        QWidget* parent) :
     InspectorWidgetBase {automationModel, parent},
     m_model {automationModel}
 {

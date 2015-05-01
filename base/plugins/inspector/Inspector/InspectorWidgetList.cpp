@@ -8,8 +8,8 @@ InspectorWidgetList::InspectorWidgetList(QObject* parent):
 {
 }
 
-InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(QString name,
-                                                              QObject* model,
+InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(const QString& name,
+                                                              const QObject* model,
                                                               QWidget* parent)
 {
     auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");

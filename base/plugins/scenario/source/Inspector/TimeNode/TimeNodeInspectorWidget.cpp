@@ -20,7 +20,9 @@
 using namespace Scenario::Command;
 
 
-TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget* parent) :
+TimeNodeInspectorWidget::TimeNodeInspectorWidget(
+        const TimeNodeModel* object,
+        QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
 {
@@ -70,7 +72,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(TimeNodeModel* object, QWidget*
 }
 
 
-void TimeNodeInspectorWidget::updateDisplayedValues(TimeNodeModel* timeNode)
+void TimeNodeInspectorWidget::updateDisplayedValues(const TimeNodeModel* timeNode)
 {
     // Cleanup
     for(auto& elt : m_events)

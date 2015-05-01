@@ -16,14 +16,16 @@ class EventInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit EventInspectorWidget(EventModel* object, QWidget* parent = 0);
+        explicit EventInspectorWidget(
+                const EventModel* object,
+                QWidget* parent = 0);
 
     signals:
 
     public slots:
         void addState(const State& state);
 
-        void updateDisplayedValues(EventModel* obj);
+        void updateDisplayedValues(const EventModel* obj);
 
         void on_addAddressClicked();
         void on_conditionChanged();
@@ -42,7 +44,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         QLineEdit* m_conditionLineEdit {};
         QLineEdit* m_stateLineEdit {};
         QWidget* m_addressesWidget{};
-        EventModel* m_model {};
+        const EventModel* m_model {};
 
         InspectorSectionWidget* m_prevConstraints;
         InspectorSectionWidget* m_nextConstraints;

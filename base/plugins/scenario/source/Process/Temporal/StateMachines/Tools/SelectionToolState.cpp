@@ -164,7 +164,7 @@ void SelectionToolState::on_scenarioPressed()
                            [&] (EventPresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
-        m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
+        m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
@@ -175,7 +175,7 @@ void SelectionToolState::on_scenarioPressed()
                            [&] (TimeNodePresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
-        m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
+        m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
@@ -231,7 +231,7 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
                              [&] (EventPresenter* p) { return p->view() == item; });
         if(ev_it != events.cend())
         {
-            sel.push_back((*ev_it)->model());
+            sel.push_back(&(*ev_it)->model());
         }
     }
 
@@ -242,7 +242,7 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
                              [&] (TimeNodePresenter* p) { return p->view() == item; });
         if(tn_it != timenodes.cend())
         {
-            sel.push_back((*tn_it)->model());
+            sel.push_back(&(*tn_it)->model());
         }
     }
 

@@ -29,7 +29,9 @@
 #include "core/document/DocumentModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
-EventInspectorWidget::EventInspectorWidget(EventModel* object, QWidget* parent) :
+EventInspectorWidget::EventInspectorWidget(
+        const EventModel* object,
+        QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
 {
@@ -197,7 +199,8 @@ void EventInspectorWidget::addState(const State& state)
 }
 
 #include <Inspector/InspectorWidgetList.hpp>
-void EventInspectorWidget::updateDisplayedValues(EventModel* event)
+void EventInspectorWidget::updateDisplayedValues(
+        const EventModel* event)
 {
     // Cleanup
     for(auto& elt : m_addresses)

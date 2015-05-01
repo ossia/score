@@ -51,8 +51,8 @@ class AutomationModel : public ProcessSharedModelInterface
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
         Selection selectableChildren() const override { return {}; }
-        QList<QObject*> selectedChildren() const override { return {}; }
-        void setSelection(const Selection&) override { }
+        Selection selectedChildren() const override { return {}; }
+        void setSelection(const Selection&) const override { }
 
         void serialize(const VisitorVariant& vis) const override;
 

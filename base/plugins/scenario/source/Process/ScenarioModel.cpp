@@ -208,7 +208,7 @@ Selection ScenarioModel::selectedChildren() const
     return objects;
 }
 
-void ScenarioModel::setSelection(const Selection& s)
+void ScenarioModel::setSelection(const Selection& s) const
 {
     for(auto elt : m_constraints)
         elt->selection.set(s.contains(elt));

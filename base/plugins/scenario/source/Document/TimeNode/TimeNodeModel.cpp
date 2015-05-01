@@ -1,5 +1,6 @@
 #include "TimeNodeModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
+#include "Document/Event/EventModel.hpp"
 
 TimeNodeModel::TimeNodeModel(
         const id_type<TimeNodeModel>& id,
@@ -16,7 +17,7 @@ TimeNodeModel::TimeNodeModel(
 }
 
 TimeNodeModel::TimeNodeModel(
-        TimeNodeModel* source,
+        const TimeNodeModel* source,
         const id_type<TimeNodeModel>& id,
         QObject* parent):
     TimeNodeModel{id, source->date(), source->y(), parent}
@@ -35,6 +36,8 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
 {
     m_events.push_back(eventId);
     emit newEvent(eventId);
+
+    parentScenario()->event(eventId)->changeTimeNode(this->id());
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)

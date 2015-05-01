@@ -33,7 +33,7 @@ class InspectorWidgetBase : public QWidget
          * \param inspectedObj The selected object
          * \param parent The parent Widget
          */
-        explicit InspectorWidgetBase(QObject* inspectedObj, QWidget* parent);
+        explicit InspectorWidgetBase(const QObject* inspectedObj, QWidget* parent);
         ~InspectorWidgetBase();
 
     public slots:
@@ -43,8 +43,8 @@ class InspectorWidgetBase : public QWidget
         void addHeader(QWidget* header);
 
         // Manage Values
-        void setInspectedObject(QObject* object);
-        QObject* inspectedObject() const;
+        void setInspectedObject(const QObject* object);
+        const QObject* inspectedObject() const;
 
         // getters
         QVBoxLayout* areaLayout()
@@ -59,7 +59,7 @@ class InspectorWidgetBase : public QWidget
         { return m_selectionDispatcher.get(); }
 
     private:
-        QObject* _inspectedObject {};
+        const QObject* _inspectedObject {};
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* m_scrollAreaLayout {};
