@@ -18,47 +18,46 @@
  *  - une qui est là pour interagir avec le modèle (on_defaul/min/maxDurationChanged)
  */
 
-AbstractConstraintPresenter::AbstractConstraintPresenter(
-    QString name,
-    AbstractConstraintViewModel* model,
+AbstractConstraintPresenter::AbstractConstraintPresenter(QString name,
+    const AbstractConstraintViewModel& model,
     AbstractConstraintView* view,
     QObject* parent) :
     NamedObject {name, parent},
-            m_viewModel {model},
-            m_view {view}
+    m_viewModel {model},
+    m_view {view}
 {
-    connect(&m_viewModel->model()->selection, &Selectable::changed,
+    connect(&m_viewModel.model().selection, &Selectable::changed,
             m_view, &AbstractConstraintView::setSelected);
 
-    connect(m_viewModel->model(),   &ConstraintModel::minDurationChanged,
+    connect(&m_viewModel.model(),   &ConstraintModel::minDurationChanged,
     this,                           &AbstractConstraintPresenter::on_minDurationChanged);
-    connect(m_viewModel->model(),   &ConstraintModel::defaultDurationChanged,
+    connect(&m_viewModel.model(),   &ConstraintModel::defaultDurationChanged,
     this,                           &AbstractConstraintPresenter::on_defaultDurationChanged);
-    connect(m_viewModel->model(),   &ConstraintModel::maxDurationChanged,
+    connect(&m_viewModel.model(),   &ConstraintModel::maxDurationChanged,
     this,                           &AbstractConstraintPresenter::on_maxDurationChanged);
 
-    connect(m_viewModel->model(), &ConstraintModel::heightPercentageChanged,
+    connect(&m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &AbstractConstraintPresenter::heightPercentageChanged);
 
-    connect(m_viewModel, &AbstractConstraintViewModel::boxShown,
+    connect(&m_viewModel, &AbstractConstraintViewModel::boxShown,
     this,                &AbstractConstraintPresenter::on_boxShown);
-    connect(m_viewModel, &AbstractConstraintViewModel::boxHidden,
+    connect(&m_viewModel, &AbstractConstraintViewModel::boxHidden,
     this,                &AbstractConstraintPresenter::on_boxHidden);
-    connect(m_viewModel, &AbstractConstraintViewModel::boxRemoved,
+    connect(&m_viewModel, &AbstractConstraintViewModel::boxRemoved,
     this,                &AbstractConstraintPresenter::on_boxRemoved);
 
-    connect(m_viewModel->model(), &ConstraintModel::playDurationChanged,
+    connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
             [&] (TimeValue t) {m_view->setPlayDuration(t.toPixels(m_zoomRatio));});
 }
 
 void AbstractConstraintPresenter::updateScaling()
 {
-    auto cm = m_viewModel->model();
+    const auto& cm = m_viewModel.model();
     // prendre en compte la distance du clic à chaque côté
-    m_view->setDefaultWidth(cm->defaultDuration().toPixels(m_zoomRatio));
-    m_view->setMinWidth(cm->minDuration().toPixels(m_zoomRatio));
-    m_view->setMaxWidth(cm->maxDuration().isInfinite(),
-                        cm->maxDuration().isInfinite()? -1 : cm->maxDuration().toPixels(m_zoomRatio));
+    m_view->setDefaultWidth(cm.defaultDuration().toPixels(m_zoomRatio));
+    m_view->setMinWidth(cm.minDuration().toPixels(m_zoomRatio));
+    m_view->setMaxWidth(cm.maxDuration().isInfinite(),
+                        cm.maxDuration().isInfinite()? -1 : cm.maxDuration().toPixels(m_zoomRatio));
 
     if(box())
     {
@@ -79,8 +78,10 @@ void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-id_type<ConstraintModel> AbstractConstraintPresenter::id() const
-{return model()->id();}
+const id_type<ConstraintModel>& AbstractConstraintPresenter::id() const
+{
+    return model().id();
+}
 
 void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
 {
@@ -109,7 +110,7 @@ void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
 
 void AbstractConstraintPresenter::updateHeight()
 {
-    if(m_viewModel->isBoxShown())
+    if(m_viewModel.isBoxShown())
     {
         m_view->setHeight(box()->height() + 60);
     }
@@ -126,18 +127,33 @@ void AbstractConstraintPresenter::updateHeight()
 
 bool AbstractConstraintPresenter::isSelected() const
 {
-    return m_viewModel->model()->selection.get();
+    return m_viewModel.model().selection.get();
 }
 
-ConstraintModel* AbstractConstraintPresenter::model() const
+BoxPresenter* AbstractConstraintPresenter::box() const
 {
-    return m_viewModel->model();
+    return m_box;
+}
+
+const ConstraintModel& AbstractConstraintPresenter::model() const
+{
+    return m_viewModel.model();
+}
+
+const AbstractConstraintViewModel&AbstractConstraintPresenter::abstractConstraintViewModel() const
+{
+    return m_viewModel;
+}
+
+AbstractConstraintView*AbstractConstraintPresenter::view() const
+{
+    return m_view;
 }
 
 void AbstractConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
 {
     clearBoxPresenter();
-    createBoxPresenter(m_viewModel->model()->box(boxId));
+    createBoxPresenter(m_viewModel.model().box(boxId));
 
     updateHeight();
 }

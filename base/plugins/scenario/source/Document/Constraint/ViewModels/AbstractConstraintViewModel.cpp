@@ -5,7 +5,7 @@ bool AbstractConstraintViewModel::isBoxShown() const
     return bool (m_shownBox.val());
 }
 
-id_type<BoxModel> AbstractConstraintViewModel::shownBox() const
+const id_type<BoxModel>& AbstractConstraintViewModel::shownBox() const
 {
     return m_shownBox;
 }
@@ -16,7 +16,7 @@ void AbstractConstraintViewModel::hideBox()
     emit boxHidden();
 }
 
-void AbstractConstraintViewModel::showBox(id_type<BoxModel> boxId)
+void AbstractConstraintViewModel::showBox(const id_type<BoxModel>& boxId)
 {
     if(boxId.val().is_initialized())
     {
@@ -30,7 +30,7 @@ void AbstractConstraintViewModel::showBox(id_type<BoxModel> boxId)
     }
 }
 
-void AbstractConstraintViewModel::on_boxRemoved(id_type<BoxModel> boxId)
+void AbstractConstraintViewModel::on_boxRemoved(const id_type<BoxModel>& boxId)
 {
     if(shownBox() == boxId)
     {
@@ -40,11 +40,17 @@ void AbstractConstraintViewModel::on_boxRemoved(id_type<BoxModel> boxId)
 }
 
 
-AbstractConstraintViewModel::AbstractConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-        QString name,
-        ConstraintModel* model,
+AbstractConstraintViewModel::AbstractConstraintViewModel(
+        const id_type<AbstractConstraintViewModel>& id,
+        const QString& name,
+        const ConstraintModel& model,
         QObject* parent) :
     IdentifiedObject<AbstractConstraintViewModel> {id, name, parent},
-m_model {model}
+    m_model {model}
 {
+}
+
+const ConstraintModel& AbstractConstraintViewModel::model() const
+{
+    return m_model;
 }

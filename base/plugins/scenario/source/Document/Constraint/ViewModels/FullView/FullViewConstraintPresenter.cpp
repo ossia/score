@@ -11,14 +11,15 @@
 
 #include <QGraphicsScene>
 
-FullViewConstraintPresenter::FullViewConstraintPresenter(FullViewConstraintViewModel* cstr_model,
-                                                         QGraphicsObject *parentobject,
-                                                         QObject* parent) :
+FullViewConstraintPresenter::FullViewConstraintPresenter(
+        const FullViewConstraintViewModel& cstr_model,
+        QGraphicsObject *parentobject,
+        QObject* parent) :
     AbstractConstraintPresenter {"FullViewConstraintPresenter",
                                  cstr_model,
                                  new FullViewConstraintView{*this, parentobject},
                                  parent},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model->model())->selectionStack()}
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model.model())->selectionStack()}
 {
     if(viewModel(this)->isBoxShown())
     {
@@ -48,5 +49,5 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
 
 void FullViewConstraintPresenter::on_pressed()
 {
-    m_selectionDispatcher.setAndCommit({this->model()});
+    m_selectionDispatcher.setAndCommit({&this->model()});
 }

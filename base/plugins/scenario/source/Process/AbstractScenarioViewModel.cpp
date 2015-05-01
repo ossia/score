@@ -28,7 +28,7 @@ AbstractConstraintViewModel*AbstractScenarioViewModel::constraint(id_type<Constr
                       end(m_constraints),
                       [&] (AbstractConstraintViewModel* vm)
     {
-        return vm->model()->id() == constraintModelId;
+        return vm->model().id() == constraintModelId;
     });
 
     return it != end(m_constraints) ? *it : nullptr;

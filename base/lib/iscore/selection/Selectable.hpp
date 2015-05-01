@@ -11,7 +11,11 @@ class Selectable : public QObject
 {
         Q_OBJECT
     public:
-        using QObject::QObject;
+        Selectable()
+        {
+            connect(this, &Selectable::set, this, &Selectable::set_impl);
+        }
+
         virtual ~Selectable()
         {
             set(false);
@@ -22,7 +26,7 @@ class Selectable : public QObject
             return m_val;
         }
 
-        void set(bool v)
+        void set_impl(bool v)
         {
             //qDebug() << Q_FUNC_INFO << v;
             if(m_val != v)
@@ -33,6 +37,7 @@ class Selectable : public QObject
         }
 
     signals:
+        void set(bool) const;
         void changed(bool);
 
     private:

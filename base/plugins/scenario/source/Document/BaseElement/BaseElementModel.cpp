@@ -37,7 +37,7 @@ BaseElementModel::BaseElementModel(QObject* parent) :
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
 {
     using namespace Scenario::Command;
-    auto constraint_model = viewmodel->model();
+    const auto& constraint_model = viewmodel->model();
 
     AddProcessToConstraint cmd1
     {
@@ -48,7 +48,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         "Scenario"
     };
     cmd1.redo();
-    auto scenarioId = constraint_model->processes().front()->id();
+    auto scenarioId = constraint_model.processes().front()->id();
 
     AddBoxToConstraint cmd2
     {
@@ -58,7 +58,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd2.redo();
-    auto box = constraint_model->boxes().front();
+    auto box = constraint_model.boxes().front();
 
     ShowBoxInViewModel cmd3 {
         ObjectPath{
@@ -190,7 +190,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
     emit focusMe();
 }
 
-void BaseElementModel::setDisplayedConstraint(ConstraintModel *constraint)
+void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
 {
     // TODO only keep it saved at one place.
     m_displayedConstraint = constraint;

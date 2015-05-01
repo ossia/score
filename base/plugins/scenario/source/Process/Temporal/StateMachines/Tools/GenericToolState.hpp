@@ -84,7 +84,7 @@ class GenericToolState : public QState
                     break;
 
                 case QGraphicsItem::UserType + 2:
-                    cst_fun(static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel()->model()->id());
+                    cst_fun(static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model().id());
                     break;
 
                 case QGraphicsItem::UserType + 3:

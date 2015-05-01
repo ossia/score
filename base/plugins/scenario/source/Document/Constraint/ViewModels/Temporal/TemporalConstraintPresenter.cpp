@@ -8,9 +8,10 @@
 
 #include <QGraphicsScene>
 
-TemporalConstraintPresenter::TemporalConstraintPresenter(TemporalConstraintViewModel* cstr_model,
-    QGraphicsObject *parentobject,
-    QObject* parent) :
+TemporalConstraintPresenter::TemporalConstraintPresenter(
+        const TemporalConstraintViewModel& cstr_model,
+        QGraphicsObject *parentobject,
+        QObject* parent) :
     AbstractConstraintPresenter {"TemporalConstraintPresenter",
                                  cstr_model,
                                  new TemporalConstraintView{*this, parentobject},

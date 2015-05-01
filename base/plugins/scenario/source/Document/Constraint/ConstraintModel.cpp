@@ -15,7 +15,7 @@ ConstraintModel::ConstraintModel(
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
     m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
-    m_fullViewModel{new FullViewConstraintViewModel{fullViewId, this, this}}
+    m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
@@ -75,7 +75,7 @@ ConstraintModel::ConstraintModel(
     // this is the job of a command.
     // However, the full view constraint must be copied since we have ownership of it.
 
-    m_fullViewModel = source->fullView()->clone(source->fullView()->id(), this, this);
+    m_fullViewModel = source->fullView()->clone(source->fullView()->id(), *this, this);
 }
 
 

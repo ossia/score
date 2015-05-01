@@ -32,7 +32,7 @@ class AbstractConstraintPresenter : public NamedObject
 
     public:
         AbstractConstraintPresenter(QString name,
-                                    AbstractConstraintViewModel* model,
+                                    const AbstractConstraintViewModel& model,
                                     AbstractConstraintView* view,
                                     QObject* parent);
         virtual ~AbstractConstraintPresenter() = default;
@@ -40,20 +40,16 @@ class AbstractConstraintPresenter : public NamedObject
 
         bool isSelected() const;
 
-        BoxPresenter* box() const
-        { return m_box; }
+        BoxPresenter* box() const;
 
-        ConstraintModel* model() const;
+        const ConstraintModel& model() const;
+        const AbstractConstraintViewModel& abstractConstraintViewModel() const;
 
-        AbstractConstraintViewModel* abstractConstraintViewModel() const
-        { return m_viewModel; }
-
-        AbstractConstraintView* view() const
-        { return m_view; }
+        AbstractConstraintView* view() const;
 
         void on_zoomRatioChanged(ZoomRatio val);
 
-        id_type<ConstraintModel> id() const;
+        const id_type<ConstraintModel>& id() const;
 
     signals:
         void pressed(const QPointF&);
@@ -83,19 +79,41 @@ class AbstractConstraintPresenter : public NamedObject
         BoxPresenter* m_box {};
 
         // Process presenters are in the deck presenters.
-        AbstractConstraintViewModel* m_viewModel {};
+        const AbstractConstraintViewModel& m_viewModel;
         AbstractConstraintView* m_view {};
 };
 
 // TODO concept: constraint view model.
+
 template<typename T>
-typename T::view_model_type* viewModel(T* obj)
+const typename T::view_model_type* viewModel(const T* obj)
 {
-    return static_cast<typename T::view_model_type*>(obj->abstractConstraintViewModel());
+    return static_cast<const typename T::view_model_type*>(&obj->abstractConstraintViewModel());
 }
+
+template<typename T>
+const typename T::view_type* view(const T* obj)
+{
+    return static_cast<const typename T::view_type*>(obj->view());
+}
+
 
 template<typename T>
 typename T::view_type* view(T* obj)
 {
     return static_cast<typename T::view_type*>(obj->view());
+}
+
+
+
+template<typename T>
+const typename T::view_model_type& viewModel(const T& obj)
+{
+    return static_cast<const typename T::view_model_type&>(obj->abstractConstraintViewModel());
+}
+
+template<typename T>
+const typename T::view_type& view(const T& obj)
+{
+    return static_cast<const typename T::view_type&>(obj->view());
 }

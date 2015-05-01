@@ -21,22 +21,24 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
          * @param model Pointer to the corresponding model object
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
-        TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-                                    ConstraintModel* model,
+        TemporalConstraintViewModel(const id_type<AbstractConstraintViewModel>& id,
+                                    const ConstraintModel& model,
                                     QObject* parent);
 
-        virtual TemporalConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
-                ConstraintModel* cm,
+        virtual TemporalConstraintViewModel* clone(
+                const id_type<AbstractConstraintViewModel>& id,
+                const ConstraintModel& cm,
                 QObject* parent) override;
 
         template<typename DeserializerVisitor>
         TemporalConstraintViewModel(DeserializerVisitor&& vis,
-                                    ConstraintModel* model,
+                                    const ConstraintModel& model,
                                     QObject* parent) :
             AbstractConstraintViewModel {vis, model, parent}
         {
             // Nothing to add, no vis.visit(*this);
         }
+
     signals:
-        void eventSelected(QString);
+        void eventSelected(const QString&);
 };

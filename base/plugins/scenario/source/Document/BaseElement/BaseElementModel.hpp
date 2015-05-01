@@ -38,7 +38,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
 
         void setNewSelection(const Selection& s) override;
-        void setDisplayedConstraint(ConstraintModel*);
+        void setDisplayedConstraint(const ConstraintModel*);
 
     signals:
         void focusMe();
@@ -49,7 +49,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     private:
         ConstraintModel* m_baseConstraint {};
-        ConstraintModel* m_displayedConstraint {};
+        const ConstraintModel* m_displayedConstraint {};
 
         // The process that contains the current selection.
         ProcessViewModelInterface* m_focusedViewModel{};

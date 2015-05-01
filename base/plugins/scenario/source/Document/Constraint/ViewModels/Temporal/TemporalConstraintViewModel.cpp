@@ -1,7 +1,8 @@
 #include "TemporalConstraintViewModel.hpp"
 
-TemporalConstraintViewModel::TemporalConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-        ConstraintModel* model,
+TemporalConstraintViewModel::TemporalConstraintViewModel(
+        const id_type<AbstractConstraintViewModel>& id,
+        const ConstraintModel& model,
         QObject* parent) :
     AbstractConstraintViewModel {id,
                                 "TemporalConstraintViewModel",
@@ -12,8 +13,9 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(id_type<AbstractConstra
 
 }
 
-TemporalConstraintViewModel* TemporalConstraintViewModel::clone(id_type<AbstractConstraintViewModel> id,
-        ConstraintModel* cm,
+TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
+        const id_type<AbstractConstraintViewModel>& id,
+        const ConstraintModel& cm,
         QObject* parent)
 {
     auto cstr = new TemporalConstraintViewModel {id, cm, parent};

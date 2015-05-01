@@ -113,14 +113,14 @@ void BaseElementPresenter::setDisplayedConstraint(const ConstraintModel* c)
 
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-    auto constraintViewModel = m_displayedConstraint->fullView();
+    const auto& constraintViewModel = *m_displayedConstraint->fullView();
 
     delete m_displayedConstraintPresenter;
     m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
                                      this->view()->baseObject(),
                                      this};
 
-    m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model()->startDate());
+    m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
     m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
     m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
 
@@ -136,7 +136,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                        m_displayedConstraint->defaultDuration().toPixels(m_millisecondsPerPixel),
                                        height()});} );
 
-    model()->setDisplayedConstraint(m_displayedConstraintPresenter->model());
+    model()->setDisplayedConstraint(&m_displayedConstraintPresenter->model());
 
     // Update the address bar
     view()->addressBar()

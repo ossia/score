@@ -98,7 +98,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
     private:
         void on_eventCreated_impl(const EventModel& event_model);
-        void on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model);
+        void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
         void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
 
         ScenarioViewInterface* m_viewInterface{};

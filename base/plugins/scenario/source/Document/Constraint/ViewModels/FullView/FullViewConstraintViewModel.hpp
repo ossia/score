@@ -22,17 +22,19 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
          * @param model Pointer to the corresponding model object
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
-        FullViewConstraintViewModel(id_type<AbstractConstraintViewModel> id,
-                                    ConstraintModel* model,
-                                    QObject* parent);
+        FullViewConstraintViewModel(
+                const id_type<AbstractConstraintViewModel>& id,
+                const ConstraintModel& model,
+                QObject* parent);
 
-        virtual FullViewConstraintViewModel* clone(id_type<AbstractConstraintViewModel> id,
-                ConstraintModel* cm,
+        virtual FullViewConstraintViewModel* clone(
+                const id_type<AbstractConstraintViewModel>& id,
+                const ConstraintModel& cm,
                 QObject* parent) override;
 
         template<typename DeserializerVisitor>
         FullViewConstraintViewModel(DeserializerVisitor&& vis,
-                                    ConstraintModel* model,
+                                    const ConstraintModel& model,
                                     QObject* parent) :
             AbstractConstraintViewModel {vis, model, parent}
         {

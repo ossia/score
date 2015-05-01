@@ -41,7 +41,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
         addConstraintViewModel(
                     src_constraint->clone(
                         src_constraint->id(),
-                        newScenario->constraint(src_constraint->model()->id()),
+                        *newScenario->constraint(src_constraint->model().id()),
                         this));
     }
 }
@@ -91,7 +91,7 @@ void TemporalScenarioViewModel::on_constraintRemoved(id_type<ConstraintModel> co
 {
     for(auto& constraint_view_model : constraintsViewModels(*this))
     {
-        if(constraint_view_model->model()->id() == constraintSharedModelId)
+        if(constraint_view_model->model().id() == constraintSharedModelId)
         {
             removeConstraintViewModel(constraint_view_model->id());
             return;

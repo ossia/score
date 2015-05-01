@@ -23,9 +23,8 @@ loadConstraintViewModel(Deserializer<DataStream>& deserializer,
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType
     ::constraint_view_model_type {deserializer,
-                                  constraint,
-                                  svm
-                                 };
+                                  *constraint,
+                                  svm};
 
     // Make the required connections with the parent constraint
     constraint->setupConstraintViewModel(viewmodel);
@@ -45,7 +44,7 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType
     ::constraint_view_model_type {deserializer,
-                                  constraint,
+                                  *constraint,
                                   svm};
 
     // Make the required connections with the parent constraint

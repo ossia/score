@@ -80,7 +80,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     id_type<ConstraintModel> savedConstraintId;
     m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
-    constraint.setFullView(new FullViewConstraintViewModel {*this, &constraint, &constraint});
+    constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
 
     // Events
     id_type<EventModel> startId {}, endId {};
@@ -166,7 +166,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 
     constraint.setFullView(new FullViewConstraintViewModel {
                                Deserializer<JSONObject>{m_obj["FullView"].toObject() },
-                               &constraint,
+                               constraint,
                                &constraint});
 
     constraint.setDefaultDuration(fromJsonValue<TimeValue> (m_obj["DefaultDuration"]));

@@ -186,7 +186,7 @@ void SelectionToolState::on_scenarioPressed()
                            [&] (TemporalConstraintPresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
-        m_dispatcher.setAndCommit(filterSelections((*elt)->model(),
+        m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
                                                    m_sm.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
@@ -253,7 +253,7 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
                               [&] (TemporalConstraintPresenter* p) { return p->view() == item; });
         if(cst_it != cstrs.end())
         {
-            sel.push_back((*cst_it)->model());
+            sel.push_back(&(*cst_it)->model());
         }
     }
 

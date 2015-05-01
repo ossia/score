@@ -46,7 +46,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
 
     for(const auto& constraint_view_model : constraintsViewModels(m_viewModel))
     {
-        on_constraintCreated_impl(constraint_view_model);
+        on_constraintCreated_impl(*constraint_view_model);
     }
 
 
@@ -120,7 +120,7 @@ void TemporalScenarioPresenter::setHeight(int height)
     // Move all the elements accordingly
     for(auto& constraint : m_constraints)
     {
-        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel().model().id());
     }
 
     for(auto& event : m_events)
@@ -148,7 +148,7 @@ void TemporalScenarioPresenter::parentGeometryChanged()
     // Move all the elements accordingly
     for(auto& constraint : m_constraints)
     {
-        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel().model().id());
     }
 
     for(auto& event : m_events)
@@ -164,7 +164,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     for(auto& constraint : m_constraints)
     {
         constraint->on_zoomRatioChanged(m_zoomRatio);
-        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel()->model()->id());
+        m_viewInterface->on_constraintMoved(constraint->abstractConstraintViewModel().model().id());
     }
 
     for(auto& event : m_events)
@@ -185,7 +185,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNo
 
 void TemporalScenarioPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
-    on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
+    on_constraintCreated_impl(*constraintViewModel(m_viewModel, constraintViewModelId));
 }
 
 void TemporalScenarioPresenter::on_eventDeleted(id_type<EventModel> eventId)
@@ -299,7 +299,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
-void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintViewModel* constraint_view_model)
+void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
 {
     auto rect = m_view->boundingRect();
 
@@ -310,31 +310,30 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     m_constraints.push_back(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    cst_pres->view()->setPos({rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
-                             rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
-
+    cst_pres->view()->setPos({rect.x() + constraint_view_model.model().startDate().toPixels(m_zoomRatio),
+                             rect.y() + rect.height() * constraint_view_model.model().heightPercentage() });
 
 
 
     m_viewInterface->updateTimeNode(findById(m_events,
-                                             constraint_view_model->model()->endEvent())
+                                             constraint_view_model.model().endEvent())
                                         ->model().timeNode());
     m_viewInterface->updateTimeNode(findById(m_events,
-                                             constraint_view_model->model()->startEvent())
+                                             constraint_view_model.model().startEvent())
                                         ->model().timeNode());
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
             this, [=] ()
     {
         auto rect = m_view->boundingRect();
-        cst_pres->view()->setPos({
-         rect.x() + constraint_view_model->model()->startDate().toPixels(m_zoomRatio),
-         rect.y() + rect.height() * constraint_view_model->model()->heightPercentage() });
+        const auto& cst = cst_pres->abstractConstraintViewModel().model();
+        cst_pres->view()->setPos({rect.x() + cst.startDate().toPixels(m_zoomRatio),
+                                  rect.y() + rect.height() * cst.heightPercentage() });
         m_viewInterface->updateTimeNode(findById(m_events,
-                                                 constraint_view_model->model()->endEvent())
+                                                 cst.endEvent())
                                         ->model().timeNode());
         m_viewInterface->updateTimeNode(findById(m_events,
-                                                 constraint_view_model->model()->startEvent())
+                                                 cst.startEvent())
                                         ->model().timeNode());
     });
 
@@ -344,12 +343,12 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(TemporalConstraintView
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter,
             [=] ()
     {
-        m_viewInterface->on_hoverOnConstraint(cst_pres->model()->id(), true);
+        m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), true);
     });
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverLeave,
             [=] ()
     {
-        m_viewInterface->on_hoverOnConstraint(cst_pres->model()->id(), false);
+        m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), false);
     });
 
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);

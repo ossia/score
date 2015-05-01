@@ -129,9 +129,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         // Factories for the view models.
         template<typename ViewModelType> // Arg might be an id or a datastream [
-        ViewModelType* makeConstraintViewModel(id_type<AbstractConstraintViewModel> id, QObject* parent)
+        ViewModelType* makeConstraintViewModel(
+                const id_type<AbstractConstraintViewModel>& id,
+                QObject* parent)
         {
-            auto viewmodel = new ViewModelType {id, this, parent};
+            auto viewmodel = new ViewModelType {id, *this, parent};
             setupConstraintViewModel(viewmodel);
             return viewmodel;
         }

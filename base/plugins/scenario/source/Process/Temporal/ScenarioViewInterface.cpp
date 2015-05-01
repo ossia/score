@@ -55,36 +55,36 @@ void ScenarioViewInterface::on_constraintMoved(id_type<ConstraintModel> constrai
 
     for(TemporalConstraintPresenter* pres : m_presenter->m_constraints)
     {
-        ConstraintModel* cstr_model {viewModel(pres)->model() };
+        const ConstraintModel& cstr_model = viewModel(pres)->model();
 
-        if(cstr_model->id() == constraintId)
+        if(cstr_model.id() == constraintId)
         {
-            auto startPos = cstr_model->startDate().toPixels(msPerPixel);
+            auto startPos = cstr_model.startDate().toPixels(msPerPixel);
             auto delta = view(pres)->x() - startPos;
             bool dateChanged = (delta * delta > 1); // Magnetism
 
             if(dateChanged)
             {
                 view(pres)->setPos({startPos,
-                                    rect.height() * cstr_model->heightPercentage()});
+                                    rect.height() * cstr_model.heightPercentage()});
             }
             else
             {
-                view(pres)->setY(qreal(rect.height() * cstr_model->heightPercentage()));
+                view(pres)->setY(qreal(rect.height() * cstr_model.heightPercentage()));
             }
 
-            view(pres)->setDefaultWidth(cstr_model->defaultDuration().toPixels(msPerPixel));
-            view(pres)->setMinWidth(cstr_model->minDuration().toPixels(msPerPixel));
-            view(pres)->setMaxWidth(cstr_model->maxDuration().isInfinite(),
-                                    cstr_model->maxDuration().isInfinite()? -1 :
-                                        cstr_model->maxDuration().toPixels(msPerPixel));
+            view(pres)->setDefaultWidth(cstr_model.defaultDuration().toPixels(msPerPixel));
+            view(pres)->setMinWidth(cstr_model.minDuration().toPixels(msPerPixel));
+            view(pres)->setMaxWidth(cstr_model.maxDuration().isInfinite(),
+                                    cstr_model.maxDuration().isInfinite()? -1 :
+                                        cstr_model.maxDuration().toPixels(msPerPixel));
 
             auto endTimeNode = findById(m_presenter->m_events,
-                                        cstr_model->endEvent())->model().timeNode();
+                                        cstr_model.endEvent())->model().timeNode();
             updateTimeNode(endTimeNode);
 
             auto startTimeNode = findById(m_presenter->m_events,
-                                          cstr_model->startEvent())->model().timeNode();
+                                          cstr_model.startEvent())->model().timeNode();
             updateTimeNode(startTimeNode);
             break;
         }
@@ -117,14 +117,14 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
         for(TemporalConstraintPresenter* cstr_pres : m_presenter->m_constraints)
         {
-            ConstraintModel* cstr_model{cstr_pres->model()};
+            const auto& cstr_model = cstr_pres->model();
 
             auto constraints = event->model().previousConstraints() + event->model().nextConstraints();
             for(const auto& cstrId : constraints)
             {
-                if(cstr_model->id() == cstrId)
+                if(cstr_model.id() == cstrId)
                 {
-                    y = cstr_model->heightPercentage();
+                    y = cstr_model.heightPercentage();
                     update_min_max(y, min, max);
                     break;
                 }
@@ -141,10 +141,10 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
 
 void ScenarioViewInterface::on_hoverOnConstraint(id_type<ConstraintModel> constraintId, bool enter)
 {
-    auto constraint = findById(m_presenter->m_constraints, constraintId)->model();
-    EventPresenter* start = findById(m_presenter->m_events, constraint->startEvent());
+    const auto& constraint = findById(m_presenter->m_constraints, constraintId)->model();
+    EventPresenter* start = findById(m_presenter->m_events, constraint.startEvent());
     start->view()->setShadow(enter);
-    EventPresenter* end = findById(m_presenter->m_events, constraint->endEvent());
+    EventPresenter* end = findById(m_presenter->m_events, constraint.endEvent());
     end->view()->setShadow(enter);
 }
 
