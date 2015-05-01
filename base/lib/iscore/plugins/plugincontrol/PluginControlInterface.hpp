@@ -27,40 +27,32 @@ namespace iscore
             // Dire chemin : File/Export/SomeCustomExport ?
             // Pb. : traduction ? (ex. : soft traduit & plug pas traduit ?)
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
+        Q_OBJECT
         public:
-            using NamedObject::NamedObject;
-            virtual ~PluginControlInterface() = default;
-            virtual void populateMenus(iscore::MenubarManager*) { }
-            virtual QList<OrderedToolbar> makeToolbars() { return {}; }
+            PluginControlInterface(const QString& name, QObject* parent);
+
+            virtual void populateMenus(iscore::MenubarManager*);
+            virtual QList<OrderedToolbar> makeToolbars();
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,
                     const VisitorVariant& var,
-                    iscore::DocumentModel *parent)
-            { return nullptr; }
+                    iscore::DocumentModel *parent);
 
-            Presenter* presenter() const
-            { return m_presenter; }
-
-            void setPresenter(Presenter* p)
-            {
-                m_presenter = p;
-                on_presenterChanged();
-            }
+            Presenter* presenter() const;
+            void setPresenter(Presenter* p);
 
             virtual SerializableCommand* instantiateUndoCommand(
                     const QString& /*name*/,
-                    const QByteArray& /*data*/)
-            { return nullptr; }
-            Document* currentDocument() const
-            { return m_presenter->currentDocument(); }
+                    const QByteArray& /*data*/);
+            Document* currentDocument() const;
 
-
-            // TODO protected
-            virtual void on_documentChanged(iscore::Document*) {}
+        signals:
+            void documentChanged(Document*);
 
         protected:
-            virtual void on_presenterChanged() {}
+            virtual void on_presenterChanged();
+            virtual void on_documentChanged(iscore::Document*);
 
         private:
             Presenter* m_presenter{};

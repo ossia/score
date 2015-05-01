@@ -41,11 +41,6 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
     }
 }
 
-QString iscore::ElementPluginModelList::parentObjectName() const
-{
-    return parent()->metaObject()->className();
-}
-
 bool iscore::ElementPluginModelList::canAdd(int pluginId) const
 {
     using namespace std;

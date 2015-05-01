@@ -92,7 +92,7 @@ void Presenter::setCurrentDocument(Document* doc)
 
     for(auto& ctrl : m_controls)
     {
-        ctrl->on_documentChanged(m_currentDocument);
+        emit ctrl->documentChanged(m_currentDocument);
     }
 }
 
@@ -143,7 +143,7 @@ void Presenter::closeDocument(Document* doc)
 
         for(auto& ctrl : m_controls)
         {
-            ctrl->on_documentChanged(nullptr);
+            emit ctrl->documentChanged(nullptr);
         }
     }
 

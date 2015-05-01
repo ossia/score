@@ -19,8 +19,6 @@ namespace iscore
                 vis.writeTo(*this);
             }
 
-            QString parentObjectName() const;
-
             // Can add if no exisiting element plugins with this id.
             bool canAdd(int pluginId) const;
             void add(iscore::ElementPluginModel* data);
