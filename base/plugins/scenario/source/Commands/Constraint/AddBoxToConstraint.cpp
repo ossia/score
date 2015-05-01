@@ -26,7 +26,10 @@ void AddBoxToConstraint::undo()
 void AddBoxToConstraint::redo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    constraint->createBox(m_createdBoxId);
+    auto box = new BoxModel{m_createdBoxId, constraint};
+
+    constraint->addBox(box);
+    box->metadata.setName(QString{"Box.%1"}.arg(constraint->boxes().size()));
 
     // If it is the first box created,
     // it is also assigned to the full view of the constraint.

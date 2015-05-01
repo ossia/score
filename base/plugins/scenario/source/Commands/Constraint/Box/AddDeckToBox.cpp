@@ -26,8 +26,7 @@ void AddDeckToBox::redo()
 {
     auto box = m_path.find<BoxModel>();
     box->addDeck(new DeckModel {m_createdDeckId,
-                                box
-                               });
+                                box});
 }
 
 void AddDeckToBox::serializeImpl(QDataStream& s) const

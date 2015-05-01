@@ -58,23 +58,23 @@ class ModelMetadata : public QObject
             return *this;
         }
 
-        QString name() const;
-        QString comment() const;
-        QColor color() const;
-        QString label() const;
+        const QString& name() const;
+        const QString& comment() const;
+        const QColor& color() const;
+        const QString& label() const;
 
     signals:
-        void nameChanged(QString arg);
-        void commentChanged(QString arg);
-        void colorChanged(QColor arg);
-        void labelChanged(QString arg);
+        void nameChanged(const QString& arg);
+        void commentChanged(const QString& arg);
+        void colorChanged(const QColor& arg);
+        void labelChanged(const QString& arg);
         void metadataChanged();
 
     public slots:
-        void setName(QString arg);
-        void setComment(QString arg);
-        void setColor(QColor arg);
-        void setLabel(QString arg);
+        void setName(const QString& arg);
+        void setComment(const QString& arg);
+        void setColor(const QColor& arg);
+        void setLabel(const QString& arg);
 
 
     private:

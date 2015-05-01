@@ -123,13 +123,6 @@ void ConstraintModel::removeProcess(id_type<ProcessSharedModelInterface> process
     delete proc;
 }
 
-
-void ConstraintModel::createBox(id_type<BoxModel> boxId)
-{
-    auto box = new BoxModel {boxId, this};
-    addBox(box);
-}
-
 void ConstraintModel::addBox(BoxModel* box)
 {
     connect(this,	&ConstraintModel::processRemoved,

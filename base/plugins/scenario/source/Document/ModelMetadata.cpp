@@ -2,22 +2,22 @@
 
 
 //// Simple properties
-QString ModelMetadata::name() const
+const QString& ModelMetadata::name() const
 {
     return m_scriptingName;
 }
 
-QString ModelMetadata::comment() const
+const QString& ModelMetadata::comment() const
 {
     return m_comment;
 }
 
-QColor ModelMetadata::color() const
+const QColor& ModelMetadata::color() const
 {
     return m_color;
 }
 
-QString ModelMetadata::label() const
+const QString& ModelMetadata::label() const
 {
     return m_label;
 }
@@ -25,7 +25,7 @@ QString ModelMetadata::label() const
 
 
 
-void ModelMetadata::setName(QString arg)
+void ModelMetadata::setName(const QString& arg)
 {
     if(m_scriptingName == arg)
     {
@@ -37,7 +37,7 @@ void ModelMetadata::setName(QString arg)
     emit metadataChanged();
 }
 
-void ModelMetadata::setComment(QString arg)
+void ModelMetadata::setComment(const QString& arg)
 {
     if(m_comment == arg)
     {
@@ -49,7 +49,7 @@ void ModelMetadata::setComment(QString arg)
     emit metadataChanged();
 }
 
-void ModelMetadata::setColor(QColor arg)
+void ModelMetadata::setColor(const QColor& arg)
 {
     if(m_color == arg)
     {
@@ -61,7 +61,7 @@ void ModelMetadata::setColor(QColor arg)
     emit metadataChanged();
 }
 
-void ModelMetadata::setLabel(QString arg)
+void ModelMetadata::setLabel(const QString& arg)
 {
     if(m_label == arg)
     {

@@ -2,6 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include "Document/ModelMetadata.hpp"
 
 #include <vector>
 
@@ -20,6 +21,8 @@ class BoxModel : public IdentifiedObject<BoxModel>
         Q_OBJECT
 
     public:
+        ModelMetadata metadata;
+
         BoxModel(id_type<BoxModel> id, QObject* parent);
 
         // Copy
@@ -34,8 +37,6 @@ class BoxModel : public IdentifiedObject<BoxModel>
         {
             vis.writeTo(*this);
         }
-
-        virtual ~BoxModel() = default;
 
         ConstraintModel* constraint() const;
 

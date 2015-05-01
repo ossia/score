@@ -23,7 +23,7 @@ BoxPresenter::BoxPresenter(BoxModel* model,
     }
 
     m_duration = model->constraint()->defaultDuration();
-    m_view->setText( QString{"Box.%1"}.arg(m_model->id_val()) );
+    m_view->setText(m_model->metadata.name());
 
     on_askUpdate();
 
@@ -36,6 +36,9 @@ BoxPresenter::BoxPresenter(BoxModel* model,
 
     connect(m_model,	&BoxModel::on_durationChanged,
     this,		&BoxPresenter::on_durationChanged);
+
+    connect(&m_model->metadata, &ModelMetadata::nameChanged,
+            this, [&] (const QString& name) { m_view->setText(name); });
 }
 
 BoxPresenter::~BoxPresenter()

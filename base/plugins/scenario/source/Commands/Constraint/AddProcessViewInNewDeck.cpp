@@ -57,27 +57,29 @@ void AddProcessViewInNewDeck::redo()
 {
     auto constraint = m_path.find<ConstraintModel>();
 
-    // BOX
+    // Box
     if(!m_existingBox)
     {
-        constraint->createBox(m_createdBoxId);
+        // TODO refactor with AddBoxToConstraint
+        auto box = new BoxModel{m_createdBoxId, constraint};
+        constraint->addBox(box);
+        box->metadata.setName(QString{"Box.%1"}.arg(constraint->boxes().size()));
 
         // If it is the first box created,
-        // it is also assigned to  all the views of the constraint.
+        // it is also assigned to all the views of the constraint.
         if(constraint->boxes().size() == 1)
         {
-            for(auto vm : constraint->viewModels())
+            for(const auto& vm : constraint->viewModels())
             {
                 vm->showBox(m_createdBoxId);
             }
         }
     }
 
-    //DECK
+    // Deck
     auto box = constraint->box(m_createdBoxId);
     box->addDeck(new DeckModel {m_createdDeckId,
-                                box
-                 });
+                                box});
 
     // Process View
     auto deck = box->deck(m_createdDeckId);
