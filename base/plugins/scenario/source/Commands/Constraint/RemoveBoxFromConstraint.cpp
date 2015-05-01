@@ -55,7 +55,7 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(
 void RemoveBoxFromConstraint::undo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    Deserializer<DataStream> s {&m_serializedBoxData};
+    Deserializer<DataStream> s {m_serializedBoxData};
     constraint->addBox(new BoxModel {s, constraint});
 
     for(AbstractConstraintViewModel* vm : constraint->viewModels())

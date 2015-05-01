@@ -26,7 +26,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
 void RemoveProcessViewModelFromDeck::undo()
 {
     auto deck = m_path.find<DeckModel>();
-    Deserializer<DataStream> s {&m_serializedProcessViewData};
+    Deserializer<DataStream> s {m_serializedProcessViewData};
 
     auto pvm = createProcessViewModel(s,
                                       deck->parentConstraint(),

@@ -21,7 +21,6 @@ m_control {new ScenarioControl{nullptr}}
 {
     setObjectName("ScenarioPlugin");
 
-    // TODO there should be another way... :'(
     QMetaType::registerComparators<Message>();
     QMetaType::registerComparators<MessageList>();
     qRegisterMetaTypeStreamOperators<State>();
@@ -55,7 +54,6 @@ iscore::PluginControlInterface* ScenarioPlugin::control_make()
 QStringList ScenarioPlugin::panel_list() const
 {
     // Disabled for now.
-    // TODO Later
     // return {"ProcessPanel"};
 
     qDebug() << Q_FUNC_INFO << "TODO";

@@ -41,7 +41,7 @@ void RemoveConstraint::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    Deserializer<DataStream> s {&m_serializedConstraint};
+    Deserializer<DataStream> s {m_serializedConstraint};
 
     auto newConstraint = new ConstraintModel(s, scenar);
     scenar->addConstraint(newConstraint);

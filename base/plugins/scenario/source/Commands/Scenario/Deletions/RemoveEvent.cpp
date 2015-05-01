@@ -49,10 +49,10 @@ void RemoveEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    Deserializer<DataStream> s {&m_serializedEvent};
+    Deserializer<DataStream> s {m_serializedEvent};
     auto event = new EventModel(s, scenar);
 
-    Deserializer<DataStream> s2 {&m_serializedTimeNode};
+    Deserializer<DataStream> s2 {m_serializedTimeNode};
     auto timeNode = new TimeNodeModel(s2, scenar);
     bool tnFound = false;
 
@@ -78,7 +78,7 @@ void RemoveEvent::undo()
     // re-create constraints
     for (auto scstr : m_serializedConstraints)
     {
-        Deserializer<DataStream> s{&scstr.first};
+        Deserializer<DataStream> s{scstr.first};
         auto cstr = new ConstraintModel(s, scenar);
 
         scenar->addConstraint(cstr);

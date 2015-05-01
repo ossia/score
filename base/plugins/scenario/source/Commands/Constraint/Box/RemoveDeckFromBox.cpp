@@ -36,7 +36,7 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> de
 void RemoveDeckFromBox::undo()
 {
     auto box = m_path.find<BoxModel>();
-    Deserializer<DataStream> s {&m_serializedDeckData};
+    Deserializer<DataStream> s {m_serializedDeckData};
     box->addDeck(new DeckModel {s, box}, m_position);
 }
 

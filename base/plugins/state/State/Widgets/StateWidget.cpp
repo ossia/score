@@ -39,7 +39,6 @@ StateWidget::StateWidget(const State& state, QWidget* parent):
     }
     else if(state.data().canConvert<MessageList>())
     {
-        // TODO Check removal in this case.
         int i = 0;
         for(const Message& mess : state.data().value<MessageList>())
         {

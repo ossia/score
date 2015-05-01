@@ -42,7 +42,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 void RemoveProcessFromConstraint::undo()
 {
     auto constraint = m_path.find<ConstraintModel>();
-    Deserializer<DataStream> s {&m_serializedProcessData};
+    Deserializer<DataStream> s {m_serializedProcessData};
     constraint->addProcess(createProcess(s, constraint));
 
     // Restore the view models

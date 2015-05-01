@@ -48,13 +48,13 @@ void ClearConstraint::undo()
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
-        Deserializer<DataStream> s {&serializedProcess};
+        Deserializer<DataStream> s {serializedProcess};
         constraint->addProcess(createProcess(s, constraint));
     }
 
     for(auto& serializedBox : m_serializedBoxes)
     {
-        Deserializer<DataStream> s {&serializedBox};
+        Deserializer<DataStream> s {serializedBox};
         constraint->addBox(new BoxModel {s, constraint});
     }
 

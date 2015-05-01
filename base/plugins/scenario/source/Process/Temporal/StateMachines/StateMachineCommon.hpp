@@ -19,8 +19,6 @@ class CommonScenarioState : public QState
 
         void clear()
         {
-            // TODO faire un StateData qu'on peut operator='er à la place ?
-            // Vérifier que c'est nécessaire dans tous les cas.
             clickedEvent = id_type<EventModel>{};
             clickedTimeNode = id_type<TimeNodeModel>{};
             clickedConstraint = id_type<ConstraintModel>{};

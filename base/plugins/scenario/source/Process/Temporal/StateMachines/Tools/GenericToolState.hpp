@@ -70,7 +70,7 @@ class GenericToolState : public QState
         {
             if(!pressedItem)
             {
-                nothing_fun(); // TODO or return ?
+                nothing_fun();
                 return;
             }
 

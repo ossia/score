@@ -64,8 +64,6 @@ MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     m_localSM.addState(m_moveTimeNode);
 }
 
-// TODO check that this is the correct state machine that receives
-// the event when we have hierarchy.
 void MoveToolState::on_scenarioPressed()
 {
     mapTopItem(itemUnderMouse(m_sm.scenePoint),

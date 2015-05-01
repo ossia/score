@@ -34,7 +34,7 @@ void MergeTimeNodes::undo()
 
     auto aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
 
-    Deserializer<DataStream> s {&m_serializedTimeNode};
+    Deserializer<DataStream> s {m_serializedTimeNode};
 
     // todo make a function to do this (inline).
     auto movingTimeNode = new TimeNodeModel(s, scenar);

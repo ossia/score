@@ -112,7 +112,8 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
     for(TimeNodeModel* timenode : m_timeNodes)
     {
         timenode->setDate(timenode->date() * scale);
-        // TODO why not timeNodeMoved?
+        // Since events will also move we do not need
+        // to move the timenode.
     }
 
     for(EventModel* event : m_events)
@@ -257,8 +258,6 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 }
 
 ///////// ADDITION //////////
-
-// TODO if we go pass-by-value, use std::move here.
 void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
     m_constraints.push_back(constraint);
