@@ -50,14 +50,8 @@ namespace iscore
     class Command
     {
         public:
-            Command(const char* parname, const char* cmdname, QString text) :
-                m_name {cmdname},
-                m_parentName {parname},
-                m_text{text}
-            {
-            }
-
-            Command(QString parname, QString cmdname, QString text) :
+            template<typename Str1, typename Str2, typename Str3>
+            Command(Str1&& parname, Str2&& cmdname, Str3&& text) :
                 m_name {cmdname},
                 m_parentName {parname},
                 m_text{text}
@@ -86,23 +80,6 @@ namespace iscore
                 m_text = t;
             }
 
-            // A facility for commands that should not be merged.
-            // Merging should be explicitely enabled.
-            bool canMerge() const
-            {
-                return m_canMerge;
-            }
-
-            void enableMerging()
-            {
-                m_canMerge = true;
-            }
-
-            void disableMerging()
-            {
-                m_canMerge = false;
-            }
-
             virtual void undo() = 0;
             virtual void redo() = 0;
 
@@ -112,13 +89,6 @@ namespace iscore
                 using namespace std;
                 hash<string> fn;
                 return fn(this->name().toStdString());
-                /*
-                int32_t theUid =
-                    hash <= numeric_limits<int32_t>::max() ?
-                        static_cast<int32_t>(hash) :
-                        static_cast<int32_t>(hash - numeric_limits<int32_t>::max() - 1) + numeric_limits<int32_t>::min();
-                return theUid;
-                * */
             }
 
 
@@ -134,7 +104,6 @@ namespace iscore
             }
 
         private:
-            bool m_canMerge {false};
             const QString m_name;
             const QString m_parentName;
             QString m_text;
