@@ -6,7 +6,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<TimeNodeModel>&>(timenode));
 
-    m_stream << timenode.metadata;
+    readFrom(timenode.metadata);
 
     m_stream << timenode.m_date
              << timenode.m_y
@@ -20,7 +20,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
 {
-    m_stream >> timenode.metadata;
+    writeTo(timenode.metadata);
 
     m_stream >> timenode.m_date
              >> timenode.m_y

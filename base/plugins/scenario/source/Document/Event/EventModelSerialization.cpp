@@ -7,7 +7,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
 
-    m_stream << ev.metadata;
+    readFrom(ev.metadata);
 
     m_stream << ev.previousConstraints()
              << ev.nextConstraints()
@@ -26,7 +26,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
-    m_stream >> ev.metadata;
+    writeTo(ev.metadata);
 
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
     double heightPercentage;

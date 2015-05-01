@@ -13,8 +13,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
 
     // Metadata
-    m_stream	<< constraint.metadata
-                << constraint.heightPercentage();
+    readFrom(constraint.metadata);
+    m_stream << constraint.heightPercentage();
 
     // Processes
     auto processes = constraint.processes();
@@ -55,7 +55,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
 {
     double heightPercentage;
-    m_stream >> constraint.metadata >> heightPercentage;
+    writeTo(constraint.metadata);
+    m_stream >> heightPercentage;
 
     constraint.setHeightPercentage(heightPercentage);
 
