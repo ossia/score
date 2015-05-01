@@ -4,6 +4,7 @@
 
 class QActionGroup;
 class ScenarioModel;
+class ScenarioStateMachine;
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
@@ -28,6 +29,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     private:
         ScenarioModel* focusedScenario();
+        ScenarioStateMachine& stateMachine() const;
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);

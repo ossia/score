@@ -3,6 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include "ProcessInterface/ExpandMode.hpp"
 
 class ProcessSharedModelInterface;
 class BoxModel;
@@ -17,7 +18,8 @@ namespace Scenario
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(CopyConstraintContent, "ScenarioControl")
                 CopyConstraintContent(QJsonObject&& sourceConstraint,
-                                      ObjectPath&&  targetConstraint);
+                                      ObjectPath&&  targetConstraint,
+                                      ExpandMode mode);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -29,6 +31,7 @@ namespace Scenario
             private:
                 QJsonObject m_source;
                 ObjectPath m_target;
+                ExpandMode m_mode{ExpandMode::Grow};
 
                 QVector<id_type<BoxModel>> m_boxIds;
                 QVector<id_type<ProcessSharedModelInterface>> m_processIds;

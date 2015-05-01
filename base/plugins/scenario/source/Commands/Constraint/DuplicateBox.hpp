@@ -9,11 +9,6 @@ namespace Scenario
 {
     namespace Command
     {
-        /**
-         * @brief The CopyBox class
-         *
-         * Copy a Box inside the same constraint
-         */
         class DuplicateBox : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND

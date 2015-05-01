@@ -7,10 +7,13 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 
 #include "Control/OldFormatConversion.hpp"
 
+#include <QToolBar>
 #include <QFile>
 #include <QFileDialog>
 #include <QTextBlock>
@@ -102,20 +105,21 @@ QJsonObject ScenarioControl::cutSelectedElementsToJson()
     return obj;
 }
 
-#include <Commands/Constraint/CopyBox.hpp>
+#include <Commands/Constraint/CopyConstraintContent.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 void ScenarioControl::writeJsonToSelectedElements(const QJsonObject& obj)
 {
     if (auto sm = focusedScenario())
     {
         auto selectedConstraints = selectedElements(sm->constraints());
-        for(auto json_vref : obj["Constraints"].toArray())
+        for(const auto& json_vref : obj["Constraints"].toArray())
         {
-            for(auto& constraint : selectedConstraints)
+            for(const auto& constraint : selectedConstraints)
             {
                 auto cmd = new Scenario::Command::CopyConstraintContent{
                         json_vref.toObject(),
-                        iscore::IDocument::path(constraint)};
+                        iscore::IDocument::path(constraint),
+                        stateMachine().expandMode()};
 
                 CommandDispatcher<> dispatcher{this->currentDocument()->commandStack()};
                 dispatcher.submitCommand(cmd);
@@ -261,9 +265,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        elementsToJson);
 }
 
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include <QToolBar>
 
 // TODO use the one in ScenarioStateMachine
 enum ScenarioAction
@@ -286,6 +287,12 @@ QAction* makeToolbarAction(const QString& name,
     return act;
 }
 
+ScenarioStateMachine& ScenarioControl::stateMachine() const
+{
+    auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
+    return static_cast<TemporalScenarioViewModel *>(model.focusedViewModel())->presenter()->stateMachine();
+}
+
 QList<QToolBar *> ScenarioControl::makeToolbars()
 {
     // TODO make a method of this
@@ -299,12 +306,6 @@ QList<QToolBar *> ScenarioControl::makeToolbars()
 
         auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
         return dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel()) != nullptr;
-    };
-
-    auto stateMachine = [this]() -> ScenarioStateMachine &
-    {
-        auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        return static_cast<TemporalScenarioViewModel *>(model.focusedViewModel())->presenter()->stateMachine();
     };
 
     QToolBar *bar = new QToolBar;
@@ -420,6 +421,7 @@ void ScenarioControl::on_presenterChanged()
         if (scenario)
         {
             // Set the current state on the statemachine.
+            // TODO put this in a pattern (MappedActionGroup?)
             for (QAction *action : m_scenarioToolActionGroup->actions())
             {
                 if (action->isChecked())

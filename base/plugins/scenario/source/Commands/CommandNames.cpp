@@ -11,7 +11,7 @@
 #include "Constraint/Box/MergeDecks.hpp"
 #include "Constraint/Box/MoveDeck.hpp"
 #include "Constraint/Box/RemoveDeckFromBox.hpp"
-#include "Constraint/CopyBox.hpp"
+#include "Constraint/CopyConstraintContent.hpp"
 #include "Constraint/DuplicateBox.hpp"
 #include "Constraint/MergeBoxes.hpp"
 #include "Constraint/RemoveBoxFromConstraint.hpp"

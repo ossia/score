@@ -1,4 +1,4 @@
-#include "CopyBox.hpp"
+#include "CopyConstraintContent.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -10,14 +10,16 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-// TODO rename file
+// TODO rename in SetConstraintContent ?
 CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
-                                             ObjectPath&& targetConstraint) :
+                                             ObjectPath&& targetConstraint,
+                                             ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
     m_source{sourceConstraint},
-    m_target{targetConstraint}
+    m_target{targetConstraint},
+    m_mode{mode}
 {
     auto trg_constraint = m_target.find<ConstraintModel>();
     ConstraintModel src_constraint{
@@ -76,7 +78,16 @@ void CopyConstraintContent::redo()
         trg_constraint->addProcess(newproc);
 
         // Resize the processes according to the new constraint.
-        newproc->setDurationAndScale(trg_constraint->defaultDuration());
+        if(m_mode == ExpandMode::Scale)
+        {
+            qDebug("scale");
+            newproc->setDurationAndScale(trg_constraint->defaultDuration());
+        }
+        else
+        {
+            qDebug("grow");
+            newproc->setDurationAndGrow(trg_constraint->defaultDuration());
+        }
     }
 
     // Clone the boxes
@@ -129,10 +140,12 @@ void Visitor<Writer<DataStream>>::writeTo(QJsonObject& obj)
 
 void CopyConstraintContent::serializeImpl(QDataStream& s) const
 {
-    s << m_source << m_target << m_boxIds << m_processIds;
+    s << m_source << m_target << m_boxIds << m_processIds << (int) m_mode;
 }
 
 void CopyConstraintContent::deserializeImpl(QDataStream& s)
 {
-    s >> m_source >> m_target >> m_boxIds >> m_processIds;
+    int mode;
+    s >> m_source >> m_target >> m_boxIds >> m_processIds >> mode;
+    m_mode = static_cast<ExpandMode>(mode);
 }
