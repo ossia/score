@@ -192,6 +192,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
 void BaseElementModel::setDisplayedConstraint(ConstraintModel *constraint)
 {
+    // TODO only keep it saved at one place.
     m_displayedConstraint = constraint;
     setFocusedViewModel(nullptr);
 }

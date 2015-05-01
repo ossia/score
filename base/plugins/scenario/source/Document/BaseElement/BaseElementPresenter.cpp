@@ -98,6 +98,14 @@ void BaseElementPresenter::setDisplayedConstraint(ConstraintModel* c)
     {
         m_displayedConstraint = c;
         on_displayedConstraintChanged();
+
+        disconnect(m_fullViewConnection);
+        if(c != model()->constraintModel())
+        {
+            m_fullViewConnection =
+                    connect(c, &QObject::destroyed,
+                            this, [&] () { setDisplayedConstraint(model()->constraintModel()); });
+        }
     }
 }
 
@@ -131,7 +139,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     // Update the address bar
     view()->addressBar()
             ->setTargetObject(IDocument::path(displayedConstraint()));
-
 }
 
 void BaseElementPresenter::setProgressBarTime(TimeValue t)

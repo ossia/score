@@ -78,4 +78,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         // 30s displayed by default on average
         double m_millisecondsPerPixel{0.03};
+
+        QMetaObject::Connection m_fullViewConnection;
 };
