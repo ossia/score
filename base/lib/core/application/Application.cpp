@@ -3,7 +3,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
-#include <core/undo/UndoView.hpp>
+#include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoControl.hpp>
 
 using namespace iscore;
@@ -70,6 +70,7 @@ void Application::loadPluginData()
     {
         m_view->addToolBar(toolbar.bar);
     }
+
     for(auto& pnl : m_pluginManager.m_panelList)
     {
         m_presenter->registerPanel(pnl);
@@ -77,7 +78,7 @@ void Application::loadPluginData()
 
     for(auto& pnl : m_pluginManager.m_documentPanelList)
     {
-        m_presenter->registerDocumentPanel(pnl);
+        m_presenter->registerDocumentDelegate(pnl);
     }
 }
 

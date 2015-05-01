@@ -33,3 +33,14 @@ Qt::DockWidgetArea ProcessPanelView::defaultDock() const
 {
     return Qt::BottomDockWidgetArea;
 }
+
+int ProcessPanelView::priority() const
+{
+    return 10;
+}
+
+QGraphicsScene*ProcessPanelView::scene() const
+{return m_scene;}
+
+SizeNotifyingGraphicsView*ProcessPanelView::view() const
+{ return m_view; }

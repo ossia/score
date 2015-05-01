@@ -62,7 +62,7 @@ void Presenter::registerPanel(PanelFactoryInterface* factory)
         doc->setupNewPanel(pres, factory);
 }
 
-void Presenter::registerDocumentPanel(DocumentDelegateFactoryInterface* docpanel)
+void Presenter::registerDocumentDelegate(DocumentDelegateFactoryInterface* docpanel)
 {
     m_availableDocuments.push_back(docpanel);
 }

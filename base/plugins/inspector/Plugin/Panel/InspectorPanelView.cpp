@@ -20,6 +20,16 @@ QWidget* InspectorPanelView::getWidget()
     return m_widget;
 }
 
+Qt::DockWidgetArea InspectorPanelView::defaultDock() const
+{
+    return Qt::RightDockWidgetArea;
+}
+
+int InspectorPanelView::priority() const
+{
+    return 10;
+}
+
 void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
 {
     using namespace iscore;

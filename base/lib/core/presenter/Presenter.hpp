@@ -34,7 +34,7 @@ namespace iscore
             // Register data from plugins
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactoryInterface*);
-            void registerDocumentPanel(DocumentDelegateFactoryInterface*);
+            void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
 
             // Getters for plugin-registered things
             const std::vector<PluginControlInterface*>& pluginControls() const;

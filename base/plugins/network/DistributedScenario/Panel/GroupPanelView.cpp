@@ -25,7 +25,12 @@ QWidget*GroupPanelView::getWidget()
 
 Qt::DockWidgetArea GroupPanelView::defaultDock() const
 {
-    return Qt::LeftDockWidgetArea;
+    return Qt::RightDockWidgetArea;
+}
+
+int GroupPanelView::priority() const
+{
+    return 1;
 }
 
 #include "Repartition/session/Session.hpp"

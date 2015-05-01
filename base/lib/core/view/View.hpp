@@ -24,8 +24,6 @@ namespace iscore
             void addDocumentView(iscore::DocumentView*);
             void setupPanelView(PanelViewInterface* v);
 
-            void addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea);
-
             void closeDocument(iscore::DocumentView* doc);
 
         signals:
@@ -42,8 +40,8 @@ namespace iscore
 
 
         private:
-            QList<QDockWidget*> m_leftWidgets;
-            QList<QDockWidget*> m_rightWidgets;
+            QList<QPair<PanelViewInterface*, QDockWidget*>> m_leftWidgets;
+            QList<QPair<PanelViewInterface*, QDockWidget*>> m_rightWidgets;
 
             QTabWidget* m_tabWidget{};
     };

@@ -12,11 +12,10 @@ class ProcessPanelView : public iscore::PanelViewInterface
 
         QWidget* getWidget() override;
         Qt::DockWidgetArea defaultDock() const override;
+        int priority() const override;
 
-        QGraphicsScene* scene() const
-        {return m_scene;}
-        SizeNotifyingGraphicsView* view() const
-        { return m_view; }
+        QGraphicsScene* scene() const;
+        SizeNotifyingGraphicsView* view() const;
 
     signals:
         void sizeChanged(const QSize&);

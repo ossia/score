@@ -52,31 +52,45 @@ void View::addDocumentView(DocumentView* doc)
 
 void View::setupPanelView(PanelViewInterface* v)
 {
-    addSidePanel(v->getWidget(), v->objectName(), v->defaultDock());
-}
-
-void View::addSidePanel(QWidget* widg, QString name, Qt::DockWidgetArea dock)
-{
-    QDockWidget* dial = new QDockWidget {name, this};
-    dial->setWidget(widg);
+    using namespace std;
+    QDockWidget* dial = new QDockWidget {v->objectName(), this};
+    dial->setWidget(v->getWidget());
 
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
                                   MenuInterface::name(ViewMenuElement::Windows),
                                   dial->toggleViewAction()});
 
+    auto dock = v->defaultDock();
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
-        m_leftWidgets.push_back(dial);
+        m_leftWidgets.push_back({v, dial});
         if(m_leftWidgets.size() > 1)
-            tabifyDockWidget(m_leftWidgets.first(), dial);
+        {
+            // Find the one with the biggest priority
+            auto it = max_element(begin(m_leftWidgets),
+                                  end(m_leftWidgets),
+                                  [] (const auto& lhs, const auto& rhs)
+            { return lhs.first->priority() < rhs.first->priority(); });
+
+            tabifyDockWidget(it->second, dial);
+            it->second->raise();
+        }
     }
     else if(dock == Qt::RightDockWidgetArea)
     {
-        m_rightWidgets.push_back(dial);
+        m_rightWidgets.push_back({v, dial});
 
         if(m_rightWidgets.size() > 1)
-            tabifyDockWidget(m_rightWidgets.first(), dial);
+        {
+            // Find the one with the biggest priority
+            auto it = max_element(begin(m_rightWidgets),
+                                  end(m_rightWidgets),
+                                  [] (const auto& lhs, const auto& rhs)
+            { return lhs.first->priority() < rhs.first->priority(); });
+            tabifyDockWidget(it->second, dial);
+            it->second->raise();
+        }
     }
 }
 

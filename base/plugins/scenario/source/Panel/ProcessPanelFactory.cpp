@@ -5,6 +5,7 @@
 
 #include <core/view/View.hpp>
 #include <core/document/DocumentModel.hpp>
+
 iscore::PanelViewInterface*ProcessPanelFactory::makeView(iscore::View* parent)
 {
     return new ProcessPanelView{parent};
