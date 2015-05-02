@@ -98,7 +98,7 @@ void CopyConstraintContent::redo()
         // we maintain a pair mapping each original process to their cloned counterpart.
         // We can then use the correct cloned process to clone the process view model.
         auto newbox = new BoxModel{
-                src_boxes[i],
+                *src_boxes[i],
                 m_boxIds[i],
                 [&] (DeckModel& source, DeckModel& target)
                 {

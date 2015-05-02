@@ -58,16 +58,19 @@ ConstraintModel::ConstraintModel(
 
     for(auto& box : source->boxes())
     {
-        addBox(new BoxModel {box, box->id(), [&] (DeckModel& source, DeckModel& target)
-                             {
-                                 for(auto& pvm : source.processViewModels())
-                                 {
-                                     // We can safely reuse the same id since it's in a different deck.
-                                     auto proc = processPairs[&pvm->sharedProcessModel()];
-                                     // TODO harmonize the order of parameters (source first, then new id)
-                                     target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
-                                 }
-                             }, this});
+        addBox(new BoxModel (
+                   *box,
+                   box->id(),
+        [&] (DeckModel& source, DeckModel& target)
+        {
+                   for(auto& pvm : source.processViewModels())
+                   {
+                       // We can safely reuse the same id since it's in a different deck.
+                       auto proc = processPairs[&pvm->sharedProcessModel()];
+                       // TODO harmonize the order of parameters (source first, then new id)
+                       target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                   }
+        }, this));
     }
 
 

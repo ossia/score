@@ -31,7 +31,7 @@ void DuplicateBox::redo()
 {
     auto box = m_boxPath.find<BoxModel>();
     auto constraint = box->constraint();
-    constraint->addBox(new BoxModel {box,
+    constraint->addBox(new BoxModel {*box,
                                      m_newBoxId,
                                      &DeckModel::copyViewModelsInSameConstraint,
                                      constraint});

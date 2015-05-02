@@ -4,22 +4,23 @@
 #include "Deck/DeckModel.hpp"
 
 
-BoxModel::BoxModel(id_type<BoxModel> id, QObject* parent) :
+BoxModel::BoxModel(const id_type<BoxModel>& id, QObject* parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
 
 }
 
-BoxModel::BoxModel(BoxModel *source,
-                   id_type<BoxModel> id,
+BoxModel::BoxModel(const BoxModel& source,
+                   const id_type<BoxModel>& id,
                    std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
                    QObject *parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
-    for(auto& deck : source->m_decks)
+    metadata = source.metadata;
+    for(auto& deck : source.m_decks)
     {
         addDeck(new DeckModel{pvmCopyMethod, deck, deck->id(), this},
-                source->deckPosition(deck->id()));
+                source.deckPosition(deck->id()));
     }
 }
 
@@ -48,7 +49,7 @@ void BoxModel::addDeck(DeckModel* m)
 }
 
 
-void BoxModel::removeDeck(id_type<DeckModel> deckId)
+void BoxModel::removeDeck(const id_type<DeckModel>& deckId)
 {
     auto removedDeck = deck(deckId);
 
@@ -67,14 +68,14 @@ void BoxModel::removeDeck(id_type<DeckModel> deckId)
     delete removedDeck;
 }
 
-void BoxModel::swapDecks(id_type<DeckModel> firstdeck,
-                         id_type<DeckModel> seconddeck)
+void BoxModel::swapDecks(const id_type<DeckModel>& firstdeck,
+                         const id_type<DeckModel>& seconddeck)
 {
     m_positions.swap(m_positions.indexOf(firstdeck), m_positions.indexOf(seconddeck));
     emit deckPositionsChanged();
 }
 
-DeckModel* BoxModel::deck(id_type<DeckModel> deckId) const
+DeckModel* BoxModel::deck(const id_type<DeckModel>& deckId) const
 {
     return findById(m_decks, deckId);
 }

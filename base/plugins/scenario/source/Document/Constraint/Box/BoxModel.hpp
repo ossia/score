@@ -23,11 +23,11 @@ class BoxModel : public IdentifiedObject<BoxModel>
     public:
         ModelMetadata metadata;
 
-        BoxModel(id_type<BoxModel> id, QObject* parent);
+        BoxModel(const id_type<BoxModel>& id, QObject* parent);
 
         // Copy
-        BoxModel(BoxModel* source,
-                 id_type<BoxModel> id,
+        BoxModel(const BoxModel& source,
+                 const id_type<BoxModel>& id,
                  std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
                  QObject* parent);
 
@@ -43,12 +43,12 @@ class BoxModel : public IdentifiedObject<BoxModel>
         void addDeck(DeckModel* m, int position);
         void addDeck(DeckModel* m);  // No position : at the end
 
-        void removeDeck(id_type<DeckModel> deckId);
-        void swapDecks(id_type<DeckModel> firstdeck,
-                       id_type<DeckModel> seconddeck);
+        void removeDeck(const id_type<DeckModel>& deckId);
+        void swapDecks(const id_type<DeckModel>& firstdeck,
+                       const id_type<DeckModel>& seconddeck);
 
-        DeckModel* deck(id_type<DeckModel> deckId) const;
-        int deckPosition(id_type<DeckModel> deckId) const
+        DeckModel* deck(const id_type<DeckModel>& deckId) const;
+        int deckPosition(const id_type<DeckModel>& deckId) const
         {
             return m_positions.indexOf(deckId);
         }
@@ -63,12 +63,12 @@ class BoxModel : public IdentifiedObject<BoxModel>
         }
 
     signals:
-        void deckCreated(id_type<DeckModel> id);
-        void deckRemoved(id_type<DeckModel> id);
+        void deckCreated(const id_type<DeckModel>& id);
+        void deckRemoved(const id_type<DeckModel>& id);
         void deckPositionsChanged();
 
-        void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> processId);
-        void on_durationChanged(TimeValue dur);
+        void on_deleteSharedProcessModel(const id_type<ProcessSharedModelInterface>& processId);
+        void on_durationChanged(const TimeValue& dur);
 
     private:
         std::vector<DeckModel*> m_decks;
