@@ -2,7 +2,9 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object)
+ObjectPath ObjectPath::pathBetweenObjects(
+        const QObject* const parent_obj,
+        const QObject* target_object)
 {
     QVector<ObjectIdentifier> v;
 
@@ -42,7 +44,11 @@ ObjectPath ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const
 
     // Search goes from top to bottom (of the parent hierarchy) instead
     std::reverse(std::begin(v), std::end(v));
-    return std::move(v);
+
+    ObjectPath path{std::move(v)};
+    path.m_cache = const_cast<QObject*>(target_object);
+
+    return std::move(path);
 }
 
 QString ObjectPath::toString() const
@@ -65,6 +71,7 @@ QString ObjectPath::toString() const
     return s;
 }
 
+// TODO dangerous removeme
 ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* target_object)
 {
     QObject* parent_obj = qApp->findChild<QObject*> (parent_name);

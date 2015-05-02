@@ -212,11 +212,11 @@ void IScoreCohesionControl::interpolateStates()
     {
         // TODO state collapsing if twice the same message ?
         // Check the states similar between its start and end event
-        auto startEvent = scenar->event(constraint->startEvent());
-        auto endEvent = scenar->event(constraint->endEvent());
+        const auto& startEvent = scenar->event(constraint->startEvent());
+        const auto& endEvent = scenar->event(constraint->endEvent());
 
         QList<Message> startMessages;
-        for(auto& state : startEvent->states())
+        for(const auto& state : startEvent.states())
         {
             if(state.data().canConvert<Message>())
             {
@@ -229,7 +229,7 @@ void IScoreCohesionControl::interpolateStates()
         }
 
         QList<Message> endMessages;
-        for(auto& state : endEvent->states())
+        for(auto& state : endEvent.states())
         {
             if(state.data().canConvert<Message>())
             {

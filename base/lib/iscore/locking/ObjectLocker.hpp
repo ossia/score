@@ -31,7 +31,7 @@ namespace iscore
     class LockHelper
     {
         public:
-            LockHelper(const QObject* model, ObjectLocker& locker):
+            LockHelper(QObject* model, ObjectLocker& locker):
                 m_path{IDocument::path(model)},
                 m_locker{locker}
             {

@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <QVector>
+#include <QPointer>
 
 /**
  * @brief The ObjectPath class
@@ -42,7 +43,7 @@ class ObjectPath
         QString toString() const;
 
         ObjectPath(QVector<ObjectIdentifier>&& vec) :
-            m_objectIdentifiers {std::move(vec) }
+            m_objectIdentifiers {std::move(vec)}
         {
         }
 
@@ -66,7 +67,8 @@ class ObjectPath
          */
         static ObjectPath pathFromObject(QString origin, QObject* obj);
 
-        static ObjectPath pathBetweenObjects(const QObject* const parent_obj, const QObject *target_object);
+        static ObjectPath pathBetweenObjects(const QObject* const parent_obj,
+                                             const QObject* target_object);
         static ObjectPath pathFromObject(QObject* origin_object);
 
         /**
@@ -81,23 +83,31 @@ class ObjectPath
         template<typename T>
         T* find() const
         {
-            auto ptr = dynamic_cast<T*>(find_impl());
-
-            if(!ptr)
+            // First see if the pointer is still loaded in the cache.
+            if(!m_cache.isNull())
             {
-                throw std::runtime_error("Invalid cast on ObjectPath::find<T>");
+                auto ptr = dynamic_cast<T*>(m_cache.data());
+                Q_ASSERT(ptr);
+                return ptr;
             }
-
-            return ptr;
+            else // Load it by hand
+            {
+                auto ptr = dynamic_cast<T*>(find_impl());
+                Q_ASSERT(ptr);
+                m_cache = const_cast<typename std::remove_const<T>::type*>(ptr);
+                return ptr;
+            }
         }
 
         const ObjectIdentifierVector& vec() const
         {
             return m_objectIdentifiers;
         }
+
     private:
         QObject* find_impl() const;
         ObjectIdentifierVector m_objectIdentifiers;
+        mutable QPointer<QObject> m_cache;
 };
 
 Q_DECLARE_METATYPE(ObjectPath)

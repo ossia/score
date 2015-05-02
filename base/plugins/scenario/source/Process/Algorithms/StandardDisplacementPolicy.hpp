@@ -126,11 +126,11 @@ namespace StandardDisplacementPolicy
             double heightPosition,
             ProcessScaleMethod&& scaleMethod)
     {
-        auto constraint = scenario.constraint(constraintId);
+        auto& constraint = scenario.constraint(constraintId);
         constraint.setHeightPercentage(heightPosition);
         emit scenario.constraintMoved(constraintId);
 
-        auto sev = scenario.event(constraint.startEvent());
+        const auto& sev = scenario.event(constraint.startEvent());
 
         if(sev.date() != absolute_time)
         {
