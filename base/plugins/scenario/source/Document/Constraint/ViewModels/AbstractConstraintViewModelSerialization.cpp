@@ -71,8 +71,8 @@ SerializedConstraintViewModels serializeConstraintViewModels(
     for(const auto& viewModel : viewModels(scenario))
     {
         // TODO we need to know its concrete type in order to serialize it correctly.
-        auto cstrVM = viewModel->constraint(constraint.id());
-        if(auto temporalCstrVM = dynamic_cast<TemporalConstraintViewModel*>(cstrVM))
+        const auto& cstrVM = viewModel->constraint(constraint.id());
+        if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
         {
             auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);
 

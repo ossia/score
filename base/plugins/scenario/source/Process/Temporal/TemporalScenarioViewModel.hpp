@@ -53,12 +53,13 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
 
         virtual void serialize(const VisitorVariant&) const override;
 
-        virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
-                                             id_type<AbstractConstraintViewModel> constraintViewModelId) override;
+        virtual void makeConstraintViewModel(
+                const id_type<ConstraintModel>& constraintModelId,
+                const id_type<AbstractConstraintViewModel>& constraintViewModelId) override;
 
         void addConstraintViewModel(constraint_view_model_type* constraint_view_model);
 
     public slots:
-        virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) override;
+        virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) override;
 
 };

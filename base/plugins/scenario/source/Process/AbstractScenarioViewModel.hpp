@@ -15,30 +15,34 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
     public:
         using model_type = ScenarioModel;
 
-        virtual void makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
-                                             id_type<AbstractConstraintViewModel> constraintViewModelId) = 0;
+        virtual void makeConstraintViewModel(
+                const id_type<ConstraintModel>& constraintModelId,
+                const id_type<AbstractConstraintViewModel>& constraintViewModelId) = 0;
 
-        void removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId);
+        void removeConstraintViewModel(
+                const id_type<AbstractConstraintViewModel>& constraintViewModelId);
 
         // Access to elements
         // A given constraint can be represented only once in a given scenario VM, hence...
-        AbstractConstraintViewModel* constraint(id_type<ConstraintModel> constraintModelid) const;
-        AbstractConstraintViewModel* constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const;
+        AbstractConstraintViewModel& constraint(
+                const id_type<ConstraintModel>& constraintModelid) const;
+        AbstractConstraintViewModel& constraint(
+                const id_type<AbstractConstraintViewModel>& constraintViewModelid) const;
         QVector<AbstractConstraintViewModel*> constraints() const;
 
     signals:
-        void constraintViewModelCreated(id_type<AbstractConstraintViewModel> constraintViewModelid);
-        void constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelid);
+        void constraintViewModelCreated(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
+        void constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
 
-        void eventCreated(id_type<EventModel> eventId);
-        void eventDeleted(id_type<EventModel> eventId);
-        void timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
-        void eventMoved(id_type<EventModel> eventId);
-        void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
-        void constraintMoved(id_type<ConstraintModel> constraintId);
+        void eventCreated(const id_type<EventModel>& eventId);
+        void eventDeleted(const id_type<EventModel>& eventId);
+        void timeNodeDeleted(const id_type<TimeNodeModel>& timeNodeId);
+        void eventMoved(const id_type<EventModel>& eventId);
+        void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
+        void constraintMoved(const id_type<ConstraintModel>& constraintId);
 
     public slots:
-        virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
+        virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
 
     protected:
         AbstractScenarioViewModel(const id_type<ProcessViewModelInterface>& viewModelId,
@@ -83,27 +87,13 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         QVector<AbstractConstraintViewModel*> m_constraints;
 };
 
-
-// TODO put this in a pattern (and also do for constraintvminterface, event, etc...)
 template<typename T>
-QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T* scenarioViewModel)
+typename T::constraint_view_model_type& constraintViewModel(
+        const T& scenarioViewModel,
+        const id_type<AbstractConstraintViewModel>& cvm_id)
 {
-    QVector<typename T::constraint_view_model_type*> v;
-
-    for(auto& elt : scenarioViewModel->constraints())
-    {
-        v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
-    }
-
-    return v;
+    return static_cast<typename T::constraint_view_model_type&>(scenarioViewModel.constraint(cvm_id));
 }
-
-template<typename T>
-typename T::constraint_view_model_type* constraintViewModel(const T* scenarioViewModel, id_type<AbstractConstraintViewModel> cvm_id)
-{
-    return static_cast<typename T::constraint_view_model_type*>(scenarioViewModel->constraint(cvm_id));
-}
-
 
 
 template<typename T>
@@ -120,6 +110,6 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& 
 }
 
 using ConstraintViewModelIdMap = QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>>;
-void createConstraintViewModels(ConstraintViewModelIdMap idMap,
-                                id_type<ConstraintModel> constraint,
+void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
+                                const id_type<ConstraintModel>& constraint,
                                 ScenarioModel* scenario);

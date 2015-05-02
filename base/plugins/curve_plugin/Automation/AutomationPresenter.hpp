@@ -25,8 +25,8 @@ class AutomationPresenter : public ProcessPresenterInterface
         virtual void putBehind() override;
         virtual void on_zoomRatioChanged(ZoomRatio) override;
         virtual void parentGeometryChanged() override;
-        virtual id_type<ProcessViewModelInterface> viewModelId() const override;
-        virtual id_type<ProcessSharedModelInterface> modelId() const override;
+        virtual const id_type<ProcessViewModelInterface>& viewModelId() const override;
+        virtual const id_type<ProcessSharedModelInterface>& modelId() const override;
 
     public slots:
         // From model

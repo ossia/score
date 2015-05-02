@@ -25,6 +25,6 @@ class ProcessPresenterInterface : public NamedObject
         virtual void on_zoomRatioChanged(ZoomRatio) = 0;
         virtual void parentGeometryChanged() = 0;
 
-        virtual id_type<ProcessViewModelInterface> viewModelId() const = 0;
-        virtual id_type<ProcessSharedModelInterface> modelId() const = 0;
+        virtual const id_type<ProcessViewModelInterface>& viewModelId() const = 0;
+        virtual const id_type<ProcessSharedModelInterface>& modelId() const = 0;
 };

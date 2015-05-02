@@ -67,8 +67,9 @@ ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy()
 }
 
 
-void TemporalScenarioViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
-                                                        id_type<AbstractConstraintViewModel> constraintViewModelId)
+void TemporalScenarioViewModel::makeConstraintViewModel(
+        const id_type<ConstraintModel>& constraintModelId,
+        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
     auto& constraint_model = model(*this).constraint(constraintModelId);
 
@@ -87,7 +88,7 @@ void TemporalScenarioViewModel::addConstraintViewModel(constraint_view_model_typ
     emit constraintViewModelCreated(constraint_view_model->id());
 }
 
-void TemporalScenarioViewModel::on_constraintRemoved(id_type<ConstraintModel> constraintSharedModelId)
+void TemporalScenarioViewModel::on_constraintRemoved(const id_type<ConstraintModel>& constraintSharedModelId)
 {
     for(auto& constraint_view_model : constraintsViewModels(*this))
     {

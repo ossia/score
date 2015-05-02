@@ -45,7 +45,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
         on_timeNodeCreated_impl(*tn_model);
     }
 
-    for(const auto& constraint_view_model : constraintsViewModels(m_viewModel))
+    for(const auto& constraint_view_model : constraintsViewModels(*m_viewModel))
     {
         on_constraintCreated_impl(*constraint_view_model);
     }
@@ -99,12 +99,12 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
     }
 }
 
-id_type<ProcessViewModelInterface> TemporalScenarioPresenter::viewModelId() const
+const id_type<ProcessViewModelInterface>& TemporalScenarioPresenter::viewModelId() const
 {
     return m_viewModel->id();
 }
 
-id_type<ProcessSharedModelInterface> TemporalScenarioPresenter::modelId() const
+const id_type<ProcessSharedModelInterface>& TemporalScenarioPresenter::modelId() const
 {
     return m_viewModel->sharedProcessModel().id();
 }
@@ -174,41 +174,46 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-void TemporalScenarioPresenter::on_eventCreated(id_type<EventModel> eventId)
+void TemporalScenarioPresenter::on_eventCreated(
+        const id_type<EventModel>& eventId)
 {
     on_eventCreated_impl(model(*m_viewModel).event(eventId));
 }
 
-void TemporalScenarioPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
+void TemporalScenarioPresenter::on_timeNodeCreated(
+        const id_type<TimeNodeModel>& timeNodeId)
 {
     on_timeNodeCreated_impl(model(*m_viewModel).timeNode(timeNodeId));
 }
 
-void TemporalScenarioPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
+void TemporalScenarioPresenter::on_constraintCreated(
+        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
-    // TODO ref
-    on_constraintCreated_impl(*constraintViewModel(m_viewModel, constraintViewModelId));
+    on_constraintCreated_impl(constraintViewModel(*m_viewModel, constraintViewModelId));
 }
 
-void TemporalScenarioPresenter::on_eventDeleted(id_type<EventModel> eventId)
+void TemporalScenarioPresenter::on_eventDeleted(
+        const id_type<EventModel>& eventId)
 {
     removeFromVectorWithId(m_events, eventId);
 
     // TODO optimizeme
-    for(auto& tn : m_timeNodes)
+    for(const auto& tn : m_timeNodes)
     {
         m_viewInterface->updateTimeNode(tn->id());
     }
     m_view->update();
 }
 
-void TemporalScenarioPresenter::on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId)
+void TemporalScenarioPresenter::on_timeNodeDeleted(
+        const id_type<TimeNodeModel>& timeNodeId)
 {
     removeFromVectorWithId(m_timeNodes, timeNodeId);
     m_view->update();
 }
 
-void TemporalScenarioPresenter::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintViewModelId)
+void TemporalScenarioPresenter::on_constraintViewModelRemoved(
+        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
     vec_erase_remove_if(m_constraints,
                         [&constraintViewModelId](TemporalConstraintPresenter * pres)

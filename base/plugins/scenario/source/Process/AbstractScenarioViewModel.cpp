@@ -2,9 +2,10 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
-AbstractConstraintViewModel* AbstractScenarioViewModel::constraint(id_type<AbstractConstraintViewModel> constraintViewModelid) const
+AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
+        const id_type<AbstractConstraintViewModel>& constraintViewModelid) const
 {
-    return findById(m_constraints, constraintViewModelid);
+    return *findById(m_constraints, constraintViewModelid);
 }
 
 QVector<AbstractConstraintViewModel*> AbstractScenarioViewModel::constraints() const
@@ -13,15 +14,19 @@ QVector<AbstractConstraintViewModel*> AbstractScenarioViewModel::constraints() c
 }
 
 
-void AbstractScenarioViewModel::removeConstraintViewModel(id_type<AbstractConstraintViewModel> constraintViewModelId)
+void AbstractScenarioViewModel::removeConstraintViewModel(
+        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
-    // We have to emit before, because on removal, some other stuff might use the now-removed model id to do the comparison in vec_erase_remove_if
+    // We have to emit before, because on removal,
+    // some other stuff might use the now-removed model id
+    // to do the comparison in vec_erase_remove_if
     emit constraintViewModelRemoved(constraintViewModelId);
     removeById(m_constraints, constraintViewModelId);
 
 }
 
-AbstractConstraintViewModel*AbstractScenarioViewModel::constraint(id_type<ConstraintModel> constraintModelId) const
+AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
+        const id_type<ConstraintModel>& constraintModelId) const
 {
     using namespace std;
     auto it = find_if(begin(m_constraints),
@@ -31,12 +36,13 @@ AbstractConstraintViewModel*AbstractScenarioViewModel::constraint(id_type<Constr
         return vm->model().id() == constraintModelId;
     });
 
-    return it != end(m_constraints) ? *it : nullptr;
+    Q_ASSERT(it != end(m_constraints));
+    return **it;
 }
 
 #include "Process/ScenarioModel.hpp"
-void createConstraintViewModels(ConstraintViewModelIdMap idMap,
-                                id_type<ConstraintModel> constraintId,
+void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
+                                const id_type<ConstraintModel>& constraintId,
                                 ScenarioModel* scenario)
 {
     // Creation of all the constraint view models

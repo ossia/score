@@ -38,20 +38,20 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         TemporalScenarioPresenter(TemporalScenarioViewModel* model,
                                   ProcessViewInterface* view,
                                   QObject* parent);
-        virtual ~TemporalScenarioPresenter();
+        ~TemporalScenarioPresenter();
 
 
-        virtual id_type<ProcessViewModelInterface> viewModelId() const override;
-        virtual id_type<ProcessSharedModelInterface> modelId() const override;
+        const id_type<ProcessViewModelInterface>& viewModelId() const override;
+        const id_type<ProcessSharedModelInterface>& modelId() const override;
 
-        virtual void setWidth(int width) override;
-        virtual void setHeight(int height) override;
-        virtual void putToFront() override;
-        virtual void putBehind() override;
+        void setWidth(int width) override;
+        void setHeight(int height) override;
+        void putToFront() override;
+        void putBehind() override;
 
-        virtual void parentGeometryChanged() override;
+        void parentGeometryChanged() override;
 
-        virtual void on_zoomRatioChanged(ZoomRatio val) override;
+        void on_zoomRatioChanged(ZoomRatio val) override;
 
         const std::vector<EventPresenter*>& events() const
         { return m_events; }
@@ -73,14 +73,14 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
     public slots:
         // Model -> view
-        void on_eventCreated(id_type<EventModel> eventId);
-        void on_eventDeleted(id_type<EventModel> eventId);
+        void on_eventCreated(const id_type<EventModel>& eventId);
+        void on_eventDeleted(const id_type<EventModel>& eventId);
 
-        void on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
-        void on_timeNodeDeleted(id_type<TimeNodeModel> timeNodeId);
+        void on_timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
+        void on_timeNodeDeleted(const id_type<TimeNodeModel>& timeNodeId);
 
-        void on_constraintCreated(id_type<AbstractConstraintViewModel> constraintId);
-        void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> constraintId);
+        void on_constraintCreated(const id_type<AbstractConstraintViewModel>& constraintId);
+        void on_constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintId);
 
         void on_askUpdate();
 
