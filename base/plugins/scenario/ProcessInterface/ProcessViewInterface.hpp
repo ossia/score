@@ -6,32 +6,13 @@ class ProcessViewInterface : public QGraphicsObject
     public:
         using QGraphicsObject::QGraphicsObject;
 
-        virtual QRectF boundingRect() const override
-        {
-            return {0, 0, m_width, m_height};
-        }
+        virtual QRectF boundingRect() const override;
 
-        void setHeight(qreal height)
-        {
-            prepareGeometryChange();
-            m_height = height;
-        }
+        void setHeight(qreal height);
+        qreal height() const;
 
-        qreal height() const
-        {
-            return m_height;
-        }
-
-        void setWidth(qreal width)
-        {
-            prepareGeometryChange();
-            m_width = width;
-        }
-
-        qreal width() const
-        {
-            return m_width;
-        }
+        void setWidth(qreal width);
+        qreal width() const;
 
     private:
         qreal m_height {};
