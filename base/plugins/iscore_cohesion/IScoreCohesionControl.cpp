@@ -105,7 +105,7 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot, m_interp});
-    return {{2, bar}};
+    return {OrderedToolbar{2, bar}};
 }
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)

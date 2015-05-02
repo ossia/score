@@ -50,7 +50,7 @@ QList<OrderedToolbar> iscore::UndoControl::makeToolbars()
     bar->addAction(m_undoAction);
     bar->addAction(m_redoAction);
 
-    return {{3, bar}};
+    return {OrderedToolbar{3, bar}};
 }
 
 void iscore::UndoControl::on_presenterChanged()
