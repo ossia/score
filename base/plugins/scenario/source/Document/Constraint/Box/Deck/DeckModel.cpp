@@ -78,7 +78,8 @@ void DeckModel::deleteProcessViewModel(
 void DeckModel::selectForEdition(
         const id_type<ProcessViewModelInterface>& processViewId)
 {
-    Q_ASSERT(processViewId.val());
+    if(!processViewId.val())
+        return;
 
     if(processViewId != m_editedProcessViewModelId)
     {
