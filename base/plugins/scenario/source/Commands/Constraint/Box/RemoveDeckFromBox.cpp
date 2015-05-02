@@ -48,10 +48,10 @@ void RemoveDeckFromBox::redo()
 
 void RemoveDeckFromBox::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_deckId << m_serializedDeckData << m_position;
+    s << m_path << m_deckId << m_position << m_serializedDeckData;
 }
 
 void RemoveDeckFromBox::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_deckId >> m_serializedDeckData >> m_position;
+    s >> m_path >> m_deckId >> m_position >> m_serializedDeckData;
 }

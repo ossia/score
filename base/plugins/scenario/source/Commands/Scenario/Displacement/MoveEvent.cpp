@@ -165,16 +165,29 @@ void MoveEvent::redo()
 
 void MoveEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_eventId
-      << m_oldHeightPosition << m_newHeightPosition << m_oldDate << m_newDate
-      << m_movableTimenodes << (int)m_mode << m_savedConstraints;
+    s << m_path
+      << m_eventId
+      << m_oldHeightPosition
+      << m_newHeightPosition
+      << m_oldDate
+      << m_newDate
+      << m_movableTimenodes
+      << (int)m_mode
+      << m_savedConstraints;
 }
 
 void MoveEvent::deserializeImpl(QDataStream& s)
 {
     int mode;
-    s >> m_path >> m_eventId
-      >> m_oldHeightPosition >> m_newHeightPosition >> m_oldDate >> m_newDate
-      >> m_movableTimenodes >> mode >> m_savedConstraints;
+    s >> m_path
+      >> m_eventId
+      >> m_oldHeightPosition
+      >> m_newHeightPosition
+      >> m_oldDate
+      >> m_newDate
+      >> m_movableTimenodes
+      >> mode
+      >> m_savedConstraints;
+
     m_mode = static_cast<ExpandMode>(mode);
 }

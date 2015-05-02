@@ -60,10 +60,18 @@ void RemoveConstraint::redo()
 
 void RemoveConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_cstrId << m_serializedConstraint << m_serializedConstraintViewModels << m_constraintFullViewId;
+    s << m_path
+      << m_cstrId
+      << m_serializedConstraint
+      << m_serializedConstraintViewModels
+      << m_constraintFullViewId;
 }
 
 void RemoveConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_cstrId >> m_serializedConstraint >> m_serializedConstraintViewModels >> m_constraintFullViewId;
+    s >> m_path
+            >> m_cstrId
+            >> m_serializedConstraint
+            >> m_serializedConstraintViewModels
+            >> m_constraintFullViewId;
 }

@@ -40,7 +40,6 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                QString m_processIdentifier;
 
                 bool m_existingBox {};
 

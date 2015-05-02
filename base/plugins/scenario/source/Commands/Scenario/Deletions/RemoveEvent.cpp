@@ -102,10 +102,18 @@ void RemoveEvent::redo()
 
 void RemoveEvent::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_evId << m_serializedEvent << m_serializedConstraints << m_serializedTimeNode ;
+    s << m_path
+      << m_evId
+      << m_serializedEvent
+      << m_serializedConstraints
+      << m_serializedTimeNode ;
 }
 
 void RemoveEvent::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_evId >> m_serializedEvent >> m_serializedConstraints >> m_serializedTimeNode ;
+    s >> m_path
+            >> m_evId
+            >> m_serializedEvent
+            >> m_serializedConstraints
+            >> m_serializedTimeNode ;
 }

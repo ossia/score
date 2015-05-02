@@ -65,6 +65,7 @@ namespace Scenario
 
                 // Data to correctly restore the processes on undo
                 QVector<id_type<TimeNodeModel>> m_movableTimenodes;
+
                 QVector<
                     QPair<
                         QPair<

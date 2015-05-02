@@ -77,13 +77,23 @@ void MoveConstraint::redo()
 
 void MoveConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_cmd->serialize() << m_newHeightPosition;
+    s << m_cmd->serialize()
+      << m_path
+      << m_constraint
+      << m_oldHeightPosition
+      << m_newHeightPosition
+      << m_eventHeight;
 }
 
 void MoveConstraint::deserializeImpl(QDataStream& s)
 {
     QByteArray a;
-    s >> a >> m_newHeightPosition;
+    s >> a
+      >> m_path
+      >> m_constraint
+      >> m_oldHeightPosition
+      >> m_newHeightPosition
+      >> m_eventHeight;
 
     m_cmd->deserialize(a);
 }

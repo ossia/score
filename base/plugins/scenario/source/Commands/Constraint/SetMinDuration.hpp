@@ -32,8 +32,8 @@ namespace Scenario
             private:
                 ObjectPath m_path;
 
-                TimeValue m_oldDuration {};
-                TimeValue m_newDuration {};
+                TimeValue m_oldDuration;
+                TimeValue m_newDuration;
         };
     }
 }
