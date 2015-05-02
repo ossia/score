@@ -110,7 +110,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         void addViewModel(ProcessViewModelInterface* m);
         void removeViewModel(ProcessViewModelInterface* m);
 
-        // Ownership ? The parent is the Deck. Always.
+        // Ownership : the parent is the Deck or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a box.
         QVector<ProcessViewModelInterface*> m_viewModels;
         TimeValue m_duration;

@@ -10,8 +10,6 @@ class TemporalConstraintView : public AbstractConstraintView
         TemporalConstraintView(TemporalConstraintPresenter& presenter,
                                QGraphicsObject* parent);
 
-        virtual ~TemporalConstraintView() = default;
-
         virtual QRectF boundingRect() const override;
         virtual void paint(QPainter* painter,
                            const QStyleOptionGraphicsItem* option,

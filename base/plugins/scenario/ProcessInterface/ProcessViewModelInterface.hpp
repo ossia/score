@@ -12,10 +12,7 @@ class ProcessViewModelPanelProxy;
 class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterface>
 {
     public:
-        virtual ~ProcessViewModelInterface() = default;
-
-        ProcessSharedModelInterface& sharedProcessModel() const
-        { return m_sharedProcessModel; }
+        ProcessSharedModelInterface& sharedProcessModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
@@ -25,12 +22,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         ProcessViewModelInterface(const id_type<ProcessViewModelInterface>& viewModelId,
                                   const QString& name,
                                   ProcessSharedModelInterface& sharedProcess,
-                                  QObject* parent) :
-            IdentifiedObject<ProcessViewModelInterface> {viewModelId, name, parent},
-        m_sharedProcessModel {sharedProcess}
-        {
-
-        }
+                                  QObject* parent);
 
         template<typename Impl>
         ProcessViewModelInterface(Deserializer<Impl>& vis,
@@ -76,26 +68,7 @@ const typename T::model_type& model(const T& viewModel)
  *  * The view model identifier
  */
 // TODO this should be in DeckModel.hpp instead; makes no sense here.
-inline std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModelInterface* pvm)
-{
-    // TODO - this only works in a scenario.
-    auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());
-    auto boxModel = static_cast<IdentifiedObjectAbstract*>(deckModel->parent());
-    return std::tuple<int, int, int>
-    {
-        boxModel->id_val(),
-        deckModel->id_val(),
-        pvm->id_val()
-    };
-}
+std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModelInterface* pvm);
 
-inline QDataStream& operator<< (QDataStream& s, const std::tuple<int, int, int>& tuple)
-{
-    s << std::get<0> (tuple) << std::get<1> (tuple) << std::get<2> (tuple);
-    return s;
-}
-inline QDataStream& operator>> (QDataStream& s, std::tuple<int, int, int>& tuple)
-{
-    s >> std::get<0> (tuple) >> std::get<1> (tuple) >> std::get<2> (tuple);
-    return s;
-}
+QDataStream& operator<< (QDataStream& s, const std::tuple<int, int, int>& tuple);
+QDataStream& operator>> (QDataStream& s, std::tuple<int, int, int>& tuple);
