@@ -5,8 +5,9 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include "StandardCreationPolicy.hpp"
 
-void removeEventFromTimeNode(ScenarioModel& scenario,
-                             id_type<EventModel> eventId)
+void removeEventFromTimeNode(
+        ScenarioModel& scenario,
+        const id_type<EventModel>& eventId)
 {
     for(auto& timeNode : scenario.timeNodes())
     {
@@ -24,8 +25,9 @@ void removeEventFromTimeNode(ScenarioModel& scenario,
 }
 
 
-void StandardRemovalPolicy::removeConstraint(ScenarioModel& scenario,
-                                             id_type<ConstraintModel> constraintId)
+void StandardRemovalPolicy::removeConstraint(
+        ScenarioModel& scenario,
+        const id_type<ConstraintModel>& constraintId)
 {
     auto& cstr = scenario.constraint(constraintId);
     auto& sev = scenario.event(cstr.startEvent());
@@ -37,8 +39,9 @@ void StandardRemovalPolicy::removeConstraint(ScenarioModel& scenario,
     scenario.removeConstraint(&cstr);
 }
 
-void StandardRemovalPolicy::removeEventAndConstraints(ScenarioModel& scenario,
-                                                      id_type<EventModel> eventId)
+void StandardRemovalPolicy::removeEventAndConstraints(
+        ScenarioModel& scenario,
+        const id_type<EventModel>& eventId)
 {
     auto& ev = scenario.event(eventId);
 

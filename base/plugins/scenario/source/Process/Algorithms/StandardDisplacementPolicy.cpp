@@ -1,10 +1,11 @@
 #include "StandardDisplacementPolicy.hpp"
 
 
-void translateNextElements(ScenarioModel& scenario,
-                           id_type<TimeNodeModel> firstTimeNodeMovedId,
-                           TimeValue deltaTime,
-                           QVector<id_type<EventModel>>& movedEvents)
+void translateNextElements(
+        ScenarioModel& scenario,
+        const id_type<TimeNodeModel>& firstTimeNodeMovedId,
+        const TimeValue& deltaTime,
+        QVector<id_type<EventModel>>& movedEvents)
 {
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
@@ -29,7 +30,7 @@ void translateNextElements(ScenarioModel& scenario,
 
             // if event has not already moved
             if(movedEvents.indexOf(evId) == -1
-            && scenario.event(evId).timeNode() != scenario.startEvent().timeNode())
+                    && scenario.event(evId).timeNode() != scenario.startEvent().timeNode())
             {
                 scenario.event(evId).translate(deltaTime);
                 movedEvents.push_back(evId);
@@ -48,9 +49,10 @@ void translateNextElements(ScenarioModel& scenario,
     }
 }
 
-void StandardDisplacementPolicy::getRelatedElements(ScenarioModel& scenario,
-                        id_type<TimeNodeModel> firstTimeNodeMovedId,
-                        QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
+void StandardDisplacementPolicy::getRelatedElements(
+        ScenarioModel& scenario,
+        const id_type<TimeNodeModel>& firstTimeNodeMovedId,
+        QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
 {
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;

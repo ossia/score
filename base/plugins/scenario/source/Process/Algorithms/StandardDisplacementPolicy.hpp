@@ -8,25 +8,28 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 
-void translateNextElements(ScenarioModel& scenario,
-                           id_type<TimeNodeModel> firstTimeNodeMovedId,
-                           TimeValue deltaTime,
-                           QVector<id_type<EventModel>>& movedEvents);
+void translateNextElements(
+        ScenarioModel& scenario,
+        const id_type<TimeNodeModel>& firstTimeNodeMovedId,
+        const TimeValue& deltaTime,
+        QVector<id_type<EventModel>>& movedEvents);
 
 
 namespace StandardDisplacementPolicy
 {
     // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
-void getRelatedElements(ScenarioModel& scenario,
-                        id_type<TimeNodeModel> firstTimeNodeMovedId,
-                        QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
+    void getRelatedElements(
+            ScenarioModel& scenario,
+            const id_type<TimeNodeModel>& firstTimeNodeMovedId,
+            QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
 
 
     template<typename ProcessScaleMethod>
-    void updatePositions(ScenarioModel& scenario,
-                         const QVector<id_type<TimeNodeModel> >& translatedTimeNodes,
-                         const TimeValue& deltaTime,
-                         ProcessScaleMethod&& scaleMethod)
+    void updatePositions(
+            ScenarioModel& scenario,
+            const QVector<id_type<TimeNodeModel> >& translatedTimeNodes,
+            const TimeValue& deltaTime,
+            ProcessScaleMethod&& scaleMethod)
     {
         for (const auto& timeNode_id : translatedTimeNodes)
         {
@@ -38,6 +41,7 @@ void getRelatedElements(ScenarioModel& scenario,
                 emit scenario.eventMoved(event);
             }
         }
+
         for(const auto& constraint : scenario.constraints())
         {
             auto startEventDate = scenario.event(constraint->startEvent()).date();
@@ -45,14 +49,15 @@ void getRelatedElements(ScenarioModel& scenario,
 
             TimeValue newDuration = endEventDate - startEventDate;
 
-            if ( !(constraint->startDate() - startEventDate).isZero())
+            if (!(constraint->startDate() - startEventDate).isZero())
             {
                 constraint->setStartDate(startEventDate);
             }
-            if(! (constraint->defaultDuration() - newDuration).isZero())
+
+            if(!(constraint->defaultDuration() - newDuration).isZero())
             {
                 ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
-                for(auto& process : constraint->processes())
+                for(const auto& process : constraint->processes())
                 {
                     scaleMethod(process, newDuration);
                 }
@@ -64,11 +69,12 @@ void getRelatedElements(ScenarioModel& scenario,
 
     // ProcessScaleMethod is a callable object that takes a ProcessModel*
     template<typename ProcessScaleMethod>
-    void setEventPosition(ScenarioModel& scenario,
-                          id_type<EventModel> eventId,
-                          TimeValue absolute_time,
-                          double heightPosition,
-                          ProcessScaleMethod&& scaleMethod)
+    void setEventPosition(
+            ScenarioModel& scenario,
+            const id_type<EventModel>& eventId,
+            const TimeValue& absolute_time,
+            double heightPosition,
+            ProcessScaleMethod&& scaleMethod)
     {
         auto& ev = scenario.event(eventId);
 
@@ -76,7 +82,7 @@ void getRelatedElements(ScenarioModel& scenario,
             return;
 
         // don't touch start event
-        if(! ev.previousConstraints().isEmpty())
+        if(!ev.previousConstraints().isEmpty())
         {
             TimeValue time = absolute_time - ev.date();
             ev.setHeightPercentage(heightPosition);
@@ -89,7 +95,7 @@ void getRelatedElements(ScenarioModel& scenario,
                                   already_moved_events);
 
             // update constraints size
-            for(ConstraintModel* constraint : scenario.constraints())
+            for(const auto& constraint : scenario.constraints())
             {
                 auto startEventDate = scenario.event(constraint->startEvent()).date();
                 auto endEventDate = scenario.event(constraint->endEvent()).date();
@@ -101,10 +107,11 @@ void getRelatedElements(ScenarioModel& scenario,
                     constraint->setStartDate(startEventDate);
 
                     ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
-                    for(auto& process : constraint->processes())
+                    for(const auto& process : constraint->processes())
                     {
                         scaleMethod(process, newDuration);
                     }
+
                     emit scenario.constraintMoved(constraint->id());
                 }
             }
@@ -112,11 +119,12 @@ void getRelatedElements(ScenarioModel& scenario,
     }
 
     template<typename ProcessScaleMethod>
-    void setConstraintPosition(ScenarioModel& scenario,
-                               id_type<ConstraintModel> constraintId,
-                               TimeValue absolute_time,
-                               double heightPosition,
-                               ProcessScaleMethod&& scaleMethod)
+    void setConstraintPosition(
+            ScenarioModel& scenario,
+            const id_type<ConstraintModel>& constraintId,
+            const TimeValue& absolute_time,
+            double heightPosition,
+            ProcessScaleMethod&& scaleMethod)
     {
         auto constraint = scenario.constraint(constraintId);
         constraint.setHeightPercentage(heightPosition);
