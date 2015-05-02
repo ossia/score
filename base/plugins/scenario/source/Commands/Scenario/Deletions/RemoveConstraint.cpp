@@ -13,27 +13,27 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveConstraint::RemoveConstraint(const ObjectPath &scenarioPath, ConstraintModel *constraint):
-    RemoveConstraint{ObjectPath{scenarioPath}, constraint}
+    RemoveConstraint{ObjectPath{scenarioPath}, *constraint}
 {
 
 }
 
-RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint) :
+RemoveConstraint::RemoveConstraint(ObjectPath&& scenarioPath, const ConstraintModel& constraint) :
     SerializableCommand{"ScenarioControl",
                         className(),
                         description()},
 m_path {std::move(scenarioPath) }
 {
     Serializer<DataStream> cstReader{&m_serializedConstraint};
-    cstReader.readFrom(*constraint);
+    cstReader.readFrom(constraint);
 
-    m_cstrId = constraint->id();
+    m_cstrId = constraint.id();
 
     auto scenar = m_path.find<ScenarioModel>();
     // We have to backup all the view models pointing to a constraint.
     // The full view is already back-upped by the serialization process.
 
-    m_serializedConstraintViewModels = serializeConstraintViewModels(constraint, scenar);
+    m_serializedConstraintViewModels = serializeConstraintViewModels(constraint, *scenar);
 
 }
 
@@ -46,8 +46,8 @@ void RemoveConstraint::undo()
     auto newConstraint = new ConstraintModel(s, scenar);
     scenar->addConstraint(newConstraint);
 
-    scenar->event(newConstraint->startEvent())->addNextConstraint(newConstraint->id());
-    scenar->event(newConstraint->endEvent())->addPreviousConstraint(newConstraint->id());
+    scenar->event(newConstraint->startEvent()).addNextConstraint(newConstraint->id());
+    scenar->event(newConstraint->endEvent()).addPreviousConstraint(newConstraint->id());
 
     deserializeConstraintViewModels(m_serializedConstraintViewModels, scenar);
 }

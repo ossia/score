@@ -30,18 +30,18 @@ void getRelatedElements(ScenarioModel& scenario,
     {
         for (const auto& timeNode_id : translatedTimeNodes)
         {
-            TimeNodeModel* timeNode = scenario.timeNode(timeNode_id);
-            timeNode->setDate(timeNode->date() + deltaTime);
-            for (auto event : timeNode->events())
+            auto& timeNode = scenario.timeNode(timeNode_id);
+            timeNode.setDate(timeNode.date() + deltaTime);
+            for (const auto& event : timeNode.events())
             {
-                scenario.event(event)->setDate(timeNode->date());
+                scenario.event(event).setDate(timeNode.date());
                 emit scenario.eventMoved(event);
             }
         }
-        for(ConstraintModel* constraint : scenario.constraints())
+        for(const auto& constraint : scenario.constraints())
         {
-            auto startEventDate = scenario.event(constraint->startEvent())->date();
-            auto endEventDate = scenario.event(constraint->endEvent())->date();
+            auto startEventDate = scenario.event(constraint->startEvent()).date();
+            auto endEventDate = scenario.event(constraint->endEvent()).date();
 
             TimeValue newDuration = endEventDate - startEventDate;
 
@@ -70,29 +70,29 @@ void getRelatedElements(ScenarioModel& scenario,
                           double heightPosition,
                           ProcessScaleMethod&& scaleMethod)
     {
-        auto ev = scenario.event(eventId);
+        auto& ev = scenario.event(eventId);
 
-        if (*ev->timeNode().val() == 0)
+        if (*ev.timeNode().val() == 0)
             return;
 
         // don't touch start event
-        if(! ev->previousConstraints().isEmpty())
+        if(! ev.previousConstraints().isEmpty())
         {
-            TimeValue time = absolute_time - ev->date();
-            ev->setHeightPercentage(heightPosition);
+            TimeValue time = absolute_time - ev.date();
+            ev.setHeightPercentage(heightPosition);
 
             // algo
             QVector<id_type<EventModel>> already_moved_events;
             translateNextElements(scenario,
-                                  ev->timeNode(),
+                                  ev.timeNode(),
                                   time,
                                   already_moved_events);
 
             // update constraints size
             for(ConstraintModel* constraint : scenario.constraints())
             {
-                auto startEventDate = scenario.event(constraint->startEvent())->date();
-                auto endEventDate = scenario.event(constraint->endEvent())->date();
+                auto startEventDate = scenario.event(constraint->startEvent()).date();
+                auto endEventDate = scenario.event(constraint->endEvent()).date();
 
                 TimeValue newDuration = endEventDate - startEventDate;
 
@@ -119,17 +119,17 @@ void getRelatedElements(ScenarioModel& scenario,
                                ProcessScaleMethod&& scaleMethod)
     {
         auto constraint = scenario.constraint(constraintId);
-        constraint->setHeightPercentage(heightPosition);
+        constraint.setHeightPercentage(heightPosition);
         emit scenario.constraintMoved(constraintId);
 
-        auto sev = scenario.event(constraint->startEvent());
+        auto sev = scenario.event(constraint.startEvent());
 
-        if(sev->date() != absolute_time)
+        if(sev.date() != absolute_time)
         {
             StandardDisplacementPolicy::setEventPosition(scenario,
-                                                         sev->id(),
+                                                         sev.id(),
                                                          absolute_time,
-                                                         sev->heightPercentage(),
+                                                         sev.heightPercentage(),
                                                          scaleMethod);
         }
     }

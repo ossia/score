@@ -176,16 +176,17 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 void TemporalScenarioPresenter::on_eventCreated(id_type<EventModel> eventId)
 {
-    on_eventCreated_impl(*model(*m_viewModel).event(eventId));
+    on_eventCreated_impl(model(*m_viewModel).event(eventId));
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
-    on_timeNodeCreated_impl(*model(*m_viewModel).timeNode(timeNodeId));
+    on_timeNodeCreated_impl(model(*m_viewModel).timeNode(timeNodeId));
 }
 
 void TemporalScenarioPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
+    // TODO ref
     on_constraintCreated_impl(*constraintViewModel(m_viewModel, constraintViewModelId));
 }
 

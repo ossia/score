@@ -7,7 +7,7 @@
 void CreateTimeNodeMin::undo(id_type<TimeNodeModel> id,
                              ScenarioModel& s)
 {
-    s.removeTimeNode(s.timeNode(id));
+    s.removeTimeNode(&s.timeNode(id));
 }
 
 TimeNodeModel& CreateTimeNodeMin::redo(id_type<TimeNodeModel> id,
@@ -23,9 +23,9 @@ TimeNodeModel& CreateTimeNodeMin::redo(id_type<TimeNodeModel> id,
 void CreateEventMin::undo(id_type<EventModel> id,
                           ScenarioModel& s)
 {
-    auto ev = s.event(id);
-    s.timeNode(ev->timeNode())->removeEvent(id);
-    s.removeEvent(ev);
+    auto& ev = s.event(id);
+    s.timeNode(ev.timeNode()).removeEvent(id);
+    s.removeEvent(&ev);
 }
 
 EventModel& CreateEventMin::redo(id_type<EventModel> id,
@@ -47,13 +47,13 @@ EventModel& CreateEventMin::redo(id_type<EventModel> id,
 void CreateConstraintMin::undo(id_type<ConstraintModel> id,
                                ScenarioModel& s)
 {
-    auto cst = s.constraint(id);
-    auto sev = s.event(cst->startEvent());
-    auto eev = s.event(cst->endEvent());
-    sev->removeNextConstraint(id);
-    eev->removePreviousConstraint(id);
+    auto& cst = s.constraint(id);
+    auto& sev = s.event(cst.startEvent());
+    auto& eev = s.event(cst.endEvent());
+    sev.removeNextConstraint(id);
+    eev.removePreviousConstraint(id);
 
-    s.removeConstraint(cst);
+    s.removeConstraint(&cst);
 
 }
 

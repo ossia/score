@@ -338,7 +338,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 
         connect(start, &QPushButton::clicked,
                 [=]() {
-            selectionDispatcher()->setAndCommit(Selection{scenar->event(sev)});
+            selectionDispatcher()->setAndCommit(Selection{&scenar->event(sev)});
         });
     }
 
@@ -348,7 +348,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
         connect(end, &QPushButton::clicked,
                 [=]()
         {
-            selectionDispatcher()->setAndCommit(Selection{scenar->event(eev)});
+            selectionDispatcher()->setAndCommit(Selection{&scenar->event(eev)});
         });
     }
 
@@ -358,7 +358,9 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     return eventWid;
 }
 
-void ConstraintInspectorWidget::on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId)
+void ConstraintInspectorWidget::on_processCreated(
+        QString processName,
+        id_type<ProcessSharedModelInterface> processId)
 {
     reloadDisplayedValues();
 }

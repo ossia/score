@@ -27,27 +27,27 @@ void removeEventFromTimeNode(ScenarioModel& scenario,
 void StandardRemovalPolicy::removeConstraint(ScenarioModel& scenario,
                                              id_type<ConstraintModel> constraintId)
 {
-    auto cstr = scenario.constraint(constraintId);
-    auto sev = scenario.event(cstr->startEvent());
-    sev->removeNextConstraint(constraintId);
+    auto& cstr = scenario.constraint(constraintId);
+    auto& sev = scenario.event(cstr.startEvent());
+    sev.removeNextConstraint(constraintId);
 
-    auto eev = scenario.event(cstr->endEvent());
-    eev->removePreviousConstraint(constraintId);
+    auto& eev = scenario.event(cstr.endEvent());
+    eev.removePreviousConstraint(constraintId);
 
-    scenario.removeConstraint(cstr);
+    scenario.removeConstraint(&cstr);
 }
 
 void StandardRemovalPolicy::removeEventAndConstraints(ScenarioModel& scenario,
                                                       id_type<EventModel> eventId)
 {
-    auto ev = scenario.event(eventId);
+    auto& ev = scenario.event(eventId);
 
-    for(auto constraint : ev->constraints())
+    for(const auto& constraint : ev.constraints())
     {
         StandardRemovalPolicy::removeConstraint(scenario, constraint);
     }
 
     removeEventFromTimeNode(scenario, eventId);
 
-    scenario.removeEvent(ev);
+    scenario.removeEvent(&ev);
 }

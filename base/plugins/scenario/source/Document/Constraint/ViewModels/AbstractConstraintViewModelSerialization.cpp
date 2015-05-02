@@ -62,14 +62,16 @@ void Visitor<Writer<JSONObject>>::writeTo(AbstractConstraintViewModel& cvm)
 
 #include "Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
-SerializedConstraintViewModels serializeConstraintViewModels(ConstraintModel* constraint, ScenarioModel* scenario)
+SerializedConstraintViewModels serializeConstraintViewModels(
+        const ConstraintModel& constraint,
+        const ScenarioModel& scenario)
 {
     SerializedConstraintViewModels map;
     // The other constraint view models are in their respective scenario view models
-    for(auto& viewModel : viewModels(scenario))
+    for(const auto& viewModel : viewModels(scenario))
     {
         // TODO we need to know its concrete type in order to serialize it correctly.
-        auto cstrVM = viewModel->constraint(constraint->id());
+        auto cstrVM = viewModel->constraint(constraint.id());
         if(auto temporalCstrVM = dynamic_cast<TemporalConstraintViewModel*>(cstrVM))
         {
             auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);

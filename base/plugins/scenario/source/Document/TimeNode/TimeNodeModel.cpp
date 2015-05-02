@@ -37,7 +37,7 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    parentScenario()->event(eventId)->changeTimeNode(this->id());
+    parentScenario()->event(eventId).changeTimeNode(this->id());
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)

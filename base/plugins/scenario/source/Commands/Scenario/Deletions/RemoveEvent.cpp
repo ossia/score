@@ -27,21 +27,21 @@ RemoveEvent::RemoveEvent(ObjectPath&& scenarioPath, EventModel* event) :
     m_evId = event->id();
 
     auto scenar = m_path.find<ScenarioModel>();
-    auto timeNode = scenar->timeNode(event->timeNode());
+    auto& timeNode = scenar->timeNode(event->timeNode());
 
     QByteArray arr2;
     Serializer<DataStream> s2{&arr2};
-    s2.readFrom(*timeNode);
+    s2.readFrom(timeNode);
     m_serializedTimeNode = arr2;
 
     for (auto cstr : event->constraints())
     {
-        ConstraintModel* constraint = scenar->constraint(cstr);
+        auto& constraint = scenar->constraint(cstr);
 
         QByteArray arr;
         Serializer<DataStream> s{&arr};
-        s.readFrom(*constraint);
-        m_serializedConstraints.push_back({arr, serializeConstraintViewModels(constraint, scenar)});
+        s.readFrom(constraint);
+        m_serializedConstraints.push_back({arr, serializeConstraintViewModels(constraint, *scenar)});
     }
 }
 
@@ -85,9 +85,9 @@ void RemoveEvent::undo()
 
         // adding constraint to second extremity event
         if (m_evId == cstr->endEvent())
-            scenar->event(cstr->startEvent())->addNextConstraint(cstr->id());
+            scenar->event(cstr->startEvent()).addNextConstraint(cstr->id());
         else
-            scenar->event(cstr->endEvent())->addPreviousConstraint(cstr->id());
+            scenar->event(cstr->endEvent()).addPreviousConstraint(cstr->id());
 
         // view model creation
         deserializeConstraintViewModels(scstr.second, scenar);

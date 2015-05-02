@@ -30,39 +30,39 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_mode{mode}
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto movedEvent = scenar->event(m_eventId);
-    m_oldHeightPosition = movedEvent->heightPercentage();
-    m_oldDate = movedEvent->date();
+    const auto& movedEvent = scenar->event(m_eventId);
+    m_oldHeightPosition = movedEvent.heightPercentage();
+    m_oldDate = movedEvent.date();
 
     StandardDisplacementPolicy::getRelatedElements(*scenar,
-                                                   scenar->event(m_eventId)->timeNode(),
+                                                   scenar->event(m_eventId).timeNode(),
                                                    m_movableTimenodes);
 
     // 1. Make a list of the constraints that need to be resized
     QSet<id_type<ConstraintModel>> constraints;
-    for(auto& tn_id : m_movableTimenodes)
+    for(const auto& tn_id : m_movableTimenodes)
     {
-        auto tn = scenar->timeNode(tn_id);
-        for(auto& ev_id : tn->events())
+        const auto& tn = scenar->timeNode(tn_id);
+        for(const auto& ev_id : tn.events())
         {
-            constraints += scenar->event(ev_id)->constraints().toList().toSet();
+            constraints += scenar->event(ev_id).constraints().toList().toSet();
         }
     }
 
     // 2. Save them
-    for(auto& cst_id : constraints)
+    for(const auto& cst_id : constraints)
     {
-        auto constraint = scenar->constraint(cst_id);
+        const auto& constraint = scenar->constraint(cst_id);
 
         // Save the constraint data
         QByteArray arr;
         Visitor<Reader<DataStream>> jr{&arr};
-        jr.readFrom(*constraint);
+        jr.readFrom(constraint);
 
         // Save for each view model of this constraint
         // the identifier of the box that was displayed
         QMap<id_type<AbstractConstraintViewModel>, id_type<BoxModel>> map;
-        for(const AbstractConstraintViewModel* vm : constraint->viewModels())
+        for(const AbstractConstraintViewModel* vm : constraint.viewModels())
         {
             map[vm->id()] = vm->shownBox();
         }
@@ -74,13 +74,13 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 void MoveEvent::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto event = scenar->event(m_eventId);
+    auto& event = scenar->event(m_eventId);
 
-    event->setHeightPercentage(m_oldHeightPosition);
+    event.setHeightPercentage(m_oldHeightPosition);
     StandardDisplacementPolicy::updatePositions(
                 *scenar,
                 m_movableTimenodes,
-                m_oldDate - event->date(),
+                m_oldDate - event.date(),
                 [&] (ProcessSharedModelInterface* , const TimeValue& ) {  });
 
     // Now we have to restore the state of each constraint that might have been modified
@@ -152,13 +152,13 @@ void MoveEvent::undo()
 void MoveEvent::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto event = scenar->event(m_eventId);
+    auto& event = scenar->event(m_eventId);
 
-    event->setHeightPercentage(m_newHeightPosition);
+    event.setHeightPercentage(m_newHeightPosition);
     StandardDisplacementPolicy::updatePositions(
                 *scenar,
                 m_movableTimenodes,
-                m_newDate - event->date(),
+                m_newDate - event.date(),
                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)
     { p->expandProcess(m_mode, t); });
 }

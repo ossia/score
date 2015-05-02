@@ -164,6 +164,20 @@ QVector<typename T::view_model_type*> viewModels(T* processModel)
     return v;
 }
 
+template<typename T>
+QVector<typename T::view_model_type*> viewModels(const T& processModel)
+{
+    QVector<typename T::view_model_type*> v;
+
+    for(auto& elt : processModel.viewModels())
+    {
+        v.push_back(static_cast<typename T::view_model_type*>(elt));
+    }
+
+    return v;
+}
+
+
 inline ProcessSharedModelInterface* parentProcess(QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");

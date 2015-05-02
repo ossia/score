@@ -39,7 +39,7 @@ void CreateEventOnTimeNode::redo()
     auto scenar = m_path.find<ScenarioModel>();
     CreateEventMin::redo(
                 m_createdEventId,
-                *scenar->timeNode(m_timeNodeId),
+                scenar->timeNode(m_timeNodeId),
                 m_heightPosition,
                 *scenar);
 }

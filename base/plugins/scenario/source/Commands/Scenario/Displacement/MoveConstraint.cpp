@@ -36,16 +36,14 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
     m_newHeightPosition{height}
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto cst = scenar->constraint(m_constraint);
+    auto& cst = scenar->constraint(m_constraint);
 
-    auto event_id = cst->startEvent();
-
-    m_oldHeightPosition = cst->heightPercentage();
-    m_eventHeight = scenar->event(event_id)->heightPercentage();
+    m_oldHeightPosition = cst.heightPercentage();
+    m_eventHeight = scenar->event(cst.startEvent()).heightPercentage();
 
     m_cmd = new MoveEvent{
             ObjectPath{m_path},
-            event_id,
+            cst.startEvent(),
             date,
             m_eventHeight,
             mode};
@@ -66,7 +64,7 @@ void MoveConstraint::undo()
     m_cmd->undo();
 
     auto scenar = m_path.find<ScenarioModel>();
-    scenar->constraint(m_constraint)->setHeightPercentage(m_oldHeightPosition);
+    scenar->constraint(m_constraint).setHeightPercentage(m_oldHeightPosition);
 }
 
 void MoveConstraint::redo()
@@ -74,7 +72,7 @@ void MoveConstraint::redo()
     m_cmd->redo();
 
     auto scenar = m_path.find<ScenarioModel>();
-    scenar->constraint(m_constraint)->setHeightPercentage(m_newHeightPosition);
+    scenar->constraint(m_constraint).setHeightPercentage(m_newHeightPosition);
 }
 
 void MoveConstraint::serializeImpl(QDataStream& s) const

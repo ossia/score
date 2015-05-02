@@ -28,14 +28,14 @@ SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > ev
 void SplitTimeNode::undo()
 {
     auto scenar = static_cast<ScenarioModel*>(m_path.find<TimeNodeModel>()->parent());
-    auto originalTN = scenar->timeNode(m_originalTimeNodeId);
-    auto newTN = scenar->timeNode(m_newTimeNodeId);
+    auto& originalTN = scenar->timeNode(m_originalTimeNodeId);
+    auto& newTN = scenar->timeNode(m_newTimeNodeId);
 
-    for (auto eventId : newTN->events())
+    for (auto& eventId : newTN.events())
     {
-        originalTN->addEvent(eventId);
-        newTN->removeEvent(eventId);
-        scenar->event(eventId)->changeTimeNode(m_originalTimeNodeId);
+        originalTN.addEvent(eventId);
+        newTN.removeEvent(eventId);
+        scenar->event(eventId).changeTimeNode(m_originalTimeNodeId);
     }
 
     CreateTimeNodeMin::undo(m_newTimeNodeId, *scenar);
@@ -44,16 +44,16 @@ void SplitTimeNode::undo()
 void SplitTimeNode::redo()
 {
     auto scenar = static_cast<ScenarioModel*>(m_path.find<TimeNodeModel>()->parent());
-    auto originalTN = scenar->timeNode(m_originalTimeNodeId);
+    auto& originalTN = scenar->timeNode(m_originalTimeNodeId);
 
     // TODO set the correct position here.
-    auto& tn = CreateTimeNodeMin::redo(m_newTimeNodeId, originalTN->date(), 0.5, * scenar);
+    auto& tn = CreateTimeNodeMin::redo(m_newTimeNodeId, originalTN.date(), 0.5, *scenar);
 
     for (auto& eventId : m_eventsInNewTimeNode)
     {
         tn.addEvent(eventId);
-        originalTN->removeEvent(eventId);
-        scenar->event(eventId)->changeTimeNode(m_newTimeNodeId);
+        originalTN.removeEvent(eventId);
+        scenar->event(eventId).changeTimeNode(m_newTimeNodeId);
     }
 }
 

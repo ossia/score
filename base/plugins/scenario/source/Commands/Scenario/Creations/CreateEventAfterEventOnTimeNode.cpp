@@ -53,8 +53,8 @@ void CreateEventAfterEventOnTimeNode::redo()
 
     CreateConstraintAndEvent(m_createdConstraintId,
                              m_createdConstraintFullViewId,
-                             *scenar->event(m_firstEventId),
-                             *scenar->timeNode(m_timeNodeId),
+                             scenar->event(m_firstEventId),
+                             scenar->timeNode(m_timeNodeId),
                              m_createdEventId,
                              m_time,
                              m_heightPosition,

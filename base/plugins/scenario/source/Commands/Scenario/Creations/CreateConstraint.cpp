@@ -45,13 +45,13 @@ void CreateConstraint::undo()
 void CreateConstraint::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
-    auto sev = scenar->event(m_startEventId);
-    auto eev = scenar->event(m_endEventId);
+    auto& sev = scenar->event(m_startEventId);
+    auto& eev = scenar->event(m_endEventId);
 
     CreateConstraintMin::redo(m_createdConstraintId,
                               m_createdConstraintFullViewId,
-                              *sev, *eev,
-                              (sev->heightPercentage() + eev->heightPercentage()) / 2.,
+                              sev, eev,
+                              (sev.heightPercentage() + eev.heightPercentage()) / 2.,
                               *scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,

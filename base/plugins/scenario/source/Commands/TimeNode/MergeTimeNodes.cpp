@@ -24,7 +24,7 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
     auto scenar = m_path.find<ScenarioModel>();
     QByteArray arr;
     Serializer<DataStream> s{&arr};
-    s.readFrom(*scenar->timeNode(m_movingTimeNodeId));
+    s.readFrom(scenar->timeNode(m_movingTimeNodeId));
     m_serializedTimeNode = arr;
 }
 
@@ -32,7 +32,7 @@ void MergeTimeNodes::undo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    auto aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
+    auto& aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
 
     Deserializer<DataStream> s {m_serializedTimeNode};
 
@@ -42,12 +42,12 @@ void MergeTimeNodes::undo()
 
     for (auto& event : movingTimeNode->events())
     {
-        aimedTimeNode->removeEvent(event);
-        scenar->event(event)->changeTimeNode(movingTimeNode->id());
+        aimedTimeNode.removeEvent(event);
+        scenar->event(event).changeTimeNode(movingTimeNode->id());
         StandardDisplacementPolicy::setEventPosition(*scenar,
                                                      event,
                                                      movingTimeNode->date(),
-                                                     scenar->event(event)->heightPercentage(),
+                                                     scenar->event(event).heightPercentage(),
                                                      [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
     }
 }
@@ -56,22 +56,22 @@ void MergeTimeNodes::redo()
 {
     auto scenar = m_path.find<ScenarioModel>();
 
-    auto aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
-    auto movingTimeNode = scenar->timeNode(m_movingTimeNodeId);
+    auto& aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
+    auto& movingTimeNode = scenar->timeNode(m_movingTimeNodeId);
 
-    for (auto event : movingTimeNode->events())
+    for (const auto& event : movingTimeNode.events())
     {
         StandardDisplacementPolicy::setEventPosition(
                     *scenar,
                     event,
-                    aimedTimeNode->date(),
-                    scenar->event(event)->heightPercentage(),
+                    aimedTimeNode.date(),
+                    scenar->event(event).heightPercentage(),
                     [] (ProcessSharedModelInterface* p, TimeValue t)
                         { p->setDurationAndScale(t); });
 
-        aimedTimeNode->addEvent(event);
-        movingTimeNode->removeEvent(event);
-        scenar->event(event)->changeTimeNode(aimedTimeNode->id());
+        aimedTimeNode.addEvent(event);
+        movingTimeNode.removeEvent(event);
+        scenar->event(event).changeTimeNode(aimedTimeNode.id());
     }
 
     CreateTimeNodeMin::undo(m_movingTimeNodeId, *scenar);

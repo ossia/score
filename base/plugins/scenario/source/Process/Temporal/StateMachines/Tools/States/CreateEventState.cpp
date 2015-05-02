@@ -132,7 +132,7 @@ CreateFromEventState::CreateFromEventState(
                             ObjectPath{m_scenarioPath},
                             createdConstraint(),
                             createdEvent(),
-                            m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
+                            m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode).date(),
                             currentPoint.y,
                             stateMachine.expandMode());
         });
@@ -377,7 +377,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
             m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
-                            m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode)->date(),
+                            m_scenarioPath.find<ScenarioModel>()->timeNode(hoveredTimeNode).date(),
                             currentPoint.y,
                             stateMachine.expandMode());
         });

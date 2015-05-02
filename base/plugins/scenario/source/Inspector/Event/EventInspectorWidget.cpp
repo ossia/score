@@ -82,7 +82,8 @@ EventInspectorWidget::EventInspectorWidget(
         auto scenar = m_model->parentScenario();
         if (scenar)
             connect(tnBtn,  &QPushButton::clicked,
-                    [=] () { selectionDispatcher()->setAndCommit(Selection{scenar->timeNode(timeNode)}); });
+                    [=] () { selectionDispatcher()->setAndCommit(
+                            Selection{&scenar->timeNode(timeNode)}); });
     }
     infoLay->addRow(tr("TimeNode"), tnBtn);
 
@@ -238,13 +239,13 @@ void EventInspectorWidget::updateDisplayedValues(
             connect(cstrBtn, &QPushButton::clicked,
                     [ = ]()
             {
-                selectionDispatcher()->setAndCommit(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->setAndCommit(Selection{&scenar->constraint(cstr)});
             });
 
 
             // End state of previous
-            auto constraint = event->parentScenario()->constraint(cstr);
-            for(auto& proc : constraint->processes())
+            const auto& constraint = event->parentScenario()->constraint(cstr);
+            for(auto& proc : constraint.processes())
             {
                 if(auto end = proc->endState())
                 {
@@ -264,12 +265,12 @@ void EventInspectorWidget::updateDisplayedValues(
             connect(cstrBtn, &QPushButton::clicked, this,
                     [ = ]()
             {
-                selectionDispatcher()->setAndCommit(Selection{scenar->constraint(cstr)});
+                selectionDispatcher()->setAndCommit(Selection{&scenar->constraint(cstr)});
             });
 
             // Start state of next
-            auto constraint = event->parentScenario()->constraint(cstr);
-            for(auto& proc : constraint->processes())
+            const auto& constraint = event->parentScenario()->constraint(cstr);
+            for(auto& proc : constraint.processes())
             {
                 if(auto start = proc->startState())
                 {

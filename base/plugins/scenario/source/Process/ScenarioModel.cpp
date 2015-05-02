@@ -153,9 +153,11 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
                                                  [&] (ProcessSharedModelInterface* p, const TimeValue& t)
      { p->expandProcess(ExpandMode::Grow, t); }); */
 
-    endEvent()->setDate(newDuration);
-    timeNode(endEvent()->timeNode())->setDate(newDuration);
-    emit eventMoved(endEvent()->id());
+    auto& eev = endEvent();
+
+    eev.setDate(newDuration);
+    timeNode(eev.timeNode()).setDate(newDuration);
+    emit eventMoved(eev.id());
     this->setDuration(newDuration);
 }
 
@@ -169,9 +171,11 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
                                                  [&] (ProcessSharedModelInterface* p, const TimeValue& t)
      { p->expandProcess(ExpandMode::Grow, t); }); */
 
-    endEvent()->setDate(newDuration);
-    timeNode(endEvent()->timeNode())->setDate(newDuration);
-    emit eventMoved(endEvent()->id());
+    auto& eev = endEvent();
+
+    eev.setDate(newDuration);
+    timeNode(eev.timeNode()).setDate(newDuration);
+    emit eventMoved(eev.id());
     this->setDuration(newDuration);
 }
 
@@ -322,28 +326,28 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 }
 
 /////////////////////////////
-ConstraintModel* ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
+ConstraintModel& ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
 {
-    return findById(m_constraints, constraintId);
+    return *findById(m_constraints, constraintId);
 }
 
-EventModel* ScenarioModel::event(const id_type<EventModel>& eventId) const
+EventModel& ScenarioModel::event(const id_type<EventModel>& eventId) const
 {
-    return findById(m_events, eventId);
+    return *findById(m_events, eventId);
 }
 
-TimeNodeModel* ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
+TimeNodeModel& ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
 {
-    return findById(m_timeNodes, timeNodeId);
+    return *findById(m_timeNodes, timeNodeId);
 }
 
 
-EventModel* ScenarioModel::startEvent() const
+EventModel& ScenarioModel::startEvent() const
 {
     return event(m_startEventId);
 }
 
-EventModel* ScenarioModel::endEvent() const
+EventModel& ScenarioModel::endEvent() const
 {
     return event(m_endEventId);
 }

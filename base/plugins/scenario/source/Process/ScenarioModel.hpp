@@ -41,8 +41,9 @@ class ScenarioModel : public ProcessSharedModelInterface
         ScenarioModel(const TimeValue& duration,
                       const id_type<ProcessSharedModelInterface>& id,
                       QObject* parent);
-        ProcessSharedModelInterface* clone(const id_type<ProcessSharedModelInterface>& newId,
-                                           QObject* newParent) override;
+        ProcessSharedModelInterface* clone(
+                const id_type<ProcessSharedModelInterface>& newId,
+                QObject* newParent) override;
 
         //// ProcessSharedModelInterface specifics ////
         QByteArray makeViewModelConstructionData() const override;
@@ -72,6 +73,7 @@ class ScenarioModel : public ProcessSharedModelInterface
 
         //// ScenarioModel specifics ////
         // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
+        // The scenario takes ownership.
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
@@ -81,12 +83,12 @@ class ScenarioModel : public ProcessSharedModelInterface
         void removeTimeNode(TimeNodeModel* timeNode);
 
         // Accessors
-        ConstraintModel* constraint(const id_type<ConstraintModel>& constraintId) const;
-        EventModel* event(const id_type<EventModel>& eventId) const;
-        TimeNodeModel* timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
+        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
+        EventModel& event(const id_type<EventModel>& eventId) const;
+        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
 
-        EventModel* startEvent() const;
-        EventModel* endEvent() const;
+        EventModel& startEvent() const;
+        EventModel& endEvent() const;
 
         // Here, a copy is returned because it might be possible
         // to call a method on the scenario (e.g. removeConstraint) that changes the vector

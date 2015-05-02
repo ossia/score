@@ -41,7 +41,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
         addConstraintViewModel(
                     src_constraint->clone(
                         src_constraint->id(),
-                        *newScenario.constraint(src_constraint->model().id()),
+                        newScenario.constraint(src_constraint->model().id()),
                         this));
     }
 }
@@ -70,10 +70,10 @@ ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy()
 void TemporalScenarioViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
                                                         id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
-    auto constraint_model = model(*this).constraint(constraintModelId);
+    auto& constraint_model = model(*this).constraint(constraintModelId);
 
     auto constraint_view_model =
-        constraint_model->makeConstraintViewModel<constraint_view_model_type> (
+        constraint_model.makeConstraintViewModel<constraint_view_model_type> (
             constraintViewModelId,
             this);
 

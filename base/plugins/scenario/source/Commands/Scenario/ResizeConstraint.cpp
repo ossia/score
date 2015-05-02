@@ -32,12 +32,12 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
 
     auto constraint = constraintPath.find<ConstraintModel>();
     m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
-    auto endEvent = dynamic_cast<ScenarioModel*>(constraint->parent())->event(constraint->endEvent());
+    auto& endEvent = static_cast<ScenarioModel*>(constraint->parent())->event(constraint->endEvent());
 
     m_cmd = new MoveEvent(iscore::IDocument::path(constraint->parent()),
                           constraint->endEvent(),
                           constraint->startDate() + duration,
-                          endEvent->heightPercentage(),
+                          endEvent.heightPercentage(),
                           mode);
 }
 

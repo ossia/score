@@ -25,7 +25,7 @@ namespace Scenario
                 ISCORE_COMMAND_DEFAULT_CTOR(RemoveConstraint, "ScenarioControl")
 
                 RemoveConstraint(const ObjectPath& scenarioPath, ConstraintModel* constraint);
-                RemoveConstraint(ObjectPath&& scenarioPath, ConstraintModel* constraint);
+                RemoveConstraint(ObjectPath&& scenarioPath, const ConstraintModel& constraint);
                 virtual void undo() override;
                 virtual void redo() override;
 

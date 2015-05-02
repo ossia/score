@@ -199,8 +199,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_rigidity;
         }
 
-        iscore::ElementPluginModelList& pluginModelList() { return *m_pluginModelList; }
-        const iscore::ElementPluginModelList& pluginModelList() const { return *m_pluginModelList; }
+        iscore::ElementPluginModelList& pluginModelList()
+        { return *m_pluginModelList; }
+        const iscore::ElementPluginModelList& pluginModelList() const
+        { return *m_pluginModelList; }
 
     signals:
         void processCreated(const QString& processName,
@@ -227,7 +229,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
     public slots:
         void setHeightPercentage(double arg);
 
-        void setDefaultDuration(const TimeValue& defaultDuration);
+        void setDefaultDuration(const TimeValue& arg);
         void setMinDuration(const TimeValue& arg);
         void setMaxDuration(const TimeValue& arg);
 
