@@ -18,7 +18,7 @@
 
 using namespace Scenario;
 
-DeckPresenter::DeckPresenter(DeckModel* model,
+DeckPresenter::DeckPresenter(const DeckModel& model,
                              BoxView *view,
                              QObject* parent) :
     NamedObject {"DeckPresenter", parent},
@@ -27,25 +27,25 @@ DeckPresenter::DeckPresenter(DeckModel* model,
 {
     m_view->setPos(0, 0);
 
-    for(ProcessViewModelInterface* proc_vm : m_model->processViewModels())
+    for(ProcessViewModelInterface* proc_vm : m_model.processViewModels())
     {
         on_processViewModelCreated_impl(proc_vm);
     }
 
-    connect(m_model, &DeckModel::processViewModelCreated,
+    connect(&m_model, &DeckModel::processViewModelCreated,
             this,    &DeckPresenter::on_processViewModelCreated);
-    connect(m_model, &DeckModel::processViewModelRemoved,
+    connect(&m_model, &DeckModel::processViewModelRemoved,
             this,    &DeckPresenter::on_processViewModelDeleted);
 
-    connect(m_model, &DeckModel::processViewModelSelected,
+    connect(&m_model, &DeckModel::processViewModelSelected,
             this,    &DeckPresenter::on_processViewModelSelected);
 
-    connect(m_model, &DeckModel::heightChanged,
+    connect(&m_model, &DeckModel::heightChanged,
             this,    &DeckPresenter::on_heightChanged);
 
-    connect(m_model, &DeckModel::focusChanged,
+    connect(&m_model, &DeckModel::focusChanged,
             m_view,  &DeckView::setFocus);
-    m_view->setHeight(m_model->height());
+    m_view->setHeight(m_model.height());
 }
 
 DeckPresenter::~DeckPresenter()
@@ -63,13 +63,13 @@ DeckPresenter::~DeckPresenter()
     }
 }
 
-id_type<DeckModel> DeckPresenter::id() const
+const id_type<DeckModel>& DeckPresenter::id() const
 {
-    return m_model->id();
+    return m_model.id();
 }
 
-const DeckModel &DeckPresenter::model() const
-{ return *m_model; }
+const DeckModel& DeckPresenter::model() const
+{ return m_model; }
 
 int DeckPresenter::height() const
 {
@@ -100,7 +100,7 @@ void DeckPresenter::enable()
     {
         pair.first->parentGeometryChanged();
     }
-    on_processViewModelSelected(m_model->editedProcessViewModel());
+    on_processViewModelSelected(m_model.editedProcessViewModel());
 
     m_enabled = true;
 }
@@ -118,12 +118,14 @@ void DeckPresenter::disable()
 }
 
 
-void DeckPresenter::on_processViewModelCreated(id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelCreated(
+        const id_type<ProcessViewModelInterface>& processId)
 {
-    on_processViewModelCreated_impl(m_model->processViewModel(processId));
+    on_processViewModelCreated_impl(m_model.processViewModel(processId));
 }
 
-void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelDeleted(
+        const id_type<ProcessViewModelInterface>& processId)
 {
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
@@ -144,7 +146,8 @@ void DeckPresenter::on_processViewModelDeleted(id_type<ProcessViewModelInterface
     emit askUpdate();
 }
 
-void DeckPresenter::on_processViewModelSelected(id_type<ProcessViewModelInterface> processId)
+void DeckPresenter::on_processViewModelSelected(
+        const id_type<ProcessViewModelInterface>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     for(auto& pair : m_processes)
@@ -198,7 +201,7 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
-    if(m_model->editedProcessViewModel() == proc_vm->id())
+    if(m_model.editedProcessViewModel() == proc_vm->id())
     {
         on_processViewModelSelected(proc_vm->id());
     }

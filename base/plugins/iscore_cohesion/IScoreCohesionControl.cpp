@@ -23,9 +23,6 @@
 #include <Execution/Execution.hpp>
 #include <QKeySequence>
 
-// TODO : snapshot : doit être un mode d'édition particulier
-// on enregistre l'état précédent et on crée les courbes correspondantes
-
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
     iscore::PluginControlInterface {"IScoreCohesionControl", parent}

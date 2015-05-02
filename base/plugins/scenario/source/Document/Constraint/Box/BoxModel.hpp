@@ -28,7 +28,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
         // Copy
         BoxModel(const BoxModel& source,
                  const id_type<BoxModel>& id,
-                 std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+                 std::function<void(const DeckModel&, DeckModel&)> pvmCopyMethod,
                  QObject* parent);
 
         template<typename Impl>

@@ -126,7 +126,7 @@ void MoveEvent::undo()
                 auto newbox = new BoxModel{
                         *src_boxes[i],
                         src_boxes[i]->id(),
-                        [&] (DeckModel& source, DeckModel& target)
+                        [&] (const DeckModel& source, DeckModel& target)
                         {
                             for(const auto& pvm : source.processViewModels())
                             {

@@ -5,8 +5,6 @@
 #include <typeinfo>
 #include <random>
 
-// This should maybe be a mixin ?
-
 template<typename tag>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
@@ -76,7 +74,7 @@ typename Container::value_type findById(const Container& c, int32_t id)
 }
 
 template<typename Container, typename id_T>
-typename Container::value_type findById(const Container& c, id_T id)
+typename Container::value_type findById(const Container& c, const id_T& id)
 {
     auto it = std::find(std::begin(c), std::end(c), id);
     if(it != std::end(c))

@@ -61,7 +61,7 @@ ConstraintModel::ConstraintModel(
         addBox(new BoxModel (
                    *box,
                    box->id(),
-        [&] (DeckModel& source, DeckModel& target)
+        [&] (const DeckModel& source, DeckModel& target)
         {
                    for(auto& pvm : source.processViewModels())
                    {

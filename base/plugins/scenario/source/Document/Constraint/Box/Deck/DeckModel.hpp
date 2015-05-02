@@ -25,16 +25,16 @@ class DeckModel : public IdentifiedObject<DeckModel>
                    NOTIFY focusChanged)
 
     public:
-        DeckModel(id_type<DeckModel> id,
+        DeckModel(const id_type<DeckModel>& id,
                   BoxModel* parent);
 
         // Copy
-        DeckModel(std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
-                  DeckModel* source,
-                  id_type<DeckModel> id,
+        DeckModel(std::function<void(const DeckModel&, DeckModel&)> pvmCopyMethod,
+                  const DeckModel& source,
+                  const id_type<DeckModel>& id,
                   BoxModel* parent);
 
-        static void copyViewModelsInSameConstraint(DeckModel&, DeckModel&);
+        static void copyViewModelsInSameConstraint(const DeckModel&, DeckModel&);
 
         template<typename Impl>
         DeckModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -46,7 +46,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
         virtual ~DeckModel() = default;
 
         void addProcessViewModel(ProcessViewModelInterface*);
-        void deleteProcessViewModel(id_type<ProcessViewModelInterface> processViewModelId);
+        void deleteProcessViewModel(const id_type<ProcessViewModelInterface>& processViewModelId);
 
         /**
          * @brief selectForEdition
@@ -55,12 +55,14 @@ class DeckModel : public IdentifiedObject<DeckModel>
          * A process is selected for edition when it is
          * the edited process when the interface is clicked.
          */
-        void selectForEdition(id_type<ProcessViewModelInterface> processViewId);
-        id_type<ProcessViewModelInterface> editedProcessViewModel() const
+        void selectForEdition(
+                const id_type<ProcessViewModelInterface>& processViewId);
+        const id_type<ProcessViewModelInterface>& editedProcessViewModel() const
         { return m_editedProcessViewModelId; }
 
         const std::vector<ProcessViewModelInterface*>& processViewModels() const;
-        ProcessViewModelInterface* processViewModel(id_type<ProcessViewModelInterface> processViewModelId) const;
+        ProcessViewModelInterface* processViewModel(
+                const id_type<ProcessViewModelInterface>& processViewModelId) const;
 
         /**
          * @brief parentConstraint
@@ -74,15 +76,15 @@ class DeckModel : public IdentifiedObject<DeckModel>
         bool focus() const;
 
     signals:
-        void processViewModelCreated(id_type<ProcessViewModelInterface> processViewModelId);
-        void processViewModelRemoved(id_type<ProcessViewModelInterface> processViewModelId);
-        void processViewModelSelected(id_type<ProcessViewModelInterface> processViewModelId);
+        void processViewModelCreated(const id_type<ProcessViewModelInterface>& processViewModelId);
+        void processViewModelRemoved(const id_type<ProcessViewModelInterface>& processViewModelId);
+        void processViewModelSelected(const id_type<ProcessViewModelInterface>& processViewModelId);
 
         void heightChanged(int arg);
         void focusChanged(bool arg);
 
     public slots:
-        void on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface> sharedProcessId);
+        void on_deleteSharedProcessModel(const id_type<ProcessSharedModelInterface>& sharedProcessId);
 
         void setHeight(int arg);
         void setFocus(bool arg);

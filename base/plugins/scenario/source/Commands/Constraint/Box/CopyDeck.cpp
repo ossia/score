@@ -31,7 +31,7 @@ void CopyDeck::redo()
     auto targetBox = m_targetBoxPath.find<BoxModel>();
 
     targetBox->addDeck(new DeckModel {&DeckModel::copyViewModelsInSameConstraint,
-                                      sourceDeck,
+                                      *sourceDeck,
                                       m_newDeckId,
                                       targetBox});
 }

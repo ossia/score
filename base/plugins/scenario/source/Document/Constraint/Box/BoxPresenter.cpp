@@ -10,34 +10,34 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <QGraphicsScene>
 
-BoxPresenter::BoxPresenter(BoxModel* model,
+BoxPresenter::BoxPresenter(const BoxModel& model,
                            BoxView* view,
                            QObject* parent):
     NamedObject {"BoxPresenter", parent},
     m_model {model},
     m_view {view}
 {
-    for(auto& deckModel : m_model->decks())
+    for(auto& deckModel : m_model.decks())
     {
-        on_deckCreated_impl(deckModel);
+        on_deckCreated_impl(*deckModel);
     }
 
-    m_duration = model->constraint()->defaultDuration();
-    m_view->setText(m_model->metadata.name());
+    m_duration = m_model.constraint()->defaultDuration();
+    m_view->setText(m_model.metadata.name());
 
     on_askUpdate();
 
-    connect(m_model,	&BoxModel::deckCreated,
-    this,		&BoxPresenter::on_deckCreated);
-    connect(m_model,	&BoxModel::deckRemoved,
-    this,		&BoxPresenter::on_deckRemoved);
-    connect(m_model,	&BoxModel::deckPositionsChanged,
-    this,		&BoxPresenter::on_deckPositionsChanged);
+    connect(&m_model, &BoxModel::deckCreated,
+            this, &BoxPresenter::on_deckCreated);
+    connect(&m_model,&BoxModel::deckRemoved,
+            this, &BoxPresenter::on_deckRemoved);
+    connect(&m_model, &BoxModel::deckPositionsChanged,
+            this, &BoxPresenter::on_deckPositionsChanged);
 
-    connect(m_model,	&BoxModel::on_durationChanged,
-    this,		&BoxPresenter::on_durationChanged);
+    connect(&m_model, &BoxModel::on_durationChanged,
+            this, &BoxPresenter::on_durationChanged);
 
-    connect(&m_model->metadata, &ModelMetadata::nameChanged,
+    connect(&m_model.metadata, &ModelMetadata::nameChanged,
             this, [&] (const QString& name) { m_view->setText(name); });
 }
 
@@ -83,9 +83,9 @@ void BoxPresenter::setWidth(int w)
     }
 }
 
-id_type<BoxModel> BoxPresenter::id() const
+const id_type<BoxModel>& BoxPresenter::id() const
 {
-    return m_model->id();
+    return m_model.id();
 }
 
 void BoxPresenter::setDisabledDeckState()
@@ -104,20 +104,20 @@ void BoxPresenter::setEnabledDeckState()
     }
 }
 
-void BoxPresenter::on_durationChanged(TimeValue duration)
+void BoxPresenter::on_durationChanged(const TimeValue& duration)
 {
     m_duration = duration;
     on_askUpdate();
 }
 
-void BoxPresenter::on_deckCreated(id_type<DeckModel> deckId)
+void BoxPresenter::on_deckCreated(const id_type<DeckModel>& deckId)
 {
-    on_deckCreated_impl(m_model->deck(deckId));
+    on_deckCreated_impl(*m_model.deck(deckId));
     on_askUpdate();
 }
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
+void BoxPresenter::on_deckCreated_impl(const DeckModel& deckModel)
 {
     auto deckPres = new DeckPresenter {deckModel,
                                        m_view,
@@ -144,7 +144,7 @@ void BoxPresenter::on_deckCreated_impl(DeckModel* deckModel)
     }
 }
 
-void BoxPresenter::on_deckRemoved(id_type<DeckModel> deckId)
+void BoxPresenter::on_deckRemoved(const id_type<DeckModel>& deckId)
 {
     removeFromVectorWithId(m_decks, deckId);
     on_askUpdate();
@@ -159,7 +159,7 @@ void BoxPresenter::updateShape()
     // Set the decks position graphically in order.
     int currentDeckY = 20;
 
-    for(auto& deckId : m_model->decksPositions())
+    for(auto& deckId : m_model.decksPositions())
     {
         auto deckPres = findById(m_decks, deckId);
         deckPres->setWidth(width());

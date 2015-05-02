@@ -12,14 +12,14 @@ BoxModel::BoxModel(const id_type<BoxModel>& id, QObject* parent) :
 
 BoxModel::BoxModel(const BoxModel& source,
                    const id_type<BoxModel>& id,
-                   std::function<void(DeckModel&, DeckModel&)> pvmCopyMethod,
+                   std::function<void(const DeckModel&, DeckModel&)> pvmCopyMethod,
                    QObject *parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
     metadata = source.metadata;
     for(auto& deck : source.m_decks)
     {
-        addDeck(new DeckModel{pvmCopyMethod, deck, deck->id(), this},
+        addDeck(new DeckModel{pvmCopyMethod, *deck, deck->id(), this},
                 source.deckPosition(deck->id()));
     }
 }

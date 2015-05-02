@@ -100,7 +100,7 @@ void CopyConstraintContent::redo()
         auto newbox = new BoxModel{
                 *src_boxes[i],
                 m_boxIds[i],
-                [&] (DeckModel& source, DeckModel& target)
+                [&] (const DeckModel& source, DeckModel& target)
                 {
                     for(const auto& pvm : source.processViewModels())
                     {

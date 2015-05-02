@@ -20,7 +20,7 @@ class BoxPresenter : public NamedObject
         Q_OBJECT
 
     public:
-        BoxPresenter(BoxModel* model,
+        BoxPresenter(const BoxModel& model,
                      BoxView* view,
                      QObject* parent);
         virtual ~BoxPresenter();
@@ -29,7 +29,7 @@ class BoxPresenter : public NamedObject
         int width() const;
         void setWidth(int);
 
-        id_type<BoxModel> id() const;
+        const id_type<BoxModel>& id() const;
         auto decks() const
         { return m_decks; }
 
@@ -46,9 +46,9 @@ class BoxPresenter : public NamedObject
 
 
     public slots:
-        void on_durationChanged(TimeValue duration);
-        void on_deckCreated(id_type<DeckModel> deckId);
-        void on_deckRemoved(id_type<DeckModel> deckId);
+        void on_durationChanged(const TimeValue& duration);
+        void on_deckCreated(const id_type<DeckModel>& deckId);
+        void on_deckRemoved(const id_type<DeckModel>& deckId);
 
         void on_askUpdate();
 
@@ -56,12 +56,12 @@ class BoxPresenter : public NamedObject
         void on_deckPositionsChanged();
 
     private:
-        void on_deckCreated_impl(DeckModel* m);
+        void on_deckCreated_impl(const DeckModel& m);
 
         // Updates the shape of the view
         void updateShape();
 
-        BoxModel* m_model;
+        const BoxModel& m_model;
         BoxView* m_view;
         std::vector<DeckPresenter*> m_decks;
 

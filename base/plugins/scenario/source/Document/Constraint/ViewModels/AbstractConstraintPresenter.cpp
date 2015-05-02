@@ -187,7 +187,7 @@ void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
     boxView->setPos(0, 5);
 
     // Cas par défaut
-    m_box = new BoxPresenter {boxModel,
+    m_box = new BoxPresenter {*boxModel,
                               boxView,
                               this};
 
