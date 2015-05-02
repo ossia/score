@@ -475,6 +475,12 @@ void ScenarioControl::on_presenterChanged()
 void ScenarioControl::on_documentChanged()
 {
     on_presenterChanged();
+    if(!currentDocument())
+    {
+        m_scenarioScaleModeActionGroup->setDisabled(true);
+        m_scenarioToolActionGroup->setDisabled(true);
+        return;
+    }
 
     auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
     auto onScenario = dynamic_cast<const TemporalScenarioViewModel *>(model.focusedViewModel());
