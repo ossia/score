@@ -8,19 +8,20 @@
 
 NetworkPlugin::NetworkPlugin() :
     QObject {},
-        iscore::PluginControlInterface_QtInterface {},
-iscore::SettingsDelegateFactoryInterface_QtInterface {}
+        iscore::PluginControlInterface_QtInterface {}//,
+        //iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
     setObjectName("NetworkPlugin");
 }
 
 // Interfaces implementations :
 //////////////////////////
+/*
 iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
 {
     return new NetworkSettings;
 }
-
+*/
 iscore::PluginControlInterface* NetworkPlugin::control()
 {
     return new NetworkControl;
