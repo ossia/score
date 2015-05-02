@@ -2,23 +2,24 @@
 #include "AutomationModel.hpp"
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 
-AutomationViewModel::AutomationViewModel(AutomationModel* model,
-                                         id_type<ProcessViewModelInterface> id,
+AutomationViewModel::AutomationViewModel(AutomationModel& model,
+                                         const id_type<ProcessViewModelInterface>& id,
                                          QObject* parent) :
     ProcessViewModelInterface {id, "AutomationViewModel", model, parent}
 {
 
 }
 
-AutomationViewModel::AutomationViewModel(const AutomationViewModel* source,
-                                         AutomationModel* model,
-                                         id_type<ProcessViewModelInterface> id,
+AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
+                                         AutomationModel& model,
+                                         const id_type<ProcessViewModelInterface>& id,
                                          QObject* parent) :
     ProcessViewModelInterface {id, "AutomationViewModel", model, parent}
 {
     // Nothing to copy
 }
 
+// TODO Move somewhere else.
 class AutomationPanelProxy : public ProcessViewModelPanelProxy
 {
     public:
@@ -44,7 +45,7 @@ void AutomationViewModel::serialize(const VisitorVariant&) const
     // Nothing to save
 }
 
-AutomationModel* AutomationViewModel::model()
+const AutomationModel& AutomationViewModel::model()
 {
-    return static_cast<AutomationModel*>(sharedProcessModel());
+    return static_cast<const AutomationModel&>(sharedProcessModel());
 }

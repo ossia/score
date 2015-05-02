@@ -109,7 +109,9 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const
-{ return static_cast<ScenarioModel&>(*m_presenter.m_viewModel->sharedProcessModel()); }
+{
+    return static_cast<const ScenarioModel&>(m_presenter.m_viewModel->sharedProcessModel());
+}
 
 Tool ScenarioStateMachine::tool() const
 {

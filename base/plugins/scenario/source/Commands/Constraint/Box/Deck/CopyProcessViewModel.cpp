@@ -1,3 +1,4 @@
+/*
 #include "CopyProcessViewModel.hpp"
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
@@ -30,10 +31,10 @@ void CopyProcessViewModel::redo()
     auto sourcePVM = m_pvmPath.find<ProcessViewModelInterface>();
     auto targetDeck = m_targetDeckPath.find<DeckModel>();
 
-    auto proc = sourcePVM->sharedProcessModel();
+    const auto& proc = sourcePVM->sharedProcessModel();
     targetDeck->addProcessViewModel(
-        proc->cloneViewModel(m_newProcessViewModelId,
-                            sourcePVM,
+        proc.cloneViewModel(m_newProcessViewModelId,
+                            *sourcePVM,
                             targetDeck));
 }
 
@@ -46,3 +47,4 @@ void CopyProcessViewModel::deserializeImpl(QDataStream& s)
 {
     s >> m_pvmPath >> m_targetDeckPath >> m_newProcessViewModelId;
 }
+*/

@@ -47,7 +47,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
                                    std::end(already_displayed_processes),
                                    [&process](ProcessViewModelInterface * pvm)
             {
-                    return pvm->sharedProcessModel()->id() == process->id();
+                    return pvm->sharedProcessModel().id() == process->id();
         });
 
             if(it == std::end(already_displayed_processes))

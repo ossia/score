@@ -484,9 +484,9 @@ void ScenarioControl::on_documentChanged(Document *doc)
     m_scenarioScaleModeActionGroup->setEnabled(onScenario);
 }
 
-ScenarioModel *ScenarioControl::focusedScenario()
+const ScenarioModel *ScenarioControl::focusedScenario()
 {
     auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
     auto sm = dynamic_cast<ProcessViewModelInterface*>(model.focusedViewModel());
-    return sm ? dynamic_cast<ScenarioModel *>(sm->sharedProcessModel()) : nullptr;
+    return sm ? dynamic_cast<const ScenarioModel*>(&sm->sharedProcessModel()) : nullptr;
 }

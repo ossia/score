@@ -19,8 +19,8 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         Q_OBJECT
     public:
         using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
-        ProcessSharedModelInterface(TimeValue duration,
-                                    id_type<ProcessSharedModelInterface> id,
+        ProcessSharedModelInterface(const TimeValue& duration,
+                                    const id_type<ProcessSharedModelInterface>& id,
                                     const QString& name,
                                     QObject* parent):
             IdentifiedObject<ProcessSharedModelInterface>{id, name, parent},
@@ -29,7 +29,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 
         }
 
-        virtual ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+        virtual ProcessSharedModelInterface* clone(const id_type<ProcessSharedModelInterface>& newId,
                                                    QObject* newParent) = 0;
 
         /**
@@ -52,21 +52,24 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        virtual ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                                                         const QByteArray& constructionData,
-                                                         QObject* parent) = 0;
+        virtual ProcessViewModelInterface* makeViewModel(
+                const id_type<ProcessViewModelInterface>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) = 0;
 
         // To be called by createProcessViewModel only.
-        virtual ProcessViewModelInterface* loadViewModel(const VisitorVariant&,
-                                                         QObject* parent) = 0;
+        virtual ProcessViewModelInterface* loadViewModel(
+                const VisitorVariant&,
+                QObject* parent) = 0;
 
         // "Copy" factory. TODO replace by clone methode on PVM ?
-        virtual ProcessViewModelInterface* cloneViewModel(id_type<ProcessViewModelInterface> newId,
-                                                         const ProcessViewModelInterface* source,
-                                                         QObject* parent) = 0;
+        virtual ProcessViewModelInterface* cloneViewModel(
+                const id_type<ProcessViewModelInterface>& newId,
+                const ProcessViewModelInterface& source,
+                QObject* parent) = 0;
 
         // Do a copy.
-        QVector<ProcessViewModelInterface*> viewModels()
+        QVector<ProcessViewModelInterface*> viewModels() const
         {
             return m_viewModels;
         }
@@ -108,7 +111,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
             m_duration = other;
         }
 
-        TimeValue duration() const
+        const TimeValue& duration() const
         {
             return m_duration;
         }

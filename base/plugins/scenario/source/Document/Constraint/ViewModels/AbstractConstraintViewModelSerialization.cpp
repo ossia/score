@@ -101,7 +101,8 @@ void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, Scenar
             if(vms.contains(svm_id))
             {
                 Deserializer<DataStream> d{(vms[svm_id].second)};
-                temporalSVM->addConstraintViewModel(loadConstraintViewModel(d, temporalSVM));
+                auto cvm = loadConstraintViewModel(d, temporalSVM);
+                temporalSVM->addConstraintViewModel(cvm);
             }
             else
             {

@@ -26,21 +26,21 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         using constraint_view_model_type = TemporalConstraintViewModel;
         // using event_type = TemporalEventViewModel;
 
-        TemporalScenarioViewModel(id_type<ProcessViewModelInterface> id,
-                                  QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> constraintIds,
-                                  ScenarioModel* model,
+        TemporalScenarioViewModel(const id_type<ProcessViewModelInterface>& id,
+                                  const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
+                                  ScenarioModel& model,
                                   QObject* parent);
 
         // Copy
-        TemporalScenarioViewModel(const TemporalScenarioViewModel* source,
-                                  id_type<ProcessViewModelInterface> id,
-                                  ScenarioModel* model,
+        TemporalScenarioViewModel(const TemporalScenarioViewModel& source,
+                                  const id_type<ProcessViewModelInterface>& id,
+                                  ScenarioModel& model,
                                   QObject* parent);
 
         // Load
         template<typename Impl>
         TemporalScenarioViewModel(Deserializer<Impl>& vis,
-                                  ScenarioModel* model,
+                                  ScenarioModel& model,
                                   QObject* parent) :
             AbstractScenarioViewModel {vis, model, parent}
         {

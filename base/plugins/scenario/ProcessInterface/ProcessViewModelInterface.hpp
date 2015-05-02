@@ -14,7 +14,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
     public:
         virtual ~ProcessViewModelInterface() = default;
 
-        ProcessSharedModelInterface* sharedProcessModel() const
+        ProcessSharedModelInterface& sharedProcessModel() const
         { return m_sharedProcessModel; }
 
         virtual void serialize(const VisitorVariant&) const = 0;
@@ -22,9 +22,9 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
 
 
     protected:
-        ProcessViewModelInterface(id_type<ProcessViewModelInterface> viewModelId,
-                                  QString name,
-                                  ProcessSharedModelInterface* sharedProcess,
+        ProcessViewModelInterface(const id_type<ProcessViewModelInterface>& viewModelId,
+                                  const QString& name,
+                                  ProcessSharedModelInterface& sharedProcess,
                                   QObject* parent) :
             IdentifiedObject<ProcessViewModelInterface> {viewModelId, name, parent},
         m_sharedProcessModel {sharedProcess}
@@ -34,7 +34,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
 
         template<typename Impl>
         ProcessViewModelInterface(Deserializer<Impl>& vis,
-                                  ProcessSharedModelInterface* sharedProcess,
+                                  ProcessSharedModelInterface& sharedProcess,
                                   QObject* parent) :
             IdentifiedObject<ProcessViewModelInterface> {vis, parent},
             m_sharedProcessModel {sharedProcess}
@@ -43,7 +43,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         }
 
     private:
-        ProcessSharedModelInterface* m_sharedProcessModel {};
+        ProcessSharedModelInterface& m_sharedProcessModel;
 };
 
 
@@ -54,18 +54,17 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
  * @return a pointer of the correct type.
  */
 template<typename T>
-typename T::model_type* model(T* viewModel)
+const typename T::model_type* model(const T* viewModel)
 {
-    return static_cast<typename T::model_type*>(viewModel->sharedProcessModel());
+    return static_cast<const typename T::model_type*>(viewModel->sharedProcessModel());
 }
 
 
 template<typename T>
-typename T::model_type& model(T& viewModel)
+const typename T::model_type& model(const T& viewModel)
 {
-    return static_cast<typename T::model_type&>(*viewModel.sharedProcessModel());
+    return static_cast<const typename T::model_type&>(viewModel.sharedProcessModel());
 }
-
 
 /**
  * @brief identifierOfViewModelFromSharedModel

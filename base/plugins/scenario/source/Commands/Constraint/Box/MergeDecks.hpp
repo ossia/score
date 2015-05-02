@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include "Deck/MoveProcessViewModel.hpp"
@@ -8,13 +9,13 @@ namespace Scenario
 {
     namespace Command
     {
-        /**
-         * @brief The MergeDecks class
-         *
-         * Merges a Deck into another.
-         * This moves all the PVMs of the first deck, the source, into the second, the target,
-         * and deletes the source.
-         */
+        ///
+        // @brief The MergeDecks class
+        //
+        // Merges a Deck into another.
+        // This moves all the PVMs of the first deck, the source, into the second, the target,
+        // and deletes the source.
+        //
         class MergeDecks : public iscore::AggregateCommand
         {
                 ISCORE_COMMAND
@@ -44,3 +45,4 @@ namespace Scenario
         };
     }
 }
+*/

@@ -518,5 +518,6 @@ Node* getNodeFromString(Node* n, QStringList&& parts)
     }
 
     Q_ASSERT(false);
+    return nullptr;
 }
 

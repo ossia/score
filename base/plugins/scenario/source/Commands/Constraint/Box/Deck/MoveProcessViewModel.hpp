@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #include "CopyProcessViewModel.hpp"
 #include "RemoveProcessViewModelFromDeck.hpp"
 #include <iscore/command/AggregateCommand.hpp>
@@ -7,12 +7,12 @@ namespace Scenario
 {
     namespace Command
     {
-        /**
-         * @brief The MoveProcessViewModel class
-         *
-         * Moves a process view from a Deck to another.
-         * Note : this must be in the same constraint.
-         */
+        //
+        // @brief The MoveProcessViewModel class
+        //
+        // Moves a process view from a Deck to another.
+        // Note : this must be in the same constraint.
+        //s
         class MoveProcessViewModel : public iscore::AggregateCommand
         {
                 ISCORE_COMMAND
@@ -40,4 +40,4 @@ namespace Scenario
         }
         };
     }
-}
+}*/

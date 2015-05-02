@@ -32,14 +32,15 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     m_sm{*this},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
+    const auto& scenario = model(*m_viewModel);
     /////// Setup of existing data
     // For each constraint & event, display' em
-    for(const auto& event_model : model(m_viewModel)->events())
+    for(const auto& event_model : scenario.events())
     {
         on_eventCreated_impl(*event_model);
     }
 
-    for(const auto& tn_model : model(m_viewModel)->timeNodes())
+    for(const auto& tn_model : scenario.timeNodes())
     {
         on_timeNodeCreated_impl(*tn_model);
     }
@@ -73,9 +74,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(TemporalScenarioViewModel* 
     });
 
 
-    connect(model(m_viewModel), &ScenarioModel::locked,
+    connect(&model(*m_viewModel), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);
-    connect(model(m_viewModel), &ScenarioModel::unlocked,
+    connect(&model(*m_viewModel), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
 
     m_sm.start();
@@ -105,7 +106,7 @@ id_type<ProcessViewModelInterface> TemporalScenarioPresenter::viewModelId() cons
 
 id_type<ProcessSharedModelInterface> TemporalScenarioPresenter::modelId() const
 {
-    return m_viewModel->sharedProcessModel()->id();
+    return m_viewModel->sharedProcessModel().id();
 }
 
 void TemporalScenarioPresenter::setWidth(int width)
@@ -175,12 +176,12 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 void TemporalScenarioPresenter::on_eventCreated(id_type<EventModel> eventId)
 {
-    on_eventCreated_impl(*model(m_viewModel)->event(eventId));
+    on_eventCreated_impl(*model(*m_viewModel).event(eventId));
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated(id_type<TimeNodeModel> timeNodeId)
 {
-    on_timeNodeCreated_impl(*model(m_viewModel)->timeNode(timeNodeId));
+    on_timeNodeCreated_impl(*model(*m_viewModel).timeNode(timeNodeId));
 }
 
 void TemporalScenarioPresenter::on_constraintCreated(id_type<AbstractConstraintViewModel> constraintViewModelId)

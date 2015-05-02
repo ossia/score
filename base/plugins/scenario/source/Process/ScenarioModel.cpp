@@ -7,8 +7,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-ScenarioModel::ScenarioModel(TimeValue duration,
-                             id_type<ProcessSharedModelInterface> id,
+ScenarioModel::ScenarioModel(const TimeValue& duration,
+                             const id_type<ProcessSharedModelInterface>& id,
                              QObject* parent) :
     ProcessSharedModelInterface {duration, id, "ScenarioModel", parent},
     m_startEventId{0}, // Always
@@ -25,35 +25,35 @@ ScenarioModel::ScenarioModel(TimeValue duration,
 
 }
 
-ScenarioModel::ScenarioModel(ScenarioModel* source,
-                             id_type<ProcessSharedModelInterface> id,
+ScenarioModel::ScenarioModel(const ScenarioModel& source,
+                             const id_type<ProcessSharedModelInterface>& id,
                              QObject* parent) :
-    ProcessSharedModelInterface {source->duration(), id, "ScenarioModel", parent}
+    ProcessSharedModelInterface {source.duration(), id, "ScenarioModel", parent}
 {
-    for(ConstraintModel* constraint : source->m_constraints)
+    for(ConstraintModel* constraint : source.m_constraints)
     {
         addConstraint(new ConstraintModel {constraint, constraint->id(), this});
     }
 
-    for(EventModel* event : source->m_events)
+    for(EventModel* event : source.m_events)
     {
         addEvent(new EventModel {event, event->id(), this});
     }
 
-    for(TimeNodeModel* timenode : source->m_timeNodes)
+    for(TimeNodeModel* timenode : source.m_timeNodes)
     {
         addTimeNode(new TimeNodeModel {timenode, timenode->id(), this});
     }
 
-    m_startEventId = source->m_startEventId;
-    m_endEventId = source->m_endEventId;
+    m_startEventId = source.m_startEventId;
+    m_endEventId = source.m_endEventId;
 }
 
 ProcessSharedModelInterface* ScenarioModel::clone(
-        id_type<ProcessSharedModelInterface> newId,
+        const id_type<ProcessSharedModelInterface>& newId,
         QObject* newParent)
 {
-    return new ScenarioModel {this, newId, newParent};
+    return new ScenarioModel {*this, newId, newParent};
 }
 
 QByteArray ScenarioModel::makeViewModelConstructionData() const
@@ -76,28 +76,29 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
 }
 
 ProcessViewModelInterface* ScenarioModel::makeViewModel(
-        id_type<ProcessViewModelInterface> viewModelId,
+        const id_type<ProcessViewModelInterface>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
     QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> map;
     QDataStream s{constructionData};
     s >> map;
-    auto scen = new TemporalScenarioViewModel {viewModelId, map, this, parent};
+
+    auto scen = new TemporalScenarioViewModel {viewModelId, map, *this, parent};
     makeViewModel_impl(scen);
     return scen;
 }
 
 
 ProcessViewModelInterface* ScenarioModel::cloneViewModel(
-        id_type<ProcessViewModelInterface> newId,
-        const ProcessViewModelInterface* source,
+        const id_type<ProcessViewModelInterface>& newId,
+        const ProcessViewModelInterface& source,
         QObject* parent)
 {
     auto scen = new TemporalScenarioViewModel{
-                static_cast<const TemporalScenarioViewModel*>(source),
+                static_cast<const TemporalScenarioViewModel&>(source),
                 newId,
-                this,
+                *this,
                 parent};
     makeViewModel_impl(scen);
     return scen;
@@ -321,17 +322,17 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 }
 
 /////////////////////////////
-ConstraintModel* ScenarioModel::constraint(id_type<ConstraintModel> constraintId) const
+ConstraintModel* ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
 {
     return findById(m_constraints, constraintId);
 }
 
-EventModel* ScenarioModel::event(id_type<EventModel> eventId) const
+EventModel* ScenarioModel::event(const id_type<EventModel>& eventId) const
 {
     return findById(m_events, eventId);
 }
 
-TimeNodeModel* ScenarioModel::timeNode(id_type<TimeNodeModel> timeNodeId) const
+TimeNodeModel* ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
 {
     return findById(m_timeNodes, timeNodeId);
 }

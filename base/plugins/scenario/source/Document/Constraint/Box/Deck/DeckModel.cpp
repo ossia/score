@@ -28,10 +28,10 @@ void DeckModel::copyViewModelsInSameConstraint(DeckModel &source, DeckModel &tar
     for(ProcessViewModelInterface* pvm : source.processViewModels())
     {
         // We can safely reuse the same id since it's in a different deck.
-        auto proc = pvm->sharedProcessModel();
+        auto& proc = pvm->sharedProcessModel();
         target.addProcessViewModel(
-                    proc->cloneViewModel(pvm->id(),
-                                        pvm,
+                    proc.cloneViewModel(pvm->id(),
+                                        *pvm,
                                         &target));
     }
 }
@@ -98,7 +98,7 @@ void DeckModel::on_deleteSharedProcessModel(id_type<ProcessSharedModelInterface>
                       end(m_processViewModels),
                       [&sharedProcessId](const ProcessViewModelInterface * pvm)
     {
-        return pvm->sharedProcessModel()->id() == sharedProcessId;
+        return pvm->sharedProcessModel().id() == sharedProcessId;
     });
 
     if(it != end(m_processViewModels))

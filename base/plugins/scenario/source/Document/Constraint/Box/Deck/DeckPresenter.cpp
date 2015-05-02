@@ -185,7 +185,7 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
 {
-    auto procname = proc_vm->sharedProcessModel()->processName();
+    auto procname = proc_vm->sharedProcessModel().processName();
 
     auto factory = ProcessList::getFactory(procname);
 

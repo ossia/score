@@ -65,7 +65,7 @@ void CopyConstraintContent::redo()
             Deserializer<JSONObject>{m_source},
             trg_constraint}; // Temporary parent
 
-    std::map<ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
+    std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
 
     // Clone the processes
     auto src_procs = src_constraint.processes();
@@ -102,12 +102,12 @@ void CopyConstraintContent::redo()
                 m_boxIds[i],
                 [&] (DeckModel& source, DeckModel& target)
                 {
-                    for(auto& pvm : source.processViewModels())
+                    for(const auto& pvm : source.processViewModels())
                     {
                         // We can safely reuse the same id since it's in a different deck.
-                        auto proc = processPairs[pvm->sharedProcessModel()];
+                        auto proc = processPairs[&pvm->sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), pvm, &target));
+                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                     }
                 },
                 trg_constraint};

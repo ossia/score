@@ -2,8 +2,10 @@
 #include "AutomationViewModel.hpp"
 #include "State/AutomationState.hpp"
 
-AutomationModel::AutomationModel(TimeValue duration, id_type<ProcessSharedModelInterface> id,
-                                 QObject* parent) :
+AutomationModel::AutomationModel(
+        const TimeValue& duration,
+        const id_type<ProcessSharedModelInterface>& id,
+        QObject* parent) :
     ProcessSharedModelInterface {duration, id, processName(), parent}
 {
 
@@ -13,7 +15,8 @@ AutomationModel::AutomationModel(TimeValue duration, id_type<ProcessSharedModelI
     addPoint(1, 1);
 }
 
-ProcessSharedModelInterface* AutomationModel::clone(id_type<ProcessSharedModelInterface> newId,
+ProcessSharedModelInterface* AutomationModel::clone(
+        const id_type<ProcessSharedModelInterface>& newId,
         QObject* newParent)
 {
     auto autom = new AutomationModel {this->duration(), newId, newParent};
@@ -124,23 +127,23 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
 }
 
 ProcessViewModelInterface* AutomationModel::makeViewModel(
-        id_type<ProcessViewModelInterface> viewModelId,
+        const id_type<ProcessViewModelInterface>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto vm = new AutomationViewModel{this, viewModelId, parent};
+    auto vm = new AutomationViewModel{*this, viewModelId, parent};
     addViewModel(vm); // TODO put the addViewModel outside.
     //(should be automatically done by the interface.)
     return vm;
 }
 
 ProcessViewModelInterface* AutomationModel::cloneViewModel(
-        id_type<ProcessViewModelInterface> newId,
-        const ProcessViewModelInterface* source,
+        const id_type<ProcessViewModelInterface>& newId,
+        const ProcessViewModelInterface& source,
         QObject* parent)
 {
     auto vm = new AutomationViewModel {
-              static_cast<const AutomationViewModel*>(source), this, newId, parent};
+              static_cast<const AutomationViewModel&>(source), *this, newId, parent};
     addViewModel(vm);
     return vm;
 }

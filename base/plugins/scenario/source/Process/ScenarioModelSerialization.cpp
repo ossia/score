@@ -150,7 +150,7 @@ ProcessViewModelInterface* ScenarioModel::loadViewModel(
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
         auto scen = new TemporalScenarioViewModel{
-                            deserializer, this, parent};
+                            deserializer, *this, parent};
         this->makeViewModel_impl(scen);
         return scen;
     });

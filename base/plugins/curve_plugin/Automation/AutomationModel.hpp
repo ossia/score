@@ -18,10 +18,10 @@ class AutomationModel : public ProcessSharedModelInterface
         Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
 
     public:
-        AutomationModel(TimeValue duration,
-                        id_type<ProcessSharedModelInterface> id,
+        AutomationModel(const TimeValue& duration,
+                        const id_type<ProcessSharedModelInterface>& id,
                         QObject* parent);
-        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+        ProcessSharedModelInterface* clone(const id_type<ProcessSharedModelInterface>& newId,
                                            QObject* newParent) override;
 
         template<typename Impl>
@@ -35,15 +35,15 @@ class AutomationModel : public ProcessSharedModelInterface
         QString processName() const override;
 
         ProcessViewModelInterface* makeViewModel(
-                id_type<ProcessViewModelInterface> viewModelId,
+                const id_type<ProcessViewModelInterface>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
         ProcessViewModelInterface* loadViewModel(
                 const VisitorVariant&,
                 QObject* parent) override;
         ProcessViewModelInterface* cloneViewModel(
-                id_type<ProcessViewModelInterface> newId,
-                const ProcessViewModelInterface* source,
+                const id_type<ProcessViewModelInterface>& newId,
+                const ProcessViewModelInterface& source,
                 QObject* parent) override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;

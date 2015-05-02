@@ -61,11 +61,11 @@ class AbstractConstraintPresenter : public NamedObject
         void heightPercentageChanged(); // The vertical position
 
     public slots:
-        void on_defaultDurationChanged(TimeValue val);
-        void on_minDurationChanged(TimeValue min);
-        void on_maxDurationChanged(TimeValue max);
+        void on_defaultDurationChanged(const TimeValue& val);
+        void on_minDurationChanged(const TimeValue& min);
+        void on_maxDurationChanged(const TimeValue& max);
 
-        void on_boxShown(id_type<BoxModel> boxId);
+        void on_boxShown(const id_type<BoxModel>& boxId);
         void on_boxHidden();
         void on_boxRemoved();
 

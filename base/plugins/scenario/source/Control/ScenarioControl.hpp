@@ -28,7 +28,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged(iscore::Document* doc) override;
 
     private:
-        ScenarioModel* focusedScenario();
+        const ScenarioModel* focusedScenario();
         ScenarioStateMachine& stateMachine() const;
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();

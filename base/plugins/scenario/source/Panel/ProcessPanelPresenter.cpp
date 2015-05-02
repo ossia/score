@@ -66,7 +66,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
 
         auto fact = ProcessList::getFactory(m_processViewModel
                                               ->sharedProcessModel()
-                                                ->processName());
+                                                .processName());
 
         auto proxy = m_processViewModel->make_panelProxy();
         delete m_obj;

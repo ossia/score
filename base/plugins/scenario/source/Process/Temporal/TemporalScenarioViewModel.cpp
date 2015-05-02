@@ -8,9 +8,9 @@
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
-        id_type<ProcessViewModelInterface> viewModelId,
-        QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> > constraintIds,
-        ScenarioModel* model,
+        const id_type<ProcessViewModelInterface>& viewModelId,
+        const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> >& constraintIds,
+        ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioViewModel {viewModelId,
                               "TemporalScenarioViewModel",
@@ -24,9 +24,9 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
 }
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
-        const TemporalScenarioViewModel* source,
-        id_type<ProcessViewModelInterface> id,
-        ScenarioModel* newScenario,
+        const TemporalScenarioViewModel& source,
+        const id_type<ProcessViewModelInterface>& id,
+        ScenarioModel& newScenario,
         QObject* parent) :
     AbstractScenarioViewModel {source,
                               id,
@@ -35,13 +35,13 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
                               parent
 }
 {
-    for(TemporalConstraintViewModel* src_constraint : constraintsViewModels(*source))
+    for(TemporalConstraintViewModel* src_constraint : constraintsViewModels(source))
     {
         // TODO some room for optimization here
         addConstraintViewModel(
                     src_constraint->clone(
                         src_constraint->id(),
-                        *newScenario->constraint(src_constraint->model().id()),
+                        *newScenario.constraint(src_constraint->model().id()),
                         this));
     }
 }
@@ -70,7 +70,7 @@ ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy()
 void TemporalScenarioViewModel::makeConstraintViewModel(id_type<ConstraintModel> constraintModelId,
                                                         id_type<AbstractConstraintViewModel> constraintViewModelId)
 {
-    auto constraint_model = model(this)->constraint(constraintModelId);
+    auto constraint_model = model(*this).constraint(constraintModelId);
 
     auto constraint_view_model =
         constraint_model->makeConstraintViewModel<constraint_view_model_type> (

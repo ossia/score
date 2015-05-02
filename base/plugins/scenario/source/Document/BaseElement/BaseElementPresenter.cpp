@@ -76,7 +76,7 @@ void BaseElementPresenter::selectAll()
 {
     if(model()->focusedViewModel())
     {
-        m_selectionDispatcher.setAndCommit(model()->focusedViewModel()->sharedProcessModel()->selectableChildren());
+        m_selectionDispatcher.setAndCommit(model()->focusedViewModel()->sharedProcessModel().selectableChildren());
     }
 }
 

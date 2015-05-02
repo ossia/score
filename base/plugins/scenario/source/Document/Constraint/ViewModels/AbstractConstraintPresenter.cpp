@@ -83,7 +83,7 @@ const id_type<ConstraintModel>& AbstractConstraintPresenter::id() const
     return model().id();
 }
 
-void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
+void AbstractConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
 {
     m_view->setDefaultWidth(val.toPixels(m_zoomRatio));
 
@@ -91,7 +91,7 @@ void AbstractConstraintPresenter::on_defaultDurationChanged(TimeValue val)
     m_view->update();
 }
 
-void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
+void AbstractConstraintPresenter::on_minDurationChanged(const TimeValue& min)
 {
     m_view->setMinWidth(min.toPixels(m_zoomRatio));
 
@@ -99,7 +99,7 @@ void AbstractConstraintPresenter::on_minDurationChanged(TimeValue min)
     m_view->update();
 }
 
-void AbstractConstraintPresenter::on_maxDurationChanged(TimeValue max)
+void AbstractConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 {
     m_view->setMaxWidth(max.isInfinite(),
                         max.isInfinite()? -1 : max.toPixels(m_zoomRatio));
@@ -150,7 +150,7 @@ AbstractConstraintView*AbstractConstraintPresenter::view() const
     return m_view;
 }
 
-void AbstractConstraintPresenter::on_boxShown(id_type<BoxModel> boxId)
+void AbstractConstraintPresenter::on_boxShown(const id_type<BoxModel>& boxId)
 {
     clearBoxPresenter();
     createBoxPresenter(m_viewModel.model().box(boxId));

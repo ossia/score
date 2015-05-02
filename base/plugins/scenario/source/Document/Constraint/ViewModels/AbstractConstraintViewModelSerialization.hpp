@@ -18,7 +18,7 @@ loadConstraintViewModel(Deserializer<DataStream>& deserializer,
     // Deserialize the required identifier
     id_type<ConstraintModel> constraint_model_id;
     deserializer.m_stream >> constraint_model_id;
-    auto constraint = model(svm)->constraint(constraint_model_id);
+    auto constraint = model(*svm).constraint(constraint_model_id);
 
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType
@@ -39,7 +39,7 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 {
     // Deserialize the required identifier
     auto constraint_model_id = fromJsonValue<id_type<ConstraintModel>>(deserializer.m_obj["ConstraintId"]);
-    auto constraint = model(svm)->constraint(constraint_model_id);
+    auto constraint = model(*svm).constraint(constraint_model_id);
 
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType

@@ -9,7 +9,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
 {
     // To allow recration using createProcessViewModel.
     // This supposes that the process is stored inside a Constraint.
-    m_stream << processViewModel.sharedProcessModel()->id();
+    m_stream << processViewModel.sharedProcessModel().id();
 
     readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
 
@@ -43,7 +43,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModelInterface& proc
 {
     // To allow recration using createProcessViewModel.
     // This supposes that the process is stored inside a Constraint.
-    m_obj["SharedProcessId"] = toJsonValue(processViewModel.sharedProcessModel()->id());
+    m_obj["SharedProcessId"] = toJsonValue(processViewModel.sharedProcessModel().id());
 
     readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
 

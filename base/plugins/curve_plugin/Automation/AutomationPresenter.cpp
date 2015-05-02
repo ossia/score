@@ -25,7 +25,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     m_commandDispatcher{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack()},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
 {
-    connect(m_viewModel->model(), &AutomationModel::pointsChanged,
+    connect(&m_viewModel->model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
 
@@ -119,7 +119,7 @@ id_type<ProcessViewModelInterface> AutomationPresenter::viewModelId() const
 
 id_type<ProcessSharedModelInterface> AutomationPresenter::modelId() const
 {
-    return m_viewModel->model()->id();
+    return m_viewModel->model().id();
 }
 
 QList<QPointF> mapToList(QMap<double, double> map)
@@ -135,7 +135,7 @@ QList<QPointF> mapToList(QMap<double, double> map)
 
 void AutomationPresenter::on_modelPointsChanged()
 {
-    m_curve->setPoints(mapToList(m_viewModel->model()->points()));
+    m_curve->setPoints(mapToList(m_viewModel->model().points()));
     parentGeometryChanged();
 }
 

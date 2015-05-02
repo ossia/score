@@ -41,9 +41,9 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         virtual void on_constraintRemoved(id_type<ConstraintModel> constraintId) = 0;
 
     protected:
-        AbstractScenarioViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                                  QString name,
-                                  ProcessSharedModelInterface* sharedProcess,
+        AbstractScenarioViewModel(const id_type<ProcessViewModelInterface>& viewModelId,
+                                  const QString& name,
+                                  ProcessSharedModelInterface& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {viewModelId,
                                       name,
@@ -54,10 +54,10 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         }
 
         // Copy
-        AbstractScenarioViewModel(const AbstractScenarioViewModel* source,
-                                  id_type<ProcessViewModelInterface> viewModelId,
-                                  QString name,
-                                  ProcessSharedModelInterface* sharedProcess,
+        AbstractScenarioViewModel(const AbstractScenarioViewModel& source,
+                                  const id_type<ProcessViewModelInterface>& viewModelId,
+                                  const QString& name,
+                                  ProcessSharedModelInterface& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {viewModelId,
                                       name,
@@ -70,11 +70,11 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         // Load
         template<typename Impl>
         AbstractScenarioViewModel(Deserializer<Impl>& vis,
-                                  ProcessSharedModelInterface* sharedProcess,
+                                  ProcessSharedModelInterface& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {vis,
-                                      sharedProcess,
-                                      parent
+                                       sharedProcess,
+                                       parent
         }
         {
             // No data to save (the constraints vector will be rebuilt by the subclass accordingly.)

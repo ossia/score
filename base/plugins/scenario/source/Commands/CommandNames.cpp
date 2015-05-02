@@ -68,7 +68,7 @@ const char* Scenario::Command::ClearEvent::className() { return "ClearEvent"; }
 const char* Scenario::Command::DuplicateBox::className() { return "DuplicateBox"; }
 const char* Scenario::Command::CopyConstraintContent::className() { return "CopyConstraintContent"; }
 const char* Scenario::Command::CopyDeck::className() { return "CopyDeck"; }
-const char* Scenario::Command::CopyProcessViewModel::className() { return "CopyProcessViewModel"; }
+//const char* Scenario::Command::CopyProcessViewModel::className() { return "CopyProcessViewModel"; }
 
 // CREATE
 const char* Scenario::Command::CreateConstraint::className() { return "CreateConstraint"; }
@@ -81,14 +81,14 @@ const char* Scenario::Command::HideBoxInViewModel::className() { return "HideBox
 
 // MERGE
 const char* Scenario::Command::MergeBoxes::className() { return "MergeBoxes"; }
-const char* Scenario::Command::MergeDecks::className() { return "MergeDecks"; }
+//const char* Scenario::Command::MergeDecks::className() { return "MergeDecks"; }
 const char* Scenario::Command::MergeTimeNodes::className() { return "MergeTimeNodes"; }
 
 // MOVE
 const char* Scenario::Command::MoveConstraint::className() { return "MoveConstraint"; }
 const char* Scenario::Command::MoveDeck::className() { return "MoveDeck"; }
 const char* Scenario::Command::MoveEvent::className() { return "MoveEvent"; }
-const char* Scenario::Command::MoveProcessViewModel::className() { return "MoveProcessViewModel"; }
+//const char* Scenario::Command::MoveProcessViewModel::className() { return "MoveProcessViewModel"; }
 const char* Scenario::Command::MoveTimeNode::className() { return "MoveTimeNode"; }
 
 // REMOVE
@@ -139,7 +139,7 @@ QString Scenario::Command::ClearEvent::description() { return QObject::tr("Clear
 QString Scenario::Command::DuplicateBox::description() { return QObject::tr("Copy a box"); }
 QString Scenario::Command::CopyConstraintContent::description() { return QObject::tr("Copy constraint content"); }
 QString Scenario::Command::CopyDeck::description() { return QObject::tr("CopyDeck"); }
-QString Scenario::Command::CopyProcessViewModel::description() { return QObject::tr("CopyProcessViewModel"); }
+//QString Scenario::Command::CopyProcessViewModel::description() { return QObject::tr("CopyProcessViewModel"); }
 
 // CREATE
 QString Scenario::Command::CreateConstraint::description() { return QObject::tr("CreateConstraint"); }
@@ -152,14 +152,14 @@ QString Scenario::Command::HideBoxInViewModel::description() { return QObject::t
 
 // MERGE
 QString Scenario::Command::MergeBoxes::description() { return QObject::tr("MergeBoxes"); }
-QString Scenario::Command::MergeDecks::description() { return QObject::tr("MergeDecks"); }
+//QString Scenario::Command::MergeDecks::description() { return QObject::tr("MergeDecks"); }
 QString Scenario::Command::MergeTimeNodes::description() { return QObject::tr("MergeTimeNodes"); }
 
 // MOVE
 QString Scenario::Command::MoveConstraint::description() { return QObject::tr("MoveConstraint"); }
 QString Scenario::Command::MoveDeck::description() { return QObject::tr("MoveDeck"); }
 QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEvent"); }
-QString Scenario::Command::MoveProcessViewModel::description() { return QObject::tr("MoveProcessViewModel"); }
+//QString Scenario::Command::MoveProcessViewModel::description() { return QObject::tr("MoveProcessViewModel"); }
 QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
 
 // REMOVE
@@ -236,7 +236,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == DuplicateBox::className()) return new DuplicateBox;
     else if(name == CopyConstraintContent::className()) return new CopyConstraintContent;
     else if(name == CopyDeck::className()) return new CopyDeck;
-    else if(name == CopyProcessViewModel::className()) return new CopyProcessViewModel;
+ //   else if(name == CopyProcessViewModel::className()) return new CopyProcessViewModel;
 
     // CREATE ELEMENT
     else if(name == CreateConstraint::className()) return new CreateConstraint;
@@ -249,7 +249,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
 
     // MERGE
     else if(name == MergeBoxes::className()) return new MergeBoxes;
-    else if(name == MergeDecks::className()) return new MergeDecks;
+//    else if(name == MergeDecks::className()) return new MergeDecks;
     else if(name == MergeTimeNodes::className()) return new MergeTimeNodes;
 
     // MOVE
@@ -258,7 +258,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == SwapDecks::className()) return new SwapDecks;
     else if(name == MoveEvent::className()) return new MoveEvent;
     else if(name == MoveEventAndConstraint::className()) return new MoveEventAndConstraint;
-    else if(name == MoveProcessViewModel::className()) return new MoveProcessViewModel;
+//    else if(name == MoveProcessViewModel::className()) return new MoveProcessViewModel;
     else if(name == MoveTimeNode::className()) return new MoveTimeNode;
 
     // REMOVE ELEMENT

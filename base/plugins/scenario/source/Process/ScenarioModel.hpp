@@ -38,21 +38,23 @@ class ScenarioModel : public ProcessSharedModelInterface
     public:
         using view_model_type = AbstractScenarioViewModel;
 
-        ScenarioModel(TimeValue duration,
-                      id_type<ProcessSharedModelInterface> id,
+        ScenarioModel(const TimeValue& duration,
+                      const id_type<ProcessSharedModelInterface>& id,
                       QObject* parent);
-        ProcessSharedModelInterface* clone(id_type<ProcessSharedModelInterface> newId,
+        ProcessSharedModelInterface* clone(const id_type<ProcessSharedModelInterface>& newId,
                                            QObject* newParent) override;
 
         //// ProcessSharedModelInterface specifics ////
         QByteArray makeViewModelConstructionData() const override;
-        ProcessViewModelInterface* makeViewModel(id_type<ProcessViewModelInterface> viewModelId,
-                                                 const QByteArray& constructionData,
-                                                 QObject* parent) override;
+        ProcessViewModelInterface* makeViewModel(
+                const id_type<ProcessViewModelInterface>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
 
-        ProcessViewModelInterface* cloneViewModel(id_type<ProcessViewModelInterface> newId,
-                                                 const ProcessViewModelInterface* source,
-                                                 QObject* parent) override;
+        ProcessViewModelInterface* cloneViewModel(
+                const id_type<ProcessViewModelInterface>& newId,
+                const ProcessViewModelInterface& source,
+                QObject* parent) override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
@@ -79,9 +81,9 @@ class ScenarioModel : public ProcessSharedModelInterface
         void removeTimeNode(TimeNodeModel* timeNode);
 
         // Accessors
-        ConstraintModel* constraint(id_type<ConstraintModel> constraintId) const;
-        EventModel* event(id_type<EventModel> eventId) const;
-        TimeNodeModel* timeNode(id_type<TimeNodeModel> timeNodeId) const;
+        ConstraintModel* constraint(const id_type<ConstraintModel>& constraintId) const;
+        EventModel* event(const id_type<EventModel>& eventId) const;
+        TimeNodeModel* timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
 
         EventModel* startEvent() const;
         EventModel* endEvent() const;
@@ -106,16 +108,16 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
     signals:
-        void eventCreated(id_type<EventModel> eventId);
-        void constraintCreated(id_type<ConstraintModel> constraintId);
-        void timeNodeCreated(id_type<TimeNodeModel> timeNodeId);
+        void eventCreated(const id_type<EventModel>& eventId);
+        void constraintCreated(const id_type<ConstraintModel>& constraintId);
+        void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
 
-        void eventRemoved(id_type<EventModel> eventId);
-        void constraintRemoved(id_type<ConstraintModel> constraintId);
-        void timeNodeRemoved(id_type<TimeNodeModel> timeNodeId);
+        void eventRemoved(const id_type<EventModel>& eventId);
+        void constraintRemoved(const id_type<ConstraintModel>& constraintId);
+        void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void eventMoved(id_type<EventModel> eventId);
-        void constraintMoved(id_type<ConstraintModel> constraintId);
+        void eventMoved(const id_type<EventModel>& eventId);
+        void constraintMoved(const id_type<ConstraintModel>& constraintId);
 
         void locked();
         void unlocked();
@@ -153,8 +155,8 @@ class ScenarioModel : public ProcessSharedModelInterface
         }
 
     private:
-        ScenarioModel(ScenarioModel* source,
-                      id_type<ProcessSharedModelInterface> id,
+        ScenarioModel(const ScenarioModel& source,
+                      const id_type<ProcessSharedModelInterface>& id,
                       QObject* parent);
         void makeViewModel_impl(view_model_type*);
 

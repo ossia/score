@@ -80,7 +80,7 @@ ProcessViewModelInterface* AutomationModel::loadViewModel(
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
         auto autom = new AutomationViewModel{
-                        deserializer, this, parent};
+                        deserializer, *this, parent};
 
         this->addViewModel(autom);
         return autom;

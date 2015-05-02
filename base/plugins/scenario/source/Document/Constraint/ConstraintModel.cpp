@@ -41,7 +41,7 @@ ConstraintModel::ConstraintModel(
     m_heightPercentage = source->heightPercentage();
 
     // For an explanation of this, see CopyConstraintContent command
-    std::map<ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
+    std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
 
     // Clone the processes
     auto src_procs = source->processes();
@@ -63,9 +63,9 @@ ConstraintModel::ConstraintModel(
                                  for(auto& pvm : source.processViewModels())
                                  {
                                      // We can safely reuse the same id since it's in a different deck.
-                                     auto proc = processPairs[pvm->sharedProcessModel()];
+                                     auto proc = processPairs[&pvm->sharedProcessModel()];
                                      // TODO harmonize the order of parameters (source first, then new id)
-                                     target.addProcessViewModel(proc->cloneViewModel(pvm->id(), pvm, &target));
+                                     target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                                  }
                              }, this});
     }
