@@ -58,9 +58,10 @@ void iscore::UndoControl::on_presenterChanged()
 }
 
 
-void iscore::UndoControl::on_documentChanged(Document* newDoc)
+void iscore::UndoControl::on_documentChanged()
 {
     using namespace iscore;
+    auto newDoc = currentDocument();
     // Cleanup
     for(auto& connection : m_connections)
         disconnect(connection);

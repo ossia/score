@@ -26,9 +26,9 @@ BoxModel::BoxModel(const BoxModel& source,
 
 
 
-ConstraintModel* BoxModel::constraint() const
+ConstraintModel& BoxModel::constraint() const
 {
-    return static_cast<ConstraintModel*>(this->parent());
+    return static_cast<ConstraintModel&>(*this->parent());
 }
 
 void BoxModel::addDeck(DeckModel* deck, int position)

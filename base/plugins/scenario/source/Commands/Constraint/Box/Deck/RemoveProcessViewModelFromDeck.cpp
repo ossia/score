@@ -20,7 +20,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
     auto deck = m_path.find<DeckModel>();
 
     Serializer<DataStream> s{&m_serializedProcessViewData};
-    s.readFrom(*deck->processViewModel(m_processViewId));
+    s.readFrom(deck->processViewModel(m_processViewId));
 }
 
 void RemoveProcessViewModelFromDeck::undo()

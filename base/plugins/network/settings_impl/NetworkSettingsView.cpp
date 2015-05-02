@@ -78,17 +78,19 @@ void NetworkSettingsView::doConnections()
 
 void NetworkSettingsView::on_masterPortChanged(int x)
 {
+    /*
     auto newVal = m_masterPort->value();
 
     if(newVal != m_previousMasterPort)
     {
         presenter()->setMasterPortCommand(new MasterPortChangedCommand {m_previousMasterPort, newVal});
         m_previousMasterPort = newVal;
-    }
+    }*/
 }
 
 void NetworkSettingsView::on_clientPortChanged(int)
 {
+    /*
     auto newVal = m_clientPort->value();
 
     if(newVal != m_previousClientPort)
@@ -96,16 +98,18 @@ void NetworkSettingsView::on_clientPortChanged(int)
         presenter()->setClientPortCommand(new ClientPortChangedCommand {m_previousClientPort, newVal});
         m_previousClientPort = newVal;
     }
+    */
 }
 void NetworkSettingsView::on_clientNameChanged()
 {
+    /*
     auto newText = m_clientName->text();
 
     if(newText != m_previousClientName)
     {
         presenter()->setClientNameCommand(new ClientNameChangedCommand {m_previousClientName, newText});
         m_previousClientName = newText;
-    }
+    }*/
 }
 
 NetworkSettingsPresenter* NetworkSettingsView::presenter()

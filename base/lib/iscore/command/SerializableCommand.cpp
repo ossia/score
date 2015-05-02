@@ -1,6 +1,21 @@
 #include <iscore/command/SerializableCommand.hpp>
 using namespace iscore;
 
+const QString& SerializableCommand::name() const
+{
+    return m_name;
+}
+
+const QString& SerializableCommand::parentName() const
+{
+    return m_parentName;
+}
+
+const QString& SerializableCommand::text() const
+{
+    return m_text;
+}
+
 QByteArray SerializableCommand::serialize() const
 {
     QByteArray arr;

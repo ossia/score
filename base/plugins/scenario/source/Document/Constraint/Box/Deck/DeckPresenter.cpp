@@ -27,9 +27,9 @@ DeckPresenter::DeckPresenter(const DeckModel& model,
 {
     m_view->setPos(0, 0);
 
-    for(ProcessViewModelInterface* proc_vm : m_model.processViewModels())
+    for(const auto& proc_vm : m_model.processViewModels())
     {
-        on_processViewModelCreated_impl(proc_vm);
+        on_processViewModelCreated_impl(*proc_vm);
     }
 
     connect(&m_model, &DeckModel::processViewModelCreated,
@@ -186,9 +186,10 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* proc_vm)
+void DeckPresenter::on_processViewModelCreated_impl(
+        const ProcessViewModelInterface& proc_vm)
 {
-    auto procname = proc_vm->sharedProcessModel().processName();
+    auto procname = proc_vm.sharedProcessModel().processName();
 
     auto factory = ProcessList::getFactory(procname);
 
@@ -201,9 +202,9 @@ void DeckPresenter::on_processViewModelCreated_impl(ProcessViewModelInterface* p
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
-    if(m_model.editedProcessViewModel() == proc_vm->id())
+    if(m_model.editedProcessViewModel() == proc_vm.id())
     {
-        on_processViewModelSelected(proc_vm->id());
+        on_processViewModelSelected(proc_vm.id());
     }
     updateProcessesShape();
 

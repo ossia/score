@@ -52,7 +52,7 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 void DeckModel::deleteProcessViewModel(
         const id_type<ProcessViewModelInterface>& processViewId)
 {
-    auto pvm = processViewModel(processViewId);
+    auto& pvm = processViewModel(processViewId);
 
     vec_erase_remove_if(m_processViewModels,
                         [&processViewId](ProcessViewModelInterface * model)
@@ -72,7 +72,7 @@ void DeckModel::deleteProcessViewModel(
         m_editedProcessViewModelId.setVal({});
     }
 
-    delete pvm;
+    delete &pvm;
 }
 
 void DeckModel::selectForEdition(
@@ -87,15 +87,20 @@ void DeckModel::selectForEdition(
     }
 }
 
+const id_type<ProcessViewModelInterface>& DeckModel::editedProcessViewModel() const
+{
+    return m_editedProcessViewModelId;
+}
+
 const std::vector<ProcessViewModelInterface*>& DeckModel::processViewModels() const
 {
     return m_processViewModels;
 }
 
-ProcessViewModelInterface* DeckModel::processViewModel(
+ProcessViewModelInterface& DeckModel::processViewModel(
         const id_type<ProcessViewModelInterface>& processViewModelId) const
 {
-    return findById(m_processViewModels, processViewModelId);
+    return *findById(m_processViewModels, processViewModelId);
 }
 
 void DeckModel::on_deleteSharedProcessModel(
@@ -133,9 +138,9 @@ void DeckModel::setFocus(bool arg)
     emit focusChanged(arg);
 }
 
-ConstraintModel* DeckModel::parentConstraint() const
+ConstraintModel& DeckModel::parentConstraint() const
 {
-    return static_cast<ConstraintModel*>(parent()->parent());
+    return static_cast<ConstraintModel&>(*parent()->parent());
 }
 
 int DeckModel::height() const

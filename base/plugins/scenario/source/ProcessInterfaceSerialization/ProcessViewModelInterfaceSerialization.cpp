@@ -23,13 +23,13 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
 
 template<>
 ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
-        ConstraintModel* constraint,
+        const ConstraintModel& constraint,
         QObject* parent)
 {
     id_type<ProcessSharedModelInterface> sharedProcessId;
     deserializer.m_stream >> sharedProcessId;
 
-    auto process = constraint->process(sharedProcessId);
+    auto process = constraint.process(sharedProcessId);
     auto viewmodel = process->loadViewModel(deserializer.toVariant(),
                                             parent);
 
@@ -54,11 +54,12 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModelInterface& proc
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<JSONObject>& deserializer,
-        ConstraintModel* constraint,
+ProcessViewModelInterface* createProcessViewModel(
+        Deserializer<JSONObject>& deserializer,
+        const ConstraintModel& constraint,
         QObject* parent)
 {
-    auto process = constraint->process(
+    auto process = constraint.process(
                 fromJsonValue<id_type<ProcessSharedModelInterface>>(deserializer.m_obj["SharedProcessId"]));
     auto viewmodel = process->loadViewModel(deserializer.toVariant(),
                                             parent);

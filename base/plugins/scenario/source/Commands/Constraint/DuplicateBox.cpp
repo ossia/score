@@ -14,27 +14,27 @@ DuplicateBox::DuplicateBox(ObjectPath&& boxToCopy) :
 m_boxPath {boxToCopy}
 {
     auto box = m_boxPath.find<BoxModel>();
-    auto constraint = box->constraint();
+    const auto& constraint = box->constraint();
 
-    m_newBoxId = getStrongId(constraint->boxes());
+    m_newBoxId = getStrongId(constraint.boxes());
 }
 
 void DuplicateBox::undo()
 {
     auto box = m_boxPath.find<BoxModel>();
-    auto constraint = box->constraint();
+    auto& constraint = box->constraint();
 
-    constraint->removeBox(m_newBoxId);
+    constraint.removeBox(m_newBoxId);
 }
 
 void DuplicateBox::redo()
 {
     auto box = m_boxPath.find<BoxModel>();
-    auto constraint = box->constraint();
-    constraint->addBox(new BoxModel {*box,
+    auto& constraint = box->constraint();
+    constraint.addBox(new BoxModel {*box,
                                      m_newBoxId,
                                      &DeckModel::copyViewModelsInSameConstraint,
-                                     constraint});
+                                     &constraint});
 }
 
 void DuplicateBox::serializeImpl(QDataStream& s) const

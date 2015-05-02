@@ -24,10 +24,10 @@ ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presente
     QObject{presenter},
     m_presenter(presenter)
 {
-    connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::eventMoved,
+    connect(&m_presenter->m_viewModel, &TemporalScenarioViewModel::eventMoved,
             this, &ScenarioViewInterface::on_eventMoved);
 
-    connect(m_presenter->m_viewModel, &TemporalScenarioViewModel::constraintMoved,
+    connect(&m_presenter->m_viewModel, &TemporalScenarioViewModel::constraintMoved,
             this, &ScenarioViewInterface::on_constraintMoved);
 }
 

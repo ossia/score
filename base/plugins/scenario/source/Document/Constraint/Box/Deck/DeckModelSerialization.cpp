@@ -32,7 +32,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
     int pvm_size;
     m_stream >> pvm_size;
 
-    auto cstr = deck.parentConstraint();
+    const auto& cstr = deck.parentConstraint();
 
     for(int i = 0; i < pvm_size; i++)
     {
@@ -62,7 +62,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const DeckModel& deck)
 
     QJsonArray arr;
 
-    for(auto pvm : deck.processViewModels())
+    for(const auto& pvm : deck.processViewModels())
     {
         arr.push_back(toJsonObject(*pvm));
     }
@@ -74,9 +74,9 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(DeckModel& deck)
 {
     QJsonArray arr = m_obj["ProcessViewModels"].toArray();
 
-    auto cstr = deck.parentConstraint();
+    const auto& cstr = deck.parentConstraint();
 
-    for(auto json_vref : arr)
+    for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
         auto pvm = createProcessViewModel(deserializer,

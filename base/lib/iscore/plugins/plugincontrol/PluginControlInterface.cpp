@@ -57,7 +57,7 @@ Document*PluginControlInterface::currentDocument() const
 }
 
 
-void PluginControlInterface::on_documentChanged(Document*)
+void PluginControlInterface::on_documentChanged()
 {
 
 }

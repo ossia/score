@@ -18,11 +18,36 @@
 #include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
 #include <QtWidgets>
 
+#include <iscore/command/OngoingCommandManager.hpp>
+
+class PutProcessViewModelToFront
+{
+    public:
+        PutProcessViewModelToFront(ObjectPath&& deckPath,
+                                   const id_type<ProcessViewModelInterface>& pid):
+            m_deckPath{std::move(deckPath)},
+            m_pid{pid}
+        {
+
+        }
+
+        void redo()
+        {
+            m_deckPath.find<DeckModel>()->selectForEdition(m_pid);
+        }
+
+    private:
+        ObjectPath m_deckPath;
+        const id_type<ProcessViewModelInterface>& m_pid;
+
+};
+
 using namespace Scenario::Command;
 
-DeckInspectorSection::DeckInspectorSection(QString name,
-                                           DeckModel* deck,
-                                           BoxInspectorSection* parentBox) :
+DeckInspectorSection::DeckInspectorSection(
+        const QString& name,
+        const DeckModel& deck,
+        BoxInspectorSection* parentBox) :
     InspectorSectionWidget {name, parentBox},
     m_model {deck},
     m_parent{parentBox->m_parent}
@@ -39,15 +64,15 @@ DeckInspectorSection::DeckInspectorSection(QString name,
     m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
     m_pvmSection->setObjectName("ProcessViewModels");
 
-    connect(m_model,	&DeckModel::processViewModelCreated,
+    connect(&m_model,	&DeckModel::processViewModelCreated,
             this,		&DeckInspectorSection::on_processViewModelCreated);
 
-    connect(m_model,	&DeckModel::processViewModelRemoved,
+    connect(&m_model,	&DeckModel::processViewModelRemoved,
             this,		&DeckInspectorSection::on_processViewModelRemoved);
 
-    for(auto& pvm : m_model->processViewModels())
+    for(const auto& pvm : m_model.processViewModels())
     {
-        displayProcessViewModel(pvm);
+        displayProcessViewModel(*pvm);
     }
 
     m_addPvmWidget = new AddProcessViewModelWidget{this};
@@ -57,30 +82,28 @@ DeckInspectorSection::DeckInspectorSection(QString name,
 
     // Delete button
     auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [=] ()
+    connect(deleteButton, &QPushButton::pressed, this, [&] ()
     {
-        auto cmd = new RemoveDeckFromBox{iscore::IDocument::path(deck)};
+        auto cmd = new RemoveDeckFromBox{iscore::IDocument::path(m_model)};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
 
     lay->addWidget(deleteButton);
 }
 
-void DeckInspectorSection::createProcessViewModel(id_type<ProcessSharedModelInterface> sharedProcessModelId)
+void DeckInspectorSection::createProcessViewModel(
+        const id_type<ProcessSharedModelInterface>& sharedProcessModelId)
 {
     auto cmd = new AddProcessViewModelToDeck(
                    iscore::IDocument::path(m_model),
-                   iscore::IDocument::path(m_model->parentConstraint()->process(sharedProcessModelId)));
+                   iscore::IDocument::path(m_model.parentConstraint().process(sharedProcessModelId)));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pvm)
+void DeckInspectorSection::displayProcessViewModel(const ProcessViewModelInterface& pvm)
 {
-    if(!pvm)
-    {
-        return;
-    }
+    auto pvm_id = pvm.id();
 
     // Layout
     auto frame = new QFrame;
@@ -91,19 +114,24 @@ void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pv
     frame->setFrameShape(QFrame::StyledPanel);
 
     // PVM label
-    lay->addWidget(new QLabel {QString{"ViewModel.%1"} .arg(*pvm->id().val()) }, 0, 0);
+    lay->addWidget(new QLabel {QString{"ViewModel.%1"} .arg(*pvm_id.val()) }, 0, 0);
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
+    // TODO this should be a command! Maybe make a "view" command dispatcher
+    // that doesn't forward to the command stack?
     connect(pb, &QPushButton::clicked,
-            [=]() { m_model->selectForEdition(pvm->id()); });
+            [=]() {
+        PutProcessViewModelToFront cmd(iscore::IDocument::path(m_model), pvm_id);
+        cmd.redo();
+    });
     lay->addWidget(pb, 1, 0);
 
     // Delete button
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveProcessViewModelFromDeck{iscore::IDocument::path(m_model), pvm->id()};
+        auto cmd = new RemoveProcessViewModelFromDeck{iscore::IDocument::path(m_model), pvm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
@@ -113,12 +141,20 @@ void DeckInspectorSection::displayProcessViewModel(ProcessViewModelInterface* pv
 }
 
 
-void DeckInspectorSection::on_processViewModelCreated(id_type<ProcessViewModelInterface> pvmId)
+void DeckInspectorSection::on_processViewModelCreated(
+        const id_type<ProcessViewModelInterface>& pvmId)
 {
-    displayProcessViewModel(m_model->processViewModel(pvmId));
+    displayProcessViewModel(m_model.processViewModel(pvmId));
 }
 
-void DeckInspectorSection::on_processViewModelRemoved(id_type<ProcessViewModelInterface> pvmId)
+void DeckInspectorSection::on_processViewModelRemoved(
+        const id_type<ProcessViewModelInterface>& pvmId)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
+}
+
+
+const DeckModel&DeckInspectorSection::model() const
+{
+    return m_model;
 }

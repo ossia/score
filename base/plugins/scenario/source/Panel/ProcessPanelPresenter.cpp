@@ -68,7 +68,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
                                               ->sharedProcessModel()
                                                 .processName());
 
-        auto proxy = m_processViewModel->make_panelProxy();
+        auto proxy = m_processViewModel->make_panelProxy(this);
         delete m_obj;
         m_obj = new GraphicsProxyObject;
         panelview->scene()->addItem(m_obj);

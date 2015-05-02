@@ -25,7 +25,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     protected:
         virtual void on_presenterChanged() override;
-        virtual void on_documentChanged(iscore::Document* doc) override;
+        virtual void on_documentChanged() override;
 
     private:
         const ScenarioModel* focusedScenario();

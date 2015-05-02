@@ -26,8 +26,8 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         virtual QString name() const = 0;
 
         virtual ProcessSharedModelInterface* makeModel(
-                TimeValue duration,
-                id_type<ProcessSharedModelInterface> id,
+                const TimeValue& duration,
+                const id_type<ProcessSharedModelInterface>& id,
                 QObject* parent) = 0;
 
         // throws if the serialization method is not implemented by the subclass
@@ -38,12 +38,12 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // TODO Make it take a view name, too (cf. logical / temporal).
         // Or make it be created by the ViewModel, and the View be created by the presenter.
         virtual ProcessPresenterInterface* makePresenter(
-                ProcessViewModelInterface*,
+                const ProcessViewModelInterface&,
                 ProcessViewInterface*,
                 QObject* parent) = 0;
 
         virtual ProcessViewInterface* makeView(
-                ProcessViewModelInterface* view,
+                const ProcessViewModelInterface& view,
                 QObject* parent) = 0;
 
 

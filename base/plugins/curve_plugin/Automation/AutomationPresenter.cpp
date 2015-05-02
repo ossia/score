@@ -15,24 +15,25 @@
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
 
-AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
-                                         ProcessViewInterface* view,
-                                         QObject* parent) :
+AutomationPresenter::AutomationPresenter(
+        const ProcessViewModelInterface& model,
+        ProcessViewInterface* view,
+        QObject* parent) :
     ProcessPresenterInterface {"AutomationPresenter", parent},
-    m_viewModel {static_cast<AutomationViewModel*>(model) },
-    m_view {static_cast<AutomationView*>(view) },
+    m_viewModel{static_cast<const AutomationViewModel&>(model)},
+    m_view{static_cast<AutomationView*>(view)},
     m_curve{new QCustomPlotCurve{m_view}},
-    m_commandDispatcher{iscore::IDocument::documentFromObject(model->sharedProcessModel())->commandStack()},
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel->sharedProcessModel())}
+    m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())->commandStack()},
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())}
 {
-    connect(&m_viewModel->model(), &AutomationModel::pointsChanged,
+    connect(&m_viewModel.model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
 
     connect(m_curve, &QCustomPlotCurve::pointMovingFinished,
             [&](double oldx, double newx, double newy)
     {
-        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel->model()),
+        auto cmd = new MovePoint{iscore::IDocument::path(m_viewModel.model()),
                                  oldx,
                                  newx,
                                  1.0 - newy};
@@ -43,7 +44,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     connect(m_curve, &QCustomPlotCurve::pointCreated,
             [&](QPointF pt)
     {
-        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel->model()),
+        auto cmd = new AddPoint{iscore::IDocument::path(m_viewModel.model()),
                    pt.x(),
                    1.0 - pt.y()};
 
@@ -53,7 +54,7 @@ AutomationPresenter::AutomationPresenter(ProcessViewModelInterface* model,
     connect(m_curve, &QCustomPlotCurve::mousePressed,
             this, [&] ()
     {
-        m_focusDispatcher.focus(m_viewModel);
+        m_focusDispatcher.focus(&m_viewModel);
     });
 
     parentGeometryChanged();
@@ -114,12 +115,12 @@ void AutomationPresenter::parentGeometryChanged()
 
 const id_type<ProcessViewModelInterface>& AutomationPresenter::viewModelId() const
 {
-    return m_viewModel->id();
+    return m_viewModel.id();
 }
 
 const id_type<ProcessSharedModelInterface>& AutomationPresenter::modelId() const
 {
-    return m_viewModel->model().id();
+    return m_viewModel.model().id();
 }
 
 QList<QPointF> mapToList(QMap<double, double> map)
@@ -135,7 +136,7 @@ QList<QPointF> mapToList(QMap<double, double> map)
 
 void AutomationPresenter::on_modelPointsChanged()
 {
-    m_curve->setPoints(mapToList(m_viewModel->model().points()));
+    m_curve->setPoints(mapToList(m_viewModel.model().points()));
     parentGeometryChanged();
 }
 

@@ -10,22 +10,25 @@ QString ScenarioFactory::name() const
     return "Scenario";
 }
 
-ProcessViewInterface* ScenarioFactory::makeView(ProcessViewModelInterface* viewmodel, QObject* parent)
+ProcessViewInterface* ScenarioFactory::makeView(
+        const ProcessViewModelInterface& viewmodel,
+        QObject* parent)
 {
-    if(dynamic_cast<TemporalScenarioViewModel*>(viewmodel))
+    if(dynamic_cast<const TemporalScenarioViewModel*>(&viewmodel))
         return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
 
     return nullptr;
 }
 
 ProcessPresenterInterface*
-ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
-                               ProcessViewInterface* view,
-                               QObject* parent)
+ScenarioFactory::makePresenter(
+        const ProcessViewModelInterface& pvm,
+        ProcessViewInterface* view,
+        QObject* parent)
 {
-    if(auto vm = dynamic_cast<TemporalScenarioViewModel*>(pvm))
+    if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&pvm))
     {
-        auto pres = new TemporalScenarioPresenter {vm, view, parent};
+        auto pres = new TemporalScenarioPresenter {*vm, view, parent};
         vm->setPresenter(pres);
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
@@ -33,9 +36,10 @@ ScenarioFactory::makePresenter(ProcessViewModelInterface* pvm,
     return nullptr;
 }
 
-ProcessSharedModelInterface* ScenarioFactory::makeModel(TimeValue duration,
-                                                        id_type<ProcessSharedModelInterface> id,
-                                                        QObject* parent)
+ProcessSharedModelInterface* ScenarioFactory::makeModel(
+        const TimeValue& duration,
+        const id_type<ProcessSharedModelInterface>& id,
+        QObject* parent)
 {
     return new ScenarioModel {duration, id, parent};
 }

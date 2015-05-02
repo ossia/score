@@ -111,7 +111,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
 #include <core/document/Document.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-void BaseElementModel::setFocusedViewModel(ProcessViewModelInterface* proc)
+void BaseElementModel::setFocusedViewModel(const ProcessViewModelInterface* proc)
 {
     auto updateDeckFocus = [&] (bool b)
     {

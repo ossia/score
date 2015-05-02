@@ -55,7 +55,7 @@ class DeckPresenter : public NamedObject
         void on_zoomRatioChanged(ZoomRatio);
 
     private:
-        void on_processViewModelCreated_impl(ProcessViewModelInterface*);
+        void on_processViewModelCreated_impl(const ProcessViewModelInterface&);
 
         void updateProcessesShape();
 

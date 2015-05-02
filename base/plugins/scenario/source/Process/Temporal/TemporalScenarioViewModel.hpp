@@ -8,23 +8,24 @@ class TemporalConstraintViewModel;
 class TemporalScenarioPresenter;
 
 class ConstraintModel;
+class ScenarioStateMachine;
 
 
 class TemporalScenarioViewModel : public AbstractScenarioViewModel
 {
         Q_OBJECT
 
-        TemporalScenarioPresenter* m_presenter{};
-    public:
         // TODO UGLYY
-        void setPresenter(TemporalScenarioPresenter* p)
+        friend class ScenarioFactory;
+        mutable TemporalScenarioPresenter* m_presenter{};
+        void setPresenter(TemporalScenarioPresenter* p) const
         { m_presenter = p; }
-        TemporalScenarioPresenter* presenter() const
-        { return m_presenter; }
+
+    public:
+        ScenarioStateMachine& stateMachine() const;
 
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
-        // using event_type = TemporalEventViewModel;
 
         TemporalScenarioViewModel(const id_type<ProcessViewModelInterface>& id,
                                   const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
@@ -47,7 +48,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelPanelProxy* make_panelProxy() override;
+        virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
         virtual ~TemporalScenarioViewModel() = default;
 

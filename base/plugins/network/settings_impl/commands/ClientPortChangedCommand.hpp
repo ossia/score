@@ -7,6 +7,7 @@ class ClientPortChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
     public:
+        /*
         ClientPortChangedCommand(int oldval, int newval) :
             Command {QString(""),
                     QString(""),
@@ -17,6 +18,7 @@ class ClientPortChangedCommand : public iscore::Command
         {
 
         }
+*/
 
         /*
         virtual bool mergeWith(const Command* other) override

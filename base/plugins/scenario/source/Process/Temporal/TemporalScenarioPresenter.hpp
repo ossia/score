@@ -35,9 +35,10 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         friend class ScenarioSelectionManager;
 
     public:
-        TemporalScenarioPresenter(TemporalScenarioViewModel* model,
-                                  ProcessViewInterface* view,
-                                  QObject* parent);
+        TemporalScenarioPresenter(
+                const TemporalScenarioViewModel& model,
+                ProcessViewInterface* view,
+                QObject* parent);
         ~TemporalScenarioPresenter();
 
 
@@ -93,7 +94,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
         ZoomRatio m_zoomRatio {1};
 
-        TemporalScenarioViewModel* m_viewModel;
+        const TemporalScenarioViewModel& m_viewModel;
         TemporalScenarioView* m_view;
 
     private:

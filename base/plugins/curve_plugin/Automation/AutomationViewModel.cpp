@@ -23,21 +23,26 @@ AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
 class AutomationPanelProxy : public ProcessViewModelPanelProxy
 {
     public:
-        AutomationPanelProxy(AutomationViewModel* parent):
-            ProcessViewModelPanelProxy{parent}
+        AutomationPanelProxy(const AutomationViewModel& vm,
+                             QObject* parent):
+            ProcessViewModelPanelProxy{parent},
+            m_viewModel{vm}
         {
 
         }
 
-        AutomationViewModel* viewModel() override
+        const AutomationViewModel& viewModel() override
         {
-            return static_cast<AutomationViewModel*>(parent());
+            return m_viewModel;
         }
+
+    private:
+        const AutomationViewModel& m_viewModel;
 };
 
-ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy()
+ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy(QObject* parent) const
 {
-    return new AutomationPanelProxy{this};
+    return new AutomationPanelProxy{*this, parent};
 }
 
 void AutomationViewModel::serialize(const VisitorVariant&) const
@@ -45,7 +50,7 @@ void AutomationViewModel::serialize(const VisitorVariant&) const
     // Nothing to save
 }
 
-const AutomationModel& AutomationViewModel::model()
+const AutomationModel& AutomationViewModel::model() const
 {
     return static_cast<const AutomationModel&>(sharedProcessModel());
 }

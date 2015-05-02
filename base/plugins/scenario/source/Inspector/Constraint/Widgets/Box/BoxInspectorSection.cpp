@@ -69,8 +69,9 @@ void BoxInspectorSection::createDeck()
 
 void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
 {
-    DeckInspectorSection* newDeck = new DeckInspectorSection {QString{"Deck.%1"} .arg(*deck->id().val()),
-                                    deck,
+    DeckInspectorSection* newDeck = new DeckInspectorSection {
+                                    QString{"Deck.%1"} .arg(*deck->id().val()),
+                                    *deck,
                                     this};
 
     m_deckSection->addContent(newDeck);

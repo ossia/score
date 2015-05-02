@@ -38,7 +38,8 @@ class BoxModel : public IdentifiedObject<BoxModel>
             vis.writeTo(*this);
         }
 
-        ConstraintModel* constraint() const;
+        // A box is necessarily child of a constraint.
+        ConstraintModel& constraint() const;
 
         void addDeck(DeckModel* m, int position);
         void addDeck(DeckModel* m);  // No position : at the end

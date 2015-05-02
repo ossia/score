@@ -13,7 +13,7 @@ class AutomationPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
     public:
-        AutomationPresenter(ProcessViewModelInterface* model,
+        AutomationPresenter(const ProcessViewModelInterface& model,
                             ProcessViewInterface* view,
                             QObject* parent);
         ~AutomationPresenter();
@@ -33,7 +33,7 @@ class AutomationPresenter : public ProcessPresenterInterface
         void on_modelPointsChanged();
 
     private:
-        AutomationViewModel* m_viewModel {};
+        const AutomationViewModel& m_viewModel;
         AutomationView* m_view {};
 
         QCustomPlotCurve* m_curve{};

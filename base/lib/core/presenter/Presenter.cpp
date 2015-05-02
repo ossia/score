@@ -85,14 +85,24 @@ Document *Presenter::currentDocument() const
 void Presenter::setCurrentDocument(Document* doc)
 {
     m_currentDocument = doc;
-    for(auto& pair : m_panelPresenters)
+    if(doc)
     {
-        m_currentDocument->bindPanelPresenter(pair.first);
+        for(auto& pair : m_panelPresenters)
+        {
+            m_currentDocument->bindPanelPresenter(pair.first);
+        }
+    }
+    else
+    {
+        for(auto& pair : m_panelPresenters)
+        {
+            pair.first->setModel(nullptr);
+        }
     }
 
     for(auto& ctrl : m_controls)
     {
-        emit ctrl->documentChanged(m_currentDocument);
+        emit ctrl->documentChanged();
     }
 }
 
@@ -130,22 +140,7 @@ void Presenter::closeDocument(Document* doc)
     m_view->closeDocument(doc->view());
     m_documents.removeOne(doc);
 
-    if(m_documents.size() > 0)
-    {
-        setCurrentDocument(m_documents.last());
-    }
-    else
-    {
-        for(auto& pair : m_panelPresenters)
-        {
-            pair.first->setModel(nullptr);
-        }
-
-        for(auto& ctrl : m_controls)
-        {
-            emit ctrl->documentChanged(nullptr);
-        }
-    }
+    setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);
 
     delete doc;
 }

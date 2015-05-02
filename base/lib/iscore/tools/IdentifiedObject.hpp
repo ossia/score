@@ -161,7 +161,7 @@ auto getStrongId(const Vector& ids) ->
 }
 
 template <typename Vector, typename id_T>
-void removeById(Vector& c, id_T id)
+void removeById(Vector& c, const id_T& id)
 {
     vec_erase_remove_if(c,
                         [&id](typename Vector::value_type model)
@@ -179,7 +179,7 @@ void removeById(Vector& c, id_T id)
 
 template<typename Vector, typename id_T>
 void removeFromVectorWithId(Vector& v,
-                            id_T id)
+                            const id_T& id)
 {
     auto it = std::find(std::begin(v), std::end(v), id);
     if(it != std::end(v))

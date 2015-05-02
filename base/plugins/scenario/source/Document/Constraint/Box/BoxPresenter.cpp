@@ -17,12 +17,12 @@ BoxPresenter::BoxPresenter(const BoxModel& model,
     m_model {model},
     m_view {view}
 {
-    for(auto& deckModel : m_model.decks())
+    for(const auto& deckModel : m_model.decks())
     {
         on_deckCreated_impl(*deckModel);
     }
 
-    m_duration = m_model.constraint()->defaultDuration();
+    m_duration = m_model.constraint().defaultDuration();
     m_view->setText(m_model.metadata.name());
 
     on_askUpdate();

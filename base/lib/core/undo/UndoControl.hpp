@@ -18,7 +18,7 @@ namespace iscore
             void on_presenterChanged() override;
 
         private slots:
-            void on_documentChanged(Document*) override;
+            void on_documentChanged() override;
 
         private:
         // Connections to keep for the running document.

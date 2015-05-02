@@ -22,7 +22,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
     private:
         QGraphicsObject* m_obj{};
         BaseElementModel* m_baseElementModel{};
-        ProcessViewModelInterface* m_processViewModel{};
+        const ProcessViewModelInterface* m_processViewModel{};
         ProcessPresenterInterface* m_processPresenter{};
         ProcessViewInterface* m_processView{};
 };

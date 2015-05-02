@@ -10,8 +10,8 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
     m_presenter{presenter},
     m_commandStack{
         iscore::IDocument::documentFromObject(
-            m_presenter.m_viewModel->sharedProcessModel())->commandStack()},
-    m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel->sharedProcessModel())->locker()}
+            m_presenter.m_viewModel.sharedProcessModel())->commandStack()},
+    m_locker{iscore::IDocument::documentFromObject(m_presenter.m_viewModel.sharedProcessModel())->locker()}
 {
     this->setChildMode(ChildMode::ParallelStates);
     auto toolState = new QState{this};
@@ -110,7 +110,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
 const ScenarioModel& ScenarioStateMachine::model() const
 {
-    return static_cast<const ScenarioModel&>(m_presenter.m_viewModel->sharedProcessModel());
+    return static_cast<const ScenarioModel&>(m_presenter.m_viewModel.sharedProcessModel());
 }
 
 Tool ScenarioStateMachine::tool() const

@@ -4,15 +4,10 @@
 class ProcessViewModelPanelProxy : public QObject
 {
     public:
-        ProcessViewModelPanelProxy(ProcessViewModelInterface* pvm):
-            QObject{pvm}
-        {
-
-        }
-
+        using QObject::QObject;
         virtual ~ProcessViewModelPanelProxy() = default;
 
         // Can return the same view model, or a new one.
-        virtual ProcessViewModelInterface* viewModel() = 0;
+        virtual const ProcessViewModelInterface& viewModel() = 0;
 
 };

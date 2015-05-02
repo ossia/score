@@ -13,7 +13,28 @@ namespace iscore
     class SerializableCommand : public Command
     {
         public:
-            using Command::Command;
+            template<typename Str1, typename Str2, typename Str3>
+            SerializableCommand(Str1&& parname, Str2&& cmdname, Str3&& text) :
+                m_name {cmdname},
+                m_parentName {parname},
+                m_text{text}
+            {
+            }
+
+            const QString& name() const;
+            const QString& parentName() const;
+            const QString& text() const;
+            void setText(const QString& t)
+            {
+                m_text = t;
+            }
+
+            auto uid() const
+            {
+                using namespace std;
+                hash<string> fn;
+                return fn(this->name().toStdString());
+            }
 
             QByteArray serialize() const;
             void deserialize(const QByteArray&);
@@ -21,5 +42,10 @@ namespace iscore
         protected:
             virtual void serializeImpl(QDataStream&) const = 0;
             virtual void deserializeImpl(QDataStream&) = 0;
+
+        private:
+            const QString m_name;
+            const QString m_parentName;
+            QString m_text;
     };
 }

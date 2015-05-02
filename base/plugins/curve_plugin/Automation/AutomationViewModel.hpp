@@ -26,8 +26,8 @@ class AutomationViewModel : public ProcessViewModelInterface
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelPanelProxy* make_panelProxy() override;
+        virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const override;
         virtual void serialize(const VisitorVariant&) const override;
 
-        const AutomationModel& model();
+        const AutomationModel& model() const;
 };

@@ -7,8 +7,8 @@ class ScenarioFactory : public ProcessFactoryInterface
         virtual QString name() const override;
 
         virtual ProcessSharedModelInterface* makeModel(
-                TimeValue duration,
-                id_type<ProcessSharedModelInterface> id,
+                const TimeValue& duration,
+                const id_type<ProcessSharedModelInterface>& id,
                 QObject* parent) override;
 
         virtual ProcessSharedModelInterface* loadModel(
@@ -16,12 +16,12 @@ class ScenarioFactory : public ProcessFactoryInterface
                 QObject* parent) override;
 
         virtual ProcessPresenterInterface* makePresenter(
-                ProcessViewModelInterface*,
+                const ProcessViewModelInterface&,
                 ProcessViewInterface*,
                 QObject* parent) override;
 
         virtual ProcessViewInterface* makeView(
-                ProcessViewModelInterface* viewmodel,
+                const ProcessViewModelInterface& viewmodel,
                 QObject* parent) override;
 
 };

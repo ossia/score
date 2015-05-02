@@ -7,6 +7,7 @@ class ClientNameChangedCommand : public iscore::Command
 {
         // QUndoCommand interface
     public:
+        /*
         ClientNameChangedCommand(QString oldval, QString newval) :
             Command {QString(""),
                     QString(""),
@@ -17,7 +18,7 @@ class ClientNameChangedCommand : public iscore::Command
         {
 
         }
-
+*/
         /*
         virtual bool mergeWith(const Command* other) override
         {

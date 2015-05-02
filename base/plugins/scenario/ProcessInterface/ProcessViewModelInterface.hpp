@@ -18,7 +18,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         { return m_sharedProcessModel; }
 
         virtual void serialize(const VisitorVariant&) const = 0;
-        virtual ProcessViewModelPanelProxy* make_panelProxy() = 0;
+        virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
 
 
     protected:

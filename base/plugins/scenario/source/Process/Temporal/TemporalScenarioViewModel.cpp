@@ -6,6 +6,12 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
+#include "StateMachines/ScenarioStateMachine.hpp"
+#include "TemporalScenarioPresenter.hpp"
+ScenarioStateMachine& TemporalScenarioViewModel::stateMachine() const
+{
+    return m_presenter->stateMachine();
+}
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
         const id_type<ProcessViewModelInterface>& viewModelId,
@@ -49,21 +55,27 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
 class TemporalScenarioPanelProxy : public ProcessViewModelPanelProxy
 {
     public:
-        TemporalScenarioPanelProxy(TemporalScenarioViewModel* parent):
-            ProcessViewModelPanelProxy{parent}
+        TemporalScenarioPanelProxy(
+                const TemporalScenarioViewModel& pvm,
+                QObject* parent):
+            ProcessViewModelPanelProxy{parent},
+            m_viewModel{pvm}
         {
 
         }
 
-        ProcessViewModelInterface* viewModel() override
+        const TemporalScenarioViewModel& viewModel() override
         {
-            return static_cast<TemporalScenarioViewModel*>(parent());
+            return m_viewModel;
         }
+
+    private:
+        const TemporalScenarioViewModel& m_viewModel;
 };
 
-ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy()
+ProcessViewModelPanelProxy*TemporalScenarioViewModel::make_panelProxy(QObject* parent) const
 {
-    return new TemporalScenarioPanelProxy{this};
+    return new TemporalScenarioPanelProxy{*this, parent};
 }
 
 

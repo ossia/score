@@ -35,10 +35,10 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
         QStringList available_models;
 
         // 1. List the processes in the model.
-        auto shared_process_list = parentDeck->model()->parentConstraint()->processes();
+        auto shared_process_list = parentDeck->model().parentConstraint().processes();
 
         // 2. List the processes that already have a view in this deck
-        auto already_displayed_processes = parentDeck->model()->processViewModels();
+        auto already_displayed_processes = parentDeck->model().processViewModels();
 
         // 3. Compute the difference
         for(auto& process : shared_process_list)

@@ -290,7 +290,7 @@ QAction* makeToolbarAction(const QString& name,
 ScenarioStateMachine& ScenarioControl::stateMachine() const
 {
     auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    return static_cast<TemporalScenarioViewModel *>(model.focusedViewModel())->presenter()->stateMachine();
+    return static_cast<const TemporalScenarioViewModel *>(model.focusedViewModel())->stateMachine();
 }
 
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
@@ -305,7 +305,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
         }
 
         auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        return dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel()) != nullptr;
+        return dynamic_cast<const TemporalScenarioViewModel *>(model.focusedViewModel()) != nullptr;
     };
 
     QToolBar *bar = new QToolBar;
@@ -415,7 +415,7 @@ void ScenarioControl::on_presenterChanged()
                                   this, [&]()
     {
         // Get the process viewmodel
-        auto scenario = dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel());
+        auto scenario = dynamic_cast<const TemporalScenarioViewModel *>(model.focusedViewModel());
         m_scenarioToolActionGroup->setEnabled(scenario);
         m_scenarioScaleModeActionGroup->setEnabled(scenario);
         if (scenario)
@@ -429,16 +429,16 @@ void ScenarioControl::on_presenterChanged()
                     switch (action->data().toInt())
                     {
                         case ScenarioAction::Create:
-                            scenario->presenter()->stateMachine().setCreateState();
+                            scenario->stateMachine().setCreateState();
                             break;
                         case ScenarioAction::DeckMove:
-                            scenario->presenter()->stateMachine().setDeckMoveState();
+                            scenario->stateMachine().setDeckMoveState();
                             break;
                         case ScenarioAction::Move:
-                            scenario->presenter()->stateMachine().setMoveState();
+                            scenario->stateMachine().setMoveState();
                             break;
                         case ScenarioAction::Select:
-                            scenario->presenter()->stateMachine().setSelectState();
+                            scenario->stateMachine().setSelectState();
                             break;
 
                         default:
@@ -455,10 +455,10 @@ void ScenarioControl::on_presenterChanged()
                     switch (action->data().toInt())
                     {
                         case ExpandMode::Scale:
-                            scenario->presenter()->stateMachine().setScaleState();
+                            scenario->stateMachine().setScaleState();
                             break;
                         case ExpandMode::Grow:
-                            scenario->presenter()->stateMachine().setGrowState();
+                            scenario->stateMachine().setGrowState();
                             break;
 
                         default:
@@ -472,12 +472,12 @@ void ScenarioControl::on_presenterChanged()
     });
 }
 
-void ScenarioControl::on_documentChanged(Document *doc)
+void ScenarioControl::on_documentChanged()
 {
     on_presenterChanged();
 
     auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    auto onScenario = dynamic_cast<TemporalScenarioViewModel *>(model.focusedViewModel());
+    auto onScenario = dynamic_cast<const TemporalScenarioViewModel *>(model.focusedViewModel());
 
     selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(onScenario);
@@ -487,6 +487,6 @@ void ScenarioControl::on_documentChanged(Document *doc)
 const ScenarioModel *ScenarioControl::focusedScenario()
 {
     auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    auto sm = dynamic_cast<ProcessViewModelInterface*>(model.focusedViewModel());
+    auto sm = dynamic_cast<const ProcessViewModelInterface*>(model.focusedViewModel());
     return sm ? dynamic_cast<const ScenarioModel*>(&sm->sharedProcessModel()) : nullptr;
 }

@@ -50,47 +50,10 @@ namespace iscore
     class Command
     {
         public:
-            template<typename Str1, typename Str2, typename Str3>
-            Command(Str1&& parname, Str2&& cmdname, Str3&& text) :
-                m_name {cmdname},
-                m_parentName {parname},
-                m_text{text}
-            {
-            }
-
             virtual ~Command() = default;
-
-            QString name() const
-            {
-                return m_name;
-            }
-
-            QString parentName() const
-            {
-                return m_parentName;
-            }
-
-            const QString& text() const
-            {
-                return m_text;
-            }
-
-            void setText(const QString& t)
-            {
-                m_text = t;
-            }
 
             virtual void undo() = 0;
             virtual void redo() = 0;
-
-
-            auto uid() const
-            {
-                using namespace std;
-                hash<string> fn;
-                return fn(this->name().toStdString());
-            }
-
 
         protected:
             quint32 timestamp() const
@@ -104,10 +67,6 @@ namespace iscore
             }
 
         private:
-            const QString m_name;
-            const QString m_parentName;
-            QString m_text;
-
             //TODO check if this is UTC
             std::chrono::milliseconds m_timestamp
             {  std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now().time_since_epoch()) };

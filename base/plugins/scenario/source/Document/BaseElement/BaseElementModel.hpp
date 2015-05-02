@@ -33,7 +33,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
-        ProcessViewModelInterface* focusedViewModel() const
+        const ProcessViewModelInterface* focusedViewModel() const
         { return m_focusedViewModel; }
 
 
@@ -45,14 +45,14 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void focusedViewModelChanged();
 
     public slots:
-        void setFocusedViewModel(ProcessViewModelInterface* vm);
+        void setFocusedViewModel(const ProcessViewModelInterface* vm);
 
     private:
         ConstraintModel* m_baseConstraint {};
         const ConstraintModel* m_displayedConstraint {};
 
         // The process that contains the current selection.
-        ProcessViewModelInterface* m_focusedViewModel{};
+        const ProcessViewModelInterface* m_focusedViewModel{};
         const ProcessSharedModelInterface* m_focusedProcess{};
 };
 

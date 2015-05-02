@@ -48,11 +48,11 @@ namespace iscore
             Document* currentDocument() const;
 
         signals:
-            void documentChanged(Document*);
+            void documentChanged();
 
         protected:
             virtual void on_presenterChanged();
-            virtual void on_documentChanged(iscore::Document*);
+            virtual void on_documentChanged();
 
         private:
             Presenter* m_presenter{};

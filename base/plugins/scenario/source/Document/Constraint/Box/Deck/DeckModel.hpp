@@ -45,32 +45,24 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
         virtual ~DeckModel() = default;
 
-        void addProcessViewModel(ProcessViewModelInterface*);
-        void deleteProcessViewModel(const id_type<ProcessViewModelInterface>& processViewModelId);
+        void addProcessViewModel(
+                ProcessViewModelInterface*);
+        void deleteProcessViewModel(
+                const id_type<ProcessViewModelInterface>& processViewModelId);
 
-        /**
-         * @brief selectForEdition
-         * @param processViewId
-         *
-         * A process is selected for edition when it is
-         * the edited process when the interface is clicked.
-         */
+
+         // A process is selected for edition when it is
+         // the edited process when the interface is clicked.
         void selectForEdition(
                 const id_type<ProcessViewModelInterface>& processViewId);
-        const id_type<ProcessViewModelInterface>& editedProcessViewModel() const
-        { return m_editedProcessViewModelId; }
+        const id_type<ProcessViewModelInterface>& editedProcessViewModel() const;
 
         const std::vector<ProcessViewModelInterface*>& processViewModels() const;
-        ProcessViewModelInterface* processViewModel(
+        ProcessViewModelInterface& processViewModel(
                 const id_type<ProcessViewModelInterface>& processViewModelId) const;
 
-        /**
-         * @brief parentConstraint
-         * @return the constraint this deck is part of.
-         */
-        ConstraintModel* parentConstraint() const;
-
-
+        // A deck is always in a constraint
+        ConstraintModel& parentConstraint() const;
 
         int height() const;
         bool focus() const;

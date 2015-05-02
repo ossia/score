@@ -14,7 +14,7 @@ class FocusDispatcher : public QObject
         FocusDispatcher(iscore::Document& doc);
 
     signals:
-        void focus(ProcessViewModelInterface* obj);
+        void focus(const ProcessViewModelInterface* obj);
 
     private:
         iscore::DocumentDelegateModelInterface& m_baseElementModel;

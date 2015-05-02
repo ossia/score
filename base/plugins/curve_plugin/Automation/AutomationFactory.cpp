@@ -4,19 +4,24 @@
 #include "AutomationPresenter.hpp"
 
 
-ProcessSharedModelInterface* AutomationFactory::makeModel(TimeValue duration, id_type<ProcessSharedModelInterface> id,
+ProcessSharedModelInterface* AutomationFactory::makeModel(
+        const TimeValue& duration,
+        const id_type<ProcessSharedModelInterface>& id,
         QObject* parent)
 {
     return new AutomationModel {duration, id, parent};
 }
 
-ProcessViewInterface* AutomationFactory::makeView(ProcessViewModelInterface* view, QObject* parent)
+ProcessViewInterface* AutomationFactory::makeView(
+        const ProcessViewModelInterface& view,
+        QObject* parent)
 {
     return new AutomationView {static_cast<QGraphicsObject*>(parent) };
 }
 
 
-ProcessPresenterInterface* AutomationFactory::makePresenter(ProcessViewModelInterface* viewModel,
+ProcessPresenterInterface* AutomationFactory::makePresenter(
+        const ProcessViewModelInterface& viewModel,
         ProcessViewInterface* view,
         QObject* parent)
 {
