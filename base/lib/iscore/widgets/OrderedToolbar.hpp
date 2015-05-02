@@ -3,7 +3,14 @@
 
 struct OrderedToolbar
 {
-    unsigned int position{}; // 0 = left.
+    OrderedToolbar(int n, QToolBar* bar):
+        position{n},
+        bar{bar}
+    {
+
+    }
+
+    int position{}; // 0 = left.
     QToolBar* bar{};
 };
 

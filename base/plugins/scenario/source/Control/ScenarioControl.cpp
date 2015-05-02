@@ -374,7 +374,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     bar->addSeparator();
     bar->addActions(m_scenarioScaleModeActionGroup->actions());
 
-    return QList<OrderedToolbar>{OrderedToolbar{1, bar}};
+    return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
 
