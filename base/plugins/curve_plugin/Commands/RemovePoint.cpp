@@ -22,20 +22,20 @@ RemovePoint::RemovePoint(ObjectPath&& path,
 m_path {path},
 m_x {x}
 {
-    auto autom = m_path.find<AutomationModel>();
-    m_oldY = autom->points() [x];
+    auto& autom = m_path.find<AutomationModel>();
+    m_oldY = autom.points() [x];
 }
 
 void RemovePoint::undo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->addPoint(m_x, m_oldY);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.addPoint(m_x, m_oldY);
 }
 
 void RemovePoint::redo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->removePoint(m_x);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.removePoint(m_x);
 }
 
 void RemovePoint::serializeImpl(QDataStream& s) const

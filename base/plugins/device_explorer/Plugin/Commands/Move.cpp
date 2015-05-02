@@ -29,11 +29,10 @@ Move::set(const Path &srcParentPath, int srcRow, int count,
 void
 Move::undo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
+    auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex srcParentIndex = model->pathToIndex(m_srcParentPath);
-    QModelIndex dstParentIndex = model->pathToIndex(m_dstParentPath);
+    QModelIndex srcParentIndex = model.pathToIndex(m_srcParentPath);
+    QModelIndex dstParentIndex = model.pathToIndex(m_dstParentPath);
 
     int src = m_dstRow;
     int dst = m_srcRow;
@@ -52,22 +51,22 @@ Move::undo()
         }
     }
 
-    const bool result = model->moveRows(dstParentIndex, src, m_count, srcParentIndex, dst);
+    const bool result = model.moveRows(dstParentIndex, src, m_count, srcParentIndex, dst);
 
-    model->setCachedResult(result);
+    model.setCachedResult(result);
 
 }
 
 void
 Move::redo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
-    QModelIndex srcParentIndex = model->pathToIndex(m_srcParentPath);
-    QModelIndex dstParentIndex = model->pathToIndex(m_dstParentPath);
+    auto& model = m_model.find<DeviceExplorerModel>();
 
-    const bool result = model->moveRows(srcParentIndex, m_srcRow, m_count, dstParentIndex, m_dstRow);
-    model->setCachedResult(result);
+    QModelIndex srcParentIndex = model.pathToIndex(m_srcParentPath);
+    QModelIndex dstParentIndex = model.pathToIndex(m_dstParentPath);
+
+    const bool result = model.moveRows(srcParentIndex, m_srcRow, m_count, dstParentIndex, m_dstRow);
+    model.setCachedResult(result);
 }
 
 void

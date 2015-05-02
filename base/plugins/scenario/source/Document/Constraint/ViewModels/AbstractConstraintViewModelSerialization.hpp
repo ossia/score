@@ -66,4 +66,4 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 // Load a group of constraint view models
 
 void deserializeConstraintViewModels(SerializedConstraintViewModels& vms,
-                                     ScenarioModel* scenar);
+                                     const ScenarioModel& scenar);

@@ -21,20 +21,20 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
     m_target{targetConstraint},
     m_mode{mode}
 {
-    auto trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find<ConstraintModel>();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
-            trg_constraint}; // Temporary parent
+            &trg_constraint}; // Temporary parent
 
     // For all boxes in source, generate new id's
-    auto target_boxes = trg_constraint->boxes();
+    auto target_boxes = trg_constraint.boxes();
     for(auto i = src_constraint.boxes().size(); i --> 0; )
     {
         m_boxIds.push_back(getStrongId(target_boxes));
     }
 
     // Same for processes
-    auto target_processes = trg_constraint->processes();
+    auto target_processes = trg_constraint.processes();
     for(auto i = src_constraint.processes().size(); i --> 0; )
     {
         m_processIds.push_back(getStrongId(target_processes));
@@ -44,26 +44,26 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
 void CopyConstraintContent::undo()
 {
     // We just have to remove what we added
-    auto trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find<ConstraintModel>();
 
-    for(auto& proc_id : m_processIds)
+    for(const auto& proc_id : m_processIds)
     {
-        trg_constraint->removeProcess(proc_id);
+        trg_constraint.removeProcess(proc_id);
     }
 
-    for(auto& box_id : m_boxIds)
+    for(const auto& box_id : m_boxIds)
     {
-        trg_constraint->removeBox(box_id);
+        trg_constraint.removeBox(box_id);
     }
 }
 
 
 void CopyConstraintContent::redo()
 {
-    auto trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find<ConstraintModel>();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
-            trg_constraint}; // Temporary parent
+            &trg_constraint}; // Temporary parent
 
     std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
 
@@ -72,19 +72,19 @@ void CopyConstraintContent::redo()
     for(auto i = src_procs.size(); i --> 0; )
     {
         auto sourceproc = src_procs[i];
-        auto newproc = sourceproc->clone(m_processIds[i], trg_constraint);
+        auto newproc = sourceproc->clone(m_processIds[i], &trg_constraint);
 
         processPairs.insert(std::make_pair(sourceproc, newproc));
-        trg_constraint->addProcess(newproc);
+        trg_constraint.addProcess(newproc);
 
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)
         {
-            newproc->setDurationAndScale(trg_constraint->defaultDuration());
+            newproc->setDurationAndScale(trg_constraint.defaultDuration());
         }
         else
         {
-            newproc->setDurationAndGrow(trg_constraint->defaultDuration());
+            newproc->setDurationAndGrow(trg_constraint.defaultDuration());
         }
     }
 
@@ -110,8 +110,8 @@ void CopyConstraintContent::redo()
                         target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                     }
                 },
-                trg_constraint};
-        trg_constraint->addBox(newbox);
+                &trg_constraint};
+        trg_constraint.addBox(newbox);
     }
 }
 

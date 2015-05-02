@@ -33,17 +33,17 @@ ChangeGroup::ChangeGroup(ObjectPath &&path, id_type<Group> newGroup):
     m_path{path},
     m_newGroup{newGroup}
 {
-    m_oldGroup = getGroupMetadata(m_path.find<QObject>())->group();
+    m_oldGroup = getGroupMetadata(&m_path.find<QObject>())->group();
 }
 
 void ChangeGroup::undo()
 {
-    getGroupMetadata(m_path.find<QObject>())->setGroup(m_oldGroup);
+    getGroupMetadata(&m_path.find<QObject>())->setGroup(m_oldGroup);
 }
 
 void ChangeGroup::redo()
 {
-    getGroupMetadata(m_path.find<QObject>())->setGroup(m_newGroup);
+    getGroupMetadata(&m_path.find<QObject>())->setGroup(m_newGroup);
 }
 
 void ChangeGroup::serializeImpl(QDataStream &s) const

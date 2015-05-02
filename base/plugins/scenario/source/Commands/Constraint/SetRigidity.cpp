@@ -15,47 +15,47 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     // We suppose that this command is never called with rigid == current state of the constraint.
     if(rigid)  // it is currently not rigid so min & max are set
     {
-        auto constraint = m_path.find<ConstraintModel>();
-        Q_ASSERT(constraint->isRigid() != rigid);
+        auto& constraint = m_path.find<ConstraintModel>();
+        Q_ASSERT(constraint.isRigid() != rigid);
 
-        m_oldMinDuration = constraint->minDuration();
-        m_oldMaxDuration = constraint->maxDuration();
+        m_oldMinDuration = constraint.minDuration();
+        m_oldMaxDuration = constraint.maxDuration();
     }
 }
 
 void SetRigidity::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setRigid(m_rigidity);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setRigid(m_rigidity);
 
     if(m_rigidity)
     {
-        constraint->setMinDuration(m_oldMinDuration);
-        constraint->setMaxDuration(m_oldMaxDuration);
+        constraint.setMinDuration(m_oldMinDuration);
+        constraint.setMaxDuration(m_oldMaxDuration);
     }
     else
     {
-        constraint->setMinDuration(constraint->defaultDuration());
-        constraint->setMaxDuration(constraint->defaultDuration());
+        constraint.setMinDuration(constraint.defaultDuration());
+        constraint.setMaxDuration(constraint.defaultDuration());
     }
 }
 
 void SetRigidity::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setRigid(m_rigidity);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setRigid(m_rigidity);
 
     if(m_rigidity)
     {
-        constraint->setMinDuration(constraint->defaultDuration());
-        constraint->setMaxDuration(constraint->defaultDuration());
+        constraint.setMinDuration(constraint.defaultDuration());
+        constraint.setMaxDuration(constraint.defaultDuration());
     }
     else
     {
         // TODO find a better default ? (and be careful with min < 0
-        auto percentage = constraint->defaultDuration() * 0.1;
-        constraint->setMinDuration(constraint->defaultDuration() - percentage);
-        constraint->setMaxDuration(constraint->defaultDuration() + percentage);
+        auto percentage = constraint.defaultDuration() * 0.1;
+        constraint.setMinDuration(constraint.defaultDuration() - percentage);
+        constraint.setMaxDuration(constraint.defaultDuration() + percentage);
     }
 }
 

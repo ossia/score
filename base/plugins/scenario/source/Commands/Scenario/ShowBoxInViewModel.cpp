@@ -10,42 +10,42 @@ ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
     SerializableCommand{"ScenarioControl",
                         className(),
                         description()},
-m_constraintViewModelPath {std::move(constraint_path) },
-m_boxId {boxId}
+    m_constraintViewModelPath {std::move(constraint_path) },
+    m_boxId {boxId}
 {
-    auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    m_previousBoxId = constraint_vm->shownBox();
+    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    m_previousBoxId = vm.shownBox();
 }
 
-ShowBoxInViewModel::ShowBoxInViewModel(const AbstractConstraintViewModel *constraint_vm,
+ShowBoxInViewModel::ShowBoxInViewModel(const AbstractConstraintViewModel *vm,
                                        id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
-m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) },
-m_boxId {boxId}
+    m_constraintViewModelPath {iscore::IDocument::path(vm) },
+    m_boxId {boxId}
 {
-    m_previousBoxId = constraint_vm->shownBox();
+    m_previousBoxId = vm->shownBox();
 }
 
 void ShowBoxInViewModel::undo()
 {
-    auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
 
     if(m_previousBoxId.val())
     {
-        constraint_vm->showBox(m_previousBoxId);
+        vm.showBox(m_previousBoxId);
     }
     else
     {
-        constraint_vm->hideBox();
+        vm.hideBox();
     }
 }
 
 void ShowBoxInViewModel::redo()
 {
-    auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    constraint_vm->showBox(m_boxId);
+    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    vm.showBox(m_boxId);
 }
 
 void ShowBoxInViewModel::serializeImpl(QDataStream& s) const
@@ -58,6 +58,6 @@ void ShowBoxInViewModel::serializeImpl(QDataStream& s) const
 void ShowBoxInViewModel::deserializeImpl(QDataStream& s)
 {
     s >> m_constraintViewModelPath
-      >> m_boxId
-      >> m_previousBoxId;
+            >> m_boxId
+            >> m_previousBoxId;
 }

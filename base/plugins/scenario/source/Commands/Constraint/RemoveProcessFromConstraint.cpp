@@ -21,11 +21,11 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
     // Save the process
     Serializer<DataStream> s1{&m_serializedProcessData};
-    auto proc = constraint->process(m_processId);
+    auto proc = constraint.process(m_processId);
     s1.readFrom(*proc);
 
     // Save ALL the view models!
@@ -41,15 +41,15 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 
 void RemoveProcessFromConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
     Deserializer<DataStream> s {m_serializedProcessData};
-    constraint->addProcess(createProcess(s, constraint));
+    constraint.addProcess(createProcess(s, &constraint));
 
     // Restore the view models
     for(auto it = m_serializedViewModels.begin(); it != m_serializedViewModels.end(); ++it)
     {
         auto deck = constraint
-                ->box(id_type<BoxModel>(std::get<0>(it.key())))
+                .box(id_type<BoxModel>(std::get<0>(it.key())))
                 ->deck(id_type<DeckModel>(std::get<1>(it.key())));
 
         Deserializer<DataStream> s {it.value()};
@@ -62,8 +62,8 @@ void RemoveProcessFromConstraint::undo()
 
 void RemoveProcessFromConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->removeProcess(m_processId);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.removeProcess(m_processId);
 
     // The view models will be deleted accordingly.
 }

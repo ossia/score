@@ -17,27 +17,27 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
     m_path {boxPath},
     m_processViewId {processViewId}
 {
-    auto deck = m_path.find<DeckModel>();
+    auto& deck = m_path.find<DeckModel>();
 
     Serializer<DataStream> s{&m_serializedProcessViewData};
-    s.readFrom(deck->processViewModel(m_processViewId));
+    s.readFrom(deck.processViewModel(m_processViewId));
 }
 
 void RemoveProcessViewModelFromDeck::undo()
 {
-    auto deck = m_path.find<DeckModel>();
+    auto& deck = m_path.find<DeckModel>();
     Deserializer<DataStream> s {m_serializedProcessViewData};
 
     auto pvm = createProcessViewModel(s,
-                                      deck->parentConstraint(),
-                                      deck);
-    deck->addProcessViewModel(pvm);
+                                      deck.parentConstraint(),
+                                      &deck);
+    deck.addProcessViewModel(pvm);
 }
 
 void RemoveProcessViewModelFromDeck::redo()
 {
-    auto deck = m_path.find<DeckModel>();
-    deck->deleteProcessViewModel(m_processViewId);
+    auto& deck = m_path.find<DeckModel>();
+    deck.deleteProcessViewModel(m_processViewId);
 }
 
 void RemoveProcessViewModelFromDeck::serializeImpl(QDataStream& s) const

@@ -24,20 +24,20 @@ m_oldX {oldx},
 m_newX {newx},
 m_newY {newy}
 {
-    auto autom = m_path.find<AutomationModel>();
-    m_oldY = autom->points() [oldx];
+    auto& autom = m_path.find<AutomationModel>();
+    m_oldY = autom.points() [oldx];
 }
 
 void MovePoint::undo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->movePoint(m_newX, m_oldX, m_oldY);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.movePoint(m_newX, m_oldX, m_oldY);
 }
 
 void MovePoint::redo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->movePoint(m_oldX, m_newX, m_newY);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.movePoint(m_oldX, m_newX, m_newY);
 }
 
 void MovePoint::serializeImpl(QDataStream& s) const

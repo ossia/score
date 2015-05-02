@@ -16,20 +16,20 @@ ResizeBaseConstraint::ResizeBaseConstraint(ObjectPath&& constraintPath,
     m_path {constraintPath},
     m_newDuration {duration}
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    m_oldDuration = constraint->defaultDuration();
+    auto& constraint = m_path.find<ConstraintModel>();
+    m_oldDuration = constraint.defaultDuration();
 }
 
 void ResizeBaseConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setDefaultDuration(m_oldDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setDefaultDuration(m_oldDuration);
 }
 
 void ResizeBaseConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setDefaultDuration(m_newDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setDefaultDuration(m_newDuration);
 }
 
 

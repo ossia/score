@@ -43,8 +43,8 @@ void MoveEventAndConstraint::redo()
 {
     m_cmd->redo();
 
-    auto scenar = m_cmd->path().find<ScenarioModel>();
-    scenar->constraint(m_constraintId).setHeightPercentage(m_constraintHeight);
+    auto& scenar = m_cmd->path().find<ScenarioModel>();
+    scenar.constraint(m_constraintId).setHeightPercentage(m_constraintHeight);
 }
 
 void MoveEventAndConstraint::serializeImpl(QDataStream& s) const

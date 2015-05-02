@@ -60,7 +60,7 @@ class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInt
         //// Features of a process
         /// Duration
         // Used to scale the process.
-        // This should be associative :
+        // This should be commutative :
         //   setDurationWithScale(2); setDurationWithScale(3);
         // yields the same result as :
         //   setDurationWithScale(3); setDurationWithScale(2);

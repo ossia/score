@@ -29,12 +29,13 @@ namespace Scenario
                                      className(),
                                      description()}
                 {
-                    auto sourcebox = mergeSource.find<BoxModel>();
+                    auto& sourcebox = mergeSource.find<BoxModel>();
 
-                    for(DeckModel* deck : sourcebox->decks())
+                    for(const auto& deck : sourcebox.decks())
                     {
-                        addCommand(new MoveDeck(iscore::IDocument::path(deck),
-                        ObjectPath {mergeTarget}));
+                        addCommand(new MoveDeck{
+                                       iscore::IDocument::path(deck),
+                                       ObjectPath {mergeTarget}});
                     }
 
                     addCommand(new RemoveBoxFromConstraint{ObjectPath{mergeSource}});

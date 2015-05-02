@@ -11,30 +11,30 @@ DuplicateBox::DuplicateBox(ObjectPath&& boxToCopy) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
-m_boxPath {boxToCopy}
+    m_boxPath {boxToCopy}
 {
-    auto box = m_boxPath.find<BoxModel>();
-    const auto& constraint = box->constraint();
+    auto& box = m_boxPath.find<BoxModel>();
+    const auto& constraint = box.constraint();
 
     m_newBoxId = getStrongId(constraint.boxes());
 }
 
 void DuplicateBox::undo()
 {
-    auto box = m_boxPath.find<BoxModel>();
-    auto& constraint = box->constraint();
+    auto& box = m_boxPath.find<BoxModel>();
+    auto& constraint = box.constraint();
 
     constraint.removeBox(m_newBoxId);
 }
 
 void DuplicateBox::redo()
 {
-    auto box = m_boxPath.find<BoxModel>();
-    auto& constraint = box->constraint();
-    constraint.addBox(new BoxModel {*box,
-                                     m_newBoxId,
-                                     &DeckModel::copyViewModelsInSameConstraint,
-                                     &constraint});
+    auto& box = m_boxPath.find<BoxModel>();
+    auto& constraint = box.constraint();
+    constraint.addBox(new BoxModel {box,
+                                    m_newBoxId,
+                                    &DeckModel::copyViewModelsInSameConstraint,
+                                    &constraint});
 }
 
 void DuplicateBox::serializeImpl(QDataStream& s) const

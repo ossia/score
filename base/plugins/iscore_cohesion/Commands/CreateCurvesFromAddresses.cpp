@@ -52,7 +52,7 @@ void CreateCurvesFromAddresses::undo()
 
 void CreateCurvesFromAddresses::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
     for(int i = 0; i < m_addresses.size(); ++i)
     {
@@ -65,7 +65,7 @@ void CreateCurvesFromAddresses::redo()
         // TODO maybe pass parameters to AddProcessToConstraint?
         auto id = cmd->processId();
 
-        auto curve = static_cast<AutomationModel*>(constraint->process(id));
+        auto curve = static_cast<AutomationModel*>(constraint.process(id));
         curve->setAddress(m_addresses[i]);
 
         delete cmd;

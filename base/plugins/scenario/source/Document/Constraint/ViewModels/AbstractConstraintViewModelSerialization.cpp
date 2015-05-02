@@ -92,9 +92,9 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 }
 
 
-void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, ScenarioModel* scenar)
+void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, const ScenarioModel& scenar)
 {
-    for(auto& viewModel : viewModels(*scenar))
+    for(auto& viewModel : viewModels(scenar))
     {
         if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {

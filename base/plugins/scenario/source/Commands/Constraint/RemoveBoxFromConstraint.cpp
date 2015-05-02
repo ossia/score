@@ -18,15 +18,15 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& boxPath) :
     m_path = ObjectPath{std::move(constraintPath) };
     m_boxId = id_type<BoxModel> (lastId.id());
 
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
     // Save the box
     Serializer<DataStream> s{&m_serializedBoxData};
-    s.readFrom(*constraint->box(m_boxId));
+    s.readFrom(*constraint.box(m_boxId));
 
     // Save for each view model of this constraint
     // a bool indicating if the box being deleted
     // was displayed
-    for(const AbstractConstraintViewModel* vm : constraint->viewModels())
+    for(const AbstractConstraintViewModel* vm : constraint.viewModels())
     {
         m_boxMappings[vm->id()] = vm->shownBox() == m_boxId;
     }
@@ -41,12 +41,12 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(
     m_path {constraintPath},
     m_boxId {boxId}
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
     Serializer<DataStream> s{&m_serializedBoxData};
-    s.readFrom(*constraint->box(m_boxId));
+    s.readFrom(*constraint.box(m_boxId));
 
-    for(const AbstractConstraintViewModel* vm : constraint->viewModels())
+    for(const AbstractConstraintViewModel* vm : constraint.viewModels())
     {
         m_boxMappings[vm->id()] = vm->shownBox() == m_boxId;
     }
@@ -54,11 +54,11 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(
 
 void RemoveBoxFromConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
     Deserializer<DataStream> s {m_serializedBoxData};
-    constraint->addBox(new BoxModel {s, constraint});
+    constraint.addBox(new BoxModel {s, &constraint});
 
-    for(AbstractConstraintViewModel* vm : constraint->viewModels())
+    for(AbstractConstraintViewModel* vm : constraint.viewModels())
     {
         if(m_boxMappings[vm->id()])
         {
@@ -69,8 +69,8 @@ void RemoveBoxFromConstraint::undo()
 
 void RemoveBoxFromConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->removeBox(m_boxId);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.removeBox(m_boxId);
 }
 
 void RemoveBoxFromConstraint::serializeImpl(QDataStream& s) const

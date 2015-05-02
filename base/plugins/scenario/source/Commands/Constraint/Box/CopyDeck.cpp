@@ -14,26 +14,26 @@ CopyDeck::CopyDeck(ObjectPath&& deckToCopy,
     m_deckPath {deckToCopy},
     m_targetBoxPath {targetBoxPath}
 {
-    auto box = m_targetBoxPath.find<BoxModel>();
-    m_newDeckId = getStrongId(box->decks());
+    auto& box = m_targetBoxPath.find<BoxModel>();
+    m_newDeckId = getStrongId(box.decks());
 }
 
 void CopyDeck::undo()
 {
-    auto targetBox = m_targetBoxPath.find<BoxModel>();
-    targetBox->removeDeck(m_newDeckId);
+    auto& targetBox = m_targetBoxPath.find<BoxModel>();
+    targetBox.removeDeck(m_newDeckId);
 }
 
 
 void CopyDeck::redo()
 {
-    auto sourceDeck = m_deckPath.find<DeckModel>();
-    auto targetBox = m_targetBoxPath.find<BoxModel>();
+    auto& sourceDeck = m_deckPath.find<DeckModel>();
+    auto& targetBox = m_targetBoxPath.find<BoxModel>();
 
-    targetBox->addDeck(new DeckModel {&DeckModel::copyViewModelsInSameConstraint,
-                                      *sourceDeck,
+    targetBox.addDeck(new DeckModel {&DeckModel::copyViewModelsInSameConstraint,
+                                      sourceDeck,
                                       m_newDeckId,
-                                      targetBox});
+                                      &targetBox});
 }
 
 void CopyDeck::serializeImpl(QDataStream& s) const

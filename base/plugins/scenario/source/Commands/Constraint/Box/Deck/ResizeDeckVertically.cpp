@@ -13,20 +13,20 @@ ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
     m_path {deckPath},
     m_newSize {newSize}
 {
-    auto deck = m_path.find<DeckModel>();
-    m_originalSize = deck->height();
+    auto& deck = m_path.find<DeckModel>();
+    m_originalSize = deck.height();
 }
 
 void ResizeDeckVertically::undo()
 {
-    auto deck = m_path.find<DeckModel>();
-    deck->setHeight(m_originalSize);
+    auto& deck = m_path.find<DeckModel>();
+    deck.setHeight(m_originalSize);
 }
 
 void ResizeDeckVertically::redo()
 {
-    auto deck = m_path.find<DeckModel>();
-    deck->setHeight(m_newSize);
+    auto& deck = m_path.find<DeckModel>();
+    deck.setHeight(m_newSize);
 }
 
 

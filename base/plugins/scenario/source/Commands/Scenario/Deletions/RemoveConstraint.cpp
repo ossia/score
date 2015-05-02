@@ -29,33 +29,33 @@ m_path {std::move(scenarioPath) }
 
     m_cstrId = constraint.id();
 
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
     // We have to backup all the view models pointing to a constraint.
     // The full view is already back-upped by the serialization process.
 
-    m_serializedConstraintViewModels = serializeConstraintViewModels(constraint, *scenar);
+    m_serializedConstraintViewModels = serializeConstraintViewModels(constraint, scenar);
 
 }
 
 void RemoveConstraint::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
     Deserializer<DataStream> s {m_serializedConstraint};
 
-    auto newConstraint = new ConstraintModel(s, scenar);
-    scenar->addConstraint(newConstraint);
+    auto newConstraint = new ConstraintModel{s, &scenar};
+    scenar.addConstraint(newConstraint);
 
-    scenar->event(newConstraint->startEvent()).addNextConstraint(newConstraint->id());
-    scenar->event(newConstraint->endEvent()).addPreviousConstraint(newConstraint->id());
+    scenar.event(newConstraint->startEvent()).addNextConstraint(newConstraint->id());
+    scenar.event(newConstraint->endEvent()).addPreviousConstraint(newConstraint->id());
 
     deserializeConstraintViewModels(m_serializedConstraintViewModels, scenar);
 }
 
 void RemoveConstraint::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    StandardRemovalPolicy::removeConstraint(*scenar, m_cstrId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    StandardRemovalPolicy::removeConstraint(scenar, m_cstrId);
 }
 
 void RemoveConstraint::serializeImpl(QDataStream& s) const

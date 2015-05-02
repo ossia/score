@@ -26,15 +26,15 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
     m_time {date},
     m_heightPosition {y}
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
-    m_createdEventId = getStrongId(scenar->events());
-    m_createdConstraintId = getStrongId(scenar->constraints());
-    m_createdTimeNodeId = getStrongId(scenar->timeNodes());
+    m_createdEventId = getStrongId(scenar.events());
+    m_createdConstraintId = getStrongId(scenar.constraints());
+    m_createdTimeNodeId = getStrongId(scenar.timeNodes());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : viewModels(*scenar))
+    for(auto& viewModel : viewModels(scenar))
     {
         m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
     }
@@ -45,25 +45,25 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
 
 void CreateEventAfterEvent::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_createdEventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    StandardRemovalPolicy::removeEventAndConstraints(scenar, m_createdEventId);
 }
 
 void CreateEventAfterEvent::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
     CreateTimenodeConstraintAndEvent(m_createdConstraintId,
                                      m_createdConstraintFullViewId,
-                                     scenar->event(m_firstEventId),
+                                     scenar.event(m_firstEventId),
                                      m_createdEventId,
                                      m_createdTimeNodeId,
                                      m_time,
                                      m_heightPosition,
-                                     *scenar);
+                                     scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
-                               *scenar);
+                               scenar);
 }
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const

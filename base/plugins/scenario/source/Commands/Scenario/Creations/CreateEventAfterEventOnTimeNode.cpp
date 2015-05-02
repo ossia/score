@@ -25,14 +25,14 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
     m_time {date},
     m_heightPosition {height}
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
-    m_createdEventId = getStrongId(scenar->events());
-    m_createdConstraintId = getStrongId(scenar->constraints());
+    m_createdEventId = getStrongId(scenar.events());
+    m_createdConstraintId = getStrongId(scenar.constraints());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : viewModels(*scenar))
+    for(auto& viewModel : viewModels(scenar))
     {
         m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
     }
@@ -43,27 +43,27 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
 
 void CreateEventAfterEventOnTimeNode::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    StandardRemovalPolicy::removeEventAndConstraints(*scenar, m_createdEventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    StandardRemovalPolicy::removeEventAndConstraints(scenar, m_createdEventId);
 }
 
 void CreateEventAfterEventOnTimeNode::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
     CreateConstraintAndEvent(m_createdConstraintId,
                              m_createdConstraintFullViewId,
-                             scenar->event(m_firstEventId),
-                             scenar->timeNode(m_timeNodeId),
+                             scenar.event(m_firstEventId),
+                             scenar.timeNode(m_timeNodeId),
                              m_createdEventId,
                              m_time,
                              m_heightPosition,
-                             *scenar);
+                             scenar);
 
     // Creation of all the constraint view models
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
-                               *scenar);
+                               scenar);
 }
 
 

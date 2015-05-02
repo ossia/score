@@ -24,27 +24,25 @@ Paste::set(const Path &parentPath, int row,
 void
 Paste::undo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
+    auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row + 1, 0);  //+1 because pasteAfter
-    const DeviceExplorer::Result result = model->cut_aux(index);
-    model->setCachedResult(result);
+    const DeviceExplorer::Result result = model.cut_aux(index);
+    model.setCachedResult(result);
 
 }
 
 void
 Paste::redo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    auto& model = m_model.find<DeviceExplorerModel>();
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
-    const DeviceExplorer::Result result = model->pasteAfter_aux(index);
-    model->setCachedResult(result);
+    const DeviceExplorer::Result result = model.pasteAfter_aux(index);
+    model.setCachedResult(result);
 
 }
 

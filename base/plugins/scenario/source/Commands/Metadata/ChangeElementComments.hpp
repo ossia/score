@@ -30,20 +30,20 @@ namespace Scenario
                     m_path{std::move(path)},
                     m_newComments {newComments}
                 {
-                    auto obj = m_path.find<T>();
-                    m_oldComments = obj->metadata.comment();
+                    auto& obj = m_path.find<T>();
+                    m_oldComments = obj.metadata.comment();
                 }
 
                 virtual void undo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setComment(m_oldComments);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setComment(m_oldComments);
                 }
 
                 virtual void redo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setComment(m_newComments);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setComment(m_newComments);
                 }
 
             protected:

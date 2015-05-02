@@ -13,29 +13,29 @@ AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath) :
                          description()},
     m_path {constraintPath}
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    m_createdBoxId = getStrongId(constraint->boxes());
+    auto& constraint = m_path.find<ConstraintModel>();
+    m_createdBoxId = getStrongId(constraint.boxes());
 }
 
 void AddBoxToConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->removeBox(m_createdBoxId);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.removeBox(m_createdBoxId);
 }
 
 void AddBoxToConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    auto box = new BoxModel{m_createdBoxId, constraint};
+    auto& constraint = m_path.find<ConstraintModel>();
+    auto box = new BoxModel{m_createdBoxId, &constraint};
 
-    constraint->addBox(box);
-    box->metadata.setName(QString{"Box.%1"}.arg(constraint->boxes().size()));
+    constraint.addBox(box);
+    box->metadata.setName(QString{"Box.%1"}.arg(constraint.boxes().size()));
 
     // If it is the first box created,
     // it is also assigned to the full view of the constraint.
-    if(constraint->boxes().size() == 1)
+    if(constraint.boxes().size() == 1)
     {
-        constraint->fullView()->showBox(m_createdBoxId);
+        constraint.fullView()->showBox(m_createdBoxId);
     }
 }
 

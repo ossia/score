@@ -10,21 +10,21 @@ SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuratio
                          className(),
                          description()},
     m_path {constraintPath},
-    m_oldDuration {m_path.find<ConstraintModel>()->maxDuration() },
+    m_oldDuration {m_path.find<ConstraintModel>().maxDuration() },
     m_newDuration {newDuration}
 {
 }
 
 void SetMaxDuration::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMaxDuration(m_oldDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setMaxDuration(m_oldDuration);
 }
 
 void SetMaxDuration::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMaxDuration(m_newDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setMaxDuration(m_newDuration);
 }
 
 

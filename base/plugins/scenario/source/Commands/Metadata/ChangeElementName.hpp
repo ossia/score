@@ -30,20 +30,20 @@ namespace Scenario
                     m_path {std::move(path) },
                     m_newName {newName}
                 {
-                    auto obj = m_path.find<T>();
-                    m_oldName = obj->metadata.name();
+                    auto& obj = m_path.find<T>();
+                    m_oldName = obj.metadata.name();
                 }
 
                 virtual void undo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setName(m_oldName);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setName(m_oldName);
                 }
 
                 virtual void redo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setName(m_newName);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setName(m_newName);
                 }
 
             protected:

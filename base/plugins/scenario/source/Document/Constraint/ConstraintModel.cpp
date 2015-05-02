@@ -173,6 +173,8 @@ void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
     m_endEvent = e;
 }
 
+
+// TODO BoxModel&
 BoxModel* ConstraintModel::box(const id_type<BoxModel>& id) const
 {
     return findById(m_boxes, id);

@@ -45,8 +45,8 @@ void CreateCurveFromStates::undo()
 void CreateCurveFromStates::redo()
 {
     m_cmd->redo();
-    ConstraintModel* cstr = m_cmd->constraintPath().find<ConstraintModel>();
-    auto autom = static_cast<AutomationModel*>(cstr->process(m_cmd->processId()));
+    auto& cstr = m_cmd->constraintPath().find<ConstraintModel>();
+    auto autom = static_cast<AutomationModel*>(cstr.process(m_cmd->processId()));
     autom->setAddress(m_address);
     autom->movePoint(0, 0, m_start);
     autom->movePoint(1, 1, m_end);

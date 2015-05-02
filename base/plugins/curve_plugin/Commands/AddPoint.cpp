@@ -27,14 +27,14 @@ m_y {y}
 
 void AddPoint::undo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->removePoint(m_x);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.removePoint(m_x);
 }
 
 void AddPoint::redo()
 {
-    auto autom = m_path.find<AutomationModel>();
-    autom->addPoint(m_x, m_y);
+    auto& autom = m_path.find<AutomationModel>();
+    autom.addPoint(m_x, m_y);
 }
 
 void AddPoint::serializeImpl(QDataStream& s) const

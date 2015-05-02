@@ -18,26 +18,28 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
 m_path {std::move(constraintPath) },
 m_processName {process}
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    m_createdProcessId = getStrongId(constraint->processes());
+    auto& constraint = m_path.find<ConstraintModel>();
+    m_createdProcessId = getStrongId(constraint.processes());
 }
 
 void AddProcessToConstraint::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->removeProcess(m_createdProcessId);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.removeProcess(m_createdProcessId);
 }
 
 void AddProcessToConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)->makeModel(constraint->defaultDuration(),
-                                                                  m_createdProcessId,
-                                                                  constraint);
+    auto proc = ProcessList::getFactory(m_processName)
+                 ->makeModel(
+                     constraint.defaultDuration(),
+                     m_createdProcessId,
+                     &constraint);
 
-    constraint->addProcess(proc);
+    constraint.addProcess(proc);
 }
 
 void AddProcessToConstraint::serializeImpl(QDataStream& s) const

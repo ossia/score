@@ -11,8 +11,8 @@ HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path) :
                          description()},
 m_constraintViewModelPath {std::move(path) }
 {
-    auto constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    m_constraintPreviousId = constraint_vm->shownBox();
+    auto& constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    m_constraintPreviousId = constraint_vm.shownBox();
 }
 
 HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_vm) :
@@ -26,14 +26,14 @@ m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) }
 
 void HideBoxInViewModel::undo()
 {
-    auto vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    vm->showBox(m_constraintPreviousId);
+    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    vm.showBox(m_constraintPreviousId);
 }
 
 void HideBoxInViewModel::redo()
 {
-    auto vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
-    vm->hideBox();
+    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    vm.hideBox();
 }
 
 void HideBoxInViewModel::serializeImpl(QDataStream& s) const

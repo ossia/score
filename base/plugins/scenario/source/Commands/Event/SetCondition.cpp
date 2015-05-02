@@ -13,20 +13,20 @@ SetCondition::SetCondition(ObjectPath&& eventPath, QString message) :
 m_path {std::move(eventPath) },
 m_condition(message)
 {
-    auto event = m_path.find<EventModel>();
-    m_previousCondition = event->condition();
+    auto& event = m_path.find<EventModel>();
+    m_previousCondition = event.condition();
 }
 
 void SetCondition::undo()
 {
-    auto event = m_path.find<EventModel>();
-    event->setCondition(m_previousCondition);
+    auto& event = m_path.find<EventModel>();
+    event.setCondition(m_previousCondition);
 }
 
 void SetCondition::redo()
 {
-    auto event = m_path.find<EventModel>();
-    event->setCondition(m_condition);
+    auto& event = m_path.find<EventModel>();
+    event.setCondition(m_condition);
 }
 
 void SetCondition::serializeImpl(QDataStream& s) const

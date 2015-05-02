@@ -17,14 +17,14 @@ AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State& state) :
 
 void AddStateToEvent::undo()
 {
-    auto event = m_path.find<EventModel>();
-    event->removeState(m_state);
+    auto& event = m_path.find<EventModel>();
+    event.removeState(m_state);
 }
 
 void AddStateToEvent::redo()
 {
-    auto event = m_path.find<EventModel>();
-    event->addState(m_state);
+    auto& event = m_path.find<EventModel>();
+    event.addState(m_state);
 }
 
 void AddStateToEvent::serializeImpl(QDataStream& s) const

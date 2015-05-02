@@ -10,21 +10,21 @@ SetMinDuration::SetMinDuration(ObjectPath&& constraintPath, TimeValue newDuratio
                          className(),
                          description()},
     m_path {constraintPath},
-    m_oldDuration {m_path.find<ConstraintModel>()->minDuration() },
+    m_oldDuration {m_path.find<ConstraintModel>().minDuration() },
     m_newDuration {newDuration}
 {
 }
 
 void SetMinDuration::undo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMinDuration(m_oldDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setMinDuration(m_oldDuration);
 }
 
 void SetMinDuration::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
-    constraint->setMinDuration(m_newDuration);
+    auto& constraint = m_path.find<ConstraintModel>();
+    constraint.setMinDuration(m_newDuration);
 }
 
 

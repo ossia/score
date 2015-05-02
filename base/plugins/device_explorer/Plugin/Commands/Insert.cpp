@@ -27,26 +27,24 @@ Insert::set(const Path &parentPath, int row,
 void
 Insert::undo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
+    auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
-    const bool result = model->removeRows(m_row, 1, parentIndex);
+    const bool result = model.removeRows(m_row, 1, parentIndex);
 
-    model->setCachedResult(result);
+    model.setCachedResult(result);
 
 }
 
 void
 Insert::redo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    auto& model = m_model.find<DeviceExplorerModel>();
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
-    const bool result = model->insertTreeData(parentIndex, m_row, m_data);
-    model->setCachedResult(result);
+    const bool result = model.insertTreeData(parentIndex, m_row, m_data);
+    model.setCachedResult(result);
 }
 
 void

@@ -16,12 +16,12 @@ AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,
 
 void AddClientToGroup::undo()
 {
-    m_path.find<GroupManager>()->group(m_group)->removeClient(m_client);
+    m_path.find<GroupManager>().group(m_group)->removeClient(m_client);
 }
 
 void AddClientToGroup::redo()
 {
-    m_path.find<GroupManager>()->group(m_group)->addClient(m_client);
+    m_path.find<GroupManager>().group(m_group)->addClient(m_client);
 }
 
 void AddClientToGroup::serializeImpl(QDataStream& s) const

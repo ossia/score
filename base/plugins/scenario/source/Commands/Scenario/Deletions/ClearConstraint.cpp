@@ -17,9 +17,9 @@ ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
                          description()},
 m_path {std::move(constraintPath) }
 {
-    ConstraintModel* constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
-    for(const BoxModel* box : constraint->boxes())
+    for(const BoxModel* box : constraint.boxes())
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
@@ -27,7 +27,7 @@ m_path {std::move(constraintPath) }
         m_serializedBoxes.push_back(arr);
     }
 
-    for(const ProcessSharedModelInterface* process : constraint->processes())
+    for(const ProcessSharedModelInterface* process : constraint.processes())
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
@@ -36,7 +36,7 @@ m_path {std::move(constraintPath) }
     }
 
     // TODO save view model data instead
-    for(const auto& viewmodel : constraint->viewModels())
+    for(const auto& viewmodel : constraint.viewModels())
     {
         m_boxMappings.insert(viewmodel->id(), viewmodel->shownBox());
     }
@@ -44,21 +44,21 @@ m_path {std::move(constraintPath) }
 
 void ClearConstraint::undo()
 {
-    ConstraintModel* constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        constraint->addProcess(createProcess(s, constraint));
+        constraint.addProcess(createProcess(s, &constraint));
     }
 
     for(auto& serializedBox : m_serializedBoxes)
     {
         Deserializer<DataStream> s {serializedBox};
-        constraint->addBox(new BoxModel {s, constraint});
+        constraint.addBox(new BoxModel {s, &constraint});
     }
 
-    auto bit = constraint->viewModels().begin(), eit = constraint->viewModels().end();
+    auto bit = constraint.viewModels().begin(), eit = constraint.viewModels().end();
     for(const auto& cvmid : m_boxMappings.keys())
     {
         auto it = std::find(bit, eit, cvmid);
@@ -69,16 +69,16 @@ void ClearConstraint::undo()
 
 void ClearConstraint::redo()
 {
-    auto constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find<ConstraintModel>();
 
-    for(auto& process : constraint->processes())
+    for(auto& process : constraint.processes())
     {
-        constraint->removeProcess(process->id());
+        constraint.removeProcess(process->id());
     }
 
-    for(auto& box : constraint->boxes())
+    for(auto& box : constraint.boxes())
     {
-        constraint->removeBox(box->id());
+        constraint.removeBox(box->id());
     }
 }
 

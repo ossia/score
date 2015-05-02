@@ -30,20 +30,20 @@ namespace Scenario
                     m_path {std::move(path) },
                     m_newColor {newLabel}
                 {
-                    auto obj = m_path.find<T>();
-                    m_oldColor = obj->metadata.color();
+                    auto& obj = m_path.find<T>();
+                    m_oldColor = obj.metadata.color();
                 }
 
                 virtual void undo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setColor(m_oldColor);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setColor(m_oldColor);
                 }
 
                 virtual void redo() override
                 {
-                    auto obj = m_path.find<typename std::remove_const<T>::type>();
-                    obj->metadata.setColor(m_newColor);
+                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    obj.metadata.setColor(m_newColor);
                 }
 
             protected:

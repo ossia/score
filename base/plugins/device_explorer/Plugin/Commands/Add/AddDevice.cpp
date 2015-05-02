@@ -180,15 +180,15 @@ AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters,
 
 void AddDevice::undo()
 {
-    auto explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer->removeRow(m_row);
+    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    explorer.removeRow(m_row);
 
     SingletonDeviceList::instance().removeDevice(m_parameters.name);
 }
 
 void AddDevice::redo()
 {
-    auto explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
     // Instantiate a real device.
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
@@ -198,7 +198,7 @@ void AddDevice::redo()
     // Put it in the tree.
 
     auto node = makeDeviceNode(m_parameters, m_filePath);
-    m_row = explorer->addDevice(node);
+    m_row = explorer.addDevice(node);
 }
 
 void AddDevice::serializeImpl(QDataStream& d) const

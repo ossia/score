@@ -21,60 +21,60 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
     m_aimedTimeNodeId{aimedTimeNode},
     m_movingTimeNodeId{movingTimeNode}
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
     QByteArray arr;
     Serializer<DataStream> s{&arr};
-    s.readFrom(scenar->timeNode(m_movingTimeNodeId));
+    s.readFrom(scenar.timeNode(m_movingTimeNodeId));
     m_serializedTimeNode = arr;
 }
 
 void MergeTimeNodes::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
-    auto& aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
+    auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
 
     Deserializer<DataStream> s {m_serializedTimeNode};
 
     // todo make a function to do this (inline).
-    auto movingTimeNode = new TimeNodeModel(s, scenar);
-    scenar->addTimeNode(movingTimeNode);
+    auto movingTimeNode = new TimeNodeModel{s, &scenar};
+    scenar.addTimeNode(movingTimeNode);
 
     for (auto& event : movingTimeNode->events())
     {
         aimedTimeNode.removeEvent(event);
-        scenar->event(event).changeTimeNode(movingTimeNode->id());
-        StandardDisplacementPolicy::setEventPosition(*scenar,
+        scenar.event(event).changeTimeNode(movingTimeNode->id());
+        StandardDisplacementPolicy::setEventPosition(scenar,
                                                      event,
                                                      movingTimeNode->date(),
-                                                     scenar->event(event).heightPercentage(),
+                                                     scenar.event(event).heightPercentage(),
                                                      [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
     }
 }
 
 void MergeTimeNodes::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
-    auto& aimedTimeNode = scenar->timeNode(m_aimedTimeNodeId);
-    auto& movingTimeNode = scenar->timeNode(m_movingTimeNodeId);
+    auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
+    auto& movingTimeNode = scenar.timeNode(m_movingTimeNodeId);
 
     for (const auto& event : movingTimeNode.events())
     {
         StandardDisplacementPolicy::setEventPosition(
-                    *scenar,
+                    scenar,
                     event,
                     aimedTimeNode.date(),
-                    scenar->event(event).heightPercentage(),
+                    scenar.event(event).heightPercentage(),
                     [] (ProcessSharedModelInterface* p, TimeValue t)
                         { p->setDurationAndScale(t); });
 
         aimedTimeNode.addEvent(event);
         movingTimeNode.removeEvent(event);
-        scenar->event(event).changeTimeNode(aimedTimeNode.id());
+        scenar.event(event).changeTimeNode(aimedTimeNode.id());
     }
 
-    CreateTimeNodeMin::undo(m_movingTimeNodeId, *scenar);
+    CreateTimeNodeMin::undo(m_movingTimeNodeId, scenar);
 }
 
 void MergeTimeNodes::serializeImpl(QDataStream & s) const

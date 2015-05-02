@@ -9,19 +9,19 @@ CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
     m_path{groupMgrPath},
     m_name{groupName}
 {
-    auto mgr = m_path.find<GroupManager>();
-    m_newGroupId = getStrongId(mgr->groups());
+    auto& mgr = m_path.find<GroupManager>();
+    m_newGroupId = getStrongId(mgr.groups());
 }
 
 void CreateGroup::undo()
 {
-    m_path.find<GroupManager>()->removeGroup(m_newGroupId);
+    m_path.find<GroupManager>().removeGroup(m_newGroupId);
 }
 
 void CreateGroup::redo()
 {
-    auto mgr = m_path.find<GroupManager>();
-    mgr->addGroup(new Group{m_name, m_newGroupId, mgr});
+    auto& mgr = m_path.find<GroupManager>();
+    mgr.addGroup(new Group{m_name, m_newGroupId, &mgr});
 }
 
 void CreateGroup::serializeImpl(QDataStream& s) const

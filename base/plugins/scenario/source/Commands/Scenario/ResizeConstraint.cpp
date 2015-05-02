@@ -29,14 +29,13 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                          className(),
                          description()}
 {
+    auto& constraint = constraintPath.find<ConstraintModel>();
+    m_oldEndDate = constraint.startDate() + constraint.defaultDuration();
+    auto& endEvent = static_cast<ScenarioModel*>(constraint.parent())->event(constraint.endEvent());
 
-    auto constraint = constraintPath.find<ConstraintModel>();
-    m_oldEndDate = constraint->startDate() + constraint->defaultDuration();
-    auto& endEvent = static_cast<ScenarioModel*>(constraint->parent())->event(constraint->endEvent());
-
-    m_cmd = new MoveEvent(iscore::IDocument::path(constraint->parent()),
-                          constraint->endEvent(),
-                          constraint->startDate() + duration,
+    m_cmd = new MoveEvent(iscore::IDocument::path(constraint.parent()),
+                          constraint.endEvent(),
+                          constraint.startDate() + duration,
                           endEvent.heightPercentage(),
                           mode);
 }
@@ -50,7 +49,6 @@ void ResizeConstraint::redo()
 {
     m_cmd->redo();
 }
-
 
 
 void ResizeConstraint::serializeImpl(QDataStream& s) const

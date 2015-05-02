@@ -81,21 +81,21 @@ class ObjectPath
          * @todo search starting from another object, for more performance.
          */
         template<typename T>
-        T* find() const
+        T& find() const
         {
             // First see if the pointer is still loaded in the cache.
             if(!m_cache.isNull())
             {
                 auto ptr = dynamic_cast<T*>(m_cache.data());
                 Q_ASSERT(ptr);
-                return ptr;
+                return *ptr;
             }
             else // Load it by hand
             {
                 auto ptr = dynamic_cast<T*>(find_impl());
                 Q_ASSERT(ptr);
                 m_cache = const_cast<typename std::remove_const<T>::type*>(ptr);
-                return ptr;
+                return *ptr;
             }
         }
 

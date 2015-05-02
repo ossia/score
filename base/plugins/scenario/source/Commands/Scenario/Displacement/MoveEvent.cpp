@@ -29,30 +29,30 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    const auto& movedEvent = scenar->event(m_eventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    const auto& movedEvent = scenar.event(m_eventId);
     m_oldHeightPosition = movedEvent.heightPercentage();
     m_oldDate = movedEvent.date();
 
-    StandardDisplacementPolicy::getRelatedElements(*scenar,
-                                                   scenar->event(m_eventId).timeNode(),
+    StandardDisplacementPolicy::getRelatedElements(scenar,
+                                                   scenar.event(m_eventId).timeNode(),
                                                    m_movableTimenodes);
 
     // 1. Make a list of the constraints that need to be resized
     QSet<id_type<ConstraintModel>> constraints;
     for(const auto& tn_id : m_movableTimenodes)
     {
-        const auto& tn = scenar->timeNode(tn_id);
+        const auto& tn = scenar.timeNode(tn_id);
         for(const auto& ev_id : tn.events())
         {
-            constraints += scenar->event(ev_id).constraints().toList().toSet();
+            constraints += scenar.event(ev_id).constraints().toList().toSet();
         }
     }
 
     // 2. Save them
     for(const auto& cst_id : constraints)
     {
-        const auto& constraint = scenar->constraint(cst_id);
+        const auto& constraint = scenar.constraint(cst_id);
 
         // Save the constraint data
         QByteArray arr;
@@ -73,12 +73,12 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 
 void MoveEvent::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    auto& event = scenar->event(m_eventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    auto& event = scenar.event(m_eventId);
 
     event.setHeightPercentage(m_oldHeightPosition);
     StandardDisplacementPolicy::updatePositions(
-                *scenar,
+                scenar,
                 m_movableTimenodes,
                 m_oldDate - event.date(),
                 [&] (ProcessSharedModelInterface* , const TimeValue& ) {  });
@@ -92,14 +92,14 @@ void MoveEvent::undo()
                     ObjectPath{obj.first.first}};
         cmd1->redo();
 
-        ConstraintModel* constraint = obj.first.first.find<ConstraintModel>();
+        auto& constraint = obj.first.first.find<ConstraintModel>();
         // 2. Restore the boxes & processes.
         // TODO if possible refactor this with CopyConstraintContent
         // Be careful however, the code differs in subtle ways
         {
             ConstraintModel src_constraint{
                     Deserializer<DataStream>{obj.first.second},
-                    constraint}; // Temporary parent
+                    &constraint}; // Temporary parent
 
             std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
 
@@ -108,10 +108,10 @@ void MoveEvent::undo()
             for(auto i = src_procs.size(); i --> 0; )
             {
                 auto sourceproc = src_procs[i];
-                auto newproc = sourceproc->clone(sourceproc->id(), constraint);
+                auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
 
                 processPairs.insert(std::make_pair(sourceproc, newproc));
-                constraint->addProcess(newproc);
+                constraint.addProcess(newproc);
             }
 
             // Clone the boxes
@@ -136,13 +136,13 @@ void MoveEvent::undo()
                                 target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                             }
                         },
-                        constraint};
-                constraint->addBox(newbox);
+                        &constraint};
+                constraint.addBox(newbox);
             }
         }
 
         // 3. Restore the correct boxes in the constraint view models
-        for(auto& viewmodel : constraint->viewModels())
+        for(auto& viewmodel : constraint.viewModels())
         {
             viewmodel->showBox(obj.second[viewmodel->id()]);
         }
@@ -151,12 +151,12 @@ void MoveEvent::undo()
 
 void MoveEvent::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    auto& event = scenar->event(m_eventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    auto& event = scenar.event(m_eventId);
 
     event.setHeightPercentage(m_newHeightPosition);
     StandardDisplacementPolicy::updatePositions(
-                *scenar,
+                scenar,
                 m_movableTimenodes,
                 m_newDate - event.date(),
                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)

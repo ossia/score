@@ -68,16 +68,16 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
                 auto overlay = dynamic_cast<DeckOverlay*>(m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform()));
                 if(overlay)
                 {
-                    auto baseDeck = dragDeck->currentDeck.find<DeckModel>();
+                    auto& baseDeck = dragDeck->currentDeck.find<DeckModel>();
                     auto& releasedDeck = overlay->deckView.presenter.model();
                     // If it is the same, we do nothing.
                     // If it is another, we swap them
-                    if(releasedDeck.id() != baseDeck->id()
-                    && releasedDeck.parent() == baseDeck->parent())
+                    if(releasedDeck.id() != baseDeck.id()
+                    && releasedDeck.parent() == baseDeck.parent())
                     {
                         auto cmd = new Scenario::Command::SwapDecks{
                                        iscore::IDocument::path(releasedDeck.parent()), // Box
-                                       baseDeck->id(), releasedDeck.id()};
+                                       baseDeck.id(), releasedDeck.id()};
                         m_dispatcher.submitCommand(cmd);
                     }
                 }
@@ -114,7 +114,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
             connect(press, &QAbstractState::entered, [=] ()
             {
                 m_originalPoint = m_sm.scenePoint;
-                m_originalHeight = resizeDeck->currentDeck.find<DeckModel>()->height();
+                m_originalHeight = resizeDeck->currentDeck.find<DeckModel>().height();
             });
 
             connect(move, &QAbstractState::entered, [=] ( )

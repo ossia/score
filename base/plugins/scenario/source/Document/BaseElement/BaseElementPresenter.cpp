@@ -90,7 +90,7 @@ void BaseElementPresenter::setDisplayedObject(ObjectPath path)
     if(path.vec().last().objectName() == "ConstraintModel"
     || path.vec().last().objectName() == "BaseConstraintModel")
     {
-        setDisplayedConstraint(path.find<ConstraintModel>());
+        setDisplayedConstraint(&path.find<ConstraintModel>());
     }
 }
 

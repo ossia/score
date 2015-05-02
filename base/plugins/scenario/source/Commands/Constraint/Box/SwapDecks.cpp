@@ -25,8 +25,8 @@ void SwapDecks::undo()
 
 void SwapDecks::redo()
 {
-    auto box = m_boxPath.find<BoxModel>();
-    box->swapDecks(m_first, m_second);
+    auto& box = m_boxPath.find<BoxModel>();
+    box.swapDecks(m_first, m_second);
 }
 
 

@@ -14,12 +14,12 @@ RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, id_type<
 
 void RemoveClientFromGroup::undo()
 {
-    m_path.find<GroupManager>()->group(m_group)->addClient(m_client);
+    m_path.find<GroupManager>().group(m_group)->addClient(m_client);
 }
 
 void RemoveClientFromGroup::redo()
 {
-    m_path.find<GroupManager>()->group(m_group)->removeClient(m_client);
+    m_path.find<GroupManager>().group(m_group)->removeClient(m_client);
 }
 
 void RemoveClientFromGroup::serializeImpl(QDataStream& s) const

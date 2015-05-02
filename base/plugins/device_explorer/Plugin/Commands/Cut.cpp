@@ -25,10 +25,9 @@ Cut::set(const Path &parentPath, int row,
 void
 Cut::undo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
+    auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
 
@@ -36,7 +35,7 @@ Cut::undo()
 
     if(index.isValid())
     {
-        result = model->pasteBefore_aux(index);
+        result = model.pasteBefore_aux(index);
     }
     else
     {
@@ -47,22 +46,21 @@ Cut::undo()
             index = parentIndex;
         }
         Q_ASSERT(index.isValid());
-        result = model->pasteAfter_aux(index);
+        result = model.pasteAfter_aux(index);
     }
 
-    model->setCachedResult(result);
+    model.setCachedResult(result);
 }
 
 void
 Cut::redo()
 {
-    auto model = m_model.find<DeviceExplorerModel>();
-    Q_ASSERT(model);
-    QModelIndex parentIndex = model->pathToIndex(m_parentPath);
+    auto& model = m_model.find<DeviceExplorerModel>();
+    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
-    const DeviceExplorer::Result result = model->cut_aux(index);
-    model->setCachedResult(result);
+    const DeviceExplorer::Result result = model.cut_aux(index);
+    model.setCachedResult(result);
 
 }
 

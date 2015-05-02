@@ -21,12 +21,12 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
     m_startEventId {startEvent},
     m_endEventId {endEvent}
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    m_createdConstraintId = getStrongId(scenar->constraints());
+    auto& scenar = m_path.find<ScenarioModel>();
+    m_createdConstraintId = getStrongId(scenar.constraints());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : viewModels(*scenar))
+    for(auto& viewModel : viewModels(scenar))
     {
         m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
     }
@@ -37,26 +37,26 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
 
 void CreateConstraint::undo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find<ScenarioModel>();
 
-    StandardRemovalPolicy::removeConstraint(*scenar, m_createdConstraintId);
+    StandardRemovalPolicy::removeConstraint(scenar, m_createdConstraintId);
 }
 
 void CreateConstraint::redo()
 {
-    auto scenar = m_path.find<ScenarioModel>();
-    auto& sev = scenar->event(m_startEventId);
-    auto& eev = scenar->event(m_endEventId);
+    auto& scenar = m_path.find<ScenarioModel>();
+    auto& sev = scenar.event(m_startEventId);
+    auto& eev = scenar.event(m_endEventId);
 
     CreateConstraintMin::redo(m_createdConstraintId,
                               m_createdConstraintFullViewId,
                               sev, eev,
                               (sev.heightPercentage() + eev.heightPercentage()) / 2.,
-                              *scenar);
+                              scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
-                               *scenar);
+                               scenar);
 }
 
 
