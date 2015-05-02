@@ -13,10 +13,10 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 
     public:
         template<typename... Args>
-        IdentifiedObject(id_type<tag> id,
+        IdentifiedObject(const id_type<tag>& id,
                          Args&& ... args) :
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
-        m_id {id}
+            m_id {id}
         {
         }
 
