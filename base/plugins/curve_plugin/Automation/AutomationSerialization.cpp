@@ -73,7 +73,7 @@ ProcessSharedModelInterface* AutomationFactory::loadModel(
     { return new AutomationModel{deserializer, parent};});
 }
 
-ProcessViewModelInterface* AutomationModel::loadViewModel(
+ProcessViewModelInterface* AutomationModel::loadViewModel_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -82,7 +82,6 @@ ProcessViewModelInterface* AutomationModel::loadViewModel(
         auto autom = new AutomationViewModel{
                         deserializer, *this, parent};
 
-        this->addViewModel(autom);
         return autom;
     });
 }

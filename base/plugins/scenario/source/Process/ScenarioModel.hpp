@@ -47,12 +47,12 @@ class ScenarioModel : public ProcessSharedModelInterface
 
         //// ProcessSharedModelInterface specifics ////
         QByteArray makeViewModelConstructionData() const override;
-        ProcessViewModelInterface* makeViewModel(
+        ProcessViewModelInterface* makeViewModel_impl(
                 const id_type<ProcessViewModelInterface>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
 
-        ProcessViewModelInterface* cloneViewModel(
+        ProcessViewModelInterface* cloneViewModel_impl(
                 const id_type<ProcessViewModelInterface>& newId,
                 const ProcessViewModelInterface& source,
                 QObject* parent) override;
@@ -134,8 +134,6 @@ class ScenarioModel : public ProcessSharedModelInterface
             emit unlocked();
         }
 
-        void on_viewModelDestroyed(QObject*);
-
     protected:
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -144,7 +142,7 @@ class ScenarioModel : public ProcessSharedModelInterface
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelInterface* loadViewModel(
+        virtual ProcessViewModelInterface* loadViewModel_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 

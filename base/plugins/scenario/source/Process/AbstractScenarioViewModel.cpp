@@ -43,7 +43,7 @@ AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
 #include "Process/ScenarioModel.hpp"
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const id_type<ConstraintModel>& constraintId,
-                                ScenarioModel* scenario)
+                                const ScenarioModel& scenario)
 {
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenario))

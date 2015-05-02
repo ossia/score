@@ -75,7 +75,7 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
     return arr;
 }
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel(
+ProcessViewModelInterface* ScenarioModel::makeViewModel_impl(
         const id_type<ProcessViewModelInterface>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -90,7 +90,7 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel(
 }
 
 
-ProcessViewModelInterface* ScenarioModel::cloneViewModel(
+ProcessViewModelInterface* ScenarioModel::cloneViewModel_impl(
         const id_type<ProcessViewModelInterface>& newId,
         const ProcessViewModelInterface& source,
         QObject* parent)
@@ -238,12 +238,6 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 
 void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 {
-    // TODO this is dangerous since it has to be put for every process.
-    addViewModel(scen);
-
-    connect(scen, &TemporalScenarioViewModel::destroyed,
-            this, &ScenarioModel::on_viewModelDestroyed);
-
     // TODO why no ConstraintCreated ?
     connect(this, &ScenarioModel::constraintRemoved,
             scen, &view_model_type::on_constraintRemoved);
@@ -350,11 +344,4 @@ EventModel& ScenarioModel::startEvent() const
 EventModel& ScenarioModel::endEvent() const
 {
     return event(m_endEventId);
-}
-
-
-
-void ScenarioModel::on_viewModelDestroyed(QObject* obj)
-{
-    removeViewModel(static_cast<ProcessViewModelInterface*>(obj));
 }

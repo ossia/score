@@ -112,4 +112,4 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& 
 using ConstraintViewModelIdMap = QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>>;
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const id_type<ConstraintModel>& constraint,
-                                ScenarioModel* scenario);
+                                const ScenarioModel& scenario);

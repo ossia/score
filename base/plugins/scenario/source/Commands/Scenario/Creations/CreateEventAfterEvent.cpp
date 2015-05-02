@@ -34,7 +34,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : viewModels(scenar))
+    for(auto& viewModel : viewModels(*scenar))
     {
         m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
     }
@@ -63,7 +63,7 @@ void CreateEventAfterEvent::redo()
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
-                               scenar);
+                               *scenar);
 }
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const

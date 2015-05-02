@@ -143,7 +143,7 @@ ProcessSharedModelInterface* ScenarioFactory::loadModel(
     { return new ScenarioModel{deserializer, parent};});
 }
 
-ProcessViewModelInterface* ScenarioModel::loadViewModel(
+ProcessViewModelInterface* ScenarioModel::loadViewModel_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

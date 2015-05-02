@@ -34,16 +34,12 @@ class AutomationModel : public ProcessSharedModelInterface
         //// ProcessSharedModelInterface ////
         QString processName() const override;
 
-        ProcessViewModelInterface* makeViewModel(
+        ProcessViewModelInterface* makeViewModel_impl(
                 const id_type<ProcessViewModelInterface>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
-        ProcessViewModelInterface* loadViewModel(
+        ProcessViewModelInterface* loadViewModel_impl(
                 const VisitorVariant&,
-                QObject* parent) override;
-        ProcessViewModelInterface* cloneViewModel(
-                const id_type<ProcessViewModelInterface>& newId,
-                const ProcessViewModelInterface& source,
                 QObject* parent) override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
@@ -98,6 +94,11 @@ class AutomationModel : public ProcessSharedModelInterface
             emit addressChanged(arg);
         }
 
+    protected:
+        ProcessViewModelInterface* cloneViewModel_impl(
+                const id_type<ProcessViewModelInterface>& newId,
+                const ProcessViewModelInterface& source,
+                QObject* parent) override;
 
     private:
         QString m_address;
