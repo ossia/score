@@ -30,45 +30,23 @@ m_control {new ScenarioControl{nullptr}}
 }
 
 // Interfaces implementations :
-QStringList ScenarioPlugin::document_list() const
-{
-    return {"Scenario document"};
-}
-
 #include "Document/BaseElement/ScenarioDocument.hpp"
-iscore::DocumentDelegateFactoryInterface* ScenarioPlugin::document_make(QString name)
+QList<iscore::DocumentDelegateFactoryInterface*> ScenarioPlugin::documents()
 {
-    if(name == QString("Scenario document"))
-    {
-        return new ScenarioDocument;
-    }
-
-    return nullptr;
+    return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* ScenarioPlugin::control_make()
+iscore::PluginControlInterface* ScenarioPlugin::control()
 {
     return m_control;
 }
 
-QStringList ScenarioPlugin::panel_list() const
+QList<iscore::PanelFactoryInterface*> ScenarioPlugin::panels()
 {
-    // Disabled for now.
-    // return {"ProcessPanel"};
-
-    qDebug() << Q_FUNC_INFO << "TODO";
-    return {};
+    return {/*new ProcessPanelFactory*/};
 }
 
-iscore::PanelFactoryInterface*ScenarioPlugin::panel_make(QString name)
-{
-    if(name == "ProcessPanel")
-        return new ProcessPanelFactory;
-
-    return nullptr;
-}
-
-QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
+QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies()
 {
     return {{"Process",
             std::bind(&ProcessList::registerProcess,
@@ -77,7 +55,7 @@ QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies_make()
     };
 }
 
-QVector<iscore::FactoryInterface*> ScenarioPlugin::factories_make(QString factoryName)
+QVector<iscore::FactoryInterface*> ScenarioPlugin::factories(const QString& factoryName)
 {
     if(factoryName == "Process")
     {

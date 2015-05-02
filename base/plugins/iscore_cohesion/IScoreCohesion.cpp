@@ -5,7 +5,7 @@ IScoreCohesion::IScoreCohesion() :
 {
 }
 
-iscore::PluginControlInterface* IScoreCohesion::control_make()
+iscore::PluginControlInterface* IScoreCohesion::control()
 {
     return new IScoreCohesionControl {nullptr};
 }

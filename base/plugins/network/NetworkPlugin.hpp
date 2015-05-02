@@ -21,22 +21,10 @@ class NetworkPlugin :
 
     public:
         NetworkPlugin();
-        virtual ~NetworkPlugin() = default;
 
-        // Settings interface
-        virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
+        iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        // CustomCommand interface
-        virtual iscore::PluginControlInterface* control_make() override;
+        iscore::PluginControlInterface* control() override;
 
-
-
-        // PanelFactoryInterface_QtInterface interface
-    public:
-        // TODO replace this by a "Make all panel" interface
-        virtual QStringList panel_list() const override
-        {
-            return {"GroupPanel"};
-        }
-        virtual iscore::PanelFactoryInterface *panel_make(QString name) override;
+        QList<iscore::PanelFactoryInterface*> panels() override;
 };

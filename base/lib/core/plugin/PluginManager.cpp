@@ -127,7 +127,7 @@ void PluginManager::loadFactories(QObject* plugin)
 
     if(facfam_interface)
     {
-        m_customFamilies += facfam_interface->factoryFamilies_make();
+        m_customFamilies += facfam_interface->factoryFamilies();
     }
 }
 
@@ -141,7 +141,7 @@ void PluginManager::dispatch(QObject* plugin)
 
     if(cmd_plugin)
     {
-        m_commandList.push_back(cmd_plugin->control_make());
+        m_commandList.push_back(cmd_plugin->control());
     }
 
     if(settings_plugin)
@@ -151,25 +151,19 @@ void PluginManager::dispatch(QObject* plugin)
 
     if(panel_plugin)
     {
-        for(auto name : panel_plugin->panel_list())
-        {
-            m_panelList.push_back(panel_plugin->panel_make(name));
-        }
+        m_panelList += panel_plugin->panels();
     }
 
     if(docpanel_plugin)
     {
-        for(auto name : docpanel_plugin->document_list())
-        {
-            m_documentPanelList.push_back(docpanel_plugin->document_make(name));
-        }
+        m_documentPanelList += docpanel_plugin->documents();
     }
 
     if(factories_plugin)
     {
         for(FactoryFamily& factory_family : m_customFamilies)
         {
-            auto new_factories = factories_plugin->factories_make(factory_family.name);
+            auto new_factories = factories_plugin->factories(factory_family.name);
 
             for(auto new_factory : new_factories)
             {

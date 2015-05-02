@@ -11,12 +11,12 @@ CurvePlugin::CurvePlugin() :
     setObjectName("CurvePlugin");
 }
 
-iscore::PluginControlInterface* CurvePlugin::control_make()
+iscore::PluginControlInterface* CurvePlugin::control()
 {
     return new AutomationControl{nullptr};
 }
 
-QVector<iscore::FactoryInterface*> CurvePlugin::factories_make(QString factoryName)
+QVector<iscore::FactoryInterface*> CurvePlugin::factories(const QString& factoryName)
 {
     if(factoryName == "Process")
     {

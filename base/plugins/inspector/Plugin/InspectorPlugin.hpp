@@ -20,16 +20,14 @@ class InspectorPlugin :
 
     public:
         InspectorPlugin();
-        virtual ~InspectorPlugin() = default;
 
         // Panel interface
-        virtual QStringList panel_list() const override;
-        virtual iscore::PanelFactoryInterface* panel_make(QString name) override;
+        QList<iscore::PanelFactoryInterface*> panels() override;
 
         // Offre la factory de Inspector
-        virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+        QVector<iscore::FactoryFamily> factoryFamilies() override;
 
-        virtual iscore::PluginControlInterface* control_make() override;
+        iscore::PluginControlInterface* control() override;
 
     private:
         InspectorControl* m_inspectorControl;

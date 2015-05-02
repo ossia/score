@@ -97,19 +97,16 @@ class DeviceExplorerPlugin :
 
     public:
         DeviceExplorerPlugin();
-        virtual ~DeviceExplorerPlugin() = default;
 
         // Panel interface
-        virtual QStringList panel_list() const override;
-        virtual iscore::PanelFactoryInterface* panel_make(QString name) override;
-
+        QList<iscore::PanelFactoryInterface*> panels() override;
 
         // Factory for protocols
-        virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+        QVector<iscore::FactoryFamily> factoryFamilies() override;
 
         // Contains the OSC, MIDI, Minuit factories
-        virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
+        QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 
         // Control
-        virtual iscore::PluginControlInterface* control_make() override;
+        iscore::PluginControlInterface* control() override;
 };

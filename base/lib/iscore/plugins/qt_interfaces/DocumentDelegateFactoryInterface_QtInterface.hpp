@@ -8,10 +8,7 @@ namespace iscore
     {
         public:
             virtual ~DocumentDelegateFactoryInterface_QtInterface() = default;
-
-            // List the possible documents kinds.
-            virtual QStringList document_list() const = 0;
-            virtual DocumentDelegateFactoryInterface* document_make(QString name) = 0;
+            virtual QList<DocumentDelegateFactoryInterface*> documents() = 0;
     };
 }
 

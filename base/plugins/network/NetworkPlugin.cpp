@@ -21,17 +21,13 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
     return new NetworkSettings;
 }
 
-iscore::PluginControlInterface* NetworkPlugin::control_make()
+iscore::PluginControlInterface* NetworkPlugin::control()
 {
     return new NetworkControl;
 }
 
-iscore::PanelFactoryInterface *NetworkPlugin::panel_make(QString name)
+QList<iscore::PanelFactoryInterface*> NetworkPlugin::panels()
 {
-    if(name == "GroupPanel")
-    {
-        return new GroupPanelFactory;
-    }
-    return nullptr;
+    return {new GroupPanelFactory};
 }
 

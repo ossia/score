@@ -14,10 +14,10 @@ namespace iscore
     class SettingsDelegateFactoryInterface;
 
     using FactoryFamilyList = QVector<FactoryFamily>;
-    using CommandList = std::vector<PluginControlInterface*>;
-    using PanelList = std::vector<PanelFactoryInterface*>;
-    using DocumentPanelList = std::vector<DocumentDelegateFactoryInterface*>;
-    using SettingsList = std::vector<SettingsDelegateFactoryInterface*>;
+    using CommandList = QList<PluginControlInterface*>;
+    using PanelList = QList<PanelFactoryInterface*>;
+    using DocumentPanelList = QList<DocumentDelegateFactoryInterface*>;
+    using SettingsList = QList<SettingsDelegateFactoryInterface*>;
 
     /**
      * @brief The PluginManager class loads and keeps track of the plug-ins.

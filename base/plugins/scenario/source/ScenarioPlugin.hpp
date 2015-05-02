@@ -26,24 +26,21 @@ class ScenarioPlugin :
 
     public:
         ScenarioPlugin();
-        virtual ~ScenarioPlugin() = default;
 
         // Docpanel interface
-        virtual QStringList document_list() const override;
-        virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
+        QList<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Plugin control interface
-        virtual iscore::PluginControlInterface* control_make() override;
+        iscore::PluginControlInterface* control() override;
 
-        virtual QStringList panel_list() const override;
-        virtual iscore::PanelFactoryInterface* panel_make(QString name) override;
+        QList<iscore::PanelFactoryInterface*> panels() override;
 
         // Offre la factory de Process
-        virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+        QVector<iscore::FactoryFamily> factoryFamilies() override;
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-        virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
+        QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 
     private:
         ScenarioControl* m_control;

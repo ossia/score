@@ -28,6 +28,6 @@ class IScoreCohesion:
         IScoreCohesion();
         virtual ~IScoreCohesion() = default;
 
-        virtual iscore::PluginControlInterface* control_make() override;
+        virtual iscore::PluginControlInterface* control() override;
 };
 

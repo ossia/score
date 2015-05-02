@@ -14,22 +14,13 @@ InspectorPlugin::InspectorPlugin() :
     setObjectName("InspectorPlugin");
 }
 
-QStringList InspectorPlugin::panel_list() const
+
+QList<iscore::PanelFactoryInterface*> InspectorPlugin::panels()
 {
-    return {"Inspector Panel"};
+    return {new InspectorPanelFactory};
 }
 
-PanelFactoryInterface* InspectorPlugin::panel_make(QString name)
-{
-    if(name == "Inspector Panel")
-    {
-        return new InspectorPanelFactory;
-    }
-
-    return nullptr;
-}
-
-QVector<FactoryFamily> InspectorPlugin::factoryFamilies_make()
+QVector<FactoryFamily> InspectorPlugin::factoryFamilies()
 {
     return {{"Inspector",
              [&] (iscore::FactoryInterface* fact)
@@ -39,7 +30,7 @@ QVector<FactoryFamily> InspectorPlugin::factoryFamilies_make()
            }};
 }
 
-PluginControlInterface* InspectorPlugin::control_make()
+PluginControlInterface* InspectorPlugin::control()
 {
     return m_inspectorControl;
 }

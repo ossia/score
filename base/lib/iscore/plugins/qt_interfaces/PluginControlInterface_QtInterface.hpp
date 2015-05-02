@@ -9,7 +9,7 @@ namespace iscore
         public:
             virtual ~PluginControlInterface_QtInterface() = default;
 
-            virtual PluginControlInterface* control_make() = 0;
+            virtual PluginControlInterface* control() = 0;
     };
 }
 

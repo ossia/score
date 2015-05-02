@@ -10,9 +10,7 @@ namespace iscore
         public:
             virtual ~PanelFactoryInterface_QtInterface() = default;
 
-            // List the panels offered by the plugin.
-            virtual QStringList panel_list() const = 0;
-            virtual PanelFactoryInterface* panel_make(QString name) = 0;
+            virtual QList<PanelFactoryInterface*> panels() = 0;
     };
 }
 
