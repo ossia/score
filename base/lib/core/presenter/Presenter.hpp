@@ -48,7 +48,8 @@ namespace iscore
             Document* currentDocument() const;
             void setCurrentDocument(Document* doc);
 
-            void closeDocument(Document*);
+            // Returns true if the document was closed.
+            bool closeDocument(Document*);
 
             // Methods to save and load
             void saveBinary(Document*);

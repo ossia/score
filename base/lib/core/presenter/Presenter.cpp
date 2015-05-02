@@ -107,7 +107,7 @@ void Presenter::setCurrentDocument(Document* doc)
 }
 
 #include <QMessageBox>
-void Presenter::closeDocument(Document* doc)
+bool Presenter::closeDocument(Document* doc)
 {
     // Warn the user if he might loose data
     if(!doc->commandStack().isAtSavedIndex())
@@ -124,12 +124,12 @@ void Presenter::closeDocument(Document* doc)
             if(saveJson(doc))
                 break;
             else
-                return;
+                return false;
         case QMessageBox::Discard:
             // Do nothing
             break;
         case QMessageBox::Cancel:
-            return;
+            return false;
             break;
         default:
             break;
@@ -143,6 +143,7 @@ void Presenter::closeDocument(Document* doc)
     setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);
 
     delete doc;
+    return true;
 }
 
 void Presenter::saveBinary(Document * doc)
@@ -333,7 +334,16 @@ void Presenter::setupMenus()
 
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
-                                        &QApplication::quit);
+                                        [&] () {
+        while(!m_documents.empty())
+        {
+            bool b = closeDocument(m_documents.last());
+            if(!b)
+                return;
+        }
+
+        qApp->quit();
+    });
 
     ////// View //////
     m_menubar.addMenuIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
