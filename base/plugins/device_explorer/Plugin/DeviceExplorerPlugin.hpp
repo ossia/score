@@ -7,7 +7,7 @@
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 #include "Singletons/SingletonProtocolList.hpp"
 
-
+/*
 class SingletonDeviceList
 {
     public:
@@ -79,7 +79,7 @@ class SingletonDeviceList
     private:
         static DeviceList m_instance;
 };
-
+*/
 class DeviceExplorerPlugin :
     public QObject,
     public iscore::PanelFactoryInterface_QtInterface,

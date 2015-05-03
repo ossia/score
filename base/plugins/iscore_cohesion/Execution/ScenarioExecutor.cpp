@@ -14,14 +14,16 @@ void executeState(const State& state)
     if(state.data().canConvert<MessageList>())
     {
         auto ml = state.data().value<MessageList>();
+        /*
         for(auto& message : ml)
         {
             SingletonDeviceList::sendMessage(message);
         }
+        */
     }
     else if(state.data().canConvert<Message>())
     {
-        SingletonDeviceList::sendMessage(state.data().value<Message>());
+        //SingletonDeviceList::sendMessage(state.data().value<Message>());
     }
     else if(state.data().canConvert<StateList>())
     {
@@ -67,7 +69,7 @@ class EventExecutor
         bool check()
         {
             using namespace std;
-            if(m_event.condition().isEmpty() || SingletonDeviceList::check(m_event.condition())) // TODO check here
+            if(m_event.condition().isEmpty() /*|| SingletonDeviceList::check(m_event.condition())*/) // TODO check here
             {
                 if(m_previousConstraints.empty())
                 {

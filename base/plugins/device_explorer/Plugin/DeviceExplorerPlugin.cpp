@@ -8,15 +8,6 @@ using namespace iscore;
 #include "DeviceExplorerControl.hpp"
 
 
-DeviceList  SingletonDeviceList::m_instance;
-DeviceList& SingletonDeviceList::instance()
-{
-    return m_instance;
-}
-
-
-
-
 DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},
 iscore::PanelFactoryInterface_QtInterface {}

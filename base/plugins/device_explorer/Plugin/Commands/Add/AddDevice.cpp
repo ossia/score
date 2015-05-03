@@ -182,8 +182,6 @@ void AddDevice::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
     explorer.removeRow(m_row);
-
-    SingletonDeviceList::instance().removeDevice(m_parameters.name);
 }
 
 void AddDevice::redo()
@@ -191,9 +189,11 @@ void AddDevice::redo()
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
     // Instantiate a real device.
+    /*
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     auto dev = proto->makeDevice(m_parameters);
     SingletonDeviceList::instance().addDevice(dev);
+    */
 
     // Put it in the tree.
 
