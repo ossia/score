@@ -12,4 +12,8 @@ class DeviceExplorerControl : public iscore::PluginControlInterface
         iscore::SerializableCommand*
         instantiateUndoCommand(const QString & name,
                                const QByteArray & arr) override;
+
+    protected:
+        void on_newDocument(iscore::Document* doc) override;
+        void on_documentChanged() override;
 };

@@ -10,6 +10,8 @@
 #include "Commands/Remove.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
+
+#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
 DeviceExplorerControl::DeviceExplorerControl() :
     PluginControlInterface {"DeviceExplorerControl", nullptr}
 {
@@ -63,4 +65,23 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
 
     cmd->deserialize(arr);
     return cmd;
+}
+
+#include <core/document/DocumentModel.hpp>
+void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
+{
+    // TODO should not be called for loading
+    doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
+
+    // connect the device document plugin to the device explorer model in this document
+    // (do the connection from the point of view of the device explorer model, it's more sensical)
+    //
+    // Hence, in the building order, one must come before the other, preferably the document plug-in.
+    // hence PluginControl::on_newDocument has to be called first, and then the new PanelModel...
+}
+
+void DeviceExplorerControl::on_documentChanged()
+{
+    // disconnect ...
+    // connect(device explorer widget, document->device plugin
 }

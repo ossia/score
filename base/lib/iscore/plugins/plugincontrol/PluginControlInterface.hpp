@@ -53,6 +53,7 @@ namespace iscore
         protected:
             virtual void on_presenterChanged();
             virtual void on_documentChanged();
+            virtual void on_newDocument(iscore::Document* doc);
 
         private:
             Presenter* m_presenter{};

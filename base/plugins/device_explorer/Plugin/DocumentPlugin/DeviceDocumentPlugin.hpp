@@ -2,7 +2,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-
+#include <DeviceExplorer/Protocol/DeviceList.hpp>
 namespace iscore
 {
     class Document;
@@ -12,10 +12,13 @@ namespace iscore
 class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
     public:
-        DeviceDocumentPlugin(iscore::DocumentModel *doc);
+        DeviceDocumentPlugin(QObject* parent);
+        DeviceDocumentPlugin(const VisitorVariant& loader,
+                             QObject* parent);
 
-        //NetworkDocumentPlugin(const VisitorVariant& loader, iscore::DocumentModel* doc);
+        void serialize(const VisitorVariant&) const override;
 
-        void serialize(const VisitorVariant&) const override { }
+    private:
+        DeviceList m_list;
 };
 

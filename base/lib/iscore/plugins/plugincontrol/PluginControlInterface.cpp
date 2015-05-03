@@ -62,6 +62,11 @@ void PluginControlInterface::on_documentChanged()
 
 }
 
+void PluginControlInterface::on_newDocument(iscore::Document* doc)
+{
+
+}
+
 void PluginControlInterface::on_presenterChanged()
 {
 

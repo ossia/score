@@ -4,7 +4,8 @@
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 
-
+// Everything here should throw exceptions
+// that are to be catched in the document plugin
 class DeviceInterface : public QObject
 {
         Q_OBJECT
