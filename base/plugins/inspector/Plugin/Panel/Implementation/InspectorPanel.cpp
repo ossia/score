@@ -13,8 +13,8 @@ InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :
     m_selectionDispatcher{s}
 {
     m_layout->setMargin(0);
-    setMinimumWidth(250);
-//    setMaximumWidth(250);
+    setMinimumWidth(300);
+    setMaximumWidth(300);
     m_layout->addWidget(m_tabWidget);
 }
 
