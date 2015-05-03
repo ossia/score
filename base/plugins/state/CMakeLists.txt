@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(StateLibrary)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0042 NEW)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
