@@ -2,6 +2,7 @@
 #include <QString>
 #include <State/Message.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
+#include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 
 
 class DeviceInterface : public QObject
@@ -18,14 +19,18 @@ class DeviceInterface : public QObject
         const DeviceSettings& settings() const
         { return m_settings; }
 
-//        virtual void addPath(const AddressSettings& address) = 0;
+        virtual void addPath(const AddressSettings& address) = 0;
+        virtual void updatePath(const AddressSettings& address) = 0;
         virtual void removePath(const QString& path) = 0;
 
         virtual void sendMessage(Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
     signals:
-        void deviceUpdated();
+        // These signals are emitted if a device changes from the inside
+        void pathAdded(const AddressSettings&);
+        void pathUpdated(const AddressSettings&);
+        void pathRemoved(const QString&);
 
     private:
         DeviceSettings m_settings;

@@ -2,7 +2,6 @@
 #include <QObject>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 #include "Singletons/SingletonProtocolList.hpp"
@@ -84,7 +83,6 @@ class DeviceExplorerPlugin :
     public QObject,
     public iscore::PanelFactory_QtInterface,
     public iscore::FactoryFamily_QtInterface,
-    public iscore::FactoryInterface_QtInterface,
     public iscore::PluginControlInterface_QtInterface
 {
         Q_OBJECT
@@ -92,7 +90,6 @@ class DeviceExplorerPlugin :
         Q_INTERFACES(
                 iscore::PanelFactory_QtInterface
                 iscore::FactoryFamily_QtInterface
-                iscore::FactoryInterface_QtInterface
                 iscore::PluginControlInterface_QtInterface)
 
     public:
@@ -103,9 +100,6 @@ class DeviceExplorerPlugin :
 
         // Factory for protocols
         QVector<iscore::FactoryFamily> factoryFamilies() override;
-
-        // Contains the OSC, MIDI, Minuit factories
-        QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 
         // Control
         iscore::PluginControlInterface* control() override;

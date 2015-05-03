@@ -23,17 +23,27 @@ class OSCDevice : public DeviceInterface
             //node->createAddress(static_cast<OSSIA::AddressValue::Type>(address.type));
         }
 */
-        virtual void removePath(const QString& path) override
+        void addPath(const AddressSettings& address) override
         {
 
         }
 
-        virtual void sendMessage(Message& mess) override
+        void updatePath(const AddressSettings& address) override
         {
-            qDebug() << mess.address << mess.value;
+
         }
 
-        virtual bool check(const QString& str) override
+        void removePath(const QString& path) override
+        {
+
+        }
+
+        void sendMessage(Message& mess) override
+        {
+
+        }
+
+        bool check(const QString& str) override
         {
             return false;
         }

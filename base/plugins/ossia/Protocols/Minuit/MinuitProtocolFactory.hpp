@@ -1,7 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include <DeviceExplorer/Protocol/Minuit/MinuitDevice.hpp>
-#include <DeviceExplorer/Protocol/Minuit/MinuitProtocolSettingsWidget.hpp>
+#include "MinuitDevice.hpp"
+#include "MinuitProtocolSettingsWidget.hpp"
 
 class MinuitProtocolFactory : public ProtocolFactoryInterface
 {

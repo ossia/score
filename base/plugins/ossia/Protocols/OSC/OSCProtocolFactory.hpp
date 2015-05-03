@@ -1,7 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include <DeviceExplorer/Protocol/OSC/OSCDevice.hpp>
-#include <DeviceExplorer/Protocol/OSC/OSCProtocolSettingsWidget.hpp>
+#include "OSCDevice.hpp"
+#include "OSCProtocolSettingsWidget.hpp"
 
 class OSCProtocolFactory : public ProtocolFactoryInterface
 {

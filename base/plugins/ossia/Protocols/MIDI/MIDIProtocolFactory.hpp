@@ -1,7 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include <DeviceExplorer/Protocol/MIDI/MIDIDevice.hpp>
-#include <DeviceExplorer/Protocol/MIDI/MIDIProtocolSettingsWidget.hpp>
+#include "MIDIDevice.hpp"
+#include "MIDIProtocolSettingsWidget.hpp"
 
 class MIDIProtocolFactory : public ProtocolFactoryInterface
 {
