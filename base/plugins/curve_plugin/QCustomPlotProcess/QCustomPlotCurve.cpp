@@ -2,7 +2,8 @@
 
 static const QColor outerColor{QColor{200, 30, 0}};
 static const QColor innerColor{255, 200, 200};
-static const QColor disabledColor{QColor{100, 100, 100, 200}};
+static const QPen enabledPen{outerColor, 3};
+static const QPen disabledPen{QColor{100, 100, 100, 200}};
 
 double clamp(double val, double min, double max)
 {
@@ -119,6 +120,11 @@ class PointsLayer : public QGraphicsItem
             update();
         }
 
+        bool enabled() const
+        {
+            return isVisible();
+        }
+
         PointsLayer(QCustomPlotCurve* parent):
             QGraphicsItem{parent}
         {
@@ -190,7 +196,7 @@ QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
 
 void QCustomPlotCurve::enable()
 {
-    m_pen = QPen{outerColor, 3};
+    m_pen = enabledPen;
     m_plot->graph()->setPen(m_pen);
     m_plot->replot();
     m_points->enable();
@@ -198,7 +204,7 @@ void QCustomPlotCurve::enable()
 
 void QCustomPlotCurve::disable()
 {
-    m_pen = disabledColor;
+    m_pen = disabledPen;
     m_plot->graph()->setPen(m_pen);
     m_plot->replot();
     m_points->disable();
@@ -219,7 +225,9 @@ void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
     m_plot->removeGraph(0);
     auto graph = m_plot->addGraph();
     graph->setData(x, y);
-    graph->setPen(QPen(outerColor, 3));
+    graph->setPen(m_points->enabled()
+                  ? enabledPen
+                  : disabledPen);
     graph->setLineStyle(QCPGraph::lsLine);
 
     m_plot->xAxis->setTicks(false);
