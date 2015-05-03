@@ -367,7 +367,6 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     connect(grow, &QAction::triggered, [=]()
     { if (focusedScenarioViewModel()) stateMachine().setGrowState(); });
 
-
     on_presenterChanged();
 
     bar->addActions(m_scenarioToolActionGroup->actions());

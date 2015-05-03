@@ -15,6 +15,8 @@ namespace iscore
 
 
         protected:
+            // TODO the presenter shouldn't change for the
+            // lifetime of the application.
             void on_presenterChanged() override;
 
         private slots:

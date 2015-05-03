@@ -62,6 +62,7 @@ void iscore::UndoControl::on_documentChanged()
 {
     using namespace iscore;
     auto newDoc = currentDocument();
+
     // Cleanup
     for(auto& connection : m_connections)
         disconnect(connection);
@@ -70,7 +71,9 @@ void iscore::UndoControl::on_documentChanged()
     if(!newDoc)
     {
         m_undoAction->setEnabled(false);
+        m_undoAction->setText(tr("Nothing to undo"));
         m_redoAction->setEnabled(false);
+        m_redoAction->setText(tr("Nothing to redo"));
         return;
     }
 
