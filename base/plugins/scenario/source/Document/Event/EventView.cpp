@@ -50,15 +50,16 @@ void EventView::paint(QPainter* painter,
                       QWidget* widget)
 {
     QColor pen_color = m_color;
+    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
     // Rect
     if(isSelected())
     {
-        pen_color = QApplication::palette().highlight().color();
+        pen_color = highlight;
     }
     else if (isShadow())
     {
-        pen_color = QApplication::palette().highlight().color().lighter();
+        pen_color =highlight.lighter();
     }
 
     // Ball

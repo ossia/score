@@ -22,11 +22,12 @@ void TimeNodeView::paint(QPainter* painter,
                          QWidget* widget)
 {
     QColor pen_color = m_color;
+    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
 
     if(isSelected())
     {
-        pen_color = QApplication::palette().highlight().color();
+        pen_color = highlight;
     }
 
     QPen pen{QBrush(pen_color), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
