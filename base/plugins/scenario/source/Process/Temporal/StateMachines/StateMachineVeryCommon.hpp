@@ -10,6 +10,10 @@ struct ScenarioPoint
         TimeValue date;
         double y;
 };
+inline double clamp(double val, double min, double max)
+{
+    return val < min ? min : (val > max ? max : val);
+}
 
 template<int N>
 struct NumberedEvent : public QEvent
@@ -24,7 +28,11 @@ struct PositionedEventBase : public QEvent
         PositionedEventBase(const ScenarioPoint& pt, QEvent::Type type):
             QEvent{type},
             point(pt)
-        { }
+        {
+            // Here we artificially prevent to move over the header of the box
+            // so that the elements won't disappear in the void.
+            point.y = clamp(point.y, 0.004, 0.99);
+        }
 
         ScenarioPoint point;
 };
