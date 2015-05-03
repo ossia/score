@@ -3,7 +3,7 @@
 #include <QPainter>
 
 AutomationView::AutomationView(QGraphicsObject* parent) :
-    ProcessViewInterface {parent}
+    ProcessView {parent}
 {
     setZValue(parent->zValue() + 1);
     setFlags(ItemClipsChildrenToShape);

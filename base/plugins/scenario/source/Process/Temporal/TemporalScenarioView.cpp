@@ -9,7 +9,7 @@
 #include "TemporalScenarioPresenter.hpp"
 
 TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
-    ProcessViewInterface {parent}
+    ProcessView {parent}
 {
     this->setParentItem(parent);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);

@@ -1,33 +1,33 @@
-#include "ProcessViewInterface.hpp"
+#include "ProcessView.hpp"
 
 
-QRectF ProcessViewInterface::boundingRect() const
+QRectF ProcessView::boundingRect() const
 {
     return {0, 0, m_width, m_height};
 }
 
 
-void ProcessViewInterface::setHeight(qreal height)
+void ProcessView::setHeight(qreal height)
 {
     prepareGeometryChange();
     m_height = height;
 }
 
 
-qreal ProcessViewInterface::height() const
+qreal ProcessView::height() const
 {
     return m_height;
 }
 
 
-void ProcessViewInterface::setWidth(qreal width)
+void ProcessView::setWidth(qreal width)
 {
     prepareGeometryChange();
     m_width = width;
 }
 
 
-qreal ProcessViewInterface::width() const
+qreal ProcessView::width() const
 {
     return m_width;
 }

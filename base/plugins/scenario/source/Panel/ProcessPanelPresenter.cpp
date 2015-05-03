@@ -12,7 +12,7 @@
 #include <ProcessInterface/ProcessViewModel.hpp>
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 #include <ProcessInterface/ProcessPresenter.hpp>
-#include <ProcessInterface/ProcessViewInterface.hpp>
+#include <ProcessInterface/ProcessView.hpp>
 #include <ProcessInterface/ProcessFactoryInterface.hpp>
 
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>

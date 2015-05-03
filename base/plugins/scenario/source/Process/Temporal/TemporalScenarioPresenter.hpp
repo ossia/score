@@ -10,7 +10,7 @@ namespace iscore
     class SerializableCommand;
 }
 class ProcessViewModel;
-class ProcessViewInterface;
+class ProcessView;
 
 class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
@@ -37,7 +37,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
     public:
         TemporalScenarioPresenter(
                 const TemporalScenarioViewModel& model,
-                ProcessViewInterface* view,
+                ProcessView* view,
                 QObject* parent);
         ~TemporalScenarioPresenter();
 

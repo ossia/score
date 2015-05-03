@@ -13,7 +13,7 @@ namespace iscore
 class ProcessPresenter;
 class ProcessModel;
 class ProcessViewModel;
-class ProcessViewInterface;
+class ProcessView;
 class BoxView;
 class DeckPresenter : public NamedObject
 {
@@ -61,7 +61,7 @@ class DeckPresenter : public NamedObject
 
         const DeckModel& m_model;
         DeckView* m_view{};
-        using ProcessPair = QPair<ProcessPresenter*, ProcessViewInterface*>;
+        using ProcessPair = QPair<ProcessPresenter*, ProcessView*>;
         QVector<ProcessPair> m_processes;
 
         // Maybe move this out of the state of the presenter ?

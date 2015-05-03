@@ -1,11 +1,11 @@
 #pragma once
-#include "ProcessInterface/ProcessViewInterface.hpp"
+#include "ProcessInterface/ProcessView.hpp"
 
 #include <QAction>
 #include <QEvent>
 
 class TemporalScenarioPresenter;
-class TemporalScenarioView : public ProcessViewInterface
+class TemporalScenarioView : public ProcessView
 {
         Q_OBJECT
 

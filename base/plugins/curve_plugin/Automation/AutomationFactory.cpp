@@ -12,7 +12,7 @@ ProcessModel* AutomationFactory::makeModel(
     return new AutomationModel {duration, id, parent};
 }
 
-ProcessViewInterface* AutomationFactory::makeView(
+ProcessView* AutomationFactory::makeView(
         const ProcessViewModel& view,
         QObject* parent)
 {
@@ -22,7 +22,7 @@ ProcessViewInterface* AutomationFactory::makeView(
 
 ProcessPresenter* AutomationFactory::makePresenter(
         const ProcessViewModel& viewModel,
-        ProcessViewInterface* view,
+        ProcessView* view,
         QObject* parent)
 {
     return new AutomationPresenter {viewModel, view, parent};

@@ -17,7 +17,7 @@
 
 AutomationPresenter::AutomationPresenter(
         const ProcessViewModel& model,
-        ProcessViewInterface* view,
+        ProcessView* view,
         QObject* parent) :
     ProcessPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationViewModel&>(model)},

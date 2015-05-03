@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ProcessInterface/ProcessViewInterface.hpp>
+#include <ProcessInterface/ProcessView.hpp>
 
-class AutomationView : public ProcessViewInterface
+class AutomationView : public ProcessView
 {
     Q_OBJECT
     public:

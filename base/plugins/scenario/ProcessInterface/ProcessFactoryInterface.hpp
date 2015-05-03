@@ -9,7 +9,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 class ProcessViewModel;
 class ProcessModel;
-class ProcessViewInterface;
+class ProcessView;
 class ProcessPresenter;
 
 /**
@@ -39,10 +39,10 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // Or make it be created by the ViewModel, and the View be created by the presenter.
         virtual ProcessPresenter* makePresenter(
                 const ProcessViewModel&,
-                ProcessViewInterface*,
+                ProcessView*,
                 QObject* parent) = 0;
 
-        virtual ProcessViewInterface* makeView(
+        virtual ProcessView* makeView(
                 const ProcessViewModel& view,
                 QObject* parent) = 0;
 

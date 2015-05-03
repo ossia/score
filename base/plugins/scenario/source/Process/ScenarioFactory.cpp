@@ -10,7 +10,7 @@ QString ScenarioFactory::name() const
     return "Scenario";
 }
 
-ProcessViewInterface* ScenarioFactory::makeView(
+ProcessView* ScenarioFactory::makeView(
         const ProcessViewModel& viewmodel,
         QObject* parent)
 {
@@ -23,7 +23,7 @@ ProcessViewInterface* ScenarioFactory::makeView(
 ProcessPresenter*
 ScenarioFactory::makePresenter(
         const ProcessViewModel& pvm,
-        ProcessViewInterface* view,
+        ProcessView* view,
         QObject* parent)
 {
     if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&pvm))

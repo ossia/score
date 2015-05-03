@@ -5,7 +5,7 @@
 
 class QCustomPlotCurve;
 class QCPGraph;
-class ProcessViewInterface;
+class ProcessView;
 class AutomationViewModel;
 class AutomationView;
 
@@ -14,7 +14,7 @@ class AutomationPresenter : public ProcessPresenter
         Q_OBJECT
     public:
         AutomationPresenter(const ProcessViewModel& model,
-                            ProcessViewInterface* view,
+                            ProcessView* view,
                             QObject* parent);
         ~AutomationPresenter();
 

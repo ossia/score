@@ -8,7 +8,7 @@
 #include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenter.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
-#include "ProcessInterface/ProcessViewInterface.hpp"
+#include "ProcessInterface/ProcessView.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 

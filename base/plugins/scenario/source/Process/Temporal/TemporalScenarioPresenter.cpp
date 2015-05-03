@@ -24,7 +24,7 @@
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         const TemporalScenarioViewModel& process_view_model,
-        ProcessViewInterface* view,
+        ProcessView* view,
         QObject* parent) :
     ProcessPresenter {"TemporalScenarioPresenter", parent},
     m_viewModel {process_view_model},

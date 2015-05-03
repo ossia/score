@@ -2,7 +2,7 @@
 #include <iscore/plugins/panel/PanelPresenterInterface.hpp>
 
 class BaseElementModel;
-class ProcessViewInterface;
+class ProcessView;
 class ProcessPresenter;
 class ProcessViewModel;
 class ProcessPanelPresenter : public iscore::PanelPresenterInterface
@@ -24,5 +24,5 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
         BaseElementModel* m_baseElementModel{};
         const ProcessViewModel* m_processViewModel{};
         ProcessPresenter* m_processPresenter{};
-        ProcessViewInterface* m_processView{};
+        ProcessView* m_processView{};
 };

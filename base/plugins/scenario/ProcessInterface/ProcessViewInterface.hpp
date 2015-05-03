@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
-class ProcessViewInterface : public QGraphicsObject
+class ProcessView : public QGraphicsObject
 {
     public:
         using QGraphicsObject::QGraphicsObject;
