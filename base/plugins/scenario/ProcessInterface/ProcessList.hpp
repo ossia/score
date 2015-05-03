@@ -8,7 +8,7 @@ namespace iscore
     class FactoryInterface;
 }
 
-class ProcessFactoryInterface;
+class ProcessFactory;
 /**
  * @brief The ProcessList class
  *
@@ -20,13 +20,13 @@ class ProcessList : public NamedObject
     public:
         ProcessList(NamedObject* parent);
 
-        ProcessFactoryInterface* getProcess(QString);
+        ProcessFactory* getProcess(QString);
         void registerProcess(iscore::FactoryInterface*);
 
         static QStringList getProcessesName();
-        static ProcessFactoryInterface* getFactory(QString processName);
+        static ProcessFactory* getFactory(QString processName);
 
     private:
         QStringList getProcessesName_impl() const;
-        std::vector<ProcessFactoryInterface*> m_processes;
+        std::vector<ProcessFactory*> m_processes;
 };

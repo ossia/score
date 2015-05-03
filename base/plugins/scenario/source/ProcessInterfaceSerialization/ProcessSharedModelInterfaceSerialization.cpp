@@ -1,5 +1,5 @@
 #include "ProcessModelSerialization.hpp"
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessFactory.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessModel.hpp"

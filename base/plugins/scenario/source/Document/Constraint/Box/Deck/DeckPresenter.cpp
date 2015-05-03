@@ -9,7 +9,7 @@
 #include "ProcessInterface/ProcessPresenter.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 #include "ProcessInterface/ProcessView.hpp"
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessFactory.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
 #include "Document/Constraint/Box/BoxView.hpp"

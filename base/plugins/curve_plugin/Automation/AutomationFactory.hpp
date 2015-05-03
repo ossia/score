@@ -1,7 +1,7 @@
 #pragma once
-#include <ProcessInterface/ProcessFactoryInterface.hpp>
+#include <ProcessInterface/ProcessFactory.hpp>
 
-class AutomationFactory : public ProcessFactoryInterface
+class AutomationFactory : public ProcessFactory
 {
     public:
         virtual QString name() const override

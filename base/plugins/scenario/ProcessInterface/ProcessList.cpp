@@ -1,5 +1,5 @@
 #include "ProcessList.hpp"
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessFactory.hpp"
 
 ProcessList::ProcessList(NamedObject* parent) :
     NamedObject {"ProcessList", parent}
@@ -19,11 +19,11 @@ QStringList ProcessList::getProcessesName_impl() const
     return lst;
 }
 
-ProcessFactoryInterface* ProcessList::getProcess(QString name)
+ProcessFactory* ProcessList::getProcess(QString name)
 {
     auto it = std::find_if(m_processes.begin(),
                            m_processes.end(),
-                           [&name](ProcessFactoryInterface * p)
+                           [&name](ProcessFactory * p)
     {
         return p->name() == name;
     });
@@ -33,10 +33,10 @@ ProcessFactoryInterface* ProcessList::getProcess(QString name)
 
 void ProcessList::registerProcess(iscore::FactoryInterface* arg)
 {
-    auto p = static_cast<ProcessFactoryInterface*>(arg);
+    auto p = static_cast<ProcessFactory*>(arg);
     auto it = std::find_if(m_processes.begin(),
                            m_processes.end(),
-                           [&p](ProcessFactoryInterface * inner_p)
+                           [&p](ProcessFactory * inner_p)
     {
         return inner_p->name() == p->name();
     });
@@ -52,7 +52,7 @@ void ProcessList::registerProcess(iscore::FactoryInterface* arg)
 }
 
 #include <QApplication>
-ProcessFactoryInterface* ProcessList::getFactory(QString processName)
+ProcessFactory* ProcessList::getFactory(QString processName)
 {
     return qApp
            ->findChild<ProcessList*> ("ProcessList")

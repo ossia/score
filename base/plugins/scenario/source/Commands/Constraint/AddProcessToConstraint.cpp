@@ -7,7 +7,7 @@
 #include "ProcessInterface/ProcessModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "ProcessInterface/ProcessFactoryInterface.hpp"
+#include "ProcessInterface/ProcessFactory.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

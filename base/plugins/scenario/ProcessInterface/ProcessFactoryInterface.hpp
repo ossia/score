@@ -13,14 +13,14 @@ class ProcessView;
 class ProcessPresenter;
 
 /**
-     * @brief The ProcessFactoryInterface class
+     * @brief The ProcessFactory class
      *
      * Interface to make processes, like Scenario, Automation...
      */
-class ProcessFactoryInterface : public iscore::FactoryInterface
+class ProcessFactory : public iscore::FactoryInterface
 {
     public:
-        virtual ~ProcessFactoryInterface() = default;
+        virtual ~ProcessFactory() = default;
 
         // The process name
         virtual QString name() const = 0;
