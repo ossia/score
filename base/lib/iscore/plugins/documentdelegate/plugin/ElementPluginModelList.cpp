@@ -14,7 +14,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(ElementPluginModelList* s
     {
         for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
         {
-            if(plugin->elementPluginId() == elt->elementPluginId())
+            if(plugin->elementPlugins().contains(elt->elementPluginId()))
             {
                 add(plugin->cloneElementPlugin(parent, elt, this)); // Note : QObject::parent() is dangerous
             }
@@ -30,14 +30,17 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
 
     for(auto& plugin : doc->model()->pluginModels())
     {
-        // Check if it is not already existing in this element.
-        if(!canAdd(plugin->elementPluginId()))
-            continue;
+        for(auto& plugid : plugin->elementPlugins())
+        {
+            // Check if it is not already existing in this element.
+            if(!canAdd(plugid))
+                continue;
 
-        // Create and add it.
-        auto plugElement = plugin->makeElementPlugin(parent, this);
-        if(plugElement)
-            add(plugElement);
+            // Create and add it.
+            auto plugElement = plugin->makeElementPlugin(parent, this);
+            if(plugElement)
+                add(plugElement);
+        }
     }
 }
 

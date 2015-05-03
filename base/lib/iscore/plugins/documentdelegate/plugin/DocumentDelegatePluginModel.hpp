@@ -13,23 +13,23 @@ class DocumentDelegatePluginModel : public NamedObject
         using NamedObject::NamedObject;
         virtual ~DocumentDelegatePluginModel() = default;
 
-        virtual int elementPluginId() const = 0;
+        virtual QList<int> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(
                 const QObject* element,
-                QObject* parent) = 0;
+                QObject* parent) { return nullptr; }
         virtual ElementPluginModel* loadElementPlugin(
                 const QObject* element,
                 const VisitorVariant&,
-                QObject* parent) = 0;
+                QObject* parent) { return nullptr; }
 
         virtual ElementPluginModel* cloneElementPlugin(
                 const QObject* element,
                 iscore::ElementPluginModel* source,
-                QObject* parent) = 0;
+                QObject* parent) { return nullptr; }
 
         virtual QWidget* makeElementPluginWidget(
                 const ElementPluginModel*,
-                QWidget* parent) const = 0;
+                QWidget* parent) const { return nullptr; }
 
         virtual void serialize(const VisitorVariant&) const = 0;
 };

@@ -30,18 +30,24 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        if(constraint->pluginModelList().canAdd(elementPluginId()))
-            constraint->pluginModelList().add(
-                        makeElementPlugin(constraint,
-                                          &constraint->pluginModelList()));
+        for(auto& plugid : elementPlugins())
+        {
+            if(constraint->pluginModelList().canAdd(plugid))
+                constraint->pluginModelList().add(
+                            makeElementPlugin(constraint,
+                                              &constraint->pluginModelList()));
+        }
     }
     auto events = doc->modelDelegate()->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        if(event->pluginModelList().canAdd(elementPluginId()))
+        for(auto& plugid : elementPlugins())
         {
-            event->pluginModelList().add(
-                        makeElementPlugin(event, &event->pluginModelList()));
+            if(event->pluginModelList().canAdd(plugid))
+            {
+                event->pluginModelList().add(
+                            makeElementPlugin(event, &event->pluginModelList()));
+            }
         }
     }
 }
@@ -67,9 +73,9 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
     emit sessionChanged();
 }
 
-int NetworkDocumentPlugin::elementPluginId() const
+QList<int> NetworkDocumentPlugin::elementPlugins() const
 {
-    return GroupMetadata::staticPluginId();
+    return {GroupMetadata::staticPluginId()};
 }
 
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
