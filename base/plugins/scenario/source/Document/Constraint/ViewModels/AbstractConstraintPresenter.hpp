@@ -18,7 +18,7 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenterInterface;
+class ProcessPresenter;
 
 /**
  * @brief The TemporalConstraintPresenter class

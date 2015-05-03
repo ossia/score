@@ -1,5 +1,5 @@
 #pragma once
-#include "ProcessInterface/ProcessPresenterInterface.hpp"
+#include "ProcessInterface/ProcessPresenter.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 
@@ -26,7 +26,7 @@ class ScenarioSelectionManager;
 class ScenarioViewInterface;
 class SelectionDispatcher;
 
-class TemporalScenarioPresenter : public ProcessPresenterInterface
+class TemporalScenarioPresenter : public ProcessPresenter
 {
         Q_OBJECT
 

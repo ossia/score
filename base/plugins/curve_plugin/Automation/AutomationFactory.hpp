@@ -22,7 +22,7 @@ class AutomationFactory : public ProcessFactoryInterface
                 const ProcessViewModel& viewmodel,
                 QObject* parent) override;
 
-        virtual ProcessPresenterInterface* makePresenter(
+        virtual ProcessPresenter* makePresenter(
                 const ProcessViewModel&,
                 ProcessViewInterface*,
                 QObject* parent) override;

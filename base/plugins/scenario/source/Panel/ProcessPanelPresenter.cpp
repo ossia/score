@@ -11,7 +11,7 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include <ProcessInterface/ProcessViewModel.hpp>
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
-#include <ProcessInterface/ProcessPresenterInterface.hpp>
+#include <ProcessInterface/ProcessPresenter.hpp>
 #include <ProcessInterface/ProcessViewInterface.hpp>
 #include <ProcessInterface/ProcessFactoryInterface.hpp>
 

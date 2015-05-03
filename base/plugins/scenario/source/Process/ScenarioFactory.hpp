@@ -15,7 +15,7 @@ class ScenarioFactory : public ProcessFactoryInterface
                 const VisitorVariant&,
                 QObject* parent) override;
 
-        virtual ProcessPresenterInterface* makePresenter(
+        virtual ProcessPresenter* makePresenter(
                 const ProcessViewModel&,
                 ProcessViewInterface*,
                 QObject* parent) override;

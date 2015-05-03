@@ -10,7 +10,7 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenterInterface;
+class ProcessPresenter;
 class ProcessModel;
 class ProcessViewModel;
 class ProcessViewInterface;
@@ -61,7 +61,7 @@ class DeckPresenter : public NamedObject
 
         const DeckModel& m_model;
         DeckView* m_view{};
-        using ProcessPair = QPair<ProcessPresenterInterface*, ProcessViewInterface*>;
+        using ProcessPair = QPair<ProcessPresenter*, ProcessViewInterface*>;
         QVector<ProcessPair> m_processes;
 
         // Maybe move this out of the state of the presenter ?

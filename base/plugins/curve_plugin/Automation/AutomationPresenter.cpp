@@ -19,7 +19,7 @@ AutomationPresenter::AutomationPresenter(
         const ProcessViewModel& model,
         ProcessViewInterface* view,
         QObject* parent) :
-    ProcessPresenterInterface {"AutomationPresenter", parent},
+    ProcessPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationViewModel&>(model)},
     m_view{static_cast<AutomationView*>(view)},
     m_curve{new QCustomPlotCurve{m_view}},

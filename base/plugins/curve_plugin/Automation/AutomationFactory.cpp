@@ -20,7 +20,7 @@ ProcessViewInterface* AutomationFactory::makeView(
 }
 
 
-ProcessPresenterInterface* AutomationFactory::makePresenter(
+ProcessPresenter* AutomationFactory::makePresenter(
         const ProcessViewModel& viewModel,
         ProcessViewInterface* view,
         QObject* parent)

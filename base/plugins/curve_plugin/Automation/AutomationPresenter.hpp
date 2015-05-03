@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/ProcessPresenterInterface.hpp>
+#include <ProcessInterface/ProcessPresenter.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 
@@ -9,7 +9,7 @@ class ProcessViewInterface;
 class AutomationViewModel;
 class AutomationView;
 
-class AutomationPresenter : public ProcessPresenterInterface
+class AutomationPresenter : public ProcessPresenter
 {
         Q_OBJECT
     public:

@@ -6,7 +6,7 @@
 #include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "ProcessInterface/ProcessPresenterInterface.hpp"
+#include "ProcessInterface/ProcessPresenter.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 #include "ProcessInterface/ProcessViewInterface.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"

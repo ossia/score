@@ -10,7 +10,7 @@
 class ProcessViewModel;
 class ProcessModel;
 class ProcessViewInterface;
-class ProcessPresenterInterface;
+class ProcessPresenter;
 
 /**
      * @brief The ProcessFactoryInterface class
@@ -37,7 +37,7 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
 
         // TODO Make it take a view name, too (cf. logical / temporal).
         // Or make it be created by the ViewModel, and the View be created by the presenter.
-        virtual ProcessPresenterInterface* makePresenter(
+        virtual ProcessPresenter* makePresenter(
                 const ProcessViewModel&,
                 ProcessViewInterface*,
                 QObject* parent) = 0;

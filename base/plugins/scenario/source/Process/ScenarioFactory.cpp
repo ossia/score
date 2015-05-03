@@ -20,7 +20,7 @@ ProcessViewInterface* ScenarioFactory::makeView(
     return nullptr;
 }
 
-ProcessPresenterInterface*
+ProcessPresenter*
 ScenarioFactory::makePresenter(
         const ProcessViewModel& pvm,
         ProcessViewInterface* view,
