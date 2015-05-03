@@ -4,9 +4,9 @@
 
 AutomationModel::AutomationModel(
         const TimeValue& duration,
-        const id_type<ProcessSharedModelInterface>& id,
+        const id_type<ProcessModel>& id,
         QObject* parent) :
-    ProcessSharedModelInterface {duration, id, processName(), parent}
+    ProcessModel {duration, id, processName(), parent}
 {
 
     // Demo
@@ -15,8 +15,8 @@ AutomationModel::AutomationModel(
     addPoint(1, 1);
 }
 
-ProcessSharedModelInterface* AutomationModel::clone(
-        const id_type<ProcessSharedModelInterface>& newId,
+ProcessModel* AutomationModel::clone(
+        const id_type<ProcessModel>& newId,
         QObject* newParent)
 {
     auto autom = new AutomationModel {this->duration(), newId, newParent};

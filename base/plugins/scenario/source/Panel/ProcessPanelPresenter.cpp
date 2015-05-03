@@ -8,7 +8,7 @@
 #include <Document/BaseElement/Widgets/GraphicsProxyObject.hpp>
 
 #include <ProcessInterface/ProcessList.hpp>
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessModel.hpp>
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 #include <ProcessInterface/ProcessPresenterInterface.hpp>

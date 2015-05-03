@@ -1,6 +1,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>

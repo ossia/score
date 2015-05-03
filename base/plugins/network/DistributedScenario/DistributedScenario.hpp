@@ -7,7 +7,7 @@
 // that are to be applied either to the whole group,
 // or independently in each case.
 
-class DistributedScenario : public ProcessSharedModelInterface
+class DistributedScenario : public ProcessModel
 {
     public:
         DistributedScenario()
@@ -21,7 +21,7 @@ class DistributedScenario : public ProcessSharedModelInterface
         ScenarioModel* m_model{};
 
     public:
-        ProcessSharedModelInterface*clone(id_type<ProcessSharedModelInterface> newId, QObject* newParent)
+        ProcessModel*clone(id_type<ProcessModel> newId, QObject* newParent)
         {
             return m_model->clone(newId, newParent);
         }

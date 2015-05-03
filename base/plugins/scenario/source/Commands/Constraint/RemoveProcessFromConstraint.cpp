@@ -5,16 +5,16 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath,
-        id_type<ProcessSharedModelInterface> processId) :
+        id_type<ProcessModel> processId) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},

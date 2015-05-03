@@ -12,7 +12,7 @@ class AbstractConstraintView;
 class BoxPresenter;
 class BoxModel;
 class ConstraintModel;
-class ProcessSharedModelInterface;
+class ProcessModel;
 
 namespace iscore
 {

@@ -41,7 +41,7 @@ ConstraintModel::ConstraintModel(
     m_heightPercentage = source->heightPercentage();
 
     // For an explanation of this, see CopyConstraintContent command
-    std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
+    std::map<const ProcessModel*, ProcessModel*> processPairs;
 
     // Clone the processes
     auto src_procs = source->processes();
@@ -109,17 +109,17 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 }
 
 //// Complex commands
-void ConstraintModel::addProcess(ProcessSharedModelInterface* model)
+void ConstraintModel::addProcess(ProcessModel* model)
 {
     m_processes.push_back(model);
     emit processCreated(model->processName(), model->id());
 }
 
-void ConstraintModel::removeProcess(const id_type<ProcessSharedModelInterface>& processId)
+void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
 {
     auto proc = process(processId);
     vec_erase_remove_if(m_processes,
-                        [&processId](ProcessSharedModelInterface * model)
+                        [&processId](ProcessModel * model)
     {
         return model->id() == processId;
     });
@@ -180,8 +180,8 @@ BoxModel* ConstraintModel::box(const id_type<BoxModel>& id) const
     return findById(m_boxes, id);
 }
 
-ProcessSharedModelInterface* ConstraintModel::process(
-        const id_type<ProcessSharedModelInterface>& processId) const
+ProcessModel* ConstraintModel::process(
+        const id_type<ProcessModel>& processId) const
 {
     return findById(m_processes, processId);
 }

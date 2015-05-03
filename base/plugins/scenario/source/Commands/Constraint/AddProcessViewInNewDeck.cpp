@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 
@@ -13,7 +13,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath,
-                                                 id_type<ProcessSharedModelInterface> process) :
+                                                 id_type<ProcessModel> process) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},

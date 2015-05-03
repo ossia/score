@@ -19,7 +19,7 @@ class RemoveEventTest : public QObject
             // only one event on a timeNode
             // the timeNode will be deleted too
 
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);
@@ -91,7 +91,7 @@ class RemoveEventTest : public QObject
             // two events on a same timeNode
             // test removing just one of them : the timeNode stay
 
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessModel> {0}, qApp);
 
             EventData data {};
             data.dDate.setMSecs(10);

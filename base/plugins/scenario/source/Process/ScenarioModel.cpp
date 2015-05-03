@@ -8,9 +8,9 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
 ScenarioModel::ScenarioModel(const TimeValue& duration,
-                             const id_type<ProcessSharedModelInterface>& id,
+                             const id_type<ProcessModel>& id,
                              QObject* parent) :
-    ProcessSharedModelInterface {duration, id, "ScenarioModel", parent},
+    ProcessModel {duration, id, "ScenarioModel", parent},
     m_startEventId{0}, // Always
     m_endEventId{1}
 {
@@ -26,9 +26,9 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
-                             const id_type<ProcessSharedModelInterface>& id,
+                             const id_type<ProcessModel>& id,
                              QObject* parent) :
-    ProcessSharedModelInterface {source.duration(), id, "ScenarioModel", parent}
+    ProcessModel {source.duration(), id, "ScenarioModel", parent}
 {
     for(ConstraintModel* constraint : source.m_constraints)
     {
@@ -49,8 +49,8 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     m_endEventId = source.m_endEventId;
 }
 
-ProcessSharedModelInterface* ScenarioModel::clone(
-        const id_type<ProcessSharedModelInterface>& newId,
+ProcessModel* ScenarioModel::clone(
+        const id_type<ProcessModel>& newId,
         QObject* newParent)
 {
     return new ScenarioModel {*this, newId, newParent};
@@ -150,7 +150,7 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
                                                  endEvent()->id(),
                                                  newDuration,
                                                  endEvent()->heightPercentage(),
-                                                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+                                                 [&] (ProcessModel* p, const TimeValue& t)
      { p->expandProcess(ExpandMode::Grow, t); }); */
 
     auto& eev = endEvent();
@@ -168,7 +168,7 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
                                                  endEvent()->id(),
                                                  newDuration,
                                                  endEvent()->heightPercentage(),
-                                                 [&] (ProcessSharedModelInterface* p, const TimeValue& t)
+                                                 [&] (ProcessModel* p, const TimeValue& t)
      { p->expandProcess(ExpandMode::Grow, t); }); */
 
     auto& eev = endEvent();

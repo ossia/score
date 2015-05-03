@@ -12,7 +12,7 @@
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 
 #include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
 #include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
@@ -92,7 +92,7 @@ DeckInspectorSection::DeckInspectorSection(
 }
 
 void DeckInspectorSection::createProcessViewModel(
-        const id_type<ProcessSharedModelInterface>& sharedProcessModelId)
+        const id_type<ProcessModel>& sharedProcessModelId)
 {
     auto cmd = new AddProcessViewModelToDeck(
                    iscore::IDocument::path(m_model),

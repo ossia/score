@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessModel.hpp>
 
 /**
  * @brief The AutomationModel class
@@ -12,26 +12,26 @@
  * The duration is the time between x=0 and x=1.
  *
  */
-class AutomationModel : public ProcessSharedModelInterface
+class AutomationModel : public ProcessModel
 {
         Q_OBJECT
         Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
 
     public:
         AutomationModel(const TimeValue& duration,
-                        const id_type<ProcessSharedModelInterface>& id,
+                        const id_type<ProcessModel>& id,
                         QObject* parent);
-        ProcessSharedModelInterface* clone(const id_type<ProcessSharedModelInterface>& newId,
+        ProcessModel* clone(const id_type<ProcessModel>& newId,
                                            QObject* newParent) override;
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessSharedModelInterface {vis, parent}
+            ProcessModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        //// ProcessSharedModelInterface ////
+        //// ProcessModel ////
         QString processName() const override;
 
         ProcessViewModelInterface* makeViewModel_impl(

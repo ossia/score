@@ -3,7 +3,7 @@
 #include "DeckInspectorSection.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 #include <QtWidgets/QHBoxLayout>
@@ -71,7 +71,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
                         &ok);
 
             if(ok)
-                parentDeck->createProcessViewModel(id_type<ProcessSharedModelInterface> {process_name.toInt() });
+                parentDeck->createProcessViewModel(id_type<ProcessModel> {process_name.toInt() });
         }
     });
 }

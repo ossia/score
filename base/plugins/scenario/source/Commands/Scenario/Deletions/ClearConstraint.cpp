@@ -5,7 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessSharedModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
 using namespace iscore;
@@ -27,7 +27,7 @@ m_path {std::move(constraintPath) }
         m_serializedBoxes.push_back(arr);
     }
 
-    for(const ProcessSharedModelInterface* process : constraint.processes())
+    for(const ProcessModel* process : constraint.processes())
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};

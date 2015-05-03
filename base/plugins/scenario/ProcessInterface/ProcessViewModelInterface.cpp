@@ -1,13 +1,13 @@
 #include "ProcessViewModelInterface.hpp"
 
-ProcessSharedModelInterface&ProcessViewModelInterface::sharedProcessModel() const
+ProcessModel&ProcessViewModelInterface::sharedProcessModel() const
 { return m_sharedProcessModel; }
 
 
 ProcessViewModelInterface::ProcessViewModelInterface(
         const id_type<ProcessViewModelInterface>& viewModelId,
         const QString& name,
-        ProcessSharedModelInterface& sharedProcess,
+        ProcessModel& sharedProcess,
         QObject* parent) :
     IdentifiedObject<ProcessViewModelInterface> {viewModelId, name, parent},
     m_sharedProcessModel {sharedProcess}

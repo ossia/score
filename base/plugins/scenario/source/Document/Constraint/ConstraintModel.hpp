@@ -17,7 +17,7 @@ namespace OSSIA
     class TimeBox;
 }
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class AbstractConstraintViewModel;
 class FullViewConstraintViewModel;
 
@@ -142,8 +142,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
         // Sub-element creation
-        void addProcess(ProcessSharedModelInterface*);
-        void removeProcess(const id_type<ProcessSharedModelInterface>& processId);
+        void addProcess(ProcessModel*);
+        void removeProcess(const id_type<ProcessModel>& processId);
 
         void addBox(BoxModel*);
         void removeBox(const id_type<BoxModel>& boxId);
@@ -155,8 +155,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 
         BoxModel* box(const id_type<BoxModel>& id) const;
-        ProcessSharedModelInterface* process(
-                const id_type<ProcessSharedModelInterface>& processId) const;
+        ProcessModel* process(
+                const id_type<ProcessModel>& processId) const;
 
         // Copies are done because there might be a loop
         // that might change the vector, and invalidate the
@@ -164,7 +164,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         std::vector<BoxModel*> boxes() const
         { return m_boxes; }
 
-        std::vector<ProcessSharedModelInterface*> processes() const
+        std::vector<ProcessModel*> processes() const
         { return m_processes; }
 
         // Here we won't remove / add things from the outside so it is safe to
@@ -206,8 +206,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
     signals:
         void processCreated(const QString& processName,
-                            const id_type<ProcessSharedModelInterface>& processId);
-        void processRemoved(const id_type<ProcessSharedModelInterface>& processId);
+                            const id_type<ProcessModel>& processId);
+        void processRemoved(const id_type<ProcessModel>& processId);
 
         void boxCreated(const id_type<BoxModel>& boxId);
         void boxRemoved(const id_type<BoxModel>& boxId);
@@ -251,7 +251,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         iscore::ElementPluginModelList* m_pluginModelList{};
 
         std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
-        std::vector<ProcessSharedModelInterface*> m_processes;
+        std::vector<ProcessModel*> m_processes;
 
         // The small view constraint view models that show this constraint
         // The constraint does not have ownership of these: their parent (in the Qt sense) are

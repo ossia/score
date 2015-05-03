@@ -1,7 +1,7 @@
 #include "RemoveProcessViewModelFromDeck.hpp"
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 

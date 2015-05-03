@@ -5,7 +5,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class ProcessViewModelInterface;
-class ProcessSharedModelInterface;
+class ProcessModel;
 namespace Scenario
 {
     namespace Command

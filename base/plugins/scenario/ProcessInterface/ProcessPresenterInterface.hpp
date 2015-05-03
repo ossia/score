@@ -3,7 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewModelInterface;
 namespace iscore
 {
@@ -26,5 +26,5 @@ class ProcessPresenterInterface : public NamedObject
         virtual void parentGeometryChanged() = 0;
 
         virtual const id_type<ProcessViewModelInterface>& viewModelId() const = 0;
-        virtual const id_type<ProcessSharedModelInterface>& modelId() const = 0;
+        virtual const id_type<ProcessModel>& modelId() const = 0;
 };

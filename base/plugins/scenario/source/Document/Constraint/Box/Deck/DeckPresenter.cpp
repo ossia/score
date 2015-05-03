@@ -10,7 +10,7 @@
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterface/ProcessViewInterface.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 
 #include "Document/Constraint/Box/BoxView.hpp"
 #include "DeckHandle.hpp"

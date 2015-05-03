@@ -4,7 +4,7 @@
 #include <Document/Constraint/Box/BoxModel.hpp>
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include <ProcessInterface/ProcessViewModelInterface.hpp>
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessModel.hpp>
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"

@@ -65,7 +65,7 @@ void AutomationModel::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-ProcessSharedModelInterface* AutomationFactory::loadModel(
+ProcessModel* AutomationFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {

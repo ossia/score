@@ -3,7 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 
 DeckModel::DeckModel(
@@ -105,7 +105,7 @@ ProcessViewModelInterface& DeckModel::processViewModel(
 }
 
 void DeckModel::on_deleteSharedProcessModel(
-        const id_type<ProcessSharedModelInterface>& sharedProcessId)
+        const id_type<ProcessModel>& sharedProcessId)
 {
     using namespace std;
     auto it = find_if(begin(m_processViewModels),

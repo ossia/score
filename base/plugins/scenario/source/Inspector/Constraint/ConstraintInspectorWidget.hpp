@@ -9,7 +9,7 @@ class AbstractConstraintViewModel;
 class BoxModel;
 class DeckModel;
 class ScenarioModel;
-class ProcessSharedModelInterface;
+class ProcessModel;
 
 class BoxWidget;
 class BoxInspectorSection;
@@ -47,8 +47,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void activeBoxChanged(QString box, AbstractConstraintViewModel* vm);
 
         // Interface of Constraint
-        void on_processCreated(QString processName, id_type<ProcessSharedModelInterface> processId);
-        void on_processRemoved(id_type<ProcessSharedModelInterface> processId);
+        void on_processCreated(QString processName, id_type<ProcessModel> processId);
+        void on_processRemoved(id_type<ProcessModel> processId);
 
         void on_boxCreated(id_type<BoxModel> boxId);
         void on_boxRemoved(id_type<BoxModel> boxId);
@@ -57,7 +57,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId);
 
         // These methods are used to display created things
-        void displaySharedProcess(ProcessSharedModelInterface*);
+        void displaySharedProcess(ProcessModel*);
         void setupBox(BoxModel*);
 
     private:

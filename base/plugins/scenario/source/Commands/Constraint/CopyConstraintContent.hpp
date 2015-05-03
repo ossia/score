@@ -5,7 +5,7 @@
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include "ProcessInterface/ExpandMode.hpp"
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class BoxModel;
 namespace Scenario
 {
@@ -34,7 +34,7 @@ namespace Scenario
                 ExpandMode m_mode{ExpandMode::Grow};
 
                 QVector<id_type<BoxModel>> m_boxIds;
-                QVector<id_type<ProcessSharedModelInterface>> m_processIds;
+                QVector<id_type<ProcessModel>> m_processIds;
         };
     }
 }

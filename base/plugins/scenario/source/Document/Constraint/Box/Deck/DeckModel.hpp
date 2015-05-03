@@ -6,7 +6,7 @@
 class BoxModel;
 class ConstraintModel;
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewModelInterface;
 
 // Note : the DeckModel is assumed to be in a Box, itself in a Constraint.
@@ -76,7 +76,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
         void focusChanged(bool arg);
 
     public slots:
-        void on_deleteSharedProcessModel(const id_type<ProcessSharedModelInterface>& sharedProcessId);
+        void on_deleteSharedProcessModel(const id_type<ProcessModel>& sharedProcessId);
 
         void setHeight(int arg);
         void setFocus(bool arg);

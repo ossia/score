@@ -6,7 +6,7 @@
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
 class ConstraintModel;
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewModelInterface;
 
 /**
@@ -53,6 +53,6 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
         // The process that contains the current selection.
         const ProcessViewModelInterface* m_focusedViewModel{};
-        const ProcessSharedModelInterface* m_focusedProcess{};
+        const ProcessModel* m_focusedProcess{};
 };
 

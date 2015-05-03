@@ -1,5 +1,5 @@
 #pragma once
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -25,7 +25,7 @@ class AbstractConstraintViewModel;
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioModel : public ProcessSharedModelInterface
+class ScenarioModel : public ProcessModel
 {
         Q_OBJECT
 
@@ -39,13 +39,13 @@ class ScenarioModel : public ProcessSharedModelInterface
         using view_model_type = AbstractScenarioViewModel;
 
         ScenarioModel(const TimeValue& duration,
-                      const id_type<ProcessSharedModelInterface>& id,
+                      const id_type<ProcessModel>& id,
                       QObject* parent);
-        ProcessSharedModelInterface* clone(
-                const id_type<ProcessSharedModelInterface>& newId,
+        ProcessModel* clone(
+                const id_type<ProcessModel>& newId,
                 QObject* newParent) override;
 
-        //// ProcessSharedModelInterface specifics ////
+        //// ProcessModel specifics ////
         QByteArray makeViewModelConstructionData() const override;
         ProcessViewModelInterface* makeViewModel_impl(
                 const id_type<ProcessViewModelInterface>& viewModelId,
@@ -137,7 +137,7 @@ class ScenarioModel : public ProcessSharedModelInterface
     protected:
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessSharedModelInterface {vis, parent}
+            ProcessModel {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -156,7 +156,7 @@ class ScenarioModel : public ProcessSharedModelInterface
 
     private:
         ScenarioModel(const ScenarioModel& source,
-                      const id_type<ProcessSharedModelInterface>& id,
+                      const id_type<ProcessModel>& id,
                       QObject* parent);
         void makeViewModel_impl(view_model_type*);
 

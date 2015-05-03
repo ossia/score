@@ -8,7 +8,7 @@
 
 class ConstraintModel;
 class DeckModel;
-class ProcessSharedModelInterface;
+class ProcessModel;
 
 /**
  * @brief The BoxModel class
@@ -68,7 +68,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
         void deckRemoved(const id_type<DeckModel>& id);
         void deckPositionsChanged();
 
-        void on_deleteSharedProcessModel(const id_type<ProcessSharedModelInterface>& processId);
+        void on_deleteSharedProcessModel(const id_type<ProcessModel>& processId);
         void on_durationChanged(const TimeValue& dur);
 
     private:

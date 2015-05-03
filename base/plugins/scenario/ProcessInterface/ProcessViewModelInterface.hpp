@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewModelPanelProxy;
 
 /**
@@ -12,7 +12,7 @@ class ProcessViewModelPanelProxy;
 class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterface>
 {
     public:
-        ProcessSharedModelInterface& sharedProcessModel() const;
+        ProcessModel& sharedProcessModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
@@ -21,12 +21,12 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
     protected:
         ProcessViewModelInterface(const id_type<ProcessViewModelInterface>& viewModelId,
                                   const QString& name,
-                                  ProcessSharedModelInterface& sharedProcess,
+                                  ProcessModel& sharedProcess,
                                   QObject* parent);
 
         template<typename Impl>
         ProcessViewModelInterface(Deserializer<Impl>& vis,
-                                  ProcessSharedModelInterface& sharedProcess,
+                                  ProcessModel& sharedProcess,
                                   QObject* parent) :
             IdentifiedObject<ProcessViewModelInterface> {vis, parent},
             m_sharedProcessModel {sharedProcess}
@@ -35,7 +35,7 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
         }
 
     private:
-        ProcessSharedModelInterface& m_sharedProcessModel;
+        ProcessModel& m_sharedProcessModel;
 };
 
 

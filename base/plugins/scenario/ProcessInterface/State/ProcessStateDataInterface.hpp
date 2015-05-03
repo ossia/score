@@ -1,11 +1,11 @@
 #pragma once
 #include <QObject>
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessStateDataInterface : public QObject
 {
         Q_OBJECT
     public:
-        ProcessStateDataInterface(const ProcessSharedModelInterface* model):
+        ProcessStateDataInterface(const ProcessModel* model):
             m_model{model}
         {
 
@@ -17,9 +17,9 @@ class ProcessStateDataInterface : public QObject
         void stateChanged();
 
     protected:
-        const ProcessSharedModelInterface* model() const
+        const ProcessModel* model() const
         { return m_model; }
 
     private:
-        const ProcessSharedModelInterface* m_model{};
+        const ProcessModel* m_model{};
 };

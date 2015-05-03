@@ -8,7 +8,7 @@
 
 #include <ProcessInterface/TimeValue.hpp>
 class ProcessViewModelInterface;
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewInterface;
 class ProcessPresenterInterface;
 
@@ -25,13 +25,13 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // The process name
         virtual QString name() const = 0;
 
-        virtual ProcessSharedModelInterface* makeModel(
+        virtual ProcessModel* makeModel(
                 const TimeValue& duration,
-                const id_type<ProcessSharedModelInterface>& id,
+                const id_type<ProcessModel>& id,
                 QObject* parent) = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual ProcessSharedModelInterface* loadModel(
+        virtual ProcessModel* loadModel(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 

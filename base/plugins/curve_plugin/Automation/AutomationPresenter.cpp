@@ -118,7 +118,7 @@ const id_type<ProcessViewModelInterface>& AutomationPresenter::viewModelId() con
     return m_viewModel.id();
 }
 
-const id_type<ProcessSharedModelInterface>& AutomationPresenter::modelId() const
+const id_type<ProcessModel>& AutomationPresenter::modelId() const
 {
     return m_viewModel.model().id();
 }

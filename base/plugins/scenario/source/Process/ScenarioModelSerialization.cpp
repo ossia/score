@@ -135,7 +135,7 @@ void ScenarioModel::serialize(const VisitorVariant& vis) const
 }
 
 #include "ScenarioFactory.hpp"
-ProcessSharedModelInterface* ScenarioFactory::loadModel(
+ProcessModel* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {

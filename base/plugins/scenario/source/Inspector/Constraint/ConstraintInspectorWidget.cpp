@@ -15,7 +15,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 #include "Commands/Scenario/HideBoxInViewModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>
@@ -184,7 +184,7 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
                     this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
         // Processes
-        for(ProcessSharedModelInterface* process : model()->processes())
+        for(ProcessModel* process : model()->processes())
         {
             displaySharedProcess(process);
         }
@@ -227,7 +227,7 @@ void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
     // We will have to stock the id's somewhere.
     auto cmd = new AddProcessViewInNewDeck(
         iscore::IDocument::path(model()),
-        id_type<ProcessSharedModelInterface>(processName.toInt()));
+        id_type<ProcessModel>(processName.toInt()));
 
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -260,7 +260,7 @@ void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraint
 }
 
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-void ConstraintInspectorWidget::displaySharedProcess(ProcessSharedModelInterface* process)
+void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
 {
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process->processName());
 
@@ -360,12 +360,12 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 
 void ConstraintInspectorWidget::on_processCreated(
         QString processName,
-        id_type<ProcessSharedModelInterface> processId)
+        id_type<ProcessModel> processId)
 {
     reloadDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessSharedModelInterface> processId)
+void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessModel> processId)
 {
     reloadDisplayedValues();
 }

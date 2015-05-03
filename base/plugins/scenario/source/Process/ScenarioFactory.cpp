@@ -36,9 +36,9 @@ ScenarioFactory::makePresenter(
     return nullptr;
 }
 
-ProcessSharedModelInterface* ScenarioFactory::makeModel(
+ProcessModel* ScenarioFactory::makeModel(
         const TimeValue& duration,
-        const id_type<ProcessSharedModelInterface>& id,
+        const id_type<ProcessModel>& id,
         QObject* parent)
 {
     return new ScenarioModel {duration, id, parent};

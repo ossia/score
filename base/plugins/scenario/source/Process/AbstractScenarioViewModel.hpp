@@ -47,7 +47,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
     protected:
         AbstractScenarioViewModel(const id_type<ProcessViewModelInterface>& viewModelId,
                                   const QString& name,
-                                  ProcessSharedModelInterface& sharedProcess,
+                                  ProcessModel& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {viewModelId,
                                       name,
@@ -61,7 +61,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         AbstractScenarioViewModel(const AbstractScenarioViewModel& source,
                                   const id_type<ProcessViewModelInterface>& viewModelId,
                                   const QString& name,
-                                  ProcessSharedModelInterface& sharedProcess,
+                                  ProcessModel& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {viewModelId,
                                       name,
@@ -74,7 +74,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         // Load
         template<typename Impl>
         AbstractScenarioViewModel(Deserializer<Impl>& vis,
-                                  ProcessSharedModelInterface& sharedProcess,
+                                  ProcessModel& sharedProcess,
                                   QObject* parent) :
             ProcessViewModelInterface {vis,
                                        sharedProcess,

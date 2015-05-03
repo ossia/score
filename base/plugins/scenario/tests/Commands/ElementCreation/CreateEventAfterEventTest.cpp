@@ -19,7 +19,7 @@ class CreateEventAfterEventTest: public QObject
     private slots:
         void CreateTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessSharedModelInterface> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessModel> {0}, qApp);
 
             CreateEventAfterEvent cmd(
             {

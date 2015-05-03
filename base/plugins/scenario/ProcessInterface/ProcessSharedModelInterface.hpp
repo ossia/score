@@ -8,23 +8,23 @@
 
 class ProcessViewModelInterface;
 /**
- * @brief The ProcessSharedModelInterface class
+ * @brief The ProcessModel class
  *
  * Interface to implement to make a process.
  */
-class ProcessSharedModelInterface: public IdentifiedObject<ProcessSharedModelInterface>
+class ProcessModel: public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
     public:
-        using IdentifiedObject<ProcessSharedModelInterface>::IdentifiedObject;
-        ProcessSharedModelInterface(
+        using IdentifiedObject<ProcessModel>::IdentifiedObject;
+        ProcessModel(
                 const TimeValue& duration,
-                const id_type<ProcessSharedModelInterface>& id,
+                const id_type<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
-        virtual ProcessSharedModelInterface* clone(
-                const id_type<ProcessSharedModelInterface>& newId,
+        virtual ProcessModel* clone(
+                const id_type<ProcessModel>& newId,
                 QObject* newParent) = 0;
 
         virtual QString processName() const = 0; // Needed for serialization.
@@ -129,5 +129,5 @@ QVector<typename T::view_model_type*> viewModels(const T& processModel)
     return v;
 }
 
-ProcessSharedModelInterface* parentProcess(QObject* obj);
-const ProcessSharedModelInterface* parentProcess(const QObject* obj);
+ProcessModel* parentProcess(QObject* obj);
+const ProcessModel* parentProcess(const QObject* obj);

@@ -4,7 +4,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
-class ProcessSharedModelInterface;
+class ProcessModel;
 class DeckPresenter;
 class BoxModel;
 class BoxView;

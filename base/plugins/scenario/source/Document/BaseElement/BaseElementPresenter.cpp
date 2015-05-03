@@ -17,7 +17,7 @@
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 

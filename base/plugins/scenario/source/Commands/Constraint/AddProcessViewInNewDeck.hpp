@@ -5,7 +5,7 @@
 #include <QString>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessSharedModelInterface;
+class ProcessModel;
 class BoxModel;
 class DeckModel;
 class ProcessViewModelInterface;
@@ -24,12 +24,12 @@ namespace Scenario
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewDeck, "ScenarioControl")
                 AddProcessViewInNewDeck(ObjectPath&& constraintPath,
-                                        id_type<ProcessSharedModelInterface> process);
+                                        id_type<ProcessModel> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                id_type<ProcessSharedModelInterface> processId() const
+                id_type<ProcessModel> processId() const
                 {
                     return m_processId;
                 }
@@ -43,11 +43,11 @@ namespace Scenario
 
                 bool m_existingBox {};
 
-                id_type<ProcessSharedModelInterface> m_processId {};
+                id_type<ProcessModel> m_processId {};
                 id_type<BoxModel> m_createdBoxId {};
                 id_type<DeckModel> m_createdDeckId {};
                 id_type<ProcessViewModelInterface> m_createdProcessViewId {};
-                id_type<ProcessSharedModelInterface> m_sharedProcessModelId {};
+                id_type<ProcessModel> m_sharedProcessModelId {};
 
                 QByteArray m_processData;
         };

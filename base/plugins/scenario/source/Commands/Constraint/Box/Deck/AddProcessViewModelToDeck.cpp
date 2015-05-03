@@ -1,7 +1,7 @@
 #include "AddProcessViewModelToDeck.hpp"
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
 
@@ -19,7 +19,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
 {
     auto& deck = m_deckPath.find<DeckModel>();
     m_createdProcessViewId = getStrongId(deck.processViewModels());
-    m_processData = m_processPath.find<ProcessSharedModelInterface>().makeViewModelConstructionData();
+    m_processData = m_processPath.find<ProcessModel>().makeViewModelConstructionData();
 }
 
 void AddProcessViewModelToDeck::undo()
@@ -31,7 +31,7 @@ void AddProcessViewModelToDeck::undo()
 void AddProcessViewModelToDeck::redo()
 {
     auto& deck = m_deckPath.find<DeckModel>();
-    auto& proc = m_processPath.find<ProcessSharedModelInterface>();
+    auto& proc = m_processPath.find<ProcessModel>();
 
     deck.addProcessViewModel(proc.makeViewModel(m_createdProcessViewId, m_processData, &deck));
 }

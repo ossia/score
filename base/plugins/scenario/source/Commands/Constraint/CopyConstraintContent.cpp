@@ -3,7 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include <QJsonDocument>
 
@@ -65,7 +65,7 @@ void CopyConstraintContent::redo()
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent
 
-    std::map<const ProcessSharedModelInterface*, ProcessSharedModelInterface*> processPairs;
+    std::map<const ProcessModel*, ProcessModel*> processPairs;
 
     // Clone the processes
     auto src_procs = src_constraint.processes();

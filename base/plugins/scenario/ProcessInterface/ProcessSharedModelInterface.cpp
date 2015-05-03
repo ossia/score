@@ -1,19 +1,19 @@
-#include "ProcessSharedModelInterface.hpp"
+#include "ProcessModel.hpp"
 #include "ProcessViewModelInterface.hpp"
 
 
-ProcessSharedModelInterface::ProcessSharedModelInterface(const TimeValue& duration, const id_type<ProcessSharedModelInterface>& id, const QString& name, QObject* parent):
-    IdentifiedObject<ProcessSharedModelInterface>{id, name, parent},
+ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel>& id, const QString& name, QObject* parent):
+    IdentifiedObject<ProcessModel>{id, name, parent},
     m_duration{duration}
 {
 
 }
 
 
-QByteArray ProcessSharedModelInterface::makeViewModelConstructionData() const { return {}; }
+QByteArray ProcessModel::makeViewModelConstructionData() const { return {}; }
 
 
-ProcessViewModelInterface*ProcessSharedModelInterface::makeViewModel(
+ProcessViewModelInterface*ProcessModel::makeViewModel(
         const id_type<ProcessViewModelInterface>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -25,7 +25,7 @@ ProcessViewModelInterface*ProcessSharedModelInterface::makeViewModel(
 }
 
 
-ProcessViewModelInterface*ProcessSharedModelInterface::loadViewModel(
+ProcessViewModelInterface*ProcessModel::loadViewModel(
         const VisitorVariant& v,
         QObject* parent)
 {
@@ -36,7 +36,7 @@ ProcessViewModelInterface*ProcessSharedModelInterface::loadViewModel(
 }
 
 
-ProcessViewModelInterface*ProcessSharedModelInterface::cloneViewModel(
+ProcessViewModelInterface*ProcessModel::cloneViewModel(
         const id_type<ProcessViewModelInterface>& newId,
         const ProcessViewModelInterface& source,
         QObject* parent)
@@ -48,13 +48,13 @@ ProcessViewModelInterface*ProcessSharedModelInterface::cloneViewModel(
 }
 
 
-QVector<ProcessViewModelInterface*> ProcessSharedModelInterface::viewModels() const
+QVector<ProcessViewModelInterface*> ProcessModel::viewModels() const
 {
     return m_viewModels;
 }
 
 
-void ProcessSharedModelInterface::expandProcess(ExpandMode mode, const TimeValue& t)
+void ProcessModel::expandProcess(ExpandMode mode, const TimeValue& t)
 {
     if(mode == ExpandMode::Scale)
     {
@@ -70,19 +70,19 @@ void ProcessSharedModelInterface::expandProcess(ExpandMode mode, const TimeValue
 }
 
 
-void ProcessSharedModelInterface::setDuration(const TimeValue& other)
+void ProcessModel::setDuration(const TimeValue& other)
 {
     m_duration = other;
 }
 
 
-const TimeValue&ProcessSharedModelInterface::duration() const
+const TimeValue&ProcessModel::duration() const
 {
     return m_duration;
 }
 
 
-void ProcessSharedModelInterface::addViewModel(ProcessViewModelInterface* m)
+void ProcessModel::addViewModel(ProcessViewModelInterface* m)
 {
     connect(m, &ProcessViewModelInterface::destroyed,
             this, [=] () { removeViewModel(m); });
@@ -90,7 +90,7 @@ void ProcessSharedModelInterface::addViewModel(ProcessViewModelInterface* m)
 }
 
 
-void ProcessSharedModelInterface::removeViewModel(ProcessViewModelInterface* m)
+void ProcessModel::removeViewModel(ProcessViewModelInterface* m)
 {
     int index = m_viewModels.indexOf(m);
 
@@ -101,10 +101,10 @@ void ProcessSharedModelInterface::removeViewModel(ProcessViewModelInterface* m)
 }
 
 
-ProcessSharedModelInterface* parentProcess(QObject* obj)
+ProcessModel* parentProcess(QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits("ProcessSharedModelInterface"))
+    while(obj && !obj->inherits("ProcessModel"))
     {
         obj = obj->parent();
     }
@@ -115,14 +115,14 @@ ProcessSharedModelInterface* parentProcess(QObject* obj)
                 .arg(objName)
                 .toStdString());
 
-    return static_cast<ProcessSharedModelInterface*>(obj);
+    return static_cast<ProcessModel*>(obj);
 }
 
 
-const ProcessSharedModelInterface* parentProcess(const QObject* obj)
+const ProcessModel* parentProcess(const QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits("ProcessSharedModelInterface"))
+    while(obj && !obj->inherits("ProcessModel"))
     {
         obj = obj->parent();
     }
@@ -133,5 +133,5 @@ const ProcessSharedModelInterface* parentProcess(const QObject* obj)
                 .arg(objName)
                 .toStdString());
 
-    return static_cast<const ProcessSharedModelInterface*>(obj);
+    return static_cast<const ProcessModel*>(obj);
 }

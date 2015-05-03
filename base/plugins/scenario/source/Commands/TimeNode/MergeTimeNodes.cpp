@@ -48,7 +48,7 @@ void MergeTimeNodes::undo()
                                                      event,
                                                      movingTimeNode->date(),
                                                      scenar.event(event).heightPercentage(),
-                                                     [] (ProcessSharedModelInterface* p, TimeValue t) { p->setDurationAndScale(t); });
+                                                     [] (ProcessModel* p, TimeValue t) { p->setDurationAndScale(t); });
     }
 }
 
@@ -66,7 +66,7 @@ void MergeTimeNodes::redo()
                     event,
                     aimedTimeNode.date(),
                     scenar.event(event).heightPercentage(),
-                    [] (ProcessSharedModelInterface* p, TimeValue t)
+                    [] (ProcessModel* p, TimeValue t)
                         { p->setDurationAndScale(t); });
 
         aimedTimeNode.addEvent(event);

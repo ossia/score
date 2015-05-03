@@ -8,7 +8,7 @@ class ConstraintInspectorWidget;
 class ProcessViewModelInterface;
 class AddProcessViewModelWidget;
 class BoxInspectorSection;
-class ProcessSharedModelInterface;
+class ProcessModel;
 
 // Contains a single box which can contain multiple decks and a Add Deck button.
 class DeckInspectorSection : public InspectorSectionWidget
@@ -21,7 +21,7 @@ class DeckInspectorSection : public InspectorSectionWidget
 
         void displayProcessViewModel(const ProcessViewModelInterface&);
         void createProcessViewModel(
-                const id_type<ProcessSharedModelInterface>& sharedProcessId);
+                const id_type<ProcessModel>& sharedProcessId);
 
         const DeckModel& model() const;
 

@@ -43,7 +43,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
 
 
         const id_type<ProcessViewModelInterface>& viewModelId() const override;
-        const id_type<ProcessSharedModelInterface>& modelId() const override;
+        const id_type<ProcessModel>& modelId() const override;
 
         void setWidth(int width) override;
         void setHeight(int height) override;

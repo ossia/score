@@ -1,5 +1,5 @@
 #include "ProcessViewModelInterfaceSerialization.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModelInterface.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
@@ -26,7 +26,7 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
         const ConstraintModel& constraint,
         QObject* parent)
 {
-    id_type<ProcessSharedModelInterface> sharedProcessId;
+    id_type<ProcessModel> sharedProcessId;
     deserializer.m_stream >> sharedProcessId;
 
     auto process = constraint.process(sharedProcessId);
@@ -60,7 +60,7 @@ ProcessViewModelInterface* createProcessViewModel(
         QObject* parent)
 {
     auto process = constraint.process(
-                fromJsonValue<id_type<ProcessSharedModelInterface>>(deserializer.m_obj["SharedProcessId"]));
+                fromJsonValue<id_type<ProcessModel>>(deserializer.m_obj["SharedProcessId"]));
     auto viewmodel = process->loadViewModel(deserializer.toVariant(),
                                             parent);
 

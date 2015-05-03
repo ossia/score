@@ -1,7 +1,7 @@
 #include "ConstraintExecutor.hpp"
 
 #include <ProcessInterface/ProcessExecutor.hpp>
-#include <ProcessInterface/ProcessSharedModelInterface.hpp>
+#include <ProcessInterface/ProcessModel.hpp>
 #include "ScenarioExecutor.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "AutomationExecutor.hpp"
@@ -23,7 +23,7 @@ ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
         }
     });
 
-    for(ProcessSharedModelInterface* process : m_constraint.processes())
+    for(ProcessModel* process : m_constraint.processes())
     {
         if(process->processName() == "Scenario")
             m_executors.push_back(new ScenarioExecutor(static_cast<ScenarioModel&>(*process)));

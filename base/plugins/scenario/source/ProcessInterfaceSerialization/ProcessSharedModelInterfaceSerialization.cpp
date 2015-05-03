@@ -1,20 +1,20 @@
-#include "ProcessSharedModelInterfaceSerialization.hpp"
+#include "ProcessModelSerialization.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "ProcessInterface/ProcessSharedModelInterface.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& process)
+void Visitor<Reader<DataStream>>::readFrom(const ProcessModel& process)
 {
     // To allow recration using createProcess
     m_stream << process.processName();
     readFrom(process.duration());
 
-    readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
+    readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
 
-    // ProcessSharedModelInterface doesn't have any particular data to save
+    // ProcessModel doesn't have any particular data to save
 
     // Save the subclass
     process.serialize(toVariant());
@@ -23,7 +23,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessSharedModelInterface& pr
 }
 
 template<>
-ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserializer,
+ProcessModel* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     QString processName;
@@ -44,22 +44,22 @@ ProcessSharedModelInterface* createProcess(Deserializer<DataStream>& deserialize
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessSharedModelInterface& process)
+void Visitor<Reader<JSONObject>>::readFrom(const ProcessModel& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = process.processName();
     m_obj["Duration"] = toJsonObject(process.duration());
 
-    readFrom(static_cast<const IdentifiedObject<ProcessSharedModelInterface>&>(process));
+    readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
 
-    // ProcessSharedModelInterface doesn't have any particular data to save
+    // ProcessModel doesn't have any particular data to save
 
     // Save the subclass
     process.serialize(toVariant());
 }
 
 template<>
-ProcessSharedModelInterface* createProcess(Deserializer<JSONObject>& deserializer,
+ProcessModel* createProcess(Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
     auto model = ProcessList::getFactory(

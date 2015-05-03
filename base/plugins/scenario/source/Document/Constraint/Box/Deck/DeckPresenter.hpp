@@ -11,7 +11,7 @@ namespace iscore
     class SerializableCommand;
 }
 class ProcessPresenterInterface;
-class ProcessSharedModelInterface;
+class ProcessModel;
 class ProcessViewModelInterface;
 class ProcessViewInterface;
 class BoxView;
