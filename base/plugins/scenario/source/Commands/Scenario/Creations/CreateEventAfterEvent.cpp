@@ -1,6 +1,7 @@
 #include "CreateEventAfterEvent.hpp"
 
 #include "source/Process/ScenarioModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/TimeNode/TimeNodeModel.hpp"

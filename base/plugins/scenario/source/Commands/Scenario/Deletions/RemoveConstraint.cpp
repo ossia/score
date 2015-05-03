@@ -2,6 +2,7 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"

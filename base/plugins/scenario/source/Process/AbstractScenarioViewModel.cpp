@@ -1,6 +1,7 @@
 #include "AbstractScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
         const id_type<AbstractConstraintViewModel>& constraintViewModelid) const
