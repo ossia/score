@@ -27,6 +27,11 @@ void SelectionStack::push(const Selection& s)
                     this, &SelectionStack::prune);
         }
         m_unselectable.push(s);
+
+        if(m_unselectable.size() > 50)
+        {
+            m_unselectable.removeFirst();
+        }
         m_reselectable.clear();
 
         emit currentSelectionChanged(s);
