@@ -10,7 +10,7 @@
 #include <QInputDialog>
 
 GroupPanelView::GroupPanelView(QObject* v):
-    iscore::PanelViewInterface{v},
+    iscore::PanelView{v},
     m_widget{new QWidget}
 {
     auto lay = new QVBoxLayout;

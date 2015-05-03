@@ -41,7 +41,7 @@ iscore::PluginControlInterface* ScenarioPlugin::control()
     return m_control;
 }
 
-QList<iscore::PanelFactoryInterface*> ScenarioPlugin::panels()
+QList<iscore::PanelFactory*> ScenarioPlugin::panels()
 {
     return {/*new ProcessPanelFactory*/};
 }

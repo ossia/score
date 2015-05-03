@@ -82,15 +82,15 @@ class SingletonDeviceList
 */
 class DeviceExplorerPlugin :
     public QObject,
-    public iscore::PanelFactoryInterface_QtInterface,
+    public iscore::PanelFactory_QtInterface,
     public iscore::FactoryFamily_QtInterface,
     public iscore::FactoryInterface_QtInterface,
     public iscore::PluginControlInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID PanelFactoryInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID PanelFactory_QtInterface_iid)
         Q_INTERFACES(
-                iscore::PanelFactoryInterface_QtInterface
+                iscore::PanelFactory_QtInterface
                 iscore::FactoryFamily_QtInterface
                 iscore::FactoryInterface_QtInterface
                 iscore::PluginControlInterface_QtInterface)
@@ -99,7 +99,7 @@ class DeviceExplorerPlugin :
         DeviceExplorerPlugin();
 
         // Panel interface
-        QList<iscore::PanelFactoryInterface*> panels() override;
+        QList<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
         QVector<iscore::FactoryFamily> factoryFamilies() override;

@@ -9,7 +9,7 @@
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
@@ -151,7 +151,7 @@ void PluginManager::dispatch(QObject* plugin)
 {
     auto cmd_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
     auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
-    auto panel_plugin = qobject_cast<PanelFactoryInterface_QtInterface*> (plugin);
+    auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
     auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
     auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
 

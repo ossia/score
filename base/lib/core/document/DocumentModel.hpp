@@ -7,7 +7,7 @@ namespace iscore
     class DocumentDelegateFactoryInterface;
     class DocumentDelegateModelInterface;
     class DocumentDelegatePluginModel;
-    class PanelModelInterface;
+    class PanelModel;
     /**
      * @brief The DocumentDelegateModelInterface class
      *
@@ -30,9 +30,9 @@ namespace iscore
 
 
             // Panel models
-            void addPanel(PanelModelInterface* m);
+            void addPanel(PanelModel* m);
             const auto& panels() const { return m_panelModels; }
-            PanelModelInterface* panel(const QString& name) const;
+            PanelModel* panel(const QString& name) const;
 
             // Plugin models
             void addPluginModel(DocumentDelegatePluginModel* m);
@@ -46,7 +46,7 @@ namespace iscore
             void setNewSelection(const Selection&);
 
         private:
-            QList<PanelModelInterface*> m_panelModels;
+            QList<PanelModel*> m_panelModels;
             QList<DocumentDelegatePluginModel*> m_pluginModels;
             DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
     };

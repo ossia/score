@@ -4,16 +4,16 @@
 
 namespace iscore
 {
-    class PanelFactoryInterface;
-    class PanelFactoryInterface_QtInterface
+    class PanelFactory;
+    class PanelFactory_QtInterface
     {
         public:
-            virtual ~PanelFactoryInterface_QtInterface() = default;
+            virtual ~PanelFactory_QtInterface() = default;
 
-            virtual QList<PanelFactoryInterface*> panels() = 0;
+            virtual QList<PanelFactory*> panels() = 0;
     };
 }
 
-#define PanelFactoryInterface_QtInterface_iid "org.ossia.i-score.plugins.PanelFactoryInterface_QtInterface"
+#define PanelFactory_QtInterface_iid "org.ossia.i-score.plugins.PanelFactory_QtInterface"
 
-Q_DECLARE_INTERFACE(iscore::PanelFactoryInterface_QtInterface, PanelFactoryInterface_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::PanelFactory_QtInterface, PanelFactory_QtInterface_iid)

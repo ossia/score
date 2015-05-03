@@ -1,15 +1,15 @@
 #pragma once
 
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
 
-class UndoPanelFactory : public iscore::PanelFactoryInterface
+class UndoPanelFactory : public iscore::PanelFactory
 {
     public:
         int panelId() const override;
         QString panelName() const override;
 
-        iscore::PanelViewInterface* makeView(iscore::View*) override;
-        iscore::PanelPresenterInterface* makePresenter(iscore::Presenter* parent_presenter,
-                                                               iscore::PanelViewInterface* view) override;
-        iscore::PanelModelInterface* makeModel(iscore::DocumentModel*) override;
+        iscore::PanelView* makeView(iscore::View*) override;
+        iscore::PanelPresenter* makePresenter(iscore::Presenter* parent_presenter,
+                                                               iscore::PanelView* view) override;
+        iscore::PanelModel* makeModel(iscore::DocumentModel*) override;
 };

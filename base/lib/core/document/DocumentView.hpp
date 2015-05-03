@@ -5,7 +5,7 @@ namespace iscore
 {
     class DocumentDelegateViewInterface;
     class DocumentDelegateFactoryInterface;
-    class PanelViewInterface;
+    class PanelView;
     class Document;
 
     /**
@@ -23,7 +23,7 @@ namespace iscore
             DocumentDelegateViewInterface* viewDelegate() const
             { return m_view; }
 
-            void addPanel(PanelViewInterface*);
+            void addPanel(PanelView*);
 
             Document* document() const
             {return m_document;}

@@ -1,9 +1,9 @@
 #pragma once
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 namespace iscore {
 class DocumentModel;
 }
-class UndoModel : public iscore::PanelModelInterface
+class UndoModel : public iscore::PanelModel
 {
     public:
     UndoModel(iscore::DocumentModel *model);

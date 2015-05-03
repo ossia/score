@@ -17,18 +17,18 @@ QString ProcessPanelFactory::panelName() const
     return "ProcessPanelModel";
 }
 
-iscore::PanelViewInterface*ProcessPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView*ProcessPanelFactory::makeView(iscore::View* parent)
 {
     return new ProcessPanelView{parent};
 }
 
-iscore::PanelPresenterInterface*ProcessPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
-                                                                   iscore::PanelViewInterface* view)
+iscore::PanelPresenter*ProcessPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
+                                                                   iscore::PanelView* view)
 {
     return new ProcessPanelPresenter{parent_presenter, view};
 }
 
-iscore::PanelModelInterface*ProcessPanelFactory::makeModel(iscore::DocumentModel* parent)
+iscore::PanelModel*ProcessPanelFactory::makeModel(iscore::DocumentModel* parent)
 {
     return new ProcessPanelModel{parent};
 }

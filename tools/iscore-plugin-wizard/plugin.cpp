@@ -46,7 +46,7 @@ QStringList %ClassName%::panel_list() const
 	return {};
 }
 
-PanelFactoryInterface* %ClassName%::panel_make (QString name)
+PanelFactory* %ClassName%::panel_make (QString name)
 {
 	return nullptr;
 }

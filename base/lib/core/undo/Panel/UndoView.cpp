@@ -5,7 +5,7 @@
 
 
 UndoView::UndoView(QObject* v) :
-    iscore::PanelViewInterface{v},
+    iscore::PanelView{v},
     m_widget{new QWidget}
 {
     m_widget->setLayout(new QVBoxLayout);

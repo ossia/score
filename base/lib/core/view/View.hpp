@@ -7,7 +7,7 @@
 #include <core/presenter/Action.hpp>
 namespace iscore
 {
-    class PanelViewInterface;
+    class PanelView;
     class Document;
     class DocumentView;
     /**
@@ -22,7 +22,7 @@ namespace iscore
             View(QObject* parent);
 
             void addDocumentView(iscore::DocumentView*);
-            void setupPanelView(PanelViewInterface* v);
+            void setupPanelView(PanelView* v);
 
             void closeDocument(iscore::DocumentView* doc);
 
@@ -40,8 +40,8 @@ namespace iscore
 
 
         private:
-            QList<QPair<PanelViewInterface*, QDockWidget*>> m_leftWidgets;
-            QList<QPair<PanelViewInterface*, QDockWidget*>> m_rightWidgets;
+            QList<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
+            QList<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 
             QTabWidget* m_tabWidget{};
     };

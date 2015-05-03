@@ -2,7 +2,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 using namespace iscore;
 
@@ -13,18 +13,18 @@ DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
 {
 }
 
-void DocumentModel::addPanel(PanelModelInterface *m)
+void DocumentModel::addPanel(PanelModel *m)
 {
     m_panelModels.append(m);
 }
 
 
-PanelModelInterface* DocumentModel::panel(const QString &name) const
+PanelModel* DocumentModel::panel(const QString &name) const
 {
     using namespace std;
     auto it = find_if(begin(m_panelModels),
                       end(m_panelModels),
-                      [&](PanelModelInterface * pm)
+                      [&](PanelModel * pm)
     {
         return pm->objectName() == name;
     });

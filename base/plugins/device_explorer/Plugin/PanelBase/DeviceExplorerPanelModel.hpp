@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 namespace iscore
 {
@@ -7,7 +7,7 @@ namespace iscore
 }
 class DeviceExplorerModel;
 
-class DeviceExplorerPanelModel : public iscore::PanelModelInterface
+class DeviceExplorerPanelModel : public iscore::PanelModel
 {
         friend class DeviceExplorerPanelPresenter;
     public:

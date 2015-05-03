@@ -1,12 +1,12 @@
 #pragma once
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 namespace iscore
 {
 class CommandStack;
 class UndoListWidget;
 }
 
-class UndoView : public iscore::PanelViewInterface
+class UndoView : public iscore::PanelView
 {
     public:
         UndoView(QObject *v);

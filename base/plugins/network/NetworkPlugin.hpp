@@ -10,14 +10,14 @@ class NetworkPlugin :
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
    // public iscore::SettingsDelegateFactoryInterface_QtInterface,
-    public iscore::PanelFactoryInterface_QtInterface
+    public iscore::PanelFactory_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
         Q_INTERFACES(
                      iscore::PluginControlInterface_QtInterface
                      //iscore::SettingsDelegateFactoryInterface_QtInterface
-                     iscore::PanelFactoryInterface_QtInterface)
+                     iscore::PanelFactory_QtInterface)
 
     public:
         NetworkPlugin();
@@ -26,5 +26,5 @@ class NetworkPlugin :
 
         iscore::PluginControlInterface* control() override;
 
-        QList<iscore::PanelFactoryInterface*> panels() override;
+        QList<iscore::PanelFactory*> panels() override;
 };

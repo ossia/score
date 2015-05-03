@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 class GroupManager;
 class Session;
 
@@ -8,7 +8,7 @@ namespace iscore
     class View;
 }
 
-class GroupPanelView : public iscore::PanelViewInterface
+class GroupPanelView : public iscore::PanelView
 {
     public:
         GroupPanelView(QObject* v);

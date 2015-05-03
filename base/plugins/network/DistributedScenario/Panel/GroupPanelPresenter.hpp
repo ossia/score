@@ -1,12 +1,12 @@
 #pragma once
 
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 
-class GroupPanelPresenter : public iscore::PanelPresenterInterface
+class GroupPanelPresenter : public iscore::PanelPresenter
 {
     public:
         GroupPanelPresenter(iscore::Presenter* parent_presenter,
-                            iscore::PanelViewInterface* view);
+                            iscore::PanelView* view);
 
         int panelId() const override;
         void on_modelChanged() override;

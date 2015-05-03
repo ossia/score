@@ -5,8 +5,8 @@
 
 namespace iscore
 {
-    class PanelPresenterInterface;
-    class PanelModelInterface : public NamedObject
+    class PanelPresenter;
+    class PanelModel : public NamedObject
     {
             Q_OBJECT
         public:

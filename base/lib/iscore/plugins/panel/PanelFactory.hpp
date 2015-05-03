@@ -4,36 +4,36 @@
 
 namespace iscore
 {
-    class PanelPresenterInterface;
-    class PanelModelInterface;
-    class PanelViewInterface;
+    class PanelPresenter;
+    class PanelModel;
+    class PanelView;
     class Presenter;
     class DocumentModel;
     class View;
 
     /**
-     * @brief The PanelFactoryInterface class
+     * @brief The PanelFactory class
      *
      * Factory for a side panel. Think of the palettes in photoshop.
      */
-    class PanelFactoryInterface
+    class PanelFactory
     {
         public:
             virtual QString panelName() const = 0;
             virtual int panelId() const = 0;
 
-            virtual ~PanelFactoryInterface() = default;
-            virtual PanelViewInterface* makeView(
+            virtual ~PanelFactory() = default;
+            virtual PanelView* makeView(
                     View* parent) = 0;
 
-            virtual PanelPresenterInterface* makePresenter(
+            virtual PanelPresenter* makePresenter(
                     Presenter* parent_presenter,
-                    PanelViewInterface* view) = 0;
+                    PanelView* view) = 0;
 
-            virtual PanelModelInterface* makeModel(
+            virtual PanelModel* makeModel(
                     DocumentModel* parent) = 0;
 
-            virtual PanelModelInterface* loadModel(
+            virtual PanelModel* loadModel(
                     const VisitorVariant& data,
                     DocumentModel* parent) { return nullptr; }
     };

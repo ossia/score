@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/selection/Selection.hpp>
 namespace iscore
 {
@@ -8,7 +8,7 @@ namespace iscore
 }
 class SelectionStackWidget;
 class InspectorPanel;
-class InspectorPanelView : public iscore::PanelViewInterface
+class InspectorPanelView : public iscore::PanelView
 {
         Q_OBJECT
     public:

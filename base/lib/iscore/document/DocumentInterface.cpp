@@ -3,7 +3,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {
@@ -47,7 +47,7 @@ iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic
 }
 
 
-const QList<iscore::PanelModelInterface*>& iscore::IDocument::panels(const iscore::Document* d)
+const QList<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
 {
     return d->model()->panels();
 }

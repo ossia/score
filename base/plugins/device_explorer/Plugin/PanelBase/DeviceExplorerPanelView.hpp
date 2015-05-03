@@ -1,12 +1,12 @@
 #pragma once
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 
 namespace iscore
 {
     class View;
 }
 class DeviceExplorerWidget;
-class DeviceExplorerPanelView : public iscore::PanelViewInterface
+class DeviceExplorerPanelView : public iscore::PanelView
 {
         friend class DeviceExplorerPanelPresenter;
     public:

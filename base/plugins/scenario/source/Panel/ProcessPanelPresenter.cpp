@@ -20,8 +20,8 @@
 #include "ProcessPanelId.hpp"
 
 
-ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelViewInterface* view):
-    iscore::PanelPresenterInterface{parent_presenter, view},
+ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelView* view):
+    iscore::PanelPresenter{parent_presenter, view},
     m_obj{new GraphicsProxyObject}
 {
     auto panelview = static_cast<ProcessPanelView*>(view);

@@ -10,8 +10,8 @@ namespace iscore
     class DocumentPresenter;
     class DocumentView;
     class DocumentDelegateFactoryInterface;
-    class PanelFactoryInterface;
-    class PanelPresenterInterface;
+    class PanelFactory;
+    class PanelPresenter;
     /**
      * @brief The Document class is the central part of the software.
      *
@@ -61,9 +61,9 @@ namespace iscore
                 return m_view;
             }
 
-            void setupNewPanel(PanelPresenterInterface* pres,
-                               PanelFactoryInterface* factory);
-            void bindPanelPresenter(PanelPresenterInterface*);
+            void setupNewPanel(PanelPresenter* pres,
+                               PanelFactory* factory);
+            void bindPanelPresenter(PanelPresenter*);
 
 
             QJsonObject saveDocumentModelAsJson();

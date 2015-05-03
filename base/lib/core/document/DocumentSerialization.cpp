@@ -5,9 +5,9 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
 
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
@@ -51,7 +51,7 @@ QJsonObject Document::saveAsJson()
         auto factory = find_if(
                            begin(panel_factories),
                            end(panel_factories),
-                           [&] (iscore::PanelFactoryInterface* fact)
+                           [&] (iscore::PanelFactory* fact)
         { return fact->panelId() == panel->panelId(); });
         Q_ASSERT(factory != end(panel_factories));
         json_panels[(*factory)->panelName()] = s.m_obj;
@@ -87,7 +87,7 @@ QByteArray Document::saveAsByteArray()
     std::transform(begin(model()->panels()),
                    end(model()->panels()),
                    std::back_inserter(panelModels),
-                   [] (PanelModelInterface* panel)
+                   [] (PanelModel* panel)
     {
         QByteArray arr;
         Serializer<DataStream> s{&arr};
@@ -209,7 +209,7 @@ DocumentModel::DocumentModel(const QVariant& data,
             auto factory = *find_if(
                                begin(panel_factories),
                                end(panel_factories),
-                               [&] (iscore::PanelFactoryInterface* fact)
+                               [&] (iscore::PanelFactory* fact)
             { return fact->panelId() == panel.first; });
 
             // Note : here we handle the case where the plug-in is not able to
@@ -257,7 +257,7 @@ DocumentModel::DocumentModel(const QVariant& data,
         {
             auto factory_it = find_if(begin(factories),
                                    end(factories),
-                                   [&] (iscore::PanelFactoryInterface* fact)
+                                   [&] (iscore::PanelFactory* fact)
             { return fact->panelName() == key; });
             if(factory_it != end(factories))
             {

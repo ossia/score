@@ -5,13 +5,13 @@
 #include <core/document/DocumentModel.hpp>
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
-    iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
+    iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{this}}
 {
 }
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(const VisitorVariant& data, iscore::DocumentModel *parent):
-    iscore::PanelModelInterface {"DeviceExplorerPanelModel", parent},
+    iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{data, this}}
 {
 

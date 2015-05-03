@@ -4,7 +4,7 @@
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
 
 ProcessPanelView::ProcessPanelView(QObject* parent):
-    iscore::PanelViewInterface{parent}
+    iscore::PanelView{parent}
 {
     m_widget = new QWidget;
     m_scene = new QGraphicsScene(this);

@@ -3,7 +3,7 @@
 #include "UndoPanelId.hpp"
 
 UndoModel::UndoModel(iscore::DocumentModel* model) :
-    iscore::PanelModelInterface{"UndoPanelModel", model}
+    iscore::PanelModel{"UndoPanelModel", model}
 {
 
 }

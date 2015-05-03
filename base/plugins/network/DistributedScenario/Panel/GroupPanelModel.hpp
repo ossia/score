@@ -1,9 +1,9 @@
 #pragma once
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 namespace iscore { class DocumentModel; }
 class GroupManager;
 class Session;
-class GroupPanelModel : public iscore::PanelModelInterface
+class GroupPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:

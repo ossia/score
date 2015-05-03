@@ -14,8 +14,8 @@ namespace iscore
     class SerializableCommand;
     class PluginControlInterface;
     class View;
-    class PanelFactoryInterface;
-    class PanelPresenterInterface;
+    class PanelFactory;
+    class PanelPresenter;
     /**
      * @brief The Presenter class
      *
@@ -33,7 +33,7 @@ namespace iscore
 
             // Register data from plugins
             void registerPluginControl(PluginControlInterface*);
-            void registerPanel(PanelFactoryInterface*);
+            void registerPanel(PanelFactory*);
             void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
 
             // Getters for plugin-registered things
@@ -75,14 +75,14 @@ namespace iscore
                                    const QString& name,
                                    const QByteArray& data);
 
-            QList<PanelFactoryInterface*> panelFactories() const
+            QList<PanelFactory*> panelFactories() const
             {
                 using namespace std;
-                QList<PanelFactoryInterface*> lst;
+                QList<PanelFactory*> lst;
                 transform(begin(m_panelPresenters), end(m_panelPresenters),
                           back_inserter(lst),
-                          [] (const QPair<PanelPresenterInterface*,
-                        PanelFactoryInterface*>& elt) { return elt.second; });
+                          [] (const QPair<PanelPresenter*,
+                        PanelFactory*>& elt) { return elt.second; });
                 return lst;
             }
 
@@ -101,8 +101,8 @@ namespace iscore
             std::vector<DocumentDelegateFactoryInterface*> m_availableDocuments;
 
             // TODO instead put the factory as a member function?
-            QList<QPair<PanelPresenterInterface*,
-                        PanelFactoryInterface*>> m_panelPresenters;
+            QList<QPair<PanelPresenter*,
+                        PanelFactory*>> m_panelPresenters;
 
             QList<OrderedToolbar> m_toolbars;
     };

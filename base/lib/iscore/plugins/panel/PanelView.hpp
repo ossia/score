@@ -3,8 +3,8 @@
 
 namespace iscore
 {
-    class PanelPresenterInterface;
-    class PanelViewInterface : public QObject
+    class PanelPresenter;
+    class PanelView : public QObject
     {
         public:
             using QObject::QObject;

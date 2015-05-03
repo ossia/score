@@ -7,7 +7,7 @@
 #include "Implementation/SelectionStackWidget.hpp"
 
 InspectorPanelView::InspectorPanelView(iscore::View* parent) :
-    iscore::PanelViewInterface {parent},
+    iscore::PanelView {parent},
     m_widget{new QWidget}
 {
     auto lay = new QVBoxLayout{m_widget};

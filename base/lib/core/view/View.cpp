@@ -7,8 +7,8 @@
 #include <core/application/Application.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 
 using namespace iscore;
 
@@ -50,7 +50,7 @@ void View::addDocumentView(DocumentView* doc)
 }
 
 
-void View::setupPanelView(PanelViewInterface* v)
+void View::setupPanelView(PanelView* v)
 {
     using namespace std;
     QDockWidget* dial = new QDockWidget {v->prettyName(), this};

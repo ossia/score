@@ -11,7 +11,7 @@
 #include "GroupPanelId.hpp"
 
 GroupPanelModel::GroupPanelModel(iscore::DocumentModel *model):
-    iscore::PanelModelInterface{"GroupPanelModel", model}
+    iscore::PanelModel{"GroupPanelModel", model}
 {
     connect(model, &iscore::DocumentModel::pluginModelsChanged,
             this, &GroupPanelModel::scanPlugins);

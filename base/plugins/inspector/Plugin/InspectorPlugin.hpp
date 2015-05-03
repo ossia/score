@@ -7,14 +7,14 @@
 class InspectorControl;
 class InspectorPlugin :
     public QObject,
-    public iscore::PanelFactoryInterface_QtInterface,
+    public iscore::PanelFactory_QtInterface,
     public iscore::PluginControlInterface_QtInterface,
     public iscore::FactoryFamily_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID PanelFactoryInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID PanelFactory_QtInterface_iid)
         Q_INTERFACES(
-                     iscore::PanelFactoryInterface_QtInterface
+                     iscore::PanelFactory_QtInterface
                      iscore::FactoryFamily_QtInterface
                      iscore::PluginControlInterface_QtInterface)
 
@@ -22,7 +22,7 @@ class InspectorPlugin :
         InspectorPlugin();
 
         // Panel interface
-        QList<iscore::PanelFactoryInterface*> panels() override;
+        QList<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Inspector
         QVector<iscore::FactoryFamily> factoryFamilies() override;

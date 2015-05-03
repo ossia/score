@@ -1,11 +1,11 @@
 #pragma once
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 
-class DeviceExplorerPanelPresenter : public iscore::PanelPresenterInterface
+class DeviceExplorerPanelPresenter : public iscore::PanelPresenter
 {
     public:
         DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-                                     iscore::PanelViewInterface* view);
+                                     iscore::PanelView* view);
 
         virtual void on_modelChanged() override;
         int panelId() const override;

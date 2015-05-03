@@ -11,7 +11,7 @@ class ScenarioPlugin :
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
     public iscore::DocumentDelegateFactoryInterface_QtInterface,
-    public iscore::PanelFactoryInterface_QtInterface,
+    public iscore::PanelFactory_QtInterface,
     public iscore::FactoryFamily_QtInterface,
     public iscore::FactoryInterface_QtInterface
 {
@@ -20,7 +20,7 @@ class ScenarioPlugin :
         Q_INTERFACES(
                      iscore::PluginControlInterface_QtInterface
                      iscore::DocumentDelegateFactoryInterface_QtInterface
-                     iscore::PanelFactoryInterface_QtInterface
+                     iscore::PanelFactory_QtInterface
                      iscore::FactoryFamily_QtInterface
                      iscore::FactoryInterface_QtInterface)
 
@@ -33,7 +33,7 @@ class ScenarioPlugin :
         // Plugin control interface
         iscore::PluginControlInterface* control() override;
 
-        QList<iscore::PanelFactoryInterface*> panels() override;
+        QList<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Process
         QVector<iscore::FactoryFamily> factoryFamilies() override;

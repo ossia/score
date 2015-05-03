@@ -8,7 +8,7 @@ namespace iscore
     class DocumentDelegateModelInterface;
     class CommandStack;
     class SelectionStack;
-    class PanelModelInterface;
+    class PanelModel;
 
     namespace IDocument
     {
@@ -34,7 +34,7 @@ namespace iscore
 
         //// Various getters ////
         // Panel models
-        const QList<PanelModelInterface*>& panels(const Document* d);
+        const QList<PanelModel*>& panels(const Document* d);
 
         // Presenter of a document plugin.
         DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);

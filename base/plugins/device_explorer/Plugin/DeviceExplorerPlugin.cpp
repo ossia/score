@@ -10,12 +10,12 @@ using namespace iscore;
 
 DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},
-iscore::PanelFactoryInterface_QtInterface {}
+iscore::PanelFactory_QtInterface {}
 {
     setObjectName("DeviceExplorerPlugin");
 }
 
-QList<PanelFactoryInterface*> DeviceExplorerPlugin::panels()
+QList<PanelFactory*> DeviceExplorerPlugin::panels()
 {
     return {new DeviceExplorerPanelFactory};
 }

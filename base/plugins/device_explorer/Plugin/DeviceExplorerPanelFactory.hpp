@@ -1,22 +1,22 @@
 #pragma once
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
 
-class DeviceExplorerPanelFactory : public iscore::PanelFactoryInterface
+class DeviceExplorerPanelFactory : public iscore::PanelFactory
 {
     public:
         int panelId() const override;
         QString panelName() const override;
 
 
-        iscore::PanelViewInterface* makeView(iscore::View*) override;
+        iscore::PanelView* makeView(iscore::View*) override;
 
-        iscore::PanelPresenterInterface* makePresenter(
+        iscore::PanelPresenter* makePresenter(
                 iscore::Presenter* parent_presenter,
-                iscore::PanelViewInterface* view) override;
+                iscore::PanelView* view) override;
 
-        iscore::PanelModelInterface* makeModel(
+        iscore::PanelModel* makeModel(
                 iscore::DocumentModel*) override;
-        iscore::PanelModelInterface* loadModel(
+        iscore::PanelModel* loadModel(
                 const VisitorVariant& data,
                 iscore::DocumentModel* parent) override;
 

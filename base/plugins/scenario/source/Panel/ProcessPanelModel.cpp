@@ -2,7 +2,7 @@
 #include "ProcessPanelId.hpp"
 
 ProcessPanelModel::ProcessPanelModel(QObject* parent):
-    iscore::PanelModelInterface{"ProcessPanelModel", parent}
+    iscore::PanelModel{"ProcessPanelModel", parent}
 {
 
 }

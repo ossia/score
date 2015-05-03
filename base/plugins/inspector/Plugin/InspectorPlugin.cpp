@@ -8,14 +8,14 @@ using namespace iscore;
 
 InspectorPlugin::InspectorPlugin() :
     QObject {},
-        iscore::PanelFactoryInterface_QtInterface {},
+        iscore::PanelFactory_QtInterface {},
         m_inspectorControl {new InspectorControl}
 {
     setObjectName("InspectorPlugin");
 }
 
 
-QList<iscore::PanelFactoryInterface*> InspectorPlugin::panels()
+QList<iscore::PanelFactory*> InspectorPlugin::panels()
 {
     return {new InspectorPanelFactory};
 }

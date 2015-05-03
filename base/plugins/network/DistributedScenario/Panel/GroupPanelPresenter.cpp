@@ -5,8 +5,8 @@
 
 GroupPanelPresenter::GroupPanelPresenter(
         iscore::Presenter* parent_presenter,
-        iscore::PanelViewInterface* view):
-    iscore::PanelPresenterInterface{parent_presenter, view}
+        iscore::PanelView* view):
+    iscore::PanelPresenter{parent_presenter, view}
 {
 }
 

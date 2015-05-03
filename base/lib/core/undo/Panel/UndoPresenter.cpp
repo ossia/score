@@ -1,14 +1,14 @@
 #include "UndoPresenter.hpp"
 #include "UndoView.hpp"
 #include "UndoPanelId.hpp"
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 
 UndoPresenter::UndoPresenter(
         iscore::Presenter* parent_presenter,
-        iscore::PanelViewInterface* view) :
-    iscore::PanelPresenterInterface{parent_presenter, view}
+        iscore::PanelView* view) :
+    iscore::PanelPresenter{parent_presenter, view}
 {
 }
 

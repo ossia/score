@@ -16,19 +16,19 @@ QString InspectorPanelFactory::panelName() const
     return "Inspector";
 }
 
-iscore::PanelViewInterface* InspectorPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView* InspectorPanelFactory::makeView(iscore::View* parent)
 {
     return new InspectorPanelView {parent};
 }
 
-iscore::PanelPresenterInterface* InspectorPanelFactory::makePresenter(
+iscore::PanelPresenter* InspectorPanelFactory::makePresenter(
     iscore::Presenter* parent_presenter,
-    iscore::PanelViewInterface* view)
+    iscore::PanelView* view)
 {
     return new InspectorPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModelInterface* InspectorPanelFactory::makeModel(iscore::DocumentModel* parent)
+iscore::PanelModel* InspectorPanelFactory::makeModel(iscore::DocumentModel* parent)
 {
     return new InspectorPanelModel {parent};
 }

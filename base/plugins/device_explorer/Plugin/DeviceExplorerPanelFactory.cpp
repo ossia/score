@@ -20,23 +20,23 @@ int DeviceExplorerPanelFactory::panelId() const
     return DEVICEEXPLORER_PANEL_ID;
 }
 
-iscore::PanelViewInterface* DeviceExplorerPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView* DeviceExplorerPanelFactory::makeView(iscore::View* parent)
 {
     return new DeviceExplorerPanelView {parent};
 }
 
-iscore::PanelPresenterInterface* DeviceExplorerPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
-        iscore::PanelViewInterface* view)
+iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
+        iscore::PanelView* view)
 {
     return new DeviceExplorerPanelPresenter {parent_presenter, view};
 }
 
-iscore::PanelModelInterface* DeviceExplorerPanelFactory::makeModel(DocumentModel* parent)
+iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(DocumentModel* parent)
 {
     return new DeviceExplorerPanelModel {parent};
 }
 
-PanelModelInterface *DeviceExplorerPanelFactory::loadModel(const VisitorVariant& data, DocumentModel *parent)
+PanelModel *DeviceExplorerPanelFactory::loadModel(const VisitorVariant& data, DocumentModel *parent)
 {
     return new DeviceExplorerPanelModel {data, parent};
 }

@@ -1,10 +1,10 @@
 #pragma once
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 
 class QGraphicsScene;
 class QGraphicsView;
 class SizeNotifyingGraphicsView;
-class ProcessPanelView : public iscore::PanelViewInterface
+class ProcessPanelView : public iscore::PanelView
 {
         Q_OBJECT
     public:

@@ -11,8 +11,8 @@
 #include <core/document/DocumentModel.hpp>
 
 DeviceExplorerPanelPresenter::DeviceExplorerPanelPresenter(iscore::Presenter* parent,
-                                                           iscore::PanelViewInterface* view) :
-    iscore::PanelPresenterInterface {parent, view}
+                                                           iscore::PanelView* view) :
+    iscore::PanelPresenter {parent, view}
 {
 
 }

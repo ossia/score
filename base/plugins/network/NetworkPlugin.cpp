@@ -27,7 +27,7 @@ iscore::PluginControlInterface* NetworkPlugin::control()
     return new NetworkControl;
 }
 
-QList<iscore::PanelFactoryInterface*> NetworkPlugin::panels()
+QList<iscore::PanelFactory*> NetworkPlugin::panels()
 {
     return {new GroupPanelFactory};
 }

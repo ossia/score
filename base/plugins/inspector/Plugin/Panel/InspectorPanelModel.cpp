@@ -4,7 +4,7 @@
 #include <core/document/DocumentModel.hpp>
 
 InspectorPanelModel::InspectorPanelModel(iscore::DocumentModel* parent) :
-    iscore::PanelModelInterface {"InspectorPanelModel", nullptr}
+    iscore::PanelModel {"InspectorPanelModel", nullptr}
 // NOTE : here we declare parent after because else for some weird reason,
 // "newItemInspected" is not found...
 {

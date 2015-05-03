@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
-class ProcessPanelModel : public iscore::PanelModelInterface
+class ProcessPanelModel : public iscore::PanelModel
 {
     public:
         ProcessPanelModel(QObject*);

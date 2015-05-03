@@ -4,18 +4,18 @@
 #include <QMap>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
 
 namespace iscore
 {
     class PluginControlInterface;
-    class PanelFactoryInterface;
+    class PanelFactory;
     class DocumentDelegateFactoryInterface;
     class SettingsDelegateFactoryInterface;
 
     using FactoryFamilyList = QVector<FactoryFamily>;
     using CommandList = QList<PluginControlInterface*>;
-    using PanelList = QList<PanelFactoryInterface*>;
+    using PanelList = QList<PanelFactory*>;
     using DocumentPanelList = QList<DocumentDelegateFactoryInterface*>;
     using SettingsList = QList<SettingsDelegateFactoryInterface*>;
 
@@ -47,7 +47,7 @@ namespace iscore
             void addControl(PluginControlInterface* p)
             { m_commandList.push_back(p); }
 
-            void addPanel(PanelFactoryInterface* p)
+            void addPanel(PanelFactory* p)
             { m_panelList.push_back(p); }
 
         private:

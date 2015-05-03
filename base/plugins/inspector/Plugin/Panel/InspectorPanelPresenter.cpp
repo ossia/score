@@ -5,8 +5,8 @@
 
 #include <core/document/DocumentPresenter.hpp>
 InspectorPanelPresenter::InspectorPanelPresenter(iscore::Presenter* parent,
-        iscore::PanelViewInterface* view) :
-    iscore::PanelPresenterInterface {parent, view}
+        iscore::PanelView* view) :
+    iscore::PanelPresenter {parent, view}
 {
 
 }

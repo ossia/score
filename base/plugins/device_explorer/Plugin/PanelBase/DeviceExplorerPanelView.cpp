@@ -4,7 +4,7 @@
 #include <core/view/View.hpp>
 
 DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
-    iscore::PanelViewInterface {parent},
+    iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{parent}}
 {
 }

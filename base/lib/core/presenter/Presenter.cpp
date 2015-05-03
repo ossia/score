@@ -3,10 +3,10 @@
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
-#include <iscore/plugins/panel/PanelViewInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/plugins/panel/PanelView.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
@@ -49,7 +49,7 @@ void Presenter::registerPluginControl(PluginControlInterface* ctrl)
     m_controls.push_back(ctrl);
 }
 
-void Presenter::registerPanel(PanelFactoryInterface* factory)
+void Presenter::registerPanel(PanelFactory* factory)
 {
     auto view = factory->makeView(m_view);
     auto pres = factory->makePresenter(this, view);

@@ -1,16 +1,16 @@
 #pragma once
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
 
 class BaseElementModel;
 class ProcessView;
 class ProcessPresenter;
 class ProcessViewModel;
-class ProcessPanelPresenter : public iscore::PanelPresenterInterface
+class ProcessPanelPresenter : public iscore::PanelPresenter
 {
         Q_OBJECT
     public:
         ProcessPanelPresenter(iscore::Presenter* parent_presenter,
-                              iscore::PanelViewInterface* view);
+                              iscore::PanelView* view);
 
         int panelId() const override;
         void on_modelChanged() override;

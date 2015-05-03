@@ -3,9 +3,9 @@
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
-#include <iscore/plugins/panel/PanelFactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelPresenterInterface.hpp>
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
@@ -57,18 +57,18 @@ Document::~Document()
     delete m_view;
 }
 
-void Document::setupNewPanel(PanelPresenterInterface* pres,
-                             PanelFactoryInterface* factory)
+void Document::setupNewPanel(PanelPresenter* pres,
+                             PanelFactory* factory)
 {
     m_model->addPanel(factory->makeModel(m_model));
 }
 
-void Document::bindPanelPresenter(PanelPresenterInterface* pres)
+void Document::bindPanelPresenter(PanelPresenter* pres)
 {
     using namespace std;
     auto localmodel = std::find_if(begin(model()->panels()),
                                    end(model()->panels()),
-                                   [&] (PanelModelInterface* model)
+                                   [&] (PanelModel* model)
     {
         return model->panelId() == pres->panelId();
     });

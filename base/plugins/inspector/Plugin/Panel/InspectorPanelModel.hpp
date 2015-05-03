@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iscore/plugins/panel/PanelModelInterface.hpp>
+#include <iscore/plugins/panel/PanelModel.hpp>
 namespace iscore
 {
     class DocumentModel;
@@ -10,7 +10,7 @@ namespace iscore
  *
  * @todo Inspector Model : keep the currently identified object. (ObjectPath)
  */
-class InspectorPanelModel : public iscore::PanelModelInterface
+class InspectorPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
