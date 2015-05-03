@@ -70,7 +70,6 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
 #include <core/document/DocumentModel.hpp>
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    // TODO should not be called for loading
     doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
 
     // connect the device document plugin to the device explorer model in this document

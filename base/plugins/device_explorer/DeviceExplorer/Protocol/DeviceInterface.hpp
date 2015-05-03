@@ -24,6 +24,7 @@ class DeviceInterface : public QObject
         virtual void updatePath(const AddressSettings& address) = 0;
         virtual void removePath(const QString& path) = 0;
 
+        // Execution API... Maybe we don't need it.
         virtual void sendMessage(Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 

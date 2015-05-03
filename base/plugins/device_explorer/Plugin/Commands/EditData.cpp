@@ -36,7 +36,7 @@ void EditData::serializeImpl(QDataStream &d) const
     d << m_deviceTree;
     m_nodePath.serializePath(d);
     d << m_column;
-    d << m_oldValue; // TODO QVariants serialization
+    d << m_oldValue;
     d << m_newValue;
     d << m_role;
 }

@@ -6,6 +6,7 @@ class Node;
 
 class QModelIndex;
 
+// TODO Rename in NodePath to prevent confusion ?
 class Path
 {
     public:

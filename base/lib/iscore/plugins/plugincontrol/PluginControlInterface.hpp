@@ -53,6 +53,8 @@ namespace iscore
         protected:
             virtual void on_presenterChanged();
             virtual void on_documentChanged();
+
+            // TODO should not be called for loading, only for real new documents.
             virtual void on_newDocument(iscore::Document* doc);
 
         private:

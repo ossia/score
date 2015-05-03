@@ -8,6 +8,10 @@ DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{this}}
 {
+    // TODO make the link with the DeviceDocumentPlugin
+    // 1. Load the current data in the device explorer
+
+    // 2. Make relevant connections
 }
 
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(const VisitorVariant& data, iscore::DocumentModel *parent):
