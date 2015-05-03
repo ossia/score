@@ -11,7 +11,7 @@ QString ScenarioFactory::name() const
 }
 
 ProcessViewInterface* ScenarioFactory::makeView(
-        const ProcessViewModelInterface& viewmodel,
+        const ProcessViewModel& viewmodel,
         QObject* parent)
 {
     if(dynamic_cast<const TemporalScenarioViewModel*>(&viewmodel))
@@ -22,7 +22,7 @@ ProcessViewInterface* ScenarioFactory::makeView(
 
 ProcessPresenterInterface*
 ScenarioFactory::makePresenter(
-        const ProcessViewModelInterface& pvm,
+        const ProcessViewModel& pvm,
         ProcessViewInterface* view,
         QObject* parent)
 {

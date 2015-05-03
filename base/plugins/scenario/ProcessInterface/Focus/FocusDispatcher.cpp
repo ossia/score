@@ -5,6 +5,6 @@
 FocusDispatcher::FocusDispatcher(iscore::Document& doc):
     m_baseElementModel{iscore::IDocument::modelDelegate_generic(doc)}
 {
-    connect(this, SIGNAL(focus(const ProcessViewModelInterface*)),
-            &m_baseElementModel, SLOT(setFocusedViewModel(const ProcessViewModelInterface*)), Qt::QueuedConnection);
+    connect(this, SIGNAL(focus(const ProcessViewModel*)),
+            &m_baseElementModel, SLOT(setFocusedViewModel(const ProcessViewModel*)), Qt::QueuedConnection);
 }

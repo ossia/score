@@ -4,7 +4,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
@@ -492,6 +492,6 @@ void ScenarioControl::on_documentChanged()
 const ScenarioModel *ScenarioControl::focusedScenario()
 {
     auto& model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    auto sm = dynamic_cast<const ProcessViewModelInterface*>(model.focusedViewModel());
+    auto sm = dynamic_cast<const ProcessViewModel*>(model.focusedViewModel());
     return sm ? dynamic_cast<const ScenarioModel*>(&sm->sharedProcessModel()) : nullptr;
 }

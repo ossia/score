@@ -7,7 +7,7 @@ class BoxModel;
 class ConstraintModel;
 
 class ProcessModel;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 
 // Note : the DeckModel is assumed to be in a Box, itself in a Constraint.
 class DeckModel : public IdentifiedObject<DeckModel>
@@ -46,20 +46,20 @@ class DeckModel : public IdentifiedObject<DeckModel>
         virtual ~DeckModel() = default;
 
         void addProcessViewModel(
-                ProcessViewModelInterface*);
+                ProcessViewModel*);
         void deleteProcessViewModel(
-                const id_type<ProcessViewModelInterface>& processViewModelId);
+                const id_type<ProcessViewModel>& processViewModelId);
 
 
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void selectForEdition(
-                const id_type<ProcessViewModelInterface>& processViewId);
-        const id_type<ProcessViewModelInterface>& editedProcessViewModel() const;
+                const id_type<ProcessViewModel>& processViewId);
+        const id_type<ProcessViewModel>& editedProcessViewModel() const;
 
-        const std::vector<ProcessViewModelInterface*>& processViewModels() const;
-        ProcessViewModelInterface& processViewModel(
-                const id_type<ProcessViewModelInterface>& processViewModelId) const;
+        const std::vector<ProcessViewModel*>& processViewModels() const;
+        ProcessViewModel& processViewModel(
+                const id_type<ProcessViewModel>& processViewModelId) const;
 
         // A deck is always in a constraint
         ConstraintModel& parentConstraint() const;
@@ -68,9 +68,9 @@ class DeckModel : public IdentifiedObject<DeckModel>
         bool focus() const;
 
     signals:
-        void processViewModelCreated(const id_type<ProcessViewModelInterface>& processViewModelId);
-        void processViewModelRemoved(const id_type<ProcessViewModelInterface>& processViewModelId);
-        void processViewModelSelected(const id_type<ProcessViewModelInterface>& processViewModelId);
+        void processViewModelCreated(const id_type<ProcessViewModel>& processViewModelId);
+        void processViewModelRemoved(const id_type<ProcessViewModel>& processViewModelId);
+        void processViewModelSelected(const id_type<ProcessViewModel>& processViewModelId);
 
         void heightChanged(int arg);
         void focusChanged(bool arg);
@@ -82,8 +82,8 @@ class DeckModel : public IdentifiedObject<DeckModel>
         void setFocus(bool arg);
 
     private:
-        id_type<ProcessViewModelInterface> m_editedProcessViewModelId {};
-        std::vector<ProcessViewModelInterface*> m_processViewModels;
+        id_type<ProcessViewModel> m_editedProcessViewModelId {};
+        std::vector<ProcessViewModel*> m_processViewModels;
 
         int m_height {200};
         bool m_focus{false};
@@ -95,4 +95,4 @@ class DeckModel : public IdentifiedObject<DeckModel>
  *
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
-ConstraintModel* parentConstraint(ProcessViewModelInterface* pvm);
+ConstraintModel* parentConstraint(ProcessViewModel* pvm);

@@ -6,7 +6,7 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 
 
 using namespace iscore;
@@ -34,7 +34,7 @@ AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath,
     }
 
     m_createdDeckId = id_type<DeckModel> (getNextId());
-    m_createdProcessViewId = id_type<ProcessViewModelInterface> (getNextId());
+    m_createdProcessViewId = id_type<ProcessViewModel> (getNextId());
     m_processData = constraint.process(m_sharedProcessModelId)->makeViewModelConstructionData();
 }
 

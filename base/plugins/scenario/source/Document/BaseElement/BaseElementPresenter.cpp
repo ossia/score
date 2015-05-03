@@ -12,7 +12,7 @@
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp"
 #include "Widgets/ProgressBar.hpp"
 
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"

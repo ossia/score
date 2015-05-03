@@ -13,7 +13,7 @@ ProcessModel* AutomationFactory::makeModel(
 }
 
 ProcessViewInterface* AutomationFactory::makeView(
-        const ProcessViewModelInterface& view,
+        const ProcessViewModel& view,
         QObject* parent)
 {
     return new AutomationView {static_cast<QGraphicsObject*>(parent) };
@@ -21,7 +21,7 @@ ProcessViewInterface* AutomationFactory::makeView(
 
 
 ProcessPresenterInterface* AutomationFactory::makePresenter(
-        const ProcessViewModelInterface& viewModel,
+        const ProcessViewModel& viewModel,
         ProcessViewInterface* view,
         QObject* parent)
 {

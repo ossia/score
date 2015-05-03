@@ -6,7 +6,7 @@
 
 #include <ProcessInterface/ExpandMode.hpp>
 
-class ProcessViewModelInterface;
+class ProcessViewModel;
 /**
  * @brief The ProcessModel class
  *
@@ -38,24 +38,24 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        ProcessViewModelInterface* makeViewModel(
-                const id_type<ProcessViewModelInterface>& viewModelId,
+        ProcessViewModel* makeViewModel(
+                const id_type<ProcessViewModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent);
 
         // Load
-        ProcessViewModelInterface* loadViewModel(
+        ProcessViewModel* loadViewModel(
                 const VisitorVariant& v,
                 QObject* parent);
 
         // Clone
-        ProcessViewModelInterface* cloneViewModel(
-                const id_type<ProcessViewModelInterface>& newId,
-                const ProcessViewModelInterface& source,
+        ProcessViewModel* cloneViewModel(
+                const id_type<ProcessViewModel>& newId,
+                const ProcessViewModel& source,
                 QObject* parent);
 
         // Do a copy.
-        QVector<ProcessViewModelInterface*> viewModels() const;
+        QVector<ProcessViewModel*> viewModels() const;
 
         //// Features of a process
         /// Duration
@@ -93,26 +93,26 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         virtual void serialize(const VisitorVariant& vis) const = 0;
 
     protected:
-        virtual ProcessViewModelInterface* makeViewModel_impl(
-                const id_type<ProcessViewModelInterface>& viewModelId,
+        virtual ProcessViewModel* makeViewModel_impl(
+                const id_type<ProcessViewModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) = 0;
-        virtual ProcessViewModelInterface* loadViewModel_impl(
+        virtual ProcessViewModel* loadViewModel_impl(
                 const VisitorVariant&,
                 QObject* parent) = 0;
-        virtual ProcessViewModelInterface* cloneViewModel_impl(
-                const id_type<ProcessViewModelInterface>& newId,
-                const ProcessViewModelInterface& source,
+        virtual ProcessViewModel* cloneViewModel_impl(
+                const id_type<ProcessViewModel>& newId,
+                const ProcessViewModel& source,
                 QObject* parent) = 0;
 
 
     private:
-        void addViewModel(ProcessViewModelInterface* m);
-        void removeViewModel(ProcessViewModelInterface* m);
+        void addViewModel(ProcessViewModel* m);
+        void removeViewModel(ProcessViewModel* m);
 
         // Ownership : the parent is the Deck or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a box.
-        QVector<ProcessViewModelInterface*> m_viewModels;
+        QVector<ProcessViewModel*> m_viewModels;
         TimeValue m_duration;
 };
 

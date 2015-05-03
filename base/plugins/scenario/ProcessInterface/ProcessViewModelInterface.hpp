@@ -5,11 +5,11 @@ class ProcessModel;
 class ProcessViewModelPanelProxy;
 
 /**
- * @brief The ProcessViewModelInterface class
+ * @brief The ProcessViewModel class
  *
  * Interface to implement to make a process view model.
  */
-class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterface>
+class ProcessViewModel: public IdentifiedObject<ProcessViewModel>
 {
     public:
         ProcessModel& sharedProcessModel() const;
@@ -19,16 +19,16 @@ class ProcessViewModelInterface: public IdentifiedObject<ProcessViewModelInterfa
 
 
     protected:
-        ProcessViewModelInterface(const id_type<ProcessViewModelInterface>& viewModelId,
+        ProcessViewModel(const id_type<ProcessViewModel>& viewModelId,
                                   const QString& name,
                                   ProcessModel& sharedProcess,
                                   QObject* parent);
 
         template<typename Impl>
-        ProcessViewModelInterface(Deserializer<Impl>& vis,
+        ProcessViewModel(Deserializer<Impl>& vis,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            IdentifiedObject<ProcessViewModelInterface> {vis, parent},
+            IdentifiedObject<ProcessViewModel> {vis, parent},
             m_sharedProcessModel {sharedProcess}
         {
             // Nothing else to load
@@ -68,7 +68,7 @@ const typename T::model_type& model(const T& viewModel)
  *  * The view model identifier
  */
 // TODO this should be in DeckModel.hpp instead; makes no sense here.
-std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModelInterface* pvm);
+std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModel* pvm);
 
 QDataStream& operator<< (QDataStream& s, const std::tuple<int, int, int>& tuple);
 QDataStream& operator>> (QDataStream& s, std::tuple<int, int, int>& tuple);

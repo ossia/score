@@ -1,5 +1,5 @@
 #include "ProcessModel.hpp"
-#include "ProcessViewModelInterface.hpp"
+#include "ProcessViewModel.hpp"
 
 
 ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel>& id, const QString& name, QObject* parent):
@@ -13,8 +13,8 @@ ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel
 QByteArray ProcessModel::makeViewModelConstructionData() const { return {}; }
 
 
-ProcessViewModelInterface*ProcessModel::makeViewModel(
-        const id_type<ProcessViewModelInterface>& viewModelId,
+ProcessViewModel*ProcessModel::makeViewModel(
+        const id_type<ProcessViewModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -25,7 +25,7 @@ ProcessViewModelInterface*ProcessModel::makeViewModel(
 }
 
 
-ProcessViewModelInterface*ProcessModel::loadViewModel(
+ProcessViewModel*ProcessModel::loadViewModel(
         const VisitorVariant& v,
         QObject* parent)
 {
@@ -36,9 +36,9 @@ ProcessViewModelInterface*ProcessModel::loadViewModel(
 }
 
 
-ProcessViewModelInterface*ProcessModel::cloneViewModel(
-        const id_type<ProcessViewModelInterface>& newId,
-        const ProcessViewModelInterface& source,
+ProcessViewModel*ProcessModel::cloneViewModel(
+        const id_type<ProcessViewModel>& newId,
+        const ProcessViewModel& source,
         QObject* parent)
 {
     auto pvm = cloneViewModel_impl(newId, source, parent);
@@ -48,7 +48,7 @@ ProcessViewModelInterface*ProcessModel::cloneViewModel(
 }
 
 
-QVector<ProcessViewModelInterface*> ProcessModel::viewModels() const
+QVector<ProcessViewModel*> ProcessModel::viewModels() const
 {
     return m_viewModels;
 }
@@ -82,15 +82,15 @@ const TimeValue&ProcessModel::duration() const
 }
 
 
-void ProcessModel::addViewModel(ProcessViewModelInterface* m)
+void ProcessModel::addViewModel(ProcessViewModel* m)
 {
-    connect(m, &ProcessViewModelInterface::destroyed,
+    connect(m, &ProcessViewModel::destroyed,
             this, [=] () { removeViewModel(m); });
     m_viewModels.push_back(m);
 }
 
 
-void ProcessModel::removeViewModel(ProcessViewModelInterface* m)
+void ProcessModel::removeViewModel(ProcessViewModel* m)
 {
     int index = m_viewModels.indexOf(m);
 

@@ -2,7 +2,7 @@
 #pragma once
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include "Deck/MoveProcessViewModel.hpp"
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 #include "RemoveDeckFromBox.hpp"
 #include "iscore/document/DocumentInterface.hpp"
 namespace Scenario
@@ -34,7 +34,7 @@ namespace Scenario
                 {
                     auto sourcedeck = mergeSource.find<DeckModel>();
 
-                    for(ProcessViewModelInterface* pvm : sourcedeck->processViewModels())
+                    for(ProcessViewModel* pvm : sourcedeck->processViewModels())
                     {
                         addCommand(new MoveProcessViewModel(iscore::IDocument::path(pvm),
                         ObjectPath {mergeTarget}));

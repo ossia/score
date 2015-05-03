@@ -11,7 +11,7 @@
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
 
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
 #include "Commands/Constraint/Box/RemoveDeckFromBox.hpp"
@@ -24,7 +24,7 @@ class PutProcessViewModelToFront
 {
     public:
         PutProcessViewModelToFront(ObjectPath&& deckPath,
-                                   const id_type<ProcessViewModelInterface>& pid):
+                                   const id_type<ProcessViewModel>& pid):
             m_deckPath{std::move(deckPath)},
             m_pid{pid}
         {
@@ -38,7 +38,7 @@ class PutProcessViewModelToFront
 
     private:
         ObjectPath m_deckPath;
-        const id_type<ProcessViewModelInterface>& m_pid;
+        const id_type<ProcessViewModel>& m_pid;
 
 };
 
@@ -101,7 +101,7 @@ void DeckInspectorSection::createProcessViewModel(
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void DeckInspectorSection::displayProcessViewModel(const ProcessViewModelInterface& pvm)
+void DeckInspectorSection::displayProcessViewModel(const ProcessViewModel& pvm)
 {
     auto pvm_id = pvm.id();
 
@@ -142,13 +142,13 @@ void DeckInspectorSection::displayProcessViewModel(const ProcessViewModelInterfa
 
 
 void DeckInspectorSection::on_processViewModelCreated(
-        const id_type<ProcessViewModelInterface>& pvmId)
+        const id_type<ProcessViewModel>& pvmId)
 {
     displayProcessViewModel(m_model.processViewModel(pvmId));
 }
 
 void DeckInspectorSection::on_processViewModelRemoved(
-        const id_type<ProcessViewModelInterface>& pvmId)
+        const id_type<ProcessViewModel>& pvmId)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
 }

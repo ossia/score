@@ -7,7 +7,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <ProcessInterface/TimeValue.hpp>
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class ProcessModel;
 class ProcessViewInterface;
 class ProcessPresenterInterface;
@@ -38,12 +38,12 @@ class ProcessFactoryInterface : public iscore::FactoryInterface
         // TODO Make it take a view name, too (cf. logical / temporal).
         // Or make it be created by the ViewModel, and the View be created by the presenter.
         virtual ProcessPresenterInterface* makePresenter(
-                const ProcessViewModelInterface&,
+                const ProcessViewModel&,
                 ProcessViewInterface*,
                 QObject* parent) = 0;
 
         virtual ProcessViewInterface* makeView(
-                const ProcessViewModelInterface& view,
+                const ProcessViewModel& view,
                 QObject* parent) = 0;
 
 

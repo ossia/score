@@ -4,7 +4,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QToolButton>
@@ -45,7 +45,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(DeckInspectorSection* paren
         {
             auto it = std::find_if(std::begin(already_displayed_processes),
                                    std::end(already_displayed_processes),
-                                   [&process](ProcessViewModelInterface * pvm)
+                                   [&process](ProcessViewModel * pvm)
             {
                     return pvm->sharedProcessModel().id() == process->id();
         });

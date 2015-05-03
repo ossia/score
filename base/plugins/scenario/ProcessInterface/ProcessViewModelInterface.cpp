@@ -1,22 +1,22 @@
-#include "ProcessViewModelInterface.hpp"
+#include "ProcessViewModel.hpp"
 
-ProcessModel&ProcessViewModelInterface::sharedProcessModel() const
+ProcessModel&ProcessViewModel::sharedProcessModel() const
 { return m_sharedProcessModel; }
 
 
-ProcessViewModelInterface::ProcessViewModelInterface(
-        const id_type<ProcessViewModelInterface>& viewModelId,
+ProcessViewModel::ProcessViewModel(
+        const id_type<ProcessViewModel>& viewModelId,
         const QString& name,
         ProcessModel& sharedProcess,
         QObject* parent) :
-    IdentifiedObject<ProcessViewModelInterface> {viewModelId, name, parent},
+    IdentifiedObject<ProcessViewModel> {viewModelId, name, parent},
     m_sharedProcessModel {sharedProcess}
 {
 
 }
 
 
-std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModelInterface* pvm)
+std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModel* pvm)
 {
     // TODO - this only works in a scenario.
     auto deckModel = static_cast<IdentifiedObjectAbstract*>(pvm->parent());

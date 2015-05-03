@@ -11,7 +11,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 

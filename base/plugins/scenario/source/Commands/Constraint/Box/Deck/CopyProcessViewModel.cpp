@@ -3,7 +3,7 @@
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -28,7 +28,7 @@ void CopyProcessViewModel::undo()
 
 void CopyProcessViewModel::redo()
 {
-    auto sourcePVM = m_pvmPath.find<ProcessViewModelInterface>();
+    auto sourcePVM = m_pvmPath.find<ProcessViewModel>();
     auto targetDeck = m_targetDeckPath.find<DeckModel>();
 
     const auto& proc = sourcePVM->sharedProcessModel();

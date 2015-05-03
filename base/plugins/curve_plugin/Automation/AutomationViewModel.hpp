@@ -1,19 +1,19 @@
 #pragma once
 
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 
 class AutomationModel;
-class AutomationViewModel : public ProcessViewModelInterface
+class AutomationViewModel : public ProcessViewModel
 {
     public:
         AutomationViewModel(AutomationModel& model,
-                            const id_type<ProcessViewModelInterface>& id,
+                            const id_type<ProcessViewModel>& id,
                             QObject* parent);
 
         // Copy
         AutomationViewModel(const AutomationViewModel& source,
                             AutomationModel& model,
-                            const id_type<ProcessViewModelInterface>& id,
+                            const id_type<ProcessViewModel>& id,
                             QObject* parent);
 
         // Load
@@ -21,7 +21,7 @@ class AutomationViewModel : public ProcessViewModelInterface
         AutomationViewModel(Deserializer<Impl>& vis,
                             AutomationModel& model,
                             QObject* parent) :
-            ProcessViewModelInterface {vis, model, parent}
+            ProcessViewModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }

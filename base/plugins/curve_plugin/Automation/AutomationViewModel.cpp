@@ -3,18 +3,18 @@
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 
 AutomationViewModel::AutomationViewModel(AutomationModel& model,
-                                         const id_type<ProcessViewModelInterface>& id,
+                                         const id_type<ProcessViewModel>& id,
                                          QObject* parent) :
-    ProcessViewModelInterface {id, "AutomationViewModel", model, parent}
+    ProcessViewModel {id, "AutomationViewModel", model, parent}
 {
 
 }
 
 AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
                                          AutomationModel& model,
-                                         const id_type<ProcessViewModelInterface>& id,
+                                         const id_type<ProcessViewModel>& id,
                                          QObject* parent) :
-    ProcessViewModelInterface {id, "AutomationViewModel", model, parent}
+    ProcessViewModel {id, "AutomationViewModel", model, parent}
 {
     // Nothing to copy
 }

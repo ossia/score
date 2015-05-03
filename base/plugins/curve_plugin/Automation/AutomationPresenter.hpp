@@ -13,7 +13,7 @@ class AutomationPresenter : public ProcessPresenterInterface
 {
         Q_OBJECT
     public:
-        AutomationPresenter(const ProcessViewModelInterface& model,
+        AutomationPresenter(const ProcessViewModel& model,
                             ProcessViewInterface* view,
                             QObject* parent);
         ~AutomationPresenter();
@@ -25,7 +25,7 @@ class AutomationPresenter : public ProcessPresenterInterface
         virtual void putBehind() override;
         virtual void on_zoomRatioChanged(ZoomRatio) override;
         virtual void parentGeometryChanged() override;
-        virtual const id_type<ProcessViewModelInterface>& viewModelId() const override;
+        virtual const id_type<ProcessViewModel>& viewModelId() const override;
         virtual const id_type<ProcessModel>& modelId() const override;
 
     public slots:

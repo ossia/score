@@ -3,7 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class ProcessModel;
 namespace Scenario
 {
@@ -35,7 +35,7 @@ namespace Scenario
 
                 QByteArray m_processData;
 
-                id_type<ProcessViewModelInterface> m_createdProcessViewId {};
+                id_type<ProcessViewModel> m_createdProcessViewId {};
         };
     }
 }

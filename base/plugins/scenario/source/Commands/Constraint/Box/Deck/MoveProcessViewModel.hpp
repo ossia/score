@@ -32,7 +32,7 @@ namespace Scenario
         {
             auto cmd = new RemoveProcessViewModelFromDeck{
                     ObjectPath{pvmToMove},
-                    id_type<ProcessViewModelInterface>(
+                    id_type<ProcessViewModel>(
                         ObjectIdentifierVector(pvmToMove.vec()).takeLast().id())};
             addCommand(cmd);
 

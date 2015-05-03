@@ -7,7 +7,7 @@
 #include "Document/Event/EventModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 ConstraintModel::ConstraintModel(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullViewId,

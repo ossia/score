@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include "ProcessViewModelInterface.hpp"
+#include "ProcessViewModel.hpp"
 class ProcessViewModelPanelProxy : public QObject
 {
     public:
@@ -8,6 +8,6 @@ class ProcessViewModelPanelProxy : public QObject
         virtual ~ProcessViewModelPanelProxy() = default;
 
         // Can return the same view model, or a new one.
-        virtual const ProcessViewModelInterface& viewModel() = 0;
+        virtual const ProcessViewModel& viewModel() = 0;
 
 };

@@ -15,7 +15,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 
 using namespace Scenario;
 
@@ -111,7 +111,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
 #include <core/document/Document.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-void BaseElementModel::setFocusedViewModel(const ProcessViewModelInterface* proc)
+void BaseElementModel::setFocusedViewModel(const ProcessViewModel* proc)
 {
     auto updateDeckFocus = [&] (bool b)
     {

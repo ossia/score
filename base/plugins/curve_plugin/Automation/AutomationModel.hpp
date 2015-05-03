@@ -34,11 +34,11 @@ class AutomationModel : public ProcessModel
         //// ProcessModel ////
         QString processName() const override;
 
-        ProcessViewModelInterface* makeViewModel_impl(
-                const id_type<ProcessViewModelInterface>& viewModelId,
+        ProcessViewModel* makeViewModel_impl(
+                const id_type<ProcessViewModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
-        ProcessViewModelInterface* loadViewModel_impl(
+        ProcessViewModel* loadViewModel_impl(
                 const VisitorVariant&,
                 QObject* parent) override;
 
@@ -95,9 +95,9 @@ class AutomationModel : public ProcessModel
         }
 
     protected:
-        ProcessViewModelInterface* cloneViewModel_impl(
-                const id_type<ProcessViewModelInterface>& newId,
-                const ProcessViewModelInterface& source,
+        ProcessViewModel* cloneViewModel_impl(
+                const id_type<ProcessViewModel>& newId,
+                const ProcessViewModel& source,
                 QObject* parent) override;
 
     private:

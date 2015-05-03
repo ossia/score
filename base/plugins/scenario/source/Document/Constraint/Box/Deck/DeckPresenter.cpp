@@ -7,7 +7,7 @@
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenterInterface.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include "ProcessInterface/ProcessViewInterface.hpp"
 #include "ProcessInterface/ProcessFactoryInterface.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
@@ -119,13 +119,13 @@ void DeckPresenter::disable()
 
 
 void DeckPresenter::on_processViewModelCreated(
-        const id_type<ProcessViewModelInterface>& processId)
+        const id_type<ProcessViewModel>& processId)
 {
     on_processViewModelCreated_impl(m_model.processViewModel(processId));
 }
 
 void DeckPresenter::on_processViewModelDeleted(
-        const id_type<ProcessViewModelInterface>& processId)
+        const id_type<ProcessViewModel>& processId)
 {
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
@@ -147,7 +147,7 @@ void DeckPresenter::on_processViewModelDeleted(
 }
 
 void DeckPresenter::on_processViewModelSelected(
-        const id_type<ProcessViewModelInterface>& processId)
+        const id_type<ProcessViewModel>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     for(auto& pair : m_processes)
@@ -187,7 +187,7 @@ void DeckPresenter::on_zoomRatioChanged(ZoomRatio val)
 }
 
 void DeckPresenter::on_processViewModelCreated_impl(
-        const ProcessViewModelInterface& proc_vm)
+        const ProcessViewModel& proc_vm)
 {
     auto procname = proc_vm.sharedProcessModel().processName();
 

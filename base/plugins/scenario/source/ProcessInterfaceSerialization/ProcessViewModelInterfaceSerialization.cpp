@@ -1,19 +1,19 @@
-#include "ProcessViewModelInterfaceSerialization.hpp"
+#include "ProcessViewModelSerialization.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModel& processViewModel)
 {
     // To allow recration using createProcessViewModel.
     // This supposes that the process is stored inside a Constraint.
     m_stream << processViewModel.sharedProcessModel().id();
 
-    readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
+    readFrom(static_cast<const IdentifiedObject<ProcessViewModel>&>(processViewModel));
 
-    // ProcessViewModelInterface doesn't have any particular data to save
+    // ProcessViewModel doesn't have any particular data to save
 
     // Save the subclass
     processViewModel.serialize(toVariant());
@@ -22,7 +22,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModelInterface& proc
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& deserializer,
+ProcessViewModel* createProcessViewModel(Deserializer<DataStream>& deserializer,
         const ConstraintModel& constraint,
         QObject* parent)
 {
@@ -39,22 +39,22 @@ ProcessViewModelInterface* createProcessViewModel(Deserializer<DataStream>& dese
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModelInterface& processViewModel)
+void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModel& processViewModel)
 {
     // To allow recration using createProcessViewModel.
     // This supposes that the process is stored inside a Constraint.
     m_obj["SharedProcessId"] = toJsonValue(processViewModel.sharedProcessModel().id());
 
-    readFrom(static_cast<const IdentifiedObject<ProcessViewModelInterface>&>(processViewModel));
+    readFrom(static_cast<const IdentifiedObject<ProcessViewModel>&>(processViewModel));
 
-    // ProcessViewModelInterface doesn't have any particular data to save
+    // ProcessViewModel doesn't have any particular data to save
 
     // Save the subclass
     processViewModel.serialize(toVariant());
 }
 
 template<>
-ProcessViewModelInterface* createProcessViewModel(
+ProcessViewModel* createProcessViewModel(
         Deserializer<JSONObject>& deserializer,
         const ConstraintModel& constraint,
         QObject* parent)

@@ -9,7 +9,7 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class ProcessViewInterface;
 
 class AbstractConstraintViewModel;
@@ -42,7 +42,7 @@ class TemporalScenarioPresenter : public ProcessPresenterInterface
         ~TemporalScenarioPresenter();
 
 
-        const id_type<ProcessViewModelInterface>& viewModelId() const override;
+        const id_type<ProcessViewModel>& viewModelId() const override;
         const id_type<ProcessModel>& modelId() const override;
 
         void setWidth(int width) override;

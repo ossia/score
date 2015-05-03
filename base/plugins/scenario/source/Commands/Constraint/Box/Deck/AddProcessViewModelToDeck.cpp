@@ -2,8 +2,8 @@
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -3,7 +3,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/Box/BoxModel.hpp>
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
 
 #include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"

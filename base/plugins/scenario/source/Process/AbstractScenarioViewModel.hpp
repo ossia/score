@@ -1,5 +1,5 @@
 #pragma once
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;
@@ -9,7 +9,7 @@ class TimeNodeModel;
 
 class EventModel;
 
-class AbstractScenarioViewModel : public ProcessViewModelInterface
+class AbstractScenarioViewModel : public ProcessViewModel
 {
         Q_OBJECT
     public:
@@ -45,11 +45,11 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
 
     protected:
-        AbstractScenarioViewModel(const id_type<ProcessViewModelInterface>& viewModelId,
+        AbstractScenarioViewModel(const id_type<ProcessViewModel>& viewModelId,
                                   const QString& name,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModelInterface {viewModelId,
+            ProcessViewModel {viewModelId,
                                       name,
                                       sharedProcess,
                                       parent
@@ -59,11 +59,11 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
 
         // Copy
         AbstractScenarioViewModel(const AbstractScenarioViewModel& source,
-                                  const id_type<ProcessViewModelInterface>& viewModelId,
+                                  const id_type<ProcessViewModel>& viewModelId,
                                   const QString& name,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModelInterface {viewModelId,
+            ProcessViewModel {viewModelId,
                                       name,
                                       sharedProcess,
                                       parent
@@ -76,7 +76,7 @@ class AbstractScenarioViewModel : public ProcessViewModelInterface
         AbstractScenarioViewModel(Deserializer<Impl>& vis,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModelInterface {vis,
+            ProcessViewModel {vis,
                                        sharedProcess,
                                        parent
         }

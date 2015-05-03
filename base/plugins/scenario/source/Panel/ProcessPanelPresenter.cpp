@@ -9,7 +9,7 @@
 
 #include <ProcessInterface/ProcessList.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
-#include <ProcessInterface/ProcessViewModelInterface.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 #include <ProcessInterface/ProcessPresenterInterface.hpp>
 #include <ProcessInterface/ProcessViewInterface.hpp>

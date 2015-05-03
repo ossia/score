@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 
 DeckModel::DeckModel(
         const id_type<DeckModel>& id,
@@ -29,7 +29,7 @@ void DeckModel::copyViewModelsInSameConstraint(
         const DeckModel &source,
         DeckModel &target)
 {
-    for(ProcessViewModelInterface* pvm : source.processViewModels())
+    for(ProcessViewModel* pvm : source.processViewModels())
     {
         // We can safely reuse the same id since it's in a different deck.
         auto& proc = pvm->sharedProcessModel();
@@ -40,7 +40,7 @@ void DeckModel::copyViewModelsInSameConstraint(
     }
 }
 
-void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
+void DeckModel::addProcessViewModel(ProcessViewModel* viewmodel)
 {
     m_processViewModels.push_back(viewmodel);
 
@@ -50,12 +50,12 @@ void DeckModel::addProcessViewModel(ProcessViewModelInterface* viewmodel)
 }
 
 void DeckModel::deleteProcessViewModel(
-        const id_type<ProcessViewModelInterface>& processViewId)
+        const id_type<ProcessViewModel>& processViewId)
 {
     auto& pvm = processViewModel(processViewId);
 
     vec_erase_remove_if(m_processViewModels,
-                        [&processViewId](ProcessViewModelInterface * model)
+                        [&processViewId](ProcessViewModel * model)
     {
         return model->id() == processViewId;
     });
@@ -76,7 +76,7 @@ void DeckModel::deleteProcessViewModel(
 }
 
 void DeckModel::selectForEdition(
-        const id_type<ProcessViewModelInterface>& processViewId)
+        const id_type<ProcessViewModel>& processViewId)
 {
     if(!processViewId.val())
         return;
@@ -88,18 +88,18 @@ void DeckModel::selectForEdition(
     }
 }
 
-const id_type<ProcessViewModelInterface>& DeckModel::editedProcessViewModel() const
+const id_type<ProcessViewModel>& DeckModel::editedProcessViewModel() const
 {
     return m_editedProcessViewModelId;
 }
 
-const std::vector<ProcessViewModelInterface*>& DeckModel::processViewModels() const
+const std::vector<ProcessViewModel*>& DeckModel::processViewModels() const
 {
     return m_processViewModels;
 }
 
-ProcessViewModelInterface& DeckModel::processViewModel(
-        const id_type<ProcessViewModelInterface>& processViewModelId) const
+ProcessViewModel& DeckModel::processViewModel(
+        const id_type<ProcessViewModel>& processViewModelId) const
 {
     return *findById(m_processViewModels, processViewModelId);
 }
@@ -110,7 +110,7 @@ void DeckModel::on_deleteSharedProcessModel(
     using namespace std;
     auto it = find_if(begin(m_processViewModels),
                       end(m_processViewModels),
-                      [&sharedProcessId](const ProcessViewModelInterface * pvm)
+                      [&sharedProcessId](const ProcessViewModel * pvm)
     {
         return pvm->sharedProcessModel().id() == sharedProcessId;
     });

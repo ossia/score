@@ -7,7 +7,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 
 class EventModel;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;

@@ -27,14 +27,14 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
 
-        TemporalScenarioViewModel(const id_type<ProcessViewModelInterface>& id,
+        TemporalScenarioViewModel(const id_type<ProcessViewModel>& id,
                                   const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
                                   ScenarioModel& model,
                                   QObject* parent);
 
         // Copy
         TemporalScenarioViewModel(const TemporalScenarioViewModel& source,
-                                  const id_type<ProcessViewModelInterface>& id,
+                                  const id_type<ProcessViewModel>& id,
                                   ScenarioModel& model,
                                   QObject* parent);
 

@@ -8,7 +8,7 @@
 class ProcessModel;
 class BoxModel;
 class DeckModel;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 
 namespace Scenario
 {
@@ -46,7 +46,7 @@ namespace Scenario
                 id_type<ProcessModel> m_processId {};
                 id_type<BoxModel> m_createdBoxId {};
                 id_type<DeckModel> m_createdDeckId {};
-                id_type<ProcessViewModelInterface> m_createdProcessViewId {};
+                id_type<ProcessViewModel> m_createdProcessViewId {};
                 id_type<ProcessModel> m_sharedProcessModelId {};
 
                 QByteArray m_processData;

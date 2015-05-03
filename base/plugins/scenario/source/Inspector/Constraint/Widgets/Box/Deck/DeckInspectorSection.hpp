@@ -5,7 +5,7 @@
 class BoxModel;
 class DeckModel;
 class ConstraintInspectorWidget;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class AddProcessViewModelWidget;
 class BoxInspectorSection;
 class ProcessModel;
@@ -19,15 +19,15 @@ class DeckInspectorSection : public InspectorSectionWidget
                 const DeckModel& deck,
                 BoxInspectorSection* parentBox);
 
-        void displayProcessViewModel(const ProcessViewModelInterface&);
+        void displayProcessViewModel(const ProcessViewModel&);
         void createProcessViewModel(
                 const id_type<ProcessModel>& sharedProcessId);
 
         const DeckModel& model() const;
 
     public slots:
-        void on_processViewModelCreated(const id_type<ProcessViewModelInterface>& id);
-        void on_processViewModelRemoved(const id_type<ProcessViewModelInterface>& id);
+        void on_processViewModelCreated(const id_type<ProcessViewModel>& id);
+        void on_processViewModelRemoved(const id_type<ProcessViewModel>& id);
 
     private:
         const DeckModel& m_model;

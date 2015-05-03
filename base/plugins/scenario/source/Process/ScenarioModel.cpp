@@ -75,8 +75,8 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
     return arr;
 }
 
-ProcessViewModelInterface* ScenarioModel::makeViewModel_impl(
-        const id_type<ProcessViewModelInterface>& viewModelId,
+ProcessViewModel* ScenarioModel::makeViewModel_impl(
+        const id_type<ProcessViewModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -90,9 +90,9 @@ ProcessViewModelInterface* ScenarioModel::makeViewModel_impl(
 }
 
 
-ProcessViewModelInterface* ScenarioModel::cloneViewModel_impl(
-        const id_type<ProcessViewModelInterface>& newId,
-        const ProcessViewModelInterface& source,
+ProcessViewModel* ScenarioModel::cloneViewModel_impl(
+        const id_type<ProcessViewModel>& newId,
+        const ProcessViewModel& source,
         QObject* parent)
 {
     auto scen = new TemporalScenarioViewModel{

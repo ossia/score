@@ -4,7 +4,7 @@
 class BaseElementModel;
 class ProcessViewInterface;
 class ProcessPresenterInterface;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class ProcessPanelPresenter : public iscore::PanelPresenterInterface
 {
         Q_OBJECT
@@ -22,7 +22,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenterInterface
     private:
         QGraphicsObject* m_obj{};
         BaseElementModel* m_baseElementModel{};
-        const ProcessViewModelInterface* m_processViewModel{};
+        const ProcessViewModel* m_processViewModel{};
         ProcessPresenterInterface* m_processPresenter{};
         ProcessViewInterface* m_processView{};
 };

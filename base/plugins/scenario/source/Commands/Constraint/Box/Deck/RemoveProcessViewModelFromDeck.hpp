@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-class ProcessViewModelInterface;
+class ProcessViewModel;
 namespace Scenario
 {
     namespace Command
@@ -18,7 +18,7 @@ namespace Scenario
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(RemoveProcessViewModelFromDeck, "ScenarioControl")
 
-                RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModelInterface> processViewId);
+                RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModel> processViewId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -29,7 +29,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                id_type<ProcessViewModelInterface> m_processViewId {};
+                id_type<ProcessViewModel> m_processViewId {};
 
                 QByteArray m_serializedProcessViewData;
         };

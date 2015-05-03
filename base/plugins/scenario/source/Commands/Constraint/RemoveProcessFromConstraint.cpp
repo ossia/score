@@ -6,9 +6,9 @@
 
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

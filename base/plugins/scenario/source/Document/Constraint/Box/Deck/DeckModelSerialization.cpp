@@ -1,6 +1,6 @@
 #include "DeckModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
@@ -26,7 +26,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
 {
-    id_type<ProcessViewModelInterface> editedProcessId;
+    id_type<ProcessViewModel> editedProcessId;
     m_stream >> editedProcessId;
 
     int pvm_size;
@@ -87,6 +87,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(DeckModel& deck)
 
     deck.setHeight(m_obj["Height"].toInt());
     deck.selectForEdition(
-                fromJsonValue<id_type<ProcessViewModelInterface>>(
+                fromJsonValue<id_type<ProcessViewModel>>(
                     m_obj["EditedProcess"]));
 }

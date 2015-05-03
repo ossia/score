@@ -16,7 +16,7 @@
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
 
 AutomationPresenter::AutomationPresenter(
-        const ProcessViewModelInterface& model,
+        const ProcessViewModel& model,
         ProcessViewInterface* view,
         QObject* parent) :
     ProcessPresenterInterface {"AutomationPresenter", parent},
@@ -113,7 +113,7 @@ void AutomationPresenter::parentGeometryChanged()
     m_curve->setSize({m_view->width(), m_view->height()});
 }
 
-const id_type<ProcessViewModelInterface>& AutomationPresenter::viewModelId() const
+const id_type<ProcessViewModel>& AutomationPresenter::viewModelId() const
 {
     return m_viewModel.id();
 }

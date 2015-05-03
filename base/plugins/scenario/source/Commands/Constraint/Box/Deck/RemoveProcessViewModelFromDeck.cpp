@@ -2,15 +2,15 @@
 
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModelInterface.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessViewModelInterfaceSerialization.hpp"
+#include "ProcessInterface/ProcessViewModel.hpp"
+#include "source/ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
         ObjectPath&& boxPath,
-        id_type<ProcessViewModelInterface> processViewId) :
+        id_type<ProcessViewModel> processViewId) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},

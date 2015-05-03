@@ -12,7 +12,7 @@ namespace iscore
 }
 class ProcessPresenterInterface;
 class ProcessModel;
-class ProcessViewModelInterface;
+class ProcessViewModel;
 class ProcessViewInterface;
 class BoxView;
 class DeckPresenter : public NamedObject
@@ -46,16 +46,16 @@ class DeckPresenter : public NamedObject
 
     public slots:
         // From Model
-        void on_processViewModelCreated(const id_type<ProcessViewModelInterface>& processId);
-        void on_processViewModelDeleted(const id_type<ProcessViewModelInterface>& processId);
-        void on_processViewModelSelected(const id_type<ProcessViewModelInterface>& processId);
+        void on_processViewModelCreated(const id_type<ProcessViewModel>& processId);
+        void on_processViewModelDeleted(const id_type<ProcessViewModel>& processId);
+        void on_processViewModelSelected(const id_type<ProcessViewModel>& processId);
         void on_heightChanged(double height);
         void on_parentGeometryChanged();
 
         void on_zoomRatioChanged(ZoomRatio);
 
     private:
-        void on_processViewModelCreated_impl(const ProcessViewModelInterface&);
+        void on_processViewModelCreated_impl(const ProcessViewModel&);
 
         void updateProcessesShape();
 

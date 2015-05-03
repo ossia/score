@@ -14,7 +14,7 @@ ScenarioStateMachine& TemporalScenarioViewModel::stateMachine() const
 }
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
-        const id_type<ProcessViewModelInterface>& viewModelId,
+        const id_type<ProcessViewModel>& viewModelId,
         const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> >& constraintIds,
         ScenarioModel& model,
         QObject* parent) :
@@ -31,7 +31,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
         const TemporalScenarioViewModel& source,
-        const id_type<ProcessViewModelInterface>& id,
+        const id_type<ProcessViewModel>& id,
         ScenarioModel& newScenario,
         QObject* parent) :
     AbstractScenarioViewModel {source,
