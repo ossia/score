@@ -19,39 +19,55 @@
 
 using namespace iscore;
 
+QStringList pluginsDir()
+{
+#if defined(_WIN32)
+    return {QCoreApplication::applicationDirPath() + "/plugins"};
+#elif defined(__linux__)
+    return {QCoreApplication::applicationDirPath() + "/plugins",
+            "/usr/lib/i-score/plugins"};
+#elif defined(__APPLE__) && defined(__MACH__)
+    return {QCoreApplication::applicationDirPath() + "/plugins",
+            QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
+#endif
+}
+
 void PluginManager::reloadPlugins()
 {
     clearPlugins();
-    auto pluginsDir = QDir(qApp->applicationDirPath() + "/plugins");
-
+    auto folders = pluginsDir();
     auto blacklist = pluginsBlacklist();
 
-    for(QString fileName : pluginsDir.entryList(QDir::Files))
+    for(const QString& pluginsFolder : folders)
     {
-        QPluginLoader loader {pluginsDir.absoluteFilePath(fileName) };
-
-        if(QObject* plugin = loader.instance())
+        QDir pluginsDir(pluginsFolder);
+        for(const QString& fileName : pluginsDir.entryList(QDir::Files))
         {
-            if(!blacklist.contains(fileName))
+            QPluginLoader loader {pluginsDir.absoluteFilePath(fileName) };
+
+            if(QObject* plugin = loader.instance())
             {
-                m_availablePlugins[plugin->objectName()] = plugin;
-                plugin->setParent(this);
+                // TODO check if the plug-in isn't already loaded.
+                if(!blacklist.contains(fileName))
+                {
+                    m_availablePlugins[plugin->objectName()] = plugin;
+                    plugin->setParent(this);
+                }
+                else
+                {
+                    plugin->deleteLater();
+                }
+
+                m_pluginsOnSystem.push_back(fileName);
             }
             else
             {
-                plugin->deleteLater();
+                QString s = loader.errorString();
+                if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
+                    qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
             }
-
-            m_pluginsOnSystem.push_back(fileName);
-        }
-        else
-        {
-            QString s = loader.errorString();
-            if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
-                qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
         }
     }
-
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
