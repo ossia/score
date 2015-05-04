@@ -1,14 +1,9 @@
 #include "QCustomPlotCurve.hpp"
-
+#include <iscore/tools/Clamp.hpp>
 static const QColor outerColor{QColor{200, 30, 0}};
 static const QColor innerColor{255, 200, 200};
 static const QPen enabledPen{outerColor, 3};
 static const QPen disabledPen{QColor{100, 100, 100, 200}};
-
-double clamp(double val, double min, double max)
-{
-    return val < min ? min : (val > max ? max : val);
-}
 
 class MyPoint : public QGraphicsItem
 {

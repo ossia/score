@@ -4,16 +4,14 @@
 #include <QState>
 #include <ProcessInterface/TimeValue.hpp>
 
+#include <iscore/tools/Clamp.hpp>
+
 // A coordinate : (t, y)
 struct ScenarioPoint
 {
         TimeValue date;
         double y;
 };
-inline double clamp(double val, double min, double max)
-{
-    return val < min ? min : (val > max ? max : val);
-}
 
 template<int N>
 struct NumberedEvent : public QEvent
