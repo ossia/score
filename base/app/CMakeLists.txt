@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(iscore_app)
 set(APPNAME "i-score")
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Network Xml)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Network Xml PrintSupport Test)
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
