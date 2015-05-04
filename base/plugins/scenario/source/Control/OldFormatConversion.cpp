@@ -7,25 +7,35 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QMap>
 
+QMap<QString, QPair<double, double>> curvesMap;
 
 // séparateur décimal = virgule ! Et virgule *obligatoire* (1,0 et non 1)
+// JM : sur OS X c'est un point qui est obligatoire... :'(
 QString numberToQString(double nb)
 {
-    QString str = QLocale("fr_FR").toString(nb);
-    if (str.indexOf(",") == -1)
+    QString str = QLocale("C").toString(nb);
+    if (str.indexOf(".") == -1)
     {
-        str += QString(",0");
+        str += QString(".0");
     }
     return str;
 }
 
-void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument* doc)
+void createDeviceTree(const QJsonArray& children, QDomElement* parentNode, QDomDocument* doc, QString thisName)
 {
     for(const auto& child : children)
     {
+        auto params = child.toObject().value("AddressSettings").toObject();
+        auto spparams = params.value("AddressSpecificSettings").toObject();
+
+        QString theName = params.value("Name").toString();
+        double theMin = spparams["Min"].toDouble();
+        double theMax = spparams["Max"].toDouble();
+
         QDomElement dom_devNode = doc->createElement("node");
-        dom_devNode.setAttribute("address", child.toObject() ["Name"].toString());
+        dom_devNode.setAttribute("address", theName);
         dom_devNode.setAttribute("object", "Data");
         dom_devNode.setAttribute("service", "parameter");
         dom_devNode.setAttribute("dataspace", "none");
@@ -34,7 +44,7 @@ void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument
         dom_devNode.setAttribute("priority", "0");
         dom_devNode.setAttribute("rangeClipmode", "none");
         dom_devNode.setAttribute("valueDefault", "0,000000");
-        dom_devNode.setAttribute("rangeBounds", "0. 1.");
+        dom_devNode.setAttribute("rangeBounds", QString("%1 %2").arg(theMin).arg(theMax));
         dom_devNode.setAttribute("tags", "0");
         dom_devNode.setAttribute("repetitionsFilter", "0");
         dom_devNode.setAttribute("dataspaceUnit", "none");
@@ -43,7 +53,13 @@ void createDeviceTree(QJsonArray children, QDomElement* parentNode, QDomDocument
         dom_devNode.setAttribute("rampFunction", "none");
         parentNode->appendChild(dom_devNode);
 
-        createDeviceTree(child.toObject() ["Children"].toArray(), &dom_devNode, doc);
+        // Save min/max
+        QString childName = thisName + "/" + theName;
+        curvesMap.insert(childName, {theMin, theMax});
+        qDebug() << childName;
+
+        createDeviceTree(child.toObject() ["Children"].toArray(), &dom_devNode, doc, childName);
+
     }
 }
 
@@ -246,22 +262,29 @@ QString JSONToZeroTwo(QJsonObject base)
     //////////////////////////////////////////////////////////////////////////////
     // BOUCLE POUR LES DEVICES
     //////////////////////////////////////////////////////////////////////////////
+    // Reset the static stuff
+    curvesMap.clear();
 
-    QJsonArray j_root = base["DeviceExplorerPanelModel"].toObject().value("Children").toArray();
+    // The devices
+    QJsonArray j_root = base["Panels"].toObject().value("DeviceExplorer").toObject().value("Children").toArray();
 
-    for(const auto& dev : j_root)
+    for(const QJsonValue& dev : j_root)
     {
+        auto device_obj = dev.toObject();
+        auto device_settings = device_obj.value("DeviceSettings").toObject();
+        auto children = device_obj.value("Children").toArray();
+
+        // Objet a trois enfants, addressettings, children, device settings.
         QString protocol = QString("OSC"); //device[0].toString();
-        QString devName = dev.toObject()["Name"].toString();
+        QString devName = device_settings.value("Name").toString();
         dom_devAppli.setAttribute("name", devName);
 
         if(protocol == "OSC")
         {
-            auto devSettings = dev.toObject()["DeviceSettings"].toObject();
-            QString port = QString::number(devSettings["InputPort"].toInt()) + QString("u ");
-            port += QString::number(devSettings["OutputPort"].toInt()) + QString("u");
+            QString port = QString::number(device_settings["InputPort"].toInt()) + QString("u ");
+            port += QString::number(device_settings["OutputPort"].toInt()) + QString("u");
 
-            QString host = devSettings["Host"].toString();
+            QString host = device_settings["Host"].toString();
 
             QDomElement oscDev = domdoc.createElement(devName);
              oscDev.setAttribute("ip", host);
@@ -269,12 +292,8 @@ QString JSONToZeroTwo(QJsonObject base)
             osc.appendChild(oscDev);
         }
 
-
         QDomElement parentNode = dom_devAppli;
-        QJsonArray children = dev.toObject() ["Children"].toArray();
-
-        createDeviceTree(children, &parentNode, &domdoc);
-
+        createDeviceTree(children, &parentNode, &domdoc, "/" + devName);
     }
 
 
@@ -299,12 +318,12 @@ QString JSONToZeroTwo(QJsonObject base)
             for(const auto& event : events)
             {
                 auto j_ev = event.toObject();
-                auto idNode = j_ev["Identifier"].toObject();
+                int idEvent = j_ev["id"].toInt();
 
                 QString id = "j"; // identifiant 0.2 commencent par un j ...
-                id += QString::number(idNode["IdentifierValue"].toInt());
+                id += QString::number(idEvent);
 
-                QString date = QString::number(int(j_ev["Date"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT));
+                QString date = QString::number(int(j_ev["Date"].toDouble() / TIMECOEFF + DELTAT));
                 date += "u";    // position 0.2 finissent par u ...
 
                 // dans le noeud "Scenario"
@@ -318,7 +337,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 expr.remove(0, 1);
                 expr.insert(expr.indexOf("/"), ":");
 
-                expression[idNode["IdentifierValue"].toInt()] = expr;
+                expression[idEvent] = expr;
 
                 auto states = j_ev["States"].toArray();
 
@@ -374,16 +393,15 @@ QString JSONToZeroTwo(QJsonObject base)
             {
                 int convergence = 1; // permet de faire les convergences
                 auto j_cstr = constraint.toObject();
-                auto idNode = j_cstr["Identifier"].toObject();
-                auto endEvent = j_cstr["EndEvent"].toObject();
-                auto startEvent = j_cstr["StartEvent"].toObject();
+                int idNode = j_cstr["id"].toInt();
+                int endEv = j_cstr["EndEvent"].toInt();
+                int startEvent = j_cstr["StartEvent"].toInt();
 
-                int endEv = endEvent["IdentifierValue"].toInt();
                 int boxEndEv = endEv;
 
                 if(! endEventUsed.contains(endEv))
                 {
-                    int endEventDate = int(j_cstr["StartDate"].toObject() ["Time"].toDouble() + j_cstr["DefaultDuration"].toObject()["Time"].toDouble());
+                    int endEventDate = int(j_cstr["StartDate"].toDouble() + j_cstr["DefaultDuration"].toDouble());
                     endEventUsed[endEv] = (endEventDate / TIMECOEFF + DELTAT);
                 }
                 else
@@ -394,10 +412,10 @@ QString JSONToZeroTwo(QJsonObject base)
                 }
 
                 QString boxName = "box_";
-                boxName += QString::number(idNode["IdentifierValue"].toInt());
+                boxName += QString::number(idNode);
 
                 QString interStart = "j";
-                interStart += QString::number(startEvent["IdentifierValue"].toInt());
+                interStart += QString::number(startEvent);
 
                 QString boxEnd = "j";
                 boxEnd += QString::number(boxEndEv);
@@ -406,9 +424,9 @@ QString JSONToZeroTwo(QJsonObject base)
                 interEnd += QString::number(endEv);
 
 
-                QString min = QString::number(int(j_cstr["MinDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration * convergence));
+                QString min = QString::number(int(j_cstr["MinDuration"].toDouble() / TIMECOEFF - deltaDuration * convergence));
                 min += "u";
-                QString max = QString::number(int(j_cstr["MaxDuration"].toObject() ["Time"].toDouble() / TIMECOEFF - deltaDuration * convergence));
+                QString max = QString::number(int(j_cstr["MaxDuration"].toDouble() / TIMECOEFF - deltaDuration * convergence));
                 max += "u";
 
                 QString y = QString::number(int (j_cstr["HeightPercentage"].toDouble() * YCOEFF));
@@ -421,7 +439,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 QString boxStart = interStart;
                 boxStart += QString::number(idIndent);
                 idIndent++;
-                QString startDate = QString::number(int(j_cstr["StartDate"].toObject() ["Time"].toDouble() / TIMECOEFF + DELTAT + deltaDuration));
+                QString startDate = QString::number(int(j_cstr["StartDate"].toDouble() / TIMECOEFF + DELTAT + deltaDuration));
                 startDate += "u";
 
                 QDomElement dom_event = domdoc.createElement("event");
@@ -472,6 +490,7 @@ QString JSONToZeroTwo(QJsonObject base)
 
                 QJsonArray cstrProcesses = j_cstr["Processes"].toArray();
 
+                qDebug() << curvesMap;
                 for(const auto& cstrProcess : cstrProcesses)
                 {
                     auto autom = cstrProcess.toObject();
@@ -482,16 +501,22 @@ QString JSONToZeroTwo(QJsonObject base)
                         automAddress.remove(0, 1);
                         automAddress.insert(automAddress.indexOf("/"), ":");
 
-                        QString points;
+                        // Find the min / max to scale.
 
+                        QString points;
+                        QPair<double,double> minmax = curvesMap.value(autom["Address"].toString());
+
+                        qDebug() <<autom["Address"].toString();
                         for(auto point : autom["Points"].toArray())
                         {
-                            points += numberToQString(point.toObject() ["k"].toDouble());
-
+                            double x = point.toArray().first().toDouble();
+                            double y = point.toArray().last().toDouble();
+                            y = y * (minmax.second - minmax.first) + minmax.first;
+                            points += numberToQString(x);
                             points += " ";
-                            points += numberToQString(point.toObject() ["v"].toDouble());
+                            points += numberToQString(y);
                             points += " ";
-                            points += "1,000000 ";
+                            points += "1.000000 ";
 
                         }
 
@@ -515,7 +540,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 ** **********************************************************************/
 
                 // pas d'intervalle à partir de l'origine
-                if(startEvent["IdentifierValue"].toInt())
+                if(startEvent)
                 {
                     QDomElement dom_interval = domdoc.createElement("Interval");
                     dom_interval.setAttribute("name", "interval");
@@ -555,7 +580,7 @@ QString JSONToZeroTwo(QJsonObject base)
                 ** Contraintes souples
                 ** **********************************************************************/
 
-                int ev = j_cstr["EndEvent"].toObject() ["IdentifierValue"].toInt();
+                int ev = j_cstr["EndEvent"].toInt();
 
                 if(min != max || !expression[ev].isEmpty())
                 {
