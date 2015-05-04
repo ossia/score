@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(network_plugin)
 
-if(ANDROID OR WIN32)
-    message("TODO FIXME ON ANDROID AND WINDOWS")
+if(ANDROID)
+    message("TODO FIXME ON ANDROID")
     return()
 endif()
 
@@ -34,6 +34,11 @@ if(${KF5DNSSD_FOUND})
     file(GLOB_RECURSE ZEROCONF_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.hpp")
+		
+	if(WIN32)
+		include_directories(/f/kdnssd/usr/include)
+		include_directories("f:/kdnssd/usr/include")
+	endif()
 endif()
 
 add_library(networkplugin ${SRCS} ${ZEROCONF_SRCS})
@@ -50,7 +55,7 @@ if(${KF5DNSSD_FOUND})
     target_link_libraries(networkplugin KF5::DNSSD)
 endif()
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT WIN32)
     target_link_libraries(networkplugin dns_sd)
 endif()
 
