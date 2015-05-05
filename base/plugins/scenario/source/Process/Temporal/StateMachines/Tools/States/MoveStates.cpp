@@ -54,7 +54,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
                             currentPoint.y,
                             stateMachine.expandMode(),
-                            !stateMachine.shiftPressed());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -114,7 +114,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                             currentPoint.date,
                             currentPoint.y,
                             stateMachine.expandMode(),
-                            !stateMachine.shiftPressed());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(released, &QState::entered, [&] ()

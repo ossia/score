@@ -9,6 +9,7 @@
 #include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/StateMachines/Tool.hpp"
 
 #include "Control/OldFormatConversion.hpp"
@@ -339,7 +340,6 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     connect(deckmovetool, &QAction::triggered, [=]()
     { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::MoveDeck)); });
 
-
     // The action modes
     m_scenarioScaleModeActionGroup = new QActionGroup{bar};
 
@@ -359,6 +359,19 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                 tr("Alt+Shift+D"));
     connect(grow, &QAction::triggered, [=]()
     { if (focusedScenarioViewModel()) stateMachine().setGrowState(); });
+
+    auto verticalmove = makeToolbarAction(
+                tr("Vertical Move"),
+                m_scenarioScaleModeActionGroup,
+                true,
+                tr("Alt+Shift+F"));
+    connect(verticalmove, &QAction::toggled, [=] ()
+    {
+        if (verticalmove->isChecked())
+            stateMachine().shiftPressed();
+        else
+            stateMachine().shiftReleased();
+    });
 
     on_presenterChanged();
 
