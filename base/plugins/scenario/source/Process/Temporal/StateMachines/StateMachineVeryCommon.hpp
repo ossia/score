@@ -4,16 +4,14 @@
 #include <QState>
 #include <ProcessInterface/TimeValue.hpp>
 
+#include <iscore/tools/Clamp.hpp>
+
 // A coordinate : (t, y)
 struct ScenarioPoint
 {
         TimeValue date;
         double y;
 };
-inline double clamp(double val, double min, double max)
-{
-    return val < min ? min : (val > max ? max : val);
-}
 
 template<int N>
 struct NumberedEvent : public QEvent
@@ -74,8 +72,10 @@ using Press_Event = NumberedEvent<1>;
 using Move_Event = NumberedEvent<2>;
 using Release_Event = NumberedEvent<3>;
 using Cancel_Event = NumberedEvent<4>;
+using Shift_Event = NumberedEvent<5>;
 
 using Press_Transition = MatchedTransition<Press_Event>;
 using Move_Transition = MatchedTransition<Move_Event>;
 using Release_Transition = MatchedTransition<Release_Event>;
 using Cancel_Transition = MatchedTransition<Cancel_Event>;
+using ShiftTransition = MatchedTransition<Shift_Event>;

@@ -27,13 +27,15 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
                                const id_type<ConstraintModel>& id,
                                const TimeValue& date,
                                double height,
-                               ExpandMode mode) :
+                               ExpandMode mode,
+                               bool changeDate) :
     SerializableCommand{"ScenarioControl",
                         className(),
                         description()},
     m_path{std::move(scenarioPath)},
     m_constraint{id},
-    m_newHeightPosition{height}
+    m_newHeightPosition{height},
+    m_changeDate{changeDate}
 {
     auto& scenar = m_path.find<ScenarioModel>();
     auto& cst = scenar.constraint(m_constraint);
@@ -53,15 +55,19 @@ void MoveConstraint::update(const ObjectPath& path,
                             const id_type<ConstraintModel>&,
                             const TimeValue& date,
                             double height,
-                            ExpandMode mode)
+                            ExpandMode mode,
+                            bool changeDate)
 {
-    m_cmd->update(path, id_type<EventModel>{}, date, m_eventHeight, mode);
+    m_cmd->update(path, id_type<EventModel>{}, date, m_eventHeight, mode, changeDate);
     m_newHeightPosition = height;
+    m_changeDate = changeDate;
 }
 
 void MoveConstraint::undo()
 {
+
     m_cmd->undo();
+
 
     auto& scenar = m_path.find<ScenarioModel>();
     scenar.constraint(m_constraint).setHeightPercentage(m_oldHeightPosition);

@@ -24,13 +24,15 @@ namespace Scenario
                     const id_type<ConstraintModel>& id,
                     const TimeValue& date,
                     double y,
-                    ExpandMode mode);
+                    ExpandMode mode,
+                    bool changeDate = true);
 
                 void update(const ObjectPath&,
                             const id_type<ConstraintModel>& ,
                             const TimeValue& date,
                             double height,
-                            ExpandMode);
+                            ExpandMode,
+                            bool changeDate = true);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -46,6 +48,7 @@ namespace Scenario
                 double m_oldHeightPosition{},
                        m_newHeightPosition{},
                        m_eventHeight{};
+                bool m_changeDate{};
         };
     }
 }

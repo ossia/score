@@ -30,8 +30,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
-    m_timeRulersView->setSceneRect(0, -80, 800, 45);
-    m_timeRulersView->setFixedHeight(35);
+    m_timeRulersView->setSceneRect(0, -70, 800, 35);
+    m_timeRulersView->setFixedHeight(40);
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
