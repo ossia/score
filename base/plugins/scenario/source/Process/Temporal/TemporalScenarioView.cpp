@@ -78,4 +78,8 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
     {
         emit escPressed();
     }
+    if(event->key() == Qt::Key_Shift)
+    {
+        emit shiftPressed();
+    }
 }

@@ -26,7 +26,8 @@ namespace Scenario
                   id_type<EventModel> eventId,
                   const TimeValue& date,
                   double height,
-                  ExpandMode mode);
+                  ExpandMode mode,
+                  bool changeDate = true);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -78,6 +79,7 @@ namespace Scenario
                         >
                      >
                > m_savedConstraints;
+                bool m_changeDate{};
         };
 
     }

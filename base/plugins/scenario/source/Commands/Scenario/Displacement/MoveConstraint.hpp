@@ -24,7 +24,8 @@ namespace Scenario
                     const id_type<ConstraintModel>& id,
                     const TimeValue& date,
                     double y,
-                    ExpandMode mode);
+                    ExpandMode mode,
+                    bool changeDate = true);
 
                 void update(const ObjectPath&,
                             const id_type<ConstraintModel>& ,
@@ -46,6 +47,7 @@ namespace Scenario
                 double m_oldHeightPosition{},
                        m_newHeightPosition{},
                        m_eventHeight{};
+                bool m_changeDate{};
         };
     }
 }

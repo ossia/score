@@ -9,7 +9,7 @@
 #include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-
+#include "Process/Temporal/StateMachines/Tool.hpp"
 
 #include "Control/OldFormatConversion.hpp"
 
@@ -265,13 +265,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        elementsToJson);
 }
 
-
-// TODO use the one in ScenarioStateMachine
-enum ScenarioAction
-{
-    Create, Move, DeckMove, Select
-};
-
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,
                            QObject* parent,
@@ -316,35 +309,35 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     selecttool = makeToolbarAction(
                 tr("Select"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Select,
+                Tool::Select,
                 tr("Alt+x"));
     selecttool->setChecked(true);
     connect(selecttool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setSelectState(); });
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Select)); });
 
     auto createtool = makeToolbarAction(
                 tr("Create"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Create,
+                Tool::Create,
                 tr("Alt+c"));
     connect(createtool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setCreateState(); });
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Create)); });
 
     auto movetool = makeToolbarAction(
                 tr("Move"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Move,
+                Tool::Move,
                 tr("Alt+v"));
     connect(movetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setMoveState(); } );
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Move)); } );
 
     auto deckmovetool = makeToolbarAction(
                 tr("Move Deck"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::DeckMove,
+                Tool::MoveDeck,
                 tr("Alt+b"));
     connect(deckmovetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setDeckMoveState(); });
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::MoveDeck)); });
 
 
     // The action modes
@@ -425,25 +418,7 @@ void ScenarioControl::on_presenterChanged()
             {
                 if (action->isChecked())
                 {
-                    switch (action->data().toInt())
-                    {
-                        case ScenarioAction::Create:
-                            scenario->stateMachine().setCreateState();
-                            break;
-                        case ScenarioAction::DeckMove:
-                            scenario->stateMachine().setDeckMoveState();
-                            break;
-                        case ScenarioAction::Move:
-                            scenario->stateMachine().setMoveState();
-                            break;
-                        case ScenarioAction::Select:
-                            scenario->stateMachine().setSelectState();
-                            break;
-
-                        default:
-                            Q_ASSERT(false);
-                            break;
-                    }
+                    scenario->stateMachine().changeState(action->data().toInt());
                 }
             }
 

@@ -33,6 +33,7 @@ class TemporalScenarioView : public ProcessView
 
         void clearPressed();
         void escPressed();
+        void shiftPressed();
 
     public slots:
         void lock()
