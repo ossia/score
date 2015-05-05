@@ -33,6 +33,7 @@ class ScenarioStateMachine : public QStateMachine
 
         Tool tool() const;
         ExpandMode expandMode() const;
+        bool shiftPressed() const;
 
         void changeState(int);
 
@@ -59,4 +60,6 @@ class ScenarioStateMachine : public QStateMachine
 
         QState* scaleState{};
         QState* growState{};
+        QState* shiftReleasedState{};
+        QState* shiftPressedState{};
 };

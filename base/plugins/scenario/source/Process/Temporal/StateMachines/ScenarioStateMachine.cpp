@@ -83,33 +83,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
 
-
-        // TODO how to avoid the combinatorial explosion ?
-/*
-        auto t_move_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), moveState);
-        t_move_deckmove->setTargetState(moveDeckState);
-
-        auto t_select_create = new QSignalTransition(this, SIGNAL(setCreateState()), selectState);
-        t_select_create->setTargetState(createState);
-        auto t_select_move = new QSignalTransition(this, SIGNAL(setMoveState()), selectState);
-        t_select_move->setTargetState(moveState);
-        auto t_select_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), selectState);
-        t_select_deckmove->setTargetState(moveDeckState);
-
-        auto t_create_move = new QSignalTransition(this, SIGNAL(setMoveState()), createState);
-        t_create_move->setTargetState(moveState);
-        auto t_create_select = new QSignalTransition(this, SIGNAL(setSelectState()), createState);
-        t_create_select->setTargetState(selectState);
-        auto t_create_deckmove = new QSignalTransition(this, SIGNAL(setDeckMoveState()), createState);
-        t_create_deckmove->setTargetState(moveDeckState);
-
-        auto t_movedeck_create = new QSignalTransition(this, SIGNAL(setCreateState()), moveDeckState);
-        t_movedeck_create->setTargetState(createState);
-        auto t_movedeck_select = new QSignalTransition(this, SIGNAL(setSelectState()), moveDeckState);
-        t_movedeck_select->setTargetState(selectState);
-        auto t_movedeck_move = new QSignalTransition(this, SIGNAL(setMoveState()), moveDeckState);
-        t_movedeck_move->setTargetState(moveState);
-*/
         createState->start();
         moveState->start();
         selectState->start();
@@ -126,6 +99,19 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_scale_grow->setTargetState(growState);
         auto t_grow_scale = new QSignalTransition(this, SIGNAL(setScaleState()), growState);
         t_grow_scale->setTargetState(scaleState);
+    }
+
+    auto shiftModeState = new QState{this};
+    {
+        shiftReleasedState = new QState{shiftModeState};
+        shiftModeState->setInitialState(shiftReleasedState);
+        shiftPressedState = new QState{shiftModeState};
+
+        auto t_shift_pressed = new QSignalTransition(m_presenter.m_view, SIGNAL(shiftPressed()), shiftReleasedState);
+        t_shift_pressed->setTargetState(shiftPressedState);
+        auto t_shift_released = new QSignalTransition(m_presenter.m_view, SIGNAL(shiftReleased()), shiftPressedState);
+        t_shift_released->setTargetState(shiftReleasedState);
+
     }
 }
 
@@ -157,6 +143,12 @@ ExpandMode ScenarioStateMachine::expandMode() const
 
     return ExpandMode::Scale;
 }
+
+bool ScenarioStateMachine::shiftPressed() const
+{
+    return shiftPressedState->active();
+}
+
 
 void ScenarioStateMachine::changeState(int state)
 {

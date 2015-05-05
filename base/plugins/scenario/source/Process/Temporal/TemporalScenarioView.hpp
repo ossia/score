@@ -34,6 +34,7 @@ class TemporalScenarioView : public ProcessView
         void clearPressed();
         void escPressed();
         void shiftPressed();
+        void shiftReleased();
 
     public slots:
         void lock()
@@ -54,6 +55,7 @@ class TemporalScenarioView : public ProcessView
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
         virtual void keyPressEvent(QKeyEvent *event) override;
+        virtual void keyReleaseEvent(QKeyEvent *event) override;
 
     private:
         QRectF m_selectArea;

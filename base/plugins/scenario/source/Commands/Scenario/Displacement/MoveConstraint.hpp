@@ -31,7 +31,8 @@ namespace Scenario
                             const id_type<ConstraintModel>& ,
                             const TimeValue& date,
                             double height,
-                            ExpandMode);
+                            ExpandMode,
+                            bool changeDate = true);
 
                 virtual void undo() override;
                 virtual void redo() override;

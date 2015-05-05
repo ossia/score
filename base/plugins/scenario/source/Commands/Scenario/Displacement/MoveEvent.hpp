@@ -36,10 +36,12 @@ namespace Scenario
                             const id_type<EventModel>& ,
                             const TimeValue& date,
                             double height,
-                            ExpandMode)
+                            ExpandMode,
+                            bool changeDate = true)
                 {
                     m_newDate = date;
                     m_newHeightPosition = height;
+                    m_changeDate = changeDate;
                 }
 
                 TimeValue m_oldDate {}; // TODO : bof bof !
