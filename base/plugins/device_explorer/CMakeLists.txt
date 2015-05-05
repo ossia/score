@@ -41,7 +41,6 @@ file(GLOB_RECURSE INTERFACE_SRCS
 #    ARCHIVE DESTINATION static_lib/)
 
 ### Plugin ###
-find_package(Qt5Test)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Plugin")
 file(GLOB_RECURSE PLUGIN_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.*pp"
