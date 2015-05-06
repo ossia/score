@@ -7,9 +7,6 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
-include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/API)
-include_directories(${CMAKE_SOURCE_DIR}/API/Headers)
 
 ### Library ###
 file(GLOB_RECURSE INTERFACE_SRCS
