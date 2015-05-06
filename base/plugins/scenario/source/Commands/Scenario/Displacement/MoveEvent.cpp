@@ -189,7 +189,8 @@ void MoveEvent::serializeImpl(QDataStream& s) const
       << m_newDate
       << m_movableTimenodes
       << (int)m_mode
-      << m_savedConstraints;
+      << m_savedConstraints
+      << m_changeDate;
 }
 
 void MoveEvent::deserializeImpl(QDataStream& s)
@@ -203,7 +204,8 @@ void MoveEvent::deserializeImpl(QDataStream& s)
       >> m_newDate
       >> m_movableTimenodes
       >> mode
-      >> m_savedConstraints;
+      >> m_savedConstraints
+      >> m_changeDate;
 
     m_mode = static_cast<ExpandMode>(mode);
 }
