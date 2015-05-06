@@ -9,7 +9,8 @@
 #include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-
+#include "Process/Temporal/TemporalScenarioView.hpp"
+#include "Process/Temporal/StateMachines/Tool.hpp"
 
 #include "Control/OldFormatConversion.hpp"
 
@@ -225,6 +226,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     ///// View /////
     QAction *selectAll = new QAction{tr("Select all"), this};
     selectAll->setShortcut(QKeySequence::SelectAll);
+    selectAll->setToolTip("Ctrl+a");
     connect(selectAll, &QAction::triggered,
             [this]()
             {
@@ -239,6 +241,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     QAction *deselectAll = new QAction{tr("Deselect all"), this};
     deselectAll->setShortcut(QKeySequence::Deselect);
+    deselectAll->setToolTip("Ctrl+Shift+a");
     connect(deselectAll, &QAction::triggered,
             [this]()
             {
@@ -265,13 +268,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        elementsToJson);
 }
 
-
-// TODO use the one in ScenarioStateMachine
-enum ScenarioAction
-{
-    Create, Move, DeckMove, Select
-};
-
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,
                            QObject* parent,
@@ -283,6 +279,7 @@ QAction* makeToolbarAction(const QString& name,
     act->setData(QVariant::fromValue((int) data));
     act->setShortcutContext(Qt::ApplicationShortcut);
     act->setShortcut(shortcut);
+    act->setToolTip(shortcut);
 
     return act;
 }
@@ -316,36 +313,35 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     selecttool = makeToolbarAction(
                 tr("Select"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Select,
+                Tool::Select,
                 tr("Alt+x"));
     selecttool->setChecked(true);
     connect(selecttool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setSelectState(); });
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Select)); });
 
     auto createtool = makeToolbarAction(
                 tr("Create"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Create,
+                Tool::Create,
                 tr("Alt+c"));
     connect(createtool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setCreateState(); });
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Create)); });
 
     auto movetool = makeToolbarAction(
                 tr("Move"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::Move,
+                Tool::Move,
                 tr("Alt+v"));
     connect(movetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setMoveState(); } );
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::Move)); } );
 
     auto deckmovetool = makeToolbarAction(
                 tr("Move Deck"),
                 m_scenarioToolActionGroup,
-                ScenarioAction::DeckMove,
+                Tool::MoveDeck,
                 tr("Alt+b"));
     connect(deckmovetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setDeckMoveState(); });
-
+    { if (focusedScenarioViewModel()) stateMachine().changeState(static_cast<int>(Tool::MoveDeck)); });
 
     // The action modes
     m_scenarioScaleModeActionGroup = new QActionGroup{bar};
@@ -354,7 +350,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                 tr("Scale"),
                 m_scenarioScaleModeActionGroup,
                 ExpandMode::Scale,
-                tr("Alt+Shift+S"));
+                tr("Alt+S"));
     scale->setChecked(true);
     connect(scale, &QAction::triggered, [=]()
     { if (focusedScenarioViewModel()) stateMachine().setScaleState(); });
@@ -363,9 +359,22 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                 tr("Grow/Shrink"),
                 m_scenarioScaleModeActionGroup,
                 ExpandMode::Grow,
-                tr("Alt+Shift+D"));
+                tr("Alt+D"));
     connect(grow, &QAction::triggered, [=]()
     { if (focusedScenarioViewModel()) stateMachine().setGrowState(); });
+
+    auto verticalmove = makeToolbarAction(
+                tr("Vertical Move"),
+                m_scenarioScaleModeActionGroup,
+                ExpandMode::Fixed,
+                tr("Shift"));
+    connect(verticalmove, &QAction::toggled, [=] ()
+    {
+        if (verticalmove->isChecked())
+            stateMachine().shiftPressed();
+        else
+            stateMachine().shiftReleased();
+    });
 
     on_presenterChanged();
 
@@ -419,31 +428,40 @@ void ScenarioControl::on_presenterChanged()
         m_scenarioScaleModeActionGroup->setEnabled(scenario);
         if (scenario)
         {
+            connect(&scenario->presenter(), &TemporalScenarioPresenter::shiftPressed,
+                    this, [&]()
+            {
+                for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+                {
+                    if(action->data().toInt() == ExpandMode::Fixed)
+                    {
+                        action->setChecked(true);
+                    }
+                }
+            });
+            connect(&scenario->presenter(), &TemporalScenarioPresenter::shiftReleased,
+                    this, [&]()
+            {
+                for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+                {
+                    if(action->data().toInt() == ExpandMode::Fixed)
+                    {
+                        action->setChecked(false);
+                    }
+                    if(action->data().toInt() == ExpandMode::Scale)
+                    {
+                        action->setChecked(true);
+                    }
+                }
+            });
+
             // Set the current state on the statemachine.
             // TODO put this in a pattern (MappedActionGroup?)
             for (QAction *action : m_scenarioToolActionGroup->actions())
             {
                 if (action->isChecked())
                 {
-                    switch (action->data().toInt())
-                    {
-                        case ScenarioAction::Create:
-                            scenario->stateMachine().setCreateState();
-                            break;
-                        case ScenarioAction::DeckMove:
-                            scenario->stateMachine().setDeckMoveState();
-                            break;
-                        case ScenarioAction::Move:
-                            scenario->stateMachine().setMoveState();
-                            break;
-                        case ScenarioAction::Select:
-                            scenario->stateMachine().setSelectState();
-                            break;
-
-                        default:
-                            Q_ASSERT(false);
-                            break;
-                    }
+                    scenario->stateMachine().changeState(action->data().toInt());
                 }
             }
 
@@ -458,6 +476,9 @@ void ScenarioControl::on_presenterChanged()
                             break;
                         case ExpandMode::Grow:
                             scenario->stateMachine().setGrowState();
+                            break;
+                        case ExpandMode::Fixed:
+                            scenario->stateMachine().shiftPressed();
                             break;
 
                         default:

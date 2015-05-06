@@ -33,15 +33,22 @@ class ScenarioStateMachine : public QStateMachine
 
         Tool tool() const;
         ExpandMode expandMode() const;
+        bool isShiftPressed() const;
+
+        void changeState(int);
 
     signals:
         void setCreateState();
         void setSelectState();
         void setMoveState();
         void setDeckMoveState();
+        void exitState();
 
         void setScaleState();
         void setGrowState();
+
+        void shiftPressed();
+        void shiftReleased();
 
     private:
         TemporalScenarioPresenter& m_presenter;
@@ -52,7 +59,10 @@ class ScenarioStateMachine : public QStateMachine
         MoveToolState* moveState{};
         SelectionToolState* selectState{};
         MoveDeckToolState* moveDeckState{};
+        QState* transitionState{};
 
         QState* scaleState{};
         QState* growState{};
+        QState* shiftReleasedState{};
+        QState* shiftPressedState{};
 };

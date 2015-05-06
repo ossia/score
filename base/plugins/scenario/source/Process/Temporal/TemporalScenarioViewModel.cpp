@@ -13,6 +13,11 @@ ScenarioStateMachine& TemporalScenarioViewModel::stateMachine() const
     return m_presenter->stateMachine();
 }
 
+TemporalScenarioPresenter &TemporalScenarioViewModel::presenter() const
+{
+    return *m_presenter;
+}
+
 TemporalScenarioViewModel::TemporalScenarioViewModel(
         const id_type<ProcessViewModel>& viewModelId,
         const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> >& constraintIds,

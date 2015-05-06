@@ -71,6 +71,8 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
     signals:
         void linesExtremityScaled(int, int);
+        void shiftPressed();
+        void shiftReleased();
 
     public slots:
         // Model -> view

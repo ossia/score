@@ -7,6 +7,7 @@ iscore::UndoControl::UndoControl(QObject* parent):
     m_undoAction->setShortcut(QKeySequence::Undo);
     m_undoAction->setEnabled(false);
     m_undoAction->setText(tr("Nothing to undo"));
+    m_undoAction->setToolTip(tr("Ctrl+Z"));
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
@@ -16,6 +17,7 @@ iscore::UndoControl::UndoControl(QObject* parent):
     m_redoAction->setShortcut(QKeySequence::Redo);
     m_redoAction->setEnabled(false);
     m_redoAction->setText(tr("Nothing to redo"));
+    m_redoAction->setToolTip(tr("Ctrl+Shift+Z"));
     connect(m_redoAction, &QAction::triggered,
             [&] ()
     {

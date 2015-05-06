@@ -23,6 +23,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
 
     public:
         ScenarioStateMachine& stateMachine() const;
+        TemporalScenarioPresenter& presenter() const;
 
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
