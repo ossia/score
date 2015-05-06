@@ -54,7 +54,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
                             currentPoint.y,
                             stateMachine.expandMode(),
-                            !stateMachine.shiftPressed());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -114,7 +114,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                             currentPoint.date,
                             currentPoint.y,
                             stateMachine.expandMode(),
-                            !stateMachine.shiftPressed());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -172,12 +172,15 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
             auto& scenar = m_scenarioPath.find<ScenarioModel>();
             auto& tn = scenar.timeNode(clickedTimeNode);
             const auto& ev_id = tn.events().first();
+            auto date = currentPoint.date;
 
+            if (stateMachine.isShiftPressed())
+                date = tn.date();
 
             m_dispatcher.submitCommand<MoveTimeNode>(
                             ObjectPath{m_scenarioPath},
                             ev_id,
-                            currentPoint.date,
+                            date,
                             scenar.event(ev_id).heightPercentage(),
                             stateMachine.expandMode());
         });

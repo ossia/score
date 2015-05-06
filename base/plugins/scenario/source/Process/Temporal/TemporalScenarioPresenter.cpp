@@ -74,6 +74,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         m_focusDispatcher.focus(&m_viewModel);
     });
 
+    connect(m_view, &TemporalScenarioView::shiftPressed,
+            this,   &TemporalScenarioPresenter::shiftPressed);
+    connect(m_view, &TemporalScenarioView::shiftReleased,
+            this,   &TemporalScenarioPresenter::shiftReleased);
+
 
     connect(&model(m_viewModel), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);

@@ -5,6 +5,7 @@
 class QActionGroup;
 class ScenarioModel;
 class ScenarioStateMachine;
+class TemporalScenarioViewModel;
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
@@ -40,4 +41,6 @@ class ScenarioControl : public iscore::PluginControlInterface
         QMetaObject::Connection m_toolbarConnection;
 
         QAction* selecttool{};
+
+        QPointer<const TemporalScenarioViewModel> m_lastViewModel;
 };

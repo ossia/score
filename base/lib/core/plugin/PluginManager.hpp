@@ -45,7 +45,7 @@ namespace iscore
             }
 
             void addControl(PluginControlInterface* p)
-            { m_commandList.push_back(p); }
+            { m_controlList.push_back(p); }
 
             void addPanel(PanelFactory* p)
             { m_panelList.push_back(p); }
@@ -65,7 +65,7 @@ namespace iscore
             QMap<QString, QObject*> m_availablePlugins;
 
             FactoryFamilyList m_customFamilies;
-            CommandList  m_commandList;
+            CommandList  m_controlList;
             PanelList    m_panelList;
             DocumentPanelList m_documentPanelList;
             SettingsList m_settingsList;

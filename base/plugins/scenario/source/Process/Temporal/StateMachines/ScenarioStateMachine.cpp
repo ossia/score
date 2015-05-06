@@ -78,7 +78,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_enter_select->setTargetState(selectState);
         auto t_enter_move = new QSignalTransition(this, SIGNAL(setMoveState()), transitionState);
         t_enter_move->setTargetState(moveState);
-        auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setMoveDeckState()), transitionState);
+        auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setDeckMoveState()), transitionState);
         t_enter_moveDeck->setTargetState(moveDeckState);
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
@@ -107,9 +107,9 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         shiftModeState->setInitialState(shiftReleasedState);
         shiftPressedState = new QState{shiftModeState};
 
-        auto t_shift_pressed = new QSignalTransition(m_presenter.m_view, SIGNAL(shiftPressed()), shiftReleasedState);
+        auto t_shift_pressed = new QSignalTransition(this, SIGNAL(shiftPressed()), shiftReleasedState);
         t_shift_pressed->setTargetState(shiftPressedState);
-        auto t_shift_released = new QSignalTransition(m_presenter.m_view, SIGNAL(shiftReleased()), shiftPressedState);
+        auto t_shift_released = new QSignalTransition(this, SIGNAL(shiftReleased()), shiftPressedState);
         t_shift_released->setTargetState(shiftReleasedState);
 
     }
@@ -144,7 +144,7 @@ ExpandMode ScenarioStateMachine::expandMode() const
     return ExpandMode::Scale;
 }
 
-bool ScenarioStateMachine::shiftPressed() const
+bool ScenarioStateMachine::isShiftPressed() const
 {
     return shiftPressedState->active();
 }

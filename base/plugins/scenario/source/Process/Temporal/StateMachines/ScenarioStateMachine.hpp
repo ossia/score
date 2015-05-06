@@ -33,7 +33,7 @@ class ScenarioStateMachine : public QStateMachine
 
         Tool tool() const;
         ExpandMode expandMode() const;
-        bool shiftPressed() const;
+        bool isShiftPressed() const;
 
         void changeState(int);
 
@@ -46,6 +46,9 @@ class ScenarioStateMachine : public QStateMachine
 
         void setScaleState();
         void setGrowState();
+
+        void shiftPressed();
+        void shiftReleased();
 
     private:
         TemporalScenarioPresenter& m_presenter;
