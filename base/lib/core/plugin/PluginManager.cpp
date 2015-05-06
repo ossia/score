@@ -123,7 +123,7 @@ void PluginManager::clearPlugins()
     }
 
     m_customFamilies.clear();
-    m_commandList.clear();
+    m_controlList.clear();
     m_panelList.clear();
     m_documentPanelList.clear();
     m_settingsList.clear();
@@ -157,7 +157,7 @@ void PluginManager::dispatch(QObject* plugin)
 
     if(cmd_plugin)
     {
-        m_commandList.push_back(cmd_plugin->control());
+        m_controlList.push_back(cmd_plugin->control());
     }
 
     if(settings_plugin)

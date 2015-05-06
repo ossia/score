@@ -425,8 +425,16 @@ void ScenarioControl::on_presenterChanged()
     m_toolbarConnection = connect(&model, &BaseElementModel::focusedViewModelChanged,
                                   this, [&]()
     {
+        // Before changing, we set the currently focused view model to a "select" state
+        // to prevent problems.
+        if(!m_lastViewModel.isNull())
+        {
+            m_lastViewModel->stateMachine().changeState(1);
+        }
+
         // Get the process viewmodel
         auto scenario = dynamic_cast<const TemporalScenarioViewModel *>(model.focusedViewModel());
+        m_lastViewModel = scenario;
         m_scenarioToolActionGroup->setEnabled(scenario);
         m_scenarioScaleModeActionGroup->setEnabled(scenario);
         if (scenario)

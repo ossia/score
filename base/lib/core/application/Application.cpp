@@ -61,7 +61,7 @@ void Application::loadPluginData()
         m_settings->setupSettingsPlugin(set);
     }
 
-    for(auto& cmd : m_pluginManager.m_commandList)
+    for(auto& cmd : m_pluginManager.m_controlList)
     {
         m_presenter->registerPluginControl(cmd);
     }
