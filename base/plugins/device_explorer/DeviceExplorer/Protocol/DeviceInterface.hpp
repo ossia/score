@@ -20,9 +20,9 @@ class DeviceInterface : public QObject
         const DeviceSettings& settings() const
         { return m_settings; }
 
-        virtual void addPath(const AddressSettings& address) = 0;
-        virtual void updatePath(const AddressSettings& address) = 0;
-        virtual void removePath(const QString& path) = 0;
+        virtual void addAddress(const AddressSettings& address) = 0;
+        virtual void updateAddress(const AddressSettings& address) = 0;
+        virtual void removeAddress(const QString& path) = 0;
 
         // Execution API... Maybe we don't need it.
         virtual void sendMessage(Message& mess) = 0;

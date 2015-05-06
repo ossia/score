@@ -14,3 +14,5 @@ struct AddressSettings
     QVariant value;
 };
 
+// This one has the whole path of the node in the name
+using FullAddressSettings = AddressSettings;

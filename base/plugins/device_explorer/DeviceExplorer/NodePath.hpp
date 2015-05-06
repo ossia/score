@@ -41,6 +41,7 @@ class Path
         { return m_path; }
 
 
+
     private:
         QList<int> m_path;
 };

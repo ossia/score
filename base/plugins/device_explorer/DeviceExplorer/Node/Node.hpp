@@ -37,6 +37,8 @@ class Node
 
         ~Node();
 
+        QString fullPath() const;
+
         void setParent(Node* parent);
         Node* parent() const;
         Node* childAt(int index) const;  //return 0 if invalid index

@@ -8,7 +8,11 @@ namespace iscore
     class Document;
 }
 
-
+// The DeviceDocumentPlugin is informed of new addresses by the plugin-provided models of the
+// devices, and propagates them.
+// Exploration should be a Command, which registers all the new addresses in its constructor
+// - via a thread and updateNamespace()-
+// and add them correctly in the explorer model.
 class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
@@ -19,11 +23,11 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         void serialize(const VisitorVariant&) const override;
 
-    signals:
-        // These go to the device explorer model.
-        void pathAdded(const AddressSettings&);
-        void pathUpdated(const AddressSettings&);
-        void pathRemoved(const QString&);
+        DeviceList& list()
+        { return m_list; }
+
+        const DeviceList& list() const
+        { return m_list; }
 
     private:
         DeviceList m_list;

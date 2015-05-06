@@ -17,9 +17,9 @@ namespace DeviceExplorer
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
                 AddAddress(ObjectPath&& device_tree,
-                                    Path nodePath,
-                                    DeviceExplorerModel::Insert insert,
-                                    const AddressSettings& addressSettings);
+                           Path nodePath,
+                           DeviceExplorerModel::Insert insert,
+                           const AddressSettings& addressSettings);
 
                 virtual void undo() override;
                 virtual void redo() override;

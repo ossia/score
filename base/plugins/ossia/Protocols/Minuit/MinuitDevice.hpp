@@ -15,17 +15,17 @@ class MinuitDevice : public DeviceInterface
 
         }
 
-        void addPath(const AddressSettings& address) override
+        void addAddress(const AddressSettings& address) override
         {
 
         }
 
-        void updatePath(const AddressSettings& address) override
+        void updateAddress(const AddressSettings& address) override
         {
 
         }
 
-        void removePath(const QString& path) override
+        void removeAddress(const QString& path) override
         {
 
         }

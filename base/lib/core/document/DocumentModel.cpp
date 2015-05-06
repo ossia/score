@@ -34,6 +34,7 @@ PanelModel* DocumentModel::panel(const QString &name) const
 
 void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
 {
+    m->setParent(this);
     m_pluginModels.append(m);
     emit pluginModelsChanged();
 }

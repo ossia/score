@@ -101,6 +101,16 @@ DeviceExplorerModel::~DeviceExplorerModel()
 
 }
 
+void DeviceExplorerModel::setDeviceModel(DeviceDocumentPlugin *v)
+{
+    m_devicePlugin = v;
+}
+
+DeviceDocumentPlugin *DeviceExplorerModel::deviceModel() const
+{
+    return m_devicePlugin;
+}
+
 QModelIndexList DeviceExplorerModel::selectedIndexes() const
 {
     return m_view->selectedIndexes();

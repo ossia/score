@@ -229,6 +229,11 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
     auto doc = new Document{doctype, m_view, this};
     m_documents.push_back(doc);
 
+    for(auto& control: m_controls)
+    {
+        control->on_newDocument(doc);
+    }
+
     for(auto& panel : m_panelPresenters)
     {
         doc->setupNewPanel(panel.first, panel.second);

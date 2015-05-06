@@ -5,6 +5,7 @@
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 #include <Plugin/DeviceExplorerPlugin.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <QFile>
 #include <QtXml/QtXml>
@@ -62,6 +63,7 @@ Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
     if (filePath.isEmpty())
     {
         //DEBUG: arbitrary population of the tree
+
 
         if(device.protocol == "Minuit" || device.protocol == "OSC")
         {
@@ -166,7 +168,7 @@ Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
 
 
 const char* AddDevice::className() { return "AddDevice"; }
-QString AddDevice::description() { return "Add a device"; }
+QString AddDevice::description() { return QObject::tr("Add a device"); }
 AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters, const QString &filePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
@@ -181,7 +183,9 @@ AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters,
 void AddDevice::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+
     explorer.removeRow(m_row);
+    explorer.deviceModel()->list().removeDevice(explorer.index(m_row, 0, QModelIndex()).data().toString());
 }
 
 void AddDevice::redo()
@@ -189,14 +193,10 @@ void AddDevice::redo()
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
     // Instantiate a real device.
-    /*
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
-    auto dev = proto->makeDevice(m_parameters);
-    SingletonDeviceList::instance().addDevice(dev);
-    */
+    explorer.deviceModel()->list().addDevice(proto->makeDevice(m_parameters));
 
     // Put it in the tree.
-
     auto node = makeDeviceNode(m_parameters, m_filePath);
     m_row = explorer.addDevice(node);
 }

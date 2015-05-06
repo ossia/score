@@ -23,6 +23,7 @@ namespace DeviceExplorer {
 class Node;
 class DeviceExplorerView;
 class DeviceExplorerCommandCreator;
+class DeviceDocumentPlugin;
 struct AddressSettings;
 
 class DeviceExplorerModel : public QAbstractItemModel
@@ -52,6 +53,12 @@ class DeviceExplorerModel : public QAbstractItemModel
         {
             m_view = v;
         }
+
+        // The class that does the link with the low-level implementation of the
+        // devices. This is here so that commands don't need to save
+        // at the same time a path to the device explorer, and the device doc plugin.
+        void setDeviceModel(DeviceDocumentPlugin* v);
+        DeviceDocumentPlugin* deviceModel() const;
 
         QModelIndexList selectedIndexes() const;
 
@@ -129,6 +136,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool m_lastCutNodeIsCopied;
 
     private:
+        DeviceDocumentPlugin* m_devicePlugin{};
         Node* createRootNode() const;
 
         void setColumnValue(Node* node, const QVariant& v, int col);

@@ -3,22 +3,24 @@
 #include "Panel/DeviceExplorerModel.hpp"
 #include "DeviceExplorerPanelId.hpp"
 #include <core/document/DocumentModel.hpp>
-
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{this}}
 {
-    // TODO make the link with the DeviceDocumentPlugin
-    // 1. Load the current data in the device explorer
-
-    // 2. Make relevant connections
+    auto obj = parent->findChild<DeviceDocumentPlugin*>("DeviceDocumentPlugin");
+    m_model->setDeviceModel(obj);
 }
 
-DeviceExplorerPanelModel::DeviceExplorerPanelModel(const VisitorVariant& data, iscore::DocumentModel *parent):
+DeviceExplorerPanelModel::DeviceExplorerPanelModel(
+        const VisitorVariant& data,
+        iscore::DocumentModel *parent):
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{data, this}}
 {
-
+    auto obj = parent->findChild<DeviceDocumentPlugin*>("DeviceDocumentPlugin");
+    m_model->setDeviceModel(obj);
+    // Here recreate the data in the document plug-in
 }
 
 void DeviceExplorerPanelModel::serialize(const VisitorVariant &vis) const

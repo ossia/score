@@ -1,11 +1,15 @@
 #include "AddAddress.hpp"
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 using namespace DeviceExplorer::Command;
 
 const char* AddAddress::className() { return "AddAddress"; }
-QString AddAddress::description() { return "Add an address"; }
+QString AddAddress::description() { return QObject::tr("Add an address"); }
 
-AddAddress::AddAddress(ObjectPath &&device_tree, Path nodePath, DeviceExplorerModel::Insert insert, const AddressSettings &addressSettings):
+AddAddress::AddAddress(ObjectPath &&device_tree,
+                       Path nodePath,
+                       DeviceExplorerModel::Insert insert,
+                       const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 className(),
                                 description()},
@@ -37,6 +41,20 @@ void AddAddress::undo()
 void AddAddress::redo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto parentnode = m_parentNodePath.toNode(explorer.rootNode());
+
+    // Add in the device impl
+    // Get the device node :
+    auto dev_node = explorer.rootNode()->childAt(m_parentNodePath.at(0));
+
+    // Make a full path
+    FullAddressSettings full = m_addressSettings;
+    full.name = parentnode->fullPath() + "/" + m_addressSettings.name;
+
+    // Add in the device implementation
+    explorer.deviceModel()->list().device(dev_node->name())->addAddress(full);
+
+    // Add in the device explorer
     Node* newNode = explorer.addAddress( m_parentNodePath.toNode(explorer.rootNode()), m_addressSettings);
 
     m_createdNodeIndex = m_parentNodePath.toNode(explorer.rootNode())->indexOfChild(newNode);

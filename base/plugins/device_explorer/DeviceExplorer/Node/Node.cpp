@@ -35,6 +35,21 @@ Node::~Node()
     qDeleteAll(m_children);  //calls delete on each children
 }
 
+#include <QDebug>
+QString Node::fullPath() const
+{
+    QStringList l;
+    const Node* n = this;
+    while(n->parent())
+    {
+        l.append(n->name());
+        n = n->parent();
+    }
+
+    std::reverse(l.begin(), l.end());
+    return l.join("/").prepend("/");
+}
+
 void Node::setParent(Node* parent)
 {
     if(m_parent)

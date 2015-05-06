@@ -47,6 +47,10 @@ namespace iscore
                     const QByteArray& /*data*/);
             Document* currentDocument() const;
 
+
+            // TODO should not be called for loading, only for real new documents.
+            virtual void on_newDocument(iscore::Document* doc);
+
         signals:
             void documentChanged();
 
@@ -54,8 +58,6 @@ namespace iscore
             virtual void on_presenterChanged();
             virtual void on_documentChanged();
 
-            // TODO should not be called for loading, only for real new documents.
-            virtual void on_newDocument(iscore::Document* doc);
 
         private:
             Presenter* m_presenter{};
