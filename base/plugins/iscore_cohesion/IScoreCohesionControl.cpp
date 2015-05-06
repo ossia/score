@@ -33,18 +33,21 @@ IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
+    m_snapshot->setToolTip(tr("Ctrl+J"));
     connect(m_snapshot, &QAction::triggered,
             this, &IScoreCohesionControl::snapshotParametersInEvents);
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
     m_interp->setShortcut(tr("Ctrl+K"));
+    m_interp->setToolTip(tr("Ctrl+K"));
     connect(m_interp, &QAction::triggered,
             this, &IScoreCohesionControl::interpolateStates);
 
     m_curves = new QAction {tr("Create Curves"), this};
     m_curves->setShortcutContext(Qt::ApplicationShortcut);
     m_curves->setShortcut(tr("Ctrl+L"));
+    m_curves->setToolTip(tr("Ctrl+L"));
     connect(m_curves, &QAction::triggered,
             this, &IScoreCohesionControl::createCurvesFromAddresses);
 

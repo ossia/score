@@ -78,7 +78,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_enter_select->setTargetState(selectState);
         auto t_enter_move = new QSignalTransition(this, SIGNAL(setMoveState()), transitionState);
         t_enter_move->setTargetState(moveState);
-        auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setMoveDeckState()), transitionState);
+        auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setDeckMoveState()), transitionState);
         t_enter_moveDeck->setTargetState(moveDeckState);
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
