@@ -370,10 +370,13 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                 tr("Shift"));
     connect(verticalmove, &QAction::toggled, [=] ()
     {
-        if (verticalmove->isChecked())
-            stateMachine().shiftPressed();
-        else
-            stateMachine().shiftReleased();
+        if(focusedScenarioViewModel())
+        {
+            if (verticalmove->isChecked())
+                stateMachine().shiftPressed();
+            else
+                stateMachine().shiftReleased();
+        }
     });
 
     on_presenterChanged();
