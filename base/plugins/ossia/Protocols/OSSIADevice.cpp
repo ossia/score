@@ -2,22 +2,17 @@
 #include <QDebug>
 
 
-void OSSIADevice::addAddress(const FullAddressSettings &settings)
+OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
 {
     using namespace OSSIA;
-    qDebug() << Q_FUNC_INFO << "TODO";
-    // Get the part of the address we want to add.
-    // The device has already been removed.
-    QStringList path = settings.name.split("/");
-    path.removeFirst();
-
     // Find the relevant node to add in the device
-    Node* node = m_dev.get();
+    Node* node = dev;
     for(int i = 0; i < path.size(); i++)
     {
-        auto it = std::find_if(node->begin(),
-                               node->end(),
-                               [&] (const Node& n) { return n.getName() == path[i].toStdString(); });
+        auto it = std::find_if(
+                    node->begin(),
+                    node->end(),
+                    [&] (const Node& n) { return n.getName() == path[i].toStdString(); });
         if(it == node->end())
         {
             // We have to start adding sub-nodes from here.
@@ -43,14 +38,12 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
         }
     }
 
-    std::shared_ptr<Address> addr;
-    if(settings.valueType == "Float")
-    { addr = node->createAddress(AddressValue::Type::FLOAT); }
-    else if(settings.valueType == "Int")
-    { addr = node->createAddress(AddressValue::Type::INT); }
-    else if(settings.valueType == "String")
-    { addr = node->createAddress(AddressValue::Type::STRING); }
+    return node;
+}
 
+void updateAddressSettings(const FullAddressSettings& settings, const std::shared_ptr<OSSIA::Address>& addr)
+{
+    using namespace OSSIA;
     if(settings.ioType == "In")
     { addr->setAccessMode(Address::AccessMode::GET); }
     else if(settings.ioType == "Out")
@@ -59,16 +52,54 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
     { addr->setAccessMode(Address::AccessMode::BI); }
 }
 
-
-void OSSIADevice::updateAddress(const AddressSettings &address)
+void createAddressSettings(const FullAddressSettings& settings, OSSIA::Node* node)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    using namespace OSSIA;
+    std::shared_ptr<Address> addr;
+    if(settings.valueType == "Float")
+    { addr = node->createAddress(AddressValue::Type::FLOAT); }
+    else if(settings.valueType == "Int")
+    { addr = node->createAddress(AddressValue::Type::INT); }
+    else if(settings.valueType == "String")
+    { addr = node->createAddress(AddressValue::Type::STRING); }
+
+    updateAddressSettings(settings, addr);
+}
+
+void OSSIADevice::addAddress(const FullAddressSettings &settings)
+{
+    using namespace OSSIA;
+    // Get the node
+    QStringList path = settings.name.split("/");
+    path.removeFirst();
+
+    // Create it
+    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
+
+    // Populate the node with an address
+    createAddressSettings(settings, node);
 }
 
 
-void OSSIADevice::removeAddress(const QString &path)
+void OSSIADevice::updateAddress(const FullAddressSettings &settings)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    using namespace OSSIA;
+    QStringList path = settings.name.split("/");
+    path.removeFirst();
+
+    Node* node = nodeFromPath(path, m_dev.get());
+    updateAddressSettings(settings, node->getAddress());
+}
+
+
+void OSSIADevice::removeAddress(const QString &address)
+{
+    using namespace OSSIA;
+    QStringList path = address.split("/");
+    path.removeFirst();
+
+    Node* node = nodeFromPath(path, m_dev.get());
+    node->getParent().erase(node);
 }
 
 
@@ -80,5 +111,6 @@ void OSSIADevice::sendMessage(Message &mess)
 
 bool OSSIADevice::check(const QString &str)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
     return false;
 }
