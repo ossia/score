@@ -29,10 +29,17 @@ class Node
 
         typedef enum {Invalid, In, Out, InOut} IOType;
 
+        // Address
         Node(const QString& name = QString(),
              Node* parent = nullptr);
+
+        // Device
         Node(const DeviceSettings& devices,
              const QString& name = QString(),
+             Node* parent = nullptr);
+
+        // Clone
+        Node(const Node& source,
              Node* parent = nullptr);
 
         ~Node();

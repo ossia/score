@@ -5,27 +5,19 @@
 #include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 #include <memory>
 
-// Everything here should throw exceptions
-// that are to be catched in the document plugin
 class DeviceInterface : public QObject
 {
         Q_OBJECT
 
     public:
-        DeviceInterface(const DeviceSettings& s):
-            m_settings(s)
-        {
-
-        }
-
-        const DeviceSettings& settings() const
-        { return m_settings; }
+        DeviceInterface(const DeviceSettings& s);
+        const DeviceSettings& settings() const;
 
         virtual void addAddress(const FullAddressSettings& address) = 0;
         virtual void updateAddress(const FullAddressSettings& address) = 0;
         virtual void removeAddress(const QString& path) = 0;
 
-        // Execution API... Maybe we don't need it.
+        // Execution API... Maybe we don't need it here.
         virtual void sendMessage(Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
@@ -34,6 +26,9 @@ class DeviceInterface : public QObject
         void pathAdded(const FullAddressSettings&);
         void pathUpdated(const FullAddressSettings&);
         void pathRemoved(const QString&);
+
+        // In case the whole namespace changed?
+        void namespaceUpdated();
 
     private:
         DeviceSettings m_settings;

@@ -20,6 +20,17 @@ Node::Node(const QString& name, Node* parent):
     }
 }
 
+Node::Node(const Node &source, Node *parent)
+{
+    m_deviceSettings = source.deviceSettings();
+    m_addressSettings = source.addressSettings();
+
+    for(const auto& child : source.children())
+    {
+        this->addChild(new Node{*child, this});
+    }
+}
+
 Node::Node(const DeviceSettings& devices,
            const QString& name,
            Node* parent) :
