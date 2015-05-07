@@ -32,6 +32,7 @@ class DeviceExplorerWidget : public QWidget
 
     public slots:
         void edit();
+        void refresh();
         void copy();
         void cut();
         void paste();
@@ -75,6 +76,7 @@ class DeviceExplorerWidget : public QWidget
 //  QAction *m_redoAction;
 
         QAction* m_editAction;
+        QAction* m_refreshAction;
         QAction* m_addDeviceAction;
         QAction* m_addSiblingAction;
         QAction* m_addChildAction;

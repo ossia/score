@@ -50,6 +50,9 @@ DeviceExplorerWidget::buildGUI()
     m_editAction = new QAction(tr("Edit"), this);
     m_editAction->setShortcut(QKeySequence(Qt::Key_Return));
 
+    m_refreshAction = new QAction(tr("Refresh namespace"), this);
+    m_refreshAction->setShortcut(QKeySequence::Refresh);
+
     m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
     m_copyAction->setShortcut(QKeySequence::Copy);
     m_cutAction = new QAction(QIcon(":/resources/images/cut.png"), tr("Cut"), this);
@@ -69,6 +72,7 @@ DeviceExplorerWidget::buildGUI()
     m_demoteAction->setShortcut(QKeySequence(tr("Alt+Right")));
 
     m_editAction->setEnabled(false);
+    m_refreshAction->setEnabled(false);
     m_removeNodeAction->setEnabled(false);
     m_copyAction->setEnabled(false);
     m_cutAction->setEnabled(false);
@@ -80,6 +84,7 @@ DeviceExplorerWidget::buildGUI()
 
 
     connect(m_editAction, SIGNAL(triggered()), this, SLOT(edit()));
+    connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
     connect(m_copyAction, SIGNAL(triggered()), this, SLOT(copy()));
     connect(m_cutAction, SIGNAL(triggered()), this, SLOT(cut()));
     connect(m_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
@@ -210,6 +215,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     //TODO: decide which actions to show according to what's possible ?
     QMenu contextMenu(this);
     contextMenu.addAction(m_editAction);
+    contextMenu.addAction(m_refreshAction);
     contextMenu.addSeparator();
     contextMenu.addAction(m_addDeviceAction);
     contextMenu.addAction(m_addSiblingAction);
@@ -289,11 +295,15 @@ DeviceExplorerWidget::updateActions()
 
         if(selection.size() == 1)
         {
-
+            // TODO Does not work.
+//            qDebug() << selection.at(0).row() << selection.at(0).column();
+//            qDebug() << model()->index(0, 0, QModelIndex()).row() << model()->index(0, 0, QModelIndex()).column() << model()->nodeFromModelIndex(model()->index(0, 0, QModelIndex()))->addressSettings().name;
             const bool aDeviceIsSelected = model()->isDevice(selection.at(0));
+//            qDebug() << model()->nodeFromModelIndex(selection.at(0))->addressSettings().name;
 
             if(! aDeviceIsSelected)
             {
+                m_refreshAction->setEnabled(false);
                 m_addSiblingAction->setEnabled(true);
                 m_promoteAction->setEnabled(true);
                 m_demoteAction->setEnabled(true);
@@ -301,6 +311,7 @@ DeviceExplorerWidget::updateActions()
             }
             else
             {
+                m_refreshAction->setEnabled(true);
                 m_addSiblingAction->setEnabled(false);
                 m_promoteAction->setEnabled(false);
                 m_demoteAction->setEnabled(false);
@@ -317,6 +328,7 @@ DeviceExplorerWidget::updateActions()
         else
         {
             m_editAction->setEnabled(false);
+            m_refreshAction->setEnabled(false);
             m_copyAction->setEnabled(false);
             m_cutAction->setEnabled(false);
             m_promoteAction->setEnabled(false);
@@ -330,6 +342,7 @@ DeviceExplorerWidget::updateActions()
     else
     {
         m_editAction->setEnabled(false);
+        m_refreshAction->setEnabled(false);
         m_copyAction->setEnabled(false);
         m_cutAction->setEnabled(false);
         m_promoteAction->setEnabled(false);
@@ -376,6 +389,7 @@ DeviceExplorerWidget::loadModel(const QString filename)
 */
 void DeviceExplorerWidget::edit()
 {
+    // TODO there should be a command here
     Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
@@ -413,6 +427,33 @@ void DeviceExplorerWidget::edit()
             select->setAddressSettings(addressSettings);
         }
         updateActions();
+    }
+}
+
+void DeviceExplorerWidget::refresh()
+{
+    Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    if ( model()->isDevice(m_ntView->selectedIndex()))
+    {
+        // Create a thread, ask the device, when it is done put a command on the chain.
+        /*
+        if(! m_deviceDialog)
+        {
+            m_deviceDialog = new DeviceEditDialog(this);
+        }
+        auto set = select->deviceSettings();
+        m_deviceDialog->setSettings(set);
+
+        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
+
+        if(code == QDialog::Accepted)
+        {
+            auto deviceSettings = m_deviceDialog->getSettings();
+            select->setDeviceSettings(deviceSettings);
+        }
+
+        updateActions();
+        */
     }
 }
 
