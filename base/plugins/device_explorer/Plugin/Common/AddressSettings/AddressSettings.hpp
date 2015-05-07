@@ -6,10 +6,10 @@
 struct AddressSettings
 {
     QString name;
-    QString valueType;
+    QString valueType; // TODO why not an enum?
     int priority;
     QString tags;
-    QString ioType;
+    QString ioType; // TODO why not an enum?
     QVariant addressSpecificSettings;
     QVariant value;
 };

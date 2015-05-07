@@ -3,6 +3,7 @@
 #include <State/Message.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <Plugin/Common/AddressSettings/AddressSettings.hpp>
+#include <memory>
 
 // Everything here should throw exceptions
 // that are to be catched in the document plugin
@@ -20,8 +21,8 @@ class DeviceInterface : public QObject
         const DeviceSettings& settings() const
         { return m_settings; }
 
-        virtual void addAddress(const AddressSettings& address) = 0;
-        virtual void updateAddress(const AddressSettings& address) = 0;
+        virtual void addAddress(const FullAddressSettings& address) = 0;
+        virtual void updateAddress(const FullAddressSettings& address) = 0;
         virtual void removeAddress(const QString& path) = 0;
 
         // Execution API... Maybe we don't need it.
@@ -30,8 +31,8 @@ class DeviceInterface : public QObject
 
     signals:
         // These signals are emitted if a device changes from the inside
-        void pathAdded(const AddressSettings&);
-        void pathUpdated(const AddressSettings&);
+        void pathAdded(const FullAddressSettings&);
+        void pathUpdated(const FullAddressSettings&);
         void pathRemoved(const QString&);
 
     private:

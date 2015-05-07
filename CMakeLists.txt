@@ -36,7 +36,7 @@ else()
   endif()
 endif()
 
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 
 if(ANDROID)
   set(ISCORE_STATIC_PLUGINS True)

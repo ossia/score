@@ -37,7 +37,7 @@ class Node
 
         ~Node();
 
-        QString fullPath() const;
+        QStringList fullPath() const;
 
         void setParent(Node* parent);
         Node* parent() const;

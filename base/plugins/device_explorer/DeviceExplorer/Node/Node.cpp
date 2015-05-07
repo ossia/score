@@ -36,7 +36,7 @@ Node::~Node()
 }
 
 #include <QDebug>
-QString Node::fullPath() const
+QStringList Node::fullPath() const
 {
     QStringList l;
     const Node* n = this;
@@ -47,7 +47,7 @@ QString Node::fullPath() const
     }
 
     std::reverse(l.begin(), l.end());
-    return l.join("/").prepend("/");
+    return l;
 }
 
 void Node::setParent(Node* parent)

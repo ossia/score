@@ -47,9 +47,11 @@ void AddAddress::redo()
     // Get the device node :
     auto dev_node = explorer.rootNode()->childAt(m_parentNodePath.at(0));
 
-    // Make a full path
+    // Make a full path (not taking the device into account.. for instance /MIDI.1/a/b would give /a/b)
     FullAddressSettings full = m_addressSettings;
-    full.name = parentnode->fullPath() + "/" + m_addressSettings.name;
+    auto parentpath = parentnode->fullPath();
+    parentpath.removeFirst();
+    full.name = parentpath.join("/").prepend("/") + "/" + m_addressSettings.name;
 
     // Add in the device implementation
     explorer.deviceModel()->list().device(dev_node->name())->addAddress(full);
