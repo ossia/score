@@ -8,7 +8,6 @@ DeviceExplorerPlugin::DeviceExplorerPlugin() :
     QObject {},
 iscore::PanelFactory_QtInterface {}
 {
-    setObjectName("DeviceExplorerPlugin");
 }
 
 QList<PanelFactory*> DeviceExplorerPlugin::panels()

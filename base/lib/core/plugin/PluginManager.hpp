@@ -62,7 +62,7 @@ namespace iscore
             QStringList pluginsBlacklist();
 
             // Here, the plug-ins that are effectively loaded.
-            QMap<QString, QObject*> m_availablePlugins;
+            QList<QObject*> m_availablePlugins;
 
             FactoryFamilyList m_customFamilies;
             CommandList  m_controlList;

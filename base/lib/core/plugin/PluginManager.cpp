@@ -50,7 +50,7 @@ void PluginManager::reloadPlugins()
                 // TODO check if the plug-in isn't already loaded.
                 if(!blacklist.contains(fileName))
                 {
-                    m_availablePlugins[plugin->objectName()] = plugin;
+                    m_availablePlugins += plugin;
                     plugin->setParent(this);
                 }
                 else
@@ -63,7 +63,7 @@ void PluginManager::reloadPlugins()
             else
             {
                 QString s = loader.errorString();
-                if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
+                //if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
                     qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
             }
         }
@@ -71,7 +71,7 @@ void PluginManager::reloadPlugins()
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
-        m_availablePlugins[plugin->objectName()] = plugin;
+        m_availablePlugins += plugin;
     }
 
     // Load all the factories.

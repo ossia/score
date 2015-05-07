@@ -19,8 +19,6 @@ ScenarioPlugin::ScenarioPlugin() :
         iscore::FactoryInterface_QtInterface {},
 m_control {new ScenarioControl{nullptr}}
 {
-    setObjectName("ScenarioPlugin");
-
     QMetaType::registerComparators<Message>();
     QMetaType::registerComparators<MessageList>();
     qRegisterMetaTypeStreamOperators<State>();

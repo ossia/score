@@ -5,7 +5,6 @@ PluginSettingsPlugin::PluginSettingsPlugin() :
     QObject {},
 iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
-    setObjectName("Plugin Settings");
 }
 
 //////////////////////////

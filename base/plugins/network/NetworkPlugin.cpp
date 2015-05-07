@@ -11,7 +11,6 @@ NetworkPlugin::NetworkPlugin() :
         iscore::PluginControlInterface_QtInterface {}//,
         //iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
-    setObjectName("NetworkPlugin");
 }
 
 // Interfaces implementations :

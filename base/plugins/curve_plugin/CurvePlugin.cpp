@@ -8,7 +8,6 @@
 CurvePlugin::CurvePlugin() :
     QObject {}
 {
-    setObjectName("CurvePlugin");
 }
 
 iscore::PluginControlInterface* CurvePlugin::control()

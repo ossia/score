@@ -11,7 +11,6 @@ InspectorPlugin::InspectorPlugin() :
         iscore::PanelFactory_QtInterface {},
         m_inspectorControl {new InspectorControl}
 {
-    setObjectName("InspectorPlugin");
 }
 
 
