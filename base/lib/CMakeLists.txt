@@ -24,7 +24,9 @@ file(GLOB_RECURSE SRCS
 add_library(iscore_lib ${SRCS})
 target_link_libraries(iscore_lib Qt5::Core Qt5::Widgets)
 
-cotire(iscore_lib)
+if(USE_COTIRE)
+	cotire(iscore_lib)
+endif()
 install(TARGETS iscore_lib
         LIBRARY DESTINATION .
         ARCHIVE DESTINATION .)

@@ -3,9 +3,9 @@
 
 struct OrderedToolbar
 {
-    OrderedToolbar(int n, QToolBar* bar):
+    OrderedToolbar(int n, QToolBar* toolbar):
         position{n},
-        bar{bar}
+        bar{toolbar}
     {
 
     }

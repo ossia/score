@@ -26,6 +26,8 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
+#include <Inspector/Separator.hpp>
+
 #include "core/document/DocumentModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?

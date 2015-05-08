@@ -76,18 +76,3 @@ class InspectorWidgetBase : public QWidget
         QVBoxLayout* _layout {};
 };
 
-#include <QFrame>
-class Separator : public QWidget
-{
-    public:
-        Separator(QWidget* parent) :
-            QWidget {parent}
-        {
-            this->setLayout(new QVBoxLayout);
-            QFrame* f = new QFrame;
-            this->layout()->addWidget(f);
-
-            f->setFrameShape(QFrame::HLine);
-            f->setLineWidth(2);
-        }
-};

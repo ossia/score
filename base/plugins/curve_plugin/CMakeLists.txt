@@ -21,8 +21,10 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
                      iscore_lib InspectorLibrary device_explorer_plugin ProcessLibrary)
-cotire(${PROJECT_NAME})
 
+if(USE_COTIRE)
+	cotire(${PROJECT_NAME})
+endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

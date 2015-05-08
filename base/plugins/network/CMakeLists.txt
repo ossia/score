@@ -58,7 +58,9 @@ endif()
 if(NOT APPLE AND NOT WIN32)
     target_link_libraries(networkplugin dns_sd)
 endif()
-cotire(networkplugin)
+if(USE_COTIRE)
+	cotire(networkplugin)
+endif()
 install(TARGETS networkplugin
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

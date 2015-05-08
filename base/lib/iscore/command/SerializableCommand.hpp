@@ -21,13 +21,12 @@ namespace iscore
             {
             }
 
+            ~SerializableCommand();
+
             const QString& name() const;
             const QString& parentName() const;
             const QString& text() const;
-            void setText(const QString& t)
-            {
-                m_text = t;
-            }
+            void setText(const QString& t);
 
             auto uid() const
             {

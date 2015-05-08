@@ -31,7 +31,9 @@ file(GLOB_RECURSE PLUGIN_SRCS
 add_library(inspector_plugin ${PLUGIN_SRCS})
 
 target_link_libraries(inspector_plugin InspectorLibrary)
-cotire(inspector_plugin)
+if(USE_COTIRE)
+	cotire(inspector_plugin)
+endif()
 install(TARGETS inspector_plugin
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

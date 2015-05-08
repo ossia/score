@@ -49,9 +49,9 @@ namespace iscore
                 auto beforeact_it = std::find_if(
                                         actions.begin(),
                                         actions.end(),
-                                        [&before](QAction * act)
+                                        [&before](QAction * theAct)
                 {
-                    return act->objectName() == MenuInterface::name(before);
+                    return theAct->objectName() == MenuInterface::name(before);
                 });
 
                 if(beforeact_it != actions.end())

@@ -1,6 +1,12 @@
 #include <iscore/command/SerializableCommand.hpp>
 using namespace iscore;
 
+SerializableCommand::~SerializableCommand()
+{
+    // This is here in order to have the vtable emitted only in this file
+    // and reduce binary size.
+}
+
 const QString& SerializableCommand::name() const
 {
     return m_name;
@@ -14,6 +20,11 @@ const QString& SerializableCommand::parentName() const
 const QString& SerializableCommand::text() const
 {
     return m_text;
+}
+
+void SerializableCommand::setText(const QString &t)
+{
+    m_text = t;
 }
 
 QByteArray SerializableCommand::serialize() const

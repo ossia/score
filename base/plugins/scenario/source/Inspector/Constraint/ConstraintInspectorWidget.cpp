@@ -24,6 +24,7 @@
 
 #include "core/document/DocumentModel.hpp"
 
+#include <Inspector/Separator.hpp>
 #include <QFrame>
 #include <QLineEdit>
 #include <QLayout>

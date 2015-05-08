@@ -394,22 +394,18 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 switch(node->ioType())
-                {
+                {// TODO use this enum in AddressSettings!
                     case Node::In:
                         return QString("<-");
-                        break;
 
                     case Node::Out:
                         return QString("->");
-                        break;
 
                     case Node::InOut:
                         return QString("<->");
-                        break;
 
                     default:
-                        return QVariant();
-                        break;
+                        return {};
                 }
             }
         }

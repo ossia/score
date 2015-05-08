@@ -50,21 +50,14 @@ namespace iscore
     class Command
     {
         public:
-            virtual ~Command() = default;
+            virtual ~Command();
 
             virtual void undo() = 0;
             virtual void redo() = 0;
 
         protected:
-            quint32 timestamp() const
-            {
-                return static_cast<quint32>(m_timestamp.count());
-            }
-
-            void setTimestamp(quint32 stmp)
-            {
-                m_timestamp = std::chrono::duration<quint32> (stmp);
-            }
+            quint32 timestamp() const;
+            void setTimestamp(quint32 stmp);
 
         private:
             //TODO check if this is UTC

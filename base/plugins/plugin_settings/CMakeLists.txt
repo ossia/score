@@ -33,8 +33,9 @@ set(SOURCE_FILES
 add_library(pluginsettings_plugin ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
-
-cotire(pluginsettings_plugin)
+if(USE_COTIRE)
+	cotire(pluginsettings_plugin)
+endif()
 install(TARGETS pluginsettings_plugin
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)
