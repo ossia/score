@@ -6,17 +6,17 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    Node* node = dev;
+    OSSIA::Node* node = dev;
     for(int i = 0; i < path.size(); i++)
     {
         auto it = std::find_if(
                     node->begin(),
                     node->end(),
-                    [&] (const Node& n) { return n.getName() == path[i].toStdString(); });
+                    [&] (const OSSIA::Node& n) { return n.getName() == path[i].toStdString(); });
         if(it == node->end())
         {
             // We have to start adding sub-nodes from here.
-            Node* parentnode = node;
+            OSSIA::Node* parentnode = node;
             for(int k = i; k < path.size(); k++)
             {
                 auto theNode = parentnode->emplace(parentnode->begin(), path[k].toStdString());
@@ -87,7 +87,7 @@ void OSSIADevice::updateAddress(const FullAddressSettings &settings)
     QStringList path = settings.name.split("/");
     path.removeFirst();
 
-    Node* node = nodeFromPath(path, m_dev.get());
+    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
     updateAddressSettings(settings, node->getAddress());
 }
 
@@ -98,7 +98,7 @@ void OSSIADevice::removeAddress(const QString &address)
     QStringList path = address.split("/");
     path.removeFirst();
 
-    Node* node = nodeFromPath(path, m_dev.get());
+    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
     node->getParent().erase(node);
 }
 

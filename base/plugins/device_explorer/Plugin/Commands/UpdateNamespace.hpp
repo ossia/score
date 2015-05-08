@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 ISCORE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
                 ReplaceDevice(ObjectPath&& device_tree,
                               int deviceIndex,
-                              Node rootNode);
+                              Node&& rootNode);
 
                 virtual void undo() override;
                 virtual void redo() override;

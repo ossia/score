@@ -14,17 +14,18 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB_RECURSE LIBRARY_SRCS
-		"${CMAKE_CURRENT_SOURCE_DIR}/State/*.cpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/State/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
 
 add_library(StateLibrary ${LIBRARY_SRCS})
 target_link_libraries(StateLibrary Qt5::Core Qt5::Widgets)
 
 set_property(TARGET StateLibrary APPEND
-			 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
+cotire(StateLibrary)
 install(TARGETS StateLibrary
-		LIBRARY DESTINATION .
-		ARCHIVE DESTINATION static_lib/)
+        LIBRARY DESTINATION .
+        ARCHIVE DESTINATION static_lib/)
 
 add_subdirectory(Tests)

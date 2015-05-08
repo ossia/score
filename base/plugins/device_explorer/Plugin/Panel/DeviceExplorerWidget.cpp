@@ -430,12 +430,21 @@ void DeviceExplorerWidget::edit()
     }
 }
 
+#include "Commands/UpdateNamespace.hpp"
+#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 void DeviceExplorerWidget::refresh()
 {
     Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
+
+        auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+                iscore::IDocument::path(model()),
+                m_ntView->selectedIndex().row(),
+                model()->deviceModel()->list().device(select->name())->refresh()};
+
+        m_cmdDispatcher->submitCommand(cmd);
         /*
         if(! m_deviceDialog)
         {

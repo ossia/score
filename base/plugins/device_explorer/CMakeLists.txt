@@ -51,7 +51,7 @@ add_library(device_explorer_plugin
       ${EXPLORER_RESOURCES_RCC})
 
 target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets  Qt5::Xml iscore_lib  StateLibrary Qt5::Test)
-
+cotire(device_explorer_plugin)
 set_property(TARGET device_explorer_plugin APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 

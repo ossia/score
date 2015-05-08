@@ -5,6 +5,7 @@
 #include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 #include <memory>
 
+#include <DeviceExplorer/Node/Node.hpp>
 class DeviceInterface : public QObject
 {
         Q_OBJECT
@@ -12,6 +13,10 @@ class DeviceInterface : public QObject
     public:
         DeviceInterface(const DeviceSettings& s);
         const DeviceSettings& settings() const;
+
+        // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
+        // The addresses are not applied to the device, they have to be via a command!
+        virtual Node refresh() { return {}; }
 
         virtual void addAddress(const FullAddressSettings& address) = 0;
         virtual void updateAddress(const FullAddressSettings& address) = 0;

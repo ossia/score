@@ -8,33 +8,33 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 include_directories(.)
 
 set(HEADER_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettings.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettings.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.hpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.hpp
 
 )
 
 set(SOURCE_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettings.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsModel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsView.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.cpp
 )
 
 add_library(pluginsettings_plugin ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
 
-
+cotire(pluginsettings_plugin)
 install(TARGETS pluginsettings_plugin
-		LIBRARY DESTINATION plugins/
-		ARCHIVE DESTINATION static_plugins/)
+        LIBRARY DESTINATION plugins/
+        ARCHIVE DESTINATION static_plugins/)

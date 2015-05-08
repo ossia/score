@@ -34,11 +34,11 @@ if(${KF5DNSSD_FOUND})
     file(GLOB_RECURSE ZEROCONF_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Zeroconf/*.hpp")
-		
-	if(WIN32)
-		include_directories(/f/kdnssd/usr/include)
-		include_directories("f:/kdnssd/usr/include")
-	endif()
+
+    if(WIN32)
+        include_directories(/f/kdnssd/usr/include)
+        include_directories("f:/kdnssd/usr/include")
+    endif()
 endif()
 
 add_library(networkplugin ${SRCS} ${ZEROCONF_SRCS})
@@ -58,7 +58,7 @@ endif()
 if(NOT APPLE AND NOT WIN32)
     target_link_libraries(networkplugin dns_sd)
 endif()
-
+cotire(networkplugin)
 install(TARGETS networkplugin
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

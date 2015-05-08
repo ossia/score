@@ -9,4 +9,5 @@ class MinuitDevice : public OSSIADevice
 {
     public:
         MinuitDevice(const DeviceSettings& settings);
+        Node refresh() override;
 };

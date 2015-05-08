@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(scenario_plugin)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -35,6 +36,7 @@ add_library(scenario_process ${SRCS} ${HDRS})
 target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
                      iscore_lib
                      InspectorLibrary ProcessLibrary device_explorer_plugin StateLibrary)
+cotire(scenario_process)
 
 
 install(TARGETS scenario_process

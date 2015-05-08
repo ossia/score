@@ -32,6 +32,7 @@ target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
                         iscore_lib scenario_process CurvePlugin device_explorer_plugin APIMock)
 
+cotire(${PROJECT_NAME})
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)
