@@ -109,6 +109,11 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
+const ProcessViewModel *BaseElementModel::focusedViewModel() const
+{
+    return m_focusedViewModel.data();
+}
+
 #include <core/document/Document.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 void BaseElementModel::setFocusedViewModel(const ProcessViewModel* proc)
@@ -140,11 +145,6 @@ void BaseElementModel::setFocusedViewModel(const ProcessViewModel* proc)
         updateDeckFocus(true);
 
         emit focusedViewModelChanged();
-
-        if(m_focusedViewModel)
-        {
-            connect(m_focusedViewModel, &QObject::destroyed, this, [&] () { m_focusedViewModel = nullptr; });
-        }
     }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMap>
+#include <QPointer>
 #include "source/Process/AbstractScenarioViewModel.hpp"
 class ScenarioModel;
 class BoxModel;
@@ -17,13 +18,12 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
 
         // TODO UGLYY
         friend class ScenarioFactory;
-        mutable TemporalScenarioPresenter* m_presenter{};
-        void setPresenter(TemporalScenarioPresenter* p) const
-        { m_presenter = p; }
+        mutable QPointer<TemporalScenarioPresenter> m_presenter;
+        void setPresenter(TemporalScenarioPresenter* p) const;
 
     public:
-        ScenarioStateMachine& stateMachine() const;
-        TemporalScenarioPresenter& presenter() const;
+        ScenarioStateMachine &stateMachine() const;
+        TemporalScenarioPresenter *presenter() const;
 
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;

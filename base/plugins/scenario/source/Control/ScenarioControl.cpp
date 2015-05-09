@@ -47,7 +47,6 @@ ScenarioControl::ScenarioControl(QObject *parent) :
         PluginControlInterface{"ScenarioControl", parent},
         m_processList{new ProcessList{this}}
 {
-
 }
 
 template<typename Selected_T>
@@ -427,7 +426,7 @@ void ScenarioControl::on_presenterChanged()
     {
         // Before changing, we set the currently focused view model to a "select" state
         // to prevent problems.
-        if(!m_lastViewModel.isNull())
+        if(m_lastViewModel && m_lastViewModel->presenter())
         {
             m_lastViewModel->stateMachine().changeState(1);
         }
@@ -439,7 +438,7 @@ void ScenarioControl::on_presenterChanged()
         m_scenarioScaleModeActionGroup->setEnabled(scenario);
         if (scenario)
         {
-            connect(&scenario->presenter(), &TemporalScenarioPresenter::shiftPressed,
+            connect(scenario->presenter(), &TemporalScenarioPresenter::shiftPressed,
                     this, [&]()
             {
                 for(QAction* action : m_scenarioScaleModeActionGroup->actions())
@@ -450,7 +449,7 @@ void ScenarioControl::on_presenterChanged()
                     }
                 }
             });
-            connect(&scenario->presenter(), &TemporalScenarioPresenter::shiftReleased,
+            connect(scenario->presenter(), &TemporalScenarioPresenter::shiftReleased,
                     this, [&]()
             {
                 for(QAction* action : m_scenarioScaleModeActionGroup->actions())

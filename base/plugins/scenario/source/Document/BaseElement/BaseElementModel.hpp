@@ -33,8 +33,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
-        const ProcessViewModel* focusedViewModel() const
-        { return m_focusedViewModel; }
+        const ProcessViewModel* focusedViewModel() const;
 
 
         void setNewSelection(const Selection& s) override;
@@ -52,7 +51,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         const ConstraintModel* m_displayedConstraint {};
 
         // The process that contains the current selection.
-        const ProcessViewModel* m_focusedViewModel{};
+        QPointer<const ProcessViewModel> m_focusedViewModel;
         const ProcessModel* m_focusedProcess{};
 };
 
