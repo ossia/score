@@ -23,11 +23,11 @@ class DeviceList
                    != end(m_devices);
         }
 
-        DeviceInterface* device(const QString& name)
+        DeviceInterface& device(const QString& name)
         {
             using namespace std;
-            return *find_if(begin(m_devices), end(m_devices),
-                            [&] (DeviceInterface* d) { return d->settings().name == name; });
+            return *(*find_if(begin(m_devices), end(m_devices),
+                            [&] (DeviceInterface* d) { return d->settings().name == name; }));
         }
 
         void addDevice(DeviceInterface* dev)

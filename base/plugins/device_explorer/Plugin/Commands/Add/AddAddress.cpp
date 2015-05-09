@@ -54,7 +54,7 @@ void AddAddress::redo()
     full.name = parentpath.join("/").prepend("/") + "/" + m_addressSettings.name;
 
     // Add in the device implementation
-    explorer.deviceModel()->list().device(dev_node->name())->addAddress(full);
+    explorer.deviceModel()->list().device(dev_node->name()).addAddress(full);
 
     // Add in the device explorer
     Node* newNode = explorer.addAddress( m_parentNodePath.toNode(explorer.rootNode()), m_addressSettings);

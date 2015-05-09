@@ -41,6 +41,7 @@ class Node
         // Clone
         Node(const Node& source,
              Node* parent = nullptr);
+        Node& operator=(const Node& source);
 
         ~Node();
 

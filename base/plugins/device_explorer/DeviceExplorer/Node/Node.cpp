@@ -11,7 +11,7 @@ float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
 
 Node::Node(const QString& name, Node* parent):
-      m_parent(parent)
+      m_parent{parent}
 {
     m_addressSettings.name = name;
     if(m_parent)
@@ -20,15 +20,31 @@ Node::Node(const QString& name, Node* parent):
     }
 }
 
-Node::Node(const Node &source, Node *parent)
+Node::Node(const Node &source, Node *parent):
+    m_parent{parent}
 {
-    m_deviceSettings = source.deviceSettings();
+    if(source.isDevice())
+        m_deviceSettings = source.deviceSettings();
     m_addressSettings = source.addressSettings();
 
     for(const auto& child : source.children())
     {
         this->addChild(new Node{*child, this});
     }
+}
+
+Node& Node::operator=(const Node &source)
+{
+    if(source.isDevice())
+        m_deviceSettings = source.deviceSettings();
+    m_addressSettings = source.addressSettings();
+
+    for(const auto& child : source.children())
+    {
+        this->addChild(new Node{*child, this});
+    }
+
+    return *this;
 }
 
 Node::Node(const DeviceSettings& devices,

@@ -303,7 +303,6 @@ DeviceExplorerWidget::updateActions()
 
             if(! aDeviceIsSelected)
             {
-                m_refreshAction->setEnabled(false);
                 m_addSiblingAction->setEnabled(true);
                 m_promoteAction->setEnabled(true);
                 m_demoteAction->setEnabled(true);
@@ -311,7 +310,6 @@ DeviceExplorerWidget::updateActions()
             }
             else
             {
-                m_refreshAction->setEnabled(true);
                 m_addSiblingAction->setEnabled(false);
                 m_promoteAction->setEnabled(false);
                 m_demoteAction->setEnabled(false);
@@ -319,6 +317,7 @@ DeviceExplorerWidget::updateActions()
             }
 
             m_editAction->setEnabled(true);
+            m_refreshAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
             m_copyAction->setEnabled(true);
             m_cutAction->setEnabled(true);
@@ -438,31 +437,16 @@ void DeviceExplorerWidget::refresh()
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
+        auto& dev = model()->deviceModel()->list().device(select->name());
+        if(!dev.canRefresh())
+            return;
 
         auto cmd = new DeviceExplorer::Command::ReplaceDevice{
                 iscore::IDocument::path(model()),
                 m_ntView->selectedIndex().row(),
-                model()->deviceModel()->list().device(select->name())->refresh()};
+                dev.refresh()};
 
         m_cmdDispatcher->submitCommand(cmd);
-        /*
-        if(! m_deviceDialog)
-        {
-            m_deviceDialog = new DeviceEditDialog(this);
-        }
-        auto set = select->deviceSettings();
-        m_deviceDialog->setSettings(set);
-
-        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
-
-        if(code == QDialog::Accepted)
-        {
-            auto deviceSettings = m_deviceDialog->getSettings();
-            select->setDeviceSettings(deviceSettings);
-        }
-
-        updateActions();
-        */
     }
 }
 

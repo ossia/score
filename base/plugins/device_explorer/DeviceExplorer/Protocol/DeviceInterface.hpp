@@ -16,6 +16,7 @@ class DeviceInterface : public QObject
 
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
+        virtual bool canRefresh() const { return false; }
         virtual Node refresh() { return {}; }
 
         virtual void addAddress(const FullAddressSettings& address) = 0;
