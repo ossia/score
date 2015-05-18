@@ -10,7 +10,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 
-#include "base/plugins/device_explorer/Plugin/Panel/DeviceExplorerModel.hpp"
+#include "base/plugins/iscore-plugin-deviceexplorer/Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <QLabel>
 #include <QLineEdit>

@@ -20,8 +20,6 @@ include_directories(${CMAKE_SOURCE_DIR}/API)
 include_directories(${CMAKE_SOURCE_DIR}/API/Headers)
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../scenario/source")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../curve_plugin")
 # TODO put this in CMake interface of iscore_lib
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")

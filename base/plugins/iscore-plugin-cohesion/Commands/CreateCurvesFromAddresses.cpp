@@ -1,7 +1,7 @@
 #include "CreateCurvesFromAddresses.hpp"
-#include "../scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
-#include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
-#include "../curve_plugin/Automation/AutomationModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
+#include "base/plugins/iscore-plugin-curve/Automation/AutomationModel.hpp"
 
 using namespace iscore;
 

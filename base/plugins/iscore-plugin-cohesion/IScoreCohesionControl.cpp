@@ -1,12 +1,13 @@
 #include "IScoreCohesionControl.hpp"
 #include <QApplication>
 
-#include "../scenario/source/Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include "../scenario/source/Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
-#include "../scenario/source/Document/Constraint/ConstraintModel.hpp"
-#include "../scenario/source/Document/Event/EventModel.hpp"
-#include "../scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
-#include "../scenario/source/Process/ScenarioModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Event/EventModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Process/ScenarioModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Commands/Event/AddStateToEvent.hpp"
 #include "Singletons/DeviceExplorerInterface.hpp"
 
 // TODO Refactor in order to use the Node data structure instead.
@@ -273,7 +274,6 @@ void IScoreCohesionControl::interpolateStates()
 }
 
 
-#include "../scenario/source/Commands/Event/AddStateToEvent.hpp"
 void IScoreCohesionControl::snapshotParametersInEvents()
 {
     using namespace std;

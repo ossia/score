@@ -14,10 +14,11 @@ if(NOT ${Jamoma_FOUND})
 endif()
 
 
+include_directories(${CMAKE_SOURCE_DIR})
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../scenario/source")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../curve_plugin")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-scenario/source")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-curve")
 # TODO put this in CMake interface of iscore_lib
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")

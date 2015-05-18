@@ -13,7 +13,7 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml Test)
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../device_explorer")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-deviceexplorer")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../") # API
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
