@@ -6,6 +6,7 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 
 #include <QStateMachine>
+#include <QPointF>
 
 class TemporalScenarioPresenter;
 class ScenarioModel;

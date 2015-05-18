@@ -13,9 +13,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 
 set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
 set(JAMOMA_PLUGINS "MIDI;Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
-if(ISCORE_STATIC_PLUGINS)
-	add_definitions(-DQT_STATICPLUGIN)
-endif()
 
 if(DEPLOYMENT_BUILD)
 	add_executable(${APPNAME} WIN32 MACOSX_BUNDLE main.cpp)
@@ -23,53 +20,60 @@ else()
 	add_executable(${APPNAME} WIN32 main.cpp)
 endif()
 
-target_link_libraries(${APPNAME} iscore_lib)
+target_link_libraries(${APPNAME} iscore_lib_base)
 if(ISCORE_STATIC_PLUGINS)
 	add_definitions(-DISCORE_STATIC_PLUGINS)
 	target_link_libraries(${APPNAME}
-		CurvePlugin
-		inspector_plugin
-		scenario_process
-		pluginsettings_plugin
-		device_explorer_plugin)
+                iscore_plugin_curve
+                iscore_plugin_inspector
+                iscore_plugin_scenario
+                iscore_plugin_pluginsettings
+                iscore_plugin_deviceexplorer)
 
-	if(TARGET networkplugin)
-		add_definitions(-DISCORE_NETWORK)
-		target_link_libraries(${APPNAME} networkplugin)
+    # Put these definitions as partt of the CMake interface of the plugin
+    if(TARGET iscore_plugin_network)
+        add_definitions(-DISCORE_NETWORK)
+        target_link_libraries(${APPNAME} iscore_plugin_network)
 	endif()
 
-	if(TARGET IScoreCohesion)
-		add_definitions(-DISCORE_COHESION)
-		target_link_libraries(${APPNAME} IScoreCohesion)
+    if(TARGET iscore_plugin_cohesion)
+        add_definitions(-DISCORE_COHESION)
+        target_link_libraries(${APPNAME} iscore_plugin_cohesion)
 	endif()
+
+    if(TARGET iscore_plugin_ossia)
+        add_definitions(-DISCORE_OSSIA)
+        target_link_libraries(${APPNAME} iscore_plugin_ossia)
+    endif()
 else()
-	if(APPLE AND DEPLOYMENT_BUILD)
+    if(APPLE AND DEPLOYMENT_BUILD)
 		if(NOT ISCORE_STATIC_PLUGINS)
-		# Copy iscore plugins into the app bundle
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:CurvePlugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:inspector_plugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
 
+            set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/")
+            function(iscore_copy_osx_plugin theTarget)
+                add_custom_command(
+                  TARGET ${APPNAME} POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:target> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+            endfunction()
 
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:scenario_process> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
+            # Copy iscore plugins into the app bundle
+            add_custom_command(TARGET ${APPNAME} POST_BUILD
+                               COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
+            iscore_copy_osx_plugin(iscore_plugin_curve)
+            iscore_copy_osx_plugin(iscore_plugin_inspector)
+            iscore_copy_osx_plugin(iscore_plugin_scenario)
+            iscore_copy_osx_plugin(iscore_plugin_pluginsettings)
+            iscore_copy_osx_plugin(iscore_plugin_deviceexplorer)
 
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pluginsettings_plugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-						   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:device_explorer_plugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-
-		if(TARGET networkplugin)
-			add_custom_command(TARGET ${APPNAME} POST_BUILD
-							   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:networkplugin> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-		endif()
-		if(TARGET IScoreCohesion)
-			add_custom_command(TARGET ${APPNAME} POST_BUILD
-							   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:iscore_cohesion> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-		endif()
+            if(TARGET iscore_plugin_network)
+                iscore_copy_osx_plugin(iscore_plugin_network)
+            endif()
+            if(TARGET iscore_plugin_cohesion)
+                iscore_copy_osx_plugin(iscore_plugin_cohesion)
+            endif()
+            if(TARGET iscore_plugin_ossia)
+                iscore_copy_osx_plugin(iscore_plugin_ossia)
+            endif()
 		# TODO it's not a plugin. It should be copied to the MacOS folder instead.
 		#add_custom_command(TARGET ${APPNAME} POST_BUILD
 		#				   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:process_interface> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)

@@ -1,16 +1,20 @@
 #include <core/application/Application.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS)
-Q_IMPORT_PLUGIN(ScenarioPlugin)
-Q_IMPORT_PLUGIN(InspectorPlugin)
-Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
-Q_IMPORT_PLUGIN(PluginSettingsPlugin)  // static plug-ins should not be displayed.
-Q_IMPORT_PLUGIN(CurvePlugin)
+Q_IMPORT_PLUGIN(iscore_plugin_scenario)
+Q_IMPORT_PLUGIN(iscore_plugin_inspector)
+Q_IMPORT_PLUGIN(iscore_plugin_deviceexplorer)
+Q_IMPORT_PLUGIN(iscore_plugin_pluginsettings)  // static plug-ins should not be displayed.
+Q_IMPORT_PLUGIN(iscore_plugin_curve)
 #ifdef ISCORE_NETWORK
-Q_IMPORT_PLUGIN(NetworkPlugin)
+Q_IMPORT_PLUGIN(iscore_plugin_network)
 #endif
 #ifdef ISCORE_COHESION
-Q_IMPORT_PLUGIN(IScoreCohesion)
+Q_IMPORT_PLUGIN(iscore_plugin_cohesion)
+#endif
+
+#ifdef ISCORE_OSSIA
+Q_IMPORT_PLUGIN(iscore_plugin_ossia)
 #endif
 #endif
 

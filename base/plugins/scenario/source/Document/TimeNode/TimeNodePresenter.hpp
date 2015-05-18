@@ -7,6 +7,7 @@
 class TimeNodeView;
 class TimeNodeModel;
 class EventModel;
+class QGraphicsObject;
 
 class TimeNodePresenter :  public NamedObject
 {

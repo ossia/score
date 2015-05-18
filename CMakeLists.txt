@@ -59,10 +59,10 @@ if(APPLE AND DEPLOYMENT_BUILD)
 endif()
 
 if(ISCORE_STATIC_PLUGINS)
-  set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_SHARED_LIBS OFF)
     add_definitions(-DQT_STATICPLUGIN)
 else()
-  set(BUILD_SHARED_LIBS ON)
+    set(BUILD_SHARED_LIBS ON)
 endif()
 
 add_subdirectory(base)

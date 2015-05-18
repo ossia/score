@@ -10,6 +10,7 @@ class AddressBar;
 class DoubleSlider;
 class TimeRulerView;
 class LocalTimeRulerView;
+class QGraphicsObject;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {

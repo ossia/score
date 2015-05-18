@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(plugin_settings_plugin)
+project(iscore_plugin_pluginsettings)
 
 # Packages
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
@@ -30,12 +30,13 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.cpp
 )
 
-add_library(pluginsettings_plugin ${HEADER_FILES} ${SOURCE_FILES})
+add_definitions(-DQT_STATICPLUGINS)
+add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
-target_link_libraries(pluginsettings_plugin Qt5::Core Qt5::Widgets iscore_lib)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 if(USE_COTIRE)
-	cotire(pluginsettings_plugin)
+        cotire(${PROJECT_NAME})
 endif()
-install(TARGETS pluginsettings_plugin
+install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

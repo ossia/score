@@ -7,7 +7,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 
 class ScenarioControl;
-class ScenarioPlugin :
+class iscore_plugin_scenario :
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
     public iscore::DocumentDelegateFactoryInterface_QtInterface,
@@ -25,7 +25,7 @@ class ScenarioPlugin :
                      iscore::FactoryInterface_QtInterface)
 
     public:
-        ScenarioPlugin();
+        iscore_plugin_scenario();
 
         // Docpanel interface
         QList<iscore::DocumentDelegateFactoryInterface*> documents() override;

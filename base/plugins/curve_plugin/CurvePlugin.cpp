@@ -5,17 +5,17 @@
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"
 
-CurvePlugin::CurvePlugin() :
+iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
 {
 }
 
-iscore::PluginControlInterface* CurvePlugin::control()
+iscore::PluginControlInterface* iscore_plugin_curve::control()
 {
     return new AutomationControl{nullptr};
 }
 
-QVector<iscore::FactoryInterface*> CurvePlugin::factories(const QString& factoryName)
+QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)
 {
     if(factoryName == "Process")
     {

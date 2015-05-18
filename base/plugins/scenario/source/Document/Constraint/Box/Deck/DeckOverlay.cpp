@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
+#include <QPalette>
 
 DeckOverlay::DeckOverlay(DeckView *parent):
     QGraphicsItem{parent},

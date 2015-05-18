@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
+#include <QPalette>
 
 BoxView::BoxView(QGraphicsObject* parent) :
     QGraphicsObject {parent}

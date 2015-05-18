@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(scenario_plugin)
+project(iscore_plugin_scenario)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
@@ -21,9 +21,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 file(GLOB_RECURSE PROCESS_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.cpp")
 
-add_library(ProcessLibrary ${PROCESS_HDRS} ${PROCESS_SRCS})
-target_link_libraries(ProcessLibrary Qt5::Core Qt5::Widgets iscore_lib)
-install(TARGETS ProcessLibrary
+add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS})
+target_link_libraries(iscore_lib_process Qt5::Core Qt5::Widgets iscore_lib_base)
+install(TARGETS iscore_lib_process
     LIBRARY DESTINATION ./
     ARCHIVE DESTINATION static_lib/)
 
@@ -32,15 +32,15 @@ install(TARGETS ProcessLibrary
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
-add_library(scenario_process ${SRCS} ${HDRS})
-target_link_libraries(scenario_process Qt5::Core Qt5::Widgets Qt5::Xml
-                     iscore_lib
-                     InspectorLibrary ProcessLibrary device_explorer_plugin StateLibrary)
+add_library(iscore_plugin_scenario ${SRCS} ${HDRS})
+target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml
+                     iscore_lib_base
+                     iscore_lib_inspector iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state)
 if(USE_COTIRE)
-	cotire(scenario_process)
+        cotire(iscore_plugin_scenario)
 endif()
 
-install(TARGETS scenario_process
+install(TARGETS iscore_plugin_scenario
     LIBRARY DESTINATION plugins/
     ARCHIVE DESTINATION static_plugins/)
 

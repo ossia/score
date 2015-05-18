@@ -6,7 +6,7 @@
 #include "DistributedScenario/Group.hpp"
 #define PROCESS_NAME "Network Process"
 
-NetworkPlugin::NetworkPlugin() :
+iscore_plugin_network::iscore_plugin_network() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {}//,
         //iscore::SettingsDelegateFactoryInterface_QtInterface {}
@@ -21,12 +21,12 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::PluginControlInterface* NetworkPlugin::control()
+iscore::PluginControlInterface* iscore_plugin_network::control()
 {
     return new NetworkControl;
 }
 
-QList<iscore::PanelFactory*> NetworkPlugin::panels()
+QList<iscore::PanelFactory*> iscore_plugin_network::panels()
 {
     return {new GroupPanelFactory};
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(network_plugin)
+project(iscore_plugin_network)
 
 if(ANDROID)
     message("TODO FIXME ON ANDROID")
@@ -41,26 +41,26 @@ if(${KF5DNSSD_FOUND})
     endif()
 endif()
 
-add_library(networkplugin ${SRCS} ${ZEROCONF_SRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${ZEROCONF_SRCS})
 
-target_link_libraries(networkplugin
-                                    iscore_lib
-                                    scenario_process # TODO :(
+target_link_libraries(${PROJECT_NAME}
+                                    iscore_lib_base
+                                    iscore_plugin_scenario # TODO :(
                                     Qt5::Core
                                     Qt5::Widgets
                                     Qt5::Network)
 
 if(${KF5DNSSD_FOUND})
-    target_compile_definitions(networkplugin PUBLIC USE_ZEROCONF)
-    target_link_libraries(networkplugin KF5::DNSSD)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ZEROCONF)
+    target_link_libraries(${PROJECT_NAME} KF5::DNSSD)
 endif()
 
 if(NOT APPLE AND NOT WIN32)
-    target_link_libraries(networkplugin dns_sd)
+    target_link_libraries(${PROJECT_NAME} dns_sd)
 endif()
 if(USE_COTIRE)
-	cotire(networkplugin)
+        cotire(${PROJECT_NAME})
 endif()
-install(TARGETS networkplugin
+install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

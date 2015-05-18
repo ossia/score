@@ -3,7 +3,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
-class CurvePlugin:
+class iscore_plugin_curve:
     public QObject,
     public iscore::FactoryInterface_QtInterface,
     public iscore::PluginControlInterface_QtInterface
@@ -16,8 +16,8 @@ class CurvePlugin:
         )
 
     public:
-        CurvePlugin();
-        virtual ~CurvePlugin() = default;
+        iscore_plugin_curve();
+        virtual ~iscore_plugin_curve() = default;
 
         // Plugin control interface
         virtual iscore::PluginControlInterface* control() override;

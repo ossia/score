@@ -6,7 +6,7 @@ using namespace iscore;
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-InspectorPlugin::InspectorPlugin() :
+iscore_plugin_inspector::iscore_plugin_inspector() :
     QObject {},
         iscore::PanelFactory_QtInterface {},
         m_inspectorControl {new InspectorControl}
@@ -14,12 +14,12 @@ InspectorPlugin::InspectorPlugin() :
 }
 
 
-QList<iscore::PanelFactory*> InspectorPlugin::panels()
+QList<iscore::PanelFactory*> iscore_plugin_inspector::panels()
 {
     return {new InspectorPanelFactory};
 }
 
-QVector<FactoryFamily> InspectorPlugin::factoryFamilies()
+QVector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
 {
     return {{"Inspector",
              [&] (iscore::FactoryInterface* fact)
@@ -29,7 +29,7 @@ QVector<FactoryFamily> InspectorPlugin::factoryFamilies()
            }};
 }
 
-PluginControlInterface* InspectorPlugin::control()
+PluginControlInterface* iscore_plugin_inspector::control()
 {
     return m_inspectorControl;
 }

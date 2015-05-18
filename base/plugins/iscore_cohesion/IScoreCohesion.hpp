@@ -13,7 +13,7 @@ class Dummy {};
  * it should certainly be implemented here.
  *
  */
-class IScoreCohesion:
+class iscore_plugin_cohesion:
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
     private Dummy
@@ -25,8 +25,8 @@ class IScoreCohesion:
         )
 
     public:
-        IScoreCohesion();
-        virtual ~IScoreCohesion() = default;
+        iscore_plugin_cohesion();
+        virtual ~iscore_plugin_cohesion() = default;
 
         virtual iscore::PluginControlInterface* control() override;
 };

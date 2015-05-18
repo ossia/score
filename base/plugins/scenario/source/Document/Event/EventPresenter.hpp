@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+class QGraphicsObject;
 class EventModel;
 class EventView;
 class TemporalScenarioPresenter;

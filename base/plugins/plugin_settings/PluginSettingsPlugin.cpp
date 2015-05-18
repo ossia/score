@@ -1,14 +1,14 @@
 #include <PluginSettingsPlugin.hpp>
 #include <settings_impl/PluginSettings.hpp>
 
-PluginSettingsPlugin::PluginSettingsPlugin() :
+iscore_plugin_pluginsettings::iscore_plugin_pluginsettings() :
     QObject {},
 iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
 }
 
 //////////////////////////
-iscore::SettingsDelegateFactoryInterface* PluginSettingsPlugin::settings_make()
+iscore::SettingsDelegateFactoryInterface* iscore_plugin_pluginsettings::settings_make()
 {
     return new PluginSettings;
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(inspector_plugin)
+project(iscore_plugin_inspector)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -13,13 +13,13 @@ file(GLOB_RECURSE INTERFACE_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.cpp")
 
-add_library(InspectorLibrary ${INTERFACE_SRCS})
-target_link_libraries(InspectorLibrary Qt5::Core Qt5::Widgets iscore_lib)
+add_library(iscore_lib_inspector ${INTERFACE_SRCS})
+target_link_libraries(iscore_lib_inspector Qt5::Core Qt5::Widgets iscore_lib_base)
 
-set_property(TARGET InspectorLibrary APPEND
+set_property(TARGET iscore_lib_inspector APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
-install(TARGETS InspectorLibrary
+install(TARGETS iscore_lib_inspector
         LIBRARY DESTINATION .
         ARCHIVE DESTINATION static_lib/)
 
@@ -28,12 +28,12 @@ file(GLOB_RECURSE PLUGIN_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.cpp")
 
-add_library(inspector_plugin ${PLUGIN_SRCS})
+add_library(iscore_plugin_inspector ${PLUGIN_SRCS})
 
-target_link_libraries(inspector_plugin InspectorLibrary)
+target_link_libraries(iscore_plugin_inspector iscore_lib_inspector)
 if(USE_COTIRE)
-	cotire(inspector_plugin)
+        cotire(iscore_plugin_inspector)
 endif()
-install(TARGETS inspector_plugin
+install(TARGETS iscore_plugin_inspector
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

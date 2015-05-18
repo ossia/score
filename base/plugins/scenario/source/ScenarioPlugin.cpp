@@ -11,7 +11,7 @@
 #include <State/State.hpp>
 #include <State/Message.hpp>
 
-ScenarioPlugin::ScenarioPlugin() :
+iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
@@ -29,22 +29,22 @@ m_control {new ScenarioControl{nullptr}}
 
 // Interfaces implementations :
 #include "Document/BaseElement/ScenarioDocument.hpp"
-QList<iscore::DocumentDelegateFactoryInterface*> ScenarioPlugin::documents()
+QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
     return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* ScenarioPlugin::control()
+iscore::PluginControlInterface* iscore_plugin_scenario::control()
 {
     return m_control;
 }
 
-QList<iscore::PanelFactory*> ScenarioPlugin::panels()
+QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
     return {/*new ProcessPanelFactory*/};
 }
 
-QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies()
+QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
     return {{"Process",
             std::bind(&ProcessList::registerProcess,
@@ -53,7 +53,7 @@ QVector<iscore::FactoryFamily> ScenarioPlugin::factoryFamilies()
     };
 }
 
-QVector<iscore::FactoryInterface*> ScenarioPlugin::factories(const QString& factoryName)
+QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
 {
     if(factoryName == "Process")
     {

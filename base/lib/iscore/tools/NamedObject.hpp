@@ -1,7 +1,5 @@
 #pragma once
 #include <QObject>
-#include <QWidget>
-#include <QGraphicsObject>
 #include <QDebug>
 #include "iscore/serialization/VisitorInterface.hpp"
 

@@ -3,6 +3,7 @@
 
 class TemporalConstraintViewModel;
 class TemporalConstraintView;
+class QGraphicsObject;
 
 
 namespace iscore

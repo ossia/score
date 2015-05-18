@@ -79,7 +79,7 @@ class SingletonDeviceList
         static DeviceList m_instance;
 };
 */
-class DeviceExplorerPlugin :
+class iscore_plugin_deviceexplorer :
     public QObject,
     public iscore::PanelFactory_QtInterface,
     public iscore::FactoryFamily_QtInterface,
@@ -93,7 +93,7 @@ class DeviceExplorerPlugin :
                 iscore::PluginControlInterface_QtInterface)
 
     public:
-        DeviceExplorerPlugin();
+        iscore_plugin_deviceexplorer();
 
         // Panel interface
         QList<iscore::PanelFactory*> panels() override;

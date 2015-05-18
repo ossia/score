@@ -5,7 +5,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 
 class InspectorControl;
-class InspectorPlugin :
+class iscore_plugin_inspector :
     public QObject,
     public iscore::PanelFactory_QtInterface,
     public iscore::PluginControlInterface_QtInterface,
@@ -19,7 +19,7 @@ class InspectorPlugin :
                      iscore::PluginControlInterface_QtInterface)
 
     public:
-        InspectorPlugin();
+        iscore_plugin_inspector();
 
         // Panel interface
         QList<iscore::PanelFactory*> panels() override;

@@ -5,6 +5,7 @@ class FullViewConstraintViewModel;
 class FullViewConstraintView;
 class BoxPresenter;
 class BoxModel;
+class QGraphicsObject;
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 

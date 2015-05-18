@@ -6,7 +6,7 @@
 #include <QObject>
 class NetworkSettings;
 
-class NetworkPlugin :
+class iscore_plugin_network :
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
    // public iscore::SettingsDelegateFactoryInterface_QtInterface,
@@ -20,7 +20,7 @@ class NetworkPlugin :
                      iscore::PanelFactory_QtInterface)
 
     public:
-        NetworkPlugin();
+        iscore_plugin_network();
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 

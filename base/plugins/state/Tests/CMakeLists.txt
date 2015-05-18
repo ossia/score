@@ -6,7 +6,7 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Test)
 
 function(addStateTest TESTNAME TESTSRCS)
 		add_executable(State_${TESTNAME} ${TESTSRCS})
-		target_link_libraries(State_${TESTNAME} Qt5::Core Qt5::Test iscore_lib StateLibrary)
+        target_link_libraries(State_${TESTNAME} Qt5::Core Qt5::Test iscore_lib_base iscore_lib_state)
 		add_test(State_${TESTNAME}_target State_${TESTNAME})
 endFunction()
 

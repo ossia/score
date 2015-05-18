@@ -4,6 +4,8 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <QSize>
+#include <QRectF>
 class ProgressBar;
 namespace iscore
 {

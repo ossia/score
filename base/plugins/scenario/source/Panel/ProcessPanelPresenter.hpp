@@ -5,6 +5,7 @@ class BaseElementModel;
 class ProcessView;
 class ProcessPresenter;
 class ProcessViewModel;
+class QGraphicsObject;
 class ProcessPanelPresenter : public iscore::PanelPresenter
 {
         Q_OBJECT

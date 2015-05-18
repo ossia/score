@@ -2,7 +2,7 @@
 #include <QObject>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
-class PluginSettingsPlugin :
+class iscore_plugin_pluginsettings :
     public QObject,
     public iscore::SettingsDelegateFactoryInterface_QtInterface
 {
@@ -11,8 +11,8 @@ class PluginSettingsPlugin :
         Q_INTERFACES(iscore::SettingsDelegateFactoryInterface_QtInterface)
 
     public:
-        PluginSettingsPlugin();
-        virtual ~PluginSettingsPlugin() = default;
+        iscore_plugin_pluginsettings();
+        virtual ~iscore_plugin_pluginsettings() = default;
 
         // Settings interface
         virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;

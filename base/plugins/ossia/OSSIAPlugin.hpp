@@ -11,7 +11,7 @@
  * it should certainly be implemented here.
  *
  */
-class OSSIAPlugin:
+class iscore_plugin_ossia:
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
     public iscore::FactoryInterface_QtInterface
@@ -24,8 +24,8 @@ class OSSIAPlugin:
         )
 
     public:
-        OSSIAPlugin();
-        virtual ~OSSIAPlugin() = default;
+        iscore_plugin_ossia();
+        virtual ~iscore_plugin_ossia() = default;
 
         virtual iscore::PluginControlInterface* control() override;
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(iscore-plugin-ossia)
+project(iscore_plugin_ossia)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
@@ -30,7 +30,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib scenario_process CurvePlugin device_explorer_plugin APIMock)
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIMock)
 
 if(USE_COTIRE)
 	cotire(${PROJECT_NAME})

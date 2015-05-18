@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(device_explorer_plugin)
+project(iscore_plugin_deviceexplorer)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
@@ -46,17 +46,19 @@ file(GLOB_RECURSE PLUGIN_SRCS
 
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorer.qrc")
 
-add_library(device_explorer_plugin
+add_library(iscore_plugin_deviceexplorer
       ${PLUGIN_SRCS}
       ${EXPLORER_RESOURCES_RCC})
 
-target_link_libraries(device_explorer_plugin Qt5::Core Qt5::Widgets  Qt5::Xml iscore_lib  StateLibrary Qt5::Test)
+target_link_libraries(iscore_plugin_deviceexplorer
+                      Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Test
+                      iscore_lib_base iscore_lib_state)
 if(USE_COTIRE)
-	cotire(device_explorer_plugin)
+        cotire(iscore_plugin_deviceexplorer)
 endif()
-set_property(TARGET device_explorer_plugin APPEND
+set_property(TARGET iscore_plugin_deviceexplorer APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
-install(TARGETS device_explorer_plugin
+install(TARGETS iscore_plugin_deviceexplorer
     LIBRARY DESTINATION plugins/
     ARCHIVE DESTINATION static_plugins/)

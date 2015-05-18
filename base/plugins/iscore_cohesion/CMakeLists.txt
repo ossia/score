@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(IScoreCohesion)
-if(NOT ISCORE_BUILD_COHESION)
-    return()
-endif()
+project(iscore_plugin_cohesion)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0042 NEW)
@@ -29,7 +26,7 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib scenario_process CurvePlugin device_explorer_plugin
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer
                         Jamoma::Foundation Jamoma::Modular Jamoma::Score)
 
 install(TARGETS ${PROJECT_NAME}
