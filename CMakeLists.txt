@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.0)
 # TODO Check Cmake options syntax
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0042 NEW)
+
+set(ISCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CTEST_OUTPUT_ON_FAILURE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

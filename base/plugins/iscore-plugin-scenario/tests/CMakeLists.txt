@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(ScenarioTests)
 
-include_directories("${CMAKE_SOURCE_DIR}/base")
+include_directories("${ISCORE_ROOT_SOURCE_DIR}/base")
 
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Test)
 

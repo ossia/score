@@ -14,7 +14,7 @@ if(NOT ${Jamoma_FOUND})
 endif()
 
 
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${ISCORE_ROOT_SOURCE_DIR})
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-scenario/source")

@@ -4,7 +4,7 @@ PROJECT(RepartitionClientTest)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/modules")
+set(CMAKE_MODULE_PATH "${ISCORE_ROOT_SOURCE_DIR}/CMake/modules")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
 
 include_directories(${API_DEPENDENCIES_FOLDER}/bonjour-qt/headers)

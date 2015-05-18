@@ -15,9 +15,9 @@ if(NOT ${Jamoma_FOUND})
 endif()
 
 # For OSSIA API
-include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/API)
-include_directories(${CMAKE_SOURCE_DIR}/API/Headers)
+include_directories(${ISCORE_ROOT_SOURCE_DIR})
+include_directories(${ISCORE_ROOT_SOURCE_DIR}/API)
+include_directories(${ISCORE_ROOT_SOURCE_DIR}/API/Headers)
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 # TODO put this in CMake interface of iscore_lib
