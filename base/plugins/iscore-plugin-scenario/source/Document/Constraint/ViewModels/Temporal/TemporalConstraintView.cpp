@@ -67,13 +67,6 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
                           0);
 
         QPen pen = m_dashPen;
-        QLinearGradient gradient(minWidth(), 0, defaultWidth(), 0);
-        gradient.setColorAt(0, constraintColor);
-        gradient.setColorAt(1, Qt::transparent);
-
-
-        pen.setColor(Qt::black);
-        pen.setBrush(gradient);
         painter->setPen(pen);
         painter->drawLine(minWidth(),
                           0,
@@ -91,17 +84,36 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
 
         // The little hat
         painter->drawLine(minWidth(),
-                          -5,
+                          -10,
                           minWidth(),
-                          -15);
+                          10);
+        painter->drawLine(minWidth(),
+                          -10,
+                          minWidth() + 3,
+                          -10);
+        painter->drawLine(minWidth(),
+                          10,
+                          minWidth() + 3,
+                          10);
+        /*
         painter->drawLine(minWidth(),
                           -15,
                           maxWidth(),
                           -15);
+                          */
         painter->drawLine(maxWidth(),
-                          -5,
+                          -10,
                           maxWidth(),
-                          -15);
+                          10);
+
+        painter->drawLine(maxWidth(),
+                          -10,
+                          maxWidth() - 3,
+                          -10);
+        painter->drawLine(maxWidth(),
+                          10,
+                          maxWidth() - 3,
+                          10);
 
         // Finally the dashed line
         painter->setPen(m_dashPen);
