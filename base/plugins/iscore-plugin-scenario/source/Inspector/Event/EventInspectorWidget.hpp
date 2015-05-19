@@ -29,6 +29,7 @@ class EventInspectorWidget : public InspectorWidgetBase
 
         void on_addAddressClicked();
         void on_conditionChanged();
+        void on_triggerChanged();
 
         void removeState(const State&);
 
@@ -41,10 +42,11 @@ class EventInspectorWidget : public InspectorWidgetBase
         std::vector<QWidget*> m_addresses;
 
         QLabel* m_date {};
-        QLineEdit* m_conditionLineEdit {};
-        QLineEdit* m_stateLineEdit {};
+        QLineEdit* m_conditionLineEdit{};
+        QLineEdit* m_triggerLineEdit{};
+        QLineEdit* m_stateLineEdit{};
         QWidget* m_addressesWidget{};
-        const EventModel* m_model {};
+        const EventModel* m_model{};
 
         InspectorSectionWidget* m_prevConstraints;
         InspectorSectionWidget* m_nextConstraints;

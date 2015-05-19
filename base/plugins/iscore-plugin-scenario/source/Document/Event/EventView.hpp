@@ -13,11 +13,23 @@ class ConditionView : public QGraphicsItem
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget);
 };
+
+class TriggerView : public QGraphicsItem
+{
+    public:
+        TriggerView(QGraphicsItem* parent);
+        QRectF boundingRect() const;
+        void paint(QPainter *painter,
+                   const QStyleOptionGraphicsItem *option,
+                   QWidget *widget);
+};
+
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
+        enum class Halves { None, Before, After, Both};
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
@@ -39,6 +51,11 @@ class EventView : public QGraphicsObject
         void setCondition(const QString& cond);
         bool hasCondition() const;
 
+        void setTrigger(const QString& trig);
+        bool hasTrigger() const;
+
+        void setHalves(Halves h);
+
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
@@ -58,12 +75,16 @@ class EventView : public QGraphicsObject
     private:
         EventPresenter& m_presenter;
         QString m_condition;
+        QString m_trigger;
         QPointF m_clickedPoint {};
         QColor m_color;
+
+        Halves m_halves;
 
         bool m_shadow {false};
         bool m_selected{};
 
-        ConditionView* m_trigger{};
+        ConditionView* m_conditionItem{};
+        TriggerView* m_triggerItem{};
 };
 

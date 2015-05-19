@@ -35,6 +35,11 @@ class EventModel : public IdentifiedObject<EventModel>
                    WRITE setCondition
                    NOTIFY conditionChanged)
 
+        Q_PROPERTY(QString trigger
+                   READ trigger
+                   WRITE setTrigger
+                   NOTIFY triggerChanged)
+
         friend void Visitor<Reader<DataStream>>::readFrom<EventModel> (const EventModel& ev);
         friend void Visitor<Reader<JSONObject>>::readFrom<EventModel> (const EventModel& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<EventModel> (EventModel& ev);
@@ -45,8 +50,7 @@ class EventModel : public IdentifiedObject<EventModel>
         Selectable selection;
         ModelMetadata metadata;
 
-        static QString prettyName()
-        { return QObject::tr("Event"); }
+        static QString prettyName();
 
         ScenarioModel* parentScenario() const;
 
@@ -96,21 +100,29 @@ class EventModel : public IdentifiedObject<EventModel>
 
         // TODO use a stronger type for the condition.
         const QString& condition() const;
+        QString trigger() const;
+
 
         auto& pluginModelList() { return *m_pluginModelList; }
         const auto& pluginModelList() const { return *m_pluginModelList; }
 
+
+
     public slots:
         void setHeightPercentage(double arg);
         void setDate(const TimeValue& date);
+
         void setCondition(const QString& arg);
+        void setTrigger(QString trigger);
 
     signals:
         void selectionChanged(bool);
         void heightPercentageChanged(double arg);
         void messagesChanged();
-        void conditionChanged(const QString& arg);
         void dateChanged();
+
+        void conditionChanged(const QString& arg);
+        void triggerChanged(QString trigger);
 
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
@@ -125,4 +137,5 @@ class EventModel : public IdentifiedObject<EventModel>
         QString m_condition {};
 
         TimeValue m_date {std::chrono::seconds{0}};
+        QString m_trigger;
 };

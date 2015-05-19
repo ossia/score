@@ -3,6 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
+#include "Commands/Event/SetTrigger.hpp"
 #include "Commands/Event/RemoveStateFromEvent.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
@@ -116,6 +117,27 @@ EventInspectorWidget::EventInspectorWidget(
         m_properties.push_back(pb);
     }
 
+    /// Trigger
+    m_triggerLineEdit = new QLineEdit{this};
+    connect(m_triggerLineEdit, SIGNAL(editingFinished()),
+            this,			 SLOT(on_triggerChanged()));
+
+    m_properties.push_back(new QLabel{tr("Trigger")});
+    m_properties.push_back(m_triggerLineEdit);
+
+    if(deviceexplorer)
+    {
+        auto completer = new DeviceCompleter {deviceexplorer, this};
+        m_triggerLineEdit->setCompleter(completer);
+
+        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
+        connect(pb, &DeviceExplorerMenuButton::addressChosen,
+                this, [&] (const QString& addr)
+        {
+            m_triggerLineEdit->setText(addr);
+        });
+        m_properties.push_back(pb);
+    }
 
     // Separator
     m_properties.push_back(new Separator {this});
@@ -284,6 +306,7 @@ void EventInspectorWidget::updateDisplayedValues(
 
 
         m_conditionLineEdit->setText(event->condition());
+        m_triggerLineEdit->setText(event->trigger());
     }
 }
 
@@ -311,6 +334,19 @@ void EventInspectorWidget::on_conditionChanged()
     }
 
     auto cmd = new Command::SetCondition{path(m_model), txt};
+    emit commandDispatcher()->submitCommand(cmd);
+}
+
+void EventInspectorWidget::on_triggerChanged()
+{
+    auto txt = m_triggerLineEdit->text();
+
+    if(txt == m_model->trigger())
+    {
+        return;
+    }
+
+    auto cmd = new Command::SetTrigger{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

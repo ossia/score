@@ -23,6 +23,8 @@ EventPresenter::EventPresenter(const EventModel& model,
             this,    &EventPresenter::heightPercentageChanged);
     connect(&m_model, &EventModel::conditionChanged,
             m_view,  &EventView::setCondition);
+    connect(&m_model, &EventModel::triggerChanged,
+            m_view,  &EventView::setTrigger);
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);

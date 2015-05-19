@@ -118,6 +118,9 @@ void EventModel::translate(const TimeValue& deltaTime)
 }
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
+QString EventModel::prettyName()
+{ return QObject::tr("Event"); }
+
 ScenarioModel* EventModel::parentScenario() const
 {
     return dynamic_cast<ScenarioModel*>(parent());
@@ -169,4 +172,19 @@ void EventModel::setCondition(const QString& arg)
 
     m_condition = arg;
     emit conditionChanged(arg);
+}
+
+void EventModel::setTrigger(QString trigger)
+{
+    if (m_trigger == trigger)
+        return;
+
+    m_trigger = trigger;
+    emit triggerChanged(trigger);
+}
+
+
+QString EventModel::trigger() const
+{
+    return m_trigger;
 }

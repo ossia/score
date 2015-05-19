@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.4, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1920px"
+	 height="1080px" viewBox="0 0 1920 1080" enable-background="new 0 0 1920 1080" xml:space="preserve">
+<g id="Trigger">
+	<g>
+		<path fill="#FFE100" d="M964.448,535.757h-4.268v11.059h-1.567v-11.059h-4.269v-1.585h10.104V535.757z"/>
+	</g>
+	<polygon fill="#FFE100" points="962.396,539.532 959.396,543.241 956.396,539.532 	"/>
+</g>
+<g id="Exit" display="none">
+	<polygon display="inline" fill="#FFE100" points="960.753,520.892 965.224,515.365 969.693,520.892 	"/>
+	<polyline display="inline" fill="none" stroke="#FFE100" stroke-width="2" stroke-miterlimit="10" points="949.708,525.418 
+		965.223,525.418 965.223,518.875 	"/>
+</g>
+<g id="Loop" display="none">
+	<polygon display="inline" fill="#FFE100" points="961.65,562.786 956.125,558.315 961.65,553.846 	"/>
+	
+		<polyline display="inline" fill="none" stroke="#FFE100" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="
+		949.708,550.944 965.223,550.944 965.223,558.25 959.682,558.25 965.223,558.25 	"/>
+</g>
+</svg>
