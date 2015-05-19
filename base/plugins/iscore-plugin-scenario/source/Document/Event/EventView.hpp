@@ -4,7 +4,7 @@
 #include <QKeyEvent>
 class EventPresenter;
 
-class TriggerView : public QGraphicsItem
+class ConditionView : public QGraphicsItem
 {
     public:
         using QGraphicsItem::QGraphicsItem;
@@ -64,6 +64,6 @@ class EventView : public QGraphicsObject
         bool m_shadow {false};
         bool m_selected{};
 
-        TriggerView* m_trigger{};
+        ConditionView* m_trigger{};
 };
 

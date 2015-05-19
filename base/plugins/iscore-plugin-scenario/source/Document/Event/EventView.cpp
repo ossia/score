@@ -12,9 +12,9 @@ EventView::EventView(EventPresenter& presenter,
     QGraphicsObject {parent},
     m_presenter{presenter}
 {
-    m_trigger = new TriggerView(this);
+    m_trigger = new ConditionView(this);
     m_trigger->setVisible(false);
-    m_trigger->setPos(0, -5);
+    m_trigger->setPos(-7, -7);
     this->setParentItem(parent);
     this->setCursor(Qt::CrossCursor);
 
@@ -129,22 +129,33 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 }
 
 
-QRectF TriggerView::boundingRect() const
+QRectF ConditionView::boundingRect() const
 {
-    return  QRectF{QPointF{-5, -10}, QSizeF{10, 10}};
+    return  QRectF{QPointF{0, 0}, QSizeF{25,14}};
 }
 
 
-void TriggerView::paint(QPainter *painter,
-                        const QStyleOptionGraphicsItem *option,
-                        QWidget *widget)
+void ConditionView::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
-    painter->setPen(Qt::black);
-    painter->setBrush(Qt::darkGray);
+    QPen pen(Qt::white);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    painter->setBrush(Qt::white);
+
+    int csize = 50;
+    QRectF square(boundingRect().topLeft(), QSize(boundingRect().height(),
+                                                  boundingRect().height()));
+    painter->drawArc(square, (360 + csize) * 16, (360 - 2 * csize) * 16);
+
     static const QPointF triangle[3] = {
-        QPointF(0, 0),
-        QPointF(-5, -10),
-        QPointF(5, -10),
+        QPointF(15, 3),
+        QPointF(15, 10),
+        QPointF(20, 7)
     };
+    pen.setWidth(1);
+    painter->setPen(pen);
     painter->drawPolygon(triangle, 3);
 }
