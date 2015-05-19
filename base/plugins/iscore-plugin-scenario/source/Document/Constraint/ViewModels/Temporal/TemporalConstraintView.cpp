@@ -32,6 +32,7 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
             : (shadow()
                ? highlight
                : Qt::black);
+    constraintColor = qApp->palette("ScenarioPalette").base().color();
 
 
     if(defaultWidth() < 0)

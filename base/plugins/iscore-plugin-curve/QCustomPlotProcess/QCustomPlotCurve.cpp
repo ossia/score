@@ -1,8 +1,9 @@
 #include "QCustomPlotCurve.hpp"
 #include <iscore/tools/Clamp.hpp>
-static const QColor outerColor{QColor{200, 30, 0}};
+#include <QApplication>
+static QColor outerColor{Qt::white};
 static const QColor innerColor{255, 200, 200};
-static const QPen enabledPen{outerColor, 3};
+static QPen enabledPen{outerColor, 3};
 static const QPen disabledPen{QColor{100, 100, 100, 200}};
 
 class MyPoint : public QGraphicsItem
@@ -164,6 +165,9 @@ static const QPointF invalid_point{-1, -1};
 QCustomPlotCurve::QCustomPlotCurve(QGraphicsItem* parent):
     QGraphicsObject{parent}
 {
+    outerColor = qApp->palette("ScenarioPalette").base().color();
+    enabledPen.setColor(outerColor);
+
     // QCustomPlot
     auto widg = new QGraphicsProxyWidget{this};
     widg->setPos(0, 0);
@@ -223,6 +227,7 @@ void QCustomPlotCurve::setPoints(const QList<QPointF>& list)
     graph->setPen(m_points->enabled()
                   ? enabledPen
                   : disabledPen);
+
     graph->setLineStyle(QCPGraph::lsLine);
 
     m_plot->xAxis->setTicks(false);

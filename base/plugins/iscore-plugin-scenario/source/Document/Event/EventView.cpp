@@ -22,7 +22,7 @@ EventView::EventView(EventPresenter& presenter,
     this->setZValue(parent->zValue() + 2);
     this->setAcceptHoverEvents(true);
 
-    m_color = Qt::black;
+    m_color = Qt::white;
 }
 
 int EventView::type() const

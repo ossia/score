@@ -4,6 +4,7 @@
 
 #include <QPainter>
 #include <QOpenGLWidget>
+#include <QApplication>
 class SizeNotifyingGraphicsView : public QGraphicsView
 {
         Q_OBJECT
@@ -44,8 +45,8 @@ class SizeNotifyingGraphicsView : public QGraphicsView
 
         virtual void drawBackground(QPainter * painter, const QRectF & rect) override
         {
-            painter->fillRect(rect, m_bgBrush);
-            painter->setPen(m_bgPen);
+            painter->fillRect(rect, qApp->palette("ScenarioPalette").background());
+            painter->setPen(qApp->palette("ScenarioPalette").background().color().lighter());
             painter->drawPath(m_grid);
         }
 

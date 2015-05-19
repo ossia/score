@@ -21,10 +21,9 @@ QRectF DeckView::boundingRect() const
 void DeckView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     auto rect = boundingRect();
-    //QPalette palette{QApplication::palette()};
 
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-    painter->setPen(QPen{m_focus? highlight : Qt::black});
+    painter->setPen(QPen{m_focus? highlight : Qt::transparent});
     painter->drawRect(rect);
 }
 

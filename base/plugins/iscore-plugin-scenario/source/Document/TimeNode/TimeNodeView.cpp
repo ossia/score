@@ -2,6 +2,7 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QPalette>
 #include <QApplication>
 #include "TimeNodePresenter.hpp"
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
@@ -14,7 +15,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
-    m_color = QColor::fromHslF(0, 0.3, 0.5);
+    m_color = qApp->palette("ScenarioPalette").base().color();
 }
 
 void TimeNodeView::paint(QPainter* painter,
