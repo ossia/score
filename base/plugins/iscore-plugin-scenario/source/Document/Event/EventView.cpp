@@ -84,9 +84,22 @@ void EventView::paint(QPainter* painter,
 
     eventPen.setWidth(2);
     // Ball
-    //painter->setBrush(pen_color);
+
     painter->setPen(eventPen);
     painter->drawEllipse({0., 0.}, radius, radius);
+
+    painter->setBrush(Qt::white);
+    eventPen.setWidth(1);
+    painter->setPen(eventPen);
+    if((int)m_halves & (int)Halves::Before)
+    {
+        painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
+    }
+
+    if((int)m_halves & (int)Halves::After)
+    {
+        painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
+    }
 }
 
 void EventView::setSelected(bool selected)

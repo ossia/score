@@ -29,7 +29,7 @@ class EventView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        enum class Halves { None, Before, After, Both};
+        enum Halves { None = 0, Before = 2, After = 4};
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
@@ -79,7 +79,7 @@ class EventView : public QGraphicsObject
         QPointF m_clickedPoint {};
         QColor m_color;
 
-        Halves m_halves;
+        Halves m_halves{Halves::None};
 
         bool m_shadow {false};
         bool m_selected{};
