@@ -32,6 +32,11 @@ ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
     }
 }
 
+ConstraintExecutor::~ConstraintExecutor()
+{
+    qDebug() << "deleted";
+}
+
 bool ConstraintExecutor::is(id_type<ConstraintModel> cm) const
 {
     return cm == m_constraint.id();
@@ -55,10 +60,12 @@ void ConstraintExecutor::start()
 
 void ConstraintExecutor::stop()
 {
+    m_timer.stop();
     for(auto& proc : m_executors)
     {
         proc->stop();
     }
+    m_constraint.setPlayDuration(TimeValue::zero());
 }
 
 

@@ -15,6 +15,9 @@ class ConstraintExecutor
         bool m_disabled{};
     public:
         ConstraintExecutor(ConstraintModel& cm);
+        ~ConstraintExecutor();
+
+        ConstraintModel& constraint() { return m_constraint; }
         bool is(id_type<ConstraintModel> cm) const;
         bool evaluating() const;
 

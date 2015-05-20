@@ -3,6 +3,7 @@
 #include "FakeEngine.hpp"
 #include <QTemporaryFile>
 
+class Executor;
 class IScoreCohesionControl : public iscore::PluginControlInterface
 {
     public:
@@ -23,6 +24,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
 
     private:
         FakeEngine m_engine;
+        Executor* m_executor{};
         QTemporaryFile m_scoreFile;
 
         QAction* m_snapshot{};

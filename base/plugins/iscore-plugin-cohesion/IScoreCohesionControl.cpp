@@ -70,7 +70,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
                                        m_interp);
 
 
-    QAction* play = new QAction {tr("Play in 0.2 engine"), this};
+    QAction* play = new QAction {tr("Play (0.2 engine)"), this};
     connect(play, &QAction::triggered,
             [&] ()
     {
@@ -88,17 +88,38 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        play);
 
-    QAction* play2 = new QAction {tr("Fake execution"), this};
+    QAction* play2 = new QAction {tr("Play (test engine)"), this};
     connect(play2, &QAction::triggered,
             [&] ()
     {
         auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        Executor * e = new Executor(*bem.constraintModel());
+        if(m_executor)
+        {
+            m_executor->stop();
+            delete m_executor;
+        }
 
+        m_executor = new Executor(*bem.constraintModel());
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
                                        play2);
+
+
+    QAction* stop = new QAction {tr("Stop (test engine)"), this};
+    connect(stop, &QAction::triggered,
+            [&] ()
+    {
+        if(m_executor)
+        {
+            m_executor->stop();
+            delete m_executor;
+            m_executor = nullptr;
+        }
+    });
+
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                       stop);
 }
 
 #include <QToolBar>

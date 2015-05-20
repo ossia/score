@@ -150,10 +150,15 @@ class TimeNodeExecutor
 
 void ScenarioExecutor::start()
 {
+    using namespace std;
+    EventExecutor* eev = *find_if(begin(m_events), end(m_events), [&] (EventExecutor* ev) { return ev->event().id() == id_type<EventModel>(0); });
+    eev->m_timeNode->execute();
 }
 
 void ScenarioExecutor::stop()
 {
+    for(auto& constraint : m_constraints)
+        constraint->stop();
 }
 
 void ScenarioExecutor::onTick(const TimeValue& )
@@ -161,8 +166,19 @@ void ScenarioExecutor::onTick(const TimeValue& )
     using namespace std;
     auto events = m_events;
 
+    // First get all the constraints that are in their evaluation zone
+    QSet<EventExecutor*> eventsToCheck;
+    for(auto& constraint : m_constraints)
+    {
+        if(constraint->constraint().playDuration() >= constraint->constraint().minDuration())
+        {
+            auto eev = find_if(begin(m_events), end(m_events), [&] (EventExecutor* ev) { return ev->event().id() == constraint->constraint().endEvent(); });
+            eventsToCheck.insert(*eev);
+        }
+    }
+
     QSet<TimeNodeExecutor*> executingTimenodes;
-    for(EventExecutor* event : events)
+    for(EventExecutor* event : eventsToCheck)
     {
         if(event->check() && (event->event().id() != id_type<EventModel>(1)))
         {
@@ -173,7 +189,10 @@ void ScenarioExecutor::onTick(const TimeValue& )
     for(TimeNodeExecutor* tn : executingTimenodes)
     {
         tn->execute();
+    }
 
+    for(TimeNodeExecutor* tn : executingTimenodes)
+    {
         // Cleanup
         for(auto& event : tn->m_events)
         {
@@ -189,6 +208,7 @@ void ScenarioExecutor::onTick(const TimeValue& )
         m_timenodes.remove(tn);
         delete tn;
     }
+
 }
 
 ScenarioExecutor::ScenarioExecutor(ScenarioModel& model):

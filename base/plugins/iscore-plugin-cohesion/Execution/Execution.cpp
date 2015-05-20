@@ -3,6 +3,11 @@
 
 Executor::Executor(ConstraintModel& cm)
 {
-    auto executor = new ConstraintExecutor(cm);
-    executor->start();
+    m_executor = new ConstraintExecutor(cm);
+    m_executor->start();
+}
+
+void Executor::stop()
+{
+    m_executor->stop();
 }
