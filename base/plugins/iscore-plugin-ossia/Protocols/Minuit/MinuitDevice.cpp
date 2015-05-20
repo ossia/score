@@ -6,9 +6,9 @@ MinuitDevice::MinuitDevice(const DeviceSettings &settings):
 {
     using namespace OSSIA;
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-    Minuit minuitDeviceParameters{settings.name.toStdString(),
-                                  stgs.host.toStdString(),
-                                  stgs.port};
+    Minuit minuitDeviceParameters{stgs.host.toStdString(),
+                                  stgs.inPort,
+                                  stgs.outPort};
 
     m_dev = Device::create(minuitDeviceParameters, settings.name.toStdString());
 }

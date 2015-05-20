@@ -4,7 +4,8 @@
 
 struct MinuitSpecificSettings
 {
-    int port{};
     QString host;
+    int inPort{};
+    int outPort{};
 };
 Q_DECLARE_METATYPE(MinuitSpecificSettings)

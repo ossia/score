@@ -21,6 +21,7 @@ class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
 
     protected:
         QLineEdit* m_deviceNameEdit;
+        QSpinBox* m_portInputSBox;
         QSpinBox* m_portOutputSBox;
         QLineEdit* m_localHostEdit;
 

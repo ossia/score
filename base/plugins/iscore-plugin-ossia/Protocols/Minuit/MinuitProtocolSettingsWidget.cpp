@@ -17,7 +17,11 @@ MinuitProtocolSettingsWidget::buildGUI()
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new QLineEdit(this);
 
-    QLabel* portOutputLabel = new QLabel(tr("Port (destination)"), this);
+    QLabel* portInputLabel = new QLabel(tr("Port (input)"), this);
+    m_portInputSBox = new QSpinBox(this);
+    m_portInputSBox->setRange(0, 65535);
+
+    QLabel* portOutputLabel = new QLabel(tr("Port (output)"), this);
     m_portOutputSBox = new QSpinBox(this);
     m_portOutputSBox->setRange(0, 65535);
 
@@ -30,8 +34,11 @@ MinuitProtocolSettingsWidget::buildGUI()
     gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
     gLayout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
 
-    gLayout->addWidget(portOutputLabel, 1, 0, 1, 1);
-    gLayout->addWidget(m_portOutputSBox, 1, 1, 1, 1);
+    gLayout->addWidget(portInputLabel, 1, 0, 1, 1);
+    gLayout->addWidget(m_portInputSBox, 1, 1, 1, 1);
+
+    gLayout->addWidget(portOutputLabel, 1, 2, 1, 1);
+    gLayout->addWidget(m_portOutputSBox, 1, 3, 1, 1);
 
     gLayout->addWidget(localHostLabel, 2, 0, 1, 1);
     gLayout->addWidget(m_localHostEdit, 2, 1, 1, 1);
@@ -51,6 +58,7 @@ MinuitProtocolSettingsWidget::setDefaults()
     //TODO: we should use QSettings ?
 
     m_deviceNameEdit->setText("MinuitDevice");
+    m_portInputSBox->setValue(9997);
     m_portOutputSBox->setValue(9998);
     m_localHostEdit->setText("127.0.0.1");
 }
@@ -65,7 +73,8 @@ DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 
     MinuitSpecificSettings minuit;
     minuit.host = m_localHostEdit->text();
-    minuit.port = m_portOutputSBox->value();
+    minuit.inPort = m_portInputSBox->value();
+    minuit.outPort = m_portOutputSBox->value();
 
     s.deviceSpecificSettings = QVariant::fromValue(minuit);
     return s;
@@ -79,7 +88,8 @@ MinuitProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
     if(settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
     {
         minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-        m_portOutputSBox->setValue(minuit.port);
+        m_portInputSBox->setValue(minuit.inPort);
+        m_portOutputSBox->setValue(minuit.outPort);
         m_localHostEdit->setText(minuit.host);
     }
 }

@@ -28,10 +28,10 @@ file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIMock)
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIJamoma)
 
 if(USE_COTIRE)
-	cotire(${PROJECT_NAME})
+    cotire(${PROJECT_NAME})
 endif()
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
