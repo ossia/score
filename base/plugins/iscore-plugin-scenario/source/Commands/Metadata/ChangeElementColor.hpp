@@ -22,7 +22,7 @@ namespace Scenario
                     return QObject::tr("Change %1 color").arg(T::prettyName());
                 }
 
-                ISCORE_COMMAND_DEFAULT_CTOR(ChangeElementColor, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementColor, "ScenarioControl")
                 ChangeElementColor(ObjectPath&& path, QColor newLabel) :
                     SerializableCommand {"ScenarioControl",
                                          className(),

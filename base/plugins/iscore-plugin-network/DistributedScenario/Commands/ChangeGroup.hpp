@@ -8,7 +8,7 @@ class ChangeGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("ChangeGroup", "ChangeGroup")
     public:
-        ISCORE_COMMAND_DEFAULT_CTOR(ChangeGroup, "NetworkControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeGroup, "NetworkControl")
         ChangeGroup(ObjectPath&& path, id_type<Group> newGroup);
 
         virtual void undo() override;

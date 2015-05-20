@@ -18,7 +18,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
                 AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
 
                 virtual void undo() override;

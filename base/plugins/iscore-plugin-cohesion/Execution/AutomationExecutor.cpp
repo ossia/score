@@ -18,18 +18,17 @@ AutomationExecutor::AutomationExecutor(AutomationModel& model):
     auto doc = iscore::IDocument::documentFromObject(model);
     auto plug = static_cast<DeviceDocumentPlugin*>(doc->model()->pluginModel("DeviceDocumentPlugin"));
 
-    auto segments = model.address().split("/");
-    m_dev = &plug->list().device(segments[1]);
+    auto addr_split = model.address().split("/");
+    m_dev = &plug->list().device(addr_split[1]);
 
     // Remove the device name
-    QStringList msg = m_model.address().split("/");
-    msg.removeFirst();
-
+    addr_split.removeFirst();
+/*
     m_demodel = getNodeFromString(static_cast<DeviceExplorerPanelModel*>(doc->model()->panel("DeviceExplorerPanelModel"))->deviceExplorer()->rootNode(),
                                   QStringList(msg));
-
-    msg.removeFirst();
-    m.address= msg.join("/").prepend("/");
+*/
+    addr_split.removeFirst();
+    m.address = addr_split.join("/").prepend("/");
 }
 
 void AutomationExecutor::start()
@@ -45,7 +44,8 @@ void AutomationExecutor::stop()
 
 void AutomationExecutor::onTick(const TimeValue& time)
 {
-    m.value = m_model.value(time) * (m_demodel->maxValue() - m_demodel->minValue()) + m_demodel->minValue();
+    //m.value = m_model.value(time) * (m_demodel->maxValue() - m_demodel->minValue()) + m_demodel->minValue();
+    m.value = m_model.value(time) * (m_model.max() - m_model.min()) + m_model.min();
     m_dev->sendMessage(m);
 }
 

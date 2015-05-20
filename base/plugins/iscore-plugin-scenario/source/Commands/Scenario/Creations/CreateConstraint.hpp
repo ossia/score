@@ -25,7 +25,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
                 CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 

@@ -19,7 +19,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewModelToDeck, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessViewModelToDeck, "ScenarioControl")
                 AddProcessViewModelToDeck(ObjectPath&& deck, ObjectPath&& process);
 
                 virtual void undo() override;

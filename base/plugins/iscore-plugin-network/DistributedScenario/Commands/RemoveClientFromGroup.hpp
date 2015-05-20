@@ -9,7 +9,7 @@ class RemoveClientFromGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("RemoveClientFromGroup", "RemoveClientFromGroup")
     public:
-        ISCORE_COMMAND_DEFAULT_CTOR(RemoveClientFromGroup, "NetworkControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveClientFromGroup, "NetworkControl")
         RemoveClientFromGroup(
                 ObjectPath&& groupMgrPath,
                 id_type<Client> client,

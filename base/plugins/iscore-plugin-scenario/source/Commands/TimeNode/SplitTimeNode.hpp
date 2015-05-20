@@ -15,7 +15,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(SplitTimeNode, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode, "ScenarioControl")
                 SplitTimeNode(ObjectPath&& path, QVector<id_type<EventModel> > eventsInNewTimeNode);
                 virtual void undo() override;
                 virtual void redo() override;

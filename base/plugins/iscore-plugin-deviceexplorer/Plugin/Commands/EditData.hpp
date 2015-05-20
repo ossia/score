@@ -14,7 +14,7 @@ namespace DeviceExplorer
         {
             ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(ObjectPath&& device_tree,
                             Path nodePath,
                             int column,

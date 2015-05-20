@@ -16,7 +16,7 @@ namespace DeviceExplorer
         {
             ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
 
                 Remove(ObjectPath&& device_tree, Path nodePath);
 

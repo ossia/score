@@ -9,7 +9,7 @@ class AddClientToGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("AddClientToGroup", "AddClientToGroup")
     public:
-        ISCORE_COMMAND_DEFAULT_CTOR(AddClientToGroup, "NetworkControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddClientToGroup, "NetworkControl")
         AddClientToGroup(ObjectPath&& groupMgrPath,
                          id_type<Client> client,
                          id_type<Group> group);

@@ -1,7 +1,9 @@
 #include "AutomationInspectorWidget.hpp"
-#include "../Automation/AutomationModel.hpp"
+#include "Automation/AutomationModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
-#include "../Commands/ChangeAddress.hpp"
+#include "Commands/ChangeAddress.hpp"
+#include "Commands/SetCurveMin.hpp"
+#include "Commands/SetCurveMax.hpp"
 
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
@@ -11,7 +13,8 @@
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
-
+#include <QFormLayout>
+#include <QDoubleSpinBox>
 
 #include <QApplication>
 
@@ -46,6 +49,26 @@ AutomationInspectorWidget::AutomationInspectorWidget(
             [=]() { on_addressChange(m_lineEdit->text()); });
 
     vlay->addWidget(m_lineEdit);
+
+    // Min / max
+    auto minmaxwid = new QWidget;
+    auto minmaxlay = new QFormLayout{minmaxwid};
+    vec.push_back(minmaxwid);
+    minmaxlay->setSpacing(0);
+    minmaxlay->setContentsMargins(0, 0, 0, 0);
+
+    m_minsb = new QDoubleSpinBox;
+    m_maxsb = new QDoubleSpinBox;
+    m_minsb->setValue(m_model->min());
+    m_maxsb->setValue(m_model->max());
+    minmaxlay->addRow(tr("Min"), m_minsb);
+    minmaxlay->addRow(tr("Max"), m_maxsb);
+
+    connect(m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
+    connect(m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
+
+    connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
+    connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));
 
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
@@ -90,6 +113,30 @@ void AutomationInspectorWidget::on_addressChange(const QString& newText)
         auto cmd = new ChangeAddress{
                     iscore::IDocument::path(m_model),
                     newText };
+
+        commandDispatcher()->submitCommand(cmd);
+    }
+}
+
+void AutomationInspectorWidget::on_minValueChanged()
+{
+    auto newVal = m_minsb->value();
+    if(newVal != m_model->min())
+    {
+        auto cmd = new SetCurveMin{
+                    iscore::IDocument::path(m_model), newVal};
+
+        commandDispatcher()->submitCommand(cmd);
+    }
+}
+
+void AutomationInspectorWidget::on_maxValueChanged()
+{
+    auto newVal = m_maxsb->value();
+    if(newVal != m_model->max())
+    {
+        auto cmd = new SetCurveMax{
+                    iscore::IDocument::path(m_model), newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }

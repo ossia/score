@@ -22,7 +22,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewDeck, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewDeck, "ScenarioControl")
                 AddProcessViewInNewDeck(ObjectPath&& constraintPath,
                                         id_type<ProcessModel> process);
 

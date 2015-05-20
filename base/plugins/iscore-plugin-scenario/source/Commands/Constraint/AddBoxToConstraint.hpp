@@ -19,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AddBoxToConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddBoxToConstraint, "ScenarioControl")
                 AddBoxToConstraint(ObjectPath&& constraintPath);
 
                 virtual void undo() override;

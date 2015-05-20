@@ -157,6 +157,21 @@ ProcessStateDataInterface* AutomationModel::endState() const
     return new AutomationState{this, 1.};
 }
 
+QString AutomationModel::address() const
+{
+    return m_address;
+}
+
+const QMap<double, double> &AutomationModel::points() const
+{
+    return m_points;
+}
+
+void AutomationModel::setPoints(QMap<double, double> &&points)
+{
+    m_points = std::move(points);
+}
+
 // Note : the presenter should see the modifications happening,
 // and prevent accidental point removal.
 void AutomationModel::addPoint(double x, double y)
@@ -210,4 +225,43 @@ double AutomationModel::value(const TimeValue& time)
     }
 
     throw std::runtime_error("Should never get there");
+}
+
+double AutomationModel::min() const
+{
+    return m_min;
+}
+
+double AutomationModel::max() const
+{
+    return m_max;
+}
+
+void AutomationModel::setAddress(const QString &arg)
+{
+    if(m_address == arg)
+    {
+        return;
+    }
+
+    m_address = arg;
+    emit addressChanged(arg);
+}
+
+void AutomationModel::setMin(double arg)
+{
+    if (m_min == arg)
+        return;
+
+    m_min = arg;
+    emit minChanged(arg);
+}
+
+void AutomationModel::setMax(double arg)
+{
+    if (m_max == arg)
+        return;
+
+    m_max = arg;
+    emit maxChanged(arg);
 }

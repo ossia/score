@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CopyDeck, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopyDeck, "ScenarioControl")
                 CopyDeck(ObjectPath&& deckToCopy,
                          ObjectPath&& targetBoxPath);
 

@@ -20,7 +20,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(RemoveBoxFromConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveBoxFromConstraint, "ScenarioControl")
                 RemoveBoxFromConstraint(ObjectPath&& boxPath);
                 RemoveBoxFromConstraint(ObjectPath&& constraintPath, id_type<BoxModel> boxId);
 

@@ -13,7 +13,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND_DECL("SwapDecks", "SwapDecks")
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(SwapDecks, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwapDecks, "ScenarioControl")
                 SwapDecks(
                     ObjectPath&& box,
                     id_type<DeckModel> first,

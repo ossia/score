@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
                 MoveEvent(ObjectPath&& scenarioPath,
                   id_type<EventModel> eventId,
                   const TimeValue& date,

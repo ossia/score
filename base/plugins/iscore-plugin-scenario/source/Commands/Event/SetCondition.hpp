@@ -10,7 +10,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(SetCondition, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetCondition, "ScenarioControl")
                 SetCondition(ObjectPath&& eventPath, QString condition);
                 virtual void undo() override;
                 virtual void redo() override;

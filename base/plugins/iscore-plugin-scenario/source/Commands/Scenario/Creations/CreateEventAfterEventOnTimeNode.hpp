@@ -30,7 +30,7 @@ namespace Scenario
                 ISCORE_COMMAND
                 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CreateEventAfterEventOnTimeNode, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateEventAfterEventOnTimeNode, "ScenarioControl")
                 CreateEventAfterEventOnTimeNode(ObjectPath&& scenarioPath,
                   id_type<EventModel> sourceevent,
                   id_type<TimeNodeModel> timenode,

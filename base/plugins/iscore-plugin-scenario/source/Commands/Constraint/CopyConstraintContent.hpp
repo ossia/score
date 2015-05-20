@@ -16,7 +16,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CopyConstraintContent, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopyConstraintContent, "ScenarioControl")
                 CopyConstraintContent(QJsonObject&& sourceConstraint,
                                       ObjectPath&&  targetConstraint,
                                       ExpandMode mode);

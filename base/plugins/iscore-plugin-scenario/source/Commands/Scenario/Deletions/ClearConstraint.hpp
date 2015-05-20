@@ -19,7 +19,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(ClearConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearConstraint, "ScenarioControl")
                 ClearConstraint(ObjectPath&& constraintPath);
                 virtual void undo() override;
                 virtual void redo() override;

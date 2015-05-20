@@ -15,7 +15,7 @@ namespace DeviceExplorer
         {
             ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
                 AddAddress(ObjectPath&& device_tree,
                            Path nodePath,
                            DeviceExplorerModel::Insert insert,

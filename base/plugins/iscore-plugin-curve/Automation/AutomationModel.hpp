@@ -16,6 +16,9 @@ class AutomationModel : public ProcessModel
 {
         Q_OBJECT
         Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
+        // Min and max to scale the curve with at execution
+        Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
+        Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
 
     public:
         AutomationModel(const TimeValue& duration,
@@ -57,20 +60,11 @@ class AutomationModel : public ProcessModel
         ProcessStateDataInterface* endState() const override;
 
         //// AutomationModel specifics ////
-        QString address() const
-        {
-            return m_address;
-        }
+        QString address() const;
 
-        const QMap<double, double>& points() const
-        {
-            return m_points;
-        }
+        const QMap<double, double>& points() const;
 
-        void setPoints(QMap<double, double>&& points)
-        {
-            m_points = std::move(points);
-        }
+        void setPoints(QMap<double, double>&& points);
 
         void addPoint(double x, double y);
         void removePoint(double x);
@@ -78,21 +72,22 @@ class AutomationModel : public ProcessModel
 
         double value(const TimeValue& time);
 
+        double min() const;
+        double max() const;
+
     signals:
         void addressChanged(QString arg);
         void pointsChanged();
 
-    public slots:
-        void setAddress(const QString& arg)
-        {
-            if(m_address == arg)
-            {
-                return;
-            }
+        void minChanged(double arg);
 
-            m_address = arg;
-            emit addressChanged(arg);
-        }
+        void maxChanged(double arg);
+
+    public slots:
+        void setAddress(const QString& arg);
+
+        void setMin(double arg);
+        void setMax(double arg);
 
     protected:
         ProcessViewModel* cloneViewModel_impl(
@@ -103,4 +98,6 @@ class AutomationModel : public ProcessModel
     private:
         QString m_address;
         QMap<double, double> m_points;
+        double m_min{};
+        double m_max{1.};
 };

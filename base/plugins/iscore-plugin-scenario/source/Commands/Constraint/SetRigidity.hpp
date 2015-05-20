@@ -19,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
                 SetRigidity(ObjectPath&& constraintPath, bool rigid);
 
                 virtual void undo() override;

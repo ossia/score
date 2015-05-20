@@ -1,13 +1,5 @@
 #include "PropertyCommand.hpp"
 
-iscore::PropertyCommand::PropertyCommand(ObjectPath &&path, QString property):
-    SerializableCommand("", "", ""),
-    m_path{std::move(path)},
-    m_property{property}
-{
-
-}
-
 void iscore::PropertyCommand::undo()
 {
     m_path.find<QObject>().setProperty(m_property.toLatin1().constData(), m_old);

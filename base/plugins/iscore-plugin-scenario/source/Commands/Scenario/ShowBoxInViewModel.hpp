@@ -20,7 +20,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(ShowBoxInViewModel, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowBoxInViewModel, "ScenarioControl")
                 ShowBoxInViewModel(ObjectPath&& constraint_path,
                                    id_type<BoxModel> boxId);
                 ShowBoxInViewModel(const AbstractConstraintViewModel* constraint,

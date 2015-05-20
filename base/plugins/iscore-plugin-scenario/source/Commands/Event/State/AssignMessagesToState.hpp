@@ -9,7 +9,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(AssignMessagesToState, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AssignMessagesToState, "ScenarioControl")
                 virtual void undo() override;
                 virtual void redo() override;
 

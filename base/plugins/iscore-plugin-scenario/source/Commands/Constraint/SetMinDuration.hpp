@@ -19,7 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
                 SetMinDuration(ObjectPath&& constraintPath, TimeValue duration);
 
                 virtual void undo() override;

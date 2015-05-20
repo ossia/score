@@ -23,7 +23,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(ResizeBaseConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeBaseConstraint, "ScenarioControl")
                 ResizeBaseConstraint(ObjectPath&& constraintPath,
                                      TimeValue duration);
                 virtual void undo() override;

@@ -14,7 +14,7 @@ namespace Scenario
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(DuplicateBox, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(DuplicateBox, "ScenarioControl")
                 DuplicateBox(ObjectPath&& boxToCopy);
 
                 virtual void undo() override;

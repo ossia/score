@@ -16,7 +16,7 @@ namespace DeviceExplorer
         {
             ISCORE_COMMAND_DECL("ReplaceDevice", "ReplaceDevice")
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
                 ReplaceDevice(ObjectPath&& device_tree,
                               int deviceIndex,
                               Node&& rootNode);

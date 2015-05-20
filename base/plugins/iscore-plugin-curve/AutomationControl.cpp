@@ -4,6 +4,8 @@
 #include "Commands/RemovePoint.hpp"
 #include "Commands/MovePoint.hpp"
 #include "Commands/ChangeAddress.hpp"
+#include "Commands/SetCurveMin.hpp"
+#include "Commands/SetCurveMax.hpp"
 
 AutomationControl::AutomationControl(QObject* parent) :
     PluginControlInterface {"AutomationControl", parent}
@@ -16,6 +18,7 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(const QSt
 {
     iscore::SerializableCommand* cmd {};
 
+    // TODO harmonize this
     if(name == "AddPoint")
     {
         cmd = new AddPoint;
@@ -31,6 +34,14 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(const QSt
     else if(name == "ChangeAddress")
     {
         cmd = new ChangeAddress;
+    }
+    else if(name == SetCurveMin::className())
+    {
+        cmd = new SetCurveMin;
+    }
+    else if(name == SetCurveMax::className())
+    {
+        cmd = new SetCurveMax;
     }
 
     else

@@ -22,7 +22,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(RemoveConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveConstraint, "ScenarioControl")
 
                 RemoveConstraint(const ObjectPath& scenarioPath, ConstraintModel* constraint);
                 RemoveConstraint(ObjectPath&& scenarioPath, const ConstraintModel& constraint);

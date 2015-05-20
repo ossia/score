@@ -16,7 +16,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(RemoveProcessViewModelFromDeck, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessViewModelFromDeck, "ScenarioControl")
 
                 RemoveProcessViewModelFromDeck(ObjectPath&& deckPath, id_type<ProcessViewModel> processViewId);
 
