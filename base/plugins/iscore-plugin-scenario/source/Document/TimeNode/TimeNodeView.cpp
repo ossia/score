@@ -25,7 +25,6 @@ void TimeNodeView::paint(QPainter* painter,
     QColor pen_color = m_color;
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
-
     if(isSelected())
     {
         pen_color = highlight;

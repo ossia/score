@@ -25,15 +25,15 @@ QRectF TemporalConstraintView::boundingRect() const
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-    QColor constraintColor =
-        isSelected()
-            ? highlight
-            : (shadow()
-               ? highlight
-               : Qt::black);
-    constraintColor = qApp->palette("ScenarioPalette").base().color();
-
+    QColor constraintColor;
+    if(isSelected())
+    {
+        constraintColor = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
+    }
+    else
+    {
+        constraintColor = qApp->palette("ScenarioPalette").base().color();
+    }
 
     if(defaultWidth() < 0)
     {
