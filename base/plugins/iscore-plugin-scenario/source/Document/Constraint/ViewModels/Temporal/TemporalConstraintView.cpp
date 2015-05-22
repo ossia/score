@@ -25,7 +25,10 @@ QRectF TemporalConstraintView::boundingRect() const
     return {0, -18, qreal(maxWidth()), qreal(constraintHeight()) };
 }
 
-void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TemporalConstraintView::paint(
+        QPainter* painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget* widget)
 {
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
@@ -50,15 +53,11 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
         dashedPath.moveTo(minWidth(), 0);
         dashedPath.lineTo(maxWidth(), 0);
 
-        leftBrace.moveTo(minWidth() + 3, -10);
-        leftBrace.lineTo(minWidth(), -10);
-        leftBrace.lineTo(minWidth(), 10);
-        leftBrace.lineTo(minWidth() + 3, 10);
+        leftBrace.moveTo(minWidth(), -10);
+        leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
 
-        rightBrace.moveTo(maxWidth() -3, -10);
-        rightBrace.lineTo(maxWidth(), -10);
-        rightBrace.lineTo(maxWidth(), 10);
-        rightBrace.lineTo(maxWidth() - 3, 10);
+        rightBrace.moveTo(maxWidth(), 10);
+        rightBrace.arcTo(maxWidth() - 10, -10, 20, 20, 270, 180);
     }
 
     QPainterPath playedPath;
@@ -99,6 +98,16 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     if(!dashedPath.isEmpty())
         painter->drawPath(dashedPath);
 
+    leftBrace.closeSubpath();
+    rightBrace.closeSubpath();
+
+    QPen anotherPen(Qt::transparent, 4);
+    painter->setPen(anotherPen);
+    QColor blueish = m_solidPen.color().lighter();
+    blueish.setAlphaF(0.3);
+    painter->setBrush(blueish);
+    painter->drawPath(leftBrace);
+    painter->drawPath(rightBrace);
 
     static const QPen playedPen{
         QBrush{Qt::green},
