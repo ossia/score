@@ -46,9 +46,9 @@ void AbstractConstraintView::setHeight(double height)
     m_height = height;
 }
 
-void AbstractConstraintView::setPlayDuration(double width)
+void AbstractConstraintView::setPlayWidth(double width)
 {
-    m_playDuration = width;
+    m_playWidth = width;
     update();
 }
 

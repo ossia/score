@@ -13,13 +13,13 @@ ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
     QObject::connect(&m_timer, &QTimer::timeout, [&] ( )
     {
         m_currentTime.addMSecs(m_timer.interval());
-        if(m_currentTime < m_constraint.defaultDuration())
+        if(m_currentTime < m_constraint.maxDuration())
         {
             tick();
         }
         else
         {
-            stop();
+            finish();
         }
     });
 
@@ -34,7 +34,7 @@ ConstraintExecutor::ConstraintExecutor(ConstraintModel& cm):
 
 ConstraintExecutor::~ConstraintExecutor()
 {
-    qDebug() << "deleted";
+    m_timer.stop();
 }
 
 bool ConstraintExecutor::is(id_type<ConstraintModel> cm) const
@@ -44,7 +44,8 @@ bool ConstraintExecutor::is(id_type<ConstraintModel> cm) const
 
 bool ConstraintExecutor::evaluating() const
 {
-    return m_currentTime > m_constraint.minDuration();
+    return m_currentTime >= m_constraint.minDuration()
+        && m_currentTime <= m_constraint.maxDuration();
 }
 
 
@@ -65,7 +66,13 @@ void ConstraintExecutor::stop()
     {
         proc->stop();
     }
-    m_constraint.setPlayDuration(TimeValue::zero());
+    //m_constraint.setPlayDuration(TimeValue::zero());
+}
+
+void ConstraintExecutor::finish()
+{
+    m_finished = true;
+    stop();
 }
 
 
@@ -84,4 +91,9 @@ void ConstraintExecutor::tick()
         m_constraint.setDefaultDurationInBounds(m_currentTime);
     }
     */
+}
+
+bool ConstraintExecutor::finished() const
+{
+    return m_finished;
 }

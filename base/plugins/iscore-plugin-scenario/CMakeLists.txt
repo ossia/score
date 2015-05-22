@@ -37,7 +37,7 @@ file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.qrc")
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg
                      iscore_lib_base
-                     iscore_lib_inspector iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state)
+                     iscore_lib_inspector iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 if(USE_COTIRE)
         cotire(iscore_plugin_scenario)
 endif()

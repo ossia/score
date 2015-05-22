@@ -13,6 +13,7 @@ class ConstraintExecutor
         TimeValue m_currentTime;
 
         bool m_disabled{};
+        bool m_finished{};
     public:
         ConstraintExecutor(ConstraintModel& cm);
         ~ConstraintExecutor();
@@ -23,10 +24,13 @@ class ConstraintExecutor
 
         void start();
         void stop();
+        void finish();
         void tick();
 
         void disable()
         { m_disabled = true; }
         bool disabled() const
         { return m_disabled; }
+
+        bool finished() const;
 };

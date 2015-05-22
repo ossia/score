@@ -1,6 +1,6 @@
 #pragma once
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
-
+#include <QPainter>
 class TemporalConstraintPresenter;
 class TemporalConstraintView : public AbstractConstraintView
 {

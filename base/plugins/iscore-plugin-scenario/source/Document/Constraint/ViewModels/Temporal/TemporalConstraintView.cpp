@@ -8,6 +8,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
 
+#include <thread>
+#include <chrono>
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
     AbstractConstraintView {presenter, parent}
@@ -25,6 +27,47 @@ QRectF TemporalConstraintView::boundingRect() const
 
 void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+    QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
+
+    // Paths
+    if(minWidth() == maxWidth())
+    {
+        solidPath.lineTo(defaultWidth(), 0);
+    }
+    else if(infinite())
+    {
+        if(minWidth() != 0)
+            solidPath.lineTo(minWidth(), 0);
+
+        dashedPath.moveTo(minWidth(), 0);
+        dashedPath.lineTo(defaultWidth(), 0);
+    }
+    else
+    {
+        if(minWidth() != 0)
+            solidPath.lineTo(minWidth(), 0);
+
+        dashedPath.moveTo(minWidth(), 0);
+        dashedPath.lineTo(maxWidth(), 0);
+
+        leftBrace.moveTo(minWidth() + 3, -10);
+        leftBrace.lineTo(minWidth(), -10);
+        leftBrace.lineTo(minWidth(), 10);
+        leftBrace.lineTo(minWidth() + 3, 10);
+
+        rightBrace.moveTo(maxWidth() -3, -10);
+        rightBrace.lineTo(maxWidth(), -10);
+        rightBrace.lineTo(maxWidth(), 10);
+        rightBrace.lineTo(maxWidth() - 3, 10);
+    }
+
+    QPainterPath playedPath;
+    if(playWidth() != 0)
+    {
+        playedPath.lineTo(playWidth(), 0);
+    }
+
+    // Colors
     QColor constraintColor;
     if(isSelected())
     {
@@ -39,91 +82,42 @@ void TemporalConstraintView::paint(QPainter* painter, const QStyleOptionGraphics
     {
         constraintColor = Qt::red;
     }
-    QPen playedPen{
-        QBrush{Qt::green},
-        4,
-        Qt::SolidLine,
-        Qt::RoundCap,
-        Qt::RoundJoin
-    };
 
     m_solidPen.setColor(constraintColor);
     m_dashPen.setColor(constraintColor);
 
-    if(minWidth() == maxWidth())
-    {
-        painter->setPen(playedPen);
-        painter->drawLine(0, 0, playDuration(), 0);
+    // Drawing
+    painter->setPen(m_solidPen);
+    if(!solidPath.isEmpty())
+        painter->drawPath(solidPath);
+    if(!leftBrace.isEmpty())
+        painter->drawPath(leftBrace);
+    if(!rightBrace.isEmpty())
+        painter->drawPath(rightBrace);
 
-        painter->setPen(m_solidPen);
-        painter->drawLine(playDuration(), 0, defaultWidth(), 0);
-    }
-    else if(infinite())
-    {
-        painter->setPen(m_solidPen);
-        painter->drawLine(0,
-                          0,
-                          minWidth(),
-                          0);
-
-        QPen pen = m_dashPen;
-        painter->setPen(pen);
-        painter->drawLine(minWidth(),
-                          0,
-                          defaultWidth(),
-                          0);
-    }
-    else
-    {
-        // Firs the line going from 0 to the min
-        painter->setPen(m_solidPen);
-        painter->drawLine(0,
-                          0,
-                          minWidth(),
-                          0);
-
-        // The little hat
-        painter->drawLine(minWidth(),
-                          -10,
-                          minWidth(),
-                          10);
-        painter->drawLine(minWidth(),
-                          -10,
-                          minWidth() + 3,
-                          -10);
-        painter->drawLine(minWidth(),
-                          10,
-                          minWidth() + 3,
-                          10);
-        /*
-        painter->drawLine(minWidth(),
-                          -15,
-                          maxWidth(),
-                          -15);
-                          */
-        painter->drawLine(maxWidth(),
-                          -10,
-                          maxWidth(),
-                          10);
-
-        painter->drawLine(maxWidth(),
-                          -10,
-                          maxWidth() - 3,
-                          -10);
-        painter->drawLine(maxWidth(),
-                          10,
-                          maxWidth() - 3,
-                          10);
-
-        // Finally the dashed line
-        painter->setPen(m_dashPen);
-        painter->drawLine(minWidth(),
-                          0,
-                          maxWidth(),
-                          0);
-    }
+    painter->setPen(m_dashPen);
+    if(!dashedPath.isEmpty())
+        painter->drawPath(dashedPath);
 
 
+    static const QPen playedPen{
+        QBrush{Qt::green},
+        4,
+        Qt::SolidLine,
+                Qt::RoundCap,
+                Qt::RoundJoin
+    };
+    static const QPen dashedPlayedPen{
+        QBrush{Qt::green},
+        4,
+        Qt::DashLine,
+                Qt::RoundCap,
+                Qt::RoundJoin
+    };
+
+    painter->setPen(playedPen);
+    if(!playedPath.isEmpty())
+        painter->drawPath(playedPath);
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

@@ -86,8 +86,13 @@ class EventExecutor
                     {
                         return false;
                     }
+                    else if(std::any_of(begin(m_previousConstraints), end(m_previousConstraints), [] (ConstraintExecutor* e) { return e->finished(); }))
+                    {
+                        return true;
+                    }
                     else
                     {
+                        return false;
                         return all_of(
                             begin(nonDisabled),
                             end(nonDisabled),
@@ -170,7 +175,7 @@ void ScenarioExecutor::onTick(const TimeValue& )
     QSet<EventExecutor*> eventsToCheck;
     for(auto& constraint : m_constraints)
     {
-        if(constraint->constraint().playDuration() >= constraint->constraint().minDuration())
+        if(constraint->evaluating() || constraint->finished())
         {
             auto eev = find_if(begin(m_events), end(m_events), [&] (EventExecutor* ev) { return ev->event().id() == constraint->constraint().endEvent(); });
             eventsToCheck.insert(*eev);
@@ -182,6 +187,7 @@ void ScenarioExecutor::onTick(const TimeValue& )
     {
         if(event->check() && (event->event().id() != id_type<EventModel>(1)))
         {
+            qDebug() << "event checked";
             executingTimenodes.insert(event->m_timeNode);
         }
     }
