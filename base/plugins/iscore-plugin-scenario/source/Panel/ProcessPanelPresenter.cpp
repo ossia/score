@@ -61,13 +61,14 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
         delete m_processPresenter;
         m_processPresenter = nullptr;
 
-        if(!thePVM)
+        if(!m_processViewModel)
             return;
 
-        auto fact = ProcessList::getFactory(m_processViewModel
-                                              ->sharedProcessModel()
-                                                .processName());
+        // TODO supprimer identifieerprocessviewmodel
+        auto& sharedmodel = m_processViewModel->sharedProcessModel();
+        auto fact = ProcessList::getFactory(sharedmodel.processName());
 
+        //auto newpvm = sharedmodel.cloneViewModel(id_type<ProcessViewModel>(0), *thePVM, this);
         auto proxy = m_processViewModel->make_panelProxy(this);
         delete m_obj;
         m_obj = new GraphicsProxyObject;

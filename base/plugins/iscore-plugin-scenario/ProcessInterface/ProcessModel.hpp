@@ -54,6 +54,11 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
                 const ProcessViewModel& source,
                 QObject* parent);
 
+        // For use where the view model is ephemeral (e.g. process panel)
+        ProcessViewModel* makeTemporaryViewModel(
+                const id_type<ProcessViewModel>& newId,
+                const ProcessViewModel& source,
+                QObject* parent);
         // Do a copy.
         QVector<ProcessViewModel*> viewModels() const;
 

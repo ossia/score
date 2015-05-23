@@ -1,12 +1,10 @@
 #pragma once
-#include <QUndoCommand>
 #include <QByteArray>
 #include <QDataStream>
 #include <QBuffer>
 #include <chrono>
 #include <string>
 
-#include <QHash>
 #include <numeric>
 
 #define ISCORE_COMMAND \

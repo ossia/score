@@ -5,7 +5,7 @@
 #include <QMap>
 #include <tuple>
 #include <ProcessInterface/TimeValue.hpp>
-
+#include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 class EventModel;
 class ProcessViewModel;
 class AbstractConstraintViewModel;
@@ -63,7 +63,7 @@ namespace Scenario
                 TimeValue m_time {};
                 double m_heightPosition {};
 
-                QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
+                ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};
         };
     }

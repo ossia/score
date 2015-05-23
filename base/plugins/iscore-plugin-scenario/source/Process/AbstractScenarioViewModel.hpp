@@ -1,5 +1,6 @@
 #pragma once
 #include "ProcessInterface/ProcessViewModel.hpp"
+#include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;
@@ -109,7 +110,7 @@ QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& 
     return v;
 }
 
-using ConstraintViewModelIdMap = QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>>;
+#include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const id_type<ConstraintModel>& constraint,
                                 const ScenarioModel& scenario);

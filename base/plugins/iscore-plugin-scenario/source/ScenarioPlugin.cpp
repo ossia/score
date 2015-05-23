@@ -41,7 +41,7 @@ iscore::PluginControlInterface* iscore_plugin_scenario::control()
 
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
-    return {/*new ProcessPanelFactory*/};
+    return {new ProcessPanelFactory};
 }
 
 QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
@@ -55,6 +55,7 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 
 QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
 {
+    // TODO use macros for these names
     if(factoryName == "Process")
     {
         return {new ScenarioFactory};

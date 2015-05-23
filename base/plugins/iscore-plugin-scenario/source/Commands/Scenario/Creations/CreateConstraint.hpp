@@ -2,7 +2,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <QMap>
+#include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 #include <tuple>
 
 class EventModel;
@@ -48,7 +48,7 @@ namespace Scenario
                 id_type<EventModel> m_startEventId {};
                 id_type<EventModel> m_endEventId {};
 
-                QMap<std::tuple<int, int, int>, id_type<AbstractConstraintViewModel>> m_createdConstraintViewModelIDs;
+                ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};
         };
     }

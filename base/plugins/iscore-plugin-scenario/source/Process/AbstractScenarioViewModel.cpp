@@ -42,6 +42,7 @@ AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
 }
 
 #include "Process/ScenarioModel.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const id_type<ConstraintModel>& constraintId,
                                 const ScenarioModel& scenario)
@@ -49,7 +50,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenario))
     {
-        auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);
+        auto pvm_id = iscore::IDocument::path(viewModel);
 
         if(idMap.contains(pvm_id))
         {

@@ -12,6 +12,7 @@
 
 #include "source/Commands/Scenario/Displacement/MoveEvent.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -37,7 +38,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
     // we have to generate ConstraintViewModels, too
     for(auto& viewModel : viewModels(scenar))
     {
-        m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[iscore::IDocument::path(viewModel)] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view

@@ -8,7 +8,7 @@
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
-
+#include <iscore/document/DocumentInterface.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -29,7 +29,7 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
     // we have to generate ConstraintViewModels, too
     for(auto& viewModel : viewModels(scenar))
     {
-        m_createdConstraintViewModelIDs[identifierOfProcessViewModelFromConstraint(viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[iscore::IDocument::path(viewModel)] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view

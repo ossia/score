@@ -35,7 +35,6 @@ ProcessViewModel*ProcessModel::loadViewModel(
     return pvm;
 }
 
-
 ProcessViewModel*ProcessModel::cloneViewModel(
         const id_type<ProcessViewModel>& newId,
         const ProcessViewModel& source,
@@ -46,6 +45,16 @@ ProcessViewModel*ProcessModel::cloneViewModel(
 
     return pvm;
 }
+
+
+ProcessViewModel*ProcessModel::makeTemporaryViewModel(
+        const id_type<ProcessViewModel>& newId,
+        const ProcessViewModel& source,
+        QObject* parent)
+{
+    return cloneViewModel_impl(newId, source, parent);
+}
+
 
 
 QVector<ProcessViewModel*> ProcessModel::viewModels() const
