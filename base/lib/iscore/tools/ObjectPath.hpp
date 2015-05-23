@@ -83,6 +83,7 @@ class ObjectPath
         template<typename T>
         T& find() const
         {
+            // TODO static_cast on release.
             // First see if the pointer is still loaded in the cache.
             if(!m_cache.isNull())
             {
@@ -109,5 +110,11 @@ class ObjectPath
         ObjectIdentifierVector m_objectIdentifiers;
         mutable QPointer<QObject> m_cache;
 };
+
+inline
+uint qHash(const ObjectPath& obj, uint seed)
+{
+  return qHash(obj.toString(), seed);
+}
 
 Q_DECLARE_METATYPE(ObjectPath)

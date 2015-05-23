@@ -3,10 +3,10 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-#include "source/Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/AbstractScenarioViewModel.hpp"
 #include "Process/ScenarioModel.hpp"
-
+#include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 class AbstractConstraintViewModel;
 
 // Load a single constraint view model.
@@ -56,7 +56,6 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
 // These functions are utilities to save / load
 // constraint view models in commands
-using SerializedConstraintViewModels = QMap<std::tuple<int, int, int>, QPair<QString, QByteArray>>;
 
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,

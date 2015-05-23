@@ -10,6 +10,8 @@
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -35,7 +37,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
         Serializer<DataStream> s{&vm_arr};
         s.readFrom(*viewmodel);
 
-        m_serializedViewModels[identifierOfProcessViewModelFromConstraint(viewmodel)] = vm_arr;
+        m_serializedViewModels.append({iscore::IDocument::path(viewmodel), vm_arr});
     }
 }
 
@@ -46,13 +48,14 @@ void RemoveProcessFromConstraint::undo()
     constraint.addProcess(createProcess(s, &constraint));
 
     // Restore the view models
-    for(auto it = m_serializedViewModels.begin(); it != m_serializedViewModels.end(); ++it)
+    for(const auto& it : m_serializedViewModels)
     {
+        const auto& path = it.first.vec();
         auto deck = constraint
-                .box(id_type<BoxModel>(std::get<0>(it.key())))
-                ->deck(id_type<DeckModel>(std::get<1>(it.key())));
+                .box(id_type<BoxModel>(path.at(path.size() - 2).id()))
+                ->deck(id_type<DeckModel>(path.at(path.size() - 2).id()));
 
-        Deserializer<DataStream> s {it.value()};
+        Deserializer<DataStream> s {it.second};
         auto pvm = createProcessViewModel(s,
                                           deck->parentConstraint(),
                                           deck);

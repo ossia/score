@@ -3,6 +3,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 class AbstractConstraintViewModel;
 
+#include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 #include <iscore/tools/ObjectPath.hpp>
 
 class ConstraintModel;
@@ -35,11 +36,11 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                id_type<ConstraintModel> m_cstrId {};
+                id_type<ConstraintModel> m_cstrId;
                 QByteArray m_serializedConstraint;
 
-                QMap<std::tuple<int, int, int>, QPair<QString, QByteArray>> m_serializedConstraintViewModels;
-                id_type<AbstractConstraintViewModel> m_constraintFullViewId {};
+                SerializedConstraintViewModels m_serializedConstraintViewModels;
+                id_type<AbstractConstraintViewModel> m_constraintFullViewId;
         };
     }
 }

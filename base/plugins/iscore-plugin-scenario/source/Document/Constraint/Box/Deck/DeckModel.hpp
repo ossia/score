@@ -96,19 +96,3 @@ class DeckModel : public IdentifiedObject<DeckModel>
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
 ConstraintModel* parentConstraint(ProcessViewModel* pvm);
-
-
-/**
- * @brief identifierOfViewModelFromSharedModel
- * @param pvm A process view model
- *
- * @return A tuple which contains the required identifiers to get from a shared model to a given view model
- *  * The box identifier
- *  * The deck identifier
- *  * The view model identifier
- */
-std::tuple<int, int, int> identifierOfProcessViewModelFromConstraint(ProcessViewModel* pvm);
-
-QDataStream& operator<< (QDataStream& s, const std::tuple<int, int, int>& tuple);
-QDataStream& operator>> (QDataStream& s, std::tuple<int, int, int>& tuple);
-

@@ -75,13 +75,13 @@ SerializedConstraintViewModels serializeConstraintViewModels(
         const auto& cstrVM = viewModel->constraint(constraint.id());
         if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
         {
-            auto pvm_id = identifierOfProcessViewModelFromConstraint(viewModel);
+            auto pvm_id = iscore::IDocument::path(viewModel);
 
             QByteArray arr;
             Serializer<DataStream> cvmReader{&arr};
             cvmReader.readFrom(*temporalCstrVM);
 
-            map[pvm_id] = {"Temporal", arr};
+            map.append({pvm_id, {"Temporal", arr}});
         }
         else
         {
@@ -95,21 +95,24 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 
 void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, const ScenarioModel& scenar)
 {
+    using namespace std;
     for(auto& viewModel : viewModels(scenar))
     {
         if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {
-            auto svm_id = identifierOfProcessViewModelFromConstraint(temporalSVM);
+            auto svm_id = iscore::IDocument::path(temporalSVM);
 
-            if(vms.contains(svm_id))
+            auto it = find_if(begin(vms), end(vms),
+                          [&] (const auto& elt) { return elt.first == svm_id; });
+            if(it != end(vms))
             {
-                Deserializer<DataStream> d{(vms[svm_id].second)};
+                Deserializer<DataStream> d{((*it).second.second)};
                 auto cvm = loadConstraintViewModel(d, temporalSVM);
                 temporalSVM->addConstraintViewModel(cvm);
             }
             else
             {
-                throw std::runtime_error("undo RemoveConstraint : missing identifier.");
+                throw runtime_error("undo RemoveConstraint : missing identifier.");
             }
         }
         else

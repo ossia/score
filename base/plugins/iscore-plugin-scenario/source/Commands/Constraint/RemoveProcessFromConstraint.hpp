@@ -27,7 +27,7 @@ namespace Scenario
                 id_type<ProcessModel> m_processId;
 
                 QByteArray m_serializedProcessData;
-                QMap<std::tuple<int, int, int>, QByteArray>  m_serializedViewModels;
+                QVector<QPair<ObjectPath, QByteArray>> m_serializedViewModels;
         };
     }
 }
