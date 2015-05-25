@@ -155,9 +155,11 @@ void BaseElementPresenter::setProgressBarTime(TimeValue t)
 
 void BaseElementPresenter::setMillisPerPixel(double newFactor)
 {
+    // TODO harmonize
     m_millisecondsPerPixel = newFactor;
-    m_mainTimeRuler->setPixelPerMillis(1.0/newFactor);
-    m_localTimeRuler->setPixelPerMillis(1.0/newFactor);
+    m_mainTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
+    m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
 #include <QApplication>
@@ -215,7 +217,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     setMillisPerPixel(mapZoom(1.0 - newzoom, 2., std::max(4., computedMax())));
 
-    m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
     updateGrid();
 }
 

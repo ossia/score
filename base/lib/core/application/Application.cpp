@@ -26,6 +26,20 @@ Application::Application(int& argc, char** argv) :
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");
 
+    // Colors
+
+    QPalette scenarPalette;
+    scenarPalette.setBrush(QPalette::Background, QColor::fromRgb(37, 41, 48));
+
+    scenarPalette.setBrush(QPalette::WindowText, QColor::fromRgb(222, 0, 0)); // Red
+    scenarPalette.setBrush(QPalette::Button, QColor::fromRgb(109,222,0)); // Green
+    scenarPalette.setBrush(QPalette::Base, QColor::fromRgb(3, 195, 221)); // Blue
+    scenarPalette.setBrush(QPalette::AlternateBase, QColor::fromRgb(179, 179, 179)); // Grey
+    scenarPalette.setBrush(QPalette::BrightText, QColor::fromRgb(255,225,0)); // Yellow
+
+    qApp->setPalette(scenarPalette, "ScenarioPalette");
+
+
     // Settings
     m_settings = std::make_unique<Settings> (this);
 

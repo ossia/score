@@ -14,7 +14,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_widget {new QWidget{}},
     m_scene {new QGraphicsScene{m_widget}},
     m_view {new SizeNotifyingGraphicsView{m_scene}},
-    m_baseObject {new GraphicsProxyObject{}},
+    m_baseObject {new GraphicsProxyObject},
     m_addressBar {new AddressBar{nullptr}},
     m_timeRuler {new TimeRulerView{} },
     m_localTimeRuler {new LocalTimeRulerView{} }

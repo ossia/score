@@ -43,7 +43,7 @@ iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Pre
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
     return {
-    //    new ProcessPanelFactory
+        new ProcessPanelFactory
     };
 }
 

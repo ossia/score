@@ -410,10 +410,8 @@ void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 
 void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 {
-    // Get the process presenter
-
+    // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-    qDebug("ici");
     m_scenarioToolActionGroup->setEnabled(s_pres);
     m_scenarioScaleModeActionGroup->setEnabled(s_pres);
     if (s_pres)
