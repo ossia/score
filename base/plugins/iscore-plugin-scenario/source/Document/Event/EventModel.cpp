@@ -32,6 +32,7 @@ EventModel::EventModel(const EventModel* source,
     m_states = source->m_states;
 
     m_condition = source->condition();
+    m_trigger = source->trigger();
     m_date = source->date();
 }
 

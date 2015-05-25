@@ -15,6 +15,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
     m_stream << ev.date();
     m_stream << ev.condition();
+    m_stream << ev.trigger();
     m_stream << ev.timeNode();
 
     m_stream << ev.states();
@@ -31,7 +32,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     QVector<id_type<ConstraintModel>> prevCstr, nextCstr;
     double heightPercentage;
     TimeValue date;
-    QString condition;
+    QString condition, trigger;
     id_type<TimeNodeModel> timenode;
 
     m_stream >> prevCstr
@@ -39,7 +40,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
              >> heightPercentage;
 
     m_stream >> date;
-    m_stream >> condition;
+    m_stream >> condition >> trigger;
     m_stream >> timenode;
 
     ev.m_previousConstraints = std::move(prevCstr);
@@ -47,6 +48,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     ev.setHeightPercentage(heightPercentage);
     ev.setDate(date);
     ev.setCondition(condition);
+    ev.setTrigger(trigger);
     ev.changeTimeNode(timenode);
 
     QList<State> states;
@@ -71,6 +73,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
     m_obj["HeightPercentage"] = ev.heightPercentage();
     m_obj["Date"] = toJsonValue(ev.date());
     m_obj["Condition"] = ev.condition();
+    m_obj["Trigger"] = ev.trigger();
     m_obj["TimeNode"] = toJsonValue(ev.timeNode());
 
     m_obj["States"] = toJsonArray(ev.states());
@@ -88,6 +91,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
     ev.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
     ev.setDate(fromJsonValue<TimeValue> (m_obj["Date"]));
     ev.setCondition(m_obj["Condition"].toString());
+    ev.setTrigger(m_obj["Trigger"].toString());
     ev.changeTimeNode(fromJsonValue<id_type<TimeNodeModel>> (m_obj["TimeNode"]));
 
     QList<State> states;
