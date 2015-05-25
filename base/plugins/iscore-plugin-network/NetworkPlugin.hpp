@@ -24,7 +24,7 @@ class iscore_plugin_network :
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        iscore::PluginControlInterface* control() override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
 
         QList<iscore::PanelFactory*> panels() override;
 };

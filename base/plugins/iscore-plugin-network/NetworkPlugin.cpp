@@ -21,9 +21,9 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::PluginControlInterface* iscore_plugin_network::control()
+iscore::PluginControlInterface* iscore_plugin_network::make_control(iscore::Presenter* pres)
 {
-    return new NetworkControl;
+    return new NetworkControl{pres};
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_network::panels()

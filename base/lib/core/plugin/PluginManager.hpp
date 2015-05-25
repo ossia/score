@@ -8,6 +8,7 @@
 
 namespace iscore
 {
+    class Application;
     class PluginControlInterface;
     class PanelFactory;
     class DocumentDelegateFactoryInterface;
@@ -22,27 +23,17 @@ namespace iscore
     /**
      * @brief The PluginManager class loads and keeps track of the plug-ins.
      */
-    class PluginManager : public NamedObject
+    class PluginManager : public QObject
     {
             Q_OBJECT
-            friend class Application;
+            friend class iscore::Application;
         public:
-            PluginManager(QObject* parent) :
-                NamedObject {"PluginManager", parent}
-            {
-            }
-
-            ~PluginManager()
-            {
-                clearPlugins();
-            }
+            PluginManager(iscore::Application* app);
+            ~PluginManager();
 
             void reloadPlugins();
 
-            QStringList pluginsOnSystem() const
-            {
-                return m_pluginsOnSystem;
-            }
+            QStringList pluginsOnSystem() const;
 
             void addControl(PluginControlInterface* p)
             { m_controlList.push_back(p); }
@@ -51,10 +42,13 @@ namespace iscore
             { m_panelList.push_back(p); }
 
         private:
+            iscore::Application* m_app{};
+
             // We need a list for all the plug-ins present on the system even if we do not load them.
             // Else we can't blacklist / unblacklist plug-ins.
             QStringList m_pluginsOnSystem;
 
+            void loadControls(QObject* plugin);
             void loadFactories(QObject* plugin);
             void dispatch(QObject* plugin);
             void clearPlugins();

@@ -10,9 +10,9 @@ iscore_plugin_curve::iscore_plugin_curve() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_curve::control()
+iscore::PluginControlInterface* iscore_plugin_curve::make_control(iscore::Presenter* pres)
 {
-    return new AutomationControl{nullptr};
+    return new AutomationControl{pres};
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)

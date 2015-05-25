@@ -12,8 +12,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
-DeviceExplorerControl::DeviceExplorerControl() :
-    PluginControlInterface {"DeviceExplorerControl", nullptr}
+DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
+    PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
 {
 
 }

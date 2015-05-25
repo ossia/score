@@ -43,18 +43,17 @@ void ProcessPanelPresenter::on_modelChanged()
 
     if(!m_baseElementModel) return;
 
-    connect(m_baseElementModel,  &BaseElementModel::focusedViewModelChanged,
+    connect(&m_baseElementModel->focusManager(),  &ProcessFocusManager::sig_focusedViewModel,
             this, &ProcessPanelPresenter::on_focusedViewModelChanged);
 
     connect(panelview, &ProcessPanelView::sizeChanged,
             this, &ProcessPanelPresenter::on_sizeChanged);
 }
 
-void ProcessPanelPresenter::on_focusedViewModelChanged()
+#include "Document/BaseElement/ProcessFocusManager.hpp"
+void ProcessPanelPresenter::on_focusedViewModelChanged(const ProcessViewModel* thePVM)
 {
     auto panelview = static_cast<ProcessPanelView*>(view());
-
-    auto thePVM = m_baseElementModel->focusedViewModel();
     if(thePVM != m_processViewModel)
     {
         m_processViewModel = thePVM;
@@ -64,7 +63,6 @@ void ProcessPanelPresenter::on_focusedViewModelChanged()
         if(!m_processViewModel)
             return;
 
-        // TODO supprimer identifieerprocessviewmodel
         auto& sharedmodel = m_processViewModel->sharedProcessModel();
         auto fact = ProcessList::getFactory(sharedmodel.processName());
 

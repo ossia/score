@@ -1,5 +1,5 @@
 #include <core/plugin/PluginManager.hpp>
-
+#include <core/application/Application.hpp>
 
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
@@ -30,6 +30,16 @@ QStringList pluginsDir()
     return {QCoreApplication::applicationDirPath() + "/plugins",
             QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
 #endif
+}
+
+PluginManager::PluginManager(Application* app):
+    m_app{app}
+{
+}
+
+PluginManager::~PluginManager()
+{
+    clearPlugins();
 }
 
 void PluginManager::reloadPlugins()
@@ -80,10 +90,31 @@ void PluginManager::reloadPlugins()
         loadFactories(plugin);
     }
 
+    // Load all the plug-in controls (because all controls need to be initialized for the
+    // factories to work, generally.
+    for(QObject* plugin : m_availablePlugins)
+    {
+        loadControls(plugin);
+    }
+
     // Load what the plug-ins have to offer.
     for(QObject* plugin : m_availablePlugins)
     {
         dispatch(plugin);
+    }
+}
+
+QStringList PluginManager::pluginsOnSystem() const
+{
+    return m_pluginsOnSystem;
+}
+
+void PluginManager::loadControls(QObject* plugin)
+{
+    auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
+    if(ctrl_plugin)
+    {
+        m_controlList.push_back(ctrl_plugin->make_control(m_app->presenter()));
     }
 }
 
@@ -147,21 +178,16 @@ void PluginManager::loadFactories(QObject* plugin)
     }
 }
 
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 void PluginManager::dispatch(QObject* plugin)
 {
-    auto cmd_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
     auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
     auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
     auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
     auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
 
-    if(cmd_plugin)
-    {
-        m_controlList.push_back(cmd_plugin->control());
-    }
-
     if(settings_plugin)
-    {
+    {// TODO change the name in the correct order.
         m_settingsList.push_back(settings_plugin->settings_make());
     }
 

@@ -36,7 +36,7 @@ class ScenarioStateMachine : public QStateMachine
         ExpandMode expandMode() const;
         bool isShiftPressed() const;
 
-        void changeState(int);
+        void changeTool(int);
 
     signals:
         void setCreateState();

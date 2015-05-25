@@ -5,7 +5,7 @@
 class AutomationControl : public iscore::PluginControlInterface
 {
     public:
-        AutomationControl(QObject* parent);
+        AutomationControl(iscore::Presenter* pres);
         virtual ~AutomationControl() = default;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,

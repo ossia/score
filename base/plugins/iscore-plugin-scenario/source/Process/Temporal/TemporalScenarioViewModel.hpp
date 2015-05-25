@@ -22,6 +22,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         void setPresenter(TemporalScenarioPresenter* p) const;
 
     public:
+        // TODO to abstract
         ScenarioStateMachine &stateMachine() const;
         TemporalScenarioPresenter *presenter() const;
 

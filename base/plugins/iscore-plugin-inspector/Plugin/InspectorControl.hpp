@@ -6,7 +6,7 @@
 class InspectorControl : public iscore::PluginControlInterface
 {
     public:
-        InspectorControl();
+        InspectorControl(iscore::Presenter*);
         InspectorWidgetList* widgetList() const;
 
     private:

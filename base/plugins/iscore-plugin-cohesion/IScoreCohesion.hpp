@@ -28,6 +28,6 @@ class iscore_plugin_cohesion:
         iscore_plugin_cohesion();
         virtual ~iscore_plugin_cohesion() = default;
 
-        virtual iscore::PluginControlInterface* control() override;
+        virtual iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
 };
 

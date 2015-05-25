@@ -7,7 +7,7 @@ class Executor;
 class IScoreCohesionControl : public iscore::PluginControlInterface
 {
     public:
-        IScoreCohesionControl(QObject* parent);
+        IScoreCohesionControl(iscore::Presenter* pres);
         void populateMenus(iscore::MenubarManager*) override;
         QList<OrderedToolbar> makeToolbars() override;
 

@@ -3,6 +3,6 @@
 class OSSIAControl : public iscore::PluginControlInterface
 {
     public:
-        OSSIAControl(QObject* parent);
+        OSSIAControl(iscore::Presenter* pres);
 
 };

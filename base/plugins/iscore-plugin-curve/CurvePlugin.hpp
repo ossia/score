@@ -20,7 +20,7 @@ class iscore_plugin_curve:
         virtual ~iscore_plugin_curve() = default;
 
         // Plugin control interface
-        virtual iscore::PluginControlInterface* control() override;
+        virtual iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
         // Process & inspector
         virtual QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;

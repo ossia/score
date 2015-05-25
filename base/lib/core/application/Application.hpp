@@ -34,14 +34,15 @@ namespace iscore
             {
                 return m_app->exec();
             }
-            View* view()
-            {
-                return m_view;
-            }
-            Settings* settings()
-            {
-                return m_settings.get();
-            }
+
+            Presenter* presenter() const
+            { return m_presenter; }
+
+            View* view() const
+            { return m_view; }
+
+            Settings* settings() const
+            { return m_settings.get(); }
 
         private:
             void loadPluginData();

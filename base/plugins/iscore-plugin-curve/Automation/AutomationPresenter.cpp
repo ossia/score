@@ -113,9 +113,9 @@ void AutomationPresenter::parentGeometryChanged()
     m_curve->setSize({m_view->width(), m_view->height()});
 }
 
-const id_type<ProcessViewModel>& AutomationPresenter::viewModelId() const
+const ProcessViewModel& AutomationPresenter::viewModel() const
 {
-    return m_viewModel.id();
+    return m_viewModel;
 }
 
 const id_type<ProcessModel>& AutomationPresenter::modelId() const

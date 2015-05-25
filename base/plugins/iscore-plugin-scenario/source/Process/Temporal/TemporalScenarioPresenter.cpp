@@ -105,9 +105,9 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
     }
 }
 
-const id_type<ProcessViewModel>& TemporalScenarioPresenter::viewModelId() const
+const ProcessViewModel& TemporalScenarioPresenter::viewModel() const
 {
-    return m_viewModel.id();
+    return m_viewModel;
 }
 
 const id_type<ProcessModel>& TemporalScenarioPresenter::modelId() const
@@ -224,7 +224,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
     vec_erase_remove_if(m_constraints,
                         [&constraintViewModelId](TemporalConstraintPresenter * pres)
     {
-        bool to_delete = viewModel(pres)->id() == constraintViewModelId;
+        bool to_delete = ::viewModel(pres)->id() == constraintViewModelId;
 
         if(to_delete)
         {

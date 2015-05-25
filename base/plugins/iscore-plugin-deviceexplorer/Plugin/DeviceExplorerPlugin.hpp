@@ -102,5 +102,5 @@ class iscore_plugin_deviceexplorer :
         QVector<iscore::FactoryFamily> factoryFamilies() override;
 
         // Control
-        iscore::PluginControlInterface* control() override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 };

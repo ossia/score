@@ -1,8 +1,8 @@
 #include "UndoControl.hpp"
 #include <core/document/DocumentPresenter.hpp>
 
-iscore::UndoControl::UndoControl(QObject* parent):
-    iscore::PluginControlInterface{"UndoControl", parent}
+iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
+    iscore::PluginControlInterface{pres, "UndoControl", parent}
 {
     m_undoAction->setShortcut(QKeySequence::Undo);
     m_undoAction->setEnabled(false);
@@ -54,11 +54,6 @@ QList<OrderedToolbar> iscore::UndoControl::makeToolbars()
 
     return QList<OrderedToolbar>{OrderedToolbar(3, bar)};
 }
-
-void iscore::UndoControl::on_presenterChanged()
-{
-}
-
 
 void iscore::UndoControl::on_documentChanged()
 {

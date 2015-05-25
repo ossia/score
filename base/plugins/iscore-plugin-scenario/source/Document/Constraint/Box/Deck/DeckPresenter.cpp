@@ -130,7 +130,7 @@ void DeckPresenter::on_processViewModelDeleted(
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
     {
-        bool to_delete = pair.first->viewModelId() == processId;
+        bool to_delete = pair.first->viewModel().id() == processId;
 
         if(to_delete)
         {
@@ -152,7 +152,7 @@ void DeckPresenter::on_processViewModelSelected(
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     for(auto& pair : m_processes)
     {
-        if(pair.first->viewModelId() == processId)
+        if(pair.first->viewModel().id() == processId)
         {
             pair.first->putToFront();
         }

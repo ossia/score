@@ -74,9 +74,10 @@ void BaseElementPresenter::on_askUpdate()
 
 void BaseElementPresenter::selectAll()
 {
-    if(model()->focusedViewModel())
+    auto processmodel = model()->focusManager().focusedModel();
+    if(processmodel)
     {
-        m_selectionDispatcher.setAndCommit(model()->focusedViewModel()->sharedProcessModel().selectableChildren());
+        m_selectionDispatcher.setAndCommit(processmodel->selectableChildren());
     }
 }
 

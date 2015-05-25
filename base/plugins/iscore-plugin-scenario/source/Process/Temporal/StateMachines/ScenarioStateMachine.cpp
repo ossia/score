@@ -150,7 +150,7 @@ bool ScenarioStateMachine::isShiftPressed() const
 }
 
 
-void ScenarioStateMachine::changeState(int state)
+void ScenarioStateMachine::changeTool(int state)
 {
     emit exitState();
     switch(state)

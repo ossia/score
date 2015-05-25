@@ -24,7 +24,7 @@ QVector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
             { SingletonProtocolList::instance().registerFactory(f); }}};
 }
 
-PluginControlInterface *iscore_plugin_deviceexplorer::control()
+PluginControlInterface *iscore_plugin_deviceexplorer::make_control(Presenter* pres)
 {
-    return new DeviceExplorerControl;
+    return new DeviceExplorerControl{pres};
 }

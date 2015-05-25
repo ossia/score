@@ -8,8 +8,8 @@
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
 #include <API/Headers/Editor/ExpressionValue.h>
-OSSIAControl::OSSIAControl(QObject* parent):
-    iscore::PluginControlInterface {"IScoreCohesionControl", parent}
+OSSIAControl::OSSIAControl(iscore::Presenter* pres):
+    iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
     // Two parts :
     // One that maintains the devices for each document

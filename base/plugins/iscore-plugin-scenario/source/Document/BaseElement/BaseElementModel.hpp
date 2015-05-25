@@ -2,6 +2,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/selection/SelectionStack.hpp>
+#include "ProcessFocusManager.hpp"
 
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
@@ -33,25 +34,23 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ConstraintModel* constraintModel() const
         { return m_baseConstraint; }
 
-        const ProcessViewModel* focusedViewModel() const;
-
-
         void setNewSelection(const Selection& s) override;
         void setDisplayedConstraint(const ConstraintModel*);
 
+        ProcessFocusManager& focusManager()
+        { return m_focusManager; }
+
     signals:
         void focusMe();
-        void focusedViewModelChanged();
 
     public slots:
-        void setFocusedViewModel(const ProcessViewModel* vm);
+        void on_viewModelDefocused(const ProcessViewModel* vm);
+        void on_viewModelFocused(const ProcessViewModel* vm);
 
     private:
         ConstraintModel* m_baseConstraint {};
         const ConstraintModel* m_displayedConstraint {};
 
-        // The process that contains the current selection.
-        QPointer<const ProcessViewModel> m_focusedViewModel;
-        const ProcessModel* m_focusedProcess{};
+        ProcessFocusManager m_focusManager;
 };
 

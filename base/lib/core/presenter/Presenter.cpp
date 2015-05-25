@@ -40,8 +40,7 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 #include <QToolBar>
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)
 {
-    ctrl->setParent(this);  // Ownership transfer
-    ctrl->setPresenter(this);
+    ctrl->setParent(this);
 
     ctrl->populateMenus(&m_menubar);
     m_toolbars += ctrl->makeToolbars();

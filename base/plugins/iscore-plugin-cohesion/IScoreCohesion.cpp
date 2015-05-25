@@ -5,9 +5,9 @@ iscore_plugin_cohesion::iscore_plugin_cohesion() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_cohesion::control()
+iscore::PluginControlInterface* iscore_plugin_cohesion::make_control(iscore::Presenter* pres)
 {
-    return new IScoreCohesionControl {nullptr};
+    return new IScoreCohesionControl {pres};
 }
 
 

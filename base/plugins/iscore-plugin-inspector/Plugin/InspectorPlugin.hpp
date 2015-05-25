@@ -27,8 +27,8 @@ class iscore_plugin_inspector :
         // Offre la factory de Inspector
         QVector<iscore::FactoryFamily> factoryFamilies() override;
 
-        iscore::PluginControlInterface* control() override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
     private:
-        InspectorControl* m_inspectorControl;
+        InspectorControl* m_inspectorControl{};
 };

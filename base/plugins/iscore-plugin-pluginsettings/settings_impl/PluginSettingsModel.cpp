@@ -16,6 +16,9 @@ PluginSettingsModel::PluginSettingsModel() :
     QSettings s;
     auto blacklist = s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
     blacklist.sort();
+    // TODO use a singleton instead.
+    qDebug() << Q_FUNC_INFO << "TODO";
+    return;
     auto systemlist = qApp->findChild<PluginManager*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 

@@ -7,14 +7,17 @@
 #include "Commands/SetCurveMin.hpp"
 #include "Commands/SetCurveMax.hpp"
 
-AutomationControl::AutomationControl(QObject* parent) :
-    PluginControlInterface {"AutomationControl", parent}
+AutomationControl::AutomationControl(
+        iscore::Presenter* pres) :
+    PluginControlInterface {pres, "AutomationControl", nullptr}
 {
 
 }
 
 
-iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
+iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
 {
     iscore::SerializableCommand* cmd {};
 

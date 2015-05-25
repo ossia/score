@@ -18,15 +18,16 @@ class AutomationPresenter : public ProcessPresenter
                             QObject* parent);
         ~AutomationPresenter();
 
-        virtual void setWidth(int width) override;
-        virtual void setHeight(int height) override;
+        void setWidth(int width) override;
+        void setHeight(int height) override;
 
-        virtual void putToFront() override;
-        virtual void putBehind() override;
-        virtual void on_zoomRatioChanged(ZoomRatio) override;
-        virtual void parentGeometryChanged() override;
-        virtual const id_type<ProcessViewModel>& viewModelId() const override;
-        virtual const id_type<ProcessModel>& modelId() const override;
+        void putToFront() override;
+        void putBehind() override;
+        void on_zoomRatioChanged(ZoomRatio) override;
+        void parentGeometryChanged() override;
+
+        const ProcessViewModel& viewModel() const override;
+        const id_type<ProcessModel>& modelId() const override;
 
     public slots:
         // From model

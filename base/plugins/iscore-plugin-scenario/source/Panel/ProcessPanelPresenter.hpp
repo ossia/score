@@ -17,7 +17,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenter
         void on_modelChanged() override;
 
     private slots:
-        void on_focusedViewModelChanged();
+        void on_focusedViewModelChanged(const ProcessViewModel*);
         void on_sizeChanged(const QSize& size);
 
     private:

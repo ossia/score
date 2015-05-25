@@ -4,29 +4,23 @@
 
 namespace iscore
 {
-    class UndoControl : public iscore::PluginControlInterface
-    {
-        public:
-            UndoControl(QObject* parent);
-            ~UndoControl();
+class UndoControl : public iscore::PluginControlInterface
+{
+    public:
+        UndoControl(Presenter* pres, QObject* parent);
+        ~UndoControl();
 
-            void populateMenus(MenubarManager*) override;
-            QList<OrderedToolbar> makeToolbars() override;
+        void populateMenus(MenubarManager*) override;
+        QList<OrderedToolbar> makeToolbars() override;
 
+    private slots:
+        void on_documentChanged() override;
 
-        protected:
-            // TODO the presenter shouldn't change for the
-            // lifetime of the application.
-            void on_presenterChanged() override;
-
-        private slots:
-            void on_documentChanged() override;
-
-        private:
+    private:
         // Connections to keep for the running document.
         QList<QMetaObject::Connection> m_connections;
 
         QAction* m_undoAction{new QAction{this}};
         QAction* m_redoAction{new QAction{this}};
-    };
+};
 }

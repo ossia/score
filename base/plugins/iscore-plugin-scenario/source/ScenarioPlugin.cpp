@@ -16,8 +16,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
         iscore::PluginControlInterface_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
         iscore::FactoryFamily_QtInterface {},
-        iscore::FactoryInterface_QtInterface {},
-m_control {new ScenarioControl{nullptr}}
+        iscore::FactoryInterface_QtInterface {}
 {
     QMetaType::registerComparators<Message>();
     QMetaType::registerComparators<MessageList>();
@@ -34,8 +33,10 @@ QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documen
     return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* iscore_plugin_scenario::control()
+iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Presenter* pres)
 {
+    delete m_control;
+    m_control = new ScenarioControl{pres};
     return m_control;
 }
 
@@ -49,10 +50,8 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
     return {{"Process",
-            std::bind(&ProcessList::registerProcess,
-                      m_control->processList(),
-            std::placeholders::_1)}
-    };
+            [&] (iscore::FactoryInterface* fact)
+            { m_control->processList()->registerProcess(fact); }}};
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)

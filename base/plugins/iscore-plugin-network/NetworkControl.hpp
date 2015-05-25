@@ -17,7 +17,7 @@ class NetworkControl : public iscore::PluginControlInterface
         Q_OBJECT
 
     public:
-        NetworkControl();
+        NetworkControl(iscore::Presenter* pres);
         virtual void populateMenus(iscore::MenubarManager*) override;
         iscore::SerializableCommand* instantiateUndoCommand(
                 const QString&,

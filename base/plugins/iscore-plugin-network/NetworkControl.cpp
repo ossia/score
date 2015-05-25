@@ -12,8 +12,8 @@
 
 using namespace iscore;
 
-NetworkControl::NetworkControl() :
-    PluginControlInterface {"NetworkControl", nullptr}
+NetworkControl::NetworkControl(Presenter* pres) :
+    PluginControlInterface {pres, "NetworkControl", nullptr}
 {
 #ifdef USE_ZEROCONF
     m_zeroconfBrowser = new ZeroconfBrowser{this};

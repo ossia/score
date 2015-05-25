@@ -2,11 +2,16 @@
 using namespace iscore;
 
 
-PluginControlInterface::PluginControlInterface(const QString& name, QObject* parent):
-    NamedObject{name, parent}
+PluginControlInterface::PluginControlInterface(iscore::Presenter* presenter,
+                                               const QString& name,
+                                               QObject* parent):
+    NamedObject{name, parent},
+    m_presenter{presenter}
 {
     connect(this, &PluginControlInterface::documentChanged,
             this, &PluginControlInterface::on_documentChanged);
+
+
 }
 
 void PluginControlInterface::populateMenus(MenubarManager*)
@@ -35,14 +40,6 @@ Presenter*PluginControlInterface::presenter() const
     return m_presenter;
 }
 
-
-void PluginControlInterface::setPresenter(Presenter* p)
-{
-    m_presenter = p;
-    on_presenterChanged();
-}
-
-
 SerializableCommand*PluginControlInterface::instantiateUndoCommand(
         const QString&,
         const QByteArray&)
@@ -63,11 +60,6 @@ void PluginControlInterface::on_documentChanged()
 }
 
 void PluginControlInterface::on_newDocument(iscore::Document* doc)
-{
-
-}
-
-void PluginControlInterface::on_presenterChanged()
 {
 
 }

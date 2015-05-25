@@ -11,9 +11,9 @@ iscore_plugin_ossia::iscore_plugin_ossia() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_ossia::control()
+iscore::PluginControlInterface* iscore_plugin_ossia::make_control(iscore::Presenter* pres)
 {
-    return new OSSIAControl{nullptr};
+    return new OSSIAControl{pres};
 }
 
 

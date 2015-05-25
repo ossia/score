@@ -17,7 +17,13 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 
+#include <QApplication>
 using namespace Scenario;
+
+#include <core/document/Document.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include "Control/ScenarioControl.hpp"
+#include <iscore/presenter/PresenterInterface.hpp>
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
@@ -31,7 +37,12 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     m_baseConstraint->setObjectName("BaseConstraintModel");
 
     initializeNewDocument(m_baseConstraint->fullView());
-    setFocusedViewModel(m_baseConstraint->boxes().front()->decks().front()->processViewModels().front());
+
+    connect(&m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
+            this, &BaseElementModel::on_viewModelDefocused);
+    connect(&m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
+            this, &BaseElementModel::on_viewModelFocused);
+    // TODO make this call in the presenter ctor: getFocusManager().setFocusedViewModel(m_baseConstraint->boxes().front()->decks().front()->processViewModels().front());
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)
@@ -109,68 +120,59 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd6.redo();
 }
 
-const ProcessViewModel *BaseElementModel::focusedViewModel() const
+namespace {
+void updateDeckFocus(const ProcessViewModel* pvm, bool b)
 {
-    return m_focusedViewModel.data();
-}
-
-#include <core/document/Document.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
-void BaseElementModel::setFocusedViewModel(const ProcessViewModel* proc)
-{
-    auto updateDeckFocus = [&] (bool b)
+    if(pvm && pvm->parent())
     {
-        if(m_focusedViewModel && m_focusedViewModel->parent())
+        if(auto deck = dynamic_cast<DeckModel*>(pvm->parent()))
         {
-            if(auto deck = dynamic_cast<DeckModel*>(m_focusedViewModel->parent()))
-            {
-                deck->setFocus(b);
-            }
+            deck->setFocus(b);
         }
-    };
-
-    if(proc != m_focusedViewModel)
-    {
-        // Disable the focus on previously focused view model
-        updateDeckFocus(false);
-
-        // Deselect
-        iscore::SelectionDispatcher selectionDispatcher(iscore::IDocument::documentFromObject(*this)->selectionStack());
-        selectionDispatcher.setAndCommit({});
-
-        // Assign
-        m_focusedViewModel = proc;
-
-        // Enable focus on the new viewmodel
-        updateDeckFocus(true);
-
-        emit focusedViewModelChanged();
     }
 }
+}
 
-
-void BaseElementModel::setNewSelection(const Selection& s)
+void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
 {
+    // Disable the focus on previously focused view model
+    updateDeckFocus(vm, false);
+
+    // Deselect
+    iscore::SelectionDispatcher selectionDispatcher(
+                iscore::IDocument::documentFromObject(*this)->selectionStack());
+    selectionDispatcher.setAndCommit({});
+}
+
+void BaseElementModel::on_viewModelFocused(const ProcessViewModel* process)
+{
+    // Enable focus on the new viewmodel
+    updateDeckFocus(process, true);
+}
+
+// TODO candidate for ProcessSelectionManager.
+void BaseElementModel::setNewSelection(const Selection& s)
+{;
+    auto process = m_focusManager.focusedModel();
+
     if(s.empty())
     {
-        if(m_focusedProcess)
+        if(process)
         {
-            m_focusedProcess->setSelection({});
+            process->setSelection({});
             m_displayedConstraint->selection.set(false);
-            m_focusedProcess = nullptr;
+            m_focusManager.focusNothing();
         }
     }
     else if(s.first() == m_displayedConstraint)
     {
-        if(m_focusedProcess)
+        if(process)
         {
-            m_focusedProcess->setSelection({});
-            m_focusedProcess = nullptr;
+            process->setSelection({});
+            m_focusManager.focusNothing();
         }
-        setFocusedViewModel(nullptr);
 
         m_displayedConstraint->selection.set(true);
-
     }
     else
     {
@@ -178,13 +180,15 @@ void BaseElementModel::setNewSelection(const Selection& s)
         // in a given selection are in the same Process.
         m_displayedConstraint->selection.set(false);
         auto newProc = parentProcess(s.first());
-        if(m_focusedProcess && newProc != m_focusedProcess)
+        if(process && newProc != process)
         {
-            m_focusedProcess->setSelection({});
+            process->setSelection({});
         }
 
-        m_focusedProcess = newProc;
-        m_focusedProcess->setSelection(s);
+        if(newProc)
+        {
+            newProc->setSelection(s);
+        }
     }
 
     emit focusMe();
@@ -194,5 +198,5 @@ void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
 {
     // TODO only keep it saved at one place.
     m_displayedConstraint = constraint;
-    setFocusedViewModel(nullptr);
+    m_focusManager.focusNothing();
 }

@@ -7,7 +7,7 @@ class SerializableCommand;
 class DeviceExplorerControl : public iscore::PluginControlInterface
 {
     public:
-        DeviceExplorerControl();
+        DeviceExplorerControl(iscore::Presenter*);
 
         iscore::SerializableCommand*
         instantiateUndoCommand(const QString & name,

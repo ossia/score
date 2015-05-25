@@ -29,7 +29,9 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
         Q_OBJECT
         public:
-            PluginControlInterface(const QString& name, QObject* parent);
+            PluginControlInterface(iscore::Presenter* presenter,
+                                   const QString& name,
+                                   QObject* parent);
 
             virtual void populateMenus(iscore::MenubarManager*);
             virtual QList<OrderedToolbar> makeToolbars();
@@ -40,7 +42,6 @@ namespace iscore
                     iscore::DocumentModel *parent);
 
             Presenter* presenter() const;
-            void setPresenter(Presenter* p);
 
             virtual SerializableCommand* instantiateUndoCommand(
                     const QString& /*name*/,
@@ -55,9 +56,7 @@ namespace iscore
             void documentChanged();
 
         protected:
-            virtual void on_presenterChanged();
             virtual void on_documentChanged();
-
 
         private:
             Presenter* m_presenter{};

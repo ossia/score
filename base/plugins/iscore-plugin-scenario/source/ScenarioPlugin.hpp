@@ -31,7 +31,7 @@ class iscore_plugin_scenario :
         QList<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Plugin control interface
-        iscore::PluginControlInterface* control() override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
 
         QList<iscore::PanelFactory*> panels() override;
 
@@ -43,6 +43,6 @@ class iscore_plugin_scenario :
         QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 
     private:
-        ScenarioControl* m_control;
+        ScenarioControl* m_control{};
 
 };

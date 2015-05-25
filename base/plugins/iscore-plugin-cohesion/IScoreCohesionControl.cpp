@@ -25,8 +25,8 @@
 #include <QKeySequence>
 
 using namespace iscore;
-IScoreCohesionControl::IScoreCohesionControl(QObject* parent) :
-    iscore::PluginControlInterface {"IScoreCohesionControl", parent}
+IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
+    iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
     connect(&m_engine, &FakeEngine::currentTimeChanged,
             this, &IScoreCohesionControl::on_currentTimeChanged);

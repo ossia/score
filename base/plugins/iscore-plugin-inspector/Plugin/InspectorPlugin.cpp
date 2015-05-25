@@ -8,8 +8,7 @@ using namespace iscore;
 
 iscore_plugin_inspector::iscore_plugin_inspector() :
     QObject {},
-        iscore::PanelFactory_QtInterface {},
-        m_inspectorControl {new InspectorControl}
+        iscore::PanelFactory_QtInterface {}
 {
 }
 
@@ -29,7 +28,9 @@ QVector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
            }};
 }
 
-PluginControlInterface* iscore_plugin_inspector::control()
+PluginControlInterface* iscore_plugin_inspector::make_control(Presenter* pres)
 {
+    delete m_inspectorControl;
+    m_inspectorControl = new InspectorControl{pres};
     return m_inspectorControl;
 }
