@@ -30,7 +30,7 @@ class BoxPresenter : public NamedObject
         void setWidth(int);
 
         const id_type<BoxModel>& id() const;
-        auto decks() const
+        std::vector<DeckPresenter*> decks() const
         { return m_decks; }
 
         void setDisabledDeckState();

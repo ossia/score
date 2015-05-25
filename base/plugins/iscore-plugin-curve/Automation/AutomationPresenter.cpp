@@ -54,7 +54,7 @@ AutomationPresenter::AutomationPresenter(
     connect(m_curve, &QCustomPlotCurve::mousePressed,
             this, [&] ()
     {
-        m_focusDispatcher.focus(&m_viewModel);
+        m_focusDispatcher.focus(this);
     });
 
     parentGeometryChanged();

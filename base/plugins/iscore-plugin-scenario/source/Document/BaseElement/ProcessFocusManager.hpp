@@ -16,22 +16,24 @@ class ProcessFocusManager : public QObject
     public:
         const ProcessModel* focusedModel();
         const ProcessViewModel* focusedViewModel();
-        const ProcessPresenter* focusedPresenter();
+        ProcessPresenter* focusedPresenter();
 
-        void setFocusedModel(ProcessModel*);
-        void setFocusedViewModel(ProcessViewModel*);
+    public slots:
         void setFocusedPresenter(ProcessPresenter*);
 
         void focusNothing();
 
     signals:
+        void sig_focusedPresenter(ProcessPresenter*);
+        void sig_defocusedPresenter(ProcessPresenter*);
+
         void sig_defocusedViewModel(const ProcessViewModel*);
         void sig_focusedViewModel(const ProcessViewModel*);
 
     private:
         QPointer<const ProcessModel> m_currentModel{};
         QPointer<const ProcessViewModel> m_currentViewModel{};
-        QPointer<const ProcessPresenter> m_currentPresenter{};
+        QPointer<ProcessPresenter> m_currentPresenter{};
 };
 
 

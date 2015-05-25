@@ -4,10 +4,8 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/ScenarioGlobalCommandManager.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/StateMachines/Tool.hpp"
@@ -80,11 +78,11 @@ QJsonObject ScenarioControl::copySelectedElementsToJson()
     {
         // Full-view copy
         auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        if(bem.constraintModel()->selection.get())
+        if(bem.baseConstraint()->selection.get())
         {
             QJsonArray arr;
             Visitor<Reader<JSONObject>> jr;
-            jr.readFrom(*bem.constraintModel());
+            jr.readFrom(*bem.baseConstraint());
             arr.push_back(jr.m_obj);
             base["Constraints"] = arr;
         }
@@ -109,23 +107,27 @@ QJsonObject ScenarioControl::cutSelectedElementsToJson()
 #include <iscore/command/OngoingCommandManager.hpp>
 void ScenarioControl::writeJsonToSelectedElements(const QJsonObject& obj)
 {
-    if (auto sm = focusedScenarioModel())
-    {
-        auto selectedConstraints = selectedElements(sm->constraints());
-        for(const auto& json_vref : obj["Constraints"].toArray())
-        {
-            for(const auto& constraint : selectedConstraints)
-            {
-                auto cmd = new Scenario::Command::CopyConstraintContent{
-                           json_vref.toObject(),
-                           iscore::IDocument::path(constraint),
-                           stateMachine().expandMode()};
+    auto pres = focusedPresenter();
+    if(!pres)
+        return;
 
-                CommandDispatcher<> dispatcher{this->currentDocument()->commandStack()};
-                dispatcher.submitCommand(cmd);
-            }
+    auto sm = focusedScenarioModel();
+
+    auto selectedConstraints = selectedElements(sm->constraints());
+    for(const auto& json_vref : obj["Constraints"].toArray())
+    {
+        for(const auto& constraint : selectedConstraints)
+        {
+            auto cmd = new Scenario::Command::CopyConstraintContent{
+                       json_vref.toObject(),
+                       iscore::IDocument::path(constraint),
+                       pres->stateMachine().expandMode()};
+
+            CommandDispatcher<> dispatcher{this->currentDocument()->commandStack()};
+            dispatcher.submitCommand(cmd);
         }
     }
+
 }
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
@@ -285,10 +287,7 @@ QAction* makeToolbarAction(const QString& name,
 
 ScenarioStateMachine& ScenarioControl::stateMachine() const
 {
-    //auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
-    //return static_cast<const TemporalScenarioPresenter*>(model.focusedPresenter())->stateMachine();
-    //auto &model = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-    //return static_cast<const TemporalScenarioViewModel *>(model.focusedViewModel())->stateMachine();
+    return focusedPresenter()->stateMachine();
 }
 
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
@@ -306,7 +305,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                      tr("Alt+x"));
     m_selecttool->setChecked(true);
     connect(m_selecttool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().changeTool(static_cast<int>(Tool::Select)); });
+    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Select)); });
 
     auto createtool = makeToolbarAction(
                           tr("Create"),
@@ -314,7 +313,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                           Tool::Create,
                           tr("Alt+c"));
     connect(createtool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().changeTool(static_cast<int>(Tool::Create)); });
+    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Create)); });
 
     auto movetool = makeToolbarAction(
                         tr("Move"),
@@ -322,7 +321,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                         Tool::Move,
                         tr("Alt+v"));
     connect(movetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().changeTool(static_cast<int>(Tool::Move)); } );
+    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Move)); } );
 
     auto deckmovetool = makeToolbarAction(
                             tr("Move Deck"),
@@ -330,7 +329,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                             Tool::MoveDeck,
                             tr("Alt+b"));
     connect(deckmovetool, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().changeTool(static_cast<int>(Tool::MoveDeck)); });
+    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::MoveDeck)); });
 
     // The action modes
     m_scenarioScaleModeActionGroup = new QActionGroup{bar};
@@ -343,7 +342,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                      tr("Alt+S"));
     scale->setChecked(true);
     connect(scale, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setScaleState(); });
+    { focusedPresenter()->stateMachine().setScaleState(); });
 
     auto grow = makeToolbarAction(
                     tr("Grow/Shrink"),
@@ -351,7 +350,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                     ExpandMode::Grow,
                     tr("Alt+D"));
     connect(grow, &QAction::triggered, [=]()
-    { if (focusedScenarioViewModel()) stateMachine().setGrowState(); });
+    { focusedPresenter()->stateMachine().setGrowState(); });
 
     auto verticalmove = makeToolbarAction(
                             tr("Vertical Move"),
@@ -360,12 +359,12 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
                             tr("Shift"));
     connect(verticalmove, &QAction::toggled, [=] ()
     {
-        if(focusedScenarioViewModel())
+        if(focusedPresenter())
         {
             if (verticalmove->isChecked())
-                stateMachine().shiftPressed();
+                focusedPresenter()->stateMachine().shiftPressed();
             else
-                stateMachine().shiftReleased();
+                focusedPresenter()->stateMachine().shiftReleased();
         }
     });
 
@@ -396,28 +395,30 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(const QStri
     return cmd;
 }
 
-void ScenarioControl::on_viewModelDefocused(const ProcessViewModel* pvm)
+void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 {
-    auto spvm = dynamic_cast<const TemporalScenarioViewModel*>(pvm);
+    auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
     // We set the currently focused view model to a "select" state
     // to prevent problems.
     // TODO do it on the presenter instead.
-    if(spvm && spvm->presenter())
+    if(s_pres)
     {
-        spvm->stateMachine().changeTool((int)Tool::Select);
+        s_pres->stateMachine().changeTool((int)Tool::Select);
     }
 }
 
 
-void ScenarioControl::on_viewModelFocused(const ProcessViewModel* pvm)
+void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 {
-    // Get the process viewmodel
-    auto spvm = dynamic_cast<const TemporalScenarioViewModel*>(pvm);
-    m_scenarioToolActionGroup->setEnabled(spvm );
-    m_scenarioScaleModeActionGroup->setEnabled(spvm );
-    if (spvm )
+    // Get the process presenter
+
+    auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
+    qDebug("ici");
+    m_scenarioToolActionGroup->setEnabled(s_pres);
+    m_scenarioScaleModeActionGroup->setEnabled(s_pres);
+    if (s_pres)
     {
-        connect(spvm ->presenter(), &TemporalScenarioPresenter::shiftPressed,
+        connect(s_pres, &TemporalScenarioPresenter::shiftPressed,
                 this, [&]()
         {
             for(QAction* action : m_scenarioScaleModeActionGroup->actions())
@@ -428,7 +429,7 @@ void ScenarioControl::on_viewModelFocused(const ProcessViewModel* pvm)
                 }
             }
         });
-        connect(spvm ->presenter(), &TemporalScenarioPresenter::shiftReleased,
+        connect(s_pres, &TemporalScenarioPresenter::shiftReleased,
                 this, [&]()
         {
             for(QAction* action : m_scenarioScaleModeActionGroup->actions())
@@ -450,7 +451,7 @@ void ScenarioControl::on_viewModelFocused(const ProcessViewModel* pvm)
         {
             if (action->isChecked())
             {
-                spvm ->stateMachine().changeTool(action->data().toInt());
+                s_pres->stateMachine().changeTool(action->data().toInt());
             }
         }
 
@@ -461,13 +462,13 @@ void ScenarioControl::on_viewModelFocused(const ProcessViewModel* pvm)
                 switch (action->data().toInt())
                 {
                     case ExpandMode::Scale:
-                        spvm ->stateMachine().setScaleState();
+                        s_pres->stateMachine().setScaleState();
                         break;
                     case ExpandMode::Grow:
-                        spvm ->stateMachine().setGrowState();
+                        s_pres->stateMachine().setGrowState();
                         break;
                     case ExpandMode::Fixed:
-                        spvm ->stateMachine().shiftPressed();
+                        s_pres->stateMachine().shiftPressed();
                         break;
 
                     default:
@@ -498,11 +499,11 @@ void ScenarioControl::on_documentChanged()
             return;
 
         m_focusConnection =
-                connect(focusManager, &ProcessFocusManager::sig_focusedViewModel,
-                        this, &ScenarioControl::on_viewModelFocused);
+                connect(focusManager, &ProcessFocusManager::sig_focusedPresenter,
+                        this, &ScenarioControl::on_presenterFocused);
         m_defocusConnection =
-                connect(focusManager, &ProcessFocusManager::sig_defocusedViewModel,
-                        this, &ScenarioControl::on_viewModelDefocused);
+                connect(focusManager, &ProcessFocusManager::sig_defocusedPresenter,
+                        this, &ScenarioControl::on_presenterDefocused);
 
 
         bool onScenario = dynamic_cast<const ScenarioModel*>(focusManager->focusedModel());
@@ -518,9 +519,9 @@ const ScenarioModel* ScenarioControl::focusedScenarioModel() const
     return dynamic_cast<const ScenarioModel*>(processFocusManager()->focusedModel());
 }
 
-const TemporalScenarioViewModel* ScenarioControl::focusedScenarioViewModel() const
+TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
 {
-    return dynamic_cast<const TemporalScenarioViewModel*>(processFocusManager()->focusedViewModel());
+    return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
 }
 
 #include <core/document/DocumentModel.hpp>
@@ -528,7 +529,7 @@ ProcessFocusManager* ScenarioControl::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {
-        auto bem = dynamic_cast<BaseElementModel*>(doc->model());
+        auto bem = dynamic_cast<BaseElementModel*>(doc->model()->modelDelegate());
         if(bem)
         {
             return &bem->focusManager();

@@ -13,39 +13,9 @@ const ProcessViewModel* ProcessFocusManager::focusedViewModel()
 }
 
 
-const ProcessPresenter* ProcessFocusManager::focusedPresenter()
+ProcessPresenter* ProcessFocusManager::focusedPresenter()
 {
     return m_currentPresenter;
-}
-
-
-void ProcessFocusManager::setFocusedModel(ProcessModel* m)
-{
-    m_currentPresenter = nullptr;
-
-    if(m_currentViewModel)
-    {
-        emit sig_defocusedViewModel(m_currentViewModel);
-        m_currentViewModel = nullptr;
-    }
-
-    m_currentModel = m;
-}
-
-
-void ProcessFocusManager::setFocusedViewModel(ProcessViewModel* vm)
-{
-    if(vm == m_currentViewModel)
-        return;
-
-    if(m_currentViewModel)
-        emit sig_defocusedViewModel(m_currentViewModel);
-
-    m_currentPresenter = nullptr;
-    m_currentModel = &vm->sharedProcessModel();
-    m_currentViewModel = vm;
-
-    emit sig_focusedViewModel(m_currentViewModel);
 }
 
 
@@ -54,14 +24,37 @@ void ProcessFocusManager::setFocusedPresenter(ProcessPresenter* p)
     if(p == m_currentPresenter)
         return;
 
-    m_currentPresenter = p;
-    m_currentViewModel = &p->viewModel();
-    m_currentModel = &p->viewModel().sharedProcessModel();
+    if(m_currentPresenter)
+        emit sig_defocusedPresenter(m_currentPresenter);
+    if(m_currentViewModel)
+        emit sig_defocusedViewModel(m_currentViewModel);
 
+    m_currentPresenter = p;
+
+    if(m_currentPresenter)
+    {
+        m_currentViewModel = &m_currentPresenter->viewModel();
+        m_currentModel = &m_currentViewModel->sharedProcessModel();
+
+        emit sig_focusedViewModel(m_currentViewModel);
+        emit sig_focusedPresenter(m_currentPresenter);
+    }
+    else
+    {
+        m_currentViewModel = nullptr;
+        m_currentModel = nullptr;
+    }
 }
 
 
 void ProcessFocusManager::focusNothing()
 {
+    if(m_currentViewModel)
+        emit sig_defocusedViewModel(m_currentViewModel);
+    if(m_currentPresenter)
+        emit sig_defocusedPresenter(m_currentPresenter);
 
+    m_currentModel = nullptr;
+    m_currentViewModel = nullptr;
+    m_currentPresenter = nullptr;
 }

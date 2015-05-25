@@ -6,7 +6,7 @@
 class QActionGroup;
 class ScenarioModel;
 class ScenarioStateMachine;
-class TemporalScenarioViewModel;
+class TemporalScenarioPresenter;
 class ScenarioControl : public iscore::PluginControlInterface
 {
     public:
@@ -39,12 +39,10 @@ class ScenarioControl : public iscore::PluginControlInterface
 
         QAction* m_selecttool{};
 
-        QPointer<const TemporalScenarioViewModel> m_lastViewModel;
-
         const ScenarioModel* focusedScenarioModel() const;
-        const TemporalScenarioViewModel* focusedScenarioViewModel() const;
+        TemporalScenarioPresenter* focusedPresenter() const;
 
         ProcessFocusManager* processFocusManager() const;
-        void on_viewModelFocused(const ProcessViewModel* pvm);
-        void on_viewModelDefocused(const ProcessViewModel* pvm);
+        void on_presenterFocused(ProcessPresenter* pvm);
+        void on_presenterDefocused(ProcessPresenter* pvm);
 };

@@ -16,6 +16,8 @@
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Box/BoxPresenter.hpp"
+#include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -53,13 +55,15 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
-    m_mainTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
-    m_localTimeRuler->setDuration(model()->constraintModel()->defaultDuration());
+    m_mainTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
+    m_localTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
 
-    setDisplayedConstraint(model()->constraintModel());
+    setDisplayedConstraint(model()->baseConstraint());
 
     connect(model(), &BaseElementModel::focusMe,
             this, [&] () { view()->view()->setFocus(); });
+
+    model()->focusManager().setFocusedPresenter(m_displayedConstraintPresenter->box()->decks().front()->processes().front().first);
 }
 
 const ConstraintModel* BaseElementPresenter::displayedConstraint() const
@@ -103,11 +107,11 @@ void BaseElementPresenter::setDisplayedConstraint(const ConstraintModel* c)
         on_displayedConstraintChanged();
 
         disconnect(m_fullViewConnection);
-        if(c != model()->constraintModel())
+        if(c != model()->baseConstraint())
         {
             m_fullViewConnection =
                     connect(c, &QObject::destroyed,
-                            this, [&] () { setDisplayedConstraint(model()->constraintModel()); });
+                            this, [&] () { setDisplayedConstraint(model()->baseConstraint()); });
         }
     }
 }

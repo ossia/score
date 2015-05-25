@@ -38,11 +38,14 @@ BaseElementModel::BaseElementModel(QObject* parent) :
 
     initializeNewDocument(m_baseConstraint->fullView());
 
+    // Help for the FocusDispatcher.
+    connect(this, &BaseElementModel::setFocusedPresenter,
+            &m_focusManager, &ProcessFocusManager::setFocusedPresenter);
+
     connect(&m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
             this, &BaseElementModel::on_viewModelDefocused);
     connect(&m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
             this, &BaseElementModel::on_viewModelFocused);
-    // TODO make this call in the presenter ctor: getFocusManager().setFocusedViewModel(m_baseConstraint->boxes().front()->decks().front()->processViewModels().front());
 }
 
 void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *viewmodel)

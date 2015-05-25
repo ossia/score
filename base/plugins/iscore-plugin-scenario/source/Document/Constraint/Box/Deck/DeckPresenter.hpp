@@ -37,6 +37,9 @@ class DeckPresenter : public NamedObject
         void enable();
         void disable();
 
+        using ProcessPair = QPair<ProcessPresenter*, ProcessView*>;
+        const QVector<ProcessPair>& processes() const { return m_processes; }
+
     signals:
         void askUpdate();
 
@@ -61,7 +64,6 @@ class DeckPresenter : public NamedObject
 
         const DeckModel& m_model;
         DeckView* m_view{};
-        using ProcessPair = QPair<ProcessPresenter*, ProcessView*>;
         QVector<ProcessPair> m_processes;
 
         // Maybe move this out of the state of the presenter ?

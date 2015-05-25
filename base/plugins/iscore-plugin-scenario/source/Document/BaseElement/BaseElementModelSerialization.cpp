@@ -38,12 +38,12 @@ void BaseElementModel::serialize(const VisitorVariant& vis) const
     {
         auto& ser = static_cast<DataStream::Serializer&>(vis.visitor);
         ser.readFrom(this->id());
-        ser.readFrom(*constraintModel());
+        ser.readFrom(*baseConstraint());
     }
     else if(vis.identifier == JSONObject::type())
     {
         auto& ser = static_cast<JSONObject::Serializer&>(vis.visitor);
         ser.m_obj["id"] = toJsonValue(this->id());
-        ser.m_obj["Constraint"] = toJsonObject(*constraintModel());
+        ser.m_obj["Constraint"] = toJsonObject(*baseConstraint());
     }
 }

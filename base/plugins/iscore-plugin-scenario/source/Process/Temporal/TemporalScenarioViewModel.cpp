@@ -8,20 +8,6 @@
 #include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
 #include "StateMachines/ScenarioStateMachine.hpp"
 #include "TemporalScenarioPresenter.hpp"
-void TemporalScenarioViewModel::setPresenter(TemporalScenarioPresenter *p) const
-{
-    m_presenter = p;
-}
-
-ScenarioStateMachine& TemporalScenarioViewModel::stateMachine() const
-{
-    return m_presenter->stateMachine();
-}
-
-TemporalScenarioPresenter* TemporalScenarioViewModel::presenter() const
-{
-    return m_presenter.data();
-}
 
 TemporalScenarioViewModel::TemporalScenarioViewModel(
         const id_type<ProcessViewModel>& viewModelId,

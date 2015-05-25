@@ -99,7 +99,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
             delete m_executor;
         }
 
-        m_executor = new Executor(*bem.constraintModel());
+        m_executor = new Executor(*bem.baseConstraint());
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,

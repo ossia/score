@@ -15,17 +15,7 @@ class ScenarioStateMachine;
 class TemporalScenarioViewModel : public AbstractScenarioViewModel
 {
         Q_OBJECT
-
-        // TODO UGLYY
-        friend class ScenarioFactory;
-        mutable QPointer<TemporalScenarioPresenter> m_presenter;
-        void setPresenter(TemporalScenarioPresenter* p) const;
-
     public:
-        // TODO to abstract
-        ScenarioStateMachine &stateMachine() const;
-        TemporalScenarioPresenter *presenter() const;
-
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
 

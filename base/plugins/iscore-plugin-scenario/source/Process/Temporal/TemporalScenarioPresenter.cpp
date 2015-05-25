@@ -71,7 +71,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(m_view, &TemporalScenarioView::scenarioPressed,
             this, [&] (const QPointF&)
     {
-        m_focusDispatcher.focus(&m_viewModel);
+        m_focusDispatcher.focus(this);
     });
 
     connect(m_view, &TemporalScenarioView::shiftPressed,

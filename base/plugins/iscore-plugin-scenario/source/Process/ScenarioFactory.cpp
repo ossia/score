@@ -29,7 +29,6 @@ ScenarioFactory::makePresenter(
     if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&pvm))
     {
         auto pres = new TemporalScenarioPresenter {*vm, view, parent};
-        vm->setPresenter(pres);
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
     }
