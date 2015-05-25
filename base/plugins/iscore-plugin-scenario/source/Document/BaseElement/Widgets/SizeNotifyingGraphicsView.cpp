@@ -3,15 +3,14 @@
 SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+    setAlignment(Qt::AlignTop | Qt::AlignLeft);
     setCacheMode(QGraphicsView::CacheBackground);
+
     m_graduations = new SceneGraduations{this};
     scene()->addItem(m_graduations);
-    /*
-            setViewport(new QOpenGLWidget);
-            //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-            setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-            setAlignment(Qt::AlignTop | Qt::AlignLeft);
-            */
+
     m_bg =  qApp->palette("ScenarioPalette").background();
     m_graduations->setColor(m_bg.color().lighter());
     this->setBackgroundBrush(m_bg);

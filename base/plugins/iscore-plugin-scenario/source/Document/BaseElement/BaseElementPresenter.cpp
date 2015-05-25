@@ -249,7 +249,7 @@ void BaseElementPresenter::updateGrid()
     view()->view()->setGrid(std::move(grid));
 }
 
-void BaseElementPresenter::updateRect(QRectF rect)
+void BaseElementPresenter::updateRect(const QRectF& rect)
 {
     view()->view()->setSceneRect(rect);
     QRectF other{view()->rulerView()->sceneRect()};

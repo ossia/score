@@ -65,7 +65,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void updateGrid();
 
-        void updateRect(QRectF rect);
+        void updateRect(const QRectF& rect);
 
     private:
         BaseElementView* view() const;

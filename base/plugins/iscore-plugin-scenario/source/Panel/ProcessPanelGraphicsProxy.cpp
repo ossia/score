@@ -2,11 +2,15 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include "ProcessPanelPresenter.hpp"
 #include <QPainter>
+
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const ProcessViewModel& pvm,
                                                      const ProcessPanelPresenter& pres):
     m_pvm{pvm},
     m_pres{pres}
 {
+    QColor col = Qt::darkGray;
+    col.setAlphaF(0.7);
+    m_bgBrush = col;
 
 }
 
@@ -20,14 +24,8 @@ void ProcessPanelGraphicsProxy::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-
-    //painter->fillRect(rect, qApp->palette("ScenarioPalette").background());
-    painter->setBrush(Qt::darkGray);
+    painter->setBrush(QColor::fromRgba(qRgba(0, 127, 229, 76)));
     painter->drawRect(boundingRect());
-
-    painter->setBrush(Qt::red);
-    auto processWidth = m_pvm.sharedProcessModel().duration().msec() / m_pres.zoomRatio();
-    painter->drawRect(processWidth, 0, boundingRect().width() - processWidth, boundingRect().height());
 }
 
 void ProcessPanelGraphicsProxy::setSize(const QSizeF& size)

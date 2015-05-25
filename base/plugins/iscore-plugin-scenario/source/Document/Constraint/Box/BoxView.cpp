@@ -27,7 +27,7 @@ void BoxView::paint(QPainter* painter,
                     const QStyleOptionGraphicsItem* option,
                     QWidget* widget)
 {
-    painter->setBrush(QColor::fromRgba(qRgba(0,127,229, 76)));
+    painter->setBrush(QColor::fromRgba(qRgba(0, 127, 229, 76)));
     painter->setPen(Qt::white);
     painter->drawRect(boundingRect());
 

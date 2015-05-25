@@ -2,26 +2,31 @@
 #include <QHBoxLayout>
 #include <QGraphicsScene>
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
-
+#include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 ProcessPanelView::ProcessPanelView(QObject* parent):
     iscore::PanelView{parent}
 {
     m_widget = new QWidget;
     m_scene = new QGraphicsScene(this);
 
-    m_widget->setLayout(new QHBoxLayout);
+    m_widget->setLayout(new QVBoxLayout);
     m_view = new SizeNotifyingGraphicsView{m_scene};
+
     m_widget->layout()->addWidget(m_view);
-    m_view->show();
 
-    m_scene->setBackgroundBrush(QBrush{m_widget->palette().dark() });
-    m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    m_view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+    //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(m_view, &SizeNotifyingGraphicsView::sizeChanged,
             this,   &ProcessPanelView::sizeChanged);
 
+
+    m_zoomSlider = new DoubleSlider{m_widget};
+    m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
+
+    connect(m_zoomSlider, &DoubleSlider::valueChanged,
+            this,         &ProcessPanelView::horizontalZoomChanged);
+    m_widget->layout()->addWidget(m_zoomSlider);
+    m_view->show();
 }
 
 QWidget* ProcessPanelView::getWidget()

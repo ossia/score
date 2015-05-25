@@ -23,6 +23,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenter
     private slots:
         void on_focusedViewModelChanged(const ProcessViewModel*);
         void on_sizeChanged(const QSize& size);
+        void on_zoomChanged(ZoomRatio ratio);
 
     private:
         void cleanup();

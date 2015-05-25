@@ -4,6 +4,7 @@
 class QGraphicsScene;
 class QGraphicsView;
 class SizeNotifyingGraphicsView;
+class DoubleSlider;
 class ProcessPanelView : public iscore::PanelView
 {
         Q_OBJECT
@@ -18,11 +19,16 @@ class ProcessPanelView : public iscore::PanelView
         QGraphicsScene* scene() const;
         SizeNotifyingGraphicsView* view() const;
 
+        DoubleSlider* zoomSlider() const
+        { return m_zoomSlider; }
+
     signals:
         void sizeChanged(const QSize&);
+        void horizontalZoomChanged(double d);
 
     private:
-        QWidget* m_widget;
+        QWidget* m_widget{};
         QGraphicsScene* m_scene{};
         SizeNotifyingGraphicsView* m_view{};
+        DoubleSlider* m_zoomSlider{};
 };
