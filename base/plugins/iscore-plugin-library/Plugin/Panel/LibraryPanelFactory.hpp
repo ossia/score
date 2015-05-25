@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/panel/PanelFactory.hpp>
 
-class InspectorPanelFactory : public iscore::PanelFactory
+class LibraryPanelFactory : public iscore::PanelFactory
 {
     public:
         int panelId() const override;

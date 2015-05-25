@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.0)
+project(iscore_plugin_library)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+# Packages
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
+
+file(GLOB_RECURSE PLUGIN_SRCS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.cpp")
+
+add_library(iscore_plugin_library ${PLUGIN_SRCS})
+
+target_link_libraries(iscore_plugin_library Qt5::Core Qt5::Widgets iscore_lib_base)
+if(USE_COTIRE)
+        cotire(iscore_plugin_library)
+endif()
+install(TARGETS iscore_plugin_library
+        LIBRARY DESTINATION plugins/
+        ARCHIVE DESTINATION static_plugins/)
