@@ -4,9 +4,7 @@
 #include <QPainter>
 
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const ProcessViewModel& pvm,
-                                                     const ProcessPanelPresenter& pres):
-    m_pvm{pvm},
-    m_pres{pres}
+                                                     const ProcessPanelPresenter& pres)
 {
     QColor col = Qt::darkGray;
     col.setAlphaF(0.7);
