@@ -328,7 +328,8 @@ class SingleOngoingCommandDispatcher
 
         void commit()
         {
-            SendStrategy::Simple::send(stack(), m_cmd);
+            if(m_cmd)
+                SendStrategy::Simple::send(stack(), m_cmd);
             m_cmd = nullptr;
         }
 

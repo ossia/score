@@ -5,6 +5,7 @@ MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     OSSIADevice{settings}
 {
     using namespace OSSIA;
+
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
     Minuit minuitDeviceParameters{stgs.host.toStdString(),
                                   stgs.inPort,
@@ -109,9 +110,9 @@ Node* OssiaToDeviceExplorer(const OSSIA::Node& node)
     n->setAddressSettings(extractAddressSettings(node));
 
     // 2. Recurse on the children
-    for(auto it = node.cbegin(); it < node.cend(); ++it)
+    for(const auto& ossia_child : node.children())
     {
-        n->addChild(OssiaToDeviceExplorer(*it));
+        n->addChild(OssiaToDeviceExplorer(*ossia_child.get()));
     }
 
     return n;
@@ -130,9 +131,9 @@ Node MinuitDevice::refresh()
         device.setAddressSettings(extractAddressSettings(*m_dev.get()));
 
         // Recurse on the children
-        for(auto it = m_dev->cbegin(); it < m_dev->cend(); ++it)
+        for(const auto& node : m_dev->children())
         {
-            device.addChild(OssiaToDeviceExplorer(*it));
+            device.addChild(OssiaToDeviceExplorer(*node.get()));
         }
     }
 

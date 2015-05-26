@@ -19,6 +19,8 @@ class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
 
+class BaseElementStateMachine;
+
 /**
  * @brief The BaseElementPresenter class
  *
@@ -37,12 +39,19 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         const ConstraintModel* displayedConstraint() const;
         BaseElementModel* model() const;
+        BaseElementView* view() const;
 
         // The height in pixels of the displayed constraint with its box.
         double height() const;
+
+    signals:
+        void displayedConstraintPressed(const QPointF&);
+        void displayedConstraintMoved(const QPointF&);
+        void displayedConstraintReleased(const QPointF&);
+
     public slots:
         void setDisplayedConstraint(const ConstraintModel*);
-        void setDisplayedObject(ObjectPath);
+        void setDisplayedObject(const ObjectPath&);
 
         void on_askUpdate();
 
@@ -51,16 +60,14 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void on_displayedConstraintChanged();
 
-        void setProgressBarTime(TimeValue t);
-
-        void setMillisPerPixel(double newFactor);
+        void setProgressBarTime(const TimeValue &t);
+        void setMillisPerPixel(ZoomRatio newFactor);
 
         void on_newSelection(Selection);
 
     private slots:
-        // Value : the number of milliseconds per pixels
         void on_zoomSliderChanged(double);
-        void on_viewSizeChanged(QSize s);
+        void on_viewSizeChanged(const QSize& s);
         void on_horizontalPositionChanged(int dx);
 
         void updateGrid();
@@ -68,19 +75,21 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void updateRect(const QRectF& rect);
 
     private:
-        BaseElementView* view() const;
-        FullViewConstraintPresenter* m_displayedConstraintPresenter {};
+        FullViewConstraintPresenter* m_displayedConstraintPresenter{};
+        const ConstraintModel* m_displayedConstraint{};
 
-        const ConstraintModel* m_displayedConstraint {};
         iscore::SelectionDispatcher m_selectionDispatcher;
 
-        ProgressBar* m_progressBar{};
+        // State machine
+        BaseElementStateMachine* m_stateMachine{};
 
+        // Various widgets
+        ProgressBar* m_progressBar{};
         TimeRulerPresenter* m_mainTimeRuler{};
         LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
-        double m_millisecondsPerPixel{0.03};
+        ZoomRatio m_millisecondsPerPixel{0.03};
 
         QMetaObject::Connection m_fullViewConnection;
 };

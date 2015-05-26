@@ -13,7 +13,7 @@
 
 FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,
-        QGraphicsObject *parentobject,
+        QGraphicsItem*parentobject,
         QObject* parent) :
     AbstractConstraintPresenter {"FullViewConstraintPresenter",
                                  cstr_model,
@@ -28,8 +28,8 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 
     updateHeight();
 
-    connect(::view(this), &FullViewConstraintView::fullViewPressed,
-            this,      &FullViewConstraintPresenter::on_pressed);
+    connect(this, &AbstractConstraintPresenter::pressed,
+            this, &FullViewConstraintPresenter::on_pressed);
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
@@ -47,7 +47,7 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
     }
 }
 
-void FullViewConstraintPresenter::on_pressed()
+void FullViewConstraintPresenter::on_pressed(const QPointF&)
 {
     m_selectionDispatcher.setAndCommit({&this->model()});
 }

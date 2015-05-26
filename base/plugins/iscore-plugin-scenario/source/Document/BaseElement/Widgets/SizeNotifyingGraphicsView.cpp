@@ -1,5 +1,5 @@
 #include "SizeNotifyingGraphicsView.hpp"
-
+#include <QDebug>
 SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {

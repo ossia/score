@@ -5,8 +5,6 @@
 class ProcessPanelPresenter;
 class ProcessPanelGraphicsProxy : public QGraphicsObject
 {
-        const ProcessViewModel& m_pvm;
-        const ProcessPanelPresenter& m_pres;
         QSizeF m_size;
         QBrush m_bgBrush;
 

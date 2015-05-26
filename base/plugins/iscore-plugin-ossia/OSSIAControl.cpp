@@ -8,9 +8,13 @@
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
 #include <API/Headers/Editor/ExpressionValue.h>
+
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
+    using namespace OSSIA;
+    Local localDevice;
+    m_localDevice = Device::create(localDevice, "ALocalDevice");
     // Two parts :
     // One that maintains the devices for each document
     // (and disconnects / reconnects them when the current document changes)

@@ -2,6 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include "Widgets/SizeNotifyingGraphicsView.hpp"
+#include "Widgets/GraphicsProxyObject.hpp"
 class QSlider;
 class QGraphicsScene;
 class QGraphicsView;
@@ -10,7 +11,6 @@ class AddressBar;
 class DoubleSlider;
 class TimeRulerView;
 class LocalTimeRulerView;
-class QGraphicsObject;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -22,7 +22,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
 
         virtual QWidget* getWidget();
 
-        QGraphicsObject* baseObject()
+        QGraphicsItem* baseItem()
             { return m_baseObject;}
 
         void update();
@@ -59,7 +59,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
         SizeNotifyingGraphicsView* m_view {};
-        QGraphicsObject* m_baseObject {};
+        GraphicsProxyObject* m_baseObject {};
         AddressBar* m_addressBar {};
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};

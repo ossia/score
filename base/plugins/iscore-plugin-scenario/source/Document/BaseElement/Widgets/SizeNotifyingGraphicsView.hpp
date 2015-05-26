@@ -6,6 +6,7 @@
 #include <QOpenGLWidget>
 #include <QApplication>
 #include <QGraphicsItem>
+#include <QDebug>
 #include "SceneGraduations.hpp"
 
 class SizeNotifyingGraphicsView : public QGraphicsView

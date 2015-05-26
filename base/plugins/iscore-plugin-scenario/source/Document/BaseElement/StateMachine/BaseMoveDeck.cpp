@@ -24,7 +24,6 @@ BaseMoveDeck::BaseMoveDeck(
     m_ongoingDispatcher{stack},
     m_scene{scene}
 {
-
     /// 2. Setup the sub-state machine.
     m_waitState = new QState{&m_localSM};
     m_localSM.setInitialState(m_waitState);
@@ -53,7 +52,7 @@ BaseMoveDeck::BaseMoveDeck(
     // 3. Map the external events to internal transitions of this state machine.
     auto on_press = new Press_Transition;
     this->addTransition(on_press);
-    connect(on_press, &QAbstractTransition::triggered, [&] ()
+    connect(on_press, &QAbstractTransition::triggered, this, [&] ()
     {
         auto item = m_scene.itemAt(m_sm.scenePoint, QTransform());
         if(auto overlay = dynamic_cast<DeckOverlay*>(item))
@@ -78,4 +77,6 @@ BaseMoveDeck::BaseMoveDeck(
     this->addTransition(on_release);
     connect(on_release, &QAbstractTransition::triggered, [&] ()
     { m_localSM.postEvent(new Release_Event); });
+
+    m_localSM.start();
 }

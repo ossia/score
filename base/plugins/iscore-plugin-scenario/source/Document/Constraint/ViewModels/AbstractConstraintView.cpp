@@ -1,6 +1,8 @@
 #include "AbstractConstraintView.hpp"
 #include "AbstractConstraintPresenter.hpp"
-AbstractConstraintView::AbstractConstraintView(AbstractConstraintPresenter& presenter, QGraphicsObject* parent) :
+AbstractConstraintView::AbstractConstraintView(
+        AbstractConstraintPresenter& presenter,
+        QGraphicsItem *parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
 {

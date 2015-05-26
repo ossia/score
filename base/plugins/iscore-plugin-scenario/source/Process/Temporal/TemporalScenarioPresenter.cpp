@@ -28,7 +28,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         QObject* parent) :
     ProcessPresenter {"TemporalScenarioPresenter", parent},
     m_viewModel {process_view_model},
-    m_view {static_cast<TemporalScenarioView*>(view) },
+    m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
     m_sm{*this},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())}
@@ -260,20 +260,19 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
                            this};
     m_events.push_back(ev_pres);
 
-    ev_pres
-            ->view()
-            ->setPos({rect.x() + event_model.date().toPixels(m_zoomRatio),
-                      rect.y() + rect.height() * event_model.heightPercentage() });
+    ev_pres->view()
+           ->setPos({rect.x() + event_model.date().toPixels(m_zoomRatio),
+                     rect.y() + rect.height() * event_model.heightPercentage() });
 
     connect(ev_pres, &EventPresenter::heightPercentageChanged,
             this, [=] ()
     {
         auto rect = m_view->boundingRect();
         ev_pres->view()
-             ->setPos({rect.x() + ev_pres->model().date().toPixels(m_zoomRatio),
-                       rect.y() + rect.height() * ev_pres->model().heightPercentage() });
+               ->setPos({rect.x() + ev_pres->model().date().toPixels(m_zoomRatio),
+                         rect.y() + rect.height() * ev_pres->model().heightPercentage() });
 
-      m_viewInterface->updateTimeNode(ev_pres->model().timeNode());
+        m_viewInterface->updateTimeNode(ev_pres->model().timeNode());
     });
 
     connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);

@@ -29,6 +29,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
         parentNode =  nodePath.toNode(explorer.rootNode())->parent();
     }
     m_parentNodePath = Path{parentNode};
+    // TODO prevent add sibling on device
 }
 
 void AddAddress::undo()
