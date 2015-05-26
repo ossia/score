@@ -1,14 +1,13 @@
 #include "MoveDeckToolState.hpp"
-#include "Commands/Constraint/Box/MoveDeck.hpp"
-#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
-#include "Document/Constraint/Box/Deck/DeckView.hpp"
-#include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
-#include "Document/Constraint/Box/Deck/DeckHandle.hpp"
+#include "States/DeckStates.hpp"
+
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
+#include "Document/Constraint/Box/Deck/DeckView.hpp"
+#include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 
-#include "Commands/Constraint/Box/SwapDecks.hpp"
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
 #include <QFinalState>
@@ -42,100 +41,28 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     m_waitState = new QState{&m_localSM};
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the deck, one for resizing with the handle.
-
-    // Press, move, commit, rollback.. As usual.
     {
-        auto dragDeck = new DeckState{&m_localSM};
-        {
-            // Enter the state
-            make_transition<ClickOnDeckOverlay_Transition>(
-                        m_waitState,
-                        dragDeck,
-                        *dragDeck);
+        auto dragDeck = new DragDeckState{m_dispatcher, m_sm, *m_sm.presenter().view().scene(), &m_localSM};
+        // Enter the state
+        make_transition<ClickOnDeckOverlay_Transition>(
+                    m_waitState,
+                    dragDeck,
+                    *dragDeck);
 
-            // States :
-            auto press = new QState{dragDeck};
-            dragDeck->setInitialState(press);
-            auto move = new QState{dragDeck};
-            auto release = new QFinalState{dragDeck};
-
-            make_transition<Move_Transition>(press, move);
-            make_transition<Release_Transition>(press, release);
-            make_transition<Release_Transition>(move, release);
-
-            connect(release, &QAbstractState::entered, [=] ( )
-            {
-                auto overlay = dynamic_cast<DeckOverlay*>(m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform()));
-                if(overlay)
-                {
-                    auto& baseDeck = dragDeck->currentDeck.find<DeckModel>();
-                    auto& releasedDeck = overlay->deckView.presenter.model();
-                    // If it is the same, we do nothing.
-                    // If it is another, we swap them
-                    if(releasedDeck.id() != baseDeck.id()
-                    && releasedDeck.parent() == baseDeck.parent())
-                    {
-                        auto cmd = new Scenario::Command::SwapDecks{
-                                       iscore::IDocument::path(releasedDeck.parent()), // Box
-                                       baseDeck.id(), releasedDeck.id()};
-                        m_dispatcher.submitCommand(cmd);
-                    }
-                }
-                else
-                {
-                    // We throw it
-                    auto cmd = new Scenario::Command::RemoveDeckFromBox(ObjectPath{dragDeck->currentDeck});
-                    m_dispatcher.submitCommand(cmd);
-                    return;
-                }
-            });
-        }
         dragDeck->addTransition(dragDeck, SIGNAL(finished()), m_waitState);
     }
 
     {
-        auto resizeDeck = new DeckState{&m_localSM};
-        {
-            make_transition<ClickOnDeckHandle_Transition>(
-                        m_waitState,
-                        resizeDeck,
-                        *resizeDeck);
+        auto resizeDeck = new ResizeDeckState{m_ongoingDispatcher, m_sm, &m_localSM};
+        make_transition<ClickOnDeckHandle_Transition>(
+                    m_waitState,
+                    resizeDeck,
+                    *resizeDeck);
 
-            auto press = new QState{resizeDeck};
-            resizeDeck->setInitialState(press);
-            auto move = new QState{resizeDeck};
-            auto release = new QFinalState{resizeDeck};
-
-            make_transition<Move_Transition>(press, move);
-            make_transition<Move_Transition>(move, move);
-            make_transition<Release_Transition>(press, release);
-            make_transition<Release_Transition>(move, release);
-
-            connect(press, &QAbstractState::entered, [=] ()
-            {
-                m_originalPoint = m_sm.scenePoint;
-                m_originalHeight = resizeDeck->currentDeck.find<DeckModel>().height();
-            });
-
-            connect(move, &QAbstractState::entered, [=] ( )
-            {
-                auto val = std::max(20.0,
-                                    m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
-
-                m_ongoingDispatcher.submitCommand<Scenario::Command::ResizeDeckVertically>(
-                            ObjectPath{resizeDeck->currentDeck},
-                            val);
-                return;
-            });
-
-            connect(release, &QAbstractState::entered, [=] ()
-            {
-                m_ongoingDispatcher.commit();
-            });
-        }
         resizeDeck->addTransition(resizeDeck, SIGNAL(finished()), m_waitState);
     }
 
+    // 3. Map the external events to internal transitions of this state machine.
     auto on_press = new Press_Transition;
     this->addTransition(on_press);
     connect(on_press, &QAbstractTransition::triggered, [&] ()
@@ -152,7 +79,6 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
             m_localSM.postEvent(new ClickOnDeckHandle_Event{
                                     iscore::IDocument::path(handle->deckView.presenter.model()),
                                     m_sm.scenarioPoint});
-
         }
     });
 

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"

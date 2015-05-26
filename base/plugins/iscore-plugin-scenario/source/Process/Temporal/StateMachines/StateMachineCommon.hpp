@@ -7,6 +7,8 @@
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
+#include <QPointF>
+#include <iscore/tools/ObjectPath.hpp>
 
 // TODO optimize this when we have all the tools
 class CommonScenarioState : public QState
@@ -229,10 +231,11 @@ class DeckState : public QState
             QState{parent}
         { }
 
-
-
         ObjectPath currentDeck;
         ScenarioPoint currentPoint;
+
+        QPointF m_originalPoint;
+        double m_originalHeight{};
 };
 
 class ClickOnDeckOverlay_Transition : public MatchedTransition<ClickOnDeckOverlay_Event>
