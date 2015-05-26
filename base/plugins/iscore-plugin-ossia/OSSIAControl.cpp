@@ -22,6 +22,4 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
-
-    // TODO create the local device here.
 }

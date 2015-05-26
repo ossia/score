@@ -3,13 +3,9 @@
 MIDIDevice::MIDIDevice(const DeviceSettings &settings):
     OSSIADevice{settings}
 {
-
     using namespace OSSIA;
     auto stgs = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
     Midi parameters;
 
     m_dev = Device::create(parameters, settings.name.toStdString());
-    //using namespace OSSIA;
-    //MIDI MIDIDeviceParameters{settings.host, settings.inputPort, settings.outputPort};
-
 }
