@@ -93,7 +93,6 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const ProcessViewModel* t
         // Have a zoom here too. For now the process should be the size of the window.
         on_sizeChanged(panelview->view()->size());
 
-        auto msec = m_processViewModel->sharedProcessModel().duration().msec();
         on_zoomChanged(0.03);
     }
 }
