@@ -1006,8 +1006,8 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
 
 namespace
 {
-    const QString MimeTypeDevice = "application/DeviceExplorer.device.z";
-    const QString MimeTypeAddress = "application/DeviceExplorer.address.z";
+const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
+const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
 
     const int compressionLevel = 6; //[0:no comrpession/fast ; 9:high compression/slow], -1: default zlib compression
 }
@@ -1039,7 +1039,7 @@ DeviceExplorerModel::supportedDragActions() const
 QStringList
 DeviceExplorerModel::mimeTypes() const
 {
-    return QStringList() << MimeTypeDevice << MimeTypeAddress; //TODO: add an xml MimeType to support drop of namespace XML file ?
+    return {MimeTypeDevice, MimeTypeAddress}; //TODO: add an xml MimeType to support drop of namespace XML file ?
 }
 
 //method called when a drag is initiated
@@ -1241,6 +1241,7 @@ DeviceExplorerModel::getTreeData(const QModelIndex& index, QByteArray& dataC) co
 
     if(n)
     {
+        // TODO save in JSON instead.
         QByteArray data;
         QDataStream stream(&data, QIODevice::WriteOnly);
         BinaryWriter bw(stream);

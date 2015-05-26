@@ -11,22 +11,8 @@ LibraryWidget::LibraryWidget(QWidget* parent):
     this->setLayout(lay);
 
     lay->addWidget(&m_tbl);
-
-
-}
-
-void LibraryWidget::setLibrary(JSONLibrary* lib)
-{
-    m_model.clear();
-    m_model.setHorizontalHeaderLabels({tr("Name"), tr("Tags")});
-    for(auto& element : lib->elements)
-    {
-        auto first = new QStandardItem(element.name);
-        first->setSelectable(false);
-        auto second = new QStandardItem(element.tags.join(", "));
-        second->setSelectable(false);
-
-        m_model.appendRow({first, second});
-    }
-    m_tbl.setModel(&m_model);
+    m_tbl.setModel(new JSONModel);
+    m_tbl.setDragEnabled(true);
+    m_tbl.setAcceptDrops(true);
+    m_tbl.setDropIndicatorShown(true);
 }

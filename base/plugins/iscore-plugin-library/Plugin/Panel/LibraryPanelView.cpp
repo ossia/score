@@ -9,9 +9,6 @@ LibraryPanelView::LibraryPanelView(iscore::View* parent):
     m_widget{new QTabWidget}
 {
     auto projectLib = new LibraryWidget{m_widget};
-    auto thelib = new JSONLibrary;
-    thelib->elements.append(LibraryElement{"dada", {"da di do", "yada"}, {}});
-    projectLib->setLibrary(thelib);
     m_widget->addTab(projectLib, tr("Project"));
 
     auto systemLib = new LibraryWidget{m_widget};
