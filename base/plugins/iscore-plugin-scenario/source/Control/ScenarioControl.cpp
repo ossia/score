@@ -12,6 +12,8 @@
 
 #include "Control/OldFormatConversion.hpp"
 
+#include <core/document/DocumentModel.hpp>
+
 #include <QToolBar>
 #include <QFile>
 #include <QFileDialog>
@@ -53,7 +55,7 @@ auto arrayToJson(Selected_T &&selected)
     QJsonArray array;
     if (!selected.empty())
     {
-        for (auto &element : selected)
+        for (const auto &element : selected)
         {
             Visitor<Reader<JSONObject>> jr;
             jr.readFrom(*element);
@@ -397,11 +399,11 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(const QStri
 
 void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 {
-    auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-    // TODO do it on the presenter instead.
-    if(s_pres)
+    m_scenarioToolActionGroup->setEnabled(false);
+    m_scenarioScaleModeActionGroup->setEnabled(false);
+    if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
         s_pres->stateMachine().changeTool((int)Tool::Select);
     }
@@ -522,7 +524,6 @@ TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
 }
 
-#include <core/document/DocumentModel.hpp>
 ProcessFocusManager* ScenarioControl::processFocusManager() const
 {
     if(auto doc = currentDocument())
