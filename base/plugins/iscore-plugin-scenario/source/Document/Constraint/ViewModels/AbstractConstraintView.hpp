@@ -13,7 +13,7 @@ class AbstractConstraintView : public QGraphicsObject
 
     public:
         AbstractConstraintView(AbstractConstraintPresenter& presenter,
-                               QGraphicsObject* parent);
+                               QGraphicsItem* parent);
 
         int type() const override
         { return QGraphicsItem::UserType + 2; }

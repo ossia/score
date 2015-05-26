@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <QPen>
 class DeckView;
 class DeckHandle : public QGraphicsItem
 {
@@ -22,4 +23,5 @@ class DeckHandle : public QGraphicsItem
 
     private:
         qreal m_width {};
+        QPen m_pen;
 };

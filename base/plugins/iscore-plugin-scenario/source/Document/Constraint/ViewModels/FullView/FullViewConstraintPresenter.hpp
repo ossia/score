@@ -5,7 +5,7 @@ class FullViewConstraintViewModel;
 class FullViewConstraintView;
 class BoxPresenter;
 class BoxModel;
-class QGraphicsObject;
+class QGraphicsItem;
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 
@@ -30,11 +30,11 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
         using view_type = FullViewConstraintView;
 
         FullViewConstraintPresenter(const FullViewConstraintViewModel& viewModel,
-                                    QGraphicsObject* parentobject,
+                                    QGraphicsItem* parentobject,
                                     QObject* parent);
         virtual ~FullViewConstraintPresenter();
 
-        void on_pressed();
+        void on_pressed(const QPointF &);
 
     private:
         iscore::SelectionDispatcher m_selectionDispatcher;

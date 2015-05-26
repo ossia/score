@@ -3,6 +3,7 @@
 
 class DeckPresenter;
 class DeckOverlay;
+class DeckHandle;
 
 class DeckView : public QGraphicsObject
 {
@@ -34,5 +35,6 @@ class DeckView : public QGraphicsObject
         qreal m_height {};
         qreal m_width {};
         DeckOverlay* m_overlay{};
+        DeckHandle* m_handle{};
         bool m_focus{false};
 };

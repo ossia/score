@@ -22,9 +22,49 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <QApplication>
+#include "StateMachine/BaseMoveDeck.hpp"
 
 using namespace iscore;
 
+class BaseElementStateMachine: public BaseStateMachine
+{
+        BaseElementPresenter* m_presenter;
+    public:
+        BaseElementStateMachine(BaseElementPresenter* pres);
+};
+
+BaseElementStateMachine::BaseElementStateMachine(BaseElementPresenter* pres):
+    m_presenter{pres}
+{
+    connect(m_presenter, &BaseElementPresenter::displayedConstraintPressed,
+            [=] (const QPointF& point)
+    {
+        scenePoint = point;
+        this->postEvent(new Press_Event);
+    });
+
+    connect(m_presenter, &BaseElementPresenter::displayedConstraintMoved,
+            [=] (const QPointF& point)
+    {
+        scenePoint = point;
+        this->postEvent(new Move_Event);
+    });
+
+    connect(m_presenter, &BaseElementPresenter::displayedConstraintReleased,
+            [=] (const QPointF& point)
+    {
+        scenePoint = point;
+        this->postEvent(new Release_Event);
+    });
+    // TODO cancel
+
+    auto moveDeckState = new BaseMoveDeck(*m_presenter->view()->scene(),
+                                           IDocument::documentFromObject(m_presenter->model())->commandStack(),
+                                           *this);
+    setInitialState(moveDeckState);
+    start();
+}
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                            DocumentDelegateModelInterface* delegate_model,
@@ -33,37 +73,43 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(model())->selectionStack()},
+    m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
     m_progressBar{new ProgressBar},
-    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this} },
-    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this} }
+    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
+    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}
 {
-    connect(&(m_selectionDispatcher.stack()),  &SelectionStack::currentSelectionChanged,
-            this,   &BaseElementPresenter::on_newSelection);
-
+    // Setup the connections
+    connect(&(m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
+            this,                             &BaseElementPresenter::on_newSelection);
     connect(view()->addressBar(), &AddressBar::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
-            this,	&BaseElementPresenter::on_zoomSliderChanged);
-
+            this,   &BaseElementPresenter::on_zoomSliderChanged);
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
-            this, &BaseElementPresenter::on_viewSizeChanged);
+            this,           &BaseElementPresenter::on_viewSizeChanged);
+    connect(view(), &BaseElementView::horizontalPositionChanged,
+            this,   &BaseElementPresenter::on_horizontalPositionChanged);
+    connect(model(), &BaseElementModel::focusMe,
+            this,    [&] () { view()->view()->setFocus(); });
 
-    connect(view(),     &BaseElementView::horizontalPositionChanged,
-            this,       &BaseElementPresenter::on_horizontalPositionChanged);
-
+    // Progress bar, time rules
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
 
     m_mainTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
     m_localTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
 
+    // Show our constraint
     setDisplayedConstraint(model()->baseConstraint());
 
-    connect(model(), &BaseElementModel::focusMe,
-            this, [&] () { view()->view()->setFocus(); });
+    // We set the focus on the main scenario.
+    // TODO what happens when we load an empty score
+    DeckPresenter* deck = m_displayedConstraintPresenter->box()->decks().front();
+    model()->focusManager().setFocusedPresenter(
+                deck->processes().front().first);
 
-    model()->focusManager().setFocusedPresenter(m_displayedConstraintPresenter->box()->decks().front()->processes().front().first);
+    // Setup of the state machine.
+    m_stateMachine = new BaseElementStateMachine{this};
 }
 
 const ConstraintModel* BaseElementPresenter::displayedConstraint() const
@@ -90,10 +136,10 @@ void BaseElementPresenter::deselectAll()
     m_selectionDispatcher.setAndCommit({});
 }
 
-void BaseElementPresenter::setDisplayedObject(ObjectPath path)
+void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
-    || path.vec().last().objectName() == "BaseConstraintModel")
+            || path.vec().last().objectName() == "BaseConstraintModel")
     {
         setDisplayedConstraint(&path.find<ConstraintModel>());
     }
@@ -122,8 +168,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     delete m_displayedConstraintPresenter;
     m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-                                     this->view()->baseObject(),
-                                     this};
+            this->view()->baseItem(),
+            this};
 
     m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
     m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
@@ -141,6 +187,13 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                                        m_displayedConstraint->defaultDuration().toPixels(m_millisecondsPerPixel),
                                        height()});} );
 
+    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::pressed,
+            this, &BaseElementPresenter::displayedConstraintPressed);
+    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::moved,
+            this, &BaseElementPresenter::displayedConstraintMoved);
+    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::released,
+            this, &BaseElementPresenter::displayedConstraintReleased);
+
     model()->setDisplayedConstraint(&m_displayedConstraintPresenter->model());
 
     // Update the address bar
@@ -148,12 +201,12 @@ void BaseElementPresenter::on_displayedConstraintChanged()
             ->setTargetObject(IDocument::path(displayedConstraint()));
 }
 
-void BaseElementPresenter::setProgressBarTime(TimeValue t)
+void BaseElementPresenter::setProgressBarTime(const TimeValue &t)
 {
     m_progressBar->setPos({t.toPixels(m_millisecondsPerPixel), 0});
 }
 
-void BaseElementPresenter::setMillisPerPixel(double newFactor)
+void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
 {
     // TODO harmonize
     m_millisecondsPerPixel = newFactor;
@@ -162,7 +215,6 @@ void BaseElementPresenter::setMillisPerPixel(double newFactor)
     m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
-#include <QApplication>
 void BaseElementPresenter::on_newSelection(Selection sel)
 {
     int scroll = m_localTimeRuler->totalScroll();
@@ -220,7 +272,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     updateGrid();
 }
 
-void BaseElementPresenter::on_viewSizeChanged(QSize s)
+void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
     m_progressBar->setHeight(s.height());
     on_zoomSliderChanged(view()->zoomSlider()->value());
@@ -272,3 +324,4 @@ BaseElementView* BaseElementPresenter::view() const
 {
     return static_cast<BaseElementView*>(m_view);
 }
+

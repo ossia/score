@@ -8,7 +8,7 @@
 #include <QCursor>
 
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
-                                               QGraphicsObject* parent) :
+                                               QGraphicsItem *parent) :
     AbstractConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
@@ -89,12 +89,4 @@ void FullViewConstraintView::paint(QPainter* painter,
     painter->setPen(QPen(brush, 4));
 
     painter->drawLine(maxWidth(), 0, maxWidth() + 200, 0);
-}
-
-void FullViewConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* m)
-{
-    QGraphicsObject::mousePressEvent(m);
-
-    m_clickedPoint = m->pos();
-    emit fullViewPressed();
 }

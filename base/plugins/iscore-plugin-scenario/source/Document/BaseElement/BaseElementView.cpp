@@ -11,13 +11,13 @@
 
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
-    m_widget {new QWidget{}},
+    m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
     m_view {new SizeNotifyingGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject},
     m_addressBar {new AddressBar{nullptr}},
-    m_timeRuler {new TimeRulerView{} },
-    m_localTimeRuler {new LocalTimeRulerView{} }
+    m_timeRuler {new TimeRulerView},
+    m_localTimeRuler {new LocalTimeRulerView}
 {
     // Configuration
     m_timeRulersView = new QGraphicsView{m_scene};

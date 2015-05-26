@@ -11,29 +11,25 @@
 
 DeckOverlay::DeckOverlay(DeckView *parent):
     QGraphicsItem{parent},
-    deckView{*parent},
-    m_handle{new DeckHandle{deckView, this}}
+    deckView{*parent}
 {
     this->setZValue(1500);
     this->setPos(0, 0);
-    m_handle->setPos(0, this->boundingRect().height() - DeckHandle::handleHeight());
 }
 
 QRectF DeckOverlay::boundingRect() const
 {
     const auto& rect = deckView.boundingRect();
-    return {0, 0, rect.width(), rect.height()};
+    return {0, 0, rect.width(), rect.height() - 5};
 }
 
 void DeckOverlay::setHeight(qreal height)
 {
     prepareGeometryChange();
-    m_handle->setPos(0, this->boundingRect().height() - DeckHandle::handleHeight());
 }
 void DeckOverlay::setWidth(qreal width)
 {
     prepareGeometryChange();
-    m_handle->setWidth(width);
 }
 
 

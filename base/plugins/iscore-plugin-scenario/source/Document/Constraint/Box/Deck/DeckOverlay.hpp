@@ -20,7 +20,4 @@ class DeckOverlay : public QGraphicsItem
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-
-    private:
-        DeckHandle* m_handle{};
 };
