@@ -33,7 +33,7 @@ class PutProcessViewModelToFront
 
         void redo()
         {
-            m_deckPath.find<DeckModel>().selectForEdition(m_pid);
+            m_deckPath.find<DeckModel>().putToFront(m_pid);
         }
 
     private:

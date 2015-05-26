@@ -19,7 +19,7 @@ DeckModel::DeckModel(
         const id_type<DeckModel>& id,
         BoxModel *parent):
     IdentifiedObject<DeckModel> {id, "DeckModel", parent},
-    m_editedProcessViewModelId {source.editedProcessViewModel() }, // Keep the same id.
+    m_frontProcessViewModelId {source.frontProcessViewModel() }, // Keep the same id.
     m_height {source.height() }
 {
     pvmCopyMethod(source, *this);
@@ -46,7 +46,7 @@ void DeckModel::addProcessViewModel(ProcessViewModel* viewmodel)
 
     emit processViewModelCreated(viewmodel->id());
 
-    selectForEdition(viewmodel->id());
+    putToFront(viewmodel->id());
 }
 
 void DeckModel::deleteProcessViewModel(
@@ -65,32 +65,32 @@ void DeckModel::deleteProcessViewModel(
 
     if(!m_processViewModels.empty())
     {
-        selectForEdition((*m_processViewModels.begin())->id());
+        putToFront((*m_processViewModels.begin())->id());
     }
     else
     {
-        m_editedProcessViewModelId.setVal({});
+        m_frontProcessViewModelId.setVal({});
     }
 
     delete &pvm;
 }
 
-void DeckModel::selectForEdition(
+void DeckModel::putToFront(
         const id_type<ProcessViewModel>& processViewId)
 {
     if(!processViewId.val())
         return;
 
-    if(processViewId != m_editedProcessViewModelId)
+    if(processViewId != m_frontProcessViewModelId)
     {
-        m_editedProcessViewModelId = processViewId;
-        emit processViewModelSelected(processViewId);
+        m_frontProcessViewModelId = processViewId;
+        emit processViewModelPutToFront(processViewId);
     }
 }
 
-const id_type<ProcessViewModel>& DeckModel::editedProcessViewModel() const
+const id_type<ProcessViewModel>& DeckModel::frontProcessViewModel() const
 {
-    return m_editedProcessViewModelId;
+    return m_frontProcessViewModelId;
 }
 
 const std::vector<ProcessViewModel*>& DeckModel::processViewModels() const

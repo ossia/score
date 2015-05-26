@@ -51,7 +51,7 @@ class DeckPresenter : public NamedObject
         // From Model
         void on_processViewModelCreated(const id_type<ProcessViewModel>& processId);
         void on_processViewModelDeleted(const id_type<ProcessViewModel>& processId);
-        void on_processViewModelSelected(const id_type<ProcessViewModel>& processId);
+        void on_processViewModelPutToFront(const id_type<ProcessViewModel>& processId);
         void on_heightChanged(double height);
         void on_parentGeometryChanged();
 

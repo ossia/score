@@ -37,8 +37,8 @@ DeckPresenter::DeckPresenter(const DeckModel& model,
     connect(&m_model, &DeckModel::processViewModelRemoved,
             this,    &DeckPresenter::on_processViewModelDeleted);
 
-    connect(&m_model, &DeckModel::processViewModelSelected,
-            this,    &DeckPresenter::on_processViewModelSelected);
+    connect(&m_model, &DeckModel::processViewModelPutToFront,
+            this,    &DeckPresenter::on_processViewModelPutToFront);
 
     connect(&m_model, &DeckModel::heightChanged,
             this,    &DeckPresenter::on_heightChanged);
@@ -100,7 +100,7 @@ void DeckPresenter::enable()
     {
         pair.first->parentGeometryChanged();
     }
-    on_processViewModelSelected(m_model.editedProcessViewModel());
+    on_processViewModelPutToFront(m_model.frontProcessViewModel());
 
     m_enabled = true;
 }
@@ -146,7 +146,7 @@ void DeckPresenter::on_processViewModelDeleted(
     emit askUpdate();
 }
 
-void DeckPresenter::on_processViewModelSelected(
+void DeckPresenter::on_processViewModelPutToFront(
         const id_type<ProcessViewModel>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
@@ -202,9 +202,9 @@ void DeckPresenter::on_processViewModelCreated_impl(
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
-    if(m_model.editedProcessViewModel() == proc_vm.id())
+    if(m_model.frontProcessViewModel() == proc_vm.id())
     {
-        on_processViewModelSelected(proc_vm.id());
+        on_processViewModelPutToFront(proc_vm.id());
     }
     updateProcessesShape();
 

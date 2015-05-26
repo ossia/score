@@ -53,9 +53,9 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
-        void selectForEdition(
+        void putToFront(
                 const id_type<ProcessViewModel>& processViewId);
-        const id_type<ProcessViewModel>& editedProcessViewModel() const;
+        const id_type<ProcessViewModel>& frontProcessViewModel() const;
 
         const std::vector<ProcessViewModel*>& processViewModels() const;
         ProcessViewModel& processViewModel(
@@ -70,7 +70,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
     signals:
         void processViewModelCreated(const id_type<ProcessViewModel>& processViewModelId);
         void processViewModelRemoved(const id_type<ProcessViewModel>& processViewModelId);
-        void processViewModelSelected(const id_type<ProcessViewModel>& processViewModelId);
+        void processViewModelPutToFront(const id_type<ProcessViewModel>& processViewModelId);
 
         void heightChanged(int arg);
         void focusChanged(bool arg);
@@ -82,7 +82,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
         void setFocus(bool arg);
 
     private:
-        id_type<ProcessViewModel> m_editedProcessViewModelId {};
+        id_type<ProcessViewModel> m_frontProcessViewModelId;
         std::vector<ProcessViewModel*> m_processViewModels;
 
         int m_height {200};
