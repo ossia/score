@@ -7,6 +7,8 @@
 #include <Document/Constraint/Box/Deck/DeckModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
+#include <QPointF>
+#include <iscore/tools/ObjectPath.hpp>
 
 // TODO optimize this when we have all the tools
 class CommonScenarioState : public QState
@@ -108,11 +110,10 @@ struct PositionedWithId_Event : public PositionedEvent<N>
 
 
 template<typename Element, int N>
-struct PositionedWithPath_Event : public PositionedEvent<N>
+struct NumberedWithPath_Event : public NumberedEvent<N>
 {
-        PositionedWithPath_Event(const ObjectPath& p,
-                                 const ScenarioPoint& sp):
-            PositionedEvent<N>{sp},
+        NumberedWithPath_Event(const ObjectPath& p):
+            NumberedEvent<N>{},
             path{p}
         {
         }
@@ -132,8 +133,8 @@ using ClickOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioElem
 using ClickOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Click>;
 using ClickOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Click>;
 
-using ClickOnDeckOverlay_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Click>;
-using ClickOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Click>;
+using ClickOnDeckOverlay_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Click>;
+using ClickOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Click>;
 
 
 using MoveOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Move>;
@@ -141,8 +142,8 @@ using MoveOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioEleme
 using MoveOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Move>;
 using MoveOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Move>;
 
-using MoveOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Move>;
-using MoveOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Move>;
+using MoveOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Move>;
+using MoveOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Move>;
 
 
 using ReleaseOnNothing_Event = PositionedEvent<ScenarioElement::Nothing + Modifier::Release>;
@@ -150,8 +151,8 @@ using ReleaseOnTimeNode_Event = PositionedWithId_Event<TimeNodeModel, ScenarioEl
 using ReleaseOnEvent_Event = PositionedWithId_Event<EventModel, ScenarioElement::Event + Modifier::Release>;
 using ReleaseOnConstraint_Event = PositionedWithId_Event<ConstraintModel, ScenarioElement::Constraint + Modifier::Release>;
 
-using ReleaseOnDeck_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Release>;
-using ReleaseOnDeckHandle_Event = PositionedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Release>;
+using ReleaseOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Release>;
+using ReleaseOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Release>;
 
 // Transitions
 
@@ -229,10 +230,10 @@ class DeckState : public QState
             QState{parent}
         { }
 
-
-
         ObjectPath currentDeck;
-        ScenarioPoint currentPoint;
+
+        QPointF m_originalPoint;
+        double m_originalHeight{};
 };
 
 class ClickOnDeckOverlay_Transition : public MatchedTransition<ClickOnDeckOverlay_Event>
@@ -251,8 +252,7 @@ class ClickOnDeckOverlay_Transition : public MatchedTransition<ClickOnDeckOverla
         {
             auto qev = static_cast<event_type*>(ev);
 
-            this->state().currentDeck = qev->path;
-            this->state().currentPoint = qev->point;
+            this->state().currentDeck = std::move(qev->path);
         }
 
     private:
@@ -275,8 +275,7 @@ class ClickOnDeckHandle_Transition : public MatchedTransition<ClickOnDeckHandle_
         {
             auto qev = static_cast<event_type*>(ev);
 
-            this->state().currentDeck = qev->path;
-            this->state().currentPoint = qev->point;
+            this->state().currentDeck = std::move(qev->path);
         }
 
     private:

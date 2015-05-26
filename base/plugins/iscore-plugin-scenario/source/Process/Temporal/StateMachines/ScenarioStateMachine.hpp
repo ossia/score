@@ -14,13 +14,18 @@ class CreationToolState;
 class MoveToolState;
 class SelectionToolState;
 class MoveDeckToolState;
-class ScenarioStateMachine : public QStateMachine
+
+class BaseStateMachine : public QStateMachine
+{
+    public:
+        QPointF scenePoint;
+};
+
+class ScenarioStateMachine : public BaseStateMachine
 {
         Q_OBJECT
     public:
-        QPointF scenePoint;
         ScenarioPoint scenarioPoint;
-
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const

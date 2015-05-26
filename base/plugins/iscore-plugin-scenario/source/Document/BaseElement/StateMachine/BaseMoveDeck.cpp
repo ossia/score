@@ -1,48 +1,36 @@
-#include "MoveDeckToolState.hpp"
-#include "States/DeckStates.hpp"
-
+#include "BaseMoveDeck.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/DeckStates.hpp"
+#include "Commands/Constraint/Box/MoveDeck.hpp"
+#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
+#include "Document/Constraint/Box/Deck/DeckView.hpp"
+#include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
+#include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
-#include "Document/Constraint/Box/Deck/DeckView.hpp"
-#include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 
+#include "Commands/Constraint/Box/SwapDecks.hpp"
 #include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 
 #include <QFinalState>
 
-MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
-    GenericStateBase{sm},
-    m_dispatcher{m_sm.commandStack()},
-    m_ongoingDispatcher{m_sm.commandStack()}
+BaseMoveDeck::BaseMoveDeck(
+        const QGraphicsScene& scene,
+        iscore::CommandStack& stack,
+        BaseStateMachine& sm):
+    QState{&sm},
+    m_sm{sm},
+    m_dispatcher{stack},
+    m_ongoingDispatcher{stack},
+    m_scene{scene}
 {
-    /// 1. Set the scenario in the correct state with regards to this tool.
-    connect(this, &QState::entered,
-            [&] ()
-    {
-        for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
-        {
-            if(!constraint->box()) continue;
-            constraint->box()->setDisabledDeckState();
-        }
-    });
-    connect(this, &QState::exited,
-            [&] ()
-    {
-        for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
-        {
-            if(!constraint->box()) continue;
-            constraint->box()->setEnabledDeckState();
-        }
-    });
 
     /// 2. Setup the sub-state machine.
     m_waitState = new QState{&m_localSM};
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the deck, one for resizing with the handle.
     {
-        auto dragDeck = new DragDeckState{m_dispatcher, m_sm, *m_sm.presenter().view().scene(), &m_localSM};
+        auto dragDeck = new DragDeckState{m_dispatcher, m_sm, m_scene, &m_localSM};
         // Enter the state
         make_transition<ClickOnDeckOverlay_Transition>(
                     m_waitState,
@@ -67,7 +55,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     this->addTransition(on_press);
     connect(on_press, &QAbstractTransition::triggered, [&] ()
     {
-        auto item = m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform());
+        auto item = m_scene.itemAt(m_sm.scenePoint, QTransform());
         if(auto overlay = dynamic_cast<DeckOverlay*>(item))
         {
             m_localSM.postEvent(new ClickOnDeckOverlay_Event{
@@ -91,18 +79,3 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     connect(on_release, &QAbstractTransition::triggered, [&] ()
     { m_localSM.postEvent(new Release_Event); });
 }
-
-void MoveDeckToolState::on_scenarioPressed()
-{
-}
-
-void MoveDeckToolState::on_scenarioMoved()
-{
-
-}
-
-void MoveDeckToolState::on_scenarioReleased()
-{
-
-}
-

@@ -9,7 +9,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DeckModel& deck)
 {
     readFrom(static_cast<const IdentifiedObject<DeckModel>&>(deck));
 
-    m_stream << deck.editedProcessViewModel();
+    m_stream << deck.frontProcessViewModel();
 
     auto pvms = deck.processViewModels();
     m_stream << (int) pvms.size();
@@ -44,7 +44,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DeckModel& deck)
     m_stream >> height;
     deck.setHeight(height);
 
-    deck.selectForEdition(editedProcessId);
+    deck.putToFront(editedProcessId);
 
     checkDelimiter();
 }
@@ -57,7 +57,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const DeckModel& deck)
 {
     readFrom(static_cast<const IdentifiedObject<DeckModel>&>(deck));
 
-    m_obj["EditedProcess"] = toJsonValue(deck.editedProcessViewModel());
+    m_obj["EditedProcess"] = toJsonValue(deck.frontProcessViewModel());
     m_obj["Height"] = deck.height();
 
     QJsonArray arr;
@@ -86,7 +86,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(DeckModel& deck)
     }
 
     deck.setHeight(m_obj["Height"].toInt());
-    deck.selectForEdition(
+    deck.putToFront(
                 fromJsonValue<id_type<ProcessViewModel>>(
                     m_obj["EditedProcess"]));
 }
