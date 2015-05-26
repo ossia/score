@@ -1,7 +1,8 @@
 #include "OSSIADevice.hpp"
 #include <QDebug>
 
-
+// Gets a node from an address in a device.
+// Creates it if necessary.
 OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
 {
     using namespace OSSIA;
@@ -9,24 +10,25 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
     OSSIA::Node* node = dev;
     for(int i = 0; i < path.size(); i++)
     {
+        const auto& children = node->children();
         auto it = std::find_if(
-                    node->begin(),
-                    node->end(),
-                    [&] (const OSSIA::Node& n) { return n.getName() == path[i].toStdString(); });
-        if(it == node->end())
+                    children.begin(),
+                    children.end(),
+                    [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
+        if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
             OSSIA::Node* parentnode = node;
             for(int k = i; k < path.size(); k++)
             {
-                auto theNode = parentnode->emplace(parentnode->begin(), path[k].toStdString());
+                auto newNodeIt = parentnode->emplace(parentnode->children().begin(), path[k].toStdString());
                 if(k == path.size() - 1)
                 {
-                    node = theNode;
+                    node = newNodeIt->get();
                 }
                 else
                 {
-                    parentnode = theNode;
+                    parentnode = newNodeIt->get();
                 }
             }
 
@@ -34,7 +36,7 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
         }
         else
         {
-            node = it;
+            node = it->get();
         }
     }
 
@@ -99,7 +101,10 @@ void OSSIADevice::removeAddress(const QString &address)
     path.removeFirst();
 
     OSSIA::Node* node = nodeFromPath(path, m_dev.get());
-    node->getParent().erase(node);
+    auto& children = node->getParent().children();
+    auto it = std::find_if(children.begin(), children.end(), [&] (auto&& elt) { return elt.get() == node; });
+    if(it != children.end())
+        children.erase(it);
 }
 
 
