@@ -414,6 +414,7 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 {
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
+    m_selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(s_pres);
     m_scenarioScaleModeActionGroup->setEnabled(s_pres);
     if (s_pres)
@@ -429,6 +430,7 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
                 }
             }
         });
+
         connect(s_pres, &TemporalScenarioPresenter::shiftReleased,
                 this, [&]()
         {
@@ -495,6 +497,7 @@ void ScenarioControl::on_documentChanged()
     else
     {
         auto focusManager = processFocusManager();
+
         if(!focusManager)
             return;
 
@@ -505,12 +508,7 @@ void ScenarioControl::on_documentChanged()
                 connect(focusManager, &ProcessFocusManager::sig_defocusedPresenter,
                         this, &ScenarioControl::on_presenterDefocused);
 
-
-        bool onScenario = dynamic_cast<const ScenarioModel*>(focusManager->focusedModel());
-
-        m_selecttool->setChecked(true);
-        m_scenarioToolActionGroup->setEnabled(onScenario);
-        m_scenarioScaleModeActionGroup->setEnabled(onScenario);
+        on_presenterFocused(focusManager->focusedPresenter());
     }
 }
 
