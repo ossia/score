@@ -212,7 +212,6 @@ DeviceExplorerWidget::installStyleSheet()
 void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
-    //TODO: decide which actions to show according to what's possible ?
     updateActions();
     QMenu contextMenu(this);
     contextMenu.addAction(m_editAction);
@@ -286,7 +285,7 @@ DeviceExplorerWidget::updateActions()
     if(! model()->isEmpty())
     {
 
-        //TODO: we should also test/handle multi-selection !?!
+        //TODO: choice for multi selection
 
         Q_ASSERT(m_ntView);
 
@@ -326,6 +325,8 @@ DeviceExplorerWidget::updateActions()
                 m_promoteAction->setEnabled(true);
                 m_demoteAction->setEnabled(true);
                 m_removeNodeAction->setEnabled(true);
+                m_moveUpAction->setEnabled(true);
+                m_moveDownAction->setEnabled(true);
             }
             else
             {
@@ -333,6 +334,8 @@ DeviceExplorerWidget::updateActions()
                 m_promoteAction->setEnabled(false);
                 m_demoteAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
+                m_moveUpAction->setEnabled(false);
+                m_moveDownAction->setEnabled(false);
             }
             m_editAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
@@ -371,24 +374,6 @@ DeviceExplorerWidget::proxyModel()
     return m_proxyModel;
 }
 
-//TODO : UNUSED
-/*
-bool
-DeviceExplorerWidget::loadModel(const QString filename)
-{
-    Q_ASSERT(m_ntView);
-    Q_ASSERT(m_ntView->model());
-
-    const bool loadOk = m_ntView->model()->load(filename);
-    //if (loadOk) {
-    populateColumnCBox();
-    updateActions();
-    //}
-
-    return loadOk;
-
-}
-*/
 void DeviceExplorerWidget::edit()
 {
     // TODO there should be a command here
