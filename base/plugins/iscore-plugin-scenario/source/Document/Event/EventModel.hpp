@@ -120,6 +120,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void heightPercentageChanged(double arg);
         void messagesChanged();
         void dateChanged();
+        void hasPreviousConstraint(bool arg);
 
         void conditionChanged(const QString& arg);
         void triggerChanged(QString trigger);

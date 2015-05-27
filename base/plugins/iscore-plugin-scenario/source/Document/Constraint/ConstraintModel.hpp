@@ -1,5 +1,6 @@
 #pragma once
 #include <source/Document/ModelMetadata.hpp>
+#include <source/Document/ModelConsistency.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -102,6 +103,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         /** Properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
+        ModelConsistency consistency;
 
         static QString prettyName()
         { return QObject::tr("Constraint"); }
@@ -233,14 +235,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setMinDuration(const TimeValue& arg);
         void setMaxDuration(const TimeValue& arg);
 
-        void setPlayDuration(const TimeValue& arg)
-        {
-            if (m_playDuration == arg)
-                return;
-
-            m_playDuration = arg;
-            emit playDurationChanged(arg);
-        }
+        void setPlayDuration(const TimeValue& arg);
 
         void setRigid(bool arg);
 

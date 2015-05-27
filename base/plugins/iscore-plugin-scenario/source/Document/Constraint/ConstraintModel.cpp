@@ -30,6 +30,7 @@ ConstraintModel::ConstraintModel(
 {
     m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
     metadata = source->metadata;
+//    consistency = source->consistency; // TODO : no necessary because it should be compute
 
     m_startEvent = source->startEvent();
     m_endEvent = source->endEvent();
@@ -251,6 +252,11 @@ void ConstraintModel::setDefaultDuration(const TimeValue& arg)
     {
         m_defaultDuration = arg;
         emit defaultDurationChanged(arg);
+        consistency.setValid(true);
+    }
+    if(m_defaultDuration.msec() < 0)
+    {
+        consistency.setValid(false);
     }
 }
 
@@ -270,6 +276,15 @@ void ConstraintModel::setMaxDuration(const TimeValue& arg)
         m_maxDuration = arg;
         emit maxDurationChanged(arg);
     }
+}
+
+void ConstraintModel::setPlayDuration(const TimeValue &arg)
+{
+    if (m_playDuration == arg)
+        return;
+
+    m_playDuration = arg;
+    emit playDurationChanged(arg);
 }
 
 void ConstraintModel::setRigid(bool arg)

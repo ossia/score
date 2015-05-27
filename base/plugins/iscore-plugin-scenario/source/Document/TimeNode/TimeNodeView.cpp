@@ -29,6 +29,10 @@ void TimeNodeView::paint(QPainter* painter,
     {
         pen_color = highlight;
     }
+    if(! isValid())
+    {
+        pen_color = Qt::red;
+    }
 
     QPen pen{QBrush(pen_color), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
@@ -51,6 +55,12 @@ void TimeNodeView::setExtremities(int top, int bottom)
 void TimeNodeView::setMoving(bool arg)
 {
     m_moving = arg;
+    update();
+}
+
+void TimeNodeView::setSelected(bool selected)
+{
+    m_selected = selected;
     update();
 }
 

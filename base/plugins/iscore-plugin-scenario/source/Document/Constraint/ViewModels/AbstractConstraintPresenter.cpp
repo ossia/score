@@ -48,6 +48,9 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(QString name,
 
     connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
             [&] (const TimeValue& t) { m_view->setPlayWidth(t.toPixels(m_zoomRatio));});
+
+    connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
+            m_view, &AbstractConstraintView::setValid);
 }
 
 void AbstractConstraintPresenter::updateScaling()

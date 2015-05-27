@@ -28,15 +28,21 @@ class TimeNodeView : public QGraphicsObject
         void setExtremities(int top, int bottom);
 
         void setMoving(bool);
-        void setSelected(bool selected)
-        {
-            m_selected = selected;
-            update();
-        }
+        void setSelected(bool selected);
 
         bool isSelected() const
         {
             return m_selected;
+        }
+
+        bool isValid() const
+        {
+            return m_valid;
+        }
+
+        bool setValid(bool arg)
+        {
+            m_valid = arg;
         }
 
     public slots:
@@ -56,4 +62,5 @@ class TimeNodeView : public QGraphicsObject
         QColor m_color;
         bool m_moving {false};
         bool m_selected{};
+        bool m_valid{true};
 };

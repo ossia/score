@@ -19,6 +19,9 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
 
+    connect(&m_model, &EventModel::hasPreviousConstraint,
+            this,   &EventPresenter::hasPrevConstraint);
+
     connect(&m_model, &EventModel::heightPercentageChanged,
             this,    &EventPresenter::heightPercentageChanged);
     connect(&m_model, &EventModel::conditionChanged,

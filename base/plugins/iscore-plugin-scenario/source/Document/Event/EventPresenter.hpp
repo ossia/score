@@ -31,6 +31,7 @@ class EventPresenter : public NamedObject
         void eventHoverLeave();
 
         void heightPercentageChanged();
+        void hasPrevConstraint(bool arg);
 
     private:
         const EventModel& m_model;
