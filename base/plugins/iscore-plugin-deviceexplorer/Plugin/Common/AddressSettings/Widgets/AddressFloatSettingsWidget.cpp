@@ -14,7 +14,6 @@
 AddressFloatSettingsWidget::AddressFloatSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
-
     buildGUI();
 }
 

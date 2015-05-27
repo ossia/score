@@ -65,12 +65,10 @@ void AddAddress::redo()
 
 void AddAddress::serializeImpl(QDataStream &s) const
 {
-    s << m_deviceTree << m_parentNodePath.toList() << m_addressSettings << m_createdNodeIndex;
+    s << m_deviceTree << m_parentNodePath << m_addressSettings << m_createdNodeIndex;
 }
 
 void AddAddress::deserializeImpl(QDataStream &s)
 {
-    QList<int> path;
-    s >> m_deviceTree >> path >> m_addressSettings >> m_createdNodeIndex;
-    m_parentNodePath = path;
+    s >> m_deviceTree >> m_parentNodePath >> m_addressSettings >> m_createdNodeIndex;
 }

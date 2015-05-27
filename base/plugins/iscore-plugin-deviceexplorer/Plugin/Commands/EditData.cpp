@@ -33,8 +33,8 @@ void EditData::redo()
 
 void EditData::serializeImpl(QDataStream &d) const
 {
-    d << m_deviceTree;
-    m_nodePath.serializePath(d);
+    d << m_deviceTree
+      << m_nodePath;
     d << m_column;
     d << m_oldValue;
     d << m_newValue;
@@ -43,8 +43,8 @@ void EditData::serializeImpl(QDataStream &d) const
 
 void EditData::deserializeImpl(QDataStream &d)
 {
-    d >> m_deviceTree;
-    m_nodePath.deserializePath(d);
+    d >> m_deviceTree
+      >> m_nodePath;
     d >> m_column;
     d >> m_oldValue;
     d >> m_newValue;

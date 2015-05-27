@@ -5,6 +5,10 @@
 class Node;
 
 class QModelIndex;
+template<typename T>
+using ref = T&;
+template<typename T>
+using cref = const T&;
 
 // TODO Rename in NodePath to prevent confusion ?
 class Path
@@ -34,13 +38,14 @@ class Path
         void clear();
         void reserve(int size);
 
-        void serializePath(QDataStream& d) const;
-        void deserializePath(QDataStream& d);
-
-        QList<int> toList() const
+        const QList<int>& toList() const
         { return m_path; }
 
+        operator ref<QList<int>>()
+        { return m_path; }
 
+        operator cref<QList<int>>() const
+        { return m_path; }
 
     private:
         QList<int> m_path;

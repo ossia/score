@@ -88,7 +88,7 @@ void MoveEvent::undo()
                 scenar,
                 m_movableTimenodes,
                 m_oldDate - event.date(),
-                [&] (ProcessModel* , const TimeValue& ) {  });
+                [&] (ProcessModel* , const TimeValue& ) { });
 
     if(m_changeDate)
     {

@@ -72,9 +72,10 @@ Move::redo()
 void
 Move::serializeImpl(QDataStream& d) const
 {
-    d << m_model;
-    m_srcParentPath.serializePath(d);
-    m_dstParentPath.serializePath(d);
+    d << m_model
+      << m_srcParentPath
+      << m_dstParentPath;
+
     d << (qint32) m_srcRow;
     d << (qint32) m_dstRow;
     d << (qint32) m_count;
@@ -83,9 +84,10 @@ Move::serializeImpl(QDataStream& d) const
 void
 Move::deserializeImpl(QDataStream& d)
 {
-    d >> m_model;
-    m_srcParentPath.deserializePath(d);
-    m_dstParentPath.deserializePath(d);
+    d >> m_model
+            >> m_srcParentPath
+            >> m_dstParentPath;
+
     qint32 v;
     d >> v;
     m_srcRow = v;

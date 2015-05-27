@@ -34,7 +34,7 @@ namespace DeviceExplorer
                 AddressSettings m_addressSettings;
                 int m_nodeIndex{};
 
-                //TODO : QByteArray m_serializedNode;
+                //TODO : save the node by value pls!
                 Node* m_node{};
         };
     }

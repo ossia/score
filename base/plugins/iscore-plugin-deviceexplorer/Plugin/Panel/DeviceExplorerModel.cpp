@@ -3,9 +3,6 @@
 #include <DeviceExplorer/Node/Node.hpp>
 #include "DeviceExplorerCommandCreator.hpp"
 
-#include "BinaryReader.hpp"
-#include "BinaryWriter.hpp"
-
 #include <iostream>
 
 #include <QMimeData>
@@ -13,6 +10,8 @@
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
 
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <QJsonDocument>
 
 using namespace DeviceExplorer::Command;
 
@@ -94,7 +93,7 @@ DeviceExplorerModel::~DeviceExplorerModel()
     delete m_rootNode;
 
     for(QStack<CutElt>::iterator it = m_cutNodes.begin();
-            it != m_cutNodes.end(); ++it)
+        it != m_cutNodes.end(); ++it)
     {
         delete it->first;
     }
@@ -369,7 +368,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
 
         }
-        break;
+            break;
 
         case VALUE_COLUMN:
         {
@@ -387,7 +386,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 }
             }
         }
-        break;
+            break;
 
         case IOTYPE_COLUMN:
         {
@@ -409,7 +408,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 }
             }
         }
-        break;
+            break;
 
         case MIN_COLUMN:
         {
@@ -425,7 +424,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 return QString();
             }
         }
-        break;
+            break;
 
         case MAX_COLUMN:
         {
@@ -441,7 +440,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 return QString();
             }
         }
-        break;
+            break;
 
         case PRIORITY_COLUMN:
         {
@@ -450,7 +449,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 return node->priority();
             }
         }
-        break;
+            break;
 
         default :
             assert(false);
@@ -478,37 +477,37 @@ DeviceExplorerModel::setColumnValue(Node* node, const QVariant& v, int col)
         {
             node->setName(v.toString());
         }
-        break;
+            break;
 
         case VALUE_COLUMN:
         {
             node->setValue(v.toString());
         }
-        break;
+            break;
 
         case IOTYPE_COLUMN:
         {
             //node->setType(v.toString());
         }
-        break;
+            break;
 
         case MIN_COLUMN:
         {
             node->setMinValue(v.toFloat());   //TODO:change ! no necessarily a float !
         }
-        break;
+            break;
 
         case MAX_COLUMN:
         {
             node->setMaxValue(v.toFloat());   //TODO:change ! no necessarily a float !
         }
-        break;
+            break;
 
         case PRIORITY_COLUMN:
         {
             node->setPriority(v.toUInt());
         }
-        break;
+            break;
 
         default :
             assert(false);
@@ -800,10 +799,10 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
 
     beginRemoveRows(index.parent(), row, row);
 
-    #ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
     Node* child =
-    #endif
-        parent->takeChild(row);
+        #endif
+            parent->takeChild(row);
     Q_ASSERT(child == cutNode);
 
     endRemoveRows();
@@ -1060,36 +1059,14 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 
     if(n)
     {
-
         Q_ASSERT(n != m_rootNode);  //m_rootNode not displayed thus should not be draggable
 
-        QByteArray dataC;
-        /*
-        QByteArray data;
-        QDataStream stream(&data, QIODevice::WriteOnly);
-        BinaryWriter bw(stream);
-        bw.write(n);
-        std::cerr<<"mimeData(): before compression: size="<<data.size()<<" capacity="<<data.capacity()<<"\n";
-        dataC = qCompress(data, compressionLevel);
-        std::cerr<<"mimeData(): after compression: size="<<dataC.size()<<" capacity="<<dataC.capacity()<<"\n";
-        */
-        #ifndef QT_NO_DEBUG
-        const bool getOk =
-        #endif
-            getTreeData(index, dataC);
-        Q_ASSERT(getOk);
-
+        Serializer<JSONObject> ser;
+        ser.readFrom(*n);
         QMimeData* mimeData = new QMimeData;
-
-        if(n->isDevice())
-        {
-            mimeData->setData(MimeTypeDevice, dataC);
-        }
-        else
-        {
-            mimeData->setData(MimeTypeAddress, dataC);
-        }
-
+        mimeData->setData(
+                    n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
+                    QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
         return mimeData;
     }
 
@@ -1175,8 +1152,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     */
 
     // Unused:
-//	if (column != NAME_COLUMN)
-//		column = NAME_COLUMN;
+    //	if (column != NAME_COLUMN)
+    //		column = NAME_COLUMN;
 
     QModelIndex parentIndex; //invalid
     Node* parentNode = m_rootNode;
@@ -1203,14 +1180,22 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
 
     if(parentNode)
     {
-
         if(row == -1)
         {
             row = parentNode->childCount();    //parent.isValid() ? parent.row() : parentNode->childCount();
         }
-        DeviceExplorer::Command::Insert* cmd = new DeviceExplorer::Command::Insert;
-        const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
-        cmd->set(Path(parentNode), row, mimeData->data(mimeType), tr("Drop (%1)").arg(actionStr), iscore::IDocument::path(this));
+
+        Deserializer<JSONObject> deser{QJsonDocument::fromJson(mimeData->data(mimeType)).object()};
+        Node n;
+        deser.writeTo(n);
+
+        auto cmd = new DeviceExplorer::Command::Insert{
+                Path(parentNode),
+                row,
+                std::move(n),
+                iscore::IDocument::path(this)};
+
+        //const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
         Q_ASSERT(m_cmdQ);
         m_cmdQ->redoAndPush(cmd);
 
@@ -1222,53 +1207,21 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         }
 
         return true;
-
-    }
-
-    return false;
-}
-
-
-bool
-DeviceExplorerModel::getTreeData(const QModelIndex& index, QByteArray& dataC) const
-{
-    if(! index.isValid())
-    {
-        return false;
-    }
-
-    Node* n = nodeFromModelIndex(index);
-
-    if(n)
-    {
-        QByteArray data;
-        QDataStream stream(&data, QIODevice::WriteOnly);
-        BinaryWriter bw(stream);
-        bw.write(n);
-        //std::cerr<<" data before compression: size="<<data.size()<<" capacity="<<data.capacity()<<"\n";
-        dataC = qCompress(data, compressionLevel);
-        //std::cerr<<" data after compression: size="<<dataC.size()<<" capacity="<<dataC.capacity()<<"\n";
-
-        return true;
     }
 
     return false;
 }
 
 bool
-DeviceExplorerModel::insertTreeData(const QModelIndex& parent, int row, const QByteArray& dataC)
+DeviceExplorerModel::insertNode(const QModelIndex& parent, int row, const Node &node)
 {
     Node* parentNode = nodeFromModelIndex(parent);
 
     if(parentNode)
     {
-        QByteArray data = qUncompress(dataC);
-        QDataStream stream(&data, QIODevice::ReadOnly);
-        BinaryReader br(stream);
-
         beginInsertRows(parent, row, row);
 
-        br.read(parentNode);
+        parentNode->insertChild(row, node.clone());
 
         endInsertRows();
 
