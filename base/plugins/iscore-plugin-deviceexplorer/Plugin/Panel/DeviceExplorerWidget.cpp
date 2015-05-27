@@ -213,6 +213,7 @@ void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     //TODO: decide which actions to show according to what's possible ?
+    updateActions();
     QMenu contextMenu(this);
     contextMenu.addAction(m_editAction);
     contextMenu.addAction(m_refreshAction);
@@ -288,18 +289,36 @@ DeviceExplorerWidget::updateActions()
         //TODO: we should also test/handle multi-selection !?!
 
         Q_ASSERT(m_ntView);
+
         QModelIndexList selection = m_ntView->selectedIndexes();
 
-        //std::cerr<<"DeviceExplorerWidget::updateActions() selection.size()="<<selection.size()<<"\n";
+        m_addSiblingAction->setEnabled(false);
+        m_addChildAction->setEnabled(false);
 
+        if(selection.isEmpty())
+        {
+            m_editAction->setEnabled(false);
+            m_refreshAction->setEnabled(false);
+            m_copyAction->setEnabled(false);
+            m_cutAction->setEnabled(false);
+            m_promoteAction->setEnabled(false);
+            m_demoteAction->setEnabled(false);
+            m_moveUpAction->setEnabled(false);
+            m_moveDownAction->setEnabled(false);
+            m_removeNodeAction->setEnabled(false);
+        }
+        else
+        {
+            m_refreshAction->setEnabled(true);
+            m_copyAction->setEnabled(true);
+            m_cutAction->setEnabled(true);
+//            m_moveUpAction->setEnabled(true);
+//            m_moveDownAction->setEnabled(true);
+        }
 
         if(selection.size() == 1)
         {
-            // TODO Does not work.
-//            qDebug() << selection.at(0).row() << selection.at(0).column();
-//            qDebug() << model()->index(0, 0, QModelIndex()).row() << model()->index(0, 0, QModelIndex()).column() << model()->nodeFromModelIndex(model()->index(0, 0, QModelIndex()))->addressSettings().name;
-            const bool aDeviceIsSelected = model()->isDevice(selection.at(0));
-//            qDebug() << model()->nodeFromModelIndex(selection.at(0))->addressSettings().name;
+            const bool aDeviceIsSelected = model()->isDevice(m_ntView->selectedIndex());
 
             if(! aDeviceIsSelected)
             {
@@ -315,26 +334,8 @@ DeviceExplorerWidget::updateActions()
                 m_demoteAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
             }
-
             m_editAction->setEnabled(true);
-            m_refreshAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
-            m_copyAction->setEnabled(true);
-            m_cutAction->setEnabled(true);
-            m_moveUpAction->setEnabled(true);
-            m_moveDownAction->setEnabled(true);
-        }
-        else
-        {
-            m_editAction->setEnabled(false);
-            m_refreshAction->setEnabled(false);
-            m_copyAction->setEnabled(false);
-            m_cutAction->setEnabled(false);
-            m_promoteAction->setEnabled(false);
-            m_demoteAction->setEnabled(false);
-            m_moveUpAction->setEnabled(false);
-            m_moveDownAction->setEnabled(false);
-            m_removeNodeAction->setEnabled(false);
         }
 
     }
@@ -349,6 +350,8 @@ DeviceExplorerWidget::updateActions()
         m_moveUpAction->setEnabled(false);
         m_moveDownAction->setEnabled(false);
         m_removeNodeAction->setEnabled(false);
+        m_addSiblingAction->setEnabled(false);
+        m_addChildAction->setEnabled(false);
     }
 
 
