@@ -279,6 +279,13 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 
+    connect(ev_pres, &EventPresenter::hasPrevConstraint,
+            this, [&] (bool arg)
+    {
+        auto tn = std::find(m_timeNodes.begin(), m_timeNodes.end(), event_model.timeNode());
+        (*tn)->view()->setValid(arg); //TODO à revoir !!
+    });
+
 
     connect(ev_pres, &EventPresenter::eventHoverEnter,
             this, [=] ()

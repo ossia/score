@@ -70,7 +70,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
 {
     m_stream << n.name
-             << n.ioType
+             << (int)n.ioType
              << n.priority
              << n.tags
              << n.valueType
@@ -89,12 +89,15 @@ void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
 {
+    int ioType;
     m_stream >> n.name
-            >> n.ioType
+            >> ioType
             >> n.priority
             >> n.tags
             >> n.valueType
             >> n.value;
+
+    n.ioType = static_cast<IOType>(ioType);
 
     if(n.valueType == "Float")
     {
@@ -115,7 +118,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
 {
     m_obj["Name"] = n.name;
-    m_obj["ioType"] = n.ioType;
+    m_obj["ioType"] = IOTypeStringMap()[n.ioType];
     m_obj["Priority"] = n.priority;
     m_obj["Tags"] = n.tags;
     m_obj["ValueType"] = n.valueType;
@@ -139,7 +142,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
-    n.ioType = m_obj["ioType"].toString();
+    n.ioType = IOTypeStringMap().key(m_obj["ioType"].toString());
     n.priority = m_obj["Priority"].toInt();
     n.tags = m_obj["Tags"].toString();
     n.valueType =m_obj["ValueType"].toString();

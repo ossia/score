@@ -106,8 +106,8 @@ T fromJsonObject(QJsonObject&& json)
 
     return obj;
 }
-
-inline QJsonArray toJsonArray(const QVector<int>& array)
+template<template<typename U> class Container>
+inline QJsonArray toJsonArray(const Container<int>& array)
 {
     QJsonArray arr;
 
@@ -254,7 +254,8 @@ void fromJsonArray(QJsonArray&& json_arr, const T<id_type<V>>& arr)
     }
 }
 
-inline void fromJsonArray(QJsonArray&& json_arr, QVector<int>& arr)
+template<template<typename U> class Container>
+void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
 {
     for(const auto& elt : json_arr)
     {

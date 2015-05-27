@@ -11,7 +11,7 @@ float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
 
 Node::Node(const QString& name, Node* parent):
-      m_parent{parent}
+    m_parent{parent}
 {
     m_addressSettings.name = name;
     if(m_parent)
@@ -86,7 +86,7 @@ void Node::setParent(Node* parent)
     m_parent->addChild(this);
 }
 
- /* *************************************************************
+/* *************************************************************
   * ACCESSORS
   * ************************************************************/
 
@@ -172,22 +172,9 @@ QString Node::value() const
     return  m_addressSettings.value.toString();
 }
 
-Node::IOType Node::ioType() const
+IOType Node::ioType() const
 {
-    if(m_addressSettings.ioType == "In")
-    {
-        return Node::IOType::In;
-    }
-    if(m_addressSettings.ioType == "Out")
-    {
-        return Node::IOType::Out;
-    }
-    if(m_addressSettings.ioType == "In/Out")
-    {
-        return Node::IOType::InOut;
-    }
-
-    return Node::IOType::Invalid;
+    return m_addressSettings.ioType;
 }
 
 float Node::minValue() const
@@ -272,23 +259,7 @@ void Node::setValueType(const QString &value)
     }
 }
 
-void Node::setIOType(const Node::IOType ioType)
-{
-    if(ioType == Node::IOType::In)
-    {
-        m_addressSettings.ioType = QString("In");
-    }
-    if(ioType == Node::IOType::Out)
-    {
-        m_addressSettings.ioType = QString("Out");
-    }
-    if(ioType == Node::IOType::InOut)
-    {
-        m_addressSettings.ioType = QString("In/Out");
-    }
-}
-
-void Node::setIOType(const QString ioType)
+void Node::setIOType(const IOType& ioType)
 {
     m_addressSettings.ioType = ioType;
 }
@@ -345,7 +316,7 @@ bool Node::isSelectable() const
 
 bool Node::isEditable() const
 {
-    return m_addressSettings.ioType == "Out" ||  m_addressSettings.ioType == "Invalid";
+    return m_addressSettings.ioType == IOType::InOut ||  m_addressSettings.ioType == IOType::Invalid;
 }
 
 bool Node::isDevice() const
@@ -438,106 +409,9 @@ Node* Node::clone() const
     return n;
 }
 
-#include <QDebug>
-namespace
-{
-void setIOType(Node* n, const QString& type)
-{
-    Q_ASSERT(n);
-
-        if(type == "In")
-        {
-            n->setIOType(Node::In);
-        }
-        else if(type == "Out")
-        {
-            n->setIOType(Node::Out);
-        }
-        else if(type == "In/Out")
-        {
-            n->setIOType(Node::InOut);
-        }
-        else
-        {
-            qDebug() << "Unknown I/O type: " << type;
-        }
-    }
-}
-
 Node* makeNode(const AddressSettings &addressSettings)
 {
-    QString name = addressSettings.name;
-    QString valueType = addressSettings.valueType;
-
-    Node* node = new Node(name, nullptr);  //build without parent otherwise appended at the end
-
-    if(valueType == "Int")
-    {
-        if (addressSettings.value.canConvert<int>())
-        {
-            QString value = QString::number(addressSettings.value.value<int>());
-            node->setValue(value);
-        }
-        if(addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-        {
-            AddressIntSettings iSettings = addressSettings.addressSpecificSettings.value<AddressIntSettings>();
-
-            int valueMin = iSettings.min;
-            int valueMax = iSettings.max;
-            QString unite = iSettings.unit;
-            QString clipMode = iSettings.clipMode;
-
-            node->setMinValue(valueMin);
-            node->setMaxValue(valueMax);
-        }
-        int priority = addressSettings.priority;
-        QString tags = addressSettings.tags;
-        QString ioType = addressSettings.ioType;
-
-        setIOType(node, ioType);
-        node->setPriority(priority);
-        //TODO: other columns
-    }
-    else if(valueType == "Float")
-    {
-        if (addressSettings.value.canConvert<float>())
-        {
-            QString value = QString::number(addressSettings.value.value<float>());
-            node->setValue(value);
-        }
-        if(addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-        {
-            AddressFloatSettings fSettings = addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
-
-            float valueMin = fSettings.min;
-            float valueMax = fSettings.max;
-            QString unite = fSettings.unit;
-            QString clipMode = fSettings.clipMode;
-
-            node->setMinValue(valueMin);
-            node->setMaxValue(valueMax);
-        }
-        int priority = addressSettings.priority;
-        QString tags = addressSettings.tags;
-        QString ioType = addressSettings.ioType;
-
-        setIOType(node, ioType);
-        node->setPriority(priority);
-        //TODO: other columns
-    }
-    else if(valueType == "String")
-    {
-        if(addressSettings.value.canConvert<QString>())
-        {
-            QString value = addressSettings.value.value<QString>();
-            node->setValue(value);
-        }
-        QString ioType = addressSettings.ioType;
-        int priority = addressSettings.priority;
-        QString tags = addressSettings.tags;
-        node->setPriority(priority);
-        setIOType(node, ioType);
-    }
+    Node* node = new Node(addressSettings.name, nullptr);  //build without parent otherwise appended at the end
 
     node->setAddressSettings(addressSettings);
 

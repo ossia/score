@@ -77,7 +77,7 @@ void TemporalConstraintView::paint(
         constraintColor = qApp->palette("ScenarioPalette").base().color();
     }
 
-    if(defaultWidth() < 0)
+    if(! isValid())
     {
         constraintColor = Qt::red;
     }

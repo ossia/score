@@ -81,8 +81,7 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void debug_printIndexes(const QModelIndexList& indexes);
 
-        bool getTreeData(const QModelIndex& index, QByteArray& data) const;
-        bool insertTreeData(const QModelIndex& parent, int row, const QByteArray& data);
+        bool insertNode(const QModelIndex& parent, int row, const Node& node);
 
 
         QModelIndex index(int row, int column, const QModelIndex& parent) const override;

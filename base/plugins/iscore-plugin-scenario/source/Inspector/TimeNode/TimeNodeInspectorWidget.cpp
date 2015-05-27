@@ -84,10 +84,9 @@ void TimeNodeInspectorWidget::updateDisplayedValues(const TimeNodeModel* timeNod
 
    if(timeNode)
     {
-
         m_date->setText(QString::number(m_model->date().msec()));
 
-        for(id_type<EventModel> event : timeNode->events())
+        for(const auto& event : timeNode->events())
         {
             ScenarioModel* scenar = timeNode->parentScenario();
             EventModel* evModel {};

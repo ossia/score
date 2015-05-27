@@ -54,6 +54,11 @@ void AbstractConstraintView::setPlayWidth(double width)
     update();
 }
 
+void AbstractConstraintView::setValid(bool val)
+{
+    m_validConstraint = val;
+}
+
 #include <QGraphicsSceneMouseEvent>
 void AbstractConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {

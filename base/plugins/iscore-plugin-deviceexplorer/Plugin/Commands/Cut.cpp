@@ -67,8 +67,7 @@ Cut::redo()
 void
 Cut::serializeImpl(QDataStream& d) const
 {
-    d << m_model;
-    m_parentPath.serializePath(d);
+    d << m_model << m_parentPath;
     d << (qint32) m_row;
 
     d << (qint32) m_data.size();
@@ -79,8 +78,7 @@ Cut::serializeImpl(QDataStream& d) const
 void
 Cut::deserializeImpl(QDataStream& d)
 {
-    d >> m_model;
-    m_parentPath.deserializePath(d);
+    d >> m_model >> m_parentPath;
     qint32 v;
     d >> v;
     m_row = v;

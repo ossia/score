@@ -77,7 +77,8 @@ AddressSettings AddressStringSettingsWidget::getSettings() const
     Q_ASSERT(m_ioTypeCBox);
 
     AddressSettings settings;
-    settings.ioType = m_ioTypeCBox->currentText();
+    // TODO refactor the common code in a common widget.
+    settings.ioType = IOTypeStringMap().key(m_ioTypeCBox->currentText());
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
     settings.valueType = QString("String");
@@ -91,18 +92,10 @@ AddressStringSettingsWidget::setSettings(const AddressSettings &settings)
 {
     Q_ASSERT(m_ioTypeCBox);
 
+    const int ioTypeIndex = m_ioTypeCBox->findText(IOTypeStringMap()[settings.ioType]);
+    Q_ASSERT(ioTypeIndex != -1);
 
-    const QString& ioTypeString = settings.ioType;
-    const int ioTypeIndex = m_ioTypeCBox->findText(ioTypeString);
-
-    if(ioTypeIndex != -1)
-    {
-        m_ioTypeCBox->setCurrentIndex(ioTypeIndex);
-    }
-    else
-    {
-        qDebug() << tr("Unknown I/O type: %1").arg(ioTypeString) << "\n";
-    }
+    m_ioTypeCBox->setCurrentIndex(ioTypeIndex);
 
     if(settings.value.canConvert<QString>())
     {
