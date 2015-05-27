@@ -33,6 +33,7 @@ class AbstractConstraintView : public QGraphicsObject
         void setMinWidth(double min);
         void setHeight(double height);
         void setPlayWidth(double width);
+        void setValid(bool val);
 
         double height() const
         { return m_height; }
@@ -75,6 +76,11 @@ class AbstractConstraintView : public QGraphicsObject
             return m_playWidth;
         }
 
+        bool isValid() const
+        {
+            return m_validConstraint;
+        }
+
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -108,4 +114,5 @@ class AbstractConstraintView : public QGraphicsObject
 
         bool m_selected{};
         bool m_infinite{};
+        bool m_validConstraint{true};
 };

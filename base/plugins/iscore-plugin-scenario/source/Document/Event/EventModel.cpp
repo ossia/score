@@ -58,6 +58,8 @@ void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 
 void EventModel::addPreviousConstraint(const id_type<ConstraintModel>& constraint)
 {
+    if (m_previousConstraints.empty())
+        emit hasPreviousConstraint(true);
     m_previousConstraints.push_back(constraint);
 }
 
@@ -81,7 +83,10 @@ bool EventModel::removeNextConstraint(const id_type<ConstraintModel>& constraint
 
 bool EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
-    return removeConstraint(m_previousConstraints, constraintToDelete);
+    auto ok = removeConstraint(m_previousConstraints, constraintToDelete);
+    if(m_previousConstraints.empty())
+        emit hasPreviousConstraint(false);
+    return ok;
 }
 
 void EventModel::changeTimeNode(const id_type<TimeNodeModel>& newTimeNodeId)
