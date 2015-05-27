@@ -46,12 +46,21 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
 void updateAddressSettings(const FullAddressSettings& settings, const std::shared_ptr<OSSIA::Address>& addr)
 {
     using namespace OSSIA;
-    if(settings.ioType == "In")
-    { addr->setAccessMode(Address::AccessMode::GET); }
-    else if(settings.ioType == "Out")
-    { addr->setAccessMode(Address::AccessMode::SET); }
-    else if(settings.ioType == "In/Out")
-    { addr->setAccessMode(Address::AccessMode::BI); }
+    switch(settings.ioType)
+    {
+        case IOType::In:
+            addr->setAccessMode(Address::AccessMode::GET);
+            break;
+        case IOType::Out:
+            addr->setAccessMode(Address::AccessMode::SET);
+            break;
+        case IOType::InOut:
+            addr->setAccessMode(Address::AccessMode::BI);
+            break;
+        case IOType::Invalid:
+            // TODO There shouldn't be an address!!
+            break;
+    }
 }
 
 void createAddressSettings(const FullAddressSettings& settings, OSSIA::Node* node)
@@ -74,6 +83,7 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
     // Get the node
     QStringList path = settings.name.split("/");
     path.removeFirst();
+    path.removeFirst();
 
     // Create it
     OSSIA::Node* node = nodeFromPath(path, m_dev.get());
@@ -88,6 +98,7 @@ void OSSIADevice::updateAddress(const FullAddressSettings &settings)
     using namespace OSSIA;
     QStringList path = settings.name.split("/");
     path.removeFirst();
+    path.removeFirst();
 
     OSSIA::Node* node = nodeFromPath(path, m_dev.get());
     updateAddressSettings(settings, node->getAddress());
@@ -98,6 +109,7 @@ void OSSIADevice::removeAddress(const QString &address)
 {
     using namespace OSSIA;
     QStringList path = address.split("/");
+    path.removeFirst();
     path.removeFirst();
 
     OSSIA::Node* node = nodeFromPath(path, m_dev.get());

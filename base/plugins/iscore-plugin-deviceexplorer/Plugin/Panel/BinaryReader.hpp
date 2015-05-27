@@ -35,7 +35,7 @@ class BinaryReader
             //TODO: cropMode, tags, ...
 
             n->setValue(value);
-            n->setIOType(static_cast<Node::IOType>(ioType));
+            n->setIOType(static_cast<IOType>(ioType));
             n->setMinValue(minValue);
             n->setMaxValue(maxValue);
             n->setPriority(priority);

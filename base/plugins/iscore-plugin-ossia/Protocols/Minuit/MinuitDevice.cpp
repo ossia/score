@@ -48,19 +48,19 @@ QString valueTypeToString(OSSIA::AddressValue::Type t)
     }
 }
 
-QString accessModeToString(OSSIA::Address::AccessMode t)
+IOType accessModeToIOType(OSSIA::Address::AccessMode t)
 {
     switch(t)
     {
         case OSSIA::Address::AccessMode::GET:
-            return "In";
+            return IOType::In;
         case OSSIA::Address::AccessMode::SET:
-            return "Out";
+            return IOType::Out;
         case OSSIA::Address::AccessMode::BI:
-            return "In/Out";
+            return IOType::InOut;
         default:
             Q_ASSERT(false);
-            return "";
+            return IOType::Invalid;
     }
 }
 
@@ -98,7 +98,7 @@ AddressSettings extractAddressSettings(const OSSIA::Node& node)
 
     s.name = nodeFullName(node);
     s.valueType = valueTypeToString(addr->getValueType());
-    s.ioType = accessModeToString(addr->getAccessMode());
+    s.ioType = accessModeToIOType(addr->getAccessMode());
     return s;
 }
 
@@ -136,6 +136,8 @@ Node MinuitDevice::refresh()
             device.addChild(OssiaToDeviceExplorer(*node.get()));
         }
     }
+
+    device.setName(QString::fromStdString(m_dev->getName()));
 
     return device;
 }

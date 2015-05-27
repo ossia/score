@@ -349,9 +349,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
             else if(role == Qt::FontRole)
             {
-                const Node::IOType ioType = node->ioType();
+                const IOType ioType = node->ioType();
 
-                if(ioType == Node::In || ioType == Node::Out)
+                if(ioType == IOType::In || ioType == IOType::Out)
                 {
                     QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
                     f.setItalic(true);
@@ -360,9 +360,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
             else if(role == Qt::ForegroundRole)
             {
-                const Node::IOType ioType = node->ioType();
+                const IOType ioType = node->ioType();
 
-                if(ioType == Node::In || ioType == Node::Out)
+                if(ioType == IOType::In || ioType == IOType::Out)
                 {
                     return QBrush(Qt::black);
                 }
@@ -379,9 +379,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
             else if(role == Qt::ForegroundRole)
             {
-                const Node::IOType ioType = node->ioType();
+                const IOType ioType = node->ioType();
 
-                if(ioType == Node::In || ioType == Node::Out)
+                if(ioType == IOType::In || ioType == IOType::Out)
                 {
                     return QBrush(Qt::black);
                 }
@@ -395,13 +395,13 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             {
                 switch(node->ioType())
                 {// TODO use this enum in AddressSettings!
-                    case Node::In:
+                    case IOType::In:
                         return QString("<-");
 
-                    case Node::Out:
+                    case IOType::Out:
                         return QString("->");
 
-                    case Node::InOut:
+                    case IOType::InOut:
                         return QString("<->");
 
                     default:
@@ -651,15 +651,15 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
 
             if(iotype == "->")
             {
-                node->setIOType(Node::In);
+                node->setIOType(IOType::In);
             }
             else if(iotype == "<-")
             {
-                node->setIOType(Node::Out);
+                node->setIOType(IOType::Out);
             }
             else if(iotype == "<->")
             {
-                node->setIOType(Node::InOut);
+                node->setIOType(IOType::InOut);
             }
         }
     }

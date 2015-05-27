@@ -3,13 +3,16 @@
 #include <QString>
 #include <QVariant>
 
+enum class IOType {Invalid, In, Out, InOut};
+const QMap<IOType, QString>& IOTypeStringMap();
+
 struct AddressSettings
 {
     QString name;
     QString valueType; // TODO why not an enum?
     int priority;
     QString tags;
-    QString ioType; // TODO why not an enum?
+    IOType ioType; // TODO why not an enum?
     QVariant addressSpecificSettings;
     QVariant value;
 };
