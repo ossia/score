@@ -10680,10 +10680,18 @@ void QCustomPlot::paintEvent(QPaintEvent *event)
 */
 void QCustomPlot::resizeEvent(QResizeEvent *event)
 {
+    QSize pbSize = event->size();
+    pbSize *= devicePixelRatio();
+    mPaintBuffer = QPixmap(pbSize);
+    mPaintBuffer.setDevicePixelRatio(devicePixelRatio());
+    setViewport(rect());
+    replot(rpQueued);
+    /*
   // resize and repaint the buffer:
   mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
   replot(rpQueued); // queued update is important here, to prevent painting issues in some contexts
+  */
 }
 
 /*! \internal
