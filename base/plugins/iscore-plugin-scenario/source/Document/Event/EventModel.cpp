@@ -59,7 +59,7 @@ void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 void EventModel::addPreviousConstraint(const id_type<ConstraintModel>& constraint)
 {
     if (m_previousConstraints.empty())
-        emit hasPreviousConstraint(true);
+        emit previousConstraintChanged(true);
     m_previousConstraints.push_back(constraint);
 }
 
@@ -85,7 +85,7 @@ bool EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constr
 {
     auto ok = removeConstraint(m_previousConstraints, constraintToDelete);
     if(m_previousConstraints.empty())
-        emit hasPreviousConstraint(false);
+        emit previousConstraintChanged(false);
     return ok;
 }
 
