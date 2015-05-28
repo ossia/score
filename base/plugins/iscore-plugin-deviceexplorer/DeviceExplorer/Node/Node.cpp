@@ -321,12 +321,7 @@ bool Node::isEditable() const
 
 bool Node::isDevice() const
 {
-    if(parent())
-    {
-        return parent()->parent() == nullptr;
-    }
-
-    return false;
+    return deviceSettings().protocol != "";
 }
 
 void Node::setDeviceSettings(const DeviceSettings &settings)

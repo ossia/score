@@ -116,7 +116,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getNameColumn() const;
 
         Node* nodeFromModelIndex(const QModelIndex& index) const;
-        QModelIndex pathToIndex(const Path& path);
+        QModelIndex convertPathToIndex(const Path& path);
 
         DeviceExplorerCommandCreator* cmdCreator();
         void setCachedResult(DeviceExplorer::Result r);

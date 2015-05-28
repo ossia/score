@@ -23,6 +23,10 @@ Path::Path(Node *node)
 {
     Node* iter = node;
 
+    // We have to take care of the root node.
+    if(node->name() == "Invisible root") // TODO do this in another way pls.
+        return;
+
     while(! iter->isDevice())
     {
         m_path.prepend(iter->parent()->indexOfChild(iter));

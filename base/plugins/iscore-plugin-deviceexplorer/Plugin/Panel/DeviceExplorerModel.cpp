@@ -313,7 +313,7 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
 
 QVariant DeviceExplorerModel::getData(Path node, int column, int role)
 {
-    QModelIndex index = createIndex(pathToIndex(node).row(), column, node.toNode(rootNode())->parent());
+    QModelIndex index = createIndex(convertPathToIndex(node).row(), column, node.toNode(rootNode())->parent());
     return data(index, role);
 }
 
@@ -624,7 +624,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
     //TODO: check what's editable or not !!!
-    QModelIndex nodeIndex = pathToIndex(path);
+    QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
 
     QModelIndex index = createIndex(nodeIndex.row(), column, node->parent());
@@ -1023,7 +1023,7 @@ It allows to distinguish whether we are drag'n dropping devices or addresses.
 Qt::DropActions
 DeviceExplorerModel::supportedDropActions() const
 {
-    return (Qt::CopyAction | Qt::MoveAction);
+    return (Qt::CopyAction);
 }
 
 //Default supportedDragActions() implementation returns supportedDropActions().
@@ -1031,7 +1031,7 @@ DeviceExplorerModel::supportedDropActions() const
 Qt::DropActions
 DeviceExplorerModel::supportedDragActions() const
 {
-    return (Qt::CopyAction | Qt::MoveAction);
+    return (Qt::CopyAction);
 }
 
 
@@ -1086,7 +1086,6 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
 
     if(action != Qt::MoveAction && action != Qt::CopyAction)
     {
-        std::cerr << "dropMimeData(): not Qt::MoveAction or Qt::CopyAction ! NOT DONE \n";
         return false;
     }
 
@@ -1135,7 +1134,6 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
 
     if(action != Qt::MoveAction && action != Qt::CopyAction)
     {
-        std::cerr << "dropMimeData(): not Qt::MoveAction or Qt::CopyAction ! NOT DONE \n";
         return false;
     }
 
@@ -1143,17 +1141,6 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     {
         return false;
     }
-
-    /*
-    if (column > 0) {
-    std::cerr<<"dropMimeData(): tried to drop on column="<<column<<" ! NOT DONE\n";
-    return false;
-    }
-    */
-
-    // Unused:
-    //	if (column != NAME_COLUMN)
-    //		column = NAME_COLUMN;
 
     QModelIndex parentIndex; //invalid
     Node* parentNode = m_rootNode;
@@ -1167,10 +1154,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
 
         if(parentNode == m_rootNode)
         {
-            std::cerr << "dropMimeData(): cannot drop an address at device level \n";
             return false;
         }
-
     }
     else
     {
@@ -1180,9 +1165,13 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
 
     if(parentNode)
     {
+        // Note : when dropping a device,
+        // if there is an existing device that would use the same ports, etc.
+        // we have to open a dialog to change the device settings.
+        /*
         if(row == -1)
         {
-            row = parentNode->childCount();    //parent.isValid() ? parent.row() : parentNode->childCount();
+            row = parentNode->childCount();
         }
 
         Deserializer<JSONObject> deser{QJsonDocument::fromJson(mimeData->data(mimeType)).object()};
@@ -1195,8 +1184,6 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
                 std::move(n),
                 iscore::IDocument::path(this)};
 
-        //const QString actionStr = (action == Qt::MoveAction ? tr("move") : tr("copy"));
-        Q_ASSERT(m_cmdQ);
         m_cmdQ->redoAndPush(cmd);
 
         if(! m_cmdCreator->m_cachedResult)
@@ -1207,6 +1194,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         }
 
         return true;
+        */
+        return false;
     }
 
     return false;
@@ -1238,7 +1227,7 @@ DeviceExplorerModel::setCachedResult(DeviceExplorer::Result r)
 }
 
 QModelIndex
-DeviceExplorerModel::pathToIndex(const Path& path)
+DeviceExplorerModel::convertPathToIndex(const Path& path)
 {
     QModelIndex iter;
     const int pathSize = path.size();

@@ -201,6 +201,11 @@ void AddDevice::redo()
     m_row = explorer.addDevice(node);
 }
 
+int AddDevice::deviceRow() const
+{
+    return m_row;
+}
+
 void AddDevice::serializeImpl(QDataStream& d) const
 {
     d << m_deviceTree;
