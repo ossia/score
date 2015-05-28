@@ -132,7 +132,6 @@ void EventPresenter::constraintsChangedHelper(
     auto scenar = m_model.parentScenario();
     for(const auto& constraint : ids)
     {
-        qDebug() << constraint;
         const auto& cstr = scenar->constraint(constraint);
         connections.append(
                     connect(&cstr, &ConstraintModel::processesChanged,
