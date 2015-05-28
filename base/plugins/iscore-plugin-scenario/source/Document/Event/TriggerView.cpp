@@ -3,6 +3,7 @@
 TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
+    setFlag(ItemStacksBehindParent, true);
     auto itm = new QGraphicsSvgItem(":/images/trigger.svg");
     itm->setScale(1.5);
     itm->setParentItem(this);
