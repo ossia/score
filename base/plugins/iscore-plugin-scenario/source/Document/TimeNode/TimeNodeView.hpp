@@ -40,7 +40,7 @@ class TimeNodeView : public QGraphicsObject
             return m_valid;
         }
 
-        bool setValid(bool arg)
+        void setValid(bool arg)
         {
             m_valid = arg;
             update();
