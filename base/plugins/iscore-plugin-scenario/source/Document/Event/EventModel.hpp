@@ -106,6 +106,11 @@ class EventModel : public IdentifiedObject<EventModel>
         auto& pluginModelList() { return *m_pluginModelList; }
         const auto& pluginModelList() const { return *m_pluginModelList; }
 
+        bool hasPreviousConstraint()
+        {
+            return ! m_previousConstraints.empty();
+        }
+
 
 
     public slots:
@@ -120,7 +125,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void heightPercentageChanged(double arg);
         void messagesChanged();
         void dateChanged();
-        void hasPreviousConstraint(bool arg);
+        void previousConstraintChanged(bool arg);
 
         void conditionChanged(const QString& arg);
         void triggerChanged(QString trigger);

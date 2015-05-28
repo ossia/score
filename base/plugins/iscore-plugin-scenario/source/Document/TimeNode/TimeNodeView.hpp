@@ -43,6 +43,7 @@ class TimeNodeView : public QGraphicsObject
         bool setValid(bool arg)
         {
             m_valid = arg;
+            update();
         }
 
     public slots:

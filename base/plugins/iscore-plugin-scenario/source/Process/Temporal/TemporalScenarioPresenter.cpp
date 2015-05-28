@@ -282,8 +282,8 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     connect(ev_pres, &EventPresenter::hasPrevConstraint,
             this, [&] (bool arg)
     {
-        auto tn = std::find(m_timeNodes.begin(), m_timeNodes.end(), event_model.timeNode());
-        (*tn)->view()->setValid(arg); //TODO à revoir !!
+        TimeNodePresenter* tn = * std::find(m_timeNodes.begin(), m_timeNodes.end(), event_model.timeNode());
+        tn->previousConstraintsChanged(event_model.id(), arg);
     });
 
 
@@ -316,6 +316,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(tn_pres, &TimeNodePresenter::previousConstraintsChanged, &timeNode_model, &TimeNodeModel::previousConstraintsChanged);
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
