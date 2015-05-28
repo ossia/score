@@ -7,8 +7,13 @@ class QActionGroup;
 class ScenarioModel;
 class ScenarioStateMachine;
 class TemporalScenarioPresenter;
+
+class EditMenuActions;
+
 class ScenarioControl : public iscore::PluginControlInterface
 {
+    friend class EditMenuActions;
+
     public:
         ScenarioControl(iscore::Presenter* pres);
 
@@ -25,6 +30,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     protected:
         virtual void on_documentChanged() override;
+        const ScenarioModel* focusedScenarioModel() const;
 
     private:
         ScenarioStateMachine& stateMachine() const;
@@ -38,9 +44,10 @@ class ScenarioControl : public iscore::PluginControlInterface
         QActionGroup* m_shiftActionGroup{};
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 
+        EditMenuActions* m_edit;
+
         QAction* m_selecttool{};
 
-        const ScenarioModel* focusedScenarioModel() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
         ProcessFocusManager* processFocusManager() const;

@@ -67,8 +67,11 @@ void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
 {
     QMenu contextMenu {};
     contextMenu.clear();
+
     contextMenu.addAction(m_clearAction);
+
     contextMenu.exec(event->screenPos());
+    //TODO contextMenu : doit renvoyer juste la position au presenter
 }
 
 void TemporalScenarioView::keyPressEvent(QKeyEvent* event)

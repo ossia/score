@@ -12,6 +12,8 @@
 
 #include "Control/OldFormatConversion.hpp"
 
+#include "Menus/EditMenuActions.hpp"
+
 #include <core/document/DocumentModel.hpp>
 
 #include <QToolBar>
@@ -47,6 +49,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
+    m_edit = new EditMenuActions{this};
 }
 
 template<typename Selected_T>
@@ -156,75 +159,15 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
 
     ///// Edit /////
-    // Remove
-    QAction *removeElements = new QAction{tr("Remove scenario elements"), this};
-    removeElements->setShortcut(QKeySequence::Delete);
-    connect(removeElements, &QAction::triggered,
-            [this]()
+
+    for(auto action : m_edit->editActions()->actions())
     {
-        if (auto sm = focusedScenarioModel())
-        {
-            ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
-            mgr.deleteSelection(*sm);
-        }
-    });
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       removeElements);
+        menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+                                           action);
+    }
+    //TODO : how to insert separator ?
+//    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu, EditMenuElement::Separator_Copy);
 
-
-    QAction *clearElements = new QAction{tr("Clear scenario elements"), this};
-    clearElements->setShortcut(Qt::Key_Backspace);
-    connect(clearElements, &QAction::triggered,
-            [this]()
-    {
-        if (auto sm = focusedScenarioModel())
-        {
-            ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
-            mgr.clearContentFromSelection(*sm);
-        }
-    });
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       clearElements);
-
-    // Copy-paste
-    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu, EditMenuElement::Separator_Copy);
-    QAction *copyConstraintContent = new QAction{tr("Copy"), this};
-    copyConstraintContent->setShortcut(QKeySequence::Copy);
-    connect(copyConstraintContent, &QAction::triggered,
-            [this]()
-    {
-        QJsonDocument doc{copySelectedElementsToJson()};
-        auto clippy = QApplication::clipboard();
-        clippy->setText(doc.toJson(QJsonDocument::Indented));
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       copyConstraintContent);
-
-    QAction *cutConstraintContent = new QAction{tr("Cut"), this};
-    cutConstraintContent->setShortcut(QKeySequence::Cut);
-    connect(cutConstraintContent, &QAction::triggered,
-            [this]()
-    {
-        QJsonDocument doc{cutSelectedElementsToJson()};
-        auto clippy = QApplication::clipboard();
-        clippy->setText(doc.toJson(QJsonDocument::Indented));
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       cutConstraintContent);
-
-    QAction *pasteConstraintContent = new QAction{tr("Paste"), this};
-    pasteConstraintContent->setShortcut(QKeySequence::Paste);
-    connect(pasteConstraintContent, &QAction::triggered,
-            [this]()
-    {
-        writeJsonToSelectedElements(
-                    QJsonDocument::fromJson(
-                        QApplication::clipboard()->text().toLatin1()).object());
-    });
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                       pasteConstraintContent);
 
     ///// View /////
     QAction *selectAll = new QAction{tr("Select all"), this};
@@ -282,7 +225,7 @@ QAction* makeToolbarAction(const QString& name,
     act->setData(QVariant::fromValue((int) data));
     act->setShortcutContext(Qt::ApplicationShortcut);
     act->setShortcut(shortcut);
-    act->setToolTip(shortcut);
+    act->setToolTip(name+ " (" + shortcut + ")");
 
     return act;
 }
@@ -294,6 +237,7 @@ ScenarioStateMachine& ScenarioControl::stateMachine() const
 
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
+    // TODO why not in Menu too ?
     QToolBar *bar = new QToolBar;
     // The tools
     m_scenarioToolActionGroup = new QActionGroup{bar};

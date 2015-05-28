@@ -62,6 +62,7 @@ class TemporalScenarioView : public ProcessView
 
         QAction* m_clearAction {};
 
+
         bool m_lock {};
         TemporalScenarioPresenter* m_pres{};
 };
