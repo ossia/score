@@ -94,11 +94,22 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         scaleState = new QState{expansionModeState};
         expansionModeState->setInitialState(scaleState);
         growState = new QState{expansionModeState};
+        fixedState = new QState{expansionModeState};
 
         auto t_scale_grow = new QSignalTransition(this, SIGNAL(setGrowState()), scaleState);
         t_scale_grow->setTargetState(growState);
+        auto t_grow_fixed = new QSignalTransition(this, SIGNAL(setFixedState()), growState);
+        t_grow_fixed->setTargetState(fixedState);
+        auto t_fixed_scale = new QSignalTransition(this, SIGNAL(setScaleState()), fixedState);
+        t_fixed_scale->setTargetState(scaleState);
+
         auto t_grow_scale = new QSignalTransition(this, SIGNAL(setScaleState()), growState);
         t_grow_scale->setTargetState(scaleState);
+        auto t_scale_fixed = new QSignalTransition(this, SIGNAL(setFixedState()), scaleState);
+        t_scale_fixed->setTargetState(fixedState);
+        auto t_fixed_grow = new QSignalTransition(this, SIGNAL(setGrowState()), fixedState);
+        t_fixed_grow->setTargetState(growState);
+
     }
 
     auto shiftModeState = new QState{this};
@@ -140,6 +151,8 @@ ExpandMode ScenarioStateMachine::expandMode() const
         return ExpandMode::Scale;
     if(growState->active())
         return ExpandMode::Grow;
+    if(fixedState->active())
+        return ExpandMode::Fixed;
 
     return ExpandMode::Scale;
 }

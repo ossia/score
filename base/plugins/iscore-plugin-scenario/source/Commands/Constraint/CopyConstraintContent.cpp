@@ -82,7 +82,7 @@ void CopyConstraintContent::redo()
         {
             newproc->setDurationAndScale(trg_constraint.defaultDuration());
         }
-        else
+        else if (m_mode == ExpandMode::Grow)
         {
             newproc->setDurationAndGrow(trg_constraint.defaultDuration());
         }
