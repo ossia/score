@@ -3,27 +3,8 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 class EventPresenter;
-
-class ConditionView : public QGraphicsItem
-{
-    public:
-        using QGraphicsItem::QGraphicsItem;
-        QRectF boundingRect() const;
-        void paint(QPainter *painter,
-                   const QStyleOptionGraphicsItem *option,
-                   QWidget *widget);
-};
-
-class TriggerView : public QGraphicsItem
-{
-    public:
-        TriggerView(QGraphicsItem* parent);
-        QRectF boundingRect() const;
-        void paint(QPainter *painter,
-                   const QStyleOptionGraphicsItem *option,
-                   QWidget *widget);
-};
-
+class ConditionView;
+class TriggerView;
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
@@ -72,11 +53,13 @@ class EventView : public QGraphicsObject
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
+        virtual void dropEvent(QGraphicsSceneDragDropEvent *event);
+
     private:
         EventPresenter& m_presenter;
         QString m_condition;
         QString m_trigger;
-        QPointF m_clickedPoint {};
+        QPointF m_clickedPoint;
         QColor m_color;
 
         Halves m_halves{Halves::None};
