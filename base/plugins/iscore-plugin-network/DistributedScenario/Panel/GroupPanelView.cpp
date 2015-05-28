@@ -9,6 +9,12 @@
 #include <QPushButton>
 #include <QInputDialog>
 
+static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
+const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const
+{
+    return status;
+}
+
 GroupPanelView::GroupPanelView(QObject* v):
     iscore::PanelView{v},
     m_widget{new QWidget}
@@ -20,21 +26,6 @@ GroupPanelView::GroupPanelView(QObject* v):
 QWidget*GroupPanelView::getWidget()
 {
     return m_widget;
-}
-
-Qt::DockWidgetArea GroupPanelView::defaultDock() const
-{
-    return Qt::RightDockWidgetArea;
-}
-
-int GroupPanelView::priority() const
-{
-    return 1;
-}
-
-QString GroupPanelView::prettyName() const
-{
-    return tr("Groups");
 }
 
 #include "Repartition/session/Session.hpp"

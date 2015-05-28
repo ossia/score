@@ -8,13 +8,13 @@ class DoubleSlider;
 class ProcessPanelView : public iscore::PanelView
 {
         Q_OBJECT
+        static const iscore::DefaultPanelStatus m_status;
     public:
+        const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
+
         ProcessPanelView(QObject* parent);
 
         QWidget* getWidget() override;
-        Qt::DockWidgetArea defaultDock() const override;
-        int priority() const override;
-        QString prettyName() const override;
 
         QGraphicsScene* scene() const;
         SizeNotifyingGraphicsView* view() const;

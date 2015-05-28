@@ -2,6 +2,10 @@
 #include "Panel/DeviceExplorerWidget.hpp"
 
 #include <core/view/View.hpp>
+static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 10, QObject::tr("Devices")};
+
+const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() const
+{ return status; }
 
 DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
     iscore::PanelView {parent},
@@ -12,19 +16,4 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
 QWidget* DeviceExplorerPanelView::getWidget()
 {
     return m_widget;
-}
-
-Qt::DockWidgetArea DeviceExplorerPanelView::defaultDock() const
-{
-    return Qt::LeftDockWidgetArea;
-}
-
-int DeviceExplorerPanelView::priority() const
-{
-    return 10;
-}
-
-QString DeviceExplorerPanelView::prettyName() const
-{
-    return tr("Devices");
 }

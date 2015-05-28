@@ -3,6 +3,10 @@
 #include <QVBoxLayout>
 #include "Widgets/UndoListWidget.hpp"
 
+static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 0, QObject::tr("History")};
+
+const iscore::DefaultPanelStatus &UndoView::defaultPanelStatus() const
+{ return status; }
 
 UndoView::UndoView(QObject* v) :
     iscore::PanelView{v},
@@ -16,23 +20,6 @@ QWidget*UndoView::getWidget()
 {
     return m_widget;
 }
-
-
-Qt::DockWidgetArea UndoView::defaultDock() const
-{
-    return Qt::LeftDockWidgetArea;
-}
-
-int UndoView::priority() const
-{
-    return 0;
-}
-
-QString UndoView::prettyName() const
-{
-    return tr("History");
-}
-
 
 void UndoView::setStack(iscore::CommandStack* s)
 {

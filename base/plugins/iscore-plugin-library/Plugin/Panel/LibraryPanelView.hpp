@@ -10,6 +10,7 @@ namespace iscore
 class LibraryPanelView : public iscore::PanelView
 {
     public:
+        const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
         LibraryPanelView(iscore::View* parent);
 
         QWidget* getWidget();

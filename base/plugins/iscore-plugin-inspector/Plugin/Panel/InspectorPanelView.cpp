@@ -5,6 +5,10 @@
 
 #include "Implementation/InspectorPanel.hpp"
 #include "Implementation/SelectionStackWidget.hpp"
+static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 10, QObject::tr("Inspector")};
+
+const iscore::DefaultPanelStatus &InspectorPanelView::defaultPanelStatus() const
+{ return status; }
 
 InspectorPanelView::InspectorPanelView(iscore::View* parent) :
     iscore::PanelView {parent},
@@ -17,21 +21,6 @@ InspectorPanelView::InspectorPanelView(iscore::View* parent) :
 QWidget* InspectorPanelView::getWidget()
 {
     return m_widget;
-}
-
-Qt::DockWidgetArea InspectorPanelView::defaultDock() const
-{
-    return Qt::RightDockWidgetArea;
-}
-
-int InspectorPanelView::priority() const
-{
-    return 10;
-}
-
-QString InspectorPanelView::prettyName() const
-{
-    return tr("Inspector");
 }
 
 void InspectorPanelView::setCurrentDocument(iscore::Document* doc)

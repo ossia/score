@@ -12,13 +12,10 @@ class InspectorPanelView : public iscore::PanelView
 {
         Q_OBJECT
     public:
+        const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
         InspectorPanelView(iscore::View* parent);
 
         QWidget* getWidget() override;
-        Qt::DockWidgetArea defaultDock() const override;
-        int priority() const override;
-        QString prettyName() const override;
-
 
     public slots:
         void setCurrentDocument(iscore::Document*);

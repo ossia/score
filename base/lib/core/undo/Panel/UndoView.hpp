@@ -9,13 +9,11 @@ class UndoListWidget;
 class UndoView : public iscore::PanelView
 {
     public:
+        const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
+
         UndoView(QObject *v);
 
         QWidget *getWidget() override;
-        Qt::DockWidgetArea defaultDock() const override;
-        int priority() const override;
-        QString prettyName() const override;
-
         void setStack(iscore::CommandStack *s);
 
     private:

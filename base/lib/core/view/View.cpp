@@ -53,14 +53,14 @@ void View::addDocumentView(DocumentView* doc)
 void View::setupPanelView(PanelView* v)
 {
     using namespace std;
-    QDockWidget* dial = new QDockWidget {v->prettyName(), this};
+    QDockWidget* dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
     dial->setWidget(v->getWidget());
 
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
                                   MenuInterface::name(ViewMenuElement::Windows),
                                   dial->toggleViewAction()});
 
-    auto dock = v->defaultDock();
+    auto dock = v->defaultPanelStatus().dock;
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
@@ -71,7 +71,7 @@ void View::setupPanelView(PanelView* v)
             auto it = max_element(begin(m_leftWidgets),
                                   end(m_leftWidgets),
                                   [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->priority() < rhs.first->priority(); });
+            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
             tabifyDockWidget(it->second, dial);
             it->second->raise();
@@ -87,7 +87,7 @@ void View::setupPanelView(PanelView* v)
             auto it = max_element(begin(m_rightWidgets),
                                   end(m_rightWidgets),
                                   [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->priority() < rhs.first->priority(); });
+            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
             tabifyDockWidget(it->second, dial);
             it->second->raise();
         }

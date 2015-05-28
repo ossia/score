@@ -3,6 +3,8 @@
 #include <QGraphicsScene>
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
+
+
 ProcessPanelView::ProcessPanelView(QObject* parent):
     iscore::PanelView{parent}
 {
@@ -34,20 +36,12 @@ QWidget* ProcessPanelView::getWidget()
     return m_widget;
 }
 
-Qt::DockWidgetArea ProcessPanelView::defaultDock() const
+static const iscore::DefaultPanelStatus status{false, Qt::BottomDockWidgetArea, 10, QObject::tr("Process")};
+const iscore::DefaultPanelStatus &ProcessPanelView::defaultPanelStatus() const
 {
-    return Qt::BottomDockWidgetArea;
+    return status;
 }
 
-int ProcessPanelView::priority() const
-{
-    return 10;
-}
-
-QString ProcessPanelView::prettyName() const
-{
-    return tr("Process");
-}
 
 QGraphicsScene*ProcessPanelView::scene() const
 {return m_scene;}
