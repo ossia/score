@@ -123,9 +123,10 @@ class EventModel : public IdentifiedObject<EventModel>
     signals:
         void selectionChanged(bool);
         void heightPercentageChanged(double arg);
-        void messagesChanged();
+        void localStatesChanged();
         void dateChanged();
-        void previousConstraintChanged(bool arg);
+        void previousConstraintsChanged();
+        void nextConstraintsChanged();
 
         void conditionChanged(const QString& arg);
         void triggerChanged(QString trigger);

@@ -7,6 +7,7 @@ class EventModel;
 class EventView;
 class TemporalScenarioPresenter;
 class QMimeData;
+class ConstraintModel;
 class EventPresenter : public NamedObject
 {
         Q_OBJECT
@@ -23,8 +24,12 @@ class EventPresenter : public NamedObject
         const EventModel& model() const;
 
         bool isSelected() const;
+        void updateViewHalves() const;
 
         void handleDrop(const QMimeData* mime);
+
+        void on_previousConstraintsChanged();
+        void on_nextConstraintsChanged();
 
     signals:
         void pressed(const QPointF&);
@@ -35,12 +40,18 @@ class EventPresenter : public NamedObject
         void eventHoverLeave();
 
         void heightPercentageChanged();
-        void hasPrevConstraint(bool arg);
+
 
     private:
+        void constraintsChangedHelper(
+                const QVector<id_type<ConstraintModel>>& ids,
+                QVector<QMetaObject::Connection>& connections);
+
         const EventModel& m_model;
         EventView* m_view {};
 
         CommandDispatcher<> m_dispatcher;
+        QVector<QMetaObject::Connection> m_previousConstraintsConnections;
+        QVector<QMetaObject::Connection> m_nextConstraintsConnections;
 };
 

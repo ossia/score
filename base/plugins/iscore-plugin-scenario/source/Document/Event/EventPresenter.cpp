@@ -20,8 +20,10 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
 
-    connect(&m_model, &EventModel::previousConstraintChanged,
-            this,   &EventPresenter::hasPrevConstraint);
+    connect(&m_model, &EventModel::previousConstraintsChanged,
+            this,   &EventPresenter::on_previousConstraintsChanged);
+    connect(&m_model, &EventModel::nextConstraintsChanged,
+            this,   &EventPresenter::on_nextConstraintsChanged);
 
     connect(&m_model, &EventModel::heightPercentageChanged,
             this,    &EventPresenter::heightPercentageChanged);
@@ -29,6 +31,9 @@ EventPresenter::EventPresenter(const EventModel& model,
             m_view,  &EventView::setCondition);
     connect(&m_model, &EventModel::triggerChanged,
             m_view,  &EventView::setTrigger);
+
+    connect(&m_model, &EventModel::localStatesChanged,
+            this,    &EventPresenter::updateViewHalves);
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);
@@ -75,6 +80,81 @@ bool EventPresenter::isSelected() const
     return m_model.selection.get();
 }
 
+#include "Process/ScenarioModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "ProcessInterface/ProcessModel.hpp"
+void EventPresenter::updateViewHalves() const
+{
+    // First check if the event has states.
+    int halves = 0;
+    if(!m_model.states().empty())
+        halves |= EventView::Halves::After;
+
+    auto scenar = m_model.parentScenario();
+    // Then check the constraints.
+    for(const auto& constraint : m_model.previousConstraints())
+    {
+        const auto& cstr = scenar->constraint(constraint);
+        if(std::any_of(
+                    cstr.processes().begin(),
+                    cstr.processes().end(),
+                    [] (ProcessModel* proc) { return proc->endState() != nullptr; }))
+        {
+            halves |= EventView::Halves::Before;
+        }
+    }
+
+    for(auto& constraint : m_model.nextConstraints())
+    {
+        const auto& cstr = scenar->constraint(constraint);
+        if(std::any_of(
+                    cstr.processes().begin(),
+                    cstr.processes().end(),
+                    [] (ProcessModel* proc) { return proc->startState() != nullptr; }))
+        {
+            halves |= EventView::Halves::After;
+        }
+    }
+
+    m_view->setHalves((EventView::Halves) halves);
+}
+
+void EventPresenter::constraintsChangedHelper(
+        const QVector<id_type<ConstraintModel> > &ids,
+        QVector<QMetaObject::Connection> &connections)
+{
+    for(auto& conn : connections)
+    {
+        this->disconnect(conn);
+    }
+    connections.clear();
+
+    auto scenar = m_model.parentScenario();
+    for(const auto& constraint : ids)
+    {
+        qDebug() << constraint;
+        const auto& cstr = scenar->constraint(constraint);
+        connections.append(
+                    connect(&cstr, &ConstraintModel::processesChanged,
+                            this,  &EventPresenter::updateViewHalves));
+
+    }
+
+    updateViewHalves();
+}
+
+void EventPresenter::on_previousConstraintsChanged()
+{
+    constraintsChangedHelper(m_model.previousConstraints(),
+                             m_previousConstraintsConnections);
+}
+
+void EventPresenter::on_nextConstraintsChanged()
+{
+    constraintsChangedHelper(m_model.nextConstraints(),
+                             m_nextConstraintsConnections);
+}
+
 #include "Commands/Event/AddStateToEvent.hpp"
 #include <QMimeData>
 #include <QJsonDocument>
@@ -95,3 +175,4 @@ void EventPresenter::handleDrop(const QMimeData *mime)
         m_dispatcher.submitCommand(cmd);
     }
 }
+

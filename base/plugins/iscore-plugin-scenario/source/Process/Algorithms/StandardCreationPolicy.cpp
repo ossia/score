@@ -76,6 +76,8 @@ ConstraintModel&CreateConstraintMin::redo(
                       ypos,
                       &s};
 
+    s.addConstraint(constraint);
+
     sev.addNextConstraint(id);
     eev.addPreviousConstraint(id);
 
@@ -86,6 +88,5 @@ ConstraintModel&CreateConstraintMin::redo(
                                                     eev.date() - sev.date());
     constraint->setStartDate(sev.date());
 
-    s.addConstraint(constraint);
     return *constraint;
 }

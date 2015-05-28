@@ -54,13 +54,13 @@ QVector<id_type<ConstraintModel> > EventModel::constraints() const
 void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 {
     m_nextConstraints.push_back(constraint);
+    emit nextConstraintsChanged();
 }
 
 void EventModel::addPreviousConstraint(const id_type<ConstraintModel>& constraint)
 {
-    if (m_previousConstraints.empty())
-        emit previousConstraintChanged(true);
     m_previousConstraints.push_back(constraint);
+    emit previousConstraintsChanged();
 }
 
 template<typename Vec>
@@ -76,16 +76,18 @@ bool removeConstraint(Vec& constraints, const id_type<ConstraintModel>& constrai
     return false;
 }
 
+// TODO document why a bool return is necessary
 bool EventModel::removeNextConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
-    return removeConstraint(m_nextConstraints, constraintToDelete);
+    auto ok = removeConstraint(m_nextConstraints, constraintToDelete);
+    emit nextConstraintsChanged();
+    return ok;
 }
 
 bool EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
     auto ok = removeConstraint(m_previousConstraints, constraintToDelete);
-    if(m_previousConstraints.empty())
-        emit previousConstraintChanged(false);
+    emit previousConstraintsChanged();
     return ok;
 }
 
@@ -150,13 +152,13 @@ void EventModel::replaceStates(const StateList& newStates)
 void EventModel::addState(const State& state)
 {
     m_states.append(state);
-    emit messagesChanged();
+    emit localStatesChanged();
 }
 
 void EventModel::removeState(const State& s)
 {
     m_states.removeOne(s);
-    emit messagesChanged();
+    emit localStatesChanged();
 }
 
 void EventModel::setHeightPercentage(double arg)

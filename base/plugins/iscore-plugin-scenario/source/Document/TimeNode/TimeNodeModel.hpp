@@ -72,7 +72,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         bool checkIfPreviousConstraint();
 
     public slots:
-        void previousConstraintsChanged(id_type<EventModel>, bool);
+        void previousConstraintsChanged(const id_type<EventModel> &, bool);
 
     signals:
         void dateChanged();

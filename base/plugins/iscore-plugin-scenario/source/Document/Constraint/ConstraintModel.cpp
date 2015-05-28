@@ -114,6 +114,7 @@ void ConstraintModel::addProcess(ProcessModel* model)
 {
     m_processes.push_back(model);
     emit processCreated(model->processName(), model->id());
+    emit processesChanged();
 }
 
 void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
@@ -126,6 +127,7 @@ void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
     });
 
     emit processRemoved(processId);
+    emit processesChanged();
     delete proc;
 }
 

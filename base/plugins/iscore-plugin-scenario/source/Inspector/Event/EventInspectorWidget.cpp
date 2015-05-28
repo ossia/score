@@ -42,7 +42,7 @@ EventInspectorWidget::EventInspectorWidget(
     setInspectedObject(m_model);
     setParent(parent);
 
-    connect(m_model, &EventModel::messagesChanged,
+    connect(m_model, &EventModel::localStatesChanged,
             this,    &EventInspectorWidget::updateInspector);
     connect (object, &EventModel::dateChanged,
              this,   &EventInspectorWidget::modelDateChanged);

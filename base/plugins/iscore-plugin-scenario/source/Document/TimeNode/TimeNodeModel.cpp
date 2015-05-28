@@ -98,7 +98,7 @@ bool TimeNodeModel::checkIfPreviousConstraint()
     return false;
 }
 
-void TimeNodeModel::previousConstraintsChanged(id_type<EventModel> ev, bool hasPrevCstr)
+void TimeNodeModel::previousConstraintsChanged(const id_type<EventModel>& ev, bool hasPrevCstr)
 {
     m_eventHasPreviousConstraint[ev] = hasPrevCstr;
     emit timeNodeValid(checkIfPreviousConstraint());

@@ -55,15 +55,11 @@ void ConditionView::paint(
     pen.setWidth(2);
     painter->setPen(pen);
     painter->setBrush(Qt::transparent);
-
     painter->drawPath(m_Cpath);
 
     pen.setWidth(1);
     pen.setCosmetic(true);
-
     painter->setPen(pen);
-
     painter->setBrush(pen.color());
     painter->drawPath(m_trianglePath);
-
 }

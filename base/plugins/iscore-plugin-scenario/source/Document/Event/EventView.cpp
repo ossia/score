@@ -65,6 +65,12 @@ bool EventView::hasTrigger() const
     return !m_trigger.isEmpty();
 }
 
+void EventView::setHalves(EventView::Halves h)
+{
+    m_halves = h;
+    update();
+}
+
 QRectF EventView::boundingRect() const
 {
     return {- radius, -radius, 2 * radius, 2 * radius};

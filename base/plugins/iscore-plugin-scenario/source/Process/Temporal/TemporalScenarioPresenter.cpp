@@ -279,11 +279,13 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 
-    connect(ev_pres, &EventPresenter::hasPrevConstraint,
-            this, [&] (bool arg)
+    connect(&event_model, &EventModel::previousConstraintsChanged,
+            this, [&] ()
     {
-        TimeNodePresenter* tn = * std::find(m_timeNodes.begin(), m_timeNodes.end(), event_model.timeNode());
-        tn->previousConstraintsChanged(event_model.id(), arg);
+        auto& timenode = static_cast<ScenarioModel&>(viewModel().sharedProcessModel()).timeNode(event_model.timeNode());
+        timenode.previousConstraintsChanged(
+                    event_model.id(),
+                    !event_model.previousConstraints().empty());
     });
 
 
@@ -316,7 +318,6 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
-    connect(tn_pres, &TimeNodePresenter::previousConstraintsChanged, &timeNode_model, &TimeNodeModel::previousConstraintsChanged);
 }
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)

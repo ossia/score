@@ -37,8 +37,6 @@ class TimeNodePresenter :  public NamedObject
         void eventAdded(const id_type<EventModel>& eventId,
                         const id_type<TimeNodeModel>& timeNodeId);
 
-        void previousConstraintsChanged(const id_type<EventModel>&, bool);
-
     private:
         const TimeNodeModel& m_model;
         TimeNodeView* m_view {};

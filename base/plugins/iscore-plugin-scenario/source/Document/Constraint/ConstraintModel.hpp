@@ -210,6 +210,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void processCreated(const QString& processName,
                             const id_type<ProcessModel>& processId);
         void processRemoved(const id_type<ProcessModel>& processId);
+        void processesChanged();
 
         void boxCreated(const id_type<BoxModel>& boxId);
         void boxRemoved(const id_type<BoxModel>& boxId);
@@ -257,14 +258,14 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 
-        id_type<EventModel> m_startEvent {};
-        id_type<EventModel> m_endEvent {};
+        id_type<EventModel> m_startEvent;
+        id_type<EventModel> m_endEvent;
 
         TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
         TimeValue m_minDuration{m_defaultDuration};
         TimeValue m_maxDuration{m_defaultDuration};
 
-        TimeValue m_x {}; // origin
+        TimeValue m_x; // origin
 
         double m_heightPercentage {0.5};
         TimeValue m_playDuration;
