@@ -56,6 +56,11 @@ BoxPresenter::~BoxPresenter()
     }
 }
 
+const BoxView &BoxPresenter::view() const
+{
+    return *m_view;
+}
+
 int BoxPresenter::height() const
 {
     int totalHeight = 25; // No deck -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?

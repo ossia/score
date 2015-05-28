@@ -20,7 +20,7 @@ class AbstractConstraintView : public QGraphicsObject
 
         virtual ~AbstractConstraintView() = default;
 
-        const auto& presenter() const
+        const AbstractConstraintPresenter& presenter() const
         { return m_presenter;}
 
 

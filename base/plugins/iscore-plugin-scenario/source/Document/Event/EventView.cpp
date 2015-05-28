@@ -7,6 +7,7 @@
 #include "ConditionView.hpp"
 #include "TriggerView.hpp"
 #include <QApplication>
+#include <QPalette>
 
 static const qreal radius = 6.;
 EventView::EventView(EventPresenter& presenter,
@@ -90,6 +91,8 @@ void EventView::paint(QPainter* painter,
     // Ball
 
     painter->setPen(eventPen);
+    painter->setBrush(qApp->palette("ScenarioPalette").background());
+
     painter->drawEllipse({0., 0.}, radius, radius);
 
     painter->setBrush(Qt::white);
