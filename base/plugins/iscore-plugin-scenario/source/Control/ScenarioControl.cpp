@@ -354,9 +354,20 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     connect(grow, &QAction::triggered, [=]()
     { focusedPresenter()->stateMachine().setGrowState(); });
 
+    auto fixed = makeToolbarAction(
+                    tr("Keep Duration"),
+                    m_scenarioScaleModeActionGroup,
+                    ExpandMode::Fixed,
+                    tr("Alt+F"));
+    connect(fixed, &QAction::triggered, [=]()
+    { focusedPresenter()->stateMachine().setFixedState(); });
+
+    m_shiftActionGroup = new QActionGroup{bar};
+    m_shiftActionGroup->setDisabled(true);
+
     auto verticalmove = makeToolbarAction(
                             tr("Vertical Move"),
-                            m_scenarioScaleModeActionGroup,
+                            m_shiftActionGroup,
                             ExpandMode::Fixed,
                             tr("Shift"));
     connect(verticalmove, &QAction::toggled, [=] ()
@@ -372,10 +383,13 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
 
     m_scenarioToolActionGroup->setDisabled(true);
     m_scenarioScaleModeActionGroup->setDisabled(true);
+    m_shiftActionGroup->setDisabled(true);
 
     bar->addActions(m_scenarioToolActionGroup->actions());
     bar->addSeparator();
     bar->addActions(m_scenarioScaleModeActionGroup->actions());
+    bar->addSeparator();
+    bar->addActions(m_shiftActionGroup->actions());
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
@@ -403,6 +417,7 @@ void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
     // to prevent problems.
     m_scenarioToolActionGroup->setEnabled(false);
     m_scenarioScaleModeActionGroup->setEnabled(false);
+    m_shiftActionGroup->setEnabled(false);
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
         s_pres->stateMachine().changeTool((int)Tool::Select);
@@ -417,12 +432,13 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
     m_selecttool->setChecked(true);
     m_scenarioToolActionGroup->setEnabled(s_pres);
     m_scenarioScaleModeActionGroup->setEnabled(s_pres);
+    m_shiftActionGroup->setEnabled(s_pres);
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::shiftPressed,
                 this, [&]()
         {
-            for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+            for(QAction* action : m_shiftActionGroup->actions())
             {
                 if(action->data().toInt() == ExpandMode::Fixed)
                 {
@@ -434,15 +450,11 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
         connect(s_pres, &TemporalScenarioPresenter::shiftReleased,
                 this, [&]()
         {
-            for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+            for(QAction* action : m_shiftActionGroup->actions())
             {
                 if(action->data().toInt() == ExpandMode::Fixed)
                 {
                     action->setChecked(false);
-                }
-                if(action->data().toInt() == ExpandMode::Scale)
-                {
-                    action->setChecked(true);
                 }
             }
         });
@@ -470,8 +482,9 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
                         s_pres->stateMachine().setGrowState();
                         break;
                     case ExpandMode::Fixed:
-                        s_pres->stateMachine().shiftPressed();
+                        s_pres->stateMachine().setFixedState();
                         break;
+
 
                     default:
                         Q_ASSERT(false);

@@ -69,7 +69,7 @@ void ProcessModel::expandProcess(ExpandMode mode, const TimeValue& t)
     {
         setDurationAndScale(t);
     }
-    else
+    else if (mode == ExpandMode::Grow)
     {
         if(duration() < t)
             setDurationAndGrow(t);

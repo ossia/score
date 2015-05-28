@@ -143,7 +143,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
         cmd = new ResizeConstraint(
                     iscore::IDocument::path(m_model),
                     std::chrono::milliseconds {val},
-                    ExpandMode::Scale);
+                    ExpandMode::Scale); //TODO check scenario mode instead
     }
     else
     {

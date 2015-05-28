@@ -52,6 +52,7 @@ class ScenarioStateMachine : public BaseStateMachine
 
         void setScaleState();
         void setGrowState();
+        void setFixedState();
 
         void shiftPressed();
         void shiftReleased();
@@ -69,6 +70,7 @@ class ScenarioStateMachine : public BaseStateMachine
 
         QState* scaleState{};
         QState* growState{};
+        QState* fixedState{};
         QState* shiftReleasedState{};
         QState* shiftPressedState{};
 };
