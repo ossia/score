@@ -319,7 +319,6 @@ void IScoreCohesionControl::snapshotParametersInEvents()
     for(auto& index : indexes)
         messages.push_back(DeviceExplorer::messageFromModelIndex(index));
 
-
     MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
                                  currentDocument()->commandStack()};
     for(auto& event : selected_events)

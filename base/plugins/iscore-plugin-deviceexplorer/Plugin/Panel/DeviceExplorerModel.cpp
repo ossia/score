@@ -1041,6 +1041,8 @@ DeviceExplorerModel::mimeTypes() const
     return {MimeTypeDevice, MimeTypeAddress}; //TODO: add an xml MimeType to support drop of namespace XML file ?
 }
 
+#include <Singletons/DeviceExplorerInterface.hpp>
+#include <State/State.hpp>
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
@@ -1067,6 +1069,16 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
         mimeData->setData(
                     n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
                     QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
+        MessageList messages;
+        for(auto& index : indexes)
+            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+
+        State s{messages};
+        ser.m_obj = {};
+        ser.readFrom(s);
+        mimeData->setData("application/x-iscore-state",
+                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
         return mimeData;
     }
 

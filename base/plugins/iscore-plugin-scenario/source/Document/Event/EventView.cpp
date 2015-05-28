@@ -8,7 +8,7 @@
 #include "TriggerView.hpp"
 #include <QApplication>
 
-static const qreal radius = 8.;
+static const qreal radius = 6.;
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -66,7 +66,7 @@ bool EventView::hasTrigger() const
 
 QRectF EventView::boundingRect() const
 {
-    return {- radius, -radius, 2*radius, 2*radius};
+    return {- radius, -radius, 2 * radius, 2 * radius};
 }
 
 void EventView::paint(QPainter* painter,
@@ -164,4 +164,5 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 #include <QMimeData>
 void EventView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
+    emit dropReceived(event->mimeData());
 }

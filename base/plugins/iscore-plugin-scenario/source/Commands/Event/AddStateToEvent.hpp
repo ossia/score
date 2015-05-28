@@ -16,6 +16,7 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddStateToEvent, "ScenarioControl")
                 AddStateToEvent(ObjectPath&& eventPath, const State& state);
+                AddStateToEvent(ObjectPath&& eventPath, State&& state);
                 virtual void undo() override;
                 virtual void redo() override;
 

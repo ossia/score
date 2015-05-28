@@ -34,7 +34,7 @@ void TimeNodeView::paint(QPainter* painter,
         pen_color = Qt::red;
     }
 
-    QPen pen{QBrush(pen_color), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    QPen pen{QBrush(pen_color), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
     painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));

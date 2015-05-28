@@ -5,12 +5,22 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State& state) :
+AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State &state) :
     SerializableCommand {"ScenarioControl",
                          className(),
                          description()},
     m_path {std::move(eventPath) },
     m_state{state}
+{
+
+}
+
+AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, State &&state) :
+    SerializableCommand {"ScenarioControl",
+                         className(),
+                         description()},
+    m_path {std::move(eventPath)},
+    m_state{std::move(state)}
 {
 
 }

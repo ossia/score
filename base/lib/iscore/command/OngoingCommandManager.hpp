@@ -4,6 +4,7 @@
 #include <core/command/CommandStack.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 
+// TODO split this in multiple files.
 // Merging strategies
 // This is for use with commands that can be merged like Qt's mergeWith() would do.
 namespace MergeStrategy
@@ -14,6 +15,7 @@ namespace MergeStrategy
                           iscore::Command* other)
         {
             qDebug() << Q_FUNC_INFO << "TODO";
+            Q_ASSERT(false);
             /*
             cmd->mergeWith(other);
             cmd->redo();
