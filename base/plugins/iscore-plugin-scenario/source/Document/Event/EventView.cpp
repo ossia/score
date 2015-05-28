@@ -7,8 +7,9 @@
 #include "ConditionView.hpp"
 #include "TriggerView.hpp"
 #include <QApplication>
+#include <QPalette>
 
-static const qreal radius = 8.;
+static const qreal radius = 6.;
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -66,7 +67,7 @@ bool EventView::hasTrigger() const
 
 QRectF EventView::boundingRect() const
 {
-    return {- radius, -radius, 2*radius, 2*radius};
+    return {- radius, -radius, 2 * radius, 2 * radius};
 }
 
 void EventView::paint(QPainter* painter,
@@ -90,6 +91,8 @@ void EventView::paint(QPainter* painter,
     // Ball
 
     painter->setPen(eventPen);
+    painter->setBrush(qApp->palette("ScenarioPalette").background());
+
     painter->drawEllipse({0., 0.}, radius, radius);
 
     painter->setBrush(Qt::white);
@@ -164,4 +167,5 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 #include <QMimeData>
 void EventView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
+    emit dropReceived(event->mimeData());
 }

@@ -25,6 +25,8 @@ class BoxPresenter : public NamedObject
                      QObject* parent);
         virtual ~BoxPresenter();
 
+        const BoxView& view() const;
+
         int height() const;
         int width() const;
         void setWidth(int);

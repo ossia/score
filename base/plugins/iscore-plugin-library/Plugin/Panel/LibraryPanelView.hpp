@@ -14,9 +14,6 @@ class LibraryPanelView : public iscore::PanelView
         LibraryPanelView(iscore::View* parent);
 
         QWidget* getWidget();
-        Qt::DockWidgetArea defaultDock() const;
-        int priority() const;
-        QString prettyName() const;
 
     private:
         QTabWidget* m_widget{};

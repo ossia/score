@@ -20,7 +20,7 @@ class AbstractConstraintView : public QGraphicsObject
 
         virtual ~AbstractConstraintView() = default;
 
-        const auto& presenter() const
+        const AbstractConstraintPresenter& presenter() const
         { return m_presenter;}
 
 
@@ -89,17 +89,17 @@ class AbstractConstraintView : public QGraphicsObject
         QPen m_solidPen
         {
             QBrush{Qt::black},
-            2,
+            3,
             Qt::SolidLine,
-            Qt::RoundCap,
+            Qt::SquareCap,
             Qt::RoundJoin
         };
         QPen m_dashPen
         {
             QBrush{Qt::black},
-            2,
+            3,
             Qt::DashLine,
-            Qt::RoundCap,
+            Qt::SquareCap,
             Qt::RoundJoin
         };
 

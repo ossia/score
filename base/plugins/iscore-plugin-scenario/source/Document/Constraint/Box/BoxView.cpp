@@ -27,13 +27,11 @@ void BoxView::paint(QPainter* painter,
                     const QStyleOptionGraphicsItem* option,
                     QWidget* widget)
 {
-    painter->setBrush(QColor::fromRgba(qRgba(0, 127, 229, 76)));
     painter->setPen(Qt::white);
-    painter->drawRect(boundingRect());
 
     QRectF header {0, 0, boundingRect().width(), 20};
     QFont f("Ubuntu");
-    f.setPixelSize(20);
+    f.setPixelSize(16);
     f.setBold(true);
     painter->setFont(f);
 

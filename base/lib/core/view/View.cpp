@@ -19,7 +19,9 @@ View::View(QObject* parent) :
     setObjectName("View");
     setUnifiedTitleAndToolBarOnMac(true);
 
-    this->setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
+    setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
     QDesktopWidget w;
     auto rect = w.availableGeometry();
@@ -33,7 +35,6 @@ View::View(QObject* parent) :
                return;
            emit activeDocumentChanged(view->document());
     });
-
 
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
     {
@@ -60,7 +61,9 @@ void View::setupPanelView(PanelView* v)
                                   MenuInterface::name(ViewMenuElement::Windows),
                                   dial->toggleViewAction()});
 
+    // Note : this only has meaning at initialisation time.
     auto dock = v->defaultPanelStatus().dock;
+
     this->addDockWidget(dock, dial);
     if(dock == Qt::LeftDockWidgetArea)
     {
@@ -74,7 +77,6 @@ void View::setupPanelView(PanelView* v)
             { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
 
             tabifyDockWidget(it->second, dial);
-            it->second->raise();
         }
     }
     else if(dock == Qt::RightDockWidgetArea)
@@ -92,6 +94,9 @@ void View::setupPanelView(PanelView* v)
             it->second->raise();
         }
     }
+
+    if(!v->defaultPanelStatus().shown)
+        dial->hide();
 }
 
 void View::closeDocument(DocumentView *doc)

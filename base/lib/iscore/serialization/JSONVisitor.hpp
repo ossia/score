@@ -65,6 +65,7 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
                                m_obj {std::move(obj) }
         {}
 
+        // TODO make a method that takes no arguments and returns a T.
         template<typename T>
         void writeTo(T&);
 

@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <random>
 
+// TODO ModelObject with path()
 template<typename tag>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {

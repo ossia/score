@@ -1,10 +1,12 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 class QGraphicsObject;
 class EventModel;
 class EventView;
 class TemporalScenarioPresenter;
+class QMimeData;
 class EventPresenter : public NamedObject
 {
         Q_OBJECT
@@ -22,6 +24,8 @@ class EventPresenter : public NamedObject
 
         bool isSelected() const;
 
+        void handleDrop(const QMimeData* mime);
+
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
@@ -36,5 +40,7 @@ class EventPresenter : public NamedObject
     private:
         const EventModel& m_model;
         EventView* m_view {};
+
+        CommandDispatcher<> m_dispatcher;
 };
 

@@ -4,9 +4,10 @@ TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
     auto itm = new QGraphicsSvgItem(":/images/trigger.svg");
+    itm->setScale(1.5);
     itm->setParentItem(this);
 
-    itm->setPos(-1920/2 + 1, -1080/2 - 10);
+    itm->setPos(-7.5, -25.);
     itm->setAcceptedMouseButtons(Qt::NoButton);
     itm->setActive(false);
     itm->setEnabled(false);

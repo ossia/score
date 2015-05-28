@@ -124,7 +124,7 @@ void ScenarioViewInterface::updateTimeNode(id_type<TimeNodeModel> timeNodeId)
             {
                 if(cstr_model.id() == cstrId)
                 {
-                    y = cstr_model.heightPercentage();
+                    y = cstr_model.heightPercentage(); // TODO here we have to find the length of the current box.
                     update_min_max(y, min, max);
                     break;
                 }

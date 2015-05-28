@@ -2,6 +2,8 @@
 
 #include "TemporalConstraintViewModel.hpp"
 #include "TemporalConstraintPresenter.hpp"
+#include "Document/Constraint/Box/BoxPresenter.hpp"
+#include "Document/Constraint/Box/BoxView.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -30,6 +32,20 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
+    // Draw the box bg
+    if(auto box = presenter().box())
+    {
+        auto boxRect = box->view().boundingRect();
+        painter->fillRect(boxRect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+
+        auto color = qApp->palette("ScenarioPalette").base().color();
+        QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+        painter->setPen(pen);
+        painter->drawLine(boxRect.topLeft(), boxRect.bottomLeft());
+        painter->drawLine(boxRect.topRight(), boxRect.bottomRight());
+    }
+
+
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
     // Paths
