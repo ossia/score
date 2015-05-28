@@ -63,6 +63,11 @@ void AddAddress::redo()
     m_createdNodeIndex = m_parentNodePath.toNode(explorer.rootNode())->indexOfChild(newNode);
 }
 
+int AddAddress::createdNodeIndex() const
+{
+    return m_createdNodeIndex;
+}
+
 void AddAddress::serializeImpl(QDataStream &s) const
 {
     s << m_deviceTree << m_parentNodePath << m_addressSettings << m_createdNodeIndex;

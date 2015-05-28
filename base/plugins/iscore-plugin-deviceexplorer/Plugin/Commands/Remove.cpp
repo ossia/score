@@ -38,7 +38,7 @@ Remove::undo()
 void
 Remove::redo()
 {
-
+    // TODO remove from elsewhere, too.
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
     Node *node = m_nodePath.toNode(explorer.rootNode());
     m_node = node->clone();

@@ -1,6 +1,7 @@
 
 #include "Insert.hpp"
-
+#include "Add/AddDevice.hpp"
+#include "Add/AddAddress.hpp"
 using namespace DeviceExplorer::Command;
 
 Insert::Insert(const Path &parentPath,
@@ -15,7 +16,7 @@ Insert::Insert(const Path &parentPath,
     m_parentPath{parentPath},
     m_row{row}
 {
-    qDebug() << m_node.name();
+
 }
 
 
@@ -24,22 +25,44 @@ Insert::undo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     const bool result = model.removeRows(m_row, 1, parentIndex);
 
     model.setCachedResult(result);
 }
 
+void recurse_addAddress(const ObjectPath& model, const Node& n, Path nodePath)
+{
+    AddAddress addr{ObjectPath(model), nodePath, DeviceExplorerModel::Insert::AsChild, n.addressSettings()};
+    addr.redo();
+
+    nodePath.append(addr.createdNodeIndex());
+    for(const auto& child : n.children())
+    {
+        recurse_addAddress(model, *child, nodePath);
+    }
+}
+
 void
 Insert::redo()
 {
-    auto& model = m_model.find<DeviceExplorerModel>();
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    if(m_node.isDevice())
+    {
+        AddDevice dev{ObjectPath{m_model}, m_node.deviceSettings()};
+        dev.redo();
 
-    const bool result = model.insertNode(parentIndex, m_row, m_node);
-
-    model.setCachedResult(result);
+        Path p;
+        p.append(dev.deviceRow());
+        for(auto& child : m_node.children())
+        {
+            recurse_addAddress(m_model, *child, p);
+        }
+    }
+    else
+    {
+        recurse_addAddress(ObjectPath{m_model}, m_node, m_parentPath);
+    }
 }
 
 void

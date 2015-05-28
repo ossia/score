@@ -69,9 +69,15 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         auto& pluginModelList() { return *m_pluginModelList; }
 
+        bool checkIfPreviousConstraint();
+
+    public slots:
+        void previousConstraintsChanged(id_type<EventModel>, bool);
+
     signals:
         void dateChanged();
         void newEvent(const id_type<EventModel>& eventId);
+        void timeNodeValid(bool);
 
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
@@ -79,5 +85,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         double m_y {0.0};
 
         QVector<id_type<EventModel>> m_events;
+        QMap<id_type<EventModel>, bool> m_eventHasPreviousConstraint;
 };
 

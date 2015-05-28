@@ -31,8 +31,8 @@ Move::undo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex srcParentIndex = model.pathToIndex(m_srcParentPath);
-    QModelIndex dstParentIndex = model.pathToIndex(m_dstParentPath);
+    QModelIndex srcParentIndex = model.convertPathToIndex(m_srcParentPath);
+    QModelIndex dstParentIndex = model.convertPathToIndex(m_dstParentPath);
 
     int src = m_dstRow;
     int dst = m_srcRow;
@@ -62,8 +62,8 @@ Move::redo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex srcParentIndex = model.pathToIndex(m_srcParentPath);
-    QModelIndex dstParentIndex = model.pathToIndex(m_dstParentPath);
+    QModelIndex srcParentIndex = model.convertPathToIndex(m_srcParentPath);
+    QModelIndex dstParentIndex = model.convertPathToIndex(m_dstParentPath);
 
     const bool result = model.moveRows(srcParentIndex, m_srcRow, m_count, dstParentIndex, m_dstRow);
     model.setCachedResult(result);

@@ -38,6 +38,8 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     emit newEvent(eventId);
 
     parentScenario()->event(eventId).changeTimeNode(this->id());
+    m_eventHasPreviousConstraint[eventId] = parentScenario()->event(eventId).hasPreviousConstraint();
+    checkIfPreviousConstraint();
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
@@ -45,6 +47,7 @@ bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
     if(m_events.indexOf(eventId) >= 0)
     {
         m_events.remove(m_events.indexOf(eventId));
+        m_eventHasPreviousConstraint.remove(eventId);
         return true;
     }
 
@@ -83,4 +86,20 @@ const QVector<id_type<EventModel> >& TimeNodeModel::events() const
 void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
+}
+
+bool TimeNodeModel::checkIfPreviousConstraint()
+{
+    for(bool ev : m_eventHasPreviousConstraint)
+    {
+        if(ev)
+            return true;
+    }
+    return false;
+}
+
+void TimeNodeModel::previousConstraintsChanged(id_type<EventModel> ev, bool hasPrevCstr)
+{
+    m_eventHasPreviousConstraint[ev] = hasPrevCstr;
+    emit timeNodeValid(checkIfPreviousConstraint());
 }

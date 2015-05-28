@@ -161,7 +161,7 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     Path path{n};
     path.back()--;
 
-    return m_model->pathToIndex(path); // (newRow, 0, n);
+    return m_model->convertPathToIndex(path); // (newRow, 0, n);
 }
 
 QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
@@ -205,7 +205,7 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
 
     Path path{n};
     path.back()++;  // path become the new path
-    return m_model->pathToIndex(path);
+    return m_model->convertPathToIndex(path);
 }
 
 QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
@@ -252,7 +252,7 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     }
 
     parentPath.removeLast();
-    return m_model->pathToIndex(parentPath);
+    return m_model->convertPathToIndex(parentPath);
 }
 
 QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
@@ -299,7 +299,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
 
     newPath.append(sibling->childCount()-1);
 
-    return m_model->pathToIndex(newPath);
+    return m_model->convertPathToIndex(newPath);
 }
 
 void DeviceExplorerCommandCreator::setCachedResult(DeviceExplorer::Result r)

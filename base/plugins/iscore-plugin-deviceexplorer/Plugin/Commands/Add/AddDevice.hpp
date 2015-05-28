@@ -16,6 +16,10 @@ class AddDevice : public iscore::SerializableCommand
         virtual void undo() override;
         virtual void redo() override;
 
+        // After redo(), contains the row of the added device.
+        // TODO how to precompute this ?
+        int deviceRow() const;
+
     protected:
         virtual void serializeImpl(QDataStream&) const override;
         virtual void deserializeImpl(QDataStream&) override;
@@ -25,5 +29,5 @@ class AddDevice : public iscore::SerializableCommand
         DeviceSettings m_parameters;
         QString m_filePath{};
 
-        int m_row{};
+        int m_row{-1};
 };

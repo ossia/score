@@ -24,6 +24,8 @@ namespace DeviceExplorer
                 virtual void undo() override;
                 virtual void redo() override;
 
+                int createdNodeIndex() const;
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;

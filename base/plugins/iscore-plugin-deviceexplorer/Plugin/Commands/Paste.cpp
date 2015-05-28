@@ -26,7 +26,7 @@ Paste::undo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row + 1, 0);  //+1 because pasteAfter
     const DeviceExplorer::Result result = model.cut_aux(index);
@@ -38,7 +38,7 @@ void
 Paste::redo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
     const DeviceExplorer::Result result = model.pasteAfter_aux(index);

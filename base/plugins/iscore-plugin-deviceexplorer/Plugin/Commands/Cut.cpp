@@ -27,7 +27,7 @@ Cut::undo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
 
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
 
@@ -56,7 +56,7 @@ void
 Cut::redo()
 {
     auto& model = m_model.find<DeviceExplorerModel>();
-    QModelIndex parentIndex = model.pathToIndex(m_parentPath);
+    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);
     const DeviceExplorer::Result result = model.cut_aux(index);

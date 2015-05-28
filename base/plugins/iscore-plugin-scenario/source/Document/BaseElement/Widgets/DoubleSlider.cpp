@@ -9,11 +9,16 @@ DoubleSlider::DoubleSlider(QWidget* parent):
     QWidget{parent},
     m_slider{new QSlider{Qt::Horizontal}}
 {
+    m_slider->setContentsMargins(0, 0, 0, 0);
     m_slider->setMinimum(0);
     m_slider->setMaximum(std::numeric_limits<int>::max());
 
-    setLayout(new QGridLayout);
-    layout()->addWidget(m_slider);
+    auto lay = new QGridLayout;
+    setLayout(lay);
+    lay->addWidget(m_slider);
+    lay->setContentsMargins(0, 0, 0, 0);
+    lay->setMargin(0);
+    lay->setSpacing(0);
 
     connect(m_slider, &QSlider::valueChanged,
             this, [&] (int val)
