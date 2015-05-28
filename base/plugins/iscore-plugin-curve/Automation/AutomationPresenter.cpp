@@ -15,6 +15,7 @@
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
 
+
 AutomationPresenter::AutomationPresenter(
         const ProcessViewModel& model,
         ProcessView* view,
@@ -22,14 +23,15 @@ AutomationPresenter::AutomationPresenter(
     ProcessPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationViewModel&>(model)},
     m_view{static_cast<AutomationView*>(view)},
-    m_curve{new QCustomPlotCurve{m_view}},
+//    m_curve{new QCustomPlotCurve{m_view}},
     m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())->commandStack()},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())}
 {
     connect(&m_viewModel.model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
-
+    m_curve = new Curve(m_view);
+/*
     connect(m_curve, &QCustomPlotCurve::pointMovingFinished,
             [&](double oldx, double newx, double newy)
     {
@@ -51,12 +53,13 @@ AutomationPresenter::AutomationPresenter(
         m_commandDispatcher.submitCommand(cmd);
     });
 
+    // TODO emit a mousePressed signal when clicking on a dot, too.
     connect(m_curve, &QCustomPlotCurve::mousePressed,
             this, [&] ()
     {
         m_focusDispatcher.focus(this);
     });
-
+*/
     parentGeometryChanged();
     on_modelPointsChanged();
 }
@@ -79,38 +82,43 @@ AutomationPresenter::~AutomationPresenter()
 void AutomationPresenter::setWidth(int width)
 {
     m_view->setWidth(width);
-    m_curve->setSize({m_view->width(), m_view->height()});
+    on_modelPointsChanged();
+//    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
-    m_curve->setSize({m_view->width(), m_view->height()});
+    on_modelPointsChanged();
+//    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::putToFront()
 {
-    m_curve->enable();
+//    m_curve->enable();
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
 }
 
 void AutomationPresenter::putBehind()
 {
-    m_curve->disable();
+//    m_curve->disable();
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
 }
 
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
+    on_modelPointsChanged();
 
-    m_curve->redraw();
-    m_curve->setSize({m_view->width(), m_view->height()});
+//    m_curve->redraw();
+//    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 void AutomationPresenter::parentGeometryChanged()
 {
-    m_curve->setSize({m_view->width(), m_view->height()});
+    on_modelPointsChanged();
+
+//    m_curve->setSize({m_view->width(), m_view->height()});
 }
 
 const ProcessViewModel& AutomationPresenter::viewModel() const
@@ -123,9 +131,9 @@ const id_type<ProcessModel>& AutomationPresenter::modelId() const
     return m_viewModel.model().id();
 }
 
-QList<QPointF> mapToList(QMap<double, double> map)
+QVector<QPointF> mapToVector(QMap<double, double> map)
 {
-    QList<QPointF> list;
+    QVector<QPointF> list;
     for(auto key : map.keys())
     {
         list.push_back({key, 1.0 - map[key]});
@@ -136,7 +144,7 @@ QList<QPointF> mapToList(QMap<double, double> map)
 
 void AutomationPresenter::on_modelPointsChanged()
 {
-    m_curve->setPoints(mapToList(m_viewModel.model().points()));
-    parentGeometryChanged();
+    m_curve->setPoints(mapToVector(m_viewModel.model().points()));
+    m_curve->setRect(m_view->boundingRect());
 }
 

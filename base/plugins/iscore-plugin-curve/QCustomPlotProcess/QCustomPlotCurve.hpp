@@ -4,12 +4,14 @@
 
 class QCustomPlot;
 class QMouseEvent;
-class PointsLayer;
+namespace {
+    class PointsLayer;
 class MyPoint;
+}
 class QCustomPlotCurve : public QGraphicsObject
 {
         Q_OBJECT
-        friend class MyPoint;
+        friend class ::MyPoint;
     public:
         QCustomPlotCurve(QGraphicsItem* parent);
 
@@ -46,8 +48,8 @@ class QCustomPlotCurve : public QGraphicsObject
 
 
         QCustomPlot* m_plot{};
-        PointsLayer* m_points{};
-        MyPoint* m_fakePoint{};
+        ::PointsLayer* m_points{};
+        ::MyPoint* m_fakePoint{};
 
         QSizeF m_size;
         QPointF m_backedUpPoint{-1, -1};

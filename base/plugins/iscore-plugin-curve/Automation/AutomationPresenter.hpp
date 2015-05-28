@@ -8,6 +8,7 @@ class QCPGraph;
 class ProcessView;
 class AutomationViewModel;
 class AutomationView;
+#include "CurveTest/CurveTest.hpp"
 
 class AutomationPresenter : public ProcessPresenter
 {
@@ -37,7 +38,9 @@ class AutomationPresenter : public ProcessPresenter
         const AutomationViewModel& m_viewModel;
         AutomationView* m_view {};
 
-        QCustomPlotCurve* m_curve{};
+        Curve* m_curve;
+
+//        QCustomPlotCurve* m_curve{};
 
         CommandDispatcher<> m_commandDispatcher;
         FocusDispatcher m_focusDispatcher;
