@@ -32,11 +32,17 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    //painter->setPen(Qt::transparent);
-    //painter->setBrush();
+    // Draw the box bg
     if(auto box = presenter().box())
     {
-        painter->fillRect(box->view().boundingRect(), QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        auto boxRect = box->view().boundingRect();
+        painter->fillRect(boxRect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+
+        auto color = qApp->palette("ScenarioPalette").base().color();
+        QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+        painter->setPen(pen);
+        painter->drawLine(boxRect.topLeft(), boxRect.bottomLeft());
+        painter->drawLine(boxRect.topRight(), boxRect.bottomRight());
     }
 
 
