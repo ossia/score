@@ -25,18 +25,3 @@ QWidget* LibraryPanelView::getWidget()
 {
     return m_widget;
 }
-
-Qt::DockWidgetArea LibraryPanelView::defaultDock() const
-{
-    return Qt::RightDockWidgetArea;
-}
-
-int LibraryPanelView::priority() const
-{
-    return 0;
-}
-
-QString LibraryPanelView::prettyName() const
-{
-    return tr("Library");
-}
