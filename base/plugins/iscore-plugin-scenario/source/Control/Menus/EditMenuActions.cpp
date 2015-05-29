@@ -1,6 +1,7 @@
 #include "EditMenuActions.hpp"
 
 #include "Process/ScenarioGlobalCommandManager.hpp"
+#include "iscore/menu/MenuInterface.hpp"
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -9,13 +10,10 @@
 EditMenuActions::EditMenuActions(ScenarioControl* parent) :
         m_parent{parent}
 {
-    m_editActions = new QActionGroup{this};
-    m_editActions->setExclusive(false);
-
     // remove
-    QAction *removeElements = new QAction{tr("Remove scenario elements"), this};
-    removeElements->setShortcut(QKeySequence::Delete);
-    connect(removeElements, &QAction::triggered,
+    m_removeElements = new QAction{tr("Remove selected elements"), this};
+    m_removeElements->setShortcut(QKeySequence::Delete);
+    connect(m_removeElements, &QAction::triggered,
             [this]()
     {
         if (auto sm = m_parent->focusedScenarioModel())
@@ -24,11 +22,10 @@ EditMenuActions::EditMenuActions(ScenarioControl* parent) :
             mgr.deleteSelection(*sm);
         }
     });
-    m_editActions->addAction(removeElements);
 
-    QAction *clearElements = new QAction{tr("Clear scenario elements"), this};
-    clearElements->setShortcut(Qt::Key_Backspace);
-    connect(clearElements, &QAction::triggered,
+    m_clearElements = new QAction{tr("Clear selected elements"), this};
+    m_clearElements->setShortcut(Qt::Key_Backspace);
+    connect(m_clearElements, &QAction::triggered,
             [this]()
     {
         if (auto sm = m_parent->focusedScenarioModel())
@@ -37,46 +34,59 @@ EditMenuActions::EditMenuActions(ScenarioControl* parent) :
             mgr.clearContentFromSelection(*sm);
         }
     });
-    m_editActions->addAction(clearElements);
 
     // copy/cut
-    QAction *copyConstraintContent = new QAction{tr("Copy"), this};
-    copyConstraintContent->setShortcut(QKeySequence::Copy);
-    connect(copyConstraintContent, &QAction::triggered,
+    m_copyConstraintContent = new QAction{tr("Copy"), this};
+    m_copyConstraintContent->setShortcut(QKeySequence::Copy);
+    connect(m_copyConstraintContent, &QAction::triggered,
             [this]()
     {
         QJsonDocument doc{m_parent->copySelectedElementsToJson()};
         auto clippy = QApplication::clipboard();
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
-    m_editActions->addAction(copyConstraintContent);
 
-    QAction *cutConstraintContent = new QAction{tr("Cut"), this};
-    cutConstraintContent->setShortcut(QKeySequence::Cut);
-    connect(cutConstraintContent, &QAction::triggered,
+    m_cutConstraintContent = new QAction{tr("Cut"), this};
+    m_cutConstraintContent->setShortcut(QKeySequence::Cut);
+    connect(m_cutConstraintContent, &QAction::triggered,
             [this]()
     {
         QJsonDocument doc{m_parent->cutSelectedElementsToJson()};
         auto clippy = QApplication::clipboard();
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
-    m_editActions->addAction(cutConstraintContent);
 
-    QAction *pasteConstraintContent = new QAction{tr("Paste"), this};
-    pasteConstraintContent->setShortcut(QKeySequence::Paste);
-    connect(pasteConstraintContent, &QAction::triggered,
+    m_pasteConstraintContent = new QAction{tr("Paste"), this};
+    m_pasteConstraintContent->setShortcut(QKeySequence::Paste);
+    connect(m_pasteConstraintContent, &QAction::triggered,
             [this]()
     {
         m_parent->writeJsonToSelectedElements(
                     QJsonDocument::fromJson(
                         QApplication::clipboard()->text().toLatin1()).object());
     });
-    m_editActions->addAction(pasteConstraintContent);
 
 }
 
-QActionGroup *EditMenuActions::editActions()
+void EditMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 {
-    return m_editActions;
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu,
+                                       m_removeElements);
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu,
+                                       m_clearElements);
+    menu->addSeparatorIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu, iscore::EditMenuElement::Separator_Copy);
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu,
+                                       m_copyConstraintContent);
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu,
+                                       m_cutConstraintContent);
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::EditMenu,
+                                       m_pasteConstraintContent);
+
+}
+
+QList<QAction *> EditMenuActions::actions()
+{
+    QList<QAction*> list{m_removeElements, m_clearElements, m_copyConstraintContent, m_cutConstraintContent, m_pasteConstraintContent};
+    return list;
 }
 

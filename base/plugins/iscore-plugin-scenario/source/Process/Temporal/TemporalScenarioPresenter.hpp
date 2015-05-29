@@ -73,6 +73,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
         void linesExtremityScaled(int, int);
         void shiftPressed();
         void shiftReleased();
+        void contextMenuAsked(const QPoint&);
 
     public slots:
         // Model -> view

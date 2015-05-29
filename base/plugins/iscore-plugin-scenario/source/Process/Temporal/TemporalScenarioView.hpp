@@ -36,6 +36,8 @@ class TemporalScenarioView : public ProcessView
         void shiftPressed();
         void shiftReleased();
 
+        void askContextMenu(const QPoint&);
+
     public slots:
         void lock()
         {
