@@ -94,22 +94,22 @@ void EventPresenter::updateViewHalves() const
     // Then check the constraints.
     for(const auto& constraint : m_model.previousConstraints())
     {
-        const auto& cstr = scenar->constraint(constraint);
+        const auto& procs = scenar->constraint(constraint).processes();
         if(std::any_of(
-                    cstr.processes().begin(),
-                    cstr.processes().end(),
+                    procs.begin(),
+                    procs.end(),
                     [] (ProcessModel* proc) { return proc->endState() != nullptr; }))
         {
             halves |= EventView::Halves::Before;
         }
     }
 
-    for(auto& constraint : m_model.nextConstraints())
+    for(const auto& constraint : m_model.nextConstraints())
     {
-        const auto& cstr = scenar->constraint(constraint);
+        const auto& procs = scenar->constraint(constraint).processes();
         if(std::any_of(
-                    cstr.processes().begin(),
-                    cstr.processes().end(),
+                    procs.begin(),
+                    procs.end(),
                     [] (ProcessModel* proc) { return proc->startState() != nullptr; }))
         {
             halves |= EventView::Halves::After;
