@@ -78,6 +78,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
             this,   &TemporalScenarioPresenter::shiftPressed);
     connect(m_view, &TemporalScenarioView::shiftReleased,
             this,   &TemporalScenarioPresenter::shiftReleased);
+    connect(m_view, &TemporalScenarioView::askContextMenu,
+            this,   &TemporalScenarioPresenter::contextMenuAsked);
 
 
     connect(&model(m_viewModel), &ScenarioModel::locked,

@@ -28,6 +28,9 @@ class ScenarioControl : public iscore::PluginControlInterface
         ProcessList* processList()
         { return &m_processList; }
 
+    public slots:
+        void createContextMenu(const QPoint &);
+
     protected:
         virtual void on_documentChanged() override;
         const ScenarioModel* focusedScenarioModel() const;
