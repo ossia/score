@@ -8,10 +8,17 @@ class EditMenuActions : public QObject
     Q_OBJECT
     public:
         EditMenuActions(ScenarioControl* parent);
-        QActionGroup* editActions();
+        void fillMenuBar(iscore::MenubarManager *menu);
+
+        QList<QAction*> actions();
 
     private:
         ScenarioControl* m_parent;
-        QActionGroup* m_editActions{};
+
+        QAction* m_removeElements;
+        QAction *m_clearElements;
+        QAction *m_copyConstraintContent;
+        QAction *m_cutConstraintContent;
+        QAction *m_pasteConstraintContent;
 };
 

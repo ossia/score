@@ -160,14 +160,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     ///// Edit /////
 
-    for(auto action : m_edit->editActions()->actions())
-    {
-        menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
-                                           action);
-    }
-    //TODO : how to insert separator ?
-//    menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu, EditMenuElement::Separator_Copy);
-
+    m_edit->fillMenuBar(menu);
 
     ///// View /////
     QAction *selectAll = new QAction{tr("Select all"), this};
@@ -355,6 +348,17 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(const QStri
     return cmd;
 }
 
+void ScenarioControl::createContextMenu(const QPoint& pos)
+{
+    QMenu contextMenu {};
+    contextMenu.clear();
+    contextMenu.addActions(m_edit->actions());
+
+    contextMenu.exec(pos);
+
+    contextMenu.close();
+}
+
 void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
@@ -377,6 +381,10 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
     m_scenarioToolActionGroup->setEnabled(s_pres);
     m_scenarioScaleModeActionGroup->setEnabled(s_pres);
     m_shiftActionGroup->setEnabled(s_pres);
+
+    disconnect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
+               this, &ScenarioControl::createContextMenu);
+
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::shiftPressed,
@@ -402,6 +410,9 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
                 }
             }
         });
+
+        connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
+                this, &ScenarioControl::createContextMenu);
 
         // Set the current state on the statemachine.
         // TODO put this in a pattern (MappedActionGroup?)
