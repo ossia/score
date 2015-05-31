@@ -3,6 +3,7 @@
 #include <utility>
 #include <type_traits>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 //namespace {
 class MyPoint;
 class PointsLayer;
@@ -47,25 +48,52 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         }
 
-        virtual void setStart(const QPointF& pt) = 0;
-        virtual void setStop(const QPointF& pt) = 0;
+        template<typename Impl>
+        CurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
+            IdentifiedObject<CurveSegmentModel>{vis, parent}
+        {
+            vis.writeTo(*this);
+        }
 
+
+        virtual QString name() const = 0;
+        virtual void serialize(const VisitorVariant&) const = 0;
         virtual QVector<QPointF> data(int numInterp) const = 0; // Will interpolate
 
-        CurveSegmentModel* previous() const;
-        void setPrevious(CurveSegmentModel *previous);
 
-        CurveSegmentModel* following() const;
-        void setFollowing(CurveSegmentModel *following);
+        QPointF start() const;
+        void setStart(const QPointF& pt)
+        {
+            m_start = pt;
+            on_startChanged();
+        }
+
+        QPointF end() const;
+        void setEnd(const QPointF& pt)
+        {
+            m_end = pt;
+            on_endChanged();
+        }
+
+        const id_type<CurveSegmentModel>& previous() const;
+        void setPrevious(const id_type<CurveSegmentModel>& previous);
+
+        const id_type<CurveSegmentModel>& following() const;
+        void setFollowing(const id_type<CurveSegmentModel>& following);
+
 
     signals:
         void dataChanged();
         void previousChanged();
         void followingChanged();
 
+    protected:
+        virtual void on_startChanged() = 0;
+        virtual void on_endChanged() = 0;
+
     private:
-        CurveSegmentModel* m_previous{};
-        CurveSegmentModel* m_following{};
+        QPointF m_start, m_end;
+        id_type<CurveSegmentModel> m_previous, m_following;
 };
 
 class CurveModel : public QObject
@@ -89,6 +117,12 @@ class CurveModel : public QObject
             }
 
             emit segmentRemoved(m);
+        }
+
+        void clear()
+        {
+            qDeleteAll(m_segments);
+            m_segments.clear();
         }
 
         const QVector<CurveSegmentModel*>& segments() const
@@ -121,27 +155,6 @@ class CurveView : public QGraphicsItem
         void updateSubitems();
 
     signals:
-        // Ne raisonner qu'à partir des segments dans le modèle ?
-        // La vue crée les points en plus.
-        // Donner xmin, xmax, et équation (type) du segment.
-
-        /*
-        void setCurrentPointPos(const QPointF &point);
-        void removeFakePoint();
-        void pointMoved(const QPointF& pt);
-        QPointF pointUnderMouse(QGraphicsSceneMouseEvent *event);
-    protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent *event);
-        void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-
-
-        QSizeF m_size;
-        QPointF m_backedUpPoint{-1, -1};
-
-        //QPen m_pen;
-        PointsLayer* m_pointLayer{};
-        MyPoint* m_fakePoint{};
-        */
 };
 
 
@@ -150,16 +163,33 @@ class CurveSegmentLinearModel : public CurveSegmentModel
 {
     public:
         using CurveSegmentModel::CurveSegmentModel;
-        QPointF start, end;
-        void setStart(const QPointF& pt) override
+
+
+        // TODO Factor this in a macro.
+        template<typename Impl>
+        CurveSegmentLinearModel(Deserializer<Impl>& vis, QObject* parent) :
+            CurveSegmentModel {vis, parent}
         {
-            start = pt;
+            vis.writeTo(*this);
+        }
+
+        QString name() const override
+        {
+            return "Linear";
+        }
+
+        void serialize(const VisitorVariant& vis) const
+        {
+            serialize_dyn(vis, *this);
+        }
+
+        void on_startChanged() override
+        {
             emit dataChanged();
         }
 
-        void setStop(const QPointF& pt) override
+        void on_endChanged() override
         {
-            end = pt;
             emit dataChanged();
         }
 
@@ -170,7 +200,7 @@ class CurveSegmentLinearModel : public CurveSegmentModel
 
             for(int j = 0; j <= numInterp; j++)
             {
-                interppts[j] = start + double(j) / numInterp * (end - start);
+                interppts[j] = start() + double(j) / numInterp * (end() - start());
             }
 
             return interppts;

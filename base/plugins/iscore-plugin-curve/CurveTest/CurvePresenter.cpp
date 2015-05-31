@@ -2,7 +2,7 @@
 #include <QFinalState>
 #include <QAbstractTransition>
 #include <iscore/command/OngoingCommandManager.hpp>
-namespace {
+
 template<int N>
 struct NumberedEvent : public QEvent
 {
@@ -111,24 +111,12 @@ class CurveSegmentFactory
         virtual CurveSegmentModel* make(
                 const id_type<CurveSegmentModel>&,
                 QObject* parent) = 0;
+
+        virtual CurveSegmentModel *load(
+                const VisitorVariant& data,
+                QObject* parent) = 0;
 };
 
-class LinearCurveSegmentFactory : public CurveSegmentFactory
-{
-        // CurveSegmentFactory interface
-    public:
-        QString name() const
-        {
-            return "Linear"; // boost hashed_unique will save us
-        }
-
-        CurveSegmentModel *make(
-                const id_type<CurveSegmentModel>& id,
-                QObject* parent)
-        {
-            return new CurveSegmentLinearModel{id, parent};
-        }
-};
 
 // Template this
 class CurveSegmentList
@@ -145,8 +133,116 @@ class CurveSegmentList
             factories.push_back(fact);
         }
 
+        static CurveSegmentList* instance()
+        {
+            static auto ptr = new ::CurveSegmentList;
+            return ptr;
+        }
+
     private:
+        CurveSegmentList() = default;
         QVector<CurveSegmentFactory*> factories;
+};
+
+
+#include <iscore/serialization/VisitorCommon.hpp>
+// TODO write this process down somewhere
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
+{
+    // To allow recration using createProcess
+    m_stream << segmt.name();
+
+    // Save the parent class
+    readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
+
+    // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
+    m_stream << segmt.previous() << segmt.following()
+             << segmt.start() << segmt.end();
+
+    // Save the subclass
+    segmt.serialize(toVariant());
+
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(CurveSegmentModel& segmt)
+{
+    id_type<CurveSegmentModel> prev, fol;
+    QPointF start, end;
+    m_stream >> prev >> fol
+             >> start >> end;
+
+    segmt.setPrevious(prev);
+    segmt.setFollowing(fol);
+
+    segmt.setStart(start);
+    segmt.setEnd(end);
+}
+
+
+CurveSegmentModel* createCurveSegment(
+        Deserializer<DataStream>& deserializer,
+        QObject* parent)
+{
+    QString name;
+    deserializer.m_stream >> name;
+
+    auto model = CurveSegmentList::instance()
+                    ->get(name)
+                        ->load(deserializer.toVariant(), parent);
+
+    deserializer.checkDelimiter();
+    return model;
+}
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentLinearModel& segmt)
+{
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(CurveSegmentLinearModel& segmt)
+{
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentLinearModel& segmt)
+{
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentLinearModel& segmt)
+{
+}
+
+
+
+// TODO candidate to template
+class LinearCurveSegmentFactory : public CurveSegmentFactory
+{
+        // CurveSegmentFactory interface
+    public:
+        QString name() const
+        {
+            return "Linear"; // boost hashed_unique will save us
+        }
+
+        CurveSegmentModel *make(
+                const id_type<CurveSegmentModel>& id,
+                QObject* parent) override
+        {
+            return new CurveSegmentLinearModel{id, parent};
+        }
+
+        CurveSegmentModel *load(
+                const VisitorVariant& vis,
+                QObject* parent) override
+        {
+            return deserialize_dyn(vis, [&] (auto&& deserializer)
+            { return new CurveSegmentLinearModel{deserializer, parent};});
+        }
 };
 
 // CreateSegment
@@ -189,31 +285,79 @@ class UpdateCurve : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL("UpdateCurve", "UpdateCurve")
     public:
         UpdateCurve(ObjectPath&& model, QVector<CurveSegmentModel*> segments):
-            iscore::SerializableCommand("", "", "")
+            iscore::SerializableCommand("CurveControl", className(), description()),
+          m_model(std::move(model))
         {
+            const auto& curve = m_model.find<CurveModel>();
+            for(const auto& segment : curve.segments())
+            {
+                QByteArray arr;
+                Serializer<DataStream> s(&arr);
+                s.readFrom(*segment);
+                m_oldCurveData.append(arr);
+            }
+
+            for(const auto& segment : segments)
+            {
+                QByteArray arr;
+                Serializer<DataStream> s(&arr);
+                s.readFrom(*segment);
+                m_newCurveData.append(arr);
+            }
         }
 
         void undo() override
         {
+            auto& curve = m_model.find<CurveModel>();
+            curve.clear();
+
+            for(const auto& elt : m_oldCurveData)
+            {
+               Deserializer<DataStream> des(elt);
+               curve.addSegment(createCurveSegment(des, &curve));
+            }
         }
 
         void redo() override
         {
+            auto& curve = m_model.find<CurveModel>();
+            curve.clear();
+
+            for(const auto& elt : m_newCurveData)
+            {
+               Deserializer<DataStream> des(elt);
+               curve.addSegment(createCurveSegment(des, &curve));
+            }
         }
 
         void update(ObjectPath&& model, QVector<CurveSegmentModel*> segments)
         {
+            m_newCurveData.clear();
 
+            for(const auto& segment : segments)
+            {
+                QByteArray arr;
+                Serializer<DataStream> s(&arr);
+                s.readFrom(*segment);
+                m_newCurveData.append(arr);
+            }
         }
 
     protected:
-        void serializeImpl(QDataStream &) const override
+        void serializeImpl(QDataStream & s) const override
         {
+            s << m_model << m_oldCurveData << m_newCurveData;
         }
 
-        void deserializeImpl(QDataStream &) override
+        void deserializeImpl(QDataStream & s) override
         {
+            s >> m_model >> m_oldCurveData >> m_newCurveData;
         }
+
+    private:
+        ObjectPath m_model;
+        QVector<QByteArray> m_oldCurveData;
+        QVector<QByteArray> m_newCurveData;
 };
 
 class MovePointCommandObject : public CurveCommandObjectBase
@@ -237,17 +381,18 @@ class MovePointCommandObject : public CurveCommandObjectBase
 
         void move()
         {
-
+            m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
+                                                    m_originalSegments);
         }
 
         void release()
         {
-
+            m_dispatcher.commit();
         }
 
         void cancel()
         {
-
+            m_dispatcher.rollback();
         }
 
     private:
@@ -297,7 +442,7 @@ class MoveSegmentCommandObject
     private:
         SingleOngoingCommandDispatcher m_dispatcher;
 };
-}
+
 
 CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     m_model{model},
