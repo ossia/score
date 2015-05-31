@@ -30,7 +30,7 @@ AutomationPresenter::AutomationPresenter(
     connect(&m_viewModel.model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
-    m_curve = new Curve(m_view);
+    //m_curve = new Curve(m_view);
 /*
     connect(m_curve, &QCustomPlotCurve::pointMovingFinished,
             [&](double oldx, double newx, double newy)
@@ -144,7 +144,7 @@ QVector<QPointF> mapToVector(QMap<double, double> map)
 
 void AutomationPresenter::on_modelPointsChanged()
 {
-    m_curve->setPoints(mapToVector(m_viewModel.model().points()));
-    m_curve->setRect(m_view->boundingRect());
+    //m_curve->setPoints(mapToVector(m_viewModel.model().points()));
+    //m_curve->setRect(m_view->boundingRect());
 }
 

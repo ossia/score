@@ -3,7 +3,12 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneHoverEvent>
-#include <iscore/tools/Clamp.hpp>
+
+inline double clamp(double val, double min, double max)
+{
+    return val < min ? min : (val > max ? max : val);
+}
+
 #include <QApplication>
 //namespace {
 static QColor outerColor{Qt::white};
@@ -17,7 +22,7 @@ class MyPoint : public QGraphicsItem
         QPointF originalPoint;
         QPointF previousPoint;
 
-        MyPoint(QPointF coordPos, QPointF pixelPos, Curve* parent):
+        MyPoint(QPointF coordPos, QPointF pixelPos, CurveView* parent):
             QGraphicsItem{parent},
             originalPoint{coordPos},
             previousPoint{coordPos},
@@ -108,7 +113,7 @@ class MyPoint : public QGraphicsItem
     private:
         QRectF m_rect;
         QPointF m_pointPos;
-        Curve& m_curve;
+        CurveView& m_curve;
 };
 
 class PointsLayer : public QGraphicsItem
@@ -132,7 +137,7 @@ class PointsLayer : public QGraphicsItem
             return isVisible();
         }
 
-        PointsLayer(Curve* parent):
+        PointsLayer(CurveView* parent):
             QGraphicsItem{parent}
         {
             setRect(parent->boundingRect());
@@ -178,12 +183,12 @@ static const QPointF invalid_point{-1, -1};
 
 
 
-QRectF CurveSegmentTest::boundingRect() const
+QRectF CurveSegmentView::boundingRect() const
 {
     return rect;
 }
 
-void CurveSegmentTest::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::red);
     for(int i = 0; i < points.size() - 1; i++)
@@ -195,7 +200,7 @@ void CurveSegmentTest::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 }
 
 
-QRectF Curve::boundingRect() const
+QRectF CurveView::boundingRect() const
 {
     return rect;
 }
@@ -206,15 +211,16 @@ QPointF myscale(QPointF first, QSizeF second)
     return {first.x() * second.width(), first.y() * second.height()};
 }
 
-void Curve::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::magenta);
     painter->setBrush(Qt::transparent);
     painter->drawRect(boundingRect());
 }
 #include <QDebug>
-void Curve::updateSubitems()
+void CurveView::updateSubitems()
 {
+    /*
     for(auto& item : this->childItems())
         delete item;
 
@@ -235,7 +241,7 @@ void Curve::updateSubitems()
             return scaledPoints[i] + percent * (scaledPoints[i+1] - scaledPoints[i]);
         };
 
-        auto c = new CurveSegmentTest(this);
+        auto c = new CurveSegmentView(this);
         QVector<QPointF> interppts;
         interppts.resize(numInterp + 1);
 
@@ -254,6 +260,7 @@ void Curve::updateSubitems()
 
     auto ptlayer = new PointsLayer(this);
     ptlayer->setPoints(scaledPoints);
+    */
 }
 
 /*
@@ -367,3 +374,31 @@ QPointF Curve::pointUnderMouse(QGraphicsSceneMouseEvent* event)
     return (ptIt == end(dl)) ? QPointF{-1., -1.} : QPointF{ptIt->key, ptIt->value};
 }
 */
+
+CurveSegmentModel *CurveSegmentModel::previous() const
+{
+    return m_previous;
+}
+
+void CurveSegmentModel::setPrevious(CurveSegmentModel *previous)
+{
+    if(previous != m_previous)
+    {
+        m_previous = previous;
+        emit previousChanged();
+    }
+}
+CurveSegmentModel *CurveSegmentModel::following() const
+{
+    return m_following;
+}
+
+void CurveSegmentModel::setFollowing(CurveSegmentModel *following)
+{
+    if(following != m_following)
+    {
+        m_following = following;
+        emit followingChanged();
+    }
+}
+
