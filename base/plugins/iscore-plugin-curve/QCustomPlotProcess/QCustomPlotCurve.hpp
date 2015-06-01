@@ -8,6 +8,7 @@ namespace {
     class PointsLayer;
 class MyPoint;
 }
+
 class QCustomPlotCurve : public QGraphicsObject
 {
         Q_OBJECT

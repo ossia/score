@@ -1,11 +1,11 @@
 #pragma once
-#include "StateMachineVeryCommon.hpp"
 #include <QStateMachine>
 #include <QState>
 #include <QAbstractTransition>
 
 #include <QPointF>
 #include <iscore/tools/ObjectPath.hpp>
+#include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 

@@ -1,8 +1,9 @@
 #pragma once
+#include <iscore/tools/ObjectPath.hpp>
+
+#include <QState>
 #include <QEvent>
 #include <QAbstractTransition>
-#include <QState>
-#include <iscore/tools/ObjectPath.hpp>
 
 template<int N>
 struct NumberedEvent : public QEvent

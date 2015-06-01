@@ -1,5 +1,4 @@
 #pragma once
-#include "StateMachineVeryCommon.hpp"
 #include "ScenarioStateMachineBaseEvents.hpp"
 #include "ScenarioStateMachineBaseStates.hpp"
 

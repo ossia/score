@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioPoint.hpp"
-#include "StateMachineVeryCommon.hpp"
+#include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <iscore/tools/Clamp.hpp>
 

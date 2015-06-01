@@ -34,6 +34,7 @@ void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following
         emit followingChanged();
     }
 }
+
 QPointF CurveSegmentModel::end() const
 {
     return m_end;
