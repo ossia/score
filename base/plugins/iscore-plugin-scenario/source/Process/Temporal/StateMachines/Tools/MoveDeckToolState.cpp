@@ -8,9 +8,14 @@
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
 #include "Process/Temporal/StateMachines/Transitions/DeckTransitions.hpp"
-#include <QFinalState>
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
+#include <QFinalState>
+#include <QGraphicsScene>
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     GenericStateBase{sm},
     m_dispatcher{m_sm.commandStack()},
@@ -41,7 +46,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the deck, one for resizing with the handle.
     {
-        auto dragDeck = new DragDeckState{m_dispatcher, m_sm, *m_sm.presenter().view().scene(), &m_localSM};
+        auto dragDeck = new DragDeckState{m_dispatcher, m_sm, m_sm.scene(), &m_localSM};
         // Enter the state
         make_transition<ClickOnDeckOverlay_Transition>(
                     m_waitState,
@@ -66,7 +71,7 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
     this->addTransition(on_press);
     connect(on_press, &QAbstractTransition::triggered, [&] ()
     {
-        auto item = m_sm.presenter().view().scene()->itemAt(m_sm.scenePoint, QTransform());
+        auto item = m_sm.scene().itemAt(m_sm.scenePoint, QTransform());
         if(auto overlay = dynamic_cast<DeckOverlay*>(item))
         {
             m_localSM.postEvent(new ClickOnDeckOverlay_Event{

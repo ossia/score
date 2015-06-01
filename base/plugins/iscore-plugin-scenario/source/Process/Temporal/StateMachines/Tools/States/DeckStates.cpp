@@ -1,5 +1,9 @@
 #include "DeckStates.hpp"
-#include <QFinalState>
+
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
+
+#include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckOverlay.hpp"
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
@@ -8,6 +12,8 @@
 #include "Commands/Constraint/Box/MoveDeck.hpp"
 #include "Commands/Constraint/Box/SwapDecks.hpp"
 
+#include <QFinalState>
+#include <QGraphicsScene>
 ResizeDeckState::ResizeDeckState(
         SingleOngoingCommandDispatcher &dispatcher,
         const BaseStateMachine &sm,

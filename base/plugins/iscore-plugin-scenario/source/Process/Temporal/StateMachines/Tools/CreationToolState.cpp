@@ -3,9 +3,18 @@
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventPresenter.hpp"
+#include "Document/Event/EventView.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/TimeNodePresenter.hpp"
+#include "Document/TimeNode/TimeNodeView.hpp"
 
+#include "Process/ScenarioModel.hpp"
 CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
-    GenericToolState{sm}
+    ScenarioToolState{sm}
 {
     m_waitState = new QState;
     m_localSM.addState(m_waitState);
@@ -88,4 +97,20 @@ void CreationToolState::on_scenarioReleased()
     { m_localSM.postEvent(new ReleaseOnNothing_Event{m_sm.scenarioPoint}); },
     currentState().createdEvent(),
     currentState().createdTimeNode());
+}
+
+QList<id_type<EventModel>> CreationToolState::getCollidingEvents(const id_type<EventModel> &createdEvent)
+{
+    return getCollidingModels(
+                m_sm.presenter().events(),
+                createdEvent,
+                m_sm.scenePoint);
+}
+
+QList<id_type<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const id_type<TimeNodeModel> &createdTimeNode)
+{
+    return getCollidingModels(
+                m_sm.presenter().timeNodes(),
+                createdTimeNode,
+                m_sm.scenePoint);
 }

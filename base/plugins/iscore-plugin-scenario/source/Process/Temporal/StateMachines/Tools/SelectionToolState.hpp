@@ -1,8 +1,8 @@
 #pragma once
-#include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
+#include "Process/Temporal/StateMachines/Tools/ScenarioToolState.hpp"
 #include <iscore/selection/SelectionDispatcher.hpp>
 
-class SelectionToolState : public GenericToolState
+class SelectionToolState : public ScenarioToolState
 {
     public:
         SelectionToolState(ScenarioStateMachine& sm);

@@ -3,14 +3,15 @@
 #include <QStateMachine>
 #include <QState>
 #include <QAbstractTransition>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/Box/Deck/DeckModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
+
 #include <QPointF>
 #include <iscore/tools/ObjectPath.hpp>
 
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
+
+class EventModel;
+class TimeNodeModel;
+class ConstraintModel;
 // TODO optimize this when we have all the tools
 class CommonScenarioState : public QState
 {

@@ -4,6 +4,11 @@
 #include "Tools/SelectionToolState.hpp"
 #include "Tools/MoveDeckToolState.hpp"
 
+#include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
+
 #include <QSignalTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):
@@ -124,6 +129,16 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_shift_released->setTargetState(shiftReleasedState);
 
     }
+}
+
+const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
+{
+    return m_presenter;
+}
+
+const QGraphicsScene &ScenarioStateMachine::scene() const
+{
+    return *m_presenter.view().scene();
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

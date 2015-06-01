@@ -24,6 +24,7 @@
 #include <core/document/Document.hpp>
 #include <QApplication>
 #include "StateMachine/BaseMoveDeck.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 
 using namespace iscore;
 

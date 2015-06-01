@@ -4,8 +4,11 @@
 #include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
+
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/ScenarioModel.hpp"
 MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
-    GenericToolState{sm}
+    ScenarioToolState{sm}
 {
     m_waitState = new QState;
     m_localSM.addState(m_waitState);

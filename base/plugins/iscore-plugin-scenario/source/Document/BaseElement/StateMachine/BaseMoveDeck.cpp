@@ -13,6 +13,8 @@
 #include "Process/Temporal/StateMachines/Transitions/DeckTransitions.hpp"
 
 #include <QFinalState>
+#include <QGraphicsScene>
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 
 BaseMoveDeck::BaseMoveDeck(
         const QGraphicsScene& scene,

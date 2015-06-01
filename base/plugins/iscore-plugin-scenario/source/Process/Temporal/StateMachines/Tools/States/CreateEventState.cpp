@@ -1,4 +1,5 @@
 #include "CreateEventState.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 

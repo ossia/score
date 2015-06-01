@@ -1,8 +1,10 @@
 #pragma once
-#include "GenericToolState.hpp"
+#include "ScenarioToolState.hpp"
 #include "States/CreateEventState.hpp"
 
-class CreationToolState : public GenericToolState
+class EventPresenter;
+class TimeNodePresenter;
+class CreationToolState : public ScenarioToolState
 {
     public:
         CreationToolState(const ScenarioStateMachine& sm);
@@ -12,6 +14,8 @@ class CreationToolState : public GenericToolState
         void on_scenarioReleased() override;
 
     private:
+        QList<id_type<EventModel>> getCollidingEvents(const id_type<EventModel>& createdEvent);
+        QList<id_type<TimeNodeModel>> getCollidingTimeNodes(const id_type<TimeNodeModel>& createdTimeNode);
         template<typename EventFun,
                  typename TimeNodeFun,
                  typename NothingFun>
@@ -22,23 +26,17 @@ class CreationToolState : public GenericToolState
                 const id_type<EventModel>& createdEvent,
                 const id_type<TimeNodeModel>& createdTimeNode)
         {
-            auto collidingEvents = getCollidingModels(
-                                       m_sm.presenter().events(),
-                                       createdEvent,
-                                       m_sm.scenePoint);
+            auto collidingEvents = getCollidingEvents(createdEvent);
             if(!collidingEvents.empty())
             {
-                ev_fun(collidingEvents.first()->id());
+                ev_fun(collidingEvents.first());
                 return;
             }
 
-            auto collidingTimeNodes = getCollidingModels(
-                                          m_sm.presenter().timeNodes(),
-                                          createdTimeNode,
-                                          m_sm.scenePoint);
+            auto collidingTimeNodes = getCollidingTimeNodes(createdTimeNode);
             if(!collidingTimeNodes.empty())
             {
-                tn_fun(collidingTimeNodes.first()->id());
+                tn_fun(collidingTimeNodes.first());
                 return;
             }
 

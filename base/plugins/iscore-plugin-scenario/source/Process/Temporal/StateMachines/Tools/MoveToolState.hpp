@@ -1,10 +1,10 @@
 #pragma once
-#include "GenericToolState.hpp"
+#include "ScenarioToolState.hpp"
 
 class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
-class MoveToolState : public GenericToolState
+class MoveToolState : public ScenarioToolState
 {
     public:
         MoveToolState(ScenarioStateMachine& sm);

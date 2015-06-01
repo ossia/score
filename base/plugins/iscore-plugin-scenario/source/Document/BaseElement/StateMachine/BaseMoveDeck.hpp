@@ -1,8 +1,10 @@
 #pragma once
-#include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
+#include <QState>
+#include <QStateMachine>
 
-
+class QGraphicsScene;
+class BaseStateMachine;
 class DeckModel;
 class BaseMoveDeck : public QState
 {

@@ -1,13 +1,35 @@
 #include "SelectionToolState.hpp"
 #include <QKeyEventTransition>
 #include "Process/ScenarioGlobalCommandManager.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
+
+#include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
+
+#include <iscore/document/DocumentInterface.hpp>
+
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventPresenter.hpp"
+#include "Document/Event/EventView.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/TimeNodePresenter.hpp"
+#include "Document/TimeNode/TimeNodeView.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+
+#include <QKeyEventTransition>
 #include <QFinalState>
+#include <QGraphicsScene>
 
 SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
-    GenericToolState{sm},
+    ScenarioToolState{sm},
     m_dispatcher{iscore::IDocument::documentFromObject(m_sm.model())->selectionStack()}
 {
+    auto& scenario_view = m_sm.presenter().view();
     auto metaSelectionState = new QState{&m_localSM};
     m_localSM.setInitialState(metaSelectionState);
     metaSelectionState->setChildMode(QState::ChildMode::ParallelStates);
@@ -22,10 +44,10 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
             selectionModeState->setInitialState(m_singleSelection);
             m_multiSelection = new QState{selectionModeState};
 
-            auto trans1 = new QKeyEventTransition(&m_sm.presenter().view(),
+            auto trans1 = new QKeyEventTransition(&scenario_view,
                                                   QEvent::KeyPress, Qt::Key_Control, m_singleSelection);
             trans1->setTargetState(m_multiSelection);
-            auto trans2 = new QKeyEventTransition(&m_sm.presenter().view(),
+            auto trans2 = new QKeyEventTransition(&scenario_view,
                                                   QEvent::KeyRelease, Qt::Key_Control, m_multiSelection);
             trans2->setTargetState(m_singleSelection);
         }
@@ -69,14 +91,14 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
                 connect(moveAreaSelection, &QState::entered,
                         [&] () {
                     m_movePoint = m_sm.scenePoint;
-                    m_sm.presenter().view().setSelectionArea(
-                                QRectF{m_sm.presenter().view().mapFromScene(m_initialPoint),
-                                       m_sm.presenter().view().mapFromScene(m_movePoint)}.normalized());
+                    scenario_view.setSelectionArea(
+                                QRectF{scenario_view.mapFromScene(m_initialPoint),
+                                       scenario_view.mapFromScene(m_movePoint)}.normalized());
                     setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
                 });
 
                 connect(releaseAreaSelection, &QState::entered,
-                        [&] () { m_sm.presenter().view().setSelectionArea(QRectF{}); });
+                        [&] () { scenario_view.setSelectionArea(QRectF{}); });
             }
 
             // Deselection
@@ -88,19 +110,19 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
             connect(deselectState, &QAbstractState::entered,
                     [&] () {
                 m_dispatcher.setAndCommit(Selection{});
-                m_sm.presenter().view().setSelectionArea(QRectF{});
+                scenario_view.setSelectionArea(QRectF{});
             });
 
             // Actions on selected elements
             auto t_delete = new QKeyEventTransition(
-                        &m_sm.presenter().view(), QEvent::KeyPress, Qt::Key_Delete, m_waitState);
+                        &scenario_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
             connect(t_delete, &QAbstractTransition::triggered, [&] () {
                 ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
                 mgr.deleteSelection(m_sm.model());
             });
 
             auto t_deleteContent = new QKeyEventTransition(
-                        &m_sm.presenter().view(), QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
+                        &scenario_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
             connect(t_deleteContent, &QAbstractTransition::triggered, [&] () {
                 ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
                 mgr.clearContentFromSelection(m_sm.model());
@@ -221,7 +243,7 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
     const auto& timenodes = m_sm.presenter().timeNodes();
     const auto& cstrs = m_sm.presenter().constraints();
 
-    const auto items = m_sm.presenter().view().scene()->items(path);
+    const auto items = m_sm.scene().items(path);
 
 
     for (const auto& item : items)

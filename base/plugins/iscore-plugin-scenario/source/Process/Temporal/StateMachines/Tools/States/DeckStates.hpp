@@ -3,6 +3,8 @@
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 
+class BaseStateMachine;
+class QGraphicsScene;
 class ResizeDeckState : public DeckState
 {
     public:

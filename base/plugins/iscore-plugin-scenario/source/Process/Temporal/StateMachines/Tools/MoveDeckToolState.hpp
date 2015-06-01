@@ -1,7 +1,12 @@
 #pragma once
-#include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 
+#include <QState>
+#include <QStateMachine>
+#include <QPointF>
+
+class ScenarioStateMachine;
+// TODO refactor this one.
 class GenericStateBase : public QState
 {
     public:

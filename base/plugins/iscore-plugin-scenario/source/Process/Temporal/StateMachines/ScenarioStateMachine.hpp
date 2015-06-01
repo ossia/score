@@ -14,6 +14,7 @@ class CreationToolState;
 class MoveToolState;
 class SelectionToolState;
 class MoveDeckToolState;
+class QGraphicsScene;
 
 class BaseStateMachine : public QStateMachine
 {
@@ -28,8 +29,8 @@ class ScenarioStateMachine : public BaseStateMachine
         ScenarioPoint scenarioPoint;
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 
-        const TemporalScenarioPresenter& presenter() const
-        { return m_presenter; }
+        const TemporalScenarioPresenter& presenter() const;
+        const QGraphicsScene& scene() const;
         const ScenarioModel& model() const;
 
         iscore::CommandStack& commandStack() const
