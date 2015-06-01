@@ -38,6 +38,8 @@ class DurationSectionWidget : public InspectorSectionWidget
         QTimeEdit* m_maxSpin{};
         QCheckBox* m_infinite{};
 
+        bool m_rigidity;
+
         TimeValue m_min;
         TimeValue m_max;
         TimeValue m_default;

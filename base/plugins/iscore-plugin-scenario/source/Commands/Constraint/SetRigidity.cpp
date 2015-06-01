@@ -45,18 +45,9 @@ void SetRigidity::redo()
     auto& constraint = m_path.find<ConstraintModel>();
     constraint.setRigid(m_rigidity);
 
-    if(m_rigidity)
-    {
-        constraint.setMinDuration(constraint.defaultDuration());
-        constraint.setMaxDuration(constraint.defaultDuration());
-    }
-    else
-    {
-        // TODO find a better default ? (and be careful with min < 0
-        auto percentage = constraint.defaultDuration() * 0.1;
-        constraint.setMinDuration(constraint.defaultDuration() - percentage);
-        constraint.setMaxDuration(constraint.defaultDuration() + percentage);
-    }
+    constraint.setMinDuration(constraint.defaultDuration());
+    constraint.setMaxDuration(constraint.defaultDuration());
+
 }
 
 void SetRigidity::serializeImpl(QDataStream& s) const
