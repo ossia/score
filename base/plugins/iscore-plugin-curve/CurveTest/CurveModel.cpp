@@ -1,6 +1,8 @@
 #include "CurveModel.hpp"
+#include "CurveSegmentModel.hpp"
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
+    m->setParent(this);
     m_segments.append(m);
     emit segmentAdded(m);
 }

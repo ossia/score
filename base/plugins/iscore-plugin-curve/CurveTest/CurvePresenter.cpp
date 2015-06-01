@@ -28,6 +28,52 @@ QPointF CurvePresenter::pressedPoint() const
     return m_currentScenePoint;
 }
 
+QPointF myscale(const QPointF& first, const QSizeF& second)
+{
+    return {first.x() * second.width(), (1. - first.y()) * second.height()};
+}
+
+void CurvePresenter::setRect(const QRectF& rect)
+{
+    auto size = rect.size();
+    // Positions
+    for(CurvePointView* curve_pt : m_points)
+    {
+        // Get the previous or next segment. There has to be at least one.
+        if(curve_pt->previous())
+        {
+            auto it = std::find(m_model->segments().begin(),
+                                m_model->segments().end(),
+                                curve_pt->previous());
+            Q_ASSERT(it != m_model->segments().end());
+
+            curve_pt->setPos(myscale((*it)->end(), size));
+        }
+        else if(curve_pt->following())
+        {
+            auto it = std::find(m_model->segments().begin(),
+                                m_model->segments().end(),
+                                curve_pt->following());
+            Q_ASSERT(it != m_model->segments().end());
+
+            curve_pt->setPos(myscale((*it)->start(), size));
+        }
+    }
+
+    for(CurveSegmentView* curve_segt : m_segments)
+    {
+        // Pos is the top-left corner of the segment
+        // Width is from begin to end
+        // Height is the height of the curve since the segment can do anything in-between.
+        double startx, endx;
+        startx = curve_segt->model()->start().x() * rect.width();
+        endx = curve_segt->model()->end().x() * rect.width();
+        curve_segt->setPos({startx, 0});
+        curve_segt->setRect({0., 0., endx - startx, rect.height()});
+
+    }
+}
+
 void CurvePresenter::setupView()
 {
     for(CurveSegmentModel* segment : m_model->segments())

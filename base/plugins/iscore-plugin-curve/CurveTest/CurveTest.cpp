@@ -6,8 +6,4 @@ inline double clamp(double val, double min, double max)
 }
 
 
-QPointF myscale(QPointF first, QSizeF second)
-{
-    return {first.x() * second.width(), first.y() * second.height()};
-}
 */

@@ -1,5 +1,11 @@
 #include "CurvePointView.hpp"
 #include <QPainter>
+CurvePointView::CurvePointView(QGraphicsItem* parent):
+    QGraphicsObject{parent}
+{
+    this->setZValue(2);
+}
+
 QRectF CurvePointView::boundingRect() const
 {
     return {-3, -3, 6, 6};
@@ -7,8 +13,11 @@ QRectF CurvePointView::boundingRect() const
 
 void CurvePointView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setPen(Qt::red);
-    painter->setPen(Qt::blue);
+    QPen pen;
+    pen.setColor(Qt::green);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    painter->setBrush(Qt::green);
 
     painter->drawEllipse(QPointF{0., 0.}, 3, 3);
 }

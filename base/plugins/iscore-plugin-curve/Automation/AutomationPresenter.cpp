@@ -15,7 +15,10 @@
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
 
-
+#include "CurveTest/CurveModel.hpp"
+#include "CurveTest/CurvePresenter.hpp"
+#include "CurveTest/CurveView.hpp"
+#include "CurveTest/LinearCurveSegmentModel.hpp"
 AutomationPresenter::AutomationPresenter(
         const ProcessViewModel& model,
         ProcessView* view,
@@ -30,6 +33,26 @@ AutomationPresenter::AutomationPresenter(
     connect(&m_viewModel.model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
+    auto cm = new CurveModel;
+    auto s1 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(1), cm);
+    s1->setStart({0., 0.0});
+    s1->setEnd({0.2, 1.});
+
+    auto s2 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(2), cm);
+    s2->setStart({0.2, 1.});
+    s2->setEnd({0.6, 0.0});
+    s2->setPrevious(s1->id());
+    s1->setFollowing(s2->id());
+
+    auto s3 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(3), cm);
+    s3->setStart({0.7, 0.0});
+    s3->setEnd({1.0, 1.});
+
+    cm->addSegment(s1);
+    cm->addSegment(s2);
+    cm->addSegment(s3);
+    auto cv = new CurveView(m_view);
+    m_cp = new CurvePresenter(cm, cv);
     //m_curve = new Curve(m_view);
 /*
     connect(m_curve, &QCustomPlotCurve::pointMovingFinished,
@@ -145,6 +168,6 @@ QVector<QPointF> mapToVector(QMap<double, double> map)
 void AutomationPresenter::on_modelPointsChanged()
 {
     //m_curve->setPoints(mapToVector(m_viewModel.model().points()));
-    //m_curve->setRect(m_view->boundingRect());
+    m_cp->setRect(m_view->boundingRect());
 }
 

@@ -1,8 +1,9 @@
 #include "CurveView.hpp"
 #include <QPainter>
+
 QRectF CurveView::boundingRect() const
 {
-    return rect;
+    return m_rect;
 }
 
 void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -12,16 +13,8 @@ void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawRect(boundingRect());
 }
 
-#include <QDebug>
-void CurveView::updateSubitems()
-{
-
-}
-
-
 void CurveView::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
-    rect = theRect;
-    updateSubitems();
+    m_rect = theRect;
 }

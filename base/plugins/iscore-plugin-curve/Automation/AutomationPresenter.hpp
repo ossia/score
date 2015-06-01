@@ -3,7 +3,7 @@
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 
-class QCustomPlotCurve;
+class CurvePresenter;
 class QCPGraph;
 class ProcessView;
 class AutomationViewModel;
@@ -38,6 +38,7 @@ class AutomationPresenter : public ProcessPresenter
         const AutomationViewModel& m_viewModel;
         AutomationView* m_view {};
 
+        CurvePresenter* m_cp{};
         //Curve* m_curve;
 
 //        QCustomPlotCurve* m_curve{};

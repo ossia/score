@@ -7,8 +7,9 @@ class CurveSegmentView : public QGraphicsObject
     public:
         CurveSegmentView(CurveSegmentModel* model, QGraphicsItem* parent);
 
+        CurveSegmentModel* model() const
+        {return m_model; }
         void setRect(const QRectF& theRect);
-        void setPoints(QVector<QPointF>&& thePoints);
 
         QRectF boundingRect() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -24,10 +25,11 @@ class CurveSegmentView : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     private:
+        void updatePoints();
         // Takes a table of points and draws them in a square given by the boundingRect
         // QGraphicsItem interface
-        QVector<QPointF> points; // each between rect.topLeft() :: rect.bottomRight()
-        QRectF rect;
+        QVector<QPointF> m_points; // each between rect.topLeft() :: rect.bottomRight()
+        QRectF m_rect;
 
         CurveSegmentModel* m_model{};
 };

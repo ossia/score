@@ -21,6 +21,8 @@ class CurvePresenter : public QObject
         // then send signals to the state machine.
         QPointF pressedPoint() const;
 
+        void setRect(const QRectF& rect);
+
     private:
         void setupView();
         void setupStateMachine();

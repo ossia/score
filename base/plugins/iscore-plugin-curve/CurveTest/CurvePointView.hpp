@@ -6,7 +6,7 @@ class CurvePointView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        using QGraphicsObject::QGraphicsObject;
+        CurvePointView(QGraphicsItem* parent);
         QRectF boundingRect() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
