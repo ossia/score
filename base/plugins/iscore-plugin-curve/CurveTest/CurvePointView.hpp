@@ -1,17 +1,20 @@
 #pragma once
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <QGraphicsItem>
 class CurveSegmentModel;
-class CurveSegmentView : public QGraphicsObject
+class CurvePointView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurveSegmentView(CurveSegmentModel* model, QGraphicsItem* parent);
-
-        void setRect(const QRectF& theRect);
-        void setPoints(QVector<QPointF>&& thePoints);
-
+        using QGraphicsObject::QGraphicsObject;
         QRectF boundingRect() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+
+        const id_type<CurveSegmentModel>& previous() const;
+        void setPrevious(const id_type<CurveSegmentModel> &previous);
+
+        const id_type<CurveSegmentModel> &following() const;
+        void setFollowing(const id_type<CurveSegmentModel> &following);
 
     signals:
         void pressed(const QPointF&);
@@ -24,10 +27,5 @@ class CurveSegmentView : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     private:
-        // Takes a table of points and draws them in a square given by the boundingRect
-        // QGraphicsItem interface
-        QVector<QPointF> points; // each between rect.topLeft() :: rect.bottomRight()
-        QRectF rect;
-
-        CurveSegmentModel* m_model{};
+        id_type<CurveSegmentModel> m_previous, m_following;
 };

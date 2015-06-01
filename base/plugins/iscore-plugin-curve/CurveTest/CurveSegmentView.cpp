@@ -1,6 +1,13 @@
 #include "CurveSegmentView.hpp"
 #include <QPainter>
 
+CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *parent):
+    QGraphicsObject{parent},
+    m_model{model}
+{
+
+}
+
 void CurveSegmentView::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
@@ -27,4 +34,21 @@ void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->setPen(Qt::magenta);
     painter->setBrush(Qt::transparent);
     painter->drawRect(boundingRect());
+}
+
+
+#include <QGraphicsSceneMouseEvent>
+void CurveSegmentView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit pressed(event->scenePos());
+}
+
+void CurveSegmentView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit moved(event->scenePos());
+}
+
+void CurveSegmentView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit released(event->scenePos());
 }

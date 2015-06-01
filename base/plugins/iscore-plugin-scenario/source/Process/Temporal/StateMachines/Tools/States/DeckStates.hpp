@@ -1,5 +1,5 @@
 #pragma once
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Process/Temporal/StateMachines/Tools/GenericToolState.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 

@@ -7,6 +7,7 @@
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 
 #include <QFinalState>
+#include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
 
 MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
                                          ObjectPath&& scenarioPath,

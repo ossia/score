@@ -1,12 +1,13 @@
 #pragma once
 #include <QState>
 #include <QFinalState>
-
-class OngoingCommandState : public QState
+#include "CurveStateMachineBase.hpp"
+// TODO rename file
+class OngoingState : public QState
 {
     public:
         template<typename CommandObject>
-        OngoingCommandState(CommandObject& obj, QState* parent)
+        OngoingState(CommandObject& obj, QState* parent)
         {
             QState* mainState = new QState{this};
             {
@@ -16,14 +17,13 @@ class OngoingCommandState : public QState
 
                 // General setup
                 mainState->setInitialState(pressed);
-
+/*
                 make_transition<Move_Transition>(pressed, moving); // Also try with pressed, released
                 make_transition<Release_Transition>(pressed, released);
 
                 make_transition<Move_Transition>(moving, moving);
                 make_transition<Release_Transition>(moving, released);
-
-
+*/
                 connect(pressed, &QAbstractState::entered,
                         this, [&] () {
                     obj.press();

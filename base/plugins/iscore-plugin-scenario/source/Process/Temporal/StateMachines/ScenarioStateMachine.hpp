@@ -1,7 +1,7 @@
 #pragma once
 #include "Tool.hpp"
 #include <ProcessInterface/ExpandMode.hpp>
-#include "StateMachineVeryCommon.hpp"
+#include "ScenarioStateMachineBaseEvents.hpp"
 
 #include <iscore/command/OngoingCommandManager.hpp>
 

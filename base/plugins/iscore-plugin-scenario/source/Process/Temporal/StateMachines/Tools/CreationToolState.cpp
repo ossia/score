@@ -1,4 +1,7 @@
 #include "CreationToolState.hpp"
+#include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
 
 CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :

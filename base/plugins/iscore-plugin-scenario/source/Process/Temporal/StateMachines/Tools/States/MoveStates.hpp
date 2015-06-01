@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/OngoingCommandManager.hpp>
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 class ScenarioStateMachine;
 
 class MoveConstraintState : public CommonScenarioState

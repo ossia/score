@@ -10,7 +10,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
 #include "Commands/Constraint/Box/SwapDecks.hpp"
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
+#include "Process/Temporal/StateMachines/Transitions/DeckTransitions.hpp"
 
 #include <QFinalState>
 

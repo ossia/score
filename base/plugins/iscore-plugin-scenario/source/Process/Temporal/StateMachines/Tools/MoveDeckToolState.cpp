@@ -8,8 +8,7 @@
 #include "Document/Constraint/Box/Deck/DeckView.hpp"
 #include "Document/Constraint/Box/Deck/DeckHandle.hpp"
 
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
-
+#include "Process/Temporal/StateMachines/Transitions/DeckTransitions.hpp"
 #include <QFinalState>
 
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):

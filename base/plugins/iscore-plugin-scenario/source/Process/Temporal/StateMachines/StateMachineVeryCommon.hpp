@@ -2,16 +2,7 @@
 #include <QEvent>
 #include <QAbstractTransition>
 #include <QState>
-#include <ProcessInterface/TimeValue.hpp>
-
-#include <iscore/tools/Clamp.hpp>
-
-// A coordinate : (t, y)
-struct ScenarioPoint
-{
-        TimeValue date;
-        double y;
-};
+#include <iscore/tools/ObjectPath.hpp>
 
 template<int N>
 struct NumberedEvent : public QEvent
@@ -21,30 +12,16 @@ struct NumberedEvent : public QEvent
             QEvent{QEvent::Type(QEvent::User + N)} { }
 };
 
-struct PositionedEventBase : public QEvent
+template<typename Element, int N>
+struct NumberedWithPath_Event : public NumberedEvent<N>
 {
-        PositionedEventBase(const ScenarioPoint& pt, QEvent::Type type):
-            QEvent{type},
-            point(pt)
-        {
-            // Here we artificially prevent to move over the header of the box
-            // so that the elements won't disappear in the void.
-            point.y = clamp(point.y, 0.004, 0.99);
-        }
-
-        ScenarioPoint point;
-};
-
-// We avoid virtual inheritance (with Numbered event);
-// this replicates a tiny bit of code.
-template<int N>
-struct PositionedEvent : public PositionedEventBase
-{
-        static constexpr const int user_type = N;
-        PositionedEvent(const ScenarioPoint& pt):
-            PositionedEventBase{pt, QEvent::Type(QEvent::User + N)}
+        NumberedWithPath_Event(const ObjectPath& p):
+            NumberedEvent<N>{},
+            path{p}
         {
         }
+
+        ObjectPath path;
 };
 
 template<typename Event>
@@ -74,8 +51,3 @@ using Release_Event = NumberedEvent<3>;
 using Cancel_Event = NumberedEvent<4>;
 using Shift_Event = NumberedEvent<5>;
 
-using Press_Transition = MatchedTransition<Press_Event>;
-using Move_Transition = MatchedTransition<Move_Event>;
-using Release_Transition = MatchedTransition<Release_Event>;
-using Cancel_Transition = MatchedTransition<Cancel_Event>;
-using ShiftTransition = MatchedTransition<Shift_Event>;

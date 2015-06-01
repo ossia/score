@@ -9,6 +9,12 @@
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
+#include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
+
 #include <QFinalState>
 using namespace Scenario::Command;
 CreateFromEventState::CreateFromEventState(

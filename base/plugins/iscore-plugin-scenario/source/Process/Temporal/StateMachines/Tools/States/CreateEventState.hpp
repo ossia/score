@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/OngoingCommandManager.hpp>
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Creations/CreationMetaCommand.hpp"
 class ScenarioStateMachine;
 // Creates commands on a list.
+// TODO put this in ongoincommanddispatcher
 class MultiOngoingCommandDispatcher
 {
     public:

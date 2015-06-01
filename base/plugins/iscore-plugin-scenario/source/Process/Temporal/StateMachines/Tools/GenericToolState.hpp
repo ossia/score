@@ -22,6 +22,7 @@
 #include <QStateMachine>
 #include <QGraphicsScene>
 
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 namespace iscore
 {
     class SerializableCommand;

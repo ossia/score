@@ -1,7 +1,9 @@
 #include "MoveToolState.hpp"
-#include "Process/Temporal/StateMachines/StateMachineCommon.hpp"
 #include "States/MoveStates.hpp"
 
+#include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
     GenericToolState{sm}
 {

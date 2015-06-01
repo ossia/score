@@ -31,12 +31,22 @@ Transition* make_transition(SourceState source, TargetState dest, Args&&... args
     return t;
 }
 
-using Press_Event = NumberedEvent<1>;
-using Move_Event = NumberedEvent<2>;
-using Release_Event = NumberedEvent<3>;
-using Cancel_Event = NumberedEvent<4>;
+using PressPoint_Event = NumberedEvent<1>;
+using MovePoint_Event = NumberedEvent<2>;
+using ReleasePoint_Event = NumberedEvent<3>;
 
-using Press_Transition = MatchedTransition<Press_Event>;
-using Move_Transition = MatchedTransition<Move_Event>;
-using Release_Transition = MatchedTransition<Release_Event>;
+using PressSegment_Event = NumberedEvent<4>;
+using MoveSegment_Event = NumberedEvent<5>;
+using ReleaseSegment_Event = NumberedEvent<6>;
+
+using Cancel_Event = NumberedEvent<10>;
+
+using PressPoint_Transition = MatchedTransition<PressPoint_Event>;
+using MovePoint_Transition = MatchedTransition<MovePoint_Event>;
+using ReleasePoint_Transition = MatchedTransition<ReleasePoint_Event>;
+
+using PressSegment_Transition = MatchedTransition<PressSegment_Event>;
+using MoveSegment_Transition = MatchedTransition<MoveSegment_Event>;
+using ReleaseSegment_Transition = MatchedTransition<ReleaseSegment_Event>;
+
 using Cancel_Transition = MatchedTransition<Cancel_Event>;
