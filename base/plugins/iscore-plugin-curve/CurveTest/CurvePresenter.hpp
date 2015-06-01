@@ -1,6 +1,9 @@
 #pragma once
 #include <QStateMachine>
 #include "CurveTest.hpp"
+
+class CurveModel;
+class CurveView;
 class CurvePresenter
 {
         QStateMachine curveSM;
@@ -12,11 +15,9 @@ class CurvePresenter
     public:
         CurvePresenter(CurveModel*, CurveView*);
 
-        CurveModel* model() const
-        { return m_model; }
+        CurveModel* model() const;
 
         // Taken from the view. First set this,
         // then send signals to the state machine.
-        QPointF pressedPoint() const
-        { return m_pressedPoint; }
+        QPointF pressedPoint() const;
 };
