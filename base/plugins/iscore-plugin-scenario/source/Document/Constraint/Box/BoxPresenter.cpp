@@ -23,7 +23,7 @@ BoxPresenter::BoxPresenter(const BoxModel& model,
     }
 
     m_duration = m_model.constraint().defaultDuration();
-    m_view->setText(m_model.metadata.name());
+    m_view->setText(m_model.constraint().metadata.name());
 
     on_askUpdate();
 
