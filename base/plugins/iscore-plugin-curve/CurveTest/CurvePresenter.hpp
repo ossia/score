@@ -16,7 +16,7 @@ class CurvePresenter : public QObject
         CurvePresenter(CurveModel*, CurveView*);
 
         CurveModel* model() const;
-        const CurveView& view() const;
+        CurveView& view() const;
 
         // Taken from the view. First set this,
         // then send signals to the state machine.
@@ -27,7 +27,7 @@ class CurvePresenter : public QObject
     private:
         void setupView();
         void setupStateMachine();
-        QStateMachine m_sm;
+        QStateMachine* m_sm{};
 
         // Data relative to the current state of the view
         QPointF m_currentScenePoint;

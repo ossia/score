@@ -1,5 +1,4 @@
 #include "SelectionToolState.hpp"
-#include <QKeyEventTransition>
 #include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
@@ -179,16 +178,15 @@ class ScenarioSelectionState : public CommonSelectionState
         }
 };
 
-SelectionTool::SelectionTool(const ScenarioStateMachine& sm):
-    ScenarioToolState{sm}
+SelectionTool::SelectionTool(ScenarioStateMachine& sm):
+    ScenarioTool{sm, &sm}
 {
-    auto& scenario_view = m_parentSM.presenter().view();
-
     m_state = new ScenarioSelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
             m_parentSM,
-            scenario_view,
+            m_parentSM.presenter().view(),
             &localSM()};
+
     localSM().setInitialState(m_state);
 }
 

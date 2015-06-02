@@ -10,6 +10,13 @@ CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *pare
             this, &CurveSegmentView::updatePoints);
 
     this->setZValue(1);
+
+    this->setFlags(QGraphicsItem::ItemIsSelectable);
+}
+
+int CurveSegmentView::type() const
+{
+    return QGraphicsItem::UserType + 2;
 }
 
 void CurveSegmentView::setRect(const QRectF& theRect)
@@ -27,7 +34,7 @@ QRectF CurveSegmentView::boundingRect() const
 void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen;
-    pen.setColor(Qt::red);
+    pen.setColor(isSelected() ? Qt::yellow : Qt::red);
     pen.setWidth(3);
     painter->setPen(pen);
     for(int i = 0; i < m_points.size() - 1; i++)

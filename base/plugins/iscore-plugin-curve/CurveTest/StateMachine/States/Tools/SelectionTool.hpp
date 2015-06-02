@@ -2,8 +2,10 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include "CurveTool.hpp"
 class QState;
+
 namespace Curve
 {
+class SelectionState;
 class SelectionTool : public CurveTool
 {
     public:
@@ -13,17 +15,7 @@ class SelectionTool : public CurveTool
         void on_moved() override;
         void on_released() override;
 
-        void setSelectionArea(const QRectF& area);
-
     private:
-        QState* m_singleSelection{};
-        QState* m_multiSelection{};
-
-        iscore::SelectionDispatcher m_dispatcher;
-
-        QPointF m_initialPoint;
-        QPointF m_movePoint;
-
-        QState* m_waitState{};
+        Curve::SelectionState* m_state{};
 };
 }

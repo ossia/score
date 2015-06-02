@@ -4,7 +4,7 @@
 class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
-class MoveToolState : public ScenarioToolState
+class MoveToolState : public ScenarioTool
 {
     public:
         MoveToolState(ScenarioStateMachine& sm);

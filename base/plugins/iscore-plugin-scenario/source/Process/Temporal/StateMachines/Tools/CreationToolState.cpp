@@ -13,8 +13,8 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 
 #include "Process/ScenarioModel.hpp"
-CreationToolState::CreationToolState(const ScenarioStateMachine& sm) :
-    ScenarioToolState{sm}
+CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
+    ScenarioTool{sm, &sm}
 {
     m_waitState = new QState;
     localSM().addState(m_waitState);

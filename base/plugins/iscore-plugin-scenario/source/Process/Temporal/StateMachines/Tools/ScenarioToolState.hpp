@@ -37,10 +37,10 @@ auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const
 }
 
 class ScenarioStateMachine;
-class ScenarioToolState : public ToolState
+class ScenarioTool : public ToolState
 {
     public:
-        ScenarioToolState(const ScenarioStateMachine& sm);
+        ScenarioTool(const ScenarioStateMachine& sm, QState* parent);
 
     protected:
         const id_type<EventModel>& itemToEventId(const QGraphicsItem*) const;

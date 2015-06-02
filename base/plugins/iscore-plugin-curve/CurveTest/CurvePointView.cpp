@@ -4,6 +4,12 @@ CurvePointView::CurvePointView(QGraphicsItem* parent):
     QGraphicsObject{parent}
 {
     this->setZValue(2);
+    this->setFlags(QGraphicsItem::ItemIsSelectable);
+}
+
+int CurvePointView::type() const
+{
+    return QGraphicsItem::UserType + 1;
 }
 
 QRectF CurvePointView::boundingRect() const
@@ -14,10 +20,11 @@ QRectF CurvePointView::boundingRect() const
 void CurvePointView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen;
-    pen.setColor(Qt::green);
+    QColor c = isSelected()? Qt::yellow : Qt::green;
+    pen.setColor(c);
     pen.setWidth(3);
     painter->setPen(pen);
-    painter->setBrush(Qt::green);
+    painter->setBrush(c);
 
     painter->drawEllipse(QPointF{0., 0.}, 3, 3);
 }

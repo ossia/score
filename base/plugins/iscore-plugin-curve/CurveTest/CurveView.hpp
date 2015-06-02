@@ -11,6 +11,7 @@ class CurveView : public QGraphicsObject
         QRectF boundingRect() const;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+        void setSelectionArea(const QRectF&);
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
@@ -20,5 +21,6 @@ class CurveView : public QGraphicsObject
 
     private:
         QRectF m_rect; // The rect in which the whole curve must fit.
+        QRectF m_selectArea;
 };
 

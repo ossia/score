@@ -3,18 +3,15 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 class ScenarioSelectionState;
-class SelectionTool : public ScenarioToolState
+class SelectionTool : public ScenarioTool
 {
     public:
-        SelectionTool(const ScenarioStateMachine& sm);
+        SelectionTool(ScenarioStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;
         void on_released() override;
 
-        void setSelectionArea(const QRectF& area);
-
-
     private:
-        ScenarioSelectionState* m_state;
+        ScenarioSelectionState* m_state{};
 };

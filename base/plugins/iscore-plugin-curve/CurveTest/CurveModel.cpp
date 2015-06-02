@@ -1,5 +1,11 @@
 #include "CurveModel.hpp"
 #include "CurveSegmentModel.hpp"
+CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
+    IdentifiedObject<CurveModel>(id, "CurveModel", parent)
+{
+
+}
+
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
     m->setParent(this);

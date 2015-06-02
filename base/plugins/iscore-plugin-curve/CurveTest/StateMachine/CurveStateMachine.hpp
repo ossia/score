@@ -3,10 +3,13 @@
 #include <iscore/statemachine/BaseStateMachine.hpp>
 class CurvePresenter;
 class QGraphicsScene;
+class CurveModel;
 class CurveStateMachine : public BaseStateMachine
 {
     public:
         CurveStateMachine(CurvePresenter& pres, QObject* parent);
+        const CurvePresenter& presenter() const;
+        const CurveModel& model() const;
 
     private:
         void setupPostEvents();

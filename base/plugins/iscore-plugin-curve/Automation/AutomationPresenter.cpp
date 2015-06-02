@@ -32,7 +32,7 @@ AutomationPresenter::AutomationPresenter(
     connect(&m_viewModel.model(), &AutomationModel::pointsChanged,
             this, &AutomationPresenter::on_modelPointsChanged);
 
-    auto cm = new CurveModel;
+    auto cm = new CurveModel(id_type<CurveModel>(0), const_cast<AutomationModel*>(&m_viewModel.model()));
     auto s1 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(1), cm);
     s1->setStart({0., 0.0});
     s1->setEnd({0.2, 1.});

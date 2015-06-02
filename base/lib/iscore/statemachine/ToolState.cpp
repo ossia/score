@@ -2,7 +2,8 @@
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <QGraphicsScene>
 
-ToolState::ToolState(const QGraphicsScene &scene):
+ToolState::ToolState(const QGraphicsScene &scene, QState* parent):
+    QState{parent},
     m_scene{scene}
 {
     auto t_click = make_transition<Press_Transition>(this, this);

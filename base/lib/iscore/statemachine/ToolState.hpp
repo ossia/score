@@ -6,7 +6,7 @@ class QGraphicsScene;
 class ToolState : public QState
 {
     public:
-        ToolState(const QGraphicsScene& scene);
+        ToolState(const QGraphicsScene& scene, QState*);
         void start();
 
     protected:

@@ -7,6 +7,12 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "OngoingCommandState.hpp"
 
+
+#include "MovePointCommandObject.hpp"
+#include "MoveSegmentCommandObject.hpp"
+
+#include "StateMachine/CurveStateMachine.hpp"
+
 CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     m_model{model},
     m_view{view}
@@ -15,6 +21,7 @@ CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     // If the segment is linked to another, the point is shared.
     setupView();
 
+    m_sm = new CurveStateMachine(*this, this);
 
 }
 
@@ -23,7 +30,7 @@ CurveModel* CurvePresenter::model() const
     return m_model;
 }
 
-const CurveView& CurvePresenter::view() const
+CurveView& CurvePresenter::view() const
 {
     return *m_view;
 }
@@ -136,12 +143,8 @@ void CurvePresenter::setupView()
     }
 }
 
-#include "MovePointCommandObject.hpp"
-#include "MoveSegmentCommandObject.hpp"
-
 void CurvePresenter::setupStateMachine()
 {
-
 
 }
 

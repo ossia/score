@@ -15,22 +15,22 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
-ScenarioToolState::ScenarioToolState(const ScenarioStateMachine &sm) :
-    ToolState{sm.scene()},
+ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :
+    ToolState{sm.scene(), parent},
     m_parentSM{sm}
 {
 }
-const id_type<EventModel> &ScenarioToolState::itemToEventId(const QGraphicsItem * pressedItem) const
+const id_type<EventModel> &ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
 {
     return static_cast<const EventView*>(pressedItem)->presenter().model().id();
 }
 
-const id_type<TimeNodeModel> &ScenarioToolState::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
+const id_type<TimeNodeModel> &ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
 {
     return static_cast<const TimeNodeView*>(pressedItem)->presenter().model().id();
 }
 
-const id_type<ConstraintModel> &ScenarioToolState::itemToConstraintId(const QGraphicsItem *pressedItem) const
+const id_type<ConstraintModel> &ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
     return static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model().id();
 }

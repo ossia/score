@@ -4,10 +4,10 @@
 
 class EventPresenter;
 class TimeNodePresenter;
-class CreationToolState : public ScenarioToolState
+class CreationToolState : public ScenarioTool
 {
     public:
-        CreationToolState(const ScenarioStateMachine& sm);
+        CreationToolState(ScenarioStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;

@@ -8,7 +8,7 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/ScenarioModel.hpp"
 MoveToolState::MoveToolState(ScenarioStateMachine& sm) :
-    ScenarioToolState{sm}
+    ScenarioTool{sm, &sm}
 {
     m_waitState = new QState;
     localSM().addState(m_waitState);
