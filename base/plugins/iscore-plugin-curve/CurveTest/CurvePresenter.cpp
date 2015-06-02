@@ -23,6 +23,11 @@ CurveModel* CurvePresenter::model() const
     return m_model;
 }
 
+const CurveView& CurvePresenter::view() const
+{
+    return *m_view;
+}
+
 QPointF CurvePresenter::pressedPoint() const
 {
     return m_currentScenePoint;
@@ -102,24 +107,15 @@ void CurvePresenter::setupView()
     {
         connect(curve_pt, &CurvePointView::pressed,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentPointView = curve_pt;
-
-            m_sm.postEvent(new PressPoint_Event);
+            m_view->pressed(pt);
         });
         connect(curve_pt, &CurvePointView::moved,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentPointView = curve_pt;
-
-            m_sm.postEvent(new MovePoint_Event);
+            m_view->moved(pt);
         });
         connect(curve_pt, &CurvePointView::released,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentPointView = curve_pt;
-
-            m_sm.postEvent(new ReleasePoint_Event);
+            m_view->released(pt);
         });
     }
 
@@ -127,24 +123,15 @@ void CurvePresenter::setupView()
     {
         connect(curve_segt, &CurveSegmentView::pressed,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentSegmentView = curve_segt;
-
-            m_sm.postEvent(new PressSegment_Event);
+            m_view->pressed(pt);
         });
         connect(curve_segt, &CurveSegmentView::moved,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentSegmentView = curve_segt;
-
-            m_sm.postEvent(new MoveSegment_Event);
+            m_view->moved(pt);
         });
         connect(curve_segt, &CurveSegmentView::released,
                 this, [&] (const QPointF& pt) {
-            m_currentScenePoint = pt;
-            m_currentSegmentView = curve_segt;
-
-            m_sm.postEvent(new ReleaseSegment_Event);
+            m_view->released(pt);
         });
     }
 }
@@ -154,9 +141,6 @@ void CurvePresenter::setupView()
 
 void CurvePresenter::setupStateMachine()
 {
-    auto waitState = new QState;
-    m_sm.addState(waitState);
-    m_sm.setInitialState(waitState);
 
 
 }

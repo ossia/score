@@ -17,7 +17,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
-    CommonScenarioState{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;
@@ -84,7 +84,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                                iscore::CommandStack& stack,
                                iscore::ObjectLocker& locker,
                                QState* parent):
-    CommonScenarioState{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;
@@ -144,7 +144,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
                                      iscore::CommandStack& stack,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
-    CommonScenarioState{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;

@@ -3,7 +3,7 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 class ScenarioStateMachine;
 
-class MoveConstraintState : public CommonScenarioState
+class MoveConstraintState : public ScenarioStateBase
 {
     public:
         MoveConstraintState(const ScenarioStateMachine& stateMachine,
@@ -19,7 +19,7 @@ class MoveConstraintState : public CommonScenarioState
         TimeValue m_constraintInitialStartDate;
 };
 
-class MoveEventState : public CommonScenarioState
+class MoveEventState : public ScenarioStateBase
 {
     public:
         MoveEventState(const ScenarioStateMachine& stateMachine,
@@ -31,7 +31,7 @@ class MoveEventState : public CommonScenarioState
         SingleOngoingCommandDispatcher m_dispatcher;
 };
 
-class MoveTimeNodeState : public CommonScenarioState
+class MoveTimeNodeState : public ScenarioStateBase
 {
     public:
         MoveTimeNodeState(const ScenarioStateMachine& stateMachine,

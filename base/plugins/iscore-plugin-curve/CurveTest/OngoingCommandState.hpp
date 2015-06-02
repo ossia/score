@@ -1,7 +1,8 @@
 #pragma once
 #include <QState>
 #include <QFinalState>
-#include "CurveStateMachineBase.hpp"
+#include <iscore/statemachine/StateMachineUtils.hpp>
+
 // TODO rename file
 class OngoingState : public QState
 {

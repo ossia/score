@@ -1,10 +1,10 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
-class MoveOnAnything_Transition : public GenericTransition<QAbstractTransition>
+class MoveOnAnything_Transition : public GenericScenarioTransition<QAbstractTransition>
 {
     public:
-        using GenericTransition<QAbstractTransition>::GenericTransition;
+        using GenericScenarioTransition<QAbstractTransition>::GenericScenarioTransition;
 
     protected:
         bool eventTest(QEvent *e) override;

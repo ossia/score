@@ -1,22 +1,23 @@
 #pragma once
-#include <QStateMachine>
-#include <QState>
-#include <QAbstractTransition>
+#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 
-#include <QPointF>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
-#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
+#include <QStateMachine>
+#include <QState>
+#include <QAbstractTransition>
+#include <QPointF>
 
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
+
 // TODO optimize this when we have all the tools
-class CommonScenarioState : public QState
+class ScenarioStateBase : public QState
 {
     public:
-        CommonScenarioState(ObjectPath&& scenar, QState* parent):
+        ScenarioStateBase(ObjectPath&& scenar, QState* parent):
             QState{parent},
             m_scenarioPath{std::move(scenar)}
         { }
@@ -44,10 +45,10 @@ class CommonScenarioState : public QState
         ObjectPath m_scenarioPath;
 };
 
-class CreationState : public CommonScenarioState
+class CreationState : public ScenarioStateBase
 {
     public:
-        using CommonScenarioState::CommonScenarioState;
+        using ScenarioStateBase::ScenarioStateBase;
         const auto& createdEvent() const
         { return m_createdEvent; }
         void setCreatedEvent(const id_type<EventModel>& id)
@@ -69,7 +70,6 @@ class CreationState : public CommonScenarioState
         id_type<ConstraintModel> m_createdConstraint;
 };
 
-// TODO Move this
 class DeckState : public QState
 {
     public:

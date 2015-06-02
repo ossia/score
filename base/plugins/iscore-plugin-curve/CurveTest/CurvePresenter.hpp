@@ -16,6 +16,7 @@ class CurvePresenter : public QObject
         CurvePresenter(CurveModel*, CurveView*);
 
         CurveModel* model() const;
+        const CurveView& view() const;
 
         // Taken from the view. First set this,
         // then send signals to the state machine.

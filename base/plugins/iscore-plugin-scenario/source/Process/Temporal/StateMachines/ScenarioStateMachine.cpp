@@ -69,7 +69,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
                 [=] () { this->postEvent(new Cancel_Event); });
 
 
-
         auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), selectState);
         t_exit_select->setTargetState(transitionState);
         auto t_exit_move = new QSignalTransition(this, SIGNAL(exitState()), moveState);

@@ -29,7 +29,8 @@ template<int N>
 struct PositionedScenarioEvent : public PositionedScenarioEventBase
 {
         static constexpr const int user_type = N;
-        PositionedScenarioEvent(const ScenarioPoint& pt):
+        PositionedScenarioEvent(
+                const ScenarioPoint& pt):
             PositionedScenarioEventBase{pt, QEvent::Type(QEvent::User + N)}
         {
         }
@@ -38,8 +39,9 @@ struct PositionedScenarioEvent : public PositionedScenarioEventBase
 template<typename Element, int N>
 struct PositionedWithId_ScenarioEvent : public PositionedScenarioEvent<N>
 {
-        PositionedWithId_ScenarioEvent(const id_type<Element>& tn_id,
-                           const ScenarioPoint& sp):
+        PositionedWithId_ScenarioEvent(
+                const id_type<Element>& tn_id,
+                const ScenarioPoint& sp):
             PositionedScenarioEvent<N>{sp},
             id{tn_id}
         {
@@ -54,8 +56,6 @@ struct PositionedWithId_ScenarioEvent : public PositionedScenarioEvent<N>
 enum ScenarioElement {
     Nothing, TimeNode, Event, Constraint, DeckOverlay_e, DeckHandle_e
 };
-enum Modifier
-{ Click = 100, Move = 200, Release = 300 };
 
 using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Click>;
 using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Click>;
