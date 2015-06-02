@@ -10,6 +10,7 @@ CurveSegmentModel*LinearCurveSegmentModel::clone(
     cs->setEnd(this->end());
 
     // Previous and following shall be set afterwards by the cloner.
+    return cs;
 }
 
 QString LinearCurveSegmentModel::name() const
@@ -58,6 +59,7 @@ CurveSegmentModel*GammaCurveSegmentModel::clone(
     cs->setEnd(this->end());
 
     // Previous and following shall be set afterwards by the cloner.
+    return cs;
 }
 
 QString GammaCurveSegmentModel::name() const
@@ -106,6 +108,7 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     cs->setEnd(this->end());
 
     // Previous and following shall be set afterwards by the cloner.
+    return cs;
 }
 
 QString SinCurveSegmentModel::name() const

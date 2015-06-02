@@ -3,6 +3,7 @@
 #include <QGraphicsItem>
 #include <QStateMachine>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/statemachine/ToolState.hpp>
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
@@ -36,11 +37,10 @@ auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const
 }
 
 class ScenarioStateMachine;
-class ScenarioToolState : public QState
+class ScenarioToolState : public ToolState
 {
     public:
         ScenarioToolState(const ScenarioStateMachine& sm);
-        void start();
 
     protected:
         const id_type<EventModel>& itemToEventId(const QGraphicsItem*) const;
@@ -87,13 +87,5 @@ class ScenarioToolState : public QState
             }
         }
 
-        QGraphicsItem* itemUnderMouse(const QPointF& point) const;
-
-        virtual void on_scenarioPressed() = 0;
-        virtual void on_scenarioMoved() = 0;
-        virtual void on_scenarioReleased() = 0;
-
-        QStateMachine m_localSM;
-        const ScenarioStateMachine& m_sm;
-        const QGraphicsScene& m_scene;
+        const ScenarioStateMachine& m_parentSM;
 };

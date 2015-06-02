@@ -12,6 +12,7 @@
 #include <QSignalTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):
+    BaseStateMachine{*presenter.view().scene()},
     m_presenter{presenter},
     m_commandStack{
         iscore::IDocument::documentFromObject(
@@ -27,7 +28,7 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         moveState = new MoveToolState{*this};
         moveState->setParent(toolState);
 
-        selectState = new SelectionToolState{*this};
+        selectState = new SelectionTool{*this};
         selectState->setParent(toolState);
         toolState->setInitialState(selectState);
 
@@ -113,7 +114,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_scale_fixed->setTargetState(fixedState);
         auto t_fixed_grow = new QSignalTransition(this, SIGNAL(setGrowState()), fixedState);
         t_fixed_grow->setTargetState(growState);
-
     }
 
     auto shiftModeState = new QState{this};
@@ -126,18 +126,12 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         t_shift_pressed->setTargetState(shiftPressedState);
         auto t_shift_released = new QSignalTransition(this, SIGNAL(shiftReleased()), shiftPressedState);
         t_shift_released->setTargetState(shiftReleasedState);
-
     }
 }
 
 const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
 {
     return m_presenter;
-}
-
-const QGraphicsScene &ScenarioStateMachine::scene() const
-{
-    return *m_presenter.view().scene();
 }
 
 const ScenarioModel& ScenarioStateMachine::model() const

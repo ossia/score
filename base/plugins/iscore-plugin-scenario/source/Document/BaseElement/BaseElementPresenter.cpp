@@ -36,6 +36,7 @@ class BaseElementStateMachine: public BaseStateMachine
 };
 
 BaseElementStateMachine::BaseElementStateMachine(BaseElementPresenter* pres):
+    BaseStateMachine{*pres->view()->scene()},
     m_presenter{pres}
 {
     connect(m_presenter, &BaseElementPresenter::displayedConstraintPressed,

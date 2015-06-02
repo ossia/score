@@ -9,9 +9,9 @@ class MoveToolState : public ScenarioToolState
     public:
         MoveToolState(ScenarioStateMachine& sm);
 
-        void on_scenarioPressed() override;
-        void on_scenarioMoved() override;
-        void on_scenarioReleased() override;
+        void on_pressed() override;
+        void on_moved() override;
+        void on_released() override;
 
     private:
         MoveConstraintState* m_moveConstraint{};

@@ -25,13 +25,13 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 
-SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
+SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     ScenarioToolState{sm},
-    m_dispatcher{iscore::IDocument::documentFromObject(m_sm.model())->selectionStack()}
+    m_dispatcher{iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack()}
 {
-    auto& scenario_view = m_sm.presenter().view();
-    auto metaSelectionState = new QState{&m_localSM};
-    m_localSM.setInitialState(metaSelectionState);
+    auto& scenario_view = m_parentSM.presenter().view();
+    auto metaSelectionState = new QState{&localSM()};
+    localSM().setInitialState(metaSelectionState);
     metaSelectionState->setChildMode(QState::ChildMode::ParallelStates);
     metaSelectionState->setObjectName("metaSelectionState");
     {
@@ -87,10 +87,10 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
 
                 // Operations
                 connect(pressAreaSelection, &QState::entered,
-                        [&] () { m_initialPoint = m_sm.scenePoint; });
+                        [&] () { m_initialPoint = m_parentSM.scenePoint; });
                 connect(moveAreaSelection, &QState::entered,
                         [&] () {
-                    m_movePoint = m_sm.scenePoint;
+                    m_movePoint = m_parentSM.scenePoint;
                     scenario_view.setSelectionArea(
                                 QRectF{scenario_view.mapFromScene(m_initialPoint),
                                        scenario_view.mapFromScene(m_movePoint)}.normalized());
@@ -117,15 +117,15 @@ SelectionToolState::SelectionToolState(ScenarioStateMachine& sm):
             auto t_delete = new QKeyEventTransition(
                         &scenario_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
             connect(t_delete, &QAbstractTransition::triggered, [&] () {
-                ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
-                mgr.deleteSelection(m_sm.model());
+                ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+                mgr.deleteSelection(m_parentSM.model());
             });
 
             auto t_deleteContent = new QKeyEventTransition(
                         &scenario_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
             connect(t_deleteContent, &QAbstractTransition::triggered, [&] () {
-                ScenarioGlobalCommandManager mgr{m_sm.commandStack()};
-                mgr.clearContentFromSelection(m_sm.model());
+                ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+                mgr.clearContentFromSelection(m_parentSM.model());
             });
 
         }
@@ -175,75 +175,75 @@ Selection filterSelections(const Selection& newSelection,
 
 
 
-void SelectionToolState::on_scenarioPressed()
+void SelectionTool::on_pressed()
 {
     using namespace std;
-    mapTopItem(itemUnderMouse(m_sm.scenePoint),
+    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const id_type<EventModel>& id) // Event
     {
-        const auto& elts = m_sm.presenter().events();
+        const auto& elts = m_parentSM.presenter().events();
         auto elt = find_if(begin(elts), end(elts),
                            [&] (EventPresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
-                                                   m_sm.model().selectedChildren(),
+                                                   m_parentSM.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
-        const auto& elts = m_sm.presenter().timeNodes();
+        const auto& elts = m_parentSM.presenter().timeNodes();
         auto elt = find_if(begin(elts), end(elts),
                            [&] (TimeNodePresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
-                                                   m_sm.model().selectedChildren(),
+                                                   m_parentSM.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
-        const auto& elts = m_sm.presenter().constraints();
+        const auto& elts = m_parentSM.presenter().constraints();
         auto elt = find_if(begin(elts), end(elts),
                            [&] (TemporalConstraintPresenter* e) { return e->id() == id;});
         Q_ASSERT(elt != end(elts));
 
         m_dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
-                                                   m_sm.model().selectedChildren(),
+                                                   m_parentSM.model().selectedChildren(),
                                                    m_multiSelection->active()));
     },
-    [&] () { m_localSM.postEvent(new Press_Event); });
+    [&] () { localSM().postEvent(new Press_Event); });
 }
 
-void SelectionToolState::on_scenarioMoved()
+void SelectionTool::on_moved()
 {
-    mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const id_type<EventModel>&) { m_localSM.postEvent(new Move_Event); },
-    [&] (const id_type<TimeNodeModel>&) { m_localSM.postEvent(new Move_Event); },
-    [&] (const id_type<ConstraintModel>&) { m_localSM.postEvent(new Move_Event); },
-    [&] () { m_localSM.postEvent(new Move_Event); });
+    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    [&] (const id_type<EventModel>&) { localSM().postEvent(new Move_Event); },
+    [&] (const id_type<TimeNodeModel>&) { localSM().postEvent(new Move_Event); },
+    [&] (const id_type<ConstraintModel>&) { localSM().postEvent(new Move_Event); },
+    [&] () { localSM().postEvent(new Move_Event); });
 }
 
-void SelectionToolState::on_scenarioReleased()
+void SelectionTool::on_released()
 {
-    mapTopItem(itemUnderMouse(m_sm.scenePoint),
-    [&] (const id_type<EventModel>&) { m_localSM.postEvent(new Release_Event); },
-    [&] (const id_type<TimeNodeModel>&) { m_localSM.postEvent(new Release_Event); },
-    [&] (const id_type<ConstraintModel>&) { m_localSM.postEvent(new Release_Event); },
-    [&] () { m_localSM.postEvent(new Release_Event); });
+    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    [&] (const id_type<EventModel>&) { localSM().postEvent(new Release_Event); },
+    [&] (const id_type<TimeNodeModel>&) { localSM().postEvent(new Release_Event); },
+    [&] (const id_type<ConstraintModel>&) { localSM().postEvent(new Release_Event); },
+    [&] () { localSM().postEvent(new Release_Event); });
 }
 
-void SelectionToolState::setSelectionArea(const QRectF& area)
+void SelectionTool::setSelectionArea(const QRectF& area)
 {
     using namespace std;
     QPainterPath path;
     path.addRect(area);
     Selection sel;
-    const auto& events = m_sm.presenter().events();
-    const auto& timenodes = m_sm.presenter().timeNodes();
-    const auto& cstrs = m_sm.presenter().constraints();
+    const auto& events = m_parentSM.presenter().events();
+    const auto& timenodes = m_parentSM.presenter().timeNodes();
+    const auto& cstrs = m_parentSM.presenter().constraints();
 
-    const auto items = m_sm.scene().items(path);
+    const auto items = m_parentSM.scene().items(path);
 
 
     for (const auto& item : items)
@@ -280,7 +280,7 @@ void SelectionToolState::setSelectionArea(const QRectF& area)
     }
 
     m_dispatcher.setAndCommit(filterSelections(sel,
-                                               m_sm.model().selectedChildren(),
+                                               m_parentSM.model().selectedChildren(),
                                                m_multiSelection->active()));
 }
 

@@ -9,9 +9,9 @@ class CreationToolState : public ScenarioToolState
     public:
         CreationToolState(const ScenarioStateMachine& sm);
 
-        void on_scenarioPressed() override;
-        void on_scenarioMoved() override;
-        void on_scenarioReleased() override;
+        void on_pressed() override;
+        void on_moved() override;
+        void on_released() override;
 
     private:
         QList<id_type<EventModel>> getCollidingEvents(const id_type<EventModel>& createdEvent);

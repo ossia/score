@@ -5,7 +5,6 @@
 #include <iscore/tools/Clamp.hpp>
 class CurveSegmentModel;
 
-
 namespace Curve
 {
 

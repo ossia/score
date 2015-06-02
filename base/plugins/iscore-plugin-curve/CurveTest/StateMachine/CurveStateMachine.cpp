@@ -7,8 +7,21 @@
 CurveStateMachine::CurveStateMachine(
         CurvePresenter& pres,
         QObject* parent):
-    QStateMachine{parent},
+    BaseStateMachine{*pres.view().scene()},
     m_presenter{pres}
+{
+    setupPostEvents();
+    setupStates();
+}
+
+void CurveStateMachine::setupStates()
+{
+    // We always select something on a single clic when not in pen mode first.
+    // Then
+
+}
+
+void CurveStateMachine::setupPostEvents()
 {
     auto QPointFToCurvePoint = [&] (const QPointF& point) -> CurvePoint
     {
@@ -43,7 +56,6 @@ CurveStateMachine::CurveStateMachine(
         postEvent(new Release_Event);
     });
 
-
     // TODO generalize this.
     connect(&m_presenter.view(), &CurveView::escPressed,
             this, [&] ()
@@ -51,3 +63,4 @@ CurveStateMachine::CurveStateMachine(
         this->postEvent(new Cancel_Event);
     });
 }
+

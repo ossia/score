@@ -4,6 +4,7 @@
 #include "ScenarioStateMachineBaseEvents.hpp"
 
 #include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/statemachine/BaseStateMachine.hpp>
 
 #include <QStateMachine>
 #include <QPointF>
@@ -12,25 +13,18 @@ class TemporalScenarioPresenter;
 class ScenarioModel;
 class CreationToolState;
 class MoveToolState;
-class SelectionToolState;
+class SelectionTool;
 class MoveDeckToolState;
 class QGraphicsScene;
 
-class BaseStateMachine : public QStateMachine
-{
-    public:
-        QPointF scenePoint;
-};
 
 class ScenarioStateMachine : public BaseStateMachine
 {
         Q_OBJECT
     public:
-        ScenarioPoint scenarioPoint;
         ScenarioStateMachine(TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const;
-        const QGraphicsScene& scene() const;
         const ScenarioModel& model() const;
 
         iscore::CommandStack& commandStack() const
@@ -43,6 +37,8 @@ class ScenarioStateMachine : public BaseStateMachine
         bool isShiftPressed() const;
 
         void changeTool(int);
+
+        ScenarioPoint scenarioPoint;
 
     signals:
         void setCreateState();
@@ -65,7 +61,7 @@ class ScenarioStateMachine : public BaseStateMachine
 
         CreationToolState* createState{};
         MoveToolState* moveState{};
-        SelectionToolState* selectState{};
+        SelectionTool* selectState{};
         MoveDeckToolState* moveDeckState{};
         QState* transitionState{};
 
