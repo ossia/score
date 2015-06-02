@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/selection/Selectable.hpp>
 #include <QPointF>
 
 
@@ -8,6 +9,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 {
         Q_OBJECT
     public:
+        Selectable selection;
         CurveSegmentModel(
                 const id_type<CurveSegmentModel>& id,
                 QObject* parent);

@@ -2,17 +2,35 @@
 #include "AutomationViewModel.hpp"
 #include "State/AutomationState.hpp"
 
+#include "CurveTest/CurveModel.hpp"
+#include "CurveTest/LinearCurveSegmentModel.hpp"
+
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const id_type<ProcessModel>& id,
         QObject* parent) :
     ProcessModel {duration, id, processName(), parent}
 {
+    // Named shall be enough ?
+    m_curve = new CurveModel{id_type<CurveModel>(45345), this};
 
-    // Demo
-    addPoint(0, 0);
-    addPoint(0.5, 0.3);
-    addPoint(1, 1);
+    auto s1 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(1), m_curve);
+    s1->setStart({0., 0.0});
+    s1->setEnd({0.2, 1.});
+
+    auto s2 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(2), m_curve);
+    s2->setStart({0.2, 1.});
+    s2->setEnd({0.6, 0.0});
+    s2->setPrevious(s1->id());
+    s1->setFollowing(s2->id());
+
+    auto s3 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(3), m_curve);
+    s3->setStart({0.7, 0.0});
+    s3->setEnd({1.0, 1.});
+
+    m_curve->addSegment(s1);
+    m_curve->addSegment(s2);
+    m_curve->addSegment(s3);
 }
 
 ProcessModel* AutomationModel::clone(
@@ -33,97 +51,29 @@ QString AutomationModel::processName() const
 
 void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
-    // Due to the way the plug-in is done, we have to think backwards :
-    // The data is between 0 and 1, and the duration sets the time it takes
-    // to go from x=0 to x=1.
-    // Hence we just have to change the duration here.
-
-    setDuration(newDuration);
-    emit pointsChanged();
-
-    // Note : the presenter must draw the points correctly, by taking
-    // into account the seconds <-> pixel ratio, and the zoom.
 }
 
 void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
 {
-    double scale = duration() / newDuration;
-
-    // The duration can only grow from the outside (constraint scaling), not shrink
-    if(scale < 1)
-    {
-        auto points = m_points;
-        auto keys = m_points.keys();
-        m_points.clear();
-
-        // 1. Scale the x axis by multiplying each x value.
-        for(int i = 0; i < keys.size(); ++i)
-        {
-            m_points[keys[i] * scale] = points[keys[i]];
-        }
-
-        if(m_points.keys().size() >= 2)
-        {
-            // 2. Create a new point at the end (x=1) with the same value than the last point.
-            // If there is already another point at the same "value" in-between, we optimize
-            // NOTE : One day this may be source of headache.
-            auto newkeys = m_points.keys();
-
-            double butlastKey = newkeys.at(newkeys.size() - 2);
-            double lastKey = newkeys.at(newkeys.size() - 1);
-
-            if(m_points[butlastKey] == m_points[lastKey])
-            {
-                auto val = m_points.take(lastKey);
-                m_points[1] = val;
-            }
-            else
-            {
-                auto last = m_points.last();
-                m_points[1] = last;
-            }
-        }
-        setDuration(newDuration);
-        emit pointsChanged();
-    }
 }
 
 void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
 {
-    double scale = duration() / newDuration;
-    if(scale > 1)
-    {
-        auto points = m_points;
-        auto keys = m_points.keys();
-        m_points.clear();
+}
 
-        // Scale all the points
-        for(int i = 0; i < keys.size(); ++i)
-        {
-            double newKey = keys[i] * scale;
-            m_points[newKey] = points[keys[i]];
+Selection AutomationModel::selectableChildren() const
+{
+    return {};
+}
 
-            // Find the first point where the key is > 1
-            if(newKey == 1.)
-            {
-                break;
-            }
-            else if(newKey > 1.)
-            {
-                double x1 = keys[i-1] * scale;
-                double x2 = newKey;
-                double y1 = m_points[x1];
-                double y2 = m_points[x2];
+Selection AutomationModel::selectedChildren() const
+{
+    return m_curve->selectedChildren();
+}
 
-                m_points[1.] = (y2 - y1 + x2 * y1 - x1 * y2) / (x2 - x1);
-                m_points.remove(newKey);
-                break;
-            }
-        }
-
-        setDuration(newDuration);
-        emit pointsChanged();
-    }
+void AutomationModel::setSelection(const Selection & s) const
+{
+    m_curve->setSelection(s);
 }
 
 ProcessViewModel* AutomationModel::makeViewModel_impl(
@@ -196,35 +146,7 @@ void AutomationModel::movePoint(double oldx, double newx, double newy)
 
 double AutomationModel::value(const TimeValue& time)
 {
-    Q_ASSERT(time >= TimeValue{std::chrono::seconds(0)});
-    Q_ASSERT(time <= duration());
-
-    // Map the given time between 0 - 1
-    double x = time / duration();
-
-    // Find the two keys closest to the value.
-    if(m_points.contains(x))
-        return m_points[x];
-
-    // This should be offloaded to the API.
-    auto keys = m_points.keys();
-    for(int i = 0; i < keys.size(); i++)
-    {
-        if(x > keys[i] && x < keys[i + 1])
-        {
-            double x1 = keys[i];
-            double x2 = keys[i + 1];
-            double y1 = m_points[x1];
-            double y2 = m_points[x2];
-
-            double a = (x2 - x1) / (y2 - y1);
-            double b = (y1 - a * x1);
-
-            return a * x + b;
-        }
-    }
-
-    throw std::runtime_error("Should never get there");
+    return -1;
 }
 
 double AutomationModel::min() const

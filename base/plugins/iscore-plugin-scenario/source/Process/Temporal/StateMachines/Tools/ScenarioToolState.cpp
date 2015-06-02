@@ -15,6 +15,7 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
+#include <iostream>
 ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :
     ToolState{sm.scene(), parent},
     m_parentSM{sm}

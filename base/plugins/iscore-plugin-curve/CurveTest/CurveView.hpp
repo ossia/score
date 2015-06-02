@@ -5,7 +5,8 @@ class CurveView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        using QGraphicsObject::QGraphicsObject;
+        CurveView(QGraphicsItem* parent);
+
         void setRect(const QRectF& theRect);
 
         QRectF boundingRect() const;

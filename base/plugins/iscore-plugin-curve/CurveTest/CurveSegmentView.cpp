@@ -6,17 +6,17 @@ CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *pare
     QGraphicsObject{parent},
     m_model{model}
 {
-    connect(m_model, &CurveSegmentModel::dataChanged,
-            this, &CurveSegmentView::updatePoints);
-
     this->setZValue(1);
 
-    this->setFlags(QGraphicsItem::ItemIsSelectable);
+    connect(&m_model->selection, &Selectable::changed,
+            this, &CurveSegmentView::setSelected);
+    connect(m_model, &CurveSegmentModel::dataChanged,
+            this, &CurveSegmentView::updatePoints);
 }
 
 int CurveSegmentView::type() const
 {
-    return QGraphicsItem::UserType + 2;
+    return QGraphicsItem::UserType + 11;
 }
 
 void CurveSegmentView::setRect(const QRectF& theRect)
@@ -33,18 +33,18 @@ QRectF CurveSegmentView::boundingRect() const
 
 void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    QColor c = m_selected ? Qt::yellow : Qt::red;
     QPen pen;
-    pen.setColor(isSelected() ? Qt::yellow : Qt::red);
-    pen.setWidth(3);
+    pen.setColor(c);
     painter->setPen(pen);
-    for(int i = 0; i < m_points.size() - 1; i++)
-        painter->drawLine(m_points[i], m_points[i+1]);
-
-    painter->setPen(Qt::magenta);
-    painter->setBrush(Qt::transparent);
-    painter->drawRect(boundingRect());
+    painter->fillPath(m_shape, c);
 }
 
+void CurveSegmentView::setSelected(bool selected)
+{
+    m_selected = selected;
+    update();
+}
 
 #include <QGraphicsSceneMouseEvent>
 void CurveSegmentView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -80,5 +80,24 @@ void CurveSegmentView::updatePoints()
     });
 
     m_points = std::move(pts);
+
+    if(!m_points.empty())
+    {
+        QPainterPath p(m_points.first());
+
+        for(int i = 0; i < m_points.size(); i++)
+            p.lineTo(m_points[i]);
+
+        QPainterPathStroker stroker;
+        stroker.setWidth(3);
+        m_shape = stroker.createStroke(p);
+    }
+
     update();
+}
+
+
+QPainterPath CurveSegmentView::shape() const
+{
+    return m_shape;
 }

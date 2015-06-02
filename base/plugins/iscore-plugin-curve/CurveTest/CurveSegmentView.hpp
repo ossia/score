@@ -6,14 +6,16 @@ class CurveSegmentView : public QGraphicsObject
         Q_OBJECT
     public:
         CurveSegmentView(CurveSegmentModel* model, QGraphicsItem* parent);
-        int type() const;
+        int type() const override;
         QRectF boundingRect() const override;
+        QPainterPath shape() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-        CurveSegmentModel* model() const
-        {return m_model; }
+        CurveSegmentModel& model() const
+        { return *m_model; }
         void setRect(const QRectF& theRect);
 
+        void setSelected(bool selected);
 
     signals:
         void pressed(const QPointF&);
@@ -33,4 +35,7 @@ class CurveSegmentView : public QGraphicsObject
         QRectF m_rect;
 
         CurveSegmentModel* m_model{};
+        bool m_selected{};
+
+        QPainterPath m_shape;
 };

@@ -1,22 +1,21 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QGraphicsItem>
-class CurveSegmentModel;
+class CurvePointModel;
 class CurvePointView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurvePointView(QGraphicsItem* parent);
+        CurvePointView(CurvePointModel* model,
+                       QGraphicsItem* parent);
 
-        int type() const;
+        CurvePointModel& model() const;
+
+        int type() const override;
         QRectF boundingRect() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-        const id_type<CurveSegmentModel>& previous() const;
-        void setPrevious(const id_type<CurveSegmentModel> &previous);
-
-        const id_type<CurveSegmentModel> &following() const;
-        void setFollowing(const id_type<CurveSegmentModel> &following);
+        void setSelected(bool selected);
 
     signals:
         void pressed(const QPointF&);
@@ -29,5 +28,6 @@ class CurvePointView : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     private:
-        id_type<CurveSegmentModel> m_previous, m_following;
+        CurvePointModel* m_model;
+        bool m_selected{};
 };

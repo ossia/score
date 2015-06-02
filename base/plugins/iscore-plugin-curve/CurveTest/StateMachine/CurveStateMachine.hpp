@@ -1,5 +1,6 @@
 #pragma once
 #include "CurveStateMachineData.hpp"
+#include "CurvePoint.hpp"
 #include <iscore/statemachine/BaseStateMachine.hpp>
 class CurvePresenter;
 class QGraphicsScene;
@@ -15,7 +16,7 @@ class CurveStateMachine : public BaseStateMachine
         void setupPostEvents();
         void setupStates();
         CurvePresenter& m_presenter;
-        CurveStateMachineData m_data;
+        CurvePoint curvePoint;
 
         // Tools
         QState* m_selectTool{};

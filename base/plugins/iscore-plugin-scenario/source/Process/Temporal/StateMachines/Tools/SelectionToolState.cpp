@@ -23,45 +23,6 @@
 
 #include <QGraphicsScene>
 
-
-template<typename T>
-Selection filterSelections(T* pressedModel,
-                           Selection sel,
-                           bool cumulation)
-{
-    if(!cumulation)
-    {
-        sel.clear();
-    }
-
-    // If the pressed element is selected
-    if(pressedModel->selection.get())
-    {
-        if(cumulation)
-        {
-            sel.removeAll(pressedModel);
-        }
-        else
-        {
-            sel.push_back(pressedModel);
-        }
-    }
-    else
-    {
-        sel.push_back(pressedModel);
-    }
-
-    return sel;
-}
-
-Selection filterSelections(const Selection& newSelection,
-                           const Selection& currentSelection,
-                           bool cumulation)
-{
-    return cumulation ? (newSelection + currentSelection).toSet().toList() : newSelection;
-}
-
-
 #include <iscore/statemachine/CommonSelectionState.hpp>
 class ScenarioSelectionState : public CommonSelectionState
 {
@@ -138,7 +99,7 @@ class ScenarioSelectionState : public CommonSelectionState
 
             const auto items = m_parentSM.scene().items(path);
 
-
+            // TODO we can optimize this A LOT with type() and the pointer to the presenter.
             for (const auto& item : items)
             {
                 auto ev_it = find_if(events.cbegin(),

@@ -51,13 +51,13 @@ class TemporalScenarioView : public ProcessView
         }
 
     protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-        virtual void keyPressEvent(QKeyEvent *event) override;
-        virtual void keyReleaseEvent(QKeyEvent *event) override;
+        void keyPressEvent(QKeyEvent *event) override;
+        void keyReleaseEvent(QKeyEvent *event) override;
 
     private:
         QRectF m_selectArea;

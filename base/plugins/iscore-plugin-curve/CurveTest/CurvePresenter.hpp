@@ -15,6 +15,11 @@ class CurvePresenter : public QObject
         { LinearBefore, LinearAfter, DuplicateSegment };
         CurvePresenter(CurveModel*, CurveView*);
 
+        const QVector<CurvePointView*>& points() const
+        { return m_points; }
+        const QVector<CurveSegmentView*>& segments() const
+        { return m_segments; }
+
         CurveModel* model() const;
         CurveView& view() const;
 

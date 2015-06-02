@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/statemachine/ToolState.hpp>
 #include <QGraphicsItem>
-class CurveStateMachine;
+#include "CurveTest/StateMachine/CurveStateMachine.hpp"
 class CurveTool : public ToolState
 {
     public:
@@ -23,22 +23,28 @@ class CurveTool : public ToolState
                 return;
             }
 
-            // Each time :
-            // Check if it is an event / timenode / constraint
-            // Check if it is in our scenario.
-            switch(pressedItem->type())
+            // Additionnal check because here the items aren't defined by
+            // their boundingRect() but their shape().
+            if(pressedItem->contains(m_parentSM.scenePoint))
             {
-                case QGraphicsItem::UserType + 1:
-                    pt_fun(pressedItem);
-                    break;
+                switch(pressedItem->type())
+                {
+                    case QGraphicsItem::UserType + 10:
+                        pt_fun(pressedItem);
+                        break;
 
-                case QGraphicsItem::UserType + 2:
-                    seg_fun(pressedItem);
-                    break;
+                    case QGraphicsItem::UserType + 11:
+                        seg_fun(pressedItem);
+                        break;
 
-                default:
-                    nothing_fun();
-                    break;
+                    default:
+                        nothing_fun();
+                        break;
+                }
+            }
+            else
+            {
+                nothing_fun();
             }
         }
 

@@ -16,21 +16,18 @@ CurveStateMachine::CurveStateMachine(
     start();
 }
 
-const CurvePresenter&CurveStateMachine::presenter() const
+const CurvePresenter& CurveStateMachine::presenter() const
 {
     return m_presenter;
 }
 
-const CurveModel&CurveStateMachine::model() const
+const CurveModel& CurveStateMachine::model() const
 {
     return *m_presenter.model();
 }
 
 void CurveStateMachine::setupStates()
 {
-    // We always select something on a single clic when not in pen mode first.
-    // Then
-
     m_selectTool = new Curve::SelectionTool(*this);
     this->setInitialState(m_selectTool);
 }
@@ -45,8 +42,8 @@ void CurveStateMachine::setupPostEvents()
 
     auto updateData = [=] (const QPointF& point)
     {
-        m_data.scenePoint = point;
-        m_data.curvePoint = QPointFToCurvePoint(m_presenter.view().mapFromScene(point));
+        scenePoint = point;
+        curvePoint = QPointFToCurvePoint(m_presenter.view().mapFromScene(point));
     };
 
     connect(&m_presenter.view(), &CurveView::pressed,

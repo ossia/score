@@ -19,7 +19,7 @@ class LinearCurveSegmentModel : public CurveSegmentModel
                 QObject* parent) const override;
 
         QString name() const override;
-        void serialize(const VisitorVariant& vis) const;
+        void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -45,7 +45,7 @@ class GammaCurveSegmentModel : public CurveSegmentModel
                 QObject* parent) const override;
 
         QString name() const override;
-        void serialize(const VisitorVariant& vis) const;
+        void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -73,7 +73,7 @@ class SinCurveSegmentModel : public CurveSegmentModel
                 QObject* parent) const override;
 
         QString name() const override;
-        void serialize(const VisitorVariant& vis) const;
+        void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 

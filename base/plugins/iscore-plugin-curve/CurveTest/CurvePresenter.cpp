@@ -2,6 +2,7 @@
 #include "CurveModel.hpp"
 #include "CurveView.hpp"
 #include "CurveSegmentModel.hpp"
+#include "CurvePointModel.hpp"
 #include "CurvePointView.hpp"
 #include "CurveSegmentView.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
@@ -47,25 +48,26 @@ QPointF myscale(const QPointF& first, const QSizeF& second)
 
 void CurvePresenter::setRect(const QRectF& rect)
 {
+    m_view->setRect(rect);
     auto size = rect.size();
     // Positions
     for(CurvePointView* curve_pt : m_points)
     {
         // Get the previous or next segment. There has to be at least one.
-        if(curve_pt->previous())
+        if(curve_pt->model().previous())
         {
             auto it = std::find(m_model->segments().begin(),
                                 m_model->segments().end(),
-                                curve_pt->previous());
+                                curve_pt->model().previous());
             Q_ASSERT(it != m_model->segments().end());
 
             curve_pt->setPos(myscale((*it)->end(), size));
         }
-        else if(curve_pt->following())
+        else if(curve_pt->model().following())
         {
             auto it = std::find(m_model->segments().begin(),
                                 m_model->segments().end(),
-                                curve_pt->following());
+                                curve_pt->model().following());
             Q_ASSERT(it != m_model->segments().end());
 
             curve_pt->setPos(myscale((*it)->start(), size));
@@ -78,8 +80,8 @@ void CurvePresenter::setRect(const QRectF& rect)
         // Width is from begin to end
         // Height is the height of the curve since the segment can do anything in-between.
         double startx, endx;
-        startx = curve_segt->model()->start().x() * rect.width();
-        endx = curve_segt->model()->end().x() * rect.width();
+        startx = curve_segt->model().start().x() * rect.width();
+        endx = curve_segt->model().end().x() * rect.width();
         curve_segt->setPos({startx, 0});
         curve_segt->setRect({0., 0., endx - startx, rect.height()});
 
@@ -93,20 +95,13 @@ void CurvePresenter::setupView()
         // Create a segment
         auto seg_view = new CurveSegmentView{segment, m_view};
         m_segments.push_back(seg_view);
+    }
 
-        // If there is no previous segment, we create a point.
-        if(!segment->previous())
-        {
-            auto starting_pt_view = new CurvePointView{m_view};
-            starting_pt_view->setFollowing(segment->id());
-            m_points.append(starting_pt_view);
-        }
-
-        // We create a point in all cases at the end.
-        auto ending_pt_view = new CurvePointView{m_view};
-        ending_pt_view->setPrevious(segment->id());
-        ending_pt_view->setFollowing(segment->following());
-        m_points.append(ending_pt_view);
+    for(CurvePointModel* pt : m_model->points())
+    {
+        // Create a point
+        auto pt_view = new CurvePointView{pt, m_view};
+        m_points.push_back(pt_view);
     }
 
     // Connections

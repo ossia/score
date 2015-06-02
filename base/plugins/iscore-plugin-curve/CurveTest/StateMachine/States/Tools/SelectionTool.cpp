@@ -5,13 +5,20 @@
 #include "CurveTest/CurveModel.hpp"
 #include "CurveTest/CurvePresenter.hpp"
 #include "CurveTest/CurveView.hpp"
-#include "CurveTest/CurvePointView.hpp"
-#include "CurveTest/CurveSegmentView.hpp"
-#include <iscore/statemachine/StateMachineUtils.hpp>
 
+#include "CurveTest/CurvePointModel.hpp"
+#include "CurveTest/CurvePointView.hpp"
+
+#include "CurveTest/CurveSegmentModel.hpp"
+#include "CurveTest/CurveSegmentView.hpp"
+
+#include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 #include <iscore/selection/SelectionStack.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <QGraphicsScene>
 
 namespace Curve
 {
@@ -23,7 +30,6 @@ class SelectionState : public CommonSelectionState
 
         const CurveStateMachine& m_parentSM;
         CurveView& m_view;
-
 
     public:
         SelectionState(
@@ -53,7 +59,7 @@ class SelectionState : public CommonSelectionState
             m_view.setSelectionArea(
                         QRectF{m_view.mapFromScene(m_initialPoint),
                                m_view.mapFromScene(m_movePoint)}.normalized());
-
+            setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
         }
 
         void on_releaseAreaSelection() override
@@ -63,6 +69,7 @@ class SelectionState : public CommonSelectionState
 
         void on_deselect() override
         {
+            dispatcher.setAndCommit(Selection{});
             m_view.setSelectionArea(QRectF{});
         }
 
@@ -73,12 +80,41 @@ class SelectionState : public CommonSelectionState
         void on_deleteContent() override
         {
         }
+
+    private:
+        void setSelectionArea(const QRectF& area)
+        {
+            using namespace std;
+            QPainterPath path;
+            path.addRect(area);
+            Selection sel;
+
+            auto items = m_parentSM.scene().items(path);
+
+            for (const auto& item : items)
+            {
+                switch(item->type())
+                {
+                    case QGraphicsItem::UserType + 10:
+                        sel.push_back(&static_cast<CurvePointView*>(item)->model());
+                        break;
+                    case QGraphicsItem::UserType + 11:
+                        sel.push_back(&static_cast<CurveSegmentView*>(item)->model());
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            dispatcher.setAndCommit(filterSelections(sel,
+                                                     m_parentSM.model().selectedChildren(),
+                                                     multiSelection()));
+        }
 };
 
 SelectionTool::SelectionTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
-
     m_state = new Curve::SelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
             m_parentSM,
@@ -90,24 +126,29 @@ SelectionTool::SelectionTool(CurveStateMachine& sm):
     localSM().start();
 }
 
-
 void SelectionTool::on_pressed()
 {
-    qDebug() << Q_FUNC_INFO;
     using namespace std;
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const QGraphicsItem* point)
+               [&] (const QGraphicsItem* point)
     {
-        localSM().postEvent(new Press_Event);
+        m_state->dispatcher.setAndCommit(
+                    filterSelections(
+                        &static_cast<const CurvePointView*>(point)->model(),
+                        m_parentSM.model().selectedChildren(),
+                        m_state->multiSelection()));
     },
     [&] (const QGraphicsItem* segment)
     {
-        localSM().postEvent(new Press_Event);
+        m_state->dispatcher.setAndCommit(
+                    filterSelections(
+                        &static_cast<const CurveSegmentView*>(segment)->model(),
+                        m_parentSM.model().selectedChildren(),
+                        m_state->multiSelection()));
     },
     [&] () {
         localSM().postEvent(new Press_Event);
     });
-
 }
 
 void SelectionTool::on_moved()

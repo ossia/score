@@ -12,6 +12,7 @@
  * The duration is the time between x=0 and x=1.
  *
  */
+class CurveModel;
 class AutomationModel : public ProcessModel
 {
         Q_OBJECT
@@ -49,9 +50,9 @@ class AutomationModel : public ProcessModel
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        Selection selectableChildren() const override { return {}; }
-        Selection selectedChildren() const override { return {}; }
-        void setSelection(const Selection&) const override { }
+        Selection selectableChildren() const override;
+        Selection selectedChildren() const override;
+        void setSelection(const Selection&) const override;
 
         void serialize(const VisitorVariant& vis) const override;
 
@@ -63,6 +64,9 @@ class AutomationModel : public ProcessModel
         QString address() const;
 
         const QMap<double, double>& points() const;
+
+        CurveModel& curve() const
+        { return *m_curve; }
 
         void setPoints(QMap<double, double>&& points);
 
@@ -97,6 +101,8 @@ class AutomationModel : public ProcessModel
 
     private:
         QString m_address;
+        CurveModel* m_curve{};
+
         QMap<double, double> m_points;
         double m_min{};
         double m_max{1.};

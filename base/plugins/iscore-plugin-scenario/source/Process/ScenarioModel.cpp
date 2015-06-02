@@ -215,11 +215,11 @@ Selection ScenarioModel::selectedChildren() const
 
 void ScenarioModel::setSelection(const Selection& s) const
 {
-    for(auto elt : m_constraints)
+    for(auto& elt : m_constraints)
         elt->selection.set(s.contains(elt));
-    for(auto elt : m_events)
+    for(auto& elt : m_events)
         elt->selection.set(s.contains(elt));
-    for(auto elt : m_timeNodes)
+    for(auto& elt : m_timeNodes)
       elt->selection.set(s.contains(elt));
 }
 

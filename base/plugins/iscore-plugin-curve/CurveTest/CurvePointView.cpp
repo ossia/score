@@ -1,15 +1,27 @@
 #include "CurvePointView.hpp"
 #include <QPainter>
-CurvePointView::CurvePointView(QGraphicsItem* parent):
-    QGraphicsObject{parent}
+#include <iscore/selection/Selectable.hpp>
+#include "CurvePointModel.hpp"
+CurvePointView::CurvePointView(
+        CurvePointModel* model,
+        QGraphicsItem* parent):
+    QGraphicsObject{parent},
+    m_model{model}
 {
     this->setZValue(2);
-    this->setFlags(QGraphicsItem::ItemIsSelectable);
+    connect(&m_model->selection, &Selectable::changed,
+            this, &CurvePointView::setSelected);
+
+}
+
+CurvePointModel &CurvePointView::model() const
+{
+    return *m_model;
 }
 
 int CurvePointView::type() const
 {
-    return QGraphicsItem::UserType + 1;
+    return QGraphicsItem::UserType + 10;
 }
 
 QRectF CurvePointView::boundingRect() const
@@ -17,10 +29,13 @@ QRectF CurvePointView::boundingRect() const
     return {-3, -3, 6, 6};
 }
 
-void CurvePointView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void CurvePointView::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
     QPen pen;
-    QColor c = isSelected()? Qt::yellow : Qt::green;
+    QColor c = m_selected? Qt::yellow : Qt::green;
     pen.setColor(c);
     pen.setWidth(3);
     painter->setPen(pen);
@@ -29,24 +44,10 @@ void CurvePointView::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->drawEllipse(QPointF{0., 0.}, 3, 3);
 }
 
-const id_type<CurveSegmentModel>& CurvePointView::following() const
+void CurvePointView::setSelected(bool selected)
 {
-    return m_following;
-}
-
-void CurvePointView::setFollowing(const id_type<CurveSegmentModel> &following)
-{
-    m_following = following;
-}
-
-const id_type<CurveSegmentModel> &CurvePointView::previous() const
-{
-    return m_previous;
-}
-
-void CurvePointView::setPrevious(const id_type<CurveSegmentModel> &previous)
-{
-    m_previous = previous;
+    m_selected = selected;
+    update();
 }
 
 #include <QGraphicsSceneMouseEvent>
