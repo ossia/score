@@ -56,7 +56,7 @@ namespace StandardDisplacementPolicy
 
             if(!(constraint->defaultDuration() - newDuration).isZero())
             {
-                ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
+                ConstraintModel::Algorithms::setDurationInBounds(*constraint, newDuration);
                 for(const auto& process : constraint->processes())
                 {
                     scaleMethod(process, newDuration);
@@ -106,7 +106,7 @@ namespace StandardDisplacementPolicy
                 {
                     constraint->setStartDate(startEventDate);
 
-                    ConstraintModel::Algorithms::changeAllDurations(*constraint, newDuration);
+                    ConstraintModel::Algorithms::setDurationInBounds(*constraint, newDuration);
                     for(const auto& process : constraint->processes())
                     {
                         scaleMethod(process, newDuration);

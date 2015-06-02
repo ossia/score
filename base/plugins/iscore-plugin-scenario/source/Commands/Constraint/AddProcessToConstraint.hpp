@@ -2,6 +2,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+
+
 #include <QString>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -10,6 +12,7 @@ namespace Scenario
 {
     namespace Command
     {
+        class AddProcessViewInNewDeck;
         /**
         * @brief The AddProcessToConstraint class
         */
@@ -40,6 +43,8 @@ namespace Scenario
                 QString m_processName;
 
                 id_type<ProcessModel> m_createdProcessId {};
+                bool m_noBoxes;
+                AddProcessViewInNewDeck* m_cmd;
         };
     }
 }

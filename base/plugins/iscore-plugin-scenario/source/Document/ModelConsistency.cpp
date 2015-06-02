@@ -23,6 +23,11 @@ bool ModelConsistency::isValid() const
     return m_valid;
 }
 
+bool ModelConsistency::warning() const
+{
+    return m_warning;
+}
+
 void ModelConsistency::setValid(bool arg)
 {
     if (m_valid == arg)
@@ -30,4 +35,13 @@ void ModelConsistency::setValid(bool arg)
 
     m_valid = arg;
     emit validChanged(arg);
+}
+
+void ModelConsistency::setWarning(bool warning)
+{
+    if (m_warning == warning)
+        return;
+
+    m_warning = warning;
+    emit warningChanged(warning);
 }

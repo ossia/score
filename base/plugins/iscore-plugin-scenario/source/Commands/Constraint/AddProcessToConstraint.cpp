@@ -1,4 +1,5 @@
 #include "AddProcessToConstraint.hpp"
+#include "AddProcessViewInNewDeck.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -20,12 +21,18 @@ m_processName {process}
 {
     auto& constraint = m_path.find<ConstraintModel>();
     m_createdProcessId = getStrongId(constraint.processes());
+    m_noBoxes = (constraint.boxes().empty() && constraint.objectName() != "BaseConstraintModel" );
 }
 
 void AddProcessToConstraint::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
     constraint.removeProcess(m_createdProcessId);
+    if(m_noBoxes)
+    {
+        m_cmd->undo();
+        delete m_cmd;
+    }
 }
 
 void AddProcessToConstraint::redo()
@@ -40,6 +47,11 @@ void AddProcessToConstraint::redo()
                      &constraint);
 
     constraint.addProcess(proc);
+    if(m_noBoxes)
+    {
+        m_cmd = new AddProcessViewInNewDeck{ObjectPath{m_path}, m_createdProcessId};
+        m_cmd->redo();
+    }
 }
 
 void AddProcessToConstraint::serializeImpl(QDataStream& s) const

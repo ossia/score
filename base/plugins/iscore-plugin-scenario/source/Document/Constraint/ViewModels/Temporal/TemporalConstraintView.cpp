@@ -92,7 +92,10 @@ void TemporalConstraintView::paint(
     {
         constraintColor = qApp->palette("ScenarioPalette").base().color();
     }
-
+    if(warning())
+    {
+        constraintColor = QColor{200,150,0};
+    }
     if(! isValid())
     {
         constraintColor = Qt::red;

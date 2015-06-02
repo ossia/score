@@ -51,6 +51,8 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(QString name,
 
     connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
             m_view, &AbstractConstraintView::setValid);
+    connect(&m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
+            m_view, &AbstractConstraintView::setWarning);
 }
 
 void AbstractConstraintPresenter::updateScaling()

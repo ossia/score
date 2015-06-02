@@ -255,6 +255,7 @@ void ConstraintModel::setDefaultDuration(const TimeValue& arg)
         m_defaultDuration = arg;
         emit defaultDurationChanged(arg);
         consistency.setValid(true);
+        consistency.setWarning(m_defaultDuration < m_minDuration || m_defaultDuration > m_maxDuration);
     }
     if(m_defaultDuration.msec() < 0)
     {
@@ -268,6 +269,7 @@ void ConstraintModel::setMinDuration(const TimeValue& arg)
     {
         m_minDuration = arg;
         emit minDurationChanged(arg);
+        consistency.setWarning(m_defaultDuration < m_minDuration);
     }
 }
 
@@ -277,6 +279,7 @@ void ConstraintModel::setMaxDuration(const TimeValue& arg)
     {
         m_maxDuration = arg;
         emit maxDurationChanged(arg);
+        consistency.setWarning(m_defaultDuration > m_maxDuration);
     }
 }
 

@@ -80,7 +80,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
                         cstr.setDefaultDuration(time);
                     }
-                    else // The checking must be done elsewhere if(arg >= m_minDuration && arg <= m_maxDuration)
+                    else // TODO The checking must be done elsewhere if(arg >= m_minDuration && arg <= m_maxDuration)
+                        // --> it should be in a command to be undoable
                     {
                         cstr.setDefaultDuration(time);
                     }

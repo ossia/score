@@ -74,3 +74,13 @@ void AbstractConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.released(event->scenePos());
 }
+bool AbstractConstraintView::warning() const
+{
+    return m_warning;
+}
+
+void AbstractConstraintView::setWarning(bool warning)
+{
+    m_warning = warning;
+}
+

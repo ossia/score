@@ -81,7 +81,10 @@ class AbstractConstraintView : public QGraphicsObject
             return m_validConstraint;
         }
 
-    protected:
+        bool warning() const;
+        void setWarning(bool warning);
+
+protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
@@ -115,4 +118,5 @@ class AbstractConstraintView : public QGraphicsObject
         bool m_selected{};
         bool m_infinite{};
         bool m_validConstraint{true};
+        bool m_warning{false};
 };
