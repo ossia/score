@@ -37,7 +37,7 @@ BoxPresenter::BoxPresenter(const BoxModel& model,
     connect(&m_model, &BoxModel::on_durationChanged,
             this, &BoxPresenter::on_durationChanged);
 
-    connect(&m_model.metadata, &ModelMetadata::nameChanged,
+    connect(&m_model.constraint().metadata, &ModelMetadata::nameChanged,
             this, [&] (const QString& name) { m_view->setText(name); });
 }
 
