@@ -18,7 +18,10 @@ class TemporalConstraintView : public AbstractConstraintView
         bool shadow() const;
         void setShadow(bool shadow);
 
-    signals:
+        void setLabelColor(const QColor &labelColor);
+        void setLabel(const QString &label);
+
+signals:
         void constraintHoverEnter();
         void constraintHoverLeave();
 
@@ -30,4 +33,6 @@ class TemporalConstraintView : public AbstractConstraintView
         QPointF m_clickedPoint {};
 
         bool m_shadow {false};
+        QString m_label{};
+        QColor m_labelColor{Qt::gray};
 };

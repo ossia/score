@@ -146,6 +146,14 @@ void TemporalConstraintView::paint(
     painter->setPen(playedPen);
     if(!playedPath.isEmpty())
         painter->drawPath(playedPath);
+
+
+    QRectF labelRect{0,0, minWidth(), -height()/2};
+    QFont f("Ubuntu");
+    f.setPixelSize(12);
+    painter->setFont(f);
+    painter->setPen(m_labelColor);
+    painter->drawText(labelRect, Qt::AlignCenter, m_label);
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
@@ -159,6 +167,16 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
     QGraphicsObject::hoverLeaveEvent(h);
     emit constraintHoverLeave();
 }
+void TemporalConstraintView::setLabel(const QString &label)
+{
+    m_label = label;
+}
+
+void TemporalConstraintView::setLabelColor(const QColor &labelColor)
+{
+    m_labelColor = labelColor;
+}
+
 bool TemporalConstraintView::shadow() const
 {
     return m_shadow;
