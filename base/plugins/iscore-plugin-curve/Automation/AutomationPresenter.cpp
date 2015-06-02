@@ -6,7 +6,6 @@
 
 #include "../Commands/AddPoint.hpp"
 #include "../Commands/MovePoint.hpp"
-// TODO #include "../Commands/RemovePoint.hpp"
 
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -38,13 +37,13 @@ AutomationPresenter::AutomationPresenter(
     s1->setStart({0., 0.0});
     s1->setEnd({0.2, 1.});
 
-    auto s2 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(2), cm);
+    auto s2 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(2), cm);
     s2->setStart({0.2, 1.});
     s2->setEnd({0.6, 0.0});
     s2->setPrevious(s1->id());
     s1->setFollowing(s2->id());
 
-    auto s3 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(3), cm);
+    auto s3 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(3), cm);
     s3->setStart({0.7, 0.0});
     s3->setEnd({1.0, 1.});
 

@@ -62,7 +62,7 @@ void CurveSegmentView::updatePoints()
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
-    auto pts = m_model->data(5); // Set the number of required points here.
+    auto pts = m_model->data(25); // Set the number of required points here.
 
     // Map to the scene coordinates
     std::transform(pts.begin(), pts.end(), pts.begin(),
