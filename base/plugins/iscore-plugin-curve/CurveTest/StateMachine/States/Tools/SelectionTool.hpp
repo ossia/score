@@ -1,17 +1,17 @@
 #pragma once
 #include <iscore/selection/SelectionDispatcher.hpp>
-
+#include "CurveTool.hpp"
 class QState;
 namespace Curve
 {
-class SelectionTool : public QState
+class SelectionTool : public CurveTool
 {
     public:
-        SelectionTool(ScenarioStateMachine& sm);
+        SelectionTool(CurveStateMachine& sm);
 
-        void on_scenarioPressed() override;
-        void on_scenarioMoved() override;
-        void on_scenarioReleased() override;
+        void on_pressed() override;
+        void on_moved() override;
+        void on_released() override;
 
         void setSelectionArea(const QRectF& area);
 

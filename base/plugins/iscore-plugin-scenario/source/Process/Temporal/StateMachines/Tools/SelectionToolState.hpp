@@ -2,10 +2,11 @@
 #include "Process/Temporal/StateMachines/Tools/ScenarioToolState.hpp"
 #include <iscore/selection/SelectionDispatcher.hpp>
 
+class ScenarioSelectionState;
 class SelectionTool : public ScenarioToolState
 {
     public:
-        SelectionTool(ScenarioStateMachine& sm);
+        SelectionTool(const ScenarioStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;
@@ -15,13 +16,5 @@ class SelectionTool : public ScenarioToolState
 
 
     private:
-        QState* m_singleSelection{};
-        QState* m_multiSelection{};
-
-        iscore::SelectionDispatcher m_dispatcher;
-
-        QPointF m_initialPoint;
-        QPointF m_movePoint;
-
-        QState* m_waitState{};
+        ScenarioSelectionState* m_state;
 };
