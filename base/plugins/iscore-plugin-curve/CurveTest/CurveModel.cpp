@@ -37,8 +37,16 @@ void CurveModel::addSegment(CurveSegmentModel* m)
             {
                 auto pt = new CurvePointModel{this};
                 pt->setFollowing(m->id());
+                pt->setPos(m->start());
                 addPoint(pt);
             }
+        }
+        else
+        {
+            auto pt = new CurvePointModel{this};
+            pt->setFollowing(m->id());
+            pt->setPos(m->start());
+            addPoint(pt);
         }
     }
     else if(std::none_of(m_points.begin(), m_points.end(),
@@ -47,6 +55,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     {
         auto pt = new CurvePointModel{this};
         pt->setFollowing(m->id());
+        pt->setPos(m->start());
         addPoint(pt);
     }
 
@@ -71,8 +80,16 @@ void CurveModel::addSegment(CurveSegmentModel* m)
             {
                 auto pt = new CurvePointModel{this};
                 pt->setPrevious(m->id());
+                pt->setPos(m->end());
                 addPoint(pt);
             }
+        }
+        else
+        {
+            auto pt = new CurvePointModel{this};
+            pt->setPrevious(m->id());
+            pt->setPos(m->end());
+            addPoint(pt);
         }
     }
     else if(std::none_of(m_points.begin(), m_points.end(),
@@ -81,6 +98,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     {
         auto pt = new CurvePointModel{this};
         pt->setPrevious(m->id());
+        pt->setPos(m->end());
         addPoint(pt);
     }
 }

@@ -35,11 +35,6 @@ CurveView& CurvePresenter::view() const
     return *m_view;
 }
 
-QPointF CurvePresenter::pressedPoint() const
-{
-    return m_currentScenePoint;
-}
-
 QPointF myscale(const QPointF& first, const QSizeF& second)
 {
     return {first.x() * second.width(), (1. - first.y()) * second.height()};
@@ -169,4 +164,45 @@ void CurvePresenter::setupStateMachine()
 {
 
 }
+
+CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
+{
+    return m_addPointBehaviour;
+}
+
+void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour)
+{
+    m_addPointBehaviour = addPointBehaviour;
+}
+
+bool CurvePresenter::stretchBothBounds() const
+{
+    return m_stretchBothBounds;
+}
+
+void CurvePresenter::setStretchBothBounds(bool stretchBothBounds)
+{
+    m_stretchBothBounds = stretchBothBounds;
+}
+
+bool CurvePresenter::suppressOnOverlap() const
+{
+    return m_suppressOnOverlap;
+}
+
+void CurvePresenter::setSuppressOnOverlap(bool suppressOnOverlap)
+{
+    m_suppressOnOverlap = suppressOnOverlap;
+}
+
+void CurvePresenter::setLockBetweenPoints(bool lockBetweenPoints)
+{
+    m_lockBetweenPoints = lockBetweenPoints;
+}
+
+bool CurvePresenter::lockBetweenPoints() const
+{
+    return m_lockBetweenPoints;
+}
+
 

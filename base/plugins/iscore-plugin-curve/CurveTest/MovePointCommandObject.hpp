@@ -18,4 +18,6 @@ class MovePointCommandObject : public CurveCommandObjectBase
     private:
         SingleOngoingCommandDispatcher m_dispatcher;
         QVector<QByteArray> m_startSegments;
+
+        double xmin, xmax;
 };

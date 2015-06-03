@@ -46,21 +46,18 @@ MoveTool::MoveTool(CurveStateMachine& sm):
 
 void MoveTool::on_pressed()
 {
-    qDebug() << m_parentSM.curvePoint << itemUnderMouse(m_parentSM.scenePoint)->type();
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
-        qDebug() << "ClickOnPoint_Event";
         localSM().postEvent(new ClickOnPoint_Event(m_parentSM.curvePoint, point));
     },
     [&] (const QGraphicsItem* segment)
     {
-        qDebug() << "ClickOnSegment_Event";
         localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
     },
     [&] ()
     {
-        qDebug() << Q_FUNC_INFO << 3;
+        localSM().postEvent(new ClickOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }
 
@@ -69,38 +66,31 @@ void MoveTool::on_moved()
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
-        qDebug() << Q_FUNC_INFO << 1;
         localSM().postEvent(new MoveOnPoint_Event(m_parentSM.curvePoint, point));
     },
     [&] (const QGraphicsItem* segment)
     {
-        qDebug() << Q_FUNC_INFO << 2;
         localSM().postEvent(new MoveOnSegment_Event(m_parentSM.curvePoint, segment));
     },
     [&] ()
     {
-        qDebug() << Q_FUNC_INFO << 3;
         localSM().postEvent(new MoveOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }
 
 void MoveTool::on_released()
 {
-    qDebug() << Q_FUNC_INFO;
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
-        qDebug() << Q_FUNC_INFO << 1;
         localSM().postEvent(new ReleaseOnPoint_Event(m_parentSM.curvePoint, point));
     },
     [&] (const QGraphicsItem* segment)
     {
-        qDebug() << Q_FUNC_INFO << 2;
         localSM().postEvent(new ReleaseOnSegment_Event(m_parentSM.curvePoint, segment));
     },
     [&] ()
     {
-        qDebug() << Q_FUNC_INFO << 3;
         localSM().postEvent(new ReleaseOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }

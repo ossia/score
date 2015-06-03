@@ -12,7 +12,5 @@ CurveCommandObjectBase::CurveCommandObjectBase(CurvePresenter* pres):
 
 void CurveCommandObjectBase::press()
 {
-    m_originalPress = m_presenter->pressedPoint();
-
     on_press();
 }

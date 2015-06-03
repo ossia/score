@@ -1,6 +1,11 @@
 #pragma once
 #include "CurveStateMachineBaseEvents.hpp"
 #include "CurveStateMachineBaseStates.hpp"
+#include "CurveTest/CurvePointView.hpp"
+#include "CurveTest/CurvePointModel.hpp"
+#include "CurveTest/CurveSegmentView.hpp"
+#include "CurveTest/CurveSegmentModel.hpp"
+
 namespace Curve
 {
 
@@ -31,22 +36,45 @@ class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Eleme
         }
 
     private:
-        template<typename Element_Fun_T>
-        void impl(CurveEvent<Element_Fun_T, Modifier::Click_tag>* ev)
+        void impl(CurveEvent<Element::Nothing_tag, Modifier::Click_tag>* ev)
         {
-            this->state().clickedItem = ev->item;
+        }
+        void impl(CurveEvent<Element::Point_tag, Modifier::Click_tag>* ev)
+        {
+            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            this->state().clickedPointId = {model.previous(), model.following()};
+        }
+        void impl(CurveEvent<Element::Segment_tag, Modifier::Click_tag>* ev)
+        {
+            this->state().clickedSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
-        template<typename Element_Fun_T>
-        void impl(CurveEvent<Element_Fun_T, Modifier::Move_tag>* ev)
+
+        void impl(CurveEvent<Element::Nothing_tag, Modifier::Move_tag>* ev)
         {
-            this->state().hoveredItem = ev->item;
+        }
+        void impl(CurveEvent<Element::Point_tag, Modifier::Move_tag>* ev)
+        {
+            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            this->state().hoveredPointId = {model.previous(), model.following()};
+        }
+        void impl(CurveEvent<Element::Segment_tag, Modifier::Move_tag>* ev)
+        {
+            this->state().hoveredSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
-        template<typename Element_Fun_T>
-        void impl(CurveEvent<Element_Fun_T, Modifier::Release_tag>* ev)
+
+        void impl(CurveEvent<Element::Nothing_tag, Modifier::Release_tag>* ev)
         {
-            this->state().hoveredItem = ev->item;
+        }
+        void impl(CurveEvent<Element::Point_tag, Modifier::Release_tag>* ev)
+        {
+            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            this->state().hoveredPointId = {model.previous(), model.following()};
+        }
+        void impl(CurveEvent<Element::Segment_tag, Modifier::Release_tag>* ev)
+        {
+            this->state().hoveredSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 };
 
@@ -94,9 +122,9 @@ class ReleaseOnAnything_Transition : public QAbstractTransition
         {
             using namespace std;
             static const constexpr QEvent::Type types[] = {
-                QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
-                QEvent::Type(QEvent::User + MoveOnPoint_Event::user_type),
-                QEvent::Type(QEvent::User + MoveOnSegment_Event::user_type)};
+                QEvent::Type(QEvent::User + ReleaseOnNothing_Event::user_type),
+                QEvent::Type(QEvent::User + ReleaseOnPoint_Event::user_type),
+                QEvent::Type(QEvent::User + ReleaseOnSegment_Event::user_type)};
 
             return find(begin(types), end(types), e->type()) != end(types);
         }

@@ -29,6 +29,18 @@ class CurvePresenter : public QObject
 
         void setRect(const QRectF& rect);
 
+        bool lockBetweenPoints() const;
+        void setLockBetweenPoints(bool lockBetweenPoints);
+
+        bool suppressOnOverlap() const;
+        void setSuppressOnOverlap(bool suppressOnOverlap);
+
+        bool stretchBothBounds() const;
+        void setStretchBothBounds(bool stretchBothBounds);
+
+        AddPointBehaviour addPointBehaviour() const;
+        void setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour);
+
     private:
 
         void setPos(CurvePointView*);
@@ -39,7 +51,6 @@ class CurvePresenter : public QObject
         QStateMachine* m_sm{};
 
         // Data relative to the current state of the view
-        QPointF m_currentScenePoint;
         CurveSegmentView* m_currentSegmentView{};
         CurvePointView* m_currentPointView{};
 
@@ -52,7 +63,7 @@ class CurvePresenter : public QObject
         // Boolean values that keep the editing state. Should they go here ?
         // Maybe in the settings, instead ?
         bool m_lockBetweenPoints{};
-        bool m_suppressOnOverlap{};
+        bool m_suppressOnOverlap{true};
         bool m_stretchBothBounds{};
         AddPointBehaviour m_addPointBehaviour{};
 };
