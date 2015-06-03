@@ -3,12 +3,13 @@
 #include "Control/ScenarioControl.hpp"
 #include <QObject>
 
-class EditMenuActions : public QObject
+class ObjectMenuActions : public QObject
 {
     Q_OBJECT
     public:
-        EditMenuActions(ScenarioControl* parent);
+        ObjectMenuActions(ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu);
+        void fillContextMenu(QMenu* menu);
 
         QList<QAction*> actions();
 
@@ -17,8 +18,9 @@ class EditMenuActions : public QObject
 
         QAction* m_removeElements;
         QAction *m_clearElements;
-        QAction *m_copyConstraintContent;
-        QAction *m_cutConstraintContent;
-        QAction *m_pasteConstraintContent;
-};
+        QAction *m_copyContent;
+        QAction *m_cutContent;
+        QAction *m_pasteContent;
+        QAction *m_elementsToJson;
 
+};

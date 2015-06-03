@@ -12,36 +12,17 @@
 
 #include "Control/OldFormatConversion.hpp"
 
-#include "Menus/EditMenuActions.hpp"
+#include "Menus/ObjectMenuActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
 
 #include <QToolBar>
 #include <QFile>
 #include <QFileDialog>
-#include <QTextBlock>
 #include <QJsonDocument>
-#include <QGridLayout>
-#include <QTextEdit>
-#include <QDialogButtonBox>
 #include <QApplication>
 #include <QClipboard>
-class TextDialog : public QDialog
-{
-    public:
-        TextDialog(QString s)
-        {
-            this->setLayout(new QGridLayout);
-            auto textEdit = new QTextEdit;
-            textEdit->setPlainText(s);
-            layout()->addWidget(textEdit);
-            auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-            layout()->addWidget(buttonBox);
 
-            connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-
-        }
-};
 
 using namespace iscore;
 
@@ -49,7 +30,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
-    m_edit = new EditMenuActions{this};
+    m_objectAction = new ObjectMenuActions{this};
 }
 
 template<typename Selected_T>
@@ -160,13 +141,16 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     ///// Edit /////
 
-    m_edit->fillMenuBar(menu);
+    m_objectAction->fillMenuBar(menu);
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ToolMenu,
+                                       m_selecttool);
 
     ///// View /////
-    QAction *selectAll = new QAction{tr("Select all"), this};
-    selectAll->setShortcut(QKeySequence::SelectAll);
-    selectAll->setToolTip("Ctrl+a");
-    connect(selectAll, &QAction::triggered,
+    m_selectAll = new QAction{tr("Select all"), this};
+    m_selectAll->setShortcut(QKeySequence::SelectAll);
+    m_selectAll->setToolTip("Ctrl+a");
+    connect(m_selectAll, &QAction::triggered,
             [this]()
     {
         auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
@@ -175,13 +159,13 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
-                                       selectAll);
+                                       m_selectAll);
 
 
-    QAction *deselectAll = new QAction{tr("Deselect all"), this};
-    deselectAll->setShortcut(QKeySequence::Deselect);
-    deselectAll->setToolTip("Ctrl+Shift+a");
-    connect(deselectAll, &QAction::triggered,
+    m_deselectAll = new QAction{tr("Deselect all"), this};
+    m_deselectAll->setShortcut(QKeySequence::Deselect);
+    m_deselectAll->setToolTip("Ctrl+Shift+a");
+    connect(m_deselectAll, &QAction::triggered,
             [this]()
     {
         auto &pres = IDocument::presenterDelegate<BaseElementPresenter>(*currentDocument());
@@ -190,21 +174,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
-                                       deselectAll);
-
-    QAction *elementsToJson = new QAction{tr("Convert selection to JSON"), this};
-    connect(elementsToJson, &QAction::triggered,
-            [this]()
-    {
-        QJsonDocument doc{copySelectedElementsToJson()};
-        auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
-
-        s->show();
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
-                                       ViewMenuElement::Windows,
-                                       elementsToJson);
+                                       m_deselectAll);
 }
 
 template<typename Data>
@@ -352,7 +322,25 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
 {
     QMenu contextMenu {};
     contextMenu.clear();
-    contextMenu.addActions(m_edit->actions());
+
+    contextMenu.addAction(m_selectAll);
+    contextMenu.addAction(m_deselectAll);
+    contextMenu.addSeparator();
+
+    if(focusedScenarioModel())
+    {
+        auto selectedCstr = selectedElements(focusedScenarioModel()->constraints());
+        auto selectedEvt = selectedElements(focusedScenarioModel()->events());
+        auto selectedTn = selectedElements(focusedScenarioModel()->timeNodes());
+
+        if(!selectedCstr.empty() || !selectedEvt.empty() || !selectedTn.empty() )
+        {
+            m_objectAction->fillContextMenu(&contextMenu);
+            contextMenu.addSeparator();
+        }
+    }
+    auto tool = contextMenu.addMenu(tr("Tool"));
+    tool->addActions(m_scenarioToolActionGroup->actions());
 
     contextMenu.exec(pos);
 

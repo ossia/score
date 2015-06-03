@@ -60,13 +60,13 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     // We can add an option in the menu to generate curves from the selected addresses
     // in the current constraint.
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ObjectMenu,
                                        m_curves);
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ObjectMenu,
                                        m_snapshot);
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ObjectMenu,
                                        m_interp);
 
 
@@ -85,7 +85,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
         }
     });
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
                                        play);
 
     QAction* play2 = new QAction {tr("Play (test engine)"), this};
@@ -102,7 +102,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
         m_executor = new Executor(*bem.baseConstraint());
     });
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
                                        play2);
 
 
@@ -118,7 +118,7 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
         }
     });
 
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::EditMenu,
+    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
                                        stop);
 }
 

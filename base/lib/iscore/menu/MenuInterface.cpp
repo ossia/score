@@ -82,6 +82,9 @@ const std::map<ToplevelMenuElement, QString> MenuInterface::m_map
 {
     {ToplevelMenuElement::FileMenu, QObject::tr("File") },
     {ToplevelMenuElement::EditMenu, QObject::tr("Edit") },
+    {ToplevelMenuElement::ObjectMenu, QObject::tr("Object") },
+    {ToplevelMenuElement::PlayMenu, QObject::tr("Play") },
+    {ToplevelMenuElement::ToolMenu, QObject::tr("Tool") },
     {ToplevelMenuElement::ViewMenu, QObject::tr("View") },
     {ToplevelMenuElement::SettingsMenu, QObject::tr("Settings") },
     {ToplevelMenuElement::AboutMenu, QObject::tr("About") }

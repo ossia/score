@@ -8,11 +8,11 @@ class ScenarioModel;
 class ScenarioStateMachine;
 class TemporalScenarioPresenter;
 
-class EditMenuActions;
+class ObjectMenuActions;
 
 class ScenarioControl : public iscore::PluginControlInterface
 {
-    friend class EditMenuActions;
+    friend class ObjectMenuActions;
 
     public:
         ScenarioControl(iscore::Presenter* pres);
@@ -47,9 +47,12 @@ class ScenarioControl : public iscore::PluginControlInterface
         QActionGroup* m_shiftActionGroup{};
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 
-        EditMenuActions* m_edit;
+        ObjectMenuActions* m_objectAction;
 
         QAction* m_selecttool{};
+
+        QAction *m_selectAll{};
+        QAction *m_deselectAll{};
 
         TemporalScenarioPresenter* focusedPresenter() const;
 

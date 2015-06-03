@@ -10,6 +10,9 @@ namespace iscore
     {
         FileMenu,
         EditMenu,
+        ObjectMenu,
+        PlayMenu,
+        ToolMenu,
         ViewMenu,
         SettingsMenu,
         AboutMenu
