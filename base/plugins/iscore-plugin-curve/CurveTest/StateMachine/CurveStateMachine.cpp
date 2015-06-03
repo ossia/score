@@ -1,14 +1,23 @@
 #include "CurveStateMachine.hpp"
+#include "CurveTest/CurveModel.hpp"
 #include "CurveTest/CurvePresenter.hpp"
 #include "CurveTest/CurveView.hpp"
 #include "CurveTest/StateMachine/States/Tools/SelectionTool.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
-
+#include <core/document/Document.hpp>
 CurveStateMachine::CurveStateMachine(
         CurvePresenter& pres,
         QObject* parent):
     BaseStateMachine{*pres.view().scene()},
-    m_presenter{pres}
+    m_presenter{pres},
+    m_stack{
+        iscore::IDocument::documentFromObject(
+            m_presenter.model()) ->commandStack()
+        },
+    m_locker{
+        iscore::IDocument::documentFromObject(
+            m_presenter.model()) ->locker()
+        }
 {
     setupPostEvents();
     setupStates();
@@ -24,6 +33,16 @@ const CurvePresenter& CurveStateMachine::presenter() const
 const CurveModel& CurveStateMachine::model() const
 {
     return *m_presenter.model();
+}
+
+iscore::CommandStack& CurveStateMachine::commandStack() const
+{
+    return m_stack;
+}
+
+iscore::ObjectLocker& CurveStateMachine::locker() const
+{
+    return m_locker;
 }
 
 void CurveStateMachine::setupStates()

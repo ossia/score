@@ -1,7 +1,9 @@
 #pragma once
+#include "CurveTest/StateMachine/CurveStateMachine.hpp"
+
 #include <iscore/statemachine/ToolState.hpp>
 #include <QGraphicsItem>
-#include "CurveTest/StateMachine/CurveStateMachine.hpp"
+class CurveStateMachine;
 class CurveTool : public ToolState
 {
     public:
@@ -49,5 +51,4 @@ class CurveTool : public ToolState
         }
 
         const CurveStateMachine& m_parentSM;
-
 };
