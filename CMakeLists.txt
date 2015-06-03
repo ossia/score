@@ -42,9 +42,11 @@ endif()
 option(USE_COTIRE "Try to reduce build time" OFF)
 
 if(USE_COTIRE)
-	include(cotire)
+    include(cotire)
 endif()
 
+option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)
+option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 
 if(ANDROID)

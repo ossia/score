@@ -269,8 +269,32 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         return 5 + duration / viewWidth;
     };
 
+    auto w = view()->view()->viewport()->width();
+    auto h = view()->view()->viewport()->height();
+
+    QRect viewport_rect = view()->view()->viewport()->rect() ;
+    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+    auto leftT = visible_scene_rect.left() * m_millisecondsPerPixel;
+    auto rightT = visible_scene_rect.right() * m_millisecondsPerPixel;
+    auto center = visible_scene_rect.center().x() * m_millisecondsPerPixel;
+
+    auto y = visible_scene_rect.top();
+
     setMillisPerPixel(mapZoom(1.0 - newzoom, 2., std::max(4., computedMax())));
 
+    qDebug() << m_displayedConstraint->defaultDuration().msec() << rightT;
+    qreal x;
+    if(leftT < 10)
+        x = 0;
+    else if((m_displayedConstraint->defaultDuration().msec() - rightT) < 500)
+        x = m_displayedConstraint->defaultDuration().msec()/m_millisecondsPerPixel - w;
+    else
+        x = center/m_millisecondsPerPixel - w/2;
+
+    auto newView = QRectF{x, y,(qreal)w, (qreal)h};
+
+    view()->view()->ensureVisible(newView,0,0);
     updateGrid();
 }
 

@@ -58,8 +58,8 @@ MinuitProtocolSettingsWidget::setDefaults()
     //TODO: we should use QSettings ?
 
     m_deviceNameEdit->setText("MinuitDevice");
-    m_portInputSBox->setValue(9997);
-    m_portOutputSBox->setValue(9998);
+    m_portInputSBox->setValue(9998);
+    m_portOutputSBox->setValue(13579);
     m_localHostEdit->setText("127.0.0.1");
 }
 

@@ -27,6 +27,12 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     {
         on_boxShown(viewModel(this)->shownBox());
     }
+    ::view(this)->setLabel(cstr_model.model().metadata.label());
+
+    connect(&cstr_model.model().metadata, &ModelMetadata::labelChanged,
+            ::view(this), &TemporalConstraintView::setLabel);
+    connect(&cstr_model.model().metadata,   &ModelMetadata::colorChanged,
+            ::view(this),   &TemporalConstraintView::setLabelColor);
 
     updateHeight();
 }

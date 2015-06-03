@@ -80,7 +80,7 @@ class ModelMetadata : public QObject
     private:
         QString m_scriptingName;
         QString m_comment;
-        QColor m_color {Qt::black};
+        QColor m_color {Qt::gray};
         QString m_label;
 };
 
