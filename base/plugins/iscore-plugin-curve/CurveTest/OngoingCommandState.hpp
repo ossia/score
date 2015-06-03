@@ -18,13 +18,13 @@ class OngoingState : public QState
 
                 // General setup
                 mainState->setInitialState(pressed);
-/*
+
                 make_transition<Move_Transition>(pressed, moving); // Also try with pressed, released
                 make_transition<Release_Transition>(pressed, released);
 
                 make_transition<Move_Transition>(moving, moving);
                 make_transition<Release_Transition>(moving, released);
-*/
+
                 connect(pressed, &QAbstractState::entered,
                         this, [&] () {
                     obj.press();

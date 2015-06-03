@@ -2,6 +2,8 @@
 #include "CurveStateMachineData.hpp"
 #include "CurvePoint.hpp"
 #include <iscore/statemachine/BaseStateMachine.hpp>
+#include <core/command/CommandStack.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
 class CurvePresenter;
 class QGraphicsScene;
 class CurveModel;
@@ -11,6 +13,9 @@ class CurveStateMachine : public BaseStateMachine
         CurveStateMachine(CurvePresenter& pres, QObject* parent);
         const CurvePresenter& presenter() const;
         const CurveModel& model() const;
+
+        iscore::CommandStack& commandStack() const;
+        iscore::ObjectLocker& locker() const;
 
     private:
         void setupPostEvents();
@@ -26,4 +31,7 @@ class CurveStateMachine : public BaseStateMachine
 
         QState* m_createPenTool{};
         QState* m_removePenTool{};
+
+        iscore::CommandStack& m_stack;
+        iscore::ObjectLocker& m_locker;
 };
