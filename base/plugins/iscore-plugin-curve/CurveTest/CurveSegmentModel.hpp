@@ -1,5 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <QPointF>
 
@@ -8,6 +10,9 @@
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 {
         Q_OBJECT
+
+        friend void Visitor<Writer<DataStream>>::writeTo<CurveSegmentModel>(CurveSegmentModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<CurveSegmentModel>(CurveSegmentModel& ev);
     public:
         Selectable selection;
         CurveSegmentModel(

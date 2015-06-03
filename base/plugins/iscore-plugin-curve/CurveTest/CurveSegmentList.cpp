@@ -6,13 +6,16 @@ CurveSegmentFactory*CurveSegmentList::get(const QString& name)
                          [&] (auto&& p) { return p->name() == name; });
 }
 
-void CurveSegmentList::registration(CurveSegmentFactory* fact)
+void CurveSegmentList::registerFactory(CurveSegmentFactory* fact)
 {
     factories.push_back(fact);
 }
 
-CurveSegmentList*CurveSegmentList::instance()
+
+
+// TODO check this on windows. see http://stackoverflow.com/a/7823764/1495627
+CurveSegmentList &SingletonCurveSegmentList::instance()
 {
-    static auto ptr = new ::CurveSegmentList;
-    return ptr;
+    static CurveSegmentList m_instance;
+    return m_instance;
 }

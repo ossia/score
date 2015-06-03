@@ -2,6 +2,7 @@
 #include "CurveTest/CurveModel.hpp"
 #include "CurveTest/CurvePresenter.hpp"
 #include "CurveTest/CurveView.hpp"
+#include "CurveTest/StateMachine/States/Tools/MoveTool.hpp"
 #include "CurveTest/StateMachine/States/Tools/SelectionTool.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
@@ -25,7 +26,7 @@ CurveStateMachine::CurveStateMachine(
     start();
 }
 
-const CurvePresenter& CurveStateMachine::presenter() const
+CurvePresenter& CurveStateMachine::presenter() const
 {
     return m_presenter;
 }
@@ -48,7 +49,8 @@ iscore::ObjectLocker& CurveStateMachine::locker() const
 void CurveStateMachine::setupStates()
 {
     m_selectTool = new Curve::SelectionTool(*this);
-    this->setInitialState(m_selectTool);
+    m_moveTool = new Curve::MoveTool(*this);
+    this->setInitialState(m_moveTool);
 }
 
 void CurveStateMachine::setupPostEvents()

@@ -14,7 +14,6 @@ class CommonSelectionState : public QState
         QState* m_multiSelection{};
         QState* m_waitState{};
 
-
     public:
         iscore::SelectionDispatcher dispatcher;
 

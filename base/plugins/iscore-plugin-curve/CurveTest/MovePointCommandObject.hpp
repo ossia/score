@@ -4,7 +4,6 @@
 
 class MovePointCommandObject : public CurveCommandObjectBase
 {
-        CurvePresenter* m_presenter{};
     public:
         MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);
 

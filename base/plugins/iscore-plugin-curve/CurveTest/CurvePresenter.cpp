@@ -21,7 +21,7 @@ CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
     setupView();
-
+    setupSignals();
     m_sm = new CurveStateMachine(*this, this);
 
 }
@@ -86,6 +86,35 @@ void CurvePresenter::setRect(const QRectF& rect)
         curve_segt->setRect({0., 0., endx - startx, rect.height()});
 
     }
+}
+
+void CurvePresenter::setupSignals()
+{
+    connect(m_model, &CurveModel::pointRemoved, this,
+            [&] (CurvePointModel* m)
+    {
+        auto it = std::find_if(
+                    m_points.begin(),
+                    m_points.end(),
+                    [&] (CurvePointView* pt) { return &pt->model() == m; });
+        auto val = *it;
+
+        m_points.removeOne(val);
+        delete val;
+    });
+    connect(m_model, &CurveModel::segmentRemoved, this,
+            [&] (CurveSegmentModel* m)
+
+    {
+        auto it = std::find_if(
+                    m_segments.begin(),
+                    m_segments.end(),
+                    [&] (CurveSegmentView* segment) { return &segment->model() == m; });
+        auto val = *it;
+
+        m_segments.removeOne(val);
+        delete val;
+    });
 }
 
 void CurvePresenter::setupView()

@@ -20,6 +20,14 @@ class CurveView : public QGraphicsObject
 
         void escPressed();
 
+    protected:
+        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+
     private:
         QRectF m_rect; // The rect in which the whole curve must fit.
         QRectF m_selectArea;

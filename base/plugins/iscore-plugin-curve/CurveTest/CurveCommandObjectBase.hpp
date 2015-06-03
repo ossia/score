@@ -31,9 +31,8 @@ class CurveCommandObjectBase
     protected:
         virtual void on_press() = 0;
 
-        QVector<CurveSegmentModel*> m_originalSegments;
+        QVector<QByteArray> m_oldCurveData;
         QPointF m_originalPress; // Note : there should be only one per curve...
 
-    private:
         CurvePresenter* m_presenter{};
 };

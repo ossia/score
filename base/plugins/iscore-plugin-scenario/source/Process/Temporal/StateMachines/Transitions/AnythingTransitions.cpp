@@ -13,7 +13,7 @@ bool MoveOnAnything_Transition::eventTest(QEvent *e)
 
 void MoveOnAnything_Transition::onTransition(QEvent *event)
 {
-    auto qev = static_cast<PositionedScenarioEventBase*>(event);
+    auto qev = static_cast<PositionedEvent<ScenarioPoint>*>(event);
 
     this->state().currentPoint = qev->point;
 }

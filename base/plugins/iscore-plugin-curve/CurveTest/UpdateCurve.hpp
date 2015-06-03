@@ -7,12 +7,12 @@ class UpdateCurve : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("UpdateCurve", "UpdateCurve")
     public:
-        UpdateCurve(ObjectPath&& model, QVector<CurveSegmentModel*> segments);
+        UpdateCurve(ObjectPath&& model, QVector<QByteArray>&& segments);
 
         void undo() override;
         void redo() override;
 
-        void update(ObjectPath&& model, QVector<CurveSegmentModel*> segments);
+        void update(ObjectPath&& model, QVector<QByteArray>&&  segments);
 
     protected:
         void serializeImpl(QDataStream & s) const override;

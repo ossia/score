@@ -26,16 +26,12 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(CurveSegmentModel& segmt)
 {
-    id_type<CurveSegmentModel> prev, fol;
-    QPointF start, end;
-    m_stream >> prev >> fol
-             >> start >> end;
+    m_stream >> segmt.m_previous >> segmt.m_following
+             >> segmt.m_start >> segmt.m_end;
 
-    segmt.setPrevious(prev);
-    segmt.setFollowing(fol);
-
-    segmt.setStart(start);
-    segmt.setEnd(end);
+    // Note : don't call setStart/setEnd here since they
+    // call virtual methods and this may be called from
+    // CurveSegmentModel's constructor.
 }
 
 template<>
@@ -58,8 +54,9 @@ CurveSegmentModel*createCurveSegment(Deserializer<DataStream>& deserializer, QOb
     QString name;
     deserializer.m_stream >> name;
 
-    auto model = CurveSegmentList::instance()
-                 ->get(name)
+    auto& instance = SingletonCurveSegmentList::instance();
+    auto fact = instance.get(name);
+    auto model = fact
                  ->load(deserializer.toVariant(), parent);
 
     deserializer.checkDelimiter();

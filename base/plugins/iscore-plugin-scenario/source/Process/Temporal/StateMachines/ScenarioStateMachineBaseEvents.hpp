@@ -9,9 +9,12 @@ class EventModel;
 class ConstraintModel;
 class DeckModel;
 
-struct PositionedScenarioEventBase : public QEvent
+template<>
+struct PositionedEvent<ScenarioPoint> : public QEvent
 {
-        PositionedScenarioEventBase(const ScenarioPoint& pt, QEvent::Type type):
+        PositionedEvent(
+                const ScenarioPoint& pt,
+                QEvent::Type type):
             QEvent{type},
             point(pt)
         {
@@ -26,12 +29,12 @@ struct PositionedScenarioEventBase : public QEvent
 // We avoid virtual inheritance (with Numbered event);
 // this replicates a tiny bit of code.
 template<int N>
-struct PositionedScenarioEvent : public PositionedScenarioEventBase
+struct PositionedScenarioEvent : public PositionedEvent<ScenarioPoint>
 {
         static constexpr const int user_type = N;
         PositionedScenarioEvent(
                 const ScenarioPoint& pt):
-            PositionedScenarioEventBase{pt, QEvent::Type(QEvent::User + N)}
+            PositionedEvent<ScenarioPoint>{pt, QEvent::Type(QEvent::User + N)}
         {
         }
 };
@@ -57,28 +60,28 @@ enum ScenarioElement {
     Nothing, TimeNode, Event, Constraint, DeckOverlay_e, DeckHandle_e
 };
 
-using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Click>;
-using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Click>;
-using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Click>;
-using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Click>;
+using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Click>;
+using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Click>;
+using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Click>;
+using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Click>;
 
-using ClickOnDeckOverlay_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Click>;
-using ClickOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Click>;
-
-
-using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Move>;
-using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Move>;
-using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Move>;
-using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Move>;
-
-using MoveOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Move>;
-using MoveOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Move>;
+using ClickOnDeckOverlay_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Click>;
+using ClickOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Click>;
 
 
-using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Release>;
-using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Release>;
-using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Release>;
-using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Release>;
+using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Move>;
+using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Move>;
+using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Move>;
+using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Move>;
 
-using ReleaseOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier::Release>;
-using ReleaseOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier::Release>;
+using MoveOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Move>;
+using MoveOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Move>;
+
+
+using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Release>;
+using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Release>;
+using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Release>;
+using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Release>;
+
+using ReleaseOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Release>;
+using ReleaseOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Release>;

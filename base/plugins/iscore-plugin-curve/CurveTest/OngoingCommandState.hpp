@@ -2,28 +2,38 @@
 #include <QState>
 #include <QFinalState>
 #include <iscore/statemachine/StateMachineUtils.hpp>
+#include "CurveTest/StateMachine/CurveStateMachineBaseTransitions.hpp"
+#include "CurveTest/StateMachine/CurvePoint.hpp"
+
 
 // TODO rename file
-class OngoingState : public QState
+template<typename Element>
+class OngoingState : public Curve::StateBase
 {
     public:
         template<typename CommandObject>
         OngoingState(CommandObject& obj, QState* parent)
         {
-            QState* mainState = new QState{this};
+            using namespace Curve;
+            auto mainState = new QState{this};
+            setInitialState(mainState);
             {
                 auto pressed = new QState{mainState};
+                pressed->setObjectName("Pressed");
                 auto moving = new QState{mainState};
+                moving->setObjectName("Moving");
                 auto released = new QFinalState{mainState};
+                released->setObjectName("Released");
 
                 // General setup
                 mainState->setInitialState(pressed);
 
-                make_transition<Move_Transition>(pressed, moving); // Also try with pressed, released
-                make_transition<Release_Transition>(pressed, released);
+                // Also try with pressed, released
+                make_transition<PositionedCurveTransition<Element, Modifier::Move_tag>>(pressed, moving, *this);
+                make_transition<PositionedCurveTransition<Element, Modifier::Release_tag>>(pressed, released, *this);
 
-                make_transition<Move_Transition>(moving, moving);
-                make_transition<Release_Transition>(moving, released);
+                make_transition<PositionedCurveTransition<Element, Modifier::Move_tag>>(moving, moving, *this);
+                make_transition<PositionedCurveTransition<Element, Modifier::Release_tag>>(moving, released, *this);
 
                 connect(pressed, &QAbstractState::entered,
                         this, [&] () {
@@ -50,6 +60,5 @@ class OngoingState : public QState
                 obj.cancel();
             });
 
-            setInitialState(mainState);
         }
 };

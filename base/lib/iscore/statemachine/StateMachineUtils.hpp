@@ -25,6 +25,21 @@ struct NumberedWithPath_Event : public NumberedEvent<N>
         ObjectPath path;
 };
 
+template<typename PointType>
+struct PositionedEvent : public QEvent
+{
+        PositionedEvent(
+                const PointType& pt,
+                QEvent::Type type):
+            QEvent{type},
+            point{pt}
+        {
+
+        }
+
+        PointType point;
+};
+
 template<typename Event>
 class MatchedTransition : public QAbstractTransition
 {
@@ -60,7 +75,12 @@ Transition* make_transition(SourceState source, TargetState dest, Args&&... args
     return t;
 }
 
-enum Modifier
+namespace Modifier {
+    struct Click_tag{ static constexpr const int value = 100; };
+    struct Move_tag  { static constexpr const int value = 200; };
+    struct Release_tag{ static constexpr const int value = 300; };
+}
+enum Modifier_tagme
 { Click = 100, Move = 200, Release = 300 };
 
 using Press_Event = NumberedEvent<1>;

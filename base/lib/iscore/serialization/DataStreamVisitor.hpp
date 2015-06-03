@@ -138,13 +138,12 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
             }
         }
 
-
-
         QDataStream m_stream;
 };
 
 
-template<typename T>
+template<typename T,
+         typename std::enable_if<not std::is_arithmetic<T>::value>::type* = nullptr>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
     Visitor<Reader<DataStream>> reader(stream.device());
@@ -152,7 +151,8 @@ QDataStream& operator<< (QDataStream& stream, const T& obj)
     return stream;
 }
 
-template<typename T>
+template<typename T,
+         typename std::enable_if<not std::is_arithmetic<T>::value>::type* = nullptr>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
     Visitor<Writer<DataStream>> writer(stream.device());

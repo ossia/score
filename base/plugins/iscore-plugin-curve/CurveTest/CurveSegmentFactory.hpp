@@ -2,10 +2,11 @@
 #include <QString>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class CurveSegmentModel;
 
-class CurveSegmentFactory
+class CurveSegmentFactory : public iscore::FactoryInterface
 {
     public:
         virtual QString name() const = 0;

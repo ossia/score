@@ -17,3 +17,33 @@ class LinearCurveSegmentFactory : public CurveSegmentFactory
                 const VisitorVariant& vis,
                 QObject* parent) override;
 };
+
+class GammaCurveSegmentFactory : public CurveSegmentFactory
+{
+        // CurveSegmentFactory interface
+    public:
+        QString name() const;
+
+        CurveSegmentModel *make(
+                const id_type<CurveSegmentModel>& id,
+                QObject* parent) override;
+
+        CurveSegmentModel *load(
+                const VisitorVariant& vis,
+                QObject* parent) override;
+};
+
+class SinCurveSegmentFactory : public CurveSegmentFactory
+{
+        // CurveSegmentFactory interface
+    public:
+        QString name() const;
+
+        CurveSegmentModel *make(
+                const id_type<CurveSegmentModel>& id,
+                QObject* parent) override;
+
+        CurveSegmentModel *load(
+                const VisitorVariant& vis,
+                QObject* parent) override;
+};

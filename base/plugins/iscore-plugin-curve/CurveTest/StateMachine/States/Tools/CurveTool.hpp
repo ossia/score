@@ -27,7 +27,7 @@ class CurveTool : public ToolState
 
             // Additionnal check because here the items aren't defined by
             // their boundingRect() but their shape().
-            if(pressedItem->contains(m_parentSM.scenePoint))
+            if(pressedItem->contains(pressedItem->mapFromScene(m_parentSM.scenePoint)))
             {
                 switch(pressedItem->type())
                 {

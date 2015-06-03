@@ -6,12 +6,10 @@
 #include "Commands/ChangeAddress.hpp"
 #include "Commands/SetCurveMin.hpp"
 #include "Commands/SetCurveMax.hpp"
-
 AutomationControl::AutomationControl(
         iscore::Presenter* pres) :
     PluginControlInterface {pres, "AutomationControl", nullptr}
 {
-
 }
 
 
@@ -55,5 +53,4 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
 
     cmd->deserialize(data);
     return cmd;
-
 }

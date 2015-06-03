@@ -51,6 +51,12 @@ class SelectionState : public CommonSelectionState
         void on_pressAreaSelection() override
         {
             m_initialPoint = m_parentSM.scenePoint;
+
+            auto item = m_parentSM.scene().itemAt(m_parentSM.scenePoint, QTransform());
+            if(!item)
+                return;
+
+            setSelection(item);
         }
 
         void on_moveAreaSelection() override
@@ -82,6 +88,29 @@ class SelectionState : public CommonSelectionState
         }
 
     private:
+        void setSelection(QGraphicsItem* item)
+        {
+            Selection sel;
+            switch(item->type())
+            {
+                case QGraphicsItem::UserType + 10:
+                    sel = filterSelections(&static_cast<CurvePointView*>(item)->model(),
+                                           m_parentSM.model().selectedChildren(),
+                                           multiSelection());
+                    break;
+                case QGraphicsItem::UserType + 11:
+                    sel = filterSelections(&static_cast<CurveSegmentView*>(item)->model(),
+                                           m_parentSM.model().selectedChildren(),
+                                           multiSelection());
+                    break;
+                default:
+                    // deselect ?
+                    break;
+            }
+
+            dispatcher.setAndCommit(sel);
+        }
+
         void setSelectionArea(const QRectF& area)
         {
             using namespace std;
@@ -129,26 +158,7 @@ SelectionTool::SelectionTool(CurveStateMachine& sm):
 void SelectionTool::on_pressed()
 {
     using namespace std;
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-               [&] (const QGraphicsItem* point)
-    {
-        m_state->dispatcher.setAndCommit(
-                    filterSelections(
-                        &static_cast<const CurvePointView*>(point)->model(),
-                        m_parentSM.model().selectedChildren(),
-                        m_state->multiSelection()));
-    },
-    [&] (const QGraphicsItem* segment)
-    {
-        m_state->dispatcher.setAndCommit(
-                    filterSelections(
-                        &static_cast<const CurveSegmentView*>(segment)->model(),
-                        m_parentSM.model().selectedChildren(),
-                        m_state->multiSelection()));
-    },
-    [&] () {
-        localSM().postEvent(new Press_Event);
-    });
+    localSM().postEvent(new Press_Event);
 }
 
 void SelectionTool::on_moved()

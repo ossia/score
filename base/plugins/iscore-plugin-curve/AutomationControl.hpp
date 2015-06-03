@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include "ProcessInterface/ProcessList.hpp"
 
+class CurveSegmentList;
 class AutomationControl : public iscore::PluginControlInterface
 {
     public:

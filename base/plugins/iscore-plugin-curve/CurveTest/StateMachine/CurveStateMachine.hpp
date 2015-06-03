@@ -11,17 +11,18 @@ class CurveStateMachine : public BaseStateMachine
 {
     public:
         CurveStateMachine(CurvePresenter& pres, QObject* parent);
-        const CurvePresenter& presenter() const;
+        CurvePresenter& presenter() const;
         const CurveModel& model() const;
 
         iscore::CommandStack& commandStack() const;
         iscore::ObjectLocker& locker() const;
 
+        CurvePoint curvePoint;
+
     private:
         void setupPostEvents();
         void setupStates();
         CurvePresenter& m_presenter;
-        CurvePoint curvePoint;
 
         // Tools
         QState* m_selectTool{};

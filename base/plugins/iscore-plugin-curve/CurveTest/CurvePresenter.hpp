@@ -30,6 +30,7 @@ class CurvePresenter : public QObject
         void setRect(const QRectF& rect);
 
     private:
+        void setupSignals();
         void setupView();
         void setupStateMachine();
         QStateMachine* m_sm{};

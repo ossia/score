@@ -51,7 +51,6 @@ class GammaCurveSegmentModel : public CurveSegmentModel
 
         virtual QVector<QPointF> data(int numInterp) const override;
 
-    private:
         double gamma = 0.5;
 };
 
@@ -79,7 +78,6 @@ class SinCurveSegmentModel : public CurveSegmentModel
 
         virtual QVector<QPointF> data(int numInterp) const override;
 
-    private:
         double freq = 5;
         double ampl = 0.6;
 };

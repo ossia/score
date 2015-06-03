@@ -2,16 +2,23 @@
 #include "CurveSegmentFactory.hpp"
 
 // Template this
+class AutomationControl;
 class CurveSegmentList
 {
     public:
+        CurveSegmentList() = default;
+        CurveSegmentList(const CurveSegmentList&) = delete;
         CurveSegmentFactory* get(const QString& name);
-
-        void registration(CurveSegmentFactory* fact);
-
-        static CurveSegmentList* instance();
+        void registerFactory(CurveSegmentFactory* fact);
 
     private:
-        CurveSegmentList() = default;
         QVector<CurveSegmentFactory*> factories;
+};
+
+
+class SingletonCurveSegmentList
+{
+    public:
+        SingletonCurveSegmentList() = delete;
+        static CurveSegmentList& instance();
 };
