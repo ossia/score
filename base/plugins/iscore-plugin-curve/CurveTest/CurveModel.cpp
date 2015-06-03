@@ -11,6 +11,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 {
     m->setParent(this);
     m_segments.append(m);
+
     emit segmentAdded(m);
 
     // Add points if necessary

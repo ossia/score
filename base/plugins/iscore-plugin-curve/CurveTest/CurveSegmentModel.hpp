@@ -3,7 +3,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <QPointF>
+#include "StateMachine/CurvePoint.hpp"
 
 
 // Gives the data.
@@ -36,11 +36,11 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual QVector<QPointF> data(int numInterp) const = 0; // Will interpolate
 
 
-        QPointF start() const;
-        void setStart(const QPointF& pt);
+        CurvePoint start() const;
+        void setStart(const CurvePoint& pt);
 
-        QPointF end() const;
-        void setEnd(const QPointF& pt);
+        CurvePoint end() const;
+        void setEnd(const CurvePoint& pt);
 
         const id_type<CurveSegmentModel>& previous() const;
         void setPrevious(const id_type<CurveSegmentModel>& previous);
@@ -59,6 +59,6 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual void on_endChanged() = 0;
 
     private:
-        QPointF m_start, m_end;
+        CurvePoint m_start, m_end;
         id_type<CurveSegmentModel> m_previous, m_following;
 };

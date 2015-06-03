@@ -15,7 +15,12 @@ class OngoingState : public Curve::StateBase
         OngoingState(CommandObject& obj, QState* parent)
         {
             using namespace Curve;
+
+            obj.setCurveState(this);
+
             auto mainState = new QState{this};
+            auto finalState = new QFinalState{this};
+
             setInitialState(mainState);
             {
                 auto pressed = new QState{mainState};
@@ -49,9 +54,9 @@ class OngoingState : public Curve::StateBase
                 });
             }
 
-            auto cancelled = new QState{this};
-            auto finalState = new QFinalState{this};
+            mainState->addTransition(mainState, SIGNAL(finished()), finalState);
 
+            auto cancelled = new QState{this};
             make_transition<Cancel_Transition>(mainState, cancelled);
             cancelled->addTransition(finalState);
 

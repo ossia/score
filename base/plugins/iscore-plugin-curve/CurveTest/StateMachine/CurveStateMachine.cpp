@@ -58,7 +58,7 @@ void CurveStateMachine::setupPostEvents()
     auto QPointFToCurvePoint = [&] (const QPointF& point) -> CurvePoint
     {
         return {point.x() / m_presenter.view().boundingRect().width(),
-                point.y() / m_presenter.view().boundingRect().height()};
+                1. - point.y() / m_presenter.view().boundingRect().height()};
     };
 
     auto updateData = [=] (const QPointF& point)

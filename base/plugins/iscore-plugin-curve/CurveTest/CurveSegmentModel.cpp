@@ -35,23 +35,23 @@ void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following
     }
 }
 
-QPointF CurveSegmentModel::end() const
+CurvePoint CurveSegmentModel::end() const
 {
     return m_end;
 }
 
-void CurveSegmentModel::setEnd(const QPointF& pt)
+void CurveSegmentModel::setEnd(const CurvePoint& pt)
 {
     m_end = pt;
     on_endChanged();
 }
 
-QPointF CurveSegmentModel::start() const
+CurvePoint CurveSegmentModel::start() const
 {
     return m_start;
 }
 
-void CurveSegmentModel::setStart(const QPointF& pt)
+void CurveSegmentModel::setStart(const CurvePoint& pt)
 {
     m_start = pt;
     on_startChanged();

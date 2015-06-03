@@ -11,6 +11,7 @@ using namespace Curve;
 MoveTool::MoveTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
+    localSM().setObjectName("MoveToolStateMachine");
     m_waitState = new QState;
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
@@ -19,6 +20,7 @@ MoveTool::MoveTool(CurveStateMachine& sm):
     {
         auto mpco = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
         auto movePoint = new OngoingState<Curve::Element::Point_tag>(*mpco, &localSM());
+        movePoint->setObjectName("MovePointState");
         make_transition<ClickOnPoint_Transition>(m_waitState, movePoint, *movePoint);
         movePoint->addTransition(movePoint, SIGNAL(finished()), m_waitState);
 
@@ -78,7 +80,7 @@ void MoveTool::on_moved()
     [&] ()
     {
         qDebug() << Q_FUNC_INFO << 3;
-        //localSM().postEvent(new Move_Event(m_parentSM.scenePoint));
+        localSM().postEvent(new MoveOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <QVector>
 #include <QPointF>
+#include "CurveTest/StateMachine/CurveStateMachineBaseStates.hpp"
 class CurvePresenter;
 
 
@@ -26,6 +27,8 @@ class CurveCommandObjectBase
 {
     public:
         CurveCommandObjectBase(CurvePresenter* pres);
+
+        void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
         void press();
 
     protected:
@@ -35,4 +38,6 @@ class CurveCommandObjectBase
         QPointF m_originalPress; // Note : there should be only one per curve...
 
         CurvePresenter* m_presenter{};
+
+        Curve::StateBase* m_state{};
 };
